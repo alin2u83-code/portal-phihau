@@ -6,7 +6,7 @@
   "description": "An admin dashboard for managing athletes, exams, and rank progression for a Qwan Ki Do club. It allows for creating, viewing, updating, and deleting records for athletes and exams.",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {

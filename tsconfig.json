@@ -1,23 +1,56 @@
 {
   "compilerOptions": {
+
     "target": "ES2022",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+
+    "experimentalDecorators": true,
+
+    "useDefineForClassFields": false,
+
     "module": "ESNext",
+
+    "lib": [
+
+      "ES2022",
+
+      "DOM",
+
+      "DOM.Iterable"
+
+    ],
+
     "skipLibCheck": true,
-    "moduleResolution": "node",
-    "allowImportingTsExtensions": true,
-    "resolveJsonModule": true,
+
+    "types": [
+
+      "node"
+
+    ],
+
+    "moduleResolution": "bundler",
+
     "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "react-jsx",
-    "strict": false,
+
+    "moduleDetection": "force",
+
     "allowJs": true,
-    "forceConsistentCasingInFileNames": true,
-    "baseUrl": ".",
+
+    "jsx": "react-jsx",
+
     "paths": {
-      "@/*": ["./src/*"]
+
+      "@/*": [
+
+        "./*"
+
+      ]
+
     },
-    "types": ["node"]
-  },
-  "include": ["src"]
+
+    "allowImportingTsExtensions": true,
+
+    "noEmit": true
+
+  }
+
 }

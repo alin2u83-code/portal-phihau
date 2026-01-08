@@ -7,11 +7,33 @@ import { getPretValabil } from '../utils/pricing';
 
 interface EvenimentFormProps { isOpen: boolean; onClose: () => void; onSave: (ev: Eveniment) => void; evToEdit: Eveniment | null; type: 'Stagiu' | 'Competitie'; }
 const EvenimentForm: React.FC<EvenimentFormProps> = ({ isOpen, onClose, onSave, evToEdit, type }) => {
-    const [formState, setFormState] = useState<Omit<Eveniment, 'id'>>({ denumire: '', data: new Date().toISOString().split('T')[0], locatie: '', organizator: '', tip: type });
-    React.useEffect(() => { if (evToEdit) { setFormState(evToEdit); } else { setFormState({ denumire: '', data: new Date().toISOString().split('T')[0], locatie: '', organizator: '', tip: type }); } }, [evToEdit, isOpen, type]);
+    const [formState, setFormState] = useState<Omit<Eveniment, 'id' | 'probeDisponibile'>>({ denumire: '', data: new Date().toISOString().split('T')[0], locatie: '', organizator: '', tip: type });
+    const [probeStr, setProbeStr] = useState('');
+    
+    React.useEffect(() => {
+        if (evToEdit) {
+            setFormState({ denumire: evToEdit.denumire, data: evToEdit.data, locatie: evToEdit.locatie, organizator: evToEdit.organizator, tip: evToEdit.tip });
+            setProbeStr(evToEdit.probeDisponibile?.join(', ') || '');
+        } else {
+            setFormState({ denumire: '', data: new Date().toISOString().split('T')[0], locatie: '', organizator: '', tip: type });
+            setProbeStr('');
+        }
+    }, [evToEdit, isOpen, type]);
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement|HTMLSelectElement>) => setFormState(p => ({ ...p, [e.target.name]: e.target.value }));
-    const handleSubmit = (e: React.FormEvent) => { e.preventDefault(); onSave({ id: evToEdit?.id || new Date().toISOString(), ...formState }); onClose(); };
-    return ( <Modal isOpen={isOpen} onClose={onClose} title={evToEdit ? `Editează ${type}` : `Adaugă ${type} Nou`}> <form onSubmit={handleSubmit} className="space-y-4"> <Input label="Denumire" name="denumire" value={formState.denumire} onChange={handleChange} required /> <Input label="Data" name="data" type="date" value={formState.data} onChange={handleChange} required /> <Input label="Locație" name="locatie" value={formState.locatie} onChange={handleChange} /> <Input label="Organizator" name="organizator" value={formState.organizator} onChange={handleChange} /> <div className="flex justify-end pt-4 space-x-2"><Button type="button" variant="secondary" onClick={onClose}>Anulează</Button><Button variant="success" type="submit">Salvează</Button></div> </form> </Modal> );
+    
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        const finalEvent: Eveniment = {
+            id: evToEdit?.id || new Date().toISOString(),
+            ...formState,
+            ...(type === 'Competitie' && { probeDisponibile: probeStr.split(',').map(p => p.trim()).filter(Boolean) })
+        };
+        onSave(finalEvent);
+        onClose();
+    };
+
+    return ( <Modal isOpen={isOpen} onClose={onClose} title={evToEdit ? `Editează ${type}` : `Adaugă ${type} Nou`}> <form onSubmit={handleSubmit} className="space-y-4"> <Input label="Denumire" name="denumire" value={formState.denumire} onChange={handleChange} required /> <Input label="Data" name="data" type="date" value={formState.data} onChange={handleChange} required /> <Input label="Locație" name="locatie" value={formState.locatie} onChange={handleChange} /> <Input label="Organizator" name="organizator" value={formState.organizator} onChange={handleChange} /> {type === 'Competitie' && ( <Input label="Probe Competiție (separate prin virgulă)" name="probe" value={probeStr} onChange={(e) => setProbeStr(e.target.value)} placeholder="Ex: Quyen, Song Dau, Arme" /> )} <div className="flex justify-end pt-4 space-x-2"><Button type="button" variant="secondary" onClick={onClose}>Anulează</Button><Button variant="success" type="submit">Salvează</Button></div> </form> </Modal> );
 };
 
 interface EvenimentDetailProps { eveniment: Eveniment; rezultate: Rezultat[]; setRezultate: React.Dispatch<React.SetStateAction<Rezultat[]>>; sportivi: Sportiv[]; setPlati: React.Dispatch<React.SetStateAction<Plata[]>>; preturiConfig: PretConfig[]; }
@@ -42,7 +64,20 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment, rezultate,
     const handleUpdateRezultat = (rezultatId: string, field: 'rezultat' | 'probe', value: string) => { setRezultate(prev => prev.map(r => r.id === rezultatId ? { ...r, [field]: value } : r)); };
     const handleDeleteRezultat = (rezultatId: string) => { setRezultate(prev => prev.filter(r => r.id !== rezultatId)); };
     
-    return ( <Card> <h3 className="text-2xl font-bold text-white">{eveniment.denumire} - {new Date(eveniment.data).toLocaleDateString('ro-RO')}</h3> <p className="text-slate-400">{eveniment.locatie} (Org: {eveniment.organizator})</p> <div className="mt-6 border-t border-slate-700 pt-6"> <h4 className="text-xl font-semibold mb-4 text-white">Participanți & Rezultate</h4> <div className="space-y-2 mb-6">{rezultate.map(r => { const sportiv = sportivi.find(s => s.id === r.sportivId); return ( <div key={r.id} className="bg-slate-700 p-3 rounded-md grid grid-cols-1 md:grid-cols-4 gap-4 items-center"> <p className="font-medium">{sportiv?.nume} {sportiv?.prenume}</p> <Input label="" value={r.rezultat} onChange={e => handleUpdateRezultat(r.id, 'rezultat', e.target.value)} placeholder="Ex: Locul 1, Medalie de aur" /> {eveniment.tip === 'Competitie' && <Input label="" value={r.probe || ''} onChange={e => handleUpdateRezultat(r.id, 'probe', e.target.value)} placeholder="Probe: Quyen, Song Dau..." />} <Button onClick={() => handleDeleteRezultat(r.id)} variant="danger" size="sm" className="justify-self-end md:col-start-4"><TrashIcon /></Button> </div> ) })} {rezultate.length === 0 && <p className="text-slate-400">Niciun participant înscris.</p>} </div> <Card className="bg-slate-900/50"> <h5 className="text-lg font-semibold mb-2 text-white">Adaugă Participant</h5> <form onSubmit={handleAddParticipant} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end"> <div className="col-span-2"> <Select label="Sportiv" value={sportivId} onChange={e => setSportivId(e.target.value)}> <option value="">Selectează Sportiv</option> {sportivi.filter(s => s.status === 'Activ' && !rezultate.some(p => p.sportivId === s.id)).map(s => ( <option key={s.id} value={s.id}>{s.nume} {s.prenume}</option> ))} </Select> </div> <Button type="submit" variant="info">Adaugă</Button> </form> {showSuccess && <p className="text-green-400 mt-2 text-sm font-semibold">{showSuccess}</p>} </Card> </div> </Card> );
+    const handleProbeChange = (rezultatId: string, proba: string, isChecked: boolean) => {
+        setRezultate(prev => prev.map(r => {
+            if (r.id === rezultatId) {
+                const currentProbes = r.probe ? r.probe.split(',').map(p => p.trim()).filter(Boolean) : [];
+                const newProbes = isChecked
+                    ? [...new Set([...currentProbes, proba])]
+                    : currentProbes.filter(p => p !== proba);
+                return { ...r, probe: newProbes.join(', ') };
+            }
+            return r;
+        }));
+    };
+
+    return ( <Card> <h3 className="text-2xl font-bold text-white">{eveniment.denumire} - {new Date(eveniment.data).toLocaleDateString('ro-RO')}</h3> <p className="text-slate-400">{eveniment.locatie} (Org: {eveniment.organizator})</p> <div className="mt-6 border-t border-slate-700 pt-6"> <h4 className="text-xl font-semibold mb-4 text-white">Participanți & Rezultate</h4> <div className="space-y-2 mb-6">{rezultate.map(r => { const sportiv = sportivi.find(s => s.id === r.sportivId); return ( <div key={r.id} className="bg-slate-700 p-3 rounded-md grid grid-cols-1 md:grid-cols-4 gap-4 items-center"> <p className="font-medium">{sportiv?.nume} {sportiv?.prenume}</p> <Input label="" value={r.rezultat} onChange={e => handleUpdateRezultat(r.id, 'rezultat', e.target.value)} placeholder="Ex: Locul 1, Medalie de aur" /> {eveniment.tip === 'Competitie' ? ( <div className="flex flex-wrap items-center gap-x-4 gap-y-2"> {eveniment.probeDisponibile && eveniment.probeDisponibile.length > 0 ? ( eveniment.probeDisponibile.map(proba => ( <label key={proba} className="flex items-center space-x-2 text-sm cursor-pointer"> <input type="checkbox" className="h-4 w-4 rounded border-slate-500 bg-slate-800 text-primary-600 focus:ring-primary-500" checked={r.probe?.includes(proba) || false} onChange={(e) => handleProbeChange(r.id, proba, e.target.checked)} /> <span>{proba}</span> </label> )) ) : ( <p className="text-xs text-slate-400">Nicio probă definită.</p> )} </div> ) : null} <Button onClick={() => handleDeleteRezultat(r.id)} variant="danger" size="sm" className="justify-self-end md:col-start-4"><TrashIcon /></Button> </div> ) })} {rezultate.length === 0 && <p className="text-slate-400">Niciun participant înscris.</p>} </div> <Card className="bg-slate-900/50"> <h5 className="text-lg font-semibold mb-2 text-white">Adaugă Participant</h5> <form onSubmit={handleAddParticipant} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end"> <div className="col-span-2"> <Select label="Sportiv" value={sportivId} onChange={e => setSportivId(e.target.value)}> <option value="">Selectează Sportiv</option> {sportivi.filter(s => s.status === 'Activ' && !rezultate.some(p => p.sportivId === s.id)).map(s => ( <option key={s.id} value={s.id}>{s.nume} {s.prenume}</option> ))} </Select> </div> <Button type="submit" variant="info">Adaugă</Button> </form> {showSuccess && <p className="text-green-400 mt-2 text-sm font-semibold">{showSuccess}</p>} </Card> </div> </Card> );
 };
 
 interface StagiiCompetitiiProps { onBack: () => void; type: 'Stagiu' | 'Competitie'; evenimente: Eveniment[]; setEvenimente: React.Dispatch<React.SetStateAction<Eveniment[]>>; rezultate: Rezultat[]; setRezultate: React.Dispatch<React.SetStateAction<Rezultat[]>>; sportivi: Sportiv[]; setPlati: React.Dispatch<React.SetStateAction<Plata[]>>; preturiConfig: PretConfig[]; }

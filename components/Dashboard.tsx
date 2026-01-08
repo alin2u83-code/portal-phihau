@@ -2,7 +2,7 @@
 import React from 'react';
 import { View } from '../types';
 import { Card } from './ui';
-import { UsersIcon, BanknotesIcon, TrophyIcon, ClipboardDocumentListIcon, AcademicCapIcon } from './icons';
+import { UsersIcon, BanknotesIcon, TrophyIcon, ClipboardDocumentListIcon, AcademicCapIcon, CogIcon } from './icons';
 import { MenuKey } from '../App';
 
 interface DashboardProps {
@@ -66,6 +66,14 @@ const navItems: NavItem[] = [
     description: 'Definește competiții și înregistrează probe.',
     icon: TrophyIcon,
     color: 'bg-purple-600'
+  },
+  {
+    menu: 'setari',
+    view: 'user-management',
+    title: 'Setări & Acces',
+    description: 'Gestionează utilizatorii și parolele de acces.',
+    icon: CogIcon,
+    color: 'bg-slate-600'
   },
 ];
 

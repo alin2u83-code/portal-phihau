@@ -1,24 +1,31 @@
 
 import React, { useState } from 'react';
-import { User } from '../types';
+import { supabase } from '../supabaseClient';
 import { Button, Card, Input } from './ui';
 
-interface LoginProps {
-    onLogin: (email: string, parola: string) => User | null;
-}
+interface LoginProps {}
 
-export const Login: React.FC<LoginProps> = ({ onLogin }) => {
+export const Login: React.FC<LoginProps> = () => {
     const [email, setEmail] = useState('');
     const [parola, setParola] = useState('');
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
-        const user = onLogin(email, parola);
-        if (!user) {
+        setLoading(true);
+
+        const { error } = await supabase.auth.signInWithPassword({
+            email: email,
+            password: parola,
+        });
+
+        if (error) {
             setError('Email sau parolă incorectă. Vă rugăm să reîncercați.');
-        }
+        } 
+        // Nu este nevoie de else, onAuthStateChange din App.tsx va prelua controlul
+        setLoading(false);
     };
 
     return (
@@ -55,8 +62,8 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
                             <p className="text-sm text-red-400 bg-red-800/50 p-3 rounded-md text-center">{error}</p>
                         )}
                         
-                        <Button type="submit" className="w-full" size="md">
-                            Autentificare
+                        <Button type="submit" className="w-full" size="md" disabled={loading}>
+                            {loading ? 'Se autentifică...' : 'Autentificare'}
                         </Button>
                     </form>
                 </Card>

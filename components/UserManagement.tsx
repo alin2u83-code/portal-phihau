@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Sportiv, User } from '../types';
 import { Button, Input, Card, Select } from './ui';
 import { ArrowLeftIcon, EditIcon, ShieldCheckIcon } from './icons';
+import { supabase } from '../supabaseClient';
 
 // Componenta pentru editarea profilului personal
 const MyProfile: React.FC<{ user: User; setSportivi: React.Dispatch<React.SetStateAction<Sportiv[]>>; setCurrentUser: React.Dispatch<React.SetStateAction<User | null>> }> = ({ user, setSportivi, setCurrentUser }) => {
@@ -14,32 +15,63 @@ const MyProfile: React.FC<{ user: User; setSportivi: React.Dispatch<React.SetSta
         confirmParola: ''
     });
     const [successMessage, setSuccessMessage] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
+    const [loading, setLoading] = useState(false);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
     };
 
-    const handleSave = (e: React.FormEvent) => {
+    const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         if (formData.parola && formData.parola !== formData.confirmParola) {
-            alert("Parolele nu se potrivesc.");
+            setErrorMessage("Parolele nu se potrivesc.");
             return;
         }
         
-        const updatedUser: User = {
-            ...user,
+        setLoading(true);
+        setErrorMessage('');
+        setSuccessMessage('');
+
+        // 1. Actualizează datele de autentificare dacă s-au schimbat
+        const authUpdates: any = {};
+        if (formData.email !== user.email) authUpdates.email = formData.email;
+        if (formData.parola) authUpdates.password = formData.parola;
+
+        if (Object.keys(authUpdates).length > 0) {
+            const { error: authError } = await supabase.auth.updateUser(authUpdates);
+            if (authError) {
+                setErrorMessage(`Eroare la actualizarea autentificării: ${authError.message}`);
+                setLoading(false);
+                return;
+            }
+        }
+
+        // 2. Actualizează profilul în tabelul 'sportivi'
+        const profileUpdates = {
             nume: formData.nume,
             prenume: formData.prenume,
             email: formData.email,
-            parola: formData.parola || user.parola // Păstrează parola veche dacă nu e specificată una nouă
         };
+        const { data, error } = await supabase.from('sportivi').update(profileUpdates).eq('user_id', user.user_id).select().single();
 
-        setSportivi(prev => prev.map(s => s.id === user.id ? updatedUser : s));
-        setCurrentUser(updatedUser);
+        if (error) {
+            setErrorMessage(`Eroare la actualizarea profilului: ${error.message}`);
+            setLoading(false);
+            return;
+        }
+
+        // 3. Actualizează starea locală
+        if(data) {
+            const updatedUser = data as User;
+            setSportivi(prev => prev.map(s => s.id === user.id ? updatedUser : s));
+            setCurrentUser(updatedUser);
+        }
         
         setSuccessMessage("Profilul a fost actualizat cu succes!");
         setFormData(prev => ({ ...prev, parola: '', confirmParola: '' }));
         setTimeout(() => setSuccessMessage(''), 3000);
+        setLoading(false);
     };
 
     return (
@@ -55,9 +87,10 @@ const MyProfile: React.FC<{ user: User; setSportivi: React.Dispatch<React.SetSta
                     <Input label="Parolă Nouă (lasă gol pentru a o păstra)" name="parola" type="password" value={formData.parola} onChange={handleChange} />
                     <Input label="Confirmă Parola Nouă" name="confirmParola" type="password" value={formData.confirmParola} onChange={handleChange} />
                 </div>
+                {errorMessage && <p className="text-red-400 text-sm text-center">{errorMessage}</p>}
                 <div className="flex justify-end items-center gap-4 pt-2">
                     {successMessage && <p className="text-green-400 text-sm font-semibold">{successMessage}</p>}
-                    <Button type="submit" variant="success">Salvează Modificările</Button>
+                    <Button type="submit" variant="success" disabled={loading}>{loading ? 'Se salvează...' : 'Salvează Modificările'}</Button>
                 </div>
             </form>
         </Card>
@@ -75,30 +108,33 @@ interface UserManagementProps {
 
 export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSportivi, onBack, currentUser, setCurrentUser }) => {
     const [editingId, setEditingId] = useState<string | null>(null);
-    const [formData, setFormData] = useState({ email: '', parola: '', rol: 'Sportiv' as User['rol'] });
+    const [newRol, setNewRol] = useState<User['rol']>('Sportiv');
     const [showSuccessId, setShowSuccessId] = useState<string | null>(null);
     
     const handleEdit = (user: User) => {
         setEditingId(user.id);
-        setFormData({ email: user.email, parola: user.parola, rol: user.rol });
+        setNewRol(user.rol);
     };
 
     const handleCancel = () => {
         setEditingId(null);
     };
 
-    const handleSave = () => {
-        if (!editingId) return;
-        setSportivi(prev => prev.map(s => 
-            s.id === editingId ? { ...s, email: formData.email, parola: formData.parola, rol: formData.rol } : s
-        ));
-        setShowSuccessId(editingId);
+    const handleSave = async (userId: string) => {
+        const { data, error } = await supabase.from('sportivi').update({ rol: newRol }).eq('id', userId).select().single();
+        
+        if (error) {
+            alert(`Eroare la actualizarea rolului: ${error.message}`);
+            return;
+        }
+
+        if(data) {
+            setSportivi(prev => prev.map(s => s.id === userId ? data as Sportiv : s));
+        }
+        
+        setShowSuccessId(userId);
         setEditingId(null);
         setTimeout(() => setShowSuccessId(null), 3000);
-    };
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
     };
 
     return (
@@ -111,7 +147,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                 <Card>
                     <div className="flex items-center gap-2 mb-4">
                         <ShieldCheckIcon className="w-8 h-8 text-amber-400"/>
-                        <h2 className="text-2xl font-bold text-white">Panou Administrator - Management Utilizatori</h2>
+                        <h2 className="text-2xl font-bold text-white">Panou Administrator - Management Roluri</h2>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full text-left min-w-[800px]">
@@ -119,7 +155,6 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                                 <tr>
                                     <th className="p-4 font-semibold">Nume Utilizator</th>
                                     <th className="p-4 font-semibold">Email (Login)</th>
-                                    <th className="p-4 font-semibold">Parolă</th>
                                     <th className="p-4 font-semibold">Rol</th>
                                     <th className="p-4 font-semibold text-right">Acțiuni</th>
                                 </tr>
@@ -128,12 +163,11 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                                 {sportivi.map(user => (
                                     <tr key={user.id} className="border-b border-slate-700">
                                         <td className="p-4 font-medium">{user.nume} {user.prenume}</td>
+                                        <td className="p-4">{user.email}</td>
                                         {editingId === user.id ? (
                                             <>
-                                                <td className="p-2"><Input label="" name="email" type="email" value={formData.email} onChange={handleChange} /></td>
-                                                <td className="p-2"><Input label="" name="parola" type="text" value={formData.parola} onChange={handleChange} /></td>
                                                 <td className="p-2">
-                                                    <Select label="" name="rol" value={formData.rol} onChange={handleChange} disabled={user.id === currentUser.id}>
+                                                    <Select label="" name="rol" value={newRol} onChange={e => setNewRol(e.target.value as User['rol'])} disabled={user.id === currentUser.id}>
                                                         <option value="Sportiv">Sportiv</option>
                                                         <option value="Instructor">Instructor</option>
                                                         <option value="Admin">Admin</option>
@@ -141,15 +175,13 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                                                 </td>
                                                 <td className="p-2 text-right">
                                                     <div className="flex justify-end gap-2">
-                                                        <Button size="sm" variant="success" onClick={handleSave}>Salvează</Button>
+                                                        <Button size="sm" variant="success" onClick={() => handleSave(user.id)}>Salvează</Button>
                                                         <Button size="sm" variant="secondary" onClick={handleCancel}>Anulează</Button>
                                                     </div>
                                                 </td>
                                             </>
                                         ) : (
                                             <>
-                                                <td className="p-4">{user.email}</td>
-                                                <td className="p-4 font-mono">******</td>
                                                 <td className="p-4">
                                                     <span className={`px-2 py-1 text-xs font-semibold rounded-full text-white ${user.rol === 'Admin' ? 'bg-amber-600' : user.rol === 'Instructor' ? 'bg-sky-600' : 'bg-slate-600'}`}>
                                                         {user.rol}
@@ -158,7 +190,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                                                 <td className="p-4 text-right">
                                                     <div className="flex items-center justify-end gap-2">
                                                         {showSuccessId === user.id && <span className="text-sm text-green-400">Salvat!</span>}
-                                                        <Button onClick={() => handleEdit(user)} variant="primary" size="sm"><EditIcon /></Button>
+                                                        <Button onClick={() => handleEdit(user)} variant="primary" size="sm" disabled={user.id === currentUser.id}><EditIcon /></Button>
                                                     </div>
                                                 </td>
                                             </>

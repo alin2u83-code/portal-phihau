@@ -18,7 +18,7 @@ import { FamiliiManagement } from './components/Familii';
 import { Login } from './components/Login';
 import { PortalSportiv } from './components/PortalSportiv';
 import { UserManagement } from './components/UserManagement';
-import { Button } from './components/ui';
+import { Button, Card } from './components/ui';
 import { ArrowLeftIcon } from './components/icons';
 import { logoBase64 } from './assets/logo';
 import { Session } from '@supabase/supabase-js';
@@ -76,6 +76,7 @@ function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   // Data states
   const [sportivi, setSportivi] = useState<Sportiv[]>([]);
@@ -104,8 +105,9 @@ function App() {
             setSession(session);
             if (session?.user) {
                 await fetchUserProfile(session.user.id);
+            } else {
+                setLoading(false);
             }
-            setLoading(false);
         };
         getSession();
 
@@ -124,7 +126,10 @@ function App() {
     const fetchUserProfile = async (userId: string) => {
         const { data, error } = await supabase.from('sportivi').select('*').eq('user_id', userId).single();
         if (error) {
-            console.error("Error fetching user profile:", error);
+            console.error("Eroare la preluarea profilului utilizator:", error);
+            setFetchError(`Nu s-a putut încărca profilul. Motiv: ${error.message}. Asigurați-vă că politicile RLS (Row Level Security) permit citirea propriului profil. Încercați să vă autentificați din nou.`);
+            setCurrentUser(null);
+            setLoading(false); // Oprește încărcarea pentru a afișa eroarea
         } else if (data) {
             setCurrentUser(data as User);
         }
@@ -135,65 +140,90 @@ function App() {
         const fetchAllData = async () => {
             if (!currentUser) return;
             setLoading(true);
+            setFetchError(null); // Reset error on new fetch attempt
 
-            // Supabase client handles camelCase to snake_case mapping
-            const [
-                sportiviRes, exameneRes, gradeRes, participariRes, 
-                grupeRes, programRes, prezenteRes, prezenteSportiviRes,
-                familiiRes, platiRes, tranzactiiRes, evenimenteRes, 
-                rezultateRes, preturiRes, abonamenteRes
-            ] = await Promise.all([
-                supabase.from('sportivi').select('*'),
-                supabase.from('examene').select('*'),
-                supabase.from('grade').select('*'),
-                supabase.from('participari').select('*'),
-                supabase.from('grupe').select('*'),
-                supabase.from('program_antrenamente').select('*'),
-                supabase.from('prezente').select('*'),
-                supabase.from('prezente_sportivi').select('*'),
-                supabase.from('familii').select('*'),
-                supabase.from('plati').select('*'),
-                supabase.from('tranzactii').select('*'),
-                supabase.from('evenimente').select('*'),
-                supabase.from('rezultate').select('*'),
-                supabase.from('preturi_config').select('*'),
-                supabase.from('tipuri_abonament').select('*'),
-            ]);
+            try {
+                const results = await Promise.all([
+                    supabase.from('sportivi').select('*'),
+                    supabase.from('examene').select('*'),
+                    supabase.from('grade').select('*'),
+                    supabase.from('participari').select('*'),
+                    supabase.from('grupe').select('*'),
+                    supabase.from('program_antrenamente').select('*'),
+                    supabase.from('prezente').select('*'),
+                    supabase.from('prezente_sportivi').select('*'),
+                    supabase.from('familii').select('*'),
+                    supabase.from('plati').select('*'),
+                    supabase.from('tranzactii').select('*'),
+                    supabase.from('evenimente').select('*'),
+                    supabase.from('rezultate').select('*'),
+                    supabase.from('preturi_config').select('*'),
+                    supabase.from('tipuri_abonament').select('*'),
+                ]);
 
-            // Combine grupe with their programs
-            const grupeData = grupeRes.data || [];
-            // FIX: Cast to any[] to allow access to snake_case properties from the database (e.g., grupa_id)
-            // which are not defined on the camelCase ProgramItem type.
-            const programData = (programRes.data || []) as any[];
-            const combinedGrupe = grupeData.map(g => ({
-                ...g,
-                program: programData.filter(p => p.grupa_id === g.id).map(p => ({ ziua: p.ziua, oraStart: p.ora_start, oraSfarsit: p.ora_sfarsit }))
-            }));
-            setGrupe(combinedGrupe as Grupa[]);
-            
-            // Combine prezente with their athletes
-            const prezenteData = prezenteRes.data || [];
-            const prezenteSportiviData = prezenteSportiviRes.data as {prezenta_id: string, sportiv_id: string}[] || [];
-            const combinedPrezente = prezenteData.map(p => ({
-                ...p,
-                id: p.id.toString(), // Ensure ID is string
-                sportiviPrezentiIds: prezenteSportiviData.filter(ps => ps.prezenta_id.toString() === p.id.toString()).map(ps => ps.sportiv_id)
-            }));
-            setPrezente(combinedPrezente as Prezenta[]);
+                const firstError = results.find(res => res.error);
+                if (firstError) {
+                    throw firstError.error;
+                }
 
-            setSportivi(sportiviRes.data as Sportiv[] || []);
-            setExamene(exameneRes.data as Examen[] || []);
-            setGrade(gradeRes.data as Grad[] || []);
-            setParticipari(participariRes.data as Participare[] || []);
-            setFamilii(familiiRes.data as Familie[] || []);
-            setPlati(platiRes.data as Plata[] || []);
-            setTranzactii(tranzactiiRes.data as Tranzactie[] || []);
-            setEvenimente(evenimenteRes.data as Eveniment[] || []);
-            setRezultate(rezultateRes.data as Rezultat[] || []);
-            setPreturiConfig(preturiRes.data as PretConfig[] || []);
-            setTipuriAbonament(abonamenteRes.data as TipAbonament[] || []);
+                const [
+                    sportiviRes, exameneRes, gradeRes, participariRes, 
+                    grupeRes, programRes, prezenteRes, prezenteSportiviRes,
+                    familiiRes, platiRes, tranzactiiRes, evenimenteRes, 
+                    rezultateRes, preturiRes, abonamenteRes
+                ] = results;
 
-            setLoading(false);
+                // Combine grupe with their programs
+                const grupeData = grupeRes.data || [];
+                const programData = (programRes.data || []) as any[];
+                const combinedGrupe = grupeData.map(g => ({
+                    ...g,
+                    program: programData.filter(p => p.grupa_id === g.id).map(p => ({ ziua: p.ziua, ora_start: p.ora_start, ora_sfarsit: p.ora_sfarsit }))
+                }));
+                setGrupe(combinedGrupe as Grupa[]);
+                
+                // Combine prezente with their athletes
+                const prezenteData = prezenteRes.data || [];
+                const prezenteSportiviData = prezenteSportiviRes.data as {prezenta_id: string, sportiv_id: string}[] || [];
+                const combinedPrezente = prezenteData.map(p => ({
+                    ...p,
+                    id: p.id.toString(), // Ensure ID is string
+                    sportivi_prezenti_ids: prezenteSportiviData.filter(ps => ps.prezenta_id.toString() === p.id.toString()).map(ps => ps.sportiv_id)
+                }));
+                setPrezente(combinedPrezente as Prezenta[]);
+
+                setSportivi(sportiviRes.data as Sportiv[] || []);
+                setExamene(exameneRes.data as Examen[] || []);
+                setGrade(gradeRes.data as Grad[] || []);
+                setParticipari(participariRes.data as Participare[] || []);
+                setFamilii(familiiRes.data as Familie[] || []);
+                setPlati(platiRes.data as Plata[] || []);
+                setTranzactii(tranzactiiRes.data as Tranzactie[] || []);
+                setEvenimente(evenimenteRes.data as Eveniment[] || []);
+                setRezultate(rezultateRes.data as Rezultat[] || []);
+                setPreturiConfig(preturiRes.data as PretConfig[] || []);
+                setTipuriAbonament(abonamenteRes.data as TipAbonament[] || []);
+            } catch (error: any) {
+                console.error("A apărut o eroare la preluarea datelor:", error.message || error);
+
+                let errorMessage = "Eroare necunoscută";
+                if (error) {
+                    if (typeof error === 'object' && error.message) {
+                        errorMessage = error.message;
+                    } else if (typeof error === 'string') {
+                        errorMessage = error;
+                    } else {
+                        try {
+                            errorMessage = JSON.stringify(error);
+                        } catch {
+                            errorMessage = "Nu s-au putut obține detalii despre eroare."
+                        }
+                    }
+                }
+                setFetchError(`Nu s-a putut conecta la baza de date. Detalii: "${errorMessage}". Aceasta este adesea cauzat de chei Supabase incorecte, RLS, sau de probleme de rețea.`);
+            } finally {
+                setLoading(false);
+            }
         };
 
         if (currentUser) {
@@ -213,6 +243,7 @@ function App() {
     setCurrentUser(null); 
     setActiveMenu(null); 
     setActiveView(null); 
+    setFetchError(null);
     // Clear all data states
     setSportivi([]);
     setExamene([]);
@@ -233,6 +264,23 @@ function App() {
   const handleBackToDashboard = () => setActiveMenu(null);
 
   const renderAdminContent = () => {
+    if (fetchError) {
+        return (
+            <Card className="border border-red-500 bg-red-900/20">
+                <h2 className="text-2xl font-bold text-red-400 mb-4">Eroare Critică</h2>
+                <p className="text-slate-300 mb-4">{fetchError}</p>
+                <p className="text-slate-400 text-sm">
+                    <b>Cauze posibile:</b>
+                     <ul className="list-disc list-inside ml-4 mt-2">
+                        <li>Politicile RLS (Row Level Security) de pe Supabase nu permit accesul la date.</li>
+                        <li>Cheile de conectare (URL și Anon Key) din fișierul <code>supabaseClient.ts</code> sunt incorecte.</li>
+                        <li>O problemă de rețea împiedică conexiunea la baza de date.</li>
+                     </ul>
+                </p>
+                <Button onClick={handleLogout} className="mt-6">Încearcă din nou (Logout)</Button>
+            </Card>
+        );
+    }
     if (loading) return <div className="text-center p-8">Se încarcă datele...</div>;
     if (activeView) {
       switch (activeView) {
@@ -260,9 +308,22 @@ function App() {
     return <Dashboard onSelectMenu={setActiveMenu} />;
   };
 
-  if (loading && !currentUser) return <div className="min-h-screen flex items-center justify-center">Se încarcă...</div>
-  if (!session || !currentUser) return <Login />;
-
+  if (loading) return <div className="min-h-screen flex items-center justify-center">Se încarcă...</div>
+  if (!session || !currentUser) {
+    if (fetchError) { // Afișează eroarea chiar dacă nu e sesiune, ex. la fetchUserProfile
+         return (
+            <div className="min-h-screen flex items-center justify-center p-4">
+                <Card className="border border-red-500 bg-red-900/20">
+                    <h2 className="text-2xl font-bold text-red-400 mb-4">Eroare la Încărcarea Profilului</h2>
+                    <p className="text-slate-300 mb-4">{fetchError}</p>
+                    <Button onClick={handleLogout} className="mt-6 w-full">Înapoi la Login</Button>
+                </Card>
+            </div>
+        );
+    }
+    return <Login />;
+  }
+  
   const isAdminOrInstructor = currentUser.rol === 'Admin' || currentUser.rol === 'Instructor';
 
   return (

@@ -33,10 +33,10 @@ export const PrezentaManagement: React.FC<PrezentaManagementProps> = ({ sportivi
         sportivi.forEach(s => {
             if (s.status !== 'Activ') return;
             let areAbonamentPlatit = false;
-            if (s.familieId) {
-                areAbonamentPlatit = plati.some(p => p.familieId === s.familieId && p.tip === 'Abonament' && p.status === 'Achitat' && new Date(p.data).getMonth() === lunaCurenta && new Date(p.data).getFullYear() === anulCurent);
+            if (s.familie_id) {
+                areAbonamentPlatit = plati.some(p => p.familie_id === s.familie_id && p.tip === 'Abonament' && p.status === 'Achitat' && new Date(p.data).getMonth() === lunaCurenta && new Date(p.data).getFullYear() === anulCurent);
             } else {
-                areAbonamentPlatit = plati.some(p => p.sportivId === s.id && p.tip === 'Abonament' && p.status === 'Achitat' && new Date(p.data).getMonth() === lunaCurenta && new Date(p.data).getFullYear() === anulCurent);
+                areAbonamentPlatit = plati.some(p => p.sportiv_id === s.id && p.tip === 'Abonament' && p.status === 'Achitat' && new Date(p.data).getMonth() === lunaCurenta && new Date(p.data).getFullYear() === anulCurent);
             }
             if (!areAbonamentPlatit) { sportiviCuRestante.add(s.id); }
         });
@@ -49,11 +49,11 @@ export const PrezentaManagement: React.FC<PrezentaManagementProps> = ({ sportivi
         const idPrezenta = `${dataSelectata}-${oraSelectata}-${grupaSelectataId}-${tipAntrenament}`;
         const prezentaExistenta = prezente.find(p => p.id === idPrezenta);
         
-        const sportiviGrupaCurenta = sportivi.filter(s => s.grupaId === grupaSelectataId).map(s => s.id);
+        const sportiviGrupaCurenta = sportivi.filter(s => s.grupa_id === grupaSelectataId).map(s => s.id);
 
         if (prezentaExistenta) {
-            setSportiviPrezenti(new Set(prezentaExistenta.sportiviPrezentiIds));
-            const extra = prezentaExistenta.sportiviPrezentiIds.filter(id => !sportiviGrupaCurenta.includes(id));
+            setSportiviPrezenti(new Set(prezentaExistenta.sportivi_prezenti_ids));
+            const extra = prezentaExistenta.sportivi_prezenti_ids.filter(id => !sportiviGrupaCurenta.includes(id));
             setExtraSportiviIds(new Set(extra));
         } else {
             setSportiviPrezenti(new Set());
@@ -77,8 +77,8 @@ export const PrezentaManagement: React.FC<PrezentaManagementProps> = ({ sportivi
             id: idPrezenta,
             data: dataSelectata,
             ora: oraSelectata,
-            grupaId: filtruVacanta ? 'vacanta' : grupaSelectataId,
-            sportiviPrezentiIds: Array.from(sportiviPrezenti),
+            grupa_id: filtruVacanta ? 'vacanta' : grupaSelectataId,
+            sportivi_prezenti_ids: Array.from(sportiviPrezenti),
             tip: tipAntrenament
         };
     
@@ -104,15 +104,15 @@ export const PrezentaManagement: React.FC<PrezentaManagementProps> = ({ sportivi
     
     const sportiviAfisati = useMemo(() => {
         if(filtruVacanta) {
-            return sportivi.filter(s => s.status === 'Activ' && s.participaVacanta);
+            return sportivi.filter(s => s.status === 'Activ' && s.participa_vacanta);
         }
-        const sportiviGrupa = sportivi.filter(s => s.status === 'Activ' && s.grupaId === grupaSelectataId);
+        const sportiviGrupa = sportivi.filter(s => s.status === 'Activ' && s.grupa_id === grupaSelectataId);
         const extraSportivi = Array.from(extraSportiviIds).map(id => sportivi.find(s => s.id === id)).filter(Boolean) as Sportiv[];
         return [...sportiviGrupa, ...extraSportivi].filter((s, i, arr) => arr.findIndex(t => t.id === s.id) === i);
     }, [sportivi, grupaSelectataId, extraSportiviIds, filtruVacanta]);
     
     const adaugaSportivSuplimentar = () => { if(addSportivId && !extraSportiviIds.has(addSportivId)) { setExtraSportiviIds(prev => new Set(prev).add(addSportivId)); setAddSportivId(''); } };
-    const potentialExtraSportivi = sportivi.filter(s => s.status === 'Activ' && s.grupaId !== grupaSelectataId && !extraSportiviIds.has(s.id));
+    const potentialExtraSportivi = sportivi.filter(s => s.status === 'Activ' && s.grupa_id !== grupaSelectataId && !extraSportiviIds.has(s.id));
 
     return (
         <div>
@@ -163,7 +163,7 @@ export const PrezentaManagement: React.FC<PrezentaManagementProps> = ({ sportivi
                         <div className="flex gap-4">
                             <Select label="" value={addSportivId} onChange={e => setAddSportivId(e.target.value)} className="flex-grow">
                                 <option value="">Selectează un sportiv...</option>
-                                {potentialExtraSportivi.map(s => <option key={s.id} value={s.id}>{s.nume} {s.prenume} ({grupe.find(g=>g.id === s.grupaId)?.denumire})</option>)}
+                                {potentialExtraSportivi.map(s => <option key={s.id} value={s.id}>{s.nume} {s.prenume} ({grupe.find(g=>g.id === s.grupa_id)?.denumire})</option>)}
                             </Select>
                             <Button onClick={adaugaSportivSuplimentar} disabled={!addSportivId} variant='info' size="md"><PlusIcon className="w-5 h-5"/></Button>
                         </div>

@@ -14,8 +14,8 @@ export const getPretValabil = (
 ): PretConfig | undefined => {
     const data = new Date(dataReferinta);
     return preturi
-        .filter(p => p.categorie === categorie && new Date(p.valabilDeLaData) <= data)
-        .sort((a, b) => new Date(b.valabilDeLaData).getTime() - new Date(a.valabilDeLaData).getTime())[0];
+        .filter(p => p.categorie === categorie && new Date(p.valabil_de_la_data) <= data)
+        .sort((a, b) => new Date(b.valabil_de_la_data).getTime() - new Date(a.valabil_de_la_data).getTime())[0];
 };
 
 
@@ -36,7 +36,7 @@ export const getPretProdus = (
 
   const preturiPotrivite = preturi.filter(p => 
     p.categorie === categorie &&
-    p.denumireServiciu === denumireServiciu
+    p.denumire_serviciu === denumireServiciu
   );
 
   if (preturiPotrivite.length === 0) return undefined;

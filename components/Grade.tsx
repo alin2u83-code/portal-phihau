@@ -4,7 +4,7 @@ import { Grad } from '../types';
 import { Button, Modal, Input, Select } from './ui';
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon } from './icons';
 
-const emptyFormState = { nume: '', ordine: 1, varstaMinima: 7, timpAsteptare: "6 luni", gradStartId: null };
+const emptyFormState = { nume: '', ordine: 1, varsta_minima: 7, timp_asteptare: "6 luni", grad_start_id: null };
 
 interface GradFormProps {
   isOpen: boolean;
@@ -20,7 +20,7 @@ const AddGradModal: React.FC<GradFormProps> = ({ isOpen, onClose, onSave, grade 
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormState(prev => ({ ...prev, [name]: name === 'ordine' || name === 'varstaMinima' ? parseInt(value) || 0 : value }));
+    setFormState(prev => ({ ...prev, [name]: name === 'ordine' || name === 'varsta_minima' ? parseInt(value) || 0 : value }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -38,10 +38,10 @@ const AddGradModal: React.FC<GradFormProps> = ({ isOpen, onClose, onSave, grade 
             <Input label="Ordine (Rang)" name="ordine" type="number" value={formState.ordine} onChange={handleChange} required min="1" />
         </div>
          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input label="Vârstă Minimă" name="varstaMinima" type="number" value={formState.varstaMinima} onChange={handleChange} required min="1" />
-            <Input label="Timp Așteptare" name="timpAsteptare" value={formState.timpAsteptare} onChange={handleChange} required />
+            <Input label="Vârstă Minimă" name="varsta_minima" type="number" value={formState.varsta_minima} onChange={handleChange} required min="1" />
+            <Input label="Timp Așteptare" name="timp_asteptare" value={formState.timp_asteptare} onChange={handleChange} required />
         </div>
-        <Select label="Grad Necesar" name="gradStartId" value={formState.gradStartId || ''} onChange={handleChange}>
+        <Select label="Grad Necesar" name="grad_start_id" value={formState.grad_start_id || ''} onChange={handleChange}>
             <option value="">Niciunul (pentru începători)</option>
             {grade.map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}
         </Select>
@@ -62,7 +62,7 @@ export const GradeManagement: React.FC<GradeManagementProps> = ({ grade, setGrad
   
   const handleEditClick = (g: Grad) => {
     setEditingGradId(g.id);
-    setEditFormData({ nume: g.nume, ordine: g.ordine, varstaMinima: g.varstaMinima, timpAsteptare: g.timpAsteptare, gradStartId: g.gradStartId });
+    setEditFormData({ nume: g.nume, ordine: g.ordine, varsta_minima: g.varsta_minima, timp_asteptare: g.timp_asteptare, grad_start_id: g.grad_start_id });
   };
   
   const handleCancelEdit = () => setEditingGradId(null);
@@ -95,14 +95,14 @@ export const GradeManagement: React.FC<GradeManagementProps> = ({ grade, setGrad
                   <>
                     <td className="p-2"><Input label="" type="number" value={editFormData.ordine} onChange={e => setEditFormData(p => ({...p, ordine: parseInt(e.target.value)}))} className="w-20" /></td>
                     <td className="p-2"><Input label="" type="text" value={editFormData.nume} onChange={e => setEditFormData(p => ({...p, nume: e.target.value}))} /></td>
-                    <td className="p-2"><Input label="" type="number" value={editFormData.varstaMinima} onChange={e => setEditFormData(p => ({...p, varstaMinima: parseInt(e.target.value)}))} className="w-24" /></td>
-                    <td className="p-2"><Input label="" type="text" value={editFormData.timpAsteptare} onChange={e => setEditFormData(p => ({...p, timpAsteptare: e.target.value}))} /></td>
-                    <td className="p-2"><Select label="" value={editFormData.gradStartId || ''} onChange={e => setEditFormData(p => ({...p, gradStartId: e.target.value || null}))}><option value="">Niciunul</option>{sortedGrade.map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}</Select></td>
+                    <td className="p-2"><Input label="" type="number" value={editFormData.varsta_minima} onChange={e => setEditFormData(p => ({...p, varsta_minima: parseInt(e.target.value)}))} className="w-24" /></td>
+                    <td className="p-2"><Input label="" type="text" value={editFormData.timp_asteptare} onChange={e => setEditFormData(p => ({...p, timp_asteptare: e.target.value}))} /></td>
+                    <td className="p-2"><Select label="" value={editFormData.grad_start_id || ''} onChange={e => setEditFormData(p => ({...p, grad_start_id: e.target.value || null}))}><option value="">Niciunul</option>{sortedGrade.map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}</Select></td>
                     <td className="p-2 text-right"><div className="flex justify-end space-x-2"><Button size="sm" variant="success" onClick={() => handleSaveEdit(grad.id)}>Salvează</Button><Button size="sm" variant="secondary" onClick={handleCancelEdit}>Anulează</Button></div></td>
                   </>
                 ) : (
                   <>
-                    <td className="p-4 w-20">{grad.ordine}</td><td className="p-4 font-medium">{grad.nume}</td><td className="p-4">{grad.varstaMinima} ani</td><td className="p-4">{grad.timpAsteptare}</td><td className="p-4">{grade.find(g => g.id === grad.gradStartId)?.nume || 'N/A'}</td>
+                    <td className="p-4 w-20">{grad.ordine}</td><td className="p-4 font-medium">{grad.nume}</td><td className="p-4">{grad.varsta_minima} ani</td><td className="p-4">{grad.timp_asteptare}</td><td className="p-4">{grade.find(g => g.id === grad.grad_start_id)?.nume || 'N/A'}</td>
                     <td className="p-4 text-right">
                         <div className="flex items-center justify-end space-x-2">
                            {showSuccessId === grad.id && <span className="text-green-400 text-sm">Salvat!</span>}

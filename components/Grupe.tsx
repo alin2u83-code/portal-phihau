@@ -7,7 +7,7 @@ import { PlusIcon, TrashIcon, EditIcon, ArrowLeftIcon } from './icons';
 // Componentă pentru editarea programului
 const ProgramEditor: React.FC<{ program: ProgramItem[], setProgram: React.Dispatch<React.SetStateAction<ProgramItem[]>> }> = ({ program, setProgram }) => {
     const zileSaptamana: ProgramItem['ziua'][] = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'];
-    const [newItem, setNewItem] = useState<ProgramItem>({ ziua: 'Luni', oraStart: '18:00', oraSfarsit: '19:30' });
+    const [newItem, setNewItem] = useState<ProgramItem>({ ziua: 'Luni', ora_start: '18:00', ora_sfarsit: '19:30' });
 
     const handleAdd = () => { setProgram(p => [...p, newItem]); };
     const handleRemove = (index: number) => { setProgram(p => p.filter((_, i) => i !== index)); };
@@ -19,7 +19,7 @@ const ProgramEditor: React.FC<{ program: ProgramItem[], setProgram: React.Dispat
                 <h4 className="text-lg font-semibold mb-2 text-white">Program Curent</h4>
                 {program.length > 0 ? ( program.map((item, index) => (
                     <div key={index} className="flex items-center gap-2 bg-slate-700 p-2 rounded mb-2">
-                        <span className="font-semibold flex-grow">{item.ziua}: {item.oraStart} - {item.oraSfarsit}</span>
+                        <span className="font-semibold flex-grow">{item.ziua}: {item.ora_start} - {item.ora_sfarsit}</span>
                         <Button type="button" size="sm" variant="danger" onClick={() => handleRemove(index)}><TrashIcon /></Button>
                     </div>
                 ))) : <p className="text-slate-400">Niciun interval adăugat.</p>}
@@ -30,8 +30,8 @@ const ProgramEditor: React.FC<{ program: ProgramItem[], setProgram: React.Dispat
                     <Select label="Ziua" name="ziua" value={newItem.ziua} onChange={handleChange}>
                         {zileSaptamana.map(zi => <option key={zi} value={zi}>{zi}</option>)}
                     </Select>
-                    <Input label="Ora Start" type="time" name="oraStart" value={newItem.oraStart} onChange={handleChange} />
-                    <Input label="Ora Sfârșit" type="time" name="oraSfarsit" value={newItem.oraSfarsit} onChange={handleChange} />
+                    <Input label="Ora Start" type="time" name="ora_start" value={newItem.ora_start} onChange={handleChange} />
+                    <Input label="Ora Sfârșit" type="time" name="ora_sfarsit" value={newItem.ora_sfarsit} onChange={handleChange} />
                     <Button type="button" variant="info" onClick={handleAdd}><PlusIcon /></Button>
                  </div>
             </div>
@@ -106,7 +106,7 @@ export const GrupeManagement: React.FC<GrupeManagementProps> = ({ grupe, setGrup
                 <td className="p-4">{grupa.sala}</td>
                 <td className="p-4">
                     <div className="flex flex-wrap gap-1">
-                        {grupa.program.map((p, i) => <span key={i} className="bg-slate-600 text-slate-200 text-xs font-semibold px-2 py-1 rounded-full">{p.ziua} {p.oraStart}-{p.oraSfarsit}</span>)}
+                        {grupa.program.map((p, i) => <span key={i} className="bg-slate-600 text-slate-200 text-xs font-semibold px-2 py-1 rounded-full">{p.ziua} {p.ora_start}-{p.ora_sfarsit}</span>)}
                     </div>
                 </td>
                 <td className="p-2 text-right">

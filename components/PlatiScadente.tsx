@@ -33,34 +33,34 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
 
         // 1. Procesează familiile
         familii.forEach(familie => {
-            const membriActivi = sportiviActivi.filter(s => s.familieId === familie.id);
+            const membriActivi = sportiviActivi.filter(s => s.familie_id === familie.id);
             if (membriActivi.length === 0) return;
 
-            const areAbonamentGenerat = plati.some(p => p.familieId === familie.id && p.tip === 'Abonament' && new Date(p.data).getMonth() === lunaCurentaIdx && new Date(p.data).getFullYear() === anulCurent);
+            const areAbonamentGenerat = plati.some(p => p.familie_id === familie.id && p.tip === 'Abonament' && new Date(p.data).getMonth() === lunaCurentaIdx && new Date(p.data).getFullYear() === anulCurent);
             if (areAbonamentGenerat) {
                 membriActivi.forEach(m => sportiviProcesati.add(m.id));
                 return;
             }
 
             const nrMembri = membriActivi.length;
-            let abonamentConfig = tipuriAbonament.find(ab => ab.numarMembri === nrMembri);
+            let abonamentConfig = tipuriAbonament.find(ab => ab.numar_membri === nrMembri);
             // Fallback pentru 3+ membri
             if (!abonamentConfig && nrMembri >= 3) {
-                abonamentConfig = tipuriAbonament.sort((a,b) => b.numarMembri - a.numarMembri)[0];
+                abonamentConfig = tipuriAbonament.sort((a,b) => b.numar_membri - a.numar_membri)[0];
             }
 
             if (abonamentConfig) {
                  platiNoi.push({ 
                     id: `fam-${familie.id}-${anulCurent}-${lunaCurentaIdx}`, 
-                    sportivId: membriActivi[0]?.id || null, // Asociază cu primul membru ca reprezentant
-                    familieId: familie.id,
+                    sportiv_id: membriActivi[0]?.id || null, // Asociază cu primul membru ca reprezentant
+                    familie_id: familie.id,
                     suma: abonamentConfig.pret, 
                     data: dataCurenta, 
                     status: 'Neachitat', 
                     descriere: `Abonament ${abonamentConfig.denumire} ${lunaText}`, 
                     tip: 'Abonament', 
-                    metodaPlata: null, 
-                    dataPlatii: null,
+                    metoda_plata: null, 
+                    data_platii: null,
                     observatii: `Pentru ${membriActivi.map(m => m.prenume).join(', ')}`
                 });
                 membriActivi.forEach(m => sportiviProcesati.add(m.id));
@@ -70,24 +70,24 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
         // 2. Procesează sportivii individuali
         const sportiviIndividuali = sportiviActivi.filter(s => !sportiviProcesati.has(s.id));
         sportiviIndividuali.forEach(sportiv => {
-            if (!sportiv.tipAbonamentId) return; // Doar cei cu abonament individual setat
+            if (!sportiv.tip_abonament_id) return; // Doar cei cu abonament individual setat
 
-            const areAbonamentGenerat = plati.some(p => p.sportivId === sportiv.id && p.tip === 'Abonament' && new Date(p.data).getMonth() === lunaCurentaIdx && new Date(p.data).getFullYear() === anulCurent);
+            const areAbonamentGenerat = plati.some(p => p.sportiv_id === sportiv.id && p.tip === 'Abonament' && new Date(p.data).getMonth() === lunaCurentaIdx && new Date(p.data).getFullYear() === anulCurent);
             if (areAbonamentGenerat) return;
 
-            const abonamentConfig = tipuriAbonament.find(ab => ab.id === sportiv.tipAbonamentId);
+            const abonamentConfig = tipuriAbonament.find(ab => ab.id === sportiv.tip_abonament_id);
             if (abonamentConfig) {
                  platiNoi.push({ 
                     id: `${sportiv.id}-${anulCurent}-${lunaCurentaIdx}`, 
-                    sportivId: sportiv.id,
-                    familieId: null,
+                    sportiv_id: sportiv.id,
+                    familie_id: null,
                     suma: abonamentConfig.pret, 
                     data: dataCurenta, 
                     status: 'Neachitat', 
                     descriere: `Abonament ${abonamentConfig.denumire} ${lunaText}`, 
                     tip: 'Abonament', 
-                    metodaPlata: null, 
-                    dataPlatii: null,
+                    metoda_plata: null, 
+                    data_platii: null,
                     observatii: ''
                 });
             }
@@ -109,26 +109,26 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
     const handleEditChange = (field: keyof Plata, value: any) => {
         if(!editingPlata) return;
         let updatedPlata = { ...editingPlata, [field]: value };
-        if(field === 'status' && value === 'Achitat' && !editingPlata.dataPlatii) {
-            updatedPlata.dataPlatii = new Date().toISOString().split('T')[0];
+        if(field === 'status' && value === 'Achitat' && !editingPlata.data_platii) {
+            updatedPlata.data_platii = new Date().toISOString().split('T')[0];
         }
         setEditingPlata(updatedPlata);
     };
 
     const filteredPlati = useMemo(() => { 
         return plati.filter(p => 
-            (filter.sportiv === '' || p.sportivId === filter.sportiv || (p.familieId && sportivi.find(s=>s.id === filter.sportiv)?.familieId === p.familieId)) && 
+            (filter.sportiv === '' || p.sportiv_id === filter.sportiv || (p.familie_id && sportivi.find(s=>s.id === filter.sportiv)?.familie_id === p.familie_id)) && 
             (filter.tip === '' || p.tip === filter.tip) &&
             (filter.status === '' || p.status === filter.status)
         ); 
     }, [plati, filter, sportivi]);
 
     const getEntityName = (plata: Plata) => {
-        if (plata.familieId) {
-            return `Familia ${familii.find(f => f.id === plata.familieId)?.nume || 'N/A'}`;
+        if (plata.familie_id) {
+            return `Familia ${familii.find(f => f.id === plata.familie_id)?.nume || 'N/A'}`;
         }
-        if (plata.sportivId) {
-            const s = sportivi.find(s=>s.id === plata.sportivId);
+        if (plata.sportiv_id) {
+            const s = sportivi.find(s=>s.id === plata.sportiv_id);
             return s ? `${s.nume} ${s.prenume}` : 'N/A';
         }
         return 'N/A';

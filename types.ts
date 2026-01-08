@@ -7,16 +7,16 @@ export interface Sportiv {
   email: string;
   parola?: string; // Only for creating new users
   rol: 'Sportiv' | 'Instructor' | 'Admin';
-  dataNasterii: string;
+  data_nasterii: string;
   cnp: string;
   inaltime?: number; // în cm, pentru calcul preț echipament
-  dataInscrierii: string;
+  data_inscrierii: string;
   status: 'Activ' | 'Inactiv';
-  clubProvenienta: string;
-  grupaId: string | null;
-  familieId: string | null; // ID-ul familiei
-  tipAbonamentId: string | null; // ID-ul tipului de abonament individual
-  participaVacanta: boolean;
+  club_provenienta: string;
+  grupa_id: string | null;
+  familie_id: string | null; // ID-ul familiei
+  tip_abonament_id: string | null; // ID-ul tipului de abonament individual
+  participa_vacanta: boolean;
   [key: string]: any; // Permite adăugarea de câmpuri custom
 }
 
@@ -24,9 +24,9 @@ export interface Grad {
   id:string;
   nume: string;
   ordine: number;
-  varstaMinima: number;
-  timpAsteptare: string; // ex: "6 luni"
-  gradStartId: string | null; // ID-ul gradului necesar pentru a da acest examen
+  varsta_minima: number;
+  timp_asteptare: string; // ex: "6 luni"
+  grad_start_id: string | null; // ID-ul gradului necesar pentru a da acest examen
 }
 
 export interface Examen {
@@ -38,25 +38,25 @@ export interface Examen {
 
 export interface Participare {
     id: string;
-    sportivId: string;
-    examenId: string;
-    gradSustinutId: string;
+    sportiv_id: string;
+    examen_id: string;
+    grad_sustinut_id: string;
     rezultat: 'Admis' | 'Respins' | 'Neprezentat';
     observatii?: string;
 }
 
 export interface ProgramItem {
     ziua: 'Luni' | 'Marți' | 'Miercuri' | 'Joi' | 'Vineri' | 'Sâmbătă' | 'Duminică';
-    oraStart: string;
-    oraSfarsit: string;
+    ora_start: string;
+    ora_sfarsit: string;
 }
 
 export interface Prezenta {
-  id: string; // Format: YYYY-MM-DD-HH:mm-grupaId-tip
+  id: string;
   data: string;
   ora: string;
-  grupaId: string;
-  sportiviPrezentiIds: string[];
+  grupa_id: string;
+  sportivi_prezenti_ids: string[];
   tip: 'Normal' | 'Vacanta';
 }
 
@@ -74,13 +74,13 @@ export interface Eveniment {
     locatie: string;
     organizator: string;
     tip: 'Stagiu' | 'Competitie';
-    probeDisponibile?: string[];
+    probe_disponibile?: string[];
 }
 
 export interface Rezultat {
     id: string;
-    sportivId: string;
-    evenimentId: string;
+    sportiv_id: string;
+    eveniment_id: string;
     rezultat: string; // e.g., "Locul 1 Kata", "Participare", "Medalia de aur"
     probe?: string; // e.g., "Quyen, Song Dau, Arme"
 }
@@ -88,9 +88,9 @@ export interface Rezultat {
 export interface PretConfig {
     id: string;
     categorie: 'Taxa Examen' | 'Taxa Stagiu' | 'Taxa Competitie' | 'Echipament';
-    denumireServiciu: string; // Ex: "Vo Phuc", "Tricou", "Stagiu National", "Competitie Copii"
+    denumire_serviciu: string; // Ex: "Vo Phuc", "Tricou", "Stagiu National", "Competitie Copii"
     suma: number;
-    valabilDeLaData: string;
+    valabil_de_la_data: string;
     specificatii?: { // Câmp flexibil pentru atribute
         inaltimeMin?: number;
         inaltimeMax?: number;
@@ -104,32 +104,32 @@ export interface TipAbonament {
     id: string;
     denumire: string;
     pret: number;
-    numarMembri: number; // 1 pt individual, 2 pt familie de 2, etc. 
+    numar_membri: number; // 1 pt individual, 2 pt familie de 2, etc. 
 }
 
 export interface Tranzactie {
   id: string;
-  plataIds: string[]; // ID-urile datoriilor pe care le stinge
-  sportivId: string | null; // Pentru referinta rapida
-  familieId: string | null; // Pentru referinta rapida
+  plata_ids: string[]; // ID-urile datoriilor pe care le stinge
+  sportiv_id: string | null; // Pentru referinta rapida
+  familie_id: string | null; // Pentru referinta rapida
   suma: number;
-  dataPlatii: string;
-  metodaPlata: 'Cash' | 'Transfer Bancar';
+  data_platii: string;
+  metoda_plata: 'Cash' | 'Transfer Bancar';
 }
 
 // Reprezintă o DATORIE (ceva ce trebuie plătit)
 export interface Plata {
     id: string;
-    sportivId: string | null; 
-    familieId: string | null; 
+    sportiv_id: string | null; 
+    familie_id: string | null; 
     suma: number; // Suma totala datorata/platita
     data: string; // Data generarii datoriei
     status: 'Achitat' | 'Neachitat' | 'Achitat Parțial';
     descriere: string;
     tip: 'Abonament' | 'Taxa Examen' | 'Taxa Stagiu' | 'Taxa Competitie' | 'Echipament';
     observatii: string;
-    metodaPlata?: 'Cash' | 'Transfer Bancar' | null;
-    dataPlatii?: string | null;
+    metoda_plata?: 'Cash' | 'Transfer Bancar' | null;
+    data_platii?: string | null;
 }
 
 export interface Familie {

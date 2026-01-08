@@ -28,7 +28,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({ plati, sportiv
 
     const filteredTranzactii = useMemo(() => {
         return tranzactii.filter(t => {
-            const dataPlatii = new Date(t.dataPlatii);
+            const dataPlatii = new Date(t.data_platii);
             
             const startDate = filters.startDate ? new Date(filters.startDate) : null;
             const endDate = filters.endDate ? new Date(filters.endDate) : null;
@@ -38,13 +38,13 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({ plati, sportiv
                 endDate.setHours(23, 59, 59, 999); // Include toata ziua
                 if (dataPlatii > endDate) return false;
             }
-            if (filters.sportivId && t.sportivId !== filters.sportivId) return false;
-            if (filters.familieId && t.familieId !== filters.familieId) return false;
-            if (filters.metodaPlata && t.metodaPlata !== filters.metodaPlata) return false;
+            if (filters.sportivId && t.sportiv_id !== filters.sportivId) return false;
+            if (filters.familieId && t.familie_id !== filters.familieId) return false;
+            if (filters.metodaPlata && t.metoda_plata !== filters.metodaPlata) return false;
             
             // Filter by type requires looking at the original Plata objects
             if (filters.tip) {
-                const areTipulCerut = t.plataIds.some(plataId => {
+                const areTipulCerut = t.plata_ids.some(plataId => {
                     const plataOriginala = plati.find(p => p.id === plataId);
                     return plataOriginala?.tip === filters.tip;
                 });
@@ -107,12 +107,12 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({ plati, sportiv
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredTranzactii.sort((a,b) => new Date(b.dataPlatii).getTime() - new Date(a.dataPlatii).getTime()).map(tranzactie => (
+                            {filteredTranzactii.sort((a,b) => new Date(b.data_platii).getTime() - new Date(a.data_platii).getTime()).map(tranzactie => (
                                 <tr key={tranzactie.id} className="border-b border-slate-700">
-                                    <td className="p-4">{new Date(tranzactie.dataPlatii).toLocaleDateString('ro-RO')}</td>
-                                    <td className="p-4 font-medium">{tranzactie.familieId ? `Familia ${getFamilieName(tranzactie.familieId)}` : getSportivName(tranzactie.sportivId)}</td>
-                                    <td className="p-4">{plati.find(p => p.id === tranzactie.plataIds[0])?.descriere || 'Încasare multiplă'}</td>
-                                    <td className="p-4">{tranzactie.metodaPlata}</td>
+                                    <td className="p-4">{new Date(tranzactie.data_platii).toLocaleDateString('ro-RO')}</td>
+                                    <td className="p-4 font-medium">{tranzactie.familie_id ? `Familia ${getFamilieName(tranzactie.familie_id)}` : getSportivName(tranzactie.sportiv_id)}</td>
+                                    <td className="p-4">{plati.find(p => p.id === tranzactie.plata_ids[0])?.descriere || 'Încasare multiplă'}</td>
+                                    <td className="p-4">{tranzactie.metoda_plata}</td>
                                     <td className="p-4 text-right font-semibold">{tranzactie.suma.toFixed(2)} RON</td>
                                 </tr>
                             ))}

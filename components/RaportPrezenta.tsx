@@ -20,9 +20,9 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ prezente, sporti
 
     const allRecords = useMemo(() => {
         return prezente.flatMap(p => 
-            p.sportiviPrezentiIds.map(sportivId => {
+            p.sportivi_prezenti_ids.map(sportivId => {
                 const sportiv = sportivi.find(s => s.id === sportivId);
-                const grupa = grupe.find(g => g.id === p.grupaId);
+                const grupa = grupe.find(g => g.id === p.grupa_id);
                 return {
                     id: `${p.id}-${sportivId}`,
                     data: p.data,
@@ -30,7 +30,7 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ prezente, sporti
                     tip: p.tip,
                     sportivNume: sportiv ? `${sportiv.nume} ${sportiv.prenume}` : 'N/A',
                     grupaNume: grupa?.denumire || (p.tip === 'Vacanta' ? 'Vacanță' : 'N/A'),
-                    grupaId: p.grupaId,
+                    grupaId: p.grupa_id,
                 };
             })
         ).sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime());

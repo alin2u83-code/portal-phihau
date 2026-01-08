@@ -24,7 +24,7 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
             id: `ab-${new Date().toISOString()}`,
             denumire: newDenumire,
             pret: newPret,
-            numarMembri: newNrMembri
+            numar_membri: newNrMembri
         };
         setTipuriAbonament(prev => [...prev, newAbonament]);
         setNewDenumire('');
@@ -42,7 +42,7 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
         }
     };
     
-    const sortedAbonamente = [...tipuriAbonament].sort((a,b) => a.numarMembri - b.numarMembri);
+    const sortedAbonamente = [...tipuriAbonament].sort((a,b) => a.numar_membri - b.numar_membri);
 
     return (
         <div>
@@ -77,7 +77,7 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
                                     <Input label="" value={ab.denumire} onChange={e => handleEdit(ab.id, 'denumire', e.target.value)} />
                                 </td>
                                  <td className="p-2">
-                                    <Input label="" type="number" min="1" value={ab.numarMembri} onChange={e => handleEdit(ab.id, 'numarMembri', parseInt(e.target.value) || 1)} className="w-24" />
+                                    <Input label="" type="number" min="1" value={ab.numar_membri} onChange={e => handleEdit(ab.id, 'numar_membri', parseInt(e.target.value) || 1)} className="w-24" />
                                 </td>
                                 <td className="p-2">
                                     <Input label="" type="number" value={ab.pret} onChange={e => handleEdit(ab.id, 'pret', parseFloat(e.target.value) || 0)} className="w-32" />

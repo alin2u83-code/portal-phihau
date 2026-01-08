@@ -1,4 +1,6 @@
 
+
+import { supabase } from '../supabaseClient';
 import React, { useState, useMemo, useEffect } from 'react';
 import { Sportiv, Participare, Examen, Grad, Prezenta, Grupa, Plata, Eveniment, Rezultat, TipAbonament, Familie, Tranzactie } from '../types';
 import { Button, Modal, Input, Select, Card } from './ui';

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, View } from '../types';
 import { adminMenu, sportivMenu, MenuItem } from './menuConfig';
+// FIX: Imported `UserCircleIcon`
 import { ArrowRightOnRectangleIcon, Bars3Icon, ChevronDownIcon, UserCircleIcon } from './icons';
 
 const NavItem: React.FC<{
@@ -8,6 +9,7 @@ const NavItem: React.FC<{
     isExpanded: boolean;
     isActive: boolean;
     onNavigate: (view: View) => void;
+    // FIX: Added `activeView` prop
     activeView: View;
 }> = ({ item, isExpanded, isActive, onNavigate, activeView }) => {
     const [isSubmenuOpen, setIsSubmenuOpen] = useState(false);
@@ -87,8 +89,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
 
     const sidebarContent = (
         <div className="flex flex-col h-full bg-brand-primary text-white shadow-xl">
+             {/* Logo and Club Name */}
+            <div className="flex items-center justify-center p-4 border-b border-white/10 cursor-pointer" onClick={() => handleNavigate('dashboard')}>
+                <img 
+                    src="/logo-phihau.png" 
+                    alt="Club Sportiv Phi Hau"
+                    className={`transition-all duration-300 rounded-full bg-white/10 shadow-md ${isExpanded ? 'w-20 h-20' : 'w-10 h-10'}`}
+                    style={{boxShadow: '0 0 10px rgba(77, 188, 233, 0.5)'}}
+                />
+            </div>
+            
             {/* Navigation items */}
-            <nav className="flex-1 px-3 py-4 space-y-2 overflow-y-auto pt-8">
+            <nav className="flex-1 px-3 py-4 space-y-2 overflow-y-auto">
                 {menu.map(item => {
                      const isActive = item.view === activeView || (item.submenu?.some(s => s.view === activeView) ?? false);
                      return <NavItem key={item.label} item={item} isExpanded={isExpanded} isActive={isActive} onNavigate={handleNavigate} activeView={activeView} />

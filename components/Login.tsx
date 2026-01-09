@@ -58,6 +58,9 @@ export const Login: React.FC<LoginProps> = () => {
     return (
         <div className="min-h-screen flex items-center justify-center bg-brand-primary p-4">
             <div className="w-full max-w-md">
+                 <div className="flex justify-center mb-6">
+                    <img src="/logo-phihau.png" alt="Club Logo" className="w-24 h-24 rounded-full shadow-lg" />
+                </div>
                 <Card>
                     <div className="text-center mb-8">
                         <h1 className="text-3xl font-bold text-white">Portal Phi Hau Iași</h1>

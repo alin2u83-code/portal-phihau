@@ -97,6 +97,23 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({ formState, handle
             </Select>
             <Input label="Înălțime (cm)" name="inaltime" type="number" value={formState.inaltime || ''} onChange={handleChange} />
          </div>
+
+        {customFields.length > 0 && (
+            <div className="border-t border-slate-700 pt-6 mt-6">
+                <h3 className="text-lg font-bold text-white mb-4">Câmpuri Suplimentare</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {customFields.map(field => (
+                        <Input
+                            key={field}
+                            label={field}
+                            name={field}
+                            value={formState[field] || ''}
+                            onChange={handleChange}
+                        />
+                    ))}
+                </div>
+            </div>
+        )}
     </div>
 );
 
@@ -246,6 +263,17 @@ const SportivDetail: React.FC<SportivDetailProps> = ({ sportiv, onBack, onUpdate
                         )}
                     </Card>
 
+                    {customFields.length > 0 && !isEditMode && (
+                        <Card>
+                             <h3 className="text-xl font-bold text-white mb-4">Date Suplimentare</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {customFields.map(field => (
+                                    <DataField key={field} label={field} value={sportiv[field]} />
+                                ))}
+                            </div>
+                        </Card>
+                    )}
+
                     <Card className="bg-slate-900/50 border border-slate-700/50">
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                             <div className="flex items-center gap-4">
@@ -338,6 +366,7 @@ interface SportiviManagementProps {
     evenimente: Eveniment[]; rezultate: Rezultat[]; 
     tipuriAbonament: TipAbonament[]; familii: Familie[]; 
     customFields: string[]; 
+    setCustomFields: React.Dispatch<React.SetStateAction<string[]>>;
     selectedSportiv: Sportiv | null;
     onSelectSportiv: (sportiv: Sportiv) => void;
     onClearSelectedSportiv: () => void;
@@ -346,9 +375,10 @@ interface SportiviManagementProps {
     allRoles: Rol[];
 }
 
-export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, sportivi, setSportivi, participari, examene, grade, prezente, grupe, plati, evenimente, rezultate, tipuriAbonament, familii, customFields, selectedSportiv, onSelectSportiv, onClearSelectedSportiv, onSelectFamilie, onNavigateToAccountSettings, allRoles }) => {
+export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, sportivi, setSportivi, participari, examene, grade, prezente, grupe, plati, evenimente, rezultate, tipuriAbonament, familii, customFields, setCustomFields, selectedSportiv, onSelectSportiv, onClearSelectedSportiv, onSelectFamilie, onNavigateToAccountSettings, allRoles }) => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [newFieldName, setNewFieldName] = useState('');
   
   const filteredSportivi = useMemo(() => {
     return sportivi.filter(s => 
@@ -356,6 +386,24 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
       (s.cnp && s.cnp.includes(searchTerm))
     );
   }, [sportivi, searchTerm]);
+
+  const handleAddCustomField = () => {
+    const trimmedName = newFieldName.trim();
+    if (trimmedName && !customFields.includes(trimmedName) && !Object.keys(emptySportivState).includes(trimmedName)) {
+        setCustomFields(prev => [...prev, trimmedName]);
+        setNewFieldName('');
+    } else {
+        alert("Numele câmpului este invalid, deja există, sau este un câmp rezervat.");
+    }
+  };
+
+  const handleDeleteCustomField = (fieldName: string) => {
+    if (window.confirm(`Sunteți sigur că doriți să ștergeți câmpul "${fieldName}"? Toate datele asociate acestuia vor fi pierdute la următoarea salvare.`)) {
+        setCustomFields(prev => prev.filter(f => f !== fieldName));
+        // Datele vor fi eliminate de pe obiectele sportiv la următoarea salvare a unui profil individual.
+    }
+  };
+
 
     const handleSaveSportiv = async (sportivData: Partial<Sportiv>) => {
         if (!supabase) {
@@ -385,8 +433,11 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
              return;
         }
 
+        const standardProfileData = { ...profileData };
+        customFields.forEach(field => delete (standardProfileData as any)[field]);
+
         const profileToInsert = {
-            ...profileData,
+            ...standardProfileData,
             user_id: authUser ? authUser.id : null,
             email: email || null,
             username: username || null,
@@ -432,7 +483,15 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
                 const userProfile = finalSportivData as any;
                 userProfile.roluri = userProfile.sportivi_roluri.map((item: any) => item.roluri);
                 delete userProfile.sportivi_roluri;
-                setSportivi(prev => [...prev, userProfile as Sportiv]);
+
+                const customData: { [key: string]: any } = {};
+                customFields.forEach(field => {
+                    if (sportivData[field] !== undefined) {
+                        customData[field] = sportivData[field];
+                    }
+                });
+                const finalProfile = { ...userProfile, ...customData };
+                setSportivi(prev => [...prev, finalProfile as Sportiv]);
             }
 
             setShowAddForm(false);
@@ -441,11 +500,15 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
 
   const handleUpdateSportiv = async (updates: Partial<Sportiv>) => {
     if (!supabase || !selectedSportiv) return {success: false};
-    const { data, error } = await supabase.from('sportivi').update(updates).eq('id', selectedSportiv.id).select().single();
+
+    const supabaseUpdates = { ...updates };
+    customFields.forEach(field => delete (supabaseUpdates as any)[field]);
+    
+    const { data, error } = await supabase.from('sportivi').update(supabaseUpdates).eq('id', selectedSportiv.id).select().single();
     if (error) {
         return {success: false, error};
     } else {
-        setSportivi(prev => prev.map(s => s.id === selectedSportiv.id ? { ...s, ...data } : s));
+        setSportivi(prev => prev.map(s => s.id === selectedSportiv.id ? { ...s, ...updates } : s));
         return {success: true};
     }
   };
@@ -492,6 +555,27 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
         )}
 
         <Card className="mb-6">
+            <h2 className="text-xl font-bold text-white mb-4">Management Câmpuri Custom</h2>
+            <div className="flex items-end gap-2">
+                <Input label="Nume Câmp Nou" value={newFieldName} onChange={e => setNewFieldName(e.target.value)} placeholder="ex: Telefon Părinte"/>
+                <Button onClick={handleAddCustomField} variant="secondary">Adaugă Câmp</Button>
+            </div>
+            {customFields.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-slate-700/50">
+                    <h3 className="text-sm font-semibold text-slate-400 mb-2">Câmpuri existente:</h3>
+                    <div className="flex flex-wrap gap-2">
+                        {customFields.map(field => (
+                            <span key={field} className="bg-slate-700 text-slate-200 text-xs font-medium px-3 py-1 rounded-full flex items-center gap-2">
+                                {field}
+                                <button onClick={() => handleDeleteCustomField(field)} className="text-slate-400 hover:text-white font-bold text-lg leading-none transform hover:scale-125 transition-transform" title={`Șterge câmpul "${field}"`}>&times;</button>
+                            </span>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </Card>
+
+        <Card className="mb-6">
             <Input 
                 label="Caută sportiv" 
                 placeholder="Nume sau CNP..." 
@@ -500,14 +584,15 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
             />
         </Card>
 
-        <div className="bg-slate-800 rounded-lg shadow-lg overflow-hidden">
-            <table className="w-full text-left">
+        <div className="bg-slate-800 rounded-lg shadow-lg overflow-x-auto">
+            <table className="w-full text-left min-w-[800px]">
                 <thead className="bg-slate-700">
                     <tr>
                         <th className="p-4">Nume</th>
                         <th className="p-4">Grupă</th>
                         <th className="p-4">Statut</th>
                         <th className="p-4">Roluri</th>
+                        {customFields.map(field => <th key={field} className="p-4">{field}</th>)}
                         <th className="p-4 text-right">Acțiuni</th>
                     </tr>
                 </thead>
@@ -526,6 +611,7 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
                                     {sportiv.roluri.map(r => <RoleBadge key={r.id} role={r} />)}
                                 </div>
                             </td>
+                            {customFields.map(field => <td key={field} className="p-4 text-slate-300">{sportiv[field] || '-'}</td>)}
                             <td className="p-4 text-right">
                                 <Button size="sm" variant="primary"><EditIcon className="w-4 h-4" /></Button>
                             </td>

@@ -23,10 +23,11 @@ export const SportivAccountSettings: React.FC<SportivAccountSettingsProps> = ({ 
     const [successMessage, setSuccessMessage] = useState('');
 
     const canEditRoles = currentUser.roluri.some(r => r.nume === 'Admin');
+    const hasAccount = !!sportiv.user_id;
 
     useEffect(() => {
         setFormData({
-            email: sportiv.email,
+            email: sportiv.email || '', // Ensure it's not null
             username: sportiv.username || '',
         });
         setSelectedRoleIds(sportiv.roluri.map(r => r.id));
@@ -48,6 +49,11 @@ export const SportivAccountSettings: React.FC<SportivAccountSettingsProps> = ({ 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!supabase) { setErrorMessage("Clientul Supabase nu este configurat."); return; }
+
+        if (hasAccount && !formData.email) {
+            setErrorMessage("Utilizatorii cu un cont de acces trebuie să aibă o adresă de email.");
+            return;
+        }
         
         setLoading(true);
         setErrorMessage('');
@@ -79,15 +85,33 @@ export const SportivAccountSettings: React.FC<SportivAccountSettingsProps> = ({ 
         // ---- END ROLE UPDATE LOGIC ----
 
         const cleanedUsername = formData.username.toLowerCase().replace(/\s/g, '');
-        if (cleanedUsername && cleanedUsername !== sportiv.username) {
-            const { data: existingUser, error: checkError } = await supabase.from('sportivi').select('id').eq('username', cleanedUsername).not('id', 'eq', sportiv.id).limit(1);
-            if (checkError) { setErrorMessage(`Eroare la verificare username: ${checkError.message}`); setLoading(false); return; }
-            if (existingUser && existingUser.length > 0) { setErrorMessage('Numele de utilizator este deja folosit.'); setLoading(false); return; }
+        
+        // Always check for uniqueness if a username is provided.
+        // This is safer than trying to detect if the username has "changed", especially with case differences.
+        if (cleanedUsername) {
+            const { data: existingUser, error: checkError } = await supabase
+                .from('sportivi')
+                .select('id')
+                .eq('username', cleanedUsername)
+                .not('id', 'eq', sportiv.id)
+                .limit(1);
+
+            if (checkError) {
+                setErrorMessage(`Eroare la verificare username: ${checkError.message}`);
+                setLoading(false);
+                return;
+            }
+            if (existingUser && existingUser.length > 0) {
+                setErrorMessage('Numele de utilizator este deja folosit.');
+                setLoading(false);
+                return;
+            }
         }
 
+
         const updates = {
-            username: cleanedUsername,
-            email: formData.email,
+            username: cleanedUsername || null,
+            email: formData.email || null,
         };
 
         const { data, error } = await supabase.from('sportivi').update(updates).eq('id', sportiv.id).select('*, sportivi_roluri(roluri(id, nume))').single();
@@ -109,6 +133,10 @@ export const SportivAccountSettings: React.FC<SportivAccountSettingsProps> = ({ 
 
     const handleResetPassword = async () => {
         if (!supabase) return;
+        if (!sportiv.email) {
+            setErrorMessage("Utilizatorul nu are o adresă de email setată pentru a trimite link-ul de resetare.");
+            return;
+        }
         setLoading(true);
         setErrorMessage('');
         setSuccessMessage('');
@@ -176,7 +204,8 @@ export const SportivAccountSettings: React.FC<SportivAccountSettingsProps> = ({ 
                                 type="email" 
                                 value={formData.email} 
                                 onChange={handleChange} 
-                                required 
+                                required={hasAccount}
+                                placeholder={hasAccount ? "Obligatoriu pentru conturi" : "Opțional"}
                             />
                         </div>
                     </div>
@@ -186,7 +215,7 @@ export const SportivAccountSettings: React.FC<SportivAccountSettingsProps> = ({ 
                         <p className="text-sm text-slate-400 mb-4">
                             Pentru a reseta parola, trimite un link securizat pe adresa de email a utilizatorului.
                         </p>
-                        <Button type="button" onClick={handleResetPassword} variant="secondary" size="sm" disabled={loading}>
+                        <Button type="button" onClick={handleResetPassword} variant="secondary" size="sm" disabled={loading || !hasAccount}>
                             Trimite Link Resetare Email
                         </Button>
                     </div>

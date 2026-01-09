@@ -257,7 +257,7 @@ const SportivDetail: React.FC<SportivDetailProps> = ({ sportiv, onBack, onUpdate
                                 variant="secondary" 
                                 className="bg-amber-600 hover:bg-amber-700 text-white shadow-lg shadow-amber-900/20 border-none"
                             >
-                                <CogIcon className="w-5 h-5 mr-2" /> Gestionare Cont
+                                <CogIcon className="w-5 h-5 mr-2" /> Gestionare Cont Acces
                             </Button>
                         </div>
                     </Card>
@@ -338,9 +338,10 @@ interface SportiviManagementProps {
     onClearSelectedSportiv: () => void;
     onSelectFamilie: (familieId: string) => void;
     onNavigateToAccountSettings: (sportiv: Sportiv) => void;
+    allRoles: Rol[];
 }
 
-export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, sportivi, setSportivi, participari, examene, grade, prezente, grupe, plati, evenimente, rezultate, tipuriAbonament, familii, customFields, selectedSportiv, onSelectSportiv, onClearSelectedSportiv, onSelectFamilie, onNavigateToAccountSettings }) => {
+export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, sportivi, setSportivi, participari, examene, grade, prezente, grupe, plati, evenimente, rezultate, tipuriAbonament, familii, customFields, selectedSportiv, onSelectSportiv, onClearSelectedSportiv, onSelectFamilie, onNavigateToAccountSettings, allRoles }) => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   
@@ -351,16 +352,91 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
     );
   }, [sportivi, searchTerm]);
 
-  const handleSaveSportiv = async (sportivData: Partial<Sportiv>) => {
-    if (!supabase) return;
-    const { data, error } = await supabase.from('sportivi').insert(sportivData).select().single();
-    if (error) {
-        alert("Eroare la adăugare: " + error.message);
-    } else if (data) {
-        setSportivi(prev => [...prev, data as Sportiv]);
-        setShowAddForm(false);
-    }
-  };
+    const handleSaveSportiv = async (sportivData: Partial<Sportiv>) => {
+        if (!supabase) {
+            alert("Eroare: Clientul Supabase nu este configurat.");
+            return;
+        }
+
+        const { email, parola, username, ...profileData } = sportivData;
+
+        if (!email || !parola) {
+            alert("Email-ul și parola sunt obligatorii pentru crearea unui cont nou.");
+            return;
+        }
+
+        // Pasul 1: Crearea utilizatorului în Supabase Auth
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+            email: email,
+            password: parola,
+        });
+
+        if (authError) {
+            alert(`Eroare la crearea contului: ${authError.message}`);
+            return;
+        }
+        if (!authData.user) {
+            alert("Nu s-a putut crea utilizatorul. Încercați din nou.");
+            return;
+        }
+
+        // Pasul 2: Pregătirea datelor pentru inserarea în tabelul 'sportivi'
+        const profileToInsert = {
+            ...profileData,
+            user_id: authData.user.id,
+            email: email,
+            username: username || null,
+        };
+        // @ts-ignore
+        delete profileToInsert.parola;
+
+
+        // Pasul 3: Inserarea profilului în tabelul 'sportivi'
+        const { data: newSportiv, error: profileError } = await supabase
+            .from('sportivi')
+            .insert(profileToInsert)
+            .select()
+            .single();
+
+        if (profileError) {
+            alert(`Eroare la salvarea profilului: ${profileError.message}\n(Notă: Un cont de autentificare a fost creat. Contactați suportul pentru a rezolva manual.)`);
+            return;
+        }
+        
+        if (newSportiv) {
+            // Pasul 4: Asignarea rolului default 'Sportiv'
+            const sportivRole = allRoles.find(r => r.nume === 'Sportiv');
+            if (sportivRole) {
+                const { error: roleError } = await supabase.from('sportivi_roluri').insert({
+                    sportiv_id: newSportiv.id,
+                    rol_id: sportivRole.id,
+                });
+                if (roleError) {
+                    alert(`Profil creat, dar a apărut o eroare la asignarea rolului: ${roleError.message}`);
+                }
+            }
+
+            // Re-citim sportivul cu tot cu roluri pentru a actualiza corect starea
+            const { data: finalSportivData, error: refetchError } = await supabase
+                .from('sportivi')
+                .select('*, sportivi_roluri(roluri(id, nume))')
+                .eq('id', newSportiv.id)
+                .single();
+            
+            if (refetchError) {
+                alert(`Profil creat, dar eroare la reîncărcarea datelor: ${refetchError.message}`);
+                const sportivWithRole = { ...newSportiv, roluri: sportivRole ? [sportivRole] : [] };
+                setSportivi(prev => [...prev, sportivWithRole as Sportiv]);
+            } else if (finalSportivData) {
+                const userProfile = finalSportivData as any;
+                userProfile.roluri = userProfile.sportivi_roluri.map((item: any) => item.roluri);
+                delete userProfile.sportivi_roluri;
+                setSportivi(prev => [...prev, userProfile as Sportiv]);
+            }
+
+            setShowAddForm(false);
+        }
+    };
 
   const handleUpdateSportiv = async (updates: Partial<Sportiv>) => {
     if (!supabase || !selectedSportiv) return {success: false};

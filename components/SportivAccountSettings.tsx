@@ -100,7 +100,7 @@ export const SportivAccountSettings: React.FC<SportivAccountSettingsProps> = ({ 
             delete updatedUser.sportivi_roluri;
             
             setSportivi(prev => prev.map(s => s.id === sportiv.id ? updatedUser : s));
-            setSuccessMessage("Setările contului au fost actualizate cu succes!");
+            setSuccessMessage("Setările de acces au fost actualizate!");
         }
         
         setLoading(false);

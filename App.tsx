@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
 import { Sportiv, Examen, Grad, Participare, View, Prezenta, Grupa, Plata, Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, Rol } from './types';
@@ -125,6 +126,7 @@ function App() {
   const [plataToIncasare, setPlataToIncasare] = useState<Plata | null>(null);
   const [selectedSportiv, setSelectedSportiv] = useState<Sportiv | null>(null);
   const [selectedFamilie, setSelectedFamilie] = useState<Familie | null>(null);
+  const [viewingAs, setViewingAs] = useState<User | null>(null);
   
     useEffect(() => {
         const getSession = async () => {
@@ -150,6 +152,7 @@ function App() {
                 fetchUserProfile(session.user.id);
             } else {
                 setCurrentUser(null);
+                setViewingAs(null);
             }
         });
 
@@ -169,6 +172,7 @@ function App() {
             console.error("Eroare la preluarea profilului utilizator:", error);
             setFetchError(`Eroare la preluarea profilului. Motiv: ${error.message}.`);
             setCurrentUser(null);
+            setViewingAs(null);
         } else if (data) {
              const userProfile = data as any;
              if (userProfile.sportivi_roluri) {
@@ -178,9 +182,11 @@ function App() {
                 userProfile.roluri = [];
              }
             setCurrentUser(userProfile as User);
+            setViewingAs(userProfile as User);
         } else {
             setFetchError(`Profilul dvs. nu a fost găsit în baza de date.`);
             setCurrentUser(null);
+            setViewingAs(null);
         }
         setLoading(false);
     };
@@ -253,7 +259,7 @@ function App() {
 
   const handleLogout = async () => { 
     if (supabase) await supabase.auth.signOut();
-    setCurrentUser(null); setActiveMenu(null); setActiveView(null);
+    setCurrentUser(null); setActiveMenu(null); setActiveView(null); setViewingAs(null);
   };
 
   const handleBackToDashboard = () => { 
@@ -262,7 +268,21 @@ function App() {
     setSelectedSportiv(null); 
     setSelectedFamilie(null);
     setAdminViewingPortal(false);
+    setViewingAs(currentUser);
    };
+   
+  const handleSwitchViewedMember = (memberId: string) => {
+      // FIX: Block-scoped variable 'isAdmin' used before its declaration. Moved declaration up.
+      const isAdmin = currentUser?.roluri.some(r => r.nume === 'Admin') ?? false;
+      if (!currentUser || (!currentUser.familie_id && !isAdmin)) return;
+      const targetMember = sportivi.find(s => s.id === memberId);
+
+      if (targetMember && (targetMember.id === currentUser.id || targetMember.familie_id === currentUser.familie_id || isAdmin)) {
+          setViewingAs(targetMember);
+      } else {
+          console.warn("Încercare de a vizualiza un profil din afara familiei.");
+      }
+  };
 
    const handleViewOwnPortal = () => setAdminViewingPortal(true);
 
@@ -279,7 +299,7 @@ function App() {
 
     if (activeView) {
       switch (activeView) {
-        case 'sportivi': return <SportiviManagement onBack={() => setActiveView(null)} sportivi={sportivi} setSportivi={setSportivi} participari={participari} examene={examene} grade={grade} prezente={prezente} grupe={grupe} plati={plati} evenimente={evenimente} rezultate={rezultate} tipuriAbonament={tipuriAbonament} familii={familii} customFields={customFields} selectedSportiv={selectedSportiv} onSelectSportiv={setSelectedSportiv} onClearSelectedSportiv={() => setSelectedSportiv(null)} onSelectFamilie={(fid) => { setSelectedFamilie(familii.find(f => f.id === fid) || null); setActiveView('familie-detail'); }} onNavigateToAccountSettings={(s) => { setSelectedSportiv(s); setActiveView('sportiv-account-settings'); }} />;
+        case 'sportivi': return <SportiviManagement onBack={() => setActiveView(null)} sportivi={sportivi} setSportivi={setSportivi} participari={participari} examene={examene} grade={grade} prezente={prezente} grupe={grupe} plati={plati} evenimente={evenimente} rezultate={rezultate} tipuriAbonament={tipuriAbonament} familii={familii} customFields={customFields} selectedSportiv={selectedSportiv} onSelectSportiv={setSelectedSportiv} onClearSelectedSportiv={() => setSelectedSportiv(null)} onSelectFamilie={(fid) => { setSelectedFamilie(familii.find(f => f.id === fid) || null); setActiveView('familie-detail'); }} onNavigateToAccountSettings={(s) => { setSelectedSportiv(s); setActiveView('sportiv-account-settings'); }} allRoles={allRoles} />;
         case 'examene': return <ExameneManagement onBack={() => setActiveView(null)} examene={examene} setExamene={setExamene} participari={participari} setParticipari={setParticipari} sportivi={sportivi} grade={grade} setPlati={setPlati} preturi={preturiConfig} />;
         case 'grade': return <GradeManagement onBack={() => setActiveView(null)} grade={grade} setGrade={setGrade} />;
         case 'prezenta': return <PrezentaManagement onBack={() => setActiveView(null)} sportivi={sportivi} prezente={prezente} setPrezente={setPrezente} grupe={grupe} plati={plati} />;
@@ -306,12 +326,16 @@ function App() {
   };
 
   const renderPortalContent = () => {
+    if (!viewingAs) return <div className="text-center p-8">Se încarcă...</div>;
+    
     if (activeView === 'editare-profil-personal') {
         return <EditareProfilPersonal user={currentUser!} setSportivi={setSportivi} setCurrentUser={setCurrentUser} onBack={() => setActiveView(null)} />;
     }
     return (
         <PortalSportiv 
-            sportiv={currentUser!} 
+            currentUser={currentUser!}
+            viewedUser={viewingAs}
+            onSwitchView={handleSwitchViewedMember}
             participari={participari} 
             examene={examene} 
             grade={grade} 

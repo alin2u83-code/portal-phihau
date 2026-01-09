@@ -92,23 +92,46 @@ export const PortalSportiv: React.FC<PortalSportivProps> = ({ currentUser, viewe
         return upcomingEvents.filter(ev => !registeredEventIds.has(ev.id)).sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());
     }, [evenimente, sportivRezultate]);
     
-    const handleInscriereStagiu = async (eveniment: Eveniment) => {
+    const handleInscriereEveniment = async (eveniment: Eveniment) => {
         if (!supabase) { alert("Eroare de configurare: Conexiunea la baza de date nu a putut fi stabilită."); return; }
         if (!window.confirm(`Confirmați înscrierea la "${eveniment.denumire}"? Se va genera automat o taxă de plată.`)) return;
         setLoading(prev => ({ ...prev, [eveniment.id]: true }));
-        const pretStagiuConfig = getPretValabil(preturiConfig, 'Taxa Stagiu', eveniment.data);
-        if (!pretStagiuConfig) { alert("Eroare: Configurația de preț pentru stagii nu este disponibilă. Vă rugăm contactați administratorul."); setLoading(prev => ({ ...prev, [eveniment.id]: false })); return; }
+        
+        const categorie: PretConfig['categorie'] = eveniment.tip === 'Stagiu' ? 'Taxa Stagiu' : 'Taxa Competitie';
+        const pretConfig = getPretValabil(preturiConfig, categorie, eveniment.data);
+
+        if (!pretConfig) { 
+            alert(`Eroare: Configurația de preț pentru '${categorie}' nu este disponibilă. Vă rugăm contactați administratorul.`); 
+            setLoading(prev => ({ ...prev, [eveniment.id]: false })); 
+            return; 
+        }
+        
         const { data: rezultatData, error: rezultatError } = await supabase.from('rezultate').insert({ sportiv_id: viewedUser.id, eveniment_id: eveniment.id, rezultat: 'Înscris' }).select().single();
         if (rezultatError) { alert(`Eroare la înscriere: ${rezultatError.message}`); setLoading(prev => ({ ...prev, [eveniment.id]: false })); return; }
-        const newPlata: Omit<Plata, 'id'> = { sportiv_id: viewedUser.id, familie_id: viewedUser.familie_id, suma: pretStagiuConfig.suma, data: new Date().toISOString().split('T')[0], status: 'Neachitat', descriere: `Taxa ${eveniment.denumire}`, tip: 'Taxa Stagiu', metoda_plata: null, data_platii: null, observatii: `Înscriere automată din portal.`, };
+        
+        const newPlata: Omit<Plata, 'id'> = { 
+            sportiv_id: viewedUser.id, 
+            familie_id: viewedUser.familie_id, 
+            suma: pretConfig.suma, 
+            data: new Date().toISOString().split('T')[0], 
+            status: 'Neachitat', 
+            descriere: `Taxa ${eveniment.denumire}`, 
+            tip: categorie, 
+            metoda_plata: null, 
+            data_platii: null, 
+            observatii: `Înscriere automată din portal.`, 
+        };
         const { data: plataData, error: plataError } = await supabase.from('plati').insert(newPlata).select().single();
         if (plataError) { alert(`Înscriere reușită, dar eroare la generare taxă: ${plataError.message}. Contactați administratorul.`); }
+        
         if(rezultatData) setRezultate(prev => [...prev, rezultatData as Rezultat]);
         if(plataData) setPlati(prev => [...prev, plataData as Plata]);
+        
         setShowSuccess("Înscriere realizată cu succes! Verificați secțiunea financiară.");
         setTimeout(() => setShowSuccess(null), 5000);
         setLoading(prev => ({ ...prev, [eveniment.id]: false }));
     };
+
 
     return (
         <div className="space-y-6">
@@ -213,9 +236,9 @@ export const PortalSportiv: React.FC<PortalSportivProps> = ({ currentUser, viewe
                                     <p className="font-bold">{ev.denumire} <span className={`ml-2 text-[10px] px-2 py-0.5 rounded-full text-white ${ev.tip === 'Stagiu' ? 'bg-sky-600' : 'bg-purple-600'}`}>{ev.tip}</span></p>
                                     <p className="text-xs text-slate-400">{new Date(ev.data).toLocaleDateString('ro-RO')} - {ev.locatie}</p>
                                 </div>
-                                {ev.tip === 'Stagiu' && isViewingOwnProfile && (
+                                {isViewingOwnProfile && (
                                     <div className="text-right">
-                                        <Button onClick={() => handleInscriereStagiu(ev)} variant="success" size="sm" disabled={loading[ev.id]} className="text-xs">
+                                        <Button onClick={() => handleInscriereEveniment(ev)} variant="success" size="sm" disabled={loading[ev.id]} className="text-xs">
                                             {loading[ev.id] ? 'Se înscrie...' : 'Înscrie-te'}
                                         </Button>
                                     </div>

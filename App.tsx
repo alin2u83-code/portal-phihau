@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
 import { Sportiv, Examen, Grad, Participare, View, Prezenta, Grupa, Plata, Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, Rol } from './types';
@@ -165,16 +164,18 @@ function App() {
         const { data, error } = await supabase
             .from('sportivi')
             .select('*, sportivi_roluri(roluri(id, nume))')
-            .eq('user_id', userId)
-            .single();
+            .eq('user_id', userId);
 
         if (error) {
             console.error("Eroare la preluarea profilului utilizator:", error);
             setFetchError(`Eroare la preluarea profilului. Motiv: ${error.message}.`);
             setCurrentUser(null);
             setViewingAs(null);
-        } else if (data) {
-             const userProfile = data as any;
+        } else if (data && data.length > 0) {
+             if (data.length > 1) {
+                 console.warn(`Atenție: Au fost găsite mai multe profiluri pentru user_id ${userId}. Se va folosi primul.`);
+             }
+             const userProfile = data[0] as any;
              if (userProfile.sportivi_roluri) {
                 userProfile.roluri = userProfile.sportivi_roluri.map((item: any) => item.roluri);
                 delete userProfile.sportivi_roluri;

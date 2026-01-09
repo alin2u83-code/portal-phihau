@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { TipAbonament } from '../types';
 import { Button, Input, Card } from './ui';
 import { PlusIcon, TrashIcon, ArrowLeftIcon } from './icons';
+import { supabase } from '../supabaseClient';
 
 interface TipuriAbonamentManagementProps {
     tipuriAbonament: TipAbonament[];
@@ -11,76 +12,56 @@ interface TipuriAbonamentManagementProps {
 
 export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps> = ({ tipuriAbonament, setTipuriAbonament, onBack }) => {
     const [newDenumire, setNewDenumire] = useState('');
-    const [newPret, setNewPret] = useState<number | string>(0);
+    const [newPret, setNewPret] = useState<number | string>('');
     const [newNrMembri, setNewNrMembri] = useState<number | string>(1);
     const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
 
-    const handleAdd = () => {
+    const handleAdd = async () => {
         setError(null);
+        if(!supabase) { setError("Client Supabase neinitializat."); return; }
         
         const pretNum = typeof newPret === 'string' ? parseFloat(newPret) : newPret;
         const nrMembriNum = typeof newNrMembri === 'string' ? parseInt(newNrMembri) : newNrMembri;
 
-        // Validări
-        if (!newDenumire.trim()) {
-            setError("Denumirea abonamentului este obligatorie.");
-            return;
-        }
-        if (isNaN(pretNum) || pretNum <= 0) {
-            setError("Prețul trebuie să fie un număr pozitiv valid.");
-            return;
-        }
-        if (isNaN(nrMembriNum) || nrMembriNum <= 0) {
-            setError("Numărul de membri trebuie să fie cel puțin 1.");
-            return;
-        }
+        if (!newDenumire.trim()) { setError("Denumirea abonamentului este obligatorie."); return; }
+        if (isNaN(pretNum) || pretNum <= 0) { setError("Prețul trebuie să fie un număr pozitiv valid."); return; }
+        if (isNaN(nrMembriNum) || nrMembriNum <= 0) { setError("Numărul de membri trebuie să fie cel puțin 1."); return; }
+        if (nrMembriNum > 1 && !newDenumire.toLowerCase().includes('familie')) { if (!window.confirm("Ați introdus mai mult de 1 membru, dar denumirea nu conține 'Familie'. Doriți să continuați?")) { return; } }
 
-        // Validare logică pentru abonamente de familie
-        if (nrMembriNum > 1 && !newDenumire.toLowerCase().includes('familie')) {
-            if (!window.confirm("Ați introdus mai mult de 1 membru, dar denumirea nu conține 'Familie'. Doriți să continuați?")) {
-                return;
-            }
-        }
-
-        const newAbonament: TipAbonament = {
-            id: `ab-${new Date().getTime()}`,
-            denumire: newDenumire.trim(),
-            pret: pretNum,
-            numar_membri: nrMembriNum
-        };
-
-        setTipuriAbonament(prev => [...prev, newAbonament]);
+        const newAbonament: Omit<TipAbonament, 'id'> = { denumire: newDenumire.trim(), pret: pretNum, numar_membri: nrMembriNum };
         
-        // Resetare form
-        setNewDenumire('');
-        setNewPret(0);
-        setNewNrMembri(1);
+        setLoading(true);
+        const { data, error: insertError } = await supabase.from('tipuri_abonament').insert(newAbonament).select().single();
+        setLoading(false);
+
+        if(insertError) { setError(insertError.message); }
+        else if (data) {
+            setTipuriAbonament(prev => [...prev, data as TipAbonament]);
+            setNewDenumire(''); setNewPret(''); setNewNrMembri(1);
+        }
     };
 
-    const handleEdit = (id: string, field: keyof TipAbonament, value: string | number) => {
-        setTipuriAbonament(prev => prev.map(ab => {
-            if (ab.id === id) {
-                let finalValue = value;
-                
-                // Validări instantanee la editare
-                if (field === 'pret') {
-                    const num = typeof value === 'string' ? parseFloat(value) : (value as number);
-                    finalValue = isNaN(num) ? 0 : num;
-                }
-                if (field === 'numar_membri') {
-                    const num = typeof value === 'string' ? parseInt(value) : (value as number);
-                    finalValue = isNaN(num) || num < 1 ? 1 : num;
-                }
+    const handleEdit = async (id: string, field: keyof TipAbonament, value: string | number) => {
+        if(!supabase) return;
+        
+        let finalValue = value;
+        if (field === 'pret' || field === 'numar_membri') {
+            const num = typeof value === 'string' ? (field === 'pret' ? parseFloat(value) : parseInt(value, 10)) : value as number;
+            finalValue = isNaN(num) || num < 0 ? 0 : num;
+        }
 
-                return { ...ab, [field]: finalValue };
-            }
-            return ab;
-        }));
+        const { error } = await supabase.from('tipuri_abonament').update({ [field]: finalValue }).eq('id', id);
+        if (error) { alert(`Eroare la salvare: ${error.message}`); } 
+        else { setTipuriAbonament(prev => prev.map(ab => (ab.id === id ? { ...ab, [field]: finalValue } : ab))); }
     };
 
-    const handleDelete = (id: string) => {
+    const handleDelete = async (id: string) => {
+        if(!supabase) return;
         if (window.confirm("Sunteți sigur că doriți să ștergeți acest tip de abonament? Această acțiune poate afecta sportivii care îl au deja alocat.")) {
-            setTipuriAbonament(prev => prev.filter(ab => ab.id !== id));
+            const { error } = await supabase.from('tipuri_abonament').delete().eq('id', id);
+            if (error) { alert(`Eroare la ștergere: ${error.message}`); }
+            else { setTipuriAbonament(prev => prev.filter(ab => ab.id !== id)); }
         }
     };
     
@@ -101,38 +82,17 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
                 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                     <div className="md:col-span-2">
-                        <Input 
-                            label="Denumire (ex: Individual, Familie 2)" 
-                            value={newDenumire} 
-                            onChange={e => setNewDenumire(e.target.value)} 
-                            placeholder="Introduceți numele..."
-                        />
+                        <Input label="Denumire (ex: Individual, Familie 2)" value={newDenumire} onChange={e => setNewDenumire(e.target.value)} placeholder="Introduceți numele..."/>
                     </div>
-                    <Input 
-                        label="Preț (RON)" 
-                        type="number" 
-                        step="0.01"
-                        value={newPret} 
-                        onChange={e => setNewPret(e.target.value)} 
-                    />
-                    <Input 
-                        label="Nr. Membri" 
-                        type="number" 
-                        min="1" 
-                        value={newNrMembri} 
-                        onChange={e => setNewNrMembri(e.target.value)} 
-                    />
+                    <Input label="Preț (RON)" type="number" step="0.01" value={newPret} onChange={e => setNewPret(e.target.value)} />
+                    <Input label="Nr. Membri" type="number" min="1" value={newNrMembri} onChange={e => setNewNrMembri(e.target.value)} />
                 </div>
 
-                {error && (
-                    <div className="mt-4 p-2 bg-red-900/30 border border-red-500/50 text-red-400 text-sm rounded flex items-center gap-2">
-                        <span className="font-bold">!</span> {error}
-                    </div>
-                )}
+                {error && <div className="mt-4 p-2 bg-red-900/30 border border-red-500/50 text-red-400 text-sm rounded flex items-center gap-2"> <span className="font-bold">!</span> {error} </div>}
 
                 <div className="flex justify-end mt-6">
-                    <Button onClick={handleAdd} variant="info" className="px-8 shadow-lg shadow-cyan-900/20">
-                        <PlusIcon className="w-5 h-5 mr-2"/> Adaugă în Listă
+                    <Button onClick={handleAdd} variant="info" className="px-8 shadow-lg shadow-cyan-900/20" disabled={loading}>
+                        {loading ? 'Se adaugă...' : <><PlusIcon className="w-5 h-5 mr-2"/> Adaugă în Listă</>}
                     </Button>
                 </div>
             </Card>
@@ -155,44 +115,19 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
                             {sortedAbonamente.map(ab => (
                                 <tr key={ab.id} className="hover:bg-slate-700/20 transition-colors">
                                     <td className="p-3">
-                                        <Input 
-                                            label="" 
-                                            value={ab.denumire} 
-                                            onChange={e => handleEdit(ab.id, 'denumire', e.target.value)} 
-                                            className="bg-transparent border-slate-700 focus:bg-slate-700"
-                                        />
+                                        <Input label="" value={ab.denumire} onBlur={e => handleEdit(ab.id, 'denumire', e.target.value)} onChange={e => setTipuriAbonament(prev => prev.map(a => a.id === ab.id ? {...a, denumire: e.target.value} : a))} className="bg-transparent border-slate-700 focus:bg-slate-700"/>
                                     </td>
                                      <td className="p-3">
-                                        <Input 
-                                            label="" 
-                                            type="number" 
-                                            min="1" 
-                                            value={ab.numar_membri} 
-                                            onChange={e => handleEdit(ab.id, 'numar_membri', e.target.value)} 
-                                            className="w-24 mx-auto text-center bg-transparent border-slate-700"
-                                        />
+                                        <Input label="" type="number" min="1" value={ab.numar_membri} onBlur={e => handleEdit(ab.id, 'numar_membri', e.target.value)} onChange={e => setTipuriAbonament(prev => prev.map(a => a.id === ab.id ? {...a, numar_membri: parseInt(e.target.value) || 1} : a))} className="w-24 mx-auto text-center bg-transparent border-slate-700"/>
                                     </td>
                                     <td className="p-3">
                                         <div className="flex items-center gap-2">
-                                            <Input 
-                                                label="" 
-                                                type="number" 
-                                                step="0.01"
-                                                value={ab.pret} 
-                                                onChange={e => handleEdit(ab.id, 'pret', e.target.value)} 
-                                                className="w-32 bg-transparent border-slate-700 text-brand-secondary font-bold"
-                                            />
+                                            <Input label="" type="number" step="0.01" value={ab.pret} onBlur={e => handleEdit(ab.id, 'pret', e.target.value)} onChange={e => setTipuriAbonament(prev => prev.map(a => a.id === ab.id ? {...a, pret: parseFloat(e.target.value) || 0} : a))} className="w-32 bg-transparent border-slate-700 text-brand-secondary font-bold"/>
                                             <span className="text-slate-500 text-xs">RON</span>
                                         </div>
                                     </td>
                                     <td className="p-3 text-right">
-                                        <Button 
-                                            onClick={() => handleDelete(ab.id)} 
-                                            variant="danger" 
-                                            size="sm" 
-                                            className="opacity-60 hover:opacity-100 transition-opacity"
-                                            title="Șterge acest tip"
-                                        >
+                                        <Button onClick={() => handleDelete(ab.id)} variant="danger" size="sm" className="opacity-60 hover:opacity-100 transition-opacity" title="Șterge acest tip">
                                             <TrashIcon className="w-4 h-4" />
                                         </Button>
                                     </td>
@@ -200,11 +135,7 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
                             ))}
                         </tbody>
                     </table>
-                    {tipuriAbonament.length === 0 && (
-                        <div className="p-12 text-center text-slate-500 italic bg-slate-800/20">
-                            Nu există tipuri de abonament definite. Folosiți formularul de mai sus pentru a începe.
-                        </div>
-                    )}
+                    {tipuriAbonament.length === 0 && <div className="p-12 text-center text-slate-500 italic bg-slate-800/20"> Nu există tipuri de abonament definite. Folosiți formularul de mai sus pentru a începe. </div>}
                 </div>
             </Card>
 

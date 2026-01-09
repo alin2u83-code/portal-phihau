@@ -31,7 +31,7 @@ const TopBar: React.FC<{ onLogout: () => void; onHome: () => void; user: User | 
     const isAdmin = user?.roluri?.some(r => r.nume === 'Admin');
 
     return (
-        <header className="bg-brand-primary shadow-md mb-8 border-b border-blue-800">
+        <header className="bg-slate-900/50 backdrop-blur-sm shadow-md mb-8 border-b border-slate-700 sticky top-0 z-40">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
                  <div 
                     onClick={onHome} 
@@ -51,7 +51,7 @@ const TopBar: React.FC<{ onLogout: () => void; onHome: () => void; user: User | 
                             Portalul Meu
                         </Button>
                     )}
-                    <span className="text-slate-200 hidden md:block text-sm border-r border-blue-700 pr-4">
+                    <span className="text-slate-200 hidden md:block text-sm border-r border-slate-600 pr-4">
                         <span className="text-slate-400 font-medium">Cont:</span> {userName}
                     </span>
                     <Button onClick={onLogout} variant="danger" size="sm" className="shadow-lg shadow-red-900/20">
@@ -63,16 +63,44 @@ const TopBar: React.FC<{ onLogout: () => void; onHome: () => void; user: User | 
     );
 };
 
-export type MenuKey = 'sportivi' | 'examene' | 'financiar' | 'antrenamente' | 'stagii' | 'competitii' | 'setari' | null;
+export type MenuKey = 'management-sportivi' | 'activitati' | 'antrenamente' | 'financiar' | null;
 
 const menuConfig: Record<NonNullable<MenuKey>, { title: string, items: { view: View, label: string, roles?: Rol['nume'][] }[] }> = {
-    sportivi: { title: "Meniu Sportivi", items: [ { view: 'sportivi', label: 'Listă Sportivi' }, { view: 'familii', label: 'Gestiune Familii' }, ] },
-    examene: { title: "Meniu Examene", items: [ { view: 'examene', label: 'Configurare Examene' }, { view: 'grade', label: 'Tabel Grade' } ] },
-    financiar: { title: "Meniu Financiar", items: [ { view: 'plati-scadente', label: 'Facturi (Datorii)' }, { view: 'jurnal-incasari', label: 'Jurnal Încasări' }, { view: 'raport-financiar', label: 'Raport Financiar' }, { view: 'tipuri-abonament', label: 'Configurare Abonamente' }, { view: 'configurare-preturi', label: 'Configurare Alte Prețuri' } ] },
-    antrenamente: { title: "Meniu Antrenamente", items: [ { view: 'prezenta', label: 'Înregistrare Prezențe' }, { view: 'grupe', label: 'Orar & Gestiune Grupe' }, { view: 'raport-prezenta', label: 'Raport Prezențe' } ] },
-    stagii: { title: "Meniu Stagii", items: [ { view: 'stagii', label: 'Listă Stagii & Participanți' } ] },
-    competitii: { title: "Meniu Competiții", items: [ { view: 'competitii', label: 'Listă Competiții & Rezultate' } ] },
-    setari: { title: "Setări Globale", items: [ { view: 'user-management', label: 'Gestionare Acces Utilizatori', roles: ['Admin', 'Instructor'] } ] },
+    'management-sportivi': { 
+        title: "Management Sportivi & Utilizatori", 
+        items: [ 
+            { view: 'sportivi', label: 'Listă Sportivi' }, 
+            { view: 'familii', label: 'Gestiune Familii' },
+            { view: 'user-management', label: 'Gestionare Acces Utilizatori', roles: ['Admin', 'Instructor'] }
+        ] 
+    },
+    'activitati': {
+        title: "Activități & Evaluări",
+        items: [
+            { view: 'examene', label: 'Configurare Examene' },
+            { view: 'grade', label: 'Nomenclator Grade' },
+            { view: 'stagii', label: 'Listă Stagii' },
+            { view: 'competitii', label: 'Listă Competiții' }
+        ]
+    },
+    'antrenamente': { 
+        title: "Meniu Antrenamente", 
+        items: [ 
+            { view: 'prezenta', label: 'Înregistrare Prezențe' }, 
+            { view: 'grupe', label: 'Orar & Gestiune Grupe' }, 
+            { view: 'raport-prezenta', label: 'Raport Prezențe' } 
+        ] 
+    },
+    'financiar': { 
+        title: "Meniu Financiar", 
+        items: [ 
+            { view: 'plati-scadente', label: 'Facturi (Datorii)' }, 
+            { view: 'jurnal-incasari', label: 'Jurnal Încasări' }, 
+            { view: 'raport-financiar', label: 'Raport Financiar' }, 
+            { view: 'tipuri-abonament', label: 'Configurare Abonamente' }, 
+            { view: 'configurare-preturi', label: 'Configurare Alte Prețuri' } 
+        ] 
+    },
 };
 
 const SubMenu: React.FC<{ menuKey: NonNullable<MenuKey>; onSelectItem: (view: View) => void; onBack: () => void; currentUser: User; }> = ({ menuKey, onSelectItem, onBack, currentUser }) => {
@@ -81,11 +109,11 @@ const SubMenu: React.FC<{ menuKey: NonNullable<MenuKey>; onSelectItem: (view: Vi
     return (
         <div>
             <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Dashboard</Button>
-            <h1 className="text-3xl font-bold text-slate-900 mb-6 text-center">{title}</h1>
+            <h1 className="text-3xl font-bold text-white mb-6 text-center">{title}</h1>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
                 {visibleItems.map(item => (
                     <div key={item.view} onClick={() => onSelectItem(item.view)}                         
-                         className="bg-brand-primary hover:bg-blue-900 text-white font-bold py-6 px-4 rounded-lg shadow-lg shadow-brand-primary/30 hover:shadow-brand-secondary/40 cursor-pointer text-center transition-all duration-300 transform hover:scale-105">
+                         className="bg-slate-800 hover:bg-slate-700/50 border border-slate-700 hover:border-brand-secondary text-white font-bold py-6 px-4 rounded-lg shadow-lg shadow-brand-primary/30 hover:shadow-brand-secondary/40 cursor-pointer text-center transition-all duration-300 transform hover:scale-105">
                         {item.label}
                     </div>
                 ))}

@@ -1,3 +1,4 @@
+
 export interface Rol {
   id: string;
   nume: 'Sportiv' | 'Instructor' | 'Admin';
@@ -60,7 +61,7 @@ export interface Prezenta {
   id: string;
   data: string;
   ora: string;
-  grupa_id: string;
+  grupa_id: string | null;
   sportivi_prezenti_ids: string[];
   tip: 'Normal' | 'Vacanta';
 }
@@ -75,7 +76,9 @@ export interface Grupa {
 export interface Eveniment {
     id: string;
     denumire: string;
+    // FIX: Renamed data_start to data to match usage across components.
     data: string;
+    data_sfarsit?: string | null;
     locatie: string;
     organizator: string;
     tip: 'Stagiu' | 'Competitie';

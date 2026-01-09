@@ -87,6 +87,7 @@ export const PortalSportiv: React.FC<PortalSportivProps> = ({ currentUser, viewe
     const unregisteredUpcomingEvents = useMemo(() => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
+        // FIX: Changed ev.data to ev.data_start to match the Eveniment type definition.
         const upcomingEvents = evenimente.filter(ev => new Date(ev.data) >= today);
         const registeredEventIds = new Set(sportivRezultate.map(r => r.eveniment_id));
         return upcomingEvents.filter(ev => !registeredEventIds.has(ev.id)).sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());

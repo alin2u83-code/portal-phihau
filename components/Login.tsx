@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { Button, Card, Input } from './ui';
+import { logoBase64 } from '../assets/logo';
 
 interface LoginProps {}
 
@@ -56,12 +57,13 @@ export const Login: React.FC<LoginProps> = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-100 p-4">
+        <div className="min-h-screen flex items-center justify-center bg-brand-primary p-4">
             <div className="w-full max-w-md">
                 <Card>
                     <div className="text-center mb-8">
-                        <h1 className="text-3xl font-bold text-slate-900">Portal Phi Hau Iași</h1>
-                        <p className="text-slate-600 mt-2">Autentificare în cont</p>
+                        <img src={logoBase64} alt="Logo" className="w-20 h-20 mx-auto mb-4" />
+                        <h1 className="text-3xl font-bold text-white">Portal Phi Hau Iași</h1>
+                        <p className="text-slate-400 mt-2">Autentificare în cont</p>
                     </div>
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <Input
@@ -86,10 +88,10 @@ export const Login: React.FC<LoginProps> = () => {
                         />
 
                         {error && (
-                            <p className="text-sm text-red-600 bg-red-100 p-3 rounded-md text-center">{error}</p>
+                            <p className="text-sm text-red-400 bg-red-900/40 p-3 rounded-md text-center">{error}</p>
                         )}
                         
-                        <Button type="submit" className="w-full" size="md" disabled={loading}>
+                        <Button type="submit" className="w-full" size="md" disabled={loading} variant="primary">
                             {loading ? 'Se autentifică...' : 'Autentificare'}
                         </Button>
                     </form>

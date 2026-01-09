@@ -75,12 +75,12 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment, rezultate,
         const pretConfig = getPretValabil(preturiConfig, categorie, eveniment.data);
 
         if (pretConfig) {
-            const newPlata: Omit<Plata, 'id' | 'data_platii' | 'metoda_plata'> = { 
+            const newPlata = { 
                 sportiv_id: sportiv.id, 
                 familie_id: sportiv.familie_id, 
                 suma: pretConfig.suma, 
                 data: new Date().toISOString().split('T')[0], 
-                status: 'Neachitat', 
+                status: 'Neachitat' as const, 
                 descriere: `Taxa ${eveniment.denumire}`, 
                 tip: categorie,
                 observatii: `Generată la înscrierea în eveniment.`, 

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Sportiv, User, Rol } from '../types';
 import { Button, Input, Card, Select, Modal } from './ui';
-import { ArrowLeftIcon, EditIcon, ShieldCheckIcon } from './icons';
+import { ArrowLeftIcon, EditIcon, ShieldCheckIcon, PlusIcon } from './icons';
 import { supabase } from '../supabaseClient';
 
 const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
@@ -11,7 +11,7 @@ const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
         Sportiv: 'bg-slate-600 text-slate-200',
     };
     return (
-        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${colorClasses[role.nume]}`}>
+        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${colorClasses[role.nume] || 'bg-gray-500 text-white'}`}>
             {role.nume}
         </span>
     );
@@ -150,9 +150,10 @@ interface UserManagementProps {
     currentUser: User;
     setCurrentUser: React.Dispatch<React.SetStateAction<User | null>>;
     allRoles: Rol[];
+    setAllRoles: React.Dispatch<React.SetStateAction<Rol[]>>;
 }
 
-export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSportivi, onBack, currentUser, setCurrentUser, allRoles }) => {
+export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSportivi, onBack, currentUser, setCurrentUser, allRoles, setAllRoles }) => {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [newRoleIds, setNewRoleIds] = useState<string[]>([]);
     const [showSuccessId, setShowSuccessId] = useState<string | null>(null);
@@ -163,6 +164,9 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
     const [createAccountError, setCreateAccountError] = useState('');
     const [createAccountLoading, setCreateAccountLoading] = useState(false);
     
+    const [newRoleName, setNewRoleName] = useState('');
+    const [roleCreationFeedback, setRoleCreationFeedback] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+
     const handleEdit = (user: User) => {
         setEditingId(user.id);
         setNewRoleIds(user.roluri.map(r => r.id));
@@ -265,6 +269,29 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
         }
         setCreateAccountLoading(false);
     };
+    
+    const handleAddNewRole = async () => {
+        if (!supabase) return;
+        const trimmedName = newRoleName.trim();
+        if (!trimmedName) {
+            setRoleCreationFeedback({type: 'error', message: "Numele rolului nu poate fi gol."});
+            return;
+        }
+        if (allRoles.some(r => r.nume.toLowerCase() === trimmedName.toLowerCase())) {
+             setRoleCreationFeedback({type: 'error', message: "Un rol cu acest nume există deja."});
+            return;
+        }
+        
+        const { data, error } = await supabase.from('roluri').insert({ nume: trimmedName }).select().single();
+        if (error) {
+            setRoleCreationFeedback({type: 'error', message: `Eroare: ${error.message}`});
+        } else if (data) {
+            setAllRoles(prev => [...prev, data as Rol]);
+            setNewRoleName('');
+            setRoleCreationFeedback({type: 'success', message: 'Rol adăugat!'});
+            setTimeout(() => setRoleCreationFeedback(null), 3000);
+        }
+    };
 
 
     return (
@@ -274,6 +301,16 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
             <MyProfile user={currentUser} setSportivi={setSportivi} setCurrentUser={setCurrentUser} />
 
             {currentUser.roluri.some(r => r.nume === 'Admin') && (
+                <>
+                <Card className="mb-8">
+                     <h3 className="text-xl font-bold text-white mb-4">Adaugă Rol Nou</h3>
+                     <div className="flex items-end gap-2">
+                        <Input label="Nume Rol" value={newRoleName} onChange={e => setNewRoleName(e.target.value)} placeholder="ex: Antrenor Copii" />
+                        <Button onClick={handleAddNewRole} variant="info"><PlusIcon className="w-5 h-5 mr-2" /> Adaugă</Button>
+                     </div>
+                      {roleCreationFeedback && <p className={`mt-2 text-sm ${roleCreationFeedback.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>{roleCreationFeedback.message}</p>}
+                </Card>
+
                 <Card>
                     <div className="flex items-center gap-2 mb-4">
                         <ShieldCheckIcon className="w-8 h-8 text-amber-400"/>
@@ -350,6 +387,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                         </table>
                     </div>
                 </Card>
+                </>
             )}
 
             {isCreateAccountModalOpen && selectedUserForAccount && (

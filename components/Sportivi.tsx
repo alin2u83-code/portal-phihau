@@ -166,6 +166,8 @@ const SportivDetail: React.FC<SportivDetailProps> = ({ sportiv, onBack, onUpdate
         ? getGrad(admittedParticipations[0].grad_sustinut_id, grade)?.nume 
         : <span className="text-sky-400 italic">Începător</span>;
 
+    const currentParticipation = admittedParticipations.length > 0 ? admittedParticipations[0] : null;
+
     const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement> | { target: { name: string; value: any; } }) => {
         const { name, value } = e.target;
         setFormState(prev => ({...prev, [name]: value === '' ? null : value}));
@@ -301,15 +303,27 @@ const SportivDetail: React.FC<SportivDetailProps> = ({ sportiv, onBack, onUpdate
                             {sportivParticipari.map(p => {
                                 const examen = examene.find(e => e.id === p.examen_id);
                                 const grad = grade.find(g => g.id === p.grad_sustinut_id);
+                                const isCurrentGrad = currentParticipation && p.id === currentParticipation.id;
+
                                 return ( 
-                                    <div key={p.id} className="bg-slate-700/50 p-3 rounded-md border border-slate-700 flex justify-between items-center">
+                                    <div 
+                                        key={p.id} 
+                                        className={`p-3 rounded-lg flex justify-between items-center transition-all ${
+                                            isCurrentGrad 
+                                            ? 'bg-brand-secondary/20 border-2 border-brand-secondary shadow-lg shadow-brand-secondary/10' 
+                                            : 'bg-slate-700/50 border border-slate-700'
+                                        }`}
+                                    >
                                         <div>
-                                            <p className="font-bold text-white">{grad?.nume}</p>
-                                            <p className="text-xs text-slate-400">{examen?.data} - {examen?.locatia}</p>
+                                            <p className={`font-bold ${isCurrentGrad ? 'text-brand-secondary text-lg' : 'text-white'}`}>{grad?.nume}</p>
+                                            <p className="text-xs text-slate-400">{new Date(examen!.data).toLocaleDateString('ro-RO')} - {examen?.locatia}</p>
                                         </div>
-                                        <span className={`px-2 py-1 text-xs font-bold rounded ${p.rezultat === 'Admis' ? 'bg-green-600/20 text-green-300' : 'bg-red-600/20 text-red-300'}`}>
-                                            {p.rezultat}
-                                        </span>
+                                        <div className="flex items-center gap-4">
+                                            {isCurrentGrad && <span className="text-xs font-bold uppercase text-brand-secondary tracking-wider">Curent</span>}
+                                            <span className={`px-2 py-1 text-xs font-bold rounded ${p.rezultat === 'Admis' ? 'bg-green-600/20 text-green-300' : 'bg-red-600/20 text-red-300'}`}>
+                                                {p.rezultat}
+                                            </span>
+                                        </div>
                                     </div>
                                 );
                             })}

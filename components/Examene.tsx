@@ -78,7 +78,18 @@ const ExamenDetail: React.FC<ExamenDetailProps> = ({ examen, participari, setPar
         if (!pretExamenConfig) { alert("Configurarea prețului pentru 'Taxa Examen' nu a fost găsită. Participantul a fost adăugat, dar plata trebuie generată manual."); return; }
         const descriere = `Taxa examen ${examen.data}${confirmationOnly ? ` (Confirmare ${gradSustinut.nume})` : ` (pt. ${gradSustinut.nume})`}`;
         
-        const {data: plataData, error: plError} = await supabase.from('plati').insert({ sportiv_id: sportivId, familie_id: sportiv.familie_id, suma: pretExamenConfig.suma, data: examen.data, status: 'Neachitat', descriere, tip: 'Taxa Examen', observatii: '' }).select().single();
+        const newPlata: Omit<Plata, 'id' | 'data_platii' | 'metoda_plata'> = {
+            sportiv_id: sportivId,
+            familie_id: sportiv.familie_id,
+            suma: pretExamenConfig.suma,
+            data: examen.data,
+            status: 'Neachitat',
+            descriere,
+            tip: 'Taxa Examen',
+            observatii: ''
+        };
+
+        const {data: plataData, error: plError} = await supabase.from('plati').insert(newPlata).select().single();
         if(plError) { alert(`Participant adăugat, dar eroare la generare plată: ${plError.message}`); }
         if (plataData) setPlati(prev => [...prev, plataData as Plata]);
         

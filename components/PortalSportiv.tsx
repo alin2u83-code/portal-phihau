@@ -117,12 +117,12 @@ export const PortalSportiv: React.FC<PortalSportivProps> = ({ currentUser, viewe
         const { data: rezultatData, error: rezultatError } = await supabase.from('rezultate').insert({ sportiv_id: viewedUser.id, eveniment_id: eveniment.id, rezultat: 'Înscris' }).select().single();
         if (rezultatError) { alert(`Eroare la înscriere: ${rezultatError.message}`); setLoading(prev => ({ ...prev, [eveniment.id]: false })); return; }
         
-        const newPlata: Omit<Plata, 'id' | 'data_platii' | 'metoda_plata'> = { 
+        const newPlata = { 
             sportiv_id: viewedUser.id, 
             familie_id: viewedUser.familie_id, 
             suma: pretConfig.suma, 
             data: new Date().toISOString().split('T')[0], 
-            status: 'Neachitat', 
+            status: 'Neachitat' as const, 
             descriere: `Taxa ${eveniment.denumire}`, 
             tip: categorie, 
             observatii: `Înscriere automată din portal.`, 

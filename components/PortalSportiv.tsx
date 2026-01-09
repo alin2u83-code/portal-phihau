@@ -8,6 +8,14 @@ import { UsersIcon, ShieldCheckIcon } from './icons';
 const getGrad = (gradId: string, allGrades: Grad[]) => allGrades.find(g => g.id === gradId);
 const getAge = (dateString: string) => { const today = new Date(); const birthDate = new Date(dateString); let age = today.getFullYear() - birthDate.getFullYear(); const m = today.getMonth() - birthDate.getMonth(); if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; } return age; };
 const parseDurationToMonths = (durationStr: string): number => { const parts = durationStr.split(' '); if (parts.length < 2) return 0; const value = parseInt(parts[0], 10); const unit = parts[1].toLowerCase(); if (unit.startsWith('lun')) return value; if (unit.startsWith('an')) return value * 12; return 0; };
+const formatDateRange = (start: string, end?: string | null) => {
+    const startDate = new Date(start).toLocaleDateString('ro-RO');
+    if (end && start !== end) {
+        const endDate = new Date(end).toLocaleDateString('ro-RO');
+        return `${startDate} - ${endDate}`;
+    }
+    return startDate;
+};
 
 const DataField: React.FC<{label: string, value: React.ReactNode}> = ({label, value}) => (
     <div>
@@ -87,7 +95,6 @@ export const PortalSportiv: React.FC<PortalSportivProps> = ({ currentUser, viewe
     const unregisteredUpcomingEvents = useMemo(() => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        // FIX: Changed ev.data to ev.data_start to match the Eveniment type definition.
         const upcomingEvents = evenimente.filter(ev => new Date(ev.data) >= today);
         const registeredEventIds = new Set(sportivRezultate.map(r => r.eveniment_id));
         return upcomingEvents.filter(ev => !registeredEventIds.has(ev.id)).sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());
@@ -252,7 +259,7 @@ export const PortalSportiv: React.FC<PortalSportivProps> = ({ currentUser, viewe
                             <div className="flex justify-between items-start flex-wrap gap-2">
                                 <div>
                                     <p className="font-bold">{ev.denumire} <span className={`ml-2 text-[10px] px-2 py-0.5 rounded-full text-white ${ev.tip === 'Stagiu' ? 'bg-sky-600' : 'bg-purple-600'}`}>{ev.tip}</span></p>
-                                    <p className="text-xs text-slate-400">{new Date(ev.data).toLocaleDateString('ro-RO')} - {ev.locatie}</p>
+                                    <p className="text-xs text-slate-400">{formatDateRange(ev.data, ev.data_sfarsit)} - {ev.locatie}</p>
                                 </div>
                                 {isViewingOwnProfile && (
                                     <div className="text-right">

@@ -1,4 +1,3 @@
-
 export interface Rol {
   id: string;
   nume: 'Sportiv' | 'Instructor' | 'Admin';
@@ -76,7 +75,7 @@ export interface Grupa {
 export interface Eveniment {
     id: string;
     denumire: string;
-    // FIX: Renamed data_start to data to match usage across components.
+    // data represents the start date of the event
     data: string;
     data_sfarsit?: string | null;
     locatie: string;

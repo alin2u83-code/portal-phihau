@@ -26,7 +26,13 @@ const GradFormModal: React.FC<GradFormProps> = ({ isOpen, onClose, onSave, grade
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormState(prev => ({ ...prev, [name]: name === 'ordine' || name === 'varsta_minima' ? parseInt(value) || 0 : value }));
+    let finalValue: any = value;
+    if (name === 'ordine' || name === 'varsta_minima') {
+        finalValue = parseInt(value) || 0;
+    } else if (name === 'grad_start_id' && value === '') {
+        finalValue = null;
+    }
+    setFormState(prev => ({ ...prev, [name]: finalValue }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

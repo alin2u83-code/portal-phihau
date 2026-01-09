@@ -205,10 +205,15 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
 
     const handleOpenCreateAccountModal = (user: Sportiv) => {
         setSelectedUserForAccount(user);
+        
+        // Sanitize names to create a consistent email prefix
+        const sanitize = (str: string) => str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '');
+        const emailPrefix = `${sanitize(user.nume)}.${sanitize(user.prenume)}`;
+
         setCreateAccountForm({
-            email: user.email,
-            username: user.username || `${user.prenume.toLowerCase()}.${user.nume.toLowerCase()}`.replace(/\s/g, ''),
-            parola: ''
+            email: `${emailPrefix}@phihau.ro`,
+            username: user.username || emailPrefix,
+            parola: 'Parola123!'
         });
         setIsCreateAccountModalOpen(true);
         setCreateAccountError('');

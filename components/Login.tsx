@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { Button, Card, Input } from './ui';
-import { logoBase64 } from '../assets/logo';
 
 interface LoginProps {}
 
@@ -61,7 +60,6 @@ export const Login: React.FC<LoginProps> = () => {
             <div className="w-full max-w-md">
                 <Card>
                     <div className="text-center mb-8">
-                        <img src={logoBase64} alt="Logo" className="w-20 h-20 mx-auto mb-4" />
                         <h1 className="text-3xl font-bold text-white">Portal Phi Hau Iași</h1>
                         <p className="text-slate-400 mt-2">Autentificare în cont</p>
                     </div>

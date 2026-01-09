@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User, View } from '../types';
 import { adminMenu, sportivMenu, MenuItem } from './menuConfig';
-import { logoBase64 } from '../assets/logo';
-// FIX: Imported `UserCircleIcon`
 import { ArrowRightOnRectangleIcon, Bars3Icon, ChevronDownIcon, UserCircleIcon } from './icons';
 
 const NavItem: React.FC<{
@@ -10,10 +8,16 @@ const NavItem: React.FC<{
     isExpanded: boolean;
     isActive: boolean;
     onNavigate: (view: View) => void;
-    // FIX: Added `activeView` prop
     activeView: View;
 }> = ({ item, isExpanded, isActive, onNavigate, activeView }) => {
     const [isSubmenuOpen, setIsSubmenuOpen] = useState(false);
+
+    // Deschide automat submeniul dacă o pagină din interiorul său este activă
+    useEffect(() => {
+        if (isActive) {
+            setIsSubmenuOpen(true);
+        }
+    }, [isActive]);
 
     const hasSubmenu = item.submenu && item.submenu.length > 0;
 
@@ -27,7 +31,6 @@ const NavItem: React.FC<{
 
     const baseClasses = "flex items-center p-2 text-white rounded-md cursor-pointer transition-colors duration-200";
     const activeClasses = isActive ? "bg-brand-secondary text-white shadow-lg" : "hover:bg-white/10";
-    const textAndIconClasses = isExpanded ? "opacity-100" : "opacity-0";
 
     return (
         <div>
@@ -50,8 +53,7 @@ const NavItem: React.FC<{
                         <div
                             key={subItem.view}
                             onClick={() => onNavigate(subItem.view)}
-                            // FIX: Used `activeView` prop which is now available
-                            className={`block p-2 text-sm rounded-md cursor-pointer transition-colors ${isActive && subItem.view === activeView ? 'bg-brand-secondary/50 font-bold' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
+                            className={`block p-2 text-sm rounded-md cursor-pointer transition-colors ${subItem.view === activeView ? 'bg-brand-secondary/50 font-bold' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
                         >
                             {subItem.label}
                         </div>
@@ -85,25 +87,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
 
     const sidebarContent = (
         <div className="flex flex-col h-full bg-brand-primary text-white shadow-xl">
-             {/* Logo and Club Name */}
-            <div className="flex items-center justify-center p-4 border-b border-white/10 cursor-pointer" onClick={() => handleNavigate('dashboard')}>
-                {/* 
-                    Logo-ul este acum încărcat din variabila `logoBase64`.
-                    Dacă doriți să folosiți un logo din Supabase Storage, înlocuiți `src={logoBase64}` cu `src="URL_PUBLIC_SUPABASE"`.
-                    Exemplu: src={"https://<id>.supabase.co/storage/v1/object/public/logos/logo-phihau.png"}
-                */}
-                <img 
-                    src={logoBase64} 
-                    alt="Club Sportiv Phi Hau"
-                    className={`transition-all duration-300 rounded-full bg-white/10 shadow-md ${isExpanded ? 'w-20 h-20' : 'w-10 h-10'}`}
-                    style={{boxShadow: '0 0 10px rgba(77, 188, 233, 0.5)'}}
-                />
-            </div>
-            
             {/* Navigation items */}
-            <nav className="flex-1 px-3 py-4 space-y-2 overflow-y-auto">
+            <nav className="flex-1 px-3 py-4 space-y-2 overflow-y-auto pt-8">
                 {menu.map(item => {
-                     const isActive = item.view === activeView || item.submenu?.some(s => s.view === activeView);
+                     const isActive = item.view === activeView || (item.submenu?.some(s => s.view === activeView) ?? false);
                      return <NavItem key={item.label} item={item} isExpanded={isExpanded} isActive={isActive} onNavigate={handleNavigate} activeView={activeView} />
                 })}
             </nav>

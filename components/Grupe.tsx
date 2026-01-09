@@ -4,20 +4,48 @@ import { Button, Modal, Input, Select } from './ui';
 import { PlusIcon, TrashIcon, EditIcon, ArrowLeftIcon } from './icons';
 import { supabase } from '../supabaseClient';
 
+// Helper pentru sortarea programului în ordine cronologică
+const zileSaptamanaOrdonate: Record<ProgramItem['ziua'], number> = {
+    'Luni': 1,
+    'Marți': 2,
+    'Miercuri': 3,
+    'Joi': 4,
+    'Vineri': 5,
+    'Sâmbătă': 6,
+    'Duminică': 7
+};
+
+const sortProgram = (program: ProgramItem[]): ProgramItem[] => {
+    return [...program].sort((a, b) => {
+        const ziCompare = zileSaptamanaOrdonate[a.ziua] - zileSaptamanaOrdonate[b.ziua];
+        if (ziCompare !== 0) {
+            return ziCompare;
+        }
+        return a.ora_start.localeCompare(b.ora_start);
+    });
+};
+
 // Componentă pentru editarea programului
 const ProgramEditor: React.FC<{ program: ProgramItem[], setProgram: React.Dispatch<React.SetStateAction<ProgramItem[]>> }> = ({ program, setProgram }) => {
     const zileSaptamana: ProgramItem['ziua'][] = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'];
     const [newItem, setNewItem] = useState<ProgramItem>({ ziua: 'Luni', ora_start: '18:00', ora_sfarsit: '19:30' });
 
     const handleAdd = () => { setProgram(p => [...p, newItem]); };
-    const handleRemove = (index: number) => { setProgram(p => p.filter((_, i) => i !== index)); };
+    const handleRemove = (index: number) => { 
+        const sorted = sortProgram(program);
+        const itemToRemove = sorted[index];
+        // Elimină elementul pe baza referinței obiectului pentru a evita ștergerea duplicatelor
+        setProgram(p => p.filter(item => item !== itemToRemove));
+    };
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => { setNewItem(prev => ({ ...prev, [e.target.name]: e.target.value })) };
     
+    const sortedProgram = sortProgram(program);
+
     return (
         <div className="space-y-4">
             <div>
                 <h4 className="text-lg font-semibold mb-2 text-white">Program Curent</h4>
-                {program.length > 0 ? ( program.map((item, index) => (
+                {sortedProgram.length > 0 ? ( sortedProgram.map((item, index) => (
                     <div key={index} className="flex items-center gap-2 bg-slate-700 p-2 rounded mb-2">
                         <span className="font-semibold flex-grow">{item.ziua}: {item.ora_start} - {item.ora_sfarsit}</span>
                         <Button type="button" size="sm" variant="danger" onClick={() => handleRemove(index)}><TrashIcon /></Button>
@@ -154,7 +182,7 @@ export const GrupeManagement: React.FC<GrupeManagementProps> = ({ grupe, setGrup
                 <td className="p-4">{grupa.sala}</td>
                 <td className="p-4">
                     <div className="flex flex-wrap gap-1">
-                        {grupa.program.map((p, i) => <span key={i} className="bg-slate-600 text-slate-200 text-xs font-semibold px-2 py-1 rounded-full">{p.ziua} {p.ora_start}-{p.ora_sfarsit}</span>)}
+                        {sortProgram(grupa.program).map((p, i) => <span key={i} className="bg-slate-600 text-slate-200 text-xs font-semibold px-2 py-1 rounded-full">{p.ziua} {p.ora_start}-{p.ora_sfarsit}</span>)}
                     </div>
                 </td>
                 <td className="p-2 text-right">

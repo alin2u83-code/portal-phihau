@@ -156,13 +156,14 @@ interface UserManagementProps {
 export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSportivi, onBack, currentUser, setCurrentUser, allRoles, setAllRoles }) => {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [newRoleIds, setNewRoleIds] = useState<string[]>([]);
-    const [showSuccessId, setShowSuccessId] = useState<string | null>(null);
+    const [userListFeedback, setUserListFeedback] = useState<{type: 'success' | 'error', message: string} | null>(null);
 
     const [isCreateAccountModalOpen, setIsCreateAccountModalOpen] = useState(false);
     const [selectedUserForAccount, setSelectedUserForAccount] = useState<Sportiv | null>(null);
     const [createAccountForm, setCreateAccountForm] = useState({ email: '', username: '', parola: '' });
     const [createAccountError, setCreateAccountError] = useState('');
     const [createAccountLoading, setCreateAccountLoading] = useState(false);
+    const [accountCreationStep, setAccountCreationStep] = useState<'initial' | 'confirm_link'>('initial');
     
     const [newRoleName, setNewRoleName] = useState('');
     const [roleCreationFeedback, setRoleCreationFeedback] = useState<{ type: 'success' | 'error', message: string } | null>(null);
@@ -198,9 +199,9 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
         const updatedRoles = allRoles.filter(r => finalRoleIds.includes(r.id));
         setSportivi(prev => prev.map(s => s.id === userId ? { ...s, roluri: updatedRoles } : s));
         
-        setShowSuccessId(userId);
+        setUserListFeedback({type: 'success', message: `Rolurile pentru ${sportivi.find(s=>s.id === userId)?.nume} au fost salvate!`})
+        setTimeout(() => setUserListFeedback(null), 3000);
         setEditingId(null);
-        setTimeout(() => setShowSuccessId(null), 3000);
     };
 
     const handleRoleChange = (roleId: string, isChecked: boolean) => {
@@ -210,7 +211,6 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
     const handleOpenCreateAccountModal = (user: Sportiv) => {
         setSelectedUserForAccount(user);
         
-        // Sanitize names to create a consistent email prefix
         const sanitize = (str: string) => str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '');
         const emailPrefix = `${sanitize(user.nume)}.${sanitize(user.prenume)}`;
 
@@ -221,10 +221,71 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
         });
         setIsCreateAccountModalOpen(true);
         setCreateAccountError('');
+        setAccountCreationStep('initial');
     };
 
     const handleCreateAccountFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setCreateAccountForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    };
+
+    const restoreAdminSession = async (adminSession: any) => {
+        if (adminSession) {
+            const { error } = await supabase.auth.setSession({ access_token: adminSession.access_token, refresh_token: adminSession.refresh_token });
+            if (error) {
+                console.error("Failed to restore admin session:", error);
+                setCreateAccountError("Eroare critică: Sesiunea de admin nu a putut fi restaurată. Reîncărcați pagina.");
+            }
+        } else {
+             setCreateAccountError("Sesiunea de administrator a expirat. Vă rugăm să vă autentificați din nou.");
+        }
+    };
+    
+    const handleLinkExistingAccount = async () => {
+        if (!supabase || !selectedUserForAccount) return;
+        setCreateAccountLoading(true);
+        setCreateAccountError('');
+
+        const { data: { session: adminSession } } = await supabase.auth.getSession();
+
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ email: createAccountForm.email, password: createAccountForm.parola });
+
+        if (signInError) {
+            setCreateAccountError("Parola este incorectă pentru contul existent. Asocierea a eșuat.");
+            await restoreAdminSession(adminSession);
+            setAccountCreationStep('initial');
+            setCreateAccountLoading(false);
+            return;
+        }
+
+        if (signInData.user) {
+            const existingUserId = signInData.user.id;
+            const { data: linkedProfile, error: checkError } = await supabase.from('sportivi').select('id, nume, prenume').eq('user_id', existingUserId).not('id', 'eq', selectedUserForAccount.id).maybeSingle();
+
+            if (checkError) {
+                setCreateAccountError(`Eroare la verificare profil existent: ${checkError.message}`);
+            } else if (linkedProfile) {
+                setCreateAccountError(`Contul este deja asociat cu sportivul ${linkedProfile.nume} ${linkedProfile.prenume}.`);
+            } else {
+                const profileUpdates = { user_id: existingUserId, email: createAccountForm.email, username: createAccountForm.username };
+                const { data: updateData, error: updateError } = await supabase.from('sportivi').update(profileUpdates).eq('id', selectedUserForAccount.id).select('*, sportivi_roluri(roluri(id, nume))').single();
+
+                if (updateError) {
+                    setCreateAccountError(`Asociere eșuată la actualizarea profilului: ${updateError.message}`);
+                } else if (updateData) {
+                    const updatedUser = updateData as any;
+                    updatedUser.roluri = updatedUser.sportivi_roluri.map((item: any) => item.roluri);
+                    delete updatedUser.sportivi_roluri;
+                    setSportivi(prev => prev.map(s => s.id === selectedUserForAccount.id ? updatedUser : s));
+                    
+                    setIsCreateAccountModalOpen(false);
+                    setUserListFeedback({ type: 'success', message: `Sportivul a fost asociat cu succes contului existent!` });
+                    setTimeout(() => setUserListFeedback(null), 4000);
+                }
+            }
+        }
+        await supabase.auth.signOut();
+        await restoreAdminSession(adminSession);
+        setCreateAccountLoading(false);
     };
 
     const handleCreateAccount = async (e: React.FormEvent) => {
@@ -236,25 +297,35 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
         }
         setCreateAccountLoading(true);
         setCreateAccountError('');
-
+    
+        const { data: { session: adminSession } } = await supabase.auth.getSession();
+    
         if (createAccountForm.username) {
-            const { data: existingUser, error: checkError } = await supabase.from('sportivi').select('id').eq('username', createAccountForm.username).limit(1);
+            const { data: existingUser, error: checkError } = await supabase.from('sportivi').select('id').eq('username', createAccountForm.username).not('id', 'eq', selectedUserForAccount.id).limit(1);
             if (checkError) { setCreateAccountError(`Eroare la verificare: ${checkError.message}`); setCreateAccountLoading(false); return; }
             if (existingUser && existingUser.length > 0) { setCreateAccountError('Numele de utilizator este deja folosit.'); setCreateAccountLoading(false); return; }
         }
-
+    
         const { data: authData, error: authError } = await supabase.auth.signUp({ email: createAccountForm.email, password: createAccountForm.parola });
-
+    
         if (authError) {
-            setCreateAccountError(`Eroare la crearea contului: ${authError.message}`);
+            if (authError.message.includes("User already registered")) {
+                setCreateAccountError(`Un cont cu email-ul "${createAccountForm.email}" există deja. Dacă parola introdusă este corectă, puteți asocia acest sportiv cu contul existent.`);
+                setAccountCreationStep('confirm_link');
+            } else {
+                setCreateAccountError(`Eroare la crearea contului: ${authError.message}`);
+            }
+            await restoreAdminSession(adminSession);
             setCreateAccountLoading(false);
             return;
         }
-
+    
         if (authData.user) {
             const profileUpdates = { user_id: authData.user.id, email: createAccountForm.email, username: createAccountForm.username };
             const { data, error } = await supabase.from('sportivi').update(profileUpdates).eq('id', selectedUserForAccount.id).select('*, sportivi_roluri(roluri(id, nume))').single();
-
+    
+            await restoreAdminSession(adminSession);
+    
             if (error) {
                 setCreateAccountError(`Cont creat, dar eroare la legarea profilului: ${error.message}`);
             } else if (data) {
@@ -262,11 +333,15 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                 updatedUser.roluri = updatedUser.sportivi_roluri.map((item: any) => item.roluri);
                 delete updatedUser.sportivi_roluri;
                 setSportivi(prev => prev.map(s => s.id === selectedUserForAccount.id ? updatedUser : s));
+                
                 setIsCreateAccountModalOpen(false);
-                setShowSuccessId(selectedUserForAccount.id);
-                 setTimeout(() => setShowSuccessId(null), 3000);
+                setUserListFeedback({ type: 'success', message: `Cont creat cu succes pentru ${selectedUserForAccount.nume} ${selectedUserForAccount.prenume}!` });
+                setTimeout(() => setUserListFeedback(null), 4000);
             }
+        } else {
+            await restoreAdminSession(adminSession);
         }
+        
         setCreateAccountLoading(false);
     };
     
@@ -297,6 +372,12 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
     return (
         <div>
             <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
+
+            {userListFeedback && (
+                <div className={`p-3 rounded-md mb-4 text-center font-semibold text-white ${userListFeedback.type === 'success' ? 'bg-green-600/50' : 'bg-red-600/50'}`}>
+                    {userListFeedback.message}
+                </div>
+            )}
             
             <MyProfile user={currentUser} setSportivi={setSportivi} setCurrentUser={setCurrentUser} />
 
@@ -371,7 +452,6 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                                                 </td>
                                                 <td className="p-4 text-right">
                                                     <div className="flex items-center justify-end gap-2">
-                                                        {showSuccessId === user.id && <span className="text-sm text-green-400">Salvat!</span>}
                                                         {user.user_id ? (
                                                             <Button onClick={() => handleEdit(user)} variant="primary" size="sm" disabled={user.id === currentUser.id}><EditIcon /></Button>
                                                         ) : (
@@ -392,16 +472,27 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
 
             {isCreateAccountModalOpen && selectedUserForAccount && (
                 <Modal isOpen={isCreateAccountModalOpen} onClose={() => setIsCreateAccountModalOpen(false)} title={`Creează Cont pentru ${selectedUserForAccount.nume} ${selectedUserForAccount.prenume}`}>
-                    <form onSubmit={handleCreateAccount} className="space-y-4">
-                        <Input label="Email (Login)" name="email" type="email" value={createAccountForm.email} onChange={handleCreateAccountFormChange} required />
-                        <Input label="Nume Utilizator" name="username" type="text" value={createAccountForm.username} onChange={handleCreateAccountFormChange} placeholder="Opțional. Ex: ion.popescu"/>
-                        <Input label="Parolă Inițială" name="parola" type="password" value={createAccountForm.parola} onChange={handleCreateAccountFormChange} required />
-                        {createAccountError && <p className="text-red-400 text-sm text-center bg-red-900/50 p-2 rounded">{createAccountError}</p>}
-                        <div className="flex justify-end pt-4 space-x-2">
-                            <Button type="button" variant="secondary" onClick={() => setIsCreateAccountModalOpen(false)} disabled={createAccountLoading}>Anulează</Button>
-                            <Button type="submit" variant="success" disabled={createAccountLoading}>{createAccountLoading ? 'Se creează...' : 'Creează Cont'}</Button>
+                    {accountCreationStep === 'initial' ? (
+                        <form onSubmit={handleCreateAccount} className="space-y-4">
+                            <Input label="Email (Login)" name="email" type="email" value={createAccountForm.email} onChange={handleCreateAccountFormChange} required />
+                            <Input label="Nume Utilizator" name="username" type="text" value={createAccountForm.username} onChange={handleCreateAccountFormChange} placeholder="Opțional. Ex: ion.popescu"/>
+                            <Input label="Parolă Inițială" name="parola" type="password" value={createAccountForm.parola} onChange={handleCreateAccountFormChange} required />
+                            {createAccountError && <p className="text-red-400 text-sm text-center bg-red-900/50 p-2 rounded">{createAccountError}</p>}
+                            <div className="flex justify-end pt-4 space-x-2">
+                                <Button type="button" variant="secondary" onClick={() => setIsCreateAccountModalOpen(false)} disabled={createAccountLoading}>Anulează</Button>
+                                <Button type="submit" variant="success" disabled={createAccountLoading}>{createAccountLoading ? 'Se creează...' : 'Creează Cont'}</Button>
+                            </div>
+                        </form>
+                    ) : (
+                        <div className="space-y-4">
+                            <p className="text-amber-300 text-sm text-center bg-amber-900/50 p-3 rounded-md">{createAccountError}</p>
+                            <Input label="Confirmă Parola Contului Existent" name="parola" type="password" value={createAccountForm.parola} onChange={handleCreateAccountFormChange} required />
+                             <div className="flex justify-end pt-4 space-x-2">
+                                <Button type="button" variant="secondary" onClick={() => setAccountCreationStep('initial')} disabled={createAccountLoading}>Înapoi</Button>
+                                <Button onClick={handleLinkExistingAccount} variant="success" disabled={createAccountLoading}>{createAccountLoading ? 'Se asociază...' : 'Da, Asociază Contul'}</Button>
+                            </div>
                         </div>
-                    </form>
+                    )}
                 </Modal>
             )}
         </div>

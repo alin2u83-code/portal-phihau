@@ -417,38 +417,22 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
     }
   };
 
-    const handleSaveSportiv = async (sportivData: Partial<Sportiv>) => {
+    const handleSaveSportiv = async (sportivData: Partial<Sportiv>): Promise<{success: boolean; error?: string}> => {
         if (!supabase) {
-            alert("Eroare: Clientul Supabase nu este configurat.");
-            return;
+            return { success: false, error: "Clientul Supabase nu este configurat." };
         }
 
         const { email, parola, ...profileData } = sportivData;
-
-        const profileToInsert = {
-            nume: profileData.nume,
-            prenume: profileData.prenume,
-            data_nasterii: profileData.data_nasterii,
-            cnp: profileData.cnp || null,
-            data_inscrierii: profileData.data_inscrierii,
-            status: profileData.status,
-            club_provenienta: profileData.club_provenienta,
-            grupa_id: profileData.grupa_id || null,
-            familie_id: profileData.familie_id || null,
-            tip_abonament_id: profileData.tip_abonament_id || null,
-            participa_vacanta: profileData.participa_vacanta,
-            inaltime: profileData.inaltime || null,
-            username: profileData.username || null,
-            email: email || null,
-        };
 
         let userId: string | undefined = undefined;
 
         if (email && parola) {
             const { data: authData, error: authError } = await supabase.auth.signUp({ email, password: parola });
             if (authError) {
-                alert(`Eroare la crearea contului de autentificare: ${authError.message}`);
-                return;
+                if (authError.message.includes("User already registered")) {
+                    return { success: false, error: `Un cont cu email-ul "${email}" există deja. Vă rugăm folosiți o altă adresă de email.` };
+                }
+                return { success: false, error: `Eroare la crearea contului: ${authError.message}` };
             }
             if (authData.user) {
                 userId = authData.user.id;
@@ -457,13 +441,12 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
 
         const { data: newSportiv, error: profileError } = await supabase
             .from('sportivi')
-            .insert({ ...profileToInsert, user_id: userId })
+            .insert({ ...profileData, user_id: userId, email: email || null })
             .select('*')
             .single();
         
         if (profileError) {
-            alert(`Eroare la salvarea profilului: ${profileError.message}`);
-            return;
+             return { success: false, error: `Eroare la salvarea profilului: ${profileError.message}` };
         }
 
         if (newSportiv) {
@@ -481,6 +464,7 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
             setSportivi(prev => [...prev, finalNewSportiv]);
             setShowAddForm(false);
         }
+        return { success: true };
     };
 
   const handleUpdateSportiv = async (updates: Partial<Sportiv>) => {
@@ -613,7 +597,7 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
 
 // Define interface for AddSportivForm props
 interface AddSportivFormProps {
-    onSave: (sportivData: Partial<Sportiv>) => Promise<void>;
+    onSave: (sportivData: Partial<Sportiv>) => Promise<{success: boolean, error?: string}>;
     onCancel: () => void;
     grupe: Grupa[];
     familii: Familie[];
@@ -624,6 +608,7 @@ interface AddSportivFormProps {
 const AddSportivForm: React.FC<AddSportivFormProps> = ({ onSave, onCancel, grupe, familii, tipuriAbonament, customFields }) => {
     const [formState, setFormState] = useState<Partial<Sportiv>>(emptySportivState);
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement> | { target: { name: string, value: any } }) => {
         const {name, value} = e.target;
@@ -632,14 +617,19 @@ const AddSportivForm: React.FC<AddSportivFormProps> = ({ onSave, onCancel, grupe
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        await onSave(formState);
+        setError(null);
+        const result = await onSave(formState);
         setLoading(false);
+        if (result.error) {
+            setError(result.error);
+        }
     };
 
     return (
         <Card className="mb-6">
             <form onSubmit={handleSubmit} className="space-y-4">
                 <SportivFormFields formState={formState} handleChange={handleChange} grupe={grupe} familii={familii} tipuriAbonament={tipuriAbonament} customFields={customFields} />
+                {error && <p className="text-red-400 text-sm text-center bg-red-900/50 p-2 rounded">{error}</p>}
                 <div className="flex justify-end pt-2 space-x-2">
                     <Button type="button" variant="secondary" onClick={onCancel} disabled={loading}>Anulează</Button>
                     <Button type="submit" variant="success" disabled={loading}>{loading ? 'Se salvează...' : 'Salvează Sportiv'}</Button>

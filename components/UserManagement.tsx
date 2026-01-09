@@ -137,7 +137,7 @@ interface UserManagementProps {
 
 export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSportivi, onBack, currentUser, setCurrentUser }) => {
     const [editingId, setEditingId] = useState<string | null>(null);
-    const [newRol, setNewRol] = useState<User['rol']>('Sportiv');
+    const [newRoles, setNewRoles] = useState<User['rol']>([]);
     const [showSuccessId, setShowSuccessId] = useState<string | null>(null);
 
     const [isCreateAccountModalOpen, setIsCreateAccountModalOpen] = useState(false);
@@ -148,7 +148,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
     
     const handleEdit = (user: User) => {
         setEditingId(user.id);
-        setNewRol(user.rol);
+        setNewRoles(user.rol);
     };
 
     const handleCancel = () => {
@@ -160,7 +160,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
             alert("Eroare de configurare: Conexiunea la baza de date nu a putut fi stabilită.");
             return;
         }
-        const { data, error } = await supabase.from('sportivi').update({ rol: newRol }).eq('id', userId).select().single();
+        const { data, error } = await supabase.from('sportivi').update({ rol: newRoles }).eq('id', userId).select().single();
         
         if (error) {
             alert(`Eroare la actualizarea rolului: ${error.message}`);
@@ -174,6 +174,19 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
         setShowSuccessId(userId);
         setEditingId(null);
         setTimeout(() => setShowSuccessId(null), 3000);
+    };
+
+    const handleRoleChange = (role: 'Admin' | 'Instructor' | 'Sportiv', isChecked: boolean) => {
+        setNewRoles(prev => {
+            const updatedRoles = isChecked
+                ? [...new Set([...prev, role])]
+                : prev.filter(r => r !== role);
+            
+            if (updatedRoles.length === 0) {
+                return ['Sportiv'];
+            }
+            return updatedRoles;
+        });
     };
 
     const handleOpenCreateAccountModal = (user: Sportiv) => {
@@ -238,7 +251,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
             
             <MyProfile user={currentUser} setSportivi={setSportivi} setCurrentUser={setCurrentUser} />
 
-            {currentUser.rol === 'Admin' && (
+            {currentUser.rol.includes('Admin') && (
                 <Card>
                     <div className="flex items-center gap-2 mb-4">
                         <ShieldCheckIcon className="w-8 h-8 text-amber-400"/>
@@ -250,7 +263,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                                 <tr>
                                     <th className="p-4 font-semibold">Nume Utilizator</th>
                                     <th className="p-4 font-semibold">Email (Login)</th>
-                                    <th className="p-4 font-semibold">Rol</th>
+                                    <th className="p-4 font-semibold">Roluri</th>
                                     <th className="p-4 font-semibold text-right">Acțiuni</th>
                                 </tr>
                             </thead>
@@ -262,11 +275,20 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                                         {editingId === user.id ? (
                                             <>
                                                 <td className="p-2">
-                                                    <Select label="" name="rol" value={newRol} onChange={e => setNewRol(e.target.value as User['rol'])} disabled={user.id === currentUser.id}>
-                                                        <option value="Sportiv">Sportiv</option>
-                                                        <option value="Instructor">Instructor</option>
-                                                        <option value="Admin">Admin</option>
-                                                    </Select>
+                                                    <div className="flex flex-wrap gap-x-4 gap-y-1">
+                                                        {(['Sportiv', 'Instructor', 'Admin'] as const).map(role => (
+                                                            <label key={role} className="flex items-center space-x-2 text-sm cursor-pointer">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    className="h-4 w-4 rounded border-slate-500 bg-slate-800 text-primary-600 focus:ring-primary-500"
+                                                                    checked={newRoles.includes(role)}
+                                                                    onChange={(e) => handleRoleChange(role, e.target.checked)}
+                                                                    disabled={user.id === currentUser.id && role === 'Admin'}
+                                                                />
+                                                                <span>{role}</span>
+                                                            </label>
+                                                        ))}
+                                                    </div>
                                                 </td>
                                                 <td className="p-2 text-right">
                                                     <div className="flex justify-end gap-2">
@@ -279,9 +301,13 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                                             <>
                                                 <td className="p-4">
                                                     {user.user_id ? (
-                                                        <span className={`px-2 py-1 text-xs font-semibold rounded-full text-white ${user.rol === 'Admin' ? 'bg-amber-600' : user.rol === 'Instructor' ? 'bg-sky-600' : 'bg-slate-600'}`}>
-                                                            {user.rol}
-                                                        </span>
+                                                        <div className="flex flex-wrap gap-1">
+                                                            {user.rol.map(role => (
+                                                                <span key={role} className={`px-2 py-1 text-xs font-semibold rounded-full text-white ${role === 'Admin' ? 'bg-amber-600' : role === 'Instructor' ? 'bg-sky-600' : 'bg-slate-600'}`}>
+                                                                    {role}
+                                                                </span>
+                                                            ))}
+                                                        </div>
                                                     ) : (
                                                         <span className="px-2 py-1 text-xs font-semibold rounded-full bg-slate-500 text-white">
                                                             Fără Cont

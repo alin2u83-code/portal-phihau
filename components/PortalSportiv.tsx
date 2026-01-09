@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import { Sportiv, Participare, Examen, Grad, Prezenta, Grupa, Plata, Eveniment, Rezultat, PretConfig, User } from '../types';
+import { Sportiv, Participare, Examen, Grad, Prezenta, Grupa, Plata, Eveniment, Rezultat, PretConfig, User, Familie } from '../types';
 import { Button, Card, Input } from './ui';
 import { getPretValabil } from '../utils/pricing';
 import { supabase } from '../supabaseClient';
+import { UsersIcon } from './icons';
 
 const getGrad = (gradId: string, allGrades: Grad[]) => allGrades.find(g => g.id === gradId);
 const getAge = (dateString: string) => { const today = new Date(); const birthDate = new Date(dateString); let age = today.getFullYear() - birthDate.getFullYear(); const m = today.getMonth() - birthDate.getMonth(); if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; } return age; };
@@ -17,7 +18,6 @@ const DataField: React.FC<{label: string, value: React.ReactNode}> = ({label, va
 
 interface PortalSportivProps {
   sportiv: Sportiv;
-  onLogout: () => void;
   participari: Participare[];
   examene: Examen[];
   grade: Grad[];
@@ -29,76 +29,14 @@ interface PortalSportivProps {
   rezultate: Rezultat[];
   setRezultate: React.Dispatch<React.SetStateAction<Rezultat[]>>;
   preturiConfig: PretConfig[];
-  setSportivi: React.Dispatch<React.SetStateAction<Sportiv[]>>;
-  setCurrentUser: React.Dispatch<React.SetStateAction<User | null>>;
+  onNavigateToEditProfil: () => void;
+  sportivi: Sportiv[];
+  familii: Familie[];
 }
 
-export const PortalSportiv: React.FC<PortalSportivProps> = ({ sportiv, onLogout, participari, examene, grade, prezente, grupe, plati, setPlati, evenimente, rezultate, setRezultate, preturiConfig, setSportivi, setCurrentUser }) => {
+export const PortalSportiv: React.FC<PortalSportivProps> = ({ sportiv, participari, examene, grade, prezente, grupe, plati, setPlati, evenimente, rezultate, setRezultate, preturiConfig, onNavigateToEditProfil, sportivi, familii }) => {
     const [showSuccess, setShowSuccess] = useState<string|null>(null);
     const [loading, setLoading] = useState<{[key: string]: boolean}>({});
-
-    // State for profile editing
-    const [profileFormData, setProfileFormData] = useState({
-        nume: sportiv.nume,
-        prenume: sportiv.prenume,
-        email: sportiv.email,
-        username: sportiv.username || '',
-        parola: '',
-        confirmParola: ''
-    });
-    const [profileSuccessMessage, setProfileSuccessMessage] = useState('');
-    const [profileErrorMessage, setProfileErrorMessage] = useState('');
-    const [profileLoading, setProfileLoading] = useState(false);
-
-    const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setProfileFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
-    };
-
-    const handleProfileSave = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!supabase) {
-            setProfileErrorMessage("Eroare de configurare: Conexiunea la baza de date nu a putut fi stabilită.");
-            return;
-        }
-        if (profileFormData.parola && profileFormData.parola !== profileFormData.confirmParola) {
-            setProfileErrorMessage("Parolele nu se potrivesc.");
-            return;
-        }
-        
-        setProfileLoading(true);
-        setProfileErrorMessage('');
-        setProfileSuccessMessage('');
-
-        if (profileFormData.username && profileFormData.username !== sportiv.username) {
-            const { data: existingUser, error: checkError } = await supabase.from('sportivi').select('id').eq('username', profileFormData.username).not('id', 'eq', sportiv.id).limit(1);
-            if (checkError) { setProfileErrorMessage(`Eroare la verificare: ${checkError.message}`); setProfileLoading(false); return; }
-            if (existingUser && existingUser.length > 0) { setProfileErrorMessage('Numele de utilizator este deja folosit.'); setProfileLoading(false); return; }
-        }
-
-        const authUpdates: any = {};
-        if (profileFormData.email !== sportiv.email) authUpdates.email = profileFormData.email;
-        if (profileFormData.parola) authUpdates.password = profileFormData.parola;
-        if (Object.keys(authUpdates).length > 0) {
-            const { error: authError } = await supabase.auth.updateUser(authUpdates);
-            if (authError) { setProfileErrorMessage(`Eroare la actualizarea autentificării: ${authError.message}`); setProfileLoading(false); return; }
-        }
-
-        const profileUpdates = { nume: profileFormData.nume, prenume: profileFormData.prenume, email: profileFormData.email, username: profileFormData.username };
-        const { data, error } = await supabase.from('sportivi').update(profileUpdates).eq('user_id', sportiv.user_id).select().single();
-
-        if (error) { setProfileErrorMessage(`Eroare la actualizarea profilului: ${error.message}`); setProfileLoading(false); return; }
-
-        if(data) {
-            const updatedUser = data as User;
-            setSportivi(prev => prev.map(s => s.id === sportiv.id ? updatedUser : s));
-            setCurrentUser(updatedUser);
-        }
-        
-        setProfileSuccessMessage("Profilul a fost actualizat cu succes!");
-        setProfileFormData(prev => ({ ...prev, parola: '', confirmParola: '' }));
-        setTimeout(() => setProfileSuccessMessage(''), 3000);
-        setProfileLoading(false);
-    };
     
     const sportivParticipari = useMemo(() => participari.filter(p => p.sportiv_id === sportiv.id), [participari, sportiv.id]);
     const sportivPrezente = useMemo(() => prezente.filter(p => p.sportivi_prezenti_ids.includes(sportiv.id)), [prezente, sportiv.id]);
@@ -110,7 +48,13 @@ export const PortalSportiv: React.FC<PortalSportivProps> = ({ sportiv, onLogout,
     const grupaCurenta = useMemo(() => grupe.find(g => g.id === sportiv.grupa_id), [grupe, sportiv.grupa_id]);
 
     const eligibility = useMemo(() => {
-        const nextGrad = grade.find(g => g.ordine === (currentGrad?.ordine ?? 0) + 1);
+        const sortedGrades = [...grade].sort((a, b) => a.ordine - b.ordine);
+        
+        // Dacă nu are niciun grad admis, următorul grad este primul din nomenclator
+        const nextGrad = currentGrad 
+            ? sortedGrades.find(g => g.ordine === (currentGrad?.ordine ?? 0) + 1)
+            : sortedGrades[0];
+
         if (!nextGrad) return { eligible: false, message: "Ați atins gradul maxim.", nextGrad: null };
 
         const age = getAge(sportiv.data_nasterii);
@@ -133,6 +77,16 @@ export const PortalSportiv: React.FC<PortalSportivProps> = ({ sportiv, onLogout,
         const anulCurent = new Date().getFullYear();
         return sportivPrezente.filter(p => { const d = new Date(p.data); return d.getMonth() === lunaCurenta && d.getFullYear() === anulCurent; }).length;
     }, [sportivPrezente]);
+
+    const membriFamilie = useMemo(() => {
+        if (!sportiv.familie_id) return [];
+        return sportivi.filter(s => s.familie_id === sportiv.familie_id && s.id !== sportiv.id);
+    }, [sportivi, sportiv.familie_id, sportiv.id]);
+
+    const familieNume = useMemo(() => {
+        if (!sportiv.familie_id) return '';
+        return familii.find(f => f.id === sportiv.familie_id)?.nume || '';
+    }, [familii, sportiv.familie_id]);
 
     const unregisteredUpcomingEvents = useMemo(() => {
         const today = new Date();
@@ -186,22 +140,16 @@ export const PortalSportiv: React.FC<PortalSportivProps> = ({ sportiv, onLogout,
     };
 
     return (
-        <div className="min-h-screen bg-slate-900 text-slate-200">
-             <header className="bg-slate-800 shadow-md">
-                <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-                    <h1 className="font-bold text-xl text-white">Portal Sportiv</h1>
-                    <Button onClick={onLogout} variant="danger" size="sm">Logout</Button>
-                </div>
-            </header>
-            <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-                 <Card>
+        <div className="space-y-6">
+                <Card>
                     <h2 className="text-3xl font-bold text-white">Bun venit, {sportiv.prenume}!</h2>
-                    <p className="text-slate-400">Acesta este panoul tău personal.</p>
+                    <p className="text-slate-400">Acesta este panoul tău personal de control.</p>
                 </Card>
+
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <Card>
                         <h3 className="text-xl font-bold text-white mb-4">Progresul Meu</h3>
-                        <DataField label="Grad Actual" value={currentGrad?.nume || 'Niciun grad'} />
+                        <DataField label="Grad Actual" value={currentGrad?.nume || <span className="text-sky-400 italic">Începător</span>} />
                         <div className="mt-4 pt-4 border-t border-slate-700">
                             <DataField label="Următorul Grad" value={eligibility.nextGrad?.nume || 'Maxim atins'} />
                             <p className={`text-sm mt-1 ${eligibility.eligible ? 'text-green-400' : 'text-yellow-400'}`}>{eligibility.message}</p>
@@ -219,63 +167,79 @@ export const PortalSportiv: React.FC<PortalSportivProps> = ({ sportiv, onLogout,
                          <p className="text-sm text-slate-400 mb-2">Datorii neachitate:</p>
                         <div className="space-y-2">
                            {sportivPlati.filter(p => p.status !== 'Achitat').map(p => (
-                               <div key={p.id} className="flex justify-between items-center bg-slate-700/50 p-2 rounded-md">
+                               <div key={p.id} className="flex justify-between items-center bg-slate-700/50 p-2 rounded-md text-sm">
                                    <span>{p.descriere}</span>
                                    <span className="font-bold text-red-400">{p.suma.toFixed(2)} RON</span>
                                </div>
                            ))}
-                           {sportivPlati.filter(p => p.status !== 'Achitat').length === 0 && <p className="text-slate-400">Nicio datorie restantă.</p>}
+                           {sportivPlati.filter(p => p.status !== 'Achitat').length === 0 && <p className="text-slate-400 text-sm italic">Nicio datorie restantă.</p>}
                         </div>
                     </Card>
                 </div>
 
+                {sportiv.familie_id && (
+                    <Card>
+                        <div className="flex items-center gap-3 mb-4">
+                            <UsersIcon className="w-6 h-6 text-brand-secondary" />
+                            <h3 className="text-xl font-bold text-white">Familia {familieNume}</h3>
+                        </div>
+                        <div className="space-y-3">
+                            {membriFamilie.map(membru => (
+                                <div key={membru.id} className="flex justify-between items-center bg-slate-700/30 p-3 rounded-md border border-slate-700">
+                                    <span className="font-semibold">{membru.nume} {membru.prenume}</span>
+                                    <div className="flex gap-2">
+                                        {membru.user_id ? (
+                                            <span className="px-2 py-0.5 text-[10px] uppercase tracking-wider font-bold rounded bg-green-900/50 text-green-400 border border-green-500/30">
+                                                Cont Activ
+                                            </span>
+                                        ) : (
+                                            <span className="px-2 py-0.5 text-[10px] uppercase tracking-wider font-bold rounded bg-slate-700 text-slate-400 border border-slate-600">
+                                                Fără Cont
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                            {membriFamilie.length === 0 && <p className="text-slate-400 text-sm italic">Ești singurul membru înregistrat în acest grup de familie.</p>}
+                        </div>
+                    </Card>
+                )}
+
                 <Card>
                     <h3 className="text-xl font-bold text-white mb-4">Evenimente Viitoare & Înscrieri</h3>
-                    {showSuccess && <p className="text-green-400 bg-green-900/50 p-2 rounded-md mb-4 text-center">{showSuccess}</p>}
+                    {showSuccess && <p className="text-green-400 bg-green-900/50 p-2 rounded-md mb-4 text-center text-sm font-semibold">{showSuccess}</p>}
                     <div className="space-y-3">
                         {unregisteredUpcomingEvents.length > 0 ? unregisteredUpcomingEvents.map(ev => (
-                            <div key={ev.id} className="bg-slate-700 p-3 rounded-md">
+                            <div key={ev.id} className="bg-slate-700 p-3 rounded-md border border-slate-600">
                                 <div className="flex justify-between items-start flex-wrap gap-2">
                                     <div>
-                                        <p className="font-bold">{ev.denumire} <span className={`text-xs px-2 py-0.5 rounded-full text-white ${ev.tip === 'Stagiu' ? 'bg-sky-600' : 'bg-purple-600'}`}>{ev.tip}</span></p>
-                                        <p className="text-sm text-slate-400">{new Date(ev.data).toLocaleDateString('ro-RO')} - {ev.locatie}</p>
+                                        <p className="font-bold">{ev.denumire} <span className={`ml-2 text-[10px] px-2 py-0.5 rounded-full text-white ${ev.tip === 'Stagiu' ? 'bg-sky-600' : 'bg-purple-600'}`}>{ev.tip}</span></p>
+                                        <p className="text-xs text-slate-400">{new Date(ev.data).toLocaleDateString('ro-RO')} - {ev.locatie}</p>
                                     </div>
                                     {ev.tip === 'Stagiu' && (
-                                        <div className="text-right mt-2 md:mt-0">
-                                            <Button onClick={() => handleInscriereStagiu(ev)} variant="success" size="sm" disabled={loading[ev.id]}>
+                                        <div className="text-right">
+                                            <Button onClick={() => handleInscriereStagiu(ev)} variant="success" size="sm" disabled={loading[ev.id]} className="text-xs">
                                                 {loading[ev.id] ? 'Se înscrie...' : 'Înscrie-te'}
                                             </Button>
                                         </div>
                                     )}
                                 </div>
                             </div>
-                        )) : <p className="text-slate-400">Niciun eveniment viitor disponibil pentru înscriere.</p>}
+                        )) : <p className="text-slate-400 text-sm italic">Niciun eveniment viitor disponibil pentru înscriere în acest moment.</p>}
                     </div>
                 </Card>
 
-                <Card>
-                    <h2 className="text-2xl font-bold text-white mb-4">Profil & Securitate</h2>
-                    <form onSubmit={handleProfileSave} className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <Input label="Nume" name="nume" value={profileFormData.nume} onChange={handleProfileChange} required />
-                            <Input label="Prenume" name="prenume" value={profileFormData.prenume} onChange={handleProfileChange} required />
+                <Card className="border border-slate-700 bg-slate-800/50">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <h2 className="text-2xl font-bold text-white">Profil & Securitate</h2>
+                            <p className="text-slate-400 text-sm">Gestionează datele tale personale, numele de utilizator și parola.</p>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <Input label="Email (Login)" name="email" type="email" value={profileFormData.email} onChange={handleProfileChange} required />
-                            <Input label="Nume Utilizator" name="username" type="text" value={profileFormData.username} onChange={handleProfileChange} placeholder="ex: ion.popescu"/>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <Input label="Parolă Nouă (lasă gol pentru a o păstra)" name="parola" type="password" value={profileFormData.parola} onChange={handleProfileChange} />
-                            <Input label="Confirmă Parola Nouă" name="confirmParola" type="password" value={profileFormData.confirmParola} onChange={handleProfileChange} />
-                        </div>
-                        {profileErrorMessage && <p className="text-red-400 text-sm text-center">{profileErrorMessage}</p>}
-                        <div className="flex justify-end items-center gap-4 pt-2">
-                            {profileSuccessMessage && <p className="text-green-400 text-sm font-semibold">{profileSuccessMessage}</p>}
-                            <Button type="submit" variant="success" disabled={profileLoading}>{profileLoading ? 'Se salvează...' : 'Salvează Modificările'}</Button>
-                        </div>
-                    </form>
+                        <Button onClick={onNavigateToEditProfil} variant="info" className="whitespace-nowrap">
+                            Modifică Datele Contului
+                        </Button>
+                    </div>
                 </Card>
-            </main>
         </div>
     );
 };

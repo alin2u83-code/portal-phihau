@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Sportiv, Participare, Examen, Grad, Prezenta, Grupa, Plata, Eveniment, Rezultat, TipAbonament, Familie, Tranzactie } from '../types';
 import { Button, Modal, Input, Select, Card } from './ui';
-import { PlusIcon, EditIcon, TrashIcon, ChevronDownIcon, ArrowLeftIcon } from './icons';
+import { PlusIcon, EditIcon, TrashIcon, ChevronDownIcon, ArrowLeftIcon, ShieldCheckIcon, CogIcon, UsersIcon } from './icons';
 import { supabase } from '../supabaseClient';
 
 const getGrad = (gradId: string, allGrades: Grad[]) => allGrades.find(g => g.id === gradId);
@@ -29,20 +29,30 @@ interface SportivFormFieldsProps {
 }
 
 const SportivFormFields: React.FC<SportivFormFieldsProps> = ({ formState, handleChange, grupe, familii, tipuriAbonament, customFields, isEditMode = false }) => (
-    <>
+    <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input label="Nume" name="nume" value={formState.nume} onChange={handleChange} required />
             <Input label="Prenume" name="prenume" value={formState.prenume} onChange={handleChange} required />
         </div>
+        
+        {!isEditMode && (
+            <div className="bg-slate-900/40 p-4 rounded-lg border border-slate-700/50 my-4 space-y-4">
+                <h3 className="text-amber-400 font-bold flex items-center gap-2">
+                    <ShieldCheckIcon className="w-5 h-5" /> Date Inițiale Acces Cont
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Input label="Email" name="email" type="email" value={formState.email} onChange={handleChange} required />
+                    <Input label="Nume Utilizator (Login)" name="username" value={formState.username || ''} onChange={handleChange} />
+                </div>
+                <Input label="Parolă Inițială" name="parola" type="password" value={formState.parola} onChange={handleChange} required />
+                <p className="text-xs text-slate-400 italic">Aceste date creează contul de autentificare pentru sportiv.</p>
+            </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input label="Email" name="email" type="email" value={formState.email} onChange={handleChange} required />
-            <Input label="Nume Utilizator (pentru login)" name="username" value={formState.username || ''} onChange={handleChange} />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {!isEditMode && <Input label="Parolă Inițială" name="parola" type="password" value={formState.parola} onChange={handleChange} required />}
              <Input label="Data Nașterii" name="data_nasterii" type="date" value={formState.data_nasterii} onChange={handleChange} required />
+             <Input label="CNP" name="cnp" value={formState.cnp} onChange={handleChange} required maxLength={13} />
         </div>
-        <Input label="CNP" name="cnp" value={formState.cnp} onChange={handleChange} required maxLength={13} />
          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input label="Data Înscrierii" name="data_inscrierii" type="date" value={formState.data_inscrierii} onChange={handleChange} required />
             <Select label="Familie" name="familie_id" value={formState.familie_id || ''} onChange={handleChange}>
@@ -68,41 +78,380 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({ formState, handle
             <Input label="Club de Proveniență" name="club_provenienta" value={formState.club_provenienta} onChange={handleChange} />
          </div>
          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-             <Select label="Participă la antrenamente de vacanță" name="participa_vacanta" value={formState.participa_vacanta ? 'Da' : 'Nu'} onChange={e => handleChange({ target: { name: 'participa_vacanta', value: e.target.value === 'Da' } })}>
-                <option value="Nu">Nu</option>
-                <option value="Da">Da</option>
+             <Select label="Antrenamente Vacanță" name="participa_vacanta" value={formState.participa_vacanta ? 'Da' : 'Nu'} onChange={e => handleChange({ target: { name: 'participa_vacanta', value: e.target.value === 'Da' } })}>
+                <option value="Nu">Nu participă</option>
+                <option value="Da">Participă</option>
             </Select>
             <Input label="Înălțime (cm)" name="inaltime" type="number" value={formState.inaltime || ''} onChange={handleChange} />
          </div>
-         {customFields.length > 0 && <div className="border-t border-slate-700 pt-4 mt-4">
-             <h3 className="text-lg font-semibold mb-2 text-white">Câmpuri Suplimentare</h3>
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {customFields.map(field => (
-                    <Input key={field} label={field} name={field} value={formState[field] || ''} onChange={handleChange} />
-                ))}
-             </div>
-        </div>}
-    </>
+    </div>
 );
 
 const emptySportivState: Partial<Sportiv> = {
-    nume: '', prenume: '', email: '', username: '', parola: '', data_nasterii: '', cnp: '', rol: 'Sportiv',
+    nume: '', prenume: '', email: '', username: '', parola: '', data_nasterii: '', cnp: '', rol: ['Sportiv'],
     data_inscrierii: new Date().toISOString().split('T')[0],
     status: 'Activ', club_provenienta: 'Phi Hau Iași',
     grupa_id: null,
     familie_id: null,
     tip_abonament_id: null,
     participa_vacanta: false,
-    inaltime: undefined,
 }
 
+const DataField: React.FC<{label: string, value: React.ReactNode, icon?: React.ReactNode}> = ({label, value, icon}) => (
+    <div className="flex flex-col">
+        <dt className="text-xs font-semibold text-slate-500 uppercase tracking-tight mb-1 flex items-center gap-1">
+            {icon} {label}
+        </dt>
+        <dd className="text-base text-white font-medium">{value || 'N/A'}</dd>
+    </div>
+);
+
+interface SportivDetailProps { 
+    sportiv: Sportiv; 
+    onBack: () => void;
+    onUpdate: (updates: Partial<Sportiv>) => Promise<{success: boolean, error?: any}>;
+    onSelectFamilie: (familieId: string) => void;
+    participari: Participare[]; examene: Examen[]; grade: Grad[]; 
+    grupe: Grupa[]; plati: Plata[]; 
+    customFields: string[];
+    familii: Familie[]; tipuriAbonament: TipAbonament[];
+    onNavigateToAccountSettings: (sportiv: Sportiv) => void;
+}
+
+const SportivDetail: React.FC<SportivDetailProps> = ({ sportiv, onBack, onUpdate, onSelectFamilie, participari, examene, grade, grupe, plati, customFields, familii, tipuriAbonament, onNavigateToAccountSettings }) => {
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [formState, setFormState] = useState<Partial<Sportiv>>(sportiv);
+    const [loading, setLoading] = useState(false);
+    const [saveStatus, setSaveStatus] = useState<{type: 'success' | 'error', message: string} | null>(null);
+
+    const grupa = grupe.find(g => g.id === sportiv.grupa_id);
+    const familie = familii.find(f => f.id === sportiv.familie_id);
+    const abonament = tipuriAbonament.find(t => t.id === sportiv.tip_abonament_id);
+    const age = getAge(sportiv.data_nasterii);
+    const sportivPlati = plati.filter(p => p.sportiv_id === sportiv.id || (p.familie_id && p.familie_id === sportiv.familie_id));
+    const sportivParticipari = participari.filter(p => p.sportiv_id === sportiv.id).sort((a, b) => new Date(examene.find(e => e.id === b.examen_id)!.data).getTime() - new Date(examene.find(e => e.id === a.examen_id)!.data).getTime());
+    
+    const admittedParticipations = sportivParticipari.filter(p => p.rezultat === 'Admis');
+    const gradActual = admittedParticipations.length > 0 
+        ? getGrad(admittedParticipations[0].grad_sustinut_id, grade)?.nume 
+        : <span className="text-sky-400 italic">Începător</span>;
+
+    const handleSave = async () => {
+        setLoading(true);
+        const { parola, email, username, user_id, ...updateData } = formState; 
+        const { success, error } = await onUpdate(updateData);
+        setLoading(false);
+        if(success) {
+            setIsEditMode(false);
+            setSaveStatus({type: 'success', message: 'Salvat!'});
+            setTimeout(() => setSaveStatus(null), 2000);
+        } else {
+            setSaveStatus({type: 'error', message: error?.message || 'Eroare'});
+        }
+    };
+
+    return (
+        <div className="space-y-6">
+            <div className="flex justify-between items-center">
+                <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi</Button>
+                <div className="flex gap-2">
+                    {saveStatus && <span className={`text-sm self-center ${saveStatus.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>{saveStatus.message}</span>}
+                    <Button onClick={() => setIsEditMode(!isEditMode)} variant={isEditMode ? 'secondary' : 'primary'} size="sm">
+                        <EditIcon className="w-4 h-4 mr-2" /> {isEditMode ? 'Anulează' : 'Editează Profil'}
+                    </Button>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Coloana Stângă - Profil și Date Cheie */}
+                <div className="lg:col-span-2 space-y-6">
+                    <Card className="border-l-4 border-l-brand-primary">
+                        <div className="flex items-center gap-6 mb-8">
+                             <div className="w-24 h-24 rounded-2xl bg-slate-700 flex items-center justify-center text-3xl font-bold text-white shadow-xl border border-slate-600">
+                                {sportiv.nume[0]}{sportiv.prenume[0]}
+                             </div>
+                             <div>
+                                <h2 className="text-3xl font-extrabold text-white leading-tight uppercase">{sportiv.nume} {sportiv.prenume}</h2>
+                                <div className="flex items-center gap-3 mt-2">
+                                    <span className="px-3 py-1 bg-brand-primary/20 text-brand-secondary text-sm font-bold rounded-full border border-brand-primary/30">
+                                        {gradActual}
+                                    </span>
+                                    <span className={`px-3 py-1 text-xs font-bold rounded-full uppercase ${sportiv.status === 'Activ' ? 'bg-green-600/20 text-green-400' : 'bg-red-600/20 text-red-400'}`}>
+                                        {sportiv.status}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {isEditMode ? (
+                            <div className="space-y-6">
+                                <SportivFormFields 
+                                    formState={formState} 
+                                    handleChange={(e: any) => setFormState({...formState, [e.target.name]: e.target.value})} 
+                                    grupe={grupe} 
+                                    familii={familii} 
+                                    tipuriAbonament={tipuriAbonament} 
+                                    customFields={customFields} 
+                                    isEditMode={true} 
+                                />
+                                <div className="flex justify-end pt-4 border-t border-slate-700">
+                                    <Button onClick={handleSave} variant="success" disabled={loading}>
+                                        {loading ? 'Se salvează...' : 'Salvează Profilul'}
+                                    </Button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                                <div className="space-y-6">
+                                    <h3 className="text-sm font-bold text-slate-400 border-b border-slate-700 pb-2 flex items-center gap-2 uppercase tracking-widest">
+                                        <UsersIcon className="w-4 h-4" /> Detalii Sportive
+                                    </h3>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <DataField label="Grupă" value={grupa?.denumire} />
+                                        <DataField label="Roluri" value={sportiv.rol.join(', ')} />
+                                        <DataField label="Club" value={sportiv.club_provenienta} />
+                                        <DataField label="Data Înscrierii" value={new Date(sportiv.data_inscrierii).toLocaleDateString('ro-RO')} />
+                                    </div>
+                                </div>
+                                <div className="space-y-6">
+                                    <h3 className="text-sm font-bold text-slate-400 border-b border-slate-700 pb-2 flex items-center gap-2 uppercase tracking-widest">
+                                        <CogIcon className="w-4 h-4" /> Date Administrative
+                                    </h3>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <DataField label="Data Nașterii" value={`${new Date(sportiv.data_nasterii).toLocaleDateString('ro-RO')} (${age} ani)`} />
+                                        <DataField label="CNP" value={sportiv.cnp} />
+                                        <DataField label="Înălțime" value={sportiv.inaltime ? `${sportiv.inaltime} cm` : 'N/A'} />
+                                        <DataField label="Familie" value={familie ? <button onClick={() => onSelectFamilie(familie.id)} className="text-brand-secondary hover:underline">{familie.nume}</button> : 'Individual'} />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </Card>
+
+                    <Card className="bg-slate-900/50 border border-slate-700/50">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-amber-600/10 rounded-full">
+                                    <ShieldCheckIcon className="w-8 h-8 text-amber-500" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-bold text-white">Gestionare Cont & Roluri</h3>
+                                    <p className="text-sm text-slate-400">Date de autentificare (email, username, parolă) și roluri.</p>
+                                </div>
+                            </div>
+                            <Button 
+                                onClick={() => onNavigateToAccountSettings(sportiv)} 
+                                variant="secondary" 
+                                className="bg-amber-600 hover:bg-amber-700 text-white shadow-lg shadow-amber-900/20 border-none"
+                            >
+                                <CogIcon className="w-5 h-5 mr-2" /> Gestionare Cont
+                            </Button>
+                        </div>
+                    </Card>
+
+                    <Card>
+                        <h3 className="text-xl font-bold text-white mb-4">Istoric Grade & Examene</h3>
+                        <div className="space-y-2">
+                            {sportivParticipari.map(p => {
+                                const examen = examene.find(e => e.id === p.examen_id);
+                                const grad = grade.find(g => g.id === p.grad_sustinut_id);
+                                return ( 
+                                    <div key={p.id} className="bg-slate-700/30 p-3 rounded-md border border-slate-700/50 flex justify-between items-center">
+                                        <div>
+                                            <p className="font-bold text-white">{grad?.nume}</p>
+                                            <p className="text-xs text-slate-400">{examen?.data} - {examen?.locatia}</p>
+                                        </div>
+                                        <span className={`px-2 py-1 text-xs font-bold rounded ${p.rezultat === 'Admis' ? 'bg-green-600/20 text-green-400' : 'bg-red-600/20 text-red-400'}`}>
+                                            {p.rezultat}
+                                        </span>
+                                    </div>
+                                );
+                            })}
+                            {sportivParticipari.length === 0 && <p className="text-slate-500 italic text-sm">Niciun examen susținut încă.</p>}
+                        </div>
+                    </Card>
+                </div>
+
+                {/* Coloana Dreaptă - Rezumat Financiar și Note */}
+                <div className="space-y-6">
+                    <Card className="bg-slate-800/80 border border-brand-primary/20">
+                        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                            <span className="w-2 h-2 bg-brand-secondary rounded-full"></span> Situație Financiară
+                        </h3>
+                        <div className="space-y-3">
+                            {sportivPlati.filter(p => p.status !== 'Achitat').map(p => (
+                                <div key={p.id} className="p-3 bg-slate-900/60 rounded-lg border border-slate-700">
+                                    <p className="text-sm font-semibold text-white">{p.descriere}</p>
+                                    <div className="flex justify-between items-center mt-1">
+                                        <span className="text-xs text-slate-400">{new Date(p.data).toLocaleDateString('ro-RO')}</span>
+                                        <span className="text-sm font-bold text-red-400">{p.suma.toFixed(2)} RON</span>
+                                    </div>
+                                </div>
+                            ))}
+                            {sportivPlati.filter(p => p.status !== 'Achitat').length === 0 && (
+                                <div className="text-center py-6">
+                                    <div className="inline-block p-2 bg-green-500/10 rounded-full mb-2">
+                                        <ShieldCheckIcon className="w-6 h-6 text-green-500" />
+                                    </div>
+                                    <p className="text-slate-400 text-sm">Toate plățile la zi.</p>
+                                </div>
+                            )}
+                        </div>
+                    </Card>
+
+                    <Card className="bg-slate-700/20 border-dashed border-2 border-slate-600">
+                        <h3 className="text-sm font-bold text-slate-500 uppercase mb-4 tracking-widest">Note & Observații</h3>
+                        <p className="text-slate-400 text-sm italic">Nu există observații suplimentare pentru acest profil.</p>
+                    </Card>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// --- RESTUL COMPONENTEI RESTAURAT ---
+
+interface SportiviManagementProps { 
+    onBack: () => void; 
+    sportivi: Sportiv[]; setSportivi: React.Dispatch<React.SetStateAction<Sportiv[]>>; 
+    participari: Participare[]; examene: Examen[]; grade: Grad[]; 
+    prezente: Prezenta[]; grupe: Grupa[]; 
+    plati: Plata[]; 
+    evenimente: Eveniment[]; rezultate: Rezultat[]; 
+    tipuriAbonament: TipAbonament[]; familii: Familie[]; 
+    customFields: string[]; 
+    selectedSportiv: Sportiv | null;
+    onSelectSportiv: (sportiv: Sportiv) => void;
+    onClearSelectedSportiv: () => void;
+    onSelectFamilie: (familieId: string) => void;
+    onNavigateToAccountSettings: (sportiv: Sportiv) => void;
+}
+
+export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, sportivi, setSportivi, participari, examene, grade, prezente, grupe, plati, evenimente, rezultate, tipuriAbonament, familii, customFields, selectedSportiv, onSelectSportiv, onClearSelectedSportiv, onSelectFamilie, onNavigateToAccountSettings }) => {
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  
+  const filteredSportivi = useMemo(() => {
+    return sportivi.filter(s => 
+      `${s.nume} ${s.prenume}`.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      s.cnp.includes(searchTerm)
+    );
+  }, [sportivi, searchTerm]);
+
+  const handleSaveSportiv = async (sportivData: Partial<Sportiv>) => {
+    if (!supabase) return;
+    const { data, error } = await supabase.from('sportivi').insert(sportivData).select().single();
+    if (error) {
+        alert("Eroare la adăugare: " + error.message);
+    } else if (data) {
+        setSportivi(prev => [...prev, data as Sportiv]);
+        setShowAddForm(false);
+    }
+  };
+
+  const handleUpdateSportiv = async (updates: Partial<Sportiv>) => {
+    if (!supabase || !selectedSportiv) return {success: false};
+    const { data, error } = await supabase.from('sportivi').update(updates).eq('id', selectedSportiv.id).select().single();
+    if (error) {
+        return {success: false, error};
+    } else {
+        setSportivi(prev => prev.map(s => s.id === selectedSportiv.id ? data as Sportiv : s));
+        return {success: true};
+    }
+  };
+
+  if (selectedSportiv) {
+    return (
+        <SportivDetail 
+            sportiv={selectedSportiv} 
+            onBack={onClearSelectedSportiv} 
+            onUpdate={handleUpdateSportiv}
+            onSelectFamilie={onSelectFamilie}
+            participari={participari}
+            examene={examene}
+            grade={grade}
+            grupe={grupe}
+            plati={plati}
+            customFields={customFields}
+            familii={familii}
+            tipuriAbonament={tipuriAbonament}
+            onNavigateToAccountSettings={onNavigateToAccountSettings}
+        />
+    );
+  }
+
+  return (
+    <div>
+        <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
+        <div className="flex justify-between items-center mb-6">
+            <h1 className="text-3xl font-bold text-white">Bază Date Sportivi</h1>
+            <Button onClick={() => setShowAddForm(!showAddForm)} variant="info">
+                {showAddForm ? 'Anulează' : <><PlusIcon className="w-5 h-5 mr-2" />Adaugă Sportiv</>}
+            </Button>
+        </div>
+
+        {showAddForm && (
+            <AddSportivForm 
+                onSave={handleSaveSportiv} 
+                onCancel={() => setShowAddForm(false)} 
+                grupe={grupe} 
+                familii={familii} 
+                tipuriAbonament={tipuriAbonament} 
+                customFields={customFields} 
+            />
+        )}
+
+        <Card className="mb-6">
+            <Input 
+                label="Caută sportiv" 
+                placeholder="Nume sau CNP..." 
+                value={searchTerm} 
+                onChange={e => setSearchTerm(e.target.value)} 
+            />
+        </Card>
+
+        <div className="bg-slate-800 rounded-lg shadow-lg overflow-hidden">
+            <table className="w-full text-left">
+                <thead className="bg-slate-700">
+                    <tr>
+                        <th className="p-4">Nume</th>
+                        <th className="p-4">Grupă</th>
+                        <th className="p-4">Statut</th>
+                        <th className="p-4">Rol</th>
+                        <th className="p-4 text-right">Acțiuni</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {filteredSportivi.map(sportiv => (
+                        <tr key={sportiv.id} className="border-b border-slate-700 hover:bg-slate-700/40 cursor-pointer" onClick={() => onSelectSportiv(sportiv)}>
+                            <td className="p-4 font-bold">{sportiv.nume} {sportiv.prenume}</td>
+                            <td className="p-4 text-slate-300">{grupe.find(g => g.id === sportiv.grupa_id)?.denumire || '-'}</td>
+                            <td className="p-4">
+                                <span className={`px-2 py-1 text-xs rounded-full font-bold uppercase ${sportiv.status === 'Activ' ? 'text-green-400 bg-green-900/30' : 'text-red-400 bg-red-900/30'}`}>
+                                    {sportiv.status}
+                                </span>
+                            </td>
+                            <td className="p-4 text-slate-400 text-sm">{sportiv.rol.join(', ')}</td>
+                            <td className="p-4 text-right">
+                                <Button size="sm" variant="primary"><EditIcon className="w-4 h-4" /></Button>
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    </div>
+  );
+};
+
+// Define interface for AddSportivForm props
 interface AddSportivFormProps {
-  onSave: (sportiv: Partial<Sportiv>) => Promise<void>;
-  onCancel: () => void;
-  grupe: Grupa[];
-  familii: Familie[];
-  tipuriAbonament: TipAbonament[];
-  customFields: string[];
+    onSave: (sportivData: Partial<Sportiv>) => Promise<void>;
+    onCancel: () => void;
+    grupe: Grupa[];
+    familii: Familie[];
+    tipuriAbonament: TipAbonament[];
+    customFields: string[];
 }
 
 const AddSportivForm: React.FC<AddSportivFormProps> = ({ onSave, onCancel, grupe, familii, tipuriAbonament, customFields }) => {
@@ -111,13 +460,7 @@ const AddSportivForm: React.FC<AddSportivFormProps> = ({ onSave, onCancel, grupe
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement> | { target: { name: string, value: any } }) => {
         const {name, value} = e.target;
-        setFormState(p => {
-            const newState = {...p, [name]: value === '' ? null : value };
-            if (name === 'familie_id' && value) {
-                newState.tip_abonament_id = null;
-            }
-            return newState;
-        });
+        setFormState(p => ({...p, [name]: value === '' ? null : value }));
     }
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -137,312 +480,4 @@ const AddSportivForm: React.FC<AddSportivFormProps> = ({ onSave, onCancel, grupe
             </form>
         </Card>
     );
-};
-
-
-const DataField: React.FC<{label: string, value: React.ReactNode}> = ({label, value}) => (
-    <div>
-        <dt className="text-sm font-medium text-slate-400">{label}</dt>
-        <dd className="mt-1 text-md text-white font-semibold">{value || 'N/A'}</dd>
-    </div>
-);
-
-interface SportivDetailProps { 
-    sportiv: Sportiv; 
-    onBack: () => void;
-    onUpdate: (updates: Partial<Sportiv>) => Promise<{success: boolean, error?: any}>;
-    onSelectFamilie: (familieId: string) => void;
-    participari: Participare[]; examene: Examen[]; grade: Grad[]; 
-    grupe: Grupa[]; plati: Plata[]; 
-    customFields: string[];
-    familii: Familie[]; tipuriAbonament: TipAbonament[];
-}
-const SportivDetail: React.FC<SportivDetailProps> = ({ sportiv, onBack, onUpdate, onSelectFamilie, participari, examene, grade, grupe, plati, customFields, familii, tipuriAbonament }) => {
-    const [isEditMode, setIsEditMode] = useState(false);
-    const [formState, setFormState] = useState<Partial<Sportiv>>(sportiv);
-    const [loading, setLoading] = useState(false);
-    const [saveStatus, setSaveStatus] = useState<{type: 'success' | 'error', message: string} | null>(null);
-
-    useEffect(() => { setFormState(sportiv); }, [sportiv]);
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement> | { target: { name: string, value: any } }) => {
-        const {name, value} = e.target;
-        setFormState(p => ({...p, [name]: value === '' ? null : value }));
-    }
-
-    const handleSave = async () => {
-        setLoading(true);
-        setSaveStatus(null);
-
-        // Verifică unicitatea username-ului dacă s-a schimbat
-        if (formState.username && formState.username !== sportiv.username) {
-            if (!supabase) {
-                setSaveStatus({ type: 'error', message: 'Clientul Supabase nu este configurat.' }); setLoading(false); return;
-            }
-             const { data: existingUser, error: checkError } = await supabase
-                .from('sportivi')
-                .select('id')
-                .eq('username', formState.username)
-                .not('id', 'eq', sportiv.id)
-                .limit(1);
-
-            if (checkError) {
-                 setSaveStatus({ type: 'error', message: `Eroare la verificare: ${checkError.message}` }); setLoading(false); return;
-            }
-            if (existingUser && existingUser.length > 0) {
-                 setSaveStatus({ type: 'error', message: 'Numele de utilizator este deja folosit.' }); setLoading(false); return;
-            }
-        }
-
-        const { parola, ...updateData } = formState; // Păstrăm ID-ul pentru upsert
-        const { success, error } = await onUpdate(updateData);
-        setLoading(false);
-
-        if(success) {
-            setSaveStatus({type: 'success', message: 'Datele au fost salvate cu succes!'});
-            setIsEditMode(false);
-            setTimeout(() => setSaveStatus(null), 3000);
-        } else {
-            const errorMessage = error?.message || 'A apărut o eroare necunoscută.';
-            setSaveStatus({type: 'error', message: `Eroare la salvare: ${errorMessage}`});
-        }
-    };
-
-    const grupa = grupe.find(g => g.id === sportiv.grupa_id);
-    const familie = familii.find(f => f.id === sportiv.familie_id);
-    const abonament = tipuriAbonament.find(t => t.id === sportiv.tip_abonament_id);
-    const age = getAge(sportiv.data_nasterii);
-    const sportivPlati = plati.filter(p => p.sportiv_id === sportiv.id || (p.familie_id && p.familie_id === sportiv.familie_id));
-    const sportivParticipari = participari.filter(p => p.sportiv_id === sportiv.id).sort((a, b) => new Date(examene.find(e => e.id === b.examen_id)!.data).getTime() - new Date(examene.find(e => e.id === a.examen_id)!.data).getTime());
-    
-    return (
-        <div>
-            <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la listă</Button>
-            
-            <Card className="mb-6">
-                <div className="flex justify-between items-start mb-4 flex-wrap gap-4">
-                    <div>
-                        <h2 className="text-3xl font-bold text-white">{sportiv.nume} {sportiv.prenume}</h2>
-                        <p className="text-slate-400">{sportiv.email}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        {sportiv.familie_id && !isEditMode && <Button onClick={() => onSelectFamilie(sportiv.familie_id!)} variant='info' size="sm">Grup de Familie</Button>}
-                        <Button onClick={() => setIsEditMode(p => !p)} variant={isEditMode ? 'secondary' : 'primary'} size="sm">
-                            <EditIcon className="w-4 h-4 mr-2" />{isEditMode ? 'Anulează' : 'Editează'}
-                        </Button>
-                    </div>
-                </div>
-                
-                {isEditMode ? (
-                     <form className="space-y-4 pt-4 border-t border-slate-700">
-                        <SportivFormFields formState={formState} handleChange={handleChange} grupe={grupe} familii={familii} tipuriAbonament={tipuriAbonament} customFields={customFields} isEditMode={true} />
-                        <div className="flex justify-end items-center gap-4 pt-4">
-                            {saveStatus && <p className={`text-sm font-semibold ${saveStatus.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>{saveStatus.message}</p>}
-                            <Button type="button" variant="success" onClick={handleSave} disabled={loading}>{loading ? "Se salvează..." : "Salvează Modificările"}</Button>
-                        </div>
-                     </form>
-                ) : (
-                    <dl className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-6 pt-4 border-t border-slate-700">
-                        <DataField label="Nume Utilizator" value={sportiv.username} />
-                        <DataField label="Data Nașterii" value={`${new Date(sportiv.data_nasterii).toLocaleDateString('ro-RO')} (${age} ani)`} />
-                        <DataField label="CNP" value={sportiv.cnp} />
-                        <DataField label="Data Înscrierii" value={new Date(sportiv.data_inscrierii).toLocaleDateString('ro-RO')} />
-                        <DataField label="Status" value={<span className={`px-2 py-1 text-xs font-semibold rounded-full text-white ${sportiv.status === 'Activ' ? 'bg-green-600' : 'bg-red-600'}`}>{sportiv.status}</span>} />
-                        <DataField label="Rol" value={<span className={`px-2 py-1 text-xs font-semibold rounded-full text-white ${sportiv.rol === 'Admin' ? 'bg-amber-600' : sportiv.rol === 'Instructor' ? 'bg-sky-600' : 'bg-slate-600'}`}>{sportiv.rol}</span>}/>
-                        <DataField label="Grupă" value={grupa?.denumire} />
-                        <DataField label="Familie" value={familie?.nume} />
-                        <DataField label="Abonament Individual" value={abonament?.denumire} />
-                        <DataField label="Club Proveniență" value={sportiv.club_provenienta} />
-                        <DataField label="Înălțime" value={sportiv.inaltime ? `${sportiv.inaltime} cm` : 'N/A'} />
-                        <DataField label="Participă Vacanță" value={sportiv.participa_vacanta ? 'Da' : 'Nu'} />
-                        {customFields.map(field => <DataField key={field} label={field} value={sportiv[field]} />)}
-                    </dl>
-                )}
-            </Card>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                 <Card>
-                    <h3 className="text-xl font-bold text-white mb-4">Istoric Grade & Examene</h3>
-                    <div className="space-y-2">
-                        {sportivParticipari.map(p => {
-                            const examen = examene.find(e => e.id === p.examen_id);
-                            const grad = grade.find(g => g.id === p.grad_sustinut_id);
-                            const statusClass = p.rezultat === 'Admis' ? 'text-green-400' : p.rezultat === 'Respins' ? 'text-red-400' : 'text-yellow-400';
-                            return ( <div key={p.id} className="bg-slate-700/50 p-3 rounded-md text-sm"> <div className="flex justify-between items-center"> <p><span className="font-semibold">{grad?.nume}</span> la data de {new Date(examen!.data).toLocaleDateString('ro-RO')}</p> <p className={`font-bold ${statusClass}`}>{p.rezultat}</p> </div> {p.observatii && <p className="text-xs text-slate-400 mt-1">Obs: {p.observatii}</p>} </div> )
-                        })}
-                         {sportivParticipari.length === 0 && <p className="text-slate-400 text-sm">Niciun examen susținut.</p>}
-                    </div>
-                </Card>
-                 <Card>
-                    <h3 className="text-xl font-bold text-white mb-4">Situație Financiară (Datorii)</h3>
-                     <div className="space-y-2">
-                        {sportivPlati.filter(p => p.status !== 'Achitat').map(p => {
-                             const statusClass = p.status === 'Achitat Parțial' ? 'text-yellow-400' : 'text-red-400';
-                             return ( <div key={p.id} className="bg-slate-700/50 p-3 rounded-md text-sm flex justify-between items-center"> <div> <p className="font-semibold">{p.descriere}</p> <p className="text-xs text-slate-400">Data: {new Date(p.data).toLocaleDateString('ro-RO')}</p> </div> <p className={`font-bold ${statusClass}`}>{p.suma.toFixed(2)} RON</p> </div> )
-                        })}
-                        {sportivPlati.filter(p => p.status !== 'Achitat').length === 0 && <p className="text-slate-400 text-sm">Nicio datorie restantă.</p>}
-                    </div>
-                </Card>
-            </div>
-        </div>
-    );
-}
-
-
-interface SportiviManagementProps { 
-    onBack: () => void; 
-    sportivi: Sportiv[]; setSportivi: React.Dispatch<React.SetStateAction<Sportiv[]>>; 
-    participari: Participare[]; examene: Examen[]; grade: Grad[]; 
-    prezente: Prezenta[]; grupe: Grupa[]; 
-    plati: Plata[]; 
-    evenimente: Eveniment[]; rezultate: Rezultat[]; 
-    tipuriAbonament: TipAbonament[]; familii: Familie[]; 
-    customFields: string[]; 
-    selectedSportiv: Sportiv | null;
-    onSelectSportiv: (sportiv: Sportiv) => void;
-    onClearSelectedSportiv: () => void;
-    onSelectFamilie: (familieId: string) => void;
-}
-export const SportiviManagement: React.FC<Omit<SportiviManagementProps, 'setPlati' | 'setTranzactii' | 'setCustomFields'>> = ({ onBack, sportivi, setSportivi, participari, examene, grade, prezente, grupe, plati, evenimente, rezultate, tipuriAbonament, familii, customFields, selectedSportiv, onSelectSportiv, onClearSelectedSportiv, onSelectFamilie }) => {
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  
-  const platiRestante = useMemo(() => {
-    const lunaCurenta = new Date().getMonth();
-    const anulCurent = new Date().getFullYear();
-    const sportiviCuRestante = new Set<string>();
-    sportivi.forEach(s => {
-        if (s.status !== 'Activ') return;
-        let areAbonamentPlatit = false;
-        if (s.familie_id) {
-            areAbonamentPlatit = plati.some(p => p.familie_id === s.familie_id && p.tip === 'Abonament' && p.status === 'Achitat' && new Date(p.data).getMonth() === lunaCurenta && new Date(p.data).getFullYear() === anulCurent);
-        } else {
-            areAbonamentPlatit = plati.some(p => p.sportiv_id === s.id && p.tip === 'Abonament' && p.status === 'Achitat' && new Date(p.data).getMonth() === lunaCurenta && new Date(p.data).getFullYear() === anulCurent);
-        }
-        if (!areAbonamentPlatit) { sportiviCuRestante.add(s.id); }
-    });
-    return sportiviCuRestante;
-  }, [sportivi, plati]);
-  
-    const handleAddSportiv = async (sportivData: Partial<Sportiv>) => {
-        if (!supabase) {
-            alert("Eroare de configurare: Conexiunea la baza de date nu a putut fi stabilită.");
-            return;
-        }
-        if (!sportivData.email || !sportivData.parola) { alert("Email și parolă sunt obligatorii."); return; }
-
-        // Verifică unicitatea username-ului
-        if (sportivData.username) {
-            const { data: existingUser, error: checkError } = await supabase.from('sportivi').select('id').eq('username', sportivData.username).limit(1);
-            if (checkError) { alert(`Eroare la verificarea numelui de utilizator: ${checkError.message}`); return; }
-            if (existingUser && existingUser.length > 0) { alert('Acest nume de utilizator este deja folosit. Vă rugăm alegeți altul.'); return; }
-        }
-
-        const { data: authData, error: authError } = await supabase.auth.signUp({ email: sportivData.email, password: sportivData.parola });
-        if (authError) { alert(`Eroare la crearea contului: ${authError.message}`); return; }
-        if (authData.user) {
-            const profileData = { ...sportivData, user_id: authData.user.id };
-            delete profileData.parola;
-            const { data, error } = await supabase.from('sportivi').insert(profileData).select().single();
-            if (error) { alert(`Eroare la salvarea profilului: ${error.message}`); return; }
-            if (data) { setSportivi(prev => [...prev, data as Sportiv]); setShowAddForm(false); }
-        }
-    };
-    
-    const handleUpdateSportiv = async (updates: Partial<Sportiv>): Promise<{success: boolean, error?: any}> => {
-        if (!supabase) {
-            alert("Eroare de configurare: Conexiunea la baza de date nu a putut fi stabilită.");
-            return { success: false, error: { message: "Client Supabase neconfigurat." } };
-        }
-        // Utilizăm upsert pentru a actualiza. Obiectul 'updates' trebuie să conțină ID-ul.
-        const { data, error } = await supabase.from('sportivi').upsert(updates).select().single();
-        if (error) { 
-            console.error("Eroare la actualizare:", error);
-            return { success: false, error: error };
-        }
-        if (data) { 
-            const updatedSportiv = data as Sportiv;
-            // Actualizăm starea locală cu datele proaspete de la baza de date
-            setSportivi(prev => prev.map(s => s.id === updatedSportiv.id ? updatedSportiv : s)); 
-            onSelectSportiv(updatedSportiv);
-        }
-        return { success: true };
-    };
-
-    const handleDelete = async (sportivId: string) => {
-        if (!supabase) {
-            alert("Eroare de configurare: Conexiunea la baza de date nu a putut fi stabilită.");
-            return;
-        }
-        if (!window.confirm("Ești sigur că vrei să ștergi acest sportiv? Contul de autentificare asociat NU va fi șters automat.")) return;
-        const { error } = await supabase.from('sportivi').delete().eq('id', sportivId);
-        if (error) { alert(`Eroare la ștergere: ${error.message}`); return; }
-        setSportivi(prev => prev.filter(s => s.id !== sportivId));
-        if (selectedSportiv?.id === sportivId) onClearSelectedSportiv();
-    };
-
-  const filteredSportivi = sportivi.filter(s => `${s.nume} ${s.prenume}`.toLowerCase().includes(searchTerm.toLowerCase())).sort((a,b) => a.nume.localeCompare(b.nume));
-
-  if (selectedSportiv) return (
-        <SportivDetail 
-            sportiv={selectedSportiv} 
-            onBack={onClearSelectedSportiv}
-            onUpdate={handleUpdateSportiv}
-            onSelectFamilie={onSelectFamilie}
-            participari={participari} examene={examene} grade={grade} 
-            grupe={grupe} plati={plati}
-            customFields={customFields} familii={familii} tipuriAbonament={tipuriAbonament}
-        />
-  )
-
-  return (
-    <div>
-      <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
-      <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
-        <h1 className="text-3xl font-bold text-white">Management Sportivi</h1>
-        <Button onClick={() => setShowAddForm(p => !p)} variant="info">
-        {showAddForm ? 'Anulează' : <><PlusIcon className="w-5 h-5 mr-2" />Adaugă Sportiv</>}
-        <ChevronDownIcon className={`w-5 h-5 ml-2 transition-transform ${showAddForm ? 'rotate-180' : ''}`} />
-        </Button>
-      </div>
-      
-      {showAddForm && <AddSportivForm onSave={handleAddSportiv} onCancel={() => setShowAddForm(false)} grupe={grupe} familii={familii} tipuriAbonament={tipuriAbonament} customFields={customFields} />}
-
-      <div className="mb-4 mt-6"><Input label="Caută sportiv..." type="text" placeholder="Nume, prenume..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} /></div>
-
-      <div className="bg-slate-800 rounded-lg shadow-lg overflow-x-auto">
-        <table className="w-full text-left min-w-[800px]">
-          <thead className="bg-slate-700">
-              <tr>
-                <th className="p-4 font-semibold">Nume Complet</th><th className="p-4 font-semibold">Rol</th><th className="p-4 font-semibold">Grupă</th>
-                <th className="p-4 font-semibold">Data Înscrierii</th><th className="p-4 font-semibold">Status</th><th className="p-4 font-semibold">Acțiuni</th>
-              </tr>
-            </thead>
-          <tbody>
-            {filteredSportivi.map(sportiv => {
-                const grupa = grupe.find(g => g.id === sportiv.grupa_id);
-                return (
-                 <tr key={sportiv.id} className="border-b border-slate-700 hover:bg-slate-700/50 cursor-pointer" onClick={() => onSelectSportiv(sportiv)}>
-                    <td className="p-4 font-medium">
-                        <div className="flex items-center">
-                            {platiRestante.has(sportiv.id) && <span className="w-3 h-3 bg-red-500 rounded-full mr-3 flex-shrink-0" title="Abonament neachitat"></span>}
-                            <span>{sportiv.nume} {sportiv.prenume}</span>
-                        </div>
-                    </td>
-                    <td className="p-4">{sportiv.rol}</td>
-                    <td className="p-4">{grupa?.denumire || 'N/A'}</td>
-                    <td className="p-4">{new Date(sportiv.data_inscrierii).toLocaleDateString('ro-RO')}</td>
-                    <td className="p-4"> <span className={`px-2 py-1 text-xs font-semibold rounded-full text-white ${sportiv.status === 'Activ' ? 'bg-green-600' : 'bg-red-600'}`}>{sportiv.status}</span></td>
-                    <td className="p-4" onClick={e => e.stopPropagation()}>
-                        <div className="flex items-center space-x-2"><Button onClick={() => handleDelete(sportiv.id)} variant="danger" size="sm"><TrashIcon /></Button></div>
-                    </td>
-                 </tr>
-                )
-            })}
-          </tbody>
-        </table>
-         {filteredSportivi.length === 0 && <p className="p-4 text-center text-slate-400">Niciun sportiv găsit.</p>}
-      </div>
-    </div>
-  );
 };

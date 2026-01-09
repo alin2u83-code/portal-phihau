@@ -35,21 +35,48 @@ const ExamenDetail: React.FC<ExamenDetailProps> = ({ examen, participari, setPar
         if(!sportiv || participari.some(p => p.sportiv_id === sportivId)) { alert("Selectează un sportiv valid care nu este deja înscris."); return; }
 
         const admittedParticipations = allParticipari.filter(p => p.sportiv_id === sportiv.id && p.rezultat === 'Admis').sort((a,b) => (getGrad(b.grad_sustinut_id, grade)?.ordine ?? 0) - (getGrad(a.grad_sustinut_id, grade)?.ordine ?? 0));
-        const currentGrad = getGrad(admittedParticipations[0]?.grad_sustinut_id, grade) || sortedGrades[0];
-        const nextGrad = sortedGrades.find(g => g.ordine === (currentGrad.ordine + 1));
-        let gradSustinut = currentGrad; let confirmationOnly = false;
-        if (nextGrad) {
-            const ageAtExam = getAgeOnDate(sportiv.data_nasterii, examen.data); const lastExamDate = admittedParticipations.length > 0 ? new Date(examene.find(ex => ex.id === admittedParticipations[0].examen_id)!.data) : new Date(sportiv.data_inscrierii); const monthsToWait = parseDurationToMonths(nextGrad.timp_asteptare); const eligibilityDate = new Date(lastExamDate); eligibilityDate.setMonth(eligibilityDate.getMonth() + monthsToWait);
-            if (ageAtExam >= nextGrad.varsta_minima && new Date(examen.data) >= eligibilityDate) gradSustinut = nextGrad; else confirmationOnly = true;
+        
+        let gradSustinut: Grad;
+        let confirmationOnly = false;
+
+        if (admittedParticipations.length === 0) {
+            // Dacă nu are niciun grad, propunem primul grad din listă
+            gradSustinut = sortedGrades[0];
+        } else {
+            const currentGrad = getGrad(admittedParticipations[0].grad_sustinut_id, grade)!;
+            const nextGrad = sortedGrades.find(g => g.ordine === (currentGrad.ordine + 1));
+            
+            if (nextGrad) {
+                const ageAtExam = getAgeOnDate(sportiv.data_nasterii, examen.data); 
+                const lastExamDate = new Date(examene.find(ex => ex.id === admittedParticipations[0].examen_id)!.data); 
+                const monthsToWait = parseDurationToMonths(nextGrad.timp_asteptare); 
+                const eligibilityDate = new Date(lastExamDate); 
+                eligibilityDate.setMonth(eligibilityDate.getMonth() + monthsToWait);
+                
+                if (ageAtExam >= nextGrad.varsta_minima && new Date(examen.data) >= eligibilityDate) {
+                    gradSustinut = nextGrad;
+                } else {
+                    gradSustinut = currentGrad;
+                    confirmationOnly = true;
+                }
+            } else {
+                gradSustinut = currentGrad;
+                confirmationOnly = true;
+            }
         }
         
+        if (!gradSustinut) {
+            alert("Nu s-a putut determina gradul pentru acest sportiv. Verificați nomenclatorul de grade.");
+            return;
+        }
+
         const {data: participareData, error: pError} = await supabase.from('participari').insert({ examen_id: examen.id, sportiv_id: sportivId, grad_sustinut_id: gradSustinut.id, rezultat: 'Neprezentat' }).select().single();
         if (pError) { alert(`Eroare la adăugarea participantului: ${pError.message}`); return; }
         if (participareData) setParticipari(prev => [...prev, participareData as Participare]);
         
         const pretExamenConfig = getPretValabil(preturi, 'Taxa Examen', examen.data);
         if (!pretExamenConfig) { alert("Configurarea prețului pentru 'Taxa Examen' nu a fost găsită. Participantul a fost adăugat, dar plata trebuie generată manual."); return; }
-        const descriere = `Taxa examen ${examen.data}${confirmationOnly ? ` (Confirmare ${currentGrad.nume})` : ` (pt. ${gradSustinut.nume})`}`;
+        const descriere = `Taxa examen ${examen.data}${confirmationOnly ? ` (Confirmare ${gradSustinut.nume})` : ` (pt. ${gradSustinut.nume})`}`;
         
         const {data: plataData, error: plError} = await supabase.from('plati').insert({ sportiv_id: sportivId, familie_id: sportiv.familie_id, suma: pretExamenConfig.suma, data: examen.data, status: 'Neachitat', descriere, tip: 'Taxa Examen', observatii: '' }).select().single();
         if(plError) { alert(`Participant adăugat, dar eroare la generare plată: ${plError.message}`); }
@@ -74,7 +101,6 @@ const ExamenDetail: React.FC<ExamenDetailProps> = ({ examen, participari, setPar
             alert("Eroare de configurare: Conexiunea la baza de date nu a putut fi stabilită.");
             return;
         }
-        // TODO: Also delete associated unpaid 'Taxa Examen'
         const { error } = await supabase.from('participari').delete().eq('id', participareId);
         if (error) { alert(`Eroare la ștergere: ${error.message}`); return; }
         setParticipari(prev => prev.filter(p => p.id !== participareId));
@@ -125,7 +151,7 @@ export const ExameneManagement: React.FC<ExameneManagementProps> = ({ onBack, ex
     if (selectedExamen?.id === examenId) setSelectedExamen(null);
   };
 
-  if(selectedExamen) { return ( <div><Button onClick={() => setSelectedExamen(null)} className="mb-4">&larr; Înapoi la listă</Button><ExamenDetail examen={selectedExamen} participari={participari.filter(p => p.examen_id === selectedExamen.id)} setParticipari={setParticipari} sportivi={sportivi} grade={grade} setPlati={setPlati} preturi={preturi} allParticipari={participari} examene={examene}/></div> ) }
+  if(selectedExamen) { return ( <div><Button onClick={() => setSelectedExamen(null)} className="mb-4" variant="secondary">&larr; Înapoi la listă</Button><ExamenDetail examen={selectedExamen} participari={participari.filter(p => p.examen_id === selectedExamen.id)} setParticipari={setParticipari} sportivi={sportivi} grade={grade} setPlati={setPlati} preturi={preturi} allParticipari={participari} examene={examene}/></div> ) }
   const sortedExamene = [...examene].sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime());
   return ( <div><Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-white">Management Examene</h1><Button onClick={() => { setExamenToEdit(null); setIsFormOpen(true); }} variant="info"><PlusIcon className="w-5 h-5 mr-2" />Adaugă Examen</Button></div><div className="bg-slate-800 rounded-lg shadow-lg overflow-hidden"><table className="w-full text-left"><thead className="bg-slate-700"><tr><th className="p-4 font-semibold">Data</th><th className="p-4 font-semibold">Locația</th><th className="p-4 font-semibold">Participanți</th><th className="p-4 font-semibold">Acțiuni</th></tr></thead><tbody>{sortedExamene.map(examen => ( <tr key={examen.id} className="border-b border-slate-700 hover:bg-slate-700/50"><td className="p-4 font-medium cursor-pointer" onClick={() => setSelectedExamen(examen)}>{examen.data}</td><td className="p-4 cursor-pointer" onClick={() => setSelectedExamen(examen)}>{examen.locatia}</td><td className="p-4">{participari.filter(p => p.examen_id === examen.id).length}</td><td className="p-4"><div className="flex items-center space-x-2"><Button onClick={() => handleEdit(examen)} variant="primary" size="sm"><EditIcon /></Button><Button onClick={() => handleDelete(examen.id)} variant="danger" size="sm"><TrashIcon /></Button></div></td></tr> ))}{sortedExamene.length === 0 && <p className="p-4 text-center text-slate-400">Niciun examen programat.</p>}</tbody></table></div><ExamenForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} onSave={handleSaveExamen} examenToEdit={examenToEdit} /></div> );
 };

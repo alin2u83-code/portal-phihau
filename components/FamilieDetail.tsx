@@ -66,8 +66,23 @@ export const FamilieDetail: React.FC<FamilieDetailProps> = ({ familie, membri, o
                                 className="bg-slate-700/50 p-3 rounded-md hover:bg-slate-700 cursor-pointer transition-colors"
                                 onClick={() => onSelectSportiv(sportiv)}
                             >
-                                <p className="font-semibold">{sportiv.nume} {sportiv.prenume}</p>
-                                <p className="text-sm text-slate-400">{sportiv.email}</p>
+                                <div className="flex justify-between items-center">
+                                    <div>
+                                        <p className="font-semibold">{sportiv.nume} {sportiv.prenume}</p>
+                                        <p className="text-sm text-slate-400">{sportiv.email} {sportiv.username ? `(${sportiv.username})` : ''}</p>
+                                    </div>
+                                    <div>
+                                        {sportiv.user_id ? (
+                                            <span className="px-2 py-1 text-xs font-semibold rounded-full text-white bg-green-600">
+                                                Cont Activ
+                                            </span>
+                                        ) : (
+                                            <span className="px-2 py-1 text-xs font-semibold rounded-full bg-slate-500 text-white">
+                                                Fără Cont
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
                         ))}
                         {membri.length === 0 && <p className="text-slate-400">Niciun membru în această familie.</p>}

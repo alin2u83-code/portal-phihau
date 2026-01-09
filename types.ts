@@ -1,4 +1,3 @@
-
 export interface Sportiv {
   id: string;
   user_id?: string; // FK to auth.users
@@ -7,7 +6,7 @@ export interface Sportiv {
   email: string;
   username?: string; // Nume de utilizator unic pentru login
   parola?: string; // Only for creating new users
-  rol: 'Sportiv' | 'Instructor' | 'Admin';
+  rol: ('Sportiv' | 'Instructor' | 'Admin')[];
   data_nasterii: string;
   cnp: string;
   inaltime?: number; // în cm, pentru calcul preț echipament
@@ -140,4 +139,4 @@ export interface Familie {
 
 export type User = Sportiv;
 
-export type View = 'dashboard' | 'sportivi' | 'examene' | 'grade' | 'prezenta' | 'grupe' | 'raport-prezenta' | 'stagii' | 'competitii' | 'plati-scadente' | 'jurnal-incasari' | 'raport-financiar' | 'configurare-preturi' | 'tipuri-abonament' | 'familii' | 'user-management' | 'familie-detail';
+export type View = 'dashboard' | 'sportivi' | 'examene' | 'grade' | 'prezenta' | 'grupe' | 'raport-prezenta' | 'stagii' | 'competitii' | 'plati-scadente' | 'jurnal-incasari' | 'raport-financiar' | 'configurare-preturi' | 'tipuri-abonament' | 'familii' | 'user-management' | 'familie-detail' | 'sportiv-account-settings' | 'editare-profil-personal';

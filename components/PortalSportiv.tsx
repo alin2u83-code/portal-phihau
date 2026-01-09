@@ -50,7 +50,7 @@ export const PortalSportiv: React.FC<PortalSportivProps> = ({ currentUser, viewe
     const currentGrad = useMemo(() => getGrad(admittedParticipations[0]?.grad_sustinut_id, grade), [admittedParticipations, grade]);
     const grupaCurenta = useMemo(() => grupe.find(g => g.id === viewedUser.grupa_id), [grupe, viewedUser.grupa_id]);
 
-    const isAdmin = useMemo(() => currentUser.roluri.some(r => r.nume === 'Admin'), [currentUser.roluri]);
+    const isAdmin = useMemo(() => currentUser.roluri.some(r => r.nume === 'Admin' || r.nume === 'Instructor'), [currentUser.roluri]);
     const isViewingOwnProfile = currentUser.id === viewedUser.id;
 
     const eligibility = useMemo(() => {
@@ -135,6 +135,23 @@ export const PortalSportiv: React.FC<PortalSportivProps> = ({ currentUser, viewe
 
     return (
         <div className="space-y-6">
+            {isAdmin && isViewingOwnProfile && (
+                <Card className="bg-sky-600/10 border border-sky-500/30">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                            <ShieldCheckIcon className="w-8 h-8 text-sky-400"/>
+                            <div>
+                                <h3 className="font-bold text-white">Mod Vizualizare Portal Propriu (Admin)</h3>
+                                <p className="text-sm text-sky-300">Acesta este portalul dvs. de sportiv. Vă puteți întoarce oricând la panoul de administrare.</p>
+                            </div>
+                        </div>
+                        <Button onClick={onNavigateToDashboard} variant="secondary" className="bg-sky-500 hover:bg-sky-600 text-white shadow-lg shadow-sky-900/20 border-none">
+                            Înapoi la Panoul de Administrare
+                        </Button>
+                    </div>
+                </Card>
+            )}
+
             {isAdmin && !isViewingOwnProfile && (
                 <Card className="bg-amber-600/10 border border-amber-500/30">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

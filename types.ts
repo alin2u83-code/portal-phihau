@@ -1,3 +1,8 @@
+export interface Rol {
+  id: string;
+  nume: 'Sportiv' | 'Instructor' | 'Admin';
+}
+
 export interface Sportiv {
   id: string;
   user_id?: string; // FK to auth.users
@@ -6,7 +11,7 @@ export interface Sportiv {
   email: string;
   username?: string; // Nume de utilizator unic pentru login
   parola?: string; // Only for creating new users
-  roluri: ('Sportiv' | 'Instructor' | 'Admin')[];
+  roluri: Rol[];
   data_nasterii: string;
   cnp: string;
   inaltime?: number; // în cm, pentru calcul preț echipament
@@ -95,7 +100,7 @@ export interface PretConfig {
         inaltimeMin?: number;
         inaltimeMax?: number;
         marime?: 'S' | 'M' | 'L' | 'XL';
-        tipEveniment?: 'Local' | 'National';
+        tipEventiment?: 'Local' | 'National';
     };
 }
 

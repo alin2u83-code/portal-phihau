@@ -114,7 +114,7 @@ export const EditareProfilPersonal: React.FC<EditareProfilPersonalProps> = ({ us
             email: formData.email,
             username: formData.username,
         };
-        const { data, error } = await supabase.from('sportivi').update(profileUpdates).eq('user_id', user.user_id).select().single();
+        const { data, error } = await supabase.from('sportivi').update(profileUpdates).eq('user_id', user.user_id).select('*, sportivi_roluri(roluri(id, nume))').single();
 
         if (error) {
             setErrorMessage(`Eroare la actualizarea profilului: ${error.message}`);
@@ -124,9 +124,15 @@ export const EditareProfilPersonal: React.FC<EditareProfilPersonalProps> = ({ us
 
         // 3. Actualizează starea locală
         if(data) {
-            const updatedUser = data as User;
+            const updatedUser = data as any;
+            if (updatedUser.sportivi_roluri) {
+                updatedUser.roluri = updatedUser.sportivi_roluri.map((item: any) => item.roluri);
+                delete updatedUser.sportivi_roluri;
+            } else {
+                updatedUser.roluri = [];
+            }
             setSportivi(prev => prev.map(s => s.id === user.id ? updatedUser : s));
-            setCurrentUser(updatedUser);
+            setCurrentUser(updatedUser as User);
         }
         
         setSuccessMessage("Profilul a fost actualizat cu succes!");

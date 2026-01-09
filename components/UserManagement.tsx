@@ -1,8 +1,21 @@
 import React, { useState } from 'react';
-import { Sportiv, User } from '../types';
+import { Sportiv, User, Rol } from '../types';
 import { Button, Input, Card, Select, Modal } from './ui';
 import { ArrowLeftIcon, EditIcon, ShieldCheckIcon } from './icons';
 import { supabase } from '../supabaseClient';
+
+const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
+    const colorClasses: Record<Rol['nume'], string> = {
+        Admin: 'bg-red-600 text-white',
+        Instructor: 'bg-sky-600 text-white',
+        Sportiv: 'bg-slate-600 text-slate-200',
+    };
+    return (
+        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${colorClasses[role.nume]}`}>
+            {role.nume}
+        </span>
+    );
+};
 
 // Componenta pentru editarea profilului personal
 const MyProfile: React.FC<{ user: User; setSportivi: React.Dispatch<React.SetStateAction<Sportiv[]>>; setCurrentUser: React.Dispatch<React.SetStateAction<User | null>> }> = ({ user, setSportivi, setCurrentUser }) => {
@@ -79,7 +92,7 @@ const MyProfile: React.FC<{ user: User; setSportivi: React.Dispatch<React.SetSta
             email: formData.email,
             username: formData.username,
         };
-        const { data, error } = await supabase.from('sportivi').update(profileUpdates).eq('user_id', user.user_id).select().single();
+        const { data, error } = await supabase.from('sportivi').update(profileUpdates).eq('user_id', user.user_id).select('*, sportivi_roluri(roluri(id, nume))').single();
 
         if (error) {
             setErrorMessage(`Eroare la actualizarea profilului: ${error.message}`);
@@ -89,7 +102,10 @@ const MyProfile: React.FC<{ user: User; setSportivi: React.Dispatch<React.SetSta
 
         // 3. Actualizează starea locală
         if(data) {
-            const updatedUser = data as User;
+            const updatedUser = data as any;
+            updatedUser.roluri = updatedUser.sportivi_roluri.map((item: any) => item.roluri);
+            delete updatedUser.sportivi_roluri;
+
             setSportivi(prev => prev.map(s => s.id === user.id ? updatedUser : s));
             setCurrentUser(updatedUser);
         }
@@ -133,11 +149,12 @@ interface UserManagementProps {
     onBack: () => void;
     currentUser: User;
     setCurrentUser: React.Dispatch<React.SetStateAction<User | null>>;
+    allRoles: Rol[];
 }
 
-export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSportivi, onBack, currentUser, setCurrentUser }) => {
+export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSportivi, onBack, currentUser, setCurrentUser, allRoles }) => {
     const [editingId, setEditingId] = useState<string | null>(null);
-    const [newRoles, setNewRoles] = useState<User['roluri']>([]);
+    const [newRoleIds, setNewRoleIds] = useState<string[]>([]);
     const [showSuccessId, setShowSuccessId] = useState<string | null>(null);
 
     const [isCreateAccountModalOpen, setIsCreateAccountModalOpen] = useState(false);
@@ -148,7 +165,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
     
     const handleEdit = (user: User) => {
         setEditingId(user.id);
-        setNewRoles(user.roluri);
+        setNewRoleIds(user.roluri.map(r => r.id));
     };
 
     const handleCancel = () => {
@@ -160,33 +177,30 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
             alert("Eroare de configurare: Conexiunea la baza de date nu a putut fi stabilită.");
             return;
         }
-        const { data, error } = await supabase.from('sportivi').update({ roluri: newRoles }).eq('id', userId).select().single();
-        
-        if (error) {
-            alert(`Eroare la actualizarea rolului: ${error.message}`);
-            return;
-        }
 
-        if(data) {
-            setSportivi(prev => prev.map(s => s.id === userId ? data as Sportiv : s));
+        let finalRoleIds = [...newRoleIds];
+        if (finalRoleIds.length === 0) {
+            const sportivRole = allRoles.find(r => r.nume === 'Sportiv');
+            if(sportivRole) finalRoleIds.push(sportivRole.id);
         }
+        
+        const { error: deleteError } = await supabase.from('sportivi_roluri').delete().eq('sportiv_id', userId);
+        if (deleteError) { alert(`Eroare (pas 1/2): ${deleteError.message}`); return; }
+
+        const newRolesToInsert = finalRoleIds.map(rol_id => ({ sportiv_id: userId, rol_id }));
+        const { error: insertError } = await supabase.from('sportivi_roluri').insert(newRolesToInsert);
+        if (insertError) { alert(`Eroare (pas 2/2): ${insertError.message}`); return; }
+
+        const updatedRoles = allRoles.filter(r => finalRoleIds.includes(r.id));
+        setSportivi(prev => prev.map(s => s.id === userId ? { ...s, roluri: updatedRoles } : s));
         
         setShowSuccessId(userId);
         setEditingId(null);
         setTimeout(() => setShowSuccessId(null), 3000);
     };
 
-    const handleRoleChange = (role: 'Admin' | 'Instructor' | 'Sportiv', isChecked: boolean) => {
-        setNewRoles(prev => {
-            const updatedRoles = isChecked
-                ? [...new Set([...prev, role])]
-                : prev.filter(r => r !== role);
-            
-            if (updatedRoles.length === 0) {
-                return ['Sportiv'];
-            }
-            return updatedRoles;
-        });
+    const handleRoleChange = (roleId: string, isChecked: boolean) => {
+        setNewRoleIds(prev => isChecked ? [...new Set([...prev, roleId])] : prev.filter(id => id !== roleId));
     };
 
     const handleOpenCreateAccountModal = (user: Sportiv) => {
@@ -230,12 +244,15 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
 
         if (authData.user) {
             const profileUpdates = { user_id: authData.user.id, email: createAccountForm.email, username: createAccountForm.username };
-            const { data, error } = await supabase.from('sportivi').update(profileUpdates).eq('id', selectedUserForAccount.id).select().single();
+            const { data, error } = await supabase.from('sportivi').update(profileUpdates).eq('id', selectedUserForAccount.id).select('*, sportivi_roluri(roluri(id, nume))').single();
 
             if (error) {
                 setCreateAccountError(`Cont creat, dar eroare la legarea profilului: ${error.message}`);
             } else if (data) {
-                setSportivi(prev => prev.map(s => s.id === selectedUserForAccount.id ? data as Sportiv : s));
+                const updatedUser = data as any;
+                updatedUser.roluri = updatedUser.sportivi_roluri.map((item: any) => item.roluri);
+                delete updatedUser.sportivi_roluri;
+                setSportivi(prev => prev.map(s => s.id === selectedUserForAccount.id ? updatedUser : s));
                 setIsCreateAccountModalOpen(false);
                 setShowSuccessId(selectedUserForAccount.id);
                  setTimeout(() => setShowSuccessId(null), 3000);
@@ -251,7 +268,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
             
             <MyProfile user={currentUser} setSportivi={setSportivi} setCurrentUser={setCurrentUser} />
 
-            {currentUser.roluri.includes('Admin') && (
+            {currentUser.roluri.some(r => r.nume === 'Admin') && (
                 <Card>
                     <div className="flex items-center gap-2 mb-4">
                         <ShieldCheckIcon className="w-8 h-8 text-amber-400"/>
@@ -276,16 +293,16 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                                             <>
                                                 <td className="p-2">
                                                     <div className="flex flex-wrap gap-x-4 gap-y-1">
-                                                        {(['Sportiv', 'Instructor', 'Admin'] as const).map(role => (
-                                                            <label key={role} className="flex items-center space-x-2 text-sm cursor-pointer">
+                                                        {allRoles.map(role => (
+                                                            <label key={role.id} className="flex items-center space-x-2 text-sm cursor-pointer">
                                                                 <input
                                                                     type="checkbox"
                                                                     className="h-4 w-4 rounded border-slate-500 bg-slate-800 text-primary-600 focus:ring-primary-500"
-                                                                    checked={newRoles.includes(role)}
-                                                                    onChange={(e) => handleRoleChange(role, e.target.checked)}
-                                                                    disabled={user.id === currentUser.id && role === 'Admin'}
+                                                                    checked={newRoleIds.includes(role.id)}
+                                                                    onChange={(e) => handleRoleChange(role.id, e.target.checked)}
+                                                                    disabled={user.id === currentUser.id && role.nume === 'Admin'}
                                                                 />
-                                                                <span>{role}</span>
+                                                                <span>{role.nume}</span>
                                                             </label>
                                                         ))}
                                                     </div>
@@ -302,11 +319,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                                                 <td className="p-4">
                                                     {user.user_id ? (
                                                         <div className="flex flex-wrap gap-1">
-                                                            {user.roluri.map(role => (
-                                                                <span key={role} className={`px-2 py-1 text-xs font-semibold rounded-full text-white ${role === 'Admin' ? 'bg-amber-600' : role === 'Instructor' ? 'bg-sky-600' : 'bg-slate-600'}`}>
-                                                                    {role}
-                                                                </span>
-                                                            ))}
+                                                            {user.roluri.map(role => <RoleBadge key={role.id} role={role} />)}
                                                         </div>
                                                     ) : (
                                                         <span className="px-2 py-1 text-xs font-semibold rounded-full bg-slate-500 text-white">

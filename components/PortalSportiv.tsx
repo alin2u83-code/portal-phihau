@@ -3,7 +3,7 @@ import { Sportiv, Participare, Examen, Grad, Prezenta, Grupa, Plata, Eveniment, 
 import { Button, Card, Input } from './ui';
 import { getPretValabil } from '../utils/pricing';
 import { supabase } from '../supabaseClient';
-import { UsersIcon } from './icons';
+import { UsersIcon, ShieldCheckIcon } from './icons';
 
 const getGrad = (gradId: string, allGrades: Grad[]) => allGrades.find(g => g.id === gradId);
 const getAge = (dateString: string) => { const today = new Date(); const birthDate = new Date(dateString); let age = today.getFullYear() - birthDate.getFullYear(); const m = today.getMonth() - birthDate.getMonth(); if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; } return age; };
@@ -32,9 +32,10 @@ interface PortalSportivProps {
   onNavigateToEditProfil: () => void;
   sportivi: Sportiv[];
   familii: Familie[];
+  onNavigateToDashboard: () => void;
 }
 
-export const PortalSportiv: React.FC<PortalSportivProps> = ({ sportiv, participari, examene, grade, prezente, grupe, plati, setPlati, evenimente, rezultate, setRezultate, preturiConfig, onNavigateToEditProfil, sportivi, familii }) => {
+export const PortalSportiv: React.FC<PortalSportivProps> = ({ sportiv, participari, examene, grade, prezente, grupe, plati, setPlati, evenimente, rezultate, setRezultate, preturiConfig, onNavigateToEditProfil, sportivi, familii, onNavigateToDashboard }) => {
     const [showSuccess, setShowSuccess] = useState<string|null>(null);
     const [loading, setLoading] = useState<{[key: string]: boolean}>({});
     
@@ -46,6 +47,8 @@ export const PortalSportiv: React.FC<PortalSportivProps> = ({ sportiv, participa
     const admittedParticipations = useMemo(() => sportivParticipari.filter(p => p.rezultat === 'Admis').sort((a, b) => (getGrad(b.grad_sustinut_id, grade)?.ordine ?? 0) - (getGrad(a.grad_sustinut_id, grade)?.ordine ?? 0)), [sportivParticipari, grade]);
     const currentGrad = useMemo(() => getGrad(admittedParticipations[0]?.grad_sustinut_id, grade), [admittedParticipations, grade]);
     const grupaCurenta = useMemo(() => grupe.find(g => g.id === sportiv.grupa_id), [grupe, sportiv.grupa_id]);
+
+    const isAdmin = useMemo(() => sportiv.roluri.some(r => r.nume === 'Admin'), [sportiv.roluri]);
 
     const eligibility = useMemo(() => {
         const sortedGrades = [...grade].sort((a, b) => a.ordine - b.ordine);
@@ -141,6 +144,27 @@ export const PortalSportiv: React.FC<PortalSportivProps> = ({ sportiv, participa
 
     return (
         <div className="space-y-6">
+                {isAdmin && (
+                    <Card className="bg-amber-600/10 border border-amber-500/30">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div className="flex items-center gap-3">
+                                <ShieldCheckIcon className="w-8 h-8 text-amber-400"/>
+                                <div>
+                                    <h3 className="font-bold text-white">Mod Vizualizare Sportiv</h3>
+                                    <p className="text-sm text-amber-300">Sunteți autentificat ca Administrator.</p>
+                                </div>
+                            </div>
+                            <Button 
+                                onClick={onNavigateToDashboard} 
+                                variant="secondary" 
+                                className="bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-900/20 border-none"
+                            >
+                                Înapoi la Panoul de Administrare
+                            </Button>
+                        </div>
+                    </Card>
+                )}
+
                 <Card>
                     <h2 className="text-3xl font-bold text-white">Bun venit, {sportiv.prenume}!</h2>
                     <p className="text-slate-400">Acesta este panoul tău personal de control.</p>

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Sportiv, Participare, Examen, Grad, Prezenta, Grupa, Plata, Eveniment, Rezultat, TipAbonament, Familie, Tranzactie } from '../types';
+import { Sportiv, Participare, Examen, Grad, Prezenta, Grupa, Plata, Eveniment, Rezultat, TipAbonament, Familie, Rol } from '../types';
 import { Button, Modal, Input, Select, Card } from './ui';
 import { PlusIcon, EditIcon, TrashIcon, ChevronDownIcon, ArrowLeftIcon, ShieldCheckIcon, CogIcon, UsersIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -16,6 +16,19 @@ const getAge = (dateString: string) => {
         age--;
     }
     return age;
+};
+
+const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
+    const colorClasses: Record<Rol['nume'], string> = {
+        Admin: 'bg-red-600/80 text-white',
+        Instructor: 'bg-sky-600/80 text-white',
+        Sportiv: 'bg-slate-600/80 text-slate-200',
+    };
+    return (
+        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${colorClasses[role.nume]}`}>
+            {role.nume}
+        </span>
+    );
 };
 
 interface SportivFormFieldsProps {
@@ -88,7 +101,7 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({ formState, handle
 );
 
 const emptySportivState: Partial<Sportiv> = {
-    nume: '', prenume: '', email: '', username: '', parola: '', data_nasterii: '', cnp: '', roluri: ['Sportiv'],
+    nume: '', prenume: '', email: '', username: '', parola: '', data_nasterii: '', cnp: '', roluri: [],
     data_inscrierii: new Date().toISOString().split('T')[0],
     status: 'Activ', club_provenienta: 'Phi Hau Iași',
     grupa_id: null,
@@ -138,7 +151,7 @@ const SportivDetail: React.FC<SportivDetailProps> = ({ sportiv, onBack, onUpdate
 
     const handleSave = async () => {
         setLoading(true);
-        const { parola, email, username, user_id, ...updateData } = formState; 
+        const { parola, email, username, user_id, roluri, ...updateData } = formState; 
         const { success, error } = await onUpdate(updateData);
         setLoading(false);
         if(success) {
@@ -208,7 +221,7 @@ const SportivDetail: React.FC<SportivDetailProps> = ({ sportiv, onBack, onUpdate
                                     </h3>
                                     <div className="grid grid-cols-2 gap-4">
                                         <DataField label="Grupă" value={grupa?.denumire} />
-                                        <DataField label="Roluri" value={sportiv.roluri.join(', ')} />
+                                        <DataField label="Roluri" value={<div className="flex flex-wrap gap-1">{sportiv.roluri.map(r => <RoleBadge key={r.id} role={r} />)}</div>} />
                                         <DataField label="Club" value={sportiv.club_provenienta} />
                                         <DataField label="Data Înscrierii" value={new Date(sportiv.data_inscrierii).toLocaleDateString('ro-RO')} />
                                     </div>
@@ -355,7 +368,7 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
     if (error) {
         return {success: false, error};
     } else {
-        setSportivi(prev => prev.map(s => s.id === selectedSportiv.id ? data as Sportiv : s));
+        setSportivi(prev => prev.map(s => s.id === selectedSportiv.id ? { ...s, ...data } : s));
         return {success: true};
     }
   };
@@ -431,7 +444,11 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
                                     {sportiv.status}
                                 </span>
                             </td>
-                            <td className="p-4 text-slate-400 text-sm">{sportiv.roluri.join(', ')}</td>
+                            <td className="p-4">
+                                <div className="flex flex-wrap gap-1">
+                                    {sportiv.roluri.map(r => <RoleBadge key={r.id} role={r} />)}
+                                </div>
+                            </td>
                             <td className="p-4 text-right">
                                 <Button size="sm" variant="primary"><EditIcon className="w-4 h-4" /></Button>
                             </td>

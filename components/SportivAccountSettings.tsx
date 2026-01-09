@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Sportiv } from '../types';
+import { Sportiv, Rol, User } from '../types';
 import { Button, Card, Input } from './ui';
 import { ArrowLeftIcon, ShieldCheckIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -8,40 +8,40 @@ interface SportivAccountSettingsProps {
     sportiv: Sportiv;
     onBack: () => void;
     setSportivi: React.Dispatch<React.SetStateAction<Sportiv[]>>;
+    allRoles: Rol[];
+    currentUser: User;
 }
 
-const ALL_ROLES: ('Admin' | 'Instructor' | 'Sportiv')[] = ['Admin', 'Instructor', 'Sportiv'];
-
-export const SportivAccountSettings: React.FC<SportivAccountSettingsProps> = ({ sportiv, onBack, setSportivi }) => {
+export const SportivAccountSettings: React.FC<SportivAccountSettingsProps> = ({ sportiv, onBack, setSportivi, allRoles, currentUser }) => {
     const [formData, setFormData] = useState({
         email: '',
         username: '',
-        roluri: [] as ('Admin' | 'Instructor' | 'Sportiv')[],
     });
+    const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
+
+    const canEditRoles = currentUser.roluri.some(r => r.nume === 'Admin');
 
     useEffect(() => {
         setFormData({
             email: sportiv.email,
             username: sportiv.username || '',
-            roluri: sportiv.roluri || ['Sportiv'],
         });
+        setSelectedRoleIds(sportiv.roluri.map(r => r.id));
     }, [sportiv]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
     };
     
-    const handleRoleChange = (role: 'Admin' | 'Instructor' | 'Sportiv', isChecked: boolean) => {
-        setFormData(prev => {
-            const updatedRoles = isChecked
-                ? [...new Set([...prev.roluri, role])]
-                : prev.roluri.filter(r => r !== role);
-            
-            if (updatedRoles.length === 0) return { ...prev, roluri: ['Sportiv'] }; // Must have at least one role
-            return { ...prev, roluri: updatedRoles };
+    const handleRoleChange = (roleId: string, isChecked: boolean) => {
+        setSelectedRoleIds(prev => {
+            const updatedRoleIds = isChecked
+                ? [...new Set([...prev, roleId])]
+                : prev.filter(id => id !== roleId);
+            return updatedRoleIds;
         });
     };
 
@@ -53,8 +53,32 @@ export const SportivAccountSettings: React.FC<SportivAccountSettingsProps> = ({ 
         setErrorMessage('');
         setSuccessMessage('');
 
-        const cleanedUsername = formData.username.toLowerCase().replace(/\s/g, '');
+        // ---- ROLE UPDATE LOGIC ----
+        if (canEditRoles) {
+            let finalRoleIds = [...selectedRoleIds];
+            if (finalRoleIds.length === 0) {
+                const sportivRole = allRoles.find(r => r.nume === 'Sportiv');
+                if (sportivRole) finalRoleIds.push(sportivRole.id);
+            }
 
+            const { error: deleteError } = await supabase.from('sportivi_roluri').delete().eq('sportiv_id', sportiv.id);
+            if (deleteError) {
+                setErrorMessage(`Eroare la ștergerea rolurilor vechi: ${deleteError.message}`);
+                setLoading(false);
+                return;
+            }
+
+            const newRolesToInsert = finalRoleIds.map(rol_id => ({ sportiv_id: sportiv.id, rol_id }));
+            const { error: insertError } = await supabase.from('sportivi_roluri').insert(newRolesToInsert);
+            if (insertError) {
+                setErrorMessage(`Eroare la adăugarea rolurilor noi: ${insertError.message}`);
+                setLoading(false);
+                return;
+            }
+        }
+        // ---- END ROLE UPDATE LOGIC ----
+
+        const cleanedUsername = formData.username.toLowerCase().replace(/\s/g, '');
         if (cleanedUsername && cleanedUsername !== sportiv.username) {
             const { data: existingUser, error: checkError } = await supabase.from('sportivi').select('id').eq('username', cleanedUsername).not('id', 'eq', sportiv.id).limit(1);
             if (checkError) { setErrorMessage(`Eroare la verificare username: ${checkError.message}`); setLoading(false); return; }
@@ -62,17 +86,20 @@ export const SportivAccountSettings: React.FC<SportivAccountSettingsProps> = ({ 
         }
 
         const updates = {
-            roluri: formData.roluri,
             username: cleanedUsername,
             email: formData.email,
         };
 
-        const { data, error } = await supabase.from('sportivi').update(updates).eq('id', sportiv.id).select().single();
+        const { data, error } = await supabase.from('sportivi').update(updates).eq('id', sportiv.id).select('*, sportivi_roluri(roluri(id, nume))').single();
 
         if (error) {
             setErrorMessage(`Eroare la actualizarea profilului: ${error.message}`);
         } else if (data) {
-            setSportivi(prev => prev.map(s => s.id === sportiv.id ? data as Sportiv : s));
+            const updatedUser = data as any;
+            updatedUser.roluri = updatedUser.sportivi_roluri.map((item: any) => item.roluri);
+            delete updatedUser.sportivi_roluri;
+            
+            setSportivi(prev => prev.map(s => s.id === sportiv.id ? updatedUser : s));
             setSuccessMessage("Setările contului au fost actualizate cu succes!");
         }
         
@@ -113,22 +140,24 @@ export const SportivAccountSettings: React.FC<SportivAccountSettingsProps> = ({ 
                 </div>
                 
                 <form onSubmit={handleSave} className="space-y-6 pt-6 border-t border-slate-700">
-                    <div>
-                        <h3 className="text-lg font-semibold text-white mb-2">Roluri</h3>
-                        <div className="flex flex-wrap gap-x-6 gap-y-2 p-4 bg-slate-700/50 rounded-lg">
-                            {ALL_ROLES.map(role => (
-                                <label key={role} className="flex items-center space-x-2 text-sm cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        className="h-5 w-5 rounded border-slate-500 bg-slate-800 text-primary-600 focus:ring-primary-500"
-                                        checked={formData.roluri.includes(role)}
-                                        onChange={(e) => handleRoleChange(role, e.target.checked)}
-                                    />
-                                    <span>{role}</span>
-                                </label>
-                            ))}
+                    {canEditRoles && (
+                        <div>
+                            <h3 className="text-lg font-semibold text-white mb-2">Roluri</h3>
+                            <div className="flex flex-wrap gap-x-6 gap-y-2 p-4 bg-slate-700/50 rounded-lg">
+                                {allRoles.map(role => (
+                                    <label key={role.id} className="flex items-center space-x-2 text-sm cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            className="h-5 w-5 rounded border-slate-500 bg-slate-800 text-primary-600 focus:ring-primary-500"
+                                            checked={selectedRoleIds.includes(role.id)}
+                                            onChange={(e) => handleRoleChange(role.id, e.target.checked)}
+                                        />
+                                        <span>{role.nume}</span>
+                                    </label>
+                                ))}
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                     <div>
                         <h3 className="text-lg font-semibold text-white mb-2">Date de Autentificare</h3>

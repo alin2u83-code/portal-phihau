@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
-import { Sportiv, Examen, Grad, Participare, View, Prezenta, Grupa, Plata, Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie } from './types';
+import { Sportiv, Examen, Grad, Participare, View, Prezenta, Grupa, Plata, Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, Rol } from './types';
 import { Dashboard } from './components/Dashboard';
 import { SportiviManagement } from './components/Sportivi';
 import { ExameneManagement } from './components/Examene';
@@ -20,14 +20,17 @@ import { PortalSportiv } from './components/PortalSportiv';
 import { UserManagement } from './components/UserManagement';
 import { Button, Card } from './components/ui';
 import { ArrowLeftIcon } from './components/icons';
-import { logoBase64 } from './assets/logo';
 import { Session } from '@supabase/supabase-js';
 import { FamilieDetail } from './components/FamilieDetail';
 import { SportivAccountSettings } from './components/SportivAccountSettings';
 import { EditareProfilPersonal } from './components/EditareProfilPersonal';
 
-const TopBar: React.FC<{ onLogout: () => void; onHome: () => void; user: User | null; isPortal?: boolean }> = ({ onLogout, onHome, user, isPortal = false }) => {
-    const userName = user ? (user.roluri?.includes('Admin') ? 'Administrator' : `${user.nume} ${user.prenume}`) : '...';
+const logoBase64 = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAMAAAD04JH5AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAGBQTFRF////AP8A/wAAAI6Oju7u7u7u7v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+7n+64AAAACh0Uk5TBA8YIiwuMTY5PEBITlRYWl9hY2Zpbm9ydHV2eXqAgYKEh4mKjI6PkpOU70F8bAAAAeFJREFUeNrs2u1SgzAMBuAsYFv3v9Z7OndpRyvI+ZByvj+I0KRP0pAm0H9+CBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECHwscG4f+Ezg8vOfz78O3P65P3D8K/B3YPdL4C0wYWAkwD9gwUCA38CAYQE/gQXDAn4BC8YEfAcWzAn4DSyYE/AXWDAf4Cew4DDAf4DDAK8BngM8BngK8BTgKcBTgKcAzwGeAzwGeArwFOApwFOApwDPAZ4DPAd4CvAU4CnAU4DnAKeBAU4DA5wGBjgNDHAaGOA0MMBpYIDTwACngQFOAwOcBgY4DQxwGhjgNDDAaWCA08AAp4EBTgMDnAYGOA0McBoY4DQwwGlggNPAMMDvAb8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvwIMAAInB78Y2Yp2AAAAAElFTkSuQmCC`;
+
+const TopBar: React.FC<{ onLogout: () => void; onHome: () => void; user: User | null; isPortal?: boolean; onViewOwnPortal?: () => void; }> = ({ onLogout, onHome, user, isPortal = false, onViewOwnPortal }) => {
+    const userName = user ? (user.roluri?.some(r => r.nume === 'Admin') ? 'Administrator' : `${user.nume} ${user.prenume}`) : '...';
+    const isAdmin = user?.roluri?.some(r => r.nume === 'Admin');
+
     return (
         <header className="bg-slate-800 shadow-md mb-8 border-b border-slate-700">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
@@ -44,6 +47,11 @@ const TopBar: React.FC<{ onLogout: () => void; onHome: () => void; user: User | 
                     </span>
                 </div>
                 <div className="flex items-center gap-4">
+                     {isAdmin && !isPortal && onViewOwnPortal && (
+                        <Button onClick={onViewOwnPortal} variant="secondary" size="sm">
+                            Portalul Meu
+                        </Button>
+                    )}
                     <span className="text-slate-300 hidden md:block text-sm border-r border-slate-700 pr-4">
                         <span className="text-slate-500 font-medium">Cont:</span> {userName}
                     </span>
@@ -58,7 +66,7 @@ const TopBar: React.FC<{ onLogout: () => void; onHome: () => void; user: User | 
 
 export type MenuKey = 'sportivi' | 'examene' | 'financiar' | 'antrenamente' | 'stagii' | 'competitii' | 'setari' | null;
 
-const menuConfig: Record<NonNullable<MenuKey>, { title: string, items: { view: View, label: string, roles?: User['roluri'][number][] }[] }> = {
+const menuConfig: Record<NonNullable<MenuKey>, { title: string, items: { view: View, label: string, roles?: Rol['nume'][] }[] }> = {
     sportivi: { title: "Meniu Sportivi", items: [ { view: 'sportivi', label: 'Listă Sportivi' }, { view: 'familii', label: 'Gestiune Familii' }, ] },
     examene: { title: "Meniu Examene", items: [ { view: 'examene', label: 'Configurare Examene' }, { view: 'grade', label: 'Tabel Grade' } ] },
     financiar: { title: "Meniu Financiar", items: [ { view: 'plati-scadente', label: 'Facturi (Datorii)' }, { view: 'jurnal-incasari', label: 'Jurnal Încasări' }, { view: 'raport-financiar', label: 'Raport Financiar' }, { view: 'tipuri-abonament', label: 'Configurare Abonamente' }, { view: 'configurare-preturi', label: 'Configurare Alte Prețuri' } ] },
@@ -70,7 +78,7 @@ const menuConfig: Record<NonNullable<MenuKey>, { title: string, items: { view: V
 
 const SubMenu: React.FC<{ menuKey: NonNullable<MenuKey>; onSelectItem: (view: View) => void; onBack: () => void; currentUser: User; }> = ({ menuKey, onSelectItem, onBack, currentUser }) => {
     const { title, items } = menuConfig[menuKey];
-    const visibleItems = items.filter(item => !item.roles || item.roles.some(role => currentUser.roluri?.includes(role)));
+    const visibleItems = items.filter(item => !item.roles || item.roles.some(roleName => currentUser.roluri?.some(userRole => userRole.nume === roleName)));
     return (
         <div>
             <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Dashboard</Button>
@@ -107,11 +115,13 @@ function App() {
   const [rezultate, setRezultate] = useState<Rezultat[]>([]);
   const [preturiConfig, setPreturiConfig] = useState<PretConfig[]>([]);
   const [tipuriAbonament, setTipuriAbonament] = useState<TipAbonament[]>([]);
+  const [allRoles, setAllRoles] = useState<Rol[]>([]);
   const [customFields, setCustomFields] = useState<string[]>([]);
 
   // App view state
   const [activeMenu, setActiveMenu] = useState<MenuKey>(null);
   const [activeView, setActiveView] = useState<View | null>(null);
+  const [adminViewingPortal, setAdminViewingPortal] = useState(false);
   const [plataToIncasare, setPlataToIncasare] = useState<Plata | null>(null);
   const [selectedSportiv, setSelectedSportiv] = useState<Sportiv | null>(null);
   const [selectedFamilie, setSelectedFamilie] = useState<Familie | null>(null);
@@ -148,34 +158,31 @@ function App() {
 
     const fetchUserProfile = async (userId: string) => {
         if (!supabase) return;
-        const { data, error } = await supabase.from('sportivi').select('*, rol').eq('user_id', userId);
+        setLoading(true);
+        const { data, error } = await supabase
+            .from('sportivi')
+            .select('*, sportivi_roluri(roluri(id, nume))')
+            .eq('user_id', userId)
+            .single();
 
         if (error) {
             console.error("Eroare la preluarea profilului utilizator:", error);
             setFetchError(`Eroare la preluarea profilului. Motiv: ${error.message}.`);
             setCurrentUser(null);
-            setLoading(false);
-        } else if (data && data.length === 1) {
-             const userProfile = data[0] as any;
-             if (userProfile) {
-                 if (userProfile.rol && !userProfile.roluri) {
-                    userProfile.roluri = Array.isArray(userProfile.rol) ? userProfile.rol : [userProfile.rol];
-                 } else if (!userProfile.roluri) {
-                     userProfile.roluri = ['Sportiv'];
-                 }
+        } else if (data) {
+             const userProfile = data as any;
+             if (userProfile.sportivi_roluri) {
+                userProfile.roluri = userProfile.sportivi_roluri.map((item: any) => item.roluri);
+                delete userProfile.sportivi_roluri;
+             } else {
+                userProfile.roluri = [];
              }
             setCurrentUser(userProfile as User);
-        } else if (data && data.length > 1) {
-            console.error("Data integrity issue: Multiple profiles found for user_id:", userId);
-            setFetchError(`Au fost găsite mai multe profile asociate contului dvs.`);
-            setCurrentUser(null);
-            setLoading(false);
         } else {
-            console.error("No profile found for user_id:", userId);
             setFetchError(`Profilul dvs. nu a fost găsit în baza de date.`);
             setCurrentUser(null);
-            setLoading(false);
         }
+        setLoading(false);
     };
     
     useEffect(() => {
@@ -184,18 +191,33 @@ function App() {
             setLoading(true);
             try {
                 const results = await Promise.all([
-                    supabase.from('sportivi').select('*'), supabase.from('examene').select('*'),
-                    supabase.from('grade').select('*'), supabase.from('participari').select('*'),
-                    supabase.from('grupe').select('*'), supabase.from('program_antrenamente').select('*'),
-                    supabase.from('prezente').select('*'), supabase.from('prezente_sportivi').select('*'),
-                    supabase.from('familii').select('*'), supabase.from('plati').select('*'),
-                    supabase.from('tranzactii').select('*'), supabase.from('evenimente').select('*'),
-                    supabase.from('rezultate').select('*'), supabase.from('preturi_config').select('*'),
+                    supabase.from('sportivi').select('*, sportivi_roluri(roluri(id, nume))'), 
+                    supabase.from('examene').select('*'),
+                    supabase.from('grade').select('*'), 
+                    supabase.from('participari').select('*'),
+                    supabase.from('grupe').select('*'), 
+                    supabase.from('program_antrenamente').select('*'),
+                    supabase.from('prezente').select('*'), 
+                    supabase.from('prezente_sportivi').select('*'),
+                    supabase.from('familii').select('*'), 
+                    supabase.from('plati').select('*'),
+                    supabase.from('tranzactii').select('*'), 
+                    supabase.from('evenimente').select('*'),
+                    supabase.from('rezultate').select('*'), 
+                    supabase.from('preturi_config').select('*'),
                     supabase.from('tipuri_abonament').select('*'),
+                    supabase.from('roluri').select('*'),
                 ]);
 
-                const [ sportiviRes, exameneRes, gradeRes, participariRes, grupeRes, programRes, prezenteRes, prezenteSportiviRes, familiiRes, platiRes, tranzactiiRes, evenimenteRes, rezultateRes, preturiRes, abonamenteRes ] = results;
+                const [ sportiviRes, exameneRes, gradeRes, participariRes, grupeRes, programRes, prezenteRes, prezenteSportiviRes, familiiRes, platiRes, tranzactiiRes, evenimenteRes, rezultateRes, preturiRes, abonamenteRes, roluriRes ] = results;
                 
+                const sportiviData = (sportiviRes.data || []).map((s: any) => {
+                    const roluri = s.sportivi_roluri ? s.sportivi_roluri.map((item: any) => item.roluri) : [];
+                    delete s.sportivi_roluri;
+                    return { ...s, roluri };
+                });
+                setSportivi(sportiviData as Sportiv[]);
+
                 const grupeData = grupeRes.data || [];
                 const programData = (programRes.data || []) as any[];
                 const combinedGrupe = grupeData.map(g => ({ ...g, program: programData.filter(p => p.grupa_id === g.id).map(p => ({ ziua: p.ziua, ora_start: p.ora_start, ora_sfarsit: p.ora_sfarsit })) }));
@@ -206,7 +228,6 @@ function App() {
                 const combinedPrezente = prezenteData.map(p => ({ ...p, id: p.id.toString(), sportivi_prezenti_ids: prezenteSportiviData.filter(ps => ps.prezenta_id.toString() === p.id.toString()).map(ps => ps.sportiv_id) }));
                 setPrezente(combinedPrezente as Prezenta[]);
 
-                setSportivi(sportiviRes.data as Sportiv[] || []);
                 setExamene(exameneRes.data as Examen[] || []);
                 setGrade(gradeRes.data as Grad[] || []);
                 setParticipari(participariRes.data as Participare[] || []);
@@ -217,6 +238,7 @@ function App() {
                 setRezultate(rezultateRes.data as Rezultat[] || []);
                 setPreturiConfig(preturiRes.data as PretConfig[] || []);
                 setTipuriAbonament(abonamenteRes.data as TipAbonament[] || []);
+                setAllRoles(roluriRes.data as Rol[] || []);
             } catch (error) {
                 console.error("Eroare preluare date:", error);
             } finally {
@@ -234,7 +256,15 @@ function App() {
     setCurrentUser(null); setActiveMenu(null); setActiveView(null);
   };
 
-  const handleBackToDashboard = () => { setActiveMenu(null); setActiveView(null); setSelectedSportiv(null); setSelectedFamilie(null); };
+  const handleBackToDashboard = () => { 
+    setActiveMenu(null); 
+    setActiveView(null); 
+    setSelectedSportiv(null); 
+    setSelectedFamilie(null);
+    setAdminViewingPortal(false);
+   };
+
+   const handleViewOwnPortal = () => setAdminViewingPortal(true);
 
   const renderAdminContent = () => {
     if (loading) return <div className="text-center p-8">Se încarcă...</div>;
@@ -244,7 +274,7 @@ function App() {
     }
 
     if (activeView === 'sportiv-account-settings' && selectedSportiv) {
-        return <SportivAccountSettings sportiv={selectedSportiv} onBack={() => setActiveView('sportivi')} setSportivi={setSportivi} />;
+        return <SportivAccountSettings sportiv={selectedSportiv} onBack={() => setActiveView('sportivi')} setSportivi={setSportivi} allRoles={allRoles} currentUser={currentUser!} />;
     }
 
     if (activeView) {
@@ -263,7 +293,7 @@ function App() {
         case 'raport-financiar': return <RaportFinanciar onBack={() => setActiveView(null)} plati={plati} sportivi={sportivi} familii={familii} tranzactii={tranzactii} />;
         case 'tipuri-abonament': return <TipuriAbonamentManagement onBack={() => setActiveView(null)} tipuriAbonament={tipuriAbonament} setTipuriAbonament={setTipuriAbonament} />;
         case 'configurare-preturi': return <ConfigurarePreturi onBack={() => setActiveView(null)} preturi={preturiConfig} setPreturi={setPreturiConfig} sportivi={sportivi} />;
-        case 'user-management': return <UserManagement onBack={() => setActiveView(null)} sportivi={sportivi} setSportivi={setSportivi} currentUser={currentUser!} setCurrentUser={setCurrentUser} />;
+        case 'user-management': return <UserManagement onBack={() => setActiveView(null)} sportivi={sportivi} setSportivi={setSportivi} currentUser={currentUser!} setCurrentUser={setCurrentUser} allRoles={allRoles} />;
         default: return <Dashboard onSelectMenu={setActiveMenu} />;
       }
     }
@@ -296,6 +326,7 @@ function App() {
             onNavigateToEditProfil={() => setActiveView('editare-profil-personal')}
             sportivi={sportivi}
             familii={familii}
+            onNavigateToDashboard={handleBackToDashboard}
         />
     );
   };
@@ -304,7 +335,7 @@ function App() {
   if (fetchError) return <div className="min-h-screen flex items-center justify-center p-4"><Card><h2 className="text-red-400 text-xl font-bold mb-4">Eroare Autentificare</h2><p className="mb-6">{fetchError}</p><Button onClick={handleLogout} variant="secondary">Încearcă din nou</Button></Card></div>;
   if (!currentUser) return <div className="min-h-screen flex items-center justify-center">Se încarcă profilul...</div>;
 
-  const isPrivilegedUser = currentUser?.roluri?.includes('Admin') || currentUser?.roluri?.includes('Instructor');
+  const isPrivilegedUser = currentUser?.roluri?.some(r => r.nume === 'Admin' || r.nume === 'Instructor');
 
   return (
     <div className="min-h-screen bg-slate-900 pb-12">
@@ -312,10 +343,15 @@ function App() {
         onLogout={handleLogout} 
         onHome={handleBackToDashboard} 
         user={currentUser} 
-        isPortal={!isPrivilegedUser}
+        isPortal={adminViewingPortal || !isPrivilegedUser}
+        onViewOwnPortal={handleViewOwnPortal}
       />
       <main className="container mx-auto px-4 sm:px-6 lg:px-8">
-        {isPrivilegedUser ? renderAdminContent() : renderPortalContent()}
+        {adminViewingPortal 
+            ? renderPortalContent() 
+            : isPrivilegedUser 
+                ? renderAdminContent() 
+                : renderPortalContent()}
       </main>
     </div>
   );

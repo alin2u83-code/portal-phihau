@@ -16,7 +16,7 @@ export const SportivAccountSettings: React.FC<SportivAccountSettingsProps> = ({ 
     const [formData, setFormData] = useState({
         email: '',
         username: '',
-        rol: [] as ('Admin' | 'Instructor' | 'Sportiv')[],
+        roluri: [] as ('Admin' | 'Instructor' | 'Sportiv')[],
     });
     const [loading, setLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
@@ -26,7 +26,7 @@ export const SportivAccountSettings: React.FC<SportivAccountSettingsProps> = ({ 
         setFormData({
             email: sportiv.email,
             username: sportiv.username || '',
-            rol: sportiv.rol || ['Sportiv'],
+            roluri: sportiv.roluri || ['Sportiv'],
         });
     }, [sportiv]);
 
@@ -37,11 +37,11 @@ export const SportivAccountSettings: React.FC<SportivAccountSettingsProps> = ({ 
     const handleRoleChange = (role: 'Admin' | 'Instructor' | 'Sportiv', isChecked: boolean) => {
         setFormData(prev => {
             const updatedRoles = isChecked
-                ? [...new Set([...prev.rol, role])]
-                : prev.rol.filter(r => r !== role);
+                ? [...new Set([...prev.roluri, role])]
+                : prev.roluri.filter(r => r !== role);
             
-            if (updatedRoles.length === 0) return { ...prev, rol: ['Sportiv'] }; // Must have at least one role
-            return { ...prev, rol: updatedRoles };
+            if (updatedRoles.length === 0) return { ...prev, roluri: ['Sportiv'] }; // Must have at least one role
+            return { ...prev, roluri: updatedRoles };
         });
     };
 
@@ -62,7 +62,7 @@ export const SportivAccountSettings: React.FC<SportivAccountSettingsProps> = ({ 
         }
 
         const updates = {
-            rol: formData.rol,
+            roluri: formData.roluri,
             username: cleanedUsername,
             email: formData.email,
         };
@@ -121,7 +121,7 @@ export const SportivAccountSettings: React.FC<SportivAccountSettingsProps> = ({ 
                                     <input
                                         type="checkbox"
                                         className="h-5 w-5 rounded border-slate-500 bg-slate-800 text-primary-600 focus:ring-primary-500"
-                                        checked={formData.rol.includes(role)}
+                                        checked={formData.roluri.includes(role)}
                                         onChange={(e) => handleRoleChange(role, e.target.checked)}
                                     />
                                     <span>{role}</span>

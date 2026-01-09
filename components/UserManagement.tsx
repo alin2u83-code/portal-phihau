@@ -137,7 +137,7 @@ interface UserManagementProps {
 
 export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSportivi, onBack, currentUser, setCurrentUser }) => {
     const [editingId, setEditingId] = useState<string | null>(null);
-    const [newRoles, setNewRoles] = useState<User['rol']>([]);
+    const [newRoles, setNewRoles] = useState<User['roluri']>([]);
     const [showSuccessId, setShowSuccessId] = useState<string | null>(null);
 
     const [isCreateAccountModalOpen, setIsCreateAccountModalOpen] = useState(false);
@@ -148,7 +148,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
     
     const handleEdit = (user: User) => {
         setEditingId(user.id);
-        setNewRoles(user.rol);
+        setNewRoles(user.roluri);
     };
 
     const handleCancel = () => {
@@ -160,7 +160,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
             alert("Eroare de configurare: Conexiunea la baza de date nu a putut fi stabilită.");
             return;
         }
-        const { data, error } = await supabase.from('sportivi').update({ rol: newRoles }).eq('id', userId).select().single();
+        const { data, error } = await supabase.from('sportivi').update({ roluri: newRoles }).eq('id', userId).select().single();
         
         if (error) {
             alert(`Eroare la actualizarea rolului: ${error.message}`);
@@ -251,7 +251,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
             
             <MyProfile user={currentUser} setSportivi={setSportivi} setCurrentUser={setCurrentUser} />
 
-            {currentUser.rol.includes('Admin') && (
+            {currentUser.roluri.includes('Admin') && (
                 <Card>
                     <div className="flex items-center gap-2 mb-4">
                         <ShieldCheckIcon className="w-8 h-8 text-amber-400"/>
@@ -302,7 +302,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                                                 <td className="p-4">
                                                     {user.user_id ? (
                                                         <div className="flex flex-wrap gap-1">
-                                                            {user.rol.map(role => (
+                                                            {user.roluri.map(role => (
                                                                 <span key={role} className={`px-2 py-1 text-xs font-semibold rounded-full text-white ${role === 'Admin' ? 'bg-amber-600' : role === 'Instructor' ? 'bg-sky-600' : 'bg-slate-600'}`}>
                                                                     {role}
                                                                 </span>

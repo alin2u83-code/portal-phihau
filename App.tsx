@@ -27,7 +27,7 @@ import { SportivAccountSettings } from './components/SportivAccountSettings';
 import { EditareProfilPersonal } from './components/EditareProfilPersonal';
 
 const TopBar: React.FC<{ onLogout: () => void; onHome: () => void; user: User | null; isPortal?: boolean }> = ({ onLogout, onHome, user, isPortal = false }) => {
-    const userName = user ? (user.rol.includes('Admin') ? 'Administrator' : `${user.nume} ${user.prenume}`) : '...';
+    const userName = user ? (user.roluri?.includes('Admin') ? 'Administrator' : `${user.nume} ${user.prenume}`) : '...';
     return (
         <header className="bg-slate-800 shadow-md mb-8 border-b border-slate-700">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
@@ -58,7 +58,7 @@ const TopBar: React.FC<{ onLogout: () => void; onHome: () => void; user: User | 
 
 export type MenuKey = 'sportivi' | 'examene' | 'financiar' | 'antrenamente' | 'stagii' | 'competitii' | 'setari' | null;
 
-const menuConfig: Record<NonNullable<MenuKey>, { title: string, items: { view: View, label: string, roles?: User['rol'][number][] }[] }> = {
+const menuConfig: Record<NonNullable<MenuKey>, { title: string, items: { view: View, label: string, roles?: User['roluri'][number][] }[] }> = {
     sportivi: { title: "Meniu Sportivi", items: [ { view: 'sportivi', label: 'Listă Sportivi' }, { view: 'familii', label: 'Gestiune Familii' }, ] },
     examene: { title: "Meniu Examene", items: [ { view: 'examene', label: 'Configurare Examene' }, { view: 'grade', label: 'Tabel Grade' } ] },
     financiar: { title: "Meniu Financiar", items: [ { view: 'plati-scadente', label: 'Facturi (Datorii)' }, { view: 'jurnal-incasari', label: 'Jurnal Încasări' }, { view: 'raport-financiar', label: 'Raport Financiar' }, { view: 'tipuri-abonament', label: 'Configurare Abonamente' }, { view: 'configurare-preturi', label: 'Configurare Alte Prețuri' } ] },
@@ -70,7 +70,7 @@ const menuConfig: Record<NonNullable<MenuKey>, { title: string, items: { view: V
 
 const SubMenu: React.FC<{ menuKey: NonNullable<MenuKey>; onSelectItem: (view: View) => void; onBack: () => void; currentUser: User; }> = ({ menuKey, onSelectItem, onBack, currentUser }) => {
     const { title, items } = menuConfig[menuKey];
-    const visibleItems = items.filter(item => !item.roles || item.roles.some(role => currentUser.rol.includes(role)));
+    const visibleItems = items.filter(item => !item.roles || item.roles.some(role => currentUser.roluri?.includes(role)));
     return (
         <div>
             <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Dashboard</Button>
@@ -148,7 +148,7 @@ function App() {
 
     const fetchUserProfile = async (userId: string) => {
         if (!supabase) return;
-        const { data, error } = await supabase.from('sportivi').select('*').eq('user_id', userId);
+        const { data, error } = await supabase.from('sportivi').select('*, rol').eq('user_id', userId);
 
         if (error) {
             console.error("Eroare la preluarea profilului utilizator:", error);
@@ -156,7 +156,15 @@ function App() {
             setCurrentUser(null);
             setLoading(false);
         } else if (data && data.length === 1) {
-            setCurrentUser(data[0] as User);
+             const userProfile = data[0] as any;
+             if (userProfile) {
+                 if (userProfile.rol && !userProfile.roluri) {
+                    userProfile.roluri = Array.isArray(userProfile.rol) ? userProfile.rol : [userProfile.rol];
+                 } else if (!userProfile.roluri) {
+                     userProfile.roluri = ['Sportiv'];
+                 }
+             }
+            setCurrentUser(userProfile as User);
         } else if (data && data.length > 1) {
             console.error("Data integrity issue: Multiple profiles found for user_id:", userId);
             setFetchError(`Au fost găsite mai multe profile asociate contului dvs.`);
@@ -296,16 +304,18 @@ function App() {
   if (fetchError) return <div className="min-h-screen flex items-center justify-center p-4"><Card><h2 className="text-red-400 text-xl font-bold mb-4">Eroare Autentificare</h2><p className="mb-6">{fetchError}</p><Button onClick={handleLogout} variant="secondary">Încearcă din nou</Button></Card></div>;
   if (!currentUser) return <div className="min-h-screen flex items-center justify-center">Se încarcă profilul...</div>;
 
+  const isPrivilegedUser = currentUser?.roluri?.includes('Admin') || currentUser?.roluri?.includes('Instructor');
+
   return (
     <div className="min-h-screen bg-slate-900 pb-12">
       <TopBar 
         onLogout={handleLogout} 
         onHome={handleBackToDashboard} 
         user={currentUser} 
-        isPortal={!currentUser.rol.includes('Admin') && !currentUser.rol.includes('Instructor')} 
+        isPortal={!isPrivilegedUser}
       />
       <main className="container mx-auto px-4 sm:px-6 lg:px-8">
-        {currentUser.rol.includes('Admin') || currentUser.rol.includes('Instructor') ? renderAdminContent() : renderPortalContent()}
+        {isPrivilegedUser ? renderAdminContent() : renderPortalContent()}
       </main>
     </div>
   );

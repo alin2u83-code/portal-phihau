@@ -88,7 +88,7 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({ formState, handle
 );
 
 const emptySportivState: Partial<Sportiv> = {
-    nume: '', prenume: '', email: '', username: '', parola: '', data_nasterii: '', cnp: '', rol: ['Sportiv'],
+    nume: '', prenume: '', email: '', username: '', parola: '', data_nasterii: '', cnp: '', roluri: ['Sportiv'],
     data_inscrierii: new Date().toISOString().split('T')[0],
     status: 'Activ', club_provenienta: 'Phi Hau Iași',
     grupa_id: null,
@@ -208,7 +208,7 @@ const SportivDetail: React.FC<SportivDetailProps> = ({ sportiv, onBack, onUpdate
                                     </h3>
                                     <div className="grid grid-cols-2 gap-4">
                                         <DataField label="Grupă" value={grupa?.denumire} />
-                                        <DataField label="Roluri" value={sportiv.rol.join(', ')} />
+                                        <DataField label="Roluri" value={sportiv.roluri.join(', ')} />
                                         <DataField label="Club" value={sportiv.club_provenienta} />
                                         <DataField label="Data Înscrierii" value={new Date(sportiv.data_inscrierii).toLocaleDateString('ro-RO')} />
                                     </div>
@@ -417,7 +417,7 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
                         <th className="p-4">Nume</th>
                         <th className="p-4">Grupă</th>
                         <th className="p-4">Statut</th>
-                        <th className="p-4">Rol</th>
+                        <th className="p-4">Roluri</th>
                         <th className="p-4 text-right">Acțiuni</th>
                     </tr>
                 </thead>
@@ -431,7 +431,7 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
                                     {sportiv.status}
                                 </span>
                             </td>
-                            <td className="p-4 text-slate-400 text-sm">{sportiv.rol.join(', ')}</td>
+                            <td className="p-4 text-slate-400 text-sm">{sportiv.roluri.join(', ')}</td>
                             <td className="p-4 text-right">
                                 <Button size="sm" variant="primary"><EditIcon className="w-4 h-4" /></Button>
                             </td>

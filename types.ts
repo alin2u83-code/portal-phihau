@@ -6,7 +6,7 @@ export interface Sportiv {
   email: string;
   username?: string; // Nume de utilizator unic pentru login
   parola?: string; // Only for creating new users
-  rol: ('Sportiv' | 'Instructor' | 'Admin')[];
+  roluri: ('Sportiv' | 'Instructor' | 'Admin')[];
   data_nasterii: string;
   cnp: string;
   inaltime?: number; // în cm, pentru calcul preț echipament

@@ -3,7 +3,7 @@ import { Sportiv, Participare, Examen, Grad, Prezenta, Grupa, Plata, Eveniment, 
 import { Button, Card } from './ui';
 import { getPretValabil } from '../utils/pricing';
 import { supabase } from '../supabaseClient';
-import { UsersIcon, ShieldCheckIcon } from './icons';
+import { UsersIcon, ShieldCheckIcon, CalendarDaysIcon } from './icons';
 
 const getGrad = (gradId: string, allGrades: Grad[]) => allGrades.find(g => g.id === gradId);
 const getAge = (dateString: string) => { const today = new Date(); const birthDate = new Date(dateString); let age = today.getFullYear() - birthDate.getFullYear(); const m = today.getMonth() - birthDate.getMonth(); if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; } return age; };
@@ -40,12 +40,13 @@ interface PortalSportivProps {
   setRezultate: React.Dispatch<React.SetStateAction<Rezultat[]>>;
   preturiConfig: PretConfig[];
   onNavigateToEditProfil: () => void;
+  onNavigateToEvenimenteleMele: () => void;
   sportivi: Sportiv[];
   familii: Familie[];
   onNavigateToDashboard: () => void;
 }
 
-export const PortalSportiv: React.FC<PortalSportivProps> = ({ currentUser, viewedUser, onSwitchView, participari, examene, grade, prezente, grupe, plati, setPlati, evenimente, rezultate, setRezultate, preturiConfig, onNavigateToEditProfil, sportivi, familii, onNavigateToDashboard }) => {
+export const PortalSportiv: React.FC<PortalSportivProps> = ({ currentUser, viewedUser, onSwitchView, participari, examene, grade, prezente, grupe, plati, setPlati, evenimente, rezultate, setRezultate, preturiConfig, onNavigateToEditProfil, onNavigateToEvenimenteleMele, sportivi, familii, onNavigateToDashboard }) => {
     const [showSuccess, setShowSuccess] = useState<string|null>(null);
     const [loading, setLoading] = useState<{[key: string]: boolean}>({});
     
@@ -196,6 +197,36 @@ export const PortalSportiv: React.FC<PortalSportivProps> = ({ currentUser, viewe
                 <h2 className="text-3xl font-bold text-white">Bun venit, {currentUser.prenume}!</h2>
                 <p className="text-slate-400">{isViewingOwnProfile ? "Acesta este panoul tău personal de control." : `Vizualizați detaliile pentru ${viewedUser.prenume}.`}</p>
             </Card>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 <div 
+                    onClick={onNavigateToEvenimenteleMele}
+                    className="group bg-slate-800/50 backdrop-blur-sm p-6 rounded-lg border border-slate-700 hover:border-brand-secondary cursor-pointer transition-all duration-300 flex items-center gap-6"
+                >
+                    <div className="p-3 bg-brand-secondary/10 rounded-full group-hover:bg-brand-secondary/20 transition-colors">
+                        <CalendarDaysIcon className="w-8 h-8 text-brand-secondary" />
+                    </div>
+                    <div>
+                        <h3 className="text-xl font-bold text-white group-hover:text-brand-secondary transition-colors">Evenimentele Mele</h3>
+                        <p className="text-sm text-slate-400">Vezi înscrierile active și istoricul.</p>
+                    </div>
+                </div>
+
+                {isViewingOwnProfile && (
+                     <div 
+                        onClick={onNavigateToEditProfil}
+                        className="group bg-slate-800/50 backdrop-blur-sm p-6 rounded-lg border border-slate-700 hover:border-status-warning cursor-pointer transition-all duration-300 flex items-center gap-6"
+                    >
+                        <div className="p-3 bg-status-warning/10 rounded-full group-hover:bg-status-warning/20 transition-colors">
+                            <ShieldCheckIcon className="w-8 h-8 text-status-warning" />
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-bold text-white group-hover:text-status-warning transition-colors">Profil & Securitate</h3>
+                            <p className="text-sm text-slate-400">Gestionează datele tale personale și parola.</p>
+                        </div>
+                    </div>
+                )}
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <Card>
@@ -271,20 +302,6 @@ export const PortalSportiv: React.FC<PortalSportivProps> = ({ currentUser, viewe
                     )) : <p className="text-slate-400 text-sm italic">Niciun eveniment viitor disponibil pentru înscriere în acest moment.</p>}
                 </div>
             </Card>
-
-            {isViewingOwnProfile && (
-                <Card className="border border-slate-700 bg-slate-800/50">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div>
-                            <h2 className="text-2xl font-bold text-white">Profil & Securitate</h2>
-                            <p className="text-slate-400 text-sm">Gestionează datele tale personale, numele de utilizator și parola.</p>
-                        </div>
-                        <Button onClick={onNavigateToEditProfil} variant="info" className="whitespace-nowrap">
-                            Modifică Datele Contului
-                        </Button>
-                    </div>
-                </Card>
-            )}
         </div>
     );
 };

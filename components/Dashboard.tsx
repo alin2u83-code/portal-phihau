@@ -2,15 +2,13 @@ import React from 'react';
 import { View } from '../types';
 import { Card } from './ui';
 import { UsersIcon, BanknotesIcon, TrophyIcon, ClipboardDocumentListIcon, AcademicCapIcon, CogIcon } from './icons';
-import { MenuKey } from '../App';
 
 interface DashboardProps {
-  onSelectMenu: (menu: MenuKey) => void;
+  onNavigate: (view: View) => void;
 }
 
 interface NavItem {
-  menu: MenuKey;
-  view: View; // Placeholder, not used for navigation logic here, but required by type
+  view: View; 
   title: string;
   description: string;
   tooltip: string;
@@ -20,7 +18,6 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   {
-    menu: 'management-sportivi',
     view: 'sportivi',
     title: 'Sportivi & Utilizatori',
     description: 'Gestionează sportivi, familii și conturi de acces.',
@@ -29,7 +26,6 @@ const navItems: NavItem[] = [
     color: 'bg-brand-primary'
   },
   {
-    menu: 'activitati',
     view: 'examene',
     title: 'Activități & Evaluări',
     description: 'Definește examene, stagii și competiții.',
@@ -38,7 +34,6 @@ const navItems: NavItem[] = [
     color: 'bg-status-warning'
   },
   {
-    menu: 'antrenamente',
     view: 'prezenta',
     title: 'Antrenamente',
     description: 'Înregistrează prezența și configurează orarul.',
@@ -47,7 +42,6 @@ const navItems: NavItem[] = [
     color: 'bg-brand-secondary'
   },
   {
-    menu: 'financiar',
     view: 'plati-scadente',
     title: 'Financiar',
     description: 'Gestionează plăți, facturi și rapoarte financiare.',
@@ -60,14 +54,9 @@ const navItems: NavItem[] = [
 const NavCard: React.FC<{ item: NavItem, onClick: () => void }> = ({ item, onClick }) => (
     <div 
       onClick={onClick} 
-      className="group relative transform transition-all duration-300 hover:scale-105 cursor-pointer rounded-2xl shadow-md shadow-brand-primary/20 hover:shadow-lg hover:shadow-brand-secondary/30"
+      className="group transform transition-all duration-300 hover:scale-105 cursor-pointer rounded-2xl shadow-md shadow-brand-primary/20 hover:shadow-lg hover:shadow-brand-secondary/30"
       title={item.tooltip}
     >
-      <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs py-2 px-3 rounded shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 border border-slate-600">
-        {item.tooltip}
-        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-slate-800 rotate-45 border-r border-b border-slate-600"></div>
-      </div>
-
       <Card className="flex flex-col items-center justify-center text-center h-full border-slate-700 group-hover:border-brand-secondary/40 rounded-2xl bg-slate-800/50 backdrop-blur-sm">
         <div className={`p-4 rounded-full ${item.color} mb-4 shadow-lg group-hover:ring-4 group-hover:ring-white/10 transition-all`}>
           <item.icon className="h-10 w-10 text-white" />
@@ -79,16 +68,16 @@ const NavCard: React.FC<{ item: NavItem, onClick: () => void }> = ({ item, onCli
 );
 
 
-export const Dashboard: React.FC<DashboardProps> = ({ onSelectMenu }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   return (
     <div className="max-w-7xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6 text-white text-center">Dashboard Principal</h1>
-      <p className="text-center text-slate-300 mb-10 max-w-2xl mx-auto">
-        Bun venit în panoul de administrare al clubului sportiv Phi Hau Iași. Selectați un modul de mai jos pentru a începe gestionarea activității.
+      <h1 className="text-4xl md:text-5xl font-extrabold mb-4 text-white text-center" style={{ textShadow: '2px 2px 8px rgba(0,0,0,0.6)' }}>Clubul Phi Hau Iași</h1>
+      <p className="text-center text-slate-300 mb-12 max-w-2xl mx-auto">
+        Bun venit în panoul de administrare. Selectați un modul de mai jos pentru a începe gestionarea activității clubului.
       </p>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 px-4">
         {navItems.map(item => (
-          <NavCard key={item.view} item={item} onClick={() => onSelectMenu(item.menu)} />
+          <NavCard key={item.view} item={item} onClick={() => onNavigate(item.view)} />
         ))}
       </div>
     </div>

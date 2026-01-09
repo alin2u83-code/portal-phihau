@@ -19,108 +19,13 @@ import { Login } from './components/Login';
 import { PortalSportiv } from './components/PortalSportiv';
 import { UserManagement } from './components/UserManagement';
 import { Button, Card } from './components/ui';
-import { ArrowLeftIcon } from './components/icons';
 import { Session } from '@supabase/supabase-js';
 import { FamilieDetail } from './components/FamilieDetail';
 import { SportivAccountSettings } from './components/SportivAccountSettings';
 import { EditareProfilPersonal } from './components/EditareProfilPersonal';
-import { logoBase64 } from './assets/logo';
+import { EvenimenteleMele } from './components/EvenimenteleMele';
+import { Sidebar } from './components/Sidebar';
 
-const TopBar: React.FC<{ onLogout: () => void; onHome: () => void; user: User | null; isPortal?: boolean; onViewOwnPortal?: () => void; }> = ({ onLogout, onHome, user, isPortal = false, onViewOwnPortal }) => {
-    const userName = user ? (user.roluri?.some(r => r.nume === 'Admin') ? 'Administrator' : `${user.nume} ${user.prenume}`) : '...';
-    const isAdmin = user?.roluri?.some(r => r.nume === 'Admin');
-
-    return (
-        <header className="bg-slate-900/50 backdrop-blur-sm shadow-md mb-8 border-b border-slate-700 sticky top-0 z-40">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-                 <div 
-                    onClick={onHome} 
-                    className="flex items-center gap-4 cursor-pointer group transition-all"
-                    title="Mergi la ecranul principal"
-                >
-                    <div className="bg-white/10 p-1 rounded-lg group-hover:bg-brand-secondary/20 transition-colors">
-                        <img src={logoBase64} alt="Phi Hau Iași Logo" className="h-10 w-10 object-contain bg-white/10 rounded-md" />
-                    </div>
-                    <span className="font-bold text-xl text-white hidden sm:block group-hover:text-brand-secondary transition-colors">
-                        {isPortal ? 'Portal Sportiv' : 'Phi Hau Iași Admin'}
-                    </span>
-                </div>
-                <div className="flex items-center gap-4">
-                     {isAdmin && !isPortal && onViewOwnPortal && (
-                        <Button onClick={onViewOwnPortal} variant="secondary" size="sm">
-                            Portalul Meu
-                        </Button>
-                    )}
-                    <span className="text-slate-200 hidden md:block text-sm border-r border-slate-600 pr-4">
-                        <span className="text-slate-400 font-medium">Cont:</span> {userName}
-                    </span>
-                    <Button onClick={onLogout} variant="danger" size="sm" className="shadow-lg shadow-red-900/20">
-                        Deconectare
-                    </Button>
-                </div>
-            </div>
-        </header>
-    );
-};
-
-export type MenuKey = 'management-sportivi' | 'activitati' | 'antrenamente' | 'financiar' | null;
-
-const menuConfig: Record<NonNullable<MenuKey>, { title: string, items: { view: View, label: string, roles?: Rol['nume'][] }[] }> = {
-    'management-sportivi': { 
-        title: "Management Sportivi & Utilizatori", 
-        items: [ 
-            { view: 'sportivi', label: 'Listă Sportivi' }, 
-            { view: 'familii', label: 'Gestiune Familii' },
-            { view: 'user-management', label: 'Gestionare Acces Utilizatori', roles: ['Admin', 'Instructor'] }
-        ] 
-    },
-    'activitati': {
-        title: "Activități & Evaluări",
-        items: [
-            { view: 'examene', label: 'Configurare Examene' },
-            { view: 'grade', label: 'Nomenclator Grade' },
-            { view: 'stagii', label: 'Listă Stagii' },
-            { view: 'competitii', label: 'Listă Competiții' }
-        ]
-    },
-    'antrenamente': { 
-        title: "Meniu Antrenamente", 
-        items: [ 
-            { view: 'prezenta', label: 'Înregistrare Prezențe' }, 
-            { view: 'grupe', label: 'Orar & Gestiune Grupe' }, 
-            { view: 'raport-prezenta', label: 'Raport Prezențe' } 
-        ] 
-    },
-    'financiar': { 
-        title: "Meniu Financiar", 
-        items: [ 
-            { view: 'plati-scadente', label: 'Facturi (Datorii)' }, 
-            { view: 'jurnal-incasari', label: 'Jurnal Încasări' }, 
-            { view: 'raport-financiar', label: 'Raport Financiar' }, 
-            { view: 'tipuri-abonament', label: 'Configurare Abonamente' }, 
-            { view: 'configurare-preturi', label: 'Configurare Alte Prețuri' } 
-        ] 
-    },
-};
-
-const SubMenu: React.FC<{ menuKey: NonNullable<MenuKey>; onSelectItem: (view: View) => void; onBack: () => void; currentUser: User; }> = ({ menuKey, onSelectItem, onBack, currentUser }) => {
-    const { title, items } = menuConfig[menuKey];
-    const visibleItems = items.filter(item => !item.roles || item.roles.some(roleName => currentUser.roluri?.some(userRole => userRole.nume === roleName)));
-    return (
-        <div>
-            <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Dashboard</Button>
-            <h1 className="text-3xl font-bold text-white mb-6 text-center">{title}</h1>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
-                {visibleItems.map(item => (
-                    <div key={item.view} onClick={() => onSelectItem(item.view)}                         
-                         className="bg-slate-800 hover:bg-slate-700/50 border border-slate-700 hover:border-brand-secondary text-white font-bold py-6 px-4 rounded-lg shadow-md shadow-brand-primary/20 hover:shadow-lg hover:shadow-brand-secondary/30 cursor-pointer text-center transition-all duration-300 transform hover:scale-105">
-                        {item.label}
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
-};
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -146,8 +51,8 @@ function App() {
   const [customFields, setCustomFields] = useState<string[]>([]);
 
   // App view state
-  const [activeMenu, setActiveMenu] = useState<MenuKey>(null);
-  const [activeView, setActiveView] = useState<View | null>(null);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
+  const [activeView, setActiveView] = useState<View>('dashboard');
   const [adminViewingPortal, setAdminViewingPortal] = useState(false);
   const [plataToIncasare, setPlataToIncasare] = useState<Plata | null>(null);
   const [selectedSportiv, setSelectedSportiv] = useState<Sportiv | null>(null);
@@ -179,6 +84,7 @@ function App() {
             } else {
                 setCurrentUser(null);
                 setViewingAs(null);
+                setActiveView('dashboard');
             }
         });
 
@@ -288,20 +194,22 @@ function App() {
 
   const handleLogout = async () => { 
     if (supabase) await supabase.auth.signOut();
-    setCurrentUser(null); setActiveMenu(null); setActiveView(null); setViewingAs(null);
+    setCurrentUser(null); 
+    setViewingAs(null);
+    setActiveView('dashboard');
   };
 
-  const handleBackToDashboard = () => { 
-    setActiveMenu(null); 
-    setActiveView(null); 
-    setSelectedSportiv(null); 
+  const handleNavigate = (view: View) => {
+    setActiveView(view);
+    setSelectedSportiv(null);
     setSelectedFamilie(null);
-    setAdminViewingPortal(false);
-    setViewingAs(currentUser);
-   };
+    if(view === 'dashboard' && adminViewingPortal) {
+        setAdminViewingPortal(false);
+        setViewingAs(currentUser);
+    }
+  };
    
   const handleSwitchViewedMember = (memberId: string) => {
-      // FIX: Block-scoped variable 'isAdmin' used before its declaration. Moved declaration up.
       const isAdmin = currentUser?.roluri.some(r => r.nume === 'Admin') ?? false;
       if (!currentUser || (!currentUser.familie_id && !isAdmin)) return;
       const targetMember = sportivi.find(s => s.id === memberId);
@@ -313,98 +221,82 @@ function App() {
       }
   };
 
-   const handleViewOwnPortal = () => setAdminViewingPortal(true);
+   const handleViewOwnPortal = () => {
+       setAdminViewingPortal(true);
+       setActiveView('dashboard');
+   }
 
-  const renderAdminContent = () => {
-    if (loading) return <div className="text-center p-8">Se încarcă...</div>;
+  const renderContent = () => {
+    if (loading) return <div className="text-center p-8 text-white">Se încarcă...</div>;
     
-    if(activeView === 'familie-detail' && selectedFamilie) {
-        return <FamilieDetail familie={selectedFamilie} membri={sportivi.filter(s => s.familie_id === selectedFamilie.id)} onBack={() => setActiveView('sportivi')} onSelectSportiv={(s) => { setSelectedSportiv(s); setActiveView('sportivi'); }} sportivi={sportivi} setSportivi={setSportivi} />
-    }
+    const isPrivilegedUser = currentUser?.roluri?.some(r => r.nume === 'Admin' || r.nume === 'Instructor');
+    const isPortal = !isPrivilegedUser || adminViewingPortal;
 
-    if (activeView === 'sportiv-account-settings' && selectedSportiv) {
-        return <SportivAccountSettings sportiv={selectedSportiv} onBack={() => setActiveView('sportivi')} setSportivi={setSportivi} allRoles={allRoles} currentUser={currentUser!} />;
-    }
+    const handleBackToDashboard = () => setActiveView('dashboard');
 
-    if (activeView) {
-      switch (activeView) {
-        case 'sportivi': return <SportiviManagement onBack={() => setActiveView(null)} sportivi={sportivi} setSportivi={setSportivi} participari={participari} examene={examene} grade={grade} prezente={prezente} grupe={grupe} plati={plati} evenimente={evenimente} rezultate={rezultate} tipuriAbonament={tipuriAbonament} familii={familii} customFields={customFields} setCustomFields={setCustomFields} selectedSportiv={selectedSportiv} onSelectSportiv={setSelectedSportiv} onClearSelectedSportiv={() => setSelectedSportiv(null)} onSelectFamilie={(fid) => { setSelectedFamilie(familii.find(f => f.id === fid) || null); setActiveView('familie-detail'); }} onNavigateToAccountSettings={(s) => { setSelectedSportiv(s); setActiveView('sportiv-account-settings'); }} allRoles={allRoles} />;
-        case 'examene': return <ExameneManagement onBack={() => setActiveView(null)} examene={examene} setExamene={setExamene} participari={participari} setParticipari={setParticipari} sportivi={sportivi} grade={grade} setPlati={setPlati} preturi={preturiConfig} />;
-        case 'grade': return <GradeManagement onBack={() => setActiveView(null)} grade={grade} setGrade={setGrade} />;
-        case 'prezenta': return <PrezentaManagement onBack={() => setActiveView(null)} sportivi={sportivi} prezente={prezente} setPrezente={setPrezente} grupe={grupe} plati={plati} />;
-        case 'grupe': return <GrupeManagement onBack={() => setActiveView(null)} grupe={grupe} setGrupe={setGrupe} />;
-        case 'raport-prezenta': return <RaportPrezenta onBack={() => setActiveView(null)} prezente={prezente} sportivi={sportivi} grupe={grupe} />;
-        case 'familii': return <FamiliiManagement onBack={() => setActiveView(null)} familii={familii} setFamilii={setFamilii} />;
-        case 'stagii': return <StagiiCompetitiiManagement onBack={() => setActiveView(null)} type="Stagiu" evenimente={evenimente} setEvenimente={setEvenimente} rezultate={rezultate} setRezultate={setRezultate} sportivi={sportivi} setPlati={setPlati} preturiConfig={preturiConfig} />;
-        case 'competitii': return <StagiiCompetitiiManagement onBack={() => setActiveView(null)} type="Competitie" evenimente={evenimente} setEvenimente={setEvenimente} rezultate={rezultate} setRezultate={setRezultate} sportivi={sportivi} setPlati={setPlati} preturiConfig={preturiConfig} />;
-        case 'plati-scadente': return <PlatiScadente onBack={() => setActiveView(null)} plati={plati} setPlati={setPlati} sportivi={sportivi} familii={familii} tipuriAbonament={tipuriAbonament} onIncaseazaAcum={(p) => { setPlataToIncasare(p); setActiveView('jurnal-incasari'); }} />;
-        case 'jurnal-incasari': return <JurnalIncasari onBack={() => setActiveView(null)} plati={plati} setPlati={setPlati} sportivi={sportivi} preturiConfig={preturiConfig} tipuriAbonament={tipuriAbonament} setTranzactii={setTranzactii} plataInitiala={plataToIncasare} onIncasareProcesata={() => setPlataToIncasare(null)} />;
-        case 'raport-financiar': return <RaportFinanciar onBack={() => setActiveView(null)} plati={plati} sportivi={sportivi} familii={familii} tranzactii={tranzactii} />;
-        case 'tipuri-abonament': return <TipuriAbonamentManagement onBack={() => setActiveView(null)} tipuriAbonament={tipuriAbonament} setTipuriAbonament={setTipuriAbonament} />;
-        case 'configurare-preturi': return <ConfigurarePreturi onBack={() => setActiveView(null)} preturi={preturiConfig} setPreturi={setPreturiConfig} sportivi={sportivi} />;
-        case 'user-management': return <UserManagement onBack={() => setActiveView(null)} sportivi={sportivi} setSportivi={setSportivi} currentUser={currentUser!} setCurrentUser={setCurrentUser} allRoles={allRoles} setAllRoles={setAllRoles} />;
-        default: return <Dashboard onSelectMenu={setActiveMenu} />;
-      }
+    if (isPortal) {
+        if (!viewingAs) return <div className="text-center p-8 text-white">Se încarcă profilul de vizualizare...</div>;
+        switch(activeView) {
+            case 'editare-profil-personal': 
+                return <EditareProfilPersonal user={currentUser!} setSportivi={setSportivi} setCurrentUser={setCurrentUser} onBack={handleBackToDashboard} />;
+            case 'evenimentele-mele': 
+                return <EvenimenteleMele viewedUser={viewingAs} evenimente={evenimente} rezultate={rezultate} setRezultate={setRezultate} onBack={handleBackToDashboard} />;
+            case 'dashboard':
+            default:
+                return <PortalSportiv currentUser={currentUser!} viewedUser={viewingAs} onSwitchView={handleSwitchViewedMember} participari={participari} examene={examene} grade={grade} prezente={prezente} grupe={grupe} plati={plati} setPlati={setPlati} evenimente={evenimente} rezultate={rezultate} setRezultate={setRezultate} preturiConfig={preturiConfig} onNavigateToEditProfil={() => setActiveView('editare-profil-personal')} onNavigateToEvenimenteleMele={() => setActiveView('evenimentele-mele')} sportivi={sportivi} familii={familii} onNavigateToDashboard={handleBackToDashboard} />;
+        }
+    } else {
+         if(activeView === 'familie-detail' && selectedFamilie) {
+            return <FamilieDetail familie={selectedFamilie} membri={sportivi.filter(s => s.familie_id === selectedFamilie.id)} onBack={() => setActiveView('familii')} onSelectSportiv={(s) => { setSelectedSportiv(s); setActiveView('sportivi'); }} sportivi={sportivi} setSportivi={setSportivi} />
+        }
+        if (activeView === 'sportiv-account-settings' && selectedSportiv) {
+            return <SportivAccountSettings sportiv={selectedSportiv} onBack={() => setActiveView('sportivi')} setSportivi={setSportivi} allRoles={allRoles} currentUser={currentUser!} />;
+        }
+        switch (activeView) {
+            case 'sportivi': return <SportiviManagement onBack={handleBackToDashboard} sportivi={sportivi} setSportivi={setSportivi} participari={participari} examene={examene} grade={grade} prezente={prezente} grupe={grupe} plati={plati} evenimente={evenimente} rezultate={rezultate} tipuriAbonament={tipuriAbonament} familii={familii} customFields={customFields} setCustomFields={setCustomFields} selectedSportiv={selectedSportiv} onSelectSportiv={setSelectedSportiv} onClearSelectedSportiv={() => setSelectedSportiv(null)} onSelectFamilie={(fid) => { setSelectedFamilie(familii.find(f => f.id === fid) || null); setActiveView('familie-detail'); }} onNavigateToAccountSettings={(s) => { setSelectedSportiv(s); setActiveView('sportiv-account-settings'); }} allRoles={allRoles} />;
+            case 'examene': return <ExameneManagement onBack={handleBackToDashboard} examene={examene} setExamene={setExamene} participari={participari} setParticipari={setParticipari} sportivi={sportivi} grade={grade} setPlati={setPlati} preturi={preturiConfig} />;
+            case 'grade': return <GradeManagement onBack={handleBackToDashboard} grade={grade} setGrade={setGrade} />;
+            case 'prezenta': return <PrezentaManagement onBack={handleBackToDashboard} sportivi={sportivi} prezente={prezente} setPrezente={setPrezente} grupe={grupe} plati={plati} />;
+            case 'grupe': return <GrupeManagement onBack={handleBackToDashboard} grupe={grupe} setGrupe={setGrupe} />;
+            case 'raport-prezenta': return <RaportPrezenta onBack={handleBackToDashboard} prezente={prezente} sportivi={sportivi} grupe={grupe} />;
+            case 'familii': return <FamiliiManagement onBack={handleBackToDashboard} familii={familii} setFamilii={setFamilii} />;
+            case 'stagii': return <StagiiCompetitiiManagement onBack={handleBackToDashboard} type="Stagiu" evenimente={evenimente} setEvenimente={setEvenimente} rezultate={rezultate} setRezultate={setRezultate} sportivi={sportivi} setPlati={setPlati} preturiConfig={preturiConfig} />;
+            case 'competitii': return <StagiiCompetitiiManagement onBack={handleBackToDashboard} type="Competitie" evenimente={evenimente} setEvenimente={setEvenimente} rezultate={rezultate} setRezultate={setRezultate} sportivi={sportivi} setPlati={setPlati} preturiConfig={preturiConfig} />;
+            case 'plati-scadente': return <PlatiScadente onBack={handleBackToDashboard} plati={plati} setPlati={setPlati} sportivi={sportivi} familii={familii} tipuriAbonament={tipuriAbonament} onIncaseazaAcum={(p) => { setPlataToIncasare(p); setActiveView('jurnal-incasari'); }} />;
+            // FIX: Replaced `onIncasareProcesata()` with `setPlataToIncasare(null)` because the function was not defined in this scope.
+            case 'jurnal-incasari': return <JurnalIncasari onBack={() => { setActiveView('plati-scadente'); setPlataToIncasare(null); }} plati={plati} setPlati={setPlati} sportivi={sportivi} preturiConfig={preturiConfig} tipuriAbonament={tipuriAbonament} setTranzactii={setTranzactii} plataInitiala={plataToIncasare} onIncasareProcesata={() => setPlataToIncasare(null)} />;
+            case 'raport-financiar': return <RaportFinanciar onBack={handleBackToDashboard} plati={plati} sportivi={sportivi} familii={familii} tranzactii={tranzactii} />;
+            case 'tipuri-abonament': return <TipuriAbonamentManagement onBack={handleBackToDashboard} tipuriAbonament={tipuriAbonament} setTipuriAbonament={setTipuriAbonament} />;
+            case 'configurare-preturi': return <ConfigurarePreturi onBack={handleBackToDashboard} preturi={preturiConfig} setPreturi={setPreturiConfig} sportivi={sportivi} />;
+            case 'user-management': return <UserManagement onBack={handleBackToDashboard} sportivi={sportivi} setSportivi={setSportivi} currentUser={currentUser!} setCurrentUser={setCurrentUser} allRoles={allRoles} setAllRoles={setAllRoles} />;
+            case 'dashboard':
+            default: return <Dashboard onNavigate={handleNavigate} />;
+        }
     }
-
-    if (activeMenu) {
-        return <SubMenu menuKey={activeMenu} onSelectItem={setActiveView} onBack={() => setActiveMenu(null)} currentUser={currentUser!} />;
-    }
-
-    return <Dashboard onSelectMenu={setActiveMenu} />;
-  };
-
-  const renderPortalContent = () => {
-    if (!viewingAs) return <div className="text-center p-8">Se încarcă...</div>;
-    
-    if (activeView === 'editare-profil-personal') {
-        return <EditareProfilPersonal user={currentUser!} setSportivi={setSportivi} setCurrentUser={setCurrentUser} onBack={() => setActiveView(null)} />;
-    }
-    return (
-        <PortalSportiv 
-            currentUser={currentUser!}
-            viewedUser={viewingAs}
-            onSwitchView={handleSwitchViewedMember}
-            participari={participari} 
-            examene={examene} 
-            grade={grade} 
-            prezente={prezente} 
-            grupe={grupe} 
-            plati={plati} 
-            setPlati={setPlati} 
-            evenimente={evenimente} 
-            rezultate={rezultate} 
-            setRezultate={setRezultate} 
-            preturiConfig={preturiConfig} 
-            onNavigateToEditProfil={() => setActiveView('editare-profil-personal')}
-            sportivi={sportivi}
-            familii={familii}
-            onNavigateToDashboard={handleBackToDashboard}
-        />
-    );
   };
 
   if (!session) return <Login />;
   if (fetchError) return <div className="min-h-screen flex items-center justify-center p-4"><Card><h2 className="text-red-500 text-xl font-bold mb-4">Eroare Autentificare</h2><p className="mb-6">{fetchError}</p><Button onClick={handleLogout} variant="secondary">Încearcă din nou</Button></Card></div>;
-  if (!currentUser) return <div className="min-h-screen flex items-center justify-center">Se încarcă profilul...</div>;
+  if (!currentUser) return <div className="min-h-screen flex items-center justify-center bg-brand-primary text-white">Se încarcă profilul...</div>;
 
   const isPrivilegedUser = currentUser?.roluri?.some(r => r.nume === 'Admin' || r.nume === 'Instructor');
 
   return (
-    <div className="min-h-screen pb-12">
-      <TopBar 
-        onLogout={handleLogout} 
-        onHome={handleBackToDashboard} 
-        user={currentUser} 
-        isPortal={adminViewingPortal || !isPrivilegedUser}
+    <div className="flex min-h-screen bg-slate-900">
+      <Sidebar 
+        currentUser={currentUser}
+        onNavigate={handleNavigate}
+        onLogout={handleLogout}
+        activeView={activeView}
+        isExpanded={isSidebarExpanded}
+        setIsExpanded={setIsSidebarExpanded}
+        isPortalView={!isPrivilegedUser || adminViewingPortal}
         onViewOwnPortal={handleViewOwnPortal}
       />
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8">
-        {adminViewingPortal 
-            ? renderPortalContent() 
-            : isPrivilegedUser 
-                ? renderAdminContent() 
-                : renderPortalContent()}
+      <main className={`flex-1 transition-all duration-300 overflow-y-auto bg-brand-primary ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'}`}>
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            {renderContent()}
+        </div>
       </main>
     </div>
   );

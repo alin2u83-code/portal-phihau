@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { Sportiv, Participare, Examen, Grad, Prezenta, Grupa, Plata, Eveniment, Rezultat, PretConfig } from '../types';
-import { Button, Card } from './ui';
+import { Sportiv, Participare, Examen, Grad, Prezenta, Grupa, Plata, Eveniment, Rezultat, PretConfig, User } from '../types';
+import { Button, Card, Input } from './ui';
 import { getPretValabil } from '../utils/pricing';
 import { supabase } from '../supabaseClient';
 
@@ -29,11 +29,76 @@ interface PortalSportivProps {
   rezultate: Rezultat[];
   setRezultate: React.Dispatch<React.SetStateAction<Rezultat[]>>;
   preturiConfig: PretConfig[];
+  setSportivi: React.Dispatch<React.SetStateAction<Sportiv[]>>;
+  setCurrentUser: React.Dispatch<React.SetStateAction<User | null>>;
 }
 
-export const PortalSportiv: React.FC<PortalSportivProps> = ({ sportiv, onLogout, participari, examene, grade, prezente, grupe, plati, setPlati, evenimente, rezultate, setRezultate, preturiConfig }) => {
+export const PortalSportiv: React.FC<PortalSportivProps> = ({ sportiv, onLogout, participari, examene, grade, prezente, grupe, plati, setPlati, evenimente, rezultate, setRezultate, preturiConfig, setSportivi, setCurrentUser }) => {
     const [showSuccess, setShowSuccess] = useState<string|null>(null);
     const [loading, setLoading] = useState<{[key: string]: boolean}>({});
+
+    // State for profile editing
+    const [profileFormData, setProfileFormData] = useState({
+        nume: sportiv.nume,
+        prenume: sportiv.prenume,
+        email: sportiv.email,
+        username: sportiv.username || '',
+        parola: '',
+        confirmParola: ''
+    });
+    const [profileSuccessMessage, setProfileSuccessMessage] = useState('');
+    const [profileErrorMessage, setProfileErrorMessage] = useState('');
+    const [profileLoading, setProfileLoading] = useState(false);
+
+    const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setProfileFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    };
+
+    const handleProfileSave = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!supabase) {
+            setProfileErrorMessage("Eroare de configurare: Conexiunea la baza de date nu a putut fi stabilită.");
+            return;
+        }
+        if (profileFormData.parola && profileFormData.parola !== profileFormData.confirmParola) {
+            setProfileErrorMessage("Parolele nu se potrivesc.");
+            return;
+        }
+        
+        setProfileLoading(true);
+        setProfileErrorMessage('');
+        setProfileSuccessMessage('');
+
+        if (profileFormData.username && profileFormData.username !== sportiv.username) {
+            const { data: existingUser, error: checkError } = await supabase.from('sportivi').select('id').eq('username', profileFormData.username).not('id', 'eq', sportiv.id).limit(1);
+            if (checkError) { setProfileErrorMessage(`Eroare la verificare: ${checkError.message}`); setProfileLoading(false); return; }
+            if (existingUser && existingUser.length > 0) { setProfileErrorMessage('Numele de utilizator este deja folosit.'); setProfileLoading(false); return; }
+        }
+
+        const authUpdates: any = {};
+        if (profileFormData.email !== sportiv.email) authUpdates.email = profileFormData.email;
+        if (profileFormData.parola) authUpdates.password = profileFormData.parola;
+        if (Object.keys(authUpdates).length > 0) {
+            const { error: authError } = await supabase.auth.updateUser(authUpdates);
+            if (authError) { setProfileErrorMessage(`Eroare la actualizarea autentificării: ${authError.message}`); setProfileLoading(false); return; }
+        }
+
+        const profileUpdates = { nume: profileFormData.nume, prenume: profileFormData.prenume, email: profileFormData.email, username: profileFormData.username };
+        const { data, error } = await supabase.from('sportivi').update(profileUpdates).eq('user_id', sportiv.user_id).select().single();
+
+        if (error) { setProfileErrorMessage(`Eroare la actualizarea profilului: ${error.message}`); setProfileLoading(false); return; }
+
+        if(data) {
+            const updatedUser = data as User;
+            setSportivi(prev => prev.map(s => s.id === sportiv.id ? updatedUser : s));
+            setCurrentUser(updatedUser);
+        }
+        
+        setProfileSuccessMessage("Profilul a fost actualizat cu succes!");
+        setProfileFormData(prev => ({ ...prev, parola: '', confirmParola: '' }));
+        setTimeout(() => setProfileSuccessMessage(''), 3000);
+        setProfileLoading(false);
+    };
     
     const sportivParticipari = useMemo(() => participari.filter(p => p.sportiv_id === sportiv.id), [participari, sportiv.id]);
     const sportivPrezente = useMemo(() => prezente.filter(p => p.sportivi_prezenti_ids.includes(sportiv.id)), [prezente, sportiv.id]);
@@ -132,15 +197,6 @@ export const PortalSportiv: React.FC<PortalSportivProps> = ({ sportiv, onLogout,
                  <Card>
                     <h2 className="text-3xl font-bold text-white">Bun venit, {sportiv.prenume}!</h2>
                     <p className="text-slate-400">Acesta este panoul tău personal.</p>
-                    <div className="border-t border-slate-700 mt-4 pt-4">
-                        <h3 className="text-lg font-bold text-white mb-4">Date Personale</h3>
-                        <dl className="grid grid-cols-2 gap-x-4 gap-y-6">
-                            <DataField label="CNP" value={sportiv.cnp} />
-                            <DataField label="Data Înscrierii" value={new Date(sportiv.data_inscrierii).toLocaleDateString('ro-RO')} />
-                            <DataField label="Înălțime" value={sportiv.inaltime ? `${sportiv.inaltime} cm` : 'N/A'} />
-                            <DataField label="Club Proveniență" value={sportiv.club_provenienta} />
-                        </dl>
-                    </div>
                 </Card>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <Card>
@@ -197,6 +253,28 @@ export const PortalSportiv: React.FC<PortalSportivProps> = ({ sportiv, onLogout,
                     </div>
                 </Card>
 
+                <Card>
+                    <h2 className="text-2xl font-bold text-white mb-4">Profil & Securitate</h2>
+                    <form onSubmit={handleProfileSave} className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <Input label="Nume" name="nume" value={profileFormData.nume} onChange={handleProfileChange} required />
+                            <Input label="Prenume" name="prenume" value={profileFormData.prenume} onChange={handleProfileChange} required />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <Input label="Email (Login)" name="email" type="email" value={profileFormData.email} onChange={handleProfileChange} required />
+                            <Input label="Nume Utilizator" name="username" type="text" value={profileFormData.username} onChange={handleProfileChange} placeholder="ex: ion.popescu"/>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <Input label="Parolă Nouă (lasă gol pentru a o păstra)" name="parola" type="password" value={profileFormData.parola} onChange={handleProfileChange} />
+                            <Input label="Confirmă Parola Nouă" name="confirmParola" type="password" value={profileFormData.confirmParola} onChange={handleProfileChange} />
+                        </div>
+                        {profileErrorMessage && <p className="text-red-400 text-sm text-center">{profileErrorMessage}</p>}
+                        <div className="flex justify-end items-center gap-4 pt-2">
+                            {profileSuccessMessage && <p className="text-green-400 text-sm font-semibold">{profileSuccessMessage}</p>}
+                            <Button type="submit" variant="success" disabled={profileLoading}>{profileLoading ? 'Se salvează...' : 'Salvează Modificările'}</Button>
+                        </div>
+                    </form>
+                </Card>
             </main>
         </div>
     );

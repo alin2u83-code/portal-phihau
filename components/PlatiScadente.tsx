@@ -1,8 +1,6 @@
-
 import React, { useState, useMemo } from 'react';
 import { Plata, Sportiv, TipAbonament, Familie } from '../types';
 import { Button, Input, Select, Card } from './ui';
-// FIX: Added ArrowLeftIcon to imports
 import { EditIcon, ArrowLeftIcon } from './icons';
 
 interface PlatiScadenteProps { 
@@ -12,7 +10,6 @@ interface PlatiScadenteProps {
     familii: Familie[]; 
     tipuriAbonament: TipAbonament[]; 
     onIncaseazaAcum: (plata: Plata) => void;
-    // FIX: Added onBack to props interface
     onBack: () => void;
 }
 
@@ -137,7 +134,6 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
 
     return ( 
     <div>
-        {/* FIX: Added "Back to Menu" button for navigation consistency */}
         <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
         <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl font-bold text-white">Plăți Scadente & Istoric</h1>

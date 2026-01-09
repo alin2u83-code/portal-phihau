@@ -134,14 +134,29 @@ function App() {
 
     const fetchUserProfile = async (userId: string) => {
         if (!supabase) return;
-        const { data, error } = await supabase.from('sportivi').select('*').eq('user_id', userId).single();
+        // Folosim .select() fără .single() pentru a gestiona 0 sau mai multe rezultate
+        const { data, error } = await supabase.from('sportivi').select('*').eq('user_id', userId);
+
         if (error) {
             console.error("Eroare la preluarea profilului utilizator:", error);
-            setFetchError(`Nu s-a putut încărca profilul. Motiv: ${error.message}. Asigurați-vă că politicile RLS (Row Level Security) permit citirea propriului profil. Încercați să vă autentificați din nou.`);
+            setFetchError(`Eroare la preluarea profilului. Motiv: ${error.message}. Asigurați-vă că politicile RLS (Row Level Security) permit accesul. Încercați să vă autentificați din nou.`);
             setCurrentUser(null);
             setLoading(false);
-        } else if (data) {
-            setCurrentUser(data as User);
+        } else if (data && data.length === 1) {
+            // Cazul ideal: un singur profil găsit
+            setCurrentUser(data[0] as User);
+        } else if (data && data.length > 1) {
+            // Problemă de integritate a datelor: mai multe profile pentru același user_id
+            console.error("Data integrity issue: Multiple profiles found for user_id:", userId);
+            setFetchError(`Au fost găsite mai multe profile asociate contului dvs. Vă rugăm contactați administratorul.`);
+            setCurrentUser(null);
+            setLoading(false);
+        } else {
+            // Niciun profil găsit pentru user_id-ul curent
+            console.error("No profile found for user_id:", userId);
+            setFetchError(`Profilul dvs. nu a fost găsit în baza de date. Este posibil să nu fi fost creat corect. Vă rugăm contactați administratorul.`);
+            setCurrentUser(null);
+            setLoading(false);
         }
     };
     
@@ -306,7 +321,23 @@ function App() {
           <main className="container mx-auto px-4 sm:px-6 lg:px-8 pb-8">{renderAdminContent()}</main>
         </>
       ) : (
-        <PortalSportiv sportiv={currentUser} onLogout={handleLogout} participari={participari} examene={examene} grade={grade} prezente={prezente} grupe={grupe} plati={plati} setPlati={setPlati} evenimente={evenimente} rezultate={rezultate} setRezultate={setRezultate} preturiConfig={preturiConfig} />
+        <PortalSportiv 
+            sportiv={currentUser} 
+            onLogout={handleLogout} 
+            participari={participari} 
+            examene={examene} 
+            grade={grade} 
+            prezente={prezente} 
+            grupe={grupe} 
+            plati={plati} 
+            setPlati={setPlati} 
+            evenimente={evenimente} 
+            rezultate={rezultate} 
+            setRezultate={setRezultate} 
+            preturiConfig={preturiConfig}
+            setSportivi={setSportivi}
+            setCurrentUser={setCurrentUser}
+        />
       )}
     </div>
   );

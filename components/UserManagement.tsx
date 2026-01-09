@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Sportiv, User } from '../types';
-import { Button, Input, Card, Select } from './ui';
+import { Button, Input, Card, Select, Modal } from './ui';
 import { ArrowLeftIcon, EditIcon, ShieldCheckIcon } from './icons';
 import { supabase } from '../supabaseClient';
 
@@ -139,6 +139,12 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
     const [editingId, setEditingId] = useState<string | null>(null);
     const [newRol, setNewRol] = useState<User['rol']>('Sportiv');
     const [showSuccessId, setShowSuccessId] = useState<string | null>(null);
+
+    const [isCreateAccountModalOpen, setIsCreateAccountModalOpen] = useState(false);
+    const [selectedUserForAccount, setSelectedUserForAccount] = useState<Sportiv | null>(null);
+    const [createAccountForm, setCreateAccountForm] = useState({ email: '', username: '', parola: '' });
+    const [createAccountError, setCreateAccountError] = useState('');
+    const [createAccountLoading, setCreateAccountLoading] = useState(false);
     
     const handleEdit = (user: User) => {
         setEditingId(user.id);
@@ -149,7 +155,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
         setEditingId(null);
     };
 
-    const handleSave = async (userId: string) => {
+    const handleSaveRole = async (userId: string) => {
         if (!supabase) {
             alert("Eroare de configurare: Conexiunea la baza de date nu a putut fi stabilită.");
             return;
@@ -169,6 +175,62 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
         setEditingId(null);
         setTimeout(() => setShowSuccessId(null), 3000);
     };
+
+    const handleOpenCreateAccountModal = (user: Sportiv) => {
+        setSelectedUserForAccount(user);
+        setCreateAccountForm({
+            email: user.email,
+            username: user.username || `${user.prenume.toLowerCase()}.${user.nume.toLowerCase()}`.replace(/\s/g, ''),
+            parola: ''
+        });
+        setIsCreateAccountModalOpen(true);
+        setCreateAccountError('');
+    };
+
+    const handleCreateAccountFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setCreateAccountForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    };
+
+    const handleCreateAccount = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!supabase || !selectedUserForAccount) return;
+        if (!createAccountForm.email || !createAccountForm.parola) {
+            setCreateAccountError("Email-ul și parola sunt obligatorii.");
+            return;
+        }
+        setCreateAccountLoading(true);
+        setCreateAccountError('');
+
+        if (createAccountForm.username) {
+            const { data: existingUser, error: checkError } = await supabase.from('sportivi').select('id').eq('username', createAccountForm.username).limit(1);
+            if (checkError) { setCreateAccountError(`Eroare la verificare: ${checkError.message}`); setCreateAccountLoading(false); return; }
+            if (existingUser && existingUser.length > 0) { setCreateAccountError('Numele de utilizator este deja folosit.'); setCreateAccountLoading(false); return; }
+        }
+
+        const { data: authData, error: authError } = await supabase.auth.signUp({ email: createAccountForm.email, password: createAccountForm.parola });
+
+        if (authError) {
+            setCreateAccountError(`Eroare la crearea contului: ${authError.message}`);
+            setCreateAccountLoading(false);
+            return;
+        }
+
+        if (authData.user) {
+            const profileUpdates = { user_id: authData.user.id, email: createAccountForm.email, username: createAccountForm.username };
+            const { data, error } = await supabase.from('sportivi').update(profileUpdates).eq('id', selectedUserForAccount.id).select().single();
+
+            if (error) {
+                setCreateAccountError(`Cont creat, dar eroare la legarea profilului: ${error.message}`);
+            } else if (data) {
+                setSportivi(prev => prev.map(s => s.id === selectedUserForAccount.id ? data as Sportiv : s));
+                setIsCreateAccountModalOpen(false);
+                setShowSuccessId(selectedUserForAccount.id);
+                 setTimeout(() => setShowSuccessId(null), 3000);
+            }
+        }
+        setCreateAccountLoading(false);
+    };
+
 
     return (
         <div>
@@ -208,7 +270,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                                                 </td>
                                                 <td className="p-2 text-right">
                                                     <div className="flex justify-end gap-2">
-                                                        <Button size="sm" variant="success" onClick={() => handleSave(user.id)}>Salvează</Button>
+                                                        <Button size="sm" variant="success" onClick={() => handleSaveRole(user.id)}>Salvează</Button>
                                                         <Button size="sm" variant="secondary" onClick={handleCancel}>Anulează</Button>
                                                     </div>
                                                 </td>
@@ -216,14 +278,24 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                                         ) : (
                                             <>
                                                 <td className="p-4">
-                                                    <span className={`px-2 py-1 text-xs font-semibold rounded-full text-white ${user.rol === 'Admin' ? 'bg-amber-600' : user.rol === 'Instructor' ? 'bg-sky-600' : 'bg-slate-600'}`}>
-                                                        {user.rol}
-                                                    </span>
+                                                    {user.user_id ? (
+                                                        <span className={`px-2 py-1 text-xs font-semibold rounded-full text-white ${user.rol === 'Admin' ? 'bg-amber-600' : user.rol === 'Instructor' ? 'bg-sky-600' : 'bg-slate-600'}`}>
+                                                            {user.rol}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-slate-500 text-white">
+                                                            Fără Cont
+                                                        </span>
+                                                    )}
                                                 </td>
                                                 <td className="p-4 text-right">
                                                     <div className="flex items-center justify-end gap-2">
                                                         {showSuccessId === user.id && <span className="text-sm text-green-400">Salvat!</span>}
-                                                        <Button onClick={() => handleEdit(user)} variant="primary" size="sm" disabled={user.id === currentUser.id}><EditIcon /></Button>
+                                                        {user.user_id ? (
+                                                            <Button onClick={() => handleEdit(user)} variant="primary" size="sm" disabled={user.id === currentUser.id}><EditIcon /></Button>
+                                                        ) : (
+                                                            <Button onClick={() => handleOpenCreateAccountModal(user)} variant="info" size="sm">Creează Cont</Button>
+                                                        )}
                                                     </div>
                                                 </td>
                                             </>
@@ -234,6 +306,21 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                         </table>
                     </div>
                 </Card>
+            )}
+
+            {isCreateAccountModalOpen && selectedUserForAccount && (
+                <Modal isOpen={isCreateAccountModalOpen} onClose={() => setIsCreateAccountModalOpen(false)} title={`Creează Cont pentru ${selectedUserForAccount.nume} ${selectedUserForAccount.prenume}`}>
+                    <form onSubmit={handleCreateAccount} className="space-y-4">
+                        <Input label="Email (Login)" name="email" type="email" value={createAccountForm.email} onChange={handleCreateAccountFormChange} required />
+                        <Input label="Nume Utilizator" name="username" type="text" value={createAccountForm.username} onChange={handleCreateAccountFormChange} placeholder="Opțional. Ex: ion.popescu"/>
+                        <Input label="Parolă Inițială" name="parola" type="password" value={createAccountForm.parola} onChange={handleCreateAccountFormChange} required />
+                        {createAccountError && <p className="text-red-400 text-sm text-center bg-red-900/50 p-2 rounded">{createAccountError}</p>}
+                        <div className="flex justify-end pt-4 space-x-2">
+                            <Button type="button" variant="secondary" onClick={() => setIsCreateAccountModalOpen(false)} disabled={createAccountLoading}>Anulează</Button>
+                            <Button type="submit" variant="success" disabled={createAccountLoading}>{createAccountLoading ? 'Se creează...' : 'Creează Cont'}</Button>
+                        </div>
+                    </form>
+                </Modal>
             )}
         </div>
     );

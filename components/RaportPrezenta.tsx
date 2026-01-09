@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Prezenta, Sportiv, Grupa } from '../types';
 import { Card, Input, Select, Button } from './ui';
@@ -56,11 +55,72 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ prezente, sporti
         const years = new Set(allRecords.map(r => new Date(r.data).getFullYear()));
         return Array.from(years).sort((a,b) => Number(b) - Number(a));
     }, [allRecords]);
+    
+    const attendanceSummary = useMemo(() => {
+        const summaryRecords = allRecords.filter(rec => {
+            const recordDate = new Date(rec.data);
+            const year = recordDate.getFullYear();
+
+            const nameMatch = searchTerm === '' || rec.sportivNume.toLowerCase().includes(searchTerm.toLowerCase());
+            const grupaMatch = grupaFilter === '' || rec.grupaId === grupaFilter;
+            const yearMatch = yearFilter === '' || year === parseInt(yearFilter);
+            const tipMatch = tipFilter === '' || rec.tip === tipFilter;
+
+            return nameMatch && grupaMatch && yearMatch && tipMatch;
+        });
+
+        const summary: { [sportivNume: string]: { monthly: number[], total: number } } = {};
+        summaryRecords.forEach(rec => {
+            if (!summary[rec.sportivNume]) {
+                summary[rec.sportivNume] = { monthly: Array(12).fill(0), total: 0 };
+            }
+            const monthIndex = new Date(rec.data).getMonth(); // 0-11
+            summary[rec.sportivNume].monthly[monthIndex]++;
+            summary[rec.sportivNume].total++;
+        });
+
+        return Object.entries(summary)
+            .map(([sportivNume, data]) => ({ sportivNume, ...data }))
+            .sort((a, b) => a.sportivNume.localeCompare(b.sportivNume));
+    }, [allRecords, searchTerm, grupaFilter, yearFilter, tipFilter]);
+
+    const monthNames = ["Ian", "Feb", "Mar", "Apr", "Mai", "Iun", "Iul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
     return (
         <div>
             <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
             <h1 className="text-3xl font-bold text-white mb-6">Raport General Prezențe</h1>
+            
+            <Card className="mb-8">
+                <h2 className="text-xl font-bold text-white mb-4">Sumar Prezențe pentru Anul {yearFilter || new Date().getFullYear()}</h2>
+                <div className="bg-slate-800 rounded-lg shadow-lg overflow-x-auto">
+                    <table className="w-full text-left min-w-[1000px]">
+                        <thead className="bg-slate-700 text-xs uppercase">
+                            <tr>
+                                <th className="p-3 font-semibold">Sportiv</th>
+                                {monthNames.map(month => <th key={month} className="p-3 font-semibold text-center">{month}</th>)}
+                                <th className="p-3 font-semibold text-center">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {attendanceSummary.map(({ sportivNume, monthly, total }) => (
+                                <tr key={sportivNume} className="border-b border-slate-700 hover:bg-slate-700/30">
+                                    <td className="p-3 font-medium">{sportivNume}</td>
+                                    {monthly.map((count, index) => (
+                                        <td key={index} className={`p-3 text-center ${count > 0 ? 'font-semibold text-white' : 'text-slate-500'}`}>
+                                            {count}
+                                        </td>
+                                    ))}
+                                    <td className="p-3 text-center font-bold text-brand-secondary">{total}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                    {attendanceSummary.length === 0 && <p className="p-4 text-center text-slate-400">Niciun sportiv găsit conform filtrelor pentru sumar.</p>}
+                </div>
+            </Card>
+
+            <h2 className="text-2xl font-bold text-white mb-4">Jurnal Detaliat Prezențe</h2>
             <Card>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6 p-4 bg-slate-700/50 rounded-lg">
                     <Input label="Caută după nume" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Nume sportiv..."/>

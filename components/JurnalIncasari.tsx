@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { Plata, Sportiv, PretConfig, TipAbonament, Tranzactie } from '../types';
 import { Button, Input, Select, Card } from './ui';
@@ -126,6 +125,8 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ plati, setPlati,
 
         const sportiv = sportivi.find(s => s.id === formState.sportiv_id);
         const numeSportiv = sportiv ? `${sportiv.nume} ${sportiv.prenume}` : `Familia ${sportivi.find(s => s.familie_id === plataInitiala?.familie_id)?.nume}`;
+        
+        setShowSuccess(`Încasarea pentru ${numeSportiv} a fost înregistrată cu succes!`);
 
         if (plataInitiala) {
             const restDePlata = plataInitiala.suma - sumaPlatita;
@@ -138,18 +139,21 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ plati, setPlati,
                 setPlati(prev => prev.map(p => p.id === plataInitiala.id ? { ...p, status: 'Achitat', suma: sumaPlatita, metoda_plata: formState.metoda_plata, data_platii: formState.data_platii, observatii: formState.observatii } : p));
             }
             onIncasareProcesata();
+            setTimeout(() => {
+                onBack();
+            }, 1500);
+
         } else {
             if(!sportiv) return;
             const newPlata: Plata = { id: new Date().toISOString(), sportiv_id: sportiv.id, familie_id: sportiv.familie_id, suma: sumaPlatita, data: formState.data_platii!, status: 'Achitat', descriere: formState.descriere, tip: formState.tip, metoda_plata: formState.metoda_plata, data_platii: formState.data_platii, observatii: formState.observatii };
             setPlati(prev => [...prev, newPlata]);
             setTranzactii(prev => [...prev, {id: new Date().toISOString(), plata_ids: [newPlata.id], sportiv_id: sportiv.id, familie_id: sportiv.familie_id, suma: sumaPlatita, data_platii: formState.data_platii!, metoda_plata: formState.metoda_plata!}]);
+            
+            setTimeout(() => setShowSuccess(null), 4000);
+            setFormState(emptyIncasareState);
+            setSelectedEchipament('');
+            setSelectedMarimeId('');
         }
-        
-        setShowSuccess(`Încasarea pentru ${numeSportiv} a fost înregistrată cu succes!`);
-        setTimeout(() => setShowSuccess(null), 4000);
-        setFormState(emptyIncasareState);
-        setSelectedEchipament('');
-        setSelectedMarimeId('');
     };
 
     const platiAchitate = useMemo(() => plati.filter(p => p.status === 'Achitat').sort((a,b) => new Date(b.data_platii!).getTime() - new Date(a.data_platii!).getTime()), [plati]);

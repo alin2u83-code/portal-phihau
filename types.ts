@@ -75,9 +75,7 @@ export interface Grupa {
 export interface Eveniment {
     id: string;
     denumire: string;
-    // data represents the start date of the event
     data: string;
-    data_sfarsit?: string | null;
     locatie: string;
     organizator: string;
     tip: 'Stagiu' | 'Competitie';

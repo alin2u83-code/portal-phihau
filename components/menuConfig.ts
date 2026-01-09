@@ -51,7 +51,7 @@ export const adminMenu: MenuItem[] = [
         label: 'Financiar', 
         icon: BanknotesIcon, 
         submenu: [ 
-            { view: 'plati-scadente', label: 'Facturi (Datorii)' }, 
+            { view: 'plati-scadente', label: 'Facturi' }, 
             { view: 'jurnal-incasari', label: 'Jurnal Încasări' }, 
             { view: 'raport-financiar', label: 'Raport Financiar' }, 
         ] 

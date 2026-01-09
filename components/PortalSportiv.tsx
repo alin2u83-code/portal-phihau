@@ -288,7 +288,8 @@ export const PortalSportiv: React.FC<PortalSportivProps> = ({ currentUser, viewe
                             <div className="flex justify-between items-start flex-wrap gap-2">
                                 <div>
                                     <p className="font-bold">{ev.denumire} <span className={`ml-2 text-[10px] px-2 py-0.5 rounded-full text-white ${ev.tip === 'Stagiu' ? 'bg-sky-600' : 'bg-purple-600'}`}>{ev.tip}</span></p>
-                                    <p className="text-xs text-slate-400">{formatDateRange(ev.data, ev.data_sfarsit)} - {ev.locatie}</p>
+                                    {/* FIX: The 'Eveniment' type does not have a 'data_sfarsit' property. The call to 'formatDateRange' has been updated to only pass the 'data' property, which is valid since the second argument is optional. */}
+<p className="text-xs text-slate-400">{formatDateRange(ev.data)} - {ev.locatie}</p>
                                 </div>
                                 {isViewingOwnProfile && (
                                     <div className="text-right">

@@ -131,9 +131,9 @@ export const PrezentaManagement: React.FC<PrezentaManagementProps> = ({ sportivi
     return (
         <div>
             <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
-            <h1 className="text-3xl font-bold text-slate-900 mb-6">Prezență Antrenament</h1>
+            <h1 className="text-3xl font-bold text-white mb-6">Prezență Antrenament</h1>
             <Card>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 bg-slate-100 rounded-lg items-end border border-slate-200">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 bg-slate-700/50 rounded-lg items-end">
                     <Input label="Data" type="date" value={dataSelectata} onChange={e => setDataSelectata(e.target.value)} />
                     <Input label="Ora" type="time" value={oraSelectata} onChange={e => setOraSelectata(e.target.value)} />
                      <Select label="Tip Antrenament" name="tipAntrenament" value={tipAntrenament} onChange={e => setTipAntrenament(e.target.value as any)}>
@@ -142,9 +142,9 @@ export const PrezentaManagement: React.FC<PrezentaManagementProps> = ({ sportivi
                     </Select>
                 </div>
 
-                <div className="p-4 rounded-lg bg-slate-100 border border-slate-200">
+                <div className="p-4 rounded-lg">
                      <div className="flex justify-between items-center">
-                        <h3 className="text-xl font-semibold text-slate-900">
+                        <h3 className="text-xl font-semibold text-white">
                            {tipAntrenament === 'Vacanta' ? "Listă Sportivi de Vacanță" : "Listă Sportivi Grupă"}
                         </h3>
                     </div>
@@ -157,21 +157,21 @@ export const PrezentaManagement: React.FC<PrezentaManagementProps> = ({ sportivi
                     
                     <div className="space-y-3 mt-4">
                         {sportiviAfisati.length > 0 ? sportiviAfisati.map(sportiv => (
-                            <div key={sportiv.id} className="flex items-center justify-between bg-white p-3 rounded-md border border-slate-200">
-                                <label htmlFor={`check-${sportiv.id}`} className="font-medium cursor-pointer flex items-center text-slate-800">
+                            <div key={sportiv.id} className="flex items-center justify-between bg-slate-800/50 p-3 rounded-md border border-slate-700">
+                                <label htmlFor={`check-${sportiv.id}`} className="font-medium cursor-pointer flex items-center text-white">
                                     {platiRestante.has(sportiv.id) && <span className="w-3 h-3 bg-red-500 rounded-full mr-3" title="Abonament neachitat"></span>}
                                     {sportiv.nume} {sportiv.prenume} 
                                     {tipAntrenament === 'Normal' && extraSportiviIds.has(sportiv.id) && <span className="ml-2 text-xs bg-sky-500 text-white px-2 py-0.5 rounded-full">Ad-hoc</span>}
                                 </label>
                                 <input id={`check-${sportiv.id}`} type="checkbox" className="h-6 w-6 rounded border-slate-400 text-brand-primary focus:ring-brand-secondary cursor-pointer" checked={sportiviPrezenti.has(sportiv.id)} onChange={() => handleTogglePrezenta(sportiv.id)}/>
                             </div>
-                        )) : <p className="text-slate-500 text-center py-4">Niciun sportiv de afișat conform filtrelor.</p>}
+                        )) : <p className="text-slate-400 text-center py-4">Niciun sportiv de afișat conform filtrelor.</p>}
                     </div>
                 </div>
 
                 {tipAntrenament === 'Normal' && (
-                    <Card className="mt-6 bg-slate-50">
-                        <h4 className="font-semibold mb-2 text-slate-900">Adaugă sportiv ad-hoc</h4>
+                    <Card className="mt-6">
+                        <h4 className="font-semibold mb-2 text-white">Adaugă sportiv ad-hoc</h4>
                         <div className="flex gap-4">
                             <Select label="" value={addSportivId} onChange={e => setAddSportivId(e.target.value)} className="flex-grow">
                                 <option value="">Selectează un sportiv...</option>
@@ -183,7 +183,7 @@ export const PrezentaManagement: React.FC<PrezentaManagementProps> = ({ sportivi
                 )}
 
                 <div className="mt-6 flex justify-end items-center gap-4">
-                    {showSuccess && <p className="text-green-600 font-semibold">Datele au fost salvate cu succes!</p>}
+                    {showSuccess && <p className="text-green-400 font-semibold">Datele au fost salvate cu succes!</p>}
                     <Button onClick={handleSavePrezente} variant="success" disabled={loading}>
                         {loading ? 'Se salvează...' : 'Salvează Prezențele'}
                     </Button>

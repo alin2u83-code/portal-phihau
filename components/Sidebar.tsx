@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, View } from '../types';
-import { logoBase64 } from '../assets/logo';
 import { adminMenu, sportivMenu, MenuItem } from './menuConfig';
+import { logoBase64 } from '../assets/logo';
 // FIX: Imported `UserCircleIcon`
 import { ArrowRightOnRectangleIcon, Bars3Icon, ChevronDownIcon, UserCircleIcon } from './icons';
 
@@ -88,9 +88,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
              {/* Logo and Club Name */}
             <div className="flex items-center justify-center p-4 border-b border-white/10 cursor-pointer" onClick={() => handleNavigate('dashboard')}>
                 {/* 
-                    Dacă doriți să folosiți un logo din Supabase Storage, înlocuiți `src={logoBase64}` cu:
-                    src={"URL-UL-PUBLIC-DE-LA-SUPABASE-STORAGE"}
-                    Asigurați-vă că bucket-ul este public.
+                    Logo-ul este acum încărcat din variabila `logoBase64`.
+                    Dacă doriți să folosiți un logo din Supabase Storage, înlocuiți `src={logoBase64}` cu `src="URL_PUBLIC_SUPABASE"`.
+                    Exemplu: src={"https://<id>.supabase.co/storage/v1/object/public/logos/logo-phihau.png"}
                 */}
                 <img 
                     src={logoBase64} 

@@ -21,43 +21,47 @@ export const Login: React.FC<LoginProps> = () => {
             return;
         }
 
-        let email = identifier;
+        let emailToAuth = identifier.trim();
         
-        // Verifică dacă este username sau email
-        if (!identifier.includes('@')) {
+        // Dacă nu conține '@', tratăm input-ul ca pe un username.
+        if (!emailToAuth.includes('@')) {
+            // Curățăm username-ul la fel cum o facem la salvare pentru a asigura potrivirea.
+            const cleanedUsername = emailToAuth.toLowerCase().replace(/\s/g, '');
+
             const { data, error: usernameError } = await supabase
                 .from('sportivi')
                 .select('email')
-                .eq('username', identifier)
+                .eq('username', cleanedUsername)
                 .single();
             
-            if (usernameError || !data) {
-                setError('Numele de utilizator nu a fost găsit.');
-                setLoading(false);
-                return;
+            // Dacă găsim utilizatorul și are un email valid, îl folosim pentru autentificare.
+            if (!usernameError && data && data.email) {
+                emailToAuth = data.email;
             }
-            email = data.email;
+            // Dacă nu-l găsim, lăsăm 'emailToAuth' ca fiind username-ul introdus,
+            // iar supabase.auth.signInWithPassword va eșua, declanșând eroarea noastră generică.
         }
 
-        const { error } = await supabase.auth.signInWithPassword({
-            email: email,
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+            email: emailToAuth,
             password: parola,
         });
 
-        if (error) {
-            setError(error.message);
+        if (signInError) {
+            // Afișăm un mesaj generic pentru securitate, indiferent de tipul erorii.
+            setError('Date de autentificare invalide. Verificați email/utilizator și parola.');
         } 
-        // Nu este nevoie de else, onAuthStateChange din App.tsx va prelua controlul
+        // Nu este nevoie de `else`, onAuthStateChange din App.tsx va prelua controlul la succes.
         setLoading(false);
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-900 p-4">
+        <div className="min-h-screen flex items-center justify-center bg-slate-100 p-4">
             <div className="w-full max-w-md">
                 <Card>
                     <div className="text-center mb-8">
-                        <h1 className="text-3xl font-bold text-white">Portal Phi Hau Iași</h1>
-                        <p className="text-slate-400 mt-2">Autentificare în cont</p>
+                        <h1 className="text-3xl font-bold text-slate-900">Portal Phi Hau Iași</h1>
+                        <p className="text-slate-600 mt-2">Autentificare în cont</p>
                     </div>
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <Input
@@ -82,7 +86,7 @@ export const Login: React.FC<LoginProps> = () => {
                         />
 
                         {error && (
-                            <p className="text-sm text-red-400 bg-red-800/50 p-3 rounded-md text-center">{error}</p>
+                            <p className="text-sm text-red-600 bg-red-100 p-3 rounded-md text-center">{error}</p>
                         )}
                         
                         <Button type="submit" className="w-full" size="md" disabled={loading}>

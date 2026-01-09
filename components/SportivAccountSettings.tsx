@@ -16,6 +16,8 @@ export const SportivAccountSettings: React.FC<SportivAccountSettingsProps> = ({ 
     const [formData, setFormData] = useState({
         email: '',
         username: '',
+        parola: '',
+        confirmParola: '',
     });
     const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
@@ -27,8 +29,10 @@ export const SportivAccountSettings: React.FC<SportivAccountSettingsProps> = ({ 
 
     useEffect(() => {
         setFormData({
-            email: sportiv.email || '', // Ensure it's not null
+            email: sportiv.email || '',
             username: sportiv.username || '',
+            parola: '',
+            confirmParola: '',
         });
         setSelectedRoleIds(sportiv.roluri.map(r => r.id));
     }, [sportiv]);
@@ -54,10 +58,36 @@ export const SportivAccountSettings: React.FC<SportivAccountSettingsProps> = ({ 
             setErrorMessage("Utilizatorii cu un cont de acces trebuie să aibă o adresă de email.");
             return;
         }
+
+        if (formData.parola && formData.parola !== formData.confirmParola) {
+            setErrorMessage("Parolele nu se potrivesc.");
+            return;
+        }
         
         setLoading(true);
         setErrorMessage('');
         setSuccessMessage('');
+        
+        // ---- PASSWORD UPDATE ----
+        // Aceasta necesită o funcție pe server (RPC) cu privilegii de admin, deoarece nu se poate schimba parola altui utilizator de pe client.
+        if (formData.parola && hasAccount && sportiv.user_id) {
+             try {
+                // Presupunem că există o funcție RPC 'update_user_password' pe backend.
+                // Aceasta trebuie creată în Supabase SQL Editor.
+                const { error: rpcError } = await supabase.rpc('update_user_password', {
+                    user_id: sportiv.user_id,
+                    new_password: formData.parola
+                });
+
+                if (rpcError) throw rpcError;
+                
+            } catch (error: any) {
+                 setErrorMessage(`Eroare la actualizarea parolei: ${error.message}. Asigurați-vă că funcția RPC 'update_user_password' este configurată corect în Supabase.`);
+                 setLoading(false);
+                 return;
+            }
+        }
+        // ---- END PASSWORD UPDATE ----
 
         // ---- ROLE UPDATE LOGIC ----
         if (canEditRoles) {
@@ -86,8 +116,6 @@ export const SportivAccountSettings: React.FC<SportivAccountSettingsProps> = ({ 
 
         const cleanedUsername = formData.username.toLowerCase().replace(/\s/g, '');
         
-        // Always check for uniqueness if a username is provided.
-        // This is safer than trying to detect if the username has "changed", especially with case differences.
         if (cleanedUsername) {
             const { data: existingUser, error: checkError } = await supabase
                 .from('sportivi')
@@ -125,30 +153,11 @@ export const SportivAccountSettings: React.FC<SportivAccountSettingsProps> = ({ 
             
             setSportivi(prev => prev.map(s => s.id === sportiv.id ? updatedUser : s));
             setSuccessMessage("Setările de acces au fost actualizate!");
+            setFormData(prev => ({ ...prev, parola: '', confirmParola: ''})); // Curăță câmpurile de parolă
         }
         
         setLoading(false);
         setTimeout(() => setSuccessMessage(''), 4000);
-    };
-
-    const handleResetPassword = async () => {
-        if (!supabase) return;
-        if (!sportiv.email) {
-            setErrorMessage("Utilizatorul nu are o adresă de email setată pentru a trimite link-ul de resetare.");
-            return;
-        }
-        setLoading(true);
-        setErrorMessage('');
-        setSuccessMessage('');
-        const { error } = await supabase.auth.resetPasswordForEmail(sportiv.email, {
-            redirectTo: window.location.origin,
-        });
-        setLoading(false);
-        if (error) {
-            setErrorMessage(`Eroare resetare: ${error.message}`);
-        } else {
-            setSuccessMessage("Email de resetare parolă trimis sportivului!");
-        }
     };
 
     return (
@@ -162,21 +171,21 @@ export const SportivAccountSettings: React.FC<SportivAccountSettingsProps> = ({ 
                         <ShieldCheckIcon className="w-8 h-8 text-white" />
                     </div>
                     <div>
-                        <h2 className="text-2xl font-bold text-white">Setări Cont & Roluri</h2>
-                        <p className="text-slate-400">pentru {sportiv.nume} {sportiv.prenume}</p>
+                        <h2 className="text-2xl font-bold text-slate-900">Setări Cont & Roluri</h2>
+                        <p className="text-slate-600">pentru {sportiv.nume} {sportiv.prenume}</p>
                     </div>
                 </div>
                 
-                <form onSubmit={handleSave} className="space-y-6 pt-6 border-t border-slate-700">
+                <form onSubmit={handleSave} className="space-y-6 pt-6 border-t border-slate-200">
                     {canEditRoles && (
                         <div>
-                            <h3 className="text-lg font-semibold text-white mb-2">Roluri</h3>
-                            <div className="flex flex-wrap gap-x-6 gap-y-2 p-4 bg-slate-700/50 rounded-lg">
+                            <h3 className="text-lg font-semibold text-slate-900 mb-2">Roluri</h3>
+                            <div className="flex flex-wrap gap-x-6 gap-y-2 p-4 bg-slate-100 rounded-lg border border-slate-200">
                                 {allRoles.map(role => (
                                     <label key={role.id} className="flex items-center space-x-2 text-sm cursor-pointer">
                                         <input
                                             type="checkbox"
-                                            className="h-5 w-5 rounded border-slate-500 bg-slate-800 text-primary-600 focus:ring-primary-500"
+                                            className="h-5 w-5 rounded border-slate-400 bg-white text-brand-primary focus:ring-brand-secondary"
                                             checked={selectedRoleIds.includes(role.id)}
                                             onChange={(e) => handleRoleChange(role.id, e.target.checked)}
                                         />
@@ -188,8 +197,8 @@ export const SportivAccountSettings: React.FC<SportivAccountSettingsProps> = ({ 
                     )}
 
                     <div>
-                        <h3 className="text-lg font-semibold text-white mb-2">Date de Autentificare</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-slate-700/50 rounded-lg">
+                        <h3 className="text-lg font-semibold text-slate-900 mb-2">Date de Autentificare</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-slate-100 rounded-lg border border-slate-200">
                             <Input 
                                 label="Nume Utilizator (Username)" 
                                 name="username" 
@@ -207,21 +216,28 @@ export const SportivAccountSettings: React.FC<SportivAccountSettingsProps> = ({ 
                                 required={hasAccount}
                                 placeholder={hasAccount ? "Obligatoriu pentru conturi" : "Opțional"}
                             />
+                            <Input 
+                                label="Parolă Nouă (lasă gol pentru a o păstra)"
+                                name="parola"
+                                type="password"
+                                value={formData.parola}
+                                onChange={handleChange}
+                                disabled={!hasAccount}
+                                placeholder={hasAccount ? 'Introduceți parola nouă...' : 'Creați întâi un cont'}
+                            />
+                             <Input 
+                                label="Confirmă Parola Nouă"
+                                name="confirmParola"
+                                type="password"
+                                value={formData.confirmParola}
+                                onChange={handleChange}
+                                disabled={!hasAccount}
+                            />
                         </div>
                     </div>
-                    
-                    <div className="bg-slate-900/50 p-4 rounded-lg border border-slate-700">
-                        <h3 className="text-lg font-semibold text-white mb-2">Resetare Parolă</h3>
-                        <p className="text-sm text-slate-400 mb-4">
-                            Pentru a reseta parola, trimite un link securizat pe adresa de email a utilizatorului.
-                        </p>
-                        <Button type="button" onClick={handleResetPassword} variant="secondary" size="sm" disabled={loading || !hasAccount}>
-                            Trimite Link Resetare Email
-                        </Button>
-                    </div>
 
-                    {errorMessage && <div className="p-3 bg-status-danger/20 text-status-danger rounded-md text-sm text-center">{errorMessage}</div>}
-                    {successMessage && <div className="p-3 bg-status-success/20 text-status-success rounded-md text-sm text-center font-bold">{successMessage}</div>}
+                    {errorMessage && <div className="p-3 bg-status-danger/10 text-status-danger rounded-md text-sm text-center border border-status-danger/20">{errorMessage}</div>}
+                    {successMessage && <div className="p-3 bg-status-success/10 text-status-success rounded-md text-sm text-center font-bold border border-status-success/20">{successMessage}</div>}
 
                     <div className="flex justify-end pt-4">
                         <Button type="submit" variant="success" size="md" className="px-10" disabled={loading}>

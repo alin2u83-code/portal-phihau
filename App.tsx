@@ -24,22 +24,21 @@ import { Session } from '@supabase/supabase-js';
 import { FamilieDetail } from './components/FamilieDetail';
 import { SportivAccountSettings } from './components/SportivAccountSettings';
 import { EditareProfilPersonal } from './components/EditareProfilPersonal';
-
-const logoBase64 = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAMAAAD04JH5AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAGBQTFRF////AP8A/wAAAI6Oju7u7u7u7v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+7n+64AAAACh0Uk5TBA8YIiwuMTY5PEBITlRYWl9hY2Zpbm9ydHV2eXqAgYKEh4mKjI6PkpOU70F8bAAAAeFJREFUeNrs2u1SgzAMBuAsYFv3v9Z7OndpRyvI+ZByvj+I0KRP0pAm0H9+CBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECHwscG4f+Ezg8vOfz78O3P65P3D8K/B3YPdL4C0wYWAkwD9gwUCA38CAYQE/gQXDAn4BC8YEfAcWzAn4DSyYE/AXWDAf4Cew4DDAf4DDAK8BngM8BngK8BTgKcBTgKcAzwGeAzwGeArwFOApwFOApwDPAZ4DPAd4CvAU4CnAU4DnAKeBAU4DA5wGBjgNDHAaGOA0MMBpYIDTwACngQFOAwOcBgY4DQxwGhjgNDDAaWCA08AAp4EBTgMDnAYGOA0McBoY4DQwwGlggNPAMMDvAb8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvwIMAAInB78Y2Yp2AAAAAElFTkSuQmCC`;
+import { logoBase64 } from './assets/logo';
 
 const TopBar: React.FC<{ onLogout: () => void; onHome: () => void; user: User | null; isPortal?: boolean; onViewOwnPortal?: () => void; }> = ({ onLogout, onHome, user, isPortal = false, onViewOwnPortal }) => {
     const userName = user ? (user.roluri?.some(r => r.nume === 'Admin') ? 'Administrator' : `${user.nume} ${user.prenume}`) : '...';
     const isAdmin = user?.roluri?.some(r => r.nume === 'Admin');
 
     return (
-        <header className="bg-slate-800 shadow-md mb-8 border-b border-slate-700">
+        <header className="bg-brand-primary shadow-md mb-8 border-b border-blue-800">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
                  <div 
                     onClick={onHome} 
                     className="flex items-center gap-4 cursor-pointer group transition-all"
                     title="Mergi la ecranul principal"
                 >
-                    <div className="bg-white/5 p-1 rounded-lg group-hover:bg-brand-secondary/10 transition-colors">
+                    <div className="bg-white/10 p-1 rounded-lg group-hover:bg-brand-secondary/20 transition-colors">
                         <img src={logoBase64} alt="Phi Hau Iași Logo" className="h-10 w-10 object-contain" />
                     </div>
                     <span className="font-bold text-xl text-white hidden sm:block group-hover:text-brand-secondary transition-colors">
@@ -52,8 +51,8 @@ const TopBar: React.FC<{ onLogout: () => void; onHome: () => void; user: User | 
                             Portalul Meu
                         </Button>
                     )}
-                    <span className="text-slate-300 hidden md:block text-sm border-r border-slate-700 pr-4">
-                        <span className="text-slate-500 font-medium">Cont:</span> {userName}
+                    <span className="text-slate-200 hidden md:block text-sm border-r border-blue-700 pr-4">
+                        <span className="text-slate-400 font-medium">Cont:</span> {userName}
                     </span>
                     <Button onClick={onLogout} variant="danger" size="sm" className="shadow-lg shadow-red-900/20">
                         Deconectare
@@ -82,11 +81,11 @@ const SubMenu: React.FC<{ menuKey: NonNullable<MenuKey>; onSelectItem: (view: Vi
     return (
         <div>
             <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Dashboard</Button>
-            <h1 className="text-3xl font-bold text-white mb-6 text-center">{title}</h1>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
+            <h1 className="text-3xl font-bold text-slate-900 mb-6 text-center">{title}</h1>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
                 {visibleItems.map(item => (
-                    <div key={item.view} onClick={() => onSelectItem(item.view)}
-                         className="bg-brand-primary hover:bg-blue-800 text-white font-bold py-6 px-4 rounded-lg shadow-lg cursor-pointer text-center transition-colors">
+                    <div key={item.view} onClick={() => onSelectItem(item.view)}                         
+                         className="bg-brand-primary hover:bg-blue-900 text-white font-bold py-6 px-4 rounded-lg shadow-lg shadow-brand-primary/30 hover:shadow-brand-secondary/40 cursor-pointer text-center transition-all duration-300 transform hover:scale-105">
                         {item.label}
                     </div>
                 ))}
@@ -161,34 +160,27 @@ function App() {
     const fetchUserProfile = async (userId: string) => {
         if (!supabase) return;
         setLoading(true);
-        const { data, error } = await supabase
+        const { data: userProfile, error } = await supabase
             .from('sportivi')
             .select('*, sportivi_roluri(roluri(id, nume))')
-            .eq('user_id', userId);
+            .eq('user_id', userId)
+            .maybeSingle();
 
         if (error) {
             console.error("Eroare la preluarea profilului utilizator:", error);
             setFetchError(`Eroare la preluarea profilului. Motiv: ${error.message}.`);
             setCurrentUser(null);
             setViewingAs(null);
-        } else if (data && data.length > 0) {
-             let userProfileData;
-             if (data.length > 1) {
-                 console.warn(`Atenție: Au fost găsite mai multe profiluri pentru user_id ${userId}. Se va folosi primul profil activ, sau primul găsit.`);
-                 userProfileData = data.find(p => p.status === 'Activ') || data[0];
+        } else if (userProfile) {
+             const userProfileData = userProfile as any;
+             if (userProfileData.sportivi_roluri) {
+                userProfileData.roluri = userProfileData.sportivi_roluri.map((item: any) => item.roluri);
+                delete userProfileData.sportivi_roluri;
              } else {
-                 userProfileData = data[0];
+                userProfileData.roluri = [];
              }
-
-             const userProfile = userProfileData as any;
-             if (userProfile.sportivi_roluri) {
-                userProfile.roluri = userProfile.sportivi_roluri.map((item: any) => item.roluri);
-                delete userProfile.sportivi_roluri;
-             } else {
-                userProfile.roluri = [];
-             }
-            setCurrentUser(userProfile as User);
-            setViewingAs(userProfile as User);
+            setCurrentUser(userProfileData as User);
+            setViewingAs(userProfileData as User);
         } else {
             setFetchError(`Profilul dvs. nu a fost găsit în baza de date.`);
             setCurrentUser(null);
@@ -362,13 +354,13 @@ function App() {
   };
 
   if (!session) return <Login />;
-  if (fetchError) return <div className="min-h-screen flex items-center justify-center p-4"><Card><h2 className="text-red-400 text-xl font-bold mb-4">Eroare Autentificare</h2><p className="mb-6">{fetchError}</p><Button onClick={handleLogout} variant="secondary">Încearcă din nou</Button></Card></div>;
+  if (fetchError) return <div className="min-h-screen flex items-center justify-center p-4"><Card><h2 className="text-red-500 text-xl font-bold mb-4">Eroare Autentificare</h2><p className="mb-6">{fetchError}</p><Button onClick={handleLogout} variant="secondary">Încearcă din nou</Button></Card></div>;
   if (!currentUser) return <div className="min-h-screen flex items-center justify-center">Se încarcă profilul...</div>;
 
   const isPrivilegedUser = currentUser?.roluri?.some(r => r.nume === 'Admin' || r.nume === 'Instructor');
 
   return (
-    <div className="min-h-screen bg-slate-900 pb-12">
+    <div className="min-h-screen pb-12">
       <TopBar 
         onLogout={handleLogout} 
         onHome={handleBackToDashboard} 

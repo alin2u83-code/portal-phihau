@@ -20,9 +20,9 @@ const getAge = (dateString: string) => {
 
 const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
     const colorClasses: Record<Rol['nume'], string> = {
-        Admin: 'bg-red-600/80 text-white',
-        Instructor: 'bg-sky-600/80 text-white',
-        Sportiv: 'bg-slate-600/80 text-slate-200',
+        Admin: 'bg-red-500 text-white',
+        Instructor: 'bg-sky-500 text-white',
+        Sportiv: 'bg-slate-200 text-slate-700',
     };
     return (
         <span className={`px-2 py-1 text-xs font-semibold rounded-full ${colorClasses[role.nume]}`}>
@@ -49,8 +49,8 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({ formState, handle
         </div>
         
         {!isEditMode && (
-            <div className="bg-slate-900/40 p-4 rounded-lg border border-slate-700/50 my-4 space-y-4">
-                <h3 className="text-amber-400 font-bold flex items-center gap-2">
+            <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 my-4 space-y-4">
+                <h3 className="text-amber-600 font-bold flex items-center gap-2">
                     <ShieldCheckIcon className="w-5 h-5" /> Date Opționale Acces Cont
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -58,7 +58,7 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({ formState, handle
                     <Input label="Nume Utilizator (Login)" name="username" value={formState.username || ''} onChange={handleChange} />
                 </div>
                 <Input label="Parolă Inițială" name="parola" type="password" value={formState.parola} onChange={handleChange} />
-                <p className="text-xs text-slate-400 italic">Completați aceste câmpuri doar dacă doriți să creați și un cont de autentificare.</p>
+                <p className="text-xs text-slate-500 italic">Completați aceste câmpuri doar dacă doriți să creați și un cont de autentificare.</p>
             </div>
         )}
 
@@ -99,8 +99,8 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({ formState, handle
          </div>
 
         {customFields.length > 0 && (
-            <div className="border-t border-slate-700 pt-6 mt-6">
-                <h3 className="text-lg font-bold text-white mb-4">Câmpuri Suplimentare</h3>
+            <div className="border-t border-slate-200 pt-6 mt-6">
+                <h3 className="text-lg font-bold text-slate-900 mb-4">Câmpuri Suplimentare</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {customFields.map(field => (
                         <Input
@@ -132,7 +132,7 @@ const DataField: React.FC<{label: string, value: React.ReactNode, icon?: React.R
         <dt className="text-xs font-semibold text-slate-500 uppercase tracking-tight mb-1 flex items-center gap-1">
             {icon} {label}
         </dt>
-        <dd className="text-base text-white font-medium">{value || 'N/A'}</dd>
+        <dd className="text-base text-slate-900 font-medium">{value || 'N/A'}</dd>
     </div>
 );
 
@@ -164,7 +164,7 @@ const SportivDetail: React.FC<SportivDetailProps> = ({ sportiv, onBack, onUpdate
     const admittedParticipations = sportivParticipari.filter(p => p.rezultat === 'Admis');
     const gradActual = admittedParticipations.length > 0 
         ? getGrad(admittedParticipations[0].grad_sustinut_id, grade)?.nume 
-        : <span className="text-sky-400 italic">Începător</span>;
+        : <span className="text-sky-600 italic">Începător</span>;
 
     const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement> | { target: { name: string; value: any; } }) => {
         const { name, value } = e.target;
@@ -190,7 +190,7 @@ const SportivDetail: React.FC<SportivDetailProps> = ({ sportiv, onBack, onUpdate
             <div className="flex justify-between items-center">
                 <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi</Button>
                 <div className="flex gap-2">
-                    {saveStatus && <span className={`text-sm self-center ${saveStatus.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>{saveStatus.message}</span>}
+                    {saveStatus && <span className={`text-sm self-center ${saveStatus.type === 'success' ? 'text-green-600' : 'text-red-500'}`}>{saveStatus.message}</span>}
                     <Button onClick={() => setIsEditMode(!isEditMode)} variant={isEditMode ? 'secondary' : 'primary'} size="sm">
                         <EditIcon className="w-4 h-4 mr-2" /> {isEditMode ? 'Anulează' : 'Editează Profil'}
                     </Button>
@@ -202,16 +202,16 @@ const SportivDetail: React.FC<SportivDetailProps> = ({ sportiv, onBack, onUpdate
                 <div className="lg:col-span-2 space-y-6">
                     <Card className="border-l-4 border-l-brand-primary">
                         <div className="flex items-center gap-6 mb-8">
-                             <div className="w-24 h-24 rounded-2xl bg-slate-700 flex items-center justify-center text-3xl font-bold text-white shadow-xl border border-slate-600">
+                             <div className="w-24 h-24 rounded-2xl bg-slate-200 flex items-center justify-center text-3xl font-bold text-brand-primary shadow-xl border border-slate-300">
                                 {sportiv.nume[0]}{sportiv.prenume[0]}
                              </div>
                              <div>
-                                <h2 className="text-3xl font-extrabold text-white leading-tight uppercase">{sportiv.nume} {sportiv.prenume}</h2>
+                                <h2 className="text-3xl font-extrabold text-slate-900 leading-tight uppercase">{sportiv.nume} {sportiv.prenume}</h2>
                                 <div className="flex items-center gap-3 mt-2">
-                                    <span className="px-3 py-1 bg-brand-primary/20 text-sky-400 text-sm font-bold rounded-full border border-brand-primary/30">
+                                    <span className="px-3 py-1 bg-brand-primary/10 text-brand-primary text-sm font-bold rounded-full border border-brand-primary/20">
                                         {gradActual}
                                     </span>
-                                    <span className={`px-3 py-1 text-xs font-bold rounded-full uppercase ${sportiv.status === 'Activ' ? 'bg-green-600/20 text-green-400' : 'bg-red-600/20 text-red-400'}`}>
+                                    <span className={`px-3 py-1 text-xs font-bold rounded-full uppercase ${sportiv.status === 'Activ' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                                         {sportiv.status}
                                     </span>
                                 </div>
@@ -229,7 +229,7 @@ const SportivDetail: React.FC<SportivDetailProps> = ({ sportiv, onBack, onUpdate
                                     customFields={customFields} 
                                     isEditMode={true} 
                                 />
-                                <div className="flex justify-end pt-4 border-t border-slate-700">
+                                <div className="flex justify-end pt-4 border-t border-slate-200">
                                     <Button onClick={handleSave} variant="success" disabled={loading}>
                                         {loading ? 'Se salvează...' : 'Salvează Profilul'}
                                     </Button>
@@ -238,7 +238,7 @@ const SportivDetail: React.FC<SportivDetailProps> = ({ sportiv, onBack, onUpdate
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                                 <div className="space-y-6">
-                                    <h3 className="text-sm font-bold text-slate-400 border-b border-slate-700 pb-2 flex items-center gap-2 uppercase tracking-widest">
+                                    <h3 className="text-sm font-bold text-slate-500 border-b border-slate-200 pb-2 flex items-center gap-2 uppercase tracking-widest">
                                         <UsersIcon className="w-4 h-4" /> Detalii Sportive
                                     </h3>
                                     <div className="grid grid-cols-2 gap-4">
@@ -249,7 +249,7 @@ const SportivDetail: React.FC<SportivDetailProps> = ({ sportiv, onBack, onUpdate
                                     </div>
                                 </div>
                                 <div className="space-y-6">
-                                    <h3 className="text-sm font-bold text-slate-400 border-b border-slate-700 pb-2 flex items-center gap-2 uppercase tracking-widest">
+                                    <h3 className="text-sm font-bold text-slate-500 border-b border-slate-200 pb-2 flex items-center gap-2 uppercase tracking-widest">
                                         <CogIcon className="w-4 h-4" /> Date Administrative
                                     </h3>
                                     <div className="grid grid-cols-2 gap-4">
@@ -265,7 +265,7 @@ const SportivDetail: React.FC<SportivDetailProps> = ({ sportiv, onBack, onUpdate
 
                     {customFields.length > 0 && !isEditMode && (
                         <Card>
-                             <h3 className="text-xl font-bold text-white mb-4">Date Suplimentare</h3>
+                             <h3 className="text-xl font-bold text-slate-900 mb-4">Date Suplimentare</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {customFields.map(field => (
                                     <DataField key={field} label={field} value={sportiv[field]} />
@@ -274,21 +274,21 @@ const SportivDetail: React.FC<SportivDetailProps> = ({ sportiv, onBack, onUpdate
                         </Card>
                     )}
 
-                    <Card className="bg-slate-900/50 border border-slate-700/50">
+                    <Card className="bg-slate-50 border border-slate-200">
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                             <div className="flex items-center gap-4">
-                                <div className="p-3 bg-amber-600/10 rounded-full">
+                                <div className="p-3 bg-amber-500/10 rounded-full">
                                     <ShieldCheckIcon className="w-8 h-8 text-amber-500" />
                                 </div>
                                 <div>
-                                    <h3 className="text-lg font-bold text-white">Gestionare Cont & Roluri</h3>
-                                    <p className="text-sm text-slate-400">Date de autentificare (email, username, parolă) și roluri.</p>
+                                    <h3 className="text-lg font-bold text-slate-900">Gestionare Cont & Roluri</h3>
+                                    <p className="text-sm text-slate-600">Date de autentificare (email, username, parolă) și roluri.</p>
                                 </div>
                             </div>
                             <Button 
                                 onClick={() => onNavigateToAccountSettings(sportiv)} 
                                 variant="secondary" 
-                                className="bg-amber-600 hover:bg-amber-700 text-white shadow-lg shadow-amber-900/20 border-none"
+                                className="bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-900/20 border-none"
                             >
                                 <CogIcon className="w-5 h-5 mr-2" /> Gestionare Cont Acces
                             </Button>
@@ -296,18 +296,18 @@ const SportivDetail: React.FC<SportivDetailProps> = ({ sportiv, onBack, onUpdate
                     </Card>
 
                     <Card>
-                        <h3 className="text-xl font-bold text-white mb-4">Istoric Grade & Examene</h3>
+                        <h3 className="text-xl font-bold text-slate-900 mb-4">Istoric Grade & Examene</h3>
                         <div className="space-y-2">
                             {sportivParticipari.map(p => {
                                 const examen = examene.find(e => e.id === p.examen_id);
                                 const grad = grade.find(g => g.id === p.grad_sustinut_id);
                                 return ( 
-                                    <div key={p.id} className="bg-slate-700/30 p-3 rounded-md border border-slate-700/50 flex justify-between items-center">
+                                    <div key={p.id} className="bg-slate-100 p-3 rounded-md border border-slate-200 flex justify-between items-center">
                                         <div>
-                                            <p className="font-bold text-white">{grad?.nume}</p>
-                                            <p className="text-xs text-slate-400">{examen?.data} - {examen?.locatia}</p>
+                                            <p className="font-bold text-slate-800">{grad?.nume}</p>
+                                            <p className="text-xs text-slate-500">{examen?.data} - {examen?.locatia}</p>
                                         </div>
-                                        <span className={`px-2 py-1 text-xs font-bold rounded ${p.rezultat === 'Admis' ? 'bg-green-600/20 text-green-400' : 'bg-red-600/20 text-red-400'}`}>
+                                        <span className={`px-2 py-1 text-xs font-bold rounded ${p.rezultat === 'Admis' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                                             {p.rezultat}
                                         </span>
                                     </div>
@@ -320,17 +320,17 @@ const SportivDetail: React.FC<SportivDetailProps> = ({ sportiv, onBack, onUpdate
 
                 {/* Coloana Dreaptă - Rezumat Financiar și Note */}
                 <div className="space-y-6">
-                    <Card className="bg-slate-800/80 border border-brand-primary/20">
-                        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <Card className="bg-white/80 border border-brand-secondary/20">
+                        <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
                             <span className="w-2 h-2 bg-brand-secondary rounded-full"></span> Situație Financiară
                         </h3>
                         <div className="space-y-3">
                             {sportivPlati.filter(p => p.status !== 'Achitat').map(p => (
-                                <div key={p.id} className="p-3 bg-slate-900/60 rounded-lg border border-slate-700">
-                                    <p className="text-sm font-semibold text-white">{p.descriere}</p>
+                                <div key={p.id} className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                                    <p className="text-sm font-semibold text-slate-800">{p.descriere}</p>
                                     <div className="flex justify-between items-center mt-1">
-                                        <span className="text-xs text-slate-400">{new Date(p.data).toLocaleDateString('ro-RO')}</span>
-                                        <span className="text-sm font-bold text-red-400">{p.suma.toFixed(2)} RON</span>
+                                        <span className="text-xs text-slate-500">{new Date(p.data).toLocaleDateString('ro-RO')}</span>
+                                        <span className="text-sm font-bold text-red-600">{p.suma.toFixed(2)} RON</span>
                                     </div>
                                 </div>
                             ))}
@@ -339,15 +339,15 @@ const SportivDetail: React.FC<SportivDetailProps> = ({ sportiv, onBack, onUpdate
                                     <div className="inline-block p-2 bg-green-500/10 rounded-full mb-2">
                                         <ShieldCheckIcon className="w-6 h-6 text-green-500" />
                                     </div>
-                                    <p className="text-slate-400 text-sm">Toate plățile la zi.</p>
+                                    <p className="text-slate-500 text-sm">Toate plățile la zi.</p>
                                 </div>
                             )}
                         </div>
                     </Card>
 
-                    <Card className="bg-slate-700/20 border-dashed border-2 border-slate-600">
+                    <Card className="bg-slate-50 border-dashed border-2 border-slate-300">
                         <h3 className="text-sm font-bold text-slate-500 uppercase mb-4 tracking-widest">Note & Observații</h3>
-                        <p className="text-slate-400 text-sm italic">Nu există observații suplimentare pentru acest profil.</p>
+                        <p className="text-slate-500 text-sm italic">Nu există observații suplimentare pentru acest profil.</p>
                     </Card>
                 </div>
             </div>
@@ -418,7 +418,7 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
             const { data: newSportiv, error } = await supabase
                 .from('sportivi')
                 .insert({ ...profileData, email: email || null })
-                .select()
+                .select('*')
                 .single();
             
             if (error) {
@@ -428,7 +428,10 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
             if (newSportiv) {
                 const sportivRole = allRoles.find(r => r.nume === 'Sportiv');
                 if (sportivRole) {
-                     await supabase.from('sportivi_roluri').insert({ sportiv_id: newSportiv.id, rol_id: sportivRole.id });
+                     const { error: roleError } = await supabase.from('sportivi_roluri').insert({ sportiv_id: newSportiv.id, rol_id: sportivRole.id });
+                     if (roleError) {
+                         alert(`Eroare la asignarea rolului: ${roleError.message}. Sportivul a fost creat, dar va trebui să îi asignați rolul manual.`);
+                     }
                 }
                 const sportivWithRole = { ...newSportiv, roluri: sportivRole ? [sportivRole] : [] };
                 setSportivi(prev => [...prev, sportivWithRole as Sportiv]);
@@ -522,7 +525,7 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
     <div>
         <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
         <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold text-white">Bază Date Sportivi</h1>
+            <h1 className="text-3xl font-bold text-slate-900">Bază Date Sportivi</h1>
             <Button onClick={() => setShowAddForm(!showAddForm)} variant="info">
                 {showAddForm ? 'Anulează' : <><PlusIcon className="w-5 h-5 mr-2" />Adaugă Sportiv</>}
             </Button>
@@ -540,19 +543,19 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
         )}
 
         <Card className="mb-6">
-            <h2 className="text-xl font-bold text-white mb-4">Management Câmpuri Custom</h2>
+            <h2 className="text-xl font-bold text-slate-900 mb-4">Management Câmpuri Custom</h2>
             <div className="flex items-end gap-2">
                 <Input label="Nume Câmp Nou" value={newFieldName} onChange={e => setNewFieldName(e.target.value)} placeholder="ex: Telefon Părinte"/>
                 <Button onClick={handleAddCustomField} variant="secondary">Adaugă Câmp</Button>
             </div>
             {customFields.length > 0 && (
-                <div className="mt-4 pt-4 border-t border-slate-700/50">
-                    <h3 className="text-sm font-semibold text-slate-400 mb-2">Câmpuri existente:</h3>
+                <div className="mt-4 pt-4 border-t border-slate-200">
+                    <h3 className="text-sm font-semibold text-slate-500 mb-2">Câmpuri existente:</h3>
                     <div className="flex flex-wrap gap-2">
                         {customFields.map(field => (
-                            <span key={field} className="bg-slate-700 text-slate-200 text-xs font-medium px-3 py-1 rounded-full flex items-center gap-2">
+                            <span key={field} className="bg-slate-200 text-slate-700 text-xs font-medium px-3 py-1 rounded-full flex items-center gap-2">
                                 {field}
-                                <button onClick={() => handleDeleteCustomField(field)} className="text-slate-400 hover:text-white font-bold text-lg leading-none transform hover:scale-125 transition-transform" title={`Șterge câmpul "${field}"`}>&times;</button>
+                                <button onClick={() => handleDeleteCustomField(field)} className="text-slate-500 hover:text-slate-800 font-bold text-lg leading-none transform hover:scale-125 transition-transform" title={`Șterge câmpul "${field}"`}>&times;</button>
                             </span>
                         ))}
                     </div>
@@ -569,25 +572,25 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
             />
         </Card>
 
-        <div className="bg-slate-800 rounded-lg shadow-lg overflow-x-auto">
+        <div className="bg-white rounded-lg shadow-lg overflow-x-auto">
             <table className="w-full text-left min-w-[800px]">
-                <thead className="bg-slate-700">
+                <thead className="bg-slate-50 border-b border-slate-200">
                     <tr>
-                        <th className="p-4">Nume</th>
-                        <th className="p-4">Grupă</th>
-                        <th className="p-4">Statut</th>
-                        <th className="p-4">Roluri</th>
-                        {customFields.map(field => <th key={field} className="p-4">{field}</th>)}
-                        <th className="p-4 text-right">Acțiuni</th>
+                        <th className="p-4 text-sm font-semibold text-slate-600">Nume</th>
+                        <th className="p-4 text-sm font-semibold text-slate-600">Grupă</th>
+                        <th className="p-4 text-sm font-semibold text-slate-600">Statut</th>
+                        <th className="p-4 text-sm font-semibold text-slate-600">Roluri</th>
+                        {customFields.map(field => <th key={field} className="p-4 text-sm font-semibold text-slate-600">{field}</th>)}
+                        <th className="p-4 text-right text-sm font-semibold text-slate-600">Acțiuni</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-slate-200">
                     {filteredSportivi.map(sportiv => (
-                        <tr key={sportiv.id} className="border-b border-slate-700 hover:bg-slate-700/40 cursor-pointer" onClick={() => onSelectSportiv(sportiv)}>
+                        <tr key={sportiv.id} className="hover:bg-slate-50 cursor-pointer" onClick={() => onSelectSportiv(sportiv)}>
                             <td className="p-4 font-bold">{sportiv.nume} {sportiv.prenume}</td>
-                            <td className="p-4 text-slate-300">{grupe.find(g => g.id === sportiv.grupa_id)?.denumire || '-'}</td>
+                            <td className="p-4 text-slate-600">{grupe.find(g => g.id === sportiv.grupa_id)?.denumire || '-'}</td>
                             <td className="p-4">
-                                <span className={`px-2 py-1 text-xs rounded-full font-bold uppercase ${sportiv.status === 'Activ' ? 'text-green-400 bg-green-900/30' : 'text-red-400 bg-red-900/30'}`}>
+                                <span className={`px-2 py-1 text-xs rounded-full font-bold uppercase ${sportiv.status === 'Activ' ? 'text-green-800 bg-green-100' : 'text-red-800 bg-red-100'}`}>
                                     {sportiv.status}
                                 </span>
                             </td>
@@ -596,7 +599,7 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
                                     {sportiv.roluri.map(r => <RoleBadge key={r.id} role={r} />)}
                                 </div>
                             </td>
-                            {customFields.map(field => <td key={field} className="p-4 text-slate-300">{sportiv[field] || '-'}</td>)}
+                            {customFields.map(field => <td key={field} className="p-4 text-slate-600">{sportiv[field] || '-'}</td>)}
                             <td className="p-4 text-right">
                                 <Button size="sm" variant="primary"><EditIcon className="w-4 h-4" /></Button>
                             </td>

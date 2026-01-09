@@ -411,89 +411,74 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
             return;
         }
 
-        const { email, parola, username, ...profileData } = sportivData;
-        let authUser: any = null;
+        const { email, parola, ...profileData } = sportivData;
 
-        if (email && parola) {
-             const { data: authData, error: authError } = await supabase.auth.signUp({
-                email: email,
-                password: parola,
-            });
-            if (authError) {
-                alert(`Eroare la crearea contului: ${authError.message}`);
+        // Dacă nu se creează cont de autentificare, se inserează direct profilul
+        if (!email || !parola) {
+            const { data: newSportiv, error } = await supabase
+                .from('sportivi')
+                .insert({ ...profileData, email: email || null })
+                .select()
+                .single();
+            
+            if (error) {
+                alert(`Eroare la salvarea profilului fără cont: ${error.message}`);
                 return;
             }
-            if (!authData.user) {
-                alert("Nu s-a putut crea utilizatorul. Încercați din nou.");
-                return;
+            if (newSportiv) {
+                const sportivRole = allRoles.find(r => r.nume === 'Sportiv');
+                if (sportivRole) {
+                     await supabase.from('sportivi_roluri').insert({ sportiv_id: newSportiv.id, rol_id: sportivRole.id });
+                }
+                const sportivWithRole = { ...newSportiv, roluri: sportivRole ? [sportivRole] : [] };
+                setSportivi(prev => [...prev, sportivWithRole as Sportiv]);
+                setShowAddForm(false);
             }
-            authUser = authData.user;
-        } else if (email || parola) {
-             alert("Pentru a crea un cont de autentificare, sunt necesare atât email-ul, cât și parola.");
-             return;
+            return;
         }
 
-        const standardProfileData = { ...profileData };
-        customFields.forEach(field => delete (standardProfileData as any)[field]);
+        // Dacă se creează cont, se folosește funcția RPC
+        const { data: newSportiv, error } = await supabase.rpc('create_user_and_profile', {
+            email: sportivData.email,
+            password: sportivData.parola,
+            username: sportivData.username || null,
+            nume: sportivData.nume,
+            prenume: sportivData.prenume,
+            data_nasterii: sportivData.data_nasterii,
+            cnp: sportivData.cnp || null,
+            data_inscrierii: sportivData.data_inscrierii,
+            status: sportivData.status,
+            club_provenienta: sportivData.club_provenienta,
+            grupa_id: sportivData.grupa_id || null,
+            familie_id: sportivData.familie_id || null,
+            tip_abonament_id: sportivData.tip_abonament_id || null,
+            participa_vacanta: sportivData.participa_vacanta,
+            inaltime: sportivData.inaltime || null
+        });
 
-        const profileToInsert = {
-            ...standardProfileData,
-            user_id: authUser ? authUser.id : null,
-            email: email || null,
-            username: username || null,
-        };
-        // @ts-ignore
-        delete profileToInsert.parola;
-
-
-        const { data: newSportiv, error: profileError } = await supabase
-            .from('sportivi')
-            .insert(profileToInsert)
-            .select()
-            .single();
-
-        if (profileError) {
-            alert(`Eroare la salvarea profilului: ${profileError.message}\n(Notă: Un cont de autentificare a fost creat. Contactați suportul pentru a rezolva manual.)`);
+        if (error) {
+            alert(`Eroare la crearea contului și a profilului: ${error.message}`);
             return;
         }
         
         if (newSportiv) {
-            const sportivRole = allRoles.find(r => r.nume === 'Sportiv');
-            if (sportivRole) {
-                const { error: roleError } = await supabase.from('sportivi_roluri').insert({
-                    sportiv_id: newSportiv.id,
-                    rol_id: sportivRole.id,
-                });
-                if (roleError) {
-                    alert(`Profil creat, dar a apărut o eroare la asignarea rolului: ${roleError.message}`);
-                }
-            }
-
             const { data: finalSportivData, error: refetchError } = await supabase
                 .from('sportivi')
                 .select('*, sportivi_roluri(roluri(id, nume))')
                 .eq('id', newSportiv.id)
                 .single();
             
-            if (refetchError) {
+             if (refetchError) {
                 alert(`Profil creat, dar eroare la reîncărcarea datelor: ${refetchError.message}`);
+                const sportivRole = allRoles.find(r => r.nume === 'Sportiv');
                 const sportivWithRole = { ...newSportiv, roluri: sportivRole ? [sportivRole] : [] };
                 setSportivi(prev => [...prev, sportivWithRole as Sportiv]);
             } else if (finalSportivData) {
                 const userProfile = finalSportivData as any;
                 userProfile.roluri = userProfile.sportivi_roluri.map((item: any) => item.roluri);
                 delete userProfile.sportivi_roluri;
-
-                const customData: { [key: string]: any } = {};
-                customFields.forEach(field => {
-                    if (sportivData[field] !== undefined) {
-                        customData[field] = sportivData[field];
-                    }
-                });
-                const finalProfile = { ...userProfile, ...customData };
-                setSportivi(prev => [...prev, finalProfile as Sportiv]);
+                setSportivi(prev => [...prev, userProfile as Sportiv]);
             }
-
             setShowAddForm(false);
         }
     };

@@ -1,4 +1,3 @@
-
 import React, { useMemo, useState } from 'react';
 import { Sportiv, Participare, Examen, Grad, Prezenta, Grupa, Plata, Eveniment, Rezultat, PretConfig } from '../types';
 import { Button, Card } from './ui';
@@ -8,6 +7,13 @@ import { supabase } from '../supabaseClient';
 const getGrad = (gradId: string, allGrades: Grad[]) => allGrades.find(g => g.id === gradId);
 const getAge = (dateString: string) => { const today = new Date(); const birthDate = new Date(dateString); let age = today.getFullYear() - birthDate.getFullYear(); const m = today.getMonth() - birthDate.getMonth(); if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; } return age; };
 const parseDurationToMonths = (durationStr: string): number => { const parts = durationStr.split(' '); if (parts.length < 2) return 0; const value = parseInt(parts[0], 10); const unit = parts[1].toLowerCase(); if (unit.startsWith('lun')) return value; if (unit.startsWith('an')) return value * 12; return 0; };
+
+const DataField: React.FC<{label: string, value: React.ReactNode}> = ({label, value}) => (
+    <div>
+        <dt className="text-sm font-medium text-slate-400">{label}</dt>
+        <dd className="mt-1 text-md text-white font-semibold">{value || 'N/A'}</dd>
+    </div>
+);
 
 interface PortalSportivProps {
   sportiv: Sportiv;
@@ -72,6 +78,10 @@ export const PortalSportiv: React.FC<PortalSportivProps> = ({ sportiv, onLogout,
     }, [evenimente, sportivRezultate]);
     
     const handleInscriereStagiu = async (eveniment: Eveniment) => {
+        if (!supabase) {
+            alert("Eroare de configurare: Conexiunea la baza de date nu a putut fi stabilită.");
+            return;
+        }
         if (!window.confirm(`Confirmați înscrierea la "${eveniment.denumire}"? Se va genera automat o taxă de plată.`)) return;
 
         setLoading(prev => ({ ...prev, [eveniment.id]: true }));
@@ -112,21 +122,81 @@ export const PortalSportiv: React.FC<PortalSportivProps> = ({ sportiv, onLogout,
 
     return (
         <div className="min-h-screen bg-slate-900 text-slate-200">
-             {/* ... Header and other JSX remains the same ... */}
+             <header className="bg-slate-800 shadow-md">
+                <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+                    <h1 className="font-bold text-xl text-white">Portal Sportiv</h1>
+                    <Button onClick={onLogout} variant="danger" size="sm">Logout</Button>
+                </div>
+            </header>
             <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-                {/* ... Main content JSX ... */}
-                {unregisteredUpcomingEvents.map(ev => (
-                    <div key={ev.id} className="bg-slate-700 p-3 rounded-md">
-                        {/* ... event details ... */}
-                        {ev.tip === 'Stagiu' && (
-                            <div className="text-right mt-2">
-                                <Button onClick={() => handleInscriereStagiu(ev)} variant="success" size="sm" disabled={loading[ev.id]}>
-                                    {loading[ev.id] ? 'Se înscrie...' : 'Înscrie-te'}
-                                </Button>
-                            </div>
-                        )}
+                 <Card>
+                    <h2 className="text-3xl font-bold text-white">Bun venit, {sportiv.prenume}!</h2>
+                    <p className="text-slate-400">Acesta este panoul tău personal.</p>
+                    <div className="border-t border-slate-700 mt-4 pt-4">
+                        <h3 className="text-lg font-bold text-white mb-4">Date Personale</h3>
+                        <dl className="grid grid-cols-2 gap-x-4 gap-y-6">
+                            <DataField label="CNP" value={sportiv.cnp} />
+                            <DataField label="Data Înscrierii" value={new Date(sportiv.data_inscrierii).toLocaleDateString('ro-RO')} />
+                            <DataField label="Înălțime" value={sportiv.inaltime ? `${sportiv.inaltime} cm` : 'N/A'} />
+                            <DataField label="Club Proveniență" value={sportiv.club_provenienta} />
+                        </dl>
                     </div>
-                ))}
+                </Card>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <Card>
+                        <h3 className="text-xl font-bold text-white mb-4">Progresul Meu</h3>
+                        <DataField label="Grad Actual" value={currentGrad?.nume || 'Niciun grad'} />
+                        <div className="mt-4 pt-4 border-t border-slate-700">
+                            <DataField label="Următorul Grad" value={eligibility.nextGrad?.nume || 'Maxim atins'} />
+                            <p className={`text-sm mt-1 ${eligibility.eligible ? 'text-green-400' : 'text-yellow-400'}`}>{eligibility.message}</p>
+                        </div>
+                    </Card>
+                     <Card>
+                        <h3 className="text-xl font-bold text-white mb-4">Activitate</h3>
+                        <DataField label="Grupă" value={grupaCurenta?.denumire || 'Neatribuit'} />
+                        <div className="mt-4 pt-4 border-t border-slate-700">
+                             <DataField label="Prezențe Luna Curentă" value={`${prezenteLunaCurenta} antrenamente`} />
+                        </div>
+                    </Card>
+                     <Card>
+                        <h3 className="text-xl font-bold text-white mb-4">Financiar</h3>
+                         <p className="text-sm text-slate-400 mb-2">Datorii neachitate:</p>
+                        <div className="space-y-2">
+                           {sportivPlati.filter(p => p.status !== 'Achitat').map(p => (
+                               <div key={p.id} className="flex justify-between items-center bg-slate-700/50 p-2 rounded-md">
+                                   <span>{p.descriere}</span>
+                                   <span className="font-bold text-red-400">{p.suma.toFixed(2)} RON</span>
+                               </div>
+                           ))}
+                           {sportivPlati.filter(p => p.status !== 'Achitat').length === 0 && <p className="text-slate-400">Nicio datorie restantă.</p>}
+                        </div>
+                    </Card>
+                </div>
+
+                <Card>
+                    <h3 className="text-xl font-bold text-white mb-4">Evenimente Viitoare & Înscrieri</h3>
+                    {showSuccess && <p className="text-green-400 bg-green-900/50 p-2 rounded-md mb-4 text-center">{showSuccess}</p>}
+                    <div className="space-y-3">
+                        {unregisteredUpcomingEvents.length > 0 ? unregisteredUpcomingEvents.map(ev => (
+                            <div key={ev.id} className="bg-slate-700 p-3 rounded-md">
+                                <div className="flex justify-between items-start flex-wrap gap-2">
+                                    <div>
+                                        <p className="font-bold">{ev.denumire} <span className={`text-xs px-2 py-0.5 rounded-full text-white ${ev.tip === 'Stagiu' ? 'bg-sky-600' : 'bg-purple-600'}`}>{ev.tip}</span></p>
+                                        <p className="text-sm text-slate-400">{new Date(ev.data).toLocaleDateString('ro-RO')} - {ev.locatie}</p>
+                                    </div>
+                                    {ev.tip === 'Stagiu' && (
+                                        <div className="text-right mt-2 md:mt-0">
+                                            <Button onClick={() => handleInscriereStagiu(ev)} variant="success" size="sm" disabled={loading[ev.id]}>
+                                                {loading[ev.id] ? 'Se înscrie...' : 'Înscrie-te'}
+                                            </Button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )) : <p className="text-slate-400">Niciun eveniment viitor disponibil pentru înscriere.</p>}
+                    </div>
+                </Card>
+
             </main>
         </div>
     );

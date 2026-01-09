@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Sportiv, User } from '../types';
 import { Button, Input, Card, Select } from './ui';
@@ -11,6 +10,7 @@ const MyProfile: React.FC<{ user: User; setSportivi: React.Dispatch<React.SetSta
         nume: user.nume,
         prenume: user.prenume,
         email: user.email,
+        username: user.username || '',
         parola: '',
         confirmParola: ''
     });
@@ -24,6 +24,10 @@ const MyProfile: React.FC<{ user: User; setSportivi: React.Dispatch<React.SetSta
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!supabase) {
+            setErrorMessage("Eroare de configurare: Conexiunea la baza de date nu a putut fi stabilită.");
+            return;
+        }
         if (formData.parola && formData.parola !== formData.confirmParola) {
             setErrorMessage("Parolele nu se potrivesc.");
             return;
@@ -32,6 +36,27 @@ const MyProfile: React.FC<{ user: User; setSportivi: React.Dispatch<React.SetSta
         setLoading(true);
         setErrorMessage('');
         setSuccessMessage('');
+
+        // 0. Verifică unicitatea username-ului dacă a fost schimbat
+        if (formData.username && formData.username !== user.username) {
+            const { data: existingUser, error: checkError } = await supabase
+                .from('sportivi')
+                .select('id')
+                .eq('username', formData.username)
+                .not('id', 'eq', user.id)
+                .limit(1);
+
+            if (checkError) {
+                setErrorMessage(`Eroare la verificare: ${checkError.message}`);
+                setLoading(false);
+                return;
+            }
+            if (existingUser && existingUser.length > 0) {
+                setErrorMessage('Numele de utilizator este deja folosit.');
+                setLoading(false);
+                return;
+            }
+        }
 
         // 1. Actualizează datele de autentificare dacă s-au schimbat
         const authUpdates: any = {};
@@ -52,6 +77,7 @@ const MyProfile: React.FC<{ user: User; setSportivi: React.Dispatch<React.SetSta
             nume: formData.nume,
             prenume: formData.prenume,
             email: formData.email,
+            username: formData.username,
         };
         const { data, error } = await supabase.from('sportivi').update(profileUpdates).eq('user_id', user.user_id).select().single();
 
@@ -82,7 +108,10 @@ const MyProfile: React.FC<{ user: User; setSportivi: React.Dispatch<React.SetSta
                     <Input label="Nume" name="nume" value={formData.nume} onChange={handleChange} required />
                     <Input label="Prenume" name="prenume" value={formData.prenume} onChange={handleChange} required />
                 </div>
-                <Input label="Email (Login)" name="email" type="email" value={formData.email} onChange={handleChange} required />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Input label="Email (Login)" name="email" type="email" value={formData.email} onChange={handleChange} required />
+                    <Input label="Nume Utilizator" name="username" type="text" value={formData.username} onChange={handleChange} placeholder="ex: ion.popescu"/>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Input label="Parolă Nouă (lasă gol pentru a o păstra)" name="parola" type="password" value={formData.parola} onChange={handleChange} />
                     <Input label="Confirmă Parola Nouă" name="confirmParola" type="password" value={formData.confirmParola} onChange={handleChange} />
@@ -121,6 +150,10 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
     };
 
     const handleSave = async (userId: string) => {
+        if (!supabase) {
+            alert("Eroare de configurare: Conexiunea la baza de date nu a putut fi stabilită.");
+            return;
+        }
         const { data, error } = await supabase.from('sportivi').update({ rol: newRol }).eq('id', userId).select().single();
         
         if (error) {

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { Button, Card, Input } from './ui';
@@ -6,7 +5,7 @@ import { Button, Card, Input } from './ui';
 interface LoginProps {}
 
 export const Login: React.FC<LoginProps> = () => {
-    const [email, setEmail] = useState('');
+    const [identifier, setIdentifier] = useState('');
     const [parola, setParola] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -16,13 +15,37 @@ export const Login: React.FC<LoginProps> = () => {
         setError('');
         setLoading(true);
 
+        if (!supabase) {
+            setError('Clientul Supabase nu este initializat. Verifică variabilele de mediu.');
+            setLoading(false);
+            return;
+        }
+
+        let email = identifier;
+        
+        // Verifică dacă este username sau email
+        if (!identifier.includes('@')) {
+            const { data, error: usernameError } = await supabase
+                .from('sportivi')
+                .select('email')
+                .eq('username', identifier)
+                .single();
+            
+            if (usernameError || !data) {
+                setError('Numele de utilizator nu a fost găsit.');
+                setLoading(false);
+                return;
+            }
+            email = data.email;
+        }
+
         const { error } = await supabase.auth.signInWithPassword({
             email: email,
             password: parola,
         });
 
         if (error) {
-            setError('Email sau parolă incorectă. Vă rugăm să reîncercați.');
+            setError(error.message);
         } 
         // Nu este nevoie de else, onAuthStateChange din App.tsx va prelua controlul
         setLoading(false);
@@ -38,14 +61,14 @@ export const Login: React.FC<LoginProps> = () => {
                     </div>
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <Input
-                            label="Adresă de Email"
-                            id="email"
-                            name="email"
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            label="Email sau Nume Utilizator"
+                            id="identifier"
+                            name="identifier"
+                            type="text"
+                            value={identifier}
+                            onChange={(e) => setIdentifier(e.target.value)}
                             required
-                            autoComplete="email"
+                            autoComplete="username"
                         />
                         <Input
                             label="Parolă"

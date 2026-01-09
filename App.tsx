@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
-import { Sportiv, Examen, Grad, Participare, View, Prezenta, Grupa, Plata, Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, ProgramItem } from './types';
+import { Sportiv, Examen, Grad, Participare, View, Prezenta, Grupa, Plata, Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie } from './types';
 import { Dashboard } from './components/Dashboard';
 import { SportiviManagement } from './components/Sportivi';
 import { ExameneManagement } from './components/Examene';
@@ -22,6 +22,7 @@ import { Button, Card } from './components/ui';
 import { ArrowLeftIcon } from './components/icons';
 import { logoBase64 } from './assets/logo';
 import { Session } from '@supabase/supabase-js';
+import { FamilieDetail } from './components/FamilieDetail';
 
 const TopBar: React.FC<{ onLogout: () => void; user: User | null }> = ({ onLogout, user }) => {
     const userName = user ? (user.rol === 'Admin' ? 'Administrator' : `${user.nume} ${user.prenume}`) : '...';
@@ -92,15 +93,21 @@ function App() {
   const [rezultate, setRezultate] = useState<Rezultat[]>([]);
   const [preturiConfig, setPreturiConfig] = useState<PretConfig[]>([]);
   const [tipuriAbonament, setTipuriAbonament] = useState<TipAbonament[]>([]);
-  const [customFields, setCustomFields] = useState<string[]>([]); // This can remain local or be stored in a settings table
+  const [customFields, setCustomFields] = useState<string[]>([]);
 
   // App view state
   const [activeMenu, setActiveMenu] = useState<MenuKey>(null);
   const [activeView, setActiveView] = useState<View | null>(null);
   const [plataToIncasare, setPlataToIncasare] = useState<Plata | null>(null);
+  const [selectedSportiv, setSelectedSportiv] = useState<Sportiv | null>(null);
+  const [selectedFamilie, setSelectedFamilie] = useState<Familie | null>(null);
   
     useEffect(() => {
         const getSession = async () => {
+            if (!supabase) {
+                setLoading(false);
+                return;
+            }
             const { data: { session } } = await supabase.auth.getSession();
             setSession(session);
             if (session?.user) {
@@ -110,6 +117,8 @@ function App() {
             }
         };
         getSession();
+
+        if (!supabase) return;
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             setSession(session);
@@ -124,72 +133,49 @@ function App() {
     }, []);
 
     const fetchUserProfile = async (userId: string) => {
+        if (!supabase) return;
         const { data, error } = await supabase.from('sportivi').select('*').eq('user_id', userId).single();
         if (error) {
             console.error("Eroare la preluarea profilului utilizator:", error);
             setFetchError(`Nu s-a putut încărca profilul. Motiv: ${error.message}. Asigurați-vă că politicile RLS (Row Level Security) permit citirea propriului profil. Încercați să vă autentificați din nou.`);
             setCurrentUser(null);
-            setLoading(false); // Oprește încărcarea pentru a afișa eroarea
+            setLoading(false);
         } else if (data) {
             setCurrentUser(data as User);
         }
     };
     
-    // Fetch all data when user is logged in
     useEffect(() => {
         const fetchAllData = async () => {
-            if (!currentUser) return;
+            if (!currentUser || !supabase) return;
             setLoading(true);
-            setFetchError(null); // Reset error on new fetch attempt
+            setFetchError(null);
 
             try {
                 const results = await Promise.all([
-                    supabase.from('sportivi').select('*'),
-                    supabase.from('examene').select('*'),
-                    supabase.from('grade').select('*'),
-                    supabase.from('participari').select('*'),
-                    supabase.from('grupe').select('*'),
-                    supabase.from('program_antrenamente').select('*'),
-                    supabase.from('prezente').select('*'),
-                    supabase.from('prezente_sportivi').select('*'),
-                    supabase.from('familii').select('*'),
-                    supabase.from('plati').select('*'),
-                    supabase.from('tranzactii').select('*'),
-                    supabase.from('evenimente').select('*'),
-                    supabase.from('rezultate').select('*'),
-                    supabase.from('preturi_config').select('*'),
+                    supabase.from('sportivi').select('*'), supabase.from('examene').select('*'),
+                    supabase.from('grade').select('*'), supabase.from('participari').select('*'),
+                    supabase.from('grupe').select('*'), supabase.from('program_antrenamente').select('*'),
+                    supabase.from('prezente').select('*'), supabase.from('prezente_sportivi').select('*'),
+                    supabase.from('familii').select('*'), supabase.from('plati').select('*'),
+                    supabase.from('tranzactii').select('*'), supabase.from('evenimente').select('*'),
+                    supabase.from('rezultate').select('*'), supabase.from('preturi_config').select('*'),
                     supabase.from('tipuri_abonament').select('*'),
                 ]);
 
                 const firstError = results.find(res => res.error);
-                if (firstError) {
-                    throw firstError.error;
-                }
+                if (firstError) throw firstError.error;
 
-                const [
-                    sportiviRes, exameneRes, gradeRes, participariRes, 
-                    grupeRes, programRes, prezenteRes, prezenteSportiviRes,
-                    familiiRes, platiRes, tranzactiiRes, evenimenteRes, 
-                    rezultateRes, preturiRes, abonamenteRes
-                ] = results;
-
-                // Combine grupe with their programs
+                const [ sportiviRes, exameneRes, gradeRes, participariRes, grupeRes, programRes, prezenteRes, prezenteSportiviRes, familiiRes, platiRes, tranzactiiRes, evenimenteRes, rezultateRes, preturiRes, abonamenteRes ] = results;
+                
                 const grupeData = grupeRes.data || [];
                 const programData = (programRes.data || []) as any[];
-                const combinedGrupe = grupeData.map(g => ({
-                    ...g,
-                    program: programData.filter(p => p.grupa_id === g.id).map(p => ({ ziua: p.ziua, ora_start: p.ora_start, ora_sfarsit: p.ora_sfarsit }))
-                }));
+                const combinedGrupe = grupeData.map(g => ({ ...g, program: programData.filter(p => p.grupa_id === g.id).map(p => ({ ziua: p.ziua, ora_start: p.ora_start, ora_sfarsit: p.ora_sfarsit })) }));
                 setGrupe(combinedGrupe as Grupa[]);
                 
-                // Combine prezente with their athletes
                 const prezenteData = prezenteRes.data || [];
                 const prezenteSportiviData = prezenteSportiviRes.data as {prezenta_id: string, sportiv_id: string}[] || [];
-                const combinedPrezente = prezenteData.map(p => ({
-                    ...p,
-                    id: p.id.toString(), // Ensure ID is string
-                    sportivi_prezenti_ids: prezenteSportiviData.filter(ps => ps.prezenta_id.toString() === p.id.toString()).map(ps => ps.sportiv_id)
-                }));
+                const combinedPrezente = prezenteData.map(p => ({ ...p, id: p.id.toString(), sportivi_prezenti_ids: prezenteSportiviData.filter(ps => ps.prezenta_id.toString() === p.id.toString()).map(ps => ps.sportiv_id) }));
                 setPrezente(combinedPrezente as Prezenta[]);
 
                 setSportivi(sportiviRes.data as Sportiv[] || []);
@@ -205,21 +191,8 @@ function App() {
                 setTipuriAbonament(abonamenteRes.data as TipAbonament[] || []);
             } catch (error: any) {
                 console.error("A apărut o eroare la preluarea datelor:", error.message || error);
-
                 let errorMessage = "Eroare necunoscută";
-                if (error) {
-                    if (typeof error === 'object' && error.message) {
-                        errorMessage = error.message;
-                    } else if (typeof error === 'string') {
-                        errorMessage = error;
-                    } else {
-                        try {
-                            errorMessage = JSON.stringify(error);
-                        } catch {
-                            errorMessage = "Nu s-au putut obține detalii despre eroare."
-                        }
-                    }
-                }
+                if (error) { if (typeof error === 'object' && error.message) { errorMessage = error.message; } else if (typeof error === 'string') { errorMessage = error; } else { try { errorMessage = JSON.stringify(error); } catch { errorMessage = "Nu s-au putut obține detalii despre eroare." } } }
                 setFetchError(`Nu s-a putut conecta la baza de date. Detalii: "${errorMessage}". Aceasta este adesea cauzat de chei Supabase incorecte, RLS, sau de probleme de rețea.`);
             } finally {
                 setLoading(false);
@@ -239,52 +212,59 @@ function App() {
   };
   
   const handleLogout = async () => { 
-    await supabase.auth.signOut();
-    setCurrentUser(null); 
-    setActiveMenu(null); 
-    setActiveView(null); 
-    setFetchError(null);
-    // Clear all data states
-    setSportivi([]);
-    setExamene([]);
-    setGrade([]);
-    setParticipari([]);
-    setPrezente([]);
-    setGrupe([]);
-    setFamilii([]);
-    setPlati([]);
-    setTranzactii([]);
-    setEvenimente([]);
-    setRezultate([]);
-    setPreturiConfig([]);
-    setTipuriAbonament([]);
+    if (supabase) {
+        await supabase.auth.signOut();
+    }
+    setCurrentUser(null); setActiveMenu(null); setActiveView(null); setFetchError(null);
+    setSportivi([]); setExamene([]); setGrade([]); setParticipari([]); setPrezente([]);
+    setGrupe([]); setFamilii([]); setPlati([]); setTranzactii([]); setEvenimente([]);
+    setRezultate([]); setPreturiConfig([]); setTipuriAbonament([]);
   };
 
-  const handleBackToMenu = () => setActiveView(null);
-  const handleBackToDashboard = () => setActiveMenu(null);
+  const clearSelections = () => {
+    setSelectedSportiv(null);
+    setSelectedFamilie(null);
+  }
+  const handleBackToMenu = () => { setActiveView(null); clearSelections(); };
+  const handleBackToDashboard = () => { setActiveMenu(null); setActiveView(null); clearSelections(); };
+
+  const handleSelectSportiv = (sportiv: Sportiv) => {
+      setSelectedSportiv(sportiv);
+      setSelectedFamilie(null);
+      setActiveView('sportivi');
+      if (activeMenu !== 'sportivi') {
+          setActiveMenu('sportivi');
+      }
+  };
+
+  const handleSelectFamilie = (familieId: string) => {
+      const familie = familii.find(f => f.id === familieId);
+      if (familie) {
+          setSelectedFamilie(familie);
+          setActiveView('familie-detail');
+      }
+  };
 
   const renderAdminContent = () => {
     if (fetchError) {
-        return (
-            <Card className="border border-red-500 bg-red-900/20">
-                <h2 className="text-2xl font-bold text-red-400 mb-4">Eroare Critică</h2>
-                <p className="text-slate-300 mb-4">{fetchError}</p>
-                <p className="text-slate-400 text-sm">
-                    <b>Cauze posibile:</b>
-                     <ul className="list-disc list-inside ml-4 mt-2">
-                        <li>Politicile RLS (Row Level Security) de pe Supabase nu permit accesul la date.</li>
-                        <li>Cheile de conectare (URL și Anon Key) din fișierul <code>supabaseClient.ts</code> sunt incorecte.</li>
-                        <li>O problemă de rețea împiedică conexiunea la baza de date.</li>
-                     </ul>
-                </p>
-                <Button onClick={handleLogout} className="mt-6">Încearcă din nou (Logout)</Button>
-            </Card>
-        );
+        return ( <Card className="border border-red-500 bg-red-900/20"> <h2 className="text-2xl font-bold text-red-400 mb-4">Eroare Critică</h2> <p className="text-slate-300 mb-4">{fetchError}</p> <p className="text-slate-400 text-sm"> <b>Cauze posibile:</b> <ul className="list-disc list-inside ml-4 mt-2"> <li>Politicile RLS (Row Level Security) de pe Supabase nu permit accesul la date.</li> <li>Cheile de conectare (URL și Anon Key) din fișierul <code>supabaseClient.ts</code> sunt incorecte.</li> <li>O problemă de rețea împiedică conexiunea la baza de date.</li> </ul> </p> <Button onClick={handleLogout} className="mt-6">Încearcă din nou (Logout)</Button> </Card> );
     }
     if (loading) return <div className="text-center p-8">Se încarcă datele...</div>;
+    
+    if(activeView === 'familie-detail' && selectedFamilie) {
+        return <FamilieDetail 
+            familie={selectedFamilie}
+            membri={sportivi.filter(s => s.familie_id === selectedFamilie.id)}
+            onBack={() => { setActiveView('sportivi'); setSelectedFamilie(null); }}
+            onSelectSportiv={handleSelectSportiv}
+            sportivi={sportivi}
+            setSportivi={setSportivi}
+        />
+    }
+
     if (activeView) {
       switch (activeView) {
-        case 'sportivi': return <SportiviManagement onBack={handleBackToMenu} sportivi={sportivi} setSportivi={setSportivi} participari={participari} examene={examene} grade={grade} prezente={prezente} grupe={grupe} plati={plati} setPlati={setPlati} evenimente={evenimente} rezultate={rezultate} tipuriAbonament={tipuriAbonament} familii={familii} customFields={customFields} setCustomFields={setCustomFields} setTranzactii={setTranzactii} />;
+        case 'sportivi': return <SportiviManagement onBack={handleBackToMenu} sportivi={sportivi} setSportivi={setSportivi} participari={participari} examene={examene} grade={grade} prezente={prezente} grupe={grupe} plati={plati} evenimente={evenimente} rezultate={rezultate} tipuriAbonament={tipuriAbonament} familii={familii} customFields={customFields} selectedSportiv={selectedSportiv} onSelectSportiv={handleSelectSportiv} onClearSelectedSportiv={() => setSelectedSportiv(null)} onSelectFamilie={handleSelectFamilie} />;
         case 'examene': return <ExameneManagement onBack={handleBackToMenu} examene={examene} setExamene={setExamene} participari={participari} setParticipari={setParticipari} sportivi={sportivi} grade={grade} setPlati={setPlati} preturi={preturiConfig} />;
         case 'grade': return <GradeManagement onBack={handleBackToMenu} grade={grade} setGrade={setGrade} />;
         case 'prezenta': return <PrezentaManagement onBack={handleBackToMenu} sportivi={sportivi} prezente={prezente} setPrezente={setPrezente} grupe={grupe} plati={plati} />;
@@ -310,16 +290,8 @@ function App() {
 
   if (loading) return <div className="min-h-screen flex items-center justify-center">Se încarcă...</div>
   if (!session || !currentUser) {
-    if (fetchError) { // Afișează eroarea chiar dacă nu e sesiune, ex. la fetchUserProfile
-         return (
-            <div className="min-h-screen flex items-center justify-center p-4">
-                <Card className="border border-red-500 bg-red-900/20">
-                    <h2 className="text-2xl font-bold text-red-400 mb-4">Eroare la Încărcarea Profilului</h2>
-                    <p className="text-slate-300 mb-4">{fetchError}</p>
-                    <Button onClick={handleLogout} className="mt-6 w-full">Înapoi la Login</Button>
-                </Card>
-            </div>
-        );
+    if (fetchError) {
+         return ( <div className="min-h-screen flex items-center justify-center p-4"> <Card className="border border-red-500 bg-red-900/20"> <h2 className="text-2xl font-bold text-red-400 mb-4">Eroare la Încărcarea Profilului</h2> <p className="text-slate-300 mb-4">{fetchError}</p> <Button onClick={handleLogout} className="mt-6 w-full">Înapoi la Login</Button> </Card> </div> );
     }
     return <Login />;
   }

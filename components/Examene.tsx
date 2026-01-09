@@ -27,6 +27,10 @@ const ExamenDetail: React.FC<ExamenDetailProps> = ({ examen, participari, setPar
 
     const handleAddParticipant = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!supabase) {
+            alert("Eroare de configurare: Conexiunea la baza de date nu a putut fi stabilită.");
+            return;
+        }
         const sportiv = sportivi.find(s => s.id === sportivId);
         if(!sportiv || participari.some(p => p.sportiv_id === sportivId)) { alert("Selectează un sportiv valid care nu este deja înscris."); return; }
 
@@ -56,12 +60,20 @@ const ExamenDetail: React.FC<ExamenDetailProps> = ({ examen, participari, setPar
     };
 
     const handleUpdateParticipare = async (participareId: string, field: keyof Participare, value: string) => {
+        if (!supabase) {
+            alert("Eroare de configurare: Conexiunea la baza de date nu a putut fi stabilită.");
+            return;
+        }
         const { data, error } = await supabase.from('participari').update({ [field]: value }).eq('id', participareId).select().single();
         if (error) { alert(`Eroare la actualizare: ${error.message}`); return; }
         if(data) setParticipari(prev => prev.map(p => p.id === participareId ? data as Participare : p));
     };
     
     const handleDeleteParticipare = async (participareId: string) => {
+        if (!supabase) {
+            alert("Eroare de configurare: Conexiunea la baza de date nu a putut fi stabilită.");
+            return;
+        }
         // TODO: Also delete associated unpaid 'Taxa Examen'
         const { error } = await supabase.from('participari').delete().eq('id', participareId);
         if (error) { alert(`Eroare la ștergere: ${error.message}`); return; }
@@ -78,6 +90,10 @@ export const ExameneManagement: React.FC<ExameneManagementProps> = ({ onBack, ex
   const [selectedExamen, setSelectedExamen] = useState<Examen | null>(null);
   
   const handleSaveExamen = async (examenData: Omit<Examen, 'id'>) => {
+    if (!supabase) {
+        alert("Eroare de configurare: Conexiunea la baza de date nu a putut fi stabilită.");
+        return;
+    }
     if (examenToEdit) {
         const { data, error } = await supabase.from('examene').update(examenData).eq('id', examenToEdit.id).select().single();
         if (error) { alert(`Eroare la actualizare: ${error.message}`); return; }
@@ -92,6 +108,10 @@ export const ExameneManagement: React.FC<ExameneManagementProps> = ({ onBack, ex
   const handleEdit = (examen: Examen) => { setExamenToEdit(examen); setIsFormOpen(true); };
   
   const handleDelete = async (examenId: string) => {
+    if (!supabase) {
+        alert("Eroare de configurare: Conexiunea la baza de date nu a putut fi stabilită.");
+        return;
+    }
     if (!window.confirm("Ești sigur? Toate participările asociate vor fi șterse.")) return;
     
     const { error: participariError } = await supabase.from('participari').delete().eq('examen_id', examenId);

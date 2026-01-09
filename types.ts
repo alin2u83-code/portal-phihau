@@ -5,6 +5,7 @@ export interface Sportiv {
   nume: string;
   prenume: string;
   email: string;
+  username?: string; // Nume de utilizator unic pentru login
   parola?: string; // Only for creating new users
   rol: 'Sportiv' | 'Instructor' | 'Admin';
   data_nasterii: string;
@@ -139,4 +140,4 @@ export interface Familie {
 
 export type User = Sportiv;
 
-export type View = 'dashboard' | 'sportivi' | 'examene' | 'grade' | 'prezenta' | 'grupe' | 'raport-prezenta' | 'stagii' | 'competitii' | 'plati-scadente' | 'jurnal-incasari' | 'raport-financiar' | 'configurare-preturi' | 'tipuri-abonament' | 'familii' | 'user-management';
+export type View = 'dashboard' | 'sportivi' | 'examene' | 'grade' | 'prezenta' | 'grupe' | 'raport-prezenta' | 'stagii' | 'competitii' | 'plati-scadente' | 'jurnal-incasari' | 'raport-financiar' | 'configurare-preturi' | 'tipuri-abonament' | 'familii' | 'user-management' | 'familie-detail';

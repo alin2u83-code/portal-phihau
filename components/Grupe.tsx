@@ -104,7 +104,8 @@ export const GrupeManagement: React.FC<GrupeManagementProps> = ({ grupe, setGrup
           if (data) setGrupe(prev => prev.map(g => g.id === grupaToEdit.id ? { ...data, program } : g));
 
       } else { // Adăugare
-          const { data, error } = await supabase.from('grupe').insert(grupaInfo).select().single();
+          const { id, ...newGrupaData } = grupaInfo; // Exclude ID-ul, va fi generat de DB
+          const { data, error } = await supabase.from('grupe').insert(newGrupaData).select().single();
           if (error) { alert(`Eroare la adăugarea grupei: ${error.message}`); return; }
 
           if (data) {

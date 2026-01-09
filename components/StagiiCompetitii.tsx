@@ -75,7 +75,16 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment, rezultate,
         const pretConfig = getPretValabil(preturiConfig, categorie, eveniment.data);
 
         if (pretConfig) {
-            const newPlata: Omit<Plata, 'id'> = { sportiv_id: sportiv.id, familie_id: sportiv.familie_id, suma: pretConfig.suma, data: new Date().toISOString().split('T')[0], status: 'Neachitat', descriere: `Taxa ${eveniment.denumire}`, tip: categorie, metoda_plata: null, data_platii: null, observatii: `Generată la înscrierea în eveniment.`, };
+            const newPlata: Omit<Plata, 'id' | 'data_platii' | 'metoda_plata'> = { 
+                sportiv_id: sportiv.id, 
+                familie_id: sportiv.familie_id, 
+                suma: pretConfig.suma, 
+                data: new Date().toISOString().split('T')[0], 
+                status: 'Neachitat', 
+                descriere: `Taxa ${eveniment.denumire}`, 
+                tip: categorie,
+                observatii: `Generată la înscrierea în eveniment.`, 
+            };
             const { data: plataData, error: plataError } = await supabase.from('plati').insert(newPlata).select().single();
             if(plataError) { alert(`Participant adăugat, dar eroare la generare plată: ${plataError.message}`); }
             if (plataData) setPlati(prev => [...prev, plataData as Plata]);

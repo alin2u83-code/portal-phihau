@@ -113,7 +113,7 @@ const SubMenu: React.FC<{ menuKey: NonNullable<MenuKey>; onSelectItem: (view: Vi
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
                 {visibleItems.map(item => (
                     <div key={item.view} onClick={() => onSelectItem(item.view)}                         
-                         className="bg-slate-800 hover:bg-slate-700/50 border border-slate-700 hover:border-brand-secondary text-white font-bold py-6 px-4 rounded-lg shadow-md shadow-brand-primary/30 hover:shadow-lg hover:shadow-brand-secondary/40 cursor-pointer text-center transition-all duration-300 transform hover:scale-105">
+                         className="bg-slate-800 hover:bg-slate-700/50 border border-slate-700 hover:border-brand-secondary text-white font-bold py-6 px-4 rounded-lg shadow-lg shadow-brand-primary/30 hover:shadow-xl hover:shadow-brand-secondary/40 cursor-pointer text-center transition-all duration-300 transform hover:scale-105">
                         {item.label}
                     </div>
                 ))}

@@ -27,12 +27,20 @@ export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({ familii, s
             return;
         }
         setFeedback(null);
-        if (!newNume.trim()) {
+        const trimmedName = newNume.trim();
+        if (!trimmedName) {
             setFeedback({type: 'error', message: "Numele familiei este obligatoriu."});
             return;
         }
+
+        const isDuplicate = familii.some(f => f.nume.toLowerCase() === trimmedName.toLowerCase());
+        if (isDuplicate) {
+            showFeedback('error', 'O familie cu acest nume există deja.');
+            return;
+        }
+        
         setLoading(true);
-        const { data, error } = await supabase.from('familii').insert({ nume: newNume.trim() }).select().single();
+        const { data, error } = await supabase.from('familii').insert({ nume: trimmedName }).select().single();
         setLoading(false);
 
         if (error) {
@@ -49,12 +57,34 @@ export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({ familii, s
             showFeedback('error', "Eroare de configurare: Conexiunea la baza de date nu a putut fi stabilită.");
             return;
         }
-        const { error } = await supabase.from('familii').update(updates).eq('id', id);
+        
+        const trimmedName = updates.nume?.trim();
+        if (!trimmedName) {
+            showFeedback('error', 'Numele familiei nu poate fi gol.');
+            setFamilii(prev => [...prev]); // Re-render to reset input
+            return;
+        }
+    
+        const originalFamilie = familii.find(f => f.id === id);
+        if (originalFamilie && originalFamilie.nume.trim().toLowerCase() === trimmedName.toLowerCase()) {
+            return; // No actual change, no need to save or validate
+        }
+
+        const isDuplicate = familii.some(f => f.id !== id && f.nume.toLowerCase() === trimmedName.toLowerCase());
+        if (isDuplicate) {
+            showFeedback('error', 'O familie cu acest nume există deja.');
+            setFamilii(prev => [...prev]); // Re-render to reset input
+            return;
+        }
+
+        const finalUpdates = { ...updates, nume: trimmedName };
+        const { error } = await supabase.from('familii').update(finalUpdates).eq('id', id);
+
         if (error) {
             showFeedback('error', `Eroare la salvare: ${error.message}`);
         } else {
-             // Sincronizează starea locală după editare reușită
-            setFamilii(prev => prev.map(f => f.id === id ? { ...f, ...updates } : f));
+            setFamilii(prev => prev.map(f => f.id === id ? { ...f, ...finalUpdates } : f));
+            showFeedback('success', 'Numele familiei a fost actualizat.');
         }
     };
 

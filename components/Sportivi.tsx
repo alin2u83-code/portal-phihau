@@ -51,20 +51,20 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({ formState, handle
         {!isEditMode && (
             <div className="bg-slate-900/40 p-4 rounded-lg border border-slate-700/50 my-4 space-y-4">
                 <h3 className="text-amber-400 font-bold flex items-center gap-2">
-                    <ShieldCheckIcon className="w-5 h-5" /> Date Inițiale Acces Cont
+                    <ShieldCheckIcon className="w-5 h-5" /> Date Opționale Acces Cont
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Input label="Email" name="email" type="email" value={formState.email} onChange={handleChange} required />
+                    <Input label="Email" name="email" type="email" value={formState.email || ''} onChange={handleChange} />
                     <Input label="Nume Utilizator (Login)" name="username" value={formState.username || ''} onChange={handleChange} />
                 </div>
-                <Input label="Parolă Inițială" name="parola" type="password" value={formState.parola} onChange={handleChange} required />
-                <p className="text-xs text-slate-400 italic">Aceste date creează contul de autentificare pentru sportiv.</p>
+                <Input label="Parolă Inițială" name="parola" type="password" value={formState.parola} onChange={handleChange} />
+                <p className="text-xs text-slate-400 italic">Completați aceste câmpuri doar dacă doriți să creați și un cont de autentificare.</p>
             </div>
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
              <Input label="Data Nașterii" name="data_nasterii" type="date" value={formState.data_nasterii} onChange={handleChange} required />
-             <Input label="CNP" name="cnp" value={formState.cnp} onChange={handleChange} required maxLength={13} />
+             <Input label="CNP" name="cnp" value={formState.cnp || ''} onChange={handleChange} maxLength={13} />
         </div>
          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input label="Data Înscrierii" name="data_inscrierii" type="date" value={formState.data_inscrierii} onChange={handleChange} required />
@@ -149,6 +149,11 @@ const SportivDetail: React.FC<SportivDetailProps> = ({ sportiv, onBack, onUpdate
         ? getGrad(admittedParticipations[0].grad_sustinut_id, grade)?.nume 
         : <span className="text-sky-400 italic">Începător</span>;
 
+    const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement> | { target: { name: string; value: any; } }) => {
+        const { name, value } = e.target;
+        setFormState(prev => ({...prev, [name]: value === '' ? null : value}));
+    };
+    
     const handleSave = async () => {
         setLoading(true);
         const { parola, email, username, user_id, roluri, ...updateData } = formState; 
@@ -186,7 +191,7 @@ const SportivDetail: React.FC<SportivDetailProps> = ({ sportiv, onBack, onUpdate
                              <div>
                                 <h2 className="text-3xl font-extrabold text-white leading-tight uppercase">{sportiv.nume} {sportiv.prenume}</h2>
                                 <div className="flex items-center gap-3 mt-2">
-                                    <span className="px-3 py-1 bg-brand-primary/20 text-brand-secondary text-sm font-bold rounded-full border border-brand-primary/30">
+                                    <span className="px-3 py-1 bg-brand-primary/20 text-sky-400 text-sm font-bold rounded-full border border-brand-primary/30">
                                         {gradActual}
                                     </span>
                                     <span className={`px-3 py-1 text-xs font-bold rounded-full uppercase ${sportiv.status === 'Activ' ? 'bg-green-600/20 text-green-400' : 'bg-red-600/20 text-red-400'}`}>
@@ -200,7 +205,7 @@ const SportivDetail: React.FC<SportivDetailProps> = ({ sportiv, onBack, onUpdate
                             <div className="space-y-6">
                                 <SportivFormFields 
                                     formState={formState} 
-                                    handleChange={(e: any) => setFormState({...formState, [e.target.name]: e.target.value})} 
+                                    handleChange={handleFormChange} 
                                     grupe={grupe} 
                                     familii={familii} 
                                     tipuriAbonament={tipuriAbonament} 
@@ -348,7 +353,7 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
   const filteredSportivi = useMemo(() => {
     return sportivi.filter(s => 
       `${s.nume} ${s.prenume}`.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      s.cnp.includes(searchTerm)
+      (s.cnp && s.cnp.includes(searchTerm))
     );
   }, [sportivi, searchTerm]);
 
@@ -359,39 +364,37 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
         }
 
         const { email, parola, username, ...profileData } = sportivData;
+        let authUser: any = null;
 
-        if (!email || !parola) {
-            alert("Email-ul și parola sunt obligatorii pentru crearea unui cont nou.");
-            return;
+        if (email && parola) {
+             const { data: authData, error: authError } = await supabase.auth.signUp({
+                email: email,
+                password: parola,
+            });
+            if (authError) {
+                alert(`Eroare la crearea contului: ${authError.message}`);
+                return;
+            }
+            if (!authData.user) {
+                alert("Nu s-a putut crea utilizatorul. Încercați din nou.");
+                return;
+            }
+            authUser = authData.user;
+        } else if (email || parola) {
+             alert("Pentru a crea un cont de autentificare, sunt necesare atât email-ul, cât și parola.");
+             return;
         }
 
-        // Pasul 1: Crearea utilizatorului în Supabase Auth
-        const { data: authData, error: authError } = await supabase.auth.signUp({
-            email: email,
-            password: parola,
-        });
-
-        if (authError) {
-            alert(`Eroare la crearea contului: ${authError.message}`);
-            return;
-        }
-        if (!authData.user) {
-            alert("Nu s-a putut crea utilizatorul. Încercați din nou.");
-            return;
-        }
-
-        // Pasul 2: Pregătirea datelor pentru inserarea în tabelul 'sportivi'
         const profileToInsert = {
             ...profileData,
-            user_id: authData.user.id,
-            email: email,
+            user_id: authUser ? authUser.id : null,
+            email: email || null,
             username: username || null,
         };
         // @ts-ignore
         delete profileToInsert.parola;
 
 
-        // Pasul 3: Inserarea profilului în tabelul 'sportivi'
         const { data: newSportiv, error: profileError } = await supabase
             .from('sportivi')
             .insert(profileToInsert)
@@ -404,7 +407,6 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
         }
         
         if (newSportiv) {
-            // Pasul 4: Asignarea rolului default 'Sportiv'
             const sportivRole = allRoles.find(r => r.nume === 'Sportiv');
             if (sportivRole) {
                 const { error: roleError } = await supabase.from('sportivi_roluri').insert({
@@ -416,7 +418,6 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
                 }
             }
 
-            // Re-citim sportivul cu tot cu roluri pentru a actualiza corect starea
             const { data: finalSportivData, error: refetchError } = await supabase
                 .from('sportivi')
                 .select('*, sportivi_roluri(roluri(id, nume))')

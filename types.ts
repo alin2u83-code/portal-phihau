@@ -8,12 +8,12 @@ export interface Sportiv {
   user_id?: string; // FK to auth.users
   nume: string;
   prenume: string;
-  email: string;
+  email: string | null;
   username?: string; // Nume de utilizator unic pentru login
   parola?: string; // Only for creating new users
   roluri: Rol[];
   data_nasterii: string;
-  cnp: string;
+  cnp: string | null;
   inaltime?: number; // în cm, pentru calcul preț echipament
   data_inscrierii: string;
   status: 'Activ' | 'Inactiv';

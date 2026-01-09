@@ -25,7 +25,7 @@ import { FamilieDetail } from './components/FamilieDetail';
 import { SportivAccountSettings } from './components/SportivAccountSettings';
 import { EditareProfilPersonal } from './components/EditareProfilPersonal';
 
-const logoBase64 = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAMAAAD04JH5AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAGBQTFRF////AP8A/wAAAI6Oju7u7u7u7v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+7n+64AAAACh0Uk5TBA8YIiwuMTY5PEBITlRYWl9hY2Zpbm9ydHV2eXqAgYKEh4mKjI6PkpOU70F8bAAAAeFJREFUeNrs2u1SgzAMBuAsYFv3v9Z7OndpRyvI+ZByvj+I0KRP0pAm0H9+CBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECHwscG4f+Ezg8vOfz78O3P65P3D8K/B3YPdL4C0wYWAkwD9gwUCA38CAYQE/gQXDAn4BC8YEfAcWzAn4DSyYE/AXWDAf4Cew4DDAf4DDAK8BngM8BngK8BTgKcBTgKcAzwGeAzwGeArwFOApwFOApwDPAZ4DPAd4CvAU4CnAU4DnAKeBAU4DA5wGBjgNDHAaGOA0MMBpYIDTwACngQFOAwOcBgY4DQxwGhjgNDDAaWCA08AAp4EBTgMDnAYGOA0McBoY4DQwwGlggNPAMMDvAb8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvwIMAAInB78Y2Yp2AAAAAElFTkSuQmCC`;
+const logoBase64 = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAMAAAD04JH5AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAGBQTFRF////AP8A/wAAAI6Oju7u7u7u7v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+7n+64AAAACh0Uk5TBA8YIiwuMTY5PEBITlRYWl9hY2Zpbm9ydHV2eXqAgYKEh4mKjI6PkpOU70F8bAAAAeFJREFUeNrs2u1SgzAMBuAsYFv3v9Z7OndpRyvI+ZByvj+I0KRP0pAm0H9+CBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECHwscG4f+Ezg8vOfz78O3P65P3D8K/B3YPdL4C0wYWAkwD9gwUCA38CAYQE/gQXDAn4BC8YEfAcWzAn4DSyYE/AXWDAf4Cew4DDAf4DDAK8BngM8BngK8BTgKcBTgKcAzwGeAzwGeArwFOApwFOApwDPAZ4DPAd4CvAU4CnAU4DnAKeBAU4DA5wGBjgNDHAaGOA0MMBpYIDTwACngQFOAwOcBgY4DQxwGhjgNDDAaWCA08AAp4EBTgMDnAYGOA0McBoY4DQwwGlggNPAMMDvAb8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvx/w-wG/H/D7Ab8f8PsBvx/w+wG/H/D7Ab8f8PsBvwIMAAInB78Y2Yp2AAAAAElFTkSuQmCC`;
 
 const TopBar: React.FC<{ onLogout: () => void; onHome: () => void; user: User | null; isPortal?: boolean; onViewOwnPortal?: () => void; }> = ({ onLogout, onHome, user, isPortal = false, onViewOwnPortal }) => {
     const userName = user ? (user.roluri?.some(r => r.nume === 'Admin') ? 'Administrator' : `${user.nume} ${user.prenume}`) : '...';
@@ -172,10 +172,15 @@ function App() {
             setCurrentUser(null);
             setViewingAs(null);
         } else if (data && data.length > 0) {
+             let userProfileData;
              if (data.length > 1) {
-                 console.warn(`Atenție: Au fost găsite mai multe profiluri pentru user_id ${userId}. Se va folosi primul.`);
+                 console.warn(`Atenție: Au fost găsite mai multe profiluri pentru user_id ${userId}. Se va folosi primul profil activ, sau primul găsit.`);
+                 userProfileData = data.find(p => p.status === 'Activ') || data[0];
+             } else {
+                 userProfileData = data[0];
              }
-             const userProfile = data[0] as any;
+
+             const userProfile = userProfileData as any;
              if (userProfile.sportivi_roluri) {
                 userProfile.roluri = userProfile.sportivi_roluri.map((item: any) => item.roluri);
                 delete userProfile.sportivi_roluri;

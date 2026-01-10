@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { User, View } from '../types';
 import { adminMenu, sportivMenu, MenuItem } from './menuConfig';
 import { logoBase64 } from '../assets/logoData';
-// FIX: Imported `UserCircleIcon`
 import { ArrowRightOnRectangleIcon, Bars3Icon, ChevronDownIcon, UserCircleIcon } from './icons';
 
 const NavItem: React.FC<{
@@ -10,7 +9,6 @@ const NavItem: React.FC<{
     isExpanded: boolean;
     isActive: boolean;
     onNavigate: (view: View) => void;
-    // FIX: Added `activeView` prop
     activeView: View;
 }> = ({ item, isExpanded, isActive, onNavigate, activeView }) => {
     const [isSubmenuOpen, setIsSubmenuOpen] = useState(false);

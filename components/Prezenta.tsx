@@ -225,6 +225,12 @@ export const PrezentaManagement: React.FC<{
     const { showError } = useError();
     const instructori = useMemo(() => sportivi.filter(s => s.status === 'Activ' && s.roluri.some(r => r.nume === 'Instructor')), [sportivi]);
 
+    const [filters, setFilters] = useState({ tip: '' });
+
+    const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setFilters(prev => ({...prev, [e.target.name]: e.target.value}));
+    };
+
     const handleSaveAntrenament = async (antrenamentData: Omit<Prezenta, 'id' | 'sportivi_prezenti_ids'>) => {
         if (antrenamentToEdit) {
             const { data, error } = await supabase.from('prezente').update(antrenamentData).eq('id', antrenamentToEdit.id).select().single();
@@ -248,11 +254,17 @@ export const PrezentaManagement: React.FC<{
     const handleOpenAdd = () => { setAntrenamentToEdit(null); setIsFormOpen(true); };
     const handleOpenEdit = (antrenament: Prezenta) => { setAntrenamentToEdit(antrenament); setIsFormOpen(true); };
 
+    const filteredPrezente = useMemo(() => {
+        const sorted = [...prezente].sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime() || b.ora.localeCompare(a.ora));
+        if (!filters.tip) {
+            return sorted;
+        }
+        return sorted.filter(p => p.tip === filters.tip);
+    }, [prezente, filters]);
+
     if (selectedAntrenament) {
         return <AttendanceDetail antrenament={selectedAntrenament} onBack={() => setSelectedAntrenament(null)} sportivi={sportivi} grupe={grupe} instructori={instructori} setPrezente={setPrezente} />;
     }
-
-    const sortedPrezente = [...prezente].sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime() || b.ora.localeCompare(a.ora));
 
     return (
         <div>
@@ -261,6 +273,17 @@ export const PrezentaManagement: React.FC<{
                 <h1 className="text-3xl font-bold text-white">Istoric Antrenamente</h1>
                 <Button onClick={handleOpenAdd} variant="info"><PlusIcon className="w-5 h-5 mr-2" /> Antrenament Nou</Button>
             </div>
+
+            <Card className="mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                    <Select label="Filtrează după tip" name="tip" value={filters.tip} onChange={handleFilterChange}>
+                        <option value="">Toate Tipurile</option>
+                        <option value="Normal">Normal</option>
+                        <option value="Vacanta">Vacanță</option>
+                    </Select>
+                </div>
+            </Card>
+
             <Card className="overflow-hidden p-0">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left min-w-[800px]">
@@ -274,7 +297,7 @@ export const PrezentaManagement: React.FC<{
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-700">
-                            {sortedPrezente.map(p => {
+                            {filteredPrezente.map(p => {
                                 const grupa = grupe.find(g => g.id === p.grupa_id);
                                 const antrenor = instructori.find(i => i.id === p.antrenor_id);
                                 return (
@@ -297,7 +320,7 @@ export const PrezentaManagement: React.FC<{
                             })}
                         </tbody>
                     </table>
-                    {sortedPrezente.length === 0 && <p className="p-4 text-center text-slate-400">Niciun antrenament înregistrat.</p>}
+                    {filteredPrezente.length === 0 && <p className="p-4 text-center text-slate-400">Niciun antrenament înregistrat conform filtrelor.</p>}
                 </div>
             </Card>
             <AntrenamentForm 

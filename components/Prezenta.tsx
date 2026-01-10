@@ -31,6 +31,7 @@ const AntrenamentForm: React.FC<{
         if (isOpen) {
             setFormState(getInitialState());
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen, antrenamentToEdit]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -225,9 +226,9 @@ export const PrezentaManagement: React.FC<{
     const { showError } = useError();
     const instructori = useMemo(() => sportivi.filter(s => s.status === 'Activ' && s.roluri.some(r => r.nume === 'Instructor')), [sportivi]);
 
-    const [filters, setFilters] = useState({ tip: '' });
+    const [filters, setFilters] = useState({ tip: '', data: '', grupa: '' });
 
-    const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setFilters(prev => ({...prev, [e.target.name]: e.target.value}));
     };
 
@@ -244,7 +245,7 @@ export const PrezentaManagement: React.FC<{
     };
 
     const handleDeleteAntrenament = async (id: number) => {
-        if (window.confirm("Sunteți sigur că doriți să ștergeți acest antrenament și toată prezența asociată?")) {
+        if (window.confirm("Sunteți sigur că doriți să ștergeți această înregistrare? Această acțiune este ireversibilă.")) {
             const { error } = await supabase.from('prezente').delete().eq('id', id);
             if (error) { showError("Eroare la ștergere", error); } 
             else { setPrezente(prev => prev.filter(p => p.id !== id)); }
@@ -255,11 +256,18 @@ export const PrezentaManagement: React.FC<{
     const handleOpenEdit = (antrenament: Prezenta) => { setAntrenamentToEdit(antrenament); setIsFormOpen(true); };
 
     const filteredPrezente = useMemo(() => {
-        const sorted = [...prezente].sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime() || b.ora.localeCompare(a.ora));
-        if (!filters.tip) {
-            return sorted;
+        let sorted = [...prezente].sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime() || b.ora.localeCompare(a.ora));
+        
+        if (filters.tip) {
+            sorted = sorted.filter(p => p.tip === filters.tip);
         }
-        return sorted.filter(p => p.tip === filters.tip);
+        if (filters.data) {
+            sorted = sorted.filter(p => p.data === filters.data);
+        }
+        if (filters.grupa) {
+            sorted = sorted.filter(p => p.grupa_id === filters.grupa);
+        }
+        return sorted;
     }, [prezente, filters]);
 
     if (selectedAntrenament) {
@@ -275,7 +283,12 @@ export const PrezentaManagement: React.FC<{
             </div>
 
             <Card className="mb-6">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                    <Input label="Filtrează după dată" name="data" type="date" value={filters.data} onChange={handleFilterChange} />
+                    <Select label="Filtrează după grupă" name="grupa" value={filters.grupa} onChange={handleFilterChange}>
+                        <option value="">Toate Grupele</option>
+                        {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
+                    </Select>
                     <Select label="Filtrează după tip" name="tip" value={filters.tip} onChange={handleFilterChange}>
                         <option value="">Toate Tipurile</option>
                         <option value="Normal">Normal</option>

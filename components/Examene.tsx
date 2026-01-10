@@ -119,9 +119,11 @@ const ExamenDetail: React.FC<ExamenDetailProps> = ({ examen, participari, setPar
             showError("Eroare Configurare", "Clientul Supabase nu a putut fi stabilit.");
             return;
         }
-        const { error } = await supabase.from('participari').delete().eq('id', participareId);
-        if (error) { showError("Eroare la ștergere", error); return; }
-        setParticipari(prev => prev.filter(p => p.id !== participareId));
+        if (window.confirm("Sunteți sigur că doriți să ștergeți această înregistrare? Această acțiune este ireversibilă.")) {
+            const { error } = await supabase.from('participari').delete().eq('id', participareId);
+            if (error) { showError("Eroare la ștergere", error); return; }
+            setParticipari(prev => prev.filter(p => p.id !== participareId));
+        }
     };
 
     return ( <Card> <h3 className="text-2xl font-bold text-white">{examen.locatia} - {examen.data}</h3><p className="text-slate-400">Comisia: {examen.comisia}</p><div className="mt-6 border-t border-slate-700 pt-6"> <h4 className="text-xl font-semibold mb-4 text-white">Participanți</h4><div className="space-y-2 mb-6">{participari.map(p => { const sportiv = sportivi.find(s => s.id === p.sportiv_id); return ( <div key={p.id} className="bg-slate-700/50 p-3 rounded-md grid grid-cols-1 md:grid-cols-5 gap-4 items-center"><p className="font-medium col-span-1 md:col-span-1">{sportiv?.nume} {sportiv?.prenume}</p><Select label="" value={p.grad_sustinut_id} onChange={e => handleUpdateParticipare(p.id, 'grad_sustinut_id', e.target.value)}>{sortedGrades.map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}</Select><Select label="" value={p.rezultat} onChange={e => handleUpdateParticipare(p.id, 'rezultat', e.target.value)}><option value="Admis">Admis</option><option value="Respins">Respins</option><option value="Neprezentat">Neprezentat</option></Select><Input label="" placeholder="Observații..." defaultValue={p.observatii || ''} onBlur={e => handleUpdateParticipare(p.id, 'observatii', e.target.value)} /><Button onClick={() => handleDeleteParticipare(p.id)} variant="danger" size="sm" className="justify-self-end"><TrashIcon /></Button></div> )})}{participari.length === 0 && <p className="text-slate-400">Niciun participant înscris.</p>}</div><Card className="bg-slate-900/50"><h5 className="text-lg font-semibold mb-2 text-white">Adaugă Participant</h5><form onSubmit={handleAddParticipant} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end"><div className="col-span-2"><Select label="Sportiv" value={sportivId} onChange={e => setSportivId(e.target.value)}><option value="">Selectează Sportiv</option>{sportivi.filter(s => s.status === 'Activ' && !participari.some(p => p.sportiv_id === s.id)).map(s => ( <option key={s.id} value={s.id}>{s.nume} {s.prenume}</option> ))}</Select></div><Button type="submit" variant="info">Adaugă</Button></form>{showSuccess && <p className="text-green-400 mt-2 text-sm font-semibold">{showSuccess}</p>}</Card></div></Card> )
@@ -157,7 +159,7 @@ export const ExameneManagement: React.FC<ExameneManagementProps> = ({ onBack, ex
         showError("Eroare Configurare", "Clientul Supabase nu a putut fi stabilit.");
         return;
     }
-    if (!window.confirm("Ești sigur? Toate participările asociate vor fi șterse.")) return;
+    if (!window.confirm("Sunteți sigur că doriți să ștergeți această înregistrare? Această acțiune este ireversibilă.")) return;
     
     const { error: participariError } = await supabase.from('participari').delete().eq('examen_id', examenId);
     if(participariError) { showError("Eroare la ștergerea participarilor", participariError); return; }

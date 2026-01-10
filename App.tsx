@@ -258,7 +258,9 @@ function App() {
         }
     } else {
         switch (activeView) {
-            case 'sportivi': return <SportiviManagement onBack={handleBackToDashboard} sportivi={sportivi} setSportivi={setSportivi} participari={participari} examene={examene} grade={grade} prezente={prezente} grupe={grupe} plati={plati} evenimente={evenimente} rezultate={rezultate} tipuriAbonament={tipuriAbonament} customFields={customFields} setCustomFields={setCustomFields} currentUser={currentUser!} setCurrentUser={setCurrentUser} allRoles={allRoles} setAllRoles={setAllRoles} familii={familii} setFamilii={setFamilii} />;
+            case 'sportivi': return <SportiviManagement onBack={handleBackToDashboard} sportivi={sportivi} setSportivi={setSportivi} grupe={grupe} setGrupe={setGrupe} tipuriAbonament={tipuriAbonament} setTipuriAbonament={setTipuriAbonament} familii={familii} setFamilii={setFamilii} customFields={customFields} setCustomFields={setCustomFields} allRoles={allRoles} />;
+            case 'familii': return <FamiliiManagement onBack={handleBackToDashboard} familii={familii} setFamilii={setFamilii} />;
+            case 'user-management': return <UserManagement onBack={handleBackToDashboard} sportivi={sportivi} setSportivi={setSportivi} currentUser={currentUser!} setCurrentUser={setCurrentUser} allRoles={allRoles} setAllRoles={setAllRoles} />;
             case 'examene': return <ExameneManagement onBack={handleBackToDashboard} examene={examene} setExamene={setExamene} participari={participari} setParticipari={setParticipari} sportivi={sportivi} grade={grade} setPlati={setPlati} preturi={preturiConfig} />;
             case 'grade': return <GradeManagement onBack={handleBackToDashboard} grade={grade} setGrade={setGrade} />;
             case 'prezenta': return <PrezentaManagement onBack={handleBackToDashboard} sportivi={sportivi} prezente={prezente} setPrezente={setPrezente} grupe={grupe} />;

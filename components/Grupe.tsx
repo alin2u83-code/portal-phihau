@@ -152,7 +152,7 @@ export const GrupeManagement: React.FC<GrupeManagementProps> = ({ grupe, setGrup
 
   const handleDelete = async (grupaId: string) => {
     if (!supabase) return;
-    if (window.confirm("Ești sigur că vrei să ștergi această grupă? Sportivii alocați vor rămâne fără grupă.")) {
+    if (window.confirm("Sunteți sigur că doriți să ștergeți această înregistrare? Această acțiune este ireversibilă.")) {
         // Șterge întâi programul asociat (foreign key constraint)
         const { error: programError } = await supabase.from('program_antrenamente').delete().eq('grupa_id', grupaId);
         if (programError) { alert(`Eroare la ștergerea programului asociat: ${programError.message}`); return; }

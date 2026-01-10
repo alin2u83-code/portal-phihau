@@ -69,7 +69,7 @@ export const ConfigurarePreturi: React.FC<ConfigurarePreturiProps> = ({ preturi,
     const handleEdit = (pret: PretConfig) => { setPretToEdit(pret); setIsFormOpen(true); };
     const handleDelete = async (id: string) => { 
         if(!supabase) return;
-        if (window.confirm("Ești sigur?")) { 
+        if (window.confirm("Sunteți sigur că doriți să ștergeți această înregistrare? Această acțiune este ireversibilă.")) { 
             const { error } = await supabase.from('preturi_config').delete().eq('id', id);
             if(error) { alert(`Eroare la ștergere: ${error.message}`); }
             else { setPreturi(prev => prev.filter(p => p.id !== id)); }

@@ -58,7 +58,7 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
 
     const handleDelete = async (id: string) => {
         if(!supabase) return;
-        if (window.confirm("Sunteți sigur că doriți să ștergeți acest tip de abonament? Această acțiune poate afecta sportivii care îl au deja alocat.")) {
+        if (window.confirm("Sunteți sigur că doriți să ștergeți această înregistrare? Această acțiune este ireversibilă.")) {
             const { error } = await supabase.from('tipuri_abonament').delete().eq('id', id);
             if (error) { alert(`Eroare la ștergere: ${error.message}`); }
             else { setTipuriAbonament(prev => prev.filter(ab => ab.id !== id)); }

@@ -125,9 +125,11 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment, rezultate,
     };
     const handleDeleteRezultat = async (rezultatId: string) => { 
         if(!supabase) return;
-        const {error} = await supabase.from('rezultate').delete().eq('id', rezultatId);
-        if(error) { alert(`Eroare la ștergere: ${error.message}`); }
-        else { setRezultate(prev => prev.filter(r => r.id !== rezultatId)); }
+        if (window.confirm("Sunteți sigur că doriți să ștergeți această înregistrare? Această acțiune este ireversibilă.")) {
+            const {error} = await supabase.from('rezultate').delete().eq('id', rezultatId);
+            if(error) { alert(`Eroare la ștergere: ${error.message}`); }
+            else { setRezultate(prev => prev.filter(r => r.id !== rezultatId)); }
+        }
     };
     
     const handleProbeChange = (rezultatId: string, proba: string, isChecked: boolean) => {
@@ -164,7 +166,7 @@ export const StagiiCompetitiiManagement: React.FC<StagiiCompetitiiProps> = ({ on
     
     const handleDelete = async (evId: string) => { 
         if (!supabase) return;
-        if (window.confirm("Ești sigur? Toate rezultatele asociate vor fi șterse.")) {
+        if (window.confirm("Sunteți sigur că doriți să ștergeți această înregistrare? Această acțiune este ireversibilă.")) {
             const { error: deleteRezultateError } = await supabase.from('rezultate').delete().eq('eveniment_id', evId);
             if (deleteRezultateError) { alert(`Eroare la ștergerea rezultatelor: ${deleteRezultateError.message}`); return; }
 

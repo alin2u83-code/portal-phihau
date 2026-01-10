@@ -88,7 +88,7 @@ export const GradeManagement: React.FC<GradeManagementProps> = ({ grade, setGrad
   
   const handleDelete = async (gradId: string) => { 
       if (!supabase) return;
-      if (window.confirm("Ești sigur că vrei să ștergi acest grad?")) { 
+      if (window.confirm("Sunteți sigur că doriți să ștergeți această înregistrare? Această acțiune este ireversibilă.")) { 
           const { error } = await supabase.from('grade').delete().eq('id', gradId);
           if (error) { alert(`Eroare la ștergere: ${error.message}`); }
           else { setGrade(prev => prev.filter(g => g.id !== gradId)); }

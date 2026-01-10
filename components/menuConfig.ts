@@ -1,4 +1,3 @@
-// FIX: Added React import for React.ElementType
 import React from 'react';
 import { View, Rol } from '../types';
 import { HomeIcon, UsersIcon, TrophyIcon, ClipboardDocumentListIcon, BanknotesIcon, CalendarDaysIcon, UserCircleIcon, CogIcon } from './icons';
@@ -22,7 +21,11 @@ export const adminMenu: MenuItem[] = [
     { 
         label: 'Sportivi & Utilizatori', 
         icon: UsersIcon,
-        view: 'sportivi',
+        submenu: [
+             { label: 'Listă Sportivi', view: 'sportivi' },
+             { label: 'Gestiune Familii', view: 'familii', roles: ['Admin', 'Instructor'] },
+             { label: 'Acces Utilizatori', view: 'user-management', roles: ['Admin'] }
+        ]
     },
     {
         label: 'Activități',

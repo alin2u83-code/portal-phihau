@@ -94,7 +94,7 @@ export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({ familii, s
             showFeedback('error', "Eroare de configurare: Conexiunea la baza de date nu a putut fi stabilită.");
             return;
         }
-        if (window.confirm("Ești sigur? Sportivii din această familie vor trebui realocați manual.")) {
+        if (window.confirm("Sunteți sigur că doriți să ștergeți această înregistrare? Această acțiune este ireversibilă.")) {
             const { error } = await supabase.from('familii').delete().eq('id', id);
             if (error) {
                 showFeedback('error', `Eroare la ștergere: ${error.message}`);

@@ -33,9 +33,15 @@ export const Login: React.FC<LoginProps> = () => {
                 .from('sportivi')
                 .select('email')
                 .eq('username', cleanedUsername)
-                .single();
+                .maybeSingle();
             
-            if (!usernameError && data && data.email) {
+            if (usernameError) {
+                setError(`Eroare la căutarea utilizatorului: ${usernameError.message}`);
+                setLoading(false);
+                return;
+            }
+            
+            if (data && data.email) {
                 emailToAuth = data.email;
             }
         }

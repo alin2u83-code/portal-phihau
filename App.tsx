@@ -56,23 +56,20 @@ function App() {
   const fetchUserProfile = useCallback(async (userId: string) => {
         if (!supabase) return;
         setLoading(true);
-        const { data: userProfiles, error } = await supabase
+        const { data: userProfile, error } = await supabase
             .from('sportivi')
             .select('*, sportivi_roluri(roluri(id, nume))')
-            .eq('user_id', userId);
+            .eq('user_id', userId)
+            .maybeSingle();
 
         if (error) {
             console.error("DEBUG:", "Eroare la preluarea profilului utilizator:", error);
-            const msg = `Eroare la preluarea profilului. Motiv: ${error.message}.`;
+            const msg = `Eroare la preluarea profilului. Motiv: ${error.message}. Asigurați-vă că nu există profiluri duplicate pentru același cont.`;
             setFetchError(msg);
-            showError("Eroare Profil", error);
+            showError("Eroare Profil", msg);
             setCurrentUser(null);
             setViewingAs(null);
-        } else if (userProfiles && userProfiles.length > 0) {
-             if (userProfiles.length > 1) {
-                console.warn(`Atenție: Au fost găsite mai multe (${userProfiles.length}) profiluri pentru user ID ${userId}. Se va folosi primul găsit.`);
-             }
-             const userProfile = userProfiles[0];
+        } else if (userProfile) {
              const userProfileData = userProfile as any;
              if (userProfileData.sportivi_roluri) {
                 userProfileData.roluri = userProfileData.sportivi_roluri.map((item: any) => item.roluri);
@@ -83,9 +80,9 @@ function App() {
             setCurrentUser(userProfileData as User);
             setViewingAs(userProfileData as User);
         } else {
-            const msg = `Profilul dvs. nu a fost găsit în baza de date.`;
+            const msg = `Profilul dvs. nu a fost găsit în baza de date. Vă rugăm contactați un administrator.`;
             setFetchError(msg);
-            showError("Eroare Profil", msg);
+            showError("Profil negăsit", msg);
             setCurrentUser(null);
             setViewingAs(null);
         }

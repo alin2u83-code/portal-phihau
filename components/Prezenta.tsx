@@ -226,6 +226,7 @@ export const PrezentaManagement: React.FC<{
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [dateFilter, setDateFilter] = useState('');
     const [groupFilter, setGroupFilter] = useState('');
+    const [tipFilter, setTipFilter] = useState('');
     const { showError } = useError();
     const instructori = useMemo(() => sportivi.filter(s => s.status === 'Activ' && s.roluri.some(r => r.nume === 'Instructor')), [sportivi]);
 
@@ -250,7 +251,7 @@ export const PrezentaManagement: React.FC<{
     };
 
     const handleDeleteAntrenament = async (id: number) => {
-        if (window.confirm("Sunteți sigur că doriți să ștergeți acest antrenament și toată prezența asociată?")) {
+        if (window.confirm("Sunteți sigur că doriți să ștergeți acest antrenament și toată prezența asociată? Această acțiune este ireversibilă.")) {
             if (!supabase) { showError("Eroare de configurare", "Clientul Supabase nu este setat."); return; }
             const { error } = await supabase.from('prezente').delete().eq('id', id);
             if (error) { showError("Eroare la ștergere", error); } 
@@ -269,9 +270,10 @@ export const PrezentaManagement: React.FC<{
         return prezente.filter(p => {
             const dateMatch = !dateFilter || p.data === dateFilter;
             const groupMatch = !groupFilter || p.grupa_id === groupFilter;
-            return dateMatch && groupMatch;
+            const tipMatch = !tipFilter || p.tip === tipFilter;
+            return dateMatch && groupMatch && tipMatch;
         });
-    }, [prezente, dateFilter, groupFilter]);
+    }, [prezente, dateFilter, groupFilter, tipFilter]);
 
     const sortedPrezente = [...filteredPrezente].sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime() || b.ora.localeCompare(a.ora));
 
@@ -284,11 +286,16 @@ export const PrezentaManagement: React.FC<{
             </div>
 
             <Card className="mb-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <Input label="Filtrează după dată" type="date" value={dateFilter} onChange={e => setDateFilter(e.target.value)} />
                     <Select label="Filtrează după grupă" value={groupFilter} onChange={e => setGroupFilter(e.target.value)}>
                         <option value="">Toate grupele</option>
                         {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
+                    </Select>
+                    <Select label="Tip antrenament" value={tipFilter} onChange={e => setTipFilter(e.target.value)}>
+                        <option value="">Toate tipurile</option>
+                        <option value="Normal">Normal</option>
+                        <option value="Vacanta">Vacanță</option>
                     </Select>
                 </div>
             </Card>

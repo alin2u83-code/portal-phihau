@@ -21,12 +21,21 @@ export const adminMenu: MenuItem[] = [
     { 
         label: 'Sportivi & Utilizatori', 
         icon: UsersIcon,
-        view: 'sportivi',
+        submenu: [
+            { view: 'sportivi', label: 'Listă Sportivi' },
+            { view: 'sportivi', label: 'Gestiune Familii' },
+            { view: 'sportivi', label: 'Management Acces' },
+        ]
     },
     {
         label: 'Activități Club',
         icon: TrophyIcon,
-        view: 'activitati'
+        submenu: [
+            { view: 'activitati', label: 'Antrenamente' },
+            { view: 'activitati', label: 'Examene' },
+            { view: 'activitati', label: 'Stagii & Competiții' },
+            { view: 'activitati', label: 'Grade Qwan Ki Do' },
+        ]
     },
     { 
         label: 'Financiar', 

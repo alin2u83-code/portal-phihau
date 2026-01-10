@@ -13,7 +13,7 @@ if (supabaseUrl && supabaseAnonKey) {
     },
   });
 } else {
-  console.warn("Variabilele de mediu Supabase (VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY) nu sunt setate. Clientul Supabase nu a fost initializat.");
+  console.error("Variabilele de mediu Supabase (VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY) nu sunt setate. Clientul Supabase nu a fost initializat.");
 }
 
 export const supabase = supabaseInstance;

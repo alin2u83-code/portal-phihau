@@ -1,3 +1,4 @@
+// FIX: Added React import for React.ElementType
 import React from 'react';
 import { View, Rol } from '../types';
 import { HomeIcon, UsersIcon, TrophyIcon, ClipboardDocumentListIcon, BanknotesIcon, CalendarDaysIcon, UserCircleIcon, CogIcon } from './icons';
@@ -13,7 +14,6 @@ export interface MenuItem {
 export interface SubMenuItem {
     label: string;
     view: View;
-    subView?: string;
     roles?: Rol['nume'][];
 }
 
@@ -23,22 +23,25 @@ export const adminMenu: MenuItem[] = [
         label: 'Sportivi & Utilizatori', 
         icon: UsersIcon,
         view: 'sportivi',
-        submenu: [
-            { view: 'sportivi', label: 'Listă Sportivi', subView: 'lista' },
-            { view: 'sportivi', label: 'Gestiune Date', subView: 'gestiune' },
-            { view: 'sportivi', label: 'Management Acces', subView: 'acces', roles: ['Admin'] },
-        ]
     },
     {
-        label: 'Activități Club',
+        label: 'Activități',
         icon: TrophyIcon,
-        view: 'activitati',
         submenu: [
-            { view: 'activitati', label: 'Antrenamente', subView: 'antrenamente' },
-            { view: 'activitati', label: 'Examene', subView: 'examene' },
-            { view: 'activitati', label: 'Stagii & Competiții', subView: 'evenimente' },
-            { view: 'activitati', label: 'Grade Qwan Ki Do', subView: 'grade' },
+             { view: 'examene', label: 'Configurare Examene' },
+             { view: 'grade', label: 'Nomenclator Grade' },
+             { view: 'stagii', label: 'Listă Stagii' },
+             { view: 'competitii', label: 'Listă Competiții' }
         ]
+    },
+    { 
+        label: 'Antrenamente', 
+        icon: ClipboardDocumentListIcon, 
+        submenu: [ 
+            { view: 'prezenta', label: 'Înregistrare Prezențe' }, 
+            { view: 'grupe', label: 'Orar & Gestiune Grupe' }, 
+            { view: 'raport-prezenta', label: 'Raport Prezențe' } 
+        ] 
     },
     { 
         label: 'Financiar', 
@@ -53,9 +56,8 @@ export const adminMenu: MenuItem[] = [
         label: 'Configurări', 
         icon: CogIcon, 
         submenu: [ 
-             { view: 'tipuri-abonament', label: 'Config. Abonamente' }, 
-             { view: 'configurare-preturi', label: 'Config. Prețuri' },
-             { view: 'raport-prezenta', label: 'Raport Prezențe' }
+             { view: 'tipuri-abonament', label: 'Configurare Abonamente' }, 
+             { view: 'configurare-preturi', label: 'Configurare Alte Prețuri' } 
         ] 
     },
 ];

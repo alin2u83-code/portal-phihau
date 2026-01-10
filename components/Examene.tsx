@@ -127,8 +127,8 @@ const ExamenDetail: React.FC<ExamenDetailProps> = ({ examen, participari, setPar
     return ( <Card> <h3 className="text-2xl font-bold text-white">{examen.locatia} - {examen.data}</h3><p className="text-slate-400">Comisia: {examen.comisia}</p><div className="mt-6 border-t border-slate-700 pt-6"> <h4 className="text-xl font-semibold mb-4 text-white">Participanți</h4><div className="space-y-2 mb-6">{participari.map(p => { const sportiv = sportivi.find(s => s.id === p.sportiv_id); return ( <div key={p.id} className="bg-slate-700/50 p-3 rounded-md grid grid-cols-1 md:grid-cols-5 gap-4 items-center"><p className="font-medium col-span-1 md:col-span-1">{sportiv?.nume} {sportiv?.prenume}</p><Select label="" value={p.grad_sustinut_id} onChange={e => handleUpdateParticipare(p.id, 'grad_sustinut_id', e.target.value)}>{sortedGrades.map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}</Select><Select label="" value={p.rezultat} onChange={e => handleUpdateParticipare(p.id, 'rezultat', e.target.value)}><option value="Admis">Admis</option><option value="Respins">Respins</option><option value="Neprezentat">Neprezentat</option></Select><Input label="" placeholder="Observații..." defaultValue={p.observatii || ''} onBlur={e => handleUpdateParticipare(p.id, 'observatii', e.target.value)} /><Button onClick={() => handleDeleteParticipare(p.id)} variant="danger" size="sm" className="justify-self-end"><TrashIcon /></Button></div> )})}{participari.length === 0 && <p className="text-slate-400">Niciun participant înscris.</p>}</div><Card className="bg-slate-900/50"><h5 className="text-lg font-semibold mb-2 text-white">Adaugă Participant</h5><form onSubmit={handleAddParticipant} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end"><div className="col-span-2"><Select label="Sportiv" value={sportivId} onChange={e => setSportivId(e.target.value)}><option value="">Selectează Sportiv</option>{sportivi.filter(s => s.status === 'Activ' && !participari.some(p => p.sportiv_id === s.id)).map(s => ( <option key={s.id} value={s.id}>{s.nume} {s.prenume}</option> ))}</Select></div><Button type="submit" variant="info">Adaugă</Button></form>{showSuccess && <p className="text-green-400 mt-2 text-sm font-semibold">{showSuccess}</p>}</Card></div></Card> )
 }
 
-interface ExameneManagementProps { onBack: () => void; examene: Examen[]; setExamene: React.Dispatch<React.SetStateAction<Examen[]>>; participari: Participare[]; setParticipari: React.Dispatch<React.SetStateAction<Participare[]>>; sportivi: Sportiv[]; grade: Grad[]; setPlati: React.Dispatch<React.SetStateAction<Plata[]>>; preturi: PretConfig[]; isEmbedded?: boolean; }
-export const ExameneManagement: React.FC<ExameneManagementProps> = ({ onBack, examene, setExamene, participari, setParticipari, sportivi, grade, setPlati, preturi, isEmbedded = false }) => {
+interface ExameneManagementProps { onBack: () => void; examene: Examen[]; setExamene: React.Dispatch<React.SetStateAction<Examen[]>>; participari: Participare[]; setParticipari: React.Dispatch<React.SetStateAction<Participare[]>>; sportivi: Sportiv[]; grade: Grad[]; setPlati: React.Dispatch<React.SetStateAction<Plata[]>>; preturi: PretConfig[]; }
+export const ExameneManagement: React.FC<ExameneManagementProps> = ({ onBack, examene, setExamene, participari, setParticipari, sportivi, grade, setPlati, preturi }) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [examenToEdit, setExamenToEdit] = useState<Examen | null>(null);
   const [selectedExamen, setSelectedExamen] = useState<Examen | null>(null);
@@ -172,41 +172,5 @@ export const ExameneManagement: React.FC<ExameneManagementProps> = ({ onBack, ex
 
   if(selectedExamen) { return ( <div><Button onClick={() => setSelectedExamen(null)} className="mb-4" variant="secondary">&larr; Înapoi la listă</Button><ExamenDetail examen={selectedExamen} participari={participari.filter(p => p.examen_id === selectedExamen.id)} setParticipari={setParticipari} sportivi={sportivi} grade={grade} setPlati={setPlati} preturi={preturi} allParticipari={participari} examene={examene}/></div> ) }
   const sortedExamene = [...examene].sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime());
-  return ( <div>
-            {!isEmbedded && <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>}
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold text-white">Management Examene</h1>
-                <Button onClick={() => { setExamenToEdit(null); setIsFormOpen(true); }} variant="info"><PlusIcon className="w-5 h-5 mr-2" />Adaugă Examen</Button>
-            </div>
-            <div className="bg-slate-800 rounded-lg shadow-lg overflow-hidden">
-                <table className="w-full text-left">
-                    <thead className="bg-slate-700">
-                        <tr>
-                            <th className="p-4 font-semibold">Data</th>
-                            <th className="p-4 font-semibold">Locația</th>
-                            <th className="p-4 font-semibold">Participanți</th>
-                            <th className="p-4 font-semibold text-right">Acțiuni</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-700">
-                        {sortedExamene.map(examen => ( 
-                            <tr key={examen.id} className="hover:bg-slate-700/50">
-                                <td className="p-4 font-medium cursor-pointer" onClick={() => setSelectedExamen(examen)}>{examen.data}</td>
-                                <td className="p-4 cursor-pointer" onClick={() => setSelectedExamen(examen)}>{examen.locatia}</td>
-                                <td className="p-4">{participari.filter(p => p.examen_id === examen.id).length}</td>
-                                <td className="p-4">
-                                    <div className="flex items-center justify-end space-x-2">
-                                        <Button onClick={() => handleEdit(examen)} variant="primary" size="sm"><EditIcon /></Button>
-                                        <Button onClick={() => handleDelete(examen.id)} variant="danger" size="sm"><TrashIcon /></Button>
-                                    </div>
-                                </td>
-                            </tr> 
-                        ))}
-                        {sortedExamene.length === 0 && <tr><td colSpan={4}><p className="p-4 text-center text-slate-400">Niciun examen programat.</p></td></tr>}
-                    </tbody>
-                </table>
-            </div>
-            <ExamenForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} onSave={handleSaveExamen} examenToEdit={examenToEdit} />
-        </div> 
-    );
+  return ( <div><Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-white">Management Examene</h1><Button onClick={() => { setExamenToEdit(null); setIsFormOpen(true); }} variant="info"><PlusIcon className="w-5 h-5 mr-2" />Adaugă Examen</Button></div><div className="bg-slate-800 rounded-lg shadow-lg overflow-hidden"><table className="w-full text-left"><thead className="bg-slate-700"><tr><th className="p-4 font-semibold">Data</th><th className="p-4 font-semibold">Locația</th><th className="p-4 font-semibold">Participanți</th><th className="p-4 font-semibold text-right">Acțiuni</th></tr></thead><tbody className="divide-y divide-slate-700">{sortedExamene.map(examen => ( <tr key={examen.id} className="hover:bg-slate-700/50"><td className="p-4 font-medium cursor-pointer" onClick={() => setSelectedExamen(examen)}>{examen.data}</td><td className="p-4 cursor-pointer" onClick={() => setSelectedExamen(examen)}>{examen.locatia}</td><td className="p-4">{participari.filter(p => p.examen_id === examen.id).length}</td><td className="p-4"><div className="flex items-center justify-end space-x-2"><Button onClick={() => handleEdit(examen)} variant="primary" size="sm"><EditIcon /></Button><Button onClick={() => handleDelete(examen.id)} variant="danger" size="sm"><TrashIcon /></Button></div></td></tr> ))}{sortedExamene.length === 0 && <tr><td colSpan={4}><p className="p-4 text-center text-slate-400">Niciun examen programat.</p></td></tr>}</tbody></table></div><ExamenForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} onSave={handleSaveExamen} examenToEdit={examenToEdit} /></div> );
 };

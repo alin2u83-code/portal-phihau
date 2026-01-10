@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Sportiv, Grupa, TipAbonament, Familie, Rol, User } from '../types';
 import { Button, Modal, Input, Select, Card } from './ui';
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon, ShieldCheckIcon } from './icons';
@@ -6,33 +6,6 @@ import { supabase } from '../supabaseClient';
 import { FamiliiManagement } from './Familii';
 import { UserManagement } from './UserManagement';
 import { useError } from './ErrorProvider';
-
-// --- Small Modals for Quick Add ---
-
-const SimpleAddModal: React.FC<{ isOpen: boolean; onClose: () => void; onSave: (name: string) => Promise<any>; title: string; label: string }> = ({ isOpen, onClose, onSave, title, label }) => {
-    const [name, setName] = useState('');
-    const [loading, setLoading] = useState(false);
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault(); setLoading(true); await onSave(name); setLoading(false); setName(''); onClose();
-    };
-    return ( <Modal isOpen={isOpen} onClose={onClose} title={title}> <form onSubmit={handleSubmit} className="space-y-4"> <Input label={label} value={name} onChange={e => setName(e.target.value)} required /> <div className="flex justify-end gap-2 pt-4"> <Button type="button" variant="secondary" onClick={onClose}>Anulează</Button> <Button type="submit" variant="success" disabled={loading}>{loading ? 'Se salvează...' : 'Salvează'}</Button> </div> </form> </Modal> );
-};
-
-const AddTipAbonamentModal: React.FC<{ isOpen: boolean; onClose: () => void; onSave: (newItem: Omit<TipAbonament, 'id'>) => Promise<any>; }> = ({ isOpen, onClose, onSave }) => {
-    const [form, setForm] = useState({ denumire: '', pret: 0, numar_membri: 1 });
-    const [loading, setLoading] = useState(false);
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setForm(p => ({ ...p, [e.target.name]: e.target.value }));
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault(); setLoading(true);
-        const data: Omit<TipAbonament, 'id'> = { ...form, pret: parseFloat(String(form.pret)), numar_membri: parseInt(String(form.numar_membri)) };
-        await onSave(data);
-        setLoading(false); setForm({ denumire: '', pret: 0, numar_membri: 1 }); onClose();
-    };
-    return ( <Modal isOpen={isOpen} onClose={onClose} title="Adaugă Tip Abonament Nou"> <form onSubmit={handleSubmit} className="space-y-4"> <Input label="Denumire" name="denumire" value={form.denumire} onChange={handleChange} required /> <Input label="Preț" name="pret" type="number" value={form.pret} onChange={handleChange} required /> <Input label="Nr. Membri" name="numar_membri" type="number" value={form.numar_membri} onChange={handleChange} required /> <div className="flex justify-end gap-2 pt-4"> <Button type="button" variant="secondary" onClick={onClose}>Anulează</Button> <Button type="submit" variant="success" disabled={loading}>{loading ? 'Se salvează...' : 'Salvează'}</Button> </div> </form> </Modal> );
-};
-
-// --- End Small Modals ---
-
 
 const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
     const colorClasses: Record<Rol['nume'], string> = {
@@ -55,12 +28,9 @@ interface SportivFormFieldsProps {
   tipuriAbonament: TipAbonament[];
   customFields: string[];
   isEditMode?: boolean;
-  onAddGrupa: () => void;
-  onAddFamilie: () => void;
-  onAddAbonament: () => void;
 }
 
-const SportivFormFields: React.FC<SportivFormFieldsProps> = ({ formState, handleChange, grupe, familii, tipuriAbonament, customFields, isEditMode = false, onAddGrupa, onAddFamilie, onAddAbonament }) => (
+const SportivFormFields: React.FC<SportivFormFieldsProps> = ({ formState, handleChange, grupe, familii, tipuriAbonament, customFields, isEditMode = false }) => (
     <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input label="Nume" name="nume" value={formState.nume} onChange={handleChange} required />
@@ -87,35 +57,20 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({ formState, handle
         </div>
          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input label="Data Înscrierii" name="data_inscrierii" type="date" value={formState.data_inscrierii} onChange={handleChange} required />
-             <div className="flex items-end gap-2">
-                <div className="flex-grow">
-                     <Select label="Familie" name="familie_id" value={formState.familie_id || ''} onChange={handleChange}>
-                        <option value="">Individual</option>
-                        {familii.map(f => <option key={f.id} value={f.id}>{f.nume}</option>)}
-                    </Select>
-                </div>
-                 <Button type="button" variant="secondary" onClick={onAddFamilie} className="!p-2 h-[38px] flex-shrink-0" title="Adaugă familie nouă"><PlusIcon /></Button>
-            </div>
+            <Select label="Familie" name="familie_id" value={formState.familie_id || ''} onChange={handleChange}>
+                <option value="">Individual</option>
+                {familii.map(f => <option key={f.id} value={f.id}>{f.nume}</option>)}
+            </Select>
          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-             <div className="flex items-end gap-2">
-                <div className="flex-grow">
-                    <Select label="Grupa" name="grupa_id" value={formState.grupa_id || ''} onChange={handleChange}>
-                        <option value="">Nicio grupă</option>
-                        {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
-                    </Select>
-                </div>
-                <Button type="button" variant="secondary" onClick={onAddGrupa} className="!p-2 h-[38px] flex-shrink-0" title="Adaugă grupă nouă"><PlusIcon /></Button>
-            </div>
-             <div className="flex items-end gap-2">
-                <div className="flex-grow">
-                    <Select label="Tip Abonament (Individual)" name="tip_abonament_id" value={formState.tip_abonament_id || ''} onChange={handleChange} disabled={!!formState.familie_id}>
-                        <option value="">Niciun abonament</option>
-                        {tipuriAbonament.filter(ab => ab.numar_membri === 1).map(ab => <option key={ab.id} value={ab.id}>{ab.denumire}</option>)}
-                    </Select>
-                 </div>
-                 <Button type="button" variant="secondary" onClick={onAddAbonament} className="!p-2 h-[38px] flex-shrink-0" title="Adaugă tip abonament"><PlusIcon /></Button>
-            </div>
+            <Select label="Grupa" name="grupa_id" value={formState.grupa_id || ''} onChange={handleChange}>
+                <option value="">Nicio grupă</option>
+                {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
+            </Select>
+            <Select label="Tip Abonament (Individual)" name="tip_abonament_id" value={formState.tip_abonament_id || ''} onChange={handleChange} disabled={!!formState.familie_id}>
+                <option value="">Niciun abonament</option>
+                {tipuriAbonament.filter(ab => ab.numar_membri === 1).map(ab => <option key={ab.id} value={ab.id}>{ab.denumire}</option>)}
+            </Select>
          </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Select label="Status" name="status" value={formState.status} onChange={handleChange}>
@@ -167,30 +122,19 @@ interface SportivFormModalProps {
     onSave: (sportivData: Partial<Sportiv>) => Promise<{success: boolean, error?: string}>;
     sportivToEdit: Sportiv | null;
     grupe: Grupa[];
-    setGrupe: React.Dispatch<React.SetStateAction<Grupa[]>>;
     familii: Familie[];
-    setFamilii: React.Dispatch<React.SetStateAction<Familie[]>>;
     tipuriAbonament: TipAbonament[];
-    setTipuriAbonament: React.Dispatch<React.SetStateAction<TipAbonament[]>>;
     customFields: string[];
-    onSaveSuccess: (message: string) => void;
 }
 
-const SportivFormModal: React.FC<SportivFormModalProps> = ({ isOpen, onClose, onSave, sportivToEdit, grupe, setGrupe, familii, setFamilii, tipuriAbonament, setTipuriAbonament, customFields, onSaveSuccess }) => {
+const SportivFormModal: React.FC<SportivFormModalProps> = ({ isOpen, onClose, onSave, sportivToEdit, grupe, familii, tipuriAbonament, customFields }) => {
     const [formState, setFormState] = useState<Partial<Sportiv>>(sportivToEdit || emptySportivState);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [isAddGrupaOpen, setIsAddGrupaOpen] = useState(false);
-    const [isAddFamilieOpen, setIsAddFamilieOpen] = useState(false);
-    const [isAddAbonamentOpen, setIsAddAbonamentOpen] = useState(false);
-    const { showError } = useError();
-    const initialFormStateRef = React.useRef(sportivToEdit || emptySportivState);
 
     React.useEffect(() => {
         if (isOpen) {
-            const initialState = sportivToEdit || emptySportivState;
-            setFormState(initialState);
-            initialFormStateRef.current = initialState;
+            setFormState(sportivToEdit || emptySportivState);
             setError(null);
         }
     }, [isOpen, sportivToEdit]);
@@ -207,68 +151,14 @@ const SportivFormModal: React.FC<SportivFormModalProps> = ({ isOpen, onClose, on
         const result = await onSave(formState);
         setLoading(false);
         if (result.success) {
-            onSaveSuccess(sportivToEdit ? 'Sportiv actualizat!' : 'Sportiv adăugat cu succes!');
-            if (sportivToEdit) {
-                onClose();
-            } else {
-                setFormState(emptySportivState);
-                initialFormStateRef.current = emptySportivState;
-            }
+            onClose();
         } else {
             setError(result.error || "A apărut o eroare necunoscută.");
         }
     };
-    
-    const handleCloseRequest = () => {
-        const isDirty = JSON.stringify(formState) !== JSON.stringify(initialFormStateRef.current);
-        if (isDirty) {
-            if (window.confirm('Sigur doriți să închideți? Datele nesalvate se vor pierde.')) {
-                onClose();
-            }
-        } else {
-            onClose();
-        }
-    };
-    
-    const handleSaveNew = async (entityType: 'familie' | 'grupa' | 'abonament', data: any) => {
-        if (!supabase) return;
-        let result, newEntity, newStateSetter: any, idField: 'familie_id' | 'grupa_id' | 'tip_abonament_id';
-
-        try {
-            switch (entityType) {
-                case 'familie':
-                    result = await supabase.from('familii').insert({ nume: data }).select().single();
-                    newEntity = result.data as Familie;
-                    newStateSetter = setFamilii;
-                    idField = 'familie_id';
-                    break;
-                case 'grupa':
-                    result = await supabase.from('grupe').insert({ denumire: data, sala: 'N/A' }).select().single(); // Program is empty by default
-                    newEntity = { ...result.data, program: [] } as Grupa;
-                    newStateSetter = setGrupe;
-                    idField = 'grupa_id';
-                    break;
-                case 'abonament':
-                    result = await supabase.from('tipuri_abonament').insert(data).select().single();
-                    newEntity = result.data as TipAbonament;
-                    newStateSetter = setTipuriAbonament;
-                    idField = 'tip_abonament_id';
-                    break;
-            }
-
-            if (result && result.error) throw result.error;
-            if (newEntity) {
-                newStateSetter((prev: any[]) => [...prev, newEntity]);
-                setFormState(prev => ({...prev, [idField]: newEntity.id }));
-            }
-        } catch (err: any) {
-            showError(`Eroare la adăugarea ${entityType}`, err);
-        }
-    };
 
     return (
-        <>
-        <Modal isOpen={isOpen} onClose={handleCloseRequest} title={sportivToEdit ? "Editează Sportiv" : "Adaugă Sportiv Nou"}>
+        <Modal isOpen={isOpen} onClose={onClose} title={sportivToEdit ? "Editează Sportiv" : "Adaugă Sportiv Nou"}>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <SportivFormFields 
                     formState={formState} 
@@ -278,9 +168,6 @@ const SportivFormModal: React.FC<SportivFormModalProps> = ({ isOpen, onClose, on
                     tipuriAbonament={tipuriAbonament} 
                     customFields={customFields}
                     isEditMode={!!sportivToEdit}
-                    onAddGrupa={() => setIsAddGrupaOpen(true)}
-                    onAddFamilie={() => setIsAddFamilieOpen(true)}
-                    onAddAbonament={() => setIsAddAbonamentOpen(true)}
                 />
                  {error && (
                     <div className="text-red-400 text-sm text-center bg-red-900/50 p-3 rounded-lg border border-red-700/50">
@@ -288,16 +175,11 @@ const SportivFormModal: React.FC<SportivFormModalProps> = ({ isOpen, onClose, on
                     </div>
                 )}
                 <div className="flex justify-end pt-4 space-x-2 border-t border-slate-700 mt-6">
-                    <Button type="button" variant="secondary" onClick={handleCloseRequest} disabled={loading}>Anulează</Button>
+                    <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button>
                     <Button type="submit" variant="success" disabled={loading}>{loading ? 'Se salvează...' : 'Salvează'}</Button>
                 </div>
             </form>
         </Modal>
-        
-        <SimpleAddModal isOpen={isAddGrupaOpen} onClose={() => setIsAddGrupaOpen(false)} onSave={(name) => handleSaveNew('grupa', name)} title="Adaugă Grupă Nouă" label="Denumire Grupă" />
-        <SimpleAddModal isOpen={isAddFamilieOpen} onClose={() => setIsAddFamilieOpen(false)} onSave={(name) => handleSaveNew('familie', name)} title="Adaugă Familie Nouă" label="Nume Familie" />
-        <AddTipAbonamentModal isOpen={isAddAbonamentOpen} onClose={() => setIsAddAbonamentOpen(false)} onSave={(data) => handleSaveNew('abonament', data)} />
-        </>
     );
 };
 
@@ -308,8 +190,8 @@ interface SportiviManagementProps {
     onBack: () => void; 
     sportivi: Sportiv[]; setSportivi: React.Dispatch<React.SetStateAction<Sportiv[]>>; 
     participari: any[]; // Simplified for brevity
-    grupe: Grupa[]; setGrupe: React.Dispatch<React.SetStateAction<Grupa[]>>;
-    tipuriAbonament: TipAbonament[]; setTipuriAbonament: React.Dispatch<React.SetStateAction<TipAbonament[]>>;
+    grupe: Grupa[]; 
+    tipuriAbonament: TipAbonament[]; 
     customFields: string[]; 
     setCustomFields: React.Dispatch<React.SetStateAction<string[]>>;
     currentUser: User;
@@ -318,25 +200,17 @@ interface SportiviManagementProps {
     setAllRoles: React.Dispatch<React.SetStateAction<Rol[]>>;
     familii: Familie[];
     setFamilii: React.Dispatch<React.SetStateAction<Familie[]>>;
-    initialSubView: string | null;
 }
 
-export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, sportivi, setSportivi, participari, grupe, setGrupe, tipuriAbonament, setTipuriAbonament, familii, setFamilii, customFields, setCustomFields, currentUser, setCurrentUser, allRoles, setAllRoles, initialSubView }) => {
+export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, sportivi, setSportivi, participari, grupe, tipuriAbonament, familii, setFamilii, customFields, setCustomFields, currentUser, setCurrentUser, allRoles, setAllRoles }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sportivToEdit, setSportivToEdit] = useState<Sportiv | null>(null);
   const [newFieldName, setNewFieldName] = useState('');
-  const [subView, setSubView] = useState<SportiviSubView>((initialSubView as SportiviSubView) || 'lista');
+  const [subView, setSubView] = useState<SportiviSubView>('lista');
   const { showError } = useError();
-  const [showSuccess, setShowSuccess] = useState<string | null>(null);
   
-  const initialFilters = { searchTerm: '', grupa: 'all', status: 'all', rol: 'all' };
+  const initialFilters = { searchTerm: '', grupa: 'all' };
   const [filters, setFilters] = useState(initialFilters);
-
-  useEffect(() => {
-    if (initialSubView && (['lista', 'gestiune', 'acces'].includes(initialSubView))) {
-        setSubView(initialSubView as SportiviSubView);
-    }
-  }, [initialSubView]);
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -347,9 +221,7 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
     return sportivi.filter(s => {
       const nameMatch = `${s.nume} ${s.prenume}`.toLowerCase().includes(filters.searchTerm.toLowerCase());
       const grupaMatch = filters.grupa === 'all' || s.grupa_id === filters.grupa;
-      const statusMatch = filters.status === 'all' || s.status === filters.status;
-      const rolMatch = filters.rol === 'all' || s.roluri.some(r => r.id === filters.rol);
-      return nameMatch && grupaMatch && statusMatch && rolMatch;
+      return nameMatch && grupaMatch;
     }).sort((a,b) => a.nume.localeCompare(b.nume) || a.prenume.localeCompare(b.prenume));
   }, [sportivi, filters]);
 
@@ -385,6 +257,7 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
         const profileData: {[key: string]: any} = {};
         validColumns.forEach(key => { if (sportivData.hasOwnProperty(key)) { profileData[key] = sportivData[key] === '' ? null : sportivData[key]; } });
 
+        // Flow: Create profile first, then auth user, rollback on auth failure.
         const { data: newSportiv, error: profileError } = await supabase.from('sportivi').insert(profileData).select().single();
 
         if (profileError) {
@@ -392,23 +265,17 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
             return { success: false, error: `Eroare la salvarea profilului: ${profileError.message}` };
         }
 
-        const sportivRole = allRoles.find(r => r.nume === 'Sportiv');
-        if (sportivRole && newSportiv) {
-            const { error: roleError } = await supabase.from('sportivi_roluri').insert({ sportiv_id: newSportiv.id, rol_id: sportivRole.id });
-            if (roleError) {
-                showError("Avertisment la Creare", `Sportivul a fost creat, dar rolul implicit 'Sportiv' nu a putut fi alocat automat: ${roleError.message}`);
-            }
-        }
-
         if (email && parola) {
             const { data: { session: adminSession } } = await supabase.auth.getSession();
             const { data: authData, error: authError } = await supabase.auth.signUp({ email, password: parola });
 
+            // Restore admin session immediately after the sensitive call
             if (adminSession) {
                 await supabase.auth.setSession({ access_token: adminSession.access_token, refresh_token: adminSession.refresh_token });
             }
 
             if (authError) {
+                // ATOMIC ROLLBACK
                 await supabase.from('sportivi').delete().eq('id', newSportiv.id);
                 showError("Eroare Creare Cont", `Contul nu a putut fi creat (${authError.message}). Profilul a fost șters automat.`);
                 return { success: false, error: `Contul nu a putut fi creat (${authError.message}). Profilul a fost șters automat.` };
@@ -422,9 +289,10 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
             }
         }
 
+        // Fetch the final complete data to update state
         const { data: finalData, error: fetchError } = await supabase.from('sportivi').select('*, sportivi_roluri(roluri(id, nume))').eq('id', newSportiv.id).single();
         if (fetchError || !finalData) {
-             setSportivi(prev => [...prev, { ...newSportiv, roluri: sportivRole ? [sportivRole] : [] }]);
+             setSportivi(prev => [...prev, { ...newSportiv, roluri: [] }]);
         } else {
             const finalNewSportiv = finalData as any;
             finalNewSportiv.roluri = finalNewSportiv.sportivi_roluri ? finalNewSportiv.sportivi_roluri.map((item: any) => item.roluri) : [];
@@ -459,7 +327,7 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
 
   const handleDeleteSportiv = async (sportiv: Sportiv) => {
       if (!supabase) return;
-      let confirmationMessage = "Sunteți sigur că doriți să ștergeți acest profil? Această acțiune este ireversibilă.";
+      let confirmationMessage = "Sunteți sigur că doriți să ștergeți acest profil?";
       if (sportiv.user_id) {
           confirmationMessage += "\n\nATENȚIE: Acest utilizator are un cont de acces. Ștergerea profilului NU va șterge contul de autentificare, care va trebui curățat manual de către un administrator al sistemului.";
       }
@@ -469,8 +337,6 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
               showError("Eroare la ștergere", error);
           } else {
               setSportivi(prev => prev.filter(s => s.id !== sportiv.id));
-              setShowSuccess(`Sportivul ${sportiv.nume} ${sportiv.prenume} a fost șters.`);
-              setTimeout(() => setShowSuccess(null), 3000);
           }
       }
   };
@@ -510,8 +376,6 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
                 )}
             </nav>
         </div>
-        
-        {showSuccess && <div className="bg-green-600/50 text-white p-3 rounded-md mb-4 text-center font-semibold animate-fade-in-down">{showSuccess}</div>}
 
         {subView === 'lista' && (
             <>
@@ -523,20 +387,11 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
                 </div>
 
                 <Card className="mb-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
                         <Input label="Caută sportiv" name="searchTerm" placeholder="Nume..." value={filters.searchTerm} onChange={handleFilterChange} />
                         <Select label="Filtrează după grupă" name="grupa" value={filters.grupa} onChange={handleFilterChange}>
                             <option value="all">Toate grupele</option>
                             {grupe.map(g => (<option key={g.id} value={g.id}>{g.denumire}</option>))}
-                        </Select>
-                        <Select label="Filtrează după statut" name="status" value={filters.status} onChange={handleFilterChange}>
-                            <option value="all">Toate</option>
-                            <option value="Activ">Activ</option>
-                            <option value="Inactiv">Inactiv</option>
-                        </Select>
-                        <Select label="Filtrează după rol" name="rol" value={filters.rol} onChange={handleFilterChange}>
-                            <option value="all">Toate</option>
-                            {allRoles.map(r => (<option key={r.id} value={r.id}>{r.nume}</option>))}
                         </Select>
                     </div>
                 </Card>
@@ -630,13 +485,9 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
             onSave={handleSave}
             sportivToEdit={sportivToEdit}
             grupe={grupe}
-            setGrupe={setGrupe}
             familii={familii}
-            setFamilii={setFamilii}
             tipuriAbonament={tipuriAbonament}
-            setTipuriAbonament={setTipuriAbonament}
             customFields={customFields}
-            onSaveSuccess={msg => { setShowSuccess(msg); setTimeout(() => setShowSuccess(null), 3000); }}
         />
     </div>
   );

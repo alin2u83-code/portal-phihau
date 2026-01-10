@@ -1,7 +1,7 @@
 import React from 'react';
 import { View } from '../types';
 import { Card } from './ui';
-import { UsersIcon, BanknotesIcon, TrophyIcon, CogIcon } from './icons';
+import { UsersIcon, BanknotesIcon, TrophyIcon, ClipboardDocumentListIcon, AcademicCapIcon, CogIcon } from './icons';
 
 interface DashboardProps {
   onNavigate: (view: View) => void;
@@ -26,11 +26,19 @@ const navItems: NavItem[] = [
     color: 'bg-brand-primary'
   },
   {
-    view: 'activitati',
-    title: 'Activități Club',
-    description: 'Gestionează antrenamente, examene, stagii și competiții.',
-    tooltip: 'Gestiune Activități Club',
+    view: 'examene',
+    title: 'Activități & Evaluări',
+    description: 'Definește examene, stagii și competiții.',
+    tooltip: 'Management Examene, Stagii & Competiții',
     icon: TrophyIcon,
+    color: 'bg-status-warning'
+  },
+  {
+    view: 'prezenta',
+    title: 'Antrenamente',
+    description: 'Înregistrează prezența și configurează orarul.',
+    tooltip: 'Monitorizare Prezență & Orar',
+    icon: ClipboardDocumentListIcon,
     color: 'bg-brand-secondary'
   },
   {
@@ -41,20 +49,12 @@ const navItems: NavItem[] = [
     icon: BanknotesIcon,
     color: 'bg-status-success'
   },
-   {
-    view: 'configurare-preturi',
-    title: 'Configurări',
-    description: 'Setează prețuri, abonamente și alte opțiuni ale clubului.',
-    tooltip: 'Setări Generale Club',
-    icon: CogIcon,
-    color: 'bg-slate-500'
-  },
 ];
 
 const NavCard: React.FC<{ item: NavItem, onClick: () => void }> = ({ item, onClick }) => (
     <div 
       onClick={onClick} 
-      className="group relative transform transition-all duration-300 hover:scale-105 cursor-pointer rounded-2xl shadow-md shadow-brand-primary/20 hover:shadow-lg hover:shadow-brand-secondary/25"
+      className="group relative transform transition-all duration-300 hover:scale-105 cursor-pointer rounded-2xl shadow-lg shadow-brand-primary/30 hover:shadow-xl hover:shadow-brand-secondary/40"
       title={item.tooltip}
     >
       <Card className="flex flex-col items-center justify-center text-center h-full border-slate-700 group-hover:border-brand-secondary/40 rounded-2xl bg-slate-800/50 backdrop-blur-sm">

@@ -7,10 +7,11 @@ import { supabase } from '../supabaseClient';
 interface FamiliiManagementProps {
     familii: Familie[];
     setFamilii: React.Dispatch<React.SetStateAction<Familie[]>>;
-    onBack: () => void;
+    onBack?: () => void;
+    isEmbedded?: boolean;
 }
 
-export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({ familii, setFamilii, onBack }) => {
+export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({ familii, setFamilii, onBack, isEmbedded = false }) => {
     const [newNume, setNewNume] = useState('');
     const [feedback, setFeedback] = useState<{type: 'success' | 'error', message: string} | null>(null);
     const [loading, setLoading] = useState(false);
@@ -106,10 +107,13 @@ export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({ familii, s
 
     return (
         <div>
-            <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold text-white">Management Familii</h1>
-            </div>
+            {!isEmbedded && onBack && <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>}
+            
+            {!isEmbedded && (
+                <div className="flex justify-between items-center mb-6">
+                    <h1 className="text-3xl font-bold text-white">Management Familii</h1>
+                </div>
+            )}
 
             {feedback && (
                 <div className={`p-3 rounded-md mb-4 text-center font-semibold text-white ${feedback.type === 'success' ? 'bg-green-600/50' : 'bg-red-600/50'}`}>

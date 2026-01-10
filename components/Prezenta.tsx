@@ -1,194 +1,313 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Prezenta, Sportiv, Grupa, Plata } from '../types';
-import { Button, Card, Input, Select } from './ui';
-import { PlusIcon, ArrowLeftIcon } from './icons';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Prezenta, Sportiv, Grupa } from '../types';
+import { Button, Card, Input, Select, Modal } from './ui';
+import { PlusIcon, ArrowLeftIcon, TrashIcon, EditIcon } from './icons';
 import { supabase } from '../supabaseClient';
+import { useError } from './ErrorProvider';
 
-interface PrezentaManagementProps {
-    sportivi: Sportiv[];
-    prezente: Prezenta[];
-    setPrezente: React.Dispatch<React.SetStateAction<Prezenta[]>>;
+// --- Sub-componente ---
+
+const AntrenamentForm: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    onSave: (data: Omit<Prezenta, 'id' | 'sportivi_prezenti_ids'>) => Promise<void>;
+    antrenamentToEdit: Prezenta | null;
     grupe: Grupa[];
-    plati: Plata[];
-    onBack: () => void;
-}
-
-export const PrezentaManagement: React.FC<PrezentaManagementProps> = ({ sportivi, prezente, setPrezente, grupe, plati, onBack }) => {
-    const [dataSelectata, setDataSelectata] = useState(new Date().toISOString().split('T')[0]);
-    const [oraSelectata, setOraSelectata] = useState('18:00');
-    const [grupaSelectataId, setGrupaSelectataId] = useState<string>(grupe[0]?.id || '');
-    const [tipAntrenament, setTipAntrenament] = useState<'Normal' | 'Vacanta'>('Normal');
+    instructori: Sportiv[];
+}> = ({ isOpen, onClose, onSave, antrenamentToEdit, grupe, instructori }) => {
+    const getInitialState = () => ({
+        data: antrenamentToEdit?.data || new Date().toISOString().split('T')[0],
+        ora: antrenamentToEdit?.ora || '18:00',
+        grupa_id: antrenamentToEdit?.grupa_id || null,
+        tip: antrenamentToEdit?.tip || 'Normal',
+        antrenor_id: antrenamentToEdit?.antrenor_id || null,
+    });
     
-    const [sportiviPrezenti, setSportiviPrezenti] = useState<Set<string>>(new Set());
-    const [extraSportiviIds, setExtraSportiviIds] = useState<Set<string>>(new Set());
-    const [addSportivId, setAddSportivId] = useState('');
-    const [showSuccess, setShowSuccess] = useState(false);
+    const [formState, setFormState] = useState(getInitialState());
     const [loading, setLoading] = useState(false);
-
-    const platiRestante = useMemo(() => {
-        const lunaCurenta = new Date(dataSelectata).getMonth();
-        const anulCurent = new Date(dataSelectata).getFullYear();
-        const sportiviCuRestante = new Set<string>();
-
-        sportivi.forEach(s => {
-            if (s.status !== 'Activ') return;
-            let areAbonamentPlatit = false;
-            if (s.familie_id) {
-                areAbonamentPlatit = plati.some(p => p.familie_id === s.familie_id && p.tip === 'Abonament' && p.status === 'Achitat' && new Date(p.data).getMonth() === lunaCurenta && new Date(p.data).getFullYear() === anulCurent);
-            } else {
-                areAbonamentPlatit = plati.some(p => p.sportiv_id === s.id && p.tip === 'Abonament' && p.status === 'Achitat' && new Date(p.data).getMonth() === lunaCurenta && new Date(p.data).getFullYear() === anulCurent);
-            }
-            if (!areAbonamentPlatit) { sportiviCuRestante.add(s.id); }
-        });
-        return sportiviCuRestante;
-    }, [sportivi, plati, dataSelectata]);
-
-    useEffect(() => { if (grupe.length > 0 && !grupaSelectataId) { setGrupaSelectataId(grupe[0].id); } }, [grupe, grupaSelectataId]);
+    const { showError } = useError();
 
     useEffect(() => {
-        const grupaIdCurenta = tipAntrenament === 'Vacanta' ? null : grupaSelectataId;
-        const prezentaExistenta = prezente.find(p => p.data === dataSelectata && p.ora === oraSelectata && p.grupa_id === grupaIdCurenta && p.tip === tipAntrenament);
-        
-        const sportiviGrupaCurenta = sportivi.filter(s => s.grupa_id === grupaSelectataId).map(s => s.id);
-
-        if (prezentaExistenta) {
-            setSportiviPrezenti(new Set(prezentaExistenta.sportivi_prezenti_ids));
-            if (tipAntrenament !== 'Vacanta') {
-                const extra = prezentaExistenta.sportivi_prezenti_ids.filter(id => !sportiviGrupaCurenta.includes(id));
-                setExtraSportiviIds(new Set(extra));
-            } else {
-                setExtraSportiviIds(new Set());
-            }
-        } else {
-            setSportiviPrezenti(new Set());
-            setExtraSportiviIds(new Set());
+        if (isOpen) {
+            setFormState(getInitialState());
         }
-    }, [dataSelectata, oraSelectata, grupaSelectataId, tipAntrenament, prezente, sportivi]);
+    }, [isOpen, antrenamentToEdit]);
 
-    const handleTogglePrezenta = (sportivId: string) => { setSportiviPrezenti(prev => { const newSet = new Set(prev); if (newSet.has(sportivId)) { newSet.delete(sportivId); } else { newSet.add(sportivId); } return newSet; }); };
-
-    const handleSavePrezente = async () => {
-        if (!supabase) { alert("Eroare de configurare Supabase."); return; }
-        const grupaIdCurenta = tipAntrenament === 'Vacanta' ? null : grupaSelectataId;
-        if (!grupaIdCurenta && tipAntrenament !== 'Vacanta') { alert("Vă rugăm selectați o grupă."); return; }
-        setLoading(true);
-
-        const prezentaRecordData = { data: dataSelectata, ora: oraSelectata, grupa_id: grupaIdCurenta, tip: tipAntrenament };
-        const prezentaExistenta = prezente.find(p => p.data === dataSelectata && p.ora === oraSelectata && p.grupa_id === grupaIdCurenta && p.tip === tipAntrenament);
-
-        let prezenta_id = prezentaExistenta?.id;
-        let newPrezentaRecord: Prezenta | null = null;
-
-        if (prezentaExistenta) {
-            prezenta_id = prezentaExistenta.id;
-        } else {
-            const { data, error } = await supabase.from('prezente').insert(prezentaRecordData).select().single();
-            if (error) { alert(`Eroare la salvarea prezenței: ${error.message}`); setLoading(false); return; }
-            prezenta_id = data.id;
-            newPrezentaRecord = { ...data, sportivi_prezenti_ids: [] };
-        }
-
-        if (!prezenta_id) { alert("ID-ul prezenței nu a putut fi determinat."); setLoading(false); return; }
-
-        const { error: deleteError } = await supabase.from('prezente_sportivi').delete().eq('prezenta_id', prezenta_id);
-        if (deleteError) { alert(`Eroare la actualizarea listei de prezență (pas 1): ${deleteError.message}`); setLoading(false); return; }
-
-        const sportiviToInsert = [...sportiviPrezenti].map(sportiv_id => ({ prezenta_id, sportiv_id }));
-        if (sportiviToInsert.length > 0) {
-            const { error: insertError } = await supabase.from('prezente_sportivi').insert(sportiviToInsert);
-            if (insertError) { alert(`Eroare la actualizarea listei de prezență (pas 2): ${insertError.message}`); setLoading(false); return; }
-        }
-
-        // FIX: Replaced Array.from with spread operator to ensure correct type inference.
-        const finalSportiviPrezenti = [...sportiviPrezenti];
-        setPrezente(prevPrezente => {
-            if (prezentaExistenta) {
-                return prevPrezente.map(p => p.id === prezenta_id ? { ...p, sportivi_prezenti_ids: finalSportiviPrezenti } : p);
-            } else if (newPrezentaRecord) {
-                newPrezentaRecord.sportivi_prezenti_ids = finalSportiviPrezenti;
-                return [...prevPrezente, newPrezentaRecord];
-            }
-            return prevPrezente;
-        });
-
-        setLoading(false);
-        setShowSuccess(true);
-        setTimeout(() => setShowSuccess(false), 3000);
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        setFormState(prev => ({ ...prev, [name]: value === '' ? null : value }));
     };
-    
-    const sportiviAfisati = useMemo(() => {
-        if(tipAntrenament === 'Vacanta') {
-            return sportivi.filter(s => s.status === 'Activ' && s.participa_vacanta);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if ((formState.tip === 'Normal' && !formState.grupa_id) || !formState.antrenor_id) {
+            showError("Date incomplete", "Vă rugăm selectați grupa (dacă e cazul) și antrenorul.");
+            return;
         }
-        const sportiviGrupa = sportivi.filter(s => s.status === 'Activ' && s.grupa_id === grupaSelectataId);
-        const extraSportivi = Array.from(extraSportiviIds).map(id => sportivi.find(s => s.id === id)).filter(Boolean) as Sportiv[];
-        return [...sportiviGrupa, ...extraSportivi].filter((s, i, arr) => arr.findIndex(t => t.id === s.id) === i);
-    }, [sportivi, grupaSelectataId, extraSportiviIds, tipAntrenament]);
-    
-    const adaugaSportivSuplimentar = () => { if(addSportivId && !extraSportiviIds.has(addSportivId)) { setExtraSportiviIds(prev => new Set(prev).add(addSportivId)); setAddSportivId(''); } };
-    const potentialExtraSportivi = sportivi.filter(s => s.status === 'Activ' && s.grupa_id !== grupaSelectataId && !extraSportiviIds.has(s.id));
+        setLoading(true);
+        await onSave(formState);
+        setLoading(false);
+        onClose();
+    };
 
     return (
-        <div>
-            <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
-            <h1 className="text-3xl font-bold text-white mb-6">Prezență Antrenament</h1>
-            <Card>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 bg-slate-700/50 rounded-lg items-end">
-                    <Input label="Data" type="date" value={dataSelectata} onChange={e => setDataSelectata(e.target.value)} />
-                    <Input label="Ora" type="time" value={oraSelectata} onChange={e => setOraSelectata(e.target.value)} />
-                     <Select label="Tip Antrenament" name="tipAntrenament" value={tipAntrenament} onChange={e => setTipAntrenament(e.target.value as any)}>
+        <Modal isOpen={isOpen} onClose={onClose} title={antrenamentToEdit ? "Editează Antrenament" : "Creează Antrenament Nou"}>
+            <form onSubmit={handleSubmit} className="space-y-4">
+                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Input label="Data" type="date" name="data" value={formState.data} onChange={handleChange} required />
+                    <Input label="Ora" type="time" name="ora" value={formState.ora} onChange={handleChange} required />
+                    <Select label="Tip Antrenament" name="tip" value={formState.tip} onChange={handleChange}>
                         <option value="Normal">Normal</option>
                         <option value="Vacanta">Vacanță</option>
                     </Select>
                 </div>
-
-                <div className="p-4 rounded-lg">
-                     <div className="flex justify-between items-center">
-                        <h3 className="text-xl font-semibold text-white">
-                           {tipAntrenament === 'Vacanta' ? "Listă Sportivi de Vacanță" : "Listă Sportivi Grupă"}
-                        </h3>
-                    </div>
-
-                    {tipAntrenament === 'Normal' && (
-                        <Select label="Selectează Grupa" value={grupaSelectataId} onChange={e => setGrupaSelectataId(e.target.value)} className="mt-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {formState.tip === 'Normal' && (
+                        <Select label="Grupa" name="grupa_id" value={formState.grupa_id || ''} onChange={handleChange} required={formState.tip === 'Normal'}>
+                            <option value="">Selectează grupa...</option>
                             {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
                         </Select>
                     )}
-                    
-                    <div className="space-y-3 mt-4">
-                        {sportiviAfisati.length > 0 ? sportiviAfisati.map(sportiv => (
-                            <div key={sportiv.id} className="flex items-center justify-between bg-slate-800/50 p-3 rounded-md border border-slate-700">
-                                <label htmlFor={`check-${sportiv.id}`} className="font-medium cursor-pointer flex items-center text-white">
-                                    {platiRestante.has(sportiv.id) && <span className="w-3 h-3 bg-red-500 rounded-full mr-3" title="Abonament neachitat"></span>}
-                                    {sportiv.nume} {sportiv.prenume} 
-                                    {tipAntrenament === 'Normal' && extraSportiviIds.has(sportiv.id) && <span className="ml-2 text-xs bg-sky-500 text-white px-2 py-0.5 rounded-full">Ad-hoc</span>}
-                                </label>
-                                <input id={`check-${sportiv.id}`} type="checkbox" className="h-6 w-6 rounded border-slate-400 text-brand-primary focus:ring-brand-secondary cursor-pointer" checked={sportiviPrezenti.has(sportiv.id)} onChange={() => handleTogglePrezenta(sportiv.id)}/>
-                            </div>
-                        )) : <p className="text-slate-400 text-center py-4">Niciun sportiv de afișat conform filtrelor.</p>}
+                    <Select label="Antrenor" name="antrenor_id" value={formState.antrenor_id || ''} onChange={handleChange} required>
+                        <option value="">Selectează antrenor...</option>
+                        {instructori.map(i => <option key={i.id} value={i.id}>{i.nume} {i.prenume}</option>)}
+                    </Select>
+                </div>
+                <div className="flex justify-end pt-4 space-x-2 border-t border-slate-700 mt-6">
+                    <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button>
+                    <Button type="submit" variant="success" disabled={loading}>{loading ? 'Se salvează...' : 'Salvează'}</Button>
+                </div>
+            </form>
+        </Modal>
+    );
+};
+
+const AttendanceDetail: React.FC<{
+    antrenament: Prezenta;
+    onBack: () => void;
+    sportivi: Sportiv[];
+    grupe: Grupa[];
+    instructori: Sportiv[];
+    setPrezente: React.Dispatch<React.SetStateAction<Prezenta[]>>;
+}> = ({ antrenament, onBack, sportivi, grupe, instructori, setPrezente }) => {
+    const [presentIds, setPresentIds] = useState<Set<string>>(new Set(antrenament.sportivi_prezenti_ids));
+    const [extraSportivId, setExtraSportivId] = useState('');
+    const [loading, setLoading] = useState(false);
+    const { showError } = useError();
+
+    const sportiviInGrupa = useMemo(() => {
+        let sportiviAfisati: Sportiv[];
+        if (antrenament.tip === 'Vacanta') {
+             sportiviAfisati = sportivi.filter(s => s.status === 'Activ' && s.participa_vacanta);
+        } else {
+             sportiviAfisati = sportivi.filter(s => s.status === 'Activ' && s.grupa_id === antrenament.grupa_id);
+        }
+        return sportiviAfisati.sort((a,b) => a.nume.localeCompare(b.nume));
+    }, [sportivi, antrenament]);
+
+    const sportiviExtraDisponibili = useMemo(() => {
+        const idsInGrupa = new Set(sportiviInGrupa.map(s => s.id));
+        return sportivi.filter(s => s.status === 'Activ' && !idsInGrupa.has(s.id) && !presentIds.has(s.id));
+    }, [sportivi, sportiviInGrupa, presentIds]);
+
+    const handleCheckboxChange = (sportivId: string, isChecked: boolean) => {
+        setPresentIds(prev => { const newSet = new Set(prev); if (isChecked) newSet.add(sportivId); else newSet.delete(sportivId); return newSet; });
+    };
+
+    const handleSelectAll = () => setPresentIds(new Set(sportiviInGrupa.map(s => s.id)));
+    const handleDeselectAll = () => setPresentIds(new Set());
+    
+    const handleAddExtra = () => {
+        if (extraSportivId && !presentIds.has(extraSportivId)) {
+            setPresentIds(prev => new Set(prev).add(extraSportivId));
+            setExtraSportivId('');
+        }
+    };
+
+    const handleSaveAttendance = async () => {
+        if (!antrenament) return;
+        setLoading(true);
+        
+        await supabase.from('prezente_sportivi').delete().eq('prezenta_id', antrenament.id);
+        
+        const toInsert = Array.from(presentIds).map(sportiv_id => ({ prezenta_id: antrenament.id, sportiv_id }));
+        
+        if (toInsert.length > 0) {
+            const { error } = await supabase.from('prezente_sportivi').insert(toInsert);
+            if (error) { showError("Eroare la salvarea prezenței", error); setLoading(false); return; }
+        }
+        
+        setPrezente(prev => prev.map(p => p.id === antrenament.id ? { ...p, sportivi_prezenti_ids: Array.from(presentIds) } : p));
+        setLoading(false);
+        onBack();
+    };
+
+    const grupaAntrenament = grupe.find(g => g.id === antrenament.grupa_id);
+    const antrenorAntrenament = instructori.find(i => i.id === antrenament.antrenor_id);
+    const sportiviPrezentiExtra = sportivi.filter(s => presentIds.has(s.id) && !sportiviInGrupa.some(sg => sg.id === s.id));
+
+    return (
+        <Card>
+            <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Listă</Button>
+            <div className="mb-6 p-4 bg-slate-900/50 rounded-lg border border-slate-700">
+                <h2 className="text-xl font-bold text-brand-secondary mb-2">Gestionare Prezență ({presentIds.size} prezenți)</h2>
+                 <div className="text-sm text-slate-400 grid grid-cols-2 md:grid-cols-4 gap-2">
+                    <span>Data: <strong className="text-white">{new Date(antrenament.data).toLocaleDateString('ro-RO')}</strong></span>
+                    <span>Ora: <strong className="text-white">{antrenament.ora}</strong></span>
+                    <span>Grupa: <strong className="text-white">{grupaAntrenament?.denumire || antrenament.tip}</strong></span>
+                    <span>Antrenor: <strong className="text-white">{antrenorAntrenament?.nume} {antrenorAntrenament?.prenume}</strong></span>
+                </div>
+            </div>
+            <div className="space-y-6">
+                <div>
+                    <div className="flex justify-between items-center mb-2">
+                        <h3 className="text-lg font-semibold text-white">Sportivi din grupă</h3>
+                        <div className="flex gap-2">
+                            <Button size="sm" variant="secondary" onClick={handleSelectAll}>Selectează Toți</Button>
+                            <Button size="sm" variant="secondary" onClick={handleDeselectAll}>Deselectează Toți</Button>
+                        </div>
+                    </div>
+                    <div className="max-h-96 overflow-y-auto space-y-2 p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+                        {sportiviInGrupa.map(sportiv => (
+                            <label key={sportiv.id} className="flex items-center gap-3 p-2 rounded-md hover:bg-slate-700/50 cursor-pointer">
+                                <input type="checkbox" className="h-5 w-5 rounded border-slate-500 bg-slate-900 text-brand-secondary focus:ring-brand-secondary" checked={presentIds.has(sportiv.id)} onChange={(e) => handleCheckboxChange(sportiv.id, e.target.checked)} />
+                                <span className="font-medium">{sportiv.nume} {sportiv.prenume}</span>
+                            </label>
+                        ))}
+                        {sportiviInGrupa.length === 0 && <p className="text-slate-400 italic text-center py-4">Nu există sportivi în această grupă/configurație.</p>}
                     </div>
                 </div>
-
-                {tipAntrenament === 'Normal' && (
-                    <Card className="mt-6">
-                        <h4 className="font-semibold mb-2 text-white">Adaugă sportiv ad-hoc</h4>
-                        <div className="flex gap-4">
-                            <Select label="" value={addSportivId} onChange={e => setAddSportivId(e.target.value)} className="flex-grow">
-                                <option value="">Selectează un sportiv...</option>
-                                {potentialExtraSportivi.map(s => <option key={s.id} value={s.id}>{s.nume} {s.prenume} ({grupe.find(g=>g.id === s.grupa_id)?.denumire})</option>)}
+                <div>
+                    <h3 className="text-lg font-semibold text-white mb-2">Adaugă sportiv extra (opțional)</h3>
+                    <div className="flex items-end gap-2">
+                        <div className="flex-grow">
+                            <Select label="" value={extraSportivId} onChange={e => setExtraSportivId(e.target.value)}>
+                                <option value="">Selectează sportiv...</option>
+                                {sportiviExtraDisponibili.map(s => (<option key={s.id} value={s.id}>{s.nume} {s.prenume}</option>))}
                             </Select>
-                            <Button onClick={adaugaSportivSuplimentar} disabled={!addSportivId} variant='info' size="md"><PlusIcon className="w-5 h-5"/></Button>
                         </div>
-                    </Card>
-                )}
+                        <Button onClick={handleAddExtra} disabled={!extraSportivId} variant="info"><PlusIcon /></Button>
+                    </div>
+                    {sportiviPrezentiExtra.length > 0 && (
+                        <div className="mt-2 space-y-1">
+                            <h4 className="text-sm text-slate-400">Extra prezenți:</h4>
+                            {sportiviPrezentiExtra.map(s => (
+                                <div key={s.id} className="text-sm flex justify-between items-center bg-slate-700/50 p-1.5 pl-3 rounded-md">
+                                    <span>{s.nume} {s.prenume}</span>
+                                    <Button size="sm" variant="danger" onClick={() => handleCheckboxChange(s.id, false)} className="!p-1 h-auto" title="Elimină"><TrashIcon className="w-4 h-4"/></Button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+            <div className="mt-8 flex justify-end">
+                 <Button onClick={handleSaveAttendance} variant="success" size="md" className="px-8" disabled={loading}>{loading ? 'Se salvează...' : 'Salvează și Închide'}</Button>
+            </div>
+        </Card>
+    );
+};
 
-                <div className="mt-6 flex justify-end items-center gap-4">
-                    {showSuccess && <p className="text-green-400 font-semibold">Datele au fost salvate cu succes!</p>}
-                    <Button onClick={handleSavePrezente} variant="success" disabled={loading}>
-                        {loading ? 'Se salvează...' : 'Salvează Prezențele'}
-                    </Button>
+
+// --- Componenta Principală ---
+
+export const PrezentaManagement: React.FC<{
+    sportivi: Sportiv[];
+    prezente: Prezenta[];
+    setPrezente: React.Dispatch<React.SetStateAction<Prezenta[]>>;
+    grupe: Grupa[];
+    onBack: () => void;
+}> = ({ sportivi, prezente, setPrezente, grupe, onBack }) => {
+    
+    const [selectedAntrenament, setSelectedAntrenament] = useState<Prezenta | null>(null);
+    const [antrenamentToEdit, setAntrenamentToEdit] = useState<Prezenta | null>(null);
+    const [isFormOpen, setIsFormOpen] = useState(false);
+    const { showError } = useError();
+    const instructori = useMemo(() => sportivi.filter(s => s.status === 'Activ' && s.roluri.some(r => r.nume === 'Instructor')), [sportivi]);
+
+    const handleSaveAntrenament = async (antrenamentData: Omit<Prezenta, 'id' | 'sportivi_prezenti_ids'>) => {
+        if (antrenamentToEdit) {
+            const { data, error } = await supabase.from('prezente').update(antrenamentData).eq('id', antrenamentToEdit.id).select().single();
+            if (error) { showError("Eroare la actualizare", error); } 
+            else if (data) { setPrezente(prev => prev.map(p => p.id === data.id ? { ...p, ...data } : p)); }
+        } else {
+            const { data, error } = await supabase.from('prezente').insert(antrenamentData).select().single();
+            if (error) { showError("Eroare la creare", error); } 
+            else if (data) { setPrezente(prev => [...prev, { ...data, sportivi_prezenti_ids: [] }]); }
+        }
+    };
+
+    const handleDeleteAntrenament = async (id: number) => {
+        if (window.confirm("Sunteți sigur că doriți să ștergeți acest antrenament și toată prezența asociată?")) {
+            const { error } = await supabase.from('prezente').delete().eq('id', id);
+            if (error) { showError("Eroare la ștergere", error); } 
+            else { setPrezente(prev => prev.filter(p => p.id !== id)); }
+        }
+    };
+
+    const handleOpenAdd = () => { setAntrenamentToEdit(null); setIsFormOpen(true); };
+    const handleOpenEdit = (antrenament: Prezenta) => { setAntrenamentToEdit(antrenament); setIsFormOpen(true); };
+
+    if (selectedAntrenament) {
+        return <AttendanceDetail antrenament={selectedAntrenament} onBack={() => setSelectedAntrenament(null)} sportivi={sportivi} grupe={grupe} instructori={instructori} setPrezente={setPrezente} />;
+    }
+
+    const sortedPrezente = [...prezente].sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime() || b.ora.localeCompare(a.ora));
+
+    return (
+        <div>
+            <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
+            <div className="flex justify-between items-center mb-6">
+                <h1 className="text-3xl font-bold text-white">Istoric Antrenamente</h1>
+                <Button onClick={handleOpenAdd} variant="info"><PlusIcon className="w-5 h-5 mr-2" /> Antrenament Nou</Button>
+            </div>
+            <Card className="overflow-hidden p-0">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left min-w-[800px]">
+                        <thead className="bg-slate-700/50">
+                            <tr>
+                                <th className="p-4 font-semibold">Data & Ora</th>
+                                <th className="p-4 font-semibold">Grupa / Tip</th>
+                                <th className="p-4 font-semibold">Antrenor</th>
+                                <th className="p-4 font-semibold text-center">Prezenți</th>
+                                <th className="p-4 font-semibold text-right">Acțiuni</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-700">
+                            {sortedPrezente.map(p => {
+                                const grupa = grupe.find(g => g.id === p.grupa_id);
+                                const antrenor = instructori.find(i => i.id === p.antrenor_id);
+                                return (
+                                    <tr key={p.id} className="hover:bg-slate-700/50">
+                                        <td className="p-4 font-medium">
+                                            {new Date(p.data).toLocaleDateString('ro-RO')} - <span className="text-slate-400">{p.ora}</span>
+                                        </td>
+                                        <td className="p-4">{grupa?.denumire || p.tip}</td>
+                                        <td className="p-4">{antrenor?.nume} {antrenor?.prenume}</td>
+                                        <td className="p-4 text-center font-bold text-brand-secondary">{p.sportivi_prezenti_ids.length}</td>
+                                        <td className="p-4 text-right">
+                                            <div className="flex items-center justify-end space-x-2">
+                                                <Button onClick={() => setSelectedAntrenament(p)} variant="primary" size="sm">Gestionează Prezența</Button>
+                                                <Button onClick={() => handleOpenEdit(p)} variant="secondary" size="sm" title="Editează detaliile antrenamentului"><EditIcon /></Button>
+                                                <Button onClick={() => handleDeleteAntrenament(p.id)} variant="danger" size="sm" title="Șterge antrenamentul"><TrashIcon /></Button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                    {sortedPrezente.length === 0 && <p className="p-4 text-center text-slate-400">Niciun antrenament înregistrat.</p>}
                 </div>
             </Card>
+            <AntrenamentForm 
+                isOpen={isFormOpen} 
+                onClose={() => setIsFormOpen(false)} 
+                onSave={handleSaveAntrenament} 
+                antrenamentToEdit={antrenamentToEdit}
+                grupe={grupe}
+                instructori={instructori}
+            />
         </div>
     );
 };

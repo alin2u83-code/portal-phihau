@@ -16,16 +16,16 @@ export const Login: React.FC<LoginProps> = () => {
         setLoading(true);
 
         if (!supabase) {
-            setError('Clientul Supabase nu este initializat. Verifică variabilele de mediu.');
+            const msg = 'Clientul Supabase nu este initializat. Verifică variabilele de mediu.';
+            console.error("DEBUG:", msg);
+            setError(msg);
             setLoading(false);
             return;
         }
 
         let emailToAuth = identifier.trim();
         
-        // Dacă nu conține '@', tratăm input-ul ca pe un username.
         if (!emailToAuth.includes('@')) {
-            // Curățăm username-ul la fel cum o facem la salvare pentru a asigura potrivirea.
             const cleanedUsername = emailToAuth.toLowerCase().replace(/\s/g, '');
 
             const { data, error: usernameError } = await supabase
@@ -34,12 +34,9 @@ export const Login: React.FC<LoginProps> = () => {
                 .eq('username', cleanedUsername)
                 .single();
             
-            // Dacă găsim utilizatorul și are un email valid, îl folosim pentru autentificare.
             if (!usernameError && data && data.email) {
                 emailToAuth = data.email;
             }
-            // Dacă nu-l găsim, lăsăm 'emailToAuth' ca fiind username-ul introdus,
-            // iar supabase.auth.signInWithPassword va eșua, declanșând eroarea noastră generică.
         }
 
         const { error: signInError } = await supabase.auth.signInWithPassword({
@@ -48,10 +45,9 @@ export const Login: React.FC<LoginProps> = () => {
         });
 
         if (signInError) {
-            // Afișăm un mesaj generic pentru securitate, indiferent de tipul erorii.
+            console.error("DEBUG:", signInError);
             setError('Date de autentificare invalide. Verificați email/utilizator și parola.');
         } 
-        // Nu este nevoie de `else`, onAuthStateChange din App.tsx va prelua controlul la succes.
         setLoading(false);
     };
 

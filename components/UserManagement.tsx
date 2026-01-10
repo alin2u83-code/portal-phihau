@@ -146,14 +146,15 @@ const MyProfile: React.FC<{ user: User; setSportivi: React.Dispatch<React.SetSta
 interface UserManagementProps {
     sportivi: Sportiv[];
     setSportivi: React.Dispatch<React.SetStateAction<Sportiv[]>>;
-    onBack: () => void;
+    onBack?: () => void;
+    isEmbedded?: boolean;
     currentUser: User;
     setCurrentUser: React.Dispatch<React.SetStateAction<User | null>>;
     allRoles: Rol[];
     setAllRoles: React.Dispatch<React.SetStateAction<Rol[]>>;
 }
 
-export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSportivi, onBack, currentUser, setCurrentUser, allRoles, setAllRoles }) => {
+export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSportivi, onBack, isEmbedded = false, currentUser, setCurrentUser, allRoles, setAllRoles }) => {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [newRoleIds, setNewRoleIds] = useState<string[]>([]);
     const [userListFeedback, setUserListFeedback] = useState<{type: 'success' | 'error', message: string} | null>(null);
@@ -371,7 +372,9 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
 
     return (
         <div>
-            <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
+            {!isEmbedded && onBack && (
+                <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
+            )}
 
             {userListFeedback && (
                 <div className={`p-3 rounded-md mb-4 text-center font-semibold text-white ${userListFeedback.type === 'success' ? 'bg-green-600/50' : 'bg-red-600/50'}`}>

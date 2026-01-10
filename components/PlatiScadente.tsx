@@ -2,6 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { Plata, Sportiv, TipAbonament, Familie } from '../types';
 import { Button, Input, Select, Card } from './ui';
 import { EditIcon, ArrowLeftIcon } from './icons';
+import { supabase } from '../supabaseClient';
+import { useError } from './ErrorProvider';
 
 interface PlatiScadenteProps { 
     plati: Plata[]; 
@@ -17,15 +19,16 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
     const [filter, setFilter] = useState({ sportiv: '', tip: '', status: 'Neachitat' });
     const [showSuccess, setShowSuccess] = useState<string|null>(null);
     const [editingPlata, setEditingPlata] = useState<Plata | null>(null);
+    const { showError } = useError();
 
-    const handleGenerateSubscriptions = () => {
+    const handleGenerateSubscriptions = async () => {
         const dataCurenta = new Date().toISOString().split('T')[0];
         const lunaText = new Date().toLocaleString('ro-RO', { month: 'long', year: 'numeric'});
         const lunaCurentaIdx = new Date().getMonth();
         const anulCurent = new Date().getFullYear();
         
         const sportiviActivi = sportivi.filter(s => s.status === 'Activ');
-        const platiNoi: Plata[] = [];
+        const platiToInsert: Omit<Plata, 'id'>[] = [];
         const sportiviProcesati = new Set<string>();
 
         // 1. Procesează familiile
@@ -41,15 +44,13 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
 
             const nrMembri = membriActivi.length;
             let abonamentConfig = tipuriAbonament.find(ab => ab.numar_membri === nrMembri);
-            // Fallback pentru 3+ membri
             if (!abonamentConfig && nrMembri >= 3) {
                 abonamentConfig = tipuriAbonament.sort((a,b) => b.numar_membri - a.numar_membri)[0];
             }
 
             if (abonamentConfig) {
-                 platiNoi.push({ 
-                    id: `fam-${familie.id}-${anulCurent}-${lunaCurentaIdx}`, 
-                    sportiv_id: membriActivi[0]?.id || null, // Asociază cu primul membru ca reprezentant
+                 platiToInsert.push({ 
+                    sportiv_id: membriActivi[0]?.id || null, 
                     familie_id: familie.id,
                     suma: abonamentConfig.pret, 
                     data: dataCurenta, 
@@ -67,15 +68,14 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
         // 2. Procesează sportivii individuali
         const sportiviIndividuali = sportiviActivi.filter(s => !sportiviProcesati.has(s.id));
         sportiviIndividuali.forEach(sportiv => {
-            if (!sportiv.tip_abonament_id) return; // Doar cei cu abonament individual setat
+            if (!sportiv.tip_abonament_id) return;
 
             const areAbonamentGenerat = plati.some(p => p.sportiv_id === sportiv.id && p.tip === 'Abonament' && new Date(p.data).getMonth() === lunaCurentaIdx && new Date(p.data).getFullYear() === anulCurent);
             if (areAbonamentGenerat) return;
 
             const abonamentConfig = tipuriAbonament.find(ab => ab.id === sportiv.tip_abonament_id);
             if (abonamentConfig) {
-                 platiNoi.push({ 
-                    id: `${sportiv.id}-${anulCurent}-${lunaCurentaIdx}`, 
+                 platiToInsert.push({ 
                     sportiv_id: sportiv.id,
                     familie_id: null,
                     suma: abonamentConfig.pret, 
@@ -90,17 +90,39 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
             }
         });
         
-        if (platiNoi.length > 0) { setPlati(prev => [...prev, ...platiNoi]); setShowSuccess(`${platiNoi.length} abonamente noi au fost generate cu succes!`); } 
+        if (platiToInsert.length > 0) { 
+             if (!supabase) { showError("Eroare Configurare", "Clientul Supabase nu a putut fi stabilit."); return; }
+             const { data, error } = await supabase.from('plati').insert(platiToInsert).select();
+             if(error) { showError("Eroare la salvarea abonamentelor", error); }
+             else if (data) {
+                setPlati(prev => [...prev, ...data as Plata[]]);
+                setShowSuccess(`${data.length} abonamente noi au fost generate și salvate cu succes!`);
+             }
+        } 
         else { setShowSuccess("Toți sportivii activi au deja o plată generată pentru luna curentă."); }
         setTimeout(() => setShowSuccess(null), 4000);
     };
 
-    const handleSaveEdit = (plataId: string) => {
-        if(!editingPlata || editingPlata.id !== plataId) return;
-        setPlati(prev => prev.map(p => p.id === plataId ? editingPlata : p));
-        setEditingPlata(null);
-        setShowSuccess(`Plata a fost salvată!`);
-        setTimeout(() => setShowSuccess(null), 2000);
+    const handleSaveEdit = async (plataId: string) => {
+        if(!editingPlata || editingPlata.id !== plataId || !supabase) return;
+        
+        const { id, ...updates } = editingPlata;
+
+        const { data, error } = await supabase
+            .from('plati')
+            .update(updates)
+            .eq('id', plataId)
+            .select()
+            .single();
+
+        if (error) {
+            showError("Eroare la salvare", error);
+        } else if (data) {
+            setPlati(prev => prev.map(p => p.id === plataId ? data as Plata : p));
+            setEditingPlata(null);
+            setShowSuccess(`Plata a fost salvată!`);
+            setTimeout(() => setShowSuccess(null), 2000);
+        }
     };
 
     const handleEditChange = (field: keyof Plata, value: any) => {

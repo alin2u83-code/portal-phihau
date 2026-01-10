@@ -20,13 +20,9 @@ export interface SubMenuItem {
 export const adminMenu: MenuItem[] = [
     { label: 'Dashboard', icon: HomeIcon, view: 'dashboard' },
     { 
-        label: 'Management', 
+        label: 'Sportivi & Utilizatori', 
         icon: UsersIcon,
-        submenu: [
-            { label: 'Listă Sportivi', view: 'sportivi' },
-            { label: 'Gestiune Familii', view: 'familii' },
-            { label: 'Acces Utilizatori', view: 'user-management', roles: ['Admin'] }
-        ]
+        view: 'sportivi',
     },
     {
         label: 'Activități',

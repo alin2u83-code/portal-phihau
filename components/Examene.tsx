@@ -4,6 +4,7 @@ import { Button, Modal, Input, Select, Card } from './ui';
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon } from './icons';
 import { getPretValabil } from '../utils/pricing';
 import { supabase } from '../supabaseClient';
+import { useError } from './ErrorProvider';
 
 const getGrad = (gradId: string, allGrades: Grad[]) => allGrades.find(g => g.id === gradId);
 const getAgeOnDate = (birthDateStr: string, onDateStr: string) => { const onDate = new Date(onDateStr); const birthDate = new Date(birthDateStr); let age = onDate.getFullYear() - birthDate.getFullYear(); const m = onDate.getMonth() - birthDate.getMonth(); if (m < 0 || (m === 0 && onDate.getDate() < birthDate.getDate())) { age--; } return age; };
@@ -24,15 +25,19 @@ const ExamenDetail: React.FC<ExamenDetailProps> = ({ examen, participari, setPar
     const [sportivId, setSportivId] = useState('');
     const [showSuccess, setShowSuccess] = useState<string | null>(null);
     const sortedGrades = [...grade].sort((a,b) => a.ordine - b.ordine);
+    const { showError } = useError();
 
     const handleAddParticipant = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!supabase) {
-            alert("Eroare de configurare: Conexiunea la baza de date nu a putut fi stabilită.");
+            showError("Eroare Configurare", "Clientul Supabase nu a putut fi stabilit.");
             return;
         }
         const sportiv = sportivi.find(s => s.id === sportivId);
-        if(!sportiv || participari.some(p => p.sportiv_id === sportivId)) { alert("Selectează un sportiv valid care nu este deja înscris."); return; }
+        if(!sportiv || participari.some(p => p.sportiv_id === sportivId)) { 
+            showError("Selecție Invalidă", "Selectează un sportiv valid care nu este deja înscris."); 
+            return; 
+        }
 
         const admittedParticipations = allParticipari.filter(p => p.sportiv_id === sportiv.id && p.rezultat === 'Admis').sort((a,b) => (getGrad(b.grad_sustinut_id, grade)?.ordine ?? 0) - (getGrad(a.grad_sustinut_id, grade)?.ordine ?? 0));
         
@@ -40,7 +45,6 @@ const ExamenDetail: React.FC<ExamenDetailProps> = ({ examen, participari, setPar
         let confirmationOnly = false;
 
         if (admittedParticipations.length === 0) {
-            // Dacă nu are niciun grad, propunem primul grad din listă
             gradSustinut = sortedGrades[0];
         } else {
             const currentGrad = getGrad(admittedParticipations[0].grad_sustinut_id, grade)!;
@@ -66,16 +70,19 @@ const ExamenDetail: React.FC<ExamenDetailProps> = ({ examen, participari, setPar
         }
         
         if (!gradSustinut) {
-            alert("Nu s-a putut determina gradul pentru acest sportiv. Verificați nomenclatorul de grade.");
+            showError("Eroare Logică", "Nu s-a putut determina gradul pentru acest sportiv. Verificați nomenclatorul de grade.");
             return;
         }
 
         const {data: participareData, error: pError} = await supabase.from('participari').insert({ examen_id: examen.id, sportiv_id: sportivId, grad_sustinut_id: gradSustinut.id, rezultat: 'Neprezentat' }).select().single();
-        if (pError) { alert(`Eroare la adăugarea participantului: ${pError.message}`); return; }
+        if (pError) { showError("Eroare Bază de Date", pError); return; }
         if (participareData) setParticipari(prev => [...prev, participareData as Participare]);
         
         const pretExamenConfig = getPretValabil(preturi, 'Taxa Examen', examen.data);
-        if (!pretExamenConfig) { alert("Configurarea prețului pentru 'Taxa Examen' nu a fost găsită. Participantul a fost adăugat, dar plata trebuie generată manual."); return; }
+        if (!pretExamenConfig) { 
+            showError("Avertisment Configurare", "Configurarea prețului pentru 'Taxa Examen' nu a fost găsită. Participantul a fost adăugat, dar plata trebuie generată manual."); 
+            return; 
+        }
         const descriere = `Taxa examen ${examen.data}${confirmationOnly ? ` (Confirmare ${gradSustinut.nume})` : ` (pt. ${gradSustinut.nume})`}`;
         
         const newPlata: Omit<Plata, 'id' | 'data_platii' | 'metoda_plata'> = {
@@ -90,7 +97,7 @@ const ExamenDetail: React.FC<ExamenDetailProps> = ({ examen, participari, setPar
         };
 
         const {data: plataData, error: plError} = await supabase.from('plati').insert(newPlata).select().single();
-        if(plError) { alert(`Participant adăugat, dar eroare la generare plată: ${plError.message}`); }
+        if(plError) { showError("Eroare Plată", `Participant adăugat, dar eroare la generare plată: ${plError.message}`); }
         if (plataData) setPlati(prev => [...prev, plataData as Plata]);
         
         setShowSuccess(`Factura pentru ${sportiv.nume} ${sportiv.prenume} a fost generată cu succes!`);
@@ -99,21 +106,21 @@ const ExamenDetail: React.FC<ExamenDetailProps> = ({ examen, participari, setPar
 
     const handleUpdateParticipare = async (participareId: string, field: keyof Participare, value: string) => {
         if (!supabase) {
-            alert("Eroare de configurare: Conexiunea la baza de date nu a putut fi stabilită.");
+            showError("Eroare Configurare", "Clientul Supabase nu a putut fi stabilit.");
             return;
         }
         const { data, error } = await supabase.from('participari').update({ [field]: value }).eq('id', participareId).select().single();
-        if (error) { alert(`Eroare la actualizare: ${error.message}`); return; }
+        if (error) { showError("Eroare la actualizare", error); return; }
         if(data) setParticipari(prev => prev.map(p => p.id === participareId ? data as Participare : p));
     };
     
     const handleDeleteParticipare = async (participareId: string) => {
         if (!supabase) {
-            alert("Eroare de configurare: Conexiunea la baza de date nu a putut fi stabilită.");
+            showError("Eroare Configurare", "Clientul Supabase nu a putut fi stabilit.");
             return;
         }
         const { error } = await supabase.from('participari').delete().eq('id', participareId);
-        if (error) { alert(`Eroare la ștergere: ${error.message}`); return; }
+        if (error) { showError("Eroare la ștergere", error); return; }
         setParticipari(prev => prev.filter(p => p.id !== participareId));
     };
 
@@ -125,19 +132,20 @@ export const ExameneManagement: React.FC<ExameneManagementProps> = ({ onBack, ex
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [examenToEdit, setExamenToEdit] = useState<Examen | null>(null);
   const [selectedExamen, setSelectedExamen] = useState<Examen | null>(null);
+  const { showError } = useError();
   
   const handleSaveExamen = async (examenData: Omit<Examen, 'id'>) => {
     if (!supabase) {
-        alert("Eroare de configurare: Conexiunea la baza de date nu a putut fi stabilită.");
+        showError("Eroare Configurare", "Clientul Supabase nu a putut fi stabilit.");
         return;
     }
     if (examenToEdit) {
         const { data, error } = await supabase.from('examene').update(examenData).eq('id', examenToEdit.id).select().single();
-        if (error) { alert(`Eroare la actualizare: ${error.message}`); return; }
+        if (error) { showError("Eroare la actualizare", error); return; }
         if (data) setExamene(prev => prev.map(e => e.id === examenToEdit.id ? data as Examen : e));
     } else {
         const { data, error } = await supabase.from('examene').insert(examenData).select().single();
-        if (error) { alert(`Eroare la adăugare: ${error.message}`); return; }
+        if (error) { showError("Eroare la adăugare", error); return; }
         if (data) setExamene(prev => [...prev, data as Examen]);
     }
   };
@@ -146,17 +154,17 @@ export const ExameneManagement: React.FC<ExameneManagementProps> = ({ onBack, ex
   
   const handleDelete = async (examenId: string) => {
     if (!supabase) {
-        alert("Eroare de configurare: Conexiunea la baza de date nu a putut fi stabilită.");
+        showError("Eroare Configurare", "Clientul Supabase nu a putut fi stabilit.");
         return;
     }
     if (!window.confirm("Ești sigur? Toate participările asociate vor fi șterse.")) return;
     
     const { error: participariError } = await supabase.from('participari').delete().eq('examen_id', examenId);
-    if(participariError) { alert(`Eroare la ștergerea participarilor: ${participariError.message}`); return; }
+    if(participariError) { showError("Eroare la ștergerea participarilor", participariError); return; }
     setParticipari(prev => prev.filter(p => p.examen_id !== examenId));
     
     const { error: examenError } = await supabase.from('examene').delete().eq('id', examenId);
-    if(examenError) { alert(`Eroare la ștergerea examenului: ${examenError.message}`); return; }
+    if(examenError) { showError("Eroare la ștergerea examenului", examenError); return; }
     setExamene(prev => prev.filter(e => e.id !== examenId));
     
     if (selectedExamen?.id === examenId) setSelectedExamen(null);

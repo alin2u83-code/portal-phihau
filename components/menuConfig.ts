@@ -1,4 +1,3 @@
-// FIX: Added React import for React.ElementType
 import React from 'react';
 import { View, Rol } from '../types';
 import { HomeIcon, UsersIcon, TrophyIcon, ClipboardDocumentListIcon, BanknotesIcon, CalendarDaysIcon, UserCircleIcon, CogIcon } from './icons';
@@ -25,23 +24,9 @@ export const adminMenu: MenuItem[] = [
         view: 'sportivi',
     },
     {
-        label: 'Activități',
+        label: 'Activități Club',
         icon: TrophyIcon,
-        submenu: [
-             { view: 'examene', label: 'Configurare Examene' },
-             { view: 'grade', label: 'Nomenclator Grade' },
-             { view: 'stagii', label: 'Listă Stagii' },
-             { view: 'competitii', label: 'Listă Competiții' }
-        ]
-    },
-    { 
-        label: 'Antrenamente', 
-        icon: ClipboardDocumentListIcon, 
-        submenu: [ 
-            { view: 'prezenta', label: 'Înregistrare Prezențe' }, 
-            { view: 'grupe', label: 'Orar & Gestiune Grupe' }, 
-            { view: 'raport-prezenta', label: 'Raport Prezențe' } 
-        ] 
+        view: 'activitati'
     },
     { 
         label: 'Financiar', 
@@ -56,8 +41,9 @@ export const adminMenu: MenuItem[] = [
         label: 'Configurări', 
         icon: CogIcon, 
         submenu: [ 
-             { view: 'tipuri-abonament', label: 'Configurare Abonamente' }, 
-             { view: 'configurare-preturi', label: 'Configurare Alte Prețuri' } 
+             { view: 'tipuri-abonament', label: 'Config. Abonamente' }, 
+             { view: 'configurare-preturi', label: 'Config. Prețuri' },
+             { view: 'raport-prezenta', label: 'Raport Prezențe' }
         ] 
     },
 ];

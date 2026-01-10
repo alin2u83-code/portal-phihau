@@ -31,6 +31,7 @@ const AntrenamentForm: React.FC<{
         if (isOpen) {
             setFormState(getInitialState());
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen, antrenamentToEdit]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -125,7 +126,7 @@ const AttendanceDetail: React.FC<{
     };
 
     const handleSaveAttendance = async () => {
-        if (!antrenament) return;
+        if (!antrenament || !supabase) return;
         setLoading(true);
         
         await supabase.from('prezente_sportivi').delete().eq('prezenta_id', antrenament.id);
@@ -217,15 +218,22 @@ export const PrezentaManagement: React.FC<{
     setPrezente: React.Dispatch<React.SetStateAction<Prezenta[]>>;
     grupe: Grupa[];
     onBack: () => void;
-}> = ({ sportivi, prezente, setPrezente, grupe, onBack }) => {
+    isEmbedded?: boolean;
+}> = ({ sportivi, prezente, setPrezente, grupe, onBack, isEmbedded = false }) => {
     
     const [selectedAntrenament, setSelectedAntrenament] = useState<Prezenta | null>(null);
     const [antrenamentToEdit, setAntrenamentToEdit] = useState<Prezenta | null>(null);
     const [isFormOpen, setIsFormOpen] = useState(false);
+    const [dateFilter, setDateFilter] = useState('');
+    const [groupFilter, setGroupFilter] = useState('');
     const { showError } = useError();
     const instructori = useMemo(() => sportivi.filter(s => s.status === 'Activ' && s.roluri.some(r => r.nume === 'Instructor')), [sportivi]);
 
     const handleSaveAntrenament = async (antrenamentData: Omit<Prezenta, 'id' | 'sportivi_prezenti_ids'>) => {
+        if (!supabase) {
+            showError("Eroare de configurare", "Clientul Supabase nu este setat.");
+            return;
+        }
         if (antrenamentToEdit) {
             const { data, error } = await supabase.from('prezente').update(antrenamentData).eq('id', antrenamentToEdit.id).select().single();
             if (error) { showError("Eroare la actualizare", error); } 
@@ -233,12 +241,17 @@ export const PrezentaManagement: React.FC<{
         } else {
             const { data, error } = await supabase.from('prezente').insert(antrenamentData).select().single();
             if (error) { showError("Eroare la creare", error); } 
-            else if (data) { setPrezente(prev => [...prev, { ...data, sportivi_prezenti_ids: [] }]); }
+            else if (data) { 
+                const newAntrenament = { ...data, sportivi_prezenti_ids: [] };
+                setPrezente(prev => [...prev, newAntrenament]); 
+                setSelectedAntrenament(newAntrenament);
+            }
         }
     };
 
     const handleDeleteAntrenament = async (id: number) => {
         if (window.confirm("Sunteți sigur că doriți să ștergeți acest antrenament și toată prezența asociată?")) {
+            if (!supabase) { showError("Eroare de configurare", "Clientul Supabase nu este setat."); return; }
             const { error } = await supabase.from('prezente').delete().eq('id', id);
             if (error) { showError("Eroare la ștergere", error); } 
             else { setPrezente(prev => prev.filter(p => p.id !== id)); }
@@ -251,16 +264,35 @@ export const PrezentaManagement: React.FC<{
     if (selectedAntrenament) {
         return <AttendanceDetail antrenament={selectedAntrenament} onBack={() => setSelectedAntrenament(null)} sportivi={sportivi} grupe={grupe} instructori={instructori} setPrezente={setPrezente} />;
     }
+    
+    const filteredPrezente = useMemo(() => {
+        return prezente.filter(p => {
+            const dateMatch = !dateFilter || p.data === dateFilter;
+            const groupMatch = !groupFilter || p.grupa_id === groupFilter;
+            return dateMatch && groupMatch;
+        });
+    }, [prezente, dateFilter, groupFilter]);
 
-    const sortedPrezente = [...prezente].sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime() || b.ora.localeCompare(a.ora));
+    const sortedPrezente = [...filteredPrezente].sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime() || b.ora.localeCompare(a.ora));
 
     return (
         <div>
-            <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
+            {!isEmbedded && <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>}
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-bold text-white">Istoric Antrenamente</h1>
                 <Button onClick={handleOpenAdd} variant="info"><PlusIcon className="w-5 h-5 mr-2" /> Antrenament Nou</Button>
             </div>
+
+            <Card className="mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Input label="Filtrează după dată" type="date" value={dateFilter} onChange={e => setDateFilter(e.target.value)} />
+                    <Select label="Filtrează după grupă" value={groupFilter} onChange={e => setGroupFilter(e.target.value)}>
+                        <option value="">Toate grupele</option>
+                        {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
+                    </Select>
+                </div>
+            </Card>
+
             <Card className="overflow-hidden p-0">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left min-w-[800px]">
@@ -297,7 +329,7 @@ export const PrezentaManagement: React.FC<{
                             })}
                         </tbody>
                     </table>
-                    {sortedPrezente.length === 0 && <p className="p-4 text-center text-slate-400">Niciun antrenament înregistrat.</p>}
+                    {sortedPrezente.length === 0 && <p className="p-4 text-center text-slate-400">Niciun antrenament înregistrat conform filtrelor.</p>}
                 </div>
             </Card>
             <AntrenamentForm 

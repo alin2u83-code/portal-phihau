@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, View } from '../types';
 import { adminMenu, sportivMenu, MenuItem } from './menuConfig';
+import { logoBase64 } from '../assets/logoData';
 // FIX: Imported `UserCircleIcon`
 import { ArrowRightOnRectangleIcon, Bars3Icon, ChevronDownIcon, UserCircleIcon } from './icons';
 
@@ -92,9 +93,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
              {/* Logo and Club Name */}
             <div className="flex items-center justify-center p-4 border-b border-white/10 cursor-pointer" onClick={() => handleNavigate('dashboard')}>
                 <img 
-                    src="/logo-phihau.png" 
+                    src={logoBase64} 
                     alt="Club Sportiv Phi Hau"
-                    className={`transition-all duration-300 rounded-full bg-white/10 shadow-md ${isExpanded ? 'w-20 h-20' : 'w-10 h-10'}`}
+                    className={`transition-all duration-300 rounded-full bg-white/10 ${isExpanded ? 'w-20 h-20' : 'w-10 h-10'}`}
                     style={{boxShadow: '0 0 10px rgba(77, 188, 233, 0.5)'}}
                 />
             </div>

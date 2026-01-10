@@ -65,8 +65,8 @@ const GradFormModal: React.FC<GradFormProps> = ({ isOpen, onClose, onSave, grade
   );
 };
 
-interface GradeManagementProps { grade: Grad[]; setGrade: React.Dispatch<React.SetStateAction<Grad[]>>; onBack: () => void; }
-export const GradeManagement: React.FC<GradeManagementProps> = ({ grade, setGrade, onBack }) => {
+interface GradeManagementProps { grade: Grad[]; setGrade: React.Dispatch<React.SetStateAction<Grad[]>>; onBack: () => void; isEmbedded?: boolean; }
+export const GradeManagement: React.FC<GradeManagementProps> = ({ grade, setGrade, onBack, isEmbedded = false }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [gradToEdit, setGradToEdit] = useState<Grad | null>(null);
 
@@ -99,9 +99,9 @@ export const GradeManagement: React.FC<GradeManagementProps> = ({ grade, setGrad
 
   return (
     <div>
-      <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
+      {!isEmbedded && <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-white">Management Grade</h1>
+        <h1 className="text-3xl font-bold text-white">Nomenclator Grade Qwan Ki Do</h1>
         <Button onClick={handleOpenAdd} variant="info"><PlusIcon className="w-5 h-5 mr-2" />Adaugă Grad</Button>
       </div>
       <div className="bg-slate-800 rounded-lg shadow-lg overflow-x-auto">

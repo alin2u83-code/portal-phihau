@@ -120,189 +120,157 @@ export const PortalSportiv: React.FC<PortalSportivProps> = ({ currentUser, viewe
         
         const newPlata = { 
             sportiv_id: viewedUser.id, 
-            familie_id: viewedUser.familie_id, 
-            suma: pretConfig.suma, 
-            data: new Date().toISOString().split('T')[0], 
-            status: 'Neachitat' as const, 
-            descriere: `Taxa ${eveniment.denumire}`, 
-            tip: categorie, 
-            observatii: `Înscriere automată din portal.`, 
+            familie_id: viewedUser.familie_id,
+            suma: pretConfig.suma,
+            data: eveniment.data,
+            status: 'Neachitat' as const,
+            descriere: `Taxa ${eveniment.denumire}`,
+            tip: categorie,
+            observatii: 'Înscriere din portal.'
         };
         const { data: plataData, error: plataError } = await supabase.from('plati').insert(newPlata).select().single();
-        if (plataError) { alert(`Înscriere reușită, dar eroare la generare taxă: ${plataError.message}. Contactați administratorul.`); }
+        if (plataError) { 
+            alert(`Înscriere efectuată, dar a apărut o eroare la generarea taxei: ${plataError.message}. Contactați administratorul.`);
+        } else if (plataData) {
+            setPlati(prev => [...prev, plataData as Plata]);
+        }
         
-        if(rezultatData) setRezultate(prev => [...prev, rezultatData as Rezultat]);
-        if(plataData) setPlati(prev => [...prev, plataData as Plata]);
+        if (rezultatData) {
+            setRezultate(prev => [...prev, rezultatData as Rezultat]);
+        }
+
+        setShowSuccess(`Înscrierea la "${eveniment.denumire}" a fost realizată cu succes!`);
+        setTimeout(() => setShowSuccess(null), 4000);
         
-        setShowSuccess("Înscriere realizată cu succes! Verificați secțiunea financiară.");
-        setTimeout(() => setShowSuccess(null), 5000);
         setLoading(prev => ({ ...prev, [eveniment.id]: false }));
     };
 
-
     return (
-        <div className="space-y-6">
-            {isAdmin && isViewingOwnProfile && (
-                <Card className="bg-sky-600/10 border border-sky-500/30">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                            <ShieldCheckIcon className="w-8 h-8 text-sky-400"/>
-                            <div>
-                                <h3 className="font-bold text-white">Mod Vizualizare Portal Propriu (Admin)</h3>
-                                <p className="text-sm text-sky-300">Acesta este portalul dvs. de sportiv. Vă puteți întoarce oricând la panoul de administrare.</p>
-                            </div>
-                        </div>
-                        <Button onClick={onNavigateToDashboard} variant="secondary" className="bg-sky-500 hover:bg-sky-600 text-white shadow-lg shadow-sky-900/20 border-none">
-                            Înapoi la Panoul de Administrare
-                        </Button>
-                    </div>
-                </Card>
-            )}
-
-            {isAdmin && !isViewingOwnProfile && (
-                <Card className="bg-amber-600/10 border border-amber-500/30">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                            <ShieldCheckIcon className="w-8 h-8 text-amber-400"/>
-                            <div>
-                                <h3 className="font-bold text-white">Mod Vizualizare Sportiv (Admin)</h3>
-                                <p className="text-sm text-amber-300">Vizualizați profilul lui {viewedUser.nume} {viewedUser.prenume}.</p>
-                            </div>
-                        </div>
-                        <Button onClick={onNavigateToDashboard} variant="secondary" className="bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-900/20 border-none">
-                            Panou de Administrare
-                        </Button>
-                    </div>
-                </Card>
-            )}
-
-            {!isViewingOwnProfile && !isAdmin && (
-                 <Card className="bg-blue-900/50 border border-blue-500/30">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                            <UsersIcon className="w-8 h-8 text-blue-400"/>
-                            <div>
-                                <h3 className="font-bold text-white">Vizualizați profilul lui {viewedUser.nume} {viewedUser.prenume}</h3>
-                                <p className="text-sm text-blue-300">Acesta este un profil de membru al familiei.</p>
-                            </div>
-                        </div>
-                        <Button onClick={() => onSwitchView(currentUser.id)} variant="secondary" className="bg-blue-500 hover:bg-blue-600 text-white shadow-lg shadow-blue-900/20 border-none">
-                            Înapoi la Profilul Meu
-                        </Button>
-                    </div>
-                </Card>
-            )}
-
-            <Card>
-                <h2 className="text-3xl font-bold text-white">Bun venit, {currentUser.prenume}!</h2>
-                <p className="text-slate-400">{isViewingOwnProfile ? "Acesta este panoul tău personal de control." : `Vizualizați detaliile pentru ${viewedUser.prenume}.`}</p>
-            </Card>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                 <div 
-                    onClick={onNavigateToEvenimenteleMele}
-                    className="group bg-slate-800/50 backdrop-blur-sm p-6 rounded-lg border border-slate-700 hover:border-brand-secondary cursor-pointer transition-all duration-300 flex items-center gap-6"
-                >
-                    <div className="p-3 bg-brand-secondary/10 rounded-full group-hover:bg-brand-secondary/20 transition-colors">
-                        <CalendarDaysIcon className="w-8 h-8 text-brand-secondary" />
-                    </div>
+        <div className="space-y-8">
+            {/* Header and Family Switcher */}
+            <Card className="bg-slate-800/50">
+                <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
                     <div>
-                        <h3 className="text-xl font-bold text-white group-hover:text-brand-secondary transition-colors">Evenimentele Mele</h3>
-                        <p className="text-sm text-slate-400">Vezi înscrierile active și istoricul.</p>
+                        <h1 className="text-3xl md:text-4xl font-extrabold text-white">Portal Sportiv: {viewedUser.nume} {viewedUser.prenume}</h1>
+                        <p className="text-slate-400 mt-1">Bun venit în spațiul personal!</p>
                     </div>
+                    {isAdmin && !isViewingOwnProfile && (
+                        <Button variant="secondary" onClick={onNavigateToDashboard}>&larr; Înapoi la Panou Admin</Button>
+                    )}
                 </div>
-
-                {isViewingOwnProfile && (
-                     <div 
-                        onClick={onNavigateToEditProfil}
-                        className="group bg-slate-800/50 backdrop-blur-sm p-6 rounded-lg border border-slate-700 hover:border-status-warning cursor-pointer transition-all duration-300 flex items-center gap-6"
-                    >
-                        <div className="p-3 bg-status-warning/10 rounded-full group-hover:bg-status-warning/20 transition-colors">
-                            <ShieldCheckIcon className="w-8 h-8 text-status-warning" />
-                        </div>
-                        <div>
-                            <h3 className="text-xl font-bold text-white group-hover:text-status-warning transition-colors">Profil & Securitate</h3>
-                            <p className="text-sm text-slate-400">Gestionează datele tale personale și parola.</p>
+                {membriFamilie.length > 1 && (
+                    <div className="mt-4 pt-4 border-t border-slate-700">
+                        <h3 className="text-sm font-semibold text-slate-300 mb-2 flex items-center gap-2">
+                           <UsersIcon className="w-5 h-5"/> Membrii familiei {familieNume}:
+                        </h3>
+                        <div className="flex flex-wrap gap-2">
+                            {membriFamilie.map(m => (
+                                <button
+                                    key={m.id}
+                                    onClick={() => onSwitchView(m.id)}
+                                    className={`px-3 py-1 text-sm font-semibold rounded-full transition-colors ${m.id === viewedUser.id ? 'bg-brand-secondary text-white shadow' : 'bg-slate-700 hover:bg-slate-600 text-slate-300'}`}
+                                >
+                                    {m.prenume}
+                                </button>
+                            ))}
                         </div>
                     </div>
                 )}
-            </div>
+            </Card>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card>
-                    <h3 className="text-xl font-bold text-white mb-4">Progresul Meu</h3>
-                    <DataField label="Grad Actual" value={currentGrad?.nume || <span className="text-sky-400 italic">Începător</span>} />
-                    <div className="mt-4 pt-4 border-t border-slate-700">
-                        <DataField label="Următorul Grad" value={eligibility.nextGrad?.nume || 'Maxim atins'} />
-                        <p className={`text-sm mt-1 ${eligibility.eligible ? 'text-green-400' : 'text-yellow-400'}`}>{eligibility.message}</p>
-                    </div>
-                </Card>
-                 <Card>
-                    <h3 className="text-xl font-bold text-white mb-4">Activitate</h3>
-                    <DataField label="Grupă" value={grupaCurenta?.denumire || 'Neatribuit'} />
-                    <div className="mt-4 pt-4 border-t border-slate-700">
-                         <DataField label="Prezențe Luna Curentă" value={`${prezenteLunaCurenta} antrenamente`} />
-                    </div>
-                </Card>
-                 <Card>
-                    <h3 className="text-xl font-bold text-white mb-4">Financiar</h3>
-                     <p className="text-sm text-slate-400 mb-2">Datorii neachitate:</p>
-                    <div className="space-y-2">
-                       {sportivPlati.filter(p => p.status !== 'Achitat').map(p => (
-                           <div key={p.id} className="flex justify-between items-center bg-slate-700/50 p-2 rounded-md text-sm">
-                               <span>{p.descriere}</span>
-                               <span className="font-bold text-red-400">{p.suma.toFixed(2)} RON</span>
-                           </div>
-                       ))}
-                       {sportivPlati.filter(p => p.status !== 'Achitat').length === 0 && <p className="text-slate-400 text-sm italic">Nicio datorie restantă.</p>}
-                    </div>
-                </Card>
-            </div>
+            {showSuccess && <div className="bg-green-600/50 text-white p-3 rounded-md text-center font-semibold">{showSuccess}</div>}
 
-            {viewedUser.familie_id && (
-                <Card>
-                    <div className="flex items-center gap-3 mb-4">
-                        <UsersIcon className="w-6 h-6 text-brand-secondary" />
-                        <h3 className="text-xl font-bold text-white">Familia {familieNume}</h3>
-                    </div>
-                    <p className="text-sm text-slate-400 mb-4">Comutați între profilurile membrilor familiei pentru a vedea detaliile fiecăruia.</p>
-                    <div className="space-y-2">
-                        {membriFamilie.map(membru => (
-                            <Button key={membru.id} onClick={() => onSwitchView(membru.id)} disabled={membru.id === viewedUser.id} className={`w-full justify-start text-left !p-3 ${membru.id === viewedUser.id ? 'bg-brand-primary text-white ring-2 ring-brand-secondary' : 'bg-slate-700/50 hover:bg-slate-700'}`} variant='secondary'>
-                                <div className="flex justify-between items-center w-full">
-                                    <span className="font-semibold">{membru.nume} {membru.prenume}</span>
-                                    {membru.id === currentUser.id && <span className="text-xs text-brand-secondary font-bold">(Profilul Meu)</span>}
-                                </div>
-                            </Button>
-                        ))}
-                    </div>
-                </Card>
-            )}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Left Column - Main Info */}
+                <div className="lg:col-span-2 space-y-8">
+                    {/* Grade Info */}
+                    <Card>
+                        <h2 className="text-2xl font-bold mb-4 text-white flex items-center gap-2"><ShieldCheckIcon className="text-brand-secondary"/> Progres Grad</h2>
+                        <dl className="grid grid-cols-2 gap-x-4 gap-y-4">
+                           <DataField label="Grad Actual" value={currentGrad ? <span className="px-2 py-1 bg-brand-primary rounded-md text-sm">{currentGrad.nume}</span> : 'Începător'} />
+                           <DataField label="Vârstă" value={`${getAge(viewedUser.data_nasterii)} ani`} />
+                           <DataField label="Următorul Grad" value={eligibility.nextGrad?.nume || 'N/A'}/>
+                           <DataField label="Status Eligibilitate" value={
+                               <span className={`font-bold ${eligibility.eligible ? 'text-green-400' : 'text-amber-400'}`}>
+                                   {eligibility.message}
+                               </span>
+                           } />
+                        </dl>
+                    </Card>
 
-            <Card>
-                <h3 className="text-xl font-bold text-white mb-4">Evenimente Viitoare & Înscrieri</h3>
-                {showSuccess && <p className="text-green-400 bg-green-900/50 p-2 rounded-md mb-4 text-center text-sm font-semibold">{showSuccess}</p>}
-                <div className="space-y-3">
-                    {unregisteredUpcomingEvents.length > 0 ? unregisteredUpcomingEvents.map(ev => (
-                        <div key={ev.id} className="bg-slate-700 p-3 rounded-md border border-slate-600">
-                            <div className="flex justify-between items-start flex-wrap gap-2">
-                                <div>
-                                    <p className="font-bold">{ev.denumire} <span className={`ml-2 text-[10px] px-2 py-0.5 rounded-full text-white ${ev.tip === 'Stagiu' ? 'bg-sky-600' : 'bg-purple-600'}`}>{ev.tip}</span></p>
-                                    {/* FIX: The 'Eveniment' type does not have a 'data_sfarsit' property. The call to 'formatDateRange' has been updated to only pass the 'data' property, which is valid since the second argument is optional. */}
-<p className="text-xs text-slate-400">{formatDateRange(ev.data)} - {ev.locatie}</p>
-                                </div>
-                                {isViewingOwnProfile && (
-                                    <div className="text-right">
-                                        <Button onClick={() => handleInscriereEveniment(ev)} variant="success" size="sm" disabled={loading[ev.id]} className="text-xs">
+                    {/* Attendance and Schedule */}
+                    <Card>
+                         <h2 className="text-2xl font-bold mb-4 text-white flex items-center gap-2"><CalendarDaysIcon className="text-brand-secondary"/> Antrenamente & Program</h2>
+                         <dl className="grid grid-cols-2 gap-4 mb-4">
+                            <DataField label="Prezențe Luna Curentă" value={<span className="text-2xl font-bold">{prezenteLunaCurenta}</span>} />
+                            <DataField label="Grupă Curentă" value={grupaCurenta?.denumire || 'Neasignat'} />
+                         </dl>
+                         {grupaCurenta?.program && grupaCurenta.program.length > 0 && (
+                            <div className="border-t border-slate-700 pt-4">
+                               <h4 className="text-sm font-semibold text-slate-300 mb-2">Program grupă ({grupaCurenta.sala}):</h4>
+                               <div className="flex flex-wrap gap-2">
+                                   {grupaCurenta.program.map((p, i) => <span key={i} className="bg-slate-700 text-slate-200 text-xs font-semibold px-2 py-1 rounded-full">{p.ziua} {p.ora_start}-{p.ora_sfarsit}</span>)}
+                               </div>
+                            </div>
+                         )}
+                    </Card>
+
+                     {/* Upcoming Events */}
+                    {unregisteredUpcomingEvents.length > 0 && (
+                        <Card>
+                            <h2 className="text-2xl font-bold mb-4 text-white">Evenimente Viitoare</h2>
+                            <div className="space-y-3">
+                                {unregisteredUpcomingEvents.map(ev => (
+                                    <div key={ev.id} className="bg-slate-700/50 p-3 rounded-md flex justify-between items-center">
+                                        <div>
+                                            <p className="font-semibold">{ev.denumire} ({ev.tip})</p>
+                                            <p className="text-sm text-slate-400">{formatDateRange(ev.data)} - {ev.locatie}</p>
+                                        </div>
+                                        <Button 
+                                            size="sm" 
+                                            variant="info" 
+                                            onClick={() => handleInscriereEveniment(ev)}
+                                            disabled={loading[ev.id]}
+                                        >
                                             {loading[ev.id] ? 'Se înscrie...' : 'Înscrie-te'}
                                         </Button>
                                     </div>
-                                )}
+                                ))}
                             </div>
-                        </div>
-                    )) : <p className="text-slate-400 text-sm italic">Niciun eveniment viitor disponibil pentru înscriere în acest moment.</p>}
+                        </Card>
+                    )}
                 </div>
-            </Card>
+                
+                {/* Right Column - Actions & Finances */}
+                <div className="space-y-8">
+                     {isViewingOwnProfile && (
+                        <Card>
+                            <h2 className="text-xl font-bold mb-4 text-white">Acțiuni Rapide</h2>
+                            <div className="space-y-2">
+                                <Button onClick={onNavigateToEditProfil} className="w-full justify-start">Editează Profil & Cont</Button>
+                                <Button onClick={onNavigateToEvenimenteleMele} className="w-full justify-start">Vezi Evenimentele Mele</Button>
+                            </div>
+                        </Card>
+                     )}
+                     <Card>
+                        <h2 className="text-xl font-bold mb-4 text-white">Situație Financiară</h2>
+                        <div className="space-y-2">
+                            {sportivPlati.filter(p => p.status !== 'Achitat').map(plata => (
+                                <div key={plata.id} className="bg-red-900/40 p-3 rounded-md border border-red-500/30">
+                                    <div className="flex justify-between items-center text-sm">
+                                        <p className="font-semibold text-red-300">{plata.descriere}</p>
+                                        <p className="font-bold text-red-200">{plata.suma.toFixed(2)} RON</p>
+                                    </div>
+                                    <p className="text-xs text-red-400">Scadent la: {new Date(plata.data).toLocaleDateString('ro-RO')}</p>
+                                </div>
+                            ))}
+                            {sportivPlati.filter(p => p.status !== 'Achitat').length === 0 && (
+                                <p className="text-green-400 text-center font-semibold bg-green-900/30 p-3 rounded-md">Sunteți cu plățile la zi!</p>
+                            )}
+                        </div>
+                     </Card>
+                </div>
+            </div>
         </div>
     );
-};
+}

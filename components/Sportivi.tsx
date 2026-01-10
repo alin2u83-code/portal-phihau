@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Sportiv, Grupa, TipAbonament, Familie, Rol, User } from '../types';
 import { Button, Modal, Input, Select, Card } from './ui';
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon, ShieldCheckIcon } from './icons';
@@ -184,10 +184,13 @@ const SportivFormModal: React.FC<SportivFormModalProps> = ({ isOpen, onClose, on
     const [isAddFamilieOpen, setIsAddFamilieOpen] = useState(false);
     const [isAddAbonamentOpen, setIsAddAbonamentOpen] = useState(false);
     const { showError } = useError();
+    const initialFormStateRef = React.useRef(sportivToEdit || emptySportivState);
 
     React.useEffect(() => {
         if (isOpen) {
-            setFormState(sportivToEdit || emptySportivState);
+            const initialState = sportivToEdit || emptySportivState;
+            setFormState(initialState);
+            initialFormStateRef.current = initialState;
             setError(null);
         }
     }, [isOpen, sportivToEdit]);
@@ -204,13 +207,26 @@ const SportivFormModal: React.FC<SportivFormModalProps> = ({ isOpen, onClose, on
         const result = await onSave(formState);
         setLoading(false);
         if (result.success) {
-            onClose();
             onSaveSuccess(sportivToEdit ? 'Sportiv actualizat!' : 'Sportiv adăugat cu succes!');
-            if(!sportivToEdit) { // Clear form only on add
+            if (sportivToEdit) {
+                onClose();
+            } else {
                 setFormState(emptySportivState);
+                initialFormStateRef.current = emptySportivState;
             }
         } else {
             setError(result.error || "A apărut o eroare necunoscută.");
+        }
+    };
+    
+    const handleCloseRequest = () => {
+        const isDirty = JSON.stringify(formState) !== JSON.stringify(initialFormStateRef.current);
+        if (isDirty) {
+            if (window.confirm('Sigur doriți să închideți? Datele nesalvate se vor pierde.')) {
+                onClose();
+            }
+        } else {
+            onClose();
         }
     };
     
@@ -252,7 +268,7 @@ const SportivFormModal: React.FC<SportivFormModalProps> = ({ isOpen, onClose, on
 
     return (
         <>
-        <Modal isOpen={isOpen} onClose={onClose} title={sportivToEdit ? "Editează Sportiv" : "Adaugă Sportiv Nou"}>
+        <Modal isOpen={isOpen} onClose={handleCloseRequest} title={sportivToEdit ? "Editează Sportiv" : "Adaugă Sportiv Nou"}>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <SportivFormFields 
                     formState={formState} 
@@ -272,7 +288,7 @@ const SportivFormModal: React.FC<SportivFormModalProps> = ({ isOpen, onClose, on
                     </div>
                 )}
                 <div className="flex justify-end pt-4 space-x-2 border-t border-slate-700 mt-6">
-                    <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button>
+                    <Button type="button" variant="secondary" onClick={handleCloseRequest} disabled={loading}>Anulează</Button>
                     <Button type="submit" variant="success" disabled={loading}>{loading ? 'Se salvează...' : 'Salvează'}</Button>
                 </div>
             </form>
@@ -302,18 +318,25 @@ interface SportiviManagementProps {
     setAllRoles: React.Dispatch<React.SetStateAction<Rol[]>>;
     familii: Familie[];
     setFamilii: React.Dispatch<React.SetStateAction<Familie[]>>;
+    initialSubView: string | null;
 }
 
-export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, sportivi, setSportivi, participari, grupe, setGrupe, tipuriAbonament, setTipuriAbonament, familii, setFamilii, customFields, setCustomFields, currentUser, setCurrentUser, allRoles, setAllRoles }) => {
+export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, sportivi, setSportivi, participari, grupe, setGrupe, tipuriAbonament, setTipuriAbonament, familii, setFamilii, customFields, setCustomFields, currentUser, setCurrentUser, allRoles, setAllRoles, initialSubView }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sportivToEdit, setSportivToEdit] = useState<Sportiv | null>(null);
   const [newFieldName, setNewFieldName] = useState('');
-  const [subView, setSubView] = useState<SportiviSubView>('lista');
+  const [subView, setSubView] = useState<SportiviSubView>((initialSubView as SportiviSubView) || 'lista');
   const { showError } = useError();
   const [showSuccess, setShowSuccess] = useState<string | null>(null);
   
   const initialFilters = { searchTerm: '', grupa: 'all', status: 'all', rol: 'all' };
   const [filters, setFilters] = useState(initialFilters);
+
+  useEffect(() => {
+    if (initialSubView && (['lista', 'gestiune', 'acces'].includes(initialSubView))) {
+        setSubView(initialSubView as SportiviSubView);
+    }
+  }, [initialSubView]);
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;

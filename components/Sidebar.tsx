@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User, View } from '../types';
-import { adminMenu, sportivMenu, MenuItem } from './menuConfig';
+import { adminMenu, sportivMenu, MenuItem, SubMenuItem } from './menuConfig';
 import { logoBase64 } from '../assets/logoData';
 import { ArrowRightOnRectangleIcon, Bars3Icon, ChevronDownIcon, UserCircleIcon } from './icons';
 
@@ -8,12 +8,12 @@ const NavItem: React.FC<{
     item: MenuItem;
     isExpanded: boolean;
     isActive: boolean;
-    onNavigate: (view: View) => void;
+    onNavigate: (view: View, subView?: string) => void;
     activeView: View;
-}> = ({ item, isExpanded, isActive, onNavigate, activeView }) => {
+    activeSubView: string | null;
+}> = ({ item, isExpanded, isActive, onNavigate, activeView, activeSubView }) => {
     const [isSubmenuOpen, setIsSubmenuOpen] = useState(false);
 
-    // Deschide automat submeniul dacă o pagină din interiorul său este activă
     useEffect(() => {
         if (isActive) {
             setIsSubmenuOpen(true);
@@ -27,6 +27,14 @@ const NavItem: React.FC<{
             setIsSubmenuOpen(!isSubmenuOpen);
         } else if (item.view) {
             onNavigate(item.view);
+        }
+    };
+    
+    const handleSubmenuClick = (subItem: SubMenuItem) => {
+        if (item.view) { // For tabbed views like Sportivi/Activitati
+            onNavigate(item.view, subItem.subView);
+        } else { // For regular views like Financiar/Configurari
+             onNavigate(subItem.view, subItem.subView);
         }
     };
 
@@ -50,15 +58,18 @@ const NavItem: React.FC<{
             </div>
             {isExpanded && hasSubmenu && isSubmenuOpen && (
                 <div className="pl-6 mt-1 space-y-1">
-                    {item.submenu?.map(subItem => (
-                        <div
-                            key={subItem.view}
-                            onClick={() => onNavigate(subItem.view)}
-                            className={`block p-2 text-sm rounded-md cursor-pointer transition-colors ${subItem.view === activeView ? 'bg-brand-secondary/50 font-bold' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
-                        >
-                            {subItem.label}
-                        </div>
-                    ))}
+                    {item.submenu?.map(subItem => {
+                         const isSubActive = (subItem.view === activeView) || (item.view === activeView && subItem.subView === activeSubView);
+                         return (
+                            <div
+                                key={subItem.label}
+                                onClick={() => handleSubmenuClick(subItem)}
+                                className={`block p-2 text-sm rounded-md cursor-pointer transition-colors ${isSubActive ? 'bg-brand-secondary/50 font-bold' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
+                            >
+                                {subItem.label}
+                            </div>
+                        )
+                    })}
                 </div>
             )}
         </div>
@@ -67,22 +78,23 @@ const NavItem: React.FC<{
 
 interface SidebarProps {
     currentUser: User;
-    onNavigate: (view: View) => void;
+    onNavigate: (view: View, subView?: string) => void;
     onLogout: () => void;
     activeView: View;
+    activeSubView: string | null;
     isExpanded: boolean;
     setIsExpanded: React.Dispatch<React.SetStateAction<boolean>>;
     isPortalView: boolean;
     onViewOwnPortal: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLogout, activeView, isExpanded, setIsExpanded, isPortalView, onViewOwnPortal }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLogout, activeView, activeSubView, isExpanded, setIsExpanded, isPortalView, onViewOwnPortal }) => {
     const [isMobileOpen, setIsMobileOpen] = useState(false);
     
     const menu = isPortalView ? sportivMenu : adminMenu;
 
-    const handleNavigate = (view: View) => {
-        onNavigate(view);
+    const handleNavigate = (view: View, subView?: string) => {
+        onNavigate(view, subView);
         setIsMobileOpen(false); // Close mobile menu on navigation
     };
 
@@ -102,7 +114,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
             <nav className="flex-1 px-3 py-4 space-y-2 overflow-y-auto">
                 {menu.map(item => {
                      const isActive = item.view === activeView || (item.submenu?.some(s => s.view === activeView) ?? false);
-                     return <NavItem key={item.label} item={item} isExpanded={isExpanded} isActive={isActive} onNavigate={handleNavigate} activeView={activeView} />
+                     return <NavItem key={item.label} item={item} isExpanded={isExpanded} isActive={isActive} onNavigate={handleNavigate} activeView={activeView} activeSubView={activeSubView} />
                 })}
             </nav>
 

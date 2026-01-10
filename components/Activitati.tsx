@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Sportiv, Examen, Grad, Participare, Prezenta, Grupa, Plata, Eveniment, Rezultat, PretConfig } from '../types';
 import { PrezentaManagement } from './Prezenta';
 import { ExameneManagement } from './Examene';
@@ -36,6 +36,7 @@ const EvenimenteList: React.FC<{ evenimente: Eveniment[], rezultate: Rezultat[] 
 
 interface ActivitatiProps {
     onBack: () => void;
+    initialTab: string | null;
     // Props for children
     sportivi: Sportiv[];
     prezente: Prezenta[];
@@ -56,7 +57,13 @@ interface ActivitatiProps {
 type ActivitatiTab = 'antrenamente' | 'examene' | 'evenimente' | 'grade';
 
 export const Activitati: React.FC<ActivitatiProps> = (props) => {
-    const [activeTab, setActiveTab] = useState<ActivitatiTab>('antrenamente');
+    const [activeTab, setActiveTab] = useState<ActivitatiTab>((props.initialTab as ActivitatiTab) || 'antrenamente');
+
+    useEffect(() => {
+        if (props.initialTab && (['antrenamente', 'examene', 'evenimente', 'grade'].includes(props.initialTab))) {
+            setActiveTab(props.initialTab as ActivitatiTab);
+        }
+    }, [props.initialTab]);
     
     const TabButton: React.FC<{ tab: ActivitatiTab; label: string }> = ({ tab, label }) => {
         const isActive = activeTab === tab;

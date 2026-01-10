@@ -13,6 +13,7 @@ export interface MenuItem {
 export interface SubMenuItem {
     label: string;
     view: View;
+    subView?: string;
     roles?: Rol['nume'][];
 }
 
@@ -21,20 +22,22 @@ export const adminMenu: MenuItem[] = [
     { 
         label: 'Sportivi & Utilizatori', 
         icon: UsersIcon,
+        view: 'sportivi',
         submenu: [
-            { view: 'sportivi', label: 'Listă Sportivi' },
-            { view: 'sportivi', label: 'Gestiune Familii' },
-            { view: 'sportivi', label: 'Management Acces' },
+            { view: 'sportivi', label: 'Listă Sportivi', subView: 'lista' },
+            { view: 'sportivi', label: 'Gestiune Date', subView: 'gestiune' },
+            { view: 'sportivi', label: 'Management Acces', subView: 'acces', roles: ['Admin'] },
         ]
     },
     {
         label: 'Activități Club',
         icon: TrophyIcon,
+        view: 'activitati',
         submenu: [
-            { view: 'activitati', label: 'Antrenamente' },
-            { view: 'activitati', label: 'Examene' },
-            { view: 'activitati', label: 'Stagii & Competiții' },
-            { view: 'activitati', label: 'Grade Qwan Ki Do' },
+            { view: 'activitati', label: 'Antrenamente', subView: 'antrenamente' },
+            { view: 'activitati', label: 'Examene', subView: 'examene' },
+            { view: 'activitati', label: 'Stagii & Competiții', subView: 'evenimente' },
+            { view: 'activitati', label: 'Grade Qwan Ki Do', subView: 'grade' },
         ]
     },
     { 

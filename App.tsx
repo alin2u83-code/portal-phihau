@@ -49,6 +49,7 @@ function App() {
   // App view state
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
   const [activeView, setActiveView] = useState<View>('dashboard');
+  const [activeSubView, setActiveSubView] = useState<string | null>(null);
   const [adminViewingPortal, setAdminViewingPortal] = useState(false);
   const [plataToIncasare, setPlataToIncasare] = useState<Plata | null>(null);
   const [viewingAs, setViewingAs] = useState<User | null>(null);
@@ -205,8 +206,9 @@ function App() {
     setActiveView('dashboard');
   };
 
-  const handleNavigate = (view: View) => {
+  const handleNavigate = (view: View, subView?: string) => {
     setActiveView(view);
+    setActiveSubView(subView || null);
     if(view === 'dashboard' && adminViewingPortal) {
         setAdminViewingPortal(false);
         setViewingAs(currentUser);
@@ -251,8 +253,8 @@ function App() {
         }
     } else {
         switch (activeView) {
-            case 'sportivi': return <SportiviManagement onBack={handleBackToDashboard} sportivi={sportivi} setSportivi={setSportivi} participari={participari} grupe={grupe} tipuriAbonament={tipuriAbonament} customFields={customFields} setCustomFields={setCustomFields} currentUser={currentUser!} setCurrentUser={setCurrentUser} allRoles={allRoles} setAllRoles={setAllRoles} familii={familii} setFamilii={setFamilii} />;
-            case 'activitati': return <Activitati onBack={handleBackToDashboard} sportivi={sportivi} prezente={prezente} setPrezente={setPrezente} grupe={grupe} examene={examene} setExamene={setExamene} participari={participari} setParticipari={setParticipari} grade={grade} setGrade={setGrade} setPlati={setPlati} preturiConfig={preturiConfig} evenimente={evenimente} rezultate={rezultate} />;
+            case 'sportivi': return <SportiviManagement initialSubView={activeSubView} onBack={handleBackToDashboard} sportivi={sportivi} setSportivi={setSportivi} participari={participari} grupe={grupe} tipuriAbonament={tipuriAbonament} customFields={customFields} setCustomFields={setCustomFields} currentUser={currentUser!} setCurrentUser={setCurrentUser} allRoles={allRoles} setAllRoles={setAllRoles} familii={familii} setFamilii={setFamilii} />;
+            case 'activitati': return <Activitati initialTab={activeSubView} onBack={handleBackToDashboard} sportivi={sportivi} prezente={prezente} setPrezente={setPrezente} grupe={grupe} examene={examene} setExamene={setExamene} participari={participari} setParticipari={setParticipari} grade={grade} setGrade={setGrade} setPlati={setPlati} preturiConfig={preturiConfig} evenimente={evenimente} rezultate={rezultate} />;
             case 'grupe': return <GrupeManagement onBack={handleBackToDashboard} grupe={grupe} setGrupe={setGrupe} />;
             case 'raport-prezenta': return <RaportPrezenta onBack={handleBackToDashboard} prezente={prezente} sportivi={sportivi} grupe={grupe} />;
             case 'plati-scadente': return <PlatiScadente onBack={handleBackToDashboard} plati={plati} setPlati={setPlati} sportivi={sportivi} familii={familii} tipuriAbonament={tipuriAbonament} onIncaseazaAcum={(p) => { setPlataToIncasare(p); setActiveView('jurnal-incasari'); }} />;
@@ -279,6 +281,7 @@ function App() {
         onNavigate={handleNavigate}
         onLogout={handleLogout}
         activeView={activeView}
+        activeSubView={activeSubView}
         isExpanded={isSidebarExpanded}
         setIsExpanded={setIsSidebarExpanded}
         isPortalView={!isPrivilegedUser || adminViewingPortal}

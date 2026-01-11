@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Sportiv, Participare, Examen, Grad, Prezenta, Grupa, Plata, Eveniment, Rezultat, PretConfig, User, Familie } from '../types';
+import { Sportiv, Participare, Examen, Grad, Grupa, Plata, Eveniment, Rezultat, PretConfig, User, Familie } from '../types';
 import { Button, Card } from './ui';
 import { getPretValabil } from '../utils/pricing';
 import { supabase } from '../supabaseClient';
@@ -31,7 +31,6 @@ interface PortalSportivProps {
   participari: Participare[];
   examene: Examen[];
   grade: Grad[];
-  prezente: Prezenta[];
   grupe: Grupa[];
   plati: Plata[];
   setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
@@ -46,12 +45,11 @@ interface PortalSportivProps {
   onNavigateToDashboard: () => void;
 }
 
-export const PortalSportiv: React.FC<PortalSportivProps> = ({ currentUser, viewedUser, onSwitchView, participari, examene, grade, prezente, grupe, plati, setPlati, evenimente, rezultate, setRezultate, preturiConfig, onNavigateToEditProfil, onNavigateToEvenimenteleMele, sportivi, familii, onNavigateToDashboard }) => {
+export const PortalSportiv: React.FC<PortalSportivProps> = ({ currentUser, viewedUser, onSwitchView, participari, examene, grade, grupe, plati, setPlati, evenimente, rezultate, setRezultate, preturiConfig, onNavigateToEditProfil, onNavigateToEvenimenteleMele, sportivi, familii, onNavigateToDashboard }) => {
     const [showSuccess, setShowSuccess] = useState<string|null>(null);
     const [loading, setLoading] = useState<{[key: string]: boolean}>({});
     
     const sportivParticipari = useMemo(() => participari.filter(p => p.sportiv_id === viewedUser.id), [participari, viewedUser.id]);
-    const sportivPrezente = useMemo(() => prezente.filter(p => p.sportivi_prezenti_ids.includes(viewedUser.id)), [prezente, viewedUser.id]);
     const sportivPlati = useMemo(() => plati.filter(p => p.sportiv_id === viewedUser.id || (p.familie_id && p.familie_id === viewedUser.familie_id)), [plati, viewedUser.id, viewedUser.familie_id]);
     const sportivRezultate = useMemo(() => rezultate.filter(r => r.sportiv_id === viewedUser.id), [rezultate, viewedUser.id]);
     
@@ -86,12 +84,6 @@ export const PortalSportiv: React.FC<PortalSportivProps> = ({ currentUser, viewe
         if (new Date() < eligibilityDate) return { eligible: false, message: `Timp de așteptare insuficient. Veți fi eligibil după: ${eligibilityDate.toLocaleDateString('ro-RO')}.`, nextGrad };
         return { eligible: true, message: "Sunteți eligibil pentru examinare.", nextGrad };
     }, [currentGrad, grade, viewedUser, admittedParticipations]);
-
-    const prezenteLunaCurenta = useMemo(() => {
-        const lunaCurenta = new Date().getMonth();
-        const anulCurent = new Date().getFullYear();
-        return sportivPrezente.filter(p => { const d = new Date(p.data_antrenament); return d.getMonth() === lunaCurenta && d.getFullYear() === anulCurent; }).length;
-    }, [sportivPrezente]);
 
     const membriFamilie = useMemo(() => {
         if (!viewedUser.familie_id) return [];
@@ -265,9 +257,6 @@ export const PortalSportiv: React.FC<PortalSportivProps> = ({ currentUser, viewe
                  <Card>
                     <h3 className="text-xl font-bold text-white mb-4">Activitate</h3>
                     <DataField label="Grupă" value={grupaCurenta?.denumire || 'Neatribuit'} />
-                    <div className="mt-4 pt-4 border-t border-slate-700">
-                         <DataField label="Prezențe Luna Curentă" value={`${prezenteLunaCurenta} antrenamente`} />
-                    </div>
                 </Card>
                  <Card>
                     <h3 className="text-xl font-bold text-white mb-4">Financiar</h3>

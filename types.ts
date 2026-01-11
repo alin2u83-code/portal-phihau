@@ -34,11 +34,18 @@ export interface Grad {
   grad_start_id: string | null; // ID-ul gradului necesar pentru a da acest examen
 }
 
+export interface InstructorComisie {
+  nume: string;
+  grad: string;
+  club: string;
+}
+
 export interface Examen {
   id: string;
+  sesiune: 'Vara' | 'Iarna';
   data: string;
   locatia: string;
-  comisia: string;
+  comisie: string; // JSON string of InstructorComisie[]
 }
 
 export interface Participare {
@@ -48,6 +55,12 @@ export interface Participare {
     grad_sustinut_id: string;
     rezultat: 'Admis' | 'Respins' | 'Neprezentat';
     observatii?: string;
+    nota_tehnica?: number | null;
+    nota_doc_luyen?: number | null;
+    nota_song_doi?: number | null;
+    nota_thao_quyen?: number | null;
+    media?: number | null;
+    contributie?: number | null;
 }
 
 export interface ProgramItem {
@@ -60,8 +73,9 @@ export interface ProgramItem {
 export interface Prezenta {
   id: string; // Acum este UUID
   grupa_id: string | null;
-  data: string;
-  ora_start: string;
+  data_antrenament: string;
+  ziua: ProgramItem['ziua'];
+  ora_inceput: string;
   is_recurent: boolean;
   recurent_group_id: string | null;
   sportivi_prezenti_ids: string[]; // Rămâne pentru starea din UI

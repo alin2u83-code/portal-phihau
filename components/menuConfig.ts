@@ -41,9 +41,8 @@ export const adminMenu: MenuItem[] = [
         label: 'Antrenamente', 
         icon: ClipboardDocumentListIcon, 
         submenu: [ 
-            { view: 'prezenta', label: 'Înregistrare Prezențe' }, 
-            { view: 'grupe', label: 'Orar & Gestiune Grupe' }, 
-            { view: 'raport-prezenta', label: 'Raport Prezențe' } 
+            { view: 'prezenta', label: 'Orar & Prezență' }, 
+            { view: 'grupe', label: 'Gestiune Grupe' }, 
         ] 
     },
     { 

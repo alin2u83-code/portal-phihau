@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Grad } from '../types';
+import { Grad, PretConfig } from '../types';
 import { Button, Modal, Input, Select, ConfirmationModal } from './ui';
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -65,12 +65,52 @@ const GradFormModal: React.FC<GradFormProps> = ({ isOpen, onClose, onSave, grade
   );
 };
 
-interface GradeManagementProps { grade: Grad[]; setGrade: React.Dispatch<React.SetStateAction<Grad[]>>; onBack: () => void; }
-export const GradeManagement: React.FC<GradeManagementProps> = ({ grade, setGrade, onBack }) => {
+interface GradeManagementProps { 
+    grade: Grad[]; 
+    setGrade: React.Dispatch<React.SetStateAction<Grad[]>>; 
+    onBack: () => void;
+    preturiConfig: PretConfig[];
+    setPreturiConfig: React.Dispatch<React.SetStateAction<PretConfig[]>>;
+}
+export const GradeManagement: React.FC<GradeManagementProps> = ({ grade, setGrade, onBack, preturiConfig, setPreturiConfig }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [gradToEdit, setGradToEdit] = useState<Grad | null>(null);
   const [gradToDelete, setGradToDelete] = useState<Grad | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const getPretGrad = (gradNume: string, dataReferinta: string = new Date().toISOString()): number | null => {
+        const data = new Date(dataReferinta);
+        const preturiValabile = preturiConfig
+            .filter(p => p.categorie === 'Taxa Examen' && p.denumire_serviciu === gradNume && new Date(p.valabil_de_la_data) <= data)
+            .sort((a, b) => new Date(b.valabil_de_la_data).getTime() - new Date(a.valabil_de_la_data).getTime());
+        return preturiValabile.length > 0 ? preturiValabile[0].suma : null;
+    };
+
+    const handlePriceUpdate = async (grad: Grad, newPriceStr: string) => {
+        const newPrice = parseFloat(newPriceStr);
+        if (isNaN(newPrice) || newPrice < 0) {
+            alert("Prețul trebuie să fie un număr valid pozitiv.");
+            return;
+        }
+
+        const currentPrice = getPretGrad(grad.nume);
+        if (currentPrice === newPrice) return; // Nicio modificare
+
+        const newPretConfig: Omit<PretConfig, 'id'> = {
+            categorie: 'Taxa Examen',
+            denumire_serviciu: grad.nume,
+            suma: newPrice,
+            valabil_de_la_data: new Date().toISOString().split('T')[0],
+        };
+
+        const { data, error } = await supabase.from('preturi_config').insert(newPretConfig).select().single();
+        if (error) {
+            alert(`Eroare la salvarea prețului: ${error.message}`);
+        } else if (data) {
+            setPreturiConfig(prev => [...prev, data as PretConfig]);
+            alert('Preț actualizat cu succes!');
+        }
+    };
 
   const handleSaveGrad = async (gradData: Omit<Grad, 'id'>) => {
     if (!supabase) return;
@@ -112,8 +152,8 @@ export const GradeManagement: React.FC<GradeManagementProps> = ({ grade, setGrad
         <Button onClick={handleOpenAdd} variant="info"><PlusIcon className="w-5 h-5 mr-2" />Adaugă Grad</Button>
       </div>
       <div className="bg-slate-800 rounded-lg shadow-lg overflow-x-auto">
-        <table className="w-full text-left min-w-[800px]">
-          <thead className="bg-slate-700"><tr><th className="p-4 font-semibold">Ordine</th><th className="p-4 font-semibold">Nume</th><th className="p-4 font-semibold">Vârstă Min.</th><th className="p-4 font-semibold">Timp Așteptare</th><th className="p-4 font-semibold">Grad Necesar</th><th className="p-4 font-semibold text-right">Acțiuni</th></tr></thead>
+        <table className="w-full text-left min-w-[950px]">
+          <thead className="bg-slate-700"><tr><th className="p-4 font-semibold">Ordine</th><th className="p-4 font-semibold">Nume</th><th className="p-4 font-semibold">Vârstă Min.</th><th className="p-4 font-semibold">Timp Așteptare</th><th className="p-4 font-semibold">Grad Necesar</th><th className="p-4 font-semibold">Preț Examen (RON)</th><th className="p-4 font-semibold text-right">Acțiuni</th></tr></thead>
           <tbody className="divide-y divide-slate-700">
             {sortedGrade.map(grad => (
               <tr key={grad.id}>
@@ -122,6 +162,15 @@ export const GradeManagement: React.FC<GradeManagementProps> = ({ grade, setGrad
                 <td className="p-4">{grad.varsta_minima} ani</td>
                 <td className="p-4">{grad.timp_asteptare}</td>
                 <td className="p-4">{grade.find(g => g.id === grad.grad_start_id)?.nume || 'N/A'}</td>
+                <td className="p-2 w-48">
+                    <Input 
+                        type="number"
+                        label=""
+                        defaultValue={getPretGrad(grad.nume) ?? ''}
+                        onBlur={(e) => handlePriceUpdate(grad, e.target.value)}
+                        placeholder="N/A"
+                    />
+                </td>
                 <td className="p-4 text-right w-32">
                     <div className="flex items-center justify-end space-x-2">
                        <Button onClick={() => handleOpenEdit(grad)} variant="primary" size="sm"><EditIcon /></Button>

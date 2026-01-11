@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Examen, Participare, Sportiv, Grad } from '../types';
+import { Examen, Participare, Sportiv, Grad, PretConfig, Plata } from '../types';
 import { Button, Modal, Input, Select, Card, ConfirmationModal } from './ui';
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon, UsersIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -231,7 +231,7 @@ const calculateMedia = (participare: Partial<Participare>): number | null => {
     return parseFloat((suma / note.length).toFixed(2));
 };
 
-const ExamenDetail: React.FC<{ examen: Examen; participari: Participare[]; setParticipari: React.Dispatch<React.SetStateAction<Participare[]>>; sportivi: Sportiv[]; grade: Grad[]; onBack: () => void; }> = ({ examen, participari, setParticipari, sportivi, grade, onBack }) => {
+const ExamenDetail: React.FC<{ examen: Examen; participari: Participare[]; setParticipari: React.Dispatch<React.SetStateAction<Participare[]>>; sportivi: Sportiv[]; grade: Grad[]; onBack: () => void; preturiConfig: PretConfig[]; setPlati: React.Dispatch<React.SetStateAction<Plata[]>>; }> = ({ examen, participari, setParticipari, sportivi, grade, onBack, preturiConfig, setPlati }) => {
     const [viewMode, setViewMode] = useState<'note' | 'admin'>('note');
     const [sportivIdToAdd, setSportivIdToAdd] = useState('');
     const [participantToDelete, setParticipantToDelete] = useState<Participare | null>(null);
@@ -239,14 +239,59 @@ const ExamenDetail: React.FC<{ examen: Examen; participari: Participare[]; setPa
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
     const { showError } = useError();
 
+    const getPretGrad = (gradNume: string, dataReferinta: string = new Date().toISOString()): number | null => {
+        const data = new Date(dataReferinta);
+        const preturiValabile = preturiConfig
+            .filter(p => p.categorie === 'Taxa Examen' && p.denumire_serviciu === gradNume && new Date(p.valabil_de_la_data) <= data)
+            .sort((a, b) => new Date(b.valabil_de_la_data).getTime() - new Date(a.valabil_de_la_data).getTime());
+        return preturiValabile.length > 0 ? preturiValabile[0].suma : null;
+    };
+
     const handleAddParticipant = async () => {
         if (!sportivIdToAdd || !supabase) return;
         const sportiv = sportivi.find(s => s.id === sportivIdToAdd);
         if(!sportiv) return;
 
-        const { data, error } = await supabase.from('participari').insert({ examen_id: examen.id, sportiv_id: sportivIdToAdd, grad_sustinut_id: grade[0].id, rezultat: 'Neprezentat' }).select().single();
-        if (error) { showError("Eroare la adăugare", error); } 
-        else if (data) { setParticipari(prev => [...prev, data as Participare]); setSportivIdToAdd(''); }
+        const defaultGrad = grade.sort((a, b) => a.ordine - b.ordine)[0];
+        if (!defaultGrad) {
+            showError("Eroare Configurare", "Nu există grade definite. Adăugați cel puțin un grad înainte de a înscrie participanți.");
+            return;
+        }
+
+        const pret = getPretGrad(defaultGrad.nume, examen.data);
+
+        const { data, error } = await supabase.from('participari').insert({ 
+            examen_id: examen.id, 
+            sportiv_id: sportivIdToAdd, 
+            grad_sustinut_id: defaultGrad.id, 
+            rezultat: 'Neprezentat',
+            contributie: pret
+        }).select().single();
+
+        if (error) { showError("Eroare la adăugare", error); return; }
+        
+        const newParticipare = data as Participare;
+        setParticipari(prev => [...prev, newParticipare]); 
+        setSportivIdToAdd(''); 
+
+        if (pret !== null) {
+            const newPlata: Omit<Plata, 'id'> = {
+                sportiv_id: sportiv.id,
+                familie_id: sportiv.familie_id,
+                suma: pret,
+                data: new Date().toISOString().split('T')[0],
+                status: 'Neachitat',
+                descriere: `Taxa Examen ${examen.sesiune} ${new Date(examen.data).getFullYear()}`,
+                tip: 'Taxa Examen',
+                observatii: `Generat automat la înscriere examen.`
+            };
+            const { data: plataData, error: plataError } = await supabase.from('plati').insert(newPlata).select().single();
+            if (plataError) {
+                showError("Avertisment Plată", `Participant adăugat, dar eroare la generare taxă: ${plataError.message}`);
+            } else if (plataData) {
+                setPlati(prev => [...prev, plataData as Plata]);
+            }
+        }
     };
     
     const handleUpdateParticipare = async (id: string, updates: Partial<Participare>) => {
@@ -260,12 +305,31 @@ const ExamenDetail: React.FC<{ examen: Examen; participari: Participare[]; setPa
             finalUpdates.media = calculateMedia(potentialNew);
         }
         
+        // Optimistic update
         setParticipari(prev => prev.map(p => p.id === id ? { ...p, ...finalUpdates } : p));
         
         const { error } = await supabase.from('participari').update(finalUpdates).eq('id', id);
-        if (error) { showError("Eroare la salvare", error); setParticipari(prev => prev.map(p => p.id === id ? original : p));}
+        if (error) { 
+            showError("Eroare la salvare", error); 
+            // Rollback on error
+            setParticipari(prev => prev.map(p => p.id === id ? original : p));
+        }
     };
     
+     const handleGradeChange = (participareId: string, newGradId: string) => {
+        const grad = grade.find(g => g.id === newGradId);
+        if (!grad) return;
+
+        const pret = getPretGrad(grad.nume, examen.data);
+        const updates: Partial<Participare> = {
+            grad_sustinut_id: newGradId,
+            contributie: pret
+        };
+
+        setParticipari(prev => prev.map(p => p.id === participareId ? { ...p, ...updates } : p));
+        handleUpdateParticipare(participareId, updates);
+    };
+
     const handleBulkImport = async (dataToImport: Omit<Participare, 'id'>[]) => {
         if (!supabase) return;
         const { data, error } = await supabase.from('participari').upsert(dataToImport, { onConflict: 'examen_id, sportiv_id' }).select();
@@ -331,7 +395,7 @@ const ExamenDetail: React.FC<{ examen: Examen; participari: Participare[]; setPa
                                        <td className="p-2">{idx+1}</td>
                                        <td className="p-2 font-bold">{sportiv?.nume} {sportiv?.prenume}</td>
                                        <td className="p-2 text-sm">{sportiv?.club_provenienta}</td>
-                                       <td className="p-2 w-48"><Select label="" value={p.grad_sustinut_id} className="text-sm" onBlur={e => handleUpdateParticipare(p.id, { grad_sustinut_id: e.target.value })} onChange={e => setParticipari(prev => prev.map(pa => pa.id === p.id ? {...pa, grad_sustinut_id: e.target.value} : pa))}>{grade.map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}</Select></td>
+                                       <td className="p-2 w-48"><Select label="" value={p.grad_sustinut_id} className="text-sm" onChange={e => handleGradeChange(p.id, e.target.value)}>{grade.map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}</Select></td>
                                        {['nota_tehnica', 'nota_doc_luyen', 'nota_song_doi', 'nota_thao_quyen'].map(notaKey => (
                                            <td key={notaKey} className="p-2 w-24"><Input label="" type="number" step="0.01" min="0" max="10" defaultValue={p[notaKey as keyof Participare] as number || ''} onBlur={e => handleUpdateParticipare(p.id, { [notaKey]: e.target.value ? parseFloat(e.target.value) : null })} className="text-center"/></td>
                                        ))}
@@ -355,9 +419,9 @@ const ExamenDetail: React.FC<{ examen: Examen; participari: Participare[]; setPa
                                    <tr key={p.id} className="hover:bg-slate-700/30">
                                        <td className="p-2">{idx+1}</td>
                                        <td className="p-2 font-bold">{sportiv?.nume} {sportiv?.prenume}</td>
-                                       <td className="p-2 text-sm">{grade.find(g => g.id === p.grad_sustinut_id)?.nume}</td>
+                                       <td className="p-2 text-sm"><Select label="" value={p.grad_sustinut_id} className="text-sm bg-transparent border-slate-700" onChange={e => handleGradeChange(p.id, e.target.value)}>{grade.map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}</Select></td>
                                        <td className="p-2 w-40"><Select label="" value={p.rezultat} onBlur={e => handleUpdateParticipare(p.id, { rezultat: e.target.value as any })} onChange={e => setParticipari(prev => prev.map(pa => pa.id === p.id ? {...pa, rezultat: e.target.value as any} : pa))}><option>Admis</option><option>Respins</option><option>Neprezentat</option></Select></td>
-                                       <td className="p-2 w-32"><Input label="" type="number" step="1" min="0" defaultValue={p.contributie || ''} onBlur={e => handleUpdateParticipare(p.id, { contributie: e.target.value ? parseInt(e.target.value) : null })} /></td>
+                                       <td className="p-2 w-32"><Input label="" type="number" step="1" min="0" value={p.contributie === null ? '' : p.contributie} onChange={e => setParticipari(prev => prev.map(pa => pa.id === p.id ? {...pa, contributie: e.target.value ? parseInt(e.target.value) : null} : pa))} onBlur={e => handleUpdateParticipare(p.id, { contributie: e.target.value ? parseInt(e.target.value) : null })} /></td>
                                        <td className="p-2"><Input label="" defaultValue={p.observatii || ''} onBlur={e => handleUpdateParticipare(p.id, { observatii: e.target.value })} /></td>
                                        <td className="p-2 text-right"><Button variant="danger" size="sm" onClick={() => setParticipantToDelete(p)}><TrashIcon /></Button></td>
                                    </tr>
@@ -389,7 +453,7 @@ const ExamenDetail: React.FC<{ examen: Examen; participari: Participare[]; setPa
     );
 };
 
-export const ExameneManagement: React.FC<{ onBack: () => void; examene: Examen[]; setExamene: React.Dispatch<React.SetStateAction<Examen[]>>; participari: Participare[]; setParticipari: React.Dispatch<React.SetStateAction<Participare[]>>; sportivi: Sportiv[]; grade: Grad[]; }> = ({ onBack, examene, setExamene, participari, setParticipari, sportivi, grade }) => {
+export const ExameneManagement: React.FC<{ onBack: () => void; examene: Examen[]; setExamene: React.Dispatch<React.SetStateAction<Examen[]>>; participari: Participare[]; setParticipari: React.Dispatch<React.SetStateAction<Participare[]>>; sportivi: Sportiv[]; grade: Grad[]; preturiConfig: PretConfig[]; setPlati: React.Dispatch<React.SetStateAction<Plata[]>>; }> = ({ onBack, examene, setExamene, participari, setParticipari, sportivi, grade, preturiConfig, setPlati }) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [examenToEdit, setExamenToEdit] = useState<Examen | null>(null);
   const [selectedExamen, setSelectedExamen] = useState<Examen | null>(null);
@@ -429,7 +493,7 @@ export const ExameneManagement: React.FC<{ onBack: () => void; examene: Examen[]
     setExamenToDelete(null);
   };
 
-  if(selectedExamen) { return <ExamenDetail examen={selectedExamen} participari={participari.filter(p => p.examen_id === selectedExamen.id)} setParticipari={setParticipari} sportivi={sportivi} grade={grade} onBack={() => setSelectedExamen(null)} />; }
+  if(selectedExamen) { return <ExamenDetail examen={selectedExamen} participari={participari.filter(p => p.examen_id === selectedExamen.id)} setParticipari={setParticipari} sportivi={sportivi} grade={grade} onBack={() => setSelectedExamen(null)} preturiConfig={preturiConfig} setPlati={setPlati} />; }
   
   const sortedExamene = [...examene].sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime());
 

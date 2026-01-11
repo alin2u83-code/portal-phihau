@@ -26,10 +26,10 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ prezente, sporti
                 return {
                     id: `${p.id}-${sportivId}`,
                     data: p.data,
-                    ora: p.ora,
-                    tip: p.tip,
+                    ora: p.ora_start,
+                    tip: p.is_recurent ? 'Recurent' : 'Normal',
                     sportivNume: sportiv ? `${sportiv.nume} ${sportiv.prenume}` : 'N/A',
-                    grupaNume: grupa?.denumire || (p.tip === 'Vacanta' ? 'Vacanță' : 'N/A'),
+                    grupaNume: grupa?.denumire || 'N/A',
                     grupaId: p.grupa_id,
                 };
             })
@@ -135,7 +135,7 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ prezente, sporti
                             <Select label="Tip" value={tipFilter} onChange={e => setTipFilter(e.target.value)}>
                                 <option value="">Toate</option>
                                 <option value="Normal">Normal</option>
-                                <option value="Vacanta">Vacanță</option>
+                                <option value="Recurent">Recurent</option>
                             </Select>
                         </div>
                     </div>

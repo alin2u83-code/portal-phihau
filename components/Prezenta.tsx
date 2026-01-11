@@ -17,7 +17,7 @@ const AntrenamentForm: React.FC<{
     
     const getInitialState = () => ({
         grupa_id: grupe[0]?.id || '',
-        ora_inceput: '18:00',
+        ora_start: '18:00',
         is_recurent: false,
         zileSaptamana: new Set<DayOfWeek>(),
         data_start: new Date().toISOString().split('T')[0],
@@ -81,8 +81,8 @@ const AntrenamentForm: React.FC<{
             if (isDaySelected) {
                  antrenamenteToInsert.push({
                     grupa_id: formState.grupa_id,
-                    data_antrenament: currentDate.toISOString().split('T')[0],
-                    ora_inceput: formState.ora_inceput,
+                    data: currentDate.toISOString().split('T')[0],
+                    ora_start: formState.ora_start,
                     is_recurent: formState.is_recurent,
                     recurent_group_id: formState.is_recurent ? recurent_group_id : null,
                  });
@@ -114,7 +114,7 @@ const AntrenamentForm: React.FC<{
                     <Select label="Grupa" name="grupa_id" value={formState.grupa_id} onChange={handleChange} required>
                         {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
                     </Select>
-                    <Input label="Ora Început" type="time" name="ora_inceput" value={formState.ora_inceput} onChange={handleChange} required />
+                    <Input label="Ora Început" type="time" name="ora_start" value={formState.ora_start} onChange={handleChange} required />
                 </div>
                 
                 <div className="pt-4 border-t border-slate-700">
@@ -206,8 +206,8 @@ const AttendanceDetail: React.FC<{
             <div className="mb-6 p-4 bg-slate-900/50 rounded-lg border border-slate-700">
                 <h2 className="text-xl font-bold text-brand-secondary mb-2">Prezență Antrenament ({presentIds.size}/{sportiviInGrupa.length} prezenți)</h2>
                 <div className="text-sm text-slate-400 grid grid-cols-2 md:grid-cols-3 gap-2">
-                    <span>Data: <strong className="text-white">{new Date(antrenament.data_antrenament).toLocaleDateString('ro-RO')}</strong></span>
-                    <span>Ora: <strong className="text-white">{antrenament.ora_inceput}</strong></span>
+                    <span>Data: <strong className="text-white">{new Date(antrenament.data).toLocaleDateString('ro-RO')}</strong></span>
+                    <span>Ora: <strong className="text-white">{antrenament.ora_start}</strong></span>
                     <span>Grupa: <strong className="text-white">{grupaAntrenament?.denumire}</strong></span>
                 </div>
             </div>
@@ -278,9 +278,9 @@ export const PrezentaManagement: React.FC<{
 
     const filteredAntrenamente = useMemo(() => {
         return antrenamente.filter(a => 
-            (filters.data === '' || a.data_antrenament === filters.data) &&
+            (filters.data === '' || a.data === filters.data) &&
             (filters.grupa === '' || a.grupa_id === filters.grupa)
-        ).sort((a,b) => new Date(b.data_antrenament).getTime() - new Date(a.data_antrenament).getTime() || b.ora_inceput.localeCompare(a.ora_inceput));
+        ).sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime() || b.ora_start.localeCompare(a.ora_start));
     }, [antrenamente, filters]);
 
     if (loading) return <div className="text-center p-8">Se încarcă datele...</div>
@@ -325,7 +325,7 @@ export const PrezentaManagement: React.FC<{
                                 return (
                                     <tr key={a.id} className="hover:bg-slate-700/50">
                                         <td className="p-4 font-medium">
-                                            {new Date(a.data_antrenament).toLocaleDateString('ro-RO')} - <span className="text-slate-400">{a.ora_inceput}</span>
+                                            {new Date(a.data).toLocaleDateString('ro-RO')} - <span className="text-slate-400">{a.ora_start}</span>
                                         </td>
                                         <td className="p-4 flex items-center gap-2">
                                             {a.is_recurent && <RefreshCwIcon className="w-4 h-4 text-brand-secondary" title="Antrenament Recurent"/>}

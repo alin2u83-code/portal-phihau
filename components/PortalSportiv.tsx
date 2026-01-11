@@ -3,7 +3,7 @@ import { Sportiv, Participare, Examen, Grad, Prezenta, Grupa, Plata, Eveniment, 
 import { Button, Card } from './ui';
 import { getPretValabil } from '../utils/pricing';
 import { supabase } from '../supabaseClient';
-import { UsersIcon, ShieldCheckIcon, CalendarDaysIcon, TrophyIcon } from './icons';
+import { UsersIcon, ShieldCheckIcon, CalendarDaysIcon, TrophyIcon, AcademicCapIcon } from './icons';
 
 const getGrad = (gradId: string, allGrades: Grad[]) => allGrades.find(g => g.id === gradId);
 const getAge = (dateString: string) => { const today = new Date(); const birthDate = new Date(dateString); let age = today.getFullYear() - birthDate.getFullYear(); const m = today.getMonth() - birthDate.getMonth(); if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; } return age; };
@@ -90,7 +90,7 @@ export const PortalSportiv: React.FC<PortalSportivProps> = ({ currentUser, viewe
     const prezenteLunaCurenta = useMemo(() => {
         const lunaCurenta = new Date().getMonth();
         const anulCurent = new Date().getFullYear();
-        return sportivPrezente.filter(p => { const d = new Date(p.data); return d.getMonth() === lunaCurenta && d.getFullYear() === anulCurent; }).length;
+        return sportivPrezente.filter(p => { const d = new Date(p.data_antrenament); return d.getMonth() === lunaCurenta && d.getFullYear() === anulCurent; }).length;
     }, [sportivPrezente]);
 
     const membriFamilie = useMemo(() => {
@@ -239,12 +239,27 @@ export const PortalSportiv: React.FC<PortalSportivProps> = ({ currentUser, viewe
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card>
-                    <h3 className="text-xl font-bold text-white mb-4">Progresul Meu</h3>
-                    <DataField label="Grad Actual" value={currentGrad?.nume || <span className="text-sky-400 italic">Începător</span>} />
-                    <div className="mt-4 pt-4 border-t border-slate-700">
-                        <DataField label="Următorul Grad" value={eligibility.nextGrad?.nume || 'Maxim atins'} />
-                        <p className={`text-sm mt-1 ${eligibility.eligible ? 'text-green-400' : 'text-yellow-400'}`}>{eligibility.message}</p>
+                <Card className="flex flex-col">
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="p-2 bg-brand-secondary/10 rounded-full">
+                            <AcademicCapIcon className="w-6 h-6 text-brand-secondary" />
+                        </div>
+                        <h3 className="text-xl font-bold text-white">Progresul Meu</h3>
+                    </div>
+                    <div className="flex-grow space-y-4">
+                        <div>
+                            <dt className="text-sm font-medium text-slate-400">Grad Actual</dt>
+                            <dd className="mt-1">
+                                <span className="inline-block px-3 py-1 text-md font-bold text-white bg-brand-secondary rounded-full shadow-md shadow-brand-secondary/20">
+                                    {currentGrad?.nume || 'Începător'}
+                                </span>
+                            </dd>
+                        </div>
+                        <div className="pt-4 border-t border-slate-700">
+                            <dt className="text-sm font-medium text-slate-400">Următorul Grad</dt>
+                            <dd className="mt-1 text-md text-white font-semibold">{eligibility.nextGrad?.nume || 'Maxim atins'}</dd>
+                            <p className={`text-sm mt-1 font-medium ${eligibility.eligible ? 'text-green-400' : 'text-yellow-400'}`}>{eligibility.message}</p>
+                        </div>
                     </div>
                 </Card>
                  <Card>
@@ -286,7 +301,7 @@ export const PortalSportiv: React.FC<PortalSportivProps> = ({ currentUser, viewe
                         </thead>
                         <tbody className="divide-y divide-slate-700">
                             {admittedParticipations.map((p, index) => (
-                                <tr key={p.id} className={`${index === 0 ? 'bg-brand-secondary/10' : 'hover:bg-slate-700/20'}`}>
+                                <tr key={p.id} className={`transition-colors ${index === 0 ? 'bg-brand-primary/50 border-l-4 border-brand-secondary' : 'hover:bg-slate-700/20'}`}>
                                     <td className="p-4 text-sm font-medium">
                                         {p.examen ? new Date(p.examen.data).toLocaleDateString('ro-RO') : 'N/A'}
                                     </td>
@@ -297,7 +312,7 @@ export const PortalSportiv: React.FC<PortalSportivProps> = ({ currentUser, viewe
                                         <div className="flex items-center gap-2">
                                             <span className="font-bold text-white">{p.grad?.nume || 'N/A'}</span>
                                             {index === 0 && (
-                                                <span className="px-2 py-0.5 text-[10px] bg-brand-secondary text-white font-bold rounded-full uppercase">Grad Actual</span>
+                                                <span className="px-2 py-0.5 text-[10px] bg-brand-secondary text-white font-bold rounded-full uppercase shadow">Grad Actual</span>
                                             )}
                                         </div>
                                     </td>

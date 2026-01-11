@@ -1,5 +1,6 @@
 import React, { useMemo, useEffect } from 'react';
-import { View, User, Sportiv, Plata, Participare, Rezultat, Prezenta, PrezentaAntrenament, Examen, Grad, PretConfig } from '../types';
+// FIX: Removed unused and non-existent type 'PrezentaAntrenament'.
+import { View, User, Sportiv, Plata, Participare, Rezultat, Prezenta, Examen, Grad, PretConfig } from '../types';
 import { Card, Button } from './ui';
 import { 
   ClipboardCheckIcon, AcademicCapIcon, BanknotesIcon, WrenchScrewdriverIcon, DownloadIcon, UsersIcon, TrophyIcon, CogIcon, ActivityIcon

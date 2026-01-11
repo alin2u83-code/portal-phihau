@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Sportiv } from '../types';
-import { Button, Modal, Input } from './ui';
+import { Button, LightModal, Input } from './ui';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 
@@ -85,12 +85,19 @@ export const QuickEditModal: React.FC<QuickEditModalProps> = ({
 
     if (!sportivToEdit) return null;
 
+    const LightInput: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { label: string }> = ({ label, id, ...props }) => (
+        <div>
+            {label && <label htmlFor={id} className="block text-sm font-medium text-slate-700 mb-1">{label}</label>}
+            <input id={id} {...props} className={`w-full bg-slate-50 border border-slate-300 rounded-md px-3 py-2 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-brand-primary disabled:opacity-50 disabled:bg-slate-200 min-h-[44px] ${props.className}`} />
+        </div>
+    );
+
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title={`Completează Date pentru ${sportivToEdit.nume}`}>
+        <LightModal isOpen={isOpen} onClose={onClose} title={`Completează Date pentru ${sportivToEdit.nume}`}>
             <form onSubmit={handleSave} className="space-y-4">
-                <p className="text-sm text-slate-400">Anumite acțiuni necesită completarea următoarelor date:</p>
+                <p className="text-sm text-slate-600">Anumite acțiuni necesită completarea următoarelor date:</p>
                 {fieldsToEdit.map(field => (
-                    <Input
+                    <LightInput
                         key={field as string}
                         label={getFieldLabel(field)}
                         name={field as string}
@@ -101,13 +108,13 @@ export const QuickEditModal: React.FC<QuickEditModalProps> = ({
                     />
                 ))}
 
-                <div className="flex justify-end pt-4 space-x-2">
-                    <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button>
-                    <Button type="submit" variant="success" disabled={loading}>
+                <div className="flex justify-end pt-4 space-x-2 border-t border-slate-200 mt-6">
+                    <Button type="button" variant="light-secondary" onClick={onClose} disabled={loading}>Anulează</Button>
+                    <Button type="submit" variant="brand" disabled={loading}>
                         {loading ? 'Se salvează...' : 'Salvează și Continuă'}
                     </Button>
                 </div>
             </form>
-        </Modal>
+        </LightModal>
     );
 };

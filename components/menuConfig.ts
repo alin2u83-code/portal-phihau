@@ -61,7 +61,6 @@ export const adminMenu: MenuGroup[] = [
         title: 'FINANCIAR',
         items: [
             { label: 'Facturi & Plăți', icon: BanknotesIcon, view: 'plati-scadente' },
-            { label: 'Configurare Prețuri', icon: CogIcon, view: 'configurare-preturi', roles: ['Admin'] },
         ]
     },
     {

@@ -2,7 +2,7 @@ import React, { ReactNode } from 'react';
 import { XIcon } from './icons';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'danger' | 'success' | 'info';
+  variant?: 'primary' | 'secondary' | 'danger' | 'success' | 'info' | 'brand' | 'light-secondary';
   size?: 'sm' | 'md';
 }
 
@@ -13,11 +13,13 @@ export const Button: React.FC<ButtonProps> = ({ children, className, variant = '
     md: "px-4 py-2",
   };
   const variantClasses = {
-    primary: "bg-brand-secondary hover:bg-sky-500 focus:ring-brand-secondary text-white", // Primary action is light blue now
+    primary: "bg-brand-secondary hover:bg-sky-500 focus:ring-brand-secondary text-white",
     secondary: "bg-slate-600 hover:bg-slate-700 focus:ring-slate-500 text-white",
     danger: "bg-status-danger hover:bg-red-700 focus:ring-status-danger text-white",
     success: "bg-status-success hover:bg-green-700 focus:ring-status-success text-white",
     info: "bg-brand-secondary hover:bg-sky-500 focus:ring-brand-secondary text-white",
+    brand: "bg-brand-primary hover:bg-blue-800 focus:ring-brand-primary text-white",
+    'light-secondary': "bg-slate-200 text-slate-800 hover:bg-slate-300 focus:ring-slate-400",
   };
   return (
     <button className={`${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${className}`} {...props}>
@@ -64,6 +66,26 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
           </button>
         </div>
         <div className="p-6 overflow-y-auto">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const LightModal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, persistent = false }) => {
+  if (!isOpen) return null;
+  const handleOverlayClick = () => { if (!persistent) { onClose(); } };
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4" onClick={handleOverlayClick}>
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col border border-slate-300" onClick={(e) => e.stopPropagation()}>
+        <div className="flex justify-between items-center p-4 border-b border-slate-200">
+          <h2 className="text-xl font-bold text-slate-800">{title}</h2>
+          <button onClick={onClose} className="text-slate-500 hover:text-slate-800">
+            <XIcon />
+          </button>
+        </div>
+        <div className="p-6 overflow-y-auto text-slate-700">
           {children}
         </div>
       </div>

@@ -19,8 +19,8 @@ const NavItem: React.FC<{
     const baseClasses = "flex items-center w-full text-sm rounded-md cursor-pointer transition-colors duration-200 relative";
     const paddingClasses = isExpanded ? "px-3 py-2" : "h-10 justify-center";
     const activeClasses = isActive 
-        ? "bg-brand-primary text-white font-semibold" 
-        : "text-slate-300 hover:bg-white/10 hover:text-white";
+        ? "bg-white/20 text-white font-semibold" 
+        : "text-slate-200 hover:bg-white/10 hover:text-white";
     const itemTitle = !isExpanded ? item.label : '';
 
     return (
@@ -49,7 +49,7 @@ const SidebarContent: React.FC<Omit<SidebarProps, 'isMobileOpen' | 'setIsMobileO
     const hasRole = (item: MenuItem) => !item.roles || item.roles.some(r => userRoles.includes(r));
 
     return (
-        <div className="flex flex-col h-full bg-slate-900 text-white">
+        <div className="flex flex-col h-full bg-brand-primary text-white">
             <div className="flex items-center justify-start px-4 border-b border-white/10 h-16 shrink-0">
                 {isExpanded && <h1 className="text-md font-semibold tracking-tight text-white">Club Sportiv Phi Hau Iasi</h1>}
             </div>
@@ -62,7 +62,7 @@ const SidebarContent: React.FC<Omit<SidebarProps, 'isMobileOpen' | 'setIsMobileO
                         
                         return (
                             <div key={group.title || index}>
-                                {isExpanded && group.title && <h2 className="px-3 mb-2 mt-3 text-xs font-semibold tracking-wider text-slate-500 uppercase">{group.title}</h2>}
+                                {isExpanded && group.title && <h2 className="px-3 mb-2 mt-3 text-xs font-semibold tracking-wider text-sky-200/50 uppercase">{group.title}</h2>}
                                 <div className="space-y-1">
                                     {visibleItems.map(item => (
                                         <NavItem 
@@ -101,7 +101,7 @@ const SidebarContent: React.FC<Omit<SidebarProps, 'isMobileOpen' | 'setIsMobileO
                     {isExpanded && (
                         <div className="ml-3 overflow-hidden">
                             <p className="text-sm font-semibold truncate">{currentUser.nume} {currentUser.prenume}</p>
-                            <p className="text-xs text-slate-400 truncate">{currentUser.roluri.map(r => r.nume).join(', ')}</p>
+                            <p className="text-xs text-slate-300 truncate">{currentUser.roluri.map(r => r.nume).join(', ')}</p>
                         </div>
                     )}
                 </a>
@@ -144,7 +144,7 @@ export const Sidebar: React.FC<FullSidebarProps> = (props) => {
             </aside>
             
             {/* Desktop Sidebar */}
-            <aside className={`hidden lg:block fixed top-0 left-0 h-full z-30 transition-all duration-300 bg-slate-900 ${props.isExpanded ? 'w-64' : 'w-20'}`}>
+            <aside className={`hidden lg:block fixed top-0 left-0 h-full z-30 transition-all duration-300 bg-brand-primary ${props.isExpanded ? 'w-64' : 'w-20'}`}>
                 <SidebarContent {...contentProps} />
             </aside>
         </>

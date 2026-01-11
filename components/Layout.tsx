@@ -15,7 +15,7 @@ interface LayoutProps {
 }
 
 const Topbar: React.FC<{ onMenuClick: () => void; title: string; }> = ({ onMenuClick, title }) => (
-    <div className="lg:hidden fixed top-0 left-0 w-full z-40 bg-slate-900/80 backdrop-blur-sm shadow-md h-16 flex items-center justify-between px-4 border-b border-slate-700">
+    <div className="lg:hidden fixed top-0 left-0 w-full z-40 bg-brand-primary/80 backdrop-blur-sm shadow-md h-16 flex items-center justify-between px-4 border-b border-white/10">
         <button onClick={onMenuClick} className="text-white p-2">
             <Bars3Icon className="w-6 h-6" />
         </button>
@@ -69,7 +69,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentUser, onNavigat
                 <ChevronDownIcon className={`w-5 h-5 transition-transform ${isSidebarExpanded ? 'rotate-90' : '-rotate-90'}`} />
             </button>
 
-            <main className={`flex-1 transition-all duration-300 p-4 md:p-8 lg:pt-8 pt-20 w-full ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'}`}>
+            <main className={`flex-1 transition-all duration-300 px-4 md:px-6 py-8 pt-24 lg:pt-8 w-full ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'}`}>
                 {children}
             </main>
         </div>

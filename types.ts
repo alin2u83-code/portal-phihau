@@ -64,34 +64,38 @@ export interface Participare {
     plata_id?: string | null;
 }
 
-export interface ProgramItem {
-    ziua: 'Luni' | 'Marți' | 'Miercuri' | 'Joi' | 'Vineri' | 'Sâmbătă' | 'Duminică';
-    ora_start: string;
-    ora_sfarsit: string;
-}
-
-// Interfața pentru o instanță de antrenament, mapată pe tabelul `program_antrenamente`
-export interface Prezenta {
-  id: string; // Acum este UUID
-  grupa_id: string | null;
-  data: string;
-  ziua: ProgramItem['ziua'];
+// Orarul saptamanal recurent
+export interface Orar {
+  id: string;
+  grupa_id: string;
+  ziua: 'Luni' | 'Marți' | 'Miercuri' | 'Joi' | 'Vineri' | 'Sâmbătă' | 'Duminică';
   ora_start: string;
   ora_sfarsit: string;
-  is_recurent: boolean;
-  recurent_group_id: string | null;
-  sportivi_prezenti_ids: string[]; // Rămâne pentru starea din UI
 }
 
-export interface PrezentaAntrenament {
+// O instanță specifică de antrenament
+export interface Antrenament {
+  id: string;
+  data: string;
+  grupa_id: string;
+  ora_start: string;
+  ora_sfarsit: string;
+  orar_id: string | null;
+  status: 'Programat' | 'Anulat';
+  sportivi_prezenti_ids: string[]; // Pentru starea din UI
+}
+
+// Tabela de legatura pentru prezenta
+export interface Prezenta {
   antrenament_id: string;
   sportiv_id: string;
 }
 
+
 export interface Grupa {
     id: string;
     denumire: string;
-    program: ProgramItem[];
+    orar: Orar[];
     sala: string;
 }
 

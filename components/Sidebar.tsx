@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { User, View } from '../types';
 import { adminMenu, sportivMenu, MenuItem } from './menuConfig';
 import { ArrowRightOnRectangleIcon, Bars3Icon, ChevronDownIcon, UserCircleIcon } from './icons';
+import { logoBase64 } from '../assets/logoData';
 
 const NavItem: React.FC<{
     item: MenuItem;
@@ -90,9 +91,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
              {/* Logo and Club Name */}
             <div className="flex items-center justify-center p-4 border-b border-white/10 cursor-pointer" onClick={() => handleNavigate('dashboard')}>
                 <img 
-                    src="/logo-phihau.png" 
+                    src={logoBase64} 
                     alt="Club Sportiv Phi Hau"
-                    className={`transition-all duration-300 rounded-full bg-white/10 shadow-md ${isExpanded ? 'w-20 h-20' : 'w-10 h-10'}`}
+                    className="h-10 w-10 transition-all duration-300 rounded-full bg-white/10 shadow-md"
                     style={{boxShadow: '0 0 10px rgba(77, 188, 233, 0.5)'}}
                 />
             </div>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { Button, Card, Input } from './ui';
+import { logoBase64 } from '../assets/logoData';
 
 interface LoginProps {}
 
@@ -55,7 +56,7 @@ export const Login: React.FC<LoginProps> = () => {
         <div className="min-h-screen flex items-center justify-center bg-brand-primary p-4">
             <div className="w-full max-w-md">
                  <div className="flex justify-center mb-6">
-                    <img src="/logo-phihau.png" alt="Club Logo" className="w-24 h-24 rounded-full shadow-lg" />
+                    <img src={logoBase64} alt="Club Logo" className="w-24 h-24 rounded-full shadow-lg" />
                 </div>
                 <Card>
                     <div className="text-center mb-8">

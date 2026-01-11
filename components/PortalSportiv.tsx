@@ -3,7 +3,7 @@ import { Sportiv, Participare, Examen, Grad, Prezenta, Grupa, Plata, Eveniment, 
 import { Button, Card } from './ui';
 import { getPretValabil } from '../utils/pricing';
 import { supabase } from '../supabaseClient';
-import { UsersIcon, ShieldCheckIcon, CalendarDaysIcon } from './icons';
+import { UsersIcon, ShieldCheckIcon, CalendarDaysIcon, TrophyIcon } from './icons';
 
 const getGrad = (gradId: string, allGrades: Grad[]) => allGrades.find(g => g.id === gradId);
 const getAge = (dateString: string) => { const today = new Date(); const birthDate = new Date(dateString); let age = today.getFullYear() - birthDate.getFullYear(); const m = today.getMonth() - birthDate.getMonth(); if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; } return age; };
@@ -55,8 +55,18 @@ export const PortalSportiv: React.FC<PortalSportivProps> = ({ currentUser, viewe
     const sportivPlati = useMemo(() => plati.filter(p => p.sportiv_id === viewedUser.id || (p.familie_id && p.familie_id === viewedUser.familie_id)), [plati, viewedUser.id, viewedUser.familie_id]);
     const sportivRezultate = useMemo(() => rezultate.filter(r => r.sportiv_id === viewedUser.id), [rezultate, viewedUser.id]);
     
-    const admittedParticipations = useMemo(() => sportivParticipari.filter(p => p.rezultat === 'Admis').sort((a, b) => (getGrad(b.grad_sustinut_id, grade)?.ordine ?? 0) - (getGrad(a.grad_sustinut_id, grade)?.ordine ?? 0)), [sportivParticipari, grade]);
-    const currentGrad = useMemo(() => getGrad(admittedParticipations[0]?.grad_sustinut_id, grade), [admittedParticipations, grade]);
+    const admittedParticipations = useMemo(() => {
+        return sportivParticipari
+            .filter(p => p.rezultat === 'Admis')
+            .map(p => ({
+                ...p,
+                grad: getGrad(p.grad_sustinut_id, grade),
+                examen: examene.find(e => e.id === p.examen_id)
+            }))
+            .sort((a, b) => new Date(b.examen?.data || 0).getTime() - new Date(a.examen?.data || 0).getTime());
+    }, [sportivParticipari, grade, examene]);
+
+    const currentGrad = admittedParticipations[0]?.grad;
     const grupaCurenta = useMemo(() => grupe.find(g => g.id === viewedUser.grupa_id), [grupe, viewedUser.grupa_id]);
 
     const isAdmin = useMemo(() => currentUser.roluri.some(r => r.nume === 'Admin' || r.nume === 'Instructor'), [currentUser.roluri]);
@@ -69,13 +79,13 @@ export const PortalSportiv: React.FC<PortalSportivProps> = ({ currentUser, viewe
         const age = getAge(viewedUser.data_nasterii);
         if (age < nextGrad.varsta_minima) return { eligible: false, message: `Vârsta minimă necesară: ${nextGrad.varsta_minima} ani (aveți ${age} ani).`, nextGrad };
         const lastExamParticipation = admittedParticipations[0];
-        const startDate = lastExamParticipation ? new Date(examene.find(e => e.id === lastExamParticipation.examen_id)!.data) : new Date(viewedUser.data_inscrierii);
+        const startDate = lastExamParticipation?.examen ? new Date(lastExamParticipation.examen.data) : new Date(viewedUser.data_inscrierii);
         const monthsToWait = parseDurationToMonths(nextGrad.timp_asteptare);
         const eligibilityDate = new Date(startDate);
         eligibilityDate.setMonth(eligibilityDate.getMonth() + monthsToWait);
         if (new Date() < eligibilityDate) return { eligible: false, message: `Timp de așteptare insuficient. Veți fi eligibil după: ${eligibilityDate.toLocaleDateString('ro-RO')}.`, nextGrad };
         return { eligible: true, message: "Sunteți eligibil pentru examinare.", nextGrad };
-    }, [currentGrad, grade, viewedUser, examene, admittedParticipations]);
+    }, [currentGrad, grade, viewedUser, admittedParticipations]);
 
     const prezenteLunaCurenta = useMemo(() => {
         const lunaCurenta = new Date().getMonth();
@@ -258,6 +268,55 @@ export const PortalSportiv: React.FC<PortalSportivProps> = ({ currentUser, viewe
                     </div>
                 </Card>
             </div>
+
+            <Card className="overflow-hidden p-0">
+                <div className="bg-slate-700/50 p-4 border-b border-slate-600 flex items-center gap-3">
+                    <TrophyIcon className="w-6 h-6 text-brand-secondary" />
+                    <h3 className="text-xl font-bold text-white">Istoric Grade & Examinări</h3>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left min-w-[500px]">
+                        <thead className="bg-slate-800 text-xs text-slate-400 uppercase">
+                            <tr>
+                                <th className="p-4">Dată</th>
+                                <th className="p-4">Locație</th>
+                                <th className="p-4">Grad Obținut</th>
+                                <th className="p-4">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-700">
+                            {admittedParticipations.map((p, index) => (
+                                <tr key={p.id} className={`${index === 0 ? 'bg-brand-secondary/10' : 'hover:bg-slate-700/20'}`}>
+                                    <td className="p-4 text-sm font-medium">
+                                        {p.examen ? new Date(p.examen.data).toLocaleDateString('ro-RO') : 'N/A'}
+                                    </td>
+                                    <td className="p-4 text-sm text-slate-300">
+                                        {p.examen?.locatia || 'N/A'}
+                                    </td>
+                                    <td className="p-4">
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-bold text-white">{p.grad?.nume || 'N/A'}</span>
+                                            {index === 0 && (
+                                                <span className="px-2 py-0.5 text-[10px] bg-brand-secondary text-white font-bold rounded-full uppercase">Grad Actual</span>
+                                            )}
+                                        </div>
+                                    </td>
+                                    <td className="p-4">
+                                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-900/50 text-green-400 border border-green-700/50">
+                                            {p.rezultat}
+                                        </span>
+                                    </td>
+                                </tr>
+                            ))}
+                            {admittedParticipations.length === 0 && (
+                                <tr>
+                                    <td colSpan={4} className="p-8 text-center text-slate-400 italic">Niciun grad înregistrat în istoric.</td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </Card>
 
             {viewedUser.familie_id && (
                 <Card>

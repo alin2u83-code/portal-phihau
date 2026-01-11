@@ -63,7 +63,6 @@ export interface Prezenta {
   grupa_id: string | null;
   sportivi_prezenti_ids: string[];
   tip: 'Normal' | 'Vacanta';
-  antrenor_id: string | null;
 }
 
 export interface Grupa {
@@ -128,14 +127,12 @@ export interface Plata {
     id: string;
     sportiv_id: string | null; 
     familie_id: string | null; 
-    suma: number; // Suma totala datorata/platita
+    suma: number; // Suma totala datorata
     data: string; // Data generarii datoriei
     status: 'Achitat' | 'Neachitat' | 'Achitat Parțial';
     descriere: string;
     tip: 'Abonament' | 'Taxa Examen' | 'Taxa Stagiu' | 'Taxa Competitie' | 'Echipament';
     observatii: string;
-    metoda_plata?: 'Cash' | 'Transfer Bancar' | null;
-    data_platii?: string | null;
 }
 
 export interface Familie {

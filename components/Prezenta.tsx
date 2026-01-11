@@ -75,7 +75,6 @@ const AntrenamentForm: React.FC<{
 
         while(currentDate <= endDate) {
             const isDaySelected = formState.is_recurent 
-                // FIX: Explicitly type 'day' to avoid 'unknown' type error on indexing 'dayMap'.
                 ? Array.from(formState.zileSaptamana).some((day: DayOfWeek) => dayMap[day] === currentDate.getDay())
                 : currentDate.toISOString().split('T')[0] === formState.data_start;
 
@@ -102,7 +101,7 @@ const AntrenamentForm: React.FC<{
                 onClose();
             }
         } else {
-            showError("Nicio dată validă", "Niciun antrenament nu a fost generat.");
+            showError("Nicio dată validă", "Niciun antrenament nu a fost generat în intervalul selectat.");
         }
         
         setLoading(false);

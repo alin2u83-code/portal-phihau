@@ -1,14 +1,15 @@
 // src/data/logoData.ts
+import logoFile from '../assets/logo-phihau.png';
 
 export const logoData = {
-  // Lipește aici codul lung generat de convertor
-  base64: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgA...", 
-  
-  alt: "Phi Hau Logo",
-  width: 150,
-  height: 150,
-  colors: {
-    primary: "#3D3D99",
-    secondary: "#FFFFFF"
+  path: logoFile,
+  name: "Phi Hau",
+  primaryColor: "#3D3D99",
+  secondaryColor: "#FFFFFF",
+  styles: {
+    borderRadius: "50%",
+    border: "2px solid #FFFFFF",
+    backgroundColor: "#3D3D99",
+    padding: "2px"
   }
 };

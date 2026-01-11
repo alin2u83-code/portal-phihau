@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { Prezenta, Sportiv, Grupa, Examen, Participare, Grad, PretConfig, Plata, Eveniment, Rezultat } from '../types';
+import { Prezenta, Sportiv, Grupa, Examen, Participare, Grad, PretConfig, Plata, Eveniment, Rezultat, View } from '../types';
 import { Button, Card, Input, Select, ConfirmationModal, Modal } from './ui';
 import { PlusIcon, ArrowLeftIcon, TrashIcon, UsersIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -30,6 +30,8 @@ interface ActivitatiManagementProps {
     setRezultate: React.Dispatch<React.SetStateAction<Rezultat[]>>;
     preturiConfig: PretConfig[];
     setPreturiConfig: React.Dispatch<React.SetStateAction<PretConfig[]>>;
+    onNavigate?: (view: View, state?: any) => void;
+    navigationState?: any;
 }
 
 const TabButton: React.FC<{ activeTab: Tab, tabName: Tab, label: string, onClick: (tab: Tab) => void }> = ({ activeTab, tabName, label, onClick }) => (

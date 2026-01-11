@@ -34,6 +34,7 @@
             animation: {
               'fade-in-down': 'fade-in-down 0.5s ease-out forwards',
               'pulse-border': 'pulse-border 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              'pulse-amber-border': 'pulse-amber-border 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
             },
             keyframes: {
               'fade-in-down': {
@@ -49,6 +50,10 @@
                'pulse-border': {
                 '0%, 100%': { 'border-color': 'rgba(220, 38, 38, 0.8)' }, // red-600
                 '50%': { 'border-color': 'rgba(220, 38, 38, 0.2)' },
+              },
+               'pulse-amber-border': {
+                '0%, 100%': { 'border-color': 'rgba(245, 158, 11, 0.8)' }, // amber-500
+                '50%': { 'border-color': 'rgba(245, 158, 11, 0.2)' },
               }
             }
           }

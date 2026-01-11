@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Grad, PretConfig } from '../types';
+import { Grad, PretConfig, View } from '../types';
 import { Button, Modal, Input, Select, ConfirmationModal, Card } from './ui';
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -13,7 +13,6 @@ const GradFormModal: React.FC<{ isOpen: boolean; onClose: () => void; onSave: (g
 
   React.useEffect(() => { 
     if(isOpen) { 
-      // Exclude id from the form state
       const { id, ...editableData } = gradToEdit || { id: '', ...emptyFormState };
       setFormState(editableData); 
     } 
@@ -66,12 +65,20 @@ const GradFormModal: React.FC<{ isOpen: boolean; onClose: () => void; onSave: (g
   );
 };
 
-export const GradeManagement: React.FC<{ grade: Grad[]; setGrade: React.Dispatch<React.SetStateAction<Grad[]>>; onBack: () => void; preturiConfig: PretConfig[]; setPreturiConfig: React.Dispatch<React.SetStateAction<PretConfig[]>>; }> = ({ grade, setGrade, onBack, preturiConfig, setPreturiConfig }) => {
+export const GradeManagement: React.FC<{ grade: Grad[]; setGrade: React.Dispatch<React.SetStateAction<Grad[]>>; onBack: () => void; preturiConfig: PretConfig[]; setPreturiConfig: React.Dispatch<React.SetStateAction<PretConfig[]>>; onNavigate?: (view: View, state?: any) => void; navigationState?: any; }> = ({ grade, setGrade, onBack, preturiConfig, setPreturiConfig, onNavigate, navigationState }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [gradToEdit, setGradToEdit] = useState<Grad | null>(null);
   const [gradToDelete, setGradToDelete] = useState<Grad | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const { showError } = useError();
+
+  const handleBack = () => {
+    if (onNavigate && navigationState?.from === 'examene' && navigationState?.returnToExamenId) {
+      onNavigate('examene', { reopenExamenId: navigationState.returnToExamenId });
+    } else {
+      onBack();
+    }
+  };
 
   const getPretGrad = (gradNume: string): number | null => { 
     const data = new Date(); 
@@ -136,10 +143,11 @@ export const GradeManagement: React.FC<{ grade: Grad[]; setGrade: React.Dispatch
   };
   
   const sortedGrade = [...grade].sort((a, b) => a.ordine - b.ordine);
+  const backButtonText = navigationState?.from === 'examene' ? "Înapoi la Sesiune Examen" : "Meniu";
 
   return ( 
     <div> 
-      <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button> 
+      <Button onClick={handleBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> {backButtonText}</Button> 
       <div className="flex justify-between items-center mb-6"> 
         <h1 className="text-3xl font-bold text-white">Management Grade</h1> 
         <Button onClick={() => { setGradToEdit(null); setIsModalOpen(true); }} variant="info"><PlusIcon className="w-5 h-5 mr-2" />Adaugă Grad</Button> 
@@ -151,15 +159,17 @@ export const GradeManagement: React.FC<{ grade: Grad[]; setGrade: React.Dispatch
               <tr>{['Ordine', 'Nume', 'Vârstă Min.', 'Timp Așteptare', 'Grad Necesar', 'Preț Examen (RON)', 'Acțiuni'].map(h => <th key={h} className="p-4 font-semibold">{h}</th>)}</tr>
             </thead> 
             <tbody className="divide-y divide-slate-700"> 
-              {sortedGrade.map(grad => ( 
-                <tr key={grad.id} className="hover:bg-slate-700/30"> 
+              {sortedGrade.map(grad => {
+                const isHighlighted = grad.id === navigationState?.highlightGradId;
+                return (
+                <tr key={grad.id} className={`${isHighlighted ? 'border-l-4 border-amber-500 animate-pulse-amber-border' : ''} hover:bg-slate-700/30`}> 
                   <td className="p-4 w-20">{grad.ordine}</td> 
                   <td className="p-4 font-medium">{grad.nume}</td> 
                   <td className="p-4">{grad.varsta_minima} ani</td> 
                   <td className="p-4">{grad.timp_asteptare}</td> 
                   <td className="p-4">{grade.find(g => g.id === grad.grad_start_id)?.nume || 'N/A'}</td> 
                   <td className="p-2 w-48"> 
-                    <Input type="number" label="" defaultValue={getPretGrad(grad.nume) ?? ''} onBlur={(e) => handlePriceUpdate(grad, e.target.value)} placeholder="N/A" /> 
+                    <Input type="number" label="" defaultValue={getPretGrad(grad.nume) ?? ''} onBlur={(e) => handlePriceUpdate(grad, e.target.value)} placeholder="N/A" className={isHighlighted ? "ring-2 ring-amber-500" : ""} /> 
                   </td> 
                   <td className="p-4 text-right w-32"> 
                     <div className="flex items-center justify-end space-x-2"> 
@@ -168,15 +178,17 @@ export const GradeManagement: React.FC<{ grade: Grad[]; setGrade: React.Dispatch
                     </div> 
                   </td> 
                 </tr> 
-              ))} 
+              )})} 
             </tbody> 
           </table>
         </div>
         {sortedGrade.length === 0 && <p className="p-4 text-center text-slate-400">Niciun grad definit.</p>}
       </div>
       <div className="md:hidden grid grid-cols-1 gap-4">
-        {sortedGrade.map(grad => (
-            <Card key={grad.id} className="p-4 space-y-3">
+        {sortedGrade.map(grad => {
+           const isHighlighted = grad.id === navigationState?.highlightGradId;
+           return (
+            <Card key={grad.id} className={`p-4 space-y-3 ${isHighlighted ? 'border-amber-500 animate-pulse-amber-border' : ''}`}>
                 <div className="flex justify-between items-start">
                     <h3 className="text-lg font-bold">{grad.ordine}. {grad.nume}</h3>
                     <div className="flex items-center space-x-2">
@@ -189,9 +201,9 @@ export const GradeManagement: React.FC<{ grade: Grad[]; setGrade: React.Dispatch
                     <p><span className="text-slate-400">Așteptare:</span> {grad.timp_asteptare}</p>
                     <p className="col-span-2"><span className="text-slate-400">Grad Necesar:</span> {grade.find(g => g.id === grad.grad_start_id)?.nume || 'N/A'}</p>
                 </div>
-                <Input type="number" label="Preț Examen (RON)" defaultValue={getPretGrad(grad.nume) ?? ''} onBlur={(e) => handlePriceUpdate(grad, e.target.value)} placeholder="N/A" />
+                <Input type="number" label="Preț Examen (RON)" defaultValue={getPretGrad(grad.nume) ?? ''} onBlur={(e) => handlePriceUpdate(grad, e.target.value)} placeholder="N/A" className={isHighlighted ? "ring-2 ring-amber-500" : ""} />
             </Card>
-        ))}
+        )})}
       </div>
       <GradFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSaveGrad} grade={sortedGrade} gradToEdit={gradToEdit} /> 
       <ConfirmationModal isOpen={!!gradToDelete} onClose={() => setGradToDelete(null)} onConfirm={confirmDelete} title="Confirmare Ștergere" message="Sunteți sigur că doriți să ștergeți acest grad? Această acțiune este ireversibilă." loading={deleteLoading}/> 

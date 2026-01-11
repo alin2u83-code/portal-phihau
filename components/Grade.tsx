@@ -115,7 +115,7 @@ export const GradeManagement: React.FC<GradeManagementProps> = ({ grade, setGrad
                 <td className="p-4">{grad.varsta_minima} ani</td>
                 <td className="p-4">{grad.timp_asteptare}</td>
                 <td className="p-4">{grade.find(g => g.id === grad.grad_start_id)?.nume || 'N/A'}</td>
-                <td className="p-4 text-right">
+                <td className="p-4 text-right w-32">
                     <div className="flex items-center justify-end space-x-2">
                        <Button onClick={() => handleOpenEdit(grad)} variant="primary" size="sm"><EditIcon /></Button>
                        <Button onClick={() => handleDelete(grad.id)} variant="danger" size="sm"><TrashIcon /></Button>

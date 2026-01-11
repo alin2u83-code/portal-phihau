@@ -149,7 +149,7 @@ export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({ familii, s
                                 <td className="p-2">
                                     <Input label="" defaultValue={f.nume} onBlur={e => handleEdit(f.id, { nume: e.target.value })} />
                                 </td>
-                                <td className="p-2 text-right">
+                                <td className="p-2 text-right w-32">
                                     <Button onClick={() => handleDelete(f.id)} variant="danger" size="sm"><TrashIcon /></Button>
                                 </td>
                             </tr>

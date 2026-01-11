@@ -158,7 +158,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
                                     <td className="p-2"><Input label="" type="number" value={editingPlata!.suma} onChange={e => setEditingPlata({...editingPlata!, suma: parseFloat(e.target.value) || 0})} /></td>
                                     <td className="p-2">{plata.data}</td>
                                     <td className="p-2"><Select label="" value={editingPlata!.status} onChange={e => setEditingPlata({...editingPlata!, status: e.target.value as any})}><option value="Neachitat">Neachitat</option><option value="Achitat Parțial">Achitat Parțial</option><option value="Achitat">Achitat</option></Select></td>
-                                    <td className="p-2 text-right"><div className="flex gap-1 justify-end"><Button size="sm" variant="success" onClick={() => handleSaveEdit(plata.id)}>Salvează</Button><Button size="sm" variant="secondary" onClick={() => setEditingPlata(null)}>Renunță</Button></div></td>
+                                    <td className="p-2 text-right w-48"><div className="flex gap-1 justify-end"><Button size="sm" variant="success" onClick={() => handleSaveEdit(plata.id)}>Salvează</Button><Button size="sm" variant="secondary" onClick={() => setEditingPlata(null)}>Renunță</Button></div></td>
                                 </>
                             ) : (
                                 <>
@@ -167,7 +167,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
                                     <td className="p-4 font-bold">{plata.suma.toFixed(2)} RON</td>
                                     <td className="p-4 text-slate-400 text-sm">{new Date(plata.data).toLocaleDateString('ro-RO')}</td>
                                     <td className={`p-4 font-bold text-sm ${statusClass}`}>{plata.status}</td>
-                                    <td className="p-4 text-right"><div className="flex justify-end gap-2">{plata.status !== 'Achitat' && <Button size="sm" variant="primary" onClick={() => onIncaseazaMultiple([plata])}>Încasează</Button>}<Button size="sm" variant="secondary" onClick={() => setEditingPlata(plata)}><EditIcon className="w-4 h-4" /></Button><Button size="sm" variant="danger" onClick={() => handleDeletePlata(plata.id)}><TrashIcon className="w-4 h-4" /></Button></div></td>
+                                    <td className="p-4 text-right w-48"><div className="flex justify-end gap-2">{plata.status !== 'Achitat' && <Button size="sm" variant="primary" onClick={() => onIncaseazaMultiple([plata])}>Încasează</Button>}<Button size="sm" variant="secondary" onClick={() => setEditingPlata(plata)}><EditIcon className="w-4 h-4" /></Button><Button size="sm" variant="danger" onClick={() => handleDeletePlata(plata.id)}><TrashIcon className="w-4 h-4" /></Button></div></td>
                                 </>
                             )}
                         </tr>

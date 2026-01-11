@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { User, View } from '../types';
 import { adminMenu, sportivMenu, MenuItem } from './menuConfig';
 import { ArrowRightOnRectangleIcon, Bars3Icon, ChevronDownIcon, UserCircleIcon } from './icons';
-import { logoBase64 } from '../assets/logoData';
+import { logoBase64 } from '../constants';
 
 const NavItem: React.FC<{
     item: MenuItem;

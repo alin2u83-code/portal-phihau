@@ -63,6 +63,7 @@ export interface Prezenta {
   grupa_id: string | null;
   sportivi_prezenti_ids: string[];
   tip: 'Normal' | 'Vacanta';
+  recurring_event_id?: string | null; // ID pentru a grupa antrenamentele recurente
 }
 
 export interface Grupa {

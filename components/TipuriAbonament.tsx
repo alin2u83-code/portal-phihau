@@ -126,7 +126,7 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
                                             <span className="text-slate-500 text-xs">RON</span>
                                         </div>
                                     </td>
-                                    <td className="p-3 text-right">
+                                    <td className="p-3 text-right w-32">
                                         <Button onClick={() => handleDelete(ab.id)} variant="danger" size="sm" className="opacity-60 hover:opacity-100 transition-opacity" title="Șterge acest tip">
                                             <TrashIcon className="w-4 h-4" />
                                         </Button>

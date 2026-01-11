@@ -551,7 +551,7 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
                                     </div>
                                 </td>
                                 {customFields.map(field => <td key={field} className="p-4 text-slate-300">{sportiv[field] || '-'}</td>)}
-                                <td className="p-4 text-right">
+                                <td className="p-4 text-right w-32">
                                     <div className="flex justify-end gap-2">
                                         <Button size="sm" variant="secondary" onClick={() => handleOpenEdit(sportiv)} title="Editează profil"><EditIcon /></Button>
                                         <Button size="sm" variant="danger" onClick={() => handleDeleteSportiv(sportiv)} title="Șterge profil"><TrashIcon /></Button>

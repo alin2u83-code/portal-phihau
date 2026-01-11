@@ -1,24 +1,32 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Prezenta, Sportiv, Grupa } from '../types';
 import { Button, Card, Input, Select, Modal } from './ui';
-import { PlusIcon, ArrowLeftIcon, TrashIcon, EditIcon, XIcon } from './icons';
+import { PlusIcon, ArrowLeftIcon, TrashIcon, EditIcon, XIcon, RefreshCwIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 
 // --- Sub-componente ---
+type DayOfWeek = 'Luni' | 'Marți' | 'Miercuri' | 'Joi' | 'Vineri' | 'Sâmbătă' | 'Duminică';
+const daysOfWeek: DayOfWeek[] = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'];
 
 const AntrenamentForm: React.FC<{
     isOpen: boolean;
     onClose: () => void;
-    onSave: (data: Omit<Prezenta, 'id' | 'sportivi_prezenti_ids'>) => Promise<void>;
+    onSave: (data: Omit<Prezenta, 'id' | 'sportivi_prezenti_ids'>, recurrence?: any) => Promise<void>;
     antrenamentToEdit: Prezenta | null;
     grupe: Grupa[];
 }> = ({ isOpen, onClose, onSave, antrenamentToEdit, grupe }) => {
+    
     const getInitialState = () => ({
         data: antrenamentToEdit?.data || new Date().toISOString().split('T')[0],
         ora: antrenamentToEdit?.ora || '18:00',
         grupa_id: antrenamentToEdit?.grupa_id || null,
         tip: antrenamentToEdit?.tip || 'Normal',
+        isRecurent: false,
+        zileSaptamana: new Set<DayOfWeek>(),
+        dataStart: new Date().toISOString().split('T')[0],
+        dataSfarsit: new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString().split('T')[0],
+        interval: 1, // 1 = Săptămânal, 2 = La 2 săptămâni
     });
     
     const [formState, setFormState] = useState(getInitialState());
@@ -33,8 +41,25 @@ const AntrenamentForm: React.FC<{
     }, [isOpen, antrenamentToEdit]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        setFormState(prev => ({ ...prev, [name]: value === '' ? null : value }));
+        const { name, value, type } = e.target;
+         if (type === 'checkbox') {
+            const { checked } = e.target as HTMLInputElement;
+            setFormState(prev => ({ ...prev, [name]: checked }));
+        } else {
+            setFormState(prev => ({ ...prev, [name]: value === '' ? null : value }));
+        }
+    };
+    
+    const toggleDay = (day: DayOfWeek) => {
+        setFormState(prev => {
+            const newDays = new Set(prev.zileSaptamana);
+            if (newDays.has(day)) {
+                newDays.delete(day);
+            } else {
+                newDays.add(day);
+            }
+            return { ...prev, zileSaptamana: newDays };
+        });
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -43,8 +68,26 @@ const AntrenamentForm: React.FC<{
             showError("Date incomplete", "Vă rugăm selectați grupa pentru un antrenament normal.");
             return;
         }
+        if (formState.isRecurent && formState.zileSaptamana.size === 0) {
+            showError("Date incomplete", "Selectați cel puțin o zi a săptămânii pentru antrenamentul recurent.");
+            return;
+        }
+        
         setLoading(true);
-        await onSave(formState);
+        const baseData = { data: formState.data, ora: formState.ora, grupa_id: formState.grupa_id, tip: formState.tip };
+        
+        if (formState.isRecurent) {
+            const recurrenceData = {
+                zileSaptamana: Array.from(formState.zileSaptamana),
+                dataStart: formState.dataStart,
+                dataSfarsit: formState.dataSfarsit,
+                interval: formState.interval,
+            };
+            await onSave(baseData, recurrenceData);
+        } else {
+            await onSave(baseData);
+        }
+        
         setLoading(false);
         onClose();
     };
@@ -53,7 +96,7 @@ const AntrenamentForm: React.FC<{
         <Modal isOpen={isOpen} onClose={onClose} title={antrenamentToEdit ? "Editează Antrenament" : "Creează Antrenament Nou"}>
             <form onSubmit={handleSubmit} className="space-y-4">
                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Input label="Data" type="date" name="data" value={formState.data} onChange={handleChange} required />
+                    <Input label="Data" type="date" name="data" value={formState.data} onChange={handleChange} required disabled={formState.isRecurent}/>
                     <Input label="Ora" type="time" name="ora" value={formState.ora} onChange={handleChange} required />
                     <Select label="Tip Antrenament" name="tip" value={formState.tip} onChange={handleChange}>
                         <option value="Normal">Normal</option>
@@ -68,6 +111,35 @@ const AntrenamentForm: React.FC<{
                         </Select>
                     )}
                 </div>
+                {!antrenamentToEdit && (
+                    <div className="pt-4 border-t border-slate-700">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" name="isRecurent" checked={formState.isRecurent} onChange={handleChange} className="h-5 w-5 rounded border-slate-500 bg-slate-900 text-brand-secondary focus:ring-brand-secondary"/>
+                            <span className="font-semibold text-white">Antrenament Recurent</span>
+                        </label>
+                    </div>
+                )}
+                {formState.isRecurent && !antrenamentToEdit && (
+                     <div className="p-4 bg-slate-900/50 rounded-lg space-y-4 border border-brand-secondary/30 animate-fade-in-down">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-300 mb-2">Zilele Săptămânii</label>
+                            <div className="flex flex-wrap gap-2">
+                                {daysOfWeek.map(day => (
+                                    <button type="button" key={day} onClick={() => toggleDay(day)} className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${formState.zileSaptamana.has(day) ? 'bg-brand-secondary text-white' : 'bg-slate-700 hover:bg-slate-600'}`}>{day}</button>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                             <Input label="Data Start" type="date" name="dataStart" value={formState.dataStart} onChange={handleChange} required />
+                             <Input label="Data Sfârșit" type="date" name="dataSfarsit" value={formState.dataSfarsit} onChange={handleChange} required />
+                        </div>
+                        <Select label="Interval" name="interval" value={formState.interval} onChange={e => setFormState(p => ({...p, interval: parseInt(e.target.value)}))}>
+                            <option value={1}>Săptămânal</option>
+                            <option value={2}>La 2 săptămâni</option>
+                        </Select>
+                     </div>
+                )}
+
                 <div className="flex justify-end pt-4 space-x-2 border-t border-slate-700 mt-6">
                     <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button>
                     <Button type="submit" variant="success" disabled={loading}>{loading ? 'Se salvează...' : 'Salvează'}</Button>
@@ -246,8 +318,40 @@ export const PrezentaManagement: React.FC<{
         setFilters(initialFilters);
     };
 
-    const handleSaveAntrenament = async (antrenamentData: Omit<Prezenta, 'id' | 'sportivi_prezenti_ids'>) => {
-        if (antrenamentToEdit) {
+    const handleSaveAntrenament = async (antrenamentData: Omit<Prezenta, 'id' | 'sportivi_prezenti_ids'>, recurrence?: { zileSaptamana: DayOfWeek[], dataStart: string, dataSfarsit: string, interval: number }) => {
+        if (!supabase) return;
+
+        if (recurrence) {
+            const antrenamenteToInsert: Omit<Prezenta, 'id' | 'sportivi_prezenti_ids'>[] = [];
+            const recurring_event_id = crypto.randomUUID();
+            const dayMap: Record<DayOfWeek, number> = { 'Duminică': 0, 'Luni': 1, 'Marți': 2, 'Miercuri': 3, 'Joi': 4, 'Vineri': 5, 'Sâmbătă': 6 };
+            const selectedDays = new Set(recurrence.zileSaptamana.map(d => dayMap[d]));
+
+            let currentDate = new Date(recurrence.dataStart);
+            const endDate = new Date(recurrence.dataSfarsit);
+            const startDate = new Date(recurrence.dataStart);
+            
+            while(currentDate <= endDate) {
+                const weekNumber = Math.floor((currentDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 7));
+                if (weekNumber % recurrence.interval === 0 && selectedDays.has(currentDate.getDay())) {
+                     antrenamenteToInsert.push({
+                        ...antrenamentData,
+                        data: currentDate.toISOString().split('T')[0],
+                        recurring_event_id,
+                     });
+                }
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+
+            if (antrenamenteToInsert.length > 0) {
+                const { data, error } = await supabase.from('prezente').insert(antrenamenteToInsert).select();
+                if (error) showError("Eroare la crearea antrenamentelor recurente", error);
+                else if (data) setPrezente(prev => [...prev, ...data.map(d => ({...d, sportivi_prezenti_ids: []}))]);
+            } else {
+                showError("Nicio dată validă", "Niciun antrenament nu a fost generat pentru intervalul și zilele selectate.");
+            }
+
+        } else if (antrenamentToEdit) { // Editare
             const { data, error } = await supabase.from('prezente').update(antrenamentData).eq('id', antrenamentToEdit.id).select('*, prezente_sportivi(sportiv_id)').single();
             if (error) { showError("Eroare la actualizare", error); } 
             else if (data) { 
@@ -257,7 +361,7 @@ export const PrezentaManagement: React.FC<{
                 };
                 setPrezente(prev => prev.map(p => p.id === data.id ? formatted : p));
             }
-        } else {
+        } else { // Creare singular
             const { data, error } = await supabase.from('prezente').insert(antrenamentData).select().single();
             if (error) { showError("Eroare la creare", error); } 
             else if (data) { setPrezente(prev => [...prev, { ...data, sportivi_prezenti_ids: [] }]); }
@@ -357,6 +461,7 @@ export const PrezentaManagement: React.FC<{
                                         </td>
                                         <td className="p-4">
                                             <div className="flex items-center gap-2">
+                                                {p.recurring_event_id && <RefreshCwIcon className="w-4 h-4 text-brand-secondary" title="Antrenament Recurent"/>}
                                                 <span>{grupa?.denumire || (p.tip === 'Vacanta' ? 'Antrenament Vacanță' : p.tip)}</span>
                                                 {p.tip === 'Vacanta' ? (
                                                     <span className="px-2 py-0.5 text-[10px] bg-sky-600/30 text-sky-400 border border-sky-600/50 rounded-full font-bold uppercase tracking-wider">Vacanță</span>
@@ -366,7 +471,7 @@ export const PrezentaManagement: React.FC<{
                                             </div>
                                         </td>
                                         <td className="p-4 text-center font-bold text-brand-secondary">{p.sportivi_prezenti_ids.length}</td>
-                                        <td className="p-4 text-right">
+                                        <td className="p-4 text-right w-64">
                                             <div className="flex items-center justify-end space-x-2">
                                                 <Button onClick={() => setSelectedAntrenament(p)} variant="primary" size="sm">Gestionează Prezența</Button>
                                                 <Button onClick={() => handleOpenEdit(p)} variant="secondary" size="sm" title="Editează detaliile antrenamentului"><EditIcon /></Button>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { Button, Card, Input } from './ui';
-import { logoBase64 } from '../assets/logoData';
+import { logoBase64 } from '../constants';
 
 interface LoginProps {}
 

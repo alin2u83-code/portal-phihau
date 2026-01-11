@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 
 export const PlusIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
@@ -17,6 +18,14 @@ export const TrashIcon = ({ className = "w-5 h-5" }: { className?: string }) => 
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
     <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.134-2.036-2.134H8.036C6.91 2.75 6 3.704 6 4.884v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
   </svg>
+);
+
+// FIX: Added RefreshCwIcon component for recurring events.
+export const RefreshCwIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001a10.5 10.5 0 0 1-1.066 5.19c-1.201 2.4-3.344 4.307-5.911 5.412a10.474 10.474 0 0 1-5.412 1.066c-3.131 0-5.998-1.54-7.82-3.998s-2.17-5.912-1.066-8.94c1.201-3.028 3.998-5.412 7.23-5.911a10.474 10.474 0 0 1 6.336 2.189" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 5.25 16.023 9.348" />
+    </svg>
 );
 
 export const XIcon = ({ className = "w-6 h-6" }: { className?: string }) => (

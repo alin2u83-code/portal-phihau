@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
 import { Sportiv, Examen, Grad, Participare, View, Prezenta, Grupa, Plata, Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, Rol } from './types';
@@ -118,8 +119,19 @@ function App() {
 
   const fetchUserProfile = useCallback(async (userId: string) => {
     if (!supabase) return;
-    const { data, error } = await supabase.from('sportivi').select('*, sportivi_roluri(roluri(id, nume))').eq('user_id', userId).single();
-    if (error) { showError("Eroare profil", error); return; }
+    const { data, error } = await supabase.from('sportivi').select('*, sportivi_roluri(roluri(id, nume))').eq('user_id', userId).maybeSingle();
+
+    if (error) {
+      showError("Eroare la preluarea profilului", error);
+      return;
+    }
+
+    if (!data) {
+      showError("Profil Inexistent", "Profilul de sportiv asociat acestui cont nu a fost găsit. Veți fi deconectat. Vă rugăm contactați administratorul.");
+      await supabase?.auth.signOut();
+      return;
+    }
+
     const user = data as any;
     user.roluri = user.sportivi_roluri.map((item: any) => item.roluri);
     setCurrentUser(user);

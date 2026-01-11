@@ -54,10 +54,10 @@ const navItems: NavItem[] = [
 const NavCard: React.FC<{ item: NavItem, onClick: () => void }> = ({ item, onClick }) => (
     <div 
       onClick={onClick} 
-      className="group relative transform transition-all duration-300 hover:scale-105 cursor-pointer rounded-2xl shadow-lg shadow-brand-primary/30 hover:shadow-xl hover:shadow-brand-secondary/40"
+      className="group relative transform transition-all duration-300 hover:scale-105 cursor-pointer rounded-lg shadow-md shadow-brand-primary/30 hover:shadow-lg hover:shadow-brand-secondary/40"
       title={item.tooltip}
     >
-      <Card className="flex flex-col items-center justify-center text-center h-full border-slate-700 group-hover:border-brand-secondary/40 rounded-2xl bg-slate-800/50 backdrop-blur-sm">
+      <Card className="flex flex-col items-center justify-center text-center h-full border-slate-700 group-hover:border-brand-secondary/40 rounded-lg bg-slate-800/50 backdrop-blur-sm">
         <div className={`p-4 rounded-full ${item.color} mb-4 shadow-lg group-hover:ring-4 group-hover:ring-white/10 transition-all`}>
           <item.icon className="h-10 w-10 text-white" />
         </div>

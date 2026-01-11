@@ -433,7 +433,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                                                         ))}
                                                     </div>
                                                 </td>
-                                                <td className="p-2 text-right">
+                                                <td className="p-2 text-right w-32">
                                                     <div className="flex justify-end gap-2">
                                                         <Button size="sm" variant="success" onClick={() => handleSaveRole(user.id)}>Salvează</Button>
                                                         <Button size="sm" variant="secondary" onClick={handleCancel}>Anulează</Button>
@@ -453,7 +453,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                                                         </span>
                                                     )}
                                                 </td>
-                                                <td className="p-4 text-right">
+                                                <td className="p-4 text-right w-32">
                                                     <div className="flex items-center justify-end gap-2">
                                                         {user.user_id ? (
                                                             <Button onClick={() => handleEdit(user)} variant="primary" size="sm" disabled={user.id === currentUser.id}><EditIcon /></Button>

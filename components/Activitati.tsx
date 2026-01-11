@@ -50,7 +50,7 @@ const TabButton: React.FC<{ activeTab: Tab, tabName: Tab, label: string, onClick
 
 
 export const ActivitatiManagement: React.FC<ActivitatiManagementProps> = (props) => {
-    const { onBack, initialTab = 'antrenamente' } = props;
+    const { onBack, initialTab = 'antrenamente', sportivi, grupe, plati } = props;
     const [activeTab, setActiveTab] = useState<Tab>(initialTab);
 
     return (
@@ -65,7 +65,7 @@ export const ActivitatiManagement: React.FC<ActivitatiManagementProps> = (props)
             </div>
 
             <div>
-                {activeTab === 'antrenamente' && <AntrenamenteManagement {...props} />}
+                {activeTab === 'antrenamente' && <AntrenamenteManagement sportivi={sportivi} grupe={grupe} plati={plati} />}
                 {activeTab === 'examene' && <ExameneManagement {...props} onBack={() => {}} />}
                 {activeTab === 'evenimente' && (
                     <div className="space-y-8">

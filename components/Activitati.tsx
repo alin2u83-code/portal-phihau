@@ -1,30 +1,47 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { Prezenta, Sportiv, Grupa, ProgramItem } from '../types';
+import { Prezenta, Sportiv, Grupa, ProgramItem, Examen, Participare, Grad, PretConfig, Plata, Eveniment, Rezultat } from '../types';
 import { Button, Card, Input, Select, ConfirmationModal } from './ui';
-import { PlusIcon, ArrowLeftIcon, TrashIcon, ChevronDownIcon } from './icons';
+import { PlusIcon, ArrowLeftIcon, TrashIcon, ChevronDownIcon, EditIcon, UsersIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
+import { GradeManagement } from './Grade';
+import { ExameneManagement } from './Examene';
+import { StagiiCompetitiiManagement } from './StagiiCompetitii';
 
-type DayOfWeek = ProgramItem['ziua'];
+type Tab = 'antrenamente' | 'examene' | 'evenimente';
 
-const getDayNameFromDate = (date: Date): DayOfWeek => {
-    const days: DayOfWeek[] = ['Duminică', 'Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă'];
-    return days[date.getUTCDay()];
-};
+const TabButton: React.FC<{ activeTab: Tab, tabName: Tab, label: string, onClick: (tab: Tab) => void }> = ({ activeTab, tabName, label, onClick }) => (
+    <button
+        onClick={() => onClick(tabName)}
+        className={`px-4 py-2 text-sm md:text-base font-bold transition-colors duration-200 border-b-2 ${
+            activeTab === tabName
+                ? 'text-brand-secondary border-brand-secondary'
+                : 'text-slate-400 border-transparent hover:text-white hover:border-slate-500'
+        }`}
+    >
+        {label}
+    </button>
+);
 
-const AttendanceChecklist: React.FC<{
+// FIX: Add missing AttendanceChecklist component.
+interface AttendanceChecklistProps {
     antrenament: Prezenta;
     sportiviInGrupa: Sportiv[];
     onSave: (antrenamentId: string, presentIds: Set<string>) => Promise<void>;
-}> = ({ antrenament, sportiviInGrupa, onSave }) => {
-    const [presentIds, setPresentIds] = useState<Set<string>>(new Set(antrenament.sportivi_prezenti_ids));
+}
+
+const AttendanceChecklist: React.FC<AttendanceChecklistProps> = ({ antrenament, sportiviInGrupa, onSave }) => {
+    const [presentIds, setPresentIds] = useState<Set<string>>(() => new Set(antrenament.sportivi_prezenti_ids));
     const [loading, setLoading] = useState(false);
 
-    const handleCheckboxChange = (sportivId: string) => {
+    const handleToggle = (sportivId: string) => {
         setPresentIds(prev => {
             const newSet = new Set(prev);
-            if (newSet.has(sportivId)) newSet.delete(sportivId);
-            else newSet.add(sportivId);
+            if (newSet.has(sportivId)) {
+                newSet.delete(sportivId);
+            } else {
+                newSet.add(sportivId);
+            }
             return newSet;
         });
     };
@@ -36,41 +53,46 @@ const AttendanceChecklist: React.FC<{
     };
 
     return (
-        <div className="bg-slate-900/50 p-4 space-y-3">
-            <div className="max-h-64 overflow-y-auto space-y-2 pr-2">
+        <div className="p-4 bg-slate-900/50">
+            <h4 className="font-bold text-white mb-3">Înregistrează Prezența</h4>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-60 overflow-y-auto pr-2">
                 {sportiviInGrupa.map(sportiv => (
-                    <label key={sportiv.id} className="flex items-center gap-3 p-2 rounded-md hover:bg-slate-700/50 cursor-pointer transition-colors">
-                        <input type="checkbox" className="h-5 w-5 rounded border-slate-500 bg-slate-900 text-brand-secondary focus:ring-brand-secondary" checked={presentIds.has(sportiv.id)} onChange={() => handleCheckboxChange(sportiv.id)} />
-                        <span className="font-medium">{sportiv.nume} {sportiv.prenume}</span>
+                    <label key={sportiv.id} className="flex items-center space-x-2 text-sm p-2 bg-slate-800 rounded-md cursor-pointer hover:bg-slate-700 transition-colors">
+                        <input
+                            type="checkbox"
+                            checked={presentIds.has(sportiv.id)}
+                            onChange={() => handleToggle(sportiv.id)}
+                            className="h-4 w-4 rounded border-slate-500 bg-slate-900 text-brand-secondary focus:ring-brand-secondary"
+                        />
+                        <span>{sportiv.nume} {sportiv.prenume}</span>
                     </label>
                 ))}
-                {sportiviInGrupa.length === 0 && <p className="text-slate-400 italic text-center py-4">Nu există sportivi activi în această grupă.</p>}
             </div>
-            <div className="flex justify-end pt-3 border-t border-slate-700">
+             {sportiviInGrupa.length === 0 && <p className="text-slate-400 text-sm italic">Niciun sportiv eligibil în această grupă pentru acest antrenament.</p>}
+            <div className="mt-4 flex justify-end">
                 <Button onClick={handleSaveClick} variant="success" size="sm" disabled={loading}>
-                    {loading ? 'Se salvează...' : `Salvează Prezența (${presentIds.size})`}
+                    {loading ? 'Se salvează...' : 'Salvează Prezența'}
                 </Button>
             </div>
         </div>
     );
 };
 
-export const ActivitatiManagement: React.FC<{
+const AntrenamenteTab: React.FC<{
     sportivi: Sportiv[];
     grupe: Grupa[];
-    onBack: () => void;
-}> = ({ sportivi, grupe, onBack }) => {
+}> = ({ sportivi, grupe }) => {
     const [antrenamente, setAntrenamente] = useState<Prezenta[]>([]);
     const [loading, setLoading] = useState(true);
     const [expandedAntrenamentId, setExpandedAntrenamentId] = useState<string | null>(null);
     const [antrenamentToDelete, setAntrenamentToDelete] = useState<Prezenta | null>(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
     const { showError } = useError();
-    const [filters, setFilters] = useState({ data: '', grupa: '' });
+    const [filters, setFilters] = useState({ data: '', grupa: '', tip: 'toate' });
     const [currentTime, setCurrentTime] = useState(new Date());
 
     useEffect(() => {
-        const timer = setInterval(() => setCurrentTime(new Date()), 60000); // Update time every minute
+        const timer = setInterval(() => setCurrentTime(new Date()), 60000);
         return () => clearInterval(timer);
     }, []);
 
@@ -95,25 +117,21 @@ export const ActivitatiManagement: React.FC<{
 
     useEffect(() => { fetchData(); }, [fetchData]);
 
-    const handleDeleteAntrenament = async (scope: 'single' | 'series') => {
+    const handleDeleteAntrenament = async () => {
         if (!antrenamentToDelete || !supabase) return;
         setDeleteLoading(true);
-        let query = supabase.from('program_antrenamente').delete();
-        query = scope === 'series' && antrenamentToDelete.recurent_group_id ? query.eq('recurent_group_id', antrenamentToDelete.recurent_group_id) : query.eq('id', antrenamentToDelete.id);
-        
-        const { error } = await query;
+        const { error } = await supabase.from('program_antrenamente').delete().eq('id', antrenamentToDelete.id);
         setDeleteLoading(false);
-        if (error) { showError("Eroare la ștergere", error); }
-        else { fetchData(); setAntrenamentToDelete(null); }
+        if (error) { showError("Eroare la ștergere", error); } else { fetchData(); setAntrenamentToDelete(null); }
     };
 
     const handleSaveAttendance = async (antrenamentId: string, presentIds: Set<string>) => {
         const { error: deleteError } = await supabase.from('prezenta_antrenament').delete().eq('antrenament_id', antrenamentId);
-        if (deleteError) { showError("Eroare la actualizarea prezenței (pas 1)", deleteError); return; }
+        if (deleteError) { showError("Eroare la actualizarea prezenței", deleteError); return; }
         if (presentIds.size > 0) {
             const toInsert = Array.from(presentIds).map(sportiv_id => ({ antrenament_id: antrenamentId, sportiv_id }));
             const { error: insertError } = await supabase.from('prezenta_antrenament').insert(toInsert);
-            if (insertError) { showError("Eroare la salvarea prezenței (pas 2)", insertError); return; }
+            if (insertError) { showError("Eroare la salvarea prezenței", insertError); return; }
         }
         await fetchData();
         setExpandedAntrenamentId(null);
@@ -122,7 +140,6 @@ export const ActivitatiManagement: React.FC<{
     const getStatus = useCallback((antrenament: Prezenta, now: Date): { text: 'Urmează' | 'Live' | 'Finalizat', color: string } => {
         const todayString = now.toISOString().split('T')[0];
         if (antrenament.data_antrenament !== todayString) return { text: 'Finalizat', color: 'text-slate-400' };
-
         const startDateTime = new Date(`${antrenament.data_antrenament}T${antrenament.ora_inceput}`);
         const endDateTime = new Date(startDateTime.getTime() + 90 * 60000);
         if (now < startDateTime) return { text: 'Urmează', color: 'text-sky-400' };
@@ -130,19 +147,22 @@ export const ActivitatiManagement: React.FC<{
         return { text: 'Finalizat', color: 'text-slate-400' };
     }, []);
 
+    // FIX: Define isVacationMonth in the component scope so it can be accessed in the render function.
+    const isVacationMonth = useCallback((dateStr: string) => {
+        const month = new Date(dateStr).getUTCMonth(); // 6=July, 7=August
+        return month === 6 || month === 7;
+    }, []);
+
     const filteredAntrenamente = useMemo(() => {
         const todayString = currentTime.toISOString().split('T')[0];
         return antrenamente.filter(a => {
             const dateMatch = !filters.data || a.data_antrenament === filters.data;
             const groupMatch = !filters.grupa || a.grupa_id === filters.grupa;
-            return dateMatch && groupMatch;
-        }).map(a => ({...a, isToday: a.data_antrenament === todayString}))
-        .sort((a,b) => {
-            if (a.isToday && !b.isToday) return -1;
-            if (!a.isToday && b.isToday) return 1;
-            return 0; // The rest is already sorted by date/time from query
-        });
-    }, [antrenamente, filters, currentTime]);
+            const tipMatch = filters.tip === 'toate' || (filters.tip === 'vacanta' && isVacationMonth(a.data_antrenament)) || (filters.tip === 'normal' && !isVacationMonth(a.data_antrenament));
+            return dateMatch && groupMatch && tipMatch;
+        }).map(a => ({ ...a, isToday: a.data_antrenament === todayString }))
+        .sort((a,b) => (a.isToday === b.isToday) ? 0 : a.isToday ? -1 : 1);
+    }, [antrenamente, filters, currentTime, isVacationMonth]);
     
     const sportiviByGrupa = useMemo(() => {
         const map = new Map<string, Sportiv[]>();
@@ -152,30 +172,34 @@ export const ActivitatiManagement: React.FC<{
         return map;
     }, [sportivi, grupe]);
 
-    if (loading) return <div className="flex items-center justify-center min-h-screen">Se încarcă...</div>;
+    if (loading) return <div className="text-center p-8">Se încarcă antrenamentele...</div>;
 
     return (
-        <div className="w-full max-w-7xl mx-auto">
-            <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
-            <h1 className="text-3xl font-bold text-white mb-6">Antrenamente & Prezență</h1>
-            
+        <div>
             <Card className="mb-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
                     <Input label="Filtrează după dată" name="data" type="date" value={filters.data} onChange={e => setFilters(p => ({...p, data: e.target.value}))} />
                     <Select label="Filtrează după grupă" name="grupa" value={filters.grupa} onChange={e => setFilters(p => ({...p, grupa: e.target.value}))}>
                         <option value="">Toate grupele</option>
                         {grupe.map(g => (<option key={g.id} value={g.id}>{g.denumire}</option>))}
                     </Select>
-                    <Button onClick={() => setFilters({ data: '', grupa: '' })} variant="secondary">Resetează Filtre</Button>
+                     <Select label="Tip Antrenament" name="tip" value={filters.tip} onChange={e => setFilters(p => ({...p, tip: e.target.value}))}>
+                        <option value="toate">Toate</option>
+                        <option value="normal">Normal</option>
+                        <option value="vacanta">Vacanță (Iul-Aug)</option>
+                    </Select>
+                    <Button onClick={() => setFilters({ data: '', grupa: '', tip: 'toate' })} variant="secondary">Resetează Filtre</Button>
                 </div>
             </Card>
 
-            {/* Mobile View: Cards */}
             <div className="grid grid-cols-1 gap-4 md:hidden">
                 {filteredAntrenamente.map(a => {
                     const grupa = grupe.find(g => g.id === a.grupa_id);
                     const status = getStatus(a, currentTime);
                     const isExpanded = expandedAntrenamentId === a.id;
+                    const sportiviInGrupa = sportiviByGrupa.get(a.grupa_id || '') || [];
+                    const filteredSportivi = isVacationMonth(a.data_antrenament) ? sportiviInGrupa.filter(s => s.participa_vacanta) : sportiviInGrupa;
+
                     return (
                         <Card key={a.id} className={`p-0 overflow-hidden border-l-4 ${a.isToday ? 'border-brand-secondary' : 'border-slate-700'}`}>
                             <div className="p-4" onClick={() => setExpandedAntrenamentId(isExpanded ? null : a.id)}>
@@ -184,35 +208,32 @@ export const ActivitatiManagement: React.FC<{
                                     <span className={`text-xs font-bold ${status.color}`}>{status.text}</span>
                                 </div>
                                 <p className="text-sm text-slate-400">{new Date(a.data_antrenament + 'T00:00:00Z').toLocaleDateString('ro-RO', { timeZone: 'UTC' })} • {a.ora_inceput}</p>
-                                <p className="text-sm mt-2">Prezenți: <span className="font-bold text-brand-secondary">{a.sportivi_prezenti_ids.length} / {sportiviByGrupa.get(a.grupa_id || '')?.length || 0}</span></p>
+                                <p className="text-sm mt-2">Prezenți: <span className="font-bold text-brand-secondary">{a.sportivi_prezenti_ids.length} / {filteredSportivi.length}</span></p>
                             </div>
-                            {isExpanded && <AttendanceChecklist antrenament={a} sportiviInGrupa={sportiviByGrupa.get(a.grupa_id || '') || []} onSave={handleSaveAttendance} />}
+                            {isExpanded && <AttendanceChecklist antrenament={a} sportiviInGrupa={filteredSportivi} onSave={handleSaveAttendance} />}
                         </Card>
-                    )
+                    );
                 })}
             </div>
 
-            {/* Desktop View: Table */}
             <div className="hidden md:block bg-slate-800/50 rounded-lg border border-slate-700 overflow-hidden">
                 <table className="w-full text-left">
-                    <thead className="bg-slate-700/50"><tr>
-                        {['Data', 'Ora', 'Grupa', 'Prezenți', 'Status', ''].map(h => <th key={h} className="p-4 font-semibold">{h}</th>)}
-                    </tr></thead>
+                    <thead className="bg-slate-700/50"><tr>{['Data', 'Ora', 'Grupa', 'Prezenți', 'Status', ''].map(h => <th key={h} className="p-4 font-semibold">{h}</th>)}</tr></thead>
                     <tbody className="divide-y divide-slate-700">
-                        {filteredAntrenamente.length === 0 && (
-                            <tr><td colSpan={6} className="p-8 text-center text-slate-400">Niciun antrenament conform filtrelor.</td></tr>
-                        )}
+                        {filteredAntrenamente.length === 0 && (<tr><td colSpan={6} className="p-8 text-center text-slate-400">Niciun antrenament.</td></tr>)}
                         {filteredAntrenamente.map(a => {
                             const grupa = grupe.find(g => g.id === a.grupa_id);
                             const status = getStatus(a, currentTime);
                             const isExpanded = expandedAntrenamentId === a.id;
+                            const sportiviInGrupa = sportiviByGrupa.get(a.grupa_id || '') || [];
+                            const filteredSportivi = isVacationMonth(a.data_antrenament) ? sportiviInGrupa.filter(s => s.participa_vacanta) : sportiviInGrupa;
                             return (
                                 <React.Fragment key={a.id}>
                                     <tr className={`hover:bg-slate-800 cursor-pointer ${isExpanded ? 'bg-slate-800' : ''} ${a.isToday ? 'border-l-4 border-brand-secondary' : ''}`} onClick={() => setExpandedAntrenamentId(isExpanded ? null : a.id)}>
                                         <td className="p-4 font-medium">{new Date(a.data_antrenament + 'T00:00:00Z').toLocaleDateString('ro-RO', { timeZone: 'UTC' })} ({a.ziua})</td>
                                         <td className="p-4">{a.ora_inceput}</td>
                                         <td className="p-4">{grupa?.denumire}</td>
-                                        <td className="p-4"><span className="font-bold text-brand-secondary">{a.sportivi_prezenti_ids.length}</span> / {sportiviByGrupa.get(a.grupa_id || '')?.length || 0}</td>
+                                        <td className="p-4"><span className="font-bold text-brand-secondary">{a.sportivi_prezenti_ids.length}</span> / {filteredSportivi.length}</td>
                                         <td className={`p-4 font-bold text-sm ${status.color}`}>{status.text}</td>
                                         <td className="p-4 text-right flex justify-end items-center gap-2">
                                             <Button variant="danger" size="sm" onClick={(e) => { e.stopPropagation(); setAntrenamentToDelete(a); }}><TrashIcon /></Button>
@@ -220,39 +241,45 @@ export const ActivitatiManagement: React.FC<{
                                         </td>
                                     </tr>
                                     {isExpanded && (
-                                        <tr className="bg-slate-900/50">
-                                            <td colSpan={6} className="p-0">
-                                                <AttendanceChecklist antrenament={a} sportiviInGrupa={sportiviByGrupa.get(a.grupa_id || '') || []} onSave={handleSaveAttendance} />
-                                            </td>
-                                        </tr>
+                                        <tr className="bg-slate-900/50"><td colSpan={6} className="p-0"><AttendanceChecklist antrenament={a} sportiviInGrupa={filteredSportivi} onSave={handleSaveAttendance} /></td></tr>
                                     )}
                                 </React.Fragment>
-                            )
+                            );
                         })}
                     </tbody>
                 </table>
             </div>
+            <ConfirmationModal isOpen={!!antrenamentToDelete} onClose={() => setAntrenamentToDelete(null)} title="Confirmare Ștergere Antrenament" message="Sunteți sigur că doriți să ștergeți acest antrenament?" loading={deleteLoading} onConfirm={handleDeleteAntrenament} />
+        </div>
+    );
+};
 
-            <ConfirmationModal
-                isOpen={!!antrenamentToDelete}
-                onClose={() => setAntrenamentToDelete(null)}
-                title="Confirmare Ștergere Antrenament"
-                message={antrenamentToDelete?.is_recurent ? "Acesta este un antrenament recurent. Doriți să ștergeți doar această instanță sau întreaga serie de antrenamente?" : "Sunteți sigur că doriți să ștergeți acest antrenament?"}
-                loading={deleteLoading}
-                onConfirm={() => {}} // Dummy confirm, logic is handled by custom buttons
-            >
-                 <div className="flex justify-end gap-2 pt-4 border-t border-slate-700">
-                    <Button variant="secondary" onClick={() => setAntrenamentToDelete(null)} disabled={deleteLoading}>Anulează</Button>
-                    <Button variant="danger" onClick={() => handleDeleteAntrenament('single')} disabled={deleteLoading}>
-                        {deleteLoading ? 'Se șterge...' : (antrenamentToDelete?.is_recurent ? 'Șterge Doar Acesta' : 'Confirmă Ștergere')}
-                    </Button>
-                    {antrenamentToDelete?.is_recurent && (
-                        <Button variant="danger" onClick={() => handleDeleteAntrenament('series')} disabled={deleteLoading}>
-                        {deleteLoading ? 'Se șterge...' : 'Șterge Întreaga Serie'}
-                        </Button>
-                    )}
-                </div>
-            </ConfirmationModal>
+export const ActivitatiManagement = (props: any) => {
+    const { onBack, initialTab = 'antrenamente', initialSubTab } = props;
+    const [activeTab, setActiveTab] = useState<Tab>(initialTab);
+
+    return (
+        <div>
+            <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
+            <h1 className="text-3xl font-bold text-white mb-6">Activități & Evaluări</h1>
+            
+            <div className="border-b border-slate-700 mb-6">
+                <TabButton activeTab={activeTab} tabName="antrenamente" label="Antrenamente & Prezență" onClick={setActiveTab} />
+                <TabButton activeTab={activeTab} tabName="examene" label="Examene & Grade" onClick={setActiveTab} />
+                <TabButton activeTab={activeTab} tabName="evenimente" label="Stagii & Competiții" onClick={setActiveTab} />
+            </div>
+
+            <div>
+                {activeTab === 'antrenamente' && <AntrenamenteTab sportivi={props.sportivi} grupe={props.grupe} />}
+                {activeTab === 'examene' && <ExameneManagement {...props} onBack={() => {}} />}
+                {activeTab === 'evenimente' && (
+                    <>
+                        <StagiiCompetitiiManagement {...props} type="Stagiu" onBack={()=>{}}/>
+                        <div className="my-8 border-t border-slate-700"></div>
+                        <StagiiCompetitiiManagement {...props} type="Competitie" onBack={()=>{}}/>
+                    </>
+                )}
+            </div>
         </div>
     );
 };

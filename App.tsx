@@ -3,11 +3,9 @@ import { supabase } from './supabaseClient';
 import { Sportiv, Examen, Grad, Participare, View, Grupa, Plata, Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, Rol } from './types';
 import { Dashboard } from './components/Dashboard';
 import { SportiviManagement } from './components/Sportivi';
-import { ExameneManagement } from './components/Examene';
 import { GradeManagement } from './components/Grade';
 import { ActivitatiManagement } from './components/Activitati';
 import { GrupeManagement } from './components/Grupe';
-import { StagiiCompetitiiManagement } from './components/StagiiCompetitii';
 import { PlatiScadente } from './components/PlatiScadente';
 import { JurnalIncasari } from './components/JurnalIncasari';
 import { TipuriAbonamentManagement } from './components/TipuriAbonament';
@@ -190,6 +188,18 @@ function App() {
   const renderContent = () => {
     if (!currentUser) return null;
     const isAdmin = currentUser.roluri.some(r => r.nume === 'Admin' || r.nume === 'Instructor');
+    const activitatiProps = {
+        sportivi, setSportivi,
+        examene, setExamene,
+        grade, setGrade,
+        participari, setParticipari,
+        grupe, setGrupe,
+        plati, setPlati,
+        evenimente, setEvenimente,
+        rezultate, setRezultate,
+        preturiConfig, setPreturiConfig,
+        onBack: () => setActiveView('dashboard'),
+    };
 
     if (!isAdmin) {
       switch (activeView) {
@@ -205,12 +215,14 @@ function App() {
       case 'editare-profil-personal': return <EditareProfilPersonal user={currentUser} setSportivi={setSportivi} setCurrentUser={setCurrentUser} onBack={() => setActiveView('portal-personal')} />;
       case 'evenimentele-mele': return <EvenimenteleMele viewedUser={currentUser} evenimente={evenimente} rezultate={rezultate} setRezultate={setRezultate} onBack={() => setActiveView('portal-personal')} />;
       case 'sportivi': return <SportiviManagement sportivi={sportivi} setSportivi={setSportivi} grupe={grupe} setGrupe={setGrupe} tipuriAbonament={tipuriAbonament} setTipuriAbonament={setTipuriAbonament} familii={familii} setFamilii={setFamilii} customFields={customFields} setCustomFields={setCustomFields} allRoles={allRoles} onBack={() => setActiveView('dashboard')} />;
-      case 'examene': return <ExameneManagement examene={examene} setExamene={setExamene} participari={participari} setParticipari={setParticipari} sportivi={sportivi} grade={grade} onBack={() => setActiveView('dashboard')} preturiConfig={preturiConfig} setPlati={setPlati} />;
-      case 'grade': return <GradeManagement grade={grade} setGrade={setGrade} onBack={() => setActiveView('dashboard')} preturiConfig={preturiConfig} setPreturiConfig={setPreturiConfig} />;
-      case 'prezenta': return <ActivitatiManagement sportivi={sportivi} grupe={grupe} onBack={() => setActiveView('dashboard')} />;
+      
+      case 'prezenta': return <ActivitatiManagement {...activitatiProps} initialTab="antrenamente" />;
+      case 'examene': return <ActivitatiManagement {...activitatiProps} initialTab="examene" />;
+      case 'grade': return <GradeManagement grade={grade} setGrade={setGrade} onBack={() => setActiveView('dashboard')} preturiConfig={preturiConfig} setPreturiConfig={setPreturiConfig} />; // Keep separate for now
+      case 'stagii': return <ActivitatiManagement {...activitatiProps} initialTab="evenimente" initialSubTab="Stagiu" />;
+      case 'competitii': return <ActivitatiManagement {...activitatiProps} initialTab="evenimente" initialSubTab="Competitie" />;
+      
       case 'grupe': return <GrupeManagement grupe={grupe} setGrupe={setGrupe} onBack={() => setActiveView('dashboard')} />;
-      case 'stagii': return <StagiiCompetitiiManagement type="Stagiu" evenimente={evenimente} setEvenimente={setEvenimente} rezultate={rezultate} setRezultate={setRezultate} sportivi={sportivi} setPlati={setPlati} preturiConfig={preturiConfig} participari={participari} examene={evenimente as any} grade={grade} onBack={() => setActiveView('dashboard')} />;
-      case 'competitii': return <StagiiCompetitiiManagement type="Competitie" evenimente={evenimente} setEvenimente={setEvenimente} rezultate={rezultate} setRezultate={setRezultate} sportivi={sportivi} setPlati={setPlati} preturiConfig={preturiConfig} participari={participari} examene={evenimente as any} grade={grade} onBack={() => setActiveView('dashboard')} />;
       case 'plati-scadente': return <PlatiScadente plati={plati} setPlati={setPlati} sportivi={sportivi} familii={familii} tipuriAbonament={tipuriAbonament} onIncaseazaMultiple={(plist) => { setSelectedPlatiForIncasare(plist); setActiveView('jurnal-incasari'); }} onBack={() => setActiveView('dashboard')} />;
       case 'jurnal-incasari': return <JurnalIncasari plati={plati} setPlati={setPlati} sportivi={sportivi} familii={familii} preturiConfig={preturiConfig} tipuriAbonament={tipuriAbonament} tranzactii={tranzactii} setTranzactii={setTranzactii} platiInitiale={selectedPlatiForIncasare} onIncasareProcesata={() => { setSelectedPlatiForIncasare([]); fetchAdminData(); }} onBack={() => setActiveView('plati-scadente')} />;
       case 'configurare-preturi': return <ConfigurarePreturi preturi={preturiConfig} setPreturi={setPreturiConfig} sportivi={sportivi} onBack={() => setActiveView('dashboard')} />;

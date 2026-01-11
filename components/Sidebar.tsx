@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { User, View } from '../types';
 import { adminMenu, sportivMenu, MenuItem } from './menuConfig';
 import { ArrowRightOnRectangleIcon, Bars3Icon, ChevronDownIcon, UserCircleIcon } from './icons';
-import { logoBase64 } from '../constants';
+import { logoPhiHau } from '../assets/logo';
 
 const NavItem: React.FC<{
     item: MenuItem;
@@ -13,7 +13,6 @@ const NavItem: React.FC<{
 }> = ({ item, isExpanded, isActive, onNavigate, activeView }) => {
     const [isSubmenuOpen, setIsSubmenuOpen] = useState(false);
 
-    // Deschide automat submeniul dacă o pagină din interiorul său este activă
     useEffect(() => {
         if (isActive) {
             setIsSubmenuOpen(true);
@@ -76,24 +75,26 @@ interface SidebarProps {
     onViewOwnPortal: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLogout, activeView, isExpanded, setIsExpanded, isPortalView, onViewOwnPortal }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLogout, activeView, isExpanded, setIsExpanded, isPortalView }) => {
     const [isMobileOpen, setIsMobileOpen] = useState(false);
     
     const menu = isPortalView ? sportivMenu : adminMenu;
 
     const handleNavigate = (view: View) => {
         onNavigate(view);
-        setIsMobileOpen(false); // Close mobile menu on navigation
+        setIsMobileOpen(false);
     };
 
     const sidebarContent = (
         <div className="flex flex-col h-full bg-brand-primary text-white shadow-xl">
-             {/* Logo and Club Name */}
-            <div className="flex items-center justify-center p-4 border-b border-white/10 cursor-pointer" onClick={() => handleNavigate('dashboard')}>
-                <img src={`data:image/svg+xml;base64,${logoBase64}`} alt="Club Logo" className="h-10 w-10 rounded-md" />
+            <div className="flex items-center justify-center p-4 border-b border-white/10" onClick={() => handleNavigate('dashboard')}>
+                 <img 
+                    src={`data:image/svg+xml;base64,${logoPhiHau}`} 
+                    alt="Club Logo" 
+                    className="h-12 w-12 cursor-pointer transform hover:scale-110 transition-transform" 
+                />
             </div>
             
-            {/* Navigation items */}
             <nav className="flex-1 px-3 py-4 space-y-2 overflow-y-auto">
                 {menu.map(item => {
                      const isActive = item.view === activeView || (item.submenu?.some(s => s.view === activeView) ?? false);
@@ -101,7 +102,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
                 })}
             </nav>
 
-            {/* User info and Logout */}
             <div className="p-3 border-t border-white/10">
                 <div className={`flex items-center p-2 rounded-md ${isExpanded ? 'bg-black/20' : ''}`}>
                     <UserCircleIcon className={`h-8 w-8 shrink-0 text-brand-secondary ${isExpanded ? 'mr-3' : 'mx-auto'}`} />
@@ -126,28 +126,25 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
 
     return (
         <>
-            {/* Mobile Menu Button */}
-            <button
-                className="lg:hidden fixed top-3 left-3 z-50 p-2 bg-slate-800/50 rounded-md text-white"
-                onClick={() => setIsMobileOpen(true)}
-            >
-                <Bars3Icon className="w-6 h-6" />
-            </button>
+            <div className="lg:hidden fixed top-0 left-0 w-full z-40 bg-slate-900/80 backdrop-blur-sm shadow-md h-16 flex items-center justify-between px-4">
+                <button onClick={() => setIsMobileOpen(true)} className="text-white p-2">
+                    <Bars3Icon className="w-6 h-6" />
+                </button>
+                 <img src={`data:image/svg+xml;base64,${logoPhiHau}`} alt="Club Logo" className="h-10 w-10" />
+                <div className="w-8"></div>
+            </div>
             
-            {/* Mobile Overlay */}
             <div
                 className={`fixed inset-0 z-40 bg-black/60 transition-opacity lg:hidden ${isMobileOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
                 onClick={() => setIsMobileOpen(false)}
             />
             
-            {/* Mobile Sidebar */}
             <aside
                 className={`fixed top-0 left-0 z-50 h-full w-64 transition-transform duration-300 ease-in-out lg:hidden ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}`}
             >
                 {sidebarContent}
             </aside>
             
-            {/* Desktop Sidebar */}
             <aside className={`hidden lg:block fixed top-0 left-0 h-full z-30 transition-all duration-300 ${isExpanded ? 'w-64' : 'w-20'}`}>
                 {sidebarContent}
             </aside>

@@ -1,4 +1,0 @@
-// Logo-ul clubului Phi Hau Iași în format SVG, encodat în Base64.
-// Această metodă asigură că logo-ul este mereu disponibil ca parte a codului,
-// eliminând dependența de fișiere externe.
-export const logoBase64 = 'PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCI+PHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIHJ4PSIyMCIgZmlsbD0iIzNEM0Q5OSIvPjx0ZXh0IHg9IjUwIiB5PSI2NSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjUwIiBmb250LXdlaWdodD0iYm9sZCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzREQkNFORSI+UEg8L3RleHQ+PC9zdmc+';

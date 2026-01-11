@@ -19,36 +19,24 @@ export interface SubMenuItem {
 export const adminMenu: MenuItem[] = [
     { label: 'Dashboard', icon: HomeIcon, view: 'dashboard' },
     { 
-        label: 'Sportivi & Utilizatori', 
+        label: 'Gestiune Club', 
         icon: UsersIcon,
         submenu: [
-             { label: 'Listă Sportivi', view: 'sportivi' },
-             { label: 'Gestiune Familii', view: 'familii', roles: ['Admin', 'Instructor'] },
-             { label: 'Acces Utilizatori', view: 'user-management', roles: ['Admin'] }
+             { label: 'Sportivi', view: 'sportivi' },
+             { label: 'Grupe', view: 'grupe' }, 
+             { label: 'Familii', view: 'familii', roles: ['Admin', 'Instructor'] },
+             { label: 'Utilizatori', view: 'user-management', roles: ['Admin'] }
         ]
     },
-    {
-        label: 'Examene & Grade',
-        icon: AcademicCapIcon,
-        submenu: [
-             { view: 'examene', label: 'Sesiuni Examen' },
-             { view: 'grade', label: 'Nomenclator Grade' },
-        ]
-    },
-    {
-        label: 'Alte Activități',
-        icon: TrophyIcon,
-        submenu: [
-             { view: 'stagii', label: 'Listă Stagii' },
-             { view: 'competitii', label: 'Listă Competiții' }
-        ]
-    },
+    { label: 'Antrenamente', icon: ClipboardDocumentListIcon, view: 'prezenta' },
+    { label: 'Examene', icon: AcademicCapIcon, view: 'examene' },
+    { label: 'Grade', icon: TrophyIcon, view: 'grade' },
     { 
-        label: 'Antrenamente', 
-        icon: ClipboardDocumentListIcon, 
-        submenu: [ 
-            { view: 'prezenta', label: 'Orar & Prezență' }, 
-            { view: 'grupe', label: 'Gestiune Grupe' }, 
+        label: 'Evenimente', 
+        icon: CalendarDaysIcon, 
+        submenu: [
+             { view: 'stagii', label: 'Stagii' },
+             { view: 'competitii', label: 'Competiții' }
         ] 
     },
     { 
@@ -56,16 +44,17 @@ export const adminMenu: MenuItem[] = [
         icon: BanknotesIcon, 
         submenu: [ 
             { view: 'plati-scadente', label: 'Facturi' }, 
-            { view: 'jurnal-incasari', label: 'Jurnal Încasări' }, 
-            { view: 'raport-financiar', label: 'Raport Financiar' }, 
+            { view: 'jurnal-incasari', label: 'Încasări' }, 
+            { view: 'raport-financiar', label: 'Raport' }, 
         ] 
     },
      { 
         label: 'Configurări', 
         icon: CogIcon, 
+        roles: ['Admin'],
         submenu: [ 
-             { view: 'tipuri-abonament', label: 'Configurare Abonamente' }, 
-             { view: 'configurare-preturi', label: 'Configurare Alte Prețuri' } 
+             { view: 'tipuri-abonament', label: 'Abonamente' }, 
+             { view: 'configurare-preturi', label: 'Prețuri' } 
         ] 
     },
 ];
@@ -73,5 +62,5 @@ export const adminMenu: MenuItem[] = [
 export const sportivMenu: MenuItem[] = [
     { label: 'Portalul Meu', icon: HomeIcon, view: 'dashboard' },
     { label: 'Evenimentele Mele', icon: CalendarDaysIcon, view: 'evenimentele-mele' },
-    { label: 'Profil & Securitate', icon: UserCircleIcon, view: 'editare-profil-personal' },
+    { label: 'Profilul Meu', icon: UserCircleIcon, view: 'editare-profil-personal' },
 ];

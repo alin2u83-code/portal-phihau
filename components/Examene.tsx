@@ -367,7 +367,7 @@ const ExamenDetail: React.FC<{ examen: Examen; participari: Participare[]; setPa
                     <div className="flex gap-2 items-end">
                         <div className="flex-grow"><Select label="" value={sportivIdToAdd} onChange={e => setSportivIdToAdd(e.target.value)}><option value="">Selectează...</option>{sportiviNeinscrisi.map(s => <option key={s.id} value={s.id}>{s.nume} {s.prenume}</option>)}</Select></div>
                         <Button onClick={handleAddParticipant} disabled={!sportivIdToAdd}><PlusIcon className="w-5 h-5 mr-2"/>Adaugă</Button>
-                         <Button variant="secondary" onClick={() => setIsImportModalOpen(true)}>Importă Date</Button>
+                         <Button variant="secondary" onClick={() => setIsImportModalOpen(true)} className="hidden md:inline-flex">Importă Date</Button>
                     </div>
                 </div>
 

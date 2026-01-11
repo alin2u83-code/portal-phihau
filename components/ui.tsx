@@ -79,7 +79,7 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 export const Input: React.FC<InputProps> = ({ label, id, ...props }) => (
     <div>
         {label && <label htmlFor={id} className="block text-sm font-medium text-slate-300 mb-1">{label}</label>}
-        <input id={id} {...props} className={`w-full bg-slate-900/50 border border-slate-600 rounded-md px-3 py-2 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-secondary focus:border-brand-secondary focus:bg-slate-800 disabled:opacity-50 disabled:bg-slate-700 ${props.className}`} />
+        <input id={id} {...props} className={`w-full bg-slate-900/50 border border-slate-600 rounded-md px-3 py-2 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-secondary focus:border-brand-secondary focus:bg-slate-800 disabled:opacity-50 disabled:bg-slate-700 min-h-[44px] ${props.className}`} />
     </div>
 );
 
@@ -90,7 +90,7 @@ interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
 export const Select: React.FC<SelectProps> = ({ label, id, children, ...props }) => (
     <div>
         {label && <label htmlFor={id} className="block text-sm font-medium text-slate-300 mb-1">{label}</label>}
-        <select id={id} {...props} className={`w-full bg-slate-900/50 border border-slate-600 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-brand-secondary focus:border-brand-secondary focus:bg-slate-800 disabled:opacity-50 disabled:bg-slate-700 ${props.className}`}>
+        <select id={id} {...props} className={`w-full bg-slate-900/50 border border-slate-600 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-brand-secondary focus:border-brand-secondary focus:bg-slate-800 disabled:opacity-50 disabled:bg-slate-700 min-h-[44px] ${props.className}`}>
             {children}
         </select>
     </div>

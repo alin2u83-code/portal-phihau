@@ -22,6 +22,7 @@ import { EditareProfilPersonal } from './components/EditareProfilPersonal';
 import { EvenimenteleMele } from './components/EvenimenteleMele';
 import { Sidebar } from './components/Sidebar';
 import { useError } from './components/ErrorProvider';
+import { useLocalStorage } from './hooks/useLocalStorage';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -44,16 +45,13 @@ function App() {
   const [allRoles, setAllRoles] = useState<Rol[]>([]);
   const [customFields, setCustomFields] = useState<string[]>([]);
 
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
-  const [activeView, setActiveView] = useState<View>('grupe');
+  const [isSidebarExpanded, setIsSidebarExpanded] = useLocalStorage('sidebarExpanded', true);
+  const [activeView, setActiveView] = useState<View>('dashboard');
   const [selectedPlatiForIncasare, setSelectedPlatiForIncasare] = useState<Plata[]>([]);
 
-  // NOTE: This is a simplified fetch for a user without admin rights.
-  // It only fetches data relevant to their portal view.
   const fetchSportivData = useCallback(async (user: User) => {
      if (!supabase) return;
      try {
-       // Fetch only data relevant to the current user and their family
        const familyId = user.familie_id;
        const userIds = familyId 
          ? (await supabase.from('sportivi').select('id').eq('familie_id', familyId)).data?.map(s => s.id) || [user.id]
@@ -66,29 +64,22 @@ function App() {
          { data: abData }, { data: roData }, { data: progAntrenamenteData}
        ] = await Promise.all([
          supabase.from('sportivi').select('*, sportivi_roluri(roluri(id, nume))').in('id', userIds),
-         supabase.from('examene').select('*'), // Global data
-         supabase.from('grade').select('*'), // Global data
+         supabase.from('examene').select('*'),
+         supabase.from('grade').select('*'),
          supabase.from('participari').select('*').in('sportiv_id', userIds),
-         supabase.from('grupe').select('*'), // Global data
+         supabase.from('grupe').select('*'),
          supabase.from('familii').select('*').eq('id', familyId),
          supabase.from('plati').select('*').or(`sportiv_id.in.(${userIds.join(',')}),familie_id.eq.${familyId}`),
-         supabase.from('evenimente').select('*'), // Global data
+         supabase.from('evenimente').select('*'),
          supabase.from('rezultate').select('*').in('sportiv_id', userIds),
-         supabase.from('preturi_config').select('*'), // Global data
-         supabase.from('tipuri_abonament').select('*'), // Global data
-         supabase.from('roluri').select('id, nume'), // Global data
-         supabase.from('program_antrenamente').select('*') // Global data
+         supabase.from('preturi_config').select('*'),
+         supabase.from('tipuri_abonament').select('*'),
+         supabase.from('roluri').select('id, nume'),
+         supabase.from('program_antrenamente').select('*')
        ]);
        
-        const formattedSportivi = (sData || []).map((s: any) => ({
-            ...s,
-            roluri: s.sportivi_roluri ? s.sportivi_roluri.map((sr: any) => sr.roluri) : []
-        }));
-        
-        const formattedGrupe = (grData || []).map(g => ({
-            ...g,
-            program: (progAntrenamenteData || []).filter(p => p.grupa_id === g.id)
-        }));
+        const formattedSportivi = (sData || []).map((s: any) => ({ ...s, roluri: s.sportivi_roluri ? s.sportivi_roluri.map((sr: any) => sr.roluri) : [] }));
+        const formattedGrupe = (grData || []).map(g => ({ ...g, program: (progAntrenamenteData || []).filter(p => p.grupa_id === g.id) }));
 
         setSportivi(formattedSportivi);
         setExamene(eData || []);
@@ -102,9 +93,8 @@ function App() {
         setPreturiConfig(cfData || []);
         setTipuriAbonament(abData || []);
         setAllRoles(roData || []);
-
      } catch(err) {
-        showError("Eroare la încărcarea datelor de sportiv", err);
+        showError("Eroare la încărcarea datelor", err);
      } finally {
         setLoading(false);
      }
@@ -135,17 +125,9 @@ function App() {
         supabase.from('program_antrenamente').select('*')
       ]);
 
-      const formattedSportivi = (sData || []).map((s: any) => ({
-        ...s,
-        roluri: s.sportivi_roluri ? s.sportivi_roluri.map((sr: any) => sr.roluri) : []
-      }));
-      
+      const formattedSportivi = (sData || []).map((s: any) => ({ ...s, roluri: s.sportivi_roluri ? s.sportivi_roluri.map((sr: any) => sr.roluri) : [] }));
       const programAntrenamente = progData || [];
-      const formattedGrupe = (grData || []).map(g => ({
-          ...g,
-          program: programAntrenamente.filter(p => p.grupa_id === g.id)
-      }));
-
+      const formattedGrupe = (grData || []).map(g => ({ ...g, program: programAntrenamente.filter(p => p.grupa_id === g.id) }));
 
       setSportivi(formattedSportivi);
       setExamene(eData || []);
@@ -161,7 +143,7 @@ function App() {
       setTipuriAbonament(abData || []);
       setAllRoles(roData || []);
     } catch (err) {
-      showError("Eroare la încărcarea datelor de admin", err);
+      showError("Eroare la încărcarea datelor", err);
     } finally {
       setLoading(false);
     }
@@ -172,14 +154,10 @@ function App() {
     setLoading(true);
     const { data, error } = await supabase.from('sportivi').select('*, sportivi_roluri(roluri(id, nume))').eq('user_id', userId).maybeSingle();
 
-    if (error) {
-      showError("Eroare la preluarea profilului", error);
-      setLoading(false);
-      return;
-    }
+    if (error) { showError("Eroare la preluarea profilului", error); setLoading(false); return; }
 
     if (!data) {
-      showError("Profil Inexistent", "Profilul de sportiv asociat acestui cont nu a fost găsit. Veți fi deconectat. Vă rugăm contactați administratorul.");
+      showError("Profil Inexistent", "Profilul asociat acestui cont nu a fost găsit. Contactați administratorul.");
       await supabase?.auth.signOut();
       setLoading(false);
       return;
@@ -190,37 +168,22 @@ function App() {
     setCurrentUser(user);
 
     const isAdmin = user.roluri.some((r: Rol) => r.nume === 'Admin' || r.nume === 'Instructor');
-    if (isAdmin) {
-        await fetchAdminData();
-    } else {
-        await fetchSportivData(user);
-    }
-
+    if (isAdmin) await fetchAdminData(); else await fetchSportivData(user);
   }, [fetchAdminData, fetchSportivData, showError]);
 
   useEffect(() => {
     supabase?.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      if (session) {
-        fetchUserProfile(session.user.id);
-      } else {
-        setLoading(false);
-      }
+      if (session) fetchUserProfile(session.user.id); else setLoading(false);
     });
 
     const { data: { subscription } } = supabase?.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      if (session) {
-        fetchUserProfile(session.user.id);
-      } else {
-        setCurrentUser(null);
-        setLoading(false);
-      }
+      if (session) fetchUserProfile(session.user.id); else { setCurrentUser(null); setLoading(false); }
     }) || { data: { subscription: null } };
 
     return () => subscription?.unsubscribe();
   }, [fetchUserProfile]);
-
 
   const handleLogout = async () => { await supabase?.auth.signOut(); setActiveView('dashboard'); };
 
@@ -238,42 +201,9 @@ function App() {
 
     switch (activeView) {
       case 'dashboard': return <Dashboard onNavigate={setActiveView} currentUser={currentUser} />;
-      case 'portal-personal': 
-        return <PortalSportiv 
-            currentUser={currentUser}
-            viewedUser={currentUser}
-            onSwitchView={() => {}}
-            participari={participari}
-            examene={examene}
-            grade={grade}
-            grupe={grupe}
-            plati={plati}
-            setPlati={setPlati}
-            evenimente={evenimente}
-            rezultate={rezultate}
-            setRezultate={setRezultate}
-            preturiConfig={preturiConfig}
-            onNavigateToEditProfil={() => setActiveView('editare-profil-personal')}
-            onNavigateToEvenimenteleMele={() => setActiveView('evenimentele-mele')}
-            sportivi={sportivi}
-            familii={familii}
-            onNavigateToDashboard={() => setActiveView('dashboard')}
-        />;
-      case 'editare-profil-personal':
-        return <EditareProfilPersonal 
-            user={currentUser} 
-            setSportivi={setSportivi} 
-            setCurrentUser={setCurrentUser} 
-            onBack={() => setActiveView('portal-personal')}
-        />;
-      case 'evenimentele-mele':
-        return <EvenimenteleMele
-          viewedUser={currentUser}
-          evenimente={evenimente}
-          rezultate={rezultate}
-          setRezultate={setRezultate}
-          onBack={() => setActiveView('portal-personal')}
-        />
+      case 'portal-personal': return <PortalSportiv currentUser={currentUser} viewedUser={currentUser} onSwitchView={() => {}} participari={participari} examene={examene} grade={grade} grupe={grupe} plati={plati} setPlati={setPlati} evenimente={evenimente} rezultate={rezultate} setRezultate={setRezultate} preturiConfig={preturiConfig} onNavigateToEditProfil={() => setActiveView('editare-profil-personal')} onNavigateToEvenimenteleMele={() => setActiveView('evenimentele-mele')} sportivi={sportivi} familii={familii} onNavigateToDashboard={() => setActiveView('dashboard')} />;
+      case 'editare-profil-personal': return <EditareProfilPersonal user={currentUser} setSportivi={setSportivi} setCurrentUser={setCurrentUser} onBack={() => setActiveView('portal-personal')} />;
+      case 'evenimentele-mele': return <EvenimenteleMele viewedUser={currentUser} evenimente={evenimente} rezultate={rezultate} setRezultate={setRezultate} onBack={() => setActiveView('portal-personal')} />;
       case 'sportivi': return <SportiviManagement sportivi={sportivi} setSportivi={setSportivi} grupe={grupe} setGrupe={setGrupe} tipuriAbonament={tipuriAbonament} setTipuriAbonament={setTipuriAbonament} familii={familii} setFamilii={setFamilii} customFields={customFields} setCustomFields={setCustomFields} allRoles={allRoles} onBack={() => setActiveView('dashboard')} />;
       case 'examene': return <ExameneManagement examene={examene} setExamene={setExamene} participari={participari} setParticipari={setParticipari} sportivi={sportivi} grade={grade} onBack={() => setActiveView('dashboard')} preturiConfig={preturiConfig} setPlati={setPlati} />;
       case 'grade': return <GradeManagement grade={grade} setGrade={setGrade} onBack={() => setActiveView('dashboard')} preturiConfig={preturiConfig} setPreturiConfig={setPreturiConfig} />;
@@ -292,13 +222,13 @@ function App() {
     }
   };
 
-  if (loading) return <div className="flex items-center justify-center min-h-screen">Se încarcă...</div>;
+  if (loading) return <div className="flex items-center justify-center min-h-screen bg-slate-900 text-white">Se încarcă...</div>;
   if (!session) return <Login />;
 
   return (
     <div className="min-h-screen flex bg-slate-900">
       <Sidebar currentUser={currentUser!} onNavigate={setActiveView} onLogout={handleLogout} activeView={activeView} isExpanded={isSidebarExpanded} setIsExpanded={setIsSidebarExpanded} isPortalView={!currentUser?.roluri.some(r => r.nume === 'Admin' || r.nume === 'Instructor')} onViewOwnPortal={() => {}} />
-      <main className={`flex-1 transition-all duration-300 p-8 ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'}`}>
+      <main className={`flex-1 transition-all duration-300 p-4 md:p-8 ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'}`}>
         {renderContent()}
       </main>
     </div>

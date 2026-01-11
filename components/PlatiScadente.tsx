@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Plata, Sportiv, TipAbonament, Familie } from '../types';
-import { Button, Input, Select, Card } from './ui';
+import { Button, Input, Select, Card, ConfirmationModal } from './ui';
 import { EditIcon, ArrowLeftIcon, TrashIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
@@ -19,6 +19,8 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
     const [filter, setFilter] = useState({ sportiv: '', tip: '', status: 'Neachitat' });
     const [showSuccess, setShowSuccess] = useState<string|null>(null);
     const [editingPlata, setEditingPlata] = useState<Plata | null>(null);
+    const [plataToDelete, setPlataToDelete] = useState<Plata | null>(null);
+    const [deleteLoading, setDeleteLoading] = useState(false);
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const { showError } = useError();
 
@@ -77,11 +79,14 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
         else if (data) { setPlati(prev => prev.map(p => p.id === plataId ? data as Plata : p)); setEditingPlata(null); }
     };
 
-    const handleDeletePlata = async (id: string) => {
-        if(!window.confirm("Ștergeți această factură?")) return;
-        const { error } = await supabase.from('plati').delete().eq('id', id);
+    const confirmDeletePlata = async () => {
+        if(!plataToDelete || !supabase) return;
+        setDeleteLoading(true);
+        const { error } = await supabase.from('plati').delete().eq('id', plataToDelete.id);
+        setDeleteLoading(false);
         if (error) showError("Eroare la ștergere", error);
-        else setPlati(prev => prev.filter(p => p.id !== id));
+        else setPlati(prev => prev.filter(p => p.id !== plataToDelete.id));
+        setPlataToDelete(null);
     };
 
     const handleCheckboxToggle = (id: string) => {
@@ -167,7 +172,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
                                     <td className="p-4 font-bold">{plata.suma.toFixed(2)} RON</td>
                                     <td className="p-4 text-slate-400 text-sm">{new Date(plata.data).toLocaleDateString('ro-RO')}</td>
                                     <td className={`p-4 font-bold text-sm ${statusClass}`}>{plata.status}</td>
-                                    <td className="p-4 text-right w-48"><div className="flex justify-end gap-2">{plata.status !== 'Achitat' && <Button size="sm" variant="primary" onClick={() => onIncaseazaMultiple([plata])}>Încasează</Button>}<Button size="sm" variant="secondary" onClick={() => setEditingPlata(plata)}><EditIcon className="w-4 h-4" /></Button><Button size="sm" variant="danger" onClick={() => handleDeletePlata(plata.id)}><TrashIcon className="w-4 h-4" /></Button></div></td>
+                                    <td className="p-4 text-right w-48"><div className="flex justify-end gap-2">{plata.status !== 'Achitat' && <Button size="sm" variant="primary" onClick={() => onIncaseazaMultiple([plata])}>Încasează</Button>}<Button size="sm" variant="secondary" onClick={() => setEditingPlata(plata)}><EditIcon className="w-4 h-4" /></Button><Button size="sm" variant="danger" onClick={() => setPlataToDelete(plata)}><TrashIcon className="w-4 h-4" /></Button></div></td>
                                 </>
                             )}
                         </tr>
@@ -177,6 +182,14 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
             </table>
             {filteredPlati.length === 0 && <p className="p-8 text-center text-slate-400 italic">Nu există înregistrări conform filtrelor.</p>}
         </div>
+        <ConfirmationModal
+            isOpen={!!plataToDelete}
+            onClose={() => setPlataToDelete(null)}
+            onConfirm={confirmDeletePlata}
+            title="Confirmare Ștergere Factură"
+            message="Sunteți sigur că doriți să ștergeți această înregistrare? Această acțiune este ireversibilă."
+            loading={deleteLoading}
+        />
     </div>
     );
 };

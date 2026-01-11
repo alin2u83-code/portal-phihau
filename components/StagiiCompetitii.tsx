@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Eveniment, Rezultat, Sportiv, Plata, PretConfig, Participare, Examen, Grad } from '../types';
-import { Button, Modal, Input, Select, Card } from './ui';
+import { Button, Modal, Input, Select, Card, ConfirmationModal } from './ui';
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon } from './icons';
 import { getPretValabil } from '../utils/pricing';
 import { supabase } from '../supabaseClient';
@@ -51,6 +51,8 @@ interface EvenimentDetailProps { eveniment: Eveniment; rezultate: Rezultat[]; se
 const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment, rezultate, setRezultate, sportivi, setPlati, preturiConfig, participari, examene, grade }) => {
     const [sportivId, setSportivId] = useState('');
     const [showSuccess, setShowSuccess] = useState<string | null>(null);
+    const [rezultatToDelete, setRezultatToDelete] = useState<Rezultat | null>(null);
+    const [deleteLoading, setDeleteLoading] = useState(false);
 
     const sortedRezultate = useMemo(() => {
         const getGradOrder = (sportiv: Sportiv) => {
@@ -123,13 +125,15 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment, rezultate,
         if(error) { alert(`Eroare la actualizare: ${error.message}`); }
         else if (data) { setRezultate(prev => prev.map(r => r.id === rezultatId ? data as Rezultat : r)); }
     };
-    const handleDeleteRezultat = async (rezultatId: string) => { 
-        if(!supabase) return;
-        if (window.confirm("Sunteți sigur că doriți să ștergeți această înregistrare? Această acțiune este ireversibilă.")) {
-            const {error} = await supabase.from('rezultate').delete().eq('id', rezultatId);
-            if(error) { alert(`Eroare la ștergere: ${error.message}`); }
-            else { setRezultate(prev => prev.filter(r => r.id !== rezultatId)); }
-        }
+
+    const confirmDeleteRezultat = async () => { 
+        if(!supabase || !rezultatToDelete) return;
+        setDeleteLoading(true);
+        const {error} = await supabase.from('rezultate').delete().eq('id', rezultatToDelete.id);
+        setDeleteLoading(false);
+        if(error) { alert(`Eroare la ștergere: ${error.message}`); }
+        else { setRezultate(prev => prev.filter(r => r.id !== rezultatToDelete.id)); }
+        setRezultatToDelete(null);
     };
     
     const handleProbeChange = (rezultatId: string, proba: string, isChecked: boolean) => {
@@ -140,7 +144,61 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment, rezultate,
         handleUpdateRezultat(rezultatId, { probe: newProbes.join(', ') });
     };
 
-    return ( <Card> <h3 className="text-2xl font-bold text-white">{eveniment.denumire} - {formatDateRange(eveniment.data)}</h3> <p className="text-slate-400">{eveniment.locatie} (Org: {eveniment.organizator})</p> <div className="mt-6 border-t border-slate-700 pt-6"> <h4 className="text-xl font-semibold mb-4 text-white">Participanți & Rezultate</h4> <div className="space-y-2 mb-6">{sortedRezultate.map(r => { const sportiv = sportivi.find(s => s.id === r.sportiv_id); return ( <div key={r.id} className="bg-slate-700 p-3 rounded-md grid grid-cols-1 md:grid-cols-4 gap-4 items-center"> <p className="font-medium">{sportiv?.nume} {sportiv?.prenume}</p> <Input label="" value={r.rezultat} onBlur={e => handleUpdateRezultat(r.id, { rezultat: e.target.value })} onChange={e => setRezultate(prev => prev.map(res => res.id === r.id ? {...res, rezultat: e.target.value} : res))} placeholder="Ex: Locul 1, Medalie de aur" /> {eveniment.tip === 'Competitie' ? ( <div className="flex flex-wrap items-center gap-x-4 gap-y-2"> {eveniment.probe_disponibile && eveniment.probe_disponibile.length > 0 ? ( eveniment.probe_disponibile.map(proba => ( <label key={proba} className="flex items-center space-x-2 text-sm cursor-pointer"> <input type="checkbox" className="h-4 w-4 rounded border-slate-500 bg-slate-800 text-primary-600 focus:ring-primary-500" checked={r.probe?.includes(proba) || false} onChange={(e) => handleProbeChange(r.id, proba, e.target.checked)} /> <span>{proba}</span> </label> )) ) : ( <p className="text-xs text-slate-400">Nicio probă definită.</p> )} </div> ) : null} <Button onClick={() => handleDeleteRezultat(r.id)} variant="danger" size="sm" className="justify-self-end md:col-start-4"><TrashIcon /></Button> </div> ) })} {rezultate.length === 0 && <p className="text-slate-400">Niciun participant înscris.</p>} </div> <Card className="bg-slate-900/50"> <h5 className="text-lg font-semibold mb-2 text-white">Adaugă Participant</h5> <form onSubmit={handleAddParticipant} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end"> <div className="col-span-2"> <Select label="Sportiv" value={sportivId} onChange={e => setSportivId(e.target.value)}> <option value="">Selectează Sportiv</option> {sportivi.filter(s => s.status === 'Activ' && !rezultate.some(p => p.sportiv_id === s.id)).map(s => ( <option key={s.id} value={s.id}>{s.nume} {s.prenume}</option> ))} </Select> </div> <Button type="submit" variant="info">Adaugă</Button> </form> {showSuccess && <p className="text-green-400 mt-2 text-sm font-semibold">{showSuccess}</p>} </Card> </div> </Card> );
+    return ( 
+        <Card> 
+            <h3 className="text-2xl font-bold text-white">{eveniment.denumire} - {formatDateRange(eveniment.data)}</h3> 
+            <p className="text-slate-400">{eveniment.locatie} (Org: {eveniment.organizator})</p> 
+            <div className="mt-6 border-t border-slate-700 pt-6"> 
+                <h4 className="text-xl font-semibold mb-4 text-white">Participanți & Rezultate</h4> 
+                <div className="space-y-2 mb-6">
+                    {sortedRezultate.map(r => { 
+                        const sportiv = sportivi.find(s => s.id === r.sportiv_id); 
+                        return ( 
+                            <div key={r.id} className="bg-slate-700 p-3 rounded-md grid grid-cols-1 md:grid-cols-4 gap-4 items-center"> 
+                                <p className="font-medium">{sportiv?.nume} {sportiv?.prenume}</p> 
+                                <Input label="" value={r.rezultat} onBlur={e => handleUpdateRezultat(r.id, { rezultat: e.target.value })} onChange={e => setRezultate(prev => prev.map(res => res.id === r.id ? {...res, rezultat: e.target.value} : res))} placeholder="Ex: Locul 1, Medalie de aur" /> 
+                                {eveniment.tip === 'Competitie' ? ( 
+                                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2"> 
+                                        {eveniment.probe_disponibile && eveniment.probe_disponibile.length > 0 ? ( 
+                                            eveniment.probe_disponibile.map(proba => ( 
+                                                <label key={proba} className="flex items-center space-x-2 text-sm cursor-pointer"> 
+                                                    <input type="checkbox" className="h-4 w-4 rounded border-slate-500 bg-slate-800 text-primary-600 focus:ring-primary-500" checked={r.probe?.includes(proba) || false} onChange={(e) => handleProbeChange(r.id, proba, e.target.checked)} /> 
+                                                    <span>{proba}</span> 
+                                                </label> 
+                                            )) 
+                                        ) : ( <p className="text-xs text-slate-400">Nicio probă definită.</p> )} 
+                                    </div> 
+                                ) : null} 
+                                <Button onClick={() => setRezultatToDelete(r)} variant="danger" size="sm" className="justify-self-end md:col-start-4"><TrashIcon /></Button> 
+                            </div> 
+                        ) 
+                    })} 
+                    {rezultate.length === 0 && <p className="text-slate-400">Niciun participant înscris.</p>} 
+                </div> 
+                <Card className="bg-slate-900/50"> 
+                    <h5 className="text-lg font-semibold mb-2 text-white">Adaugă Participant</h5> 
+                    <form onSubmit={handleAddParticipant} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end"> 
+                        <div className="col-span-2"> 
+                            <Select label="Sportiv" value={sportivId} onChange={e => setSportivId(e.target.value)}> 
+                                <option value="">Selectează Sportiv</option> 
+                                {sportivi.filter(s => s.status === 'Activ' && !rezultate.some(p => p.sportiv_id === s.id)).map(s => ( <option key={s.id} value={s.id}>{s.nume} {s.prenume}</option> ))} 
+                            </Select> 
+                        </div> 
+                        <Button type="submit" variant="info">Adaugă</Button> 
+                    </form> 
+                    {showSuccess && <p className="text-green-400 mt-2 text-sm font-semibold">{showSuccess}</p>} 
+                </Card> 
+            </div> 
+            <ConfirmationModal
+                isOpen={!!rezultatToDelete}
+                onClose={() => setRezultatToDelete(null)}
+                onConfirm={confirmDeleteRezultat}
+                title="Confirmare Ștergere Înregistrare"
+                message="Sunteți sigur că doriți să ștergeți această înregistrare? Această acțiune este ireversibilă."
+                loading={deleteLoading}
+            />
+        </Card> 
+    );
 };
 
 interface StagiiCompetitiiProps { onBack: () => void; type: 'Stagiu' | 'Competitie'; evenimente: Eveniment[]; setEvenimente: React.Dispatch<React.SetStateAction<Eveniment[]>>; rezultate: Rezultat[]; setRezultate: React.Dispatch<React.SetStateAction<Rezultat[]>>; sportivi: Sportiv[]; setPlati: React.Dispatch<React.SetStateAction<Plata[]>>; preturiConfig: PretConfig[]; participari: Participare[]; examene: Examen[]; grade: Grad[]; }
@@ -148,6 +206,8 @@ export const StagiiCompetitiiManagement: React.FC<StagiiCompetitiiProps> = ({ on
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [evToEdit, setEvToEdit] = useState<Eveniment | null>(null);
     const [selectedEv, setSelectedEv] = useState<Eveniment | null>(null);
+    const [eventToDelete, setEventToDelete] = useState<Eveniment | null>(null);
+    const [deleteLoading, setDeleteLoading] = useState(false);
     
     const handleSave = async (evData: Omit<Eveniment, 'id'>) => {
         if (!supabase) return;
@@ -164,19 +224,28 @@ export const StagiiCompetitiiManagement: React.FC<StagiiCompetitiiProps> = ({ on
     
     const handleEdit = (ev: Eveniment) => { setEvToEdit(ev); setIsFormOpen(true); };
     
-    const handleDelete = async (evId: string) => { 
-        if (!supabase) return;
-        if (window.confirm("Sunteți sigur că doriți să ștergeți această înregistrare? Această acțiune este ireversibilă.")) {
-            const { error: deleteRezultateError } = await supabase.from('rezultate').delete().eq('eveniment_id', evId);
-            if (deleteRezultateError) { alert(`Eroare la ștergerea rezultatelor: ${deleteRezultateError.message}`); return; }
+    const confirmDelete = async () => { 
+        if (!supabase || !eventToDelete) return;
+        setDeleteLoading(true);
+        const evId = eventToDelete.id;
+        const { error: deleteRezultateError } = await supabase.from('rezultate').delete().eq('eveniment_id', evId);
+        if (deleteRezultateError) { 
+            alert(`Eroare la ștergerea rezultatelor: ${deleteRezultateError.message}`); 
+            setDeleteLoading(false);
+            setEventToDelete(null);
+            return; 
+        }
 
-            const { error: deleteEventError } = await supabase.from('evenimente').delete().eq('id', evId);
-            if (deleteEventError) { alert(`Eroare la ștergerea evenimentului: ${deleteEventError.message}`); return; }
-
+        const { error: deleteEventError } = await supabase.from('evenimente').delete().eq('id', evId);
+        setDeleteLoading(false);
+        if (deleteEventError) { 
+            alert(`Eroare la ștergerea evenimentului: ${deleteEventError.message}`); 
+        } else {
             setEvenimente(prev => prev.filter(e => e.id !== evId)); 
             setRezultate(prev => prev.filter(p => p.eveniment_id !== evId)); 
             if (selectedEv?.id === evId) setSelectedEv(null); 
         } 
+        setEventToDelete(null);
     };
 
     const filteredEvenimente = evenimente.filter(ev => ev.tip === type);
@@ -184,5 +253,14 @@ export const StagiiCompetitiiManagement: React.FC<StagiiCompetitiiProps> = ({ on
     if(selectedEv) { return ( <div> <Button onClick={() => setSelectedEv(null)} className="mb-4" variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la listă</Button> <EvenimentDetail eveniment={selectedEv} rezultate={rezultate.filter(r => r.eveniment_id === selectedEv.id)} setRezultate={setRezultate} sportivi={sportivi} setPlati={setPlati} preturiConfig={preturiConfig} participari={participari} examene={examene} grade={grade} /> </div> ); }
     const sortedEvenimente = [...filteredEvenimente].sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime());
 
-    return ( <div> <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button> <div className="flex justify-between items-center mb-6"> <h1 className="text-3xl font-bold text-white">Management {type === 'Stagiu' ? 'Stagii' : 'Competiții'}</h1> <Button onClick={() => { setEvToEdit(null); setIsFormOpen(true); }} variant="info"><PlusIcon className="w-5 h-5 mr-2" />Adaugă {type}</Button> </div> <div className="bg-slate-800 rounded-lg shadow-lg overflow-hidden"> <table className="w-full text-left"> <thead className="bg-slate-700"><tr><th className="p-4 font-semibold">Eveniment</th><th className="p-4 font-semibold">Data</th><th className="p-4 font-semibold">Participanți</th><th className="p-4 font-semibold text-right">Acțiuni</th></tr></thead> <tbody className="divide-y divide-slate-700"> {sortedEvenimente.map(ev => ( <tr key={ev.id} className="hover:bg-slate-700/50"> <td className="p-4 font-medium cursor-pointer" onClick={() => setSelectedEv(ev)}>{ev.denumire}</td> <td className="p-4 cursor-pointer" onClick={() => setSelectedEv(ev)}>{formatDateRange(ev.data)}</td> <td className="p-4">{rezultate.filter(p => p.eveniment_id === ev.id).length}</td> <td className="p-4 text-right w-32"><div className="flex items-center justify-end space-x-2"><Button onClick={() => handleEdit(ev)} variant="primary" size="sm"><EditIcon /></Button><Button onClick={() => handleDelete(ev.id)} variant="danger" size="sm"><TrashIcon /></Button></div></td> </tr> ))} </tbody> </table> {sortedEvenimente.length === 0 && <p className="p-4 text-center text-slate-400">Niciun eveniment înregistrat.</p>} </div> <EvenimentForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} onSave={handleSave} evToEdit={evToEdit} type={type} /> </div> );
+    return ( <div> <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button> <div className="flex justify-between items-center mb-6"> <h1 className="text-3xl font-bold text-white">Management {type === 'Stagiu' ? 'Stagii' : 'Competiții'}</h1> <Button onClick={() => { setEvToEdit(null); setIsFormOpen(true); }} variant="info"><PlusIcon className="w-5 h-5 mr-2" />Adaugă {type}</Button> </div> <div className="bg-slate-800 rounded-lg shadow-lg overflow-hidden"> <table className="w-full text-left"> <thead className="bg-slate-700"><tr><th className="p-4 font-semibold">Eveniment</th><th className="p-4 font-semibold">Data</th><th className="p-4 font-semibold">Participanți</th><th className="p-4 font-semibold text-right">Acțiuni</th></tr></thead> <tbody className="divide-y divide-slate-700"> {sortedEvenimente.map(ev => ( <tr key={ev.id} className="hover:bg-slate-700/50"> <td className="p-4 font-medium cursor-pointer" onClick={() => setSelectedEv(ev)}>{ev.denumire}</td> <td className="p-4 cursor-pointer" onClick={() => setSelectedEv(ev)}>{formatDateRange(ev.data)}</td> <td className="p-4">{rezultate.filter(p => p.eveniment_id === ev.id).length}</td> <td className="p-4 text-right w-32"><div className="flex items-center justify-end space-x-2"><Button onClick={() => handleEdit(ev)} variant="primary" size="sm"><EditIcon /></Button><Button onClick={() => setEventToDelete(ev)} variant="danger" size="sm"><TrashIcon /></Button></div></td> </tr> ))} </tbody> </table> {sortedEvenimente.length === 0 && <p className="p-4 text-center text-slate-400">Niciun eveniment înregistrat.</p>} </div> <EvenimentForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} onSave={handleSave} evToEdit={evToEdit} type={type} />
+    <ConfirmationModal
+        isOpen={!!eventToDelete}
+        onClose={() => setEventToDelete(null)}
+        onConfirm={confirmDelete}
+        title={`Confirmare Ștergere ${type}`}
+        message="Sunteți sigur că doriți să ștergeți această înregistrare? Această acțiune este ireversibilă."
+        loading={deleteLoading}
+    />
+     </div> );
 };

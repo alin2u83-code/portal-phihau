@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Rol } from '../types';
-import { HomeIcon, UsersIcon, TrophyIcon, ClipboardDocumentListIcon, BanknotesIcon, CalendarDaysIcon, UserCircleIcon, CogIcon } from './icons';
+import { HomeIcon, UsersIcon, TrophyIcon, ClipboardDocumentListIcon, BanknotesIcon, CalendarDaysIcon, UserCircleIcon, CogIcon, AcademicCapIcon } from './icons';
 
 export interface MenuItem {
     label: string;
@@ -28,11 +28,17 @@ export const adminMenu: MenuItem[] = [
         ]
     },
     {
-        label: 'Activități',
+        label: 'Examene & Grade',
+        icon: AcademicCapIcon,
+        submenu: [
+             { view: 'examene', label: 'Sesiuni Examen' },
+             { view: 'grade', label: 'Nomenclator Grade' },
+        ]
+    },
+    {
+        label: 'Alte Activități',
         icon: TrophyIcon,
         submenu: [
-             { view: 'examene', label: 'Configurare Examene' },
-             { view: 'grade', label: 'Nomenclator Grade' },
              { view: 'stagii', label: 'Listă Stagii' },
              { view: 'competitii', label: 'Listă Competiții' }
         ]

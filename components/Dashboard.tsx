@@ -1,10 +1,11 @@
 import React from 'react';
-import { View } from '../types';
+import { View, User } from '../types';
 import { Card } from './ui';
-import { UsersIcon, BanknotesIcon, TrophyIcon, ClipboardDocumentListIcon, AcademicCapIcon, CogIcon } from './icons';
+import { UsersIcon, BanknotesIcon, TrophyIcon, ClipboardDocumentListIcon, UserCircleIcon } from './icons';
 
 interface DashboardProps {
   onNavigate: (view: View) => void;
+  currentUser: User;
 }
 
 interface NavItem {
@@ -54,10 +55,10 @@ const navItems: NavItem[] = [
 const NavCard: React.FC<{ item: NavItem, onClick: () => void }> = ({ item, onClick }) => (
     <div 
       onClick={onClick} 
-      className="group relative transform transition-all duration-300 hover:scale-105 cursor-pointer rounded-lg shadow-md shadow-brand-primary/30 hover:shadow-lg hover:shadow-brand-secondary/40"
+      className="group relative transform transition-all duration-300 hover:scale-105 cursor-pointer"
       title={item.tooltip}
     >
-      <Card className="flex flex-col items-center justify-center text-center h-full border-slate-700 group-hover:border-brand-secondary/40 rounded-lg bg-slate-800/50 backdrop-blur-sm">
+      <Card className="flex flex-col items-center justify-center text-center h-full border-slate-700 group-hover:border-brand-secondary/40 bg-slate-800/50 backdrop-blur-sm shadow-md shadow-brand-primary/30 hover:shadow-lg hover:shadow-brand-secondary/40">
         <div className={`p-4 rounded-full ${item.color} mb-4 shadow-lg group-hover:ring-4 group-hover:ring-white/10 transition-all`}>
           <item.icon className="h-10 w-10 text-white" />
         </div>
@@ -68,7 +69,9 @@ const NavCard: React.FC<{ item: NavItem, onClick: () => void }> = ({ item, onCli
 );
 
 
-export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, currentUser }) => {
+  const isAdminOrInstructor = currentUser.roluri.some(r => r.nume === 'Admin' || r.nume === 'Instructor');
+
   return (
     <div className="max-w-7xl mx-auto">
       <h1 className="text-4xl md:text-5xl font-extrabold mb-4 text-white text-center" style={{ textShadow: '2px 2px 8px rgba(0,0,0,0.6)' }}>Clubul Phi Hau Iași</h1>
@@ -80,6 +83,22 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
           <NavCard key={item.view} item={item} onClick={() => onNavigate(item.view)} />
         ))}
       </div>
+      
+      {isAdminOrInstructor && (
+        <div className="mt-12 pt-8 border-t border-slate-700">
+            <h2 className="text-xl font-bold text-center text-slate-400 mb-6">Acces Personal</h2>
+            <div className="max-w-xs mx-auto">
+                 <NavCard item={{
+                    view: 'portal-personal',
+                    title: 'Statutul Meu ca Sportiv',
+                    description: 'Vizualizează progresul, prezența și situația ta financiară.',
+                    tooltip: 'Vezi propriul portal de sportiv',
+                    icon: UserCircleIcon,
+                    color: 'bg-status-success'
+                 }} onClick={() => onNavigate('portal-personal')} />
+            </div>
+        </div>
+      )}
     </div>
   );
 };

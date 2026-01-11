@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { PretConfig, Sportiv } from '../types';
-import { Button, Modal, Input, Select, Card } from './ui';
+import { Button, Modal, Input, Select, Card, ConfirmationModal } from './ui';
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon } from './icons';
 import { getPretProdus } from '../utils/pricing';
 import { supabase } from '../supabaseClient';
@@ -49,6 +49,8 @@ interface ConfigurarePreturiProps { preturi: PretConfig[]; setPreturi: React.Dis
 export const ConfigurarePreturi: React.FC<ConfigurarePreturiProps> = ({ preturi, setPreturi, onBack, sportivi }) => {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [pretToEdit, setPretToEdit] = useState<PretConfig | null>(null);
+    const [pretToDelete, setPretToDelete] = useState<PretConfig | null>(null);
+    const [deleteLoading, setDeleteLoading] = useState(false);
 
     const [checkerSportivId, setCheckerSportivId] = useState('');
     const [checkerEchipament, setCheckerEchipament] = useState('');
@@ -67,13 +69,15 @@ export const ConfigurarePreturi: React.FC<ConfigurarePreturiProps> = ({ preturi,
         }
     };
     const handleEdit = (pret: PretConfig) => { setPretToEdit(pret); setIsFormOpen(true); };
-    const handleDelete = async (id: string) => { 
-        if(!supabase) return;
-        if (window.confirm("Sunteți sigur că doriți să ștergeți această înregistrare? Această acțiune este ireversibilă.")) { 
-            const { error } = await supabase.from('preturi_config').delete().eq('id', id);
-            if(error) { alert(`Eroare la ștergere: ${error.message}`); }
-            else { setPreturi(prev => prev.filter(p => p.id !== id)); }
-        } 
+    
+    const confirmDelete = async () => { 
+        if(!supabase || !pretToDelete) return;
+        setDeleteLoading(true);
+        const { error } = await supabase.from('preturi_config').delete().eq('id', pretToDelete.id);
+        setDeleteLoading(false);
+        if(error) { alert(`Eroare la ștergere: ${error.message}`); }
+        else { setPreturi(prev => prev.filter(p => p.id !== pretToDelete.id)); }
+        setPretToDelete(null);
     };
 
     const sortedPreturi = [...preturi].sort((a, b) => {
@@ -147,5 +151,14 @@ export const ConfigurarePreturi: React.FC<ConfigurarePreturiProps> = ({ preturi,
                 </div>
             </div>
         </Card>
-    <div className="flex justify-between items-center mb-6"> <h1 className="text-3xl font-bold text-white">Configurare Prețuri (Taxe, Echipamente, etc.)</h1> <Button onClick={() => { setPretToEdit(null); setIsFormOpen(true); }} variant="info"><PlusIcon className="w-5 h-5 mr-2" />Adaugă Preț</Button> </div> <div className="bg-slate-800 rounded-lg shadow-lg overflow-x-auto"> <table className="w-full text-left min-w-[800px]"> <thead className="bg-slate-700"><tr><th className="p-4 font-semibold">Denumire Serviciu</th><th className="p-4 font-semibold">Categorie</th><th className="p-4 font-semibold">Specificații (Mărime/Înălțime)</th><th className="p-4 font-semibold">Sumă</th><th className="p-4 font-semibold">Valabil De La</th><th className="p-4 font-semibold text-right">Acțiuni</th></tr></thead> <tbody className="divide-y divide-slate-700"> {sortedPreturi.map(pret => ( <tr key={pret.id}> <td className="p-4 font-medium">{pret.denumire_serviciu}</td> <td className="p-4"><span className="px-2 py-1 text-xs font-semibold rounded-full bg-slate-600">{pret.categorie}</span></td> <td className="p-4">{formatSpecificatii(pret.specificatii)}</td> <td className="p-4 font-bold">{pret.suma.toFixed(2)} RON</td> <td className="p-4">{new Date(pret.valabil_de_la_data).toLocaleDateString('ro-RO')}</td> <td className="p-4 text-right w-32"><div className="flex items-center justify-end space-x-2"><Button onClick={() => handleEdit(pret)} variant="primary" size="sm"><EditIcon /></Button><Button onClick={() => handleDelete(pret.id)} variant="danger" size="sm"><TrashIcon /></Button></div></td> </tr> ))} </tbody> </table> {sortedPreturi.length === 0 && <p className="p-4 text-center text-slate-400">Niciun preț configurat.</p>} </div> <PretForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} onSave={handleSave} pretToEdit={pretToEdit} /> </div> );
+    <div className="flex justify-between items-center mb-6"> <h1 className="text-3xl font-bold text-white">Configurare Prețuri (Taxe, Echipamente, etc.)</h1> <Button onClick={() => { setPretToEdit(null); setIsFormOpen(true); }} variant="info"><PlusIcon className="w-5 h-5 mr-2" />Adaugă Preț</Button> </div> <div className="bg-slate-800 rounded-lg shadow-lg overflow-x-auto"> <table className="w-full text-left min-w-[800px]"> <thead className="bg-slate-700"><tr><th className="p-4 font-semibold">Denumire Serviciu</th><th className="p-4 font-semibold">Categorie</th><th className="p-4 font-semibold">Specificații (Mărime/Înălțime)</th><th className="p-4 font-semibold">Sumă</th><th className="p-4 font-semibold">Valabil De La</th><th className="p-4 font-semibold text-right">Acțiuni</th></tr></thead> <tbody className="divide-y divide-slate-700"> {sortedPreturi.map(pret => ( <tr key={pret.id}> <td className="p-4 font-medium">{pret.denumire_serviciu}</td> <td className="p-4"><span className="px-2 py-1 text-xs font-semibold rounded-full bg-slate-600">{pret.categorie}</span></td> <td className="p-4">{formatSpecificatii(pret.specificatii)}</td> <td className="p-4 font-bold">{pret.suma.toFixed(2)} RON</td> <td className="p-4">{new Date(pret.valabil_de_la_data).toLocaleDateString('ro-RO')}</td> <td className="p-4 text-right w-32"><div className="flex items-center justify-end space-x-2"><Button onClick={() => handleEdit(pret)} variant="primary" size="sm"><EditIcon /></Button><Button onClick={() => setPretToDelete(pret)} variant="danger" size="sm"><TrashIcon /></Button></div></td> </tr> ))} </tbody> </table> {sortedPreturi.length === 0 && <p className="p-4 text-center text-slate-400">Niciun preț configurat.</p>} </div> <PretForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} onSave={handleSave} pretToEdit={pretToEdit} />
+    <ConfirmationModal
+        isOpen={!!pretToDelete}
+        onClose={() => setPretToDelete(null)}
+        onConfirm={confirmDelete}
+        title="Confirmare Ștergere Preț"
+        message="Sunteți sigur că doriți să ștergeți această înregistrare? Această acțiune este ireversibilă."
+        loading={deleteLoading}
+    />
+    </div> );
 };

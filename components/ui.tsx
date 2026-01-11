@@ -95,3 +95,47 @@ export const Select: React.FC<SelectProps> = ({ label, id, children, ...props })
         </select>
     </div>
 );
+
+interface ConfirmationModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  title: string;
+  message: string;
+  confirmText?: string;
+  cancelText?: string;
+  loading?: boolean;
+}
+
+export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  title,
+  message,
+  confirmText = "Șterge",
+  cancelText = "Anulează",
+  loading = false,
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-slate-800 rounded-lg shadow-xl w-full max-w-md max-h-[90vh] flex flex-col border border-red-700/50" onClick={(e) => e.stopPropagation()}>
+        <div className="flex justify-between items-center p-4 border-b border-slate-700">
+          <h2 className="text-xl font-bold text-white">{title}</h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-white">
+            <XIcon />
+          </button>
+        </div>
+        <div className="p-6">
+          <p className="text-slate-300">{message}</p>
+        </div>
+        <div className="flex justify-end items-center p-4 bg-slate-900/50 rounded-b-lg space-x-2">
+          <Button variant="secondary" onClick={onClose} disabled={loading}>{cancelText}</Button>
+          <Button variant="danger" onClick={onConfirm} disabled={loading}>{loading ? 'Se șterge...' : confirmText}</Button>
+        </div>
+      </div>
+    </div>
+  );
+};

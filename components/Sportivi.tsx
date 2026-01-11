@@ -1,9 +1,19 @@
 import React, { useState, useMemo } from 'react';
 import { Sportiv, Grupa, TipAbonament, Familie, Rol } from '../types';
-import { Button, Modal, Input, Select, Card } from './ui';
+import { Button, Modal, Input, Select, Card, ConfirmationModal } from './ui';
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon, ShieldCheckIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
+
+const getAge = (dateString: string) => { 
+    if (!dateString) return null;
+    const today = new Date(); 
+    const birthDate = new Date(dateString); 
+    let age = today.getFullYear() - birthDate.getFullYear(); 
+    const m = today.getMonth() - birthDate.getMonth(); 
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; } 
+    return age; 
+};
 
 // --- Small Modals for Quick Adds ---
 const QuickAddModal: React.FC<{ title: string; label: string; isOpen: boolean; onClose: () => void; onSave: (name: string) => Promise<{ id: string, nume: string } | null>; }> = ({ title, label, isOpen, onClose, onSave }) => {
@@ -361,6 +371,8 @@ interface SportiviManagementProps {
 export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, sportivi, setSportivi, grupe, setGrupe, tipuriAbonament, setTipuriAbonament, familii, setFamilii, customFields, allRoles }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sportivToEdit, setSportivToEdit] = useState<Sportiv | null>(null);
+  const [sportivToDelete, setSportivToDelete] = useState<Sportiv | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [successToast, setSuccessToast] = useState<string | null>(null);
   const { showError } = useError();
   
@@ -477,17 +489,19 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
     return {success: true};
   };
 
-  const handleDeleteSportiv = async (sportiv: Sportiv) => {
-      if (!supabase) return;
+  const handleDeleteSportiv = async () => {
+      if (!supabase || !sportivToDelete) return;
       
-      if (window.confirm("Sunteți sigur că doriți să ștergeți această înregistrare? Această acțiune este ireversibilă.")) {
-          const { error } = await supabase.from('sportivi').delete().eq('id', sportiv.id);
-          if (error) {
-              showError("Eroare la ștergere", error);
-          } else {
-              setSportivi(prev => prev.filter(s => s.id !== sportiv.id));
-          }
+      setDeleteLoading(true);
+      const { error } = await supabase.from('sportivi').delete().eq('id', sportivToDelete.id);
+      setDeleteLoading(false);
+
+      if (error) {
+          showError("Eroare la ștergere", error);
+      } else {
+          setSportivi(prev => prev.filter(s => s.id !== sportivToDelete.id));
       }
+      setSportivToDelete(null);
   };
 
   const handleOpenAdd = () => { setSportivToEdit(null); setIsModalOpen(true); };
@@ -526,35 +540,51 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
 
         <Card className="overflow-hidden p-0">
             <div className="overflow-x-auto">
-                <table className="w-full text-left min-w-[800px]">
-                    <thead className="bg-slate-700/50">
+                <table className="w-full text-left min-w-[1600px]">
+                    <thead className="bg-slate-700/50 text-xs uppercase">
                         <tr>
-                            <th className="p-4 text-sm font-semibold text-white">Nume</th>
-                            <th className="p-4 text-sm font-semibold text-white">Grupă</th>
-                            <th className="p-4 text-sm font-semibold text-white">Statut</th>
-                            <th className="p-4 text-sm font-semibold text-white">Roluri</th>
-                            {customFields.map(field => <th key={field} className="p-4 text-sm font-semibold text-white">{field}</th>)}
-                            <th className="p-4 text-right text-sm font-semibold text-white">Acțiuni</th>
+                            <th className="p-3 font-semibold">Nume</th>
+                            <th className="p-3 font-semibold">Vârstă</th>
+                            <th className="p-3 font-semibold">Grupă</th>
+                            <th className="p-3 font-semibold">Familie</th>
+                            <th className="p-3 font-semibold">Statut</th>
+                            <th className="p-3 font-semibold">Roluri</th>
+                            <th className="p-3 font-semibold">Contact</th>
+                            <th className="p-3 font-semibold">Înscris la</th>
+                            <th className="p-3 font-semibold">Club</th>
+                            <th className="p-3 font-semibold">Vacanță</th>
+                            <th className="p-3 font-semibold">Înălțime</th>
+                            <th className="p-3 font-semibold">CNP</th>
+                            {customFields.map(field => <th key={field} className="p-3 font-semibold">{field}</th>)}
+                            <th className="p-3 text-right font-semibold">Acțiuni</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-700">
                         {filteredSportivi.map(sportiv => (
                             <tr key={sportiv.id} className="hover:bg-slate-700/50">
-                                <td className="p-4 font-bold">{sportiv.nume} {sportiv.prenume}</td>
-                                <td className="p-4 text-slate-300">{grupe.find(g => g.id === sportiv.grupa_id)?.denumire || '-'}</td>
-                                <td className="p-4">
+                                <td className="p-2 font-bold whitespace-nowrap">{sportiv.nume} {sportiv.prenume}</td>
+                                <td className="p-2 text-slate-300">{getAge(sportiv.data_nasterii)} ani</td>
+                                <td className="p-2 text-slate-300">{grupe.find(g => g.id === sportiv.grupa_id)?.denumire || '-'}</td>
+                                <td className="p-2 text-slate-300">{familii.find(f => f.id === sportiv.familie_id)?.nume || 'Individual'}</td>
+                                <td className="p-2">
                                     <span className={`px-2 py-1 text-xs rounded-full font-bold uppercase ${sportiv.status === 'Activ' ? 'text-green-300 bg-green-600/20' : 'text-red-300 bg-red-600/20'}`}>{sportiv.status}</span>
                                 </td>
-                                <td className="p-4">
+                                <td className="p-2">
                                     <div className="flex flex-wrap gap-1">
                                         {sportiv.roluri.map(r => <RoleBadge key={r.id} role={r} />)}
                                     </div>
                                 </td>
-                                {customFields.map(field => <td key={field} className="p-4 text-slate-300">{sportiv[field] || '-'}</td>)}
-                                <td className="p-4 text-right w-32">
+                                <td className="p-2 text-slate-300 text-sm truncate max-w-xs">{sportiv.email || sportiv.username || '-'}</td>
+                                <td className="p-2 text-slate-300">{new Date(sportiv.data_inscrierii).toLocaleDateString('ro-RO')}</td>
+                                <td className="p-2 text-slate-300">{sportiv.club_provenienta}</td>
+                                <td className="p-2 text-slate-300">{sportiv.participa_vacanta ? 'Da' : 'Nu'}</td>
+                                <td className="p-2 text-slate-300">{sportiv.inaltime ? `${sportiv.inaltime} cm` : '-'}</td>
+                                <td className="p-2 text-slate-300">{sportiv.cnp || '-'}</td>
+                                {customFields.map(field => <td key={field} className="p-2 text-slate-300">{sportiv[field] || '-'}</td>)}
+                                <td className="p-2 text-right w-32">
                                     <div className="flex justify-end gap-2">
                                         <Button size="sm" variant="secondary" onClick={() => handleOpenEdit(sportiv)} title="Editează profil"><EditIcon /></Button>
-                                        <Button size="sm" variant="danger" onClick={() => handleDeleteSportiv(sportiv)} title="Șterge profil"><TrashIcon /></Button>
+                                        <Button size="sm" variant="danger" onClick={() => setSportivToDelete(sportiv)} title="Șterge profil"><TrashIcon /></Button>
                                     </div>
                                 </td>
                             </tr>
@@ -575,6 +605,15 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
             tipuriAbonament={tipuriAbonament} setTipuriAbonament={setTipuriAbonament}
             customFields={customFields}
             showSuccessToast={showSuccessToast}
+        />
+
+        <ConfirmationModal
+            isOpen={!!sportivToDelete}
+            onClose={() => setSportivToDelete(null)}
+            onConfirm={handleDeleteSportiv}
+            title={`Confirmare Ștergere`}
+            message="Sunteți sigur că doriți să ștergeți această înregistrare? Această acțiune este ireversibilă."
+            loading={deleteLoading}
         />
     </div>
   );

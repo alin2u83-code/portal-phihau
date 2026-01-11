@@ -237,9 +237,45 @@ function App() {
     }
 
     switch (activeView) {
-      case 'dashboard': return <Dashboard onNavigate={setActiveView} />;
+      case 'dashboard': return <Dashboard onNavigate={setActiveView} currentUser={currentUser} />;
+      case 'portal-personal': 
+        return <PortalSportiv 
+            currentUser={currentUser}
+            viewedUser={currentUser}
+            onSwitchView={() => {}}
+            participari={participari}
+            examene={examene}
+            grade={grade}
+            grupe={grupe}
+            plati={plati}
+            setPlati={setPlati}
+            evenimente={evenimente}
+            rezultate={rezultate}
+            setRezultate={setRezultate}
+            preturiConfig={preturiConfig}
+            onNavigateToEditProfil={() => setActiveView('editare-profil-personal')}
+            onNavigateToEvenimenteleMele={() => setActiveView('evenimentele-mele')}
+            sportivi={sportivi}
+            familii={familii}
+            onNavigateToDashboard={() => setActiveView('dashboard')}
+        />;
+      case 'editare-profil-personal':
+        return <EditareProfilPersonal 
+            user={currentUser} 
+            setSportivi={setSportivi} 
+            setCurrentUser={setCurrentUser} 
+            onBack={() => setActiveView('portal-personal')}
+        />;
+      case 'evenimentele-mele':
+        return <EvenimenteleMele
+          viewedUser={currentUser}
+          evenimente={evenimente}
+          rezultate={rezultate}
+          setRezultate={setRezultate}
+          onBack={() => setActiveView('portal-personal')}
+        />
       case 'sportivi': return <SportiviManagement sportivi={sportivi} setSportivi={setSportivi} grupe={grupe} setGrupe={setGrupe} tipuriAbonament={tipuriAbonament} setTipuriAbonament={setTipuriAbonament} familii={familii} setFamilii={setFamilii} customFields={customFields} setCustomFields={setCustomFields} allRoles={allRoles} onBack={() => setActiveView('dashboard')} />;
-      case 'examene': return <ExameneManagement examene={examene} setExamene={setExamene} participari={participari} setParticipari={setParticipari} sportivi={sportivi} grade={grade} setPlati={setPlati} preturi={preturiConfig} onBack={() => setActiveView('dashboard')} />;
+      case 'examene': return <ExameneManagement examene={examene} setExamene={setExamene} participari={participari} setParticipari={setParticipari} sportivi={sportivi} grade={grade} onBack={() => setActiveView('dashboard')} />;
       case 'grade': return <GradeManagement grade={grade} setGrade={setGrade} onBack={() => setActiveView('dashboard')} />;
       case 'prezenta': return <ActivitatiManagement sportivi={sportivi} grupe={grupe} onBack={() => setActiveView('dashboard')} />;
       case 'grupe': return <GrupeManagement grupe={grupe} setGrupe={setGrupe} onBack={() => setActiveView('dashboard')} />;
@@ -252,7 +288,7 @@ function App() {
       case 'raport-financiar': return <RaportFinanciar plati={plati} sportivi={sportivi} familii={familii} tranzactii={tranzactii} onBack={() => setActiveView('dashboard')} />;
       case 'familii': return <FamiliiManagement familii={familii} setFamilii={setFamilii} onBack={() => setActiveView('dashboard')} />;
       case 'user-management': return <UserManagement sportivi={sportivi} setSportivi={setSportivi} currentUser={currentUser} setCurrentUser={setCurrentUser} allRoles={allRoles} setAllRoles={setAllRoles} onBack={() => setActiveView('dashboard')} />;
-      default: return <Dashboard onNavigate={setActiveView} />;
+      default: return <Dashboard onNavigate={setActiveView} currentUser={currentUser} />;
     }
   };
 

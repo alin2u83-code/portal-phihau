@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Prezenta, Sportiv, Grupa, ProgramItem } from '../types';
-import { Button, Card, Input, Select, Modal } from './ui';
+import { Button, Card, Input, Select, Modal, ConfirmationModal } from './ui';
 import { PlusIcon, ArrowLeftIcon, TrashIcon, XIcon, RefreshCwIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
@@ -250,12 +250,6 @@ const AntrenamentAstaziCard: React.FC<{
         live: 'border-red-500 animate-pulse-border',
         finished: 'border-slate-700 opacity-70',
     };
-
-    const statusText = {
-        upcoming: 'Urmează',
-        live: 'LIVE',
-        finished: 'Finalizat',
-    };
     
     const buttonText = status === 'finished' ? 'Verifică Prezența' : 'Prezență';
 
@@ -284,6 +278,42 @@ const AntrenamentAstaziCard: React.FC<{
     );
 };
 
+const DeleteTrainingModal: React.FC<{
+  antrenament: Prezenta | null;
+  onClose: () => void;
+  onDelete: (scope: 'single' | 'series') => void;
+  loading: boolean;
+}> = ({ antrenament, onClose, onDelete, loading }) => {
+  if (!antrenament) return null;
+
+  const isRecurent = antrenament.is_recurent && antrenament.recurent_group_id;
+
+  return (
+    <Modal isOpen={!!antrenament} onClose={onClose} title="Confirmare Ștergere Antrenament">
+      <div className="space-y-4">
+        <p className="text-slate-300">
+          {isRecurent
+            ? "Acesta este un antrenament recurent. Doriți să ștergeți întreaga serie sau doar această instanță?"
+            : "Sunteți sigur că doriți să ștergeți acest antrenament? Această acțiune este ireversibilă."
+          }
+        </p>
+        <div className="flex justify-end gap-2 pt-4 border-t border-slate-700">
+          <Button variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button>
+          <Button variant="danger" onClick={() => onDelete('single')} disabled={loading}>
+            {loading ? 'Se șterge...' : 'Șterge Doar Acesta'}
+          </Button>
+          {isRecurent && (
+            <Button variant="danger" onClick={() => onDelete('series')} disabled={loading}>
+              {loading ? 'Se șterge...' : 'Șterge Întreaga Serie'}
+            </Button>
+          )}
+        </div>
+      </div>
+    </Modal>
+  );
+};
+
+
 export const ActivitatiManagement: React.FC<{
     sportivi: Sportiv[];
     grupe: Grupa[];
@@ -293,6 +323,8 @@ export const ActivitatiManagement: React.FC<{
     const [antrenamente, setAntrenamente] = useState<Prezenta[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedAntrenament, setSelectedAntrenament] = useState<Prezenta | null>(null);
+    const [antrenamentToDelete, setAntrenamentToDelete] = useState<Prezenta | null>(null);
+    const [deleteLoading, setDeleteLoading] = useState(false);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const { showError } = useError();
     const [filters, setFilters] = useState({ luna: '', grupa: '', tip: '' });
@@ -329,28 +361,25 @@ export const ActivitatiManagement: React.FC<{
         fetchData();
     }, [fetchData]);
 
-    const handleDeleteAntrenament = async (antrenament: Prezenta) => {
-        const confirmText = antrenament.is_recurent
-            ? "Acesta este un antrenament recurent. Doriți să ștergeți întreaga serie de antrenamente sau doar această instanță?"
-            : "Sunteți sigur că doriți să ștergeți acest antrenament? Vor fi șterse și toate datele de prezență asociate.";
-        
-        const userChoice = window.prompt(confirmText + "\n\nScrieți 'SERIE' pentru a șterge tot grupul recurent, 'DOAR ACESTA' pentru a șterge o singură dată, sau anulați.", antrenament.is_recurent ? "" : "DOAR ACESTA");
+    const handleDeleteAntrenament = async (scope: 'single' | 'series') => {
+        if (!antrenamentToDelete || !supabase) return;
 
-        if (userChoice === null) return; // User cancelled
-
+        setDeleteLoading(true);
         let query = supabase.from('program_antrenamente').delete();
 
-        if (userChoice.toUpperCase() === 'SERIE' && antrenament.recurent_group_id) {
-            query = query.eq('recurent_group_id', antrenament.recurent_group_id);
-        } else if (userChoice.toUpperCase() === 'DOAR ACESTA') {
-            query = query.eq('id', antrenament.id);
+        if (scope === 'series' && antrenamentToDelete.recurent_group_id) {
+            query = query.eq('recurent_group_id', antrenamentToDelete.recurent_group_id);
         } else {
-            return; // Invalid input
+            query = query.eq('id', antrenamentToDelete.id);
         }
 
         const { error } = await query;
+        setDeleteLoading(false);
         if (error) { showError("Eroare la ștergere", error); } 
-        else { fetchData(); }
+        else { 
+            fetchData(); 
+            setAntrenamentToDelete(null);
+        }
     };
 
     const getStatus = (antrenament: Prezenta, now: Date): 'upcoming' | 'live' | 'finished' => {
@@ -459,7 +488,7 @@ export const ActivitatiManagement: React.FC<{
                                         <td className="p-4 text-right">
                                             <div className="flex items-center justify-end space-x-2">
                                                 <Button onClick={() => setSelectedAntrenament(a)} variant="primary">Prezență</Button>
-                                                <Button onClick={() => handleDeleteAntrenament(a)} variant="danger" size="sm" title="Șterge antrenamentul"><TrashIcon /></Button>
+                                                <Button onClick={() => setAntrenamentToDelete(a)} variant="danger" size="sm" title="Șterge antrenamentul"><TrashIcon /></Button>
                                             </div>
                                         </td>
                                     </tr>
@@ -475,6 +504,12 @@ export const ActivitatiManagement: React.FC<{
                 onClose={() => setIsFormOpen(false)} 
                 onSave={fetchData}
                 grupe={grupe}
+            />
+            <DeleteTrainingModal
+                antrenament={antrenamentToDelete}
+                onClose={() => setAntrenamentToDelete(null)}
+                onDelete={handleDeleteAntrenament}
+                loading={deleteLoading}
             />
         </div>
     );

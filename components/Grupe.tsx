@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Grupa, ProgramItem } from '../types';
-import { Button, Modal, Input, Select } from './ui';
+import { Button, Modal, Input, Select, ConfirmationModal } from './ui';
 import { PlusIcon, TrashIcon, EditIcon, ArrowLeftIcon } from './icons';
 import { supabase } from '../supabaseClient';
 
@@ -111,6 +111,8 @@ interface GrupeManagementProps { grupe: Grupa[]; setGrupe: React.Dispatch<React.
 export const GrupeManagement: React.FC<GrupeManagementProps> = ({ grupe, setGrupe, onBack }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [grupaToEdit, setGrupaToEdit] = useState<Grupa | null>(null);
+  const [grupaToDelete, setGrupaToDelete] = useState<Grupa | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   
   const handleSave = async (grupaData: Grupa) => {
       if (!supabase) return;
@@ -150,19 +152,27 @@ export const GrupeManagement: React.FC<GrupeManagementProps> = ({ grupe, setGrup
   const handleOpenAdd = () => { setGrupaToEdit(null); setIsModalOpen(true); };
   const handleOpenEdit = (grupa: Grupa) => { setGrupaToEdit(grupa); setIsModalOpen(true); };
 
-  const handleDelete = async (grupaId: string) => {
-    if (!supabase) return;
-    if (window.confirm("Sunteți sigur că doriți să ștergeți această înregistrare? Această acțiune este ireversibilă.")) {
-        // Șterge întâi programul asociat (foreign key constraint)
-        const { error: programError } = await supabase.from('program_antrenamente').delete().eq('grupa_id', grupaId);
-        if (programError) { alert(`Eroare la ștergerea programului asociat: ${programError.message}`); return; }
-        
-        // Apoi șterge grupa
-        const { error: grupaError } = await supabase.from('grupe').delete().eq('id', grupaId);
-        if (grupaError) { alert(`Eroare la ștergerea grupei: ${grupaError.message}`); return; }
-        
-        setGrupe(prev => prev.filter(g => g.id !== grupaId));
+  const confirmDelete = async () => {
+    if (!supabase || !grupaToDelete) return;
+    setDeleteLoading(true);
+    // Șterge întâi programul asociat (foreign key constraint)
+    const { error: programError } = await supabase.from('program_antrenamente').delete().eq('grupa_id', grupaToDelete.id);
+    if (programError) { 
+        alert(`Eroare la ștergerea programului asociat: ${programError.message}`); 
+        setDeleteLoading(false);
+        setGrupaToDelete(null);
+        return; 
     }
+    
+    // Apoi șterge grupa
+    const { error: grupaError } = await supabase.from('grupe').delete().eq('id', grupaToDelete.id);
+    if (grupaError) { 
+        alert(`Eroare la ștergerea grupei: ${grupaError.message}`); 
+    } else {
+        setGrupe(prev => prev.filter(g => g.id !== grupaToDelete.id));
+    }
+    setDeleteLoading(false);
+    setGrupaToDelete(null);
   };
 
   return (
@@ -188,7 +198,7 @@ export const GrupeManagement: React.FC<GrupeManagementProps> = ({ grupe, setGrup
                 <td className="p-2 text-right w-32">
                     <div className="flex justify-end gap-2">
                         <Button onClick={() => handleOpenEdit(grupa)} variant="primary" size="sm"><EditIcon /></Button>
-                        <Button onClick={() => handleDelete(grupa.id)} variant="danger" size="sm"><TrashIcon /></Button>
+                        <Button onClick={() => setGrupaToDelete(grupa)} variant="danger" size="sm"><TrashIcon /></Button>
                     </div>
                 </td>
               </tr>
@@ -198,6 +208,14 @@ export const GrupeManagement: React.FC<GrupeManagementProps> = ({ grupe, setGrup
         {grupe.length === 0 && <p className="p-4 text-center text-slate-400">Nicio grupă definită.</p>}
       </div>
       <GrupaFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSave} grupaToEdit={grupaToEdit} />
+      <ConfirmationModal
+        isOpen={!!grupaToDelete}
+        onClose={() => setGrupaToDelete(null)}
+        onConfirm={confirmDelete}
+        title="Confirmare Ștergere Grupă"
+        message="Sunteți sigur că doriți să ștergeți această înregistrare? Această acțiune este ireversibilă."
+        loading={deleteLoading}
+      />
     </div>
   );
 };

@@ -45,7 +45,7 @@ function App() {
   const [customFields, setCustomFields] = useState<string[]>([]);
 
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
-  const [activeView, setActiveView] = useState<View>('dashboard');
+  const [activeView, setActiveView] = useState<View>('grupe');
   const [selectedPlatiForIncasare, setSelectedPlatiForIncasare] = useState<Plata[]>([]);
 
   // NOTE: This is a simplified fetch for a user without admin rights.

@@ -203,7 +203,7 @@ export const PortalSportiv: React.FC<PortalSportivProps> = ({ currentUser, viewe
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                  <div 
                     onClick={onNavigateToEvenimenteleMele}
-                    className="group bg-slate-800/50 backdrop-blur-sm p-6 rounded-lg border border-slate-700 hover:border-brand-secondary cursor-pointer transition-all duration-300 flex items-center gap-6"
+                    className="group bg-slate-800/50 backdrop-blur-sm p-6 rounded-lg border border-slate-700 hover:border-brand-secondary cursor-pointer transition-all duration-300 flex items-center gap-6 shadow-lg shadow-brand-primary/30 hover:shadow-brand-secondary/40"
                 >
                     <div className="p-3 bg-brand-secondary/10 rounded-full group-hover:bg-brand-secondary/20 transition-colors">
                         <CalendarDaysIcon className="w-8 h-8 text-brand-secondary" />
@@ -217,7 +217,7 @@ export const PortalSportiv: React.FC<PortalSportivProps> = ({ currentUser, viewe
                 {isViewingOwnProfile && (
                      <div 
                         onClick={onNavigateToEditProfil}
-                        className="group bg-slate-800/50 backdrop-blur-sm p-6 rounded-lg border border-slate-700 hover:border-status-warning cursor-pointer transition-all duration-300 flex items-center gap-6"
+                        className="group bg-slate-800/50 backdrop-blur-sm p-6 rounded-lg border border-slate-700 hover:border-status-warning cursor-pointer transition-all duration-300 flex items-center gap-6 shadow-lg shadow-brand-primary/30 hover:shadow-status-warning/40"
                     >
                         <div className="p-3 bg-status-warning/10 rounded-full group-hover:bg-status-warning/20 transition-colors">
                             <ShieldCheckIcon className="w-8 h-8 text-status-warning" />

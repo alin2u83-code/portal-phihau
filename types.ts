@@ -56,14 +56,15 @@ export interface ProgramItem {
     ora_sfarsit: string;
 }
 
+// Interfața a fost rescrisă pentru a corespunde noului tabel `program_antrenamente`
 export interface Prezenta {
-  id: number;
-  data: string;
-  ora: string;
+  id: string; // Acum este UUID
   grupa_id: string | null;
-  sportivi_prezenti_ids: string[];
-  tip: 'Normal' | 'Vacanta';
-  recurring_event_id?: string | null; // ID pentru a grupa antrenamentele recurente
+  data_antrenament: string;
+  ora_inceput: string;
+  is_recurent: boolean;
+  recurent_group_id: string | null;
+  sportivi_prezenti_ids: string[]; // Rămâne pentru starea din UI
 }
 
 export interface Grupa {

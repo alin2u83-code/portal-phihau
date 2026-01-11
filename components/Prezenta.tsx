@@ -1,32 +1,27 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Prezenta, Sportiv, Grupa } from '../types';
 import { Button, Card, Input, Select, Modal } from './ui';
-import { PlusIcon, ArrowLeftIcon, TrashIcon, EditIcon, XIcon, RefreshCwIcon } from './icons';
+import { PlusIcon, ArrowLeftIcon, TrashIcon, XIcon, RefreshCwIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 
-// --- Sub-componente ---
 type DayOfWeek = 'Luni' | 'Marți' | 'Miercuri' | 'Joi' | 'Vineri' | 'Sâmbătă' | 'Duminică';
 const daysOfWeek: DayOfWeek[] = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'];
 
 const AntrenamentForm: React.FC<{
     isOpen: boolean;
     onClose: () => void;
-    onSave: (data: Omit<Prezenta, 'id' | 'sportivi_prezenti_ids'>, recurrence?: any) => Promise<void>;
-    antrenamentToEdit: Prezenta | null;
+    onSave: () => Promise<void>;
     grupe: Grupa[];
-}> = ({ isOpen, onClose, onSave, antrenamentToEdit, grupe }) => {
+}> = ({ isOpen, onClose, onSave, grupe }) => {
     
     const getInitialState = () => ({
-        data: antrenamentToEdit?.data || new Date().toISOString().split('T')[0],
-        ora: antrenamentToEdit?.ora || '18:00',
-        grupa_id: antrenamentToEdit?.grupa_id || null,
-        tip: antrenamentToEdit?.tip || 'Normal',
-        isRecurent: false,
+        grupa_id: grupe[0]?.id || '',
+        ora_inceput: '18:00',
+        is_recurent: false,
         zileSaptamana: new Set<DayOfWeek>(),
-        dataStart: new Date().toISOString().split('T')[0],
-        dataSfarsit: new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString().split('T')[0],
-        interval: 1, // 1 = Săptămânal, 2 = La 2 săptămâni
+        data_start: new Date().toISOString().split('T')[0],
+        data_sfarsit: new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString().split('T')[0],
     });
     
     const [formState, setFormState] = useState(getInitialState());
@@ -38,106 +33,115 @@ const AntrenamentForm: React.FC<{
             setFormState(getInitialState());
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isOpen, antrenamentToEdit]);
+    }, [isOpen]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
-         if (type === 'checkbox') {
+        if (type === 'checkbox') {
             const { checked } = e.target as HTMLInputElement;
             setFormState(prev => ({ ...prev, [name]: checked }));
         } else {
-            setFormState(prev => ({ ...prev, [name]: value === '' ? null : value }));
+            setFormState(prev => ({ ...prev, [name]: value }));
         }
     };
     
     const toggleDay = (day: DayOfWeek) => {
         setFormState(prev => {
             const newDays = new Set(prev.zileSaptamana);
-            if (newDays.has(day)) {
-                newDays.delete(day);
-            } else {
-                newDays.add(day);
-            }
+            newDays.has(day) ? newDays.delete(day) : newDays.add(day);
             return { ...prev, zileSaptamana: newDays };
         });
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (formState.tip === 'Normal' && !formState.grupa_id) {
-            showError("Date incomplete", "Vă rugăm selectați grupa pentru un antrenament normal.");
+        if (!formState.grupa_id) {
+            showError("Grupă lipsă", "Vă rugăm selectați o grupă.");
             return;
         }
-        if (formState.isRecurent && formState.zileSaptamana.size === 0) {
-            showError("Date incomplete", "Selectați cel puțin o zi a săptămânii pentru antrenamentul recurent.");
+        if (formState.is_recurent && formState.zileSaptamana.size === 0) {
+            showError("Zile lipsă", "Selectați cel puțin o zi pentru antrenamentul recurent.");
             return;
         }
         
         setLoading(true);
-        const baseData = { data: formState.data, ora: formState.ora, grupa_id: formState.grupa_id, tip: formState.tip };
+
+        const antrenamenteToInsert: Omit<Prezenta, 'id' | 'sportivi_prezenti_ids'>[] = [];
+        const recurent_group_id = crypto.randomUUID();
+        const dayMap: Record<DayOfWeek, number> = { 'Duminică': 0, 'Luni': 1, 'Marți': 2, 'Miercuri': 3, 'Joi': 4, 'Vineri': 5, 'Sâmbătă': 6 };
         
-        if (formState.isRecurent) {
-            const recurrenceData = {
-                zileSaptamana: Array.from(formState.zileSaptamana),
-                dataStart: formState.dataStart,
-                dataSfarsit: formState.dataSfarsit,
-                interval: formState.interval,
-            };
-            await onSave(baseData, recurrenceData);
+        let currentDate = new Date(formState.data_start);
+        const endDate = new Date(formState.data_sfarsit);
+
+        while(currentDate <= endDate) {
+            const isDaySelected = formState.is_recurent 
+                // FIX: Explicitly type 'day' to avoid 'unknown' type error on indexing 'dayMap'.
+                ? Array.from(formState.zileSaptamana).some((day: DayOfWeek) => dayMap[day] === currentDate.getDay())
+                : currentDate.toISOString().split('T')[0] === formState.data_start;
+
+            if (isDaySelected) {
+                 antrenamenteToInsert.push({
+                    grupa_id: formState.grupa_id,
+                    data_antrenament: currentDate.toISOString().split('T')[0],
+                    ora_inceput: formState.ora_inceput,
+                    is_recurent: formState.is_recurent,
+                    recurent_group_id: formState.is_recurent ? recurent_group_id : null,
+                 });
+            }
+            
+            if (!formState.is_recurent) break; // Exit loop for single training
+            currentDate.setDate(currentDate.getDate() + 1);
+        }
+
+        if (antrenamenteToInsert.length > 0) {
+            const { error } = await supabase.from('program_antrenamente').insert(antrenamenteToInsert);
+            if (error) {
+                showError("Eroare la salvare", error);
+            } else {
+                await onSave();
+                onClose();
+            }
         } else {
-            await onSave(baseData);
+            showError("Nicio dată validă", "Niciun antrenament nu a fost generat.");
         }
         
         setLoading(false);
-        onClose();
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title={antrenamentToEdit ? "Editează Antrenament" : "Creează Antrenament Nou"}>
+        <Modal isOpen={isOpen} onClose={onClose} title="Adaugă Antrenament Nou" persistent>
             <form onSubmit={handleSubmit} className="space-y-4">
-                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Input label="Data" type="date" name="data" value={formState.data} onChange={handleChange} required disabled={formState.isRecurent}/>
-                    <Input label="Ora" type="time" name="ora" value={formState.ora} onChange={handleChange} required />
-                    <Select label="Tip Antrenament" name="tip" value={formState.tip} onChange={handleChange}>
-                        <option value="Normal">Normal</option>
-                        <option value="Vacanta">Vacanță</option>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Select label="Grupa" name="grupa_id" value={formState.grupa_id} onChange={handleChange} required>
+                        {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
                     </Select>
+                    <Input label="Ora Început" type="time" name="ora_inceput" value={formState.ora_inceput} onChange={handleChange} required />
                 </div>
-                <div className="grid grid-cols-1">
-                    {formState.tip === 'Normal' && (
-                        <Select label="Grupa" name="grupa_id" value={formState.grupa_id || ''} onChange={handleChange} required={formState.tip === 'Normal'}>
-                            <option value="">Selectează grupa...</option>
-                            {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
-                        </Select>
-                    )}
+                
+                <div className="pt-4 border-t border-slate-700">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" name="is_recurent" checked={formState.is_recurent} onChange={handleChange} className="h-5 w-5 rounded border-slate-500 bg-slate-900 text-brand-secondary focus:ring-brand-secondary"/>
+                        <span className="font-semibold text-white">Antrenament Recurent</span>
+                    </label>
                 </div>
-                {!antrenamentToEdit && (
-                    <div className="pt-4 border-t border-slate-700">
-                        <label className="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" name="isRecurent" checked={formState.isRecurent} onChange={handleChange} className="h-5 w-5 rounded border-slate-500 bg-slate-900 text-brand-secondary focus:ring-brand-secondary"/>
-                            <span className="font-semibold text-white">Antrenament Recurent</span>
-                        </label>
-                    </div>
-                )}
-                {formState.isRecurent && !antrenamentToEdit && (
-                     <div className="p-4 bg-slate-900/50 rounded-lg space-y-4 border border-brand-secondary/30 animate-fade-in-down">
+                
+                {formState.is_recurent ? (
+                     <div className="p-4 bg-slate-900/50 rounded-lg space-y-4 border border-brand-primary/50 animate-fade-in-down">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <Input label="De la data" type="date" name="data_start" value={formState.data_start} onChange={handleChange} required />
+                            <Input label="Până la data" type="date" name="data_sfarsit" value={formState.data_sfarsit} onChange={handleChange} required />
+                        </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-2">Zilele Săptămânii</label>
+                            <label className="block text-sm font-medium text-slate-300 mb-2">În zilele de</label>
                             <div className="flex flex-wrap gap-2">
                                 {daysOfWeek.map(day => (
                                     <button type="button" key={day} onClick={() => toggleDay(day)} className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${formState.zileSaptamana.has(day) ? 'bg-brand-secondary text-white' : 'bg-slate-700 hover:bg-slate-600'}`}>{day}</button>
                                 ))}
                             </div>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                             <Input label="Data Start" type="date" name="dataStart" value={formState.dataStart} onChange={handleChange} required />
-                             <Input label="Data Sfârșit" type="date" name="dataSfarsit" value={formState.dataSfarsit} onChange={handleChange} required />
-                        </div>
-                        <Select label="Interval" name="interval" value={formState.interval} onChange={e => setFormState(p => ({...p, interval: parseInt(e.target.value)}))}>
-                            <option value={1}>Săptămânal</option>
-                            <option value={2}>La 2 săptămâni</option>
-                        </Select>
                      </div>
+                ) : (
+                    <Input label="Data Antrenamentului" type="date" name="data_start" value={formState.data_start} onChange={handleChange} required />
                 )}
 
                 <div className="flex justify-end pt-4 space-x-2 border-t border-slate-700 mt-6">
@@ -154,289 +158,154 @@ const AttendanceDetail: React.FC<{
     onBack: () => void;
     sportivi: Sportiv[];
     grupe: Grupa[];
-    setPrezente: React.Dispatch<React.SetStateAction<Prezenta[]>>;
-}> = ({ antrenament, onBack, sportivi, grupe, setPrezente }) => {
+    onAttendanceSave: () => Promise<void>;
+}> = ({ antrenament, onBack, sportivi, grupe, onAttendanceSave }) => {
     const [presentIds, setPresentIds] = useState<Set<string>>(new Set(antrenament.sportivi_prezenti_ids));
-    const [extraSportivId, setExtraSportivId] = useState('');
     const [loading, setLoading] = useState(false);
     const { showError } = useError();
 
     const sportiviInGrupa = useMemo(() => {
-        let sportiviAfisati: Sportiv[];
-        if (antrenament.tip === 'Vacanta') {
-             sportiviAfisati = sportivi.filter(s => s.status === 'Activ' && s.participa_vacanta);
-        } else {
-             sportiviAfisati = sportivi.filter(s => s.status === 'Activ' && s.grupa_id === antrenament.grupa_id);
-        }
-        return sportiviAfisati.sort((a,b) => a.nume.localeCompare(b.nume));
-    }, [sportivi, antrenament]);
-
-    const sportiviExtraDisponibili = useMemo(() => {
-        const idsInGrupa = new Set(sportiviInGrupa.map(s => s.id));
-        return sportivi.filter(s => s.status === 'Activ' && !idsInGrupa.has(s.id) && !presentIds.has(s.id));
-    }, [sportivi, sportiviInGrupa, presentIds]);
+        return sportivi
+            .filter(s => s.status === 'Activ' && s.grupa_id === antrenament.grupa_id)
+            .sort((a,b) => a.nume.localeCompare(b.nume));
+    }, [sportivi, antrenament.grupa_id]);
 
     const handleCheckboxChange = (sportivId: string, isChecked: boolean) => {
         setPresentIds(prev => { const newSet = new Set(prev); if (isChecked) newSet.add(sportivId); else newSet.delete(sportivId); return newSet; });
     };
 
-    const handleSelectAll = () => setPresentIds(new Set(sportiviInGrupa.map(s => s.id)));
-    const handleDeselectAll = () => setPresentIds(new Set());
-    
-    const handleAddExtra = () => {
-        if (extraSportivId && !presentIds.has(extraSportivId)) {
-            setPresentIds(prev => new Set(prev).add(extraSportivId));
-            setExtraSportivId('');
-        }
-    };
-
-    const handleSaveAttendance = async () => {
-        if (!antrenament || !supabase) return;
+    const handleSave = async () => {
         setLoading(true);
-
-        const { error: deleteError } = await supabase
-            .from('prezente_sportivi')
-            .delete()
-            .eq('prezenta_id', antrenament.id);
+        const { error: deleteError } = await supabase.from('prezenta_antrenament').delete().eq('antrenament_id', antrenament.id);
 
         if (deleteError) {
-            showError("Eroare la actualizarea prezenței (Pas 1)", deleteError);
+            showError("Eroare la actualizarea prezenței", deleteError);
             setLoading(false);
             return;
         }
 
-        const newIds = Array.from(presentIds);
-        if (newIds.length > 0) {
-            const toInsert = newIds.map(sportiv_id => ({
-                prezenta_id: antrenament.id,
-                sportiv_id: sportiv_id
-            }));
-            const { error: insertError } = await supabase.from('prezente_sportivi').insert(toInsert);
-
+        if (presentIds.size > 0) {
+            const toInsert = Array.from(presentIds).map(sportiv_id => ({ antrenament_id: antrenament.id, sportiv_id }));
+            const { error: insertError } = await supabase.from('prezenta_antrenament').insert(toInsert);
             if (insertError) {
-                showError("Eroare la actualizarea prezenței (Pas 2)", insertError);
+                showError("Eroare la salvarea prezenței", insertError);
                 setLoading(false);
                 return;
             }
         }
         
-        setPrezente(prev => prev.map(p => 
-            p.id === antrenament.id ? { ...p, sportivi_prezenti_ids: newIds } : p
-        ));
+        await onAttendanceSave();
         setLoading(false);
         onBack();
     };
 
     const grupaAntrenament = grupe.find(g => g.id === antrenament.grupa_id);
-    const sportiviPrezentiExtra = sportivi.filter(s => presentIds.has(s.id) && !sportiviInGrupa.some(sg => sg.id === s.id));
 
     return (
         <Card>
             <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Listă</Button>
             <div className="mb-6 p-4 bg-slate-900/50 rounded-lg border border-slate-700">
-                <h2 className="text-xl font-bold text-brand-secondary mb-2">Gestionare Prezență ({presentIds.size} prezenți)</h2>
-                 <div className="text-sm text-slate-400 grid grid-cols-2 md:grid-cols-3 gap-2">
-                    <span>Data: <strong className="text-white">{new Date(antrenament.data).toLocaleDateString('ro-RO')}</strong></span>
-                    <span>Ora: <strong className="text-white">{antrenament.ora}</strong></span>
-                    <span>Grupa: <strong className="text-white">{grupaAntrenament?.denumire || antrenament.tip}</strong></span>
+                <h2 className="text-xl font-bold text-brand-secondary mb-2">Prezență Antrenament ({presentIds.size}/{sportiviInGrupa.length} prezenți)</h2>
+                <div className="text-sm text-slate-400 grid grid-cols-2 md:grid-cols-3 gap-2">
+                    <span>Data: <strong className="text-white">{new Date(antrenament.data_antrenament).toLocaleDateString('ro-RO')}</strong></span>
+                    <span>Ora: <strong className="text-white">{antrenament.ora_inceput}</strong></span>
+                    <span>Grupa: <strong className="text-white">{grupaAntrenament?.denumire}</strong></span>
                 </div>
             </div>
-            <div className="space-y-6">
-                <div>
-                    <div className="flex justify-between items-center mb-2">
-                        <h3 className="text-lg font-semibold text-white">Sportivi din grupă</h3>
-                        <div className="flex gap-2">
-                            <Button size="sm" variant="secondary" onClick={handleSelectAll}>Selectează Toți</Button>
-                            <Button size="sm" variant="secondary" onClick={handleDeselectAll}>Deselectează Toți</Button>
-                        </div>
-                    </div>
-                    <div className="max-h-96 overflow-y-auto space-y-2 p-3 bg-slate-800/50 rounded-lg border border-slate-700">
-                        {sportiviInGrupa.map(sportiv => (
-                            <label key={sportiv.id} className="flex items-center gap-3 p-2 rounded-md hover:bg-slate-700/50 cursor-pointer">
-                                <input type="checkbox" className="h-5 w-5 rounded border-slate-500 bg-slate-900 text-brand-secondary focus:ring-brand-secondary" checked={presentIds.has(sportiv.id)} onChange={(e) => handleCheckboxChange(sportiv.id, e.target.checked)} />
-                                <span className="font-medium">{sportiv.nume} {sportiv.prenume}</span>
-                            </label>
-                        ))}
-                        {sportiviInGrupa.length === 0 && <p className="text-slate-400 italic text-center py-4">Nu există sportivi în această grupă/configurație.</p>}
-                    </div>
-                </div>
-                <div>
-                    <h3 className="text-lg font-semibold text-white mb-2">Adaugă sportiv extra (opțional)</h3>
-                    <div className="flex items-end gap-2">
-                        <div className="flex-grow">
-                            <Select label="" value={extraSportivId} onChange={e => setExtraSportivId(e.target.value)}>
-                                <option value="">Selectează sportiv...</option>
-                                {sportiviExtraDisponibili.map(s => (<option key={s.id} value={s.id}>{s.nume} {s.prenume}</option>))}
-                            </Select>
-                        </div>
-                        <Button onClick={handleAddExtra} disabled={!extraSportivId} variant="info"><PlusIcon /></Button>
-                    </div>
-                    {sportiviPrezentiExtra.length > 0 && (
-                        <div className="mt-2 space-y-1">
-                            <h4 className="text-sm text-slate-400">Extra prezenți:</h4>
-                            {sportiviPrezentiExtra.map(s => (
-                                <div key={s.id} className="text-sm flex justify-between items-center bg-slate-700/50 p-1.5 pl-3 rounded-md">
-                                    <span>{s.nume} {s.prenume}</span>
-                                    <Button size="sm" variant="danger" onClick={() => handleCheckboxChange(s.id, false)} className="!p-1 h-auto" title="Elimină"><TrashIcon className="w-4 h-4"/></Button>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
+            
+            <div className="max-h-[60vh] overflow-y-auto space-y-2 p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+                {sportiviInGrupa.map(sportiv => (
+                    <label key={sportiv.id} className="flex items-center gap-3 p-2 rounded-md hover:bg-slate-700/50 cursor-pointer">
+                        <input type="checkbox" className="h-5 w-5 rounded border-slate-500 bg-slate-900 text-brand-secondary focus:ring-brand-secondary" checked={presentIds.has(sportiv.id)} onChange={(e) => handleCheckboxChange(sportiv.id, e.target.checked)} />
+                        <span className="font-medium">{sportiv.nume} {sportiv.prenume}</span>
+                    </label>
+                ))}
+                {sportiviInGrupa.length === 0 && <p className="text-slate-400 italic text-center py-4">Nu există sportivi activi în această grupă.</p>}
             </div>
+
             <div className="mt-8 flex justify-end">
-                 <Button onClick={handleSaveAttendance} variant="success" size="md" className="px-8" disabled={loading}>{loading ? 'Se salvează...' : 'Salvează și Închide'}</Button>
+                 <Button onClick={handleSave} variant="success" size="md" className="px-8" disabled={loading}>{loading ? 'Se salvează...' : 'Salvează Prezența'}</Button>
             </div>
         </Card>
     );
 };
 
-
-// --- Componenta Principală ---
-
 export const PrezentaManagement: React.FC<{
     sportivi: Sportiv[];
-    prezente: Prezenta[];
-    setPrezente: React.Dispatch<React.SetStateAction<Prezenta[]>>;
     grupe: Grupa[];
     onBack: () => void;
-}> = ({ sportivi, prezente, setPrezente, grupe, onBack }) => {
+}> = ({ sportivi, grupe, onBack }) => {
     
+    const [antrenamente, setAntrenamente] = useState<Prezenta[]>([]);
+    const [loading, setLoading] = useState(true);
     const [selectedAntrenament, setSelectedAntrenament] = useState<Prezenta | null>(null);
-    const [antrenamentToEdit, setAntrenamentToEdit] = useState<Prezenta | null>(null);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const { showError } = useError();
+    const [filters, setFilters] = useState({ data: '', grupa: '' });
 
-    const initialFilters = { tip: '', data: '', grupa: '' };
-    const [filters, setFilters] = useState(initialFilters);
+    const fetchData = useCallback(async () => {
+        setLoading(true);
+        const { data: antrenamenteData, error: antrenamenteError } = await supabase.from('program_antrenamente').select('*');
+        if (antrenamenteError) { showError("Eroare la încărcarea antrenamentelor", antrenamenteError); setLoading(false); return; }
 
-    const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        setFilters(prev => ({...prev, [e.target.name]: e.target.value}));
-    };
+        const { data: prezenteData, error: prezenteError } = await supabase.from('prezenta_antrenament').select('*');
+        if (prezenteError) { showError("Eroare la încărcarea prezențelor", prezenteError); setLoading(false); return; }
 
-    const handleResetFilters = () => {
-        setFilters(initialFilters);
-    };
+        const prezenteMap = new Map<string, string[]>();
+        prezenteData.forEach(p => {
+            if (!prezenteMap.has(p.antrenament_id)) prezenteMap.set(p.antrenament_id, []);
+            prezenteMap.get(p.antrenament_id)?.push(p.sportiv_id);
+        });
 
-    const handleSaveAntrenament = async (antrenamentData: Omit<Prezenta, 'id' | 'sportivi_prezenti_ids'>, recurrence?: { zileSaptamana: DayOfWeek[], dataStart: string, dataSfarsit: string, interval: number }) => {
-        if (!supabase) return;
+        const combinedData = (antrenamenteData || []).map(a => ({
+            ...a,
+            sportivi_prezenti_ids: prezenteMap.get(a.id) || []
+        }));
+        setAntrenamente(combinedData as Prezenta[]);
+        setLoading(false);
+    }, [showError]);
 
-        if (recurrence) {
-            const antrenamenteToInsert: Omit<Prezenta, 'id' | 'sportivi_prezenti_ids'>[] = [];
-            const recurring_event_id = crypto.randomUUID();
-            const dayMap: Record<DayOfWeek, number> = { 'Duminică': 0, 'Luni': 1, 'Marți': 2, 'Miercuri': 3, 'Joi': 4, 'Vineri': 5, 'Sâmbătă': 6 };
-            const selectedDays = new Set(recurrence.zileSaptamana.map(d => dayMap[d]));
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
 
-            let currentDate = new Date(recurrence.dataStart);
-            const endDate = new Date(recurrence.dataSfarsit);
-            const startDate = new Date(recurrence.dataStart);
-            
-            while(currentDate <= endDate) {
-                const weekNumber = Math.floor((currentDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 7));
-                if (weekNumber % recurrence.interval === 0 && selectedDays.has(currentDate.getDay())) {
-                     antrenamenteToInsert.push({
-                        ...antrenamentData,
-                        data: currentDate.toISOString().split('T')[0],
-                        recurring_event_id,
-                     });
-                }
-                currentDate.setDate(currentDate.getDate() + 1);
-            }
-
-            if (antrenamenteToInsert.length > 0) {
-                const { data, error } = await supabase.from('prezente').insert(antrenamenteToInsert).select();
-                if (error) showError("Eroare la crearea antrenamentelor recurente", error);
-                else if (data) setPrezente(prev => [...prev, ...data.map(d => ({...d, sportivi_prezenti_ids: []}))]);
-            } else {
-                showError("Nicio dată validă", "Niciun antrenament nu a fost generat pentru intervalul și zilele selectate.");
-            }
-
-        } else if (antrenamentToEdit) { // Editare
-            const { data, error } = await supabase.from('prezente').update(antrenamentData).eq('id', antrenamentToEdit.id).select('*, prezente_sportivi(sportiv_id)').single();
-            if (error) { showError("Eroare la actualizare", error); } 
-            else if (data) { 
-                const formatted: Prezenta = {
-                    ...data,
-                    sportivi_prezenti_ids: data.prezente_sportivi ? data.prezente_sportivi.map((ps: any) => ps.sportiv_id) : []
-                };
-                setPrezente(prev => prev.map(p => p.id === data.id ? formatted : p));
-            }
-        } else { // Creare singular
-            const { data, error } = await supabase.from('prezente').insert(antrenamentData).select().single();
-            if (error) { showError("Eroare la creare", error); } 
-            else if (data) { setPrezente(prev => [...prev, { ...data, sportivi_prezenti_ids: [] }]); }
+    const handleDeleteAntrenament = async (id: string) => {
+        if (window.confirm("Sunteți sigur? Vor fi șterse și toate datele de prezență asociate.")) {
+            await supabase.from('prezenta_antrenament').delete().eq('antrenament_id', id);
+            await supabase.from('program_antrenamente').delete().eq('id', id);
+            fetchData();
         }
     };
 
-    const handleDeleteAntrenament = async (id: number) => {
-        if (window.confirm("Sunteți sigur că doriți să ștergeți această înregistrare? Această acțiune este ireversibilă.")) {
-            if(!supabase) return;
-            const { error: deleteLinksError } = await supabase.from('prezente_sportivi').delete().eq('prezenta_id', id);
-             if (deleteLinksError) { 
-                showError("Eroare la ștergerea legăturilor", deleteLinksError);
-                return;
-             }
-            
-            const { error } = await supabase.from('prezente').delete().eq('id', id);
-            if (error) { showError("Eroare la ștergere", error); } 
-            else { setPrezente(prev => prev.filter(p => p.id !== id)); }
-        }
-    };
+    const filteredAntrenamente = useMemo(() => {
+        return antrenamente.filter(a => 
+            (filters.data === '' || a.data_antrenament === filters.data) &&
+            (filters.grupa === '' || a.grupa_id === filters.grupa)
+        ).sort((a,b) => new Date(b.data_antrenament).getTime() - new Date(a.data_antrenament).getTime() || b.ora_inceput.localeCompare(a.ora_inceput));
+    }, [antrenamente, filters]);
 
-    const handleOpenAdd = () => { setAntrenamentToEdit(null); setIsFormOpen(true); };
-    const handleOpenEdit = (antrenament: Prezenta) => { setAntrenamentToEdit(antrenament); setIsFormOpen(true); };
-
-    const filteredPrezente = useMemo(() => {
-        let sorted = [...prezente].sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime() || b.ora.localeCompare(a.ora));
-        
-        if (filters.tip) {
-            sorted = sorted.filter(p => p.tip === filters.tip);
-        }
-        if (filters.data) {
-            sorted = sorted.filter(p => p.data === filters.data);
-        }
-        if (filters.grupa) {
-            sorted = sorted.filter(p => p.grupa_id === filters.grupa);
-        }
-        return sorted;
-    }, [prezente, filters]);
+    if (loading) return <div className="text-center p-8">Se încarcă datele...</div>
 
     if (selectedAntrenament) {
-        return <AttendanceDetail antrenament={selectedAntrenament} onBack={() => setSelectedAntrenament(null)} sportivi={sportivi} grupe={grupe} setPrezente={setPrezente} />;
+        return <AttendanceDetail antrenament={selectedAntrenament} onBack={() => setSelectedAntrenament(null)} sportivi={sportivi} grupe={grupe} onAttendanceSave={fetchData} />;
     }
 
     return (
         <div>
-            <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
+            <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold text-white">Istoric Antrenamente</h1>
-                <Button onClick={handleOpenAdd} variant="info"><PlusIcon className="w-5 h-5 mr-2" /> Antrenament Nou</Button>
+                <h1 className="text-3xl font-bold text-white">Antrenamente & Prezență</h1>
+                <Button onClick={() => setIsFormOpen(true)} style={{backgroundColor: '#3D3D99'}} className="hover:bg-blue-800"><PlusIcon className="w-5 h-5 mr-2" /> Antrenament Nou</Button>
             </div>
 
             <Card className="mb-6">
-                <div className="flex flex-col lg:flex-row items-end gap-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-grow w-full">
-                        <Input label="Filtrează după dată" name="data" type="date" value={filters.data} onChange={handleFilterChange} />
-                        <Select label="Filtrează după grupă" name="grupa" value={filters.grupa} onChange={handleFilterChange}>
-                            <option value="">Toate Grupele</option>
-                            {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
-                        </Select>
-                        <Select label="Tip Antrenament" name="tip" value={filters.tip} onChange={handleFilterChange}>
-                            <option value="">Toate Tipurile</option>
-                            <option value="Normal">Normal</option>
-                            <option value="Vacanta">Vacanță</option>
-                        </Select>
-                    </div>
-                    <Button 
-                        onClick={handleResetFilters} 
-                        variant="secondary" 
-                        size="md" 
-                        title="Resetează toate filtrele"
-                        className="w-full lg:w-auto"
-                        disabled={JSON.stringify(filters) === JSON.stringify(initialFilters)}
-                    >
-                        <XIcon className="w-5 h-5 mr-2" /> Resetare
-                    </Button>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                    <Input label="Filtrează după dată" name="data" type="date" value={filters.data} onChange={e => setFilters(p => ({...p, data: e.target.value}))} />
+                    <Select label="Filtrează după grupă" name="grupa" value={filters.grupa} onChange={e => setFilters(p => ({...p, grupa: e.target.value}))}>
+                        <option value="">Toate Grupele</option>
+                        {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
+                    </Select>
+                    <Button onClick={() => setFilters({data:'', grupa:''})} variant="secondary"><XIcon className="w-5 h-5 mr-2"/> Resetare</Button>
                 </div>
             </Card>
 
@@ -446,36 +315,28 @@ export const PrezentaManagement: React.FC<{
                         <thead className="bg-slate-700/50">
                             <tr>
                                 <th className="p-4 font-semibold">Data & Ora</th>
-                                <th className="p-4 font-semibold">Grupa / Tip</th>
+                                <th className="p-4 font-semibold">Grupa</th>
                                 <th className="p-4 font-semibold text-center">Prezenți</th>
                                 <th className="p-4 font-semibold text-right">Acțiuni</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-700">
-                            {filteredPrezente.map(p => {
-                                const grupa = grupe.find(g => g.id === p.grupa_id);
+                            {filteredAntrenamente.map(a => {
+                                const grupa = grupe.find(g => g.id === a.grupa_id);
                                 return (
-                                    <tr key={p.id} className="hover:bg-slate-700/50">
+                                    <tr key={a.id} className="hover:bg-slate-700/50">
                                         <td className="p-4 font-medium">
-                                            {new Date(p.data).toLocaleDateString('ro-RO')} - <span className="text-slate-400">{p.ora}</span>
+                                            {new Date(a.data_antrenament).toLocaleDateString('ro-RO')} - <span className="text-slate-400">{a.ora_inceput}</span>
                                         </td>
-                                        <td className="p-4">
-                                            <div className="flex items-center gap-2">
-                                                {p.recurring_event_id && <RefreshCwIcon className="w-4 h-4 text-brand-secondary" title="Antrenament Recurent"/>}
-                                                <span>{grupa?.denumire || (p.tip === 'Vacanta' ? 'Antrenament Vacanță' : p.tip)}</span>
-                                                {p.tip === 'Vacanta' ? (
-                                                    <span className="px-2 py-0.5 text-[10px] bg-sky-600/30 text-sky-400 border border-sky-600/50 rounded-full font-bold uppercase tracking-wider">Vacanță</span>
-                                                ) : (
-                                                    <span className="px-2 py-0.5 text-[10px] bg-slate-600/30 text-slate-400 border border-slate-600/50 rounded-full font-bold uppercase tracking-wider">Normal</span>
-                                                )}
-                                            </div>
+                                        <td className="p-4 flex items-center gap-2">
+                                            {a.is_recurent && <RefreshCwIcon className="w-4 h-4 text-brand-secondary" title="Antrenament Recurent"/>}
+                                            <span>{grupa?.denumire || 'N/A'}</span>
                                         </td>
-                                        <td className="p-4 text-center font-bold text-brand-secondary">{p.sportivi_prezenti_ids.length}</td>
-                                        <td className="p-4 text-right w-64">
+                                        <td className="p-4 text-center font-bold text-brand-secondary">{a.sportivi_prezenti_ids.length}</td>
+                                        <td className="p-4 text-right">
                                             <div className="flex items-center justify-end space-x-2">
-                                                <Button onClick={() => setSelectedAntrenament(p)} variant="primary" size="sm">Gestionează Prezența</Button>
-                                                <Button onClick={() => handleOpenEdit(p)} variant="secondary" size="sm" title="Editează detaliile antrenamentului"><EditIcon /></Button>
-                                                <Button onClick={() => handleDeleteAntrenament(p.id)} variant="danger" size="sm" title="Șterge antrenamentul"><TrashIcon /></Button>
+                                                <Button onClick={() => setSelectedAntrenament(a)} variant="primary">Prezență</Button>
+                                                <Button onClick={() => handleDeleteAntrenament(a.id)} variant="danger" size="sm" title="Șterge antrenamentul"><TrashIcon /></Button>
                                             </div>
                                         </td>
                                     </tr>
@@ -483,14 +344,13 @@ export const PrezentaManagement: React.FC<{
                             })}
                         </tbody>
                     </table>
-                    {filteredPrezente.length === 0 && <p className="p-4 text-center text-slate-400">Niciun antrenament înregistrat conform filtrelor.</p>}
+                    {filteredAntrenamente.length === 0 && <p className="p-4 text-center text-slate-400">Niciun antrenament conform filtrelor.</p>}
                 </div>
             </Card>
             <AntrenamentForm 
                 isOpen={isFormOpen} 
                 onClose={() => setIsFormOpen(false)} 
-                onSave={handleSaveAntrenament} 
-                antrenamentToEdit={antrenamentToEdit}
+                onSave={fetchData}
                 grupe={grupe}
             />
         </div>

@@ -22,11 +22,11 @@ interface DashboardProps {
 const ActionCard: React.FC<{ title: string; icon: React.ElementType; onClick: () => void }> = ({ title, icon: Icon, onClick }) => (
   <button 
     onClick={onClick}
-    className="group relative flex flex-col items-center justify-center p-6 text-center h-40 w-full bg-[#3D3D99] rounded-lg shadow-lg hover:shadow-brand-secondary/40 transform transition-all duration-300 hover:-translate-y-1 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-brand-secondary/50"
+    className="group relative flex flex-col items-center justify-center py-6 px-4 text-center h-40 w-full bg-brand-primary rounded-lg shadow-lg hover:shadow-brand-secondary/40 transform transition-all duration-300 hover:-translate-y-1 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-brand-secondary/50 cursor-pointer"
     style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.4)' }}
   >
     <Icon className="h-12 w-12 text-white mb-3 transition-transform duration-300 group-hover:scale-110" />
-    <span className="text-lg font-semibold text-white">{title}</span>
+    <span className="text-lg font-bold text-white">{title}</span>
   </button>
 );
 

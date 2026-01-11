@@ -29,14 +29,16 @@ const sortProgram = (program: Orar[]): Orar[] => {
 // Componentă pentru editarea programului
 const ProgramEditor: React.FC<{ program: Orar[], setProgram: React.Dispatch<React.SetStateAction<Orar[]>> }> = ({ program, setProgram }) => {
     const zileSaptamana: Orar['ziua'][] = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'];
-    const [newItem, setNewItem] = useState<Omit<Orar, 'id' | 'grupa_id'>>({ ziua: 'Luni', ora_start: '18:00', ora_sfarsit: '19:30' });
+    const [newItem, setNewItem] = useState<Partial<Omit<Orar, 'id' | 'grupa_id'>>>({ ziua: 'Luni', ora_start: '18:00', ora_sfarsit: '19:30', is_recurent: false, is_activ: true });
 
     const handleAdd = () => {
         const completeItem: Orar = {
             ...newItem,
             id: `new_${Date.now()}`, // ID temporar pentru key
-            grupa_id: '' // Va fi setat la salvare
-        };
+            grupa_id: '', // Va fi setat la salvare
+            recurent_group_id: null,
+            data_sfarsit_recurenta: null,
+        } as Orar;
         setProgram(p => [...p, completeItem]);
     };
     const handleRemove = (index: number) => { 
@@ -60,7 +62,7 @@ const ProgramEditor: React.FC<{ program: Orar[], setProgram: React.Dispatch<Reac
                 ))) : <p className="text-slate-400">Niciun interval adăugat.</p>}
             </div>
             <div className="p-4 bg-slate-900/50 rounded-lg space-y-2">
-                 <h4 className="text-md font-semibold text-white">Adaugă Interval Nou</h4>
+                 <h4 className="text-md font-semibold text-white">Adaugă Interval Nou (Nerecurent)</h4>
                  <div className="grid grid-cols-1 md:grid-cols-4 gap-2 items-end">
                     <Select label="Ziua" name="ziua" value={newItem.ziua} onChange={handleChange}>
                         {zileSaptamana.map(zi => <option key={zi} value={zi}>{zi}</option>)}
@@ -131,12 +133,12 @@ export const GrupeManagement: React.FC<GrupeManagementProps> = ({ grupe, setGrup
           const { data, error } = await supabase.from('grupe').update(grupaInfo).eq('id', grupaToEdit.id).select().single();
           if (error) { showError("Eroare la actualizarea grupei", error); return; }
 
-          const { error: deleteError } = await supabase.from('orar').delete().eq('grupa_id', grupaToEdit.id);
+          const { error: deleteError } = await supabase.from('program_antrenamente').delete().eq('grupa_id', grupaToEdit.id);
           if (deleteError) { showError("Eroare la sincronizarea programului (ștergere)", deleteError); return; }
 
           if (orar.length > 0) {
             const programToInsert = orar.map(({ id, ...p }) => ({ ...p, grupa_id: grupaToEdit.id }));
-            const { error: insertError } = await supabase.from('orar').insert(programToInsert);
+            const { error: insertError } = await supabase.from('program_antrenamente').insert(programToInsert);
             if (insertError) { showError("Eroare la sincronizarea programului (inserare)", insertError); return; }
           }
 
@@ -151,7 +153,7 @@ export const GrupeManagement: React.FC<GrupeManagementProps> = ({ grupe, setGrup
               const newGrupaId = data.id;
               if (orar.length > 0) {
                 const programToInsert = orar.map(({ id, ...p }) => ({ ...p, grupa_id: newGrupaId }));
-                const { error: insertError } = await supabase.from('orar').insert(programToInsert);
+                const { error: insertError } = await supabase.from('program_antrenamente').insert(programToInsert);
                 if (insertError) { showError("Grupă creată, dar eroare la salvarea programului", insertError); }
               }
               setGrupe(prev => [...prev, { ...data, orar }]);
@@ -165,7 +167,7 @@ export const GrupeManagement: React.FC<GrupeManagementProps> = ({ grupe, setGrup
   const confirmDelete = async () => {
     if (!supabase || !grupaToDelete) return;
     setDeleteLoading(true);
-    const { error: programError } = await supabase.from('orar').delete().eq('grupa_id', grupaToDelete.id);
+    const { error: programError } = await supabase.from('program_antrenamente').delete().eq('grupa_id', grupaToDelete.id);
     if (programError) { 
         showError("Eroare la ștergerea programului asociat", programError); 
         setDeleteLoading(false);

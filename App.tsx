@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
-import { Sportiv, Examen, Grad, Participare, View, Grupa, Plata, Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, Rol, Orar, Antrenament, Prezenta } from './types';
+import { Sportiv, Examen, Grad, Participare, View, Grupa, Plata, Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, Rol, Orar, Prezenta } from './types';
 import { Dashboard } from './components/Dashboard';
 import { SportiviManagement } from './components/Sportivi';
 import { GradeManagement } from './components/Grade';
@@ -44,7 +44,6 @@ function App() {
   const [allRoles, setAllRoles] = useState<Rol[]>([]);
   const [customFields, setCustomFields] = useState<string[]>([]);
   const [orar, setOrar] = useState<Orar[]>([]);
-  const [antrenamente, setAntrenamente] = useState<Antrenament[]>([]);
   const [prezenta, setPrezenta] = useState<Prezenta[]>([]);
 
   const [isSidebarExpanded, setIsSidebarExpanded] = useLocalStorage('sidebarExpanded', true);
@@ -83,7 +82,7 @@ function App() {
          supabase.from('preturi_config').select('*'),
          supabase.from('tipuri_abonament').select('*'),
          supabase.from('roluri').select('id, nume'),
-         supabase.from('orar').select('*')
+         supabase.from('program_antrenamente').select('*')
        ]);
        
         const formattedSportivi = (sData || []).map((s: any) => ({ ...s, roluri: s.sportivi_roluri ? s.sportivi_roluri.map((sr: any) => sr.roluri) : [] }));
@@ -117,7 +116,7 @@ function App() {
         { data: sData }, { data: eData }, { data: gData }, { data: paData }, 
         { data: grData }, { data: fData }, { data: plData },
         { data: tData }, { data: evData }, { data: rData }, { data: cfData },
-        { data: abData }, { data: roData }, { data: orarData }, { data: antrenamenteData }, { data: prezentaData }
+        { data: abData }, { data: roData }, { data: orarData }, { data: prezentaData }
       ] = await Promise.all([
         supabase.from('sportivi').select('*, sportivi_roluri(roluri(id, nume))'),
         supabase.from('examene').select('*'),
@@ -132,9 +131,8 @@ function App() {
         supabase.from('preturi_config').select('*'),
         supabase.from('tipuri_abonament').select('*'),
         supabase.from('roluri').select('*'),
-        supabase.from('orar').select('*'),
-        supabase.from('antrenamente').select('*'),
-        supabase.from('prezenta').select('*'),
+        supabase.from('program_antrenamente').select('*'),
+        supabase.from('prezenta_antrenament').select('*'),
       ]);
 
       const formattedSportivi = (sData || []).map((s: any) => ({ ...s, roluri: s.sportivi_roluri ? s.sportivi_roluri.map((sr: any) => sr.roluri) : [] }));
@@ -155,7 +153,6 @@ function App() {
       setTipuriAbonament(abData || []);
       setAllRoles(roData || []);
       setOrar(orarComplet);
-      setAntrenamente(antrenamenteData || []);
       setPrezenta(prezentaData || []);
     } catch (err) {
       showError("Eroare la încărcarea datelor", err);
@@ -218,7 +215,6 @@ function App() {
         onBack: () => handleNavigate('dashboard'),
         onNavigate: handleNavigate,
         navigationState: navigationState,
-        antrenamente, setAntrenamente,
         orar, setOrar,
         prezenta, setPrezenta,
     };

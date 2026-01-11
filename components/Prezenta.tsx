@@ -62,8 +62,6 @@ export const PrezentaManagement: React.FC<PrezentaManagementProps> = ({ sportivi
             for (const orarItem of orarPentruAzi) {
                 const existaDeja = antrenamente.some(a => a.data === today && a.grupa_id === grupaId && a.ora_start === orarItem.ora_start);
                 if (!existaDeja) {
-                    // FIX: Removed 'data_sfarsit_recurenta' property which does not exist on 'Antrenament' type.
-                    // Also corrected 'is_recurent' and 'recurent_group_id' to be populated from the 'orarItem'.
                     antrenamenteDeCreat.push({
                         data: today,
                         grupa_id: grupaId,
@@ -99,29 +97,41 @@ export const PrezentaManagement: React.FC<PrezentaManagementProps> = ({ sportivi
     }, [selectedGrupaId, handleGenerateAntrenamente]);
 
 
+    // FIX: Rewrote function to be more robust, use the correct table name, and handle state updates safely.
     const handleTogglePrezenta = async (antrenamentId: string, sportivId: string) => {
         if (!supabase) return;
-        const estePrezent = prezenta.some(p => p.antrenament_id === antrenamentId && p.sportiv_id === sportivId);
+        const prezentaRecord = prezenta.find(p => p.antrenament_id === antrenamentId && p.sportiv_id === sportivId);
         
-        // Optimistic update
-        if(estePrezent) {
-            setPrezenta(prev => prev.filter(p => !(p.antrenament_id === antrenamentId && p.sportiv_id === sportivId)));
-        } else {
-            setPrezenta(prev => [...prev, { antrenament_id: antrenamentId, sportiv_id: sportivId }]);
-        }
-
-        try {
-            if (estePrezent) {
-                const { error } = await supabase.from('prezenta').delete().match({ antrenament_id: antrenamentId, sportiv_id: sportivId });
-                if (error) throw error;
-            } else {
-                const { error } = await supabase.from('prezenta').insert({ antrenament_id: antrenamentId, sportiv_id: sportivId });
-                if (error) throw error;
+        if (prezentaRecord) {
+            // Optimistic delete
+            const originalPrezenta = [...prezenta];
+            setPrezenta(prev => prev.filter(p => p.id !== prezentaRecord.id));
+            try {
+                const { error } = await supabase.from('prezenta_antrenament').delete().eq('id', prezentaRecord.id);
+                if (error) {
+                    showError("Eroare la ștergerea prezenței", error);
+                    setPrezenta(originalPrezenta); // Revert on failure
+                }
+            } catch (err) {
+                 showError("Eroare la ștergerea prezenței", err);
+                 setPrezenta(originalPrezenta); // Revert
             }
-        } catch(err) {
-             showError("Eroare la salvarea prezenței", err);
-             // Revert optimistic update
-             setPrezenta(prezenta);
+        } else {
+            // Insert and then update state to ensure we have the full object with ID
+            try {
+                const { data, error } = await supabase
+                    .from('prezenta_antrenament')
+                    .insert({ antrenament_id: antrenamentId, sportiv_id: sportivId, status: 'prezent' })
+                    .select()
+                    .single();
+                if (error) throw error;
+
+                if (data) {
+                    setPrezenta(prev => [...prev, data as Prezenta]);
+                }
+            } catch(err) {
+                 showError("Eroare la salvarea prezenței", err);
+            }
         }
     };
     

@@ -64,6 +64,20 @@ export interface Participare {
     plata_id?: string | null;
 }
 
+// Reprezintă o instanță de antrenament, generată dintr-un Orar
+export interface Antrenament {
+    id: string;
+    data: string;
+    grupa_id: string;
+    ora_start: string;
+    ora_sfarsit: string;
+    orar_id: string;
+    status: string; // 'Programat', 'Finalizat'
+    is_recurent: boolean;
+    recurent_group_id: string | null;
+    sportivi_prezenti_ids?: string[]; // Doar pe client
+}
+
 // Orarul saptamanal recurent
 export interface Orar {
   id: string;
@@ -77,24 +91,13 @@ export interface Orar {
   is_activ: boolean;
 }
 
-// O instanță specifică de antrenament
-export interface Antrenament {
-  id: string;
-  data: string;
-  grupa_id: string;
-  ora_start: string;
-  ora_sfarsit: string;
-  orar_id: string | null;
-  status: 'Programat' | 'Anulat';
-  sportivi_prezenti_ids: string[]; // Pentru starea din UI
-  is_recurent: boolean;
-  recurent_group_id: string | null;
-}
-
 // Tabela de legatura pentru prezenta
 export interface Prezenta {
-  antrenament_id: string;
+  id: string;
+  antrenament_id: string; // FK to antrenamente.id
   sportiv_id: string;
+  status: string; // e.g., 'prezent'
+  created_at: string;
 }
 
 

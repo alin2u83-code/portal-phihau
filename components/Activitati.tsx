@@ -75,7 +75,6 @@ const AntrenamentForm: React.FC<{
         const recurent_group_id = crypto.randomUUID();
         const dayMap: Record<DayOfWeek, number> = { 'Duminică': 0, 'Luni': 1, 'Marți': 2, 'Miercuri': 3, 'Joi': 4, 'Vineri': 5, 'Sâmbătă': 6 };
         
-        // Use UTC dates to avoid timezone issues
         const startDate = new Date(formState.data_start + 'T00:00:00Z');
         const endDate = new Date(formState.data_sfarsit + 'T00:00:00Z');
         let currentDate = new Date(startDate);
@@ -300,7 +299,7 @@ const DeleteTrainingModal: React.FC<{
         <div className="flex justify-end gap-2 pt-4 border-t border-slate-700">
           <Button variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button>
           <Button variant="danger" onClick={() => onDelete('single')} disabled={loading}>
-            {loading ? 'Se șterge...' : 'Șterge Doar Acesta'}
+            {loading ? 'Se șterge...' : (isRecurent ? 'Șterge Doar Acesta' : 'Șterge')}
           </Button>
           {isRecurent && (
             <Button variant="danger" onClick={() => onDelete('series')} disabled={loading}>
@@ -328,6 +327,7 @@ export const ActivitatiManagement: React.FC<{
     const [isFormOpen, setIsFormOpen] = useState(false);
     const { showError } = useError();
     const [filters, setFilters] = useState({ luna: '', grupa: '', tip: '' });
+    const [todayFilter, setTodayFilter] = useState<'all' | 'upcoming' | 'live' | 'finished'>('all');
     const [currentTime, setCurrentTime] = useState(new Date());
 
     useEffect(() => {
@@ -382,13 +382,13 @@ export const ActivitatiManagement: React.FC<{
         }
     };
 
-    const getStatus = (antrenament: Prezenta, now: Date): 'upcoming' | 'live' | 'finished' => {
+    const getStatus = useCallback((antrenament: Prezenta, now: Date): 'upcoming' | 'live' | 'finished' => {
         const startDateTime = new Date(`${antrenament.data_antrenament}T${antrenament.ora_inceput}`);
         const endDateTime = new Date(startDateTime.getTime() + 90 * 60000); // Assume 90 minutes duration
         if (now < startDateTime) return 'upcoming';
         if (now >= startDateTime && now <= endDateTime) return 'live';
         return 'finished';
-    };
+    }, []);
 
     const { antrenamenteAzi, alteAntrenamente } = useMemo(() => {
         const todayString = new Date().toISOString().split('T')[0];
@@ -396,6 +396,11 @@ export const ActivitatiManagement: React.FC<{
         const altele = antrenamente.filter(a => a.data_antrenament !== todayString);
         return { antrenamenteAzi: azi, alteAntrenamente: altele };
     }, [antrenamente]);
+
+    const filteredAntrenamenteAzi = useMemo(() => {
+        if (todayFilter === 'all') return antrenamenteAzi;
+        return antrenamenteAzi.filter(a => getStatus(a, currentTime) === todayFilter);
+    }, [antrenamenteAzi, todayFilter, currentTime, getStatus]);
 
     const filteredAlteAntrenamente = useMemo(() => {
         return alteAntrenamente.filter(a => {
@@ -422,9 +427,17 @@ export const ActivitatiManagement: React.FC<{
             </div>
             
             <div className="mb-8">
-                <h2 className="text-2xl font-bold text-white mb-4 border-l-4 border-brand-secondary pl-3">Activitate Astăzi</h2>
+                <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-4">
+                    <h2 className="text-2xl font-bold text-white border-l-4 border-brand-secondary pl-3">Activitate Astăzi</h2>
+                     <div className="flex items-center gap-2 p-1 bg-slate-700/50 rounded-lg self-start sm:self-center">
+                        <Button size="sm" variant={todayFilter === 'all' ? 'primary' : 'secondary'} onClick={() => setTodayFilter('all')}>Toate</Button>
+                        <Button size="sm" variant={todayFilter === 'upcoming' ? 'primary' : 'secondary'} onClick={() => setTodayFilter('upcoming')}>Urmează</Button>
+                        <Button size="sm" variant={todayFilter === 'live' ? 'primary' : 'secondary'} onClick={() => setTodayFilter('live')}>Live</Button>
+                        <Button size="sm" variant={todayFilter === 'finished' ? 'primary' : 'secondary'} onClick={() => setTodayFilter('finished')}>Finalizate</Button>
+                    </div>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {antrenamenteAzi.map(a => (
+                    {filteredAntrenamenteAzi.map(a => (
                         <AntrenamentAstaziCard
                             key={a.id}
                             antrenament={a}
@@ -434,7 +447,7 @@ export const ActivitatiManagement: React.FC<{
                         />
                     ))}
                 </div>
-                 {antrenamenteAzi.length === 0 && <Card className="text-center py-8"><p className="text-slate-400">Niciun antrenament programat pentru astăzi.</p></Card>}
+                 {filteredAntrenamenteAzi.length === 0 && <Card className="text-center py-8"><p className="text-slate-400">Niciun antrenament astăzi conform filtrului selectat.</p></Card>}
             </div>
 
             <h2 className="text-2xl font-bold text-white mb-4 mt-12 border-l-4 border-slate-500 pl-3">Program Complet</h2>

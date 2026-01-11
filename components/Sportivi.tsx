@@ -522,14 +522,14 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
         <Card className="mb-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
                 <Input label="Caută sportiv" name="searchTerm" placeholder="Nume..." value={filters.searchTerm} onChange={handleFilterChange} />
-                <Select label="Filtrează după grupă" name="grupa" value={filters.grupa} onChange={handleFilterChange}>
-                    <option value="all">Toate grupele</option>
-                    {grupe.map(g => (<option key={g.id} value={g.id}>{g.denumire}</option>))}
-                </Select>
                 <Select label="Filtrează după statut" name="status" value={filters.status} onChange={handleFilterChange}>
                     <option value="">Toate</option>
                     <option value="Activ">Activ</option>
                     <option value="Inactiv">Inactiv</option>
+                </Select>
+                <Select label="Filtrează după grupă" name="grupa" value={filters.grupa} onChange={handleFilterChange}>
+                    <option value="all">Toate grupele</option>
+                    {grupe.map(g => (<option key={g.id} value={g.id}>{g.denumire}</option>))}
                 </Select>
                  <Select label="Filtrează după rol" name="rol" value={filters.rol} onChange={handleFilterChange}>
                     <option value="">Toate rolurile</option>

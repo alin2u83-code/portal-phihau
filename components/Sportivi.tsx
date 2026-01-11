@@ -116,7 +116,7 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({ formState, handle
     <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input label="Nume" name="nume" value={formState.nume} onChange={handleChange} required />
-            <Input label="Prenume" name="prenume" value={formState.prenume} onChange={handleChange} required />
+            <Input label="Prenume" name="prenume" value={formState.prenume} onChange={handleChange} />
         </div>
         
         {!isEditMode && (
@@ -301,7 +301,7 @@ const SportivFormModal: React.FC<SportivFormModalProps> = ({ isOpen, onClose, on
             } else if (type === 'grupa') {
                 const { data: newGrupa, error } = await supabase.from('grupe').insert({ denumire: data, sala: 'N/A' }).select().single();
                  if (error) throw error;
-                setGrupe(prev => [...prev, { ...newGrupa, program: [] }]);
+                setGrupe(prev => [...prev, { ...newGrupa, orar: [] }]);
                 setFormState(prev => ({ ...prev, grupa_id: newGrupa.id }));
                 result = newGrupa;
             } else if (type === 'abonament') {
@@ -587,30 +587,29 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
 
         <Card className="overflow-hidden p-0">
             <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left table-fixed">
+                <table className="w-full text-[13px] text-left table-fixed">
                     <thead className="bg-slate-700/50 text-xs uppercase text-slate-400">
                         <tr>
-                            <th className="py-1 px-2 font-semibold">Nume</th>
-                            <th className="py-1 px-2 font-semibold w-20">Vârstă</th>
-                            <th className="py-1 px-2 font-semibold w-32">Grupă</th>
-                            <th className="py-1 px-2 font-semibold w-32 hidden md:table-cell">Familie</th>
-                            <th className="py-1 px-2 font-semibold w-24">Statut</th>
-                            <th className="py-1 px-2 font-semibold w-40 hidden lg:table-cell">Roluri</th>
-                            <th className="py-1 px-2 font-semibold hidden xl:table-cell">Contact</th>
-                            <th className="py-1 px-2 font-semibold w-32 hidden xl:table-cell">Înscris la</th>
-                            <th className="py-1 px-2 font-semibold w-24 hidden 2xl:table-cell">Vacanță</th>
-                            <th className="py-1 px-2 font-semibold w-24 hidden 2xl:table-cell">Înălțime</th>
-                            <th className="py-1 px-2 font-semibold w-36 text-right">Acțiuni</th>
+                            <th className="py-1 px-2 font-semibold whitespace-nowrap">Nume</th>
+                            <th className="py-1 px-2 font-semibold whitespace-nowrap w-20">Vârstă</th>
+                            <th className="py-1 px-2 font-semibold whitespace-nowrap w-32">Grupă</th>
+                            <th className="py-1 px-2 font-semibold whitespace-nowrap w-32 hidden md:table-cell">Familie</th>
+                            <th className="py-1 px-2 font-semibold whitespace-nowrap w-24">Statut</th>
+                            <th className="py-1 px-2 font-semibold whitespace-nowrap w-40 hidden lg:table-cell">Roluri</th>
+                            <th className="py-1 px-2 font-semibold whitespace-nowrap hidden xl:table-cell">Contact</th>
+                            <th className="py-1 px-2 font-semibold whitespace-nowrap w-32 hidden xl:table-cell">Înscris la</th>
+                            <th className="py-1 px-2 font-semibold whitespace-nowrap w-24 hidden 2xl:table-cell">Vacanță</th>
+                            <th className="py-1 px-2 font-semibold whitespace-nowrap w-36 text-right">Acțiuni</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-700 text-sm">
+                    <tbody className="divide-y divide-slate-700">
                         {filteredSportivi.map(sportiv => (
                             <tr key={sportiv.id} className="hover:bg-slate-700/50">
                                 <td className="py-1 px-2 font-bold whitespace-nowrap overflow-hidden text-ellipsis">{sportiv.nume} {sportiv.prenume}</td>
-                                <td className="py-1 px-2 text-slate-300">{getAge(sportiv.data_nasterii)} ani</td>
+                                <td className="py-1 px-2 text-slate-300 whitespace-nowrap">{getAge(sportiv.data_nasterii)} ani</td>
                                 <td className="py-1 px-2 text-slate-300 whitespace-nowrap overflow-hidden text-ellipsis">{grupe.find(g => g.id === sportiv.grupa_id)?.denumire || '-'}</td>
-                                <td className="py-1 px-2 text-slate-300 hidden md:table-cell">{familii.find(f => f.id === sportiv.familie_id)?.nume || 'Individual'}</td>
-                                <td className="py-1 px-2">
+                                <td className="py-1 px-2 text-slate-300 hidden md:table-cell whitespace-nowrap">{familii.find(f => f.id === sportiv.familie_id)?.nume || 'Individual'}</td>
+                                <td className="py-1 px-2 whitespace-nowrap">
                                     <span className={`px-2 py-1 text-xs rounded-full font-bold uppercase ${sportiv.status === 'Activ' ? 'text-green-300 bg-green-600/20' : 'text-red-300 bg-red-600/20'}`}>{sportiv.status}</span>
                                 </td>
                                 <td className="py-1 px-2 hidden lg:table-cell">
@@ -618,10 +617,9 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
                                         {sportiv.roluri.map(r => <RoleBadge key={r.id} role={r} />)}
                                     </div>
                                 </td>
-                                <td className="py-1 px-2 text-slate-300 text-sm truncate hidden xl:table-cell">{sportiv.email || sportiv.username || '-'}</td>
-                                <td className="py-1 px-2 text-slate-300 hidden xl:table-cell">{new Date(sportiv.data_inscrierii).toLocaleDateString('ro-RO')}</td>
-                                <td className="py-1 px-2 text-slate-300 hidden 2xl:table-cell">{sportiv.participa_vacanta ? 'Da' : 'Nu'}</td>
-                                <td className="py-1 px-2 text-slate-300 hidden 2xl:table-cell">{sportiv.inaltime ? `${sportiv.inaltime} cm` : '-'}</td>
+                                <td className="py-1 px-2 text-slate-300 truncate hidden xl:table-cell">{sportiv.email || sportiv.username || '-'}</td>
+                                <td className="py-1 px-2 text-slate-300 hidden xl:table-cell whitespace-nowrap">{new Date(sportiv.data_inscrierii).toLocaleDateString('ro-RO')}</td>
+                                <td className="py-1 px-2 text-slate-300 hidden 2xl:table-cell whitespace-nowrap">{sportiv.participa_vacanta ? 'Da' : 'Nu'}</td>
                                 <td className="py-1 px-2 text-right">
                                     <div className="flex justify-end gap-2">
                                         <Button size="sm" variant="secondary" onClick={() => handleOpenEdit(sportiv)} title="Editează profil"><EditIcon /></Button>

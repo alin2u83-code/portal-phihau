@@ -1,12 +1,12 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { Prezenta, Sportiv, Grupa, Examen, Participare, Grad, PretConfig, Plata, Eveniment, Rezultat, View } from '../types';
+import { Antrenament, Orar, Prezenta, Sportiv, Grupa, Examen, Participare, Grad, PretConfig, Plata, Eveniment, Rezultat, View } from '../types';
 import { Button, Card, Input, Select, ConfirmationModal, Modal } from './ui';
 import { PlusIcon, ArrowLeftIcon, TrashIcon, UsersIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { ExameneManagement } from './Examene';
 import { StagiiCompetitiiManagement } from './StagiiCompetitii';
-import { AntrenamenteManagement } from './Antrenamente';
+import { PrezentaManagement } from './Prezenta';
 
 type Tab = 'antrenamente' | 'examene' | 'evenimente';
 
@@ -33,6 +33,12 @@ interface ActivitatiManagementProps {
     setPreturiConfig: React.Dispatch<React.SetStateAction<PretConfig[]>>;
     onNavigate?: (view: View, state?: any) => void;
     navigationState?: any;
+    antrenamente: Antrenament[];
+    setAntrenamente: React.Dispatch<React.SetStateAction<Antrenament[]>>;
+    prezenta: Prezenta[];
+    setPrezenta: React.Dispatch<React.SetStateAction<Prezenta[]>>;
+    orar: Orar[];
+    setOrar: React.Dispatch<React.SetStateAction<Orar[]>>;
 }
 
 const TabButton: React.FC<{ activeTab: Tab, tabName: Tab, label: string, onClick: (tab: Tab) => void }> = ({ activeTab, tabName, label, onClick }) => (
@@ -50,7 +56,7 @@ const TabButton: React.FC<{ activeTab: Tab, tabName: Tab, label: string, onClick
 
 
 export const ActivitatiManagement: React.FC<ActivitatiManagementProps> = (props) => {
-    const { onBack, initialTab = 'antrenamente', sportivi, grupe, plati } = props;
+    const { onBack, initialTab = 'antrenamente' } = props;
     const [activeTab, setActiveTab] = useState<Tab>(initialTab);
 
     return (
@@ -65,7 +71,7 @@ export const ActivitatiManagement: React.FC<ActivitatiManagementProps> = (props)
             </div>
 
             <div>
-                {activeTab === 'antrenamente' && <AntrenamenteManagement sportivi={sportivi} grupe={grupe} plati={plati} />}
+                {activeTab === 'antrenamente' && <PrezentaManagement {...props} />}
                 {activeTab === 'examene' && <ExameneManagement {...props} onBack={() => {}} />}
                 {activeTab === 'evenimente' && (
                     <div className="space-y-8">

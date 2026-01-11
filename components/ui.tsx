@@ -13,11 +13,11 @@ export const Button: React.FC<ButtonProps> = ({ children, className, variant = '
     md: "px-4 py-2",
   };
   const variantClasses = {
-    primary: "bg-brand-secondary hover:bg-sky-500 focus:ring-brand-secondary text-white",
+    primary: "bg-brand-primary hover:bg-blue-800 focus:ring-brand-primary text-white",
     secondary: "bg-slate-600 hover:bg-slate-700 focus:ring-slate-500 text-white",
     danger: "bg-status-danger hover:bg-red-700 focus:ring-status-danger text-white",
     success: "bg-status-success hover:bg-green-700 focus:ring-status-success text-white",
-    info: "bg-brand-secondary hover:bg-sky-500 focus:ring-brand-secondary text-white",
+    info: "bg-brand-primary hover:bg-blue-800 focus:ring-brand-primary text-white",
     brand: "bg-brand-primary hover:bg-blue-800 focus:ring-brand-primary text-white",
     'light-secondary': "bg-slate-200 text-slate-800 hover:bg-slate-300 focus:ring-slate-400",
   };

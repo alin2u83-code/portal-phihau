@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { User, View } from '../types';
 import { Sidebar } from './Sidebar';
-import { Bars3Icon } from './icons';
-import { logoPhiHau } from '../assets/logo';
+import { Bars3Icon, ChevronDownIcon } from './icons';
 import { adminMenu, sportivMenu } from './menuConfig';
 
 interface LayoutProps {
@@ -16,26 +15,25 @@ interface LayoutProps {
 }
 
 const Topbar: React.FC<{ onMenuClick: () => void; title: string; }> = ({ onMenuClick, title }) => (
-    <div className="lg:hidden fixed top-0 left-0 w-full z-40 bg-slate-900/80 backdrop-blur-sm shadow-md h-16 flex items-center justify-between px-4">
+    <div className="lg:hidden fixed top-0 left-0 w-full z-40 bg-slate-900/80 backdrop-blur-sm shadow-md h-16 flex items-center justify-between px-4 border-b border-slate-700">
         <button onClick={onMenuClick} className="text-white p-2">
             <Bars3Icon className="w-6 h-6" />
         </button>
-        <div className="flex items-center gap-2">
-             <img src={`data:image/svg+xml;base64,${logoPhiHau}`} alt="Club Logo" className="h-10 w-10" />
-             <span className="font-bold text-white">{title}</span>
-        </div>
-        <div className="w-8"></div>
+        <h1 className="font-bold text-white text-lg">{title}</h1>
+        <div className="w-8"></div> {/* Spacer */}
     </div>
 );
 
 export const Layout: React.FC<LayoutProps> = ({ children, currentUser, onNavigate, onLogout, activeView, isSidebarExpanded, setIsSidebarExpanded }) => {
     const [isMobileOpen, setIsMobileOpen] = useState(false);
+    
     const isAdmin = currentUser.roluri.some(r => r.nume === 'Admin' || r.nume === 'Instructor');
     const menu = isAdmin ? adminMenu : sportivMenu;
-    
-    const activeMenuItem = menu.find(item => item.view === activeView || item.submenu?.some(sub => sub.view === activeView));
-    const activeSubMenuItem = activeMenuItem?.submenu?.find(sub => sub.view === activeView);
-    const pageTitle = activeSubMenuItem?.label || activeMenuItem?.label || 'Dashboard';
+    const isGrouped = isAdmin;
+
+    const allItems = isAdmin ? adminMenu.flatMap(g => g.items) : sportivMenu;
+    const activeItem = allItems.find(item => item.view === activeView);
+    const pageTitle = activeItem?.label || 'Dashboard';
     
     const handleNavigate = (view: View) => {
         onNavigate(view);
@@ -44,29 +42,33 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentUser, onNavigat
 
     return (
         <div className="min-h-screen bg-slate-900">
-            {/* Mobile Topbar */}
             <Topbar onMenuClick={() => setIsMobileOpen(true)} title={pageTitle} />
 
-            {/* Mobile Sidebar Overlay */}
             <div
                 className={`fixed inset-0 z-40 bg-black/60 transition-opacity lg:hidden ${isMobileOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
                 onClick={() => setIsMobileOpen(false)}
             />
 
-            {/* Sidebar (Mobile and Desktop) */}
             <Sidebar 
                 currentUser={currentUser}
                 onNavigate={handleNavigate}
                 onLogout={onLogout}
                 activeView={activeView}
                 isExpanded={isSidebarExpanded}
-                setIsExpanded={setIsSidebarExpanded}
                 isMobileOpen={isMobileOpen}
                 setIsMobileOpen={setIsMobileOpen}
                 menu={menu}
+                isGrouped={isGrouped}
             />
+            
+            <button
+                className={`hidden lg:block fixed top-5 z-40 p-1 bg-slate-800 rounded-full text-white hover:bg-brand-secondary transition-all duration-300 shadow-lg ${isSidebarExpanded ? 'left-[15.2rem]' : 'left-[4.2rem]'}`}
+                onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
+                title={isSidebarExpanded ? "Restrânge meniul" : "Extinde meniul"}
+             >
+                <ChevronDownIcon className={`w-5 h-5 transition-transform ${isSidebarExpanded ? 'rotate-90' : '-rotate-90'}`} />
+            </button>
 
-            {/* Main Content */}
             <main className={`flex-1 transition-all duration-300 p-4 md:p-8 lg:pt-8 pt-20 ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'}`}>
                 {children}
             </main>

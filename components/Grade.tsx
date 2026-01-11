@@ -3,6 +3,7 @@ import { Grad, PretConfig } from '../types';
 import { Button, Modal, Input, Select, ConfirmationModal, Card } from './ui';
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon } from './icons';
 import { supabase } from '../supabaseClient';
+import { useError } from './ErrorProvider';
 
 const emptyFormState: Omit<Grad, 'id'> = { nume: '', ordine: 1, varsta_minima: 7, timp_asteptare: "6 luni", grad_start_id: null };
 
@@ -20,11 +21,23 @@ export const GradeManagement: React.FC<{ grade: Grad[]; setGrade: React.Dispatch
   const [gradToEdit, setGradToEdit] = useState<Grad | null>(null);
   const [gradToDelete, setGradToDelete] = useState<Grad | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const { showError } = useError();
+
   const getPretGrad = (gradNume: string): number | null => { const data = new Date(); const preturiValabile = preturiConfig.filter(p => p.categorie === 'Taxa Examen' && p.denumire_serviciu === gradNume && new Date(p.valabil_de_la_data) <= data).sort((a, b) => new Date(b.valabil_de_la_data).getTime() - new Date(a.valabil_de_la_data).getTime()); return preturiValabile.length > 0 ? preturiValabile[0].suma : null; };
-  const handlePriceUpdate = async (grad: Grad, newPriceStr: string) => { const newPrice = parseFloat(newPriceStr); if (isNaN(newPrice) || newPrice < 0) return; if (getPretGrad(grad.nume) === newPrice) return; const newPretConfig: Omit<PretConfig, 'id'> = { categorie: 'Taxa Examen', denumire_serviciu: grad.nume, suma: newPrice, valabil_de_la_data: new Date().toISOString().split('T')[0] }; const { data, error } = await supabase.from('preturi_config').insert(newPretConfig).select().single(); if (error) { alert(`Eroare: ${error.message}`); } else if (data) { setPreturiConfig(prev => [...prev, data as PretConfig]); } };
-  const handleSaveGrad = async (gradData: Omit<Grad, 'id'>) => { if (!supabase) return; if (gradToEdit) { const { data, error } = await supabase.from('grade').update(gradData).eq('id', gradToEdit.id).select().single(); if (error) { alert(`Eroare: ${error.message}`); } else if (data) { setGrade(prev => prev.map(g => g.id === gradToEdit.id ? data as Grad : g)); } } else { const { data, error } = await supabase.from('grade').insert(gradData).select().single(); if (error) { alert(`Eroare: ${error.message}`); } else if (data) { setGrade(prev => [...prev, data as Grad]); } } };
+  
+  const handlePriceUpdate = async (grad: Grad, newPriceStr: string) => { 
+      const newPrice = parseFloat(newPriceStr); 
+      if (isNaN(newPrice) || newPrice < 0) return; 
+      if (getPretGrad(grad.nume) === newPrice) return; 
+      const newPretConfig: Omit<PretConfig, 'id'> = { categorie: 'Taxa Examen', denumire_serviciu: grad.nume, suma: newPrice, valabil_de_la_data: new Date().toISOString().split('T')[0] }; 
+      const { data, error } = await supabase.from('preturi_config').insert(newPretConfig).select().single(); 
+      if (error) { showError("Eroare la salvare preț", error); } 
+      else if (data) { setPreturiConfig(prev => [...prev, data as PretConfig]); } 
+  };
+  
+  const handleSaveGrad = async (gradData: Omit<Grad, 'id'>) => { if (!supabase) return; if (gradToEdit) { const { data, error } = await supabase.from('grade').update(gradData).eq('id', gradToEdit.id).select().single(); if (error) { showError("Eroare la actualizare", error); } else if (data) { setGrade(prev => prev.map(g => g.id === gradToEdit.id ? data as Grad : g)); } } else { const { data, error } = await supabase.from('grade').insert(gradData).select().single(); if (error) { showError("Eroare la adăugare", error); } else if (data) { setGrade(prev => [...prev, data as Grad]); } } };
   const handleOpenEdit = (g: Grad) => { setGradToEdit(g); setIsModalOpen(true); };
-  const confirmDelete = async () => { if (!supabase || !gradToDelete) return; setDeleteLoading(true); const { error } = await supabase.from('grade').delete().eq('id', gradToDelete.id); setDeleteLoading(false); if (error) { alert(`Eroare: ${error.message}`); } else { setGrade(prev => prev.filter(g => g.id !== gradToDelete.id)); } setGradToDelete(null); };
+  const confirmDelete = async () => { if (!supabase || !gradToDelete) return; setDeleteLoading(true); const { error } = await supabase.from('grade').delete().eq('id', gradToDelete.id); setDeleteLoading(false); if (error) { showError("Eroare la ștergere", error); } else { setGrade(prev => prev.filter(g => g.id !== gradToDelete.id)); } setGradToDelete(null); };
   const sortedGrade = [...grade].sort((a, b) => a.ordine - b.ordine);
 
   return ( <div> <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button> <div className="flex justify-between items-center mb-6"> <h1 className="text-3xl font-bold text-white">Management Grade</h1> <Button onClick={() => { setGradToEdit(null); setIsModalOpen(true); }} variant="info"><PlusIcon className="w-5 h-5 mr-2" />Adaugă Grad</Button> </div>

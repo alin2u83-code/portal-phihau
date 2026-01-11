@@ -1,5 +1,6 @@
 
 
+
 import React from 'react';
 
 export const PlusIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
@@ -20,9 +21,9 @@ export const TrashIcon = ({ className = "w-5 h-5" }: { className?: string }) => 
   </svg>
 );
 
-// FIX: Added RefreshCwIcon component for recurring events.
-export const RefreshCwIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+// FIX: Update RefreshCwIcon to accept title and other SVG props to resolve type error.
+export const RefreshCwIcon = ({ className = "w-6 h-6", ...props }: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className} {...props}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001a10.5 10.5 0 0 1-1.066 5.19c-1.201 2.4-3.344 4.307-5.911 5.412a10.474 10.474 0 0 1-5.412 1.066c-3.131 0-5.998-1.54-7.82-3.998s-2.17-5.912-1.066-8.94c1.201-3.028 3.998-5.412 7.23-5.911a10.474 10.474 0 0 1 6.336 2.189" />
         <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 5.25 16.023 9.348" />
     </svg>

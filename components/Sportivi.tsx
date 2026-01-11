@@ -364,7 +364,7 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
   const [successToast, setSuccessToast] = useState<string | null>(null);
   const { showError } = useError();
   
-  const initialFilters = { searchTerm: '', grupa: 'all', status: '', rol: '' };
+  const initialFilters = { searchTerm: '', grupa: 'all', status: 'Activ', rol: '' };
   const [filters, setFilters] = useState(initialFilters);
 
   const showSuccessToast = (message: string) => {

@@ -71,6 +71,10 @@ export interface Orar {
   ziua: 'Luni' | 'Marți' | 'Miercuri' | 'Joi' | 'Vineri' | 'Sâmbătă' | 'Duminică';
   ora_start: string;
   ora_sfarsit: string;
+  is_recurent: boolean;
+  recurent_group_id: string | null;
+  data_sfarsit_recurenta: string | null;
+  is_activ: boolean;
 }
 
 // O instanță specifică de antrenament
@@ -85,7 +89,6 @@ export interface Antrenament {
   sportivi_prezenti_ids: string[]; // Pentru starea din UI
   is_recurent: boolean;
   recurent_group_id: string | null;
-  data_sfarsit_recurenta: string | null;
 }
 
 // Tabela de legatura pentru prezenta
@@ -175,15 +178,10 @@ export type User = Sportiv;
 export type View = 'dashboard' | 'sportivi' | 'examene' | 'grade' | 'prezenta' | 'grupe' | 'raport-prezenta' | 'stagii' | 'competitii' | 'plati-scadente' | 'jurnal-incasari' | 'raport-financiar' | 'configurare-preturi' | 'tipuri-abonament' | 'familii' | 'user-management' | 'editare-profil-personal' | 'evenimentele-mele' | 'portal-personal' | 'maintenance';
 
 // Navigation Types
-export interface SubMenuItem {
-    label: string;
-    view: View;
-    roles?: Rol['nume'][];
-}
 export interface MenuItem {
     label: string;
     icon: React.ElementType;
     view?: View;
     roles?: Rol['nume'][];
-    submenu?: SubMenuItem[];
+    submenu?: MenuItem[];
 }

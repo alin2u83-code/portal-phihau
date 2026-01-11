@@ -62,6 +62,8 @@ export const PrezentaManagement: React.FC<PrezentaManagementProps> = ({ sportivi
             for (const orarItem of orarPentruAzi) {
                 const existaDeja = antrenamente.some(a => a.data === today && a.grupa_id === grupaId && a.ora_start === orarItem.ora_start);
                 if (!existaDeja) {
+                    // FIX: Removed 'data_sfarsit_recurenta' property which does not exist on 'Antrenament' type.
+                    // Also corrected 'is_recurent' and 'recurent_group_id' to be populated from the 'orarItem'.
                     antrenamenteDeCreat.push({
                         data: today,
                         grupa_id: grupaId,
@@ -69,9 +71,8 @@ export const PrezentaManagement: React.FC<PrezentaManagementProps> = ({ sportivi
                         ora_sfarsit: orarItem.ora_sfarsit,
                         orar_id: orarItem.id,
                         status: 'Programat',
-                        is_recurent: false,
-                        recurent_group_id: null,
-                        data_sfarsit_recurenta: null,
+                        is_recurent: orarItem.is_recurent,
+                        recurent_group_id: orarItem.recurent_group_id,
                     });
                 }
             }

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { Antrenament, Orar, Prezenta, Sportiv, Grupa, Examen, Participare, Grad, PretConfig, Plata, Eveniment, Rezultat, View } from '../types';
 import { Button, Card, Input, Select, ConfirmationModal, Modal } from './ui';
 import { PlusIcon, ArrowLeftIcon, TrashIcon, UsersIcon, RefreshCwIcon } from './icons';
@@ -62,15 +62,61 @@ const DeleteAntrenamentModal: React.FC<{ antrenament: Antrenament | null; isOpen
     );
 };
 
-const AntrenamenteView: React.FC<ActivitatiManagementProps> = ({ antrenamente, setAntrenamente, prezenta, setPrezenta, grupe, ...props }) => {
+const AntrenamenteView: React.FC<ActivitatiManagementProps> = ({ antrenamente, setAntrenamente, prezenta, setPrezenta, grupe, orar, ...props }) => {
     const [todayFilter, setTodayFilter] = useState<'all' | 'upcoming' | 'live' | 'finished'>('all');
     const [scheduleFilters, setScheduleFilters] = useState({ grupaId: '', month: new Date().toISOString().slice(0, 7) });
     const [antrenamentToDelete, setAntrenamentToDelete] = useState<Antrenament | null>(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
+    const [syncLoading, setSyncLoading] = useState(false);
     const { showError } = useError();
     const today = useMemo(() => new Date().toISOString().split('T')[0], []);
     
     const antrenamenteCuGrupa = useMemo(() => antrenamente.map(a => ({ ...a, grupa: grupe.find(g => g.id === a.grupa_id) })), [antrenamente, grupe]);
+
+    const handleGenerateAntrenamente = useCallback(async () => {
+        if (!supabase || !orar || !grupe) return;
+        setSyncLoading(true);
+        try {
+            const todayDayName = new Date().toLocaleDateString('ro-RO', { weekday: 'long' });
+            const todayDayNameCapitalized = todayDayName.charAt(0).toUpperCase() + todayDayName.slice(1);
+
+            const orarPentruAzi = orar.filter(o => o.ziua === todayDayNameCapitalized && o.is_activ);
+            const antrenamenteDeCreat: Omit<Antrenament, 'id' | 'sportivi_prezenti_ids'>[] = [];
+            
+            for (const orarItem of orarPentruAzi) {
+                const existaDeja = antrenamente.some(a => a.data === today && a.grupa_id === orarItem.grupa_id && a.ora_start === orarItem.ora_start);
+                if (!existaDeja) {
+                    antrenamenteDeCreat.push({
+                        data: today,
+                        grupa_id: orarItem.grupa_id,
+                        ora_start: orarItem.ora_start,
+                        ora_sfarsit: orarItem.ora_sfarsit,
+                        orar_id: orarItem.id,
+                        status: 'Programat',
+                        is_recurent: orarItem.is_recurent,
+                        recurent_group_id: orarItem.recurent_group_id,
+                    });
+                }
+            }
+            
+            if (antrenamenteDeCreat.length > 0) {
+                const { data, error } = await supabase.from('antrenamente').insert(antrenamenteDeCreat).select();
+                if (error) throw error;
+                if (data) {
+                    const newAntrenamente = data.map(a => ({...a, sportivi_prezenti_ids: []}));
+                    setAntrenamente(prev => [...prev, ...newAntrenamente]);
+                }
+            }
+        } catch (err) {
+            showError("Eroare la generarea automată a antrenamentelor", err);
+        } finally {
+            setSyncLoading(false);
+        }
+    }, [orar, grupe, antrenamente, today, showError, setAntrenamente]);
+
+    useEffect(() => {
+        handleGenerateAntrenamente();
+    }, []); // Run once on mount
 
     const { antrenamenteAzi, now } = useMemo(() => {
         const n = new Date();
@@ -139,7 +185,16 @@ const AntrenamenteView: React.FC<ActivitatiManagementProps> = ({ antrenamente, s
     return (
         <div className="space-y-6">
             <Card>
-                <h2 className="text-2xl font-bold text-white mb-4">Activitate Astăzi - {new Date().toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long' })}</h2>
+                <div className="flex justify-between items-start mb-4">
+                    <div>
+                        <h2 className="text-2xl font-bold text-white">Activitate Astăzi - {new Date().toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long' })}</h2>
+                        <p className="text-sm text-slate-400">Generează antrenamentele de azi pe baza orarului.</p>
+                    </div>
+                    <Button onClick={handleGenerateAntrenamente} variant="secondary" size="sm" disabled={syncLoading}>
+                        <RefreshCwIcon className={`w-4 h-4 mr-2 ${syncLoading ? 'animate-spin' : ''}`} />
+                        {syncLoading ? 'Se sincronizează...' : 'Sincronizează Azi'}
+                    </Button>
+                </div>
                 <div className="flex gap-2 mb-4 border-b border-slate-700 pb-4">
                     {(['all', 'upcoming', 'live', 'finished'] as const).map(f => <Button key={f} size="sm" variant={todayFilter === f ? 'primary' : 'secondary'} onClick={() => setTodayFilter(f)}>{f.charAt(0).toUpperCase() + f.slice(1)}</Button>)}
                 </div>

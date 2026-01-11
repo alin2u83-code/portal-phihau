@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, View } from '../types';
+import { User, View, MenuItem } from '../types';
 import { Sidebar } from './Sidebar';
 import { Bars3Icon, ChevronDownIcon } from './icons';
 import { adminMenu, sportivMenu } from './menuConfig';
@@ -29,9 +29,19 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentUser, onNavigat
     
     const isAdmin = currentUser.roluri.some(r => r.nume === 'Admin' || r.nume === 'Instructor');
     const menu = isAdmin ? adminMenu : sportivMenu;
-    const isGrouped = isAdmin;
+    
+    const flattenMenu = (menuItems: MenuItem[]): MenuItem[] => {
+        let items: MenuItem[] = [];
+        for (const item of menuItems) {
+            items.push(item);
+            if (item.submenu) {
+                items = items.concat(flattenMenu(item.submenu));
+            }
+        }
+        return items;
+    };
 
-    const allItems = isAdmin ? adminMenu.flatMap(g => g.items) : sportivMenu;
+    const allItems = flattenMenu(menu);
     const activeItem = allItems.find(item => item.view === activeView);
     const pageTitle = activeItem?.label || 'Dashboard';
     
@@ -58,7 +68,6 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentUser, onNavigat
                 isMobileOpen={isMobileOpen}
                 setIsMobileOpen={setIsMobileOpen}
                 menu={menu}
-                isGrouped={isGrouped}
             />
             
             <button

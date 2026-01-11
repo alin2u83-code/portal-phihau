@@ -488,6 +488,12 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
             if (grade && grade.length > 0) {
                 const beginnerGrade = [...grade].sort((a, b) => a.ordine - b.ordine)[0];
                 if (beginnerGrade) {
+                    // TODO: The 'participari' table requires a non-null 'examen_id'.
+                    // Automatic assignment of a beginner grade is not possible without a corresponding
+                    // "Initial Assignment" exam record. This logic is disabled until a new
+                    // method for assigning initial grades is implemented (e.g., a nullable examen_id
+                    // or a dedicated field on the sportivi table).
+                    /*
                     const { data: newParticipare, error: participareError } = await supabase
                         .from('participari')
                         .insert({
@@ -495,7 +501,7 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
                             grad_sustinut_id: beginnerGrade.id,
                             rezultat: 'Admis',
                             observatii: 'Grad inițial alocat automat la înscriere.',
-                            examen_id: null,
+                            examen_id: null, // This causes an error due to NOT NULL constraint
                         })
                         .select()
                         .single();
@@ -505,6 +511,7 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
                     } else if (newParticipare) {
                         setParticipari(prev => [...prev, newParticipare as Participare]);
                     }
+                    */
                 }
             }
         }

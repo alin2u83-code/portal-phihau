@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Rol } from '../types';
-import { HomeIcon, UsersIcon, TrophyIcon, ClipboardDocumentListIcon, BanknotesIcon, CalendarDaysIcon, UserCircleIcon, CogIcon, AcademicCapIcon } from './icons';
+import { HomeIcon, UsersIcon, TrophyIcon, ClipboardDocumentListIcon, BanknotesIcon, CalendarDaysIcon, UserCircleIcon, CogIcon, AcademicCapIcon, WrenchScrewdriverIcon } from './icons';
 
 export interface MenuItem {
     label: string;
@@ -57,6 +57,7 @@ export const adminMenu: MenuItem[] = [
              { view: 'configurare-preturi', label: 'Prețuri' } 
         ] 
     },
+    { label: 'Mentenanță', icon: WrenchScrewdriverIcon, view: 'maintenance', roles: ['Admin'] },
 ];
 
 export const sportivMenu: MenuItem[] = [

@@ -21,6 +21,7 @@ import { EvenimenteleMele } from './components/EvenimenteleMele';
 import { useError } from './components/ErrorProvider';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { Layout } from './components/Layout';
+import { Maintenance } from './components/Maintenance';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -230,6 +231,7 @@ function App() {
       case 'raport-financiar': return <RaportFinanciar plati={plati} sportivi={sportivi} familii={familii} tranzactii={tranzactii} onBack={() => setActiveView('dashboard')} />;
       case 'familii': return <FamiliiManagement familii={familii} setFamilii={setFamilii} onBack={() => setActiveView('dashboard')} />;
       case 'user-management': return <UserManagement sportivi={sportivi} setSportivi={setSportivi} currentUser={currentUser} setCurrentUser={setCurrentUser} allRoles={allRoles} setAllRoles={setAllRoles} onBack={() => setActiveView('dashboard')} />;
+      case 'maintenance': return <Maintenance sportivi={sportivi} setSportivi={setSportivi} grade={grade} setGrade={setGrade} participari={participari} examene={examene} plati={plati} setPlati={setPlati} preturiConfig={preturiConfig} onBack={() => setActiveView('dashboard')} />;
       default: return <Dashboard onNavigate={setActiveView} currentUser={currentUser} />;
     }
   };

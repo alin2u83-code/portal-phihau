@@ -1,104 +1,129 @@
-import React from 'react';
-import { View, User } from '../types';
-import { Card } from './ui';
-import { UsersIcon, BanknotesIcon, TrophyIcon, ClipboardDocumentListIcon, UserCircleIcon } from './icons';
+import React, { useMemo } from 'react';
+import { View, User, Sportiv, Plata, Participare, Rezultat, Prezenta, PrezentaAntrenament } from '../types';
+import { Card, Button } from './ui';
+import { 
+  UsersIcon, BanknotesIcon, AcademicCapIcon, ClipboardCheckIcon, WrenchScrewdriverIcon, DownloadIcon
+} from './icons';
 
 interface DashboardProps {
   onNavigate: (view: View) => void;
   currentUser: User;
+  sportivi: Sportiv[];
+  plati: Plata[];
+  participari: Participare[];
+  rezultate: Rezultat[];
+  programAntrenamente: Prezenta[];
+  prezentaAntrenament: PrezentaAntrenament[];
 }
 
-interface NavItem {
-  view: View; 
-  title: string;
-  description: string;
-  tooltip: string;
-  icon: React.ElementType;
-  color: string;
-}
-
-const navItems: NavItem[] = [
-  {
-    view: 'sportivi',
-    title: 'Sportivi & Utilizatori',
-    description: 'Gestionează sportivi, familii și conturi de acces.',
-    tooltip: 'Gestiune Date Sportivi, Familii & Conturi',
-    icon: UsersIcon,
-    color: 'bg-brand-primary'
-  },
-  {
-    view: 'examene',
-    title: 'Activități & Evaluări',
-    description: 'Definește examene, stagii și competiții.',
-    tooltip: 'Management Examene, Stagii & Competiții',
-    icon: TrophyIcon,
-    color: 'bg-status-warning'
-  },
-  {
-    view: 'prezenta',
-    title: 'Antrenamente',
-    description: 'Înregistrează prezența și configurează orarul.',
-    tooltip: 'Monitorizare Prezență & Orar',
-    icon: ClipboardDocumentListIcon,
-    color: 'bg-brand-secondary'
-  },
-  {
-    view: 'plati-scadente',
-    title: 'Financiar',
-    description: 'Gestionează plăți, facturi și rapoarte financiare.',
-    tooltip: 'Management Financiar & Facturare',
-    icon: BanknotesIcon,
-    color: 'bg-status-success'
-  },
-];
-
-const NavCard: React.FC<{ item: NavItem, onClick: () => void }> = ({ item, onClick }) => (
-    <div 
-      onClick={onClick} 
-      className="group relative transform transition-all duration-300 hover:scale-105 cursor-pointer"
-      title={item.tooltip}
-    >
-      <Card className="flex flex-col items-center justify-center text-center h-full border-slate-700 group-hover:border-brand-secondary/40 bg-slate-800/50 backdrop-blur-sm shadow-lg shadow-brand-primary/30 hover:shadow-brand-secondary/40">
-        <div className={`p-4 rounded-full ${item.color} mb-4 shadow-lg group-hover:ring-4 group-hover:ring-white/10 transition-all`}>
-          <item.icon className="h-10 w-10 text-white" />
-        </div>
-        <h3 className="text-xl font-bold text-white mb-2 group-hover:text-brand-secondary transition-colors">{item.title}</h3>
-        <p className="text-slate-400 text-sm">{item.description}</p>
-      </Card>
+// Card pentru statistici rapide
+const StatCard: React.FC<{ title: string; value: string | number; icon: React.ElementType }> = ({ title, value, icon: Icon }) => (
+  <Card className="flex items-center p-4 bg-slate-800/50">
+    <div className="p-3 bg-brand-secondary/10 rounded-full mr-4">
+      <Icon className="w-6 h-6 text-brand-secondary" />
     </div>
+    <div>
+      <p className="text-sm text-slate-400">{title}</p>
+      <p className="text-2xl font-bold text-white">{value}</p>
+    </div>
+  </Card>
+);
+
+// Buton de acțiune principal
+const ActionButton: React.FC<{ title: string; icon: React.ElementType; onClick: () => void }> = ({ title, icon: Icon, onClick }) => (
+  <button 
+    onClick={onClick}
+    className="group relative flex flex-col items-center justify-center p-6 text-center h-full w-full bg-[#3D3D99] rounded-lg shadow-lg hover:shadow-brand-secondary/40 transform transition-all duration-300 hover:scale-105 hover:bg-brand-primary focus:outline-none focus:ring-4 focus:ring-brand-secondary/50"
+  >
+    <Icon className="h-12 w-12 text-white mb-3 transition-transform duration-300 group-hover:scale-110" />
+    <span className="text-lg font-semibold text-white">{title}</span>
+  </button>
 );
 
 
-export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, currentUser }) => {
-  const isAdminOrInstructor = currentUser.roluri.some(r => r.nume === 'Admin' || r.nume === 'Instructor');
+export const Dashboard: React.FC<DashboardProps> = ({ 
+  onNavigate, currentUser, sportivi, plati, participari, rezultate, programAntrenamente, prezentaAntrenament 
+}) => {
+
+  const handleExportBackup = () => {
+    const backupData = {
+      sportivi,
+      plati,
+      participari,
+      rezultate,
+    };
+    const jsonString = JSON.stringify(backupData, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `phi_hau_backup_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // Calculare statistici
+  const sportiviActivi = sportivi.filter(s => s.status === 'Activ').length;
+
+  const prezentiAzi = useMemo(() => {
+    const today = new Date().toISOString().split('T')[0];
+    const todayTrainingsIds = new Set(
+      programAntrenamente.filter(p => p.data === today).map(p => p.id)
+    );
+    const uniqueSportivi = new Set(prezentaAntrenament
+        .filter(p => todayTrainingsIds.has(p.antrenament_id))
+        .map(p => p.sportiv_id)
+    );
+    return uniqueSportivi.size;
+  }, [programAntrenamente, prezentaAntrenament]);
+
+  const taxeNeachitate = useMemo(() => {
+    return plati
+      .filter(p => p.status !== 'Achitat' && p.tip === 'Taxa Examen')
+      .reduce((sum, p) => sum + p.suma, 0)
+      .toFixed(2);
+  }, [plati]);
+
+  const actionItems = [
+    { title: 'Prezență Rapidă', icon: ClipboardCheckIcon, view: 'prezenta' as View },
+    { title: 'Adaugă Membru Nou', icon: UsersIcon, view: 'sportivi' as View },
+    { title: 'Înscrieri Examen', icon: AcademicCapIcon, view: 'examene' as View },
+    { title: 'Vezi Restanțieri', icon: BanknotesIcon, view: 'plati-scadente' as View },
+    { title: 'Mentenanță & Audit', icon: WrenchScrewdriverIcon, view: 'maintenance' as View }
+  ];
 
   return (
-    <div className="max-w-7xl mx-auto">
-      <h1 className="text-4xl md:text-5xl font-extrabold mb-4 text-white text-center" style={{ textShadow: '2px 2px 8px rgba(0,0,0,0.6)' }}>Clubul Phi Hau Iași</h1>
-      <p className="text-center text-slate-300 mb-12 max-w-2xl mx-auto">
-        Bun venit în panoul de administrare. Selectați un modul de mai jos pentru a începe gestionarea activității clubului.
-      </p>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 px-4">
-        {navItems.map(item => (
-          <NavCard key={item.view} item={item} onClick={() => onNavigate(item.view)} />
+    <div className="max-w-7xl mx-auto space-y-8 animate-fade-in-down">
+      {/* 1. Bara de Backup */}
+      <Card className="flex flex-col md:flex-row justify-between items-center gap-4">
+        <div>
+            <h2 className="text-xl font-bold text-white">Acțiuni Globale</h2>
+            <p className="text-sm text-slate-400">Operațiuni de administrare a întregului sistem.</p>
+        </div>
+        <Button onClick={handleExportBackup} variant="secondary" className="bg-slate-700 hover:bg-slate-600">
+          <DownloadIcon className="w-5 h-5 mr-2" />
+          Export Backup Complet (JSON)
+        </Button>
+      </Card>
+
+      {/* 2. Grila de Acțiuni */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+        {actionItems.map(item => (
+          <ActionButton key={item.view} title={item.title} icon={item.icon} onClick={() => onNavigate(item.view)} />
         ))}
       </div>
-      
-      {isAdminOrInstructor && (
-        <div className="mt-12 pt-8 border-t border-slate-700">
-            <h2 className="text-xl font-bold text-center text-slate-400 mb-6">Acces Personal</h2>
-            <div className="max-w-xs mx-auto">
-                 <NavCard item={{
-                    view: 'portal-personal',
-                    title: 'Statutul Meu ca Sportiv',
-                    description: 'Vizualizează progresul, prezența și situația ta financiară.',
-                    tooltip: 'Vezi propriul portal de sportiv',
-                    icon: UserCircleIcon,
-                    color: 'bg-status-success'
-                 }} onClick={() => onNavigate('portal-personal')} />
-            </div>
+
+      {/* 3. Statistici Rapide */}
+      <div>
+        <h2 className="text-xl font-bold text-white mb-4">Status Rapid</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <StatCard title="Sportivi Activi" value={sportiviActivi} icon={UsersIcon} />
+          <StatCard title="Prezenți Azi" value={prezentiAzi} icon={ClipboardCheckIcon} />
+          <StatCard title="Taxe Examen Neachitate" value={`${taxeNeachitate} RON`} icon={BanknotesIcon} />
         </div>
-      )}
+      </div>
     </div>
   );
 };

@@ -81,6 +81,11 @@ export interface Prezenta {
   sportivi_prezenti_ids: string[]; // Rămâne pentru starea din UI
 }
 
+export interface PrezentaAntrenament {
+  antrenament_id: string;
+  sportiv_id: string;
+}
+
 export interface Grupa {
     id: string;
     denumire: string;

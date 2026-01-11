@@ -9,6 +9,29 @@ import { StagiiCompetitiiManagement } from './StagiiCompetitii';
 
 type Tab = 'antrenamente' | 'examene' | 'evenimente';
 
+interface ActivitatiManagementProps {
+    onBack: () => void;
+    initialTab?: Tab;
+    sportivi: Sportiv[];
+    setSportivi: React.Dispatch<React.SetStateAction<Sportiv[]>>;
+    examene: Examen[];
+    setExamene: React.Dispatch<React.SetStateAction<Examen[]>>;
+    grade: Grad[];
+    setGrade: React.Dispatch<React.SetStateAction<Grad[]>>;
+    participari: Participare[];
+    setParticipari: React.Dispatch<React.SetStateAction<Participare[]>>;
+    grupe: Grupa[];
+    setGrupe: React.Dispatch<React.SetStateAction<Grupa[]>>;
+    plati: Plata[];
+    setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
+    evenimente: Eveniment[];
+    setEvenimente: React.Dispatch<React.SetStateAction<Eveniment[]>>;
+    rezultate: Rezultat[];
+    setRezultate: React.Dispatch<React.SetStateAction<Rezultat[]>>;
+    preturiConfig: PretConfig[];
+    setPreturiConfig: React.Dispatch<React.SetStateAction<PretConfig[]>>;
+}
+
 const TabButton: React.FC<{ activeTab: Tab, tabName: Tab, label: string, onClick: (tab: Tab) => void }> = ({ activeTab, tabName, label, onClick }) => (
     <button
         onClick={() => onClick(tabName)}
@@ -186,7 +209,6 @@ const AntrenamenteTab: React.FC<{ sportivi: Sportiv[]; grupe: Grupa[]; }> = ({ s
         return anMatch && lunaMatch && groupMatch && tipMatch;
     }), [antrenamente, filters, isVacationMonth]);
 
-    // FIX: Explicitly type the sort callback parameters as numbers to resolve TS error.
     const aniDisponibili = useMemo(() => [...new Set(antrenamente.map(a => new Date(a.data).getFullYear()))].sort((a: number, b: number) => b - a), [antrenamente]);
 
     const openAttendanceModal = (antrenament: Prezenta) => { setAntrenamentForAttendance(antrenament); setIsAttendanceModalOpen(true); };
@@ -257,7 +279,7 @@ const AntrenamenteTab: React.FC<{ sportivi: Sportiv[]; grupe: Grupa[]; }> = ({ s
 
 // --- END REFACTORED ATTENDANCE LOGIC ---
 
-export const ActivitatiManagement = (props: any) => {
+export const ActivitatiManagement: React.FC<ActivitatiManagementProps> = (props) => {
     const { onBack, initialTab = 'antrenamente' } = props;
     const [activeTab, setActiveTab] = useState<Tab>(initialTab);
 

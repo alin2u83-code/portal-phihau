@@ -219,8 +219,8 @@ function App() {
       case 'prezenta': return <ActivitatiManagement {...activitatiProps} initialTab="antrenamente" />;
       case 'examene': return <ActivitatiManagement {...activitatiProps} initialTab="examene" />;
       case 'grade': return <GradeManagement grade={grade} setGrade={setGrade} onBack={() => setActiveView('dashboard')} preturiConfig={preturiConfig} setPreturiConfig={setPreturiConfig} />; // Keep separate for now
-      case 'stagii': return <ActivitatiManagement {...activitatiProps} initialTab="evenimente" initialSubTab="Stagiu" />;
-      case 'competitii': return <ActivitatiManagement {...activitatiProps} initialTab="evenimente" initialSubTab="Competitie" />;
+      case 'stagii': return <ActivitatiManagement {...activitatiProps} initialTab="evenimente" />;
+      case 'competitii': return <ActivitatiManagement {...activitatiProps} initialTab="evenimente" />;
       
       case 'grupe': return <GrupeManagement grupe={grupe} setGrupe={setGrupe} onBack={() => setActiveView('dashboard')} />;
       case 'plati-scadente': return <PlatiScadente plati={plati} setPlati={setPlati} sportivi={sportivi} familii={familii} tipuriAbonament={tipuriAbonament} onIncaseazaMultiple={(plist) => { setSelectedPlatiForIncasare(plist); setActiveView('jurnal-incasari'); }} onBack={() => setActiveView('dashboard')} />;

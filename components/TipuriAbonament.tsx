@@ -71,7 +71,7 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
     const sortedAbonamente = [...tipuriAbonament].sort((a,b) => a.numar_membri - b.numar_membri);
 
     return (
-        <div className="max-w-5xl mx-auto">
+        <div>
              <Button onClick={onBack} variant="secondary" className="mb-6">
                 <ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu
              </Button>

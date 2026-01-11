@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Sportiv, Grupa, TipAbonament, Familie, Rol, View } from '../types';
+import { Sportiv, Grupa, TipAbonament, Familie, Rol, View, Grad, Participare } from '../types';
 import { Button, Modal, Input, Select, Card, ConfirmationModal } from './ui';
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon, ShieldCheckIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -138,7 +138,7 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({ formState, handle
              <Input label="CNP" name="cnp" value={formState.cnp || ''} onChange={handleChange} maxLength={13} />
         </div>
          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input label="Data Înscrierii" name="data_inscrierii" type="date" value={formState.data_inscrierii} onChange={handleChange} required />
+            <Input label="Data Înscrierii" name="data_inscrierii" type="date" value={formState.data_inscrierii} onChange={handleChange} />
             <div className="flex items-end gap-2">
                 <div className="flex-grow">
                      <Select label="Familie" name="familie_id" value={formState.familie_id || ''} onChange={handleChange}>
@@ -368,9 +368,11 @@ interface SportiviManagementProps {
     allRoles: Rol[];
     onNavigate?: (view: View, state?: any) => void;
     navigationState?: any;
+    grade: Grad[];
+    setParticipari: React.Dispatch<React.SetStateAction<Participare[]>>;
 }
 
-export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, sportivi, setSportivi, grupe, setGrupe, tipuriAbonament, setTipuriAbonament, familii, setFamilii, customFields, allRoles, onNavigate, navigationState }) => {
+export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, sportivi, setSportivi, grupe, setGrupe, tipuriAbonament, setTipuriAbonament, familii, setFamilii, customFields, allRoles, onNavigate, navigationState, grade, setParticipari }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sportivToEdit, setSportivToEdit] = useState<Sportiv | null>(null);
   const [sportivToDelete, setSportivToDelete] = useState<Sportiv | null>(null);
@@ -482,6 +484,29 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
             finalNewSportiv.roluri = finalNewSportiv.sportivi_roluri ? finalNewSportiv.sportivi_roluri.map((item: any) => item.roluri) : [];
             delete finalNewSportiv.sportivi_roluri;
             setSportivi(prev => [...prev, finalNewSportiv]);
+
+            if (grade && grade.length > 0) {
+                const beginnerGrade = [...grade].sort((a, b) => a.ordine - b.ordine)[0];
+                if (beginnerGrade) {
+                    const { data: newParticipare, error: participareError } = await supabase
+                        .from('participari')
+                        .insert({
+                            sportiv_id: finalNewSportiv.id,
+                            grad_sustinut_id: beginnerGrade.id,
+                            rezultat: 'Admis',
+                            observatii: 'Grad inițial alocat automat la înscriere.',
+                            examen_id: null,
+                        })
+                        .select()
+                        .single();
+
+                    if (participareError) {
+                        showError("Avertisment Grad Inițial", `Sportivul a fost creat, dar gradul de începător nu a putut fi alocat automat: ${participareError.message}`);
+                    } else if (newParticipare) {
+                        setParticipari(prev => [...prev, newParticipare as Participare]);
+                    }
+                }
+            }
         }
 
         return { success: true };

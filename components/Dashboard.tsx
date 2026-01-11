@@ -97,7 +97,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   ];
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 animate-fade-in-down">
+    <div className="space-y-8 animate-fade-in-down">
         <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
             <div className="text-center md:text-left">
                 <h1 className="text-4xl font-bold text-white tracking-tight">Centru de Comandă</h1>

@@ -41,7 +41,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentUser, onNavigat
     };
 
     return (
-        <div className="min-h-screen bg-slate-900">
+        <div className="min-h-screen bg-slate-900 overflow-x-hidden">
             <Topbar onMenuClick={() => setIsMobileOpen(true)} title={pageTitle} />
 
             <div
@@ -69,7 +69,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentUser, onNavigat
                 <ChevronDownIcon className={`w-5 h-5 transition-transform ${isSidebarExpanded ? 'rotate-90' : '-rotate-90'}`} />
             </button>
 
-            <main className={`flex-1 transition-all duration-300 p-4 md:p-8 lg:pt-8 pt-20 ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'}`}>
+            <main className={`flex-1 transition-all duration-300 p-4 md:p-8 lg:pt-8 pt-20 w-full ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'}`}>
                 {children}
             </main>
         </div>

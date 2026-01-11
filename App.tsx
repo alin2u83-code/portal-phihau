@@ -228,7 +228,7 @@ function App() {
       case 'portal-personal': return <PortalSportiv currentUser={currentUser} viewedUser={currentUser} onSwitchView={() => {}} participari={participari} examene={examene} grade={grade} grupe={grupe} plati={plati} setPlati={setPlati} evenimente={evenimente} rezultate={rezultate} setRezultate={setRezultate} preturiConfig={preturiConfig} onNavigateToEditProfil={() => handleNavigate('editare-profil-personal')} onNavigateToEvenimenteleMele={() => handleNavigate('evenimentele-mele')} sportivi={sportivi} familii={familii} onNavigateToDashboard={() => handleNavigate('dashboard')} />;
       case 'editare-profil-personal': return <EditareProfilPersonal user={currentUser} setSportivi={setSportivi} setCurrentUser={setCurrentUser} onBack={() => handleNavigate('portal-personal')} />;
       case 'evenimentele-mele': return <EvenimenteleMele viewedUser={currentUser} evenimente={evenimente} rezultate={rezultate} setRezultate={setRezultate} onBack={() => handleNavigate('portal-personal')} />;
-      case 'sportivi': return <SportiviManagement sportivi={sportivi} setSportivi={setSportivi} grupe={grupe} setGrupe={setGrupe} tipuriAbonament={tipuriAbonament} setTipuriAbonament={setTipuriAbonament} familii={familii} setFamilii={setFamilii} customFields={customFields} setCustomFields={setCustomFields} allRoles={allRoles} onBack={() => handleNavigate('dashboard')} />;
+      case 'sportivi': return <SportiviManagement sportivi={sportivi} setSportivi={setSportivi} grupe={grupe} setGrupe={setGrupe} tipuriAbonament={tipuriAbonament} setTipuriAbonament={setTipuriAbonament} familii={familii} setFamilii={setFamilii} customFields={customFields} setCustomFields={setCustomFields} allRoles={allRoles} onBack={() => handleNavigate('dashboard')} onNavigate={handleNavigate} navigationState={navigationState} grade={grade} setParticipari={setParticipari} />;
       
       case 'prezenta': return <ActivitatiManagement {...activitatiProps} initialTab="antrenamente" />;
       case 'examene': return <ActivitatiManagement {...activitatiProps} initialTab="examene" />;
@@ -244,7 +244,7 @@ function App() {
       case 'raport-financiar': return <RaportFinanciar plati={plati} sportivi={sportivi} familii={familii} tranzactii={tranzactii} onBack={() => handleNavigate('dashboard')} />;
       case 'familii': return <FamiliiManagement familii={familii} setFamilii={setFamilii} onBack={() => handleNavigate('dashboard')} />;
       case 'user-management': return <UserManagement sportivi={sportivi} setSportivi={setSportivi} currentUser={currentUser} setCurrentUser={setCurrentUser} allRoles={allRoles} setAllRoles={setAllRoles} onBack={() => handleNavigate('dashboard')} />;
-      case 'maintenance': return <Maintenance sportivi={sportivi} setSportivi={setSportivi} grade={grade} setGrade={setGrade} participari={participari} examene={examene} plati={plati} setPlati={setPlati} preturiConfig={preturiConfig} setPreturiConfig={setPreturiConfig} onBack={() => handleNavigate('dashboard')} />;
+      case 'maintenance': return <Maintenance sportivi={sportivi} setSportivi={setSportivi} grade={grade} setGrade={setGrade} participari={participari} examene={examene} plati={plati} setPlati={setPlati} preturiConfig={preturiConfig} onBack={() => handleNavigate('dashboard')} />;
       default: return <Dashboard onNavigate={handleNavigate} currentUser={currentUser} sportivi={sportivi} plati={plati} participari={participari} rezultate={rezultate} examene={examene} grade={grade} preturiConfig={preturiConfig} />;
     }
   };

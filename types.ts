@@ -45,7 +45,6 @@ export interface Examen {
   sesiune: 'Vara' | 'Iarna';
   data: string;
   locatia: string;
-  comisie: string; // JSON string of InstructorComisie[]
 }
 
 export interface Participare {

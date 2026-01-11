@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Examen, Participare, Sportiv, Grad, InstructorComisie } from '../types';
+import { Examen, Participare, Sportiv, Grad } from '../types';
 import { Button, Modal, Input, Select, Card, ConfirmationModal } from './ui';
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon, UsersIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -193,62 +193,22 @@ const ImportModal: React.FC<{
 };
 // --- End Import Modal Logic ---
 
-
-const parseComisie = (jsonString: string): InstructorComisie[] => {
-    try {
-        const data = JSON.parse(jsonString);
-        return Array.isArray(data) ? data : [];
-    } catch (e) {
-        return [];
-    }
-};
-
-const ComisieEditor: React.FC<{ comisie: InstructorComisie[], setComisie: React.Dispatch<React.SetStateAction<InstructorComisie[]>> }> = ({ comisie, setComisie }) => {
-    const [newItem, setNewItem] = useState<InstructorComisie>({ nume: '', grad: '', club: '' });
-    const handleAdd = () => { if (newItem.nume) { setComisie(c => [...c, newItem]); setNewItem({ nume: '', grad: '', club: '' }); }};
-    const handleRemove = (index: number) => setComisie(c => c.filter((_, i) => i !== index));
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => setNewItem(prev => ({ ...prev, [e.target.name]: e.target.value }));
-
-    return (
-        <div className="space-y-4 p-4 bg-slate-900/50 rounded-lg border border-slate-700">
-            <h4 className="text-lg font-semibold text-white">Comisie Examinatoare</h4>
-            <div className="space-y-2">
-                {comisie.map((item, index) => (
-                    <div key={index} className="flex items-center gap-2 bg-slate-700 p-2 rounded">
-                        <span className="font-semibold flex-grow">{item.nume} ({item.grad}, {item.club})</span>
-                        <Button type="button" size="sm" variant="danger" onClick={() => handleRemove(index)}><TrashIcon /></Button>
-                    </div>
-                ))}
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-2 items-end pt-4 border-t border-slate-700">
-                <Input label="Nume Instructor" name="nume" value={newItem.nume} onChange={handleChange} />
-                <Input label="Grad" name="grad" value={newItem.grad} onChange={handleChange} />
-                <Input label="Club" name="club" value={newItem.club} onChange={handleChange} />
-                <Button type="button" variant="info" onClick={handleAdd}><PlusIcon /></Button>
-            </div>
-        </div>
-    );
-};
-
 const ExamenFormModal: React.FC<{ isOpen: boolean; onClose: () => void; onSave: (examen: Omit<Examen, 'id'>) => Promise<void>; examenToEdit: Examen | null; }> = ({ isOpen, onClose, onSave, examenToEdit }) => {
     const [formState, setFormState] = useState({ sesiune: 'Vara' as 'Vara' | 'Iarna', data: new Date().toISOString().split('T')[0], locatia: '' });
-    const [comisie, setComisie] = useState<InstructorComisie[]>([]);
     const [loading, setLoading] = useState(false);
     
     React.useEffect(() => {
         if (isOpen) {
             if (examenToEdit) {
                 setFormState({ sesiune: examenToEdit.sesiune, data: examenToEdit.data, locatia: examenToEdit.locatia });
-                setComisie(parseComisie(examenToEdit.comisie));
             } else {
                 setFormState({ sesiune: 'Vara', data: new Date().toISOString().split('T')[0], locatia: '' });
-                setComisie([]);
             }
         }
     }, [examenToEdit, isOpen]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setFormState(p => ({ ...p, [e.target.name]: e.target.value as any }));
-    const handleSubmit = async (e: React.FormEvent) => { e.preventDefault(); setLoading(true); await onSave({ ...formState, comisie: JSON.stringify(comisie) }); setLoading(false); onClose(); };
+    const handleSubmit = async (e: React.FormEvent) => { e.preventDefault(); setLoading(true); await onSave({ ...formState }); setLoading(false); onClose(); };
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={examenToEdit ? "Editează Sesiune Examen" : "Creează Sesiune Examen"}>
@@ -258,7 +218,6 @@ const ExamenFormModal: React.FC<{ isOpen: boolean; onClose: () => void; onSave: 
                     <Input label="Data" name="data" type="date" value={formState.data} onChange={handleChange} required />
                     <Input label="Locația" name="locatia" value={formState.locatia} onChange={handleChange} required />
                 </div>
-                <ComisieEditor comisie={comisie} setComisie={setComisie} />
                 <div className="flex justify-end pt-4 space-x-2"><Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button><Button variant="success" type="submit" disabled={loading}>{loading ? 'Se salvează...' : 'Salvează'}</Button></div>
             </form>
         </Modal>
@@ -331,7 +290,6 @@ const ExamenDetail: React.FC<{ examen: Examen; participari: Participare[]; setPa
     };
 
     const sportiviNeinscrisi = sportivi.filter(s => s.status === 'Activ' && !participari.some(p => p.sportiv_id === s.id));
-    const comisie = parseComisie(examen.comisie);
 
     return (
         <div>
@@ -339,7 +297,6 @@ const ExamenDetail: React.FC<{ examen: Examen; participari: Participare[]; setPa
             <Card>
                 <h2 className="text-3xl font-bold text-white">Sesiune Examen {examen.sesiune} {new Date(examen.data).getFullYear()}</h2>
                 <p className="text-slate-400">{new Date(examen.data).toLocaleDateString('ro-RO')} - {examen.locatia}</p>
-                <div className="text-sm text-slate-300 mt-2">Comisie: {comisie.map(c => c.nume).join(', ') || 'N/A'}</div>
 
                 <div className="my-6 p-4 bg-slate-900/50 rounded-lg border border-slate-700">
                     <h3 className="text-lg font-semibold mb-2">Adaugă Participanți</h3>

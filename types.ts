@@ -83,6 +83,9 @@ export interface Antrenament {
   orar_id: string | null;
   status: 'Programat' | 'Anulat';
   sportivi_prezenti_ids: string[]; // Pentru starea din UI
+  is_recurent: boolean;
+  recurent_group_id: string | null;
+  data_sfarsit_recurenta: string | null;
 }
 
 // Tabela de legatura pentru prezenta

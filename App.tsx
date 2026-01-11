@@ -244,7 +244,7 @@ function App() {
       case 'stagii': return <ActivitatiManagement {...activitatiProps} initialTab="evenimente" />;
       case 'competitii': return <ActivitatiManagement {...activitatiProps} initialTab="evenimente" />;
       
-      case 'grupe': return <GrupeManagement grupe={grupe} setGrupe={setGrupe} orar={orar} setOrar={setOrar} onBack={() => handleNavigate('dashboard')} />;
+      case 'grupe': return <GrupeManagement grupe={grupe} setGrupe={setGrupe} onBack={() => handleNavigate('dashboard')} />;
       case 'plati-scadente': return <PlatiScadente plati={plati} setPlati={setPlati} sportivi={sportivi} familii={familii} tipuriAbonament={tipuriAbonament} onIncaseazaMultiple={(plist) => { setSelectedPlatiForIncasare(plist); handleNavigate('jurnal-incasari'); }} onBack={() => handleNavigate('dashboard')} />;
       case 'jurnal-incasari': return <JurnalIncasari plati={plati} setPlati={setPlati} sportivi={sportivi} familii={familii} preturiConfig={preturiConfig} tipuriAbonament={tipuriAbonament} tranzactii={tranzactii} setTranzactii={setTranzactii} platiInitiale={selectedPlatiForIncasare} onIncasareProcesata={() => { setSelectedPlatiForIncasare([]); fetchAdminData(); }} onBack={() => handleNavigate('plati-scadente')} />;
       case 'configurare-preturi': return <ConfigurarePreturi preturi={preturiConfig} setPreturi={setPreturiConfig} sportivi={sportivi} onBack={() => handleNavigate('dashboard')} />;

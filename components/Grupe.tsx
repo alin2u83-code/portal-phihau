@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-// FIX: Replaced non-existent type 'ProgramItem' with 'Orar' from types.
 import { Grupa, Orar } from '../types';
 import { Button, Modal, Input, Select, ConfirmationModal } from './ui';
 import { PlusIcon, TrashIcon, EditIcon, ArrowLeftIcon } from './icons';
 import { supabase } from '../supabaseClient';
+import { useError } from './ErrorProvider';
 
 // Helper pentru sortarea programului în ordine cronologică
-// FIX: Use 'Orar' type.
 const zileSaptamanaOrdonate: Record<Orar['ziua'], number> = {
     'Luni': 1,
     'Marți': 2,
@@ -17,7 +16,6 @@ const zileSaptamanaOrdonate: Record<Orar['ziua'], number> = {
     'Duminică': 7
 };
 
-// FIX: Use 'Orar' type.
 const sortProgram = (program: Orar[]): Orar[] => {
     return [...program].sort((a, b) => {
         const ziCompare = zileSaptamanaOrdonate[a.ziua] - zileSaptamanaOrdonate[b.ziua];
@@ -29,26 +27,21 @@ const sortProgram = (program: Orar[]): Orar[] => {
 };
 
 // Componentă pentru editarea programului
-// FIX: Use 'Orar' type for props.
 const ProgramEditor: React.FC<{ program: Orar[], setProgram: React.Dispatch<React.SetStateAction<Orar[]>> }> = ({ program, setProgram }) => {
-    // FIX: Use 'Orar' type.
     const zileSaptamana: Orar['ziua'][] = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'];
-    // FIX: Use a partial type for the new item form state.
     const [newItem, setNewItem] = useState<Omit<Orar, 'id' | 'grupa_id'>>({ ziua: 'Luni', ora_start: '18:00', ora_sfarsit: '19:30' });
 
-    // FIX: Create a full 'Orar' object when adding a new item to the program.
     const handleAdd = () => {
         const completeItem: Orar = {
             ...newItem,
-            id: '', // Will be set by DB
-            grupa_id: '' // Will be set on save
+            id: `new_${Date.now()}`, // ID temporar pentru key
+            grupa_id: '' // Va fi setat la salvare
         };
         setProgram(p => [...p, completeItem]);
     };
     const handleRemove = (index: number) => { 
         const sorted = sortProgram(program);
         const itemToRemove = sorted[index];
-        // Elimină elementul pe baza referinței obiectului pentru a evita ștergerea duplicatelor
         setProgram(p => p.filter(item => item !== itemToRemove));
     };
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => { setNewItem(prev => ({ ...prev, [e.target.name]: e.target.value as any })) };
@@ -60,7 +53,7 @@ const ProgramEditor: React.FC<{ program: Orar[], setProgram: React.Dispatch<Reac
             <div>
                 <h4 className="text-lg font-semibold mb-2 text-white">Program Curent</h4>
                 {sortedProgram.length > 0 ? ( sortedProgram.map((item, index) => (
-                    <div key={index} className="flex items-center gap-2 bg-slate-700 p-2 rounded mb-2">
+                    <div key={item.id || index} className="flex items-center gap-2 bg-slate-700 p-2 rounded mb-2">
                         <span className="font-semibold flex-grow">{item.ziua}: {item.ora_start} - {item.ora_sfarsit}</span>
                         <Button type="button" size="sm" variant="danger" onClick={() => handleRemove(index)}><TrashIcon /></Button>
                     </div>
@@ -84,14 +77,12 @@ const ProgramEditor: React.FC<{ program: Orar[], setProgram: React.Dispatch<Reac
 // Modal pentru adăugare/editare grupă
 const GrupaFormModal: React.FC<{ isOpen: boolean; onClose: () => void; onSave: (grupa: Grupa) => Promise<void>; grupaToEdit: Grupa | null }> = ({ isOpen, onClose, onSave, grupaToEdit }) => {
     const [formState, setFormState] = useState({ denumire: '', sala: '' });
-    // FIX: Use 'Orar' type for program state.
     const [program, setProgram] = useState<Orar[]>([]);
     const [loading, setLoading] = useState(false);
     
     React.useEffect(() => {
         if (isOpen) {
             setFormState({ denumire: grupaToEdit?.denumire || '', sala: grupaToEdit?.sala || '' });
-            // FIX: Use 'orar' property instead of non-existent 'program'.
             setProgram(grupaToEdit?.orar || []);
         }
     }, [isOpen, grupaToEdit]);
@@ -100,9 +91,8 @@ const GrupaFormModal: React.FC<{ isOpen: boolean; onClose: () => void; onSave: (
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        // FIX: Use 'orar' property to match the 'Grupa' type.
         const finalGrupa: Grupa = {
-            id: grupaToEdit?.id || '', // ID-ul va fi setat la salvarea în DB dacă e grupă nouă
+            id: grupaToEdit?.id || '',
             ...formState,
             orar: program
         };
@@ -130,38 +120,40 @@ export const GrupeManagement: React.FC<GrupeManagementProps> = ({ grupe, setGrup
   const [grupaToEdit, setGrupaToEdit] = useState<Grupa | null>(null);
   const [grupaToDelete, setGrupaToDelete] = useState<Grupa | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const { showError } = useError();
   
   const handleSave = async (grupaData: Grupa) => {
       if (!supabase) return;
       
-      // FIX: Use 'orar' property instead of non-existent 'program'.
       const { orar, ...grupaInfo } = grupaData;
 
       if (grupaToEdit) { // Editare
           const { data, error } = await supabase.from('grupe').update(grupaInfo).eq('id', grupaToEdit.id).select().single();
-          if (error) { alert(`Eroare la actualizarea grupei: ${error.message}`); return; }
+          if (error) { showError("Eroare la actualizarea grupei", error); return; }
 
-          // Sincronizează programul
-          const { error: deleteError } = await supabase.from('program_antrenamente').delete().eq('grupa_id', grupaToEdit.id);
-          if (deleteError) { alert(`Eroare la sincronizarea programului (1/2): ${deleteError.message}`); return; }
+          const { error: deleteError } = await supabase.from('orar').delete().eq('grupa_id', grupaToEdit.id);
+          if (deleteError) { showError("Eroare la sincronizarea programului (ștergere)", deleteError); return; }
 
-          const programToInsert = orar.map(p => ({ ...p, grupa_id: grupaToEdit.id }));
-          const { error: insertError } = await supabase.from('program_antrenamente').insert(programToInsert);
-          if (insertError) { alert(`Eroare la sincronizarea programului (2/2): ${insertError.message}`); return; }
+          if (orar.length > 0) {
+            const programToInsert = orar.map(({ id, ...p }) => ({ ...p, grupa_id: grupaToEdit.id }));
+            const { error: insertError } = await supabase.from('orar').insert(programToInsert);
+            if (insertError) { showError("Eroare la sincronizarea programului (inserare)", insertError); return; }
+          }
 
           if (data) setGrupe(prev => prev.map(g => g.id === grupaToEdit.id ? { ...data, orar } : g));
 
       } else { // Adăugare
-          const { id, ...newGrupaData } = grupaInfo; // Exclude ID-ul, va fi generat de DB
+          const { id, ...newGrupaData } = grupaInfo;
           const { data, error } = await supabase.from('grupe').insert(newGrupaData).select().single();
-          if (error) { alert(`Eroare la adăugarea grupei: ${error.message}`); return; }
+          if (error) { showError("Eroare la adăugarea grupei", error); return; }
 
           if (data) {
               const newGrupaId = data.id;
-              const programToInsert = orar.map(p => ({ ...p, grupa_id: newGrupaId }));
-              const { error: insertError } = await supabase.from('program_antrenamente').insert(programToInsert);
-              if (insertError) { alert(`Grupă creată, dar eroare la salvarea programului: ${insertError.message}`); }
-              
+              if (orar.length > 0) {
+                const programToInsert = orar.map(({ id, ...p }) => ({ ...p, grupa_id: newGrupaId }));
+                const { error: insertError } = await supabase.from('orar').insert(programToInsert);
+                if (insertError) { showError("Grupă creată, dar eroare la salvarea programului", insertError); }
+              }
               setGrupe(prev => [...prev, { ...data, orar }]);
           }
       }
@@ -173,19 +165,17 @@ export const GrupeManagement: React.FC<GrupeManagementProps> = ({ grupe, setGrup
   const confirmDelete = async () => {
     if (!supabase || !grupaToDelete) return;
     setDeleteLoading(true);
-    // Șterge întâi programul asociat (foreign key constraint)
-    const { error: programError } = await supabase.from('program_antrenamente').delete().eq('grupa_id', grupaToDelete.id);
+    const { error: programError } = await supabase.from('orar').delete().eq('grupa_id', grupaToDelete.id);
     if (programError) { 
-        alert(`Eroare la ștergerea programului asociat: ${programError.message}`); 
+        showError("Eroare la ștergerea programului asociat", programError); 
         setDeleteLoading(false);
         setGrupaToDelete(null);
         return; 
     }
     
-    // Apoi șterge grupa
     const { error: grupaError } = await supabase.from('grupe').delete().eq('id', grupaToDelete.id);
     if (grupaError) { 
-        alert(`Eroare la ștergerea grupei: ${grupaError.message}`); 
+        showError("Eroare la ștergerea grupei", grupaError); 
     } else {
         setGrupe(prev => prev.filter(g => g.id !== grupaToDelete.id));
     }
@@ -210,8 +200,7 @@ export const GrupeManagement: React.FC<GrupeManagementProps> = ({ grupe, setGrup
                 <td className="p-4">{grupa.sala}</td>
                 <td className="p-4">
                     <div className="flex flex-wrap gap-1">
-                        {/* FIX: Use 'orar' property instead of non-existent 'program'. */}
-                        {sortProgram(grupa.orar).map((p, i) => <span key={i} className="bg-slate-600 text-slate-200 text-xs font-semibold px-2 py-1 rounded-full">{p.ziua} {p.ora_start}-{p.ora_sfarsit}</span>)}
+                        {sortProgram(grupa.orar).map((p, i) => <span key={p.id || i} className="bg-slate-600 text-slate-200 text-xs font-semibold px-2 py-1 rounded-full">{p.ziua} {p.ora_start}-{p.ora_sfarsit}</span>)}
                     </div>
                 </td>
                 <td className="p-2 text-right w-32">
@@ -232,7 +221,7 @@ export const GrupeManagement: React.FC<GrupeManagementProps> = ({ grupe, setGrup
         onClose={() => setGrupaToDelete(null)}
         onConfirm={confirmDelete}
         title="Confirmare Ștergere Grupă"
-        message="Sunteți sigur că doriți să ștergeți această înregistrare? Această acțiune este ireversibilă."
+        message="Sunteți sigur că doriți să ștergeți această înregistrare? Toți sportivii din grupă vor rămâne fără grupă. Această acțiune este ireversibilă."
         loading={deleteLoading}
       />
     </div>

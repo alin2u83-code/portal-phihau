@@ -69,6 +69,9 @@ export const PrezentaManagement: React.FC<PrezentaManagementProps> = ({ sportivi
                         ora_sfarsit: orarItem.ora_sfarsit,
                         orar_id: orarItem.id,
                         status: 'Programat',
+                        is_recurent: false,
+                        recurent_group_id: null,
+                        data_sfarsit_recurenta: null,
                     });
                 }
             }

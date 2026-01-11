@@ -61,6 +61,7 @@ export interface Participare {
     nota_song_doi?: number | null;
     nota_thao_quyen?: number | null;
     media?: number | null;
+    plata_id?: string | null;
 }
 
 export interface ProgramItem {

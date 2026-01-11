@@ -216,7 +216,7 @@ function App() {
     }
 
     switch (activeView) {
-      case 'dashboard': return <Dashboard onNavigate={setActiveView} currentUser={currentUser} sportivi={sportivi} plati={plati} participari={participari} rezultate={rezultate} programAntrenamente={programAntrenamente} prezentaAntrenament={prezentaAntrenament} />;
+      case 'dashboard': return <Dashboard onNavigate={setActiveView} currentUser={currentUser} sportivi={sportivi} plati={plati} participari={participari} rezultate={rezultate} programAntrenamente={programAntrenamente} prezentaAntrenament={prezentaAntrenament} examene={examene} grade={grade} />;
       case 'portal-personal': return <PortalSportiv currentUser={currentUser} viewedUser={currentUser} onSwitchView={() => {}} participari={participari} examene={examene} grade={grade} grupe={grupe} plati={plati} setPlati={setPlati} evenimente={evenimente} rezultate={rezultate} setRezultate={setRezultate} preturiConfig={preturiConfig} onNavigateToEditProfil={() => setActiveView('editare-profil-personal')} onNavigateToEvenimenteleMele={() => setActiveView('evenimentele-mele')} sportivi={sportivi} familii={familii} onNavigateToDashboard={() => setActiveView('dashboard')} />;
       case 'editare-profil-personal': return <EditareProfilPersonal user={currentUser} setSportivi={setSportivi} setCurrentUser={setCurrentUser} onBack={() => setActiveView('portal-personal')} />;
       case 'evenimentele-mele': return <EvenimenteleMele viewedUser={currentUser} evenimente={evenimente} rezultate={rezultate} setRezultate={setRezultate} onBack={() => setActiveView('portal-personal')} />;
@@ -237,7 +237,7 @@ function App() {
       case 'familii': return <FamiliiManagement familii={familii} setFamilii={setFamilii} onBack={() => setActiveView('dashboard')} />;
       case 'user-management': return <UserManagement sportivi={sportivi} setSportivi={setSportivi} currentUser={currentUser} setCurrentUser={setCurrentUser} allRoles={allRoles} setAllRoles={setAllRoles} onBack={() => setActiveView('dashboard')} />;
       case 'maintenance': return <Maintenance sportivi={sportivi} setSportivi={setSportivi} grade={grade} setGrade={setGrade} participari={participari} examene={examene} plati={plati} setPlati={setPlati} preturiConfig={preturiConfig} onBack={() => setActiveView('dashboard')} />;
-      default: return <Dashboard onNavigate={setActiveView} currentUser={currentUser} sportivi={sportivi} plati={plati} participari={participari} rezultate={rezultate} programAntrenamente={programAntrenamente} prezentaAntrenament={prezentaAntrenament} />;
+      default: return <Dashboard onNavigate={setActiveView} currentUser={currentUser} sportivi={sportivi} plati={plati} participari={participari} rezultate={rezultate} programAntrenamente={programAntrenamente} prezentaAntrenament={prezentaAntrenament} examene={examene} grade={grade} />;
     }
   };
 

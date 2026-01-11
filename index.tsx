@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { ErrorProvider } from './components/ErrorProvider';
+import { NotificationProvider } from './components/NotificationProvider';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -12,7 +13,9 @@ const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
     <ErrorProvider>
-      <App />
+      <NotificationProvider>
+        <App />
+      </NotificationProvider>
     </ErrorProvider>
   </React.StrictMode>
 );

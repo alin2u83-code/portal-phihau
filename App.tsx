@@ -18,9 +18,9 @@ import { UserManagement } from './components/UserManagement';
 import { Session } from '@supabase/supabase-js';
 import { EditareProfilPersonal } from './components/EditareProfilPersonal';
 import { EvenimenteleMele } from './components/EvenimenteleMele';
-import { Sidebar } from './components/Sidebar';
 import { useError } from './components/ErrorProvider';
 import { useLocalStorage } from './hooks/useLocalStorage';
+import { Layout } from './components/Layout';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -236,14 +236,19 @@ function App() {
 
   if (loading) return <div className="flex items-center justify-center min-h-screen bg-slate-900 text-white">Se încarcă...</div>;
   if (!session) return <Login />;
+  if (!currentUser) return <div className="flex items-center justify-center min-h-screen bg-slate-900 text-white">Se încarcă profilul utilizatorului...</div>;
 
   return (
-    <div className="min-h-screen flex bg-slate-900">
-      <Sidebar currentUser={currentUser!} onNavigate={setActiveView} onLogout={handleLogout} activeView={activeView} isExpanded={isSidebarExpanded} setIsExpanded={setIsSidebarExpanded} isPortalView={!currentUser?.roluri.some(r => r.nume === 'Admin' || r.nume === 'Instructor')} onViewOwnPortal={() => {}} />
-      <main className={`flex-1 transition-all duration-300 p-4 md:p-8 ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'}`}>
+      <Layout 
+        currentUser={currentUser} 
+        onNavigate={setActiveView} 
+        onLogout={handleLogout} 
+        activeView={activeView}
+        isSidebarExpanded={isSidebarExpanded}
+        setIsSidebarExpanded={setIsSidebarExpanded}
+      >
         {renderContent()}
-      </main>
-    </div>
+      </Layout>
   );
 }
 

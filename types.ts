@@ -1,3 +1,5 @@
+import React from 'react';
+
 export interface Rol {
   id: string;
   nume: 'Sportiv' | 'Instructor' | 'Admin';
@@ -71,7 +73,7 @@ export interface ProgramItem {
 export interface Prezenta {
   id: string; // Acum este UUID
   grupa_id: string | null;
-  data_antrenament: string;
+  data: string;
   ziua: ProgramItem['ziua'];
   ora_inceput: string;
   is_recurent: boolean;
@@ -107,7 +109,7 @@ export interface Rezultat {
 export interface PretConfig {
     id: string;
     categorie: 'Taxa Examen' | 'Taxa Stagiu' | 'Taxa Competitie' | 'Echipament';
-    denumire_serviciu: string; // Ex: "Vo Phuc", "Tricou", "Stagiu National", "Competitie Copii"
+    denumire_servisciu: string; // Ex: "Vo Phuc", "Tricou", "Stagiu National", "Competitie Copii"
     suma: number;
     valabil_de_la_data: string;
     specificatii?: { // Câmp flexibil pentru atribute
@@ -157,3 +159,17 @@ export interface Familie {
 export type User = Sportiv;
 
 export type View = 'dashboard' | 'sportivi' | 'examene' | 'grade' | 'prezenta' | 'grupe' | 'raport-prezenta' | 'stagii' | 'competitii' | 'plati-scadente' | 'jurnal-incasari' | 'raport-financiar' | 'configurare-preturi' | 'tipuri-abonament' | 'familii' | 'user-management' | 'editare-profil-personal' | 'evenimentele-mele' | 'portal-personal';
+
+// Navigation Types
+export interface SubMenuItem {
+    label: string;
+    view: View;
+    roles?: Rol['nume'][];
+}
+export interface MenuItem {
+    label: string;
+    icon: React.ElementType;
+    view?: View;
+    roles?: Rol['nume'][];
+    submenu?: SubMenuItem[];
+}

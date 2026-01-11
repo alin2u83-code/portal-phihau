@@ -57,7 +57,8 @@ const ExamenDetail: React.FC<{ examen: Examen; participari: Participare[]; setPa
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
     const { showError } = useError();
-    const getPretGrad = (gradNume: string, dataReferinta: string = new Date().toISOString()): number | null => { const data = new Date(dataReferinta); const preturiValabile = preturiConfig.filter(p => p.categorie === 'Taxa Examen' && p.denumire_serviciu === gradNume && new Date(p.valabil_de_la_data) <= data).sort((a, b) => new Date(b.valabil_de_la_data).getTime() - new Date(a.valabil_de_la_data).getTime()); return preturiValabile.length > 0 ? preturiValabile[0].suma : null; };
+    // FIX: Corrected typo from `denumire_serviciu` to `denumire_servisciu`.
+    const getPretGrad = (gradNume: string, dataReferinta: string = new Date().toISOString()): number | null => { const data = new Date(dataReferinta); const preturiValabile = preturiConfig.filter(p => p.categorie === 'Taxa Examen' && p.denumire_servisciu === gradNume && new Date(p.valabil_de_la_data) <= data).sort((a, b) => new Date(b.valabil_de_la_data).getTime() - new Date(a.valabil_de_la_data).getTime()); return preturiValabile.length > 0 ? preturiValabile[0].suma : null; };
     
     const handleAddParticipant = async () => {
         if (!sportivIdToAdd || !supabase) return; const sportiv = sportivi.find(s => s.id === sportivIdToAdd); if(!sportiv) return;

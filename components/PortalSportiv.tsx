@@ -290,7 +290,7 @@ export const PortalSportiv: React.FC<PortalSportivProps> = ({ currentUser, viewe
                         </thead>
                         <tbody className="divide-y divide-slate-700">
                             {admittedParticipations.map((p, index) => (
-                                <tr key={p.id} className={`transition-colors ${index === 0 ? 'bg-brand-primary/50 border-l-4 border-brand-secondary' : 'hover:bg-slate-700/20'}`}>
+                                <tr key={p.id} className={`transition-colors ${index === 0 ? 'bg-brand-secondary/20 border-l-4 border-brand-secondary' : 'hover:bg-slate-700/20'}`}>
                                     <td className="p-4 text-sm font-medium">
                                         {p.examen ? new Date(p.examen.data).toLocaleDateString('ro-RO') : 'N/A'}
                                     </td>

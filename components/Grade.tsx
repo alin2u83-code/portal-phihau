@@ -23,13 +23,15 @@ export const GradeManagement: React.FC<{ grade: Grad[]; setGrade: React.Dispatch
   const [deleteLoading, setDeleteLoading] = useState(false);
   const { showError } = useError();
 
-  const getPretGrad = (gradNume: string): number | null => { const data = new Date(); const preturiValabile = preturiConfig.filter(p => p.categorie === 'Taxa Examen' && p.denumire_serviciu === gradNume && new Date(p.valabil_de_la_data) <= data).sort((a, b) => new Date(b.valabil_de_la_data).getTime() - new Date(a.valabil_de_la_data).getTime()); return preturiValabile.length > 0 ? preturiValabile[0].suma : null; };
+  // FIX: Corrected typo from `denumire_serviciu` to `denumire_servisciu`.
+  const getPretGrad = (gradNume: string): number | null => { const data = new Date(); const preturiValabile = preturiConfig.filter(p => p.categorie === 'Taxa Examen' && p.denumire_servisciu === gradNume && new Date(p.valabil_de_la_data) <= data).sort((a, b) => new Date(b.valabil_de_la_data).getTime() - new Date(a.valabil_de_la_data).getTime()); return preturiValabile.length > 0 ? preturiValabile[0].suma : null; };
   
   const handlePriceUpdate = async (grad: Grad, newPriceStr: string) => { 
       const newPrice = parseFloat(newPriceStr); 
       if (isNaN(newPrice) || newPrice < 0) return; 
       if (getPretGrad(grad.nume) === newPrice) return; 
-      const newPretConfig: Omit<PretConfig, 'id'> = { categorie: 'Taxa Examen', denumire_serviciu: grad.nume, suma: newPrice, valabil_de_la_data: new Date().toISOString().split('T')[0] }; 
+      // FIX: Corrected typo from `denumire_serviciu` to `denumire_servisciu`.
+      const newPretConfig: Omit<PretConfig, 'id'> = { categorie: 'Taxa Examen', denumire_servisciu: grad.nume, suma: newPrice, valabil_de_la_data: new Date().toISOString().split('T')[0] }; 
       const { data, error } = await supabase.from('preturi_config').insert(newPretConfig).select().single(); 
       if (error) { showError("Eroare la salvare preț", error); } 
       else if (data) { setPreturiConfig(prev => [...prev, data as PretConfig]); } 

@@ -1,10 +1,9 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { Prezenta, Sportiv, Grupa, ProgramItem, Examen, Participare, Grad, PretConfig, Plata, Eveniment, Rezultat } from '../types';
-import { Button, Card, Input, Select, ConfirmationModal } from './ui';
-import { PlusIcon, ArrowLeftIcon, TrashIcon, ChevronDownIcon, EditIcon, UsersIcon } from './icons';
+import { Prezenta, Sportiv, Grupa, Examen, Participare, Grad, PretConfig, Plata, Eveniment, Rezultat } from '../types';
+import { Button, Card, Input, Select, ConfirmationModal, Modal } from './ui';
+import { PlusIcon, ArrowLeftIcon, TrashIcon, UsersIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
-import { GradeManagement } from './Grade';
 import { ExameneManagement } from './Examene';
 import { StagiiCompetitiiManagement } from './StagiiCompetitii';
 
@@ -23,94 +22,144 @@ const TabButton: React.FC<{ activeTab: Tab, tabName: Tab, label: string, onClick
     </button>
 );
 
-// FIX: Add missing AttendanceChecklist component.
-interface AttendanceChecklistProps {
-    antrenament: Prezenta;
-    sportiviInGrupa: Sportiv[];
-    onSave: (antrenamentId: string, presentIds: Set<string>) => Promise<void>;
-}
+// --- START REFACTORED ATTENDANCE LOGIC ---
 
-const AttendanceChecklist: React.FC<AttendanceChecklistProps> = ({ antrenament, sportiviInGrupa, onSave }) => {
-    const [presentIds, setPresentIds] = useState<Set<string>>(() => new Set(antrenament.sportivi_prezenti_ids));
+const AttendanceModal: React.FC<{ isOpen: boolean; onClose: () => void; antrenament: Prezenta | null; sportivi: Sportiv[]; grupe: Grupa[]; onSaveSuccess: () => void; }> = ({ isOpen, onClose, antrenament, sportivi, grupe, onSaveSuccess }) => {
+    const [presentIds, setPresentIds] = useState<Set<string>>(new Set());
     const [loading, setLoading] = useState(false);
+    const { showError } = useError();
 
-    const handleToggle = (sportivId: string) => {
-        setPresentIds(prev => {
-            const newSet = new Set(prev);
-            if (newSet.has(sportivId)) {
-                newSet.delete(sportivId);
-            } else {
-                newSet.add(sportivId);
-            }
-            return newSet;
-        });
-    };
+    const isVacationMonth = useCallback((dateStr: string) => {
+        const month = new Date(dateStr).getUTCMonth();
+        return month === 6 || month === 7;
+    }, []);
 
-    const handleSaveClick = async () => {
+    const sportiviInGrupa = useMemo(() => {
+        if (!antrenament || !antrenament.grupa_id) return [];
+        return sportivi
+            .filter(s => s.status === 'Activ' && s.grupa_id === antrenament.grupa_id && (!isVacationMonth(antrenament.data) || s.participa_vacanta))
+            .sort((a, b) => a.nume.localeCompare(b.nume));
+    }, [antrenament, sportivi, isVacationMonth]);
+
+    useEffect(() => { if (isOpen && antrenament) setPresentIds(new Set(antrenament.sportivi_prezenti_ids)); }, [isOpen, antrenament]);
+    const handleToggle = (sportivId: string) => setPresentIds(prev => { const newSet = new Set(prev); if (newSet.has(sportivId)) newSet.delete(sportivId); else newSet.add(sportivId); return newSet; });
+
+    const handleSave = async () => {
+        if (!antrenament || !supabase) return;
         setLoading(true);
-        await onSave(antrenament.id, presentIds);
+        const { error: deleteError } = await supabase.from('prezenta_antrenament').delete().eq('antrenament_id', antrenament.id);
+        if (deleteError) { showError("Eroare la actualizarea prezenței", deleteError); setLoading(false); return; }
+        if (presentIds.size > 0) {
+            const toInsert = Array.from(presentIds).map(sportiv_id => ({ antrenament_id: antrenament.id, sportiv_id }));
+            const { error: insertError } = await supabase.from('prezenta_antrenament').insert(toInsert);
+            if (insertError) { showError("Eroare la salvarea prezenței", insertError); setLoading(false); return; }
+        }
         setLoading(false);
+        onSaveSuccess();
+        onClose();
     };
+
+    if (!antrenament) return null;
+    const grupa = grupe.find(g => g.id === antrenament.grupa_id);
 
     return (
-        <div className="p-4 bg-slate-900/50">
-            <h4 className="font-bold text-white mb-3">Înregistrează Prezența</h4>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-60 overflow-y-auto pr-2">
-                {sportiviInGrupa.map(sportiv => (
-                    <label key={sportiv.id} className="flex items-center space-x-2 text-sm p-2 bg-slate-800 rounded-md cursor-pointer hover:bg-slate-700 transition-colors">
-                        <input
-                            type="checkbox"
-                            checked={presentIds.has(sportiv.id)}
-                            onChange={() => handleToggle(sportiv.id)}
-                            className="h-4 w-4 rounded border-slate-500 bg-slate-900 text-brand-secondary focus:ring-brand-secondary"
-                        />
-                        <span>{sportiv.nume} {sportiv.prenume}</span>
-                    </label>
-                ))}
+        <Modal isOpen={isOpen} onClose={onClose} title={`Prezență ${grupa?.denumire} - ${new Date(antrenament.data).toLocaleDateString('ro-RO')}`}>
+            <div className="space-y-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-80 overflow-y-auto pr-2">
+                    {sportiviInGrupa.map(s => (
+                        <label key={s.id} className="flex items-center space-x-2 p-2 bg-slate-700 rounded-md cursor-pointer hover:bg-slate-600 transition-colors">
+                            <input type="checkbox" checked={presentIds.has(s.id)} onChange={() => handleToggle(s.id)} className="h-4 w-4 rounded border-slate-500 bg-slate-900 text-brand-secondary focus:ring-brand-secondary"/>
+                            <span className="text-sm">{s.nume} {s.prenume}</span>
+                        </label>
+                    ))}
+                    {sportiviInGrupa.length === 0 && <p className="text-slate-400 italic col-span-full text-center">Niciun sportiv eligibil în grupă.</p>}
+                </div>
+                <div className="flex justify-end pt-4 border-t border-slate-700">
+                    <Button onClick={handleSave} variant="success" disabled={loading}>{loading ? 'Se salvează...' : `Salvează (${presentIds.size} Prezenți)`}</Button>
+                </div>
             </div>
-             {sportiviInGrupa.length === 0 && <p className="text-slate-400 text-sm italic">Niciun sportiv eligibil în această grupă pentru acest antrenament.</p>}
-            <div className="mt-4 flex justify-end">
-                <Button onClick={handleSaveClick} variant="success" size="sm" disabled={loading}>
-                    {loading ? 'Se salvează...' : 'Salvează Prezența'}
-                </Button>
-            </div>
-        </div>
+        </Modal>
     );
 };
 
-const AntrenamenteTab: React.FC<{
-    sportivi: Sportiv[];
-    grupe: Grupa[];
-}> = ({ sportivi, grupe }) => {
+const AddAntrenamentModal: React.FC<{ isOpen: boolean; onClose: () => void; grupe: Grupa[]; onSaveSuccess: () => void; }> = ({ isOpen, onClose, grupe, onSaveSuccess }) => {
+    const [formState, setFormState] = useState({ grupa_id: '', data: new Date().toISOString().split('T')[0], ora_inceput: '18:00', ora_sfarsit: '19:30', is_recurent: false });
+    const [loading, setLoading] = useState(false);
+    const { showError } = useError();
+    const zileSaptamana = ['Duminică', 'Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă'];
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!formState.grupa_id || !formState.data || !formState.ora_inceput || !formState.ora_sfarsit) { showError("Eroare", "Toate câmpurile sunt obligatorii."); return; }
+        if (!supabase) return;
+
+        setLoading(true);
+        const newAntrenament = {
+            grupa_id: formState.grupa_id,
+            data: formState.data,
+            ziua: zileSaptamana[new Date(formState.data).getDay()],
+            ora_inceput: formState.ora_inceput,
+            ora_sfarsit: formState.ora_sfarsit,
+            is_recurent: formState.is_recurent
+        };
+
+        const { error } = await supabase.from('program_antrenamente').insert(newAntrenament);
+        setLoading(false);
+        if (error) { showError("Eroare la adăugare", error); } else { onSaveSuccess(); onClose(); }
+    };
+
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title="Adaugă Antrenament Nou">
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <Select label="Grupa" value={formState.grupa_id} onChange={e => setFormState(p => ({...p, grupa_id: e.target.value}))} required>
+                    <option value="">Alege grupa...</option>
+                    {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
+                </Select>
+                <Input label="Data" type="date" value={formState.data} onChange={e => setFormState(p => ({...p, data: e.target.value}))} required />
+                <div className="grid grid-cols-2 gap-4">
+                    <Input label="Ora Început" type="time" value={formState.ora_inceput} onChange={e => setFormState(p => ({...p, ora_inceput: e.target.value}))} required />
+                    <Input label="Ora Sfârșit" type="time" value={formState.ora_sfarsit} onChange={e => setFormState(p => ({...p, ora_sfarsit: e.target.value}))} required />
+                </div>
+                {/* Recurrence logic can be expanded here */}
+                <div className="flex justify-end pt-4 border-t border-slate-700">
+                    <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button>
+                    <Button type="submit" variant="success" disabled={loading}>{loading ? 'Se salvează...' : 'Salvează Antrenament'}</Button>
+                </div>
+            </form>
+        </Modal>
+    );
+};
+
+
+const AntrenamenteTab: React.FC<{ sportivi: Sportiv[]; grupe: Grupa[]; }> = ({ sportivi, grupe }) => {
     const [antrenamente, setAntrenamente] = useState<Prezenta[]>([]);
     const [loading, setLoading] = useState(true);
-    const [expandedAntrenamentId, setExpandedAntrenamentId] = useState<string | null>(null);
     const [antrenamentToDelete, setAntrenamentToDelete] = useState<Prezenta | null>(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
+    const [antrenamentForAttendance, setAntrenamentForAttendance] = useState<Prezenta | null>(null);
+    const [isAttendanceModalOpen, setIsAttendanceModalOpen] = useState(false);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const { showError } = useError();
-    const [filters, setFilters] = useState({ data: '', grupa: '', tip: 'toate' });
-    const [currentTime, setCurrentTime] = useState(new Date());
-
-    useEffect(() => {
-        const timer = setInterval(() => setCurrentTime(new Date()), 60000);
-        return () => clearInterval(timer);
-    }, []);
-
+    
+    const [filters, setFilters] = useState({
+        an: new Date().getFullYear().toString(),
+        luna: (new Date().getMonth() + 1).toString().padStart(2, '0'),
+        grupa: '',
+        tip: 'toate'
+    });
+    
     const fetchData = useCallback(async () => {
         setLoading(true);
-        const { data: antrenamenteData, error: antrenamenteError } = await supabase.from('program_antrenamente').select('*').order('data_antrenament', { ascending: false }).order('ora_inceput', { ascending: true });
+        const { data: antrenamenteData, error: antrenamenteError } = await supabase.from('program_antrenamente').select('*').order('data', { ascending: false }).order('ora_inceput', { ascending: true });
         if (antrenamenteError) { showError("Eroare la încărcarea antrenamentelor", antrenamenteError); setLoading(false); return; }
 
         const { data: prezenteData, error: prezenteError } = await supabase.from('prezenta_antrenament').select('*');
         if (prezenteError) { showError("Eroare la încărcarea prezențelor", prezenteError); setLoading(false); return; }
 
         const prezenteMap = new Map<string, string[]>();
-        prezenteData.forEach(p => {
-            if (!prezenteMap.has(p.antrenament_id)) prezenteMap.set(p.antrenament_id, []);
-            prezenteMap.get(p.antrenament_id)?.push(p.sportiv_id);
-        });
-
+        prezenteData.forEach(p => { if (!prezenteMap.has(p.antrenament_id)) prezenteMap.set(p.antrenament_id, []); prezenteMap.get(p.antrenament_id)?.push(p.sportiv_id); });
         const combinedData = (antrenamenteData || []).map(a => ({ ...a, sportivi_prezenti_ids: prezenteMap.get(a.id) || [] }));
+        
         setAntrenamente(combinedData as Prezenta[]);
         setLoading(false);
     }, [showError]);
@@ -122,140 +171,94 @@ const AntrenamenteTab: React.FC<{
         setDeleteLoading(true);
         const { error } = await supabase.from('program_antrenamente').delete().eq('id', antrenamentToDelete.id);
         setDeleteLoading(false);
-        if (error) { showError("Eroare la ștergere", error); } else { fetchData(); setAntrenamentToDelete(null); }
+        if (error) { showError("Eroare la ștergere", error); } 
+        else { fetchData(); setAntrenamentToDelete(null); }
     };
 
-    const handleSaveAttendance = async (antrenamentId: string, presentIds: Set<string>) => {
-        const { error: deleteError } = await supabase.from('prezenta_antrenament').delete().eq('antrenament_id', antrenamentId);
-        if (deleteError) { showError("Eroare la actualizarea prezenței", deleteError); return; }
-        if (presentIds.size > 0) {
-            const toInsert = Array.from(presentIds).map(sportiv_id => ({ antrenament_id: antrenamentId, sportiv_id }));
-            const { error: insertError } = await supabase.from('prezenta_antrenament').insert(toInsert);
-            if (insertError) { showError("Eroare la salvarea prezenței", insertError); return; }
-        }
-        await fetchData();
-        setExpandedAntrenamentId(null);
-    };
-
-    const getStatus = useCallback((antrenament: Prezenta, now: Date): { text: 'Urmează' | 'Live' | 'Finalizat', color: string } => {
-        const todayString = now.toISOString().split('T')[0];
-        if (antrenament.data_antrenament !== todayString) return { text: 'Finalizat', color: 'text-slate-400' };
-        const startDateTime = new Date(`${antrenament.data_antrenament}T${antrenament.ora_inceput}`);
-        const endDateTime = new Date(startDateTime.getTime() + 90 * 60000);
-        if (now < startDateTime) return { text: 'Urmează', color: 'text-sky-400' };
-        if (now >= startDateTime && now <= endDateTime) return { text: 'Live', color: 'text-red-500 animate-pulse' };
-        return { text: 'Finalizat', color: 'text-slate-400' };
-    }, []);
-
-    // FIX: Define isVacationMonth in the component scope so it can be accessed in the render function.
-    const isVacationMonth = useCallback((dateStr: string) => {
-        const month = new Date(dateStr).getUTCMonth(); // 6=July, 7=August
-        return month === 6 || month === 7;
-    }, []);
-
-    const filteredAntrenamente = useMemo(() => {
-        const todayString = currentTime.toISOString().split('T')[0];
-        return antrenamente.filter(a => {
-            const dateMatch = !filters.data || a.data_antrenament === filters.data;
-            const groupMatch = !filters.grupa || a.grupa_id === filters.grupa;
-            const tipMatch = filters.tip === 'toate' || (filters.tip === 'vacanta' && isVacationMonth(a.data_antrenament)) || (filters.tip === 'normal' && !isVacationMonth(a.data_antrenament));
-            return dateMatch && groupMatch && tipMatch;
-        }).map(a => ({ ...a, isToday: a.data_antrenament === todayString }))
-        .sort((a,b) => (a.isToday === b.isToday) ? 0 : a.isToday ? -1 : 1);
-    }, [antrenamente, filters, currentTime, isVacationMonth]);
+    const isVacationMonth = useCallback((dateStr: string) => { const month = new Date(dateStr).getUTCMonth(); return month === 6 || month === 7; }, []);
     
-    const sportiviByGrupa = useMemo(() => {
-        const map = new Map<string, Sportiv[]>();
-        grupe.forEach(g => {
-            map.set(g.id, sportivi.filter(s => s.status === 'Activ' && s.grupa_id === g.id).sort((a, b) => a.nume.localeCompare(b.nume)));
-        });
-        return map;
-    }, [sportivi, grupe]);
+    const filteredAntrenamente = useMemo(() => antrenamente.filter(a => {
+        const d = new Date(a.data);
+        const anMatch = !filters.an || d.getFullYear().toString() === filters.an;
+        const lunaMatch = !filters.luna || (d.getMonth() + 1).toString().padStart(2, '0') === filters.luna;
+        const groupMatch = !filters.grupa || a.grupa_id === filters.grupa;
+        const tipMatch = filters.tip === 'toate' || (filters.tip === 'vacanta' && isVacationMonth(a.data)) || (filters.tip === 'normal' && !isVacationMonth(a.data));
+        return anMatch && lunaMatch && groupMatch && tipMatch;
+    }), [antrenamente, filters, isVacationMonth]);
+
+    // FIX: Explicitly type the sort callback parameters as numbers to resolve TS error.
+    const aniDisponibili = useMemo(() => [...new Set(antrenamente.map(a => new Date(a.data).getFullYear()))].sort((a: number, b: number) => b - a), [antrenamente]);
+
+    const openAttendanceModal = (antrenament: Prezenta) => { setAntrenamentForAttendance(antrenament); setIsAttendanceModalOpen(true); };
 
     if (loading) return <div className="text-center p-8">Se încarcă antrenamentele...</div>;
 
     return (
         <div>
             <Card className="mb-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
-                    <Input label="Filtrează după dată" name="data" type="date" value={filters.data} onChange={e => setFilters(p => ({...p, data: e.target.value}))} />
-                    <Select label="Filtrează după grupă" name="grupa" value={filters.grupa} onChange={e => setFilters(p => ({...p, grupa: e.target.value}))}>
+                <div className="flex justify-between items-start mb-4">
+                    <h2 className="text-xl font-bold text-white">Filtre & Acțiuni</h2>
+                    <Button onClick={() => setIsAddModalOpen(true)} variant="info"><PlusIcon className="w-5 h-5 mr-2" /> Antrenament Nou</Button>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+                    <Select label="An" value={filters.an} onChange={e => setFilters(p => ({...p, an: e.target.value}))}>
+                         {aniDisponibili.map(an => <option key={an} value={an}>{an}</option>)}
+                    </Select>
+                    <Select label="Luna" value={filters.luna} onChange={e => setFilters(p => ({...p, luna: e.target.value}))}>
+                        {Array.from({length: 12}, (_, i) => <option key={i+1} value={(i+1).toString().padStart(2, '0')}>{new Date(0, i).toLocaleString('ro-RO', {month: 'long'})}</option>)}
+                    </Select>
+                    <Select label="Grupă" value={filters.grupa} onChange={e => setFilters(p => ({...p, grupa: e.target.value}))}>
                         <option value="">Toate grupele</option>
                         {grupe.map(g => (<option key={g.id} value={g.id}>{g.denumire}</option>))}
                     </Select>
-                     <Select label="Tip Antrenament" name="tip" value={filters.tip} onChange={e => setFilters(p => ({...p, tip: e.target.value}))}>
-                        <option value="toate">Toate</option>
-                        <option value="normal">Normal</option>
-                        <option value="vacanta">Vacanță (Iul-Aug)</option>
+                    <Select label="Tip Antrenament" value={filters.tip} onChange={e => setFilters(p => ({...p, tip: e.target.value}))}>
+                        <option value="toate">Toate</option><option value="normal">Normal</option><option value="vacanta">Vacanță</option>
                     </Select>
-                    <Button onClick={() => setFilters({ data: '', grupa: '', tip: 'toate' })} variant="secondary">Resetează Filtre</Button>
+                </div>
+            </Card>
+            
+            <Card className="p-0 overflow-hidden">
+                <div className="p-4 bg-slate-700/50">
+                    <h3 className="font-bold text-white">Listă Antrenamente</h3>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left min-w-[800px]">
+                        <thead className="bg-slate-800 text-xs text-slate-400 uppercase">
+                            <tr>{['Data', 'Interval Orar', 'Grupa', 'Prezenți', ''].map(h => <th key={h} className="p-4 font-semibold">{h}</th>)}</tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-700">
+                            {filteredAntrenamente.length === 0 && (<tr><td colSpan={5} className="p-8 text-center text-slate-400">Niciun antrenament conform filtrelor.</td></tr>)}
+                            {filteredAntrenamente.map(a => {
+                                const grupa = grupe.find(g => g.id === a.grupa_id);
+                                return (
+                                    <tr key={a.id} className="hover:bg-slate-700/30">
+                                        <td className="p-4 font-medium">{new Date(a.data + 'T00:00:00Z').toLocaleDateString('ro-RO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })}</td>
+                                        <td className="p-4">{a.ora_inceput} - {a.ora_sfarsit}</td>
+                                        <td className="p-4">{grupa?.denumire}</td>
+                                        <td className="p-4 font-bold text-brand-secondary">{a.sportivi_prezenti_ids.length}</td>
+                                        <td className="p-4 text-right flex justify-end items-center gap-2">
+                                            <Button variant="primary" size="sm" onClick={() => openAttendanceModal(a)}><UsersIcon className="w-4 h-4 mr-1"/> Prezență</Button>
+                                            <Button variant="danger" size="sm" onClick={() => setAntrenamentToDelete(a)}><TrashIcon /></Button>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
                 </div>
             </Card>
 
-            <div className="grid grid-cols-1 gap-4 md:hidden">
-                {filteredAntrenamente.map(a => {
-                    const grupa = grupe.find(g => g.id === a.grupa_id);
-                    const status = getStatus(a, currentTime);
-                    const isExpanded = expandedAntrenamentId === a.id;
-                    const sportiviInGrupa = sportiviByGrupa.get(a.grupa_id || '') || [];
-                    const filteredSportivi = isVacationMonth(a.data_antrenament) ? sportiviInGrupa.filter(s => s.participa_vacanta) : sportiviInGrupa;
-
-                    return (
-                        <Card key={a.id} className={`p-0 overflow-hidden border-l-4 ${a.isToday ? 'border-brand-secondary' : 'border-slate-700'}`}>
-                            <div className="p-4" onClick={() => setExpandedAntrenamentId(isExpanded ? null : a.id)}>
-                                <div className="flex justify-between items-start">
-                                    <h3 className="text-lg font-bold">{grupa?.denumire}</h3>
-                                    <span className={`text-xs font-bold ${status.color}`}>{status.text}</span>
-                                </div>
-                                <p className="text-sm text-slate-400">{new Date(a.data_antrenament + 'T00:00:00Z').toLocaleDateString('ro-RO', { timeZone: 'UTC' })} • {a.ora_inceput}</p>
-                                <p className="text-sm mt-2">Prezenți: <span className="font-bold text-brand-secondary">{a.sportivi_prezenti_ids.length} / {filteredSportivi.length}</span></p>
-                            </div>
-                            {isExpanded && <AttendanceChecklist antrenament={a} sportiviInGrupa={filteredSportivi} onSave={handleSaveAttendance} />}
-                        </Card>
-                    );
-                })}
-            </div>
-
-            <div className="hidden md:block bg-slate-800/50 rounded-lg border border-slate-700 overflow-hidden">
-                <table className="w-full text-left">
-                    <thead className="bg-slate-700/50"><tr>{['Data', 'Ora', 'Grupa', 'Prezenți', 'Status', ''].map(h => <th key={h} className="p-4 font-semibold">{h}</th>)}</tr></thead>
-                    <tbody className="divide-y divide-slate-700">
-                        {filteredAntrenamente.length === 0 && (<tr><td colSpan={6} className="p-8 text-center text-slate-400">Niciun antrenament.</td></tr>)}
-                        {filteredAntrenamente.map(a => {
-                            const grupa = grupe.find(g => g.id === a.grupa_id);
-                            const status = getStatus(a, currentTime);
-                            const isExpanded = expandedAntrenamentId === a.id;
-                            const sportiviInGrupa = sportiviByGrupa.get(a.grupa_id || '') || [];
-                            const filteredSportivi = isVacationMonth(a.data_antrenament) ? sportiviInGrupa.filter(s => s.participa_vacanta) : sportiviInGrupa;
-                            return (
-                                <React.Fragment key={a.id}>
-                                    <tr className={`hover:bg-slate-800 cursor-pointer ${isExpanded ? 'bg-slate-800' : ''} ${a.isToday ? 'border-l-4 border-brand-secondary' : ''}`} onClick={() => setExpandedAntrenamentId(isExpanded ? null : a.id)}>
-                                        <td className="p-4 font-medium">{new Date(a.data_antrenament + 'T00:00:00Z').toLocaleDateString('ro-RO', { timeZone: 'UTC' })} ({a.ziua})</td>
-                                        <td className="p-4">{a.ora_inceput}</td>
-                                        <td className="p-4">{grupa?.denumire}</td>
-                                        <td className="p-4"><span className="font-bold text-brand-secondary">{a.sportivi_prezenti_ids.length}</span> / {filteredSportivi.length}</td>
-                                        <td className={`p-4 font-bold text-sm ${status.color}`}>{status.text}</td>
-                                        <td className="p-4 text-right flex justify-end items-center gap-2">
-                                            <Button variant="danger" size="sm" onClick={(e) => { e.stopPropagation(); setAntrenamentToDelete(a); }}><TrashIcon /></Button>
-                                            <ChevronDownIcon className={`w-5 h-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
-                                        </td>
-                                    </tr>
-                                    {isExpanded && (
-                                        <tr className="bg-slate-900/50"><td colSpan={6} className="p-0"><AttendanceChecklist antrenament={a} sportiviInGrupa={filteredSportivi} onSave={handleSaveAttendance} /></td></tr>
-                                    )}
-                                </React.Fragment>
-                            );
-                        })}
-                    </tbody>
-                </table>
-            </div>
-            <ConfirmationModal isOpen={!!antrenamentToDelete} onClose={() => setAntrenamentToDelete(null)} title="Confirmare Ștergere Antrenament" message="Sunteți sigur că doriți să ștergeți acest antrenament?" loading={deleteLoading} onConfirm={handleDeleteAntrenament} />
+            <AttendanceModal isOpen={isAttendanceModalOpen} onClose={() => setIsAttendanceModalOpen(false)} antrenament={antrenamentForAttendance} sportivi={sportivi} grupe={grupe} onSaveSuccess={fetchData} />
+            <AddAntrenamentModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} grupe={grupe} onSaveSuccess={fetchData} />
+            <ConfirmationModal isOpen={!!antrenamentToDelete} onClose={() => setAntrenamentToDelete(null)} title="Confirmare Ștergere" message="Sunteți sigur că doriți să ștergeți acest antrenament și prezența asociată?" loading={deleteLoading} onConfirm={handleDeleteAntrenament} />
         </div>
     );
 };
 
+// --- END REFACTORED ATTENDANCE LOGIC ---
+
 export const ActivitatiManagement = (props: any) => {
-    const { onBack, initialTab = 'antrenamente', initialSubTab } = props;
+    const { onBack, initialTab = 'antrenamente' } = props;
     const [activeTab, setActiveTab] = useState<Tab>(initialTab);
 
     return (
@@ -273,11 +276,10 @@ export const ActivitatiManagement = (props: any) => {
                 {activeTab === 'antrenamente' && <AntrenamenteTab sportivi={props.sportivi} grupe={props.grupe} />}
                 {activeTab === 'examene' && <ExameneManagement {...props} onBack={() => {}} />}
                 {activeTab === 'evenimente' && (
-                    <>
+                    <div className="space-y-8">
                         <StagiiCompetitiiManagement {...props} type="Stagiu" onBack={()=>{}}/>
-                        <div className="my-8 border-t border-slate-700"></div>
                         <StagiiCompetitiiManagement {...props} type="Competitie" onBack={()=>{}}/>
-                    </>
+                    </div>
                 )}
             </div>
         </div>

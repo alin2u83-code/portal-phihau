@@ -138,7 +138,7 @@ const SesiunePrezentaDetail: React.FC<{
                 <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-6 gap-4">
                     <div>
                         <h2 className="text-2xl font-bold text-white">{grupa?.denumire}</h2>
-                        <p className="text-slate-400">{new Date(antrenament.data).toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long' })} @ {antrenament.ora_inceput}</p>
+                        <p className="text-slate-400">{new Date(antrenament.data).toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long' })} @ {antrenament.ora_start}</p>
                     </div>
                     <Button onClick={() => setIsGuestModalOpen(true)} variant="info" className="self-start sm:self-center"><UserPlusIcon className="w-5 h-5 mr-2" /> Adaugă Sportiv Extra</Button>
                 </div>
@@ -196,19 +196,19 @@ export const AntrenamenteManagement: React.FC<AntrenamenteManagementProps> = ({ 
             const { data: instanceData, error: instanceError } = await supabase.from('program_antrenamente').select('*').eq('data', dateStr);
             if (instanceError) throw instanceError;
 
-            const existingInstanceMap = new Map(instanceData.map(i => [`${i.grupa_id}-${i.ora_inceput}`, i]));
-            const instancesToCreate = scheduleData.filter(s => !existingInstanceMap.has(`${s.grupa_id}-${s.ora_inceput}`));
+            const existingInstanceMap = new Map(instanceData.map(i => [`${i.grupa_id}-${i.ora_start}`, i]));
+            const instancesToCreate = scheduleData.filter(s => !existingInstanceMap.has(`${s.grupa_id}-${s.ora_start}`));
 
             if (instancesToCreate.length > 0) {
                 const newInstances = instancesToCreate.map(s => ({
                     grupa_id: s.grupa_id, data: dateStr, ziua: s.ziua,
-                    ora_inceput: s.ora_inceput, ora_sfarsit: s.ora_sfarsit, is_recurent: false
+                    ora_start: s.ora_start, ora_sfarsit: s.ora_sfarsit, is_recurent: false
                 }));
                 const { error: createError } = await supabase.from('program_antrenamente').insert(newInstances);
                 if (createError) throw createError;
             }
 
-            const { data: finalInstances, error: finalError } = await supabase.from('program_antrenamente').select('*').eq('data', dateStr).order('ora_inceput');
+            const { data: finalInstances, error: finalError } = await supabase.from('program_antrenamente').select('*').eq('data', dateStr).order('ora_start');
             if (finalError) throw finalError;
 
             const { data: prezenteData, error: prezenteError } = await supabase.from('prezenta_antrenament').select('*').in('antrenament_id', finalInstances.map(i => i.id));
@@ -263,7 +263,7 @@ export const AntrenamenteManagement: React.FC<AntrenamenteManagementProps> = ({ 
                         return (
                             <Card key={a.id} className="cursor-pointer hover:border-brand-secondary transition-colors duration-300 transform hover:-translate-y-1" onClick={() => setSelectedAntrenament(a)}>
                                 <h3 className="font-bold text-lg text-white">{grupa?.denumire}</h3>
-                                <p className="text-slate-400 text-sm">{a.ora_inceput} - {a.ora_sfarsit}</p>
+                                <p className="text-slate-400 text-sm">{a.ora_start} - {a.ora_sfarsit}</p>
                                 <div className="mt-4 pt-4 border-t border-slate-700">
                                     <p className="font-bold text-2xl text-brand-secondary">{a.sportivi_prezenti_ids.length} prezenți</p>
                                 </div>

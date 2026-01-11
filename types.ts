@@ -60,7 +60,7 @@ export interface Participare {
     nota_doc_luyen?: number | null;
     nota_song_doi?: number | null;
     nota_thao_quyen?: number | null;
-    media?: number | null;
+    media_generala?: number | null;
     plata_id?: string | null;
 }
 
@@ -76,7 +76,8 @@ export interface Prezenta {
   grupa_id: string | null;
   data: string;
   ziua: ProgramItem['ziua'];
-  ora_inceput: string;
+  ora_start: string;
+  ora_sfarsit: string;
   is_recurent: boolean;
   recurent_group_id: string | null;
   sportivi_prezenti_ids: string[]; // Rămâne pentru starea din UI

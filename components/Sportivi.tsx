@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { Sportiv, Grupa, TipAbonament, Familie, Rol } from '../types';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Sportiv, Grupa, TipAbonament, Familie, Rol, View } from '../types';
 import { Button, Modal, Input, Select, Card, ConfirmationModal } from './ui';
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon, ShieldCheckIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -366,9 +366,11 @@ interface SportiviManagementProps {
     customFields: string[]; 
     setCustomFields: React.Dispatch<React.SetStateAction<string[]>>;
     allRoles: Rol[];
+    onNavigate?: (view: View, state?: any) => void;
+    navigationState?: any;
 }
 
-export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, sportivi, setSportivi, grupe, setGrupe, tipuriAbonament, setTipuriAbonament, familii, setFamilii, customFields, allRoles }) => {
+export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, sportivi, setSportivi, grupe, setGrupe, tipuriAbonament, setTipuriAbonament, familii, setFamilii, customFields, allRoles, onNavigate, navigationState }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sportivToEdit, setSportivToEdit] = useState<Sportiv | null>(null);
   const [sportivToDelete, setSportivToDelete] = useState<Sportiv | null>(null);
@@ -378,6 +380,24 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
   
   const initialFilters = { searchTerm: '', grupa: 'all', status: '', rol: '' };
   const [filters, setFilters] = useState(initialFilters);
+
+  useEffect(() => {
+    if (navigationState?.highlightSportivId) {
+        const sportiv = sportivi.find(s => s.id === navigationState.highlightSportivId);
+        if (sportiv) {
+            setSportivToEdit(sportiv);
+            setIsModalOpen(true);
+        }
+    }
+  }, [navigationState, sportivi]);
+
+  const handleBack = () => {
+    if (onNavigate && navigationState?.from === 'examene' && navigationState?.returnToExamenId) {
+      onNavigate('examene', { reopenExamenId: navigationState.returnToExamenId });
+    } else {
+      onBack();
+    }
+  };
 
   const showSuccessToast = (message: string) => {
     setSuccessToast(message);
@@ -506,10 +526,12 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
 
   const handleOpenAdd = () => { setSportivToEdit(null); setIsModalOpen(true); };
   const handleOpenEdit = (sportiv: Sportiv) => { setSportivToEdit(sportiv); setIsModalOpen(true); };
+  const backButtonText = navigationState?.from === 'examene' ? "Înapoi la Sesiune Examen" : "Meniu";
+
 
   return (
     <div>
-        <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
+        <Button onClick={handleBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> {backButtonText}</Button>
         <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl font-bold text-white">Listă Sportivi</h1>
             <Button onClick={handleOpenAdd} variant="info">

@@ -7,7 +7,7 @@ import { adminMenu, sportivMenu } from './menuConfig';
 interface LayoutProps {
     children: React.ReactNode;
     currentUser: User;
-    onNavigate: (view: View) => void;
+    onNavigate: (view: View, state?: any) => void;
     onLogout: () => void;
     activeView: View;
     isSidebarExpanded: boolean;
@@ -19,7 +19,7 @@ const Topbar: React.FC<{ onMenuClick: () => void; title: string; }> = ({ onMenuC
         <button onClick={onMenuClick} className="text-white p-2">
             <Bars3Icon className="w-6 h-6" />
         </button>
-        <h1 className="font-bold text-white text-lg">{title}</h1>
+        <h1 className="font-semibold text-white text-md tracking-tight">Club Sportiv Phi Hau Iasi</h1>
         <div className="w-8"></div> {/* Spacer */}
     </div>
 );
@@ -35,8 +35,8 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentUser, onNavigat
     const activeItem = allItems.find(item => item.view === activeView);
     const pageTitle = activeItem?.label || 'Dashboard';
     
-    const handleNavigate = (view: View) => {
-        onNavigate(view);
+    const handleNavigate = (view: View, state: any = null) => {
+        onNavigate(view, state);
         setIsMobileOpen(false); // Close mobile menu on navigation
     };
 

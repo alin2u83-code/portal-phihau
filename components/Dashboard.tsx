@@ -1,8 +1,8 @@
 import React, { useMemo, useEffect } from 'react';
-import { View, User, Sportiv, Plata, Participare, Rezultat, Prezenta, PrezentaAntrenament, Examen, Grad } from '../types';
+import { View, User, Sportiv, Plata, Participare, Rezultat, Prezenta, PrezentaAntrenament, Examen, Grad, PretConfig } from '../types';
 import { Card, Button } from './ui';
 import { 
-  ClipboardCheckIcon, AcademicCapIcon, BanknotesIcon, WrenchScrewdriverIcon, DownloadIcon 
+  ClipboardCheckIcon, AcademicCapIcon, BanknotesIcon, WrenchScrewdriverIcon, DownloadIcon, UsersIcon, TrophyIcon, CogIcon, ActivityIcon
 } from './icons';
 import { useNotification } from './NotificationProvider';
 
@@ -15,6 +15,7 @@ interface DashboardProps {
   rezultate: Rezultat[];
   examene: Examen[];
   grade: Grad[];
+  preturiConfig: PretConfig[];
 }
 
 const ActionCard: React.FC<{ title: string; icon: React.ElementType; onClick: () => void }> = ({ title, icon: Icon, onClick }) => (
@@ -30,7 +31,7 @@ const ActionCard: React.FC<{ title: string; icon: React.ElementType; onClick: ()
 
 
 export const Dashboard: React.FC<DashboardProps> = ({ 
-  onNavigate, sportivi, plati, participari, rezultate, examene, grade
+  onNavigate, sportivi, plati, participari, rezultate, examene, grade, preturiConfig
 }) => {
   const { showNotification } = useNotification();
 
@@ -45,6 +46,25 @@ export const Dashboard: React.FC<DashboardProps> = ({
     }
   }, [sportivi, showNotification]);
 
+   const pricesStatus = useMemo(() => {
+    if (!grade || grade.length === 0) return { configured: true, message: 'N/A' };
+    
+    const gradesToCheck = grade.filter(g => !(g.nume.toLowerCase().includes('debutant') || g.ordine <= 1));
+    if (gradesToCheck.length === 0) return { configured: true, message: 'N/A - Doar debutanți' };
+    
+    const gradesWithoutPrice = gradesToCheck.filter(g => {
+        const data = new Date();
+        const preturiValabile = preturiConfig
+            .filter(p => p.categorie === 'Taxa Examen' && p.denumire_servisciu === g.nume && new Date(p.valabil_de_la_data) <= data);
+        return preturiValabile.length === 0;
+    });
+
+    if (gradesWithoutPrice.length === 0) {
+        return { configured: true, message: 'Configurat' };
+    } else {
+        return { configured: false, message: `${gradesWithoutPrice.length} ${gradesWithoutPrice.length === 1 ? 'grad' : 'grade'} fără preț` };
+    }
+}, [grade, preturiConfig]);
 
   const handleExportBackup = () => {
     const backupData = {
@@ -69,18 +89,32 @@ export const Dashboard: React.FC<DashboardProps> = ({
   };
 
   const actionItems = [
-    { title: 'Înregistrare Prezență', icon: ClipboardCheckIcon, onClick: () => onNavigate('prezenta') },
-    { title: 'Înscriere Examen', icon: AcademicCapIcon, onClick: () => onNavigate('examene') },
-    { title: 'Gestionare Plăți', icon: BanknotesIcon, onClick: () => onNavigate('plati-scadente') },
-    { title: 'Backup Date', icon: DownloadIcon, onClick: handleExportBackup },
-    { title: 'Audit Sistem', icon: WrenchScrewdriverIcon, onClick: () => onNavigate('maintenance') }
+    { title: 'Antrenamente', icon: ActivityIcon, onClick: () => onNavigate('prezenta') },
+    { title: 'Examene', icon: AcademicCapIcon, onClick: () => onNavigate('examene') },
+    { title: 'Sportivi', icon: UsersIcon, onClick: () => onNavigate('sportivi') },
+    { title: 'Facturi', icon: BanknotesIcon, onClick: () => onNavigate('plati-scadente') },
+    { title: 'Mentenanță', icon: WrenchScrewdriverIcon, onClick: () => onNavigate('maintenance') }
   ];
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 animate-fade-in-down">
-        <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-white tracking-tight">Centru de Comandă</h1>
-            <p className="text-slate-300 mt-2">Accesați rapid cele mai importante module ale aplicației.</p>
+        <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+            <div className="text-center md:text-left">
+                <h1 className="text-4xl font-bold text-white tracking-tight">Centru de Comandă</h1>
+                 <div className="flex items-center gap-4 mt-2 flex-wrap justify-center md:justify-start">
+                    <p className="text-slate-300">Accesați rapid cele mai importante module ale aplicației.</p>
+                    <div className="flex items-center gap-2">
+                        <span className={`w-2 h-2 rounded-full ${pricesStatus.configured ? 'bg-green-400' : 'bg-amber-400'}`}></span>
+                        <span className={`text-xs font-bold ${pricesStatus.configured ? 'text-green-300' : 'text-amber-300'}`}>
+                            Status Prețuri: {pricesStatus.message}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <Button onClick={handleExportBackup} variant="secondary" className="bg-green-700/80 hover:bg-green-600 border border-green-500/50 shadow-lg">
+                <DownloadIcon className="w-5 h-5 mr-2" />
+                Export Backup Complet (Excel)
+            </Button>
         </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">

@@ -13,7 +13,8 @@ import {
     ShieldCheckIcon,
     ClipboardCheckIcon,
     BuildingIcon,
-    HelpCircleIcon
+    HelpCircleIcon,
+    ActivityIcon
 } from './icons';
 
 export interface MenuItem {
@@ -30,53 +31,42 @@ export interface MenuGroup {
 
 export const adminMenu: MenuGroup[] = [
     {
-        title: 'PRINCIPAL',
+        title: '',
         items: [
             { label: 'Dashboard', icon: HomeIcon, view: 'dashboard' },
         ]
     },
     {
-        title: 'ACTIVITATE',
+        title: 'OPERATIV',
         items: [
-             { label: 'Antrenamente', icon: ClipboardCheckIcon, view: 'prezenta' },
+             { label: 'Antrenamente & Prezență', icon: ActivityIcon, view: 'prezenta' },
         ]
     },
     {
-        title: 'MANAGEMENT',
+        title: 'EVOLUȚIE',
+        items: [
+            { label: 'Examene & Înscrieri', icon: AcademicCapIcon, view: 'examene' },
+            { label: 'Grade & Tarife', icon: TrophyIcon, view: 'grade' },
+        ]
+    },
+    {
+        title: 'ADMIN',
         items: [
             { label: 'Sportivi', icon: UsersIcon, view: 'sportivi' },
-            { label: 'Grupe & Orar', icon: UsersIcon, view: 'grupe' },
+            { label: 'Grupe', icon: UsersIcon, view: 'grupe' },
             { label: 'Familii', icon: BuildingIcon, view: 'familii' }
-        ]
-    },
-    {
-        title: 'TEHNIC & EVALUĂRI',
-        items: [
-            { label: 'Examene & Sesiuni', icon: AcademicCapIcon, view: 'examene' },
-            { label: 'Nomenclator Grade', icon: TrophyIcon, view: 'grade' },
-        ]
-    },
-    {
-        title: 'EVENIMENTE EXTERNE',
-        items: [
-            { label: 'Stagii', icon: CalendarDaysIcon, view: 'stagii' },
-            { label: 'Competiții', icon: TrophyIcon, view: 'competitii' },
         ]
     },
     {
         title: 'FINANCIAR',
         items: [
             { label: 'Facturi & Plăți', icon: BanknotesIcon, view: 'plati-scadente' },
-            { label: 'Jurnal Încasări', icon: BanknotesIcon, view: 'jurnal-incasari' },
-            { label: 'Raport Financiar', icon: BanknotesIcon, view: 'raport-financiar', roles: ['Admin'] },
+            { label: 'Configurare Prețuri', icon: CogIcon, view: 'configurare-preturi', roles: ['Admin'] },
         ]
     },
     {
         title: 'SISTEM',
         items: [
-            { label: 'Config. Abonamente', icon: CogIcon, view: 'tipuri-abonament', roles: ['Admin'] },
-            { label: 'Config. Prețuri', icon: CogIcon, view: 'configurare-preturi', roles: ['Admin'] },
-            { label: 'Utilizatori & Roluri', icon: ShieldCheckIcon, view: 'user-management', roles: ['Admin'] },
             { label: 'Mentenanță & Audit', icon: WrenchScrewdriverIcon, view: 'maintenance', roles: ['Admin'] },
         ]
     }

@@ -51,18 +51,18 @@ const SidebarContent: React.FC<Omit<SidebarProps, 'isMobileOpen' | 'setIsMobileO
     return (
         <div className="flex flex-col h-full bg-slate-900 text-white">
             <div className="flex items-center justify-start px-4 border-b border-white/10 h-16 shrink-0">
-                {isExpanded && <h1 className="text-lg font-bold tracking-wider text-white">PORTAL PHI HAU</h1>}
+                {isExpanded && <h1 className="text-md font-semibold tracking-tight text-white">Club Sportiv Phi Hau Iasi</h1>}
             </div>
             
-            <nav className="flex-1 px-2 py-4 space-y-4 overflow-y-auto">
+            <nav className="flex-1 px-2 py-4 space-y-2 overflow-y-auto">
                 {isGrouped ? (
-                    (menu as MenuGroup[]).map((group) => {
+                    (menu as MenuGroup[]).map((group, index) => {
                         const visibleItems = group.items.filter(hasRole);
                         if (visibleItems.length === 0) return null;
                         
                         return (
-                            <div key={group.title}>
-                                {isExpanded && <h2 className="px-3 mb-2 text-xs font-semibold tracking-wider text-slate-500 uppercase">{group.title}</h2>}
+                            <div key={group.title || index}>
+                                {isExpanded && group.title && <h2 className="px-3 mb-2 mt-3 text-xs font-semibold tracking-wider text-slate-500 uppercase">{group.title}</h2>}
                                 <div className="space-y-1">
                                     {visibleItems.map(item => (
                                         <NavItem 

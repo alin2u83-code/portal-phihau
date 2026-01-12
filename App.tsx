@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
-import { Sportiv, Examen, Grad, Participare, View, Antrenament, Grupa, Plata, Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, Rol } from './types';
+import { Sportiv, Examen, Grad, Participare, View, Antrenament, Grupa, Plata, Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, Rol, AnuntPrezenta } from './types';
 import { Dashboard } from './components/Dashboard';
 import { SportiviManagement } from './components/SportiviManagement';
 import { UserProfile } from './components/UserProfile';
@@ -50,6 +50,7 @@ function App() {
   const [preturiConfig, setPreturiConfig] = useState<PretConfig[]>([]);
   const [tipuriAbonament, setTipuriAbonament] = useState<TipAbonament[]>([]);
   const [allRoles, setAllRoles] = useState<Rol[]>([]);
+  const [anunturi, setAnunturi] = useState<AnuntPrezenta[]>([]);
   
   const [isSidebarExpanded, setIsSidebarExpanded] = useLocalStorage('phi-hau-sidebar-expanded', true);
   const [activeView, setActiveView] = useLocalStorage<View>('phi-hau-active-view', 'dashboard');
@@ -65,7 +66,8 @@ function App() {
         { data: sData }, { data: eData }, { data: gData }, { data: paData }, 
         { data: grData }, { data: fData }, { data: plData },
         { data: tData }, { data: evData }, { data: rData }, { data: cfData },
-        { data: abData }, { data: roData }, { data: progData }, { data: antrenamenteData }
+        { data: abData }, { data: roData }, { data: progData }, { data: antrenamenteData },
+        { data: anunturiData }
       ] = await Promise.all([
         supabase.from('sportivi').select('*, sportivi_roluri(roluri(id, nume))'),
         supabase.from('examene').select('*'),
@@ -81,7 +83,8 @@ function App() {
         supabase.from('tipuri_abonament').select('*'),
         supabase.from('roluri').select('*'),
         supabase.from('program_antrenamente').select('*').is('data', null), // Orarul, nu instantele
-        supabase.from('program_antrenamente').select('*, prezenta_antrenament(sportiv_id)').not('data', 'is', null) // Instantele de antrenament
+        supabase.from('program_antrenamente').select('*, prezenta_antrenament(sportiv_id)').not('data', 'is', null), // Instantele de antrenament
+        supabase.from('anunturi_prezenta').select('*')
       ]);
 
       const formattedSportivi = (sData || []).map((s: any) => ({
@@ -114,6 +117,7 @@ function App() {
       setPreturiConfig(cfData || []);
       setTipuriAbonament(abData || []);
       setAllRoles(roData || []);
+      setAnunturi(anunturiData || []);
     } catch (err) {
       showError("Eroare la încărcarea datelor", err);
     } finally {
@@ -209,6 +213,8 @@ function App() {
         tipuriAbonament: tipuriAbonament,
         onNavigate: setActiveView,
         onNavigateToDashboard: () => setActiveView('dashboard'),
+        anunturi: anunturi,
+        setAnunturi: setAnunturi,
       };
 
       switch (activeView) {
@@ -245,7 +251,7 @@ function App() {
         );
       case 'examene': return <ExameneManagement examene={examene} setExamene={setExamene} participari={participari} setParticipari={setParticipari} sportivi={sportivi} grade={grade} setPlati={setPlati} preturi={preturiConfig} onBack={() => setActiveView('dashboard')} />;
       case 'grade': return <GradeManagement grade={grade} setGrade={setGrade} onBack={() => setActiveView('dashboard')} />;
-      case 'prezenta': return <PrezentaManagement sportivi={sportivi} setSportivi={setSportivi} antrenamente={antrenamente} setAntrenamente={setAntrenamente} grupe={grupe} onBack={() => setActiveView('dashboard')} setPlati={setPlati} tipuriAbonament={tipuriAbonament}/>;
+      case 'prezenta': return <PrezentaManagement sportivi={sportivi} setSportivi={setSportivi} antrenamente={antrenamente} setAntrenamente={setAntrenamente} grupe={grupe} onBack={() => setActiveView('dashboard')} setPlati={setPlati} tipuriAbonament={tipuriAbonament} anunturi={anunturi}/>;
       case 'grupe': return <GrupeManagement grupe={grupe} setGrupe={setGrupe} onBack={() => setActiveView('dashboard')} />;
       case 'raport-prezenta': return <RaportPrezenta antrenamente={antrenamente} sportivi={sportivi} grupe={grupe} onBack={() => setActiveView('dashboard')} />;
       case 'stagii': return <StagiiCompetitiiManagement type="Stagiu" evenimente={evenimente} setEvenimente={setEvenimente} rezultate={rezultate} setRezultate={setRezultate} sportivi={sportivi} setPlati={setPlati} preturiConfig={preturiConfig} participari={participari} examene={evenimente as any} grade={grade} onBack={() => setActiveView('dashboard')} />;

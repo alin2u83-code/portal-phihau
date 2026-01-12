@@ -72,6 +72,14 @@ export interface Antrenament {
   sportivi_prezenti_ids: string[];
 }
 
+export interface AnuntPrezenta {
+  id?: string;
+  antrenament_id: string;
+  sportiv_id: string;
+  status: 'Confirm' | 'Intarziat' | 'Absent';
+  detalii: string | null;
+}
+
 
 export interface Grupa {
     id: string;

@@ -43,6 +43,7 @@ export const adminMenu: MenuItem[] = [
         submenu: [ 
             { view: 'prezenta', label: 'Înregistrare Prezențe' }, 
             { view: 'grupe', label: 'Orar & Gestiune Grupe' }, 
+            { view: 'activitati', label: 'Generator Program' },
             { view: 'raport-prezenta', label: 'Raport Prezențe' } 
         ] 
     },

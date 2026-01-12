@@ -1,8 +1,3 @@
-
-
-
-
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
 import { Sportiv, Examen, Grad, Participare, View, Prezenta, Grupa, Plata, Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, Rol } from './types';
@@ -30,6 +25,7 @@ import { Sidebar } from './components/Sidebar';
 import { useError } from './components/ErrorProvider';
 import { BackupManager } from './components/BackupManager';
 import { useLocalStorage } from './hooks/useLocalStorage';
+import { ProgramareActivitati } from './components/Activitati';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -201,9 +197,10 @@ function App() {
       case 'configurare-preturi': return <ConfigurarePreturi preturi={preturiConfig} setPreturi={setPreturiConfig} sportivi={sportivi} onBack={() => setActiveView('dashboard')} />;
       case 'tipuri-abonament': return <TipuriAbonamentManagement tipuriAbonament={tipuriAbonament} setTipuriAbonament={setTipuriAbonament} onBack={() => setActiveView('dashboard')} />;
       case 'raport-financiar': return <RaportFinanciar plati={plati} sportivi={sportivi} familii={familii} tranzactii={tranzactii} onBack={() => setActiveView('dashboard')} />;
-      case 'familii': return <FamiliiManagement familii={familii} setFamilii={setFamilii} onBack={() => setActiveView('dashboard')} />;
+      case 'familii': return <FamiliiManagement familii={familii} setFamilii={setFamilii} sportivi={sportivi} onBack={() => setActiveView('dashboard')} />;
       case 'user-management': return <UserManagement sportivi={sportivi} setSportivi={setSportivi} currentUser={currentUser} setCurrentUser={setCurrentUser} allRoles={allRoles} setAllRoles={setAllRoles} onBack={() => setActiveView('dashboard')} />;
       case 'data-maintenance': return <BackupManager onBack={() => setActiveView('dashboard')} onDataRestored={fetchData} />;
+      case 'activitati': return <ProgramareActivitati grupe={grupe} prezente={prezente} setPrezente={setPrezente} onBack={() => setActiveView('dashboard')} />;
       default: return <Dashboard onNavigate={setActiveView} />;
     }
   };

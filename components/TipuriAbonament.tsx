@@ -3,6 +3,8 @@ import { TipAbonament } from '../types';
 import { Button, Input, Card } from './ui';
 import { PlusIcon, TrashIcon, ArrowLeftIcon } from './icons';
 import { supabase } from '../supabaseClient';
+import { useError } from './ErrorProvider';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 interface TipuriAbonamentManagementProps {
     tipuriAbonament: TipAbonament[];
@@ -14,19 +16,20 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
     const [newDenumire, setNewDenumire] = useState('');
     const [newPret, setNewPret] = useState<number | string>('');
     const [newNrMembri, setNewNrMembri] = useState<number | string>(1);
-    const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    const [toDelete, setToDelete] = useState<TipAbonament | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const { showError, showSuccess } = useError();
 
     const handleAdd = async () => {
-        setError(null);
-        if(!supabase) { setError("Client Supabase neinitializat."); return; }
+        if(!supabase) { showError("Eroare Configurare", "Client Supabase neinițializat."); return; }
         
         const pretNum = typeof newPret === 'string' ? parseFloat(newPret) : newPret;
         const nrMembriNum = typeof newNrMembri === 'string' ? parseInt(newNrMembri) : newNrMembri;
 
-        if (!newDenumire.trim()) { setError("Denumirea abonamentului este obligatorie."); return; }
-        if (isNaN(pretNum) || pretNum <= 0) { setError("Prețul trebuie să fie un număr pozitiv valid."); return; }
-        if (isNaN(nrMembriNum) || nrMembriNum <= 0) { setError("Numărul de membri trebuie să fie cel puțin 1."); return; }
+        if (!newDenumire.trim()) { showError("Validare Eșuată", "Denumirea abonamentului este obligatorie."); return; }
+        if (isNaN(pretNum) || pretNum <= 0) { showError("Validare Eșuată", "Prețul trebuie să fie un număr pozitiv valid."); return; }
+        if (isNaN(nrMembriNum) || nrMembriNum <= 0) { showError("Validare Eșuată", "Numărul de membri trebuie să fie cel puțin 1."); return; }
         if (nrMembriNum > 1 && !newDenumire.toLowerCase().includes('familie')) { if (!window.confirm("Ați introdus mai mult de 1 membru, dar denumirea nu conține 'Familie'. Doriți să continuați?")) { return; } }
 
         const newAbonament: Omit<TipAbonament, 'id'> = { denumire: newDenumire.trim(), pret: pretNum, numar_membri: nrMembriNum };
@@ -35,10 +38,11 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
         const { data, error: insertError } = await supabase.from('tipuri_abonament').insert(newAbonament).select().single();
         setLoading(false);
 
-        if(insertError) { setError(insertError.message); }
+        if(insertError) { showError("Eroare la adăugare", insertError); }
         else if (data) {
             setTipuriAbonament(prev => [...prev, data as TipAbonament]);
             setNewDenumire(''); setNewPret(''); setNewNrMembri(1);
+            showSuccess("Succes", "Tipul de abonament a fost adăugat.");
         }
     };
 
@@ -52,16 +56,23 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
         }
 
         const { error } = await supabase.from('tipuri_abonament').update({ [field]: finalValue }).eq('id', id);
-        if (error) { alert(`Eroare la salvare: ${error.message}`); } 
+        if (error) { showError("Eroare la salvare", error); } 
         else { setTipuriAbonament(prev => prev.map(ab => (ab.id === id ? { ...ab, [field]: finalValue } : ab))); }
     };
 
-    const handleDelete = async (id: string) => {
+    const confirmDelete = async (id: string) => {
         if(!supabase) return;
-        if (window.confirm("Sunteți sigur că doriți să ștergeți această înregistrare? Această acțiune este ireversibilă.")) {
+        setIsDeleting(true);
+        try {
             const { error } = await supabase.from('tipuri_abonament').delete().eq('id', id);
-            if (error) { alert(`Eroare la ștergere: ${error.message}`); }
-            else { setTipuriAbonament(prev => prev.filter(ab => ab.id !== id)); }
+            if (error) throw error;
+            setTipuriAbonament(prev => prev.filter(ab => ab.id !== id));
+            showSuccess('Succes', 'Tipul de abonament a fost șters.');
+        } catch (err: any) {
+            showError('Eroare la ștergere', err);
+        } finally {
+            setIsDeleting(false);
+            setToDelete(null);
         }
     };
     
@@ -88,11 +99,9 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
                     <Input label="Nr. Membri" type="number" min="1" value={newNrMembri} onChange={e => setNewNrMembri(e.target.value)} />
                 </div>
 
-                {error && <div className="mt-4 p-2 bg-red-900/30 border border-red-500/50 text-red-400 text-sm rounded flex items-center gap-2"> <span className="font-bold">!</span> {error} </div>}
-
                 <div className="flex justify-end mt-6">
-                    <Button onClick={handleAdd} variant="info" className="px-8 shadow-lg shadow-cyan-900/20" disabled={loading}>
-                        {loading ? 'Se adaugă...' : <><PlusIcon className="w-5 h-5 mr-2"/> Adaugă în Listă</>}
+                    <Button onClick={handleAdd} variant="info" className="px-8 shadow-lg shadow-cyan-900/20" isLoading={loading}>
+                        <PlusIcon className="w-5 h-5 mr-2"/> Adaugă în Listă
                     </Button>
                 </div>
             </Card>
@@ -127,7 +136,7 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
                                         </div>
                                     </td>
                                     <td className="p-3 text-right w-32">
-                                        <Button onClick={() => handleDelete(ab.id)} variant="danger" size="sm" className="opacity-60 hover:opacity-100 transition-opacity" title="Șterge acest tip">
+                                        <Button onClick={() => setToDelete(ab)} variant="danger" size="sm" className="opacity-60 hover:opacity-100 transition-opacity" title="Șterge acest tip">
                                             <TrashIcon className="w-4 h-4" />
                                         </Button>
                                     </td>
@@ -147,6 +156,7 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
                     <li>Sistemul de generare automată a plăților folosește aceste configurații pentru a calcula restanțele lunare.</li>
                 </ul>
             </div>
+            <ConfirmDeleteModal isOpen={!!toDelete} onClose={() => setToDelete(null)} onConfirm={() => { if(toDelete) confirmDelete(toDelete.id) }} tableName="Tipuri Abonament" isLoading={isDeleting} />
         </div>
     );
 };

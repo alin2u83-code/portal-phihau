@@ -80,7 +80,7 @@ const ExamenDetail: React.FC<ExamenDetailProps> = ({ examen, participari, setPar
         if (pError) { showError("Eroare Bază de Date", pError); return; }
         if (participareData) setParticipari(prev => [...prev, participareData as Participare]);
         
-        const pretExamenConfig = getPretProdus(preturi, 'Taxa Examen', gradSustinut.nume);
+        const pretExamenConfig = getPretProdus(preturi, 'Taxa Examen', gradSustinut.nume, { dataReferinta: examen.data });
 
         if (!pretExamenConfig) { 
             showError("Avertisment Configurare", `Configurarea prețului pentru gradul '${gradSustinut.nume}' nu a fost găsită. Participantul a fost adăugat, dar plata trebuie generată manual.`); 

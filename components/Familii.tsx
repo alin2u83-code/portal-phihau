@@ -1,42 +1,41 @@
 import React, { useState } from 'react';
-import { Familie } from '../types';
+import { Familie, Sportiv } from '../types';
 import { Button, Input, Card } from './ui';
 import { PlusIcon, TrashIcon, ArrowLeftIcon } from './icons';
 import { supabase } from '../supabaseClient';
+import { useError } from './ErrorProvider';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 interface FamiliiManagementProps {
     familii: Familie[];
     setFamilii: React.Dispatch<React.SetStateAction<Familie[]>>;
+    sportivi: Sportiv[];
     onBack?: () => void;
     isEmbedded?: boolean;
 }
 
-export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({ familii, setFamilii, onBack, isEmbedded = false }) => {
+export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({ familii, setFamilii, sportivi, onBack, isEmbedded = false }) => {
     const [newNume, setNewNume] = useState('');
-    const [feedback, setFeedback] = useState<{type: 'success' | 'error', message: string} | null>(null);
     const [loading, setLoading] = useState(false);
-
-    const showFeedback = (type: 'success' | 'error', message: string) => {
-        setFeedback({ type, message });
-        setTimeout(() => setFeedback(null), 3000);
-    };
+    const [toDelete, setToDelete] = useState<Familie | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const { showError, showSuccess } = useError();
 
     const handleAdd = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!supabase) {
-            showFeedback('error', "Eroare de configurare: Conexiunea la baza de date nu a putut fi stabilită.");
+            showError("Eroare Configurare", "Conexiunea la baza de date nu a putut fi stabilită.");
             return;
         }
-        setFeedback(null);
         const trimmedName = newNume.trim();
         if (!trimmedName) {
-            setFeedback({type: 'error', message: "Numele familiei este obligatoriu."});
+            showError("Validare Eșuată", "Numele familiei este obligatoriu.");
             return;
         }
 
         const isDuplicate = familii.some(f => f.nume.toLowerCase() === trimmedName.toLowerCase());
         if (isDuplicate) {
-            showFeedback('error', 'O familie cu acest nume există deja.');
+            showError("Conflict", "O familie cu acest nume există deja.");
             return;
         }
         
@@ -45,35 +44,35 @@ export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({ familii, s
         setLoading(false);
 
         if (error) {
-            showFeedback('error', `Eroare: ${error.message}`);
+            showError("Eroare la adăugare", error);
         } else if (data) {
             setFamilii(prev => [...prev, data as Familie]);
             setNewNume('');
-            showFeedback('success', 'Familia a fost adăugată cu succes.');
+            showSuccess('Succes', 'Familia a fost adăugată cu succes.');
         }
     };
 
     const handleEdit = async (id: string, updates: Partial<Familie>) => {
         if (!supabase) {
-            showFeedback('error', "Eroare de configurare: Conexiunea la baza de date nu a putut fi stabilită.");
+            showError("Eroare Configurare", "Conexiunea la baza de date nu a putut fi stabilită.");
             return;
         }
         
         const trimmedName = updates.nume?.trim();
         if (!trimmedName) {
-            showFeedback('error', 'Numele familiei nu poate fi gol.');
+            showError("Validare Eșuată", "Numele familiei nu poate fi gol.");
             setFamilii(prev => [...prev]); // Re-render to reset input
             return;
         }
     
         const originalFamilie = familii.find(f => f.id === id);
         if (originalFamilie && originalFamilie.nume.trim().toLowerCase() === trimmedName.toLowerCase()) {
-            return; // No actual change, no need to save or validate
+            return; // No actual change
         }
 
         const isDuplicate = familii.some(f => f.id !== id && f.nume.toLowerCase() === trimmedName.toLowerCase());
         if (isDuplicate) {
-            showFeedback('error', 'O familie cu acest nume există deja.');
+            showError("Conflict", "O familie cu acest nume există deja.");
             setFamilii(prev => [...prev]); // Re-render to reset input
             return;
         }
@@ -82,26 +81,33 @@ export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({ familii, s
         const { error } = await supabase.from('familii').update(finalUpdates).eq('id', id);
 
         if (error) {
-            showFeedback('error', `Eroare la salvare: ${error.message}`);
+            showError("Eroare la salvare", error);
         } else {
             setFamilii(prev => prev.map(f => f.id === id ? { ...f, ...finalUpdates } : f));
-            showFeedback('success', 'Numele familiei a fost actualizat.');
         }
     };
 
-    const handleDelete = async (id: string) => {
-        if (!supabase) {
-            showFeedback('error', "Eroare de configurare: Conexiunea la baza de date nu a putut fi stabilită.");
+    const confirmDelete = async (id: string) => {
+        if (!supabase) return;
+
+        const membri = sportivi.filter(s => s.familie_id === id);
+        if (membri.length > 0) {
+            showError("Ștergere Blocată", `Nu puteți șterge familia "${familii.find(f => f.id === id)?.nume}" deoarece conține ${membri.length} membri. Vă rugăm să reasignați sau să eliminați membrii mai întâi.`);
+            setToDelete(null);
             return;
         }
-        if (window.confirm("Sunteți sigur că doriți să ștergeți această înregistrare? Această acțiune este ireversibilă.")) {
+        
+        setIsDeleting(true);
+        try {
             const { error } = await supabase.from('familii').delete().eq('id', id);
-            if (error) {
-                showFeedback('error', `Eroare la ștergere: ${error.message}`);
-            } else {
-                setFamilii(prev => prev.filter(f => f.id !== id));
-                showFeedback('success', 'Familia a fost ștearsă.');
-            }
+            if (error) throw error;
+            setFamilii(prev => prev.filter(f => f.id !== id));
+            showSuccess('Succes', 'Familia a fost ștearsă.');
+        } catch (err: any) {
+             showError("Eroare la ștergere", err);
+        } finally {
+            setIsDeleting(false);
+            setToDelete(null);
         }
     };
 
@@ -115,12 +121,6 @@ export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({ familii, s
                 </div>
             )}
 
-            {feedback && (
-                <div className={`p-3 rounded-md mb-4 text-center font-semibold text-white ${feedback.type === 'success' ? 'bg-green-600/50' : 'bg-red-600/50'}`}>
-                    {feedback.message}
-                </div>
-            )}
-
             <Card className="mb-6">
                 <h3 className="text-xl font-bold text-white mb-4">Adaugă Familie Nouă</h3>
                 <form onSubmit={handleAdd}>
@@ -128,8 +128,8 @@ export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({ familii, s
                         <Input label="Nume Familie" value={newNume} onChange={e => setNewNume(e.target.value)} placeholder="Ex: Popescu" required/>
                     </div>
                     <div className="flex justify-end mt-4">
-                        <Button type="submit" variant="info" disabled={loading}>
-                            {loading ? 'Se adaugă...' : <><PlusIcon className="w-5 h-5 mr-2"/> Adaugă</>}
+                        <Button type="submit" variant="info" isLoading={loading}>
+                            <PlusIcon className="w-5 h-5 mr-2"/> Adaugă
                         </Button>
                     </div>
                 </form>
@@ -150,7 +150,7 @@ export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({ familii, s
                                     <Input label="" defaultValue={f.nume} onBlur={e => handleEdit(f.id, { nume: e.target.value })} />
                                 </td>
                                 <td className="p-2 text-right w-32">
-                                    <Button onClick={() => handleDelete(f.id)} variant="danger" size="sm"><TrashIcon /></Button>
+                                    <Button onClick={() => setToDelete(f)} variant="danger" size="sm"><TrashIcon /></Button>
                                 </td>
                             </tr>
                         ))}
@@ -158,6 +158,7 @@ export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({ familii, s
                 </table>
                 {familii.length === 0 && <p className="p-4 text-center text-slate-400">Nicio familie definită.</p>}
             </div>
+            <ConfirmDeleteModal isOpen={!!toDelete} onClose={() => setToDelete(null)} onConfirm={() => { if(toDelete) confirmDelete(toDelete.id) }} tableName="Familii" isLoading={isDeleting} />
         </div>
     );
 };

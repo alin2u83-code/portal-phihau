@@ -25,9 +25,10 @@ const ExamenForm: React.FC<ExamenFormProps> = ({ isOpen, onClose, onSave, examen
 interface ExamenDetailProps { examen: Examen; participari: Participare[]; setParticipari: React.Dispatch<React.SetStateAction<Participare[]>>; sportivi: Sportiv[]; grade: Grad[]; setPlati: React.Dispatch<React.SetStateAction<Plata[]>>; preturi: PretConfig[]; allParticipari: Participare[]; examene: Examen[]; }
 const ExamenDetail: React.FC<ExamenDetailProps> = ({ examen, participari, setParticipari, sportivi, grade, setPlati, preturi, allParticipari, examene }) => {
     const [sportivId, setSportivId] = useState('');
-    const [showSuccess, setShowSuccess] = useState<string | null>(null);
     const sortedGrades = [...grade].sort((a,b) => a.ordine - b.ordine);
-    const { showError } = useError();
+    const { showError, showSuccess } = useError();
+    const [participareToDelete, setParticipareToDelete] = useState<Participare | null>(null);
+    const [isDeletingParticipare, setIsDeletingParticipare] = useState(false);
 
     const handleAddParticipant = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -103,8 +104,8 @@ const ExamenDetail: React.FC<ExamenDetailProps> = ({ examen, participari, setPar
         if(plError) { showError("Eroare Plată", `Participant adăugat, dar eroare la generare plată: ${plError.message}`); }
         if (plataData) setPlati(prev => [...prev, plataData as Plata]);
         
-        setShowSuccess(`Factura pentru ${sportiv.nume} ${sportiv.prenume} a fost generată cu succes!`);
-        setTimeout(() => setShowSuccess(null), 3000); setSportivId('');
+        showSuccess("Succes", `Factura pentru ${sportiv.nume} ${sportiv.prenume} a fost generată.`);
+        setSportivId('');
     };
 
     const handleUpdateParticipare = async (participareId: string, field: keyof Participare, value: string) => {
@@ -114,16 +115,24 @@ const ExamenDetail: React.FC<ExamenDetailProps> = ({ examen, participari, setPar
         if(data) setParticipari(prev => prev.map(p => p.id === participareId ? data as Participare : p));
     };
     
-    const handleDeleteParticipare = async (participareId: string) => {
+    const confirmDeleteParticipare = async (participareId: string) => {
         if (!supabase) { showError("Eroare Configurare", "Clientul Supabase nu a putut fi stabilit."); return; }
-        if (window.confirm("Sunteți sigur că doriți să ștergeți această înregistrare? Această acțiune este ireversibilă.")) {
+        setIsDeletingParticipare(true);
+        try {
             const { error } = await supabase.from('participari').delete().eq('id', participareId);
-            if (error) { showError("Eroare la ștergere", error); return; }
+            if (error) throw error;
             setParticipari(prev => prev.filter(p => p.id !== participareId));
+            showSuccess("Succes", "Participantul a fost eliminat de la examen.");
+        } catch (err) {
+            showError("Eroare la ștergere", err as any);
+        } finally {
+            setIsDeletingParticipare(false);
+            setParticipareToDelete(null);
         }
     };
 
-    return ( <Card> <h3 className="text-2xl font-bold text-white">{examen.locatia} - {examen.data}</h3><p className="text-slate-400">Comisia: {examen.comisia}</p><div className="mt-6 border-t border-slate-700 pt-6"> <h4 className="text-xl font-semibold mb-4 text-white">Participanți</h4><div className="space-y-2 mb-6">{participari.map(p => { const sportiv = sportivi.find(s => s.id === p.sportiv_id); return ( <div key={p.id} className="bg-slate-700/50 p-3 rounded-md grid grid-cols-1 md:grid-cols-5 gap-4 items-center"><p className="font-medium col-span-1 md:col-span-1">{sportiv?.nume} {sportiv?.prenume}</p><Select label="" value={p.grad_sustinut_id} onChange={e => handleUpdateParticipare(p.id, 'grad_sustinut_id', e.target.value)}>{sortedGrades.map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}</Select><Select label="" value={p.rezultat} onChange={e => handleUpdateParticipare(p.id, 'rezultat', e.target.value)}><option value="Admis">Admis</option><option value="Respins">Respins</option><option value="Neprezentat">Neprezentat</option></Select><Input label="" placeholder="Observații..." defaultValue={p.observatii || ''} onBlur={e => handleUpdateParticipare(p.id, 'observatii', e.target.value)} /><Button onClick={() => handleDeleteParticipare(p.id)} variant="danger" size="sm" className="justify-self-end"><TrashIcon /></Button></div> )})}{participari.length === 0 && <p className="text-slate-400">Niciun participant înscris.</p>}</div><Card className="bg-slate-900/50"><h5 className="text-lg font-semibold mb-2 text-white">Adaugă Participant</h5><form onSubmit={handleAddParticipant} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end"><div className="col-span-2"><Select label="Sportiv" value={sportivId} onChange={e => setSportivId(e.target.value)}><option value="">Selectează Sportiv</option>{sportivi.filter(s => s.status === 'Activ' && !participari.some(p => p.sportiv_id === s.id)).map(s => ( <option key={s.id} value={s.id}>{s.nume} {s.prenume}</option> ))}</Select></div><Button type="submit" variant="info">Adaugă</Button></form>{showSuccess && <p className="text-green-400 mt-2 text-sm font-semibold">{showSuccess}</p>}</Card></div></Card> );
+    return ( 
+    <Card> <h3 className="text-2xl font-bold text-white">{examen.locatia} - {examen.data}</h3><p className="text-slate-400">Comisia: {examen.comisia}</p><div className="mt-6 border-t border-slate-700 pt-6"> <h4 className="text-xl font-semibold mb-4 text-white">Participanți</h4><div className="space-y-2 mb-6">{participari.map(p => { const sportiv = sportivi.find(s => s.id === p.sportiv_id); return ( <div key={p.id} className="bg-slate-700/50 p-3 rounded-md grid grid-cols-1 md:grid-cols-5 gap-4 items-center"><p className="font-medium col-span-1 md:col-span-1">{sportiv?.nume} {sportiv?.prenume}</p><Select label="" value={p.grad_sustinut_id} onChange={e => handleUpdateParticipare(p.id, 'grad_sustinut_id', e.target.value)}>{sortedGrades.map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}</Select><Select label="" value={p.rezultat} onChange={e => handleUpdateParticipare(p.id, 'rezultat', e.target.value)}><option value="Admis">Admis</option><option value="Respins">Respins</option><option value="Neprezentat">Neprezentat</option></Select><Input label="" placeholder="Observații..." defaultValue={p.observatii || ''} onBlur={e => handleUpdateParticipare(p.id, 'observatii', e.target.value)} /><Button onClick={() => setParticipareToDelete(p)} variant="danger" size="sm" className="justify-self-end"><TrashIcon /></Button></div> )})}{participari.length === 0 && <p className="text-slate-400">Niciun participant înscris.</p>}</div><Card className="bg-slate-900/50"><h5 className="text-lg font-semibold mb-2 text-white">Adaugă Participant</h5><form onSubmit={handleAddParticipant} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end"><div className="col-span-2"><Select label="Sportiv" value={sportivId} onChange={e => setSportivId(e.target.value)}><option value="">Selectează Sportiv</option>{sportivi.filter(s => s.status === 'Activ' && !participari.some(p => p.sportiv_id === s.id)).map(s => ( <option key={s.id} value={s.id}>{s.nume} {s.prenume}</option> ))}</Select></div><Button type="submit" variant="info">Adaugă</Button></form></Card></div><ConfirmDeleteModal isOpen={!!participareToDelete} onClose={() => setParticipareToDelete(null)} onConfirm={() => { if(participareToDelete) confirmDeleteParticipare(participareToDelete.id) }} tableName="participări" isLoading={isDeletingParticipare} /> </Card> );
 };
 
 interface ExameneManagementProps { onBack: () => void; examene: Examen[]; setExamene: React.Dispatch<React.SetStateAction<Examen[]>>; participari: Participare[]; setParticipari: React.Dispatch<React.SetStateAction<Participare[]>>; sportivi: Sportiv[]; grade: Grad[]; setPlati: React.Dispatch<React.SetStateAction<Plata[]>>; preturi: PretConfig[]; }

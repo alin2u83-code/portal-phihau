@@ -3,6 +3,8 @@ import { Grad } from '../types';
 import { Button, Modal, Input, Select } from './ui';
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon } from './icons';
 import { supabase } from '../supabaseClient';
+import { useError } from './ErrorProvider';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 const emptyFormState: Omit<Grad, 'id'> = { nume: '', ordine: 1, varsta_minima: 7, timp_asteptare: "6 luni", grad_start_id: null };
 
@@ -17,6 +19,7 @@ interface GradFormProps {
 const GradFormModal: React.FC<GradFormProps> = ({ isOpen, onClose, onSave, grade, gradToEdit }) => {
   const [formState, setFormState] = useState(emptyFormState);
   const [loading, setLoading] = useState(false);
+  const { showError } = useError();
 
   React.useEffect(() => { 
       if(isOpen) {
@@ -37,7 +40,10 @@ const GradFormModal: React.FC<GradFormProps> = ({ isOpen, onClose, onSave, grade
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formState.nume || formState.ordine <= 0) { alert("Numele și ordinea (pozitivă) sunt obligatorii."); return; }
+    if (!formState.nume || formState.ordine <= 0) { 
+        showError("Validare Eșuată", "Numele și ordinea (pozitivă) sunt obligatorii."); 
+        return; 
+    }
     setLoading(true);
     await onSave(formState);
     setLoading(false);
@@ -69,30 +75,46 @@ interface GradeManagementProps { grade: Grad[]; setGrade: React.Dispatch<React.S
 export const GradeManagement: React.FC<GradeManagementProps> = ({ grade, setGrade, onBack }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [gradToEdit, setGradToEdit] = useState<Grad | null>(null);
+  const [gradToDelete, setGradToDelete] = useState<Grad | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { showError, showSuccess } = useError();
 
   const handleSaveGrad = async (gradData: Omit<Grad, 'id'>) => {
     if (!supabase) return;
     if (gradToEdit) {
         const { data, error } = await supabase.from('grade').update(gradData).eq('id', gradToEdit.id).select().single();
-        if (error) { alert(`Eroare la actualizare: ${error.message}`); } 
-        else if (data) { setGrade(prev => prev.map(g => g.id === gradToEdit.id ? data as Grad : g)); }
+        if (error) { showError("Eroare la actualizare", error); } 
+        else if (data) { setGrade(prev => prev.map(g => g.id === gradToEdit.id ? data as Grad : g)); showSuccess("Succes", "Grad actualizat."); }
     } else {
         const { data, error } = await supabase.from('grade').insert(gradData).select().single();
-        if (error) { alert(`Eroare la adăugare: ${error.message}`); } 
-        else if (data) { setGrade(prev => [...prev, data as Grad]); }
+        if (error) { showError("Eroare la adăugare", error); } 
+        else if (data) { setGrade(prev => [...prev, data as Grad]); showSuccess("Succes", "Grad adăugat."); }
     }
   };
   
   const handleOpenEdit = (g: Grad) => { setGradToEdit(g); setIsModalOpen(true); };
   const handleOpenAdd = () => { setGradToEdit(null); setIsModalOpen(true); };
   
-  const handleDelete = async (gradId: string) => { 
+  const confirmDelete = async (gradId: string) => { 
       if (!supabase) return;
-      if (window.confirm("Sunteți sigur că doriți să ștergeți această înregistrare? Această acțiune este ireversibilă.")) { 
+      setIsDeleting(true);
+      try {
+          const { data, error: checkError } = await supabase.from('participari').select('id').eq('grad_sustinut_id', gradId).limit(1);
+          if (checkError) throw checkError;
+          if (data && data.length > 0) {
+              throw new Error("Acest grad nu poate fi șters deoarece este asociat cu istoricul de examinări al unor sportivi. Îl puteți edita dacă este necesar.");
+          }
           const { error } = await supabase.from('grade').delete().eq('id', gradId);
-          if (error) { alert(`Eroare la ștergere: ${error.message}`); }
-          else { setGrade(prev => prev.filter(g => g.id !== gradId)); }
-      } 
+          if (error) throw error;
+
+          setGrade(prev => prev.filter(g => g.id !== gradId));
+          showSuccess("Succes", "Gradul a fost șters.");
+      } catch (err: any) {
+          showError("Eroare la ștergere", err);
+      } finally {
+          setIsDeleting(false);
+          setGradToDelete(null);
+      }
   };
 
   const sortedGrade = [...grade].sort((a, b) => a.ordine - b.ordine);
@@ -118,7 +140,7 @@ export const GradeManagement: React.FC<GradeManagementProps> = ({ grade, setGrad
                 <td className="p-4 text-right w-32">
                     <div className="flex items-center justify-end space-x-2">
                        <Button onClick={() => handleOpenEdit(grad)} variant="primary" size="sm"><EditIcon /></Button>
-                       <Button onClick={() => handleDelete(grad.id)} variant="danger" size="sm"><TrashIcon /></Button>
+                       <Button onClick={() => setGradToDelete(grad)} variant="danger" size="sm"><TrashIcon /></Button>
                     </div>
                 </td>
               </tr>
@@ -128,6 +150,7 @@ export const GradeManagement: React.FC<GradeManagementProps> = ({ grade, setGrad
         {sortedGrade.length === 0 && <p className="p-4 text-center text-slate-400">Niciun grad definit.</p>}
       </div>
       <GradFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSaveGrad} grade={sortedGrade} gradToEdit={gradToEdit} />
+      <ConfirmDeleteModal isOpen={!!gradToDelete} onClose={() => setGradToDelete(null)} onConfirm={() => { if(gradToDelete) confirmDelete(gradToDelete.id) }} tableName="Grade" isLoading={isDeleting} />
     </div>
   );
 };

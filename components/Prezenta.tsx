@@ -5,6 +5,7 @@ import { PlusIcon, ArrowLeftIcon, TrashIcon, EditIcon, XIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 // --- Sub-componente ---
 
@@ -240,7 +241,9 @@ export const PrezentaManagement: React.FC<{
 
     const [antrenamentToEdit, setAntrenamentToEdit] = useState<Prezenta | null>(null);
     const [isFormOpen, setIsFormOpen] = useState(false);
-    const { showError } = useError();
+    const [antrenamentToDelete, setAntrenamentToDelete] = useState<Prezenta | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const { showError, showSuccess } = useError();
 
     const initialFilters = { tip: '', data: '', grupa: '' };
     const [filters, setFilters] = useLocalStorage('phi-hau-prezenta-filters', initialFilters);
@@ -271,18 +274,23 @@ export const PrezentaManagement: React.FC<{
         }
     };
 
-    const handleDeleteAntrenament = async (id: number) => {
-        if (window.confirm("Sunteți sigur că doriți să ștergeți această înregistrare? Această acțiune este ireversibilă.")) {
-            if(!supabase) return;
+    const confirmDeleteAntrenament = async (id: number) => {
+        if (!supabase) return;
+        setIsDeleting(true);
+        try {
             const { error: deleteLinksError } = await supabase.from('prezente_sportivi').delete().eq('prezenta_id', id);
-             if (deleteLinksError) { 
-                showError("Eroare la ștergerea legăturilor", deleteLinksError);
-                return;
-             }
-            
+            if (deleteLinksError) throw deleteLinksError;
+
             const { error } = await supabase.from('prezente').delete().eq('id', id);
-            if (error) { showError("Eroare la ștergere", error); } 
-            else { setPrezente(prev => prev.filter(p => p.id !== id)); }
+            if (error) throw error;
+            
+            setPrezente(prev => prev.filter(p => p.id !== id));
+            showSuccess("Succes", "Antrenamentul a fost șters.");
+        } catch (err: any) {
+            showError("Eroare la ștergere", err);
+        } finally {
+            setIsDeleting(false);
+            setAntrenamentToDelete(null);
         }
     };
 
@@ -377,7 +385,7 @@ export const PrezentaManagement: React.FC<{
                                             <div className="flex items-center justify-end space-x-2">
                                                 <Button onClick={() => handleSetSelectedAntrenament(p)} variant="primary" size="sm">Gestionează Prezența</Button>
                                                 <Button onClick={() => handleOpenEdit(p)} variant="secondary" size="sm" title="Editează detaliile antrenamentului"><EditIcon /></Button>
-                                                <Button onClick={() => handleDeleteAntrenament(p.id)} variant="danger" size="sm" title="Șterge antrenamentul"><TrashIcon /></Button>
+                                                <Button onClick={() => setAntrenamentToDelete(p)} variant="danger" size="sm" title="Șterge antrenamentul"><TrashIcon /></Button>
                                             </div>
                                         </td>
                                     </tr>
@@ -394,6 +402,13 @@ export const PrezentaManagement: React.FC<{
                 onSave={handleSaveAntrenament} 
                 antrenamentToEdit={antrenamentToEdit}
                 grupe={grupe}
+            />
+            <ConfirmDeleteModal 
+                isOpen={!!antrenamentToDelete} 
+                onClose={() => setAntrenamentToDelete(null)} 
+                onConfirm={() => { if(antrenamentToDelete) confirmDeleteAntrenament(antrenamentToDelete.id) }} 
+                tableName="Antrenament" 
+                isLoading={isDeleting} 
             />
         </div>
     );

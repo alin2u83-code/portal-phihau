@@ -118,19 +118,7 @@ export const BackupManager: React.FC<BackupManagerProps> = ({ onBack, onDataRest
                 if (backupData[tableName] && backupData[tableName].length > 0) {
                     setProgressMessage(`Se actualizează '${tableName}' (${backupData[tableName].length} înregistrări)...`);
                     
-                    let dataToUpsert = backupData[tableName];
-
-                    // Mapare specială pentru 'sportivi'
-                    if (tableName === 'sportivi') {
-                        dataToUpsert = dataToUpsert.map((sportiv: any) => {
-                            const newSportiv = { ...sportiv };
-                            if ('auth_user_id' in newSportiv) {
-                                newSportiv.user_id = newSportiv.auth_user_id;
-                                delete newSportiv.auth_user_id;
-                            }
-                            return newSportiv;
-                        });
-                    }
+                    const dataToUpsert = backupData[tableName];
 
                     // Împarte în bucăți pentru a evita limitele Supabase
                     const CHUNK_SIZE = 500;
@@ -138,9 +126,6 @@ export const BackupManager: React.FC<BackupManagerProps> = ({ onBack, onDataRest
                         const chunk = dataToUpsert.slice(i, i + CHUNK_SIZE);
                         const { error } = await supabase.from(tableName).upsert(chunk);
                         if (error) {
-                             if (tableName === 'sportivi' && error.message.includes("violates foreign key constraint") && error.message.includes("user_id")) {
-                                throw new Error(`Eroare la upsert pentru '${tableName}': ${error.message}. Asigurați-vă că user_id (mappat din auth_user_id) există în tabelul auth.users.`);
-                            }
                             throw new Error(`Eroare la upsert pentru '${tableName}': ${error.message}`);
                         }
                     }

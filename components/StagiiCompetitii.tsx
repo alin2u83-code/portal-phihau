@@ -54,6 +54,8 @@ interface EvenimentDetailProps { eveniment: Eveniment; rezultate: Rezultat[]; se
 const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment, rezultate, setRezultate, sportivi, setPlati, preturiConfig, participari, examene, grade }) => {
     const [sportivId, setSportivId] = useState('');
     const { showError, showSuccess } = useError();
+    const [rezultatToDelete, setRezultatToDelete] = useState<Rezultat | null>(null);
+    const [isDeletingRezultat, setIsDeletingRezultat] = useState(false);
 
     const sortedRezultate = useMemo(() => {
         const getGradOrder = (sportiv: Sportiv) => {
@@ -125,12 +127,20 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment, rezultate,
         if(error) { showError("Eroare la actualizare", error); }
         else if (data) { setRezultate(prev => prev.map(r => r.id === rezultatId ? data as Rezultat : r)); }
     };
-    const handleDeleteRezultat = async (rezultatId: string) => { 
-        if(!supabase) return;
-        if (window.confirm("Sunteți sigur că doriți să ștergeți această înregistrare? Această acțiune este ireversibilă.")) {
-            const {error} = await supabase.from('rezultate').delete().eq('id', rezultatId);
-            if(error) { showError("Eroare la ștergere", error); }
-            else { setRezultate(prev => prev.filter(r => r.id !== rezultatId)); }
+
+    const confirmDeleteRezultat = async (rezultatId: string) => {
+        if (!supabase) return;
+        setIsDeletingRezultat(true);
+        try {
+            const { error } = await supabase.from('rezultate').delete().eq('id', rezultatId);
+            if (error) throw error;
+            setRezultate(prev => prev.filter(r => r.id !== rezultatId));
+            showSuccess("Succes", "Înscrierea a fost ștearsă.");
+        } catch (err: any) {
+            showError("Eroare la ștergere", err);
+        } finally {
+            setIsDeletingRezultat(false);
+            setRezultatToDelete(null);
         }
     };
     
@@ -142,7 +152,7 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment, rezultate,
         handleUpdateRezultat(rezultatId, { probe: newProbes.join(', ') });
     };
 
-    return ( <Card> <h3 className="text-2xl font-bold text-white">{eveniment.denumire} - {formatDateRange(eveniment.data)}</h3> <p className="text-slate-400">{eveniment.locatie} (Org: {eveniment.organizator})</p> <div className="mt-6 border-t border-slate-700 pt-6"> <h4 className="text-xl font-semibold mb-4 text-white">Participanți & Rezultate</h4> <div className="space-y-2 mb-6">{sortedRezultate.map(r => { const sportiv = sportivi.find(s => s.id === r.sportiv_id); return ( <div key={r.id} className="bg-slate-700 p-3 rounded-md grid grid-cols-1 md:grid-cols-4 gap-4 items-center"> <p className="font-medium">{sportiv?.nume} {sportiv?.prenume}</p> <Input label="" value={r.rezultat} onBlur={e => handleUpdateRezultat(r.id, { rezultat: e.target.value })} onChange={e => setRezultate(prev => prev.map(res => res.id === r.id ? {...res, rezultat: e.target.value} : res))} placeholder="Ex: Locul 1, Medalie de aur" /> {eveniment.tip === 'Competitie' ? ( <div className="flex flex-wrap items-center gap-x-4 gap-y-2"> {eveniment.probe_disponibile && eveniment.probe_disponibile.length > 0 ? ( eveniment.probe_disponibile.map(proba => ( <label key={proba} className="flex items-center space-x-2 text-sm cursor-pointer"> <input type="checkbox" className="h-4 w-4 rounded border-slate-500 bg-slate-800 text-primary-600 focus:ring-primary-500" checked={r.probe?.includes(proba) || false} onChange={(e) => handleProbeChange(r.id, proba, e.target.checked)} /> <span>{proba}</span> </label> )) ) : ( <p className="text-xs text-slate-400">Nicio probă definită.</p> )} </div> ) : null} <Button onClick={() => handleDeleteRezultat(r.id)} variant="danger" size="sm" className="justify-self-end md:col-start-4"><TrashIcon /></Button> </div> ) })} {rezultate.length === 0 && <p className="text-slate-400">Niciun participant înscris.</p>} </div> <Card className="bg-slate-900/50"> <h5 className="text-lg font-semibold mb-2 text-white">Adaugă Participant</h5> <form onSubmit={handleAddParticipant} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end"> <div className="col-span-2"> <Select label="Sportiv" value={sportivId} onChange={e => setSportivId(e.target.value)}> <option value="">Selectează Sportiv</option> {sportivi.filter(s => s.status === 'Activ' && !rezultate.some(p => p.sportiv_id === s.id)).map(s => ( <option key={s.id} value={s.id}>{s.nume} {s.prenume}</option> ))} </Select> </div> <Button type="submit" variant="info">Adaugă</Button> </form> </Card> </div> </Card> );
+    return ( <Card> <h3 className="text-2xl font-bold text-white">{eveniment.denumire} - {formatDateRange(eveniment.data)}</h3> <p className="text-slate-400">{eveniment.locatie} (Org: {eveniment.organizator})</p> <div className="mt-6 border-t border-slate-700 pt-6"> <h4 className="text-xl font-semibold mb-4 text-white">Participanți & Rezultate</h4> <div className="space-y-2 mb-6">{sortedRezultate.map(r => { const sportiv = sportivi.find(s => s.id === r.sportiv_id); return ( <div key={r.id} className="bg-slate-700 p-3 rounded-md grid grid-cols-1 md:grid-cols-4 gap-4 items-center"> <p className="font-medium">{sportiv?.nume} {sportiv?.prenume}</p> <Input label="" value={r.rezultat} onBlur={e => handleUpdateRezultat(r.id, { rezultat: e.target.value })} onChange={e => setRezultate(prev => prev.map(res => res.id === r.id ? {...res, rezultat: e.target.value} : res))} placeholder="Ex: Locul 1, Medalie de aur" /> {eveniment.tip === 'Competitie' ? ( <div className="flex flex-wrap items-center gap-x-4 gap-y-2"> {eveniment.probe_disponibile && eveniment.probe_disponibile.length > 0 ? ( eveniment.probe_disponibile.map(proba => ( <label key={proba} className="flex items-center space-x-2 text-sm cursor-pointer"> <input type="checkbox" className="h-4 w-4 rounded border-slate-500 bg-slate-800 text-primary-600 focus:ring-primary-500" checked={r.probe?.includes(proba) || false} onChange={(e) => handleProbeChange(r.id, proba, e.target.checked)} /> <span>{proba}</span> </label> )) ) : ( <p className="text-xs text-slate-400">Nicio probă definită.</p> )} </div> ) : null} <Button onClick={() => setRezultatToDelete(r)} variant="danger" size="sm" className="justify-self-end md:col-start-4"><TrashIcon /></Button> </div> ) })} {rezultate.length === 0 && <p className="text-slate-400">Niciun participant înscris.</p>} </div> <Card className="bg-slate-900/50"> <h5 className="text-lg font-semibold mb-2 text-white">Adaugă Participant</h5> <form onSubmit={handleAddParticipant} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end"> <div className="col-span-2"> <Select label="Sportiv" value={sportivId} onChange={e => setSportivId(e.target.value)}> <option value="">Selectează Sportiv</option> {sportivi.filter(s => s.status === 'Activ' && !rezultate.some(p => p.sportiv_id === s.id)).map(s => ( <option key={s.id} value={s.id}>{s.nume} {s.prenume}</option> ))} </Select> </div> <Button type="submit" variant="info">Adaugă</Button> </form> </Card> </div> <ConfirmDeleteModal isOpen={!!rezultatToDelete} onClose={() => setRezultatToDelete(null)} onConfirm={() => { if(rezultatToDelete) confirmDeleteRezultat(rezultatToDelete.id) }} tableName="înscrieri" isLoading={isDeletingRezultat} /> </Card> );
 };
 
 interface StagiiCompetitiiProps { onBack: () => void; type: 'Stagiu' | 'Competitie'; evenimente: Eveniment[]; setEvenimente: React.Dispatch<React.SetStateAction<Eveniment[]>>; rezultate: Rezultat[]; setRezultate: React.Dispatch<React.SetStateAction<Rezultat[]>>; sportivi: Sportiv[]; setPlati: React.Dispatch<React.SetStateAction<Plata[]>>; preturiConfig: PretConfig[]; participari: Participare[]; examene: Examen[]; grade: Grad[]; }

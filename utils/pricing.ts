@@ -43,7 +43,7 @@ export const getPretProdus = (
   
   // Caută cea mai specifică potrivire
   const potrivireFinala = preturiPotrivite.find(p => {
-    if (!p.specificatii) return false;
+    if (!p.specificatii || Object.keys(p.specificatii).length === 0) return false;
 
     if (atribute.inaltime && p.specificatii.inaltimeMin !== undefined) {
       const inaltimeSportiv = atribute.inaltime;
@@ -64,6 +64,7 @@ export const getPretProdus = (
     return false;
   });
 
-  // Dacă nu se găsește o potrivire specifică, returnează un preț general (fără specificații) dacă există
-  return potrivireFinala || preturiPotrivite.find(p => !p.specificatii);
+  // Dacă se găsește o potrivire specifică, o returnăm.
+  // Altfel, returnează un preț general (fără specificații) dacă există unul.
+  return potrivireFinala || preturiPotrivite.find(p => !p.specificatii || Object.keys(p.specificatii).length === 0);
 };

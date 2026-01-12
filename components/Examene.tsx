@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Examen, Participare, Sportiv, Grad, Plata, PretConfig } from '../types';
 import { Button, Modal, Input, Select, Card } from './ui';
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon } from './icons';
-import { getPretValabil } from '../utils/pricing';
+import { getPretValabil, getPretProdus } from '../utils/pricing';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 
@@ -78,14 +78,16 @@ const ExamenDetail: React.FC<ExamenDetailProps> = ({ examen, participari, setPar
         if (pError) { showError("Eroare Bază de Date", pError); return; }
         if (participareData) setParticipari(prev => [...prev, participareData as Participare]);
         
-        const pretExamenConfig = getPretValabil(preturi, 'Taxa Examen', examen.data);
+        // Caută prețul pe baza denumirii gradului, conform noii logici.
+        const pretExamenConfig = getPretProdus(preturi, 'Taxa Examen', gradSustinut.nume);
+
         if (!pretExamenConfig) { 
-            showError("Avertisment Configurare", "Configurarea prețului pentru 'Taxa Examen' nu a fost găsită. Participantul a fost adăugat, dar plata trebuie generată manual."); 
+            showError("Avertisment Configurare", `Configurarea prețului pentru gradul '${gradSustinut.nume}' nu a fost găsită. Participantul a fost adăugat, dar plata trebuie generată manual.`); 
             return; 
         }
         const descriere = `Taxa examen ${examen.data}${confirmationOnly ? ` (Confirmare ${gradSustinut.nume})` : ` (pt. ${gradSustinut.nume})`}`;
         
-        const newPlata: Omit<Plata, 'id' | 'data_platii' | 'metoda_plata'> = {
+        const newPlata: Omit<Plata, 'id'> = {
             sportiv_id: sportivId,
             familie_id: sportiv.familie_id,
             suma: pretExamenConfig.suma,

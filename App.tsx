@@ -17,7 +17,7 @@ import { ConfigurarePreturi } from './components/ConfigurarePreturi';
 import { RaportFinanciar } from './components/RaportFinanciar';
 import { FamiliiManagement } from './components/Familii';
 import { Login } from './components/Login';
-import { PortalSportiv } from './components/PortalSportiv';
+import { SportivDashboard } from './components/SportivDashboard';
 import { UserManagement } from './components/UserManagement';
 import { Session } from '@supabase/supabase-js';
 import { EditareProfilPersonal } from './components/EditareProfilPersonal';
@@ -27,6 +27,7 @@ import { useError } from './components/ErrorProvider';
 import { BackupManager } from './components/BackupManager';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { ProgramareActivitati } from './components/Activitati';
+import { ClubSettings } from './components/ClubSettings';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -179,12 +180,39 @@ function App() {
   const renderContent = () => {
     if (!currentUser) return null;
     const isAdmin = currentUser.roluri.some(r => r.nume === 'Admin' || r.nume === 'Instructor');
+    const isMyPortalView = activeView === 'my-portal';
 
-    if (!isAdmin) {
+    if (!isAdmin || isMyPortalView) {
+      const userToView = isMyPortalView ? currentUser : currentUser;
+      
+      const commonProps = {
+        currentUser: currentUser,
+        viewedUser: userToView,
+        onSwitchView: () => {}, // Simplificat, comutarea se face prin meniu
+        participari: participari,
+        examene: examene,
+        grade: grade,
+        antrenamente: antrenamente,
+        grupe: grupe,
+        plati: plati,
+        tranzactii: tranzactii,
+        setPlati: setPlati,
+        evenimente: evenimente,
+        rezultate: rezultate,
+        setRezultate: setRezultate,
+        preturiConfig: preturiConfig,
+        onNavigateToEditProfil: () => setActiveView('editare-profil-personal'),
+        onNavigateToEvenimenteleMele: () => setActiveView('evenimentele-mele'),
+        sportivi: sportivi,
+        familii: familii,
+        onNavigateToDashboard: () => setActiveView('dashboard'),
+      };
+
       switch (activeView) {
-        case 'evenimentele-mele': return <EvenimenteleMele viewedUser={currentUser} evenimente={evenimente} rezultate={rezultate} setRezultate={setRezultate} onBack={() => setActiveView('dashboard')} />;
-        case 'editare-profil-personal': return <EditareProfilPersonal user={currentUser} setSportivi={setSportivi} setCurrentUser={setCurrentUser} onBack={() => setActiveView('dashboard')} />;
-        default: return <PortalSportiv currentUser={currentUser} viewedUser={currentUser} onSwitchView={() => {}} participari={participari} examene={examene} grade={grade} antrenamente={antrenamente} grupe={grupe} plati={plati} setPlati={setPlati} evenimente={evenimente} rezultate={rezultate} setRezultate={setRezultate} preturiConfig={preturiConfig} onNavigateToEditProfil={() => setActiveView('editare-profil-personal')} onNavigateToEvenimenteleMele={() => setActiveView('evenimentele-mele')} sportivi={sportivi} familii={familii} onNavigateToDashboard={() => setActiveView('dashboard')} />;
+        case 'evenimentele-mele': return <EvenimenteleMele viewedUser={currentUser} evenimente={evenimente} rezultate={rezultate} setRezultate={setRezultate} onBack={() => setActiveView(isAdmin ? 'my-portal' : 'dashboard')} />;
+        case 'editare-profil-personal': return <EditareProfilPersonal user={currentUser} setSportivi={setSportivi} setCurrentUser={setCurrentUser} onBack={() => setActiveView(isAdmin ? 'my-portal' : 'dashboard')} />;
+        case 'my-portal':
+        default: return <SportivDashboard {...commonProps} />;
       }
     }
 
@@ -226,8 +254,9 @@ function App() {
       case 'raport-financiar': return <RaportFinanciar plati={plati} sportivi={sportivi} familii={familii} tranzactii={tranzactii} onBack={() => setActiveView('dashboard')} />;
       case 'familii': return <FamiliiManagement familii={familii} setFamilii={setFamilii} sportivi={sportivi} onBack={() => setActiveView('dashboard')} />;
       case 'user-management': return <UserManagement sportivi={sportivi} setSportivi={setSportivi} currentUser={currentUser} setCurrentUser={setCurrentUser} allRoles={allRoles} setAllRoles={setAllRoles} onBack={() => setActiveView('dashboard')} />;
-      case 'data-maintenance': return <BackupManager onBack={() => setActiveView('dashboard')} onDataRestored={fetchData} sportivi={sportivi} familii={familii} plati={plati} tranzactii={tranzactii} />;
+      case 'data-maintenance': return <BackupManager onBack={() => setActiveView('dashboard')} onDataRestored={fetchData} />;
       case 'activitati': return <ProgramareActivitati grupe={grupe} antrenamente={antrenamente} setAntrenamente={setAntrenamente} onBack={() => setActiveView('dashboard')} />;
+      case 'setari-club': return <ClubSettings onBack={() => setActiveView('dashboard')} />;
       default: return <Dashboard onNavigate={setActiveView} />;
     }
   };
@@ -235,9 +264,12 @@ function App() {
   if (loading) return <div className="flex items-center justify-center min-h-screen">Se încarcă...</div>;
   if (!session) return <Login />;
 
+  const isAdmin = currentUser!.roluri.some(r => r.nume === 'Admin' || r.nume === 'Instructor');
+  const isMyPortalView = activeView === 'my-portal';
+  
   return (
     <div className="min-h-screen flex bg-slate-900">
-      <Sidebar currentUser={currentUser!} onNavigate={setActiveView} onLogout={handleLogout} activeView={activeView} isExpanded={isSidebarExpanded} setIsExpanded={setIsSidebarExpanded} isPortalView={!currentUser?.roluri.some(r => r.nume === 'Admin' || r.nume === 'Instructor')} onViewOwnPortal={() => {}} />
+      <Sidebar currentUser={currentUser!} onNavigate={setActiveView} onLogout={handleLogout} activeView={activeView} isExpanded={isSidebarExpanded} setIsExpanded={setIsSidebarExpanded} isPortalView={!isAdmin || isMyPortalView} onViewOwnPortal={() => {}} />
       <main className={`flex-1 transition-all duration-300 p-8 ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'}`}>
         {renderContent()}
       </main>

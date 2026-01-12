@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Plata, Sportiv, PretConfig, TipAbonament, Tranzactie, Familie } from '../types';
 import { Button, Input, Select, Card } from './ui';
 import { getPretValabil, getPretProdus } from '../utils/pricing';
-import { ArrowLeftIcon } from './icons';
+import { ArrowLeftIcon, PlusIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 
@@ -38,6 +38,79 @@ const formatMarime = (pret: PretConfig) => {
     if (pret.specificatii.inaltimeMin) return `> ${pret.specificatii.inaltimeMin}cm`;
     return 'Mărime Standard';
 };
+
+const AdaugaAvans: React.FC<{
+    sportivi: Sportiv[];
+    familii: Familie[];
+    setTranzactii: React.Dispatch<React.SetStateAction<Tranzactie[]>>;
+}> = ({ sportivi, familii, setTranzactii }) => {
+    const [familieId, setFamilieId] = useState('');
+    const [suma, setSuma] = useState<number | string>('');
+    const [metodaPlata, setMetodaPlata] = useState<'Cash' | 'Transfer Bancar'>('Cash');
+    const [dataPlatii, setDataPlatii] = useState(new Date().toISOString().split('T')[0]);
+    const [loading, setLoading] = useState(false);
+    const { showError, showSuccess } = useError();
+
+    const handleSaveAvans = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!familieId || !suma || +suma <= 0) {
+            showError("Date Incomplete", "Vă rugăm selectați familia și introduceți o sumă validă.");
+            return;
+        }
+
+        const familieSelectata = familii.find(f => f.id === familieId);
+        if (!familieSelectata) return;
+
+        setLoading(true);
+        const newTranzactie: Omit<Tranzactie, 'id'> = {
+            plata_ids: [],
+            sportiv_id: null,
+            familie_id: familieId,
+            suma: +suma,
+            data_platii: dataPlatii,
+            metoda_plata: metodaPlata,
+            descriere: `Plată în avans Familia ${familieSelectata.nume}`
+        };
+
+        const { data, error } = await supabase.from('tranzactii').insert(newTranzactie).select().single();
+        setLoading(false);
+
+        if (error) {
+            showError("Eroare la Salvare", error);
+        } else if (data) {
+            setTranzactii(prev => [...prev, data as Tranzactie]);
+            showSuccess("Succes!", "Plata în avans a fost înregistrată.");
+            setFamilieId('');
+            setSuma('');
+        }
+    };
+
+    return (
+        <Card>
+            <h3 className="text-xl font-bold text-white mb-4">Adaugă Sumă în Avans</h3>
+            <form onSubmit={handleSaveAvans} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Select label="Pentru Familia" value={familieId} onChange={e => setFamilieId(e.target.value)} required>
+                        <option value="">Selectează...</option>
+                        {familii.map(f => <option key={f.id} value={f.id}>{f.nume}</option>)}
+                    </Select>
+                    <Input label="Sumă Avans (RON)" type="number" step="0.01" value={suma} onChange={e => setSuma(e.target.value)} required />
+                </div>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Input label="Data Plății" type="date" value={dataPlatii} onChange={e => setDataPlatii(e.target.value)} required />
+                    <Select label="Metoda de Plată" value={metodaPlata} onChange={e => setMetodaPlata(e.target.value as any)}>
+                         <option value="Cash">Cash</option>
+                         <option value="Transfer Bancar">Transfer Bancar</option>
+                    </Select>
+                </div>
+                <div className="flex justify-end pt-2">
+                    <Button type="submit" variant="success" isLoading={loading}><PlusIcon className="w-5 h-5 mr-2" /> Înregistrează Avans</Button>
+                </div>
+            </form>
+        </Card>
+    );
+};
+
 
 export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ plati, setPlati, sportivi, familii, preturiConfig, tipuriAbonament, tranzactii, setTranzactii, platiInitiale, onIncasareProcesata, onBack }) => {
     const [formState, setFormState] = useState(emptyIncasareState);
@@ -206,6 +279,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ plati, setPlati,
     };
 
     const getDescriereTranzactie = (tranzactie: Tranzactie) => {
+        if (tranzactie.descriere) return tranzactie.descriere;
         if (tranzactie.plata_ids.length === 0) return 'Încasare goală';
         const primaPlata = plati.find(p => p.id === tranzactie.plata_ids[0]);
         if (tranzactie.plata_ids.length > 1) {
@@ -219,9 +293,12 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ plati, setPlati,
     return (
         <div className="space-y-6">
             <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi</Button>
+            
+            <AdaugaAvans sportivi={sportivi} familii={familii} setTranzactii={setTranzactii} />
+
             <Card>
                 <h3 className="text-xl font-bold text-white mb-4">
-                    {platiInitiale.length > 0 ? (isMultiple ? `Încasare Colectivă (${platiInitiale.length} facturi)` : "Încasare Datorie") : "Încasare Directă Nouă"}
+                    {platiInitiale.length > 0 ? (isMultiple ? `Încasare Colectivă (${platiInitiale.length} facturi)` : "Încasare Datorie") : "Încasare Directă Nouă (Generează Factură & Încasare)"}
                 </h3>
                 <form onSubmit={handleSaveIncasare} className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

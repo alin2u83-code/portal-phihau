@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Plata, Sportiv, TipAbonament, Familie } from '../types';
+import { Plata, Sportiv, TipAbonament, Familie, Tranzactie } from '../types';
 import { Button, Input, Select, Card } from './ui';
 import { EditIcon, ArrowLeftIcon, TrashIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -12,22 +12,41 @@ interface PlatiScadenteProps {
     setPlati: React.Dispatch<React.SetStateAction<Plata[]>>; 
     sportivi: Sportiv[]; 
     familii: Familie[]; 
-    tipuriAbonament: TipAbonament[]; 
+    tipuriAbonament: TipAbonament[];
+    tranzactii: Tranzactie[];
     onIncaseazaMultiple: (plati: Plata[]) => void;
     onBack: () => void;
 }
 
 const initialFilters = { sportiv: '', tip: '', status: 'Neachitat' };
 
-export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, sportivi, familii, tipuriAbonament, onIncaseazaMultiple, onBack }) => {
+export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, sportivi, familii, tipuriAbonament, tranzactii, onIncaseazaMultiple, onBack }) => {
     const [filter, setFilter] = useLocalStorage('phi-hau-plati-scadente-filter', initialFilters);
     const [editingPlata, setEditingPlata] = useState<Plata | null>(null);
     const [plataToDelete, setPlataToDelete] = useState<Plata | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const { showError, showSuccess } = useError();
+    const [isGenerating, setIsGenerating] = useState(false);
+
+    const familyBalances = useMemo(() => {
+        const balances = new Map<string, number>();
+        familii.forEach(f => balances.set(f.id, 0));
+        tranzactii.forEach(t => {
+            if (t.familie_id) {
+                balances.set(t.familie_id, (balances.get(t.familie_id) || 0) + t.suma);
+            }
+        });
+        plati.forEach(p => {
+            if (p.familie_id) {
+                balances.set(p.familie_id, (balances.get(p.familie_id) || 0) - p.suma);
+            }
+        });
+        return balances;
+    }, [familii, plati, tranzactii]);
 
     const handleGenerateSubscriptions = async () => {
+        setIsGenerating(true);
         const dataCurenta = new Date().toISOString().split('T')[0];
         const lunaText = new Date().toLocaleString('ro-RO', { month: 'long', year: 'numeric'});
         const lunaCurentaIdx = new Date().getMonth();
@@ -48,7 +67,21 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
             if (!abonamentConfig && nrMembri >= 3) { abonamentConfig = tipuriAbonament.sort((a,b) => b.numar_membri - a.numar_membri)[0]; }
 
             if (abonamentConfig) {
-                 platiToInsert.push({ sportiv_id: membriActivi[0]?.id || null, familie_id: familie.id, suma: abonamentConfig.pret, data: dataCurenta, status: 'Neachitat', descriere: `Abonament ${abonamentConfig.denumire} ${lunaText}`, tip: 'Abonament', observatii: `Pentru ${membriActivi.map(m => m.prenume).join(', ')}` });
+                const creditFamilie = familyBalances.get(familie.id) || 0;
+                let sumaDatorata = abonamentConfig.pret;
+                let status: Plata['status'] = 'Neachitat';
+                let observatii = `Pentru ${membriActivi.map(m => m.prenume).join(', ')}`;
+
+                if (creditFamilie > 0) {
+                    if (creditFamilie >= sumaDatorata) {
+                        status = 'Achitat';
+                        observatii += ` | Achitat integral din avansul de ${creditFamilie.toFixed(2)} RON.`;
+                    } else {
+                        sumaDatorata -= creditFamilie;
+                        observatii += ` | Redus cu ${creditFamilie.toFixed(2)} RON din avans.`;
+                    }
+                }
+                 platiToInsert.push({ sportiv_id: membriActivi[0]?.id || null, familie_id: familie.id, suma: sumaDatorata, data: dataCurenta, status: status, descriere: `Abonament ${abonamentConfig.denumire} ${lunaText}`, tip: 'Abonament', observatii: observatii });
                 membriActivi.forEach(m => sportiviProcesati.add(m.id));
             }
         });
@@ -69,6 +102,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
              if(error) showError("Eroare la salvarea abonamentelor", error);
              else if (data) { setPlati(prev => [...prev, ...data as Plata[]]); showSuccess('Succes', `${data.length} abonamente noi au fost generate.`); }
         } else { showSuccess('Info', "Toți sportivii au plățile la zi."); }
+        setIsGenerating(false);
     };
 
     const handleSaveEdit = async (plataId: string) => {
@@ -138,7 +172,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
             <h1 className="text-3xl font-bold text-white">Facturare & Datorii</h1>
             <div className="flex gap-2">
                 {selectedIds.size > 0 && <Button onClick={handleIncaseazaSelectie} variant='success' className="animate-pulse shadow-lg">Încasează Selecția ({selectedIds.size})</Button>}
-                <Button onClick={handleGenerateSubscriptions} variant='secondary'>Generează Abonamente</Button>
+                <Button onClick={handleGenerateSubscriptions} variant='secondary' isLoading={isGenerating}>Generează Abonamente</Button>
             </div>
         </div>
         <Card className="mb-6">

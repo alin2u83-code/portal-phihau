@@ -1,12 +1,12 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { Sportiv, Grupa, TipAbonament, Familie, Rol } from '../types';
+import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie } from '../types';
 import { Button, Modal, Input, Select, Card } from './ui';
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon, ShieldCheckIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { BirthDateInput } from './BirthDateInput';
 import { useLocalStorage } from '../hooks/useLocalStorage';
-import { ConfirmDeleteModal } from './ConfirmDeleteModal';
+import { DeleteAuditModal } from './DeleteAuditModal';
 
 // --- Modale de adăugare rapidă ---
 const QuickAddModal: React.FC<{ 
@@ -195,25 +195,45 @@ const SportivFormModal: React.FC<any> = ({
 };
 
 // --- Componenta Management Principală ---
-export const SportiviManagement: React.FC<any> = ({ 
-  onBack, 
-  sportivi, 
-  setSportivi, 
-  grupe, 
-  setGrupe, 
-  tipuriAbonament, 
-  familii, 
-  setFamilii, 
-  customFields, 
-  allRoles 
-}) => {
+export const SportiviManagement: React.FC<{
+    onBack: () => void;
+    sportivi: Sportiv[];
+    setSportivi: React.Dispatch<React.SetStateAction<Sportiv[]>>;
+    grupe: Grupa[];
+    setGrupe: React.Dispatch<React.SetStateAction<Grupa[]>>;
+    tipuriAbonament: TipAbonament[];
+    familii: Familie[];
+    setFamilii: React.Dispatch<React.SetStateAction<Familie[]>>;
+    allRoles: Rol[];
+    plati: Plata[];
+    tranzactii: Tranzactie[];
+}> = ({ onBack, sportivi, setSportivi, grupe, setGrupe, tipuriAbonament, familii, setFamilii, allRoles, plati, tranzactii }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [sportivToEdit, setSportivToEdit] = useState<Sportiv | null>(null);
-    const [sportivToDelete, setSportivToDelete] = useState<Sportiv | null>(null);
-    const [deletingId, setDeletingId] = useState<string | null>(null);
+    const [sportivForAudit, setSportivForAudit] = useState<Sportiv | null>(null);
     const { showError, showSuccess } = useError();
-
     const [searchTerm, setSearchTerm] = useState('');
+
+    const familyBalances = useMemo(() => {
+        const balances = new Map<string, number>();
+        if (!familii || !plati || !tranzactii) return balances;
+
+        familii.forEach(f => balances.set(f.id, 0));
+
+        tranzactii.forEach(t => {
+            if (t.familie_id) {
+                balances.set(t.familie_id, (balances.get(t.familie_id) || 0) + t.suma);
+            }
+        });
+
+        plati.forEach(p => {
+            if (p.familie_id) {
+                balances.set(p.familie_id, (balances.get(p.familie_id) || 0) - p.suma);
+            }
+        });
+
+        return balances;
+    }, [familii, plati, tranzactii]);
 
     const filteredSportivi = useMemo(() => {
         return sportivi.filter((s: Sportiv) => 
@@ -224,13 +244,19 @@ export const SportiviManagement: React.FC<any> = ({
     const handleSave = async (formData: Partial<Sportiv>) => {
         if (!supabase) return { success: false, error: 'Supabase indisponibil' };
         
+        const { roluri, ...sportivData } = formData;
+    
         try {
             if (sportivToEdit) {
-                const { data, error } = await supabase.from('sportivi').update(formData).eq('id', sportivToEdit.id).select().single();
+                const { data, error } = await supabase.from('sportivi').update(sportivData).eq('id', sportivToEdit.id).select().single();
                 if (error) throw error;
-                setSportivi((prev: Sportiv[]) => prev.map(s => s.id === sportivToEdit.id ? { ...s, ...data } : s));
+                setSportivi((prev: Sportiv[]) => prev.map(s => 
+                    s.id === sportivToEdit.id 
+                    ? { ...s, ...data } 
+                    : s
+                ));
             } else {
-                const { data, error } = await supabase.from('sportivi').insert(formData).select().single();
+                const { data, error } = await supabase.from('sportivi').insert(sportivData).select().single();
                 if (error) throw error;
                 setSportivi((prev: Sportiv[]) => [...prev, { ...data, roluri: [] }]);
             }
@@ -239,46 +265,33 @@ export const SportiviManagement: React.FC<any> = ({
             return { success: false, error: err.message };
         }
     };
-
-    const confirmDelete = async (id: string) => {
+    
+    const handleDeactivate = async (sportiv: Sportiv) => {
         if (!supabase) return;
-        setDeletingId(id);
-        try {
-            const sportivToDelete = sportivi.find(s => s.id === id);
-            
-            // Block deletion if user account exists due to backend trigger issue
-            if (sportivToDelete && sportivToDelete.user_id) {
-                showError("Ștergere Blocată", "Acest sportiv are un cont de utilizator activ. Pentru a menține integritatea datelor, profilurile cu cont de acces trebuie arhivate (setate ca 'Inactiv'), nu șterse.");
-                throw new Error("Deletion blocked for sportiv with an active user account.");
-            }
+        const { data, error } = await supabase
+            .from('sportivi')
+            .update({ status: 'Inactiv' })
+            .eq('id', sportiv.id)
+            .select()
+            .single();
 
-            // Safety Check
-            const { data: participariData, error: participariError } = await supabase.from('participari').select('id').eq('sportiv_id', id).limit(1);
-            if (participariError) throw new Error(`Verificare eșuată (participari): ${participariError.message}`);
-            
-            const { data: platiData, error: platiError } = await supabase.from('plati').select('id').eq('sportiv_id', id).limit(1);
-            if (platiError) throw new Error(`Verificare eșuată (plati): ${platiError.message}`);
-
-            if ((participariData && participariData.length > 0) || (platiData && platiData.length > 0)) {
-                showError("Ștergere Blocată", "Acest sportiv nu poate fi șters deoarece are istoric (plăți sau participări). Puteți schimba statusul în 'Inactiv' pentru a-l arhiva.");
-                throw new Error("Deletion blocked due to existing history.");
-            }
-
-            // Perform deletion
-            const { error: deleteError } = await supabase.from('sportivi').delete().eq('id', id);
-            if (deleteError) throw deleteError;
-            
-            setSportivi((prev: Sportiv[]) => prev.filter(s => s.id !== id));
-            showSuccess("Succes", "Sportiv șters cu succes!");
-
-        } catch (err: any) {
-            if (err.message !== "Deletion blocked due to existing history." && err.message !== "Deletion blocked for sportiv with an active user account.") {
-                 showError("Eroare Ștergere", err);
-            }
-        } finally {
-            setDeletingId(null);
-            setSportivToDelete(null); // Close modal
+        if (error) {
+            showError("Eroare la Dezactivare", error);
+        } else if (data) {
+            setSportivi((prev: Sportiv[]) => prev.map(s => s.id === sportiv.id ? data : s));
+            showSuccess("Succes", `Sportivul ${sportiv.nume} ${sportiv.prenume} a fost marcat ca 'Inactiv'.`);
         }
+    };
+
+    const handleDelete = async (sportiv: Sportiv) => {
+        if (!supabase) return;
+        const { error: deleteError } = await supabase.from('sportivi').delete().eq('id', sportiv.id);
+        if (deleteError) {
+            showError("Eroare la Ștergere", deleteError);
+            return;
+        }
+        setSportivi((prev: Sportiv[]) => prev.filter(s => s.id !== sportiv.id));
+        showSuccess("Succes", "Sportivul a fost șters definitiv.");
     };
 
     return (
@@ -308,9 +321,23 @@ export const SportiviManagement: React.FC<any> = ({
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-700">
-                            {filteredSportivi.map(s => (
+                            {filteredSportivi.map((s: Sportiv) => {
+                                const familie = s.familie_id ? familii.find(f => f.id === s.familie_id) : null;
+                                const familieBalance = s.familie_id ? familyBalances.get(s.familie_id) : undefined;
+                                
+                                return (
                                 <tr key={s.id} className="hover:bg-white/5 transition-colors">
-                                    <td className="p-3 font-semibold">{s.nume} {s.prenume}</td>
+                                    <td className="p-3 font-semibold">
+                                        {s.nume} {s.prenume}
+                                        {familie && familieBalance !== undefined && (
+                                            <div className="text-xs font-normal text-slate-400" style={{fontSize: '13px'}}>
+                                                Familia {familie.nume}
+                                                <span className={`ml-2 font-bold ${familieBalance >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                                    Sold: {familieBalance >= 0 ? '+' : ''}{familieBalance.toFixed(2)} lei
+                                                </span>
+                                            </div>
+                                        )}
+                                    </td>
                                     <td className="p-3 text-slate-400 text-xs">{grupe.find((g: any) => g.id === s.grupa_id)?.denumire || '-'}</td>
                                     <td className="p-3">
                                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${s.status === 'Activ' ? 'bg-green-600/20 text-green-400 border border-green-600/50' : 'bg-red-600/20 text-red-400 border border-red-600/50'}`}>
@@ -320,11 +347,12 @@ export const SportiviManagement: React.FC<any> = ({
                                     <td className="p-3 text-right">
                                         <div className="flex justify-end gap-1">
                                             <Button size="sm" variant="secondary" onClick={() => { setSportivToEdit(s); setIsModalOpen(true); }}><EditIcon className="w-4 h-4"/></Button>
-                                            <Button size="sm" variant="danger" onClick={() => setSportivToDelete(s)} isLoading={deletingId === s.id}><TrashIcon className="w-4 h-4"/></Button>
+                                            <Button size="sm" variant="danger" onClick={() => setSportivForAudit(s)}><TrashIcon className="w-4 h-4"/></Button>
                                         </div>
                                     </td>
                                 </tr>
-                            ))}
+                                );
+                            })}
                         </tbody>
                     </table>
                     {filteredSportivi.length === 0 && <p className="p-8 text-center text-slate-500 italic">Niciun sportiv găsit.</p>}
@@ -342,13 +370,16 @@ export const SportiviManagement: React.FC<any> = ({
                 setFamilii={setFamilii}
                 tipuriAbonament={tipuriAbonament}
             />
-            <ConfirmDeleteModal
-                isOpen={!!sportivToDelete}
-                onClose={() => setSportivToDelete(null)}
-                onConfirm={() => { if(sportivToDelete) confirmDelete(sportivToDelete.id) }}
-                tableName="Sportivi"
-                isLoading={!!deletingId}
-            />
+            
+            {sportivForAudit && (
+                <DeleteAuditModal
+                    sportiv={sportivForAudit}
+                    isOpen={!!sportivForAudit}
+                    onClose={() => setSportivForAudit(null)}
+                    onDeactivate={handleDeactivate}
+                    onDelete={handleDelete}
+                />
+            )}
         </div>
     );
 };

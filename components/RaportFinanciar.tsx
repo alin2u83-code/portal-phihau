@@ -30,6 +30,16 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({ plati, sportiv
         setFilters(prev => ({ ...prev, [e.target.name]: e.target.value }));
     };
 
+    const getDescriereTranzactie = (tranzactie: Tranzactie): string => {
+        if (tranzactie.descriere) return tranzactie.descriere;
+        if (tranzactie.plata_ids.length === 0) return 'Încasare goală';
+        const primaPlata = plati.find(p => p.id === tranzactie.plata_ids[0]);
+        if (tranzactie.plata_ids.length > 1) {
+            return `${primaPlata?.descriere || 'Plată'} (+${tranzactie.plata_ids.length - 1} altele)`;
+        }
+        return primaPlata?.descriere || 'N/A';
+    };
+
     const filteredTranzactii = useMemo(() => {
         return tranzactii.filter(t => {
             const dataPlatii = new Date(t.data_platii);
@@ -48,11 +58,16 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({ plati, sportiv
             
             // Filter by type requires looking at the original Plata objects
             if (filters.tip) {
-                const areTipulCerut = t.plata_ids.some(plataId => {
-                    const plataOriginala = plati.find(p => p.id === plataId);
-                    return plataOriginala?.tip === filters.tip;
-                });
-                if (!areTipulCerut) return false;
+                if (t.plata_ids.length > 0) {
+                    const areTipulCerut = t.plata_ids.some(plataId => {
+                        const plataOriginala = plati.find(p => p.id === plataId);
+                        return plataOriginala?.tip === filters.tip;
+                    });
+                    if (!areTipulCerut) return false;
+                } else {
+                    // Tranzacție fără plată (ex: Avans), nu se poate filtra după tipul de plată
+                    return false;
+                }
             }
 
             return true;
@@ -115,7 +130,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({ plati, sportiv
                                 <tr key={tranzactie.id} className="border-b border-slate-700">
                                     <td className="p-4">{new Date(tranzactie.data_platii).toLocaleDateString('ro-RO')}</td>
                                     <td className="p-4 font-medium">{tranzactie.familie_id ? `Familia ${getFamilieName(tranzactie.familie_id)}` : getSportivName(tranzactie.sportiv_id)}</td>
-                                    <td className="p-4">{plati.find(p => p.id === tranzactie.plata_ids[0])?.descriere || 'Încasare multiplă'}</td>
+                                    <td className="p-4">{getDescriereTranzactie(tranzactie)}</td>
                                     <td className="p-4">{tranzactie.metoda_plata}</td>
                                     <td className="p-4 text-right font-semibold">{tranzactie.suma.toFixed(2)} RON</td>
                                 </tr>

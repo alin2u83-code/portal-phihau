@@ -120,6 +120,7 @@ export interface Tranzactie {
   suma: number;
   data_platii: string;
   metoda_plata: 'Cash' | 'Transfer Bancar';
+  descriere?: string; // Adăugat pentru a descrie tranzacții fără plată, ex: Plată în avans
 }
 
 // Reprezintă o DATORIE (ceva ce trebuie plătit)

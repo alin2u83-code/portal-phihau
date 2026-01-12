@@ -1,12 +1,13 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Sportiv, User, Rol, Participare, Examen, Grad, Antrenament, Plata, Familie, TipAbonament } from '../types';
 import { Button, Card, Select } from './ui';
-import { ArrowLeftIcon, EditIcon, WalletIcon, TrashIcon, ShieldCheckIcon, PlusIcon } from './icons';
+import { ArrowLeftIcon, EditIcon, WalletIcon, TrashIcon, ShieldCheckIcon, PlusIcon, ChartBarIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { SportivFormModal } from './Sportivi';
 import { SportivWallet } from './SportivWallet';
 import { DeleteAuditModal } from './DeleteAuditModal';
+import { SportivFeedbackReport } from './SportivFeedbackReport';
 
 const getGrad = (gradId: string, allGrades: Grad[]) => allGrades.find(g => g.id === gradId);
 const getAge = (dateString: string) => { const today = new Date(); const birthDate = new Date(dateString); let age = today.getFullYear() - birthDate.getFullYear(); const m = today.getMonth() - birthDate.getMonth(); if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; } return age; };
@@ -49,6 +50,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
     // State for role editing
     const [isEditingRoles, setIsEditingRoles] = useState(false);
@@ -136,7 +138,8 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                         <h1 className="text-3xl font-bold text-white">{sportiv.nume} {sportiv.prenume}</h1>
                         <p className="text-slate-400">Profil detaliat și istoric activitate</p>
                     </div>
-                    <div className="flex gap-2 self-end sm:self-center">
+                    <div className="flex gap-2 self-end sm:self-center flex-wrap">
+                        <Button variant="secondary" onClick={() => setIsReportModalOpen(true)}><ChartBarIcon className="w-4 h-4 mr-2"/> Raport Activitate</Button>
                         <Button variant="secondary" onClick={() => setIsEditModalOpen(true)}><EditIcon className="w-4 h-4 mr-2"/> Editează</Button>
                         <Button variant="info" onClick={() => setIsWalletModalOpen(true)}><WalletIcon className="w-4 h-4 mr-2"/> Portofel</Button>
                         <Button variant="danger" onClick={() => setIsDeleteModalOpen(true)}><TrashIcon className="w-4 h-4 mr-2"/> Șterge</Button>
@@ -178,6 +181,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
             <SportivFormModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} onSave={handleSaveSportiv} sportivToEdit={sportiv} grupe={grupe} setGrupe={()=>{}} familii={familii} setFamilii={()=>{}} tipuriAbonament={tipuriAbonament} />
             {isWalletModalOpen && <SportivWallet sportiv={sportiv} familie={familii.find(f => f.id === sportiv.familie_id)} allPlati={plati} allTranzactii={[]} setTranzactii={setTranzactii} onClose={() => setIsWalletModalOpen(false)} />}
             {isDeleteModalOpen && <DeleteAuditModal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} sportiv={sportiv} onDeactivate={handleDeactivate} onDelete={handleDelete} />}
+            {isReportModalOpen && <SportivFeedbackReport isOpen={isReportModalOpen} onClose={() => setIsReportModalOpen(false)} sportiv={sportiv} antrenamente={antrenamente} grupe={grupe} grade={grade} participari={participari} examene={examene} />}
         </div>
     );
 };

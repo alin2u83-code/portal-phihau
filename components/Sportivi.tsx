@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Sportiv, Grupa, Familie } from '../types';
+import { Sportiv, Grupa, Familie, TipAbonament } from '../types';
 import { Button, Modal, Input, Select } from './ui';
 import { PlusIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -65,6 +65,7 @@ export const SportivFormModal: React.FC<{
     setGrupe: React.Dispatch<React.SetStateAction<Grupa[]>>;
     familii: Familie[];
     setFamilii: React.Dispatch<React.SetStateAction<Familie[]>>;
+    tipuriAbonament: TipAbonament[];
 }> = ({ 
   isOpen, 
   onClose, 
@@ -74,6 +75,7 @@ export const SportivFormModal: React.FC<{
   setGrupe, 
   familii, 
   setFamilii, 
+  tipuriAbonament
 }) => {
     const { showError, showSuccess } = useError();
     const [loading, setLoading] = useState(false);
@@ -143,16 +145,29 @@ export const SportivFormModal: React.FC<{
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="grid grid-cols-2 gap-3"><Input label="Nume" name="nume" value={formState.nume || ''} onChange={handleChange} required disabled={loading} /><Input label="Prenume" name="prenume" value={formState.prenume || ''} onChange={handleChange} required disabled={loading} /></div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3"><BirthDateInput label="Data Nașterii" value={formState.data_nasterii} onChange={(v) => handleChange({ target: { name: 'data_nasterii', value: v } })} required /><Input label="CNP (Opțional)" name="cnp" value={formState.cnp || ''} onChange={handleChange} maxLength={13} disabled={loading} /></div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
                         <div className="flex gap-1 items-end">
                             <Select label="Grupă" name="grupa_id" value={formState.grupa_id || ''} onChange={handleChange} disabled={loading}><option value="">Fără grupă</option>{grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}</Select>
                             <Button type="button" variant="secondary" size="sm" onClick={() => setIsGrupaModalOpen(true)} className="h-[34px]"><PlusIcon className="w-4 h-4"/></Button>
                         </div>
-                        <div className="flex gap-1 items-end">
-                            <Select label="Familie" name="familie_id" value={formState.familie_id || ''} onChange={handleChange} disabled={loading}><option value="">Individual</option>{familii.map(f => <option key={f.id} value={f.id}>{f.nume}</option>)}</Select>
-                            <Button type="button" variant="secondary" size="sm" onClick={() => setIsFamilieModalOpen(true)} className="h-[34px]"><PlusIcon className="w-4 h-4"/></Button>
+                        <div className="space-y-1">
+                            <div className="flex gap-1 items-end">
+                                <Select label="Familie" name="familie_id" value={formState.familie_id || ''} onChange={handleChange} disabled={loading}><option value="">Individual</option>{familii.map(f => <option key={f.id} value={f.id}>{f.nume}</option>)}</Select>
+                                <Button type="button" variant="secondary" size="sm" onClick={() => setIsFamilieModalOpen(true)} className="h-[34px]"><PlusIcon className="w-4 h-4"/></Button>
+                            </div>
                         </div>
                     </div>
+                     <Select 
+                        label="Abonament Individual" 
+                        name="tip_abonament_id" 
+                        value={formState.tip_abonament_id || ''} 
+                        onChange={handleChange} 
+                        disabled={loading || !!formState.familie_id}
+                    >
+                        <option value="">Niciunul / Gestionat de familie</option>
+                        {tipuriAbonament.filter(t => t.numar_membri === 1).map(t => <option key={t.id} value={t.id}>{t.denumire} ({t.pret} RON)</option>)}
+                    </Select>
+                    {!!formState.familie_id && <p className="text-xs text-slate-500 ml-1 -mt-3">Abonamentul este gestionat la nivel de familie.</p>}
                     <div className="grid grid-cols-2 gap-3">
                         <Select label="Status" name="status" value={formState.status || 'Activ'} onChange={handleChange} disabled={loading}><option value="Activ">Activ</option><option value="Inactiv">Inactiv</option></Select>
                         <Input label="Data Înscrierii" name="data_inscrierii" type="date" value={formState.data_inscrierii || ''} onChange={handleChange} disabled={loading} />

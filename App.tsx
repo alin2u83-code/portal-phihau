@@ -205,6 +205,8 @@ function App() {
         onNavigateToEvenimenteleMele: () => setActiveView('evenimentele-mele'),
         sportivi: sportivi,
         familii: familii,
+        tipuriAbonament: tipuriAbonament,
+        onNavigate: setActiveView,
         onNavigateToDashboard: () => setActiveView('dashboard'),
       };
 

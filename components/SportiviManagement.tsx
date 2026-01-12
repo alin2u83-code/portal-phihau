@@ -54,7 +54,18 @@ export const SportiviManagement: React.FC<{
             } else {
                 const { data, error } = await supabase.from('sportivi').insert(sportivData).select().single();
                 if (error) throw error;
-                setSportivi(prev => [...prev, { ...data, roluri: [] }]);
+
+                let newSportiv = { ...data, roluri: [] } as Sportiv;
+                const sportivRole = allRoles.find(r => r.nume === 'Sportiv');
+                if (sportivRole) {
+                    const { error: roleError } = await supabase.from('sportivi_roluri').insert({ sportiv_id: data.id, rol_id: sportivRole.id });
+                    if (roleError) {
+                        showError("Utilizator creat, dar eroare la asignarea rolului", roleError);
+                    } else {
+                        newSportiv.roluri = [sportivRole];
+                    }
+                }
+                setSportivi(prev => [...prev, newSportiv]);
             }
             return { success: true };
         } catch (err: any) {

@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { User, View, Plata } from '../types';
 import { adminMenu, sportivMenu, MenuItem } from './menuConfig';
 import { ArrowRightOnRectangleIcon, Bars3Icon, ChevronDownIcon, UserCircleIcon } from './icons';
-import { logoBase64 } from '../constants';
 import { AdminProfileQuickAccess } from './AdminProfileQuickAccess';
 
 const NavItem: React.FC<{
@@ -88,13 +87,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
 
     const sidebarContent = (
         <div className="flex flex-col h-full bg-brand-primary text-white shadow-xl">
-            <div className="flex items-center justify-center p-4 border-b border-white/10 cursor-pointer" onClick={() => handleNavigate('dashboard')}>
-                <img 
-                    src={logoBase64} 
-                    alt="Club Sportiv Phi Hau"
-                    className="h-10 w-10 transition-all duration-300 rounded-full bg-white/10 shadow-md"
-                    style={{boxShadow: '0 0 10px rgba(77, 188, 233, 0.5)'}}
-                />
+            <div className="h-16 flex items-center justify-center p-4 border-b border-white/10">
+               {/* Spațiu gol lăsat intenționat după eliminarea logo-ului */}
             </div>
             
             <nav className="flex-1 px-3 py-4 space-y-2 overflow-y-auto">

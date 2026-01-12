@@ -2,7 +2,6 @@ import React, { useMemo } from 'react';
 import { Sportiv, Antrenament, Grupa, Grad, Participare, Examen } from '../types';
 import { Modal, Button } from './ui';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell } from 'recharts';
-import { logoBase64 } from '../constants';
 
 // --- Helper Functions ---
 const parseDurationToMonths = (durationStr: string): number => { if (!durationStr) return 0; const parts = durationStr.split(' '); if (parts.length < 2) return 0; const value = parseInt(parts[0], 10); const unit = parts[1].toLowerCase(); if (unit.startsWith('lun')) return value; if (unit.startsWith('an')) return value * 12; return 0; };
@@ -136,7 +135,6 @@ export const SportivFeedbackReport: React.FC<SportivFeedbackReportProps> = ({ is
                             <p className="text-lg font-semibold text-slate-700">{sportiv.nume} {sportiv.prenume}</p>
                             <p className="text-xs text-slate-500">Generat la: {new Date().toLocaleDateString('ro-RO')}</p>
                         </div>
-                        <img src={logoBase64} alt="Club Logo" className="h-16 w-16" />
                     </header>
 
                     <main className="mt-6 grid grid-cols-3 gap-6">

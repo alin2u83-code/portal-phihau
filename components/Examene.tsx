@@ -26,7 +26,8 @@ interface ExamenDetailProps { examen: Examen; participari: Participare[]; setPar
 const ExamenDetail: React.FC<ExamenDetailProps> = ({ examen, participari, setParticipari, sportivi, grade, setPlati, preturi, allParticipari, examene }) => {
     const [sportivId, setSportivId] = useState('');
     const [gradSustinutId, setGradSustinutId] = useState('');
-    const [eligibilityMessage, setEligibilityMessage] = useState<string|null>(null);
+    const [proposedGradId, setProposedGradId] = useState<string | null>(null);
+    const [eligibilityInfo, setEligibilityInfo] = useState<{ message: string, type: 'info' | 'success' | 'warning' } | null>(null);
     const sortedGrades = [...grade].sort((a,b) => a.ordine - b.ordine);
     const { showError, showSuccess } = useError();
     const [participareToDelete, setParticipareToDelete] = useState<Participare | null>(null);
@@ -37,44 +38,57 @@ const ExamenDetail: React.FC<ExamenDetailProps> = ({ examen, participari, setPar
             const sportiv = sportivi.find(s => s.id === sportivId);
             if (!sportiv) return;
 
-            const ageAtExam = getAgeOnDate(sportiv.data_nasterii, examen.data);
-            const categorie = ageAtExam < 13 ? 'Copii' : 'Adulti';
-            let grad_propus_obj: Grad | undefined;
-            let message = '';
-
             const admittedParticipations = allParticipari
                 .filter(p => p.sportiv_id === sportiv.id && p.rezultat === 'Admis')
                 .sort((a,b) => (getGrad(b.grad_sustinut_id, grade)?.ordine ?? 0) - (getGrad(a.grad_sustinut_id, grade)?.ordine ?? 0));
             const currentGrad = admittedParticipations.length > 0 ? getGrad(admittedParticipations[0].grad_sustinut_id, grade) : null;
-
-            if (!currentGrad) { // Beginner
-                if (categorie === 'Copii') grad_propus_obj = sortedGrades.find(g => g.nume.includes('1 Cấp'));
-                else grad_propus_obj = sortedGrades.find(g => g.nume === '4 Cấp');
-            } else { // Has existing rank
-                if (currentGrad.nume === '4 Cấp') {
-                    if (ageAtExam >= 18) {
-                        grad_propus_obj = sortedGrades.find(g => g.nume.includes('1 Đẳng'));
-                        message = "Atenție: Verificați stagiile naționale obligatorii.";
-                    } else {
-                        grad_propus_obj = currentGrad;
-                        message = "Confirmare grad. Vârsta minimă pt 1 Đẳng este 18 ani.";
-                    }
-                } else if (currentGrad.nume.includes('Cấp')) {
-                    grad_propus_obj = sortedGrades.find(g => g.ordine === currentGrad.ordine + 1);
-                } else {
-                    grad_propus_obj = currentGrad;
-                    message = "Grad maxim atins sau reconfirmare.";
-                }
+            const nextGrad = currentGrad ? sortedGrades.find(g => g.ordine === currentGrad.ordine + 1) : sortedGrades.find(g => g.ordine === 1);
+            
+            if (nextGrad) {
+                setGradSustinutId(nextGrad.id);
+                setProposedGradId(nextGrad.id);
+            } else { // max rank
+                const finalGradId = currentGrad?.id || '';
+                setGradSustinutId(finalGradId);
+                setProposedGradId(finalGradId);
             }
-
-            if (grad_propus_obj) setGradSustinutId(grad_propus_obj.id);
-            setEligibilityMessage(message);
         } else {
             setGradSustinutId('');
-            setEligibilityMessage(null);
+            setProposedGradId(null);
         }
-    }, [sportivId, sportivi, examen.data, allParticipari, grade, sortedGrades]);
+    }, [sportivId, allParticipari, grade, sportivi, sortedGrades]);
 
+    useEffect(() => {
+        if (!sportivId || !gradSustinutId) { setEligibilityInfo(null); return; }
+
+        const sportiv = sportivi.find(s => s.id === sportivId);
+        const gradToSustain = grade.find(g => g.id === gradSustinutId);
+        if (!sportiv || !gradToSustain) return;
+
+        const ageAtExam = getAgeOnDate(sportiv.data_nasterii, examen.data);
+        const ageOk = ageAtExam >= gradToSustain.varsta_minima;
+
+        const admittedParticipations = allParticipari.filter(p => p.sportiv_id === sportiv.id && p.rezultat === 'Admis').sort((a,b) => (getGrad(b.grad_sustinut_id, grade)?.ordine ?? 0) - (getGrad(a.grad_sustinut_id, grade)?.ordine ?? 0));
+        const lastAdmittedPart = admittedParticipations[0];
+        const lastExam = lastAdmittedPart ? examene.find(e => e.id === lastAdmittedPart.examen_id) : null;
+        const lastExamDate = lastExam ? new Date(lastExam.data) : new Date(sportiv.data_inscrierii);
+        
+        const monthsToWait = parseDurationToMonths(gradToSustain.timp_asteptare);
+        const eligibilityDate = new Date(lastExamDate);
+        eligibilityDate.setMonth(eligibilityDate.getMonth() + monthsToWait);
+        const timeOk = new Date(examen.data) >= eligibilityDate;
+
+        const isProposed = gradSustinutId === proposedGradId;
+
+        if (ageOk && timeOk) {
+            setEligibilityInfo({ message: isProposed ? "Grad propus automat. Condiții îndeplinite." : "Condiții îndeplinite pentru gradul selectat.", type: 'success' });
+        } else {
+            const issues = [];
+            if (!ageOk) issues.push(`vârstă (${ageAtExam} ani, minim ${gradToSustain.varsta_minima})`);
+            if (!timeOk) issues.push(`timp (eligibil după ${eligibilityDate.toLocaleDateString('ro-RO')})`);
+            setEligibilityInfo({ message: `Atenție: Nu îndeplinește condiția de ${issues.join(' și ')}.`, type: 'warning' });
+        }
+    }, [sportivId, gradSustinutId, proposedGradId, examen.data, allParticipari, grade, sportivi, examene]);
 
     const handleAddParticipant = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -104,7 +118,7 @@ const ExamenDetail: React.FC<ExamenDetailProps> = ({ examen, participari, setPar
             status: 'Neachitat',
             descriere: `Taxa examen grad ${grad_sustinut_obj.nume}`,
             tip: 'Taxa Examen',
-            observatii: eligibilityMessage || ''
+            observatii: eligibilityInfo?.message || ''
         };
 
         const {data: plataData, error: plError} = await supabase.from('plati').insert(newPlata).select().single();
@@ -114,7 +128,7 @@ const ExamenDetail: React.FC<ExamenDetailProps> = ({ examen, participari, setPar
         showSuccess("Succes", `Factura pentru ${sportiv.nume} ${sportiv.prenume} a fost generată.`);
         setSportivId('');
         setGradSustinutId('');
-        setEligibilityMessage(null);
+        setEligibilityInfo(null);
     };
 
     const handleUpdateParticipare = async (participareId: string, field: keyof Participare, value: string) => {
@@ -154,7 +168,7 @@ const ExamenDetail: React.FC<ExamenDetailProps> = ({ examen, participari, setPar
                 <option value="">Alege grad...</option>
                 {sortedGrades.map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}
             </Select>
-            {eligibilityMessage && <p className="text-xs text-amber-400 mt-1">{eligibilityMessage}</p>}
+            {eligibilityInfo && <p className={`text-xs mt-1 ${ eligibilityInfo.type === 'success' ? 'text-green-400' : eligibilityInfo.type === 'warning' ? 'text-amber-400' : 'text-slate-400' }`}>{eligibilityInfo.message}</p>}
         </div>
         <Button type="submit" variant="info" disabled={!sportivId || !gradSustinutId}>Adaugă</Button>
     </form>

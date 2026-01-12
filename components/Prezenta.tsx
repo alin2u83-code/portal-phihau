@@ -105,7 +105,7 @@ const AttendanceDetail: React.FC<{
     const [presentIds, setPresentIds] = useState<Set<string>>(new Set(antrenament.sportivi_prezenti_ids));
     const [extraSportivId, setExtraSportivId] = useState('');
     const [loading, setLoading] = useState(false);
-    const { showError } = useError();
+    const { showError, showSuccess } = useError();
     const [isQuickAddModalOpen, setIsQuickAddModalOpen] = useState(false);
     
     const tip = antrenament.grupa_id ? 'Normal' : 'Vacanta';
@@ -143,37 +143,51 @@ const AttendanceDetail: React.FC<{
         if (!antrenament || !supabase) return;
         setLoading(true);
 
-        const { error: deleteError } = await supabase
-            .from('prezenta_antrenament')
-            .delete()
-            .eq('antrenament_id', antrenament.id);
+        const initialIds = new Set(antrenament.sportivi_prezenti_ids);
+        const finalIds = presentIds;
 
-        if (deleteError) {
-            showError("Eroare la actualizarea prezenței (Pas 1)", deleteError);
-            setLoading(false);
-            return;
+        const idsToAdd = [...finalIds].filter(id => !initialIds.has(id));
+        const idsToRemove = [...initialIds].filter(id => !finalIds.has(id));
+
+        const promises = [];
+
+        if (idsToRemove.length > 0) {
+            const deletePromise = supabase
+                .from('prezenta_antrenament')
+                .delete()
+                .eq('antrenament_id', antrenament.id)
+                .in('sportiv_id', idsToRemove);
+            promises.push(deletePromise);
         }
 
-        const newIds = Array.from(presentIds);
-        if (newIds.length > 0) {
-            const toInsert = newIds.map(sportiv_id => ({
+        if (idsToAdd.length > 0) {
+            const toInsert = idsToAdd.map(sportiv_id => ({
                 antrenament_id: antrenament.id,
                 sportiv_id: sportiv_id
             }));
-            const { error: insertError } = await supabase.from('prezenta_antrenament').insert(toInsert);
-
-            if (insertError) {
-                showError("Eroare la actualizarea prezenței (Pas 2)", insertError);
-                setLoading(false);
-                return;
-            }
+            const insertPromise = supabase.from('prezenta_antrenament').insert(toInsert);
+            promises.push(insertPromise);
         }
         
-        setAntrenamente(prev => prev.map(p => 
-            p.id === antrenament.id ? { ...p, sportivi_prezenti_ids: newIds } : p
-        ));
-        setLoading(false);
-        onBack();
+        try {
+            if (promises.length > 0) {
+                const results = await Promise.all(promises);
+                const errors = results.map(r => r.error).filter(Boolean);
+                if (errors.length > 0) {
+                    throw new Error(errors.map(e => e.message).join('; '));
+                }
+            }
+
+            setAntrenamente(prev => prev.map(p =>
+                p.id === antrenament.id ? { ...p, sportivi_prezenti_ids: Array.from(finalIds) } : p
+            ));
+            showSuccess("Succes", "Prezența a fost salvată.");
+            onBack();
+        } catch (err: any) {
+            showError("Eroare la actualizarea prezenței", err);
+        } finally {
+            setLoading(false);
+        }
     };
     
     const handleQuickAddSave = (newSportiv: Sportiv, newPlata: Plata | null) => {

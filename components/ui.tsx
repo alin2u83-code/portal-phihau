@@ -16,7 +16,7 @@ export const Button: React.FC<ButtonProps> = ({ children, className, variant = '
     primary: "bg-brand-secondary hover:bg-sky-500 focus:ring-brand-secondary text-white", // Primary action is light blue now
     secondary: "bg-slate-600 hover:bg-slate-700 focus:ring-slate-500 text-white",
     danger: "bg-status-danger hover:bg-red-700 focus:ring-status-danger text-white",
-    success: "bg-status-success hover:bg-green-700 focus:ring-status-success text-white",
+    success: "bg-brand-primary hover:bg-primary-800 focus:ring-brand-primary text-white",
     info: "bg-brand-secondary hover:bg-sky-500 focus:ring-brand-secondary text-white",
   };
   return (

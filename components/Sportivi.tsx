@@ -372,6 +372,7 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
   
   const initialFilters = { searchTerm: '', grupa: 'all', status: '', rol: '' };
   const [filters, setFilters] = useState(initialFilters);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const showSuccessToast = (message: string) => {
     setSuccessToast(message);
@@ -487,11 +488,18 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
       if (!supabase) return;
       
       if (window.confirm("Sunteți sigur că doriți să ștergeți această înregistrare? Această acțiune este ireversibilă.")) {
-          const { error } = await supabase.from('sportivi').delete().eq('id', sportiv.id);
-          if (error) {
-              showError("Eroare la ștergere", error);
-          } else {
-              setSportivi(prev => prev.filter(s => s.id !== sportiv.id));
+          setDeletingId(sportiv.id);
+          try {
+              const { error } = await supabase.from('sportivi').delete().eq('id', sportiv.id);
+              if (error) {
+                  showError("Eroare la ștergere", error);
+              } else {
+                  setSportivi(prev => prev.filter(s => s.id !== sportiv.id));
+              }
+          } catch (err) {
+              showError("Eroare la ștergere", err);
+          } finally {
+              setDeletingId(null);
           }
       }
   };
@@ -560,7 +568,9 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
                                 <td className="p-4 text-right w-32">
                                     <div className="flex justify-end gap-2">
                                         <Button size="sm" variant="secondary" onClick={() => handleOpenEdit(sportiv)} title="Editează profil"><EditIcon /></Button>
-                                        <Button size="sm" variant="danger" onClick={() => handleDeleteSportiv(sportiv)} title="Șterge profil"><TrashIcon /></Button>
+                                        <Button size="sm" variant="danger" onClick={() => handleDeleteSportiv(sportiv)} title="Șterge profil" disabled={deletingId === sportiv.id}>
+                                            <TrashIcon />
+                                        </Button>
                                     </div>
                                 </td>
                             </tr>

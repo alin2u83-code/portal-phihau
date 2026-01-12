@@ -26,6 +26,7 @@ import { EditareProfilPersonal } from './components/EditareProfilPersonal';
 import { EvenimenteleMele } from './components/EvenimenteleMele';
 import { Sidebar } from './components/Sidebar';
 import { useError } from './components/ErrorProvider';
+import { BackupManager } from './components/BackupManager';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -55,6 +56,7 @@ function App() {
 
   const fetchData = useCallback(async () => {
     if (!supabase) return;
+    setLoading(true);
     try {
       const [
         { data: sData }, { data: eData }, { data: gData }, { data: paData }, 
@@ -185,6 +187,7 @@ function App() {
       case 'raport-financiar': return <RaportFinanciar plati={plati} sportivi={sportivi} familii={familii} tranzactii={tranzactii} onBack={() => setActiveView('dashboard')} />;
       case 'familii': return <FamiliiManagement familii={familii} setFamilii={setFamilii} onBack={() => setActiveView('dashboard')} />;
       case 'user-management': return <UserManagement sportivi={sportivi} setSportivi={setSportivi} currentUser={currentUser} setCurrentUser={setCurrentUser} allRoles={allRoles} setAllRoles={setAllRoles} onBack={() => setActiveView('dashboard')} />;
+      case 'data-maintenance': return <BackupManager onBack={() => setActiveView('dashboard')} onDataRestored={fetchData} />;
       default: return <Dashboard onNavigate={setActiveView} />;
     }
   };

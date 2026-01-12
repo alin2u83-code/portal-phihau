@@ -60,7 +60,8 @@ export const adminMenu: MenuItem[] = [
         icon: CogIcon, 
         submenu: [ 
              { view: 'tipuri-abonament', label: 'Configurare Abonamente' }, 
-             { view: 'configurare-preturi', label: 'Configurare Alte Prețuri' } 
+             { view: 'configurare-preturi', label: 'Configurare Alte Prețuri' },
+             { label: 'Mentenanță Date', view: 'data-maintenance', roles: ['Admin'] }
         ] 
     },
 ];

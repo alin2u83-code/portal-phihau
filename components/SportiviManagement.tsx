@@ -25,10 +25,18 @@ export const SportiviManagement: React.FC<{
 }> = ({ onBack, sportivi, setSportivi, grupe, setGrupe, tipuriAbonament, familii, setFamilii, allRoles, plati, tranzactii, setTranzactii, onViewSportiv }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [sportivToEdit, setSportivToEdit] = useState<Sportiv | null>(null);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [statusFilter, setStatusFilter] = useState('Activ');
     const { showError } = useError();
 
+    const [filters, setFilters] = useLocalStorage('phi-hau-sportivi-filters', {
+        searchTerm: '',
+        statusFilter: 'Activ',
+        grupaFilter: '',
+        rolFilter: '',
+    });
+    
+    const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        setFilters(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    };
 
     const familyBalances = useMemo(() => {
         const balances = new Map<string, number>();
@@ -40,11 +48,13 @@ export const SportiviManagement: React.FC<{
     }, [familii, plati, tranzactii]);
 
     const filteredSportivi = useMemo(() => {
-        return sportivi.filter((s: Sportiv) => 
-            (`${s.nume} ${s.prenume}`.toLowerCase().includes(searchTerm.toLowerCase())) &&
-            (statusFilter ? s.status === statusFilter : true)
+        return sportivi.filter((s: Sportiv) =>
+            (`${s.nume} ${s.prenume}`.toLowerCase().includes(filters.searchTerm.toLowerCase())) &&
+            (filters.statusFilter ? s.status === filters.statusFilter : true) &&
+            (filters.grupaFilter ? s.grupa_id === filters.grupaFilter : true) &&
+            (filters.rolFilter ? s.roluri.some(r => r.id === filters.rolFilter) : true)
         ).sort((a: Sportiv, b: Sportiv) => a.nume.localeCompare(b.nume));
-    }, [sportivi, searchTerm, statusFilter]);
+    }, [sportivi, filters]);
 
     const handleSave = async (formData: Partial<Sportiv>) => {
         const { roluri, ...sportivData } = formData;
@@ -86,12 +96,20 @@ export const SportiviManagement: React.FC<{
                 </Button>
             </div>
 
-            <Card className="flex flex-col sm:flex-row gap-4">
-                <Input label="Caută Sportiv" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Nume sau prenume..." className="flex-grow" />
-                <Select label="Status" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+            <Card className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Input label="Caută Sportiv" name="searchTerm" value={filters.searchTerm} onChange={handleFilterChange} placeholder="Nume sau prenume..." />
+                <Select label="Status" name="statusFilter" value={filters.statusFilter} onChange={handleFilterChange}>
                     <option value="Activ">Activi</option>
                     <option value="Inactiv">Inactivi</option>
                     <option value="">Toți</option>
+                </Select>
+                <Select label="Grupă" name="grupaFilter" value={filters.grupaFilter} onChange={handleFilterChange}>
+                    <option value="">Toate grupele</option>
+                    {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
+                </Select>
+                <Select label="Rol" name="rolFilter" value={filters.rolFilter} onChange={handleFilterChange}>
+                    <option value="">Toate rolurile</option>
+                    {allRoles.map(r => <option key={r.id} value={r.id}>{r.nume}</option>)}
                 </Select>
             </Card>
 

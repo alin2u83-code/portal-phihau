@@ -1,8 +1,10 @@
 
-import React, { useState, useMemo } from 'react';
+
+import React, { useMemo } from 'react';
 import { Plata, Sportiv, Familie, Tranzactie } from '../types';
 import { Card, Input, Select, Button } from './ui';
 import { ArrowLeftIcon } from './icons';
+import { useLocalStorage } from '../hooks/useLocalStorage';
 
 interface RaportFinanciarProps {
     plati: Plata[];
@@ -12,15 +14,17 @@ interface RaportFinanciarProps {
     onBack: () => void;
 }
 
+const initialFilters = {
+    startDate: '',
+    endDate: '',
+    sportivId: '',
+    familieId: '',
+    metodaPlata: '',
+    tip: '',
+};
+
 export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({ plati, sportivi, familii, tranzactii, onBack }) => {
-    const [filters, setFilters] = useState({
-        startDate: '',
-        endDate: '',
-        sportivId: '',
-        familieId: '',
-        metodaPlata: '',
-        tip: '',
-    });
+    const [filters, setFilters] = useLocalStorage('phi-hau-raport-financiar-filters', initialFilters);
 
     const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setFilters(prev => ({ ...prev, [e.target.name]: e.target.value }));

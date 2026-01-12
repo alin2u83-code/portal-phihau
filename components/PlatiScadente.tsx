@@ -4,6 +4,7 @@ import { Button, Input, Select, Card } from './ui';
 import { EditIcon, ArrowLeftIcon, TrashIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
+import { useLocalStorage } from '../hooks/useLocalStorage';
 
 interface PlatiScadenteProps { 
     plati: Plata[]; 
@@ -15,8 +16,10 @@ interface PlatiScadenteProps {
     onBack: () => void;
 }
 
+const initialFilters = { sportiv: '', tip: '', status: 'Neachitat' };
+
 export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, sportivi, familii, tipuriAbonament, onIncaseazaMultiple, onBack }) => {
-    const [filter, setFilter] = useState({ sportiv: '', tip: '', status: 'Neachitat' });
+    const [filter, setFilter] = useLocalStorage('phi-hau-plati-scadente-filter', initialFilters);
     const [showSuccess, setShowSuccess] = useState<string|null>(null);
     const [editingPlata, setEditingPlata] = useState<Plata | null>(null);
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());

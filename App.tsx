@@ -1,6 +1,8 @@
 
 
 
+
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
 import { Sportiv, Examen, Grad, Participare, View, Prezenta, Grupa, Plata, Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, Rol } from './types';
@@ -27,6 +29,7 @@ import { EvenimenteleMele } from './components/EvenimenteleMele';
 import { Sidebar } from './components/Sidebar';
 import { useError } from './components/ErrorProvider';
 import { BackupManager } from './components/BackupManager';
+import { useLocalStorage } from './hooks/useLocalStorage';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -50,8 +53,8 @@ function App() {
   const [allRoles, setAllRoles] = useState<Rol[]>([]);
   const [customFields, setCustomFields] = useState<string[]>([]);
 
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
-  const [activeView, setActiveView] = useState<View>('dashboard');
+  const [isSidebarExpanded, setIsSidebarExpanded] = useLocalStorage('phi-hau-sidebar-expanded', true);
+  const [activeView, setActiveView] = useLocalStorage<View>('phi-hau-active-view', 'dashboard');
   const [selectedPlatiForIncasare, setSelectedPlatiForIncasare] = useState<Plata[]>([]);
 
   const fetchData = useCallback(async () => {
@@ -155,6 +158,19 @@ function App() {
 
     return () => subscription?.unsubscribe();
   }, [fetchUserProfile]);
+
+  // Keep-alive: Refreshes data when tab becomes visible again
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && session && !loading) {
+        fetchData();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [fetchData, session, loading]);
 
   const handleLogout = async () => { await supabase?.auth.signOut(); setActiveView('dashboard'); };
 

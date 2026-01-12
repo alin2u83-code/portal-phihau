@@ -4,6 +4,7 @@ import { Button, Card, Input, Select, Modal } from './ui';
 import { PlusIcon, ArrowLeftIcon, TrashIcon, EditIcon, XIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
+import { useLocalStorage } from '../hooks/useLocalStorage';
 
 // --- Sub-componente ---
 
@@ -230,13 +231,19 @@ export const PrezentaManagement: React.FC<{
     onBack: () => void;
 }> = ({ sportivi, prezente, setPrezente, grupe, onBack }) => {
     
-    const [selectedAntrenament, setSelectedAntrenament] = useState<Prezenta | null>(null);
+    const [selectedAntrenamentId, setSelectedAntrenamentId] = useLocalStorage<number | null>('phi-hau-selected-antrenament-id', null);
+    const selectedAntrenament = useMemo(() => prezente.find(p => p.id === selectedAntrenamentId) || null, [prezente, selectedAntrenamentId]);
+
+    const handleSetSelectedAntrenament = (antrenament: Prezenta | null) => {
+        setSelectedAntrenamentId(antrenament ? antrenament.id : null);
+    };
+
     const [antrenamentToEdit, setAntrenamentToEdit] = useState<Prezenta | null>(null);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const { showError } = useError();
 
     const initialFilters = { tip: '', data: '', grupa: '' };
-    const [filters, setFilters] = useState(initialFilters);
+    const [filters, setFilters] = useLocalStorage('phi-hau-prezenta-filters', initialFilters);
 
     const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setFilters(prev => ({...prev, [e.target.name]: e.target.value}));
@@ -298,7 +305,7 @@ export const PrezentaManagement: React.FC<{
     }, [prezente, filters]);
 
     if (selectedAntrenament) {
-        return <AttendanceDetail antrenament={selectedAntrenament} onBack={() => setSelectedAntrenament(null)} sportivi={sportivi} grupe={grupe} setPrezente={setPrezente} />;
+        return <AttendanceDetail antrenament={selectedAntrenament} onBack={() => handleSetSelectedAntrenament(null)} sportivi={sportivi} grupe={grupe} setPrezente={setPrezente} />;
     }
 
     return (
@@ -368,7 +375,7 @@ export const PrezentaManagement: React.FC<{
                                         <td className="p-4 text-center font-bold text-brand-secondary">{p.sportivi_prezenti_ids.length}</td>
                                         <td className="p-4 text-right w-64">
                                             <div className="flex items-center justify-end space-x-2">
-                                                <Button onClick={() => setSelectedAntrenament(p)} variant="primary" size="sm">Gestionează Prezența</Button>
+                                                <Button onClick={() => handleSetSelectedAntrenament(p)} variant="primary" size="sm">Gestionează Prezența</Button>
                                                 <Button onClick={() => handleOpenEdit(p)} variant="secondary" size="sm" title="Editează detaliile antrenamentului"><EditIcon /></Button>
                                                 <Button onClick={() => handleDeleteAntrenament(p.id)} variant="danger" size="sm" title="Șterge antrenamentul"><TrashIcon /></Button>
                                             </div>

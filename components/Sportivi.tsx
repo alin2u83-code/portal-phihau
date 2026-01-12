@@ -5,6 +5,7 @@ import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon, ShieldCheckIcon } from '.
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { BirthDateInput } from './BirthDateInput';
+import { useLocalStorage } from '../hooks/useLocalStorage';
 
 // --- Modale de adăugare rapidă ---
 const QuickAddModal: React.FC<{ 
@@ -47,6 +48,13 @@ const QuickAddModal: React.FC<{
     );
 };
 
+const initialFormState: Partial<Sportiv> = {
+    nume: '', prenume: '', status: 'Activ', 
+    data_inscrierii: new Date().toISOString().split('T')[0],
+    club_provenienta: 'Phi Hau Iași', participa_vacanta: false,
+    data_nasterii: ''
+};
+
 // --- Formular Sportiv Principal ---
 const SportivFormModal: React.FC<any> = ({ 
   isOpen, 
@@ -63,36 +71,40 @@ const SportivFormModal: React.FC<any> = ({
 }) => {
     const { showError } = useError();
     const [loading, setLoading] = useState(false);
-    const [formState, setFormState] = useState<Partial<Sportiv>>({});
+    const [formState, setFormState] = useLocalStorage<Partial<Sportiv>>('phi-hau-sportiv-form-draft', initialFormState);
     const [isGrupaModalOpen, setIsGrupaModalOpen] = useState(false);
     const [isFamilieModalOpen, setIsFamilieModalOpen] = useState(false);
 
     React.useEffect(() => {
         if (isOpen) {
-            setFormState(sportivToEdit || {
-                nume: '', prenume: '', status: 'Activ', 
-                data_inscrierii: new Date().toISOString().split('T')[0],
-                club_provenienta: 'Phi Hau Iași', participa_vacanta: false,
-                data_nasterii: ''
-            });
+            if (sportivToEdit) {
+                // La editare, întotdeauna se încarcă datele sportivului, suprascriind orice draft.
+                setFormState(sportivToEdit);
+            } else {
+                // La adăugare, hook-ul `useLocalStorage` a încărcat deja orice draft existent.
+                // Dacă draft-ul este gol (ex. după o salvare reușită), re-inițializăm.
+                if (Object.keys(formState).length === 0) {
+                     setFormState(initialFormState);
+                }
+            }
         }
-    }, [isOpen, sportivToEdit]);
+    }, [isOpen, sportivToEdit, setFormState]);
 
     const handleChange = useCallback((e: any) => {
         const { name, value } = e.target;
         setFormState(p => ({ ...p, [name]: value === '' ? null : value }));
-    }, []);
+    }, [setFormState]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         
-        // Timeout 0 permite UI-ului să marcheze loading state-ul înainte de execuția async
         setTimeout(async () => {
             try {
                 const result = await onSave(formState);
                 if (result.success) {
                     showSuccessToast(sportivToEdit ? 'Actualizat cu succes!' : 'Sportiv adăugat cu succes!');
+                    setFormState({}); // Curăță draft-ul din localStorage la succes
                     onClose();
                 } else {
                     showError("Eroare Salvare", result.error);

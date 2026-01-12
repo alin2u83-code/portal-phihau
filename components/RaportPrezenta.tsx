@@ -1,8 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Prezenta, Sportiv, Grupa } from '../types';
 import { Card, Input, Select, Button } from './ui';
 import { ArrowLeftIcon } from './icons';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { useLocalStorage } from '../hooks/useLocalStorage';
 
 interface RaportPrezentaProps {
     prezente: Prezenta[];
@@ -11,12 +12,26 @@ interface RaportPrezentaProps {
     onBack: () => void;
 }
 
+interface RaportFilters {
+    searchTerm: string;
+    grupaFilter: string;
+    yearFilter: string;
+    tipFilter: string;
+}
+
+const initialFilters: RaportFilters = {
+    searchTerm: '',
+    grupaFilter: '',
+    yearFilter: new Date().getFullYear().toString(),
+    tipFilter: '',
+};
+
 export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ prezente, sportivi, grupe, onBack }) => {
-    const [searchTerm, setSearchTerm] = useState('');
-    const [grupaFilter, setGrupaFilter] = useState('');
-    const [monthFilter, setMonthFilter] = useState('');
-    const [yearFilter, setYearFilter] = useState(new Date().getFullYear().toString());
-    const [tipFilter, setTipFilter] = useState('');
+    const [filters, setFilters] = useLocalStorage('phi-hau-raport-prezenta-filters', initialFilters);
+
+    const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        setFilters(prev => ({...prev, [e.target.name]: e.target.value}));
+    };
 
     const allRecords = useMemo(() => {
         return prezente.flatMap(p => 
@@ -39,18 +54,16 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ prezente, sporti
     const filteredRecords = useMemo(() => {
         return allRecords.filter(rec => {
             const recordDate = new Date(rec.data);
-            const month = recordDate.getMonth() + 1;
             const year = recordDate.getFullYear();
 
-            const nameMatch = searchTerm === '' || rec.sportivNume.toLowerCase().includes(searchTerm.toLowerCase());
-            const grupaMatch = grupaFilter === '' || rec.grupaId === grupaFilter;
-            const monthMatch = monthFilter === '' || month === parseInt(monthFilter);
-            const yearMatch = yearFilter === '' || year === parseInt(yearFilter);
-            const tipMatch = tipFilter === '' || rec.tip === tipFilter;
+            const nameMatch = filters.searchTerm === '' || rec.sportivNume.toLowerCase().includes(filters.searchTerm.toLowerCase());
+            const grupaMatch = filters.grupaFilter === '' || rec.grupaId === filters.grupaFilter;
+            const yearMatch = filters.yearFilter === '' || year === parseInt(filters.yearFilter);
+            const tipMatch = filters.tipFilter === '' || rec.tip === filters.tipFilter;
 
-            return nameMatch && grupaMatch && monthMatch && yearMatch && tipMatch;
+            return nameMatch && grupaMatch && yearMatch && tipMatch;
         });
-    }, [allRecords, searchTerm, grupaFilter, monthFilter, yearFilter, tipFilter]);
+    }, [allRecords, filters]);
 
     const chartData = useMemo(() => {
         const counts: { [key: string]: number } = {};
@@ -122,17 +135,17 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ prezente, sporti
                 <Card>
                     <h3 className="text-xl font-bold text-white mb-4">Filtre Raport</h3>
                     <div className="space-y-4">
-                        <Input label="Caută Sportiv" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Nume..." />
-                        <Select label="Grupă" value={grupaFilter} onChange={e => setGrupaFilter(e.target.value)}>
+                        <Input label="Caută Sportiv" name="searchTerm" value={filters.searchTerm} onChange={handleFilterChange} placeholder="Nume..." />
+                        <Select label="Grupă" name="grupaFilter" value={filters.grupaFilter} onChange={handleFilterChange}>
                             <option value="">Toate Grupele</option>
                             {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
                         </Select>
                         <div className="grid grid-cols-2 gap-2">
-                            <Select label="An" value={yearFilter} onChange={e => setYearFilter(e.target.value)}>
+                            <Select label="An" name="yearFilter" value={filters.yearFilter} onChange={handleFilterChange}>
                                 <option value="2024">2024</option>
                                 <option value="2025">2025</option>
                             </Select>
-                            <Select label="Tip" value={tipFilter} onChange={e => setTipFilter(e.target.value)}>
+                            <Select label="Tip" name="tipFilter" value={filters.tipFilter} onChange={handleFilterChange}>
                                 <option value="">Toate</option>
                                 <option value="Normal">Normal</option>
                                 <option value="Vacanta">Vacanță</option>
@@ -144,7 +157,7 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ prezente, sporti
 
             <Card className="p-0 overflow-hidden">
                 <div className="bg-slate-700/50 p-4 border-b border-slate-600 flex justify-between items-center">
-                    <h3 className="font-bold text-white">Centralizator Prezențe Luna/An ({yearFilter})</h3>
+                    <h3 className="font-bold text-white">Centralizator Prezențe Luna/An ({filters.yearFilter})</h3>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">

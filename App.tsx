@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
 import { Sportiv, Examen, Grad, Participare, View, Antrenament, Grupa, Plata, Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, Rol } from './types';
 import { Dashboard } from './components/Dashboard';
-import { SportiviManagement } from './components/Sportivi';
+import { SportiviManagement } from './components/SportiviManagement';
+import { UserProfile } from './components/UserProfile';
 import { ExameneManagement } from './components/Examene';
 import { GradeManagement } from './components/Grade';
 import { PrezentaManagement } from './components/Prezenta';
@@ -47,11 +48,12 @@ function App() {
   const [preturiConfig, setPreturiConfig] = useState<PretConfig[]>([]);
   const [tipuriAbonament, setTipuriAbonament] = useState<TipAbonament[]>([]);
   const [allRoles, setAllRoles] = useState<Rol[]>([]);
-  const [customFields, setCustomFields] = useState<string[]>([]);
-
+  
   const [isSidebarExpanded, setIsSidebarExpanded] = useLocalStorage('phi-hau-sidebar-expanded', true);
   const [activeView, setActiveView] = useLocalStorage<View>('phi-hau-active-view', 'dashboard');
   const [selectedPlatiForIncasare, setSelectedPlatiForIncasare] = useState<Plata[]>([]);
+  const [viewedSportiv, setViewedSportiv] = useState<Sportiv | null>(null);
+
 
   const fetchData = useCallback(async () => {
     if (!supabase) return;
@@ -137,6 +139,12 @@ function App() {
     setCurrentUser(user);
     fetchData();
   }, [fetchData, showError]);
+  
+  useEffect(() => {
+    if (activeView !== 'sportivi') {
+      setViewedSportiv(null);
+    }
+  }, [activeView]);
 
   useEffect(() => {
     supabase?.auth.getSession().then(({ data: { session } }) => {
@@ -154,7 +162,6 @@ function App() {
     return () => subscription?.unsubscribe();
   }, [fetchUserProfile]);
 
-  // Keep-alive: Refreshes data when tab becomes visible again
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible' && session && !loading) {
@@ -183,10 +190,31 @@ function App() {
 
     switch (activeView) {
       case 'dashboard': return <Dashboard onNavigate={setActiveView} />;
-      case 'sportivi': return <SportiviManagement sportivi={sportivi} setSportivi={setSportivi} grupe={grupe} setGrupe={setGrupe} tipuriAbonament={tipuriAbonament} familii={familii} setFamilii={setFamilii} allRoles={allRoles} plati={plati} tranzactii={tranzactii} setTranzactii={setTranzactii} onBack={() => setActiveView('dashboard')} />;
+      case 'sportivi': 
+        return viewedSportiv ? (
+            <UserProfile 
+                sportiv={viewedSportiv}
+                currentUser={currentUser}
+                participari={participari}
+                examene={examene}
+                grade={grade}
+                antrenamente={antrenamente}
+                plati={plati}
+                grupe={grupe}
+                familii={familii}
+                tipuriAbonament={tipuriAbonament}
+                allRoles={allRoles}
+                setSportivi={setSportivi}
+                setPlati={setPlati}
+                setTranzactii={setTranzactii}
+                onBack={() => setViewedSportiv(null)}
+            />
+        ) : (
+            <SportiviManagement onBack={() => setActiveView('dashboard')} sportivi={sportivi} setSportivi={setSportivi} grupe={grupe} setGrupe={setGrupe} tipuriAbonament={tipuriAbonament} familii={familii} setFamilii={setFamilii} allRoles={allRoles} plati={plati} tranzactii={tranzactii} setTranzactii={setTranzactii} onViewSportiv={setViewedSportiv} />
+        );
       case 'examene': return <ExameneManagement examene={examene} setExamene={setExamene} participari={participari} setParticipari={setParticipari} sportivi={sportivi} grade={grade} setPlati={setPlati} preturi={preturiConfig} onBack={() => setActiveView('dashboard')} />;
       case 'grade': return <GradeManagement grade={grade} setGrade={setGrade} onBack={() => setActiveView('dashboard')} />;
-      case 'prezenta': return <PrezentaManagement sportivi={sportivi} antrenamente={antrenamente} setAntrenamente={setAntrenamente} grupe={grupe} onBack={() => setActiveView('dashboard')} />;
+      case 'prezenta': return <PrezentaManagement sportivi={sportivi} setSportivi={setSportivi} antrenamente={antrenamente} setAntrenamente={setAntrenamente} grupe={grupe} onBack={() => setActiveView('dashboard')} setPlati={setPlati} tipuriAbonament={tipuriAbonament}/>;
       case 'grupe': return <GrupeManagement grupe={grupe} setGrupe={setGrupe} onBack={() => setActiveView('dashboard')} />;
       case 'raport-prezenta': return <RaportPrezenta antrenamente={antrenamente} sportivi={sportivi} grupe={grupe} onBack={() => setActiveView('dashboard')} />;
       case 'stagii': return <StagiiCompetitiiManagement type="Stagiu" evenimente={evenimente} setEvenimente={setEvenimente} rezultate={rezultate} setRezultate={setRezultate} sportivi={sportivi} setPlati={setPlati} preturiConfig={preturiConfig} participari={participari} examene={evenimente as any} grade={grade} onBack={() => setActiveView('dashboard')} />;

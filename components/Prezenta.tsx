@@ -1,12 +1,12 @@
 import React, { useState, useMemo, useEffect } from 'react';
-// Fix: Import Antrenament instead of Prezenta, as Prezenta is not an exported type.
-import { Antrenament, Sportiv, Grupa } from '../types';
+import { Antrenament, Sportiv, Grupa, Plata, TipAbonament } from '../types';
 import { Button, Card, Input, Select, Modal } from './ui';
 import { PlusIcon, ArrowLeftIcon, TrashIcon, EditIcon, XIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
+import { QuickAddSportivModal } from './QuickAddSportivModal';
 
 // --- Sub-componente ---
 
@@ -98,11 +98,15 @@ const AttendanceDetail: React.FC<{
     sportivi: Sportiv[];
     grupe: Grupa[];
     setAntrenamente: React.Dispatch<React.SetStateAction<Antrenament[]>>;
-}> = ({ antrenament, onBack, sportivi, grupe, setAntrenamente }) => {
+    setSportivi: React.Dispatch<React.SetStateAction<Sportiv[]>>;
+    setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
+    tipuriAbonament: TipAbonament[];
+}> = ({ antrenament, onBack, sportivi, grupe, setAntrenamente, setSportivi, setPlati, tipuriAbonament }) => {
     const [presentIds, setPresentIds] = useState<Set<string>>(new Set(antrenament.sportivi_prezenti_ids));
     const [extraSportivId, setExtraSportivId] = useState('');
     const [loading, setLoading] = useState(false);
     const { showError } = useError();
+    const [isQuickAddModalOpen, setIsQuickAddModalOpen] = useState(false);
     
     const tip = antrenament.grupa_id ? 'Normal' : 'Vacanta';
 
@@ -171,13 +175,33 @@ const AttendanceDetail: React.FC<{
         setLoading(false);
         onBack();
     };
+    
+    const handleQuickAddSave = (newSportiv: Sportiv, newPlata: Plata | null) => {
+        setSportivi(prev => [...prev, newSportiv]);
+        if(newPlata) setPlati(prev => [...prev, newPlata]);
+        
+        setPresentIds(prev => new Set(prev).add(newSportiv.id));
+        
+        setAntrenamente(prev => prev.map(a => 
+            a.id === antrenament.id 
+            ? { ...a, sportivi_prezenti_ids: [...a.sportivi_prezenti_ids, newSportiv.id] } 
+            : a
+        ));
+    };
 
     const grupaAntrenament = grupe.find(g => g.id === antrenament.grupa_id);
     const sportiviPrezentiExtra = sportivi.filter(s => presentIds.has(s.id) && !sportiviInGrupa.some(sg => sg.id === s.id));
 
     return (
+        <>
         <Card>
-            <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Listă</Button>
+            <div className="flex justify-between items-center mb-6">
+                <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Listă</Button>
+                <Button onClick={() => setIsQuickAddModalOpen(true)} variant="info">
+                    <PlusIcon className="w-5 h-5 mr-2"/> Sportiv Nou / Vizitator
+                </Button>
+            </div>
+
             <div className="mb-6 p-4 bg-slate-900/50 rounded-lg border border-slate-700">
                 <h2 className="text-xl font-bold text-brand-secondary mb-2">Gestionare Prezență ({presentIds.size} prezenți)</h2>
                  <div className="text-sm text-slate-400 grid grid-cols-2 md:grid-cols-3 gap-2">
@@ -233,6 +257,15 @@ const AttendanceDetail: React.FC<{
                  <Button onClick={handleSaveAttendance} variant="success" size="md" className="px-8" disabled={loading}>{loading ? 'Se salvează...' : 'Salvează și Închide'}</Button>
             </div>
         </Card>
+        <QuickAddSportivModal
+            isOpen={isQuickAddModalOpen}
+            onClose={() => setIsQuickAddModalOpen(false)}
+            grupaId={antrenament.grupa_id}
+            antrenamentId={antrenament.id}
+            tipuriAbonament={tipuriAbonament}
+            onSaveSuccess={handleQuickAddSave}
+        />
+        </>
     );
 };
 
@@ -241,11 +274,14 @@ const AttendanceDetail: React.FC<{
 
 export const PrezentaManagement: React.FC<{
     sportivi: Sportiv[];
+    setSportivi: React.Dispatch<React.SetStateAction<Sportiv[]>>;
     antrenamente: Antrenament[];
     setAntrenamente: React.Dispatch<React.SetStateAction<Antrenament[]>>;
     grupe: Grupa[];
     onBack: () => void;
-}> = ({ sportivi, antrenamente, setAntrenamente, grupe, onBack }) => {
+    setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
+    tipuriAbonament: TipAbonament[];
+}> = ({ sportivi, setSportivi, antrenamente, setAntrenamente, grupe, onBack, setPlati, tipuriAbonament }) => {
     
     const [selectedAntrenamentId, setSelectedAntrenamentId] = useLocalStorage<string | null>('phi-hau-selected-antrenament-id', null);
     const selectedAntrenament = useMemo(() => antrenamente.find(p => p.id === selectedAntrenamentId) || null, [antrenamente, selectedAntrenamentId]);
@@ -333,7 +369,16 @@ export const PrezentaManagement: React.FC<{
     }, [antrenamente, filters]);
 
     if (selectedAntrenament) {
-        return <AttendanceDetail antrenament={selectedAntrenament} onBack={() => handleSetSelectedAntrenament(null)} sportivi={sportivi} grupe={grupe} setAntrenamente={setAntrenamente} />;
+        return <AttendanceDetail 
+            antrenament={selectedAntrenament} 
+            onBack={() => handleSetSelectedAntrenament(null)} 
+            sportivi={sportivi} 
+            grupe={grupe} 
+            setAntrenamente={setAntrenamente} 
+            setSportivi={setSportivi}
+            setPlati={setPlati}
+            tipuriAbonament={tipuriAbonament}
+        />;
     }
 
     return (

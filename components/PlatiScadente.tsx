@@ -21,12 +21,11 @@ const initialFilters = { sportiv: '', tip: '', status: 'Neachitat' };
 
 export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, sportivi, familii, tipuriAbonament, onIncaseazaMultiple, onBack }) => {
     const [filter, setFilter] = useLocalStorage('phi-hau-plati-scadente-filter', initialFilters);
-    const [showSuccess, setShowSuccess] = useState<string|null>(null);
     const [editingPlata, setEditingPlata] = useState<Plata | null>(null);
     const [plataToDelete, setPlataToDelete] = useState<Plata | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-    const { showError } = useError();
+    const { showError, showSuccess } = useError();
 
     const handleGenerateSubscriptions = async () => {
         const dataCurenta = new Date().toISOString().split('T')[0];
@@ -68,9 +67,8 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
         if (platiToInsert.length > 0) { 
              const { data, error } = await supabase.from('plati').insert(platiToInsert).select();
              if(error) showError("Eroare la salvarea abonamentelor", error);
-             else if (data) { setPlati(prev => [...prev, ...data as Plata[]]); setShowSuccess(`${data.length} abonamente noi au fost generate.`); }
-        } else { setShowSuccess("Toți sportivii au plățile la zi."); }
-        setTimeout(() => setShowSuccess(null), 4000);
+             else if (data) { setPlati(prev => [...prev, ...data as Plata[]]); showSuccess('Succes', `${data.length} abonamente noi au fost generate.`); }
+        } else { showSuccess('Info', "Toți sportivii au plățile la zi."); }
     };
 
     const handleSaveEdit = async (plataId: string) => {
@@ -98,8 +96,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
             if (deleteError) throw deleteError;
             
             setPlati(prev => prev.filter(p => p.id !== id));
-            setShowSuccess("Factură ștearsă cu succes.");
-            setTimeout(() => setShowSuccess(null), 3000);
+            showSuccess("Succes", "Factură ștearsă cu succes.");
 
         } catch (err: any) {
              if (err.message !== "Deletion blocked due to existing transaction.") {
@@ -162,7 +159,6 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
                 </Select>
             </div>
         </Card>
-        {showSuccess && <div className="bg-green-600/50 text-white p-3 rounded-md mb-4 text-center font-semibold">{showSuccess}</div>}
         <div className="bg-slate-800 rounded-lg shadow-lg overflow-x-auto">
             <table className="w-full text-left min-w-[950px]">
                 <thead className="bg-slate-700">

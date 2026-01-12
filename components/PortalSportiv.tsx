@@ -4,6 +4,7 @@ import { Button, Card } from './ui';
 import { getPretValabil } from '../utils/pricing';
 import { supabase } from '../supabaseClient';
 import { UsersIcon, ShieldCheckIcon, CalendarDaysIcon, TrophyIcon } from './icons';
+import { useError } from './ErrorProvider';
 
 const getGrad = (gradId: string, allGrades: Grad[]) => allGrades.find(g => g.id === gradId);
 const getAge = (dateString: string) => { const today = new Date(); const birthDate = new Date(dateString); let age = today.getFullYear() - birthDate.getFullYear(); const m = today.getMonth() - birthDate.getMonth(); if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; } return age; };
@@ -47,8 +48,8 @@ interface PortalSportivProps {
 }
 
 export const PortalSportiv: React.FC<PortalSportivProps> = ({ currentUser, viewedUser, onSwitchView, participari, examene, grade, prezente, grupe, plati, setPlati, evenimente, rezultate, setRezultate, preturiConfig, onNavigateToEditProfil, onNavigateToEvenimenteleMele, sportivi, familii, onNavigateToDashboard }) => {
-    const [showSuccess, setShowSuccess] = useState<string|null>(null);
     const [loading, setLoading] = useState<{[key: string]: boolean}>({});
+    const { showError, showSuccess } = useError();
     
     const sportivParticipari = useMemo(() => participari.filter(p => p.sportiv_id === viewedUser.id), [participari, viewedUser.id]);
     const sportivPrezente = useMemo(() => prezente.filter(p => p.sportivi_prezenti_ids.includes(viewedUser.id)), [prezente, viewedUser.id]);
@@ -112,7 +113,7 @@ export const PortalSportiv: React.FC<PortalSportivProps> = ({ currentUser, viewe
     }, [evenimente, sportivRezultate]);
     
     const handleInscriereEveniment = async (eveniment: Eveniment) => {
-        if (!supabase) { alert("Eroare de configurare: Conexiunea la baza de date nu a putut fi stabilită."); return; }
+        if (!supabase) { showError("Eroare Configurare", "Clientul Supabase nu a putut fi stabilit."); return; }
         if (!window.confirm(`Confirmați înscrierea la "${eveniment.denumire}"? Se va genera automat o taxă de plată.`)) return;
         setLoading(prev => ({ ...prev, [eveniment.id]: true }));
         
@@ -120,13 +121,13 @@ export const PortalSportiv: React.FC<PortalSportivProps> = ({ currentUser, viewe
         const pretConfig = getPretValabil(preturiConfig, categorie, eveniment.data);
 
         if (!pretConfig) { 
-            alert(`Eroare: Configurația de preț pentru '${categorie}' nu este disponibilă. Vă rugăm contactați administratorul.`); 
+            showError("Eroare Configurare Preț", `Configurația de preț pentru '${categorie}' nu este disponibilă. Vă rugăm contactați administratorul.`); 
             setLoading(prev => ({ ...prev, [eveniment.id]: false })); 
             return; 
         }
         
         const { data: rezultatData, error: rezultatError } = await supabase.from('rezultate').insert({ sportiv_id: viewedUser.id, eveniment_id: eveniment.id, rezultat: 'Înscris' }).select().single();
-        if (rezultatError) { alert(`Eroare la înscriere: ${rezultatError.message}`); setLoading(prev => ({ ...prev, [eveniment.id]: false })); return; }
+        if (rezultatError) { showError("Eroare la înscriere", rezultatError); setLoading(prev => ({ ...prev, [eveniment.id]: false })); return; }
         
         const newPlata = { 
             sportiv_id: viewedUser.id, 
@@ -139,13 +140,12 @@ export const PortalSportiv: React.FC<PortalSportivProps> = ({ currentUser, viewe
             observatii: `Înscriere automată din portal.`, 
         };
         const { data: plataData, error: plataError } = await supabase.from('plati').insert(newPlata).select().single();
-        if (plataError) { alert(`Înscriere reușită, dar eroare la generare taxă: ${plataError.message}. Contactați administratorul.`); }
+        if (plataError) { showError("Eroare Generare Taxă", `Înscriere reușită, dar eroare la generare taxă: ${plataError.message}. Contactați administratorul.`); }
         
         if(rezultatData) setRezultate(prev => [...prev, rezultatData as Rezultat]);
         if(plataData) setPlati(prev => [...prev, plataData as Plata]);
         
-        setShowSuccess("Înscriere realizată cu succes! Verificați secțiunea financiară.");
-        setTimeout(() => setShowSuccess(null), 5000);
+        showSuccess("Succes", "Înscriere realizată cu succes! Verificați secțiunea financiară.");
         setLoading(prev => ({ ...prev, [eveniment.id]: false }));
     };
 
@@ -340,7 +340,6 @@ export const PortalSportiv: React.FC<PortalSportivProps> = ({ currentUser, viewe
 
             <Card>
                 <h3 className="text-xl font-bold text-white mb-4">Evenimente Viitoare & Înscrieri</h3>
-                {showSuccess && <p className="text-green-400 bg-green-900/50 p-2 rounded-md mb-4 text-center text-sm font-semibold">{showSuccess}</p>}
                 <div className="space-y-3">
                     {unregisteredUpcomingEvents.length > 0 ? unregisteredUpcomingEvents.map(ev => (
                         <div key={ev.id} className="bg-slate-700 p-3 rounded-md border border-slate-600">

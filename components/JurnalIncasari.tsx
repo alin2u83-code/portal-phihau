@@ -43,9 +43,8 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ plati, setPlati,
     const [formState, setFormState] = useState(emptyIncasareState);
     const [selectedEchipament, setSelectedEchipament] = useState('');
     const [selectedMarimeId, setSelectedMarimeId] = useState('');
-    const [showSuccess, setShowSuccess] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
-    const { showError } = useError();
+    const { showError, showSuccess } = useError();
 
     const isMultiple = platiInitiale.length > 1;
 
@@ -143,7 +142,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ plati, setPlati,
                 if (updateError) throw updateError;
 
                 setTranzactii(prev => [...prev, tx as Tranzactie]);
-                setShowSuccess(`Încasare confirmată! ${idsToUpdate.length} datorii stinse.`);
+                showSuccess('Succes', `Încasare confirmată! ${idsToUpdate.length} datorii stinse.`);
             } else { // Case 2: New direct payment
                 const sportiv = sportivi.find(s => s.id === formState.sportiv_id);
                 const { data: newPlata, error: plataError } = await supabase.from('plati').insert({
@@ -174,7 +173,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ plati, setPlati,
 
                 setPlati(prev => [...prev, newPlata as Plata]);
                 setTranzactii(prev => [...prev, tx as Tranzactie]);
-                setShowSuccess(`Încasare directă de ${formState.suma.toFixed(2)} RON înregistrată.`);
+                showSuccess('Succes', `Încasare directă de ${formState.suma.toFixed(2)} RON înregistrată.`);
             }
 
             onIncasareProcesata();
@@ -273,7 +272,6 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ plati, setPlati,
                         <Button type="submit" variant="success" className="px-10" disabled={loading}>{loading ? 'Se procesează...' : 'Finalizează Încasarea'}</Button>
                     </div>
                 </form>
-                {showSuccess && <p className="mt-4 text-center text-green-400 font-bold animate-fade-in-down">{showSuccess}</p>}
             </Card>
 
             <Card className="p-0 overflow-hidden">

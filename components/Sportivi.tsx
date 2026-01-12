@@ -67,10 +67,9 @@ const SportivFormModal: React.FC<any> = ({
   familii, 
   setFamilii, 
   tipuriAbonament, 
-  customFields, 
-  showSuccessToast 
+  customFields
 }) => {
-    const { showError } = useError();
+    const { showError, showSuccess } = useError();
     const [loading, setLoading] = useState(false);
     const [formState, setFormState] = useLocalStorage<Partial<Sportiv>>('phi-hau-sportiv-form-draft', initialFormState);
     const [isGrupaModalOpen, setIsGrupaModalOpen] = useState(false);
@@ -104,7 +103,7 @@ const SportivFormModal: React.FC<any> = ({
             try {
                 const result = await onSave(formState);
                 if (result.success) {
-                    showSuccessToast(sportivToEdit ? 'Actualizat cu succes!' : 'Sportiv adăugat cu succes!');
+                    showSuccess('Succes', sportivToEdit ? 'Actualizat cu succes!' : 'Sportiv adăugat cu succes!');
                     setFormState({}); // Curăță draft-ul din localStorage la succes
                     onClose();
                 } else {
@@ -211,9 +210,8 @@ export const SportiviManagement: React.FC<any> = ({
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [sportivToEdit, setSportivToEdit] = useState<Sportiv | null>(null);
     const [sportivToDelete, setSportivToDelete] = useState<Sportiv | null>(null);
-    const [successToast, setSuccessToast] = useState<string | null>(null);
     const [deletingId, setDeletingId] = useState<string | null>(null);
-    const { showError } = useError();
+    const { showError, showSuccess } = useError();
 
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -263,7 +261,7 @@ export const SportiviManagement: React.FC<any> = ({
             if (deleteError) throw deleteError;
             
             setSportivi((prev: Sportiv[]) => prev.filter(s => s.id !== id));
-            showSuccessToast("Sportiv șters cu succes!");
+            showSuccess("Succes", "Sportiv șters cu succes!");
 
         } catch (err: any) {
             if (err.message !== "Deletion blocked due to existing history.") {
@@ -273,11 +271,6 @@ export const SportiviManagement: React.FC<any> = ({
             setDeletingId(null);
             setSportivToDelete(null); // Close modal
         }
-    };
-
-    const showSuccessToast = (msg: string) => {
-        setSuccessToast(msg);
-        setTimeout(() => setSuccessToast(null), 3000);
     };
 
     return (
@@ -290,8 +283,6 @@ export const SportiviManagement: React.FC<any> = ({
                     <PlusIcon className="w-5 h-5 mr-1"/> Adaugă Sportiv
                 </Button>
             </div>
-
-            {successToast && <div className="bg-green-600/50 text-white p-2 rounded text-center text-sm font-bold animate-fade-in-down border border-green-500">{successToast}</div>}
 
             <Card className="flex flex-col sm:flex-row gap-4">
                 <Input label="Caută Sportiv" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Nume sau prenume..." />
@@ -342,7 +333,6 @@ export const SportiviManagement: React.FC<any> = ({
                 familii={familii}
                 setFamilii={setFamilii}
                 tipuriAbonament={tipuriAbonament}
-                showSuccessToast={showSuccessToast}
             />
             <ConfirmDeleteModal
                 isOpen={!!sportivToDelete}

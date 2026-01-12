@@ -244,6 +244,14 @@ export const SportiviManagement: React.FC<any> = ({
         if (!supabase) return;
         setDeletingId(id);
         try {
+            const sportivToDelete = sportivi.find(s => s.id === id);
+            
+            // Block deletion if user account exists due to backend trigger issue
+            if (sportivToDelete && sportivToDelete.user_id) {
+                showError("Ștergere Blocată", "Acest sportiv are un cont de utilizator activ. Pentru a menține integritatea datelor, profilurile cu cont de acces trebuie arhivate (setate ca 'Inactiv'), nu șterse.");
+                throw new Error("Deletion blocked for sportiv with an active user account.");
+            }
+
             // Safety Check
             const { data: participariData, error: participariError } = await supabase.from('participari').select('id').eq('sportiv_id', id).limit(1);
             if (participariError) throw new Error(`Verificare eșuată (participari): ${participariError.message}`);
@@ -264,7 +272,7 @@ export const SportiviManagement: React.FC<any> = ({
             showSuccess("Succes", "Sportiv șters cu succes!");
 
         } catch (err: any) {
-            if (err.message !== "Deletion blocked due to existing history.") {
+            if (err.message !== "Deletion blocked due to existing history." && err.message !== "Deletion blocked for sportiv with an active user account.") {
                  showError("Eroare Ștergere", err);
             }
         } finally {

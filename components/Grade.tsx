@@ -40,9 +40,9 @@ const GradFormModal: React.FC<GradFormProps> = ({ isOpen, onClose, onSave, grade
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formState.nume || formState.ordine <= 0) { 
-        showError("Validare Eșuată", "Numele și ordinea (pozitivă) sunt obligatorii."); 
-        return; 
+    if (!formState.nume.trim() || formState.ordine <= 0) {
+        showError("Validare Eșuată", "Numele gradului este obligatoriu, iar ordinea trebuie să fie un număr pozitiv.");
+        return;
     }
     setLoading(true);
     await onSave(formState);

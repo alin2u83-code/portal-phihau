@@ -63,8 +63,18 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
     const isAdmin = currentUser.roluri.some(r => r.nume === 'Admin');
 
     const sportivParticipari = useMemo(() => participari.filter(p => p.sportiv_id === sportiv.id), [participari, sportiv.id]);
-    const admittedParticipations = useMemo(() => sportivParticipari.filter(p => p.rezultat === 'Admis').map(p => ({ ...p, examen: examene.find(e => e.id === p.examen_id) })).sort((a, b) => new Date(b.examen?.data || 0).getTime() - new Date(a.examen?.data || 0).getTime()), [sportivParticipari, examene]);
+    
+    const sortedSportivParticipariForDisplay = useMemo(() => {
+        return [...sportivParticipari]
+            .map(p => ({...p, examen: examene.find(e => e.id === p.examen_id)}))
+            .sort((a, b) => new Date(b.examen?.data || 0).getTime() - new Date(a.examen?.data || 0).getTime());
+    }, [sportivParticipari, examene]);
+
+    const admittedParticipations = useMemo(() => sortedSportivParticipariForDisplay.filter(p => p.rezultat === 'Admis'), [sortedSportivParticipariForDisplay]);
+    
     const currentGrad = useMemo(() => getGrad(admittedParticipations[0]?.grad_sustinut_id, grade), [admittedParticipations, grade]);
+
+    const currentGradParticipationId = admittedParticipations.length > 0 ? admittedParticipations[0].id : null;
 
     const eligibility = useMemo(() => {
         const sortedGrades = [...grade].sort((a, b) => a.ordine - b.ordine);
@@ -174,7 +184,19 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
             )}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card className="p-0"><div className="p-4 bg-slate-700/50"><h3 className="font-bold text-white">Istoric Examinări</h3></div><div className="overflow-x-auto"><table className="w-full text-sm text-left"><thead className="bg-slate-800/50 text-xs uppercase text-slate-400"><tr><th className="p-3">Data</th><th className="p-3">Grad Susținut</th><th className="p-3">Rezultat</th></tr></thead><tbody className="divide-y divide-slate-700">{sportivParticipari.map(p => <tr key={p.id}><td className="p-2">{examene.find(e=>e.id === p.examen_id)?.data}</td><td className="p-2 font-semibold">{grade.find(g=>g.id === p.grad_sustinut_id)?.nume}</td><td className={`p-2 font-bold ${p.rezultat === 'Admis' ? 'text-green-400' : 'text-red-400'}`}>{p.rezultat}</td></tr>)}</tbody></table></div></Card>
+                <Card className="p-0"><div className="p-4 bg-slate-700/50"><h3 className="font-bold text-white">Istoric Examinări</h3></div><div className="overflow-x-auto"><table className="w-full text-sm text-left"><thead className="bg-slate-800/50 text-xs uppercase text-slate-400"><tr><th className="p-3">Data</th><th className="p-3">Grad Susținut</th><th className="p-3">Rezultat</th></tr></thead><tbody className="divide-y divide-slate-700">{sortedSportivParticipariForDisplay.map(p => {
+                    const isCurrentGradRow = p.id === currentGradParticipationId;
+                    return (
+                        <tr key={p.id} className={isCurrentGradRow ? 'bg-brand-secondary/10' : ''}>
+                            <td className="p-2">{p.examen?.data}</td>
+                            <td className={`p-2 font-semibold ${isCurrentGradRow ? 'text-brand-secondary' : ''}`}>
+                                {grade.find(g => g.id === p.grad_sustinut_id)?.nume}
+                                {isCurrentGradRow && <span className="ml-2 text-xs font-bold uppercase text-brand-secondary">(CURENT)</span>}
+                            </td>
+                            <td className={`p-2 font-bold ${p.rezultat === 'Admis' ? 'text-green-400' : 'text-red-400'}`}>{p.rezultat}</td>
+                        </tr>
+                    );
+                })}</tbody></table></div></Card>
                 <Card className="p-0"><div className="p-4 bg-slate-700/50"><h3 className="font-bold text-white">Istoric Financiar</h3></div><div className="overflow-x-auto"><table className="w-full text-sm text-left"><thead className="bg-slate-800/50 text-xs uppercase text-slate-400"><tr><th className="p-3">Data</th><th className="p-3">Descriere</th><th className="p-3 text-right">Sumă</th><th className="p-3">Status</th></tr></thead><tbody className="divide-y divide-slate-700">{sportivPlati.map(p => <tr key={p.id}><td className="p-2">{p.data}</td><td className="p-2">{p.descriere}</td><td className="p-2 font-semibold text-right">{p.suma.toFixed(2)}</td><td className={`p-2 font-bold ${p.status === 'Achitat' ? 'text-green-400' : 'text-red-400'}`}>{p.status}</td></tr>)}</tbody></table></div></Card>
             </div>
 

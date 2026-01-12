@@ -95,7 +95,7 @@ export const GrupeManagement: React.FC<GrupeManagementProps> = ({ grupe, setGrup
           const { data, error } = await supabase.from('grupe').update(grupaInfo).eq('id', grupaToEdit.id).select().single();
           if (error) { showError("Eroare la actualizarea grupei", error); return; }
 
-          const { error: deleteError } = await supabase.from('program_antrenamente').delete().eq('grupa_id', grupaToEdit.id);
+          const { error: deleteError } = await supabase.from('program_antrenamente').delete().eq('grupa_id', grupaToEdit.id).is('data', null);
           if (deleteError) { showError("Eroare la sincronizarea programului (1/2)", deleteError); return; }
 
           const programToInsert = program.map(p => ({ ...p, grupa_id: grupaToEdit.id }));

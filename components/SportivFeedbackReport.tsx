@@ -143,7 +143,6 @@ export const SportivFeedbackReport: React.FC<SportivFeedbackReportProps> = ({ is
                         <section className="col-span-3 lg:col-span-2 space-y-6">
                             <div className="grid grid-cols-2 gap-4">
                                 <StatCard title="Rata Frecvență (Ultimele 30 zile)" value={`${reportData.attendanceRate}%`} icon="chart" />
-                                {/* FIX: Changed eligibility.nextGrad to reportData.nextGrad and added nextGrad to the object returned by useMemo. */}
                                 <StatCard title="Următorul Obiectiv" value={reportData.nextGrad?.nume || "Maxim"} icon="target"/>
                             </div>
                             <div>

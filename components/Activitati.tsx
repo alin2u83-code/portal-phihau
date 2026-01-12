@@ -155,7 +155,7 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ grup
                     <div className="lg:col-span-1">
                          <Select label="2. Selectează Orarul" name="programId" value={formState.programId} onChange={handleFormChange} disabled={!selectedGrupa}>
                             <option value="">Alege program...</option>
-                            {selectedGrupa?.program.map(p => <option key={`${p.ziua}-${p.ora_start}`} value={`${p.ziua}-${p.ora_start}`}>{p.ziua}, {p.ora_start}-{p.ora_sfarsit}</option>)}
+                            {selectedGrupa?.program.filter(p => p.is_activ !== false).map(p => <option key={`${p.ziua}-${p.ora_start}`} value={`${p.ziua}-${p.ora_start}`}>{p.ziua}, {p.ora_start}-{p.ora_sfarsit}</option>)}
                         </Select>
                     </div>
                     <div className="grid grid-cols-2 gap-2 lg:col-span-2">

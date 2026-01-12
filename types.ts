@@ -56,6 +56,7 @@ export interface ProgramItem {
     ziua: 'Luni' | 'Marți' | 'Miercuri' | 'Joi' | 'Vineri' | 'Sâmbătă' | 'Duminică';
     ora_start: string;
     ora_sfarsit: string;
+    is_activ?: boolean;
 }
 
 export interface Antrenament {

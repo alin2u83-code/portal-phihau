@@ -1,6 +1,6 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Sportiv, Participare, Examen, Grad, Antrenament, Grupa, Plata, User, Familie, Tranzactie } from '../types';
-import { Card } from './ui';
+import { Card, Button } from './ui';
 import { UsersIcon, ShieldCheckIcon } from './icons';
 
 const getGrad = (gradId: string, allGrades: Grad[]) => allGrades.find(g => g.id === gradId);
@@ -11,6 +11,24 @@ const DataField: React.FC<{label: string, value: React.ReactNode, className?: st
         <dd className="mt-1 text-md text-white font-bold">{value || 'N/A'}</dd>
     </div>
 );
+
+const calculateDuration = (start: string, end: string | null): number => {
+    if (!end) return 1.5; // Durată implicită de 1.5 ore dacă ora de sfârșit lipsește
+    try {
+        const [startH, startM] = start.split(':').map(Number);
+        const [endH, endM] = end.split(':').map(Number);
+        const startDate = new Date(0, 0, 0, startH, startM);
+        const endDate = new Date(0, 0, 0, endH, endM);
+        // Handle overnight trainings if needed, though unlikely for this context
+        if (endDate < startDate) {
+            endDate.setDate(endDate.getDate() + 1);
+        }
+        return (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60);
+    } catch (e) {
+        return 1.5; // Return default if time format is wrong
+    }
+};
+
 
 interface SportivDashboardProps {
   currentUser: User;
@@ -30,6 +48,7 @@ interface SportivDashboardProps {
 
 export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser, viewedUser, onSwitchView, participari, examene, grade, antrenamente, grupe, plati, sportivi, familii, onNavigateToDashboard, tranzactii }) => {
     
+    const [periodFilter, setPeriodFilter] = useState<'current_month' | 'last_3_months'>('current_month');
     const sportivParticipari = useMemo(() => participari.filter(p => p.sportiv_id === viewedUser.id), [participari, viewedUser.id]);
     const sportivAntrenamente = useMemo(() => antrenamente.filter(p => p.sportivi_prezenti_ids.includes(viewedUser.id)).sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime()), [antrenamente, viewedUser.id]);
     
@@ -53,7 +72,6 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
     }, [sportivAntrenamente]);
 
     const isAdmin = useMemo(() => currentUser.roluri.some(r => r.nume === 'Admin' || r.nume === 'Instructor'), [currentUser.roluri]);
-    const isViewingOwnProfile = currentUser.id === viewedUser.id;
     
     const { sold } = useMemo(() => {
         const relevantPlati = plati.filter(p => p.sportiv_id === viewedUser.id || (p.familie_id && p.familie_id === viewedUser.familie_id));
@@ -62,6 +80,22 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
         const totalIncasari = relevantTranzactii.reduce((sum, t) => sum + t.suma, 0);
         return { sold: totalIncasari - totalDatorii };
     }, [viewedUser, plati, tranzactii]);
+    
+    const filteredAntrenamente = useMemo(() => {
+        const now = new Date();
+        const firstDayCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const firstDayThreeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+    
+        if (periodFilter === 'current_month') {
+            return sportivAntrenamente.filter(a => new Date(a.data) >= firstDayCurrentMonth);
+        } else {
+            return sportivAntrenamente.filter(a => new Date(a.data) >= firstDayThreeMonthsAgo);
+        }
+    }, [sportivAntrenamente, periodFilter]);
+
+    const totalOre = useMemo(() => {
+        return filteredAntrenamente.reduce((acc, curr) => acc + calculateDuration(curr.ora_start, curr.ora_sfarsit), 0);
+    }, [filteredAntrenamente]);
 
     return (
         <div className="space-y-6" style={{ fontSize: '13px' }}>
@@ -143,6 +177,45 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                             <span className="ml-2 text-xs uppercase">{sold >= 0 ? '(Credit)' : '(Datorie)'}</span>
                         </span>
                      </div>
+                </Card>
+
+                <Card className="lg:col-span-3">
+                    <h3 className="text-xl font-bold text-white mb-4" style={{color: '#3D3D99'}}>Raport Detaliat Antrenamente</h3>
+                    <div className="flex gap-2 mb-4">
+                        <Button variant={periodFilter === 'current_month' ? 'primary' : 'secondary'} size="sm" onClick={() => setPeriodFilter('current_month')}>Luna Curentă</Button>
+                        <Button variant={periodFilter === 'last_3_months' ? 'primary' : 'secondary'} size="sm" onClick={() => setPeriodFilter('last_3_months')}>Ultimele 3 luni</Button>
+                    </div>
+                    <div className="overflow-x-auto max-h-64 border border-slate-700 rounded-lg">
+                        <table className="w-full text-left text-sm">
+                            <thead className="bg-slate-700/50 sticky top-0 backdrop-blur-sm">
+                                <tr>
+                                    <th className="p-2">Data</th>
+                                    <th className="p-2">Interval Orar</th>
+                                    <th className="p-2">Grupa</th>
+                                    <th className="p-2">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-700">
+                                {filteredAntrenamente.map(a => {
+                                    const grupa = grupe.find(g => g.id === a.grupa_id);
+                                    return (
+                                        <tr key={a.id}>
+                                            <td className="p-2">{new Date(a.data).toLocaleDateString('ro-RO')}</td>
+                                            <td className="p-2">{a.ora_start} - {a.ora_sfarsit}</td>
+                                            <td className="p-2">{grupa?.denumire || 'Vacanță'}</td>
+                                            <td className="p-2 text-green-400 font-bold">Prezent</td>
+                                        </tr>
+                                    );
+                                })}
+                                {filteredAntrenamente.length === 0 && (
+                                    <tr><td colSpan={4} className="text-center text-slate-500 italic p-4">Nicio prezență în perioada selectată.</td></tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div className="mt-4 text-right font-bold">
+                        Total Ore Acumulate: <span className="text-brand-secondary text-lg">{totalOre.toFixed(1)} ore</span>
+                    </div>
                 </Card>
             </div>
         </div>

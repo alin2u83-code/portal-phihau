@@ -108,7 +108,9 @@ export const SportivFormModal: React.FC<{
         e.preventDefault();
         setLoading(true);
         try {
-            const result = await onSave(formState);
+            // FIX: Asigură că `roluri` nu este trimis la salvarea în `public.sportivi`
+            const { roluri, ...dataToSave } = formState;
+            const result = await onSave(dataToSave);
             if (result.success) {
                 showSuccess('Succes', sportivToEdit ? 'Actualizat cu succes!' : 'Sportiv adăugat cu succes!');
                 if (!sportivToEdit) { // only clear draft on new creation

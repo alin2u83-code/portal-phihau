@@ -19,19 +19,36 @@ const sortProgram = (program: ProgramItem[]): ProgramItem[] => {
 // Componentă pentru editarea programului
 const ProgramEditor: React.FC<{ program: ProgramItem[], setProgram: React.Dispatch<React.SetStateAction<ProgramItem[]>> }> = ({ program, setProgram }) => {
     const zileSaptamana: ProgramItem['ziua'][] = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'];
-    const [newItem, setNewItem] = useState<ProgramItem>({ ziua: 'Luni', ora_start: '18:00', ora_sfarsit: '19:30' });
+    const [newItem, setNewItem] = useState<ProgramItem>({ ziua: 'Luni', ora_start: '18:00', ora_sfarsit: '19:30', is_activ: true });
 
     const handleAdd = () => { setProgram(p => [...p, newItem]); };
-    const handleRemove = (index: number) => { 
-        const sorted = sortProgram(program);
-        const itemToRemove = sorted[index];
-        setProgram(p => p.filter(item => item !== itemToRemove));
+    const handleRemove = (itemToRemoveRef: ProgramItem) => {
+        setProgram(p => p.filter(item => item !== itemToRemoveRef));
     };
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => { setNewItem(prev => ({ ...prev, [e.target.name]: e.target.value })) };
     
+    const handleToggle = (itemToToggleRef: ProgramItem) => {
+        setProgram(p => p.map(item =>
+            item === itemToToggleRef
+            ? { ...item, is_activ: !(item.is_activ ?? true) }
+            : item
+        ));
+    };
+
     const sortedProgram = sortProgram(program);
 
-    return ( <div className="space-y-4"> <div> <h4 className="text-lg font-semibold mb-2 text-white">Program Curent</h4> {sortedProgram.length > 0 ? ( sortedProgram.map((item, index) => ( <div key={index} className="flex items-center gap-2 bg-slate-700 p-2 rounded mb-2"> <span className="font-semibold flex-grow">{item.ziua}: {item.ora_start} - {item.ora_sfarsit}</span> <Button type="button" size="sm" variant="danger" onClick={() => handleRemove(index)}><TrashIcon /></Button> </div> ))) : <p className="text-slate-400">Niciun interval adăugat.</p>} </div> <div className="p-4 bg-slate-900/50 rounded-lg space-y-2"> <h4 className="text-md font-semibold text-white">Adaugă Interval Nou</h4> <div className="grid grid-cols-1 md:grid-cols-4 gap-2 items-end"> <Select label="Ziua" name="ziua" value={newItem.ziua} onChange={handleChange}> {zileSaptamana.map(zi => <option key={zi} value={zi}>{zi}</option>)} </Select> <Input label="Ora Start" type="time" name="ora_start" value={newItem.ora_start} onChange={handleChange} /> <Input label="Ora Sfârșit" type="time" name="ora_sfarsit" value={newItem.ora_sfarsit} onChange={handleChange} /> <Button type="button" variant="info" onClick={handleAdd}><PlusIcon /></Button> </div> </div> </div> );
+    return ( <div className="space-y-4"> <div> <h4 className="text-lg font-semibold mb-2 text-white">Program Curent</h4> {sortedProgram.length > 0 ? ( sortedProgram.map((item, index) => ( 
+    <div key={index} className="flex items-center gap-3 bg-slate-700 p-2 rounded mb-2">
+        <input
+            type="checkbox"
+            checked={item.is_activ ?? true}
+            onChange={() => handleToggle(item)}
+            className="form-checkbox h-5 w-5 shrink-0 rounded bg-slate-800 border-slate-600 text-brand-secondary focus:ring-brand-secondary cursor-pointer"
+            title={ (item.is_activ ?? true) ? "Dezactivează acest interval" : "Activează acest interval" }
+        />
+        <span className={`font-semibold flex-grow ${ (item.is_activ ?? true) ? 'text-white' : 'text-slate-500 line-through'}`}>{item.ziua}: {item.ora_start} - {item.ora_sfarsit}</span>
+        <Button type="button" size="sm" variant="danger" onClick={() => handleRemove(item)}><TrashIcon /></Button> 
+    </div> ))) : <p className="text-slate-400">Niciun interval adăugat.</p>} </div> <div className="p-4 bg-slate-900/50 rounded-lg space-y-2"> <h4 className="text-md font-semibold text-white">Adaugă Interval Nou</h4> <div className="grid grid-cols-1 md:grid-cols-4 gap-2 items-end"> <Select label="Ziua" name="ziua" value={newItem.ziua} onChange={handleChange}> {zileSaptamana.map(zi => <option key={zi} value={zi}>{zi}</option>)} </Select> <Input label="Ora Start" type="time" name="ora_start" value={newItem.ora_start} onChange={handleChange} /> <Input label="Ora Sfârșit" type="time" name="ora_sfarsit" value={newItem.ora_sfarsit} onChange={handleChange} /> <Button type="button" variant="info" onClick={handleAdd}><PlusIcon /></Button> </div> </div> </div> );
 };
 
 // Modal pentru adăugare/editare grupă
@@ -151,7 +168,7 @@ export const GrupeManagement: React.FC<GrupeManagementProps> = ({ grupe, setGrup
                 <td className="p-4">{grupa.sala}</td>
                 <td className="p-4">
                     <div className="flex flex-wrap gap-1">
-                        {sortProgram(grupa.program).map((p, i) => <span key={i} className="bg-slate-600 text-slate-200 text-xs font-semibold px-2 py-1 rounded-full">{p.ziua} {p.ora_start}-{p.ora_sfarsit}</span>)}
+                        {sortProgram(grupa.program).map((p, i) => <span key={i} className={`text-xs font-semibold px-2 py-1 rounded-full ${p.is_activ ?? true ? 'bg-slate-600 text-slate-200' : 'bg-slate-800 text-slate-500 line-through'}`}>{p.ziua} {p.ora_start}-{p.ora_sfarsit}</span>)}
                     </div>
                 </td>
                 <td className="p-2 text-right w-32">

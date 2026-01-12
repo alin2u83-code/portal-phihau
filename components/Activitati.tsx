@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Grupa, Prezenta, ProgramItem } from '../types';
+import { Grupa, Antrenament, ProgramItem } from '../types';
 import { Button, Card, Input, Select } from './ui';
 import { ArrowLeftIcon, CalendarDaysIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -7,8 +7,8 @@ import { useError } from './ErrorProvider';
 
 interface ProgramareActivitatiProps {
     grupe: Grupa[];
-    prezente: Prezenta[];
-    setPrezente: React.Dispatch<React.SetStateAction<Prezenta[]>>;
+    antrenamente: Antrenament[];
+    setAntrenamente: React.Dispatch<React.SetStateAction<Antrenament[]>>;
     onBack: () => void;
 }
 
@@ -21,11 +21,13 @@ const ZILE_INDEX: Record<ProgramItem['ziua'], number> = { 'Luni': 1, 'Marți': 2
 
 interface PreviewInstance {
     data: Date;
-    ora: string;
+    ora_start: string;
+    ora_sfarsit: string;
+    ziua: ProgramItem['ziua'];
     isConflict: boolean;
 }
 
-export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ grupe, prezente, setPrezente, onBack }) => {
+export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ grupe, antrenamente, setAntrenamente, onBack }) => {
     const [formState, setFormState] = useState({
         grupaId: '',
         programId: '', // Composite key: 'ziua-ora_start'
@@ -51,18 +53,26 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ grup
             return;
         }
 
-        const [ziua, ora_start] = formState.programId.split('-');
+        const selectedProgramItem = selectedGrupa?.program.find(p => `${p.ziua}-${p.ora_start}` === formState.programId);
+        if (!selectedProgramItem) {
+            showError("Eroare", "Programul selectat nu a fost găsit.");
+            return;
+        }
         
-        const dates = generateDates(formState.dataStart, formState.dataSfarsit, ziua as ProgramItem['ziua'], formState.frecventa);
+        const { ziua, ora_start, ora_sfarsit } = selectedProgramItem;
         
-        const existingTrainings = new Set(prezente.map(p => `${p.data}-${p.ora}-${p.grupa_id}`));
+        const dates = generateDates(formState.dataStart, formState.dataSfarsit, ziua, formState.frecventa);
+        
+        const existingTrainings = new Set(antrenamente.map(a => `${a.data}-${a.ora_start}-${a.grupa_id}`));
 
         const previewInstances = dates.map(date => {
             const dateString = date.toISOString().split('T')[0];
             const conflictKey = `${dateString}-${ora_start}-${formState.grupaId}`;
             return {
                 data: date,
-                ora: ora_start,
+                ora_start,
+                ora_sfarsit,
+                ziua,
                 isConflict: existingTrainings.has(conflictKey),
             };
         });
@@ -101,26 +111,28 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ grup
             .filter(p => !p.isConflict)
             .map(p => ({
                 data: p.data.toISOString().split('T')[0],
-                ora: p.ora,
+                ora_start: p.ora_start,
+                ora_sfarsit: p.ora_sfarsit,
                 grupa_id: formState.grupaId,
-                tip: 'Normal' as 'Normal' | 'Vacanta'
+                ziua: p.ziua,
+                is_recurent: true
             }));
             
         if (!window.confirm(`Sunteți pe cale să generați ${newTrainingsToInsert.length} antrenamente noi. Doriți să continuați?`)) return;
 
         setLoading(true);
-        const { data, error } = await supabase.from('prezente').insert(newTrainingsToInsert).select('*, prezente_sportivi(sportiv_id)');
+        const { data, error } = await supabase.from('program_antrenamente').insert(newTrainingsToInsert).select();
         setLoading(false);
 
         if (error) {
             showError("Eroare la Salvare", error);
         } else if (data) {
-            const formattedData = data.map((p: any) => ({
-                ...p,
-                sportivi_prezenti_ids: p.prezente_sportivi ? p.prezente_sportivi.map((ps: any) => ps.sportiv_id) : []
+            const newAntrenamente: Antrenament[] = data.map(dbRecord => ({
+                ...(dbRecord as any),
+                sportivi_prezenti_ids: []
             }));
 
-            setPrezente(prev => [...prev, ...formattedData]);
+            setAntrenamente(prev => [...prev, ...newAntrenamente]);
             showSuccess("Succes!", `${data.length} antrenamente au fost adăugate în calendar.`);
             setPreview(null);
         }
@@ -182,7 +194,7 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ grup
                     <div className="max-h-80 overflow-y-auto space-y-2 p-3 bg-slate-900/50 rounded-lg border border-slate-700">
                         {preview.length > 0 ? preview.map((inst, index) => (
                             <div key={index} className={`flex justify-between items-center p-2 rounded-md ${inst.isConflict ? 'bg-red-900/30' : 'bg-slate-700/50'}`}>
-                                <p className="font-mono text-sm">{inst.data.toLocaleDateString('ro-RO')} la ora {inst.ora}</p>
+                                <p className="font-mono text-sm">{inst.data.toLocaleDateString('ro-RO')} la ora {inst.ora_start}</p>
                                 {inst.isConflict && (
                                     <span className="text-xs font-bold text-red-400 px-2 py-1 bg-red-500/10 rounded-full border border-red-500/30">
                                         CONFLICT

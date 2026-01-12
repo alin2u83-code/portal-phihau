@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Prezenta, Sportiv, Grupa } from '../types';
+// Fix: Import Antrenament instead of Prezenta, as Prezenta is not an exported type.
+import { Antrenament, Sportiv, Grupa } from '../types';
 import { Button, Card, Input, Select, Modal } from './ui';
 import { PlusIcon, ArrowLeftIcon, TrashIcon, EditIcon, XIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -12,15 +13,17 @@ import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 const AntrenamentForm: React.FC<{
     isOpen: boolean;
     onClose: () => void;
-    onSave: (data: Omit<Prezenta, 'id' | 'sportivi_prezenti_ids'>) => Promise<void>;
-    antrenamentToEdit: Prezenta | null;
+    onSave: (data: Omit<Antrenament, 'id' | 'sportivi_prezenti_ids'>) => Promise<void>;
+    antrenamentToEdit: Antrenament | null;
     grupe: Grupa[];
 }> = ({ isOpen, onClose, onSave, antrenamentToEdit, grupe }) => {
     const getInitialState = () => ({
         data: antrenamentToEdit?.data || new Date().toISOString().split('T')[0],
-        ora: antrenamentToEdit?.ora || '18:00',
+        ora_start: antrenamentToEdit?.ora_start || '18:00',
+        ora_sfarsit: antrenamentToEdit?.ora_sfarsit || '19:30',
         grupa_id: antrenamentToEdit?.grupa_id || null,
-        tip: antrenamentToEdit?.tip || 'Normal',
+        // UI-only state to control form logic
+        tip: (antrenamentToEdit?.grupa_id ? 'Normal' : 'Vacanta') as 'Normal' | 'Vacanta',
     });
     
     const [formState, setFormState] = useState(getInitialState());
@@ -46,7 +49,14 @@ const AntrenamentForm: React.FC<{
             return;
         }
         setLoading(true);
-        await onSave(formState);
+        const { tip, ...antrenamentData } = formState;
+        const finalData = {
+            ...antrenamentData,
+            grupa_id: tip === 'Normal' ? antrenamentData.grupa_id : null,
+            ziua: null,
+            is_recurent: false,
+        };
+        await onSave(finalData);
         setLoading(false);
         onClose();
     };
@@ -54,13 +64,16 @@ const AntrenamentForm: React.FC<{
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={antrenamentToEdit ? "Editează Antrenament" : "Creează Antrenament Nou"}>
             <form onSubmit={handleSubmit} className="space-y-4">
-                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Input label="Data" type="date" name="data" value={formState.data} onChange={handleChange} required />
-                    <Input label="Ora" type="time" name="ora" value={formState.ora} onChange={handleChange} required />
                     <Select label="Tip Antrenament" name="tip" value={formState.tip} onChange={handleChange}>
                         <option value="Normal">Normal</option>
                         <option value="Vacanta">Vacanță</option>
                     </Select>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Input label="Ora Start" type="time" name="ora_start" value={formState.ora_start} onChange={handleChange} required />
+                    <Input label="Ora Sfârșit" type="time" name="ora_sfarsit" value={formState.ora_sfarsit ?? ''} onChange={handleChange} required />
                 </div>
                 <div className="grid grid-cols-1">
                     {formState.tip === 'Normal' && (
@@ -80,26 +93,28 @@ const AntrenamentForm: React.FC<{
 };
 
 const AttendanceDetail: React.FC<{
-    antrenament: Prezenta;
+    antrenament: Antrenament;
     onBack: () => void;
     sportivi: Sportiv[];
     grupe: Grupa[];
-    setPrezente: React.Dispatch<React.SetStateAction<Prezenta[]>>;
-}> = ({ antrenament, onBack, sportivi, grupe, setPrezente }) => {
+    setAntrenamente: React.Dispatch<React.SetStateAction<Antrenament[]>>;
+}> = ({ antrenament, onBack, sportivi, grupe, setAntrenamente }) => {
     const [presentIds, setPresentIds] = useState<Set<string>>(new Set(antrenament.sportivi_prezenti_ids));
     const [extraSportivId, setExtraSportivId] = useState('');
     const [loading, setLoading] = useState(false);
     const { showError } = useError();
+    
+    const tip = antrenament.grupa_id ? 'Normal' : 'Vacanta';
 
     const sportiviInGrupa = useMemo(() => {
         let sportiviAfisati: Sportiv[];
-        if (antrenament.tip === 'Vacanta') {
+        if (tip === 'Vacanta') {
              sportiviAfisati = sportivi.filter(s => s.status === 'Activ' && s.participa_vacanta);
         } else {
              sportiviAfisati = sportivi.filter(s => s.status === 'Activ' && s.grupa_id === antrenament.grupa_id);
         }
         return sportiviAfisati.sort((a,b) => a.nume.localeCompare(b.nume));
-    }, [sportivi, antrenament]);
+    }, [sportivi, antrenament.grupa_id, tip]);
 
     const sportiviExtraDisponibili = useMemo(() => {
         const idsInGrupa = new Set(sportiviInGrupa.map(s => s.id));
@@ -125,9 +140,9 @@ const AttendanceDetail: React.FC<{
         setLoading(true);
 
         const { error: deleteError } = await supabase
-            .from('prezente_sportivi')
+            .from('prezenta_antrenament')
             .delete()
-            .eq('prezenta_id', antrenament.id);
+            .eq('antrenament_id', antrenament.id);
 
         if (deleteError) {
             showError("Eroare la actualizarea prezenței (Pas 1)", deleteError);
@@ -138,10 +153,10 @@ const AttendanceDetail: React.FC<{
         const newIds = Array.from(presentIds);
         if (newIds.length > 0) {
             const toInsert = newIds.map(sportiv_id => ({
-                prezenta_id: antrenament.id,
+                antrenament_id: antrenament.id,
                 sportiv_id: sportiv_id
             }));
-            const { error: insertError } = await supabase.from('prezente_sportivi').insert(toInsert);
+            const { error: insertError } = await supabase.from('prezenta_antrenament').insert(toInsert);
 
             if (insertError) {
                 showError("Eroare la actualizarea prezenței (Pas 2)", insertError);
@@ -150,7 +165,7 @@ const AttendanceDetail: React.FC<{
             }
         }
         
-        setPrezente(prev => prev.map(p => 
+        setAntrenamente(prev => prev.map(p => 
             p.id === antrenament.id ? { ...p, sportivi_prezenti_ids: newIds } : p
         ));
         setLoading(false);
@@ -167,8 +182,8 @@ const AttendanceDetail: React.FC<{
                 <h2 className="text-xl font-bold text-brand-secondary mb-2">Gestionare Prezență ({presentIds.size} prezenți)</h2>
                  <div className="text-sm text-slate-400 grid grid-cols-2 md:grid-cols-3 gap-2">
                     <span>Data: <strong className="text-white">{new Date(antrenament.data).toLocaleDateString('ro-RO')}</strong></span>
-                    <span>Ora: <strong className="text-white">{antrenament.ora}</strong></span>
-                    <span>Grupa: <strong className="text-white">{grupaAntrenament?.denumire || antrenament.tip}</strong></span>
+                    <span>Ora: <strong className="text-white">{antrenament.ora_start}</strong></span>
+                    <span>Grupa: <strong className="text-white">{grupaAntrenament?.denumire || tip}</strong></span>
                 </div>
             </div>
             <div className="space-y-6">
@@ -226,22 +241,22 @@ const AttendanceDetail: React.FC<{
 
 export const PrezentaManagement: React.FC<{
     sportivi: Sportiv[];
-    prezente: Prezenta[];
-    setPrezente: React.Dispatch<React.SetStateAction<Prezenta[]>>;
+    antrenamente: Antrenament[];
+    setAntrenamente: React.Dispatch<React.SetStateAction<Antrenament[]>>;
     grupe: Grupa[];
     onBack: () => void;
-}> = ({ sportivi, prezente, setPrezente, grupe, onBack }) => {
+}> = ({ sportivi, antrenamente, setAntrenamente, grupe, onBack }) => {
     
-    const [selectedAntrenamentId, setSelectedAntrenamentId] = useLocalStorage<number | null>('phi-hau-selected-antrenament-id', null);
-    const selectedAntrenament = useMemo(() => prezente.find(p => p.id === selectedAntrenamentId) || null, [prezente, selectedAntrenamentId]);
+    const [selectedAntrenamentId, setSelectedAntrenamentId] = useLocalStorage<string | null>('phi-hau-selected-antrenament-id', null);
+    const selectedAntrenament = useMemo(() => antrenamente.find(p => p.id === selectedAntrenamentId) || null, [antrenamente, selectedAntrenamentId]);
 
-    const handleSetSelectedAntrenament = (antrenament: Prezenta | null) => {
+    const handleSetSelectedAntrenament = (antrenament: Antrenament | null) => {
         setSelectedAntrenamentId(antrenament ? antrenament.id : null);
     };
 
-    const [antrenamentToEdit, setAntrenamentToEdit] = useState<Prezenta | null>(null);
+    const [antrenamentToEdit, setAntrenamentToEdit] = useState<Antrenament | null>(null);
     const [isFormOpen, setIsFormOpen] = useState(false);
-    const [antrenamentToDelete, setAntrenamentToDelete] = useState<Prezenta | null>(null);
+    const [antrenamentToDelete, setAntrenamentToDelete] = useState<Antrenament | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const { showError, showSuccess } = useError();
 
@@ -256,35 +271,36 @@ export const PrezentaManagement: React.FC<{
         setFilters(initialFilters);
     };
 
-    const handleSaveAntrenament = async (antrenamentData: Omit<Prezenta, 'id' | 'sportivi_prezenti_ids'>) => {
+    const handleSaveAntrenament = async (antrenamentData: Omit<Antrenament, 'id' | 'sportivi_prezenti_ids'>) => {
+        if (!supabase) return;
         if (antrenamentToEdit) {
-            const { data, error } = await supabase.from('prezente').update(antrenamentData).eq('id', antrenamentToEdit.id).select('*, prezente_sportivi(sportiv_id)').single();
+            const { data, error } = await supabase.from('program_antrenamente').update(antrenamentData).eq('id', antrenamentToEdit.id).select('*, prezenta_antrenament(sportiv_id)').single();
             if (error) { showError("Eroare la actualizare", error); } 
             else if (data) { 
-                const formatted: Prezenta = {
+                const formatted: Antrenament = {
                     ...data,
-                    sportivi_prezenti_ids: data.prezente_sportivi ? data.prezente_sportivi.map((ps: any) => ps.sportiv_id) : []
+                    sportivi_prezenti_ids: data.prezenta_antrenament ? data.prezenta_antrenament.map((ps: any) => ps.sportiv_id) : []
                 };
-                setPrezente(prev => prev.map(p => p.id === data.id ? formatted : p));
+                setAntrenamente(prev => prev.map(p => p.id === data.id ? formatted : p));
             }
         } else {
-            const { data, error } = await supabase.from('prezente').insert(antrenamentData).select().single();
+            const { data, error } = await supabase.from('program_antrenamente').insert(antrenamentData).select().single();
             if (error) { showError("Eroare la creare", error); } 
-            else if (data) { setPrezente(prev => [...prev, { ...data, sportivi_prezenti_ids: [] }]); }
+            else if (data) { setAntrenamente(prev => [...prev, { ...data, sportivi_prezenti_ids: [] }]); }
         }
     };
 
-    const confirmDeleteAntrenament = async (id: number) => {
+    const confirmDeleteAntrenament = async (id: string) => {
         if (!supabase) return;
         setIsDeleting(true);
         try {
-            const { error: deleteLinksError } = await supabase.from('prezente_sportivi').delete().eq('prezenta_id', id);
+            const { error: deleteLinksError } = await supabase.from('prezenta_antrenament').delete().eq('antrenament_id', id);
             if (deleteLinksError) throw deleteLinksError;
 
-            const { error } = await supabase.from('prezente').delete().eq('id', id);
+            const { error } = await supabase.from('program_antrenamente').delete().eq('id', id);
             if (error) throw error;
             
-            setPrezente(prev => prev.filter(p => p.id !== id));
+            setAntrenamente(prev => prev.filter(p => p.id !== id));
             showSuccess("Succes", "Antrenamentul a fost șters.");
         } catch (err: any) {
             showError("Eroare la ștergere", err);
@@ -295,13 +311,17 @@ export const PrezentaManagement: React.FC<{
     };
 
     const handleOpenAdd = () => { setAntrenamentToEdit(null); setIsFormOpen(true); };
-    const handleOpenEdit = (antrenament: Prezenta) => { setAntrenamentToEdit(antrenament); setIsFormOpen(true); };
+    const handleOpenEdit = (antrenament: Antrenament) => { setAntrenamentToEdit(antrenament); setIsFormOpen(true); };
 
-    const filteredPrezente = useMemo(() => {
-        let sorted = [...prezente].sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime() || b.ora.localeCompare(a.ora));
+    const filteredAntrenamente = useMemo(() => {
+        let sorted = [...antrenamente].sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime() || (b.ora_start || '').localeCompare(a.ora_start || ''));
         
         if (filters.tip) {
-            sorted = sorted.filter(p => p.tip === filters.tip);
+            if (filters.tip === 'Vacanta') {
+                sorted = sorted.filter(p => !p.grupa_id);
+            } else if (filters.tip === 'Normal') {
+                sorted = sorted.filter(p => !!p.grupa_id);
+            }
         }
         if (filters.data) {
             sorted = sorted.filter(p => p.data === filters.data);
@@ -310,10 +330,10 @@ export const PrezentaManagement: React.FC<{
             sorted = sorted.filter(p => p.grupa_id === filters.grupa);
         }
         return sorted;
-    }, [prezente, filters]);
+    }, [antrenamente, filters]);
 
     if (selectedAntrenament) {
-        return <AttendanceDetail antrenament={selectedAntrenament} onBack={() => handleSetSelectedAntrenament(null)} sportivi={sportivi} grupe={grupe} setPrezente={setPrezente} />;
+        return <AttendanceDetail antrenament={selectedAntrenament} onBack={() => handleSetSelectedAntrenament(null)} sportivi={sportivi} grupe={grupe} setAntrenamente={setAntrenamente} />;
     }
 
     return (
@@ -363,17 +383,18 @@ export const PrezentaManagement: React.FC<{
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-700">
-                            {filteredPrezente.map(p => {
+                            {filteredAntrenamente.map(p => {
                                 const grupa = grupe.find(g => g.id === p.grupa_id);
+                                const tip = p.grupa_id ? 'Normal' : 'Vacanta';
                                 return (
                                     <tr key={p.id} className="hover:bg-slate-700/50">
                                         <td className="p-4 font-medium">
-                                            {new Date(p.data).toLocaleDateString('ro-RO')} - <span className="text-slate-400">{p.ora}</span>
+                                            {new Date(p.data).toLocaleDateString('ro-RO')} - <span className="text-slate-400">{p.ora_start}</span>
                                         </td>
                                         <td className="p-4">
                                             <div className="flex items-center gap-2">
-                                                <span>{grupa?.denumire || (p.tip === 'Vacanta' ? 'Antrenament Vacanță' : p.tip)}</span>
-                                                {p.tip === 'Vacanta' ? (
+                                                <span>{grupa?.denumire || (tip === 'Vacanta' ? 'Antrenament Vacanță' : tip)}</span>
+                                                {tip === 'Vacanta' ? (
                                                     <span className="px-2 py-0.5 text-[10px] bg-sky-600/30 text-sky-400 border border-sky-600/50 rounded-full font-bold uppercase tracking-wider">Vacanță</span>
                                                 ) : (
                                                     <span className="px-2 py-0.5 text-[10px] bg-slate-600/30 text-slate-400 border border-slate-600/50 rounded-full font-bold uppercase tracking-wider">Normal</span>
@@ -393,7 +414,7 @@ export const PrezentaManagement: React.FC<{
                             })}
                         </tbody>
                     </table>
-                    {filteredPrezente.length === 0 && <p className="p-4 text-center text-slate-400">Niciun antrenament înregistrat conform filtrelor.</p>}
+                    {filteredAntrenamente.length === 0 && <p className="p-4 text-center text-slate-400">Niciun antrenament înregistrat conform filtrelor.</p>}
                 </div>
             </Card>
             <AntrenamentForm 

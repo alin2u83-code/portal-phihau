@@ -1,12 +1,12 @@
 import React, { useMemo } from 'react';
-import { Prezenta, Sportiv, Grupa } from '../types';
+import { Antrenament, Sportiv, Grupa } from '../types';
 import { Card, Input, Select, Button } from './ui';
 import { ArrowLeftIcon } from './icons';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 
 interface RaportPrezentaProps {
-    prezente: Prezenta[];
+    antrenamente: Antrenament[];
     sportivi: Sportiv[];
     grupe: Grupa[];
     onBack: () => void;
@@ -26,7 +26,7 @@ const initialFilters: RaportFilters = {
     tipFilter: '',
 };
 
-export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ prezente, sportivi, grupe, onBack }) => {
+export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ antrenamente, sportivi, grupe, onBack }) => {
     const [filters, setFilters] = useLocalStorage('phi-hau-raport-prezenta-filters', initialFilters);
 
     const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -34,22 +34,23 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ prezente, sporti
     };
 
     const allRecords = useMemo(() => {
-        return prezente.flatMap(p => 
-            p.sportivi_prezenti_ids.map(sportivId => {
+        return antrenamente.flatMap(a => 
+            a.sportivi_prezenti_ids.map(sportivId => {
                 const sportiv = sportivi.find(s => s.id === sportivId);
-                const grupa = grupe.find(g => g.id === p.grupa_id);
+                const grupa = grupe.find(g => g.id === a.grupa_id);
+                const tip = a.grupa_id ? 'Normal' : 'Vacanta';
                 return {
-                    id: `${p.id}-${sportivId}`,
-                    data: p.data,
-                    ora: p.ora,
-                    tip: p.tip,
+                    id: `${a.id}-${sportivId}`,
+                    data: a.data,
+                    ora: a.ora_start,
+                    tip: tip,
                     sportivNume: sportiv ? `${sportiv.nume} ${sportiv.prenume}` : 'N/A',
-                    grupaNume: grupa?.denumire || (p.tip === 'Vacanta' ? 'Vacanță' : 'N/A'),
-                    grupaId: p.grupa_id,
+                    grupaNume: grupa?.denumire || (tip === 'Vacanta' ? 'Vacanță/General' : 'N/A'),
+                    grupaId: a.grupa_id,
                 };
             })
         ).sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime());
-    }, [prezente, sportivi, grupe]);
+    }, [antrenamente, sportivi, grupe]);
 
     const filteredRecords = useMemo(() => {
         return allRecords.filter(rec => {

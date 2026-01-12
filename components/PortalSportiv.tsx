@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Sportiv, Participare, Examen, Grad, Prezenta, Grupa, Plata, Eveniment, Rezultat, PretConfig, User, Familie } from '../types';
+import { Sportiv, Participare, Examen, Grad, Antrenament, Grupa, Plata, Eveniment, Rezultat, PretConfig, User, Familie } from '../types';
 import { Button, Card } from './ui';
 import { getPretValabil } from '../utils/pricing';
 import { supabase } from '../supabaseClient';
@@ -32,7 +32,7 @@ interface PortalSportivProps {
   participari: Participare[];
   examene: Examen[];
   grade: Grad[];
-  prezente: Prezenta[];
+  antrenamente: Antrenament[];
   grupe: Grupa[];
   plati: Plata[];
   setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
@@ -47,12 +47,12 @@ interface PortalSportivProps {
   onNavigateToDashboard: () => void;
 }
 
-export const PortalSportiv: React.FC<PortalSportivProps> = ({ currentUser, viewedUser, onSwitchView, participari, examene, grade, prezente, grupe, plati, setPlati, evenimente, rezultate, setRezultate, preturiConfig, onNavigateToEditProfil, onNavigateToEvenimenteleMele, sportivi, familii, onNavigateToDashboard }) => {
+export const PortalSportiv: React.FC<PortalSportivProps> = ({ currentUser, viewedUser, onSwitchView, participari, examene, grade, antrenamente, grupe, plati, setPlati, evenimente, rezultate, setRezultate, preturiConfig, onNavigateToEditProfil, onNavigateToEvenimenteleMele, sportivi, familii, onNavigateToDashboard }) => {
     const [loading, setLoading] = useState<{[key: string]: boolean}>({});
     const { showError, showSuccess } = useError();
     
     const sportivParticipari = useMemo(() => participari.filter(p => p.sportiv_id === viewedUser.id), [participari, viewedUser.id]);
-    const sportivPrezente = useMemo(() => prezente.filter(p => p.sportivi_prezenti_ids.includes(viewedUser.id)), [prezente, viewedUser.id]);
+    const sportivAntrenamente = useMemo(() => antrenamente.filter(p => p.sportivi_prezenti_ids.includes(viewedUser.id)), [antrenamente, viewedUser.id]);
     const sportivPlati = useMemo(() => plati.filter(p => p.sportiv_id === viewedUser.id || (p.familie_id && p.familie_id === viewedUser.familie_id)), [plati, viewedUser.id, viewedUser.familie_id]);
     const sportivRezultate = useMemo(() => rezultate.filter(r => r.sportiv_id === viewedUser.id), [rezultate, viewedUser.id]);
     
@@ -91,8 +91,8 @@ export const PortalSportiv: React.FC<PortalSportivProps> = ({ currentUser, viewe
     const prezenteLunaCurenta = useMemo(() => {
         const lunaCurenta = new Date().getMonth();
         const anulCurent = new Date().getFullYear();
-        return sportivPrezente.filter(p => { const d = new Date(p.data); return d.getMonth() === lunaCurenta && d.getFullYear() === anulCurent; }).length;
-    }, [sportivPrezente]);
+        return sportivAntrenamente.filter(p => { const d = new Date(p.data); return d.getMonth() === lunaCurenta && d.getFullYear() === anulCurent; }).length;
+    }, [sportivAntrenamente]);
 
     const membriFamilie = useMemo(() => {
         if (!viewedUser.familie_id) return [];

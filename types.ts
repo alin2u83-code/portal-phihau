@@ -56,14 +56,17 @@ export interface ProgramItem {
     ora_sfarsit: string;
 }
 
-export interface Prezenta {
-  id: number;
+export interface Antrenament {
+  id: string; // uuid from program_antrenamente
   data: string;
-  ora: string;
+  ora_start: string;
+  ora_sfarsit: string | null;
   grupa_id: string | null;
+  ziua: ProgramItem['ziua'] | null;
+  is_recurent: boolean;
   sportivi_prezenti_ids: string[];
-  tip: 'Normal' | 'Vacanta';
 }
+
 
 export interface Grupa {
     id: string;

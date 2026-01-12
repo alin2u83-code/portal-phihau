@@ -155,7 +155,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                     </div>
                 </Card>
 
-                <Card className="lg:col-span-3">
+                <Card className="lg:col-span-3 bg-gradient-to-br from-slate-800/60 to-brand-primary/20">
                     <h3 className="text-xl font-bold mb-4" style={{color: '#3D3D99'}}>Raport Detaliat Antrenamente</h3>
                     <div className="flex gap-2 mb-4">
                         <Button variant={periodFilter === 'current_month' ? 'primary' : 'secondary'} size="sm" onClick={() => setPeriodFilter('current_month')}>Luna Curentă</Button>

@@ -4,14 +4,14 @@ import { ArrowLeftIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 
-// Lista tabelelor pentru backup/restaurare, în ordine dependency
+// Lista tabelelor pentru backup/restaurare, în ordine dependency-urilor pentru a asigura o restaurare corectă
 const TABLES_TO_MANAGE = [
-    // Tabele independente
-    'roluri', 'grade', 'familii', 'grupe', 'tipuri_abonament', 'preturi_config', 'examene', 'evenimente',
+    // Tabele independente/de bază
+    'roluri', 'grade', 'familii', 'grupe', 'tipuri_abonament', 'examene',
     // Tabele dependente
-    'sportivi', 'prezente', 'plati',
-    // Tabele de legătură
-    'sportivi_roluri', 'program_antrenamente', 'participari', 'rezultate', 'prezente_sportivi', 'tranzactii'
+    'sportivi', 
+    // Tabele de legătură sau cu dependențe multiple
+    'sportivi_roluri', 'program_antrenamente', 'plati', 'participari'
 ];
 
 interface BackupManagerProps {
@@ -89,7 +89,7 @@ export const BackupManager: React.FC<BackupManagerProps> = ({ onBack, onDataRest
                 const backupData = JSON.parse(content);
 
                 const confirmation = window.prompt(
-                    "ATENȚIE!\n\nSunteți pe cale să ȘTERGEȚI toate datele curente și să le înlocuiți cu cele din fișier. Această acțiune este ireversibilă.\n\nPentru a confirma, scrieți 'RESTAUREAZA' în câmpul de mai jos și apăsați OK."
+                    "ATENȚIE!\n\nSunteți pe cale să suprascrieți datele existente cu cele din fișierul de backup. Înregistrările noi vor fi adăugate, iar cele existente vor fi actualizate. Această acțiune nu poate fi anulată.\n\nPentru a confirma, scrieți 'RESTAUREAZA' în câmpul de mai jos și apăsați OK."
                 );
 
                 if (confirmation !== 'RESTAUREAZA') {
@@ -113,22 +113,37 @@ export const BackupManager: React.FC<BackupManagerProps> = ({ onBack, onDataRest
 
         setIsRestoring(true);
         try {
-            // Șterge datele în ordine inversă pentru a respecta constrângerile
-            for (let i = TABLES_TO_MANAGE.length - 1; i >= 0; i--) {
-                const tableName = TABLES_TO_MANAGE[i];
-                if (backupData[tableName]) {
-                    setProgressMessage(`Se șterg datele vechi din '${tableName}'...`);
-                    const { error } = await supabase.from(tableName).delete().neq('id', '00000000-0000-0000-0000-000000000000'); // Șterge tot
-                    if (error) throw new Error(`Eroare la ștergerea datelor din '${tableName}': ${error.message}`);
-                }
-            }
-
-            // Inserează datele în ordinea corectă a dependențelor
+            // Inserează/Actualizează datele în ordinea corectă a dependențelor
             for (const tableName of TABLES_TO_MANAGE) {
                 if (backupData[tableName] && backupData[tableName].length > 0) {
-                    setProgressMessage(`Se restaurează '${tableName}' (${backupData[tableName].length} înregistrări)...`);
-                    const { error } = await supabase.from(tableName).insert(backupData[tableName]);
-                    if (error) throw new Error(`Eroare la inserarea datelor în '${tableName}': ${error.message}`);
+                    setProgressMessage(`Se actualizează '${tableName}' (${backupData[tableName].length} înregistrări)...`);
+                    
+                    let dataToUpsert = backupData[tableName];
+
+                    // Mapare specială pentru 'sportivi'
+                    if (tableName === 'sportivi') {
+                        dataToUpsert = dataToUpsert.map((sportiv: any) => {
+                            const newSportiv = { ...sportiv };
+                            if ('auth_user_id' in newSportiv) {
+                                newSportiv.user_id = newSportiv.auth_user_id;
+                                delete newSportiv.auth_user_id;
+                            }
+                            return newSportiv;
+                        });
+                    }
+
+                    // Împarte în bucăți pentru a evita limitele Supabase
+                    const CHUNK_SIZE = 500;
+                    for (let i = 0; i < dataToUpsert.length; i += CHUNK_SIZE) {
+                        const chunk = dataToUpsert.slice(i, i + CHUNK_SIZE);
+                        const { error } = await supabase.from(tableName).upsert(chunk);
+                        if (error) {
+                             if (tableName === 'sportivi' && error.message.includes("violates foreign key constraint") && error.message.includes("user_id")) {
+                                throw new Error(`Eroare la upsert pentru '${tableName}': ${error.message}. Asigurați-vă că user_id (mappat din auth_user_id) există în tabelul auth.users.`);
+                            }
+                            throw new Error(`Eroare la upsert pentru '${tableName}': ${error.message}`);
+                        }
+                    }
                 }
             }
             
@@ -161,7 +176,7 @@ export const BackupManager: React.FC<BackupManagerProps> = ({ onBack, onDataRest
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
                 <Card className="border-brand-primary border-l-4">
                     <h2 className="text-2xl font-bold text-white mb-4">Backup Date</h2>
-                    <p className="text-slate-400 mb-6">Generează un fișier JSON cu o copie completă a bazei de date. Păstrați acest fișier într-un loc sigur.</p>
+                    <p className="text-slate-400 mb-6">Generează un fișier JSON cu o copie a datelor principale ale clubului. Păstrați acest fișier într-un loc sigur.</p>
                     <Button 
                         variant="primary" 
                         size="md" 
@@ -176,7 +191,7 @@ export const BackupManager: React.FC<BackupManagerProps> = ({ onBack, onDataRest
                 <Card className="border-red-600 border-l-4">
                     <h2 className="text-2xl font-bold text-white mb-4">Restaurare din Backup</h2>
                     <p className="text-slate-400 mb-6">
-                        <strong className="text-amber-400">Atenție:</strong> Acțiunea va șterge toate datele curente și le va înlocui cu cele din fișierul de backup. Este ireversibilă.
+                        <strong className="text-amber-400">Atenție:</strong> Acțiunea va actualiza datele existente și va adăuga datele noi din fișier. Este ireversibilă.
                     </p>
                     <div className="relative">
                         <Button 

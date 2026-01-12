@@ -178,6 +178,10 @@ export const SportivFormModal: React.FC<{
                          <Input label="Înălțime (cm)" name="inaltime" type="number" value={formState.inaltime || ''} onChange={handleChange} disabled={loading} />
                          <Input label="Club Proveniență" name="club_provenienta" value={formState.club_provenienta || ''} onChange={handleChange} disabled={loading} />
                     </div>
+                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <Input label="Telefon (Opțional)" name="telefon" value={formState.telefon || ''} onChange={handleChange} disabled={loading} />
+                        <Input label="Adresă (Opțional)" name="adresa" value={formState.adresa || ''} onChange={handleChange} disabled={loading} />
+                    </div>
                     <div className="flex items-center">
                         <input type="checkbox" id="participa_vacanta" name="participa_vacanta" checked={!!formState.participa_vacanta} onChange={handleChange} className="h-4 w-4 rounded border-slate-500 bg-slate-900 text-brand-secondary focus:ring-brand-secondary"/>
                         <label htmlFor="participa_vacanta" className="ml-2 text-sm text-slate-300">Participă la antrenamentele din vacanță</label>

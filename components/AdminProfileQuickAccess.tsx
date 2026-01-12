@@ -1,6 +1,6 @@
 import React from 'react';
 import { User, View } from '../types';
-import { CogIcon, UserCircleIcon, HomeIcon, ArrowRightOnRectangleIcon } from './icons';
+import { CogIcon, UserCircleIcon, HomeIcon, ArrowRightOnRectangleIcon, ArchiveBoxIcon } from './icons';
 
 interface AdminProfileQuickAccessProps {
   user: User;
@@ -10,10 +10,14 @@ interface AdminProfileQuickAccessProps {
 }
 
 export const AdminProfileQuickAccess: React.FC<AdminProfileQuickAccessProps> = ({ user, onNavigate, onLogout, isExpanded }) => {
+    // Determină poziționarea pe baza modului de afișare (sidebar sau navbar)
+    const positionClasses = isExpanded 
+        ? "absolute bottom-full mb-2 w-56 right-0" // Sidebar extins SAU Navbar
+        : "absolute bottom-full mb-2 w-56 left-0"; // Sidebar restrâns
+
     return (
         <div 
-            className="absolute bottom-full mb-2 w-56 rounded-md shadow-lg bg-slate-700 ring-1 ring-black ring-opacity-5 z-50 animate-fade-in-down"
-            style={{ right: isExpanded ? '0.75rem' : 'auto', left: isExpanded ? 'auto' : '0.75rem' }}
+            className={`${positionClasses} rounded-md shadow-lg bg-slate-700 ring-1 ring-black ring-opacity-5 z-50 animate-fade-in-down`}
         >
             <div className="py-1">
                 <div className="px-4 py-3 border-b border-slate-600">
@@ -33,14 +37,21 @@ export const AdminProfileQuickAccess: React.FC<AdminProfileQuickAccessProps> = (
                         className="w-full text-left flex items-center px-4 py-2 text-sm text-slate-300 hover:bg-brand-primary hover:text-white transition-colors"
                     >
                         <UserCircleIcon className="w-5 h-5 mr-3" />
-                        Setări Cont
+                        Profilul Meu
                     </button>
                     <button
-                        onClick={() => onNavigate('data-maintenance')}
+                        onClick={() => onNavigate('setari-club')}
                         className="w-full text-left flex items-center px-4 py-2 text-sm text-slate-300 hover:bg-brand-primary hover:text-white transition-colors"
                     >
                         <CogIcon className="w-5 h-5 mr-3" />
-                        Gestiune Date
+                        Configurare Club
+                    </button>
+                     <button
+                        onClick={() => onNavigate('data-maintenance')}
+                        className="w-full text-left flex items-center px-4 py-2 text-sm text-slate-300 hover:bg-brand-primary hover:text-white transition-colors"
+                    >
+                        <ArchiveBoxIcon className="w-5 h-5 mr-3" />
+                        Gestiune Documente
                     </button>
                 </div>
                 <div className="py-1 border-t border-slate-600">

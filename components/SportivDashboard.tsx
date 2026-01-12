@@ -4,7 +4,7 @@ import { Card, Button } from './ui';
 import { ShieldCheckIcon, CogIcon, ArchiveBoxIcon, DocumentArrowDownIcon } from './icons';
 
 const getGrad = (gradId: string, allGrades: Grad[]) => allGrades.find(g => g.id === gradId);
-const zileSaptamana: Record<string, string> = { 'Luni': 'Luni', 'Marți': 'Marți', 'Miercuri': 'Miercuri', 'Joi': 'Joi', 'Vineri': 'Vineri', 'Sâmbătă': 'Sâmbătă', 'Duminică': 'Duminică' };
+const zileSaptamana: Record<number, string> = { 0: 'Duminică', 1: 'Luni', 2: 'Marți', 3: 'Miercuri', 4: 'Joi', 5: 'Vineri', 6: 'Sâmbătă' };
 
 
 const DataField: React.FC<{label: string, value: React.ReactNode, className?: string}> = ({label, value, className}) => (
@@ -65,15 +65,12 @@ interface SportivDashboardProps {
 export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser, viewedUser, participari, examene, grade, antrenamente, grupe, plati, tranzactii, tipuriAbonament, onNavigate }) => {
     
     const [periodFilter, setPeriodFilter] = useState<'current_month' | 'current_year'>('current_month');
-    const sportivParticipari = useMemo(() => participari.filter(p => p.sportiv_id === viewedUser.id), [participari, viewedUser.id]);
-    const sportivAntrenamente = useMemo(() => antrenamente.filter(p => p.sportivi_prezenti_ids.includes(viewedUser.id)).sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime()), [antrenamente, viewedUser.id]);
     
     const admittedParticipations = useMemo(() => {
-        return sportivParticipari
-            .filter(p => p.rezultat === 'Admis')
+        return participari.filter(p => p.sportiv_id === viewedUser.id && p.rezultat === 'Admis')
             .map(p => ({ ...p, grad: getGrad(p.grad_sustinut_id, grade), examen: examene.find(e => e.id === p.examen_id) }))
             .sort((a, b) => new Date(b.examen?.data || 0).getTime() - new Date(a.examen?.data || 0).getTime());
-    }, [sportivParticipari, grade, examene]);
+    }, [participari, viewedUser.id, grade, examene]);
 
     const currentGrad = admittedParticipations[0]?.grad;
 
@@ -85,27 +82,34 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
         const relevantTranzactii = tranzactii.filter(t => t.sportiv_id === viewedUser.id || (t.familie_id && t.familie_id === viewedUser.familie_id));
         const totalDatorii = relevantPlati.reduce((sum, p) => sum + p.suma, 0);
         const totalIncasari = relevantTranzactii.reduce((sum, t) => sum + t.suma, 0);
-        
-        let abonament = tipuriAbonament.find(ab => ab.id === viewedUser.tip_abonament_id);
-        
+        const abonament = tipuriAbonament.find(ab => ab.id === viewedUser.tip_abonament_id);
         return { sold: totalIncasari - totalDatorii, abonamentCurent: abonament };
     }, [viewedUser, plati, tranzactii, tipuriAbonament]);
     
-    const filteredAntrenamente = useMemo(() => {
+    const reportTrainings = useMemo(() => {
         const now = new Date();
         const firstDayCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         const firstDayCurrentYear = new Date(now.getFullYear(), 0, 1);
-    
-        if (periodFilter === 'current_month') {
-            return sportivAntrenamente.filter(a => new Date(a.data) >= firstDayCurrentMonth);
-        } else { // current_year
-            return sportivAntrenamente.filter(a => new Date(a.data) >= firstDayCurrentYear);
-        }
-    }, [sportivAntrenamente, periodFilter]);
+
+        const periodStart = periodFilter === 'current_month' ? firstDayCurrentMonth : firstDayCurrentYear;
+
+        const allTrainingsForPeriod = antrenamente.filter(a => 
+            (a.grupa_id === viewedUser.grupa_id || (viewedUser.participa_vacanta && !a.grupa_id)) && 
+            new Date(a.data) >= periodStart
+        );
+        
+        return allTrainingsForPeriod.map(a => ({
+            ...a,
+            status: a.sportivi_prezenti_ids.includes(viewedUser.id) ? 'Prezent' : 'Absent'
+        })).sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+
+    }, [antrenamente, viewedUser, periodFilter]);
 
     const totalOre = useMemo(() => {
-        return filteredAntrenamente.reduce((acc, curr) => acc + calculateDuration(curr.ora_start, curr.ora_sfarsit), 0);
-    }, [filteredAntrenamente]);
+        return reportTrainings
+            .filter(a => a.status === 'Prezent')
+            .reduce((acc, curr) => acc + calculateDuration(curr.ora_start, curr.ora_sfarsit), 0);
+    }, [reportTrainings]);
 
     return (
         <div className="space-y-6" style={{ fontSize: '13px' }}>
@@ -125,6 +129,8 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                      <DataField label="CNP" value={viewedUser.cnp} />
                      <DataField label="Data Nașterii" value={new Date(viewedUser.data_nasterii).toLocaleDateString('ro-RO')} />
                      <DataField label="Data Înscrierii" value={new Date(viewedUser.data_inscrierii).toLocaleDateString('ro-RO')} />
+                     <DataField label="Telefon" value={viewedUser.telefon} />
+                     <DataField label="Adresă" value={viewedUser.adresa} />
                      <DataField label="Antrenament Vacanță" value={viewedUser.participa_vacanta ? 'Da' : 'Nu'} />
                 </Card>
                 
@@ -158,10 +164,10 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                     <div className="overflow-x-auto max-h-64 border border-slate-700 rounded-lg">
                         <table className="w-full text-left text-sm">
                             <thead className="bg-slate-700/50 sticky top-0 backdrop-blur-sm"><tr><th className="p-2">Data</th><th className="p-2">Ziua</th><th className="p-2">Interval Orar</th><th className="p-2">Grupa</th><th className="p-2">Status</th></tr></thead>
-                            <tbody className="divide-y divide-slate-700">{filteredAntrenamente.map(a => { const grupa = grupe.find(g => g.id === a.grupa_id); const ziua = a.ziua || zileSaptamana[new Date(a.data).getDay()]; return (<tr key={a.id}><td className="p-2">{new Date(a.data).toLocaleDateString('ro-RO')}</td><td className="p-2">{ziua}</td><td className="p-2">{a.ora_start} - {a.ora_sfarsit}</td><td className="p-2">{grupa?.denumire || 'Vacanță'}</td><td className="p-2 text-green-400 font-bold">Prezent</td></tr>);})}{filteredAntrenamente.length === 0 && (<tr><td colSpan={5} className="text-center text-slate-500 italic p-4">Nicio prezență în perioada selectată.</td></tr>)}</tbody>
+                            <tbody className="divide-y divide-slate-700">{reportTrainings.map(a => { const grupa = grupe.find(g => g.id === a.grupa_id); const ziua = a.ziua || zileSaptamana[new Date(a.data).getUTCDay()]; return (<tr key={a.id}><td className="p-2">{new Date(a.data).toLocaleDateString('ro-RO')}</td><td className="p-2">{ziua}</td><td className="p-2">{a.ora_start} - {a.ora_sfarsit}</td><td className="p-2">{grupa?.denumire || 'Vacanță'}</td><td className={`p-2 font-bold ${a.status === 'Prezent' ? 'text-green-400' : 'text-red-400'}`}>{a.status}</td></tr>);})}{reportTrainings.length === 0 && (<tr><td colSpan={5} className="text-center text-slate-500 italic p-4">Nicio activitate în perioada selectată.</td></tr>)}</tbody>
                         </table>
                     </div>
-                    <div className="mt-4 text-right font-bold">Total Ore Acumulate: <span className="text-brand-secondary text-lg">{totalOre.toFixed(1)} ore</span></div>
+                    <div className="mt-4 text-right font-bold">Total Ore Acumulate (doar prezențe): <span className="text-brand-secondary text-lg">{totalOre.toFixed(1)} ore</span></div>
                 </Card>
             </div>
         </div>

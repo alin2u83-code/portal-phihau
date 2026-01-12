@@ -28,6 +28,7 @@ import { BackupManager } from './components/BackupManager';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { ProgramareActivitati } from './components/Activitati';
 import { ClubSettings } from './components/ClubSettings';
+import { NavbarAdmin } from './components/NavbarAdmin';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -271,10 +272,15 @@ function App() {
   
   return (
     <div className="min-h-screen flex bg-slate-900">
-      <Sidebar currentUser={currentUser!} onNavigate={setActiveView} onLogout={handleLogout} activeView={activeView} isExpanded={isSidebarExpanded} setIsExpanded={setIsSidebarExpanded} isPortalView={!isAdmin || isMyPortalView} onViewOwnPortal={() => {}} />
-      <main className={`flex-1 transition-all duration-300 p-8 ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'}`}>
-        {renderContent()}
-      </main>
+      <Sidebar currentUser={currentUser!} onNavigate={setActiveView} onLogout={handleLogout} activeView={activeView} isExpanded={isSidebarExpanded} setIsExpanded={setIsSidebarExpanded} isPortalView={!isAdmin || isMyPortalView} plati={plati} />
+      <div className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'}`}>
+         {isAdmin && !isMyPortalView && (
+            <NavbarAdmin currentUser={currentUser!} onNavigate={setActiveView} onLogout={handleLogout} plati={plati} />
+          )}
+        <main className="flex-1 p-8 overflow-y-auto">
+          {renderContent()}
+        </main>
+      </div>
     </div>
   );
 }

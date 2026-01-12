@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { User, View } from '../types';
+import React, { useState, useEffect, useMemo } from 'react';
+import { User, View, Plata } from '../types';
 import { adminMenu, sportivMenu, MenuItem } from './menuConfig';
 import { ArrowRightOnRectangleIcon, Bars3Icon, ChevronDownIcon, UserCircleIcon } from './icons';
 import { logoBase64 } from '../constants';
@@ -73,12 +73,11 @@ interface SidebarProps {
     isExpanded: boolean;
     setIsExpanded: React.Dispatch<React.SetStateAction<boolean>>;
     isPortalView: boolean;
-    onViewOwnPortal: () => void;
+    plati: Plata[];
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLogout, activeView, isExpanded, setIsExpanded, isPortalView, onViewOwnPortal }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLogout, activeView, isExpanded, setIsExpanded, isPortalView, plati }) => {
     const [isMobileOpen, setIsMobileOpen] = useState(false);
-    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
     
     const menu = isPortalView ? sportivMenu : adminMenu;
 
@@ -105,29 +104,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
                 })}
             </nav>
 
-            <div className="p-3 border-t border-white/10 relative">
-                 {isProfileMenuOpen && !isPortalView && (
-                    <AdminProfileQuickAccess 
-                        user={currentUser} 
-                        onNavigate={(view) => { onNavigate(view); setIsProfileMenuOpen(false); }}
-                        onLogout={onLogout}
-                        isExpanded={isExpanded}
-                    />
-                )}
-                <button
-                    onClick={() => !isPortalView && setIsProfileMenuOpen(p => !p)}
-                    disabled={isPortalView}
-                    className={`w-full flex items-center p-2 rounded-md transition-colors text-left ${isExpanded ? 'bg-black/20' : ''} ${!isPortalView ? 'hover:bg-black/40' : 'cursor-default'}`}
-                >
-                    <UserCircleIcon className={`h-8 w-8 shrink-0 text-brand-secondary ${isExpanded ? 'mr-3' : 'mx-auto'}`} />
-                    {isExpanded && (
-                        <div className="overflow-hidden">
-                            <p className="text-sm font-semibold truncate">{currentUser.nume} {currentUser.prenume}</p>
-                            <p className="text-xs text-slate-400 truncate">{currentUser.roluri.map(r => r.nume).join(', ')}</p>
-                        </div>
-                    )}
-                </button>
-            </div>
+            {isPortalView && (
+                 <div className="p-3 border-t border-white/10">
+                    <button
+                        onClick={onLogout}
+                        className={`w-full flex items-center p-2 rounded-md transition-colors text-left text-red-400 hover:bg-red-600/20 hover:text-red-300`}
+                    >
+                        <ArrowRightOnRectangleIcon className={`h-6 w-6 shrink-0 ${isExpanded ? 'mr-3' : 'mx-auto'}`} />
+                        {isExpanded && (
+                            <div className="overflow-hidden">
+                                <p className="text-sm font-semibold truncate">Deconectare</p>
+                            </div>
+                        )}
+                    </button>
+                </div>
+            )}
         </div>
     );
 

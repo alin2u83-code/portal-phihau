@@ -32,72 +32,75 @@ const ExamenDetail: React.FC<ExamenDetailProps> = ({ examen, participari, setPar
 
     const handleAddParticipant = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!supabase) {
-            showError("Eroare Configurare", "Clientul Supabase nu a putut fi stabilit.");
-            return;
-        }
+        if (!supabase) { showError("Eroare Configurare", "Clientul Supabase nu a putut fi stabilit."); return; }
         const sportiv = sportivi.find(s => s.id === sportivId);
-        if(!sportiv || participari.some(p => p.sportiv_id === sportivId)) { 
-            showError("Selecție Invalidă", "Selectează un sportiv valid care nu este deja înscris."); 
-            return; 
-        }
+        if(!sportiv || participari.some(p => p.sportiv_id === sportivId)) { showError("Selecție Invalidă", "Selectează un sportiv valid care nu este deja înscris."); return; }
 
-        const admittedParticipations = allParticipari.filter(p => p.sportiv_id === sportiv.id && p.rezultat === 'Admis').sort((a,b) => (getGrad(b.grad_sustinut_id, grade)?.ordine ?? 0) - (getGrad(a.grad_sustinut_id, grade)?.ordine ?? 0));
-        
-        let gradSustinut: Grad;
-        let confirmationOnly = false;
+        // --- NEW CALCULATION ENGINE LOGIC ---
+        const ageAtExam = getAgeOnDate(sportiv.data_nasterii, examen.data);
+        const categorie = ageAtExam < 13 ? 'Copii' : 'Adulti';
+        let mesaj_atentie: string | null = null;
+        let grad_propus_obj: Grad | undefined;
 
-        if (admittedParticipations.length === 0) {
-            gradSustinut = sortedGrades[0];
-        } else {
-            const currentGrad = getGrad(admittedParticipations[0].grad_sustinut_id, grade)!;
-            const nextGrad = sortedGrades.find(g => g.ordine === (currentGrad.ordine + 1));
-            
-            if (nextGrad) {
-                const ageAtExam = getAgeOnDate(sportiv.data_nasterii, examen.data); 
-                const lastExamDate = new Date(examene.find(ex => ex.id === admittedParticipations[0].examen_id)!.data); 
-                const monthsToWait = parseDurationToMonths(nextGrad.timp_asteptare); 
-                const eligibilityDate = new Date(lastExamDate); 
-                eligibilityDate.setMonth(eligibilityDate.getMonth() + monthsToWait);
-                
-                if (ageAtExam >= nextGrad.varsta_minima && new Date(examen.data) >= eligibilityDate) {
-                    gradSustinut = nextGrad;
+        const admittedParticipations = allParticipari
+            .filter(p => p.sportiv_id === sportiv.id && p.rezultat === 'Admis')
+            .sort((a,b) => (getGrad(b.grad_sustinut_id, grade)?.ordine ?? 0) - (getGrad(a.grad_sustinut_id, grade)?.ordine ?? 0));
+        const currentGrad = admittedParticipations.length > 0 ? getGrad(admittedParticipations[0].grad_sustinut_id, grade) : null;
+
+        if (!currentGrad) { // Beginner
+            if (categorie === 'Copii') {
+                grad_propus_obj = sortedGrades.find(g => g.nume.includes('1 Cấp'));
+            } else { // Adulti
+                grad_propus_obj = sortedGrades.find(g => g.nume === '4 Cấp');
+            }
+        } else { // Has existing rank
+            if (currentGrad.nume === '4 Cấp') {
+                if (ageAtExam >= 18) {
+                    grad_propus_obj = sortedGrades.find(g => g.nume.includes('1 Đẳng'));
+                    mesaj_atentie = "Verificați participarea la stagiile naționale obligatorii.";
                 } else {
-                    gradSustinut = currentGrad;
-                    confirmationOnly = true;
+                    grad_propus_obj = currentGrad;
+                    mesaj_atentie = "Confirmare grad. Vârsta minimă pentru 1 Đẳng este 18 ani.";
                 }
-            } else {
-                gradSustinut = currentGrad;
-                confirmationOnly = true;
+            } else if (currentGrad.nume.includes('Cấp')) {
+                grad_propus_obj = sortedGrades.find(g => g.ordine === currentGrad.ordine + 1);
+            } else { // Already has a Dang or other rank
+                grad_propus_obj = currentGrad;
+                mesaj_atentie = "Grad maxim atins în acest sistem de calcul sau reconfirmare.";
             }
         }
-        
-        if (!gradSustinut) {
-            showError("Eroare Logică", "Nu s-a putut determina gradul pentru acest sportiv. Verificați nomenclatorul de grade.");
+
+        if (!grad_propus_obj) {
+            showError("Eroare Logică", "Nu s-a putut determina gradul propus. Verificați nomenclatorul de grade (ex: '1 Cấp', '4 Cấp', '1 Đẳng').");
             return;
         }
 
-        const {data: participareData, error: pError} = await supabase.from('participari').insert({ examen_id: examen.id, sportiv_id: sportivId, grad_sustinut_id: gradSustinut.id, rezultat: 'Neprezentat' }).select().single();
+        if (mesaj_atentie) {
+            if (!window.confirm(`Atenție:\n${mesaj_atentie}\n\nDoriți să continuați cu înscrierea pentru gradul ${grad_propus_obj.nume}?`)) {
+                return;
+            }
+        }
+        // --- END NEW CALCULATION ENGINE LOGIC ---
+
+        const {data: participareData, error: pError} = await supabase.from('participari').insert({ examen_id: examen.id, sportiv_id: sportivId, grad_sustinut_id: grad_propus_obj.id, rezultat: 'Neprezentat' }).select().single();
         if (pError) { showError("Eroare Bază de Date", pError); return; }
         if (participareData) setParticipari(prev => [...prev, participareData as Participare]);
         
-        const pretExamenConfig = getPretProdus(preturi, 'Taxa Examen', gradSustinut.nume, { dataReferinta: examen.data });
-
+        const pretExamenConfig = getPretProdus(preturi, 'Taxa Examen', grad_propus_obj.nume, { dataReferinta: examen.data });
         if (!pretExamenConfig) { 
-            showError("Avertisment Configurare", `Configurarea prețului pentru gradul '${gradSustinut.nume}' nu a fost găsită. Participantul a fost adăugat, dar plata trebuie generată manual.`); 
+            showError("Avertisment Configurare", `Configurarea prețului pentru gradul '${grad_propus_obj.nume}' nu a fost găsită. Participantul a fost adăugat, dar plata trebuie generată manual.`); 
             return; 
         }
-        const descriere = `Taxa examen ${examen.data}${confirmationOnly ? ` (Confirmare ${gradSustinut.nume})` : ` (pt. ${gradSustinut.nume})`}`;
-        
+
         const newPlata: Omit<Plata, 'id'> = {
             sportiv_id: sportivId,
             familie_id: sportiv.familie_id,
             suma: pretExamenConfig.suma,
             data: examen.data,
             status: 'Neachitat',
-            descriere,
+            descriere: `Taxa examen grad ${grad_propus_obj.nume}`,
             tip: 'Taxa Examen',
-            observatii: ''
+            observatii: mesaj_atentie || ''
         };
 
         const {data: plataData, error: plError} = await supabase.from('plati').insert(newPlata).select().single();

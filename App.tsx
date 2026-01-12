@@ -183,7 +183,7 @@ function App() {
 
     switch (activeView) {
       case 'dashboard': return <Dashboard onNavigate={setActiveView} />;
-      case 'sportivi': return <SportiviManagement sportivi={sportivi} setSportivi={setSportivi} grupe={grupe} setGrupe={setGrupe} tipuriAbonament={tipuriAbonament} familii={familii} setFamilii={setFamilii} allRoles={allRoles} plati={plati} tranzactii={tranzactii} onBack={() => setActiveView('dashboard')} />;
+      case 'sportivi': return <SportiviManagement sportivi={sportivi} setSportivi={setSportivi} grupe={grupe} setGrupe={setGrupe} tipuriAbonament={tipuriAbonament} familii={familii} setFamilii={setFamilii} allRoles={allRoles} plati={plati} tranzactii={tranzactii} setTranzactii={setTranzactii} onBack={() => setActiveView('dashboard')} />;
       case 'examene': return <ExameneManagement examene={examene} setExamene={setExamene} participari={participari} setParticipari={setParticipari} sportivi={sportivi} grade={grade} setPlati={setPlati} preturi={preturiConfig} onBack={() => setActiveView('dashboard')} />;
       case 'grade': return <GradeManagement grade={grade} setGrade={setGrade} onBack={() => setActiveView('dashboard')} />;
       case 'prezenta': return <PrezentaManagement sportivi={sportivi} antrenamente={antrenamente} setAntrenamente={setAntrenamente} grupe={grupe} onBack={() => setActiveView('dashboard')} />;
@@ -198,7 +198,7 @@ function App() {
       case 'raport-financiar': return <RaportFinanciar plati={plati} sportivi={sportivi} familii={familii} tranzactii={tranzactii} onBack={() => setActiveView('dashboard')} />;
       case 'familii': return <FamiliiManagement familii={familii} setFamilii={setFamilii} sportivi={sportivi} onBack={() => setActiveView('dashboard')} />;
       case 'user-management': return <UserManagement sportivi={sportivi} setSportivi={setSportivi} currentUser={currentUser} setCurrentUser={setCurrentUser} allRoles={allRoles} setAllRoles={setAllRoles} onBack={() => setActiveView('dashboard')} />;
-      case 'data-maintenance': return <BackupManager onBack={() => setActiveView('dashboard')} onDataRestored={fetchData} />;
+      case 'data-maintenance': return <BackupManager onBack={() => setActiveView('dashboard')} onDataRestored={fetchData} sportivi={sportivi} familii={familii} plati={plati} tranzactii={tranzactii} />;
       case 'activitati': return <ProgramareActivitati grupe={grupe} antrenamente={antrenamente} setAntrenamente={setAntrenamente} onBack={() => setActiveView('dashboard')} />;
       default: return <Dashboard onNavigate={setActiveView} />;
     }

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { TipAbonament } from '../types';
-import { Button, Input, Card, ConfirmationModal } from './ui';
+import { Button, Input, Card } from './ui';
 import { PlusIcon, TrashIcon, ArrowLeftIcon } from './icons';
 import { supabase } from '../supabaseClient';
 
@@ -16,8 +16,6 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
     const [newNrMembri, setNewNrMembri] = useState<number | string>(1);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
-    const [abonamentToDelete, setAbonamentToDelete] = useState<TipAbonament | null>(null);
-    const [deleteLoading, setDeleteLoading] = useState(false);
 
     const handleAdd = async () => {
         setError(null);
@@ -58,20 +56,19 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
         else { setTipuriAbonament(prev => prev.map(ab => (ab.id === id ? { ...ab, [field]: finalValue } : ab))); }
     };
 
-    const confirmDelete = async () => {
-        if(!supabase || !abonamentToDelete) return;
-        setDeleteLoading(true);
-        const { error } = await supabase.from('tipuri_abonament').delete().eq('id', abonamentToDelete.id);
-        setDeleteLoading(false);
-        if (error) { alert(`Eroare la ștergere: ${error.message}`); }
-        else { setTipuriAbonament(prev => prev.filter(ab => ab.id !== abonamentToDelete.id)); }
-        setAbonamentToDelete(null);
+    const handleDelete = async (id: string) => {
+        if(!supabase) return;
+        if (window.confirm("Sunteți sigur că doriți să ștergeți această înregistrare? Această acțiune este ireversibilă.")) {
+            const { error } = await supabase.from('tipuri_abonament').delete().eq('id', id);
+            if (error) { alert(`Eroare la ștergere: ${error.message}`); }
+            else { setTipuriAbonament(prev => prev.filter(ab => ab.id !== id)); }
+        }
     };
     
     const sortedAbonamente = [...tipuriAbonament].sort((a,b) => a.numar_membri - b.numar_membri);
 
     return (
-        <div>
+        <div className="max-w-5xl mx-auto">
              <Button onClick={onBack} variant="secondary" className="mb-6">
                 <ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu
              </Button>
@@ -130,7 +127,7 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
                                         </div>
                                     </td>
                                     <td className="p-3 text-right w-32">
-                                        <Button onClick={() => setAbonamentToDelete(ab)} variant="danger" size="sm" className="opacity-60 hover:opacity-100 transition-opacity" title="Șterge acest tip">
+                                        <Button onClick={() => handleDelete(ab.id)} variant="danger" size="sm" className="opacity-60 hover:opacity-100 transition-opacity" title="Șterge acest tip">
                                             <TrashIcon className="w-4 h-4" />
                                         </Button>
                                     </td>
@@ -150,14 +147,6 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
                     <li>Sistemul de generare automată a plăților folosește aceste configurații pentru a calcula restanțele lunare.</li>
                 </ul>
             </div>
-            <ConfirmationModal
-                isOpen={!!abonamentToDelete}
-                onClose={() => setAbonamentToDelete(null)}
-                onConfirm={confirmDelete}
-                title="Confirmare Ștergere Abonament"
-                message="Sunteți sigur că doriți să ștergeți această înregistrare? Această acțiune este ireversibilă."
-                loading={deleteLoading}
-            />
         </div>
     );
 };

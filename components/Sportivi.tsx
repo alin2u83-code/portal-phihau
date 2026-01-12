@@ -1,19 +1,10 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { Sportiv, Grupa, TipAbonament, Familie, Rol, View, Grad, Participare } from '../types';
-import { Button, Modal, Input, Select, Card, ConfirmationModal } from './ui';
+import React, { useState, useMemo } from 'react';
+import { Sportiv, Grupa, TipAbonament, Familie, Rol } from '../types';
+import { Button, Modal, Input, Select, Card } from './ui';
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon, ShieldCheckIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
-
-const getAge = (dateString: string) => { 
-    if (!dateString) return null;
-    const today = new Date(); 
-    const birthDate = new Date(dateString); 
-    let age = today.getFullYear() - birthDate.getFullYear(); 
-    const m = today.getMonth() - birthDate.getMonth(); 
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; } 
-    return age; 
-};
+import { BirthDateInput } from './BirthDateInput';
 
 // --- Small Modals for Quick Adds ---
 const QuickAddModal: React.FC<{ title: string; label: string; isOpen: boolean; onClose: () => void; onSave: (name: string) => Promise<{ id: string, nume: string } | null>; }> = ({ title, label, isOpen, onClose, onSave }) => {
@@ -116,7 +107,7 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({ formState, handle
     <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input label="Nume" name="nume" value={formState.nume} onChange={handleChange} required />
-            <Input label="Prenume" name="prenume" value={formState.prenume} onChange={handleChange} />
+            <Input label="Prenume" name="prenume" value={formState.prenume} onChange={handleChange} required />
         </div>
         
         {!isEditMode && (
@@ -134,11 +125,16 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({ formState, handle
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-             <Input label="Data Nașterii" name="data_nasterii" type="date" value={formState.data_nasterii} onChange={handleChange} required />
+             <BirthDateInput 
+                label="Data Nașterii"
+                value={formState.data_nasterii}
+                onChange={(date) => handleChange({ target: { name: 'data_nasterii', value: date } })}
+                required
+             />
              <Input label="CNP" name="cnp" value={formState.cnp || ''} onChange={handleChange} maxLength={13} />
         </div>
          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input label="Data Înscrierii" name="data_inscrierii" type="date" value={formState.data_inscrierii} onChange={handleChange} />
+            <Input label="Data Înscrierii" name="data_inscrierii" type="date" value={formState.data_inscrierii} onChange={handleChange} required />
             <div className="flex items-end gap-2">
                 <div className="flex-grow">
                      <Select label="Familie" name="familie_id" value={formState.familie_id || ''} onChange={handleChange}>
@@ -146,7 +142,7 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({ formState, handle
                         {familii.map(f => <option key={f.id} value={f.id}>{f.nume}</option>)}
                     </Select>
                 </div>
-                <Button type="button" onClick={onAddFamilie} variant="secondary" size="sm" className="!px-3 !py-2.5" title="Adaugă Familie Nouă"><PlusIcon className="w-5 h-5"/></Button>
+                <Button type="button" onClick={onAddFamilie} variant="secondary" size="sm" className="!px-3 !py-2" title="Adaugă Familie Nouă"><PlusIcon className="w-5 h-5"/></Button>
             </div>
          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -157,7 +153,7 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({ formState, handle
                         {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
                     </Select>
                 </div>
-                <Button type="button" onClick={onAddGrupa} variant="secondary" size="sm" className="!px-3 !py-2.5" title="Adaugă Grupă Nouă"><PlusIcon className="w-5 h-5"/></Button>
+                <Button type="button" onClick={onAddGrupa} variant="secondary" size="sm" className="!px-3 !py-2" title="Adaugă Grupă Nouă"><PlusIcon className="w-5 h-5"/></Button>
             </div>
             <div className="flex items-end gap-2">
                 <div className="flex-grow">
@@ -166,7 +162,7 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({ formState, handle
                         {tipuriAbonament.filter(ab => ab.numar_membri === 1).map(ab => <option key={ab.id} value={ab.id}>{ab.denumire}</option>)}
                     </Select>
                 </div>
-                <Button type="button" onClick={onAddAbonament} variant="secondary" size="sm" className="!px-3 !py-2.5" title="Adaugă Tip Abonament Nou"><PlusIcon className="w-5 h-5"/></Button>
+                <Button type="button" onClick={onAddAbonament} variant="secondary" size="sm" className="!px-3 !py-2" title="Adaugă Tip Abonament Nou"><PlusIcon className="w-5 h-5"/></Button>
             </div>
          </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -301,7 +297,7 @@ const SportivFormModal: React.FC<SportivFormModalProps> = ({ isOpen, onClose, on
             } else if (type === 'grupa') {
                 const { data: newGrupa, error } = await supabase.from('grupe').insert({ denumire: data, sala: 'N/A' }).select().single();
                  if (error) throw error;
-                setGrupe(prev => [...prev, { ...newGrupa, orar: [] }]);
+                setGrupe(prev => [...prev, { ...newGrupa, program: [] }]);
                 setFormState(prev => ({ ...prev, grupa_id: newGrupa.id }));
                 result = newGrupa;
             } else if (type === 'abonament') {
@@ -366,40 +362,16 @@ interface SportiviManagementProps {
     customFields: string[]; 
     setCustomFields: React.Dispatch<React.SetStateAction<string[]>>;
     allRoles: Rol[];
-    onNavigate?: (view: View, state?: any) => void;
-    navigationState?: any;
-    grade: Grad[];
-    setParticipari: React.Dispatch<React.SetStateAction<Participare[]>>;
 }
 
-export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, sportivi, setSportivi, grupe, setGrupe, tipuriAbonament, setTipuriAbonament, familii, setFamilii, customFields, allRoles, onNavigate, navigationState, grade, setParticipari }) => {
+export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, sportivi, setSportivi, grupe, setGrupe, tipuriAbonament, setTipuriAbonament, familii, setFamilii, customFields, allRoles }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sportivToEdit, setSportivToEdit] = useState<Sportiv | null>(null);
-  const [sportivToDelete, setSportivToDelete] = useState<Sportiv | null>(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
   const [successToast, setSuccessToast] = useState<string | null>(null);
   const { showError } = useError();
   
   const initialFilters = { searchTerm: '', grupa: 'all', status: '', rol: '' };
   const [filters, setFilters] = useState(initialFilters);
-
-  useEffect(() => {
-    if (navigationState?.highlightSportivId) {
-        const sportiv = sportivi.find(s => s.id === navigationState.highlightSportivId);
-        if (sportiv) {
-            setSportivToEdit(sportiv);
-            setIsModalOpen(true);
-        }
-    }
-  }, [navigationState, sportivi]);
-
-  const handleBack = () => {
-    if (onNavigate && navigationState?.from === 'examene' && navigationState?.returnToExamenId) {
-      onNavigate('examene', { reopenExamenId: navigationState.returnToExamenId });
-    } else {
-      onBack();
-    }
-  };
 
   const showSuccessToast = (message: string) => {
     setSuccessToast(message);
@@ -484,36 +456,6 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
             finalNewSportiv.roluri = finalNewSportiv.sportivi_roluri ? finalNewSportiv.sportivi_roluri.map((item: any) => item.roluri) : [];
             delete finalNewSportiv.sportivi_roluri;
             setSportivi(prev => [...prev, finalNewSportiv]);
-
-            if (grade && grade.length > 0) {
-                const beginnerGrade = [...grade].sort((a, b) => a.ordine - b.ordine)[0];
-                if (beginnerGrade) {
-                    // TODO: The 'participari' table requires a non-null 'examen_id'.
-                    // Automatic assignment of a beginner grade is not possible without a corresponding
-                    // "Initial Assignment" exam record. This logic is disabled until a new
-                    // method for assigning initial grades is implemented (e.g., a nullable examen_id
-                    // or a dedicated field on the sportivi table).
-                    /*
-                    const { data: newParticipare, error: participareError } = await supabase
-                        .from('participari')
-                        .insert({
-                            sportiv_id: finalNewSportiv.id,
-                            grad_sustinut_id: beginnerGrade.id,
-                            rezultat: 'Admis',
-                            observatii: 'Grad inițial alocat automat la înscriere.',
-                            examen_id: null, // This causes an error due to NOT NULL constraint
-                        })
-                        .select()
-                        .single();
-
-                    if (participareError) {
-                        showError("Avertisment Grad Inițial", `Sportivul a fost creat, dar gradul de începător nu a putut fi alocat automat: ${participareError.message}`);
-                    } else if (newParticipare) {
-                        setParticipari(prev => [...prev, newParticipare as Participare]);
-                    }
-                    */
-                }
-            }
         }
 
         return { success: true };
@@ -541,29 +483,25 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
     return {success: true};
   };
 
-  const handleDeleteSportiv = async () => {
-      if (!supabase || !sportivToDelete) return;
+  const handleDeleteSportiv = async (sportiv: Sportiv) => {
+      if (!supabase) return;
       
-      setDeleteLoading(true);
-      const { error } = await supabase.from('sportivi').delete().eq('id', sportivToDelete.id);
-      setDeleteLoading(false);
-
-      if (error) {
-          showError("Eroare la ștergere", error);
-      } else {
-          setSportivi(prev => prev.filter(s => s.id !== sportivToDelete.id));
+      if (window.confirm("Sunteți sigur că doriți să ștergeți această înregistrare? Această acțiune este ireversibilă.")) {
+          const { error } = await supabase.from('sportivi').delete().eq('id', sportiv.id);
+          if (error) {
+              showError("Eroare la ștergere", error);
+          } else {
+              setSportivi(prev => prev.filter(s => s.id !== sportiv.id));
+          }
       }
-      setSportivToDelete(null);
   };
 
   const handleOpenAdd = () => { setSportivToEdit(null); setIsModalOpen(true); };
   const handleOpenEdit = (sportiv: Sportiv) => { setSportivToEdit(sportiv); setIsModalOpen(true); };
-  const backButtonText = navigationState?.from === 'examene' ? "Înapoi la Sesiune Examen" : "Meniu";
-
 
   return (
     <div>
-        <Button onClick={handleBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> {backButtonText}</Button>
+        <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
         <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl font-bold text-white">Listă Sportivi</h1>
             <Button onClick={handleOpenAdd} variant="info">
@@ -594,43 +532,35 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
 
         <Card className="overflow-hidden p-0">
             <div className="overflow-x-auto">
-                <table className="w-full text-[13px] text-left table-fixed">
-                    <thead className="bg-slate-700/50 text-xs uppercase text-slate-400">
+                <table className="w-full text-left min-w-[800px]">
+                    <thead className="bg-slate-700/50">
                         <tr>
-                            <th className="py-1 px-2 font-semibold whitespace-nowrap">Nume</th>
-                            <th className="py-1 px-2 font-semibold whitespace-nowrap w-20">Vârstă</th>
-                            <th className="py-1 px-2 font-semibold whitespace-nowrap w-32">Grupă</th>
-                            <th className="py-1 px-2 font-semibold whitespace-nowrap w-32 hidden md:table-cell">Familie</th>
-                            <th className="py-1 px-2 font-semibold whitespace-nowrap w-24">Statut</th>
-                            <th className="py-1 px-2 font-semibold whitespace-nowrap w-40 hidden lg:table-cell">Roluri</th>
-                            <th className="py-1 px-2 font-semibold whitespace-nowrap hidden xl:table-cell">Contact</th>
-                            <th className="py-1 px-2 font-semibold whitespace-nowrap w-32 hidden xl:table-cell">Înscris la</th>
-                            <th className="py-1 px-2 font-semibold whitespace-nowrap w-24 hidden 2xl:table-cell">Vacanță</th>
-                            <th className="py-1 px-2 font-semibold whitespace-nowrap w-36 text-right">Acțiuni</th>
+                            <th className="p-4 text-sm font-semibold text-white">Nume</th>
+                            <th className="p-4 text-sm font-semibold text-white">Grupă</th>
+                            <th className="p-4 text-sm font-semibold text-white">Statut</th>
+                            <th className="p-4 text-sm font-semibold text-white">Roluri</th>
+                            {customFields.map(field => <th key={field} className="p-4 text-sm font-semibold text-white">{field}</th>)}
+                            <th className="p-4 text-right text-sm font-semibold text-white">Acțiuni</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-700">
                         {filteredSportivi.map(sportiv => (
                             <tr key={sportiv.id} className="hover:bg-slate-700/50">
-                                <td className="py-1 px-2 font-bold whitespace-nowrap overflow-hidden text-ellipsis">{sportiv.nume} {sportiv.prenume}</td>
-                                <td className="py-1 px-2 text-slate-300 whitespace-nowrap">{getAge(sportiv.data_nasterii)} ani</td>
-                                <td className="py-1 px-2 text-slate-300 whitespace-nowrap overflow-hidden text-ellipsis">{grupe.find(g => g.id === sportiv.grupa_id)?.denumire || '-'}</td>
-                                <td className="py-1 px-2 text-slate-300 hidden md:table-cell whitespace-nowrap">{familii.find(f => f.id === sportiv.familie_id)?.nume || 'Individual'}</td>
-                                <td className="py-1 px-2 whitespace-nowrap">
+                                <td className="p-4 font-bold">{sportiv.nume} {sportiv.prenume}</td>
+                                <td className="p-4 text-slate-300">{grupe.find(g => g.id === sportiv.grupa_id)?.denumire || '-'}</td>
+                                <td className="p-4">
                                     <span className={`px-2 py-1 text-xs rounded-full font-bold uppercase ${sportiv.status === 'Activ' ? 'text-green-300 bg-green-600/20' : 'text-red-300 bg-red-600/20'}`}>{sportiv.status}</span>
                                 </td>
-                                <td className="py-1 px-2 hidden lg:table-cell">
+                                <td className="p-4">
                                     <div className="flex flex-wrap gap-1">
                                         {sportiv.roluri.map(r => <RoleBadge key={r.id} role={r} />)}
                                     </div>
                                 </td>
-                                <td className="py-1 px-2 text-slate-300 truncate hidden xl:table-cell">{sportiv.email || sportiv.username || '-'}</td>
-                                <td className="py-1 px-2 text-slate-300 hidden xl:table-cell whitespace-nowrap">{new Date(sportiv.data_inscrierii).toLocaleDateString('ro-RO')}</td>
-                                <td className="py-1 px-2 text-slate-300 hidden 2xl:table-cell whitespace-nowrap">{sportiv.participa_vacanta ? 'Da' : 'Nu'}</td>
-                                <td className="py-1 px-2 text-right">
+                                {customFields.map(field => <td key={field} className="p-4 text-slate-300">{sportiv[field] || '-'}</td>)}
+                                <td className="p-4 text-right w-32">
                                     <div className="flex justify-end gap-2">
                                         <Button size="sm" variant="secondary" onClick={() => handleOpenEdit(sportiv)} title="Editează profil"><EditIcon /></Button>
-                                        <Button size="sm" variant="danger" onClick={() => setSportivToDelete(sportiv)} title="Șterge profil"><TrashIcon /></Button>
+                                        <Button size="sm" variant="danger" onClick={() => handleDeleteSportiv(sportiv)} title="Șterge profil"><TrashIcon /></Button>
                                     </div>
                                 </td>
                             </tr>
@@ -651,15 +581,6 @@ export const SportiviManagement: React.FC<SportiviManagementProps> = ({ onBack, 
             tipuriAbonament={tipuriAbonament} setTipuriAbonament={setTipuriAbonament}
             customFields={customFields}
             showSuccessToast={showSuccessToast}
-        />
-
-        <ConfirmationModal
-            isOpen={!!sportivToDelete}
-            onClose={() => setSportivToDelete(null)}
-            onConfirm={handleDeleteSportiv}
-            title={`Confirmare Ștergere`}
-            message="Sunteți sigur că doriți să ștergeți această înregistrare? Această acțiune este ireversibilă."
-            loading={deleteLoading}
         />
     </div>
   );

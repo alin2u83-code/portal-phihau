@@ -1,65 +1,72 @@
 import React from 'react';
-import { View, Rol, MenuItem } from '../types';
-import { 
-    HomeIcon, 
-    UsersIcon, 
-    TrophyIcon, 
-    BanknotesIcon, 
-    CalendarDaysIcon, 
-    UserCircleIcon, 
-    CogIcon, 
-    AcademicCapIcon, 
-    WrenchScrewdriverIcon,
-    ShieldCheckIcon,
-    ClipboardDocumentListIcon,
-    BuildingIcon,
-    ActivityIcon
-} from './icons';
+import { View, Rol } from '../types';
+import { HomeIcon, UsersIcon, TrophyIcon, ClipboardDocumentListIcon, BanknotesIcon, CalendarDaysIcon, UserCircleIcon, CogIcon } from './icons';
+
+export interface MenuItem {
+    label: string;
+    icon: React.ElementType;
+    view?: View;
+    roles?: Rol['nume'][];
+    submenu?: SubMenuItem[];
+}
+
+export interface SubMenuItem {
+    label: string;
+    view: View;
+    roles?: Rol['nume'][];
+}
 
 export const adminMenu: MenuItem[] = [
     { label: 'Dashboard', icon: HomeIcon, view: 'dashboard' },
-    {
-        label: 'Management',
-        icon: BuildingIcon,
+    { 
+        label: 'Sportivi & Utilizatori', 
+        icon: UsersIcon,
         submenu: [
-            { label: 'Sportivi', icon: UsersIcon, view: 'sportivi' },
-            { label: 'Grupe & Orar', icon: UsersIcon, view: 'grupe' },
-            { label: 'Familii', icon: BuildingIcon, view: 'familii' }
+             { label: 'Listă Sportivi', view: 'sportivi' },
+             { label: 'Gestiune Familii', view: 'familii', roles: ['Admin', 'Instructor'] },
+             { label: 'Acces Utilizatori', view: 'user-management', roles: ['Admin'] }
         ]
     },
     {
         label: 'Activități',
-        icon: ActivityIcon,
+        icon: TrophyIcon,
         submenu: [
-            { label: 'Antrenamente', icon: ActivityIcon, view: 'prezenta' },
-            { label: 'Examene', icon: AcademicCapIcon, view: 'examene' },
-            { label: 'Stagii & Competiții', icon: TrophyIcon, view: 'stagii' },
+             { view: 'examene', label: 'Configurare Examene' },
+             { view: 'grade', label: 'Nomenclator Grade' },
+             { view: 'stagii', label: 'Listă Stagii' },
+             { view: 'competitii', label: 'Listă Competiții' }
         ]
     },
-    {
-        label: 'Financiar',
-        icon: BanknotesIcon,
-        submenu: [
-            { label: 'Facturare & Datorii', icon: BanknotesIcon, view: 'plati-scadente' },
-            { label: 'Raport Financiar', icon: ClipboardDocumentListIcon, view: 'raport-financiar' },
-        ]
-
+    { 
+        label: 'Antrenamente', 
+        icon: ClipboardDocumentListIcon, 
+        submenu: [ 
+            { view: 'prezenta', label: 'Înregistrare Prezențe' }, 
+            { view: 'grupe', label: 'Orar & Gestiune Grupe' }, 
+            { view: 'raport-prezenta', label: 'Raport Prezențe' } 
+        ] 
     },
-    {
-        label: 'Configurări',
-        icon: CogIcon,
-        submenu: [
-            { label: 'Grade & Tarife', icon: TrophyIcon, view: 'grade' },
-            { label: 'Tipuri Abonament', icon: BanknotesIcon, view: 'tipuri-abonament' },
-            { label: 'Nomenclator Prețuri', icon: WrenchScrewdriverIcon, view: 'configurare-preturi' },
-            { label: 'Utilizatori & Roluri', icon: ShieldCheckIcon, view: 'user-management', roles: ['Admin'] },
-            { label: 'Mentenanță Sistem', icon: WrenchScrewdriverIcon, view: 'maintenance', roles: ['Admin'] },
-        ]
-    }
+    { 
+        label: 'Financiar', 
+        icon: BanknotesIcon, 
+        submenu: [ 
+            { view: 'plati-scadente', label: 'Facturi' }, 
+            { view: 'jurnal-incasari', label: 'Jurnal Încasări' }, 
+            { view: 'raport-financiar', label: 'Raport Financiar' }, 
+        ] 
+    },
+     { 
+        label: 'Configurări', 
+        icon: CogIcon, 
+        submenu: [ 
+             { view: 'tipuri-abonament', label: 'Configurare Abonamente' }, 
+             { view: 'configurare-preturi', label: 'Configurare Alte Prețuri' } 
+        ] 
+    },
 ];
 
 export const sportivMenu: MenuItem[] = [
     { label: 'Portalul Meu', icon: HomeIcon, view: 'dashboard' },
     { label: 'Evenimentele Mele', icon: CalendarDaysIcon, view: 'evenimentele-mele' },
-    { label: 'Profilul Meu', icon: UserCircleIcon, view: 'editare-profil-personal' },
+    { label: 'Profil & Securitate', icon: UserCircleIcon, view: 'editare-profil-personal' },
 ];

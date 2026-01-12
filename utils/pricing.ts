@@ -36,8 +36,7 @@ export const getPretProdus = (
 
   const preturiPotrivite = preturi.filter(p => 
     p.categorie === categorie &&
-    // FIX: Corrected typo from `denumire_serviciu` to `denumire_servisciu`.
-    p.denumire_servisciu === denumireServiciu
+    p.denumire_serviciu === denumireServiciu
   );
 
   if (preturiPotrivite.length === 0) return undefined;

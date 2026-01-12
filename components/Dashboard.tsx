@@ -1,126 +1,83 @@
-import React, { useMemo, useEffect } from 'react';
-// FIX: Removed unused and non-existent type 'PrezentaAntrenament'.
-import { View, User, Sportiv, Plata, Participare, Rezultat, Prezenta, Examen, Grad, PretConfig } from '../types';
-import { Card, Button } from './ui';
-import { 
-  ClipboardCheckIcon, AcademicCapIcon, BanknotesIcon, WrenchScrewdriverIcon, DownloadIcon, UsersIcon, TrophyIcon, CogIcon, ActivityIcon
-} from './icons';
-import { useNotification } from './NotificationProvider';
+import React from 'react';
+import { View } from '../types';
+import { Card } from './ui';
+import { UsersIcon, BanknotesIcon, TrophyIcon, ClipboardDocumentListIcon, AcademicCapIcon, CogIcon } from './icons';
 
 interface DashboardProps {
   onNavigate: (view: View) => void;
-  currentUser: User;
-  sportivi: Sportiv[];
-  plati: Plata[];
-  participari: Participare[];
-  rezultate: Rezultat[];
-  examene: Examen[];
-  grade: Grad[];
-  preturiConfig: PretConfig[];
 }
 
-const ActionCard: React.FC<{ title: string; icon: React.ElementType; onClick: () => void }> = ({ title, icon: Icon, onClick }) => (
-  <button 
-    onClick={onClick}
-    className="group relative flex flex-col items-center justify-center py-6 px-4 text-center h-40 w-full bg-brand-primary rounded-lg shadow-lg hover:shadow-brand-secondary/40 transform transition-all duration-300 hover:-translate-y-1 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-brand-secondary/50 cursor-pointer"
-    style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.4)' }}
-  >
-    <Icon className="h-12 w-12 text-white mb-3 transition-transform duration-300 group-hover:scale-110" />
-    <span className="text-lg font-bold text-white">{title}</span>
-  </button>
+interface NavItem {
+  view: View; 
+  title: string;
+  description: string;
+  tooltip: string;
+  icon: React.ElementType;
+  color: string;
+}
+
+const navItems: NavItem[] = [
+  {
+    view: 'sportivi',
+    title: 'Sportivi & Utilizatori',
+    description: 'Gestionează sportivi, familii și conturi de acces.',
+    tooltip: 'Gestiune Date Sportivi, Familii & Conturi',
+    icon: UsersIcon,
+    color: 'bg-brand-primary'
+  },
+  {
+    view: 'examene',
+    title: 'Activități & Evaluări',
+    description: 'Definește examene, stagii și competiții.',
+    tooltip: 'Management Examene, Stagii & Competiții',
+    icon: TrophyIcon,
+    color: 'bg-status-warning'
+  },
+  {
+    view: 'prezenta',
+    title: 'Antrenamente',
+    description: 'Înregistrează prezența și configurează orarul.',
+    tooltip: 'Monitorizare Prezență & Orar',
+    icon: ClipboardDocumentListIcon,
+    color: 'bg-brand-secondary'
+  },
+  {
+    view: 'plati-scadente',
+    title: 'Financiar',
+    description: 'Gestionează plăți, facturi și rapoarte financiare.',
+    tooltip: 'Management Financiar & Facturare',
+    icon: BanknotesIcon,
+    color: 'bg-status-success'
+  },
+];
+
+const NavCard: React.FC<{ item: NavItem, onClick: () => void }> = ({ item, onClick }) => (
+    <div 
+      onClick={onClick} 
+      className="group relative transform transition-all duration-300 hover:scale-105 cursor-pointer rounded-lg shadow-md shadow-brand-primary/30 hover:shadow-lg hover:shadow-brand-secondary/40"
+      title={item.tooltip}
+    >
+      <Card className="flex flex-col items-center justify-center text-center h-full border-slate-700 group-hover:border-brand-secondary/40 rounded-lg bg-slate-800/50 backdrop-blur-sm">
+        <div className={`p-4 rounded-full ${item.color} mb-4 shadow-lg group-hover:ring-4 group-hover:ring-white/10 transition-all`}>
+          <item.icon className="h-10 w-10 text-white" />
+        </div>
+        <h3 className="text-xl font-bold text-white mb-2 group-hover:text-brand-secondary transition-colors">{item.title}</h3>
+        <p className="text-slate-400 text-sm">{item.description}</p>
+      </Card>
+    </div>
 );
 
 
-export const Dashboard: React.FC<DashboardProps> = ({ 
-  onNavigate, sportivi, plati, participari, rezultate, examene, grade, preturiConfig
-}) => {
-  const { showNotification } = useNotification();
-
-  useEffect(() => {
-    const sportiviFaraDataNasterii = sportivi.filter(s => !s.data_nasterii && s.status === 'Activ');
-    if (sportiviFaraDataNasterii.length > 0) {
-        showNotification({
-            type: 'warning',
-            title: 'Alertă Mentenanță',
-            message: `${sportiviFaraDataNasterii.length} sportiv(i) activ(i) nu au data nașterii completată. Acest lucru poate bloca calculul eligibilității la examene.`
-        });
-    }
-  }, [sportivi, showNotification]);
-
-   const pricesStatus = useMemo(() => {
-    if (!grade || grade.length === 0) return { configured: true, message: 'N/A' };
-    
-    const gradesToCheck = grade.filter(g => !(g.nume.toLowerCase().includes('debutant') || g.ordine <= 1));
-    if (gradesToCheck.length === 0) return { configured: true, message: 'N/A - Doar debutanți' };
-    
-    const gradesWithoutPrice = gradesToCheck.filter(g => {
-        const data = new Date();
-        const preturiValabile = preturiConfig
-            .filter(p => p.categorie === 'Taxa Examen' && p.denumire_servisciu === g.nume && new Date(p.valabil_de_la_data) <= data);
-        return preturiValabile.length === 0;
-    });
-
-    if (gradesWithoutPrice.length === 0) {
-        return { configured: true, message: 'Configurat' };
-    } else {
-        return { configured: false, message: `${gradesWithoutPrice.length} ${gradesWithoutPrice.length === 1 ? 'grad' : 'grade'} fără preț` };
-    }
-}, [grade, preturiConfig]);
-
-  const handleExportBackup = () => {
-    const backupData = {
-      sportivi,
-      plati,
-      participari,
-      rezultate,
-      grade,
-      examene
-    };
-    const jsonString = JSON.stringify(backupData, null, 2);
-    const blob = new Blob([jsonString], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `phi_hau_backup_complet_${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    showNotification({ type: 'success', title: 'Backup Completat', message: 'Fișierul JSON cu datele critice a fost descărcat.'});
-  };
-
-  const actionItems = [
-    { title: 'Antrenamente', icon: ActivityIcon, onClick: () => onNavigate('prezenta') },
-    { title: 'Examene', icon: AcademicCapIcon, onClick: () => onNavigate('examene') },
-    { title: 'Sportivi', icon: UsersIcon, onClick: () => onNavigate('sportivi') },
-    { title: 'Facturi', icon: BanknotesIcon, onClick: () => onNavigate('plati-scadente') },
-    { title: 'Mentenanță', icon: WrenchScrewdriverIcon, onClick: () => onNavigate('maintenance') }
-  ];
-
+export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   return (
-    <div className="space-y-8 animate-fade-in-down">
-        <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-            <div className="text-center md:text-left">
-                <h1 className="text-4xl font-bold text-white tracking-tight">Centru de Comandă</h1>
-                 <div className="flex items-center gap-4 mt-2 flex-wrap justify-center md:justify-start">
-                    <p className="text-slate-300">Accesați rapid cele mai importante module ale aplicației.</p>
-                    <div className="flex items-center gap-2">
-                        <span className={`w-2 h-2 rounded-full ${pricesStatus.configured ? 'bg-green-400' : 'bg-amber-400'}`}></span>
-                        <span className={`text-xs font-bold ${pricesStatus.configured ? 'text-green-300' : 'text-amber-300'}`}>
-                            Status Prețuri: {pricesStatus.message}
-                        </span>
-                    </div>
-                </div>
-            </div>
-            <Button onClick={handleExportBackup} variant="secondary" className="bg-green-700/80 hover:bg-green-600 border border-green-500/50 shadow-lg">
-                <DownloadIcon className="w-5 h-5 mr-2" />
-                Export Backup Complet (Excel)
-            </Button>
-        </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-        {actionItems.map(item => (
-          <ActionCard key={item.title} title={item.title} icon={item.icon} onClick={item.onClick} />
+    <div className="max-w-7xl mx-auto">
+      <h1 className="text-4xl md:text-5xl font-extrabold mb-4 text-white text-center" style={{ textShadow: '2px 2px 8px rgba(0,0,0,0.6)' }}>Clubul Phi Hau Iași</h1>
+      <p className="text-center text-slate-300 mb-12 max-w-2xl mx-auto">
+        Bun venit în panoul de administrare. Selectați un modul de mai jos pentru a începe gestionarea activității clubului.
+      </p>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 px-4">
+        {navItems.map(item => (
+          <NavCard key={item.view} item={item} onClick={() => onNavigate(item.view)} />
         ))}
       </div>
     </div>

@@ -19,7 +19,7 @@ export const useError = () => {
   return context;
 };
 
-const ErrorToast: React.FC<{ title: string; message: string; onClose: () => void; className?: string }> = ({ title, message, onClose, className }) => {
+const ErrorToast: React.FC<{ title: string; message: string; onClose: () => void }> = ({ title, message, onClose }) => {
     
     const handleCopy = () => {
         navigator.clipboard.writeText(message).catch(err => {
@@ -28,7 +28,7 @@ const ErrorToast: React.FC<{ title: string; message: string; onClose: () => void
     };
 
     return (
-        <div className={`w-full max-w-sm bg-red-900/90 backdrop-blur-sm text-white rounded-lg shadow-2xl shadow-red-900/50 border border-red-700 animate-fade-in-down ${className}`}>
+        <div className="w-full max-w-sm bg-red-900/90 backdrop-blur-sm text-white rounded-lg shadow-2xl shadow-red-900/50 border border-red-700 animate-fade-in-down">
             <div className="p-4">
                 <div className="flex items-start">
                     <div className="flex-shrink-0">
@@ -38,7 +38,7 @@ const ErrorToast: React.FC<{ title: string; message: string; onClose: () => void
                     </div>
                     <div className="ml-3 w-0 flex-1">
                         <p className="text-md font-bold text-red-200">{title}</p>
-                        <p className="mt-1 text-sm text-red-300 break-words max-h-40 overflow-y-auto">{message}</p>
+                        <p className="mt-1 text-sm text-red-300 break-words">{message}</p>
                         <div className="mt-3 flex gap-2">
                             <button onClick={handleCopy} className="text-xs bg-red-700/50 hover:bg-red-700 text-white font-semibold py-1 px-2 rounded-md transition-colors">
                                 Copiază Eroarea
@@ -82,15 +82,9 @@ export const ErrorProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   return (
     <ErrorContext.Provider value={value}>
       {children}
-      <div className="fixed inset-x-0 top-5 z-[100] flex flex-col items-center space-y-4 pointer-events-none">
+      <div className="fixed top-5 right-5 z-[100] space-y-2">
         {errors.map(error => (
-          <ErrorToast 
-            key={error.id} 
-            title={error.title} 
-            message={error.message} 
-            onClose={() => hideError(error.id)}
-            className="pointer-events-auto"
-          />
+          <ErrorToast key={error.id} title={error.title} message={error.message} onClose={() => hideError(error.id)} />
         ))}
       </div>
     </ErrorContext.Provider>

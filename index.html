@@ -5,16 +5,12 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Qwan Ki Do Club Management</title>
-    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
         darkMode: 'class',
         theme: {
           extend: {
-            fontFamily: {
-              sans: ['Inter', 'system-ui', 'sans-serif'],
-            },
             colors: {
               'brand-primary': '#3D3D99',      // Albastru Închis
               'brand-secondary': '#4DBCE9',   // Albastru Deschis
@@ -36,9 +32,7 @@
               }
             },
             animation: {
-              'fade-in-down': 'fade-in-down 0.5s ease-out forwards',
-              'pulse-border': 'pulse-border 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-              'pulse-amber-border': 'pulse-amber-border 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              'fade-in-down': 'fade-in-down 0.5s ease-out forwards'
             },
             keyframes: {
               'fade-in-down': {
@@ -50,14 +44,6 @@
                   opacity: '1',
                   transform: 'translateY(0)'
                 },
-              },
-               'pulse-border': {
-                '0%, 100%': { 'border-color': 'rgba(220, 38, 38, 0.8)' }, // red-600
-                '50%': { 'border-color': 'rgba(220, 38, 38, 0.2)' },
-              },
-               'pulse-amber-border': {
-                '0%, 100%': { 'border-color': 'rgba(245, 158, 11, 0.8)' }, // amber-500
-                '50%': { 'border-color': 'rgba(245, 158, 11, 0.2)' },
               }
             }
           }
@@ -76,7 +62,7 @@
 }
 </script>
 </head>
-  <body class="bg-slate-900 text-slate-100 font-sans">
+  <body class="bg-brand-primary text-white">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>

@@ -49,8 +49,8 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ plati, setPlati,
 
     const isMultiple = platiInitiale.length > 1;
 
-    const echipamenteDisponibile = useMemo(() => [...new Set(preturiConfig.filter(p => p.categorie === 'Echipament').map(p => p.denumire_servisciu))], [preturiConfig]);
-    const marimiDisponibile = useMemo(() => preturiConfig.filter(p => p.categorie === 'Echipament' && p.denumire_servisciu === selectedEchipament), [preturiConfig, selectedEchipament]);
+    const echipamenteDisponibile = useMemo(() => [...new Set(preturiConfig.filter(p => p.categorie === 'Echipament').map(p => p.denumire_serviciu))], [preturiConfig]);
+    const marimiDisponibile = useMemo(() => preturiConfig.filter(p => p.categorie === 'Echipament' && p.denumire_serviciu === selectedEchipament), [preturiConfig, selectedEchipament]);
 
     useEffect(() => {
         if (platiInitiale.length > 0) {
@@ -105,12 +105,10 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ plati, setPlati,
             setFormState(prev => ({ ...prev, suma: config?.pret || 0, descriere: config ? `Abonament ${config.denumire} ${lunaText}` : '' }));
         } else if (formState.tip === 'Echipament' && selectedMarimeId) {
             const config = preturiConfig.find(p => p.id === selectedMarimeId);
-            // FIX: Corrected typo from `denumire_serviciu` to `denumire_servisciu`.
-            if (config) setFormState(prev => ({...prev, suma: config.suma, descriere: `${config.denumire_servisciu} (${formatMarime(config)})`}));
+            if (config) setFormState(prev => ({...prev, suma: config.suma, descriere: `${config.denumire_serviciu} (${formatMarime(config)})`}));
         } else if (['Taxa Examen', 'Taxa Stagiu', 'Taxa Competitie'].includes(formState.tip)) {
             const config = getPretValabil(preturiConfig, formState.tip as any, formState.data_platii!);
-            // FIX: Corrected typo from `denumire_serviciu` to `denumire_servisciu`.
-            setFormState(prev => ({ ...prev, suma: config?.suma || 0, descriere: config?.denumire_servisciu || '' }));
+            setFormState(prev => ({ ...prev, suma: config?.suma || 0, descriere: config?.denumire_serviciu || '' }));
         }
     }, [formState.sportiv_id, formState.tip, selectedMarimeId, formState.data_platii, sportivi, preturiConfig, tipuriAbonament, platiInitiale]);
 

@@ -1,5 +1,3 @@
-import React from 'react';
-
 export interface Rol {
   id: string;
   nume: 'Sportiv' | 'Instructor' | 'Admin';
@@ -36,17 +34,11 @@ export interface Grad {
   grad_start_id: string | null; // ID-ul gradului necesar pentru a da acest examen
 }
 
-export interface InstructorComisie {
-  nume: string;
-  grad: string;
-  club: string;
-}
-
 export interface Examen {
   id: string;
-  sesiune: 'Vara' | 'Iarna';
   data: string;
   locatia: string;
+  comisia: string;
 }
 
 export interface Participare {
@@ -56,55 +48,27 @@ export interface Participare {
     grad_sustinut_id: string;
     rezultat: 'Admis' | 'Respins' | 'Neprezentat';
     observatii?: string;
-    nota_tehnica?: number | null;
-    nota_doc_luyen?: number | null;
-    nota_song_doi?: number | null;
-    nota_thao_quyen?: number | null;
-    media_generala?: number | null;
-    plata_id?: string | null;
 }
 
-// Reprezintă o instanță de antrenament, generată dintr-un Orar
-export interface Antrenament {
-    id: string;
-    data: string;
-    grupa_id: string;
+export interface ProgramItem {
+    ziua: 'Luni' | 'Marți' | 'Miercuri' | 'Joi' | 'Vineri' | 'Sâmbătă' | 'Duminică';
     ora_start: string;
     ora_sfarsit: string;
-    orar_id: string;
-    status: string; // 'Programat', 'Finalizat'
-    is_recurent: boolean;
-    recurent_group_id: string | null;
-    sportivi_prezenti_ids?: string[]; // Doar pe client
 }
 
-// Orarul saptamanal recurent
-export interface Orar {
-  id: string;
-  grupa_id: string;
-  ziua: 'Luni' | 'Marți' | 'Miercuri' | 'Joi' | 'Vineri' | 'Sâmbătă' | 'Duminică';
-  ora_start: string;
-  ora_sfarsit: string;
-  is_recurent: boolean;
-  recurent_group_id: string | null;
-  data_sfarsit_recurenta: string | null;
-  is_activ: boolean;
-}
-
-// Tabela de legatura pentru prezenta
 export interface Prezenta {
-  id: string;
-  antrenament_id: string; // FK to antrenamente.id
-  sportiv_id: string;
-  status: string; // e.g., 'prezent'
-  created_at: string;
+  id: number;
+  data: string;
+  ora: string;
+  grupa_id: string | null;
+  sportivi_prezenti_ids: string[];
+  tip: 'Normal' | 'Vacanta';
 }
-
 
 export interface Grupa {
     id: string;
     denumire: string;
-    orar: Orar[];
+    program: ProgramItem[];
     sala: string;
 }
 
@@ -129,7 +93,7 @@ export interface Rezultat {
 export interface PretConfig {
     id: string;
     categorie: 'Taxa Examen' | 'Taxa Stagiu' | 'Taxa Competitie' | 'Echipament';
-    denumire_servisciu: string; // Ex: "Vo Phuc", "Tricou", "Stagiu National", "Competitie Copii"
+    denumire_serviciu: string; // Ex: "Vo Phuc", "Tricou", "Stagiu National", "Competitie Copii"
     suma: number;
     valabil_de_la_data: string;
     specificatii?: { // Câmp flexibil pentru atribute
@@ -178,13 +142,4 @@ export interface Familie {
 
 export type User = Sportiv;
 
-export type View = 'dashboard' | 'sportivi' | 'examene' | 'grade' | 'prezenta' | 'grupe' | 'raport-prezenta' | 'stagii' | 'competitii' | 'plati-scadente' | 'jurnal-incasari' | 'raport-financiar' | 'configurare-preturi' | 'tipuri-abonament' | 'familii' | 'user-management' | 'editare-profil-personal' | 'evenimentele-mele' | 'portal-personal' | 'maintenance';
-
-// Navigation Types
-export interface MenuItem {
-    label: string;
-    icon: React.ElementType;
-    view?: View;
-    roles?: Rol['nume'][];
-    submenu?: MenuItem[];
-}
+export type View = 'dashboard' | 'sportivi' | 'examene' | 'grade' | 'prezenta' | 'grupe' | 'raport-prezenta' | 'stagii' | 'competitii' | 'plati-scadente' | 'jurnal-incasari' | 'raport-financiar' | 'configurare-preturi' | 'tipuri-abonament' | 'familii' | 'user-management' | 'editare-profil-personal' | 'evenimentele-mele';

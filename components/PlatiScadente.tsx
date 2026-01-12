@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Plata, Sportiv, TipAbonament, Familie } from '../types';
-import { Button, Input, Select, Card, ConfirmationModal } from './ui';
+import { Button, Input, Select, Card } from './ui';
 import { EditIcon, ArrowLeftIcon, TrashIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
@@ -19,8 +19,6 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
     const [filter, setFilter] = useState({ sportiv: '', tip: '', status: 'Neachitat' });
     const [showSuccess, setShowSuccess] = useState<string|null>(null);
     const [editingPlata, setEditingPlata] = useState<Plata | null>(null);
-    const [plataToDelete, setPlataToDelete] = useState<Plata | null>(null);
-    const [deleteLoading, setDeleteLoading] = useState(false);
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const { showError } = useError();
 
@@ -79,14 +77,11 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
         else if (data) { setPlati(prev => prev.map(p => p.id === plataId ? data as Plata : p)); setEditingPlata(null); }
     };
 
-    const confirmDeletePlata = async () => {
-        if(!plataToDelete || !supabase) return;
-        setDeleteLoading(true);
-        const { error } = await supabase.from('plati').delete().eq('id', plataToDelete.id);
-        setDeleteLoading(false);
+    const handleDeletePlata = async (id: string) => {
+        if(!window.confirm("Ștergeți această factură?")) return;
+        const { error } = await supabase.from('plati').delete().eq('id', id);
         if (error) showError("Eroare la ștergere", error);
-        else setPlati(prev => prev.filter(p => p.id !== plataToDelete.id));
-        setPlataToDelete(null);
+        else setPlati(prev => prev.filter(p => p.id !== id));
     };
 
     const handleCheckboxToggle = (id: string) => {
@@ -142,37 +137,37 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
         </Card>
         {showSuccess && <div className="bg-green-600/50 text-white p-3 rounded-md mb-4 text-center font-semibold">{showSuccess}</div>}
         <div className="bg-slate-800 rounded-lg shadow-lg overflow-x-auto">
-            <table className="w-full text-sm text-left table-fixed">
-                <thead className="bg-slate-700/50 text-xs uppercase text-slate-400">
+            <table className="w-full text-left min-w-[950px]">
+                <thead className="bg-slate-700">
                     <tr>
-                        <th className="p-2 w-12"><input type="checkbox" onChange={(e) => { if(e.target.checked) setSelectedIds(new Set(filteredPlati.filter(p => p.status !== 'Achitat').map(p => p.id))); else setSelectedIds(new Set()); }} /></th>
-                        <th className="p-2 font-semibold">Plată Pentru</th><th className="p-2 font-semibold">Descriere</th><th className="p-2 font-semibold w-32">Sumă</th><th className="p-2 font-semibold w-32">Dată</th><th className="p-2 font-semibold w-36">Status</th><th className="p-2 font-semibold w-48 text-right">Acțiuni</th>
+                        <th className="p-4 w-12"><input type="checkbox" onChange={(e) => { if(e.target.checked) setSelectedIds(new Set(filteredPlati.filter(p => p.status !== 'Achitat').map(p => p.id))); else setSelectedIds(new Set()); }} /></th>
+                        <th className="p-4 font-semibold">Plată Pentru</th><th className="p-4 font-semibold">Descriere</th><th className="p-4 font-semibold">Sumă</th><th className="p-4 font-semibold">Dată</th><th className="p-4 font-semibold">Status</th><th className="p-4 font-semibold text-right">Acțiuni</th>
                     </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-700 text-sm">
+                <tbody>
                     {filteredPlati.map(plata => {
                         const statusClass = plata.status === 'Achitat' ? 'text-green-400' : plata.status === 'Achitat Parțial' ? 'text-yellow-400' : 'text-red-400';
                         const isEditing = editingPlata?.id === plata.id;
                         return (
-                        <tr key={plata.id} className={` ${selectedIds.has(plata.id) ? 'bg-brand-secondary/10' : ''}`}>
-                            <td className="p-2 text-center">{plata.status !== 'Achitat' && <input type="checkbox" checked={selectedIds.has(plata.id)} onChange={() => handleCheckboxToggle(plata.id)} />}</td>
+                        <tr key={plata.id} className={`border-b border-slate-700 ${selectedIds.has(plata.id) ? 'bg-brand-secondary/10' : ''}`}>
+                            <td className="p-4 text-center">{plata.status !== 'Achitat' && <input type="checkbox" checked={selectedIds.has(plata.id)} onChange={() => handleCheckboxToggle(plata.id)} />}</td>
                             {isEditing ? (
                                 <>
-                                    <td className="p-1 font-medium whitespace-nowrap overflow-hidden text-ellipsis">{getEntityName(plata)}</td>
-                                    <td className="p-1"><Input label="" value={editingPlata!.descriere} onChange={e => setEditingPlata({...editingPlata!, descriere: e.target.value})} /></td>
-                                    <td className="p-1"><Input label="" type="number" value={editingPlata!.suma} onChange={e => setEditingPlata({...editingPlata!, suma: parseFloat(e.target.value) || 0})} /></td>
-                                    <td className="p-1">{plata.data}</td>
-                                    <td className="p-1"><Select label="" value={editingPlata!.status} onChange={e => setEditingPlata({...editingPlata!, status: e.target.value as any})}><option value="Neachitat">Neachitat</option><option value="Achitat Parțial">Achitat Parțial</option><option value="Achitat">Achitat</option></Select></td>
-                                    <td className="p-1 text-right"><div className="flex gap-1 justify-end"><Button size="sm" variant="success" onClick={() => handleSaveEdit(plata.id)}>Salvează</Button><Button size="sm" variant="secondary" onClick={() => setEditingPlata(null)}>Renunță</Button></div></td>
+                                    <td className="p-2 font-medium">{getEntityName(plata)}</td>
+                                    <td className="p-2"><Input label="" value={editingPlata!.descriere} onChange={e => setEditingPlata({...editingPlata!, descriere: e.target.value})} /></td>
+                                    <td className="p-2"><Input label="" type="number" value={editingPlata!.suma} onChange={e => setEditingPlata({...editingPlata!, suma: parseFloat(e.target.value) || 0})} /></td>
+                                    <td className="p-2">{plata.data}</td>
+                                    <td className="p-2"><Select label="" value={editingPlata!.status} onChange={e => setEditingPlata({...editingPlata!, status: e.target.value as any})}><option value="Neachitat">Neachitat</option><option value="Achitat Parțial">Achitat Parțial</option><option value="Achitat">Achitat</option></Select></td>
+                                    <td className="p-2 text-right w-48"><div className="flex gap-1 justify-end"><Button size="sm" variant="success" onClick={() => handleSaveEdit(plata.id)}>Salvează</Button><Button size="sm" variant="secondary" onClick={() => setEditingPlata(null)}>Renunță</Button></div></td>
                                 </>
                             ) : (
                                 <>
-                                    <td className="p-2 font-medium whitespace-nowrap overflow-hidden text-ellipsis">{getEntityName(plata)}</td>
-                                    <td className="p-2 text-slate-300 whitespace-nowrap overflow-hidden text-ellipsis">{plata.descriere}</td>
-                                    <td className="p-2 font-bold">{plata.suma.toFixed(2)} RON</td>
-                                    <td className="p-2 text-slate-400">{new Date(plata.data).toLocaleDateString('ro-RO')}</td>
-                                    <td className={`p-2 font-bold ${statusClass}`}>{plata.status}</td>
-                                    <td className="p-2 text-right"><div className="flex justify-end gap-2">{plata.status !== 'Achitat' && <Button size="sm" variant="primary" onClick={() => onIncaseazaMultiple([plata])}>Încasează</Button>}<Button size="sm" variant="secondary" onClick={() => setEditingPlata(plata)}><EditIcon className="w-4 h-4" /></Button><Button size="sm" variant="danger" onClick={() => setPlataToDelete(plata)}><TrashIcon className="w-4 h-4" /></Button></div></td>
+                                    <td className="p-4 font-medium">{getEntityName(plata)}</td>
+                                    <td className="p-4 text-sm text-slate-300">{plata.descriere}</td>
+                                    <td className="p-4 font-bold">{plata.suma.toFixed(2)} RON</td>
+                                    <td className="p-4 text-slate-400 text-sm">{new Date(plata.data).toLocaleDateString('ro-RO')}</td>
+                                    <td className={`p-4 font-bold text-sm ${statusClass}`}>{plata.status}</td>
+                                    <td className="p-4 text-right w-48"><div className="flex justify-end gap-2">{plata.status !== 'Achitat' && <Button size="sm" variant="primary" onClick={() => onIncaseazaMultiple([plata])}>Încasează</Button>}<Button size="sm" variant="secondary" onClick={() => setEditingPlata(plata)}><EditIcon className="w-4 h-4" /></Button><Button size="sm" variant="danger" onClick={() => handleDeletePlata(plata.id)}><TrashIcon className="w-4 h-4" /></Button></div></td>
                                 </>
                             )}
                         </tr>
@@ -182,14 +177,6 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
             </table>
             {filteredPlati.length === 0 && <p className="p-8 text-center text-slate-400 italic">Nu există înregistrări conform filtrelor.</p>}
         </div>
-        <ConfirmationModal
-            isOpen={!!plataToDelete}
-            onClose={() => setPlataToDelete(null)}
-            onConfirm={confirmDeletePlata}
-            title="Confirmare Ștergere Factură"
-            message="Sunteți sigur că doriți să ștergeți această înregistrare? Această acțiune este ireversibilă."
-            loading={deleteLoading}
-        />
     </div>
     );
 };

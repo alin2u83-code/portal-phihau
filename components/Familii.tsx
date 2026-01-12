@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Familie } from '../types';
-import { Button, Input, Card, ConfirmationModal } from './ui';
+import { Button, Input, Card } from './ui';
 import { PlusIcon, TrashIcon, ArrowLeftIcon } from './icons';
 import { supabase } from '../supabaseClient';
 
@@ -15,8 +15,6 @@ export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({ familii, s
     const [newNume, setNewNume] = useState('');
     const [feedback, setFeedback] = useState<{type: 'success' | 'error', message: string} | null>(null);
     const [loading, setLoading] = useState(false);
-    const [familieToDelete, setFamilieToDelete] = useState<Familie | null>(null);
-    const [deleteLoading, setDeleteLoading] = useState(false);
 
     const showFeedback = (type: 'success' | 'error', message: string) => {
         setFeedback({ type, message });
@@ -91,20 +89,20 @@ export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({ familii, s
         }
     };
 
-    const confirmDelete = async () => {
-        if (!supabase || !familieToDelete) {
+    const handleDelete = async (id: string) => {
+        if (!supabase) {
+            showFeedback('error', "Eroare de configurare: Conexiunea la baza de date nu a putut fi stabilită.");
             return;
         }
-        setDeleteLoading(true);
-        const { error } = await supabase.from('familii').delete().eq('id', familieToDelete.id);
-        setDeleteLoading(false);
-        if (error) {
-            showFeedback('error', `Eroare la ștergere: ${error.message}`);
-        } else {
-            setFamilii(prev => prev.filter(f => f.id !== familieToDelete.id));
-            showFeedback('success', 'Familia a fost ștearsă.');
+        if (window.confirm("Sunteți sigur că doriți să ștergeți această înregistrare? Această acțiune este ireversibilă.")) {
+            const { error } = await supabase.from('familii').delete().eq('id', id);
+            if (error) {
+                showFeedback('error', `Eroare la ștergere: ${error.message}`);
+            } else {
+                setFamilii(prev => prev.filter(f => f.id !== id));
+                showFeedback('success', 'Familia a fost ștearsă.');
+            }
         }
-        setFamilieToDelete(null);
     };
 
     return (
@@ -152,7 +150,7 @@ export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({ familii, s
                                     <Input label="" defaultValue={f.nume} onBlur={e => handleEdit(f.id, { nume: e.target.value })} />
                                 </td>
                                 <td className="p-2 text-right w-32">
-                                    <Button onClick={() => setFamilieToDelete(f)} variant="danger" size="sm"><TrashIcon /></Button>
+                                    <Button onClick={() => handleDelete(f.id)} variant="danger" size="sm"><TrashIcon /></Button>
                                 </td>
                             </tr>
                         ))}
@@ -160,14 +158,6 @@ export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({ familii, s
                 </table>
                 {familii.length === 0 && <p className="p-4 text-center text-slate-400">Nicio familie definită.</p>}
             </div>
-            <ConfirmationModal
-                isOpen={!!familieToDelete}
-                onClose={() => setFamilieToDelete(null)}
-                onConfirm={confirmDelete}
-                title="Confirmare Ștergere Familie"
-                message="Sunteți sigur că doriți să ștergeți această înregistrare? Această acțiune este ireversibilă."
-                loading={deleteLoading}
-            />
         </div>
     );
 };

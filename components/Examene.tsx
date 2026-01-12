@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Examen, Participare, Sportiv, Grad, Plata, PretConfig } from '../types';
 import { Button, Modal, Input, Select, Card } from './ui';
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon } from './icons';
@@ -25,70 +25,74 @@ const ExamenForm: React.FC<ExamenFormProps> = ({ isOpen, onClose, onSave, examen
 interface ExamenDetailProps { examen: Examen; participari: Participare[]; setParticipari: React.Dispatch<React.SetStateAction<Participare[]>>; sportivi: Sportiv[]; grade: Grad[]; setPlati: React.Dispatch<React.SetStateAction<Plata[]>>; preturi: PretConfig[]; allParticipari: Participare[]; examene: Examen[]; }
 const ExamenDetail: React.FC<ExamenDetailProps> = ({ examen, participari, setParticipari, sportivi, grade, setPlati, preturi, allParticipari, examene }) => {
     const [sportivId, setSportivId] = useState('');
+    const [gradSustinutId, setGradSustinutId] = useState('');
+    const [eligibilityMessage, setEligibilityMessage] = useState<string|null>(null);
     const sortedGrades = [...grade].sort((a,b) => a.ordine - b.ordine);
     const { showError, showSuccess } = useError();
     const [participareToDelete, setParticipareToDelete] = useState<Participare | null>(null);
     const [isDeletingParticipare, setIsDeletingParticipare] = useState(false);
 
+    useEffect(() => {
+        if (sportivId) {
+            const sportiv = sportivi.find(s => s.id === sportivId);
+            if (!sportiv) return;
+
+            const ageAtExam = getAgeOnDate(sportiv.data_nasterii, examen.data);
+            const categorie = ageAtExam < 13 ? 'Copii' : 'Adulti';
+            let grad_propus_obj: Grad | undefined;
+            let message = '';
+
+            const admittedParticipations = allParticipari
+                .filter(p => p.sportiv_id === sportiv.id && p.rezultat === 'Admis')
+                .sort((a,b) => (getGrad(b.grad_sustinut_id, grade)?.ordine ?? 0) - (getGrad(a.grad_sustinut_id, grade)?.ordine ?? 0));
+            const currentGrad = admittedParticipations.length > 0 ? getGrad(admittedParticipations[0].grad_sustinut_id, grade) : null;
+
+            if (!currentGrad) { // Beginner
+                if (categorie === 'Copii') grad_propus_obj = sortedGrades.find(g => g.nume.includes('1 Cấp'));
+                else grad_propus_obj = sortedGrades.find(g => g.nume === '4 Cấp');
+            } else { // Has existing rank
+                if (currentGrad.nume === '4 Cấp') {
+                    if (ageAtExam >= 18) {
+                        grad_propus_obj = sortedGrades.find(g => g.nume.includes('1 Đẳng'));
+                        message = "Atenție: Verificați stagiile naționale obligatorii.";
+                    } else {
+                        grad_propus_obj = currentGrad;
+                        message = "Confirmare grad. Vârsta minimă pt 1 Đẳng este 18 ani.";
+                    }
+                } else if (currentGrad.nume.includes('Cấp')) {
+                    grad_propus_obj = sortedGrades.find(g => g.ordine === currentGrad.ordine + 1);
+                } else {
+                    grad_propus_obj = currentGrad;
+                    message = "Grad maxim atins sau reconfirmare.";
+                }
+            }
+
+            if (grad_propus_obj) setGradSustinutId(grad_propus_obj.id);
+            setEligibilityMessage(message);
+        } else {
+            setGradSustinutId('');
+            setEligibilityMessage(null);
+        }
+    }, [sportivId, sportivi, examen.data, allParticipari, grade, sortedGrades]);
+
+
     const handleAddParticipant = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!supabase) { showError("Eroare Configurare", "Clientul Supabase nu a putut fi stabilit."); return; }
+        if (!sportivId || !gradSustinutId) { showError("Date Incomplete", "Vă rugăm selectați sportivul și gradul susținut."); return; }
         const sportiv = sportivi.find(s => s.id === sportivId);
         if(!sportiv || participari.some(p => p.sportiv_id === sportivId)) { showError("Selecție Invalidă", "Selectează un sportiv valid care nu este deja înscris."); return; }
 
-        // --- NEW CALCULATION ENGINE LOGIC ---
-        const ageAtExam = getAgeOnDate(sportiv.data_nasterii, examen.data);
-        const categorie = ageAtExam < 13 ? 'Copii' : 'Adulti';
-        let mesaj_atentie: string | null = null;
-        let grad_propus_obj: Grad | undefined;
+        const grad_sustinut_obj = grade.find(g => g.id === gradSustinutId);
+        if (!grad_sustinut_obj) { showError("Eroare", "Gradul selectat este invalid."); return; }
 
-        const admittedParticipations = allParticipari
-            .filter(p => p.sportiv_id === sportiv.id && p.rezultat === 'Admis')
-            .sort((a,b) => (getGrad(b.grad_sustinut_id, grade)?.ordine ?? 0) - (getGrad(a.grad_sustinut_id, grade)?.ordine ?? 0));
-        const currentGrad = admittedParticipations.length > 0 ? getGrad(admittedParticipations[0].grad_sustinut_id, grade) : null;
-
-        if (!currentGrad) { // Beginner
-            if (categorie === 'Copii') {
-                grad_propus_obj = sortedGrades.find(g => g.nume.includes('1 Cấp'));
-            } else { // Adulti
-                grad_propus_obj = sortedGrades.find(g => g.nume === '4 Cấp');
-            }
-        } else { // Has existing rank
-            if (currentGrad.nume === '4 Cấp') {
-                if (ageAtExam >= 18) {
-                    grad_propus_obj = sortedGrades.find(g => g.nume.includes('1 Đẳng'));
-                    mesaj_atentie = "Verificați participarea la stagiile naționale obligatorii.";
-                } else {
-                    grad_propus_obj = currentGrad;
-                    mesaj_atentie = "Confirmare grad. Vârsta minimă pentru 1 Đẳng este 18 ani.";
-                }
-            } else if (currentGrad.nume.includes('Cấp')) {
-                grad_propus_obj = sortedGrades.find(g => g.ordine === currentGrad.ordine + 1);
-            } else { // Already has a Dang or other rank
-                grad_propus_obj = currentGrad;
-                mesaj_atentie = "Grad maxim atins în acest sistem de calcul sau reconfirmare.";
-            }
-        }
-
-        if (!grad_propus_obj) {
-            showError("Eroare Logică", "Nu s-a putut determina gradul propus. Verificați nomenclatorul de grade (ex: '1 Cấp', '4 Cấp', '1 Đẳng').");
-            return;
-        }
-
-        if (mesaj_atentie) {
-            if (!window.confirm(`Atenție:\n${mesaj_atentie}\n\nDoriți să continuați cu înscrierea pentru gradul ${grad_propus_obj.nume}?`)) {
-                return;
-            }
-        }
-        // --- END NEW CALCULATION ENGINE LOGIC ---
-
-        const {data: participareData, error: pError} = await supabase.from('participari').insert({ examen_id: examen.id, sportiv_id: sportivId, grad_sustinut_id: grad_propus_obj.id, rezultat: 'Neprezentat' }).select().single();
+        const {data: participareData, error: pError} = await supabase.from('participari').insert({ examen_id: examen.id, sportiv_id: sportivId, grad_sustinut_id: gradSustinutId, rezultat: 'Neprezentat' }).select().single();
         if (pError) { showError("Eroare Bază de Date", pError); return; }
         if (participareData) setParticipari(prev => [...prev, participareData as Participare]);
         
-        const pretExamenConfig = getPretProdus(preturi, 'Taxa Examen', grad_propus_obj.nume, { dataReferinta: examen.data });
+        const pretExamenConfig = getPretProdus(preturi, 'Taxa Examen', grad_sustinut_obj.nume, { dataReferinta: examen.data });
         if (!pretExamenConfig) { 
-            showError("Avertisment Configurare", `Configurarea prețului pentru gradul '${grad_propus_obj.nume}' nu a fost găsită. Participantul a fost adăugat, dar plata trebuie generată manual.`); 
+            showError("Avertisment Configurare", `Configurarea prețului pentru gradul '${grad_sustinut_obj.nume}' nu a fost găsită. Participantul a fost adăugat, dar plata trebuie generată manual.`); 
             return; 
         }
 
@@ -98,9 +102,9 @@ const ExamenDetail: React.FC<ExamenDetailProps> = ({ examen, participari, setPar
             suma: pretExamenConfig.suma,
             data: examen.data,
             status: 'Neachitat',
-            descriere: `Taxa examen grad ${grad_propus_obj.nume}`,
+            descriere: `Taxa examen grad ${grad_sustinut_obj.nume}`,
             tip: 'Taxa Examen',
-            observatii: mesaj_atentie || ''
+            observatii: eligibilityMessage || ''
         };
 
         const {data: plataData, error: plError} = await supabase.from('plati').insert(newPlata).select().single();
@@ -109,6 +113,8 @@ const ExamenDetail: React.FC<ExamenDetailProps> = ({ examen, participari, setPar
         
         showSuccess("Succes", `Factura pentru ${sportiv.nume} ${sportiv.prenume} a fost generată.`);
         setSportivId('');
+        setGradSustinutId('');
+        setEligibilityMessage(null);
     };
 
     const handleUpdateParticipare = async (participareId: string, field: keyof Participare, value: string) => {
@@ -135,7 +141,24 @@ const ExamenDetail: React.FC<ExamenDetailProps> = ({ examen, participari, setPar
     };
 
     return ( 
-    <Card> <h3 className="text-2xl font-bold text-white">{examen.locatia} - {examen.data}</h3><p className="text-slate-400">Comisia: {examen.comisia}</p><div className="mt-6 border-t border-slate-700 pt-6"> <h4 className="text-xl font-semibold mb-4 text-white">Participanți</h4><div className="space-y-2 mb-6">{participari.map(p => { const sportiv = sportivi.find(s => s.id === p.sportiv_id); return ( <div key={p.id} className="bg-slate-700/50 p-3 rounded-md grid grid-cols-1 md:grid-cols-5 gap-4 items-center"><p className="font-medium col-span-1 md:col-span-1">{sportiv?.nume} {sportiv?.prenume}</p><Select label="" value={p.grad_sustinut_id} onChange={e => handleUpdateParticipare(p.id, 'grad_sustinut_id', e.target.value)}>{sortedGrades.map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}</Select><Select label="" value={p.rezultat} onChange={e => handleUpdateParticipare(p.id, 'rezultat', e.target.value)}><option value="Admis">Admis</option><option value="Respins">Respins</option><option value="Neprezentat">Neprezentat</option></Select><Input label="" placeholder="Observații..." defaultValue={p.observatii || ''} onBlur={e => handleUpdateParticipare(p.id, 'observatii', e.target.value)} /><Button onClick={() => setParticipareToDelete(p)} variant="danger" size="sm" className="justify-self-end"><TrashIcon /></Button></div> )})}{participari.length === 0 && <p className="text-slate-400">Niciun participant înscris.</p>}</div><Card className="bg-slate-900/50"><h5 className="text-lg font-semibold mb-2 text-white">Adaugă Participant</h5><form onSubmit={handleAddParticipant} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end"><div className="col-span-2"><Select label="Sportiv" value={sportivId} onChange={e => setSportivId(e.target.value)}><option value="">Selectează Sportiv</option>{sportivi.filter(s => s.status === 'Activ' && !participari.some(p => p.sportiv_id === s.id)).map(s => ( <option key={s.id} value={s.id}>{s.nume} {s.prenume}</option> ))}</Select></div><Button type="submit" variant="info">Adaugă</Button></form></Card></div><ConfirmDeleteModal isOpen={!!participareToDelete} onClose={() => setParticipareToDelete(null)} onConfirm={() => { if(participareToDelete) confirmDeleteParticipare(participareToDelete.id) }} tableName="participări" isLoading={isDeletingParticipare} /> </Card> );
+    <Card> <h3 className="text-2xl font-bold text-white">{examen.locatia} - {examen.data}</h3><p className="text-slate-400">Comisia: {examen.comisia}</p><div className="mt-6 border-t border-slate-700 pt-6"> <h4 className="text-xl font-semibold mb-4 text-white">Participanți</h4><div className="space-y-2 mb-6">{participari.map(p => { const sportiv = sportivi.find(s => s.id === p.sportiv_id); return ( <div key={p.id} className="bg-slate-700/50 p-3 rounded-md grid grid-cols-1 md:grid-cols-5 gap-4 items-center"><p className="font-medium col-span-1 md:col-span-1">{sportiv?.nume} {sportiv?.prenume}</p><Select label="" value={p.grad_sustinut_id} onChange={e => handleUpdateParticipare(p.id, 'grad_sustinut_id', e.target.value)}>{sortedGrades.map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}</Select><Select label="" value={p.rezultat} onChange={e => handleUpdateParticipare(p.id, 'rezultat', e.target.value)}><option value="Admis">Admis</option><option value="Respins">Respins</option><option value="Neprezentat">Neprezentat</option></Select><Input label="" placeholder="Observații..." defaultValue={p.observatii || ''} onBlur={e => handleUpdateParticipare(p.id, 'observatii', e.target.value)} /><Button onClick={() => setParticipareToDelete(p)} variant="danger" size="sm" className="justify-self-end"><TrashIcon /></Button></div> )})}{participari.length === 0 && <p className="text-slate-400">Niciun participant înscris.</p>}</div><Card className="bg-slate-900/50"><h5 className="text-lg font-semibold mb-2 text-white">Adaugă Participant</h5>
+    <form onSubmit={handleAddParticipant} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+        <div className="md:col-span-2">
+            <Select label="Sportiv" value={sportivId} onChange={e => setSportivId(e.target.value)}>
+                <option value="">Selectează Sportiv</option>
+                {sportivi.filter(s => s.status === 'Activ' && !participari.some(p => p.sportiv_id === s.id)).map(s => ( <option key={s.id} value={s.id}>{s.nume} {s.prenume}</option> ))}
+            </Select>
+        </div>
+        <div className="md:col-span-1">
+            <Select label="Grad Susținut" value={gradSustinutId} onChange={e => setGradSustinutId(e.target.value)} disabled={!sportivId}>
+                <option value="">Alege grad...</option>
+                {sortedGrades.map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}
+            </Select>
+            {eligibilityMessage && <p className="text-xs text-amber-400 mt-1">{eligibilityMessage}</p>}
+        </div>
+        <Button type="submit" variant="info" disabled={!sportivId || !gradSustinutId}>Adaugă</Button>
+    </form>
+</Card></div><ConfirmDeleteModal isOpen={!!participareToDelete} onClose={() => setParticipareToDelete(null)} onConfirm={() => { if(participareToDelete) confirmDeleteParticipare(participareToDelete.id) }} tableName="participări" isLoading={isDeletingParticipare} /> </Card> );
 };
 
 interface ExameneManagementProps { onBack: () => void; examene: Examen[]; setExamene: React.Dispatch<React.SetStateAction<Examen[]>>; participari: Participare[]; setParticipari: React.Dispatch<React.SetStateAction<Participare[]>>; sportivi: Sportiv[]; grade: Grad[]; setPlati: React.Dispatch<React.SetStateAction<Plata[]>>; preturi: PretConfig[]; }

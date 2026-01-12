@@ -26,6 +26,7 @@ export const SportiviManagement: React.FC<{
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [sportivToEdit, setSportivToEdit] = useState<Sportiv | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState('Activ');
     const { showError } = useError();
 
 
@@ -40,9 +41,10 @@ export const SportiviManagement: React.FC<{
 
     const filteredSportivi = useMemo(() => {
         return sportivi.filter((s: Sportiv) => 
-            `${s.nume} ${s.prenume}`.toLowerCase().includes(searchTerm.toLowerCase())
+            (`${s.nume} ${s.prenume}`.toLowerCase().includes(searchTerm.toLowerCase())) &&
+            (statusFilter ? s.status === statusFilter : true)
         ).sort((a: Sportiv, b: Sportiv) => a.nume.localeCompare(b.nume));
-    }, [sportivi, searchTerm]);
+    }, [sportivi, searchTerm, statusFilter]);
 
     const handleSave = async (formData: Partial<Sportiv>) => {
         const { roluri, ...sportivData } = formData;
@@ -85,7 +87,12 @@ export const SportiviManagement: React.FC<{
             </div>
 
             <Card className="flex flex-col sm:flex-row gap-4">
-                <Input label="Caută Sportiv" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Nume sau prenume..." />
+                <Input label="Caută Sportiv" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Nume sau prenume..." className="flex-grow" />
+                <Select label="Status" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+                    <option value="Activ">Activi</option>
+                    <option value="Inactiv">Inactivi</option>
+                    <option value="">Toți</option>
+                </Select>
             </Card>
 
             <Card className="p-0 overflow-hidden">

@@ -145,6 +145,7 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ antrenamente, sp
                             <Select label="An" name="yearFilter" value={filters.yearFilter} onChange={handleFilterChange}>
                                 <option value="2024">2024</option>
                                 <option value="2025">2025</option>
+                                <option value="2026">2026</option>
                             </Select>
                             <Select label="Tip" name="tipFilter" value={filters.tipFilter} onChange={handleFilterChange}>
                                 <option value="">Toate</option>

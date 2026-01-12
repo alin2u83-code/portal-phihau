@@ -5,6 +5,7 @@ import { EditIcon, ArrowLeftIcon, TrashIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 interface PlatiScadenteProps { 
     plati: Plata[]; 
@@ -22,6 +23,8 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
     const [filter, setFilter] = useLocalStorage('phi-hau-plati-scadente-filter', initialFilters);
     const [showSuccess, setShowSuccess] = useState<string|null>(null);
     const [editingPlata, setEditingPlata] = useState<Plata | null>(null);
+    const [plataToDelete, setPlataToDelete] = useState<Plata | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const { showError } = useError();
 
@@ -46,7 +49,6 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
             if (!abonamentConfig && nrMembri >= 3) { abonamentConfig = tipuriAbonament.sort((a,b) => b.numar_membri - a.numar_membri)[0]; }
 
             if (abonamentConfig) {
-                 // FIX: Removed `metoda_plata` and `data_platii` as they are not properties of the `Plata` type.
                  platiToInsert.push({ sportiv_id: membriActivi[0]?.id || null, familie_id: familie.id, suma: abonamentConfig.pret, data: dataCurenta, status: 'Neachitat', descriere: `Abonament ${abonamentConfig.denumire} ${lunaText}`, tip: 'Abonament', observatii: `Pentru ${membriActivi.map(m => m.prenume).join(', ')}` });
                 membriActivi.forEach(m => sportiviProcesati.add(m.id));
             }
@@ -59,7 +61,6 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
             if (areAbonamentGenerat) return;
             const abonamentConfig = tipuriAbonament.find(ab => ab.id === sportiv.tip_abonament_id);
             if (abonamentConfig) {
-                 // FIX: Removed `metoda_plata` and `data_platii` as they are not properties of the `Plata` type.
                  platiToInsert.push({ sportiv_id: sportiv.id, familie_id: null, suma: abonamentConfig.pret, data: dataCurenta, status: 'Neachitat', descriere: `Abonament ${abonamentConfig.denumire} ${lunaText}`, tip: 'Abonament', observatii: '' });
             }
         });
@@ -80,11 +81,34 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
         else if (data) { setPlati(prev => prev.map(p => p.id === plataId ? data as Plata : p)); setEditingPlata(null); }
     };
 
-    const handleDeletePlata = async (id: string) => {
-        if(!window.confirm("Ștergeți această factură?")) return;
-        const { error } = await supabase.from('plati').delete().eq('id', id);
-        if (error) showError("Eroare la ștergere", error);
-        else setPlati(prev => prev.filter(p => p.id !== id));
+    const confirmDeletePlata = async (id: string) => {
+        if(!supabase) return;
+        setIsDeleting(true);
+
+        try {
+            const { data, error: checkError } = await supabase.from('tranzactii').select('id').contains('plata_ids', [id]).limit(1);
+            if (checkError) throw new Error(`Verificare tranzacții eșuată: ${checkError.message}`);
+            
+            if (data && data.length > 0) {
+                showError("Ștergere Blocată", "Această plată nu poate fi ștearsă deoarece este asociată cu o încasare. Anulați mai întâi tranzacția, dacă este necesar.");
+                throw new Error("Deletion blocked due to existing transaction.");
+            }
+            
+            const { error: deleteError } = await supabase.from('plati').delete().eq('id', id);
+            if (deleteError) throw deleteError;
+            
+            setPlati(prev => prev.filter(p => p.id !== id));
+            setShowSuccess("Factură ștearsă cu succes.");
+            setTimeout(() => setShowSuccess(null), 3000);
+
+        } catch (err: any) {
+             if (err.message !== "Deletion blocked due to existing transaction.") {
+                 showError("Eroare la ștergere", err);
+             }
+        } finally {
+            setIsDeleting(false);
+            setPlataToDelete(null);
+        }
     };
 
     const handleCheckboxToggle = (id: string) => {
@@ -170,7 +194,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
                                     <td className="p-4 font-bold">{plata.suma.toFixed(2)} RON</td>
                                     <td className="p-4 text-slate-400 text-sm">{new Date(plata.data).toLocaleDateString('ro-RO')}</td>
                                     <td className={`p-4 font-bold text-sm ${statusClass}`}>{plata.status}</td>
-                                    <td className="p-4 text-right w-48"><div className="flex justify-end gap-2">{plata.status !== 'Achitat' && <Button size="sm" variant="primary" onClick={() => onIncaseazaMultiple([plata])}>Încasează</Button>}<Button size="sm" variant="secondary" onClick={() => setEditingPlata(plata)}><EditIcon className="w-4 h-4" /></Button><Button size="sm" variant="danger" onClick={() => handleDeletePlata(plata.id)}><TrashIcon className="w-4 h-4" /></Button></div></td>
+                                    <td className="p-4 text-right w-48"><div className="flex justify-end gap-2">{plata.status !== 'Achitat' && <Button size="sm" variant="primary" onClick={() => onIncaseazaMultiple([plata])}>Încasează</Button>}<Button size="sm" variant="secondary" onClick={() => setEditingPlata(plata)}><EditIcon className="w-4 h-4" /></Button><Button size="sm" variant="danger" onClick={() => setPlataToDelete(plata)}><TrashIcon className="w-4 h-4" /></Button></div></td>
                                 </>
                             )}
                         </tr>
@@ -180,6 +204,13 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
             </table>
             {filteredPlati.length === 0 && <p className="p-8 text-center text-slate-400 italic">Nu există înregistrări conform filtrelor.</p>}
         </div>
+        <ConfirmDeleteModal
+            isOpen={!!plataToDelete}
+            onClose={() => setPlataToDelete(null)}
+            onConfirm={() => { if(plataToDelete) confirmDeletePlata(plataToDelete.id) }}
+            tableName="Plăți"
+            isLoading={isDeleting}
+        />
     </div>
     );
 };

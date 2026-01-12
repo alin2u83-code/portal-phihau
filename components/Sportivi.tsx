@@ -6,6 +6,7 @@ import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { BirthDateInput } from './BirthDateInput';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 // --- Modale de adăugare rapidă ---
 const QuickAddModal: React.FC<{ 
@@ -209,6 +210,7 @@ export const SportiviManagement: React.FC<any> = ({
 }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [sportivToEdit, setSportivToEdit] = useState<Sportiv | null>(null);
+    const [sportivToDelete, setSportivToDelete] = useState<Sportiv | null>(null);
     const [successToast, setSuccessToast] = useState<string | null>(null);
     const [deletingId, setDeletingId] = useState<string | null>(null);
     const { showError } = useError();
@@ -240,17 +242,36 @@ export const SportiviManagement: React.FC<any> = ({
         }
     };
 
-    const handleDelete = async (id: string) => {
-        if (!supabase || !window.confirm("Sigur ștergi sportivul?")) return;
+    const confirmDelete = async (id: string) => {
+        if (!supabase) return;
         setDeletingId(id);
         try {
-            const { error } = await supabase.from('sportivi').delete().eq('id', id);
-            if (error) throw error;
+            // Safety Check
+            const { data: participariData, error: participariError } = await supabase.from('participari').select('id').eq('sportiv_id', id).limit(1);
+            if (participariError) throw new Error(`Verificare eșuată (participari): ${participariError.message}`);
+            
+            const { data: platiData, error: platiError } = await supabase.from('plati').select('id').eq('sportiv_id', id).limit(1);
+            if (platiError) throw new Error(`Verificare eșuată (plati): ${platiError.message}`);
+
+            if ((participariData && participariData.length > 0) || (platiData && platiData.length > 0)) {
+                showError("Ștergere Blocată", "Acest sportiv nu poate fi șters deoarece are istoric (plăți sau participări). Puteți schimba statusul în 'Inactiv' pentru a-l arhiva.");
+                throw new Error("Deletion blocked due to existing history.");
+            }
+
+            // Perform deletion
+            const { error: deleteError } = await supabase.from('sportivi').delete().eq('id', id);
+            if (deleteError) throw deleteError;
+            
             setSportivi((prev: Sportiv[]) => prev.filter(s => s.id !== id));
-        } catch (err) {
-            showError("Eroare Ștergere", err);
+            showSuccessToast("Sportiv șters cu succes!");
+
+        } catch (err: any) {
+            if (err.message !== "Deletion blocked due to existing history.") {
+                 showError("Eroare Ștergere", err);
+            }
         } finally {
             setDeletingId(null);
+            setSportivToDelete(null); // Close modal
         }
     };
 
@@ -300,7 +321,7 @@ export const SportiviManagement: React.FC<any> = ({
                                     <td className="p-3 text-right">
                                         <div className="flex justify-end gap-1">
                                             <Button size="sm" variant="secondary" onClick={() => { setSportivToEdit(s); setIsModalOpen(true); }}><EditIcon className="w-4 h-4"/></Button>
-                                            <Button size="sm" variant="danger" onClick={() => handleDelete(s.id)} isLoading={deletingId === s.id}><TrashIcon className="w-4 h-4"/></Button>
+                                            <Button size="sm" variant="danger" onClick={() => setSportivToDelete(s)} isLoading={deletingId === s.id}><TrashIcon className="w-4 h-4"/></Button>
                                         </div>
                                     </td>
                                 </tr>
@@ -322,6 +343,13 @@ export const SportiviManagement: React.FC<any> = ({
                 setFamilii={setFamilii}
                 tipuriAbonament={tipuriAbonament}
                 showSuccessToast={showSuccessToast}
+            />
+            <ConfirmDeleteModal
+                isOpen={!!sportivToDelete}
+                onClose={() => setSportivToDelete(null)}
+                onConfirm={() => { if(sportivToDelete) confirmDelete(sportivToDelete.id) }}
+                tableName="Sportivi"
+                isLoading={!!deletingId}
             />
         </div>
     );

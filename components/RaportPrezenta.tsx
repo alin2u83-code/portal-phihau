@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { Antrenament, Sportiv, Grupa } from '../types';
 import { Card, Input, Select, Button } from './ui';
 import { ArrowLeftIcon } from './icons';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 
 interface RaportPrezentaProps {
@@ -32,6 +32,8 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ antrenamente, sp
     const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setFilters(prev => ({...prev, [e.target.name]: e.target.value}));
     };
+    
+    const monthNames = useMemo(() => ["Ian", "Feb", "Mar", "Apr", "Mai", "Iun", "Iul", "Aug", "Sep", "Oct", "Nov", "Dec"], []);
 
     const allRecords = useMemo(() => {
         return antrenamente.flatMap(a => 
@@ -67,20 +69,17 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ antrenamente, sp
     }, [allRecords, filters]);
 
     const chartData = useMemo(() => {
-        const counts: { [key: string]: number } = {};
+        const monthlyAttendance = monthNames.map(name => ({ name, prezente: 0 }));
+
         filteredRecords.forEach(rec => {
-            counts[rec.data] = (counts[rec.data] || 0) + 1;
+            const monthIndex = new Date(rec.data).getMonth();
+            if (monthlyAttendance[monthIndex]) {
+                monthlyAttendance[monthIndex].prezente++;
+            }
         });
 
-        return Object.entries(counts)
-            .map(([date, count]) => ({
-                dataLabel: new Date(date).toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit' }),
-                prezente: count,
-                fullDate: date
-            }))
-            .sort((a, b) => new Date(a.fullDate).getTime() - new Date(b.fullDate).getTime())
-            .slice(-12);
-    }, [filteredRecords]);
+        return monthlyAttendance;
+    }, [filteredRecords, monthNames]);
 
     const attendanceSummary = useMemo(() => {
         const summary: { [sportivNume: string]: { monthly: number[], total: number } } = {};
@@ -98,8 +97,6 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ antrenamente, sp
             .sort((a, b) => a.sportivNume.localeCompare(b.sportivNume));
     }, [filteredRecords]);
 
-    const monthNames = ["Ian", "Feb", "Mar", "Apr", "Mai", "Iun", "Iul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
     return (
         <div className="space-y-6">
             <Button onClick={onBack} variant="secondary" className="mb-2"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
@@ -108,23 +105,20 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ antrenamente, sp
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <Card className="lg:col-span-2">
-                    <h3 className="text-xl font-bold text-white mb-4">Evoluție Prezențe (Ultima Perioadă)</h3>
+                    <h3 className="text-xl font-bold text-white mb-4">Total Prezențe Lunare ({filters.yearFilter})</h3>
                     <div className="h-64 w-full">
                         {chartData.length > 0 ? (
                             <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={chartData}>
+                                <BarChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
-                                    <XAxis dataKey="dataLabel" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
-                                    <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
+                                    <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
+                                    <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
                                     <Tooltip 
                                         contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }}
                                         itemStyle={{ color: '#4DBCE9', fontWeight: 'bold' }}
+                                        cursor={{ fill: 'rgba(77, 188, 233, 0.1)' }}
                                     />
-                                    <Bar dataKey="prezente" radius={[4, 4, 0, 0]}>
-                                        {chartData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill="#4DBCE9" fillOpacity={0.8} />
-                                        ))}
-                                    </Bar>
+                                    <Bar dataKey="prezente" fill="#4DBCE9" radius={[4, 4, 0, 0]} />
                                 </BarChart>
                             </ResponsiveContainer>
                         ) : (

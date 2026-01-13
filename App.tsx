@@ -53,7 +53,7 @@ function App() {
   const [anunturi, setAnunturi] = useState<AnuntPrezenta[]>([]);
   
   const [isSidebarExpanded, setIsSidebarExpanded] = useLocalStorage('phi-hau-sidebar-expanded', true);
-  const [activeView, setActiveView] = useLocalStorage<View>('phi-hau-active-view', 'dashboard');
+  const [activeView, setActiveView] = useLocalStorage<View>('phi-hau-active-view', 'sportivi');
   const [selectedPlatiForIncasare, setSelectedPlatiForIncasare] = useState<Plata[]>([]);
   const [viewedSportiv, setViewedSportiv] = useState<Sportiv | null>(null);
 

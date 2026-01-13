@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Antrenament, Sportiv, Grupa, Plata, TipAbonament } from '../types';
+import { Antrenament, Sportiv, Grupa, Plata, TipAbonament, AnuntPrezenta } from '../types';
 import { Button, Card, Input, Select, Modal } from './ui';
 import { PlusIcon, ArrowLeftIcon, TrashIcon, EditIcon, XIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -295,6 +295,7 @@ export const PrezentaManagement: React.FC<{
     onBack: () => void;
     setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
     tipuriAbonament: TipAbonament[];
+    anunturi: AnuntPrezenta[];
 }> = ({ sportivi, setSportivi, antrenamente, setAntrenamente, grupe, onBack, setPlati, tipuriAbonament }) => {
     
     const [selectedAntrenamentId, setSelectedAntrenamentId] = useLocalStorage<string | null>('phi-hau-selected-antrenament-id', null);

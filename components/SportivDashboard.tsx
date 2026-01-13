@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Sportiv, Participare, Examen, Grad, Antrenament, Grupa, Plata, User, Familie, Tranzactie, TipAbonament, View } from '../types';
 import { Card, Button } from './ui';
-import { ShieldCheckIcon, CogIcon, ArchiveBoxIcon, DocumentArrowDownIcon } from './icons';
+import { ShieldCheckIcon, CogIcon, ArchiveBoxIcon, DocumentArrowDownIcon, EditIcon } from './icons';
 
 const getGrad = (gradId: string, allGrades: Grad[]) => allGrades.find(g => g.id === gradId);
 const zileSaptamana: Record<number, string> = { 0: 'Duminică', 1: 'Luni', 2: 'Marți', 3: 'Miercuri', 4: 'Joi', 5: 'Vineri', 6: 'Sâmbătă' };
@@ -60,9 +60,10 @@ interface SportivDashboardProps {
   tipuriAbonament: TipAbonament[];
   onNavigate: (view: View) => void;
   onNavigateToDashboard: () => void;
+  onNavigateToEditProfil: () => void;
 }
 
-export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser, viewedUser, participari, examene, grade, antrenamente, grupe, plati, tranzactii, tipuriAbonament, onNavigate }) => {
+export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser, viewedUser, participari, examene, grade, antrenamente, grupe, plati, tranzactii, tipuriAbonament, onNavigate, onNavigateToEditProfil }) => {
     
     const [periodFilter, setPeriodFilter] = useState<'current_month' | 'current_year'>('current_month');
     
@@ -116,9 +117,16 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
             {isAdmin && isViewingOwnProfile && <AdminQuickAccessBar onNavigate={onNavigate} />}
 
             <div className="flex justify-between items-start">
-                <div>
-                    <h1 className="text-3xl font-bold text-white">{viewedUser.nume} {viewedUser.prenume}</h1>
-                    <p className="text-xl font-semibold" style={{ color: '#E5B80B' }}>{currentGrad?.nume || 'Începător'}</p>
+                <div className="flex items-center gap-4">
+                    <div>
+                        <h1 className="text-3xl font-bold text-white">{viewedUser.nume} {viewedUser.prenume}</h1>
+                        <p className="text-xl font-semibold" style={{ color: '#E5B80B' }}>{currentGrad?.nume || 'Începător'}</p>
+                    </div>
+                     {isViewingOwnProfile && (
+                         <Button variant="secondary" size="sm" onClick={onNavigateToEditProfil} className="self-start mt-1">
+                             <EditIcon className="w-4 h-4 mr-2"/> Editează Profil & Cont
+                         </Button>
+                    )}
                 </div>
                 <Button variant="secondary" size="sm" onClick={() => alert('Funcționalitate în dezvoltare.')}><DocumentArrowDownIcon className="w-4 h-4 mr-2"/> Descarcă Raport PDF</Button>
             </div>

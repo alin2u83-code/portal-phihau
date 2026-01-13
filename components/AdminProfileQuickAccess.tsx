@@ -1,6 +1,6 @@
 import React from 'react';
 import { User, View } from '../types';
-import { CogIcon, UserCircleIcon, HomeIcon, ArrowRightOnRectangleIcon, ArchiveBoxIcon } from './icons';
+import { CogIcon, UserCircleIcon, ArrowRightOnRectangleIcon, ArchiveBoxIcon } from './icons';
 
 interface AdminProfileQuickAccessProps {
   user: User;
@@ -26,14 +26,10 @@ export const AdminProfileQuickAccess: React.FC<AdminProfileQuickAccessProps> = (
                 </div>
                 <div className="py-1">
                     <button
-                        onClick={() => onNavigate('my-portal')}
-                        className="w-full text-left flex items-center px-4 py-2 text-sm text-slate-300 hover:bg-brand-primary hover:text-white transition-colors"
-                    >
-                        <HomeIcon className="w-5 h-5 mr-3" />
-                        Portalul Meu
-                    </button>
-                    <button
-                        onClick={() => onNavigate('user-management')}
+                        onClick={() => {
+                            console.log('ID Utilizator pentru profil:', user.id);
+                            onNavigate('my-portal');
+                        }}
                         className="w-full text-left flex items-center px-4 py-2 text-sm text-slate-300 hover:bg-brand-primary hover:text-white transition-colors"
                     >
                         <UserCircleIcon className="w-5 h-5 mr-3" />

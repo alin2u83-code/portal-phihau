@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { Antrenament, Sportiv, Grupa } from '../types';
 import { Card, Input, Select, Button } from './ui';
 import { ArrowLeftIcon } from './icons';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 
 interface RaportPrezentaProps {
@@ -26,6 +26,9 @@ const initialFilters: RaportFilters = {
     tipFilter: '',
 };
 
+// Define colors for the chart
+const GROUP_COLORS = ['#4DBCE9', '#3D3D99', '#16a34a', '#f59e0b', '#dc2626', '#8b5cf6', '#ec4899'];
+
 export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ antrenamente, sportivi, grupe, onBack }) => {
     const [filters, setFilters] = useLocalStorage('phi-hau-raport-prezenta-filters', initialFilters);
 
@@ -47,7 +50,7 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ antrenamente, sp
                     ora: a.ora_start,
                     tip: tip,
                     sportivNume: sportiv ? `${sportiv.nume} ${sportiv.prenume}` : 'N/A',
-                    grupaNume: grupa?.denumire || (tip === 'Vacanta' ? 'Vacanță/General' : 'N/A'),
+                    grupaNume: grupa?.denumire || (tip === 'Vacanta' ? 'Vacanță' : 'N/A'),
                     grupaId: a.grupa_id,
                 };
             })
@@ -68,17 +71,26 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ antrenamente, sp
         });
     }, [allRecords, filters]);
 
-    const chartData = useMemo(() => {
-        const monthlyAttendance = monthNames.map(name => ({ name, prezente: 0 }));
+    const { groupChartData, activeGroups } = useMemo(() => {
+        // FIX: Explicitly set the generic type for `new Set` to `<string>` to resolve a type inference issue where the resulting array was being inferred as `unknown[]` instead of `string[]`.
+        const groupNames: string[] = [...new Set<string>(filteredRecords.map(r => r.grupaNume))].sort();
+        
+        const data = monthNames.map(monthName => {
+            const monthEntry: { [key: string]: string | number } = { name: monthName };
+            groupNames.forEach(gName => {
+                monthEntry[gName] = 0;
+            });
+            return monthEntry;
+        });
 
         filteredRecords.forEach(rec => {
             const monthIndex = new Date(rec.data).getMonth();
-            if (monthlyAttendance[monthIndex]) {
-                monthlyAttendance[monthIndex].prezente++;
+            if (data[monthIndex] && typeof data[monthIndex][rec.grupaNume] === 'number') {
+                (data[monthIndex][rec.grupaNume] as number)++;
             }
         });
-
-        return monthlyAttendance;
+        
+        return { groupChartData: data, activeGroups: groupNames };
     }, [filteredRecords, monthNames]);
 
     const attendanceSummary = useMemo(() => {
@@ -105,20 +117,29 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ antrenamente, sp
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <Card className="lg:col-span-2">
-                    <h3 className="text-xl font-bold text-white mb-4">Total Prezențe Lunare ({filters.yearFilter})</h3>
+                    <h3 className="text-xl font-bold text-white mb-4">Prezențe Lunare pe Grupe ({filters.yearFilter})</h3>
                     <div className="h-64 w-full">
-                        {chartData.length > 0 ? (
+                        {groupChartData.length > 0 && activeGroups.length > 0 ? (
                             <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                                <BarChart data={groupChartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
                                     <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
                                     <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
                                     <Tooltip 
                                         contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }}
-                                        itemStyle={{ color: '#4DBCE9', fontWeight: 'bold' }}
+                                        itemStyle={{ fontWeight: 'bold' }}
                                         cursor={{ fill: 'rgba(77, 188, 233, 0.1)' }}
                                     />
-                                    <Bar dataKey="prezente" fill="#4DBCE9" radius={[4, 4, 0, 0]} />
+                                    <Legend wrapperStyle={{fontSize: "12px"}}/>
+                                    {activeGroups.map((groupName, index) => (
+                                        <Bar 
+                                            key={groupName} 
+                                            dataKey={groupName} 
+                                            stackId="a" 
+                                            fill={GROUP_COLORS[index % GROUP_COLORS.length]} 
+                                            radius={[4, 4, 0, 0]} 
+                                        />
+                                    ))}
                                 </BarChart>
                             </ResponsiveContainer>
                         ) : (

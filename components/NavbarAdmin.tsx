@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { User, View, Plata } from '../types';
-import { UserCircleIcon, ChevronDownIcon } from './icons';
+import { ChevronDownIcon } from './icons';
 import { AdminProfileQuickAccess } from './AdminProfileQuickAccess';
 
 interface NavbarAdminProps {
@@ -19,6 +19,8 @@ export const NavbarAdmin: React.FC<NavbarAdminProps> = ({ currentUser, onNavigat
         return plati.some(p => p.status === 'Neachitat' && new Date(p.data) < today);
     }, [plati]);
 
+    const initials = (currentUser.nume?.[0] || '') + (currentUser.prenume?.[0] || '');
+
     return (
         <header className="sticky top-0 z-20 bg-slate-900/80 backdrop-blur-sm border-b border-slate-700">
             <div className="flex items-center justify-end h-16 px-4 sm:px-6 lg:px-8">
@@ -28,7 +30,9 @@ export const NavbarAdmin: React.FC<NavbarAdminProps> = ({ currentUser, onNavigat
                         className="flex items-center gap-2 p-2 rounded-lg hover:bg-slate-700/50"
                     >
                         <div className="relative">
-                             <UserCircleIcon className="w-8 h-8 text-brand-secondary" />
+                             <div className="w-8 h-8 rounded-full bg-brand-secondary flex items-center justify-center text-white font-bold text-sm cursor-pointer">
+                                {initials}
+                            </div>
                              {hasOverduePayments && (
                                 <span className="absolute top-0 right-0 block h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-slate-900"></span>
                              )}

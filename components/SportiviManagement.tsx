@@ -7,6 +7,11 @@ import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { SportivFormModal } from './Sportivi';
 
+const formatHeader = (key: string): string => {
+    if (key === 'numeComplet') return 'Nume Complet';
+    return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+};
+
 // --- Componenta Management Principală ---
 export const SportiviManagement: React.FC<{
     onBack: () => void;
@@ -55,6 +60,61 @@ export const SportiviManagement: React.FC<{
             (filters.rolFilter ? s.roluri.some(r => r.id === filters.rolFilter) : true)
         ).sort((a: Sportiv, b: Sportiv) => a.nume.localeCompare(b.nume));
     }, [sportivi, filters]);
+
+    const finalColumns = useMemo(() => {
+        if (filteredSportivi.length === 0) return ['numeComplet', 'status', 'grupa_id'];
+
+        const allKeys = new Set<string>();
+        filteredSportivi.forEach(s => Object.keys(s).forEach(k => allKeys.add(k)));
+
+        const excluded = ['id', 'user_id', 'roluri', 'parola', 'nume', 'prenume', 'sportivi_roluri'];
+        const availableKeys = Array.from(allKeys).filter(k => !excluded.includes(k));
+
+        const PREFERRED_ORDER = ['status', 'grupa_id', 'email', 'telefon', 'data_nasterii', 'familie_id'];
+        const ordered = PREFERRED_ORDER.filter(key => availableKeys.includes(key));
+        const remaining = availableKeys.filter(key => !PREFERRED_ORDER.includes(key));
+
+        return ['numeComplet', ...ordered, ...remaining];
+    }, [filteredSportivi]);
+    
+    const renderCellContent = (s: Sportiv, columnKey: string) => {
+        switch (columnKey) {
+            case 'numeComplet': {
+                const familie = s.familie_id ? familii.find(f => f.id === s.familie_id) : null;
+                const familieBalance = s.familie_id ? familyBalances.get(s.familie_id) : undefined;
+                return (
+                    <>
+                        <div className="hover:text-brand-secondary">{s.nume} {s.prenume}</div>
+                         {familie && familieBalance !== undefined && (
+                            <div className="text-xs font-normal text-slate-400" style={{fontSize: '11px'}}>
+                                Familia {familie.nume}
+                                <span className={`ml-2 font-bold ${familieBalance >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                    Sold: {familieBalance >= 0 ? '+' : ''}{familieBalance.toFixed(2)} lei
+                                </span>
+                            </div>
+                        )}
+                    </>
+                );
+            }
+            case 'status':
+                return (
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${s.status === 'Activ' ? 'bg-green-600/20 text-green-400 border border-green-600/50' : 'bg-red-600/20 text-red-400 border border-red-600/50'}`}>
+                        {s.status}
+                    </span>
+                );
+            case 'grupa_id':
+                return grupe.find(g => g.id === s.grupa_id)?.denumire || '-';
+            case 'familie_id':
+                return familii.find(f => f.id === s.familie_id)?.nume || 'Individual';
+            case 'tip_abonament_id':
+                return tipuriAbonament.find(t => t.id === s.tip_abonament_id)?.denumire || '-';
+            case 'participa_vacanta':
+                return s.participa_vacanta ? 'Da' : 'Nu';
+            default:
+                const value = s[columnKey] as React.ReactNode;
+                return (typeof value === 'boolean') ? (value ? 'Da' : 'Nu') : (value || '-');
+        }
+    };
 
     const handleSave = async (formData: Partial<Sportiv>) => {
         const { roluri, ...sportivData } = formData;
@@ -115,41 +175,32 @@ export const SportiviManagement: React.FC<{
 
             <Card className="p-0 overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm">
+                    <table className="w-full text-left text-sm table-auto">
                         <thead className="bg-slate-700/50">
                             <tr>
-                                <th className="p-3 font-bold uppercase text-[10px]">Nume Prenume</th>
-                                <th className="p-3 font-bold uppercase text-[10px]">Grupă</th>
-                                <th className="p-3 font-bold uppercase text-[10px]">Status</th>
+                                {finalColumns.map(key => (
+                                    <th key={key} className="p-3 font-bold uppercase text-[10px] whitespace-nowrap">{formatHeader(key)}</th>
+                                ))}
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-700">
-                            {filteredSportivi.map((s: Sportiv) => {
-                                const familie = s.familie_id ? familii.find(f => f.id === s.familie_id) : null;
-                                const familieBalance = s.familie_id ? familyBalances.get(s.familie_id) : undefined;
-                                
-                                return (
+                             {filteredSportivi.map((s: Sportiv) => (
                                 <tr key={s.id} className="hover:bg-brand-secondary/10 transition-colors">
-                                    <td className="p-3 font-semibold cursor-pointer" onClick={() => onViewSportiv(s)}>
-                                        <div className="hover:text-brand-secondary">{s.nume} {s.prenume}</div>
-                                        {familie && familieBalance !== undefined && (
-                                            <div className="text-xs font-normal text-slate-400" style={{fontSize: '13px'}}>
-                                                Familia {familie.nume}
-                                                <span className={`ml-2 font-bold ${familieBalance >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                                    Sold: {familieBalance >= 0 ? '+' : ''}{familieBalance.toFixed(2)} lei
-                                                </span>
-                                            </div>
-                                        )}
-                                    </td>
-                                    <td className="p-3 text-slate-400 text-xs">{grupe.find((g: any) => g.id === s.grupa_id)?.denumire || '-'}</td>
-                                    <td className="p-3">
-                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${s.status === 'Activ' ? 'bg-green-600/20 text-green-400 border border-green-600/50' : 'bg-red-600/20 text-red-400 border border-red-600/50'}`}>
-                                            {s.status}
-                                        </span>
-                                    </td>
+                                    {finalColumns.map((key) => {
+                                        const isNameColumn = key === 'numeComplet';
+                                        return (
+                                            <td 
+                                                key={key} 
+                                                className={`p-3 text-xs align-top ${isNameColumn ? 'font-semibold text-white cursor-pointer' : 'text-slate-400'}`}
+                                                onClick={isNameColumn ? () => onViewSportiv(s) : undefined}
+                                                style={{ minWidth: isNameColumn ? '200px' : 'auto' }}
+                                            >
+                                                {renderCellContent(s, key)}
+                                            </td>
+                                        );
+                                    })}
                                 </tr>
-                                );
-                            })}
+                            ))}
                         </tbody>
                     </table>
                     {filteredSportivi.length === 0 && <p className="p-8 text-center text-slate-500 italic">Niciun sportiv găsit.</p>}

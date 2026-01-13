@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Antrenament, Sportiv, Grupa, Plata, TipAbonament, AnuntPrezenta } from '../types';
 import { Button, Card, Input, Select, Modal } from './ui';
-import { PlusIcon, ArrowLeftIcon, TrashIcon, EditIcon, XIcon } from './icons';
+import { PlusIcon, ArrowLeftIcon, TrashIcon, EditIcon, XIcon, ChatBubbleLeftEllipsisIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
@@ -101,7 +101,8 @@ const AttendanceDetail: React.FC<{
     setSportivi: React.Dispatch<React.SetStateAction<Sportiv[]>>;
     setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
     tipuriAbonament: TipAbonament[];
-}> = ({ antrenament, onBack, sportivi, grupe, setAntrenamente, setSportivi, setPlati, tipuriAbonament }) => {
+    anunturi: AnuntPrezenta[];
+}> = ({ antrenament, onBack, sportivi, grupe, setAntrenamente, setSportivi, setPlati, tipuriAbonament, anunturi }) => {
     const [presentIds, setPresentIds] = useState<Set<string>>(new Set(antrenament.sportivi_prezenti_ids));
     const [extraSportivId, setExtraSportivId] = useState('');
     const [loading, setLoading] = useState(false);
@@ -109,6 +110,10 @@ const AttendanceDetail: React.FC<{
     const [isQuickAddModalOpen, setIsQuickAddModalOpen] = useState(false);
     
     const tip = antrenament.grupa_id ? 'Normal' : 'Vacanta';
+
+    const anunturiAntrenament = useMemo(() => {
+        return anunturi.filter(a => a.antrenament_id === antrenament.id && (a.status === 'Intarziat' || a.status === 'Absent'));
+    }, [anunturi, antrenament.id]);
 
     const sportiviInGrupa = useMemo(() => {
         let sportiviAfisati: Sportiv[];
@@ -223,6 +228,11 @@ const AttendanceDetail: React.FC<{
                     <span>Ora: <strong className="text-white">{antrenament.ora_start}</strong></span>
                     <span>Grupa: <strong className="text-white">{grupaAntrenament?.denumire || tip}</strong></span>
                 </div>
+                {anunturiAntrenament.length > 0 && (
+                    <div className="mt-3 p-2 bg-amber-900/30 border border-amber-500/30 rounded-md text-amber-300 text-sm font-semibold text-center">
+                        {anunturiAntrenament.length} sportiv(i) au anunțat întârziere sau absență.
+                    </div>
+                )}
             </div>
             <div className="space-y-6">
                 <div>
@@ -234,12 +244,28 @@ const AttendanceDetail: React.FC<{
                         </div>
                     </div>
                     <div className="max-h-96 overflow-y-auto space-y-2 p-3 bg-slate-800/50 rounded-lg border border-slate-700">
-                        {sportiviInGrupa.map(sportiv => (
-                            <label key={sportiv.id} className="flex items-center gap-3 p-2 rounded-md hover:bg-slate-700/50 cursor-pointer">
-                                <input type="checkbox" className="h-5 w-5 rounded border-slate-500 bg-slate-900 text-brand-secondary focus:ring-brand-secondary" checked={presentIds.has(sportiv.id)} onChange={(e) => handleCheckboxChange(sportiv.id, e.target.checked)} />
-                                <span className="font-medium">{sportiv.nume} {sportiv.prenume}</span>
-                            </label>
-                        ))}
+                        {sportiviInGrupa.map(sportiv => {
+                            const anunt = anunturiAntrenament.find(a => a.sportiv_id === sportiv.id);
+                            let anuntClass = '';
+                            if (anunt) {
+                                if (anunt.status === 'Intarziat') anuntClass = 'bg-amber-900/40 hover:bg-amber-900/60 border-l-4 border-amber-500';
+                                else if (anunt.status === 'Absent') anuntClass = 'bg-red-900/40 hover:bg-red-900/60 border-l-4 border-red-500';
+                            }
+                            return (
+                                <label key={sportiv.id} className={`flex items-center gap-3 p-2 rounded-md hover:bg-slate-700/50 cursor-pointer transition-colors ${anuntClass}`}>
+                                    <input type="checkbox" className="h-5 w-5 rounded border-slate-500 bg-slate-900 text-brand-secondary focus:ring-brand-secondary" checked={presentIds.has(sportiv.id)} onChange={(e) => handleCheckboxChange(sportiv.id, e.target.checked)} />
+                                    <span className="font-medium flex-grow">{sportiv.nume} {sportiv.prenume}</span>
+                                    {anunt && (
+                                        <div className="relative group">
+                                             <ChatBubbleLeftEllipsisIcon className={`w-5 h-5 ${anunt.status === 'Intarziat' ? 'text-amber-400' : 'text-red-400'}`}/>
+                                             <div className="absolute bottom-full mb-2 right-0 w-48 bg-slate-900 text-white text-xs rounded py-1 px-2 z-10 hidden group-hover:block border border-slate-600 shadow-lg">
+                                                 <strong>{anunt.status}:</strong> {anunt.detalii || 'Fără detalii'}
+                                             </div>
+                                        </div>
+                                    )}
+                                </label>
+                            );
+                        })}
                         {sportiviInGrupa.length === 0 && <p className="text-slate-400 italic text-center py-4">Nu există sportivi în această grupă/configurație.</p>}
                     </div>
                 </div>
@@ -296,7 +322,7 @@ export const PrezentaManagement: React.FC<{
     setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
     tipuriAbonament: TipAbonament[];
     anunturi: AnuntPrezenta[];
-}> = ({ sportivi, setSportivi, antrenamente, setAntrenamente, grupe, onBack, setPlati, tipuriAbonament }) => {
+}> = ({ sportivi, setSportivi, antrenamente, setAntrenamente, grupe, onBack, setPlati, tipuriAbonament, anunturi }) => {
     
     const [selectedAntrenamentId, setSelectedAntrenamentId] = useLocalStorage<string | null>('phi-hau-selected-antrenament-id', null);
     const selectedAntrenament = useMemo(() => antrenamente.find(p => p.id === selectedAntrenamentId) || null, [antrenamente, selectedAntrenamentId]);
@@ -393,6 +419,7 @@ export const PrezentaManagement: React.FC<{
             setSportivi={setSportivi}
             setPlati={setPlati}
             tipuriAbonament={tipuriAbonament}
+            anunturi={anunturi}
         />;
     }
 

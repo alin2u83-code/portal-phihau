@@ -1,7 +1,8 @@
 import React, { useMemo, useState } from 'react';
-import { Sportiv, Participare, Examen, Grad, Antrenament, Grupa, Plata, User, Familie, Tranzactie, TipAbonament, View } from '../types';
+import { Sportiv, Participare, Examen, Grad, Antrenament, Grupa, Plata, User, Familie, Tranzactie, TipAbonament, View, AnuntPrezenta } from '../types';
 import { Card, Button } from './ui';
 import { ShieldCheckIcon, CogIcon, ArchiveBoxIcon, DocumentArrowDownIcon, EditIcon } from './icons';
+import { AnuntPrezentaWidget } from './AnuntPrezentaWidget';
 
 const getGrad = (gradId: string, allGrades: Grad[]) => allGrades.find(g => g.id === gradId);
 const zileSaptamana: Record<number, string> = { 0: 'Duminică', 1: 'Luni', 2: 'Marți', 3: 'Miercuri', 4: 'Joi', 5: 'Vineri', 6: 'Sâmbătă' };
@@ -61,9 +62,11 @@ interface SportivDashboardProps {
   onNavigate: (view: View) => void;
   onNavigateToDashboard: () => void;
   onNavigateToEditProfil: () => void;
+  anunturi: AnuntPrezenta[];
+  setAnunturi: React.Dispatch<React.SetStateAction<AnuntPrezenta[]>>;
 }
 
-export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser, viewedUser, participari, examene, grade, antrenamente, grupe, plati, tranzactii, tipuriAbonament, onNavigate, onNavigateToEditProfil }) => {
+export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser, viewedUser, participari, examene, grade, antrenamente, grupe, plati, tranzactii, tipuriAbonament, onNavigate, onNavigateToEditProfil, anunturi, setAnunturi }) => {
     
     const [periodFilter, setPeriodFilter] = useState<'current_month' | 'current_year'>('current_month');
     
@@ -114,6 +117,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
 
     return (
         <div className="space-y-6" style={{ fontSize: '13px' }}>
+            {isViewingOwnProfile && <AnuntPrezentaWidget currentUser={currentUser} antrenamente={antrenamente} anunturi={anunturi} setAnunturi={setAnunturi} />}
             {isAdmin && isViewingOwnProfile && <AdminQuickAccessBar onNavigate={onNavigate} />}
 
             <div className="flex justify-between items-start">

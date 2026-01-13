@@ -1,6 +1,6 @@
 import React from 'react';
 import { User, View } from '../types';
-import { CogIcon, UserCircleIcon, ArrowRightOnRectangleIcon, ArchiveBoxIcon } from './icons';
+import { CogIcon, UserCircleIcon, ArrowRightOnRectangleIcon } from './icons';
 
 interface AdminProfileQuickAccessProps {
   user: User;
@@ -27,7 +27,6 @@ export const AdminProfileQuickAccess: React.FC<AdminProfileQuickAccessProps> = (
                 <div className="py-1">
                     <button
                         onClick={() => {
-                            console.log('ID Utilizator pentru profil:', user.id);
                             onNavigate('my-portal');
                         }}
                         className="w-full text-left flex items-center px-4 py-2 text-sm text-slate-300 hover:bg-brand-primary hover:text-white transition-colors"
@@ -40,14 +39,7 @@ export const AdminProfileQuickAccess: React.FC<AdminProfileQuickAccessProps> = (
                         className="w-full text-left flex items-center px-4 py-2 text-sm text-slate-300 hover:bg-brand-primary hover:text-white transition-colors"
                     >
                         <CogIcon className="w-5 h-5 mr-3" />
-                        Configurare Club
-                    </button>
-                     <button
-                        onClick={() => onNavigate('data-maintenance')}
-                        className="w-full text-left flex items-center px-4 py-2 text-sm text-slate-300 hover:bg-brand-primary hover:text-white transition-colors"
-                    >
-                        <ArchiveBoxIcon className="w-5 h-5 mr-3" />
-                        Gestiune Documente
+                        Setări Club
                     </button>
                 </div>
                 <div className="py-1 border-t border-slate-600">

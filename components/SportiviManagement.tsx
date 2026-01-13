@@ -9,6 +9,7 @@ import { SportivFormModal } from './Sportivi';
 
 const formatHeader = (key: string): string => {
     if (key === 'numeComplet') return 'Nume Complet';
+    if (key === 'grupa_id') return 'Grupă';
     return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 };
 
@@ -62,20 +63,8 @@ export const SportiviManagement: React.FC<{
     }, [sportivi, filters]);
 
     const finalColumns = useMemo(() => {
-        if (filteredSportivi.length === 0) return ['numeComplet', 'status', 'grupa_id'];
-
-        const allKeys = new Set<string>();
-        filteredSportivi.forEach(s => Object.keys(s).forEach(k => allKeys.add(k)));
-
-        const excluded = ['id', 'user_id', 'roluri', 'parola', 'nume', 'prenume', 'sportivi_roluri'];
-        const availableKeys = Array.from(allKeys).filter(k => !excluded.includes(k));
-
-        const PREFERRED_ORDER = ['status', 'grupa_id', 'email', 'telefon', 'data_nasterii', 'familie_id'];
-        const ordered = PREFERRED_ORDER.filter(key => availableKeys.includes(key));
-        const remaining = availableKeys.filter(key => !PREFERRED_ORDER.includes(key));
-
-        return ['numeComplet', ...ordered, ...remaining];
-    }, [filteredSportivi]);
+        return ['numeComplet', 'status', 'grupa_id'];
+    }, []);
     
     const renderCellContent = (s: Sportiv, columnKey: string) => {
         switch (columnKey) {

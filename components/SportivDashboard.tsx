@@ -126,11 +126,6 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                         <h1 className="text-3xl font-bold text-white">{viewedUser.nume} {viewedUser.prenume}</h1>
                         <p className="text-xl font-semibold" style={{ color: '#E5B80B' }}>{currentGrad?.nume || 'Începător'}</p>
                     </div>
-                     {isViewingOwnProfile && (
-                         <Button variant="secondary" size="sm" onClick={onNavigateToEditProfil} className="self-start mt-1">
-                             <EditIcon className="w-4 h-4 mr-2"/> Editează Profil & Cont
-                         </Button>
-                    )}
                 </div>
                 <Button variant="secondary" size="sm" onClick={() => alert('Funcționalitate în dezvoltare.')}><DocumentArrowDownIcon className="w-4 h-4 mr-2"/> Descarcă Raport PDF</Button>
             </div>

@@ -432,10 +432,11 @@ export const PrezentaManagement: React.FC<{
             </div>
 
             <Card className="mb-6">
+                <h3 className="text-lg font-semibold text-white mb-3">Filtrare Antrenamente</h3>
                 <div className="flex flex-col lg:flex-row items-end gap-4">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-grow w-full">
-                        <Input label="Filtrează după dată" name="data" type="date" value={filters.data} onChange={handleFilterChange} />
-                        <Select label="Filtrează după grupă" name="grupa" value={filters.grupa} onChange={handleFilterChange}>
+                        <Input label="Dată" name="data" type="date" value={filters.data} onChange={handleFilterChange} />
+                        <Select label="Grupă" name="grupa" value={filters.grupa} onChange={handleFilterChange}>
                             <option value="">Toate Grupele</option>
                             {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
                         </Select>

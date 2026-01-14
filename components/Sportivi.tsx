@@ -108,7 +108,6 @@ export const SportivFormModal: React.FC<{
         e.preventDefault();
         setLoading(true);
         try {
-            // FIX: Asigură că `roluri` nu este trimis la salvarea în `public.sportivi`
             const { roluri, ...dataToSave } = formState;
             const result = await onSave(dataToSave);
             if (result.success) {

@@ -26,15 +26,6 @@ export const AdminProfileQuickAccess: React.FC<AdminProfileQuickAccessProps> = (
                 </div>
                 <div className="py-1">
                     <button
-                        onClick={() => {
-                            onNavigate('my-portal');
-                        }}
-                        className="w-full text-left flex items-center px-4 py-2 text-sm text-slate-300 hover:bg-brand-primary hover:text-white transition-colors"
-                    >
-                        <UserCircleIcon className="w-5 h-5 mr-3" />
-                        Profilul Meu
-                    </button>
-                    <button
                         onClick={() => onNavigate('setari-club')}
                         className="w-full text-left flex items-center px-4 py-2 text-sm text-slate-300 hover:bg-brand-primary hover:text-white transition-colors"
                     >

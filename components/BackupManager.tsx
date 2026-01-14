@@ -6,13 +6,22 @@ import { useError } from './ErrorProvider';
 
 // Lista tabelelor pentru backup/restaurare, în ordine dependency-urilor pentru a asigura o restaurare corectă
 const TABLES_TO_MANAGE = [
-    // Tabele independente/de bază
-    'roluri', 'grade', 'familii', 'grupe', 'tipuri_abonament', 'examene',
-    // Tabele dependente
+    // 1. Independent tables
+    'roluri', 'grade', 'familii', 'grupe', 'tipuri_abonament', 'examene', 'evenimente', 'preturi_config',
+    // 2. Depends on level 1
     'sportivi', 
-    // Tabele de legătură sau cu dependențe multiple
-    'sportivi_roluri', 'program_antrenamente', 'plati', 'participari'
+    'program_antrenamente',
+    // 3. Linker tables / Depends on level 2
+    'sportivi_roluri',
+    'participari',
+    'rezultate',
+    'plati',
+    'prezenta_antrenament',
+    'anunturi_prezenta',
+    // 4. Depends on level 3
+    'tranzactii'
 ];
+
 
 interface BackupManagerProps {
     onBack: () => void;

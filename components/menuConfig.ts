@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Rol } from '../types';
-import { HomeIcon, UsersIcon, TrophyIcon, ClipboardDocumentListIcon, BanknotesIcon, CalendarDaysIcon, UserCircleIcon, CogIcon } from './icons';
+import { HomeIcon, UsersIcon, TrophyIcon, ClipboardDocumentListIcon, BanknotesIcon, CalendarDaysIcon, UserCircleIcon, CogIcon, ArchiveBoxIcon } from './icons';
 
 export interface MenuItem {
     label: string;
@@ -62,13 +62,17 @@ export const adminMenu: MenuItem[] = [
         submenu: [ 
              { view: 'tipuri-abonament', label: 'Configurare Abonamente' }, 
              { view: 'configurare-preturi', label: 'Configurare Alte Prețuri' },
-             { label: 'Mentenanță Date', view: 'data-maintenance', roles: ['Admin'] }
         ] 
+    },
+    { 
+        label: 'Mentenanță', 
+        icon: ArchiveBoxIcon, 
+        view: 'data-maintenance',
+        roles: ['Admin']
     },
 ];
 
 export const sportivMenu: MenuItem[] = [
     { label: 'Portalul Meu', icon: HomeIcon, view: 'dashboard' },
     { label: 'Evenimentele Mele', icon: CalendarDaysIcon, view: 'evenimentele-mele' },
-    { label: 'Profil & Securitate', icon: UserCircleIcon, view: 'editare-profil-personal' },
 ];

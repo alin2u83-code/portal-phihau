@@ -1,15 +1,17 @@
 import React, { useState, useMemo } from 'react';
-import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie } from '../types';
+import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User } from '../types';
 import { Button, Modal, Input, Select, Card } from './ui';
-import { PlusIcon, ArrowLeftIcon } from './icons';
+import { PlusIcon, ArrowLeftIcon, ShieldCheckIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { SportivFormModal } from './Sportivi';
+import { SportivAccountSettingsModal } from './SportivAccountSettings';
 
 const formatHeader = (key: string): string => {
     if (key === 'numeComplet') return 'Nume Complet';
     if (key === 'grupa_id') return 'Grupă';
+    if (key === 'actiuni') return 'Acțiuni';
     return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 };
 
@@ -24,13 +26,17 @@ export const SportiviManagement: React.FC<{
     familii: Familie[];
     setFamilii: React.Dispatch<React.SetStateAction<Familie[]>>;
     allRoles: Rol[];
+    setAllRoles: React.Dispatch<React.SetStateAction<Rol[]>>;
+    currentUser: User;
     plati: Plata[];
     tranzactii: Tranzactie[];
     setTranzactii: React.Dispatch<React.SetStateAction<Tranzactie[]>>;
     onViewSportiv: (sportiv: Sportiv) => void;
-}> = ({ onBack, sportivi, setSportivi, grupe, setGrupe, tipuriAbonament, familii, setFamilii, allRoles, plati, tranzactii, setTranzactii, onViewSportiv }) => {
-    const [isModalOpen, setIsModalOpen] = useState(false);
+}> = ({ onBack, sportivi, setSportivi, grupe, setGrupe, tipuriAbonament, familii, setFamilii, allRoles, setAllRoles, currentUser, plati, tranzactii, setTranzactii, onViewSportiv }) => {
+    const [isFormModalOpen, setIsFormModalOpen] = useState(false);
     const [sportivToEdit, setSportivToEdit] = useState<Sportiv | null>(null);
+    const [accountSettingsSportiv, setAccountSettingsSportiv] = useState<Sportiv | null>(null);
+
     const { showError } = useError();
 
     const [filters, setFilters] = useLocalStorage('phi-hau-sportivi-filters', {
@@ -63,7 +69,7 @@ export const SportiviManagement: React.FC<{
     }, [sportivi, filters]);
 
     const finalColumns = useMemo(() => {
-        return ['numeComplet', 'status', 'grupa_id'];
+        return ['numeComplet', 'status', 'grupa_id', 'actiuni'];
     }, []);
     
     const renderCellContent = (s: Sportiv, columnKey: string) => {
@@ -93,12 +99,13 @@ export const SportiviManagement: React.FC<{
                 );
             case 'grupa_id':
                 return grupe.find(g => g.id === s.grupa_id)?.denumire || '-';
-            case 'familie_id':
-                return familii.find(f => f.id === s.familie_id)?.nume || 'Individual';
-            case 'tip_abonament_id':
-                return tipuriAbonament.find(t => t.id === s.tip_abonament_id)?.denumire || '-';
-            case 'participa_vacanta':
-                return s.participa_vacanta ? 'Da' : 'Nu';
+            case 'actiuni':
+                 return (
+                    <Button size="sm" variant="secondary" onClick={() => setAccountSettingsSportiv(s)}>
+                        <ShieldCheckIcon className="w-4 h-4 mr-1" />
+                        Setări Cont
+                    </Button>
+                );
             default:
                 const value = s[columnKey] as React.ReactNode;
                 return (typeof value === 'boolean') ? (value ? 'Da' : 'Nu') : (value || '-');
@@ -140,7 +147,7 @@ export const SportiviManagement: React.FC<{
             
             <div className="flex justify-between items-center gap-4">
                 <h1 className="text-2xl font-bold text-white uppercase tracking-tight">Management Sportivi</h1>
-                <Button variant="primary" onClick={() => { setSportivToEdit(null); setIsModalOpen(true); }}>
+                <Button variant="primary" onClick={() => { setSportivToEdit(null); setIsFormModalOpen(true); }}>
                     <PlusIcon className="w-5 h-5 mr-1"/> Adaugă Sportiv
                 </Button>
             </div>
@@ -196,10 +203,10 @@ export const SportiviManagement: React.FC<{
                 </div>
             </Card>
 
-            {isModalOpen && (
+            {isFormModalOpen && (
                  <SportivFormModal 
-                    isOpen={isModalOpen}
-                    onClose={() => setIsModalOpen(false)}
+                    isOpen={isFormModalOpen}
+                    onClose={() => setIsFormModalOpen(false)}
                     onSave={handleSave}
                     sportivToEdit={sportivToEdit}
                     grupe={grupe}
@@ -209,6 +216,16 @@ export const SportiviManagement: React.FC<{
                     tipuriAbonament={tipuriAbonament}
                 />
             )}
+
+            <SportivAccountSettingsModal
+                isOpen={!!accountSettingsSportiv}
+                onClose={() => setAccountSettingsSportiv(null)}
+                sportiv={accountSettingsSportiv}
+                setSportivi={setSportivi}
+                allRoles={allRoles}
+                setAllRoles={setAllRoles}
+                currentUser={currentUser}
+            />
         </div>
     );
 };

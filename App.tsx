@@ -24,7 +24,7 @@ import { EditareProfilPersonal } from './components/EditareProfilPersonal';
 import { EvenimenteleMele } from './components/EvenimenteleMele';
 import { Sidebar } from './components/Sidebar';
 import { useError } from './components/ErrorProvider';
-import { BackupManager } from './components/BackupManager';
+import { DataMaintenancePage } from './components/BackupManager';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { ProgramareActivitati } from './components/Activitati';
 import { ClubSettings } from './components/ClubSettings';
@@ -259,7 +259,19 @@ function App() {
       case 'familii': return <FamiliiManagement familii={familii} setFamilii={setFamilii} sportivi={sportivi} onBack={() => setActiveView('dashboard')} />;
       case 'user-management': return <UserManagement sportivi={sportivi} setSportivi={setSportivi} currentUser={currentUser} setCurrentUser={setCurrentUser} allRoles={allRoles} setAllRoles={setAllRoles} onBack={() => setActiveView('dashboard')} />;
       case 'editare-profil-personal': return <EditareProfilPersonal user={currentUser} setSportivi={setSportivi} setCurrentUser={setCurrentUser} onBack={() => setActiveView('dashboard')} />;
-      case 'data-maintenance': return <BackupManager onBack={() => setActiveView('dashboard')} onDataRestored={() => fetchData(currentUser)} />;
+      case 'data-maintenance': return <DataMaintenancePage 
+          onBack={() => setActiveView('dashboard')} 
+          onDataRestored={() => fetchData(currentUser)}
+          sportivi={sportivi}
+          setSportivi={setSportivi}
+          grade={grade}
+          preturiConfig={preturiConfig}
+          participari={participari}
+          examene={examene}
+          plati={plati}
+          setPlati={setPlati}
+          onNavigate={setActiveView}
+        />;
       case 'activitati': return <ProgramareActivitati grupe={grupe} antrenamente={antrenamente} setAntrenamente={setAntrenamente} onBack={() => setActiveView('dashboard')} />;
       case 'setari-club': return <ClubSettings onBack={() => setActiveView('dashboard')} />;
       default: return <Dashboard onNavigate={setActiveView} />;

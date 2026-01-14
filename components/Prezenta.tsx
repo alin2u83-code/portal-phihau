@@ -147,42 +147,29 @@ const AttendanceDetail: React.FC<{
     const handleSaveAttendance = async () => {
         if (!antrenament || !supabase) return;
         setLoading(true);
-
+    
         const initialIds = new Set(antrenament.sportivi_prezenti_ids);
         const finalIds = presentIds;
-
+    
         const idsToAdd = [...finalIds].filter(id => !initialIds.has(id));
         const idsToRemove = [...initialIds].filter(id => !finalIds.has(id));
-
-        const promises = [];
-
-        if (idsToRemove.length > 0) {
-            const deletePromise = supabase
-                .from('prezenta_antrenament')
-                .delete()
-                .eq('antrenament_id', antrenament.id)
-                .in('sportiv_id', idsToRemove);
-            promises.push(deletePromise);
+    
+        if (idsToAdd.length === 0 && idsToRemove.length === 0) {
+            showSuccess("Info", "Nicio modificare de salvat.");
+            onBack();
+            setLoading(false);
+            return;
         }
-
-        if (idsToAdd.length > 0) {
-            const toInsert = idsToAdd.map(sportiv_id => ({
-                antrenament_id: antrenament.id,
-                sportiv_id: sportiv_id
-            }));
-            const insertPromise = supabase.from('prezenta_antrenament').insert(toInsert);
-            promises.push(insertPromise);
-        }
-        
+    
         try {
-            if (promises.length > 0) {
-                const results = await Promise.all(promises);
-                const errors = results.map(r => r.error).filter(Boolean);
-                if (errors.length > 0) {
-                    throw new Error(errors.map(e => e.message).join('; '));
-                }
-            }
-
+            const { error } = await supabase.rpc('update_attendance', {
+                p_antrenament_id: antrenament.id,
+                p_ids_to_add: idsToAdd,
+                p_ids_to_remove: idsToRemove
+            });
+    
+            if (error) throw error;
+    
             setAntrenamente(prev => prev.map(p =>
                 p.id === antrenament.id ? { ...p, sportivi_prezenti_ids: Array.from(finalIds) } : p
             ));
@@ -459,7 +446,7 @@ export const PrezentaManagement: React.FC<{
                 </div>
             </Card>
 
-            <Card className="overflow-hidden p-0">
+            <Card className="p-0 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left min-w-[800px]">
                         <thead className="bg-slate-700/50">

@@ -80,7 +80,7 @@ function App() {
             supabase.from('program_antrenamente').select('*').is('data', null),
 
             // RLS-protected data
-            supabase.from('sportivi').select('*, sportivi_roluri(roluri(id, nume))'),
+            supabase.from('sportivi').select('*, roluri(id, nume)'),
             supabase.from('participari').select('*'),
             supabase.from('familii').select('*'),
             supabase.from('plati').select('*'),
@@ -93,7 +93,7 @@ function App() {
         // Process data - this part remains the same
         const orarAntrenamente = progData || [];
         const formattedGrupe = (grData || []).map(g => ({ ...g, program: orarAntrenamente.filter(p => p.grupa_id === g.id) }));
-        const formattedSportivi = (sData || []).map((s: any) => ({ ...s, roluri: s.sportivi_roluri ? s.sportivi_roluri.map((sr: any) => sr.roluri) : [] }));
+        const formattedSportivi = (sData || []).map((s: any) => ({ ...s, roluri: s.roluri || [] }));
         const formattedAntrenamente = (antrenamenteData || []).map((a: any) => ({ ...a, sportivi_prezenti_ids: a.prezenta_antrenament ? a.prezenta_antrenament.map((ps: any) => ps.sportiv_id) : [] }));
 
         // Set state for all data
@@ -122,7 +122,7 @@ function App() {
 
   const fetchUserProfile = useCallback(async (userId: string) => {
     if (!supabase) return;
-    const { data, error } = await supabase.from('sportivi').select('*, sportivi_roluri(roluri(id, nume))').eq('user_id', userId).maybeSingle();
+    const { data, error } = await supabase.from('sportivi').select('*, roluri(id, nume)').eq('user_id', userId).maybeSingle();
 
     if (error) {
       showError("Eroare la preluarea profilului", error);
@@ -136,7 +136,7 @@ function App() {
     }
 
     const user = data as any;
-    user.roluri = user.sportivi_roluri.map((item: any) => item.roluri);
+    user.roluri = user.roluri || [];
     setCurrentUser(user);
     fetchData(user); // Pass user object to fetch data according to roles
   }, [fetchData, showError]);

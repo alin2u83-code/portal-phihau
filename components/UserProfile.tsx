@@ -56,9 +56,14 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
     // State for role editing
     const [isEditingRoles, setIsEditingRoles] = useState(false);
     const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>(sportiv.roluri.map(r => r.id));
+
+    // State for direct subscription editing
+    const [isEditingAbonament, setIsEditingAbonament] = useState(false);
+    const [selectedAbonamentId, setSelectedAbonamentId] = useState<string | null>(sportiv.tip_abonament_id);
     
     useEffect(() => {
         setSelectedRoleIds(sportiv.roluri.map(r => r.id));
+        setSelectedAbonamentId(sportiv.tip_abonament_id);
     }, [sportiv]);
 
     const isAdmin = currentUser.roluri.some(r => r.nume === 'Admin');
@@ -74,7 +79,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
     const admittedParticipations = useMemo(() => sortedSportivParticipariForDisplay.filter(p => p.rezultat === 'Admis'), [sortedSportivParticipariForDisplay]);
     
     const currentGrad = useMemo(() => getGrad(admittedParticipations[0]?.grad_sustinut_id, grade), [admittedParticipations, grade]);
-
+    const abonamentCurent = useMemo(() => tipuriAbonament.find(ab => ab.id === sportiv.tip_abonament_id), [tipuriAbonament, sportiv.tip_abonament_id]);
     const currentGradParticipationId = admittedParticipations.length > 0 ? admittedParticipations[0].id : null;
 
     const eligibility = useMemo(() => {
@@ -114,6 +119,17 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
         setSportivi(prev => prev.map(s => s.id === sportiv.id ? { ...s, roluri: updatedRoles } : s));
         showSuccess("Succes", "Rolurile au fost actualizate.");
         setIsEditingRoles(false);
+    };
+
+    const handleSaveAbonament = async () => {
+        if (!supabase) { showError("Eroare Configurare", "Client Supabase neconfigurat."); return; }
+        const { error } = await supabase.from('sportivi').update({ tip_abonament_id: selectedAbonamentId }).eq('id', sportiv.id);
+        if (error) { showError("Eroare la salvare", error); } 
+        else {
+            setSportivi(prev => prev.map(s => s.id === sportiv.id ? { ...s, tip_abonament_id: selectedAbonamentId } : s));
+            setIsEditingAbonament(false);
+            showSuccess("Succes", "Abonamentul a fost actualizat.");
+        }
     };
 
     const handleSaveSportiv = async (formData: Partial<Sportiv>) => {
@@ -209,7 +225,31 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                         </tr>
                     );
                 })}</tbody></table></div></Card>
-                <Card className="p-0"><div className="p-4 bg-slate-700/50"><h3 className="font-bold text-white">Istoric Financiar</h3></div><div className="overflow-x-auto"><table className="w-full text-sm text-left"><thead className="bg-slate-800/50 text-xs uppercase text-slate-400"><tr><th className="p-3">Data</th><th className="p-3">Descriere</th><th className="p-3 text-right">Sumă</th><th className="p-3">Status</th></tr></thead><tbody className="divide-y divide-slate-700">{sportivPlati.map(p => <tr key={p.id}><td className="p-2">{p.data}</td><td className="p-2">{p.descriere}</td><td className="p-2 font-semibold text-right">{p.suma.toFixed(2)}</td><td className={`p-2 font-bold ${p.status === 'Achitat' ? 'text-green-400' : 'text-red-400'}`}>{p.status}</td></tr>)}</tbody></table></div></Card>
+                <Card>
+                    <h3 className="text-lg font-bold text-white mb-2">Detalii Financiare</h3>
+                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <dt className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Abonament Curent</dt>
+                            {sportiv.familie_id ? (
+                                <dd className="mt-1 text-md text-white font-semibold">Gestionat de familie</dd>
+                            ) : isEditingAbonament ? (
+                                <div className="mt-1 flex items-center gap-2">
+                                    <Select label="" value={selectedAbonamentId || ''} onChange={(e) => setSelectedAbonamentId(e.target.value || null)} className="flex-grow !py-1 text-sm">
+                                        <option value="">Niciunul</option>
+                                        {tipuriAbonament.filter(t => t.numar_membri === 1).map(t => (<option key={t.id} value={t.id}>{t.denumire} ({t.pret} RON)</option>))}
+                                    </Select>
+                                    <Button size="sm" variant="success" onClick={handleSaveAbonament}>OK</Button>
+                                    <Button size="sm" variant="secondary" onClick={() => { setIsEditingAbonament(false); setSelectedAbonamentId(sportiv.tip_abonament_id); }}>X</Button>
+                                </div>
+                            ) : (
+                                <dd className="mt-1 text-md text-white font-semibold flex items-center gap-2">
+                                    <span>{abonamentCurent?.denumire || 'N/A'}</span>
+                                    <Button size="sm" variant="secondary" className="!p-1 h-auto" onClick={() => setIsEditingAbonament(true)}><EditIcon className="w-4 h-4"/></Button>
+                                </dd>
+                            )}
+                        </div>
+                    </div>
+                </Card>
             </div>
 
             <SportivFormModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} onSave={handleSaveSportiv} sportivToEdit={sportiv} grupe={grupe} setGrupe={()=>{}} familii={familii} setFamilii={()=>{}} tipuriAbonament={tipuriAbonament} />

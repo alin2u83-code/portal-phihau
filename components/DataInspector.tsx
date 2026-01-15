@@ -5,7 +5,6 @@ import { ArrowLeftIcon } from './icons';
 
 interface DataInspectorProps {
     antrenamente: Antrenament[];
-    rawPrezente: any[];
     onBack: () => void;
 }
 
@@ -16,17 +15,17 @@ const StatCard: React.FC<{ label: string; value: string | number; colorClass: st
     </div>
 );
 
-export const DataInspector: React.FC<DataInspectorProps> = ({ antrenamente, rawPrezente, onBack }) => {
+export const DataInspector: React.FC<DataInspectorProps> = ({ antrenamente, onBack }) => {
 
     const stats = useMemo(() => {
-        const totalAntrenamente = antrenamente.length;
-        const totalPrezenteRecords = rawPrezente.length;
+        const total = antrenamente.length;
+        // The `prezenta_antrenament` raw property is mapped to `sportivi_prezenti_ids` and then removed.
+        // So, we can't check for the raw join property here.
+        // Instead, we check the result of that mapping.
         const cuPrezentiProcesati = antrenamente.filter(a => a.sportivi_prezenti_ids?.length > 0).length;
-        const exempluCuDate = antrenamente.find(a => a.sportivi_prezenti_ids?.length > 0) || null;
-        const exempluFaraDate = antrenamente.find(a => !a.sportivi_prezenti_ids || a.sportivi_prezenti_ids.length === 0) || null;
 
-        return { totalAntrenamente, totalPrezenteRecords, cuPrezentiProcesati, exempluCuDate, exempluFaraDate };
-    }, [antrenamente, rawPrezente]);
+        return { total, cuPrezentiProcesati };
+    }, [antrenamente]);
 
     return (
         <div className="space-y-6">
@@ -36,34 +35,20 @@ export const DataInspector: React.FC<DataInspectorProps> = ({ antrenamente, rawP
             <Card className="border-l-4 border-amber-400">
                 <h2 className="text-xl font-bold text-white mb-4">Analiză Antrenamente & Prezență</h2>
                 <p className="text-sm text-slate-400 mb-6">
-                    Această pagină afișează datele brute primite de la Supabase pentru a verifica dacă informațiile despre prezență sunt încărcate corect.
+                    Această pagină afișează datele procesate pentru a verifica dacă informațiile despre prezență sunt încărcate corect.
                 </p>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <StatCard label="Total Antrenamente Încărcate" value={stats.totalAntrenamente} colorClass="text-white" />
-                    <StatCard label="Total Înregistrări Prezență Primite" value={stats.totalPrezenteRecords} colorClass="text-purple-400" />
-                    <StatCard label="Antrenamente cu Prezenți Procesate" value={stats.cuPrezentiProcesati} colorClass="text-green-400" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <StatCard label="Total Antrenamente Încărcate" value={stats.total} colorClass="text-white" />
+                    <StatCard label="Antrenamente cu Prezenți" value={stats.cuPrezentiProcesati} colorClass="text-green-400" />
                 </div>
                  <div className="mt-4 text-sm text-slate-300">
-                    <ul className="space-y-1">
-                        <li>• <strong>Total Antrenamente:</strong> Numărul de înregistrări din `program_antrenamente`.</li>
-                        <li>• <strong className="text-purple-300">Total Înregistrări Prezență Primite:</strong> Numărul de rânduri primite direct din tabelul `prezenta_antrenament`. <strong>Dacă acest număr este 0, problema este 100% politica de Row Level Security (RLS) a acestui tabel, care blochează vizibilitatea datelor.</strong></li>
-                        <li>• <strong>Cu Prezenți Procesate:</strong> Numărul de antrenamente unde `sportivi_prezenti_ids` are cel puțin un ID după procesarea datelor.</li>
-                    </ul>
+                    <p>Dacă numărul de "Antrenamente cu Prezenți" este 0, deși ați înregistrat prezențe, problema este cel mai probabil o politică de securitate (RLS) pe tabelul `prezenta_antrenament` care blochează citirea datelor.</p>
                 </div>
-            </Card>
-
-            <Card>
-                <h2 className="text-xl font-bold text-white mb-4">Date Brute 'prezenta_antrenament' (JSON)</h2>
-                <p className="text-sm text-slate-400 mb-2">Acesta este conținutul exact al tabelului `prezenta_antrenament` așa cum este primit de la baza de date. Dacă acest tabel este gol, înseamnă că politica de Row Level Security (RLS) a tabelului `prezenta_antrenament` blochează accesul la date pentru utilizatorul curent.</p>
-                <pre className="bg-slate-900 p-4 rounded max-h-96 overflow-auto text-xs font-mono">
-                    <code>
-                        {JSON.stringify(rawPrezente, null, 2)}
-                    </code>
-                </pre>
             </Card>
 
             <Card>
                 <h2 className="text-xl font-bold text-white mb-4">Date Brute Antrenamente (JSON Final, după procesare)</h2>
+                 <p className="text-sm text-slate-400 mb-2">Acestea sunt datele așa cum ajung în componentele aplicației. Verificați dacă `sportivi_prezenti_ids` este populat.</p>
                 <pre className="bg-slate-900 p-4 rounded max-h-96 overflow-auto text-xs font-mono">
                     <code>
                         {JSON.stringify(antrenamente, null, 2)}

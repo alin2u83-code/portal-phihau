@@ -42,7 +42,6 @@ function App() {
   const [grade, setGrade] = useState<Grad[]>([]);
   const [participari, setParticipari] = useState<Participare[]>([]);
   const [antrenamente, setAntrenamente] = useState<Antrenament[]>([]);
-  const [rawPrezente, setRawPrezente] = useState<any[]>([]);
   const [grupe, setGrupe] = useState<Grupa[]>([]);
   const [familii, setFamilii] = useState<Familie[]>([]);
   const [plati, setPlati] = useState<Plata[]>([]);
@@ -69,8 +68,7 @@ function App() {
             { data: eData }, { data: gData }, { data: grData }, { data: evData },
             { data: cfData }, { data: abData }, { data: roData }, { data: progData },
             { data: sData }, { data: paData }, { data: fData }, { data: plData },
-            { data: tData }, { data: rData }, { data: antrenamenteData }, { data: anunturiData },
-            { data: prezenteData }
+            { data: tData }, { data: rData }, { data: antrenamenteData }, { data: anunturiData }
         ] = await Promise.all([
             // Public/Shared data
             supabase.from('examene').select('*'),
@@ -89,29 +87,20 @@ function App() {
             supabase.from('plati').select('*'),
             supabase.from('tranzactii').select('*'),
             supabase.from('rezultate').select('*'),
-            supabase.from('program_antrenamente').select('*').not('data', 'is', null),
-            supabase.from('anunturi_prezenta').select('*'),
-            supabase.from('prezenta_antrenament').select('*')
+            supabase.from('program_antrenamente').select('*, prezenta_antrenament!antrenament_id(sportiv_id)').not('data', 'is', null),
+            supabase.from('anunturi_prezenta').select('*')
         ]);
 
         // Process data
-        setRawPrezente(prezenteData || []);
-
-        const prezenteByAntrenamentId = (prezenteData || []).reduce((acc, p) => {
-            if (!acc[p.antrenament_id]) {
-                acc[p.antrenament_id] = [];
-            }
-            acc[p.antrenament_id].push(p.sportiv_id);
-            return acc;
-        }, {} as Record<string, string[]>);
-
         const orarAntrenamente = progData || [];
         const formattedGrupe = (grData || []).map(g => ({ ...g, program: orarAntrenamente.filter(p => p.grupa_id === g.id) }));
         const formattedSportivi = (sData || []).map((s: any) => ({ ...s, roluri: s.roluri || [] }));
         
         const formattedAntrenamente = (antrenamenteData || []).map((a: any) => ({
             ...a,
-            sportivi_prezenti_ids: prezenteByAntrenamentId[a.id] || [],
+            sportivi_prezenti_ids: a.prezenta_antrenament 
+                ? a.prezenta_antrenament.map((p: any) => p.sportiv_id) 
+                : [],
         }));
 
         // Set state for all data
@@ -292,7 +281,7 @@ function App() {
         />;
       case 'activitati': return <ProgramareActivitati grupe={grupe} antrenamente={antrenamente} setAntrenamente={setAntrenamente} onBack={() => setActiveView('dashboard')} />;
       case 'setari-club': return <ClubSettings onBack={() => setActiveView('dashboard')} />;
-      case 'data-inspector': return <DataInspector antrenamente={antrenamente} rawPrezente={rawPrezente} onBack={() => setActiveView('dashboard')} />;
+      case 'data-inspector': return <DataInspector antrenamente={antrenamente} onBack={() => setActiveView('dashboard')} />;
       default: return <Dashboard onNavigate={setActiveView} />;
     }
   };

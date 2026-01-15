@@ -245,6 +245,7 @@ function App() {
                 grade={grade}
                 antrenamente={antrenamente}
                 plati={plati}
+                tranzactii={tranzactii}
                 grupe={grupe}
                 familii={familii}
                 tipuriAbonament={tipuriAbonament}

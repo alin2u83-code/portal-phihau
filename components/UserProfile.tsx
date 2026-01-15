@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Sportiv, User, Rol, Participare, Examen, Grad, Antrenament, Plata, Familie, TipAbonament } from '../types';
+import { Sportiv, User, Rol, Participare, Examen, Grad, Antrenament, Plata, Familie, TipAbonament, Tranzactie } from '../types';
 import { Button, Card, Select } from './ui';
 import { ArrowLeftIcon, EditIcon, WalletIcon, TrashIcon, ShieldCheckIcon, PlusIcon, ChartBarIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -34,6 +34,7 @@ interface UserProfileProps {
     grade: Grad[];
     antrenamente: Antrenament[];
     plati: Plata[];
+    tranzactii: Tranzactie[];
     grupe: any[];
     familii: Familie[];
     tipuriAbonament: TipAbonament[];
@@ -44,7 +45,7 @@ interface UserProfileProps {
     onBack: () => void;
 }
 
-export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, participari, examene, grade, antrenamente, plati, grupe, familii, tipuriAbonament, allRoles, setSportivi, setPlati, setTranzactii, onBack }) => {
+export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, participari, examene, grade, antrenamente, plati, tranzactii, grupe, familii, tipuriAbonament, allRoles, setSportivi, setPlati, setTranzactii, onBack }) => {
     const { showError, showSuccess } = useError();
     
     // State for modals
@@ -253,7 +254,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
             </div>
 
             <SportivFormModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} onSave={handleSaveSportiv} sportivToEdit={sportiv} grupe={grupe} setGrupe={()=>{}} familii={familii} setFamilii={()=>{}} tipuriAbonament={tipuriAbonament} />
-            {isWalletModalOpen && <SportivWallet sportiv={sportiv} familie={familii.find(f => f.id === sportiv.familie_id)} allPlati={plati} allTranzactii={[]} setTranzactii={setTranzactii} onClose={() => setIsWalletModalOpen(false)} />}
+            {isWalletModalOpen && <SportivWallet sportiv={sportiv} familie={familii.find(f => f.id === sportiv.familie_id)} allPlati={plati} allTranzactii={tranzactii} setTranzactii={setTranzactii} onClose={() => setIsWalletModalOpen(false)} />}
             {isDeleteModalOpen && <DeleteAuditModal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} sportiv={sportiv} onDeactivate={handleDeactivate} onDelete={handleDelete} />}
             {isReportModalOpen && <SportivFeedbackReport isOpen={isReportModalOpen} onClose={() => setIsReportModalOpen(false)} sportiv={sportiv} antrenamente={antrenamente} grupe={grupe} grade={grade} participari={participari} examene={examene} />}
         </div>

@@ -8,6 +8,7 @@ import { SportivFormModal } from './Sportivi';
 import { SportivWallet } from './SportivWallet';
 import { DeleteAuditModal } from './DeleteAuditModal';
 import { SportivFeedbackReport } from './SportivFeedbackReport';
+import { SportivProgressChart } from './SportivProgressChart';
 
 const getGrad = (gradId: string, allGrades: Grad[]) => allGrades.find(g => g.id === gradId);
 const getAge = (dateString: string) => { const today = new Date(); const birthDate = new Date(dateString); let age = today.getFullYear() - birthDate.getFullYear(); const m = today.getMonth() - birthDate.getMonth(); if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; } return age; };
@@ -155,6 +156,17 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                         <Button variant="danger" onClick={() => setIsDeleteModalOpen(true)}><TrashIcon className="w-4 h-4 mr-2"/> Șterge</Button>
                     </div>
                 </div>
+            </Card>
+
+            <Card>
+                <h3 className="text-lg font-bold text-white mb-4">Evoluție & Progres</h3>
+                <SportivProgressChart
+                    sportiv={sportiv}
+                    participari={participari}
+                    examene={examene}
+                    grade={grade}
+                    antrenamente={antrenamente}
+                />
             </Card>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

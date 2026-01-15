@@ -41,38 +41,55 @@ export const AnuntPrezentaWidget: React.FC<AnuntPrezentaWidgetProps> = ({ curren
         if (!supabase) return;
         setLoading(true);
 
-        // Call an RPC function to securely handle the upsert.
-        // This function is assumed to be on the backend, run with SECURITY DEFINER,
-        // and correctly associate the announcement with the calling user.
-        const { data, error } = await supabase.rpc('upsert_anunt_prezenta', {
-            p_antrenament_id: todaysTraining.id,
-            p_status: status,
-            p_detalii: detalii
-        });
+        try {
+            let result: { data: AnuntPrezenta | null, error: any };
 
-        setLoading(false);
-        if (error) {
-            showError("Eroare la trimitere", error);
-        } else {
-            showSuccess("Mesaj Trimis", "Anunțul tău a fost trimis instructorului.");
+            if (existingAnunt) {
+                // Update existing announcement
+                result = await supabase
+                    .from('anunturi_prezenta')
+                    .update({ status, detalii })
+                    .eq('id', existingAnunt.id)
+                    .select()
+                    .single();
+            } else {
+                // Insert new announcement
+                result = await supabase
+                    .from('anunturi_prezenta')
+                    .insert({
+                        antrenament_id: todaysTraining.id,
+                        sportiv_id: currentUser.id,
+                        status,
+                        detalii
+                    })
+                    .select()
+                    .single();
+            }
             
-            // Assuming the RPC returns the new/updated record.
-            // RPC data might not be a single object, but an array.
-            const newAnunt = Array.isArray(data) ? data[0] : data;
+            const { data, error } = result;
 
-            if (newAnunt) {
+            if (error) {
+                throw error;
+            }
+
+            if (data) {
+                showSuccess("Mesaj Trimis", "Anunțul tău a fost trimis instructorului.");
                 setAnunturi(prev => {
-                    const index = prev.findIndex(a => a.antrenament_id === todaysTraining.id && a.sportiv_id === currentUser.id);
-                    if (index !== -1) {
+                    const index = prev.findIndex(a => a.id === data.id);
+                    if (index > -1) {
                         const newAnunturi = [...prev];
-                        newAnunturi[index] = newAnunt;
+                        newAnunturi[index] = data;
                         return newAnunturi;
                     } else {
-                        return [...prev, newAnunt];
+                        return [...prev, data];
                     }
                 });
+                setMode('options'); // Reset UI
             }
-            setMode('options'); // Reset UI
+        } catch (err: any) {
+            showError("Eroare la trimitere", err);
+        } finally {
+            setLoading(false);
         }
     };
 

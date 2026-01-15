@@ -213,6 +213,13 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ plati, setPlati,
                 }).in('id', idsToUpdate);
 
                 if (updateError) throw updateError;
+                
+                // Actualizează starea locală pentru a reflecta imediat modificarea
+                setPlati(prevPlati => 
+                    prevPlati.map(plata => 
+                        idsToUpdate.includes(plata.id) ? { ...plata, status: 'Achitat' } : plata
+                    )
+                );
 
                 setTranzactii(prev => [...prev, tx as Tranzactie]);
                 showSuccess('Succes', `Încasare confirmată! ${idsToUpdate.length} datorii stinse.`);

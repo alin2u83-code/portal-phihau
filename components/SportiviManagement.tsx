@@ -15,6 +15,12 @@ const formatHeader = (key: string): string => {
     return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 };
 
+const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
+    const colorClasses: Record<Rol['nume'], string> = { Admin: 'bg-red-600 text-white', Instructor: 'bg-sky-600 text-white', Sportiv: 'bg-slate-600 text-slate-200' };
+    return <span className={`px-2 py-1 text-[10px] font-semibold rounded-full ${colorClasses[role.nume] || 'bg-gray-500 text-white'}`}>{role.nume}</span>;
+};
+
+
 // --- Componenta Management Principală ---
 export const SportiviManagement: React.FC<{
     onBack: () => void;
@@ -69,7 +75,7 @@ export const SportiviManagement: React.FC<{
     }, [sportivi, filters]);
 
     const finalColumns = useMemo(() => {
-        return ['numeComplet', 'status', 'grupa_id', 'actiuni'];
+        return ['numeComplet', 'roluri', 'status', 'grupa_id', 'actiuni'];
     }, []);
     
     const renderCellContent = (s: Sportiv, columnKey: string) => {
@@ -91,6 +97,15 @@ export const SportiviManagement: React.FC<{
                     </>
                 );
             }
+            case 'roluri':
+                return (
+                    <div className="flex flex-wrap gap-1">
+                        {s.roluri.length > 0 
+                            ? s.roluri.map(r => <RoleBadge key={r.id} role={r}/>)
+                            : <span className="text-slate-500 italic">N/A</span>
+                        }
+                    </div>
+                );
             case 'status':
                 return (
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${s.status === 'Activ' ? 'bg-green-600/20 text-green-400 border border-green-600/50' : 'bg-red-600/20 text-red-400 border border-red-600/50'}`}>
@@ -116,12 +131,12 @@ export const SportiviManagement: React.FC<{
         const { roluri, ...sportivData } = formData;
         try {
             if (sportivToEdit) {
-                const { data, error } = await supabase.from('sportivi').update(sportivData).eq('id', sportivToEdit.id).select().single();
+                const { data, error } = await supabase.from('sportivi').update(sportivData).eq('id', sportivToEdit.id).select('*, roluri(id, nume)').single();
                 if (error) throw error;
-                setSportivi(prev => prev.map(s => s.id === sportivToEdit.id ? { ...s, ...data } : s));
+                const updatedSportiv = { ...data, roluri: data.roluri || [] };
+                setSportivi(prev => prev.map(s => s.id === sportivToEdit.id ? updatedSportiv : s));
             } else {
                 const dataToSave = { ...sportivData };
-                // Daca sportivul este individual, asigneaza automat abonament individual
                 if (!dataToSave.familie_id) {
                     const individualSubscription = tipuriAbonament.find(ab => ab.numar_membri === 1);
                     if (individualSubscription) {
@@ -146,7 +161,7 @@ export const SportiviManagement: React.FC<{
             }
             return { success: true };
         } catch (err: any) {
-            return { success: false, error: err.message };
+            return { success: false, error: err };
         }
     };
 

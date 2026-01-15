@@ -134,23 +134,12 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
 
     const handleSaveSportiv = async (formData: Partial<Sportiv>) => {
         const { roluri, ...sportivData } = formData;
-        const { data, error } = await supabase
-            .from('sportivi')
-            .update(sportivData)
-            .eq('id', sportiv.id)
-            .select('*, roluri(id, nume)')
-            .single();
-    
+        const { data, error } = await supabase.from('sportivi').update(sportivData).eq('id', sportiv.id).select().single();
         if (error) {
             showError("Eroare la salvare", error);
             return { success: false, error };
         }
-        
-        if (data) {
-            const updatedSportiv = { ...data, roluri: data.roluri || [] };
-            setSportivi((prev: Sportiv[]) => prev.map(s => s.id === sportiv.id ? updatedSportiv : s));
-        }
-        
+        setSportivi((prev: Sportiv[]) => prev.map(s => s.id === sportiv.id ? { ...s, ...data } : s));
         return { success: true };
     };
     

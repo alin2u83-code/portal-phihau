@@ -1,11 +1,10 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Sportiv, Grupa, Familie, TipAbonament } from '../types';
 import { Button, Modal, Input, Select } from './ui';
 import { PlusIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { BirthDateInput } from './BirthDateInput';
-import { useLocalStorage } from '../hooks/useLocalStorage';
 
 // --- Modale de adăugare rapidă ---
 const QuickAddModal: React.FC<{ 
@@ -169,73 +168,69 @@ export const SportivFormModal: React.FC<{
 }) => {
     const { showError, showSuccess } = useError();
     const [loading, setLoading] = useState(false);
-    const [formState, setFormState] = useLocalStorage<Partial<Sportiv>>('phi-hau-sportiv-form-draft', sportivToEdit || initialFormState);
+    const [editData, setEditData] = useState<Partial<Sportiv>>(initialFormState);
     const [isGrupaModalOpen, setIsGrupaModalOpen] = useState(false);
     const [isFamilieModalOpen, setIsFamilieModalOpen] = useState(false);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (isOpen) {
-            if (sportivToEdit) {
-                setFormState(sportivToEdit);
-            } else {
-                 if (Object.keys(formState).length === 0 || formState.id) { 
-                     setFormState(initialFormState);
-                }
-            }
+            setEditData(sportivToEdit || initialFormState);
         }
-    }, [isOpen, sportivToEdit, setFormState]);
+    }, [isOpen, sportivToEdit]);
     
-    // NOUA LOGICĂ DE MAPPING
-    const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value, type } = e.target;
+    const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement> | { target: { name: string, value: any }}) => {
+        const { name, value } = e.target;
+        
+        let type = 'text';
+        if ('type' in e.target) {
+            type = e.target.type;
+        }
+        
         const isCheckbox = type === 'checkbox';
         const checked = isCheckbox ? (e.target as HTMLInputElement).checked : false;
 
-        setFormState(prev => {
-            let updatedState: Partial<Sportiv> = { ...prev };
+        setEditData(prev => {
             let finalValue: any;
 
             if (isCheckbox) {
                 finalValue = checked; // Pentru 'participa_vacanta'
             } else if (name === 'inaltime') {
-                finalValue = value === '' ? null : Number(value); // Convertește la număr
+                finalValue = value === '' ? null : parseInt(value, 10) || 0; // Convertește la număr întreg
             } else if (['familie_id', 'grupa_id', 'tip_abonament_id'].includes(name)) {
                 finalValue = value === '' ? null : value; // Setează null pentru selecții goale
             } else {
                 finalValue = value;
             }
 
-            updatedState[name as keyof Sportiv] = finalValue;
+            const updatedState: Partial<Sportiv> = { ...prev, [name as keyof Sportiv]: finalValue };
 
-            // Logica specială pentru selectarea familiei
             if (name === 'familie_id' && finalValue) {
-                updatedState.tip_abonament_id = null; // Golește abonamentul individual
+                updatedState.tip_abonament_id = null;
             }
             
             return updatedState;
         });
-    }, [setFormState]);
+    }, []);
 
-    // NOUA FUNCȚIE DE SALVARE
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         try {
-            // Extrage doar datele "curate" pentru a evita erorile de coloană
-            const { roluri, id, created_at, ...cleanData } = formState;
+            // Whitelist de coloane: Extrage doar datele "curate" pentru a evita erorile de schema
+            const { roluri, id, created_at, ...cleanData } = editData;
 
             const result = await onSave(cleanData);
             
             if (result.success) {
                 showSuccess('Succes', sportivToEdit ? 'Actualizat cu succes!' : 'Sportiv adăugat cu succes!');
-                if (!sportivToEdit) {
-                    setFormState({}); 
-                }
                 onClose();
             } else {
+                // RLS Debug: Afișează eroarea exactă în consolă
+                console.error("Eroare la salvare (posibil RLS):", result.error); 
                 showError("Eroare Salvare", result.error);
             }
         } catch (err) {
+             console.error("Eroare Critică la handleSubmit:", err);
             showError("Eroare Critică", err);
         } finally {
             setLoading(false);
@@ -246,14 +241,14 @@ export const SportivFormModal: React.FC<{
         const { data, error } = await supabase.from('grupe').insert({ denumire: nume, sala: 'N/A' }).select().single();
         if (error) throw error;
         setGrupe(prev => [...prev, { ...data, program: [] }]);
-        setFormState(p => ({ ...p, grupa_id: data.id }));
+        setEditData(p => ({ ...p, grupa_id: data.id }));
     };
 
     const handleQuickAddFamilie = async (nume: string) => {
         const { data, error } = await supabase.from('familii').insert({ nume }).select().single();
         if (error) throw error;
         setFamilii(prev => [...prev, data]);
-        setFormState(p => ({ ...p, familie_id: data.id }));
+        setEditData(p => ({ ...p, familie_id: data.id }));
     };
 
     return (
@@ -261,7 +256,7 @@ export const SportivFormModal: React.FC<{
             <Modal isOpen={isOpen} onClose={onClose} title={sportivToEdit ? "Editează Sportiv" : "Adaugă Sportiv"} persistent>
                 <form onSubmit={handleSubmit}>
                     <SportivFormFields
-                        formState={formState}
+                        formState={editData}
                         handleChange={handleChange}
                         loading={loading}
                         grupe={grupe}

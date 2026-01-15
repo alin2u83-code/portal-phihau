@@ -161,19 +161,6 @@ function App() {
   }, [activeView]);
 
   useEffect(() => {
-    if (viewedSportiv) {
-      const updatedSportivInList = sportivi.find(s => s.id === viewedSportiv.id);
-      if (updatedSportivInList) {
-        if (JSON.stringify(viewedSportiv) !== JSON.stringify(updatedSportivInList)) {
-          setViewedSportiv(updatedSportivInList);
-        }
-      } else {
-        setViewedSportiv(null);
-      }
-    }
-  }, [sportivi, viewedSportiv]);
-
-  useEffect(() => {
     supabase?.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session) fetchUserProfile(session.user.id);

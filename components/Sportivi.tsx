@@ -67,14 +67,14 @@ export const SportivFormModal: React.FC<{
     setFamilii: React.Dispatch<React.SetStateAction<Familie[]>>;
     tipuriAbonament: TipAbonament[];
 }> = ({ 
-  isOpen, 
-  onClose, 
-  onSave, 
-  sportivToEdit, 
-  grupe, 
-  setGrupe, 
-  familii, 
-  setFamilii, 
+  isOpen,
+  onClose,
+  onSave,
+  sportivToEdit,
+  grupe,
+  setGrupe,
+  familii,
+  setFamilii,
   tipuriAbonament
 }) => {
     const { showError, showSuccess } = useError();
@@ -167,34 +167,6 @@ export const SportivFormModal: React.FC<{
                             </div>
                         </div>
                     </div>
-                     {!!formState.familie_id ? (
-                        <div title="Abonamentul este gestionat la nivel de familie. Îl puteți modifica din secțiunea 'Gestiune Familii'.">
-                            <Select 
-                                label="Abonament Individual" 
-                                name="tip_abonament_id" 
-                                value="" 
-                                disabled={true}
-                            >
-                                <option value="">Gestionat de familie</option>
-                            </Select>
-                        </div>
-                    ) : (
-                        <div>
-                            <Select 
-                                label="Abonament Individual" 
-                                name="tip_abonament_id" 
-                                value={formState.tip_abonament_id || ''} 
-                                onChange={handleChange} 
-                                disabled={loading}
-                            >
-                                <option value="">Niciunul</option>
-                                {tipuriAbonament.filter(t => t.numar_membri === 1).map(t => <option key={t.id} value={t.id}>{t.denumire} ({t.pret} RON)</option>)}
-                            </Select>
-                            {tipuriAbonament.filter(t => t.numar_membri === 1).length === 0 && (
-                                <p className="text-xs text-amber-400 mt-1 ml-1">Nu există abonamente individuale definite. Adăugați-le din 'Configurări' &rarr; 'Configurare Abonamente'.</p>
-                            )}
-                        </div>
-                    )}
                     <div className="grid grid-cols-2 gap-3">
                         <Select label="Status" name="status" value={formState.status || 'Activ'} onChange={handleChange} disabled={loading}><option value="Activ">Activ</option><option value="Inactiv">Inactiv</option></Select>
                         <Input label="Data Înscrierii" name="data_inscrierii" type="date" value={formState.data_inscrierii || ''} onChange={handleChange} disabled={loading} />

@@ -120,7 +120,16 @@ export const SportiviManagement: React.FC<{
                 if (error) throw error;
                 setSportivi(prev => prev.map(s => s.id === sportivToEdit.id ? { ...s, ...data } : s));
             } else {
-                const { data, error } = await supabase.from('sportivi').insert(sportivData).select().single();
+                const dataToSave = { ...sportivData };
+                // Daca sportivul este individual, asigneaza automat abonament individual
+                if (!dataToSave.familie_id) {
+                    const individualSubscription = tipuriAbonament.find(ab => ab.numar_membri === 1);
+                    if (individualSubscription) {
+                        dataToSave.tip_abonament_id = individualSubscription.id;
+                    }
+                }
+
+                const { data, error } = await supabase.from('sportivi').insert(dataToSave).select().single();
                 if (error) throw error;
 
                 let newSportiv = { ...data, roluri: [] } as Sportiv;

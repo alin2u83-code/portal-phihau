@@ -162,13 +162,32 @@ const AttendanceDetail: React.FC<{
         }
     
         try {
-            const { error } = await supabase.rpc('update_attendance', {
-                p_antrenament_id: antrenament.id,
-                p_ids_to_add: idsToAdd,
-                p_ids_to_remove: idsToRemove
-            });
-    
-            if (error) throw error;
+            const operations = [];
+
+            if (idsToAdd.length > 0) {
+                const rowsToAdd = idsToAdd.map(sportivId => ({
+                    antrenament_id: antrenament.id,
+                    sportiv_id: sportivId,
+                }));
+                operations.push(supabase.from('prezenta_antrenament').insert(rowsToAdd));
+            }
+
+            if (idsToRemove.length > 0) {
+                operations.push(
+                    supabase
+                        .from('prezenta_antrenament')
+                        .delete()
+                        .eq('antrenament_id', antrenament.id)
+                        .in('sportiv_id', idsToRemove)
+                );
+            }
+
+            const results = await Promise.all(operations);
+            const errorResult = results.find(res => res.error);
+
+            if (errorResult && errorResult.error) {
+                throw errorResult.error;
+            }
     
             setAntrenamente(prev => prev.map(p =>
                 p.id === antrenament.id ? { ...p, sportivi_prezenti_ids: Array.from(finalIds) } : p
@@ -176,10 +195,7 @@ const AttendanceDetail: React.FC<{
             showSuccess("Succes", "Prezența a fost salvată.");
             onBack();
         } catch (err: any) {
-            // Logare explicită a întregului obiect de eroare în consolă
             console.error("Eroare detaliată la salvarea prezenței:", err);
-            
-            // Crearea unui mesaj de eroare mai descriptiv pentru interfață
             const detailedMessage = `Cod: ${err.code || 'N/A'} | Mesaj: ${err.message} | Detalii: ${err.details || 'Fără detalii suplimentare.'}`;
             showError("Eroare la actualizarea prezenței", detailedMessage);
         } finally {

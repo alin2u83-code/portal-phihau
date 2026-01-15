@@ -3,6 +3,7 @@ import { Sportiv, User, Rol } from '../types';
 import { Button, Input, Card, Select, Modal } from './ui';
 import { ArrowLeftIcon, EditIcon, ShieldCheckIcon, PlusIcon } from './icons';
 import { supabase } from '../supabaseClient';
+import { useError } from './ErrorProvider';
 
 const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
     const colorClasses: Record<Rol['nume'], string> = {
@@ -159,6 +160,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
     const [newRoleIds, setNewRoleIds] = useState<string[]>([]);
     const [userListFeedback, setUserListFeedback] = useState<{type: 'success' | 'error', message: string} | null>(null);
 
+    const { showError, showSuccess } = useError();
     const [isCreateAccountModalOpen, setIsCreateAccountModalOpen] = useState(false);
     const [selectedUserForAccount, setSelectedUserForAccount] = useState<Sportiv | null>(null);
     const [createAccountForm, setCreateAccountForm] = useState({ email: '', username: '', parola: '' });
@@ -488,10 +490,10 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                         </form>
                     ) : (
                         <div className="space-y-4">
-                            <p className="text-amber-300 text-sm text-center bg-amber-900/50 p-3 rounded-md">{createAccountError}</p>
+                             <p className="text-amber-300 text-sm text-center bg-amber-900/50 p-3 rounded-md">{createAccountError}</p>
                             <Input label="Confirmă Parola Contului Existent" name="parola" type="password" value={createAccountForm.parola} onChange={handleCreateAccountFormChange} required />
                              <div className="flex justify-end pt-4 space-x-2">
-                                <Button type="button" variant="secondary" onClick={() => setAccountCreationStep('initial')} disabled={createAccountLoading}>Înapoi</Button>
+                                <Button type="button" variant="secondary" onClick={() => { setCreateAccountError(''); setAccountCreationStep('initial'); }} disabled={createAccountLoading}>Înapoi</Button>
                                 <Button onClick={handleLinkExistingAccount} variant="success" disabled={createAccountLoading}>{createAccountLoading ? 'Se asociază...' : 'Da, Asociază Contul'}</Button>
                             </div>
                         </div>

@@ -67,8 +67,7 @@ function App() {
             { data: eData }, { data: gData }, { data: grData }, { data: evData },
             { data: cfData }, { data: abData }, { data: roData }, { data: progData },
             { data: sData }, { data: paData }, { data: fData }, { data: plData },
-            { data: tData }, { data: rData }, { data: antrenamenteData }, { data: anunturiData },
-            { data: prezentaData }
+            { data: tData }, { data: rData }, { data: antrenamenteData }, { data: anunturiData }
         ] = await Promise.all([
             // Public/Shared data
             supabase.from('examene').select('*'),
@@ -87,22 +86,20 @@ function App() {
             supabase.from('plati').select('*'),
             supabase.from('tranzactii').select('*'),
             supabase.from('rezultate').select('*'),
-            supabase.from('program_antrenamente').select('*').not('data', 'is', null),
-            supabase.from('anunturi_prezenta').select('*'),
-            supabase.from('prezenta_antrenament').select('*')
+            supabase.from('program_antrenamente').select('*, prezenta_antrenament(sportiv_id)').not('data', 'is', null),
+            supabase.from('anunturi_prezenta').select('*')
         ]);
 
-        // Process data - this part remains the same
+        // Process data
         const orarAntrenamente = progData || [];
         const formattedGrupe = (grData || []).map(g => ({ ...g, program: orarAntrenamente.filter(p => p.grupa_id === g.id) }));
         const formattedSportivi = (sData || []).map((s: any) => ({ ...s, roluri: s.roluri || [] }));
         
-        const prezente = prezentaData || [];
         const formattedAntrenamente = (antrenamenteData || []).map((a: any) => ({
             ...a,
-            sportivi_prezenti_ids: prezente
-                .filter((p: any) => p.antrenament_id === a.id)
-                .map((p: any) => p.sportiv_id),
+            sportivi_prezenti_ids: a.prezenta_antrenament 
+                ? a.prezenta_antrenament.map((p: any) => p.sportiv_id) 
+                : [],
         }));
 
         // Set state for all data

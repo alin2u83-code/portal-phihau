@@ -192,7 +192,7 @@ const AttendanceDetail: React.FC<{
         if(newPlata) setPlati(prev => [...prev, newPlata]);
         
         // Doar adăugăm la lista locală de selectați. 
-        // Salvarea finală în baza de date (tabelul prezenta_antrenament) va fi făcută de handleSaveAttendance.
+        // Salvarea finală în baza de date (tabelul prezente_sportivi) va fi făcută de handleSaveAttendance.
         setPresentIds(prev => new Set(prev).add(newSportiv.id));
     };
 
@@ -339,12 +339,12 @@ export const PrezentaManagement: React.FC<{
     const handleSaveAntrenament = async (antrenamentData: Omit<Antrenament, 'id' | 'sportivi_prezenti_ids'>) => {
         if (!supabase) return;
         if (antrenamentToEdit) {
-            const { data, error } = await supabase.from('program_antrenamente').update(antrenamentData).eq('id', antrenamentToEdit.id).select('*, prezenta_antrenament!antrenament_id(sportiv_id)').single();
+            const { data, error } = await supabase.from('program_antrenamente').update(antrenamentData).eq('id', antrenamentToEdit.id).select('*, prezente_sportivi!antrenament_id(sportiv_id)').single();
             if (error) { showError("Eroare la actualizare", error); } 
             else if (data) { 
                 const formatted: Antrenament = {
                     ...data,
-                    sportivi_prezenti_ids: data.prezenta_antrenament ? data.prezenta_antrenament.map((ps: any) => ps.sportiv_id) : []
+                    sportivi_prezenti_ids: data.prezente_sportivi ? data.prezente_sportivi.map((ps: any) => ps.sportiv_id) : []
                 };
                 setAntrenamente(prev => prev.map(p => p.id === data.id ? formatted : p));
             }
@@ -359,7 +359,7 @@ export const PrezentaManagement: React.FC<{
         if (!supabase) return;
         setIsDeleting(true);
         try {
-            const { error: deleteLinksError } = await supabase.from('prezenta_antrenament').delete().eq('antrenament_id', id);
+            const { error: deleteLinksError } = await supabase.from('prezente_sportivi').delete().eq('antrenament_id', id);
             if (deleteLinksError) throw deleteLinksError;
 
             const { error } = await supabase.from('program_antrenamente').delete().eq('id', id);

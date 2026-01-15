@@ -176,7 +176,12 @@ const AttendanceDetail: React.FC<{
             showSuccess("Succes", "Prezența a fost salvată.");
             onBack();
         } catch (err: any) {
-            showError("Eroare la actualizarea prezenței", err);
+            // Logare explicită a întregului obiect de eroare în consolă
+            console.error("Eroare detaliată la salvarea prezenței:", err);
+            
+            // Crearea unui mesaj de eroare mai descriptiv pentru interfață
+            const detailedMessage = `Cod: ${err.code || 'N/A'} | Mesaj: ${err.message} | Detalii: ${err.details || 'Fără detalii suplimentare.'}`;
+            showError("Eroare la actualizarea prezenței", detailedMessage);
         } finally {
             setLoading(false);
         }

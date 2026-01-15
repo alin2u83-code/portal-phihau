@@ -55,7 +55,97 @@ const initialFormState: Partial<Sportiv> = {
     data_nasterii: ''
 };
 
-// --- Formular Sportiv Principal ---
+// --- Componente noi pentru UI Formular ---
+
+const FormSection: React.FC<{ title: string, children: React.ReactNode }> = ({ title, children }) => (
+    <div>
+        <h3 className="text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider border-b border-slate-700 pb-1.5">{title}</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3 mt-3">
+            {children}
+        </div>
+    </div>
+);
+
+const Switch: React.FC<{ label: string; name: string; checked: boolean; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }> = ({ label, name, checked, onChange }) => (
+    <label className="flex items-center space-x-2 cursor-pointer group">
+        <div className="relative">
+            <input type="checkbox" name={name} checked={checked} onChange={onChange} className="sr-only" />
+            <div className={`block w-9 h-5 rounded-full transition-colors ${checked ? 'bg-brand-secondary' : 'bg-slate-600'}`}></div>
+            <div className={`dot absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform ${checked ? 'translate-x-4' : ''}`}></div>
+        </div>
+        <span className="text-xs font-bold text-slate-400 uppercase group-hover:text-white transition-colors">{label}</span>
+    </label>
+);
+
+const SportivFormFields: React.FC<{
+    formState: Partial<Sportiv>;
+    handleChange: (e: any) => void;
+    loading: boolean;
+    grupe: Grupa[];
+    familii: Familie[];
+    tipuriAbonament: TipAbonament[];
+    onQuickAddGrupa: () => void;
+    onQuickAddFamilie: () => void;
+}> = ({ formState, handleChange, loading, grupe, familii, tipuriAbonament, onQuickAddGrupa, onQuickAddFamilie }) => {
+    
+    return (
+        <div className="space-y-4">
+            <FormSection title="Date Personale">
+                <Input label="Nume" name="nume" value={formState.nume || ''} onChange={handleChange} required disabled={loading} className="!py-1.5" />
+                <Input label="Prenume" name="prenume" value={formState.prenume || ''} onChange={handleChange} required disabled={loading} className="!py-1.5" />
+                <Input label="CNP (Opțional)" name="cnp" value={formState.cnp || ''} onChange={handleChange} maxLength={13} disabled={loading} className="!py-1.5" />
+                <BirthDateInput label="Data Nașterii" value={formState.data_nasterii} onChange={(v) => handleChange({ target: { name: 'data_nasterii', value: v } })} required />
+            </FormSection>
+
+            <FormSection title="Club & Antrenament">
+                <div className="flex gap-1 items-end">
+                    <Select label="Grupă" name="grupa_id" value={formState.grupa_id || ''} onChange={handleChange} disabled={loading} className="flex-grow !py-1.5">
+                        <option value="">Fără grupă</option>
+                        {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
+                    </Select>
+                    <Button type="button" variant="secondary" size="sm" onClick={onQuickAddGrupa} className="h-[34px]"><PlusIcon className="w-4 h-4"/></Button>
+                </div>
+                 {!formState.familie_id && (
+                    <Select
+                        label="Abonament Individual"
+                        name="tip_abonament_id"
+                        value={formState.tip_abonament_id || ''}
+                        onChange={handleChange}
+                        disabled={loading}
+                        className="!py-1.5"
+                    >
+                        <option value="">Niciunul (automat)</option>
+                        {tipuriAbonament.filter(t => t.numar_membri === 1).map(t => (
+                            <option key={t.id} value={t.id}>{`${t.denumire} (${t.pret} RON)`}</option>
+                        ))}
+                    </Select>
+                )}
+                <div className="flex gap-1 items-end">
+                    <Select label="Familie" name="familie_id" value={formState.familie_id || ''} onChange={handleChange} disabled={loading} className="flex-grow !py-1.5">
+                        <option value="">Individual</option>
+                        {familii.map(f => <option key={f.id} value={f.id}>{f.nume}</option>)}
+                    </Select>
+                    <Button type="button" variant="secondary" size="sm" onClick={onQuickAddFamilie} className="h-[34px]"><PlusIcon className="w-4 h-4"/></Button>
+                </div>
+                <Select label="Status" name="status" value={formState.status || 'Activ'} onChange={handleChange} disabled={loading} className="!py-1.5">
+                    <option value="Activ">Activ</option>
+                    <option value="Inactiv">Inactiv</option>
+                </Select>
+                <Input label="Club Proveniență" name="club_provenienta" value={formState.club_provenienta || ''} onChange={handleChange} disabled={loading} className="!py-1.5" />
+            </FormSection>
+
+            <FormSection title="Opțiuni">
+                 <Input label="Înălțime (cm)" name="inaltime" type="number" value={formState.inaltime || ''} onChange={handleChange} disabled={loading} className="!py-1.5" />
+                 <div className="flex items-center pt-5">
+                    <Switch label="Participă Vacanță" name="participa_vacanta" checked={!!formState.participa_vacanta} onChange={handleChange} />
+                </div>
+            </FormSection>
+        </div>
+    );
+};
+
+
+// --- Formular Sportiv Principal (MODIFICAT) ---
 export const SportivFormModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
@@ -88,40 +178,57 @@ export const SportivFormModal: React.FC<{
             if (sportivToEdit) {
                 setFormState(sportivToEdit);
             } else {
-                 if (Object.keys(formState).length === 0 || formState.id) { // if draft is empty or has an ID (from a previous edit)
+                 if (Object.keys(formState).length === 0 || formState.id) { 
                      setFormState(initialFormState);
                 }
             }
         }
     }, [isOpen, sportivToEdit, setFormState]);
+    
+    // NOUA LOGICĂ DE MAPPING
+    const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const { name, value, type } = e.target;
+        const isCheckbox = type === 'checkbox';
+        const checked = isCheckbox ? (e.target as HTMLInputElement).checked : false;
 
-    const handleChange = useCallback((e: any) => {
-        const { name, value, type, checked } = e.target;
+        setFormState(prev => {
+            let updatedState: Partial<Sportiv> = { ...prev };
+            let finalValue: any;
 
-        if (name === 'familie_id') {
-            const newFamilieId = value === '' ? null : value;
-            setFormState(p => ({
-                ...p,
-                familie_id: newFamilieId,
-                // Dacă se selectează o familie, se anulează abonamentul individual.
-                tip_abonament_id: newFamilieId ? null : p.tip_abonament_id,
-            }));
-        } else if (type === 'checkbox') {
-             setFormState(p => ({ ...p, [name]: checked }));
-        } else {
-            setFormState(p => ({ ...p, [name]: value === '' ? null : value }));
-        }
+            if (isCheckbox) {
+                finalValue = checked; // Pentru 'participa_vacanta'
+            } else if (name === 'inaltime') {
+                finalValue = value === '' ? null : Number(value); // Convertește la număr
+            } else if (['familie_id', 'grupa_id', 'tip_abonament_id'].includes(name)) {
+                finalValue = value === '' ? null : value; // Setează null pentru selecții goale
+            } else {
+                finalValue = value;
+            }
+
+            updatedState[name as keyof Sportiv] = finalValue;
+
+            // Logica specială pentru selectarea familiei
+            if (name === 'familie_id' && finalValue) {
+                updatedState.tip_abonament_id = null; // Golește abonamentul individual
+            }
+            
+            return updatedState;
+        });
     }, [setFormState]);
 
+    // NOUA FUNCȚIE DE SALVARE
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         try {
-            const { roluri, ...dataToSave } = formState;
-            const result = await onSave(dataToSave);
+            // Extrage doar datele "curate" pentru a evita erorile de coloană
+            const { roluri, id, created_at, ...cleanData } = formState;
+
+            const result = await onSave(cleanData);
+            
             if (result.success) {
                 showSuccess('Succes', sportivToEdit ? 'Actualizat cu succes!' : 'Sportiv adăugat cu succes!');
-                if (!sportivToEdit) { // only clear draft on new creation
+                if (!sportivToEdit) {
                     setFormState({}); 
                 }
                 onClose();
@@ -152,52 +259,21 @@ export const SportivFormModal: React.FC<{
     return (
         <>
             <Modal isOpen={isOpen} onClose={onClose} title={sportivToEdit ? "Editează Sportiv" : "Adaugă Sportiv"} persistent>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-3"><Input label="Nume" name="nume" value={formState.nume || ''} onChange={handleChange} required disabled={loading} /><Input label="Prenume" name="prenume" value={formState.prenume || ''} onChange={handleChange} required disabled={loading} /></div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3"><BirthDateInput label="Data Nașterii" value={formState.data_nasterii} onChange={(v) => handleChange({ target: { name: 'data_nasterii', value: v } })} required /><Input label="CNP (Opțional)" name="cnp" value={formState.cnp || ''} onChange={handleChange} maxLength={13} disabled={loading} /></div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
-                        <div className="flex gap-1 items-end">
-                            <Select label="Grupă" name="grupa_id" value={formState.grupa_id || ''} onChange={handleChange} disabled={loading}><option value="">Fără grupă</option>{grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}</Select>
-                            <Button type="button" variant="secondary" size="sm" onClick={() => setIsGrupaModalOpen(true)} className="h-[34px]"><PlusIcon className="w-4 h-4"/></Button>
-                        </div>
-                        <div className="space-y-3">
-                            <div className="flex gap-1 items-end">
-                                <Select label="Familie" name="familie_id" value={formState.familie_id || ''} onChange={handleChange} disabled={loading}><option value="">Individual</option>{familii.map(f => <option key={f.id} value={f.id}>{f.nume}</option>)}</Select>
-                                <Button type="button" variant="secondary" size="sm" onClick={() => setIsFamilieModalOpen(true)} className="h-[34px]"><PlusIcon className="w-4 h-4"/></Button>
-                            </div>
-                        </div>
+                <form onSubmit={handleSubmit}>
+                    <SportivFormFields
+                        formState={formState}
+                        handleChange={handleChange}
+                        loading={loading}
+                        grupe={grupe}
+                        familii={familii}
+                        tipuriAbonament={tipuriAbonament}
+                        onQuickAddGrupa={() => setIsGrupaModalOpen(true)}
+                        onQuickAddFamilie={() => setIsFamilieModalOpen(true)}
+                    />
+                    <div className="flex justify-end pt-4 mt-4 gap-2 border-t border-slate-700">
+                        <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Închide</Button>
+                        <Button type="submit" variant="primary" isLoading={loading}>Salvează</Button>
                     </div>
-                     {!formState.familie_id && (
-                        <Select
-                            label="Abonament Individual"
-                            name="tip_abonament_id"
-                            value={formState.tip_abonament_id || ''}
-                            onChange={handleChange}
-                            disabled={loading}
-                        >
-                            <option value="">Niciunul (se va genera automat)</option>
-                            {tipuriAbonament.filter(t => t.numar_membri === 1).map(t => (
-                                <option key={t.id} value={t.id}>{`${t.denumire} (${t.pret} RON)`}</option>
-                            ))}
-                        </Select>
-                    )}
-                    <div className="grid grid-cols-2 gap-3">
-                        <Select label="Status" name="status" value={formState.status || 'Activ'} onChange={handleChange} disabled={loading}><option value="Activ">Activ</option><option value="Inactiv">Inactiv</option></Select>
-                        <Input label="Data Înscrierii" name="data_inscrierii" type="date" value={formState.data_inscrierii || ''} onChange={handleChange} disabled={loading} />
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                         <Input label="Înălțime (cm)" name="inaltime" type="number" value={formState.inaltime || ''} onChange={handleChange} disabled={loading} />
-                         <Input label="Club Proveniență" name="club_provenienta" value={formState.club_provenienta || ''} onChange={handleChange} disabled={loading} />
-                    </div>
-                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <Input label="Telefon (Opțional)" name="telefon" value={formState.telefon || ''} onChange={handleChange} disabled={loading} />
-                        <Input label="Adresă (Opțional)" name="adresa" value={formState.adresa || ''} onChange={handleChange} disabled={loading} />
-                    </div>
-                    <div className="flex items-center">
-                        <input type="checkbox" id="participa_vacanta" name="participa_vacanta" checked={!!formState.participa_vacanta} onChange={handleChange} className="h-4 w-4 rounded border-slate-500 bg-slate-900 text-brand-secondary focus:ring-brand-secondary"/>
-                        <label htmlFor="participa_vacanta" className="ml-2 text-sm text-slate-300">Participă la antrenamentele din vacanță</label>
-                    </div>
-                    <div className="flex justify-end pt-4 gap-2 border-t border-slate-700"><Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Închide</Button><Button type="submit" variant="primary" isLoading={loading}>Salvează</Button></div>
                 </form>
             </Modal>
             <QuickAddModal title="Adaugă Grupă Nouă" label="Nume Grupă" isOpen={isGrupaModalOpen} onClose={() => setIsGrupaModalOpen(false)} onSave={handleQuickAddGrupa} />

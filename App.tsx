@@ -96,12 +96,18 @@ function App() {
         const formattedGrupe = (grData || []).map(g => ({ ...g, program: orarAntrenamente.filter(p => p.grupa_id === g.id) }));
         const formattedSportivi = (sData || []).map((s: any) => ({ ...s, roluri: s.roluri || [] }));
         
-        const formattedAntrenamente = (antrenamenteData || []).map((a: any) => ({
-            ...a,
-            sportivi_prezenti_ids: a.prezenta_antrenament 
+        const isAdmin = user.roluri.some(r => r.nume === 'Admin' || r.nume === 'Instructor');
+        const formattedAntrenamente = (antrenamenteData || []).map((a: any) => {
+            const allPresentIds = a.prezenta_antrenament 
                 ? a.prezenta_antrenament.map((p: any) => p.sportiv_id) 
-                : [],
-        }));
+                : [];
+
+            return {
+                ...a,
+                sportivi_prezenti_ids: isAdmin ? allPresentIds : (allPresentIds.includes(user.id) ? [user.id] : [])
+            };
+        });
+
 
         // Set state for all data
         setExamene(eData || []);

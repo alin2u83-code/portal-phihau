@@ -94,12 +94,15 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
         const now = new Date();
         const firstDayCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         const firstDayCurrentYear = new Date(now.getFullYear(), 0, 1);
+        const today = new Date();
+        today.setHours(23, 59, 59, 999); // Setează la sfârșitul zilei pentru a include antrenamentele de azi
 
         const periodStart = periodFilter === 'current_month' ? firstDayCurrentMonth : firstDayCurrentYear;
 
         const allTrainingsForPeriod = antrenamente.filter(a => 
             (a.grupa_id === viewedUser.grupa_id || (viewedUser.participa_vacanta && !a.grupa_id)) && 
-            new Date(a.data) >= periodStart
+            new Date(a.data) >= periodStart &&
+            new Date(a.data) <= today // Afișează doar antrenamentele trecute și cele de azi
         );
         
         return allTrainingsForPeriod.map(a => ({

@@ -3,7 +3,7 @@ import { Button, Card, Modal, Input } from './ui';
 import { ArrowLeftIcon, ShieldCheckIcon, CogIcon, EditIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
-import { Sportiv, Grad, PretConfig, Participare, Examen, Plata, View } from '../types';
+import { Sportiv, Grad, PretConfig, Participare, Examen, Plata, View, Familie } from '../types';
 import { BirthDateInput } from './BirthDateInput';
 import { getPretProdus } from '../utils/pricing';
 
@@ -56,10 +56,11 @@ interface DataMaintenanceProps {
     examene: Examen[];
     plati: Plata[];
     setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
+    familii: Familie[];
     onNavigate: (view: View) => void;
 }
 
-export const DataMaintenancePage: React.FC<DataMaintenanceProps> = ({ onBack, onDataRestored, sportivi, setSportivi, grade, preturiConfig, participari, examene, plati, setPlati, onNavigate }) => {
+export const DataMaintenancePage: React.FC<DataMaintenanceProps> = ({ onBack, onDataRestored, sportivi, setSportivi, grade, preturiConfig, participari, examene, plati, setPlati, familii, onNavigate }) => {
     const { showError, showSuccess } = useError();
     const [progressMessage, setProgressMessage] = useState('');
     const [feedback, setFeedback] = useState<{ type: 'success' | 'error', message: string } | null>(null);
@@ -71,6 +72,10 @@ export const DataMaintenancePage: React.FC<DataMaintenanceProps> = ({ onBack, on
     const sportiviIncompleti = useMemo(() => sportivi.filter(s => s.status === 'Activ' && (!s.data_nasterii || !s.cnp)), [sportivi]);
     const gradeFaraPret = useMemo(() => grade.filter(g => !preturiConfig.some(p => p.categorie === 'Taxa Examen' && p.denumire_serviciu === g.nume)), [grade, preturiConfig]);
     
+    const sportiviFaraAbonament = useMemo(() => {
+        return sportivi.filter(s => s.status === 'Activ' && !s.familie_id && !s.tip_abonament_id);
+    }, [sportivi]);
+
     const facturiExamenLipsa = useMemo(() => {
         return participari.filter(p => {
             const examen = examene.find(e => e.id === p.examen_id);
@@ -152,6 +157,18 @@ export const DataMaintenancePage: React.FC<DataMaintenanceProps> = ({ onBack, on
                             </div>
                         ) : <p className="text-sm text-green-400 font-semibold italic">Toate profilurile sunt complete!</p>}
                     </div>
+
+                    <div>
+                        <h3 className="font-semibold text-white">Sportivi Fără Abonament ({sportiviFaraAbonament.length})</h3>
+                        <p className="text-xs text-slate-400 mb-2">Sportivi individuali activi care nu au un tip de abonament asignat.</p>
+                        {sportiviFaraAbonament.length > 0 ? (
+                            <div>
+                                <p className="text-sm text-amber-300">{sportiviFaraAbonament.map(s => `${s.nume} ${s.prenume}`).join(', ')}</p>
+                                <Button size="sm" variant="secondary" className="mt-2" onClick={() => onNavigate('sportivi')}>Asignează Abonamente</Button>
+                            </div>
+                        ) : <p className="text-sm text-green-400 font-semibold italic">Toți sportivii individuali activi au abonamente asignate!</p>}
+                    </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <h3 className="font-semibold text-white">Prețuri Grade Lipsă ({gradeFaraPret.length})</h3>

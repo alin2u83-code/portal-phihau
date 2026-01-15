@@ -283,6 +283,7 @@ function App() {
           examene={examene}
           plati={plati}
           setPlati={setPlati}
+          familii={familii}
           onNavigate={setActiveView}
         />;
       case 'activitati': return <ProgramareActivitati grupe={grupe} antrenamente={antrenamente} setAntrenamente={setAntrenamente} onBack={() => setActiveView('dashboard')} />;

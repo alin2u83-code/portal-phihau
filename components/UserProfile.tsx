@@ -134,12 +134,17 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
 
     const handleSaveSportiv = async (formData: Partial<Sportiv>) => {
         const { roluri, ...sportivData } = formData;
-        const { data, error } = await supabase.from('sportivi').update(sportivData).eq('id', sportiv.id).select().single();
-        if (error) { showError("Eroare la salvare", error); return { success: false, error }; }
-        if (data) {
-             const updatedSportiv = { ...sportiv, ...data };
-             setSportivi((prev: Sportiv[]) => prev.map(s => s.id === sportiv.id ? updatedSportiv : s));
+        // Am eliminat .select() pentru a izola problemele de RLS la UPDATE de cele la SELECT
+        const { error } = await supabase.from('sportivi').update(sportivData).eq('id', sportiv.id);
+    
+        if (error) {
+            showError("Eroare la salvare", error);
+            return { success: false, error };
         }
+        
+        // Actualizare optimistă a stării locale cu datele din formular
+        setSportivi((prev: Sportiv[]) => prev.map(s => s.id === sportiv.id ? { ...s, ...sportivData } : s));
+        
         return { success: true };
     };
     

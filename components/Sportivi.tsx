@@ -160,13 +160,27 @@ export const SportivFormModal: React.FC<{
                             <Select label="Grupă" name="grupa_id" value={formState.grupa_id || ''} onChange={handleChange} disabled={loading}><option value="">Fără grupă</option>{grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}</Select>
                             <Button type="button" variant="secondary" size="sm" onClick={() => setIsGrupaModalOpen(true)} className="h-[34px]"><PlusIcon className="w-4 h-4"/></Button>
                         </div>
-                        <div className="space-y-1">
+                        <div className="space-y-3">
                             <div className="flex gap-1 items-end">
                                 <Select label="Familie" name="familie_id" value={formState.familie_id || ''} onChange={handleChange} disabled={loading}><option value="">Individual</option>{familii.map(f => <option key={f.id} value={f.id}>{f.nume}</option>)}</Select>
                                 <Button type="button" variant="secondary" size="sm" onClick={() => setIsFamilieModalOpen(true)} className="h-[34px]"><PlusIcon className="w-4 h-4"/></Button>
                             </div>
                         </div>
                     </div>
+                     {!formState.familie_id && (
+                        <Select
+                            label="Abonament Individual"
+                            name="tip_abonament_id"
+                            value={formState.tip_abonament_id || ''}
+                            onChange={handleChange}
+                            disabled={loading}
+                        >
+                            <option value="">Niciunul (se va genera automat)</option>
+                            {tipuriAbonament.filter(t => t.numar_membri === 1).map(t => (
+                                <option key={t.id} value={t.id}>{`${t.denumire} (${t.pret} RON)`}</option>
+                            ))}
+                        </Select>
+                    )}
                     <div className="grid grid-cols-2 gap-3">
                         <Select label="Status" name="status" value={formState.status || 'Activ'} onChange={handleChange} disabled={loading}><option value="Activ">Activ</option><option value="Inactiv">Inactiv</option></Select>
                         <Input label="Data Înscrierii" name="data_inscrierii" type="date" value={formState.data_inscrierii || ''} onChange={handleChange} disabled={loading} />

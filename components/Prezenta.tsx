@@ -339,7 +339,7 @@ export const PrezentaManagement: React.FC<{
     const handleSaveAntrenament = async (antrenamentData: Omit<Antrenament, 'id' | 'sportivi_prezenti_ids'>) => {
         if (!supabase) return;
         if (antrenamentToEdit) {
-            const { data, error } = await supabase.from('program_antrenamente').update(antrenamentData).eq('id', antrenamentToEdit.id).select('*, prezenta_antrenament(sportiv_id)').single();
+            const { data, error } = await supabase.from('program_antrenamente').update(antrenamentData).eq('id', antrenamentToEdit.id).select('*, prezenta_antrenament!antrenament_id(sportiv_id)').single();
             if (error) { showError("Eroare la actualizare", error); } 
             else if (data) { 
                 const formatted: Antrenament = {

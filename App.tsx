@@ -86,7 +86,7 @@ function App() {
             supabase.from('plati').select('*'),
             supabase.from('tranzactii').select('*'),
             supabase.from('rezultate').select('*'),
-            supabase.from('program_antrenamente').select('*, prezenta_antrenament(sportiv_id)').not('data', 'is', null),
+            supabase.from('program_antrenamente').select('*, prezenta_antrenament!antrenament_id(sportiv_id)').not('data', 'is', null),
             supabase.from('anunturi_prezenta').select('*')
         ]);
 
@@ -292,6 +292,7 @@ function App() {
   
   return (
     <div className="min-h-screen flex bg-slate-900">
+      {/* FIX: Corrected typo from isMyportalView to isMyPortalView */}
       <Sidebar currentUser={currentUser!} onNavigate={setActiveView} onLogout={handleLogout} activeView={activeView} isExpanded={isSidebarExpanded} setIsExpanded={setIsSidebarExpanded} isPortalView={!isAdmin || isMyPortalView} plati={plati} />
       <div className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'}`}>
          {isAdmin && !isMyPortalView && (

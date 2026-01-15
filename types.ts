@@ -155,6 +155,7 @@ export interface Plata {
 export interface Familie {
     id: string;
     nume: string;
+    tip_abonament_id?: string | null;
 }
 
 export type User = Sportiv;

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Familie, Sportiv } from '../types';
-import { Button, Input, Card } from './ui';
+import { Familie, Sportiv, TipAbonament } from '../types';
+import { Button, Input, Card, Select } from './ui';
 import { PlusIcon, TrashIcon, ArrowLeftIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
@@ -12,9 +12,10 @@ interface FamiliiManagementProps {
     sportivi: Sportiv[];
     onBack?: () => void;
     isEmbedded?: boolean;
+    tipuriAbonament: TipAbonament[];
 }
 
-export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({ familii, setFamilii, sportivi, onBack, isEmbedded = false }) => {
+export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({ familii, setFamilii, sportivi, onBack, isEmbedded = false, tipuriAbonament }) => {
     const [newNume, setNewNume] = useState('');
     const [loading, setLoading] = useState(false);
     const [toDelete, setToDelete] = useState<Familie | null>(null);
@@ -57,33 +58,32 @@ export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({ familii, s
             showError("Eroare Configurare", "Conexiunea la baza de date nu a putut fi stabilită.");
             return;
         }
-        
-        const trimmedName = updates.nume?.trim();
-        if (!trimmedName) {
-            showError("Validare Eșuată", "Numele familiei nu poate fi gol.");
-            setFamilii(prev => [...prev]); // Re-render to reset input
-            return;
-        }
-    
-        const originalFamilie = familii.find(f => f.id === id);
-        if (originalFamilie && originalFamilie.nume.trim().toLowerCase() === trimmedName.toLowerCase()) {
-            return; // No actual change
+
+        const finalUpdates = { ...updates };
+
+        if (finalUpdates.nume !== undefined) {
+            const trimmedName = finalUpdates.nume.trim();
+            if (!trimmedName) {
+                showError("Validare Eșuată", "Numele familiei nu poate fi gol.");
+                setFamilii(prev => [...prev]); // Re-render to reset input
+                return;
+            }
+
+            const isDuplicate = familii.some(f => f.id !== id && f.nume.toLowerCase() === trimmedName.toLowerCase());
+            if (isDuplicate) {
+                showError("Conflict", "O familie cu acest nume există deja.");
+                setFamilii(prev => [...prev]); // Re-render to reset input
+                return;
+            }
+            finalUpdates.nume = trimmedName;
         }
 
-        const isDuplicate = familii.some(f => f.id !== id && f.nume.toLowerCase() === trimmedName.toLowerCase());
-        if (isDuplicate) {
-            showError("Conflict", "O familie cu acest nume există deja.");
-            setFamilii(prev => [...prev]); // Re-render to reset input
-            return;
-        }
-
-        const finalUpdates = { ...updates, nume: trimmedName };
         const { error } = await supabase.from('familii').update(finalUpdates).eq('id', id);
 
         if (error) {
             showError("Eroare la salvare", error);
         } else {
-            setFamilii(prev => prev.map(f => f.id === id ? { ...f, ...finalUpdates } : f));
+            setFamilii(prev => prev.map(f => (f.id === id ? { ...f, ...finalUpdates } : f)));
         }
     };
 
@@ -140,6 +140,7 @@ export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({ familii, s
                     <thead className="bg-slate-700">
                         <tr>
                             <th className="p-4 font-semibold">Nume Familie</th>
+                            <th className="p-4 font-semibold">Tip Abonament</th>
                             <th className="p-4 font-semibold text-right">Acțiuni</th>
                         </tr>
                     </thead>
@@ -148,6 +149,23 @@ export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({ familii, s
                             <tr key={f.id} className="border-b border-slate-700">
                                 <td className="p-2">
                                     <Input label="" defaultValue={f.nume} onBlur={e => handleEdit(f.id, { nume: e.target.value })} />
+                                </td>
+                                <td className="p-2 w-72">
+                                    <Select
+                                        label=""
+                                        value={f.tip_abonament_id || ''}
+                                        onChange={(e) => {
+                                            const newId = e.target.value || null;
+                                            handleEdit(f.id, { tip_abonament_id: newId });
+                                        }}
+                                    >
+                                        <option value="">Automat (după nr. membri)</option>
+                                        {tipuriAbonament.filter(t => t.numar_membri > 1).map(t => (
+                                            <option key={t.id} value={t.id}>
+                                                {t.denumire} ({t.numar_membri} membri) - {t.pret} RON
+                                            </option>
+                                        ))}
+                                    </Select>
                                 </td>
                                 <td className="p-2 text-right w-32">
                                     <Button onClick={() => setToDelete(f)} variant="danger" size="sm"><TrashIcon /></Button>

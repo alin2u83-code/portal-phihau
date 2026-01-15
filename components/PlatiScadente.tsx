@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Plata, Sportiv, TipAbonament, Familie, Tranzactie } from '../types';
-import { Button, Input, Select, Card } from './ui';
+import { Button, Input, Select, Card, Modal } from './ui';
 import { EditIcon, ArrowLeftIcon, TrashIcon, BanknotesIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
@@ -28,6 +28,8 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const { showError, showSuccess } = useError();
     const [isGenerating, setIsGenerating] = useState(false);
+    // FIX: Add saving state for edit modal
+    const [isSaving, setIsSaving] = useState(false);
 
     // Calculăm soldul curent pentru fiecare familie și sportiv individual
     const balances = useMemo(() => {
@@ -91,13 +93,19 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
             }
 
             const nrMembri = membriActiviInFamilie.length;
-            let abonamentConfig = tipuriAbonament.find(ab => ab.numar_membri === nrMembri);
+            let abonamentConfig;
             
-            // Fallback pentru familii numeroase
-            if (!abonamentConfig && nrMembri > 1) {
-                abonamentConfig = [...tipuriAbonament]
-                    .filter(ab => ab.numar_membri > 1)
-                    .sort((a, b) => b.numar_membri - a.numar_membri)[0];
+            if (familie.tip_abonament_id) {
+                abonamentConfig = tipuriAbonament.find(ab => ab.id === familie.tip_abonament_id);
+            } else {
+                abonamentConfig = tipuriAbonament.find(ab => ab.numar_membri === nrMembri);
+                
+                // Fallback pentru familii numeroase
+                if (!abonamentConfig && nrMembri > 1) {
+                    abonamentConfig = [...tipuriAbonament]
+                        .filter(ab => ab.numar_membri > 1)
+                        .sort((a, b) => b.numar_membri - a.numar_membri)[0];
+                }
             }
 
             if (abonamentConfig) {
@@ -194,13 +202,20 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
 
     const handleSaveEdit = async (plataId: string) => {
         if(!editingPlata || !supabase) return;
+        setIsSaving(true);
         const { id, ...updates } = editingPlata;
-        const { data, error } = await supabase.from('plati').update(updates).eq('id', plataId).select().single();
-        if (error) showError("Eroare la salvare", error);
-        else if (data) { 
-            setPlati(prev => prev.map(p => p.id === plataId ? data as Plata : p)); 
-            setEditingPlata(null); 
-            showSuccess("Succes", "Modificările au fost salvate.");
+        try {
+            const { data, error } = await supabase.from('plati').update(updates).eq('id', plataId).select().single();
+            if (error) throw error;
+            if (data) { 
+                setPlati(prev => prev.map(p => p.id === plataId ? data as Plata : p)); 
+                setEditingPlata(null); 
+                showSuccess("Succes", "Modificările au fost salvate.");
+            }
+        } catch(err) {
+            showError("Eroare la salvare", err);
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -356,13 +371,10 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
             />
             
             {editingPlata && (
-                <ConfirmDeleteModal 
+                <Modal 
                     isOpen={!!editingPlata} 
                     onClose={() => setEditingPlata(null)} 
-                    onConfirm={() => handleSaveEdit(editingPlata.id)} 
-                    tableName="Modificare" 
-                    isLoading={false}
-                    customMessage={`Doriți să salvați modificările pentru: ${editingPlata.descriere}?`}
+                    title="Editează Factură"
                 >
                     <div className="mt-4 space-y-4 text-left">
                         <Input label="Descriere" value={editingPlata.descriere} onChange={e => setEditingPlata({...editingPlata, descriere: e.target.value})} />
@@ -374,7 +386,15 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
                         </Select>
                         <Input label="Observații" value={editingPlata.observatii || ''} onChange={e => setEditingPlata({...editingPlata, observatii: e.target.value})} />
                     </div>
-                </ConfirmDeleteModal>
+                     <div className="mt-6 flex justify-end gap-3">
+                        <Button variant="secondary" onClick={() => setEditingPlata(null)} disabled={isSaving}>
+                          Anulează
+                        </Button>
+                        <Button variant="success" onClick={() => handleSaveEdit(editingPlata.id)} isLoading={isSaving}>
+                          Salvează
+                        </Button>
+                    </div>
+                </Modal>
             )}
         </div>
     );

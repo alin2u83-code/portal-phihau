@@ -67,8 +67,11 @@ export const adminMenu: MenuItem[] = [
     { 
         label: 'Mentenanță', 
         icon: ArchiveBoxIcon, 
-        view: 'data-maintenance',
-        roles: ['Admin']
+        roles: ['Admin'],
+        submenu: [
+            { view: 'data-maintenance', label: 'Backup & Audit' },
+            { view: 'data-inspector', label: 'Inspector Date (Debug)' }
+        ]
     },
 ];
 

@@ -29,6 +29,7 @@ import { useLocalStorage } from './hooks/useLocalStorage';
 import { ProgramareActivitati } from './components/Activitati';
 import { ClubSettings } from './components/ClubSettings';
 import { AdminHeader } from './components/AdminHeader';
+import { DataInspector } from './components/DataInspector';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -280,6 +281,7 @@ function App() {
         />;
       case 'activitati': return <ProgramareActivitati grupe={grupe} antrenamente={antrenamente} setAntrenamente={setAntrenamente} onBack={() => setActiveView('dashboard')} />;
       case 'setari-club': return <ClubSettings onBack={() => setActiveView('dashboard')} />;
+      case 'data-inspector': return <DataInspector antrenamente={antrenamente} onBack={() => setActiveView('dashboard')} />;
       default: return <Dashboard onNavigate={setActiveView} />;
     }
   };

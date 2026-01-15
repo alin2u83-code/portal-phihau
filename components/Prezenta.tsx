@@ -186,13 +186,9 @@ const AttendanceDetail: React.FC<{
         setSportivi(prev => [...prev, newSportiv]);
         if(newPlata) setPlati(prev => [...prev, newPlata]);
         
+        // Doar adăugăm la lista locală de selectați. 
+        // Salvarea finală în baza de date (tabelul prezenta_antrenament) va fi făcută de handleSaveAttendance.
         setPresentIds(prev => new Set(prev).add(newSportiv.id));
-        
-        setAntrenamente(prev => prev.map(a => 
-            a.id === antrenament.id 
-            ? { ...a, sportivi_prezenti_ids: [...a.sportivi_prezenti_ids, newSportiv.id] } 
-            : a
-        ));
     };
 
     const grupaAntrenament = grupe.find(g => g.id === antrenament.grupa_id);

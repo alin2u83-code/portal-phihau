@@ -66,13 +66,11 @@ export const QuickAddSportivModal: React.FC<QuickAddSportivModalProps> = ({ isOp
             if (sportivError) throw sportivError;
             const newSportiv = { ...sportivData, roluri: [] } as Sportiv;
 
-            // 2. Add to attendance
-            const { error: prezentaError } = await supabase
-                .from('prezenta_antrenament')
-                .insert({ antrenament_id: antrenamentId, sportiv_id: newSportiv.id });
-            if (prezentaError) throw prezentaError;
+            // NOTĂ: Nu mai inserăm în 'prezenta_antrenament' aici. 
+            // handleQuickAddSave din pagina părinte va adăuga acest sportiv la selecția locală, 
+            // iar butonul final de "Save" va face legătura în baza de date.
 
-            // 3. Generate first subscription payment
+            // 2. Generate first subscription payment
             let newPlata: Plata | null = null;
             const abonamentConfig = tipuriAbonament.find(ab => ab.numar_membri === 1);
             if (abonamentConfig) {
@@ -95,7 +93,7 @@ export const QuickAddSportivModal: React.FC<QuickAddSportivModalProps> = ({ isOp
                 }
             }
 
-            showSuccess("Succes!", `${newSportiv.nume} ${newSportiv.prenume} a fost adăugat la prezență.`);
+            showSuccess("Succes!", `${newSportiv.nume} ${newSportiv.prenume} a fost adăugat.`);
             onSaveSuccess(newSportiv, newPlata);
             onClose();
             setFormState(initialFormState);
@@ -117,7 +115,7 @@ export const QuickAddSportivModal: React.FC<QuickAddSportivModalProps> = ({ isOp
                 <BirthDateInput label="Data Nașterii" value={formState.data_nasterii} onChange={handleDateChange} required />
                 <div className="flex justify-end pt-4 gap-2 border-t border-slate-700 mt-6">
                     <Button type="button" variant="secondary" onClick={onClose} disabled={loading} className="!py-2 !px-4">Anulează</Button>
-                    <Button type="submit" variant="primary" isLoading={loading} className="!py-2 !px-4">Salvează și Adaugă la Prezență</Button>
+                    <Button type="submit" variant="primary" isLoading={loading} className="!py-2 !px-4">Adaugă Sportiv</Button>
                 </div>
             </form>
         </Modal>

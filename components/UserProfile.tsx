@@ -187,11 +187,11 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                 <Card className="p-0"><div className="p-4 bg-slate-700/50"><h3 className="font-bold text-white">Istoric Examinări</h3></div><div className="overflow-x-auto"><table className="w-full text-sm text-left"><thead className="bg-slate-800/50 text-xs uppercase text-slate-400"><tr><th className="p-3">Data</th><th className="p-3">Grad Susținut</th><th className="p-3">Rezultat</th></tr></thead><tbody className="divide-y divide-slate-700">{sortedSportivParticipariForDisplay.map(p => {
                     const isCurrentGradRow = p.id === currentGradParticipationId;
                     return (
-                        <tr key={p.id} className={isCurrentGradRow ? 'bg-brand-secondary/10' : ''}>
+                        <tr key={p.id} className={isCurrentGradRow ? 'bg-brand-primary font-bold' : ''}>
                             <td className="p-2">{p.examen?.data}</td>
-                            <td className={`p-2 font-semibold ${isCurrentGradRow ? 'text-brand-secondary' : ''}`}>
+                            <td className={`p-2 ${isCurrentGradRow ? 'text-brand-secondary' : 'font-semibold'}`}>
                                 {grade.find(g => g.id === p.grad_sustinut_id)?.nume}
-                                {isCurrentGradRow && <span className="ml-2 text-xs font-bold uppercase text-brand-secondary">(CURENT)</span>}
+                                {isCurrentGradRow && <span className="ml-2 text-xs uppercase">(CURENT)</span>}
                             </td>
                             <td className={`p-2 font-bold ${p.rezultat === 'Admis' ? 'text-green-400' : 'text-red-400'}`}>{p.rezultat}</td>
                         </tr>

@@ -86,7 +86,7 @@ function App() {
             supabase.from('plati').select('*'),
             supabase.from('tranzactii').select('*'),
             supabase.from('rezultate').select('*'),
-            supabase.from('program_antrenamente').select('*, prezente_sportivi!antrenament_id(sportiv_id)').not('data', 'is', null),
+            supabase.from('program_antrenamente').select('*, prezenta_antrenament!antrenament_id(sportiv_id)').not('data', 'is', null),
             supabase.from('anunturi_prezenta').select('*')
         ]);
 
@@ -97,8 +97,8 @@ function App() {
         
         const formattedAntrenamente = (antrenamenteData || []).map((a: any) => ({
             ...a,
-            sportivi_prezenti_ids: a.prezente_sportivi 
-                ? a.prezente_sportivi.map((p: any) => p.sportiv_id) 
+            sportivi_prezenti_ids: a.prezenta_antrenament 
+                ? a.prezenta_antrenament.map((p: any) => p.sportiv_id) 
                 : [],
         }));
 

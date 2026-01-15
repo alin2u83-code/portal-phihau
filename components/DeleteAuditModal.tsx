@@ -41,7 +41,7 @@ export const DeleteAuditModal: React.FC<DeleteAuditModalProps> = ({ isOpen, onCl
                     const [platiRes, participariRes, prezenteRes, rezultateRes] = await Promise.all([
                         supabase.from('plati').select('id', { count: 'exact', head: true }).eq('sportiv_id', sportivId),
                         supabase.from('participari').select('id', { count: 'exact', head: true }).eq('sportiv_id', sportivId),
-                        supabase.from('prezente_sportivi').select('sportiv_id', { count: 'exact', head: true }).eq('sportiv_id', sportivId),
+                        supabase.from('prezenta_antrenament').select('sportiv_id', { count: 'exact', head: true }).eq('sportiv_id', sportivId),
                         supabase.from('rezultate').select('id', { count: 'exact', head: true }).eq('sportiv_id', sportivId)
                     ]);
 

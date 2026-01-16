@@ -77,5 +77,6 @@ export const adminMenu: MenuItem[] = [
 
 export const sportivMenu: MenuItem[] = [
     { label: 'Portalul Meu', icon: HomeIcon, view: 'dashboard' },
+    { label: 'Situație Financiară', icon: BanknotesIcon, view: 'profil-sportiv' },
     { label: 'Evenimentele Mele', icon: CalendarDaysIcon, view: 'evenimentele-mele' },
 ];

@@ -30,6 +30,7 @@ import { ProgramareActivitati } from './components/Activitati';
 import { ClubSettings } from './components/ClubSettings';
 import { AdminHeader } from './components/AdminHeader';
 import { DataInspector } from './components/DataInspector';
+import { ProfilSportiv } from './components/Financiar';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -228,6 +229,7 @@ function App() {
       switch (activeView) {
         case 'evenimentele-mele': return <EvenimenteleMele viewedUser={currentUser} evenimente={evenimente} rezultate={rezultate} setRezultate={setRezultate} onBack={() => setActiveView(isAdmin ? 'my-portal' : 'dashboard')} />;
         case 'editare-profil-personal': return <EditareProfilPersonal user={currentUser} setSportivi={setSportivi} setCurrentUser={setCurrentUser} onBack={() => setActiveView(isAdmin ? 'my-portal' : 'dashboard')} />;
+        case 'profil-sportiv': return <ProfilSportiv currentUser={currentUser} plati={plati} tranzactii={tranzactii} grade={grade} grupe={grupe} participari={participari} examene={examene} onBack={() => setActiveView(isAdmin ? 'my-portal' : 'dashboard')} />;
         case 'my-portal':
         default: return <SportivDashboard {...commonProps} />;
       }

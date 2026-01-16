@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { User, Plata, Tranzactie, Grad, Grupa, Participare, Examen } from '../types';
+import { User, Plata, Tranzactie, Grad, Grupa, Participare, Examen, Reducere } from '../types';
 import { Card, Button } from './ui';
 import { ArrowLeftIcon, BanknotesIcon } from './icons';
 
@@ -8,6 +8,7 @@ interface ProfilSportivProps {
     currentUser: User;
     plati: Plata[];
     tranzactii: Tranzactie[];
+    reduceri: Reducere[];
     grade: Grad[];
     grupe: Grupa[];
     participari: Participare[];
@@ -17,7 +18,7 @@ interface ProfilSportivProps {
 
 const getGrad = (gradId: string, allGrades: Grad[]) => allGrades.find(g => g.id === gradId);
 
-export const ProfilSportiv: React.FC<ProfilSportivProps> = ({ currentUser, plati, tranzactii, grade, grupe, participari, examene, onBack }) => {
+export const ProfilSportiv: React.FC<ProfilSportivProps> = ({ currentUser, plati, tranzactii, reduceri, grade, grupe, participari, examene, onBack }) => {
 
     const { currentGrad, currentGrupa } = useMemo(() => {
         const admittedParticipations = participari
@@ -45,9 +46,17 @@ export const ProfilSportiv: React.FC<ProfilSportivProps> = ({ currentUser, plati
                     dataIncasare = tranzactieCorespondenta.data_platii;
                 }
             }
-            return { ...plata, dataIncasare };
+
+            const reducereAplicata = plata.reducere_id ? reduceri.find(r => r.id === plata.reducere_id) : null;
+            let discountInfo = null;
+            if (reducereAplicata && plata.suma_initiala) {
+                const valoareReducere = plata.suma_initiala - plata.suma;
+                discountInfo = `${valoareReducere.toFixed(2)} lei (${reducereAplicata.nume})`;
+            }
+
+            return { ...plata, dataIncasare, discountInfo };
         }).sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
-    }, [plati, tranzactii, currentUser]);
+    }, [plati, tranzactii, currentUser, reduceri]);
 
     return (
         <div className="space-y-6">
@@ -84,7 +93,18 @@ export const ProfilSportiv: React.FC<ProfilSportivProps> = ({ currentUser, plati
                             {financialData.map(item => (
                                 <tr key={item.id} className="hover:bg-slate-700/30">
                                     <td className="p-3 font-medium text-white">{item.descriere}</td>
-                                    <td className="p-3 text-right font-semibold">{item.suma.toFixed(2)} lei</td>
+                                    <td className="p-3 text-right font-semibold">
+                                        {item.suma_initiala && item.suma_initiala > item.suma ? (
+                                            <div>
+                                                <span>{item.suma.toFixed(2)} lei</span>
+                                                <div className="text-xs text-slate-400 font-normal leading-tight whitespace-nowrap">
+                                                    ({item.suma_initiala.toFixed(2)} - {item.discountInfo})
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <span>{item.suma.toFixed(2)} lei</span>
+                                        )}
+                                    </td>
                                     <td className="p-3 text-slate-400">{new Date(item.data).toLocaleDateString('ro-RO')}</td>
                                     <td className="p-3 text-center">
                                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${

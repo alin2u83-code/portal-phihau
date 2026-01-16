@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Plata, Sportiv, TipAbonament, Familie, Tranzactie } from '../types';
+import { Plata, Sportiv, TipAbonament, Familie, Tranzactie, Reducere } from '../types';
 import { Button, Input, Select, Card, Modal } from './ui';
 import { EditIcon, ArrowLeftIcon, TrashIcon, BanknotesIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -14,13 +14,15 @@ interface PlatiScadenteProps {
     familii: Familie[]; 
     tipuriAbonament: TipAbonament[];
     tranzactii: Tranzactie[];
+    // FIX: Add reduceri prop to align with its usage in App.tsx
+    reduceri: Reducere[];
     onIncaseazaMultiple: (plati: Plata[]) => void;
     onBack: () => void;
 }
 
 const initialFilters = { sportiv: '', tip: '', status: 'Neachitat' };
 
-export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, sportivi, familii, tipuriAbonament, tranzactii, onIncaseazaMultiple, onBack }) => {
+export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, sportivi, familii, tipuriAbonament, tranzactii, reduceri, onIncaseazaMultiple, onBack }) => {
     const [filter, setFilter] = useLocalStorage('phi-hau-plati-scadente-filter', initialFilters);
     const [editingPlata, setEditingPlata] = useState<Plata | null>(null);
     const [plataToDelete, setPlataToDelete] = useState<Plata | null>(null);
@@ -315,31 +317,31 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
                     <table className="w-full text-left text-sm">
                         <thead className="bg-slate-700/50">
                             <tr>
-                                <th className="p-4 w-10">
+                                <th className="p-2 w-10">
                                     <input type="checkbox" checked={selectedIds.size > 0 && selectedIds.size === filteredPlati.length} onChange={handleSelectAllVisible} className="rounded border-slate-500 bg-slate-900 text-brand-secondary focus:ring-brand-secondary"/>
                                 </th>
-                                <th className="p-4 font-semibold">Data Scadență</th>
-                                <th className="p-4 font-semibold">Destinatar</th>
-                                <th className="p-4 font-semibold">Descriere</th>
-                                <th className="p-4 font-semibold text-right">Sumă</th>
-                                <th className="p-4 font-semibold text-center">Status</th>
-                                <th className="p-4 font-semibold text-right">Acțiuni</th>
+                                <th className="p-2 font-semibold">Data Scadență</th>
+                                <th className="p-2 font-semibold">Destinatar</th>
+                                <th className="p-2 font-semibold">Descriere</th>
+                                <th className="p-2 font-semibold text-right">Sumă</th>
+                                <th className="p-2 font-semibold text-center">Status</th>
+                                <th className="p-2 font-semibold text-right">Acțiuni</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-700">
                             {filteredPlati.map(p => (
                                 <tr key={p.id} className="hover:bg-slate-700/30 transition-colors">
-                                    <td className="p-4">
+                                    <td className="p-2">
                                         <input type="checkbox" checked={selectedIds.has(p.id)} onChange={() => handleToggleSelect(p.id)} className="rounded border-slate-500 bg-slate-900 text-brand-secondary focus:ring-brand-secondary"/>
                                     </td>
-                                    <td className="p-4 text-slate-400">{new Date(p.data).toLocaleDateString('ro-RO')}</td>
-                                    <td className="p-4 font-medium">{getEntityName(p)}</td>
-                                    <td className="p-4">
+                                    <td className="p-2 text-slate-400">{new Date(p.data).toLocaleDateString('ro-RO')}</td>
+                                    <td className="p-2 font-medium">{getEntityName(p)}</td>
+                                    <td className="p-2">
                                         <div className="font-semibold">{p.descriere}</div>
                                         {p.observatii && <div className="text-[10px] text-slate-500 italic max-w-xs truncate" title={p.observatii}>{p.observatii}</div>}
                                     </td>
-                                    <td className="p-4 text-right font-bold">{p.suma.toFixed(2)} lei</td>
-                                    <td className="p-4 text-center">
+                                    <td className="p-2 text-right font-bold">{p.suma.toFixed(2)} lei</td>
+                                    <td className="p-2 text-center">
                                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
                                             p.status === 'Achitat' ? 'bg-green-600/20 text-green-400 border-green-600/50' : 
                                             p.status === 'Achitat Parțial' ? 'bg-amber-600/20 text-amber-400 border-amber-600/50' : 
@@ -348,7 +350,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
                                             {p.status}
                                         </span>
                                     </td>
-                                    <td className="p-4 text-right">
+                                    <td className="p-2 text-right">
                                         <div className="flex justify-end gap-2">
                                             <Button size="sm" variant="secondary" onClick={() => setEditingPlata(p)} title="Editează detalii"><EditIcon className="w-4 h-4"/></Button>
                                             <Button size="sm" variant="danger" onClick={() => setPlataToDelete(p)} title="Șterge factură"><TrashIcon className="w-4 h-4"/></Button>

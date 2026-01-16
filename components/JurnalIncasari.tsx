@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Plata, Sportiv, PretConfig, TipAbonament, Tranzactie, Familie } from '../types';
+import { Plata, Sportiv, PretConfig, TipAbonament, Tranzactie, Familie, Reducere } from '../types';
 import { Button, Input, Select, Card } from './ui';
 import { getPretValabil, getPretProdus } from '../utils/pricing';
 import { ArrowLeftIcon, PlusIcon } from './icons';
@@ -18,6 +18,8 @@ interface JurnalIncasariProps {
     platiInitiale: Plata[];
     onIncasareProcesata: () => void;
     onBack: () => void;
+    // FIX: Add 'reduceri' prop to fix type error in App.tsx
+    reduceri: Reducere[];
 }
 
 const emptyIncasareState = {
@@ -112,7 +114,7 @@ const AdaugaAvans: React.FC<{
 };
 
 
-export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ plati, setPlati, sportivi, familii, preturiConfig, tipuriAbonament, tranzactii, setTranzactii, platiInitiale, onIncasareProcesata, onBack }) => {
+export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ plati, setPlati, sportivi, familii, preturiConfig, tipuriAbonament, tranzactii, setTranzactii, reduceri, platiInitiale, onIncasareProcesata, onBack }) => {
     const [formState, setFormState] = useState(emptyIncasareState);
     const [selectedEchipament, setSelectedEchipament] = useState('');
     const [selectedMarimeId, setSelectedMarimeId] = useState('');

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Sportiv, User, Rol, Participare, Examen, Grad, Antrenament, Plata, Familie, TipAbonament, Tranzactie } from '../types';
+import { Sportiv, User, Rol, Participare, Examen, Grad, Antrenament, Plata, Familie, TipAbonament, Tranzactie, Reducere } from '../types';
 import { Button, Card, Select } from './ui';
 import { ArrowLeftIcon, EditIcon, WalletIcon, TrashIcon, ShieldCheckIcon, PlusIcon, ChartBarIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -35,6 +35,7 @@ interface UserProfileProps {
     antrenamente: Antrenament[];
     plati: Plata[];
     tranzactii: Tranzactie[];
+    reduceri: Reducere[];
     grupe: any[];
     familii: Familie[];
     tipuriAbonament: TipAbonament[];
@@ -45,7 +46,7 @@ interface UserProfileProps {
     onBack: () => void;
 }
 
-export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, participari, examene, grade, antrenamente, plati, tranzactii, grupe, familii, tipuriAbonament, allRoles, setSportivi, setPlati, setTranzactii, onBack }) => {
+export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, participari, examene, grade, antrenamente, plati, tranzactii, reduceri, grupe, familii, tipuriAbonament, allRoles, setSportivi, setPlati, setTranzactii, onBack }) => {
     const { showError, showSuccess } = useError();
     
     // State for modals
@@ -94,9 +95,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
         return { eligible: true, message: "Eligibil pentru examinare.", nextGrad };
     }, [currentGrad, grade, sportiv, admittedParticipations]);
     
-    const sportivPlati = useMemo(() => plati.filter(p => p.sportiv_id === sportiv.id || (p.familie_id && p.familie_id === sportiv.familie_id)).sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime()), [plati, sportiv.id, sportiv.familie_id]);
-
-     const { sold, financialHistory } = useMemo(() => {
+    const { sold, financialHistory } = useMemo(() => {
         const relevantPlati = plati.filter(p => p.sportiv_id === sportiv.id || (p.familie_id && p.familie_id === sportiv.familie_id));
         const relevantTranzactii = tranzactii.filter(t => t.sportiv_id === sportiv.id || (t.familie_id && t.familie_id === sportiv.familie_id));
         
@@ -112,11 +111,21 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                     paymentDate = payingTransaction.data_platii;
                 }
             }
+
+            const reducereAplicata = plata.reducere_id ? reduceri.find(r => r.id === plata.reducere_id) : null;
+            let discountInfo = null;
+            if (reducereAplicata && plata.suma_initiala) {
+                const valoareReducere = plata.suma_initiala - plata.suma;
+                discountInfo = `${valoareReducere.toFixed(2)} lei (${reducereAplicata.nume})`;
+            }
+
             return {
                 id: plata.id,
                 facturaDate: plata.data,
                 description: plata.descriere,
                 amount: plata.suma,
+                initialAmount: plata.suma_initiala,
+                discount: discountInfo,
                 status: plata.status,
                 type: plata.tip,
                 paymentDate: paymentDate
@@ -128,7 +137,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
         }
         
         return { sold: currentSold, financialHistory: historyItems };
-    }, [sportiv, plati, tranzactii, financialFilter]);
+    }, [sportiv, plati, tranzactii, financialFilter, reduceri]);
 
 
     const handleSaveRoles = async () => {
@@ -265,7 +274,18 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                                 <tr key={item.id}>
                                     <td className="p-2">{new Date(item.facturaDate).toLocaleDateString('ro-RO')}</td>
                                     <td className="p-2">{item.description}</td>
-                                    <td className="p-2 text-right font-semibold">{item.amount.toFixed(2)} lei</td>
+                                    <td className="p-2 text-right font-semibold">
+                                        {item.initialAmount && item.initialAmount > item.amount ? (
+                                            <div className="text-right">
+                                                <span>{item.amount.toFixed(2)} lei</span>
+                                                <div className="text-xs text-slate-400 font-normal leading-tight">
+                                                    ({item.initialAmount.toFixed(2)} - {item.discount})
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <span>{item.amount.toFixed(2)} lei</span>
+                                        )}
+                                    </td>
                                     <td className="p-2 text-center">
                                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
                                             item.status === 'Achitat' ? 'bg-green-600/20 text-green-400 border-green-600/50' : 

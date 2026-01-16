@@ -21,8 +21,8 @@ export const Button: React.FC<ButtonProps & { as?: 'label', htmlFor?: string }> 
   const baseClasses = "rounded-md font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center shadow-sm text-sm whitespace-nowrap";
   
   const sizeClasses = {
-    sm: "px-2 py-1 text-xs",
-    md: "px-3 py-1.5",
+    sm: "px-2 py-0.5 text-xs",
+    md: "px-3 py-1",
   };
   
   const variantClasses = {
@@ -114,7 +114,7 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 export const Input: React.FC<InputProps> = ({ label, id, ...props }) => (
     <div className="w-full">
         {label && <label htmlFor={id} className="block text-[11px] uppercase font-bold text-slate-400 mb-1 ml-1">{label}</label>}
-        <input id={id} {...props} className={`w-full bg-slate-900/50 border border-slate-600 rounded px-2 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-brand-secondary focus:border-brand-secondary transition-all ${props.className}`} />
+        <input id={id} {...props} className={`w-full bg-slate-900/50 border border-slate-600 rounded px-2 py-1 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-brand-secondary focus:border-brand-secondary transition-all ${props.className}`} />
     </div>
 );
 
@@ -125,7 +125,7 @@ interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
 export const Select: React.FC<SelectProps> = ({ label, id, children, ...props }) => (
     <div className="w-full">
         {label && <label htmlFor={id} className="block text-[11px] uppercase font-bold text-slate-400 mb-1 ml-1">{label}</label>}
-        <select id={id} {...props} className={`w-full bg-slate-900/50 border border-slate-600 rounded px-2 py-1.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-secondary focus:border-brand-secondary transition-all appearance-none ${props.className}`}>
+        <select id={id} {...props} className={`w-full bg-slate-900/50 border border-slate-600 rounded px-2 py-1 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-secondary focus:border-brand-secondary transition-all appearance-none ${props.className}`}>
             {children}
         </select>
     </div>

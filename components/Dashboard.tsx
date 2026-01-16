@@ -1,7 +1,8 @@
 import React from 'react';
 import { View } from '../types';
 import { Card } from './ui';
-import { UsersIcon, BanknotesIcon, TrophyIcon, ClipboardDocumentListIcon, AcademicCapIcon, CogIcon } from './icons';
+// FIX: Removed unused icon imports `AcademicCapIcon` and `CogIcon`. `AcademicCapIcon` was causing an error as it's not exported.
+import { UsersIcon, BanknotesIcon, TrophyIcon, ClipboardDocumentListIcon } from './icons';
 
 interface DashboardProps {
   onNavigate: (view: View) => void;

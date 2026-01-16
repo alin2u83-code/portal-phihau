@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Rol } from '../types';
-import { HomeIcon, UsersIcon, TrophyIcon, ClipboardDocumentListIcon, BanknotesIcon, CalendarDaysIcon, UserCircleIcon, CogIcon, ArchiveBoxIcon } from './icons';
+import { HomeIcon, UsersIcon, TrophyIcon, ClipboardDocumentListIcon, BanknotesIcon, CalendarDaysIcon, ArchiveBoxIcon, UserCircleIcon } from './icons';
 
 export interface MenuItem {
     label: string;
@@ -19,7 +19,7 @@ export interface SubMenuItem {
 export const adminMenu: MenuItem[] = [
     { label: 'Dashboard', icon: HomeIcon, view: 'dashboard' },
     { 
-        label: 'Sportivi & Utilizatori', 
+        label: 'Sportivi', 
         icon: UsersIcon,
         submenu: [
              { label: 'Listă Sportivi', view: 'sportivi' },
@@ -28,13 +28,13 @@ export const adminMenu: MenuItem[] = [
         ]
     },
     {
-        label: 'Activități',
+        label: 'Evenimente',
         icon: TrophyIcon,
         submenu: [
-             { view: 'examene', label: 'Configurare Examene' },
+             { view: 'examene', label: 'Examene & Înscrieri' },
+             { view: 'stagii', label: 'Stagii' },
+             { view: 'competitii', label: 'Competiții' },
              { view: 'grade', label: 'Nomenclator Grade' },
-             { view: 'stagii', label: 'Listă Stagii' },
-             { view: 'competitii', label: 'Listă Competiții' }
         ]
     },
     { 
@@ -48,20 +48,15 @@ export const adminMenu: MenuItem[] = [
         ] 
     },
     { 
-        label: 'Financiar', 
+        label: 'Administrativ', 
         icon: BanknotesIcon, 
         submenu: [ 
-            { view: 'plati-scadente', label: 'Facturi' }, 
+            { view: 'plati-scadente', label: 'Facturi & Plăți' }, 
             { view: 'jurnal-incasari', label: 'Jurnal Încasări' }, 
-            { view: 'raport-financiar', label: 'Raport Financiar' }, 
-        ] 
-    },
-     { 
-        label: 'Configurări', 
-        icon: CogIcon, 
-        submenu: [ 
-             { view: 'tipuri-abonament', label: 'Configurare Abonamente' }, 
-             { view: 'configurare-preturi', label: 'Configurare Alte Prețuri' },
+            { view: 'raport-financiar', label: 'Raport Financiar' },
+            { view: 'tipuri-abonament', label: 'Config. Abonamente' }, 
+            { view: 'configurare-preturi', label: 'Config. Prețuri' },
+            { view: 'reduceri', label: 'Config. Reduceri' },
         ] 
     },
     { 
@@ -76,7 +71,13 @@ export const adminMenu: MenuItem[] = [
 ];
 
 export const sportivMenu: MenuItem[] = [
-    { label: 'Portalul Meu', icon: HomeIcon, view: 'dashboard' },
-    { label: 'Situație Financiară', icon: BanknotesIcon, view: 'profil-sportiv' },
-    { label: 'Evenimentele Mele', icon: CalendarDaysIcon, view: 'evenimentele-mele' },
+    { 
+        label: 'Pagina Mea', 
+        icon: UserCircleIcon, 
+        submenu: [
+            { label: 'Panou Principal', view: 'dashboard' },
+            { label: 'Situație Financiară', view: 'profil-sportiv' },
+            { label: 'Evenimentele Mele', view: 'evenimentele-mele' },
+        ]
+    },
 ];

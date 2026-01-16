@@ -144,7 +144,9 @@ export interface Plata {
     id: string;
     sportiv_id: string | null; 
     familie_id: string | null; 
-    suma: number; // Suma totala datorata
+    suma_initiala?: number | null; // Suma inainte de reducere
+    reducere_id?: string | null; // FK to reduceri.id
+    suma: number; // Suma finala datorata
     data: string; // Data generarii datoriei
     status: 'Achitat' | 'Neachitat' | 'Achitat Parțial';
     descriere: string;
@@ -158,6 +160,16 @@ export interface Familie {
     tip_abonament_id?: string | null;
 }
 
+export interface Reducere {
+    id: string;
+    nume: string;
+    tip: 'procent' | 'suma_fixa';
+    valoare: number;
+    este_activa: boolean;
+    categorie_aplicabila: 'Abonament' | 'Echipament' | 'Toate';
+}
+
+
 export type User = Sportiv;
 
-export type View = 'dashboard' | 'sportivi' | 'examene' | 'grade' | 'prezenta' | 'grupe' | 'raport-prezenta' | 'stagii' | 'competitii' | 'plati-scadente' | 'jurnal-incasari' | 'raport-financiar' | 'configurare-preturi' | 'tipuri-abonament' | 'familii' | 'user-management' | 'editare-profil-personal' | 'evenimentele-mele' | 'data-maintenance' | 'activitati' | 'my-portal' | 'setari-club' | 'data-inspector' | 'profil-sportiv';
+export type View = 'dashboard' | 'sportivi' | 'examene' | 'grade' | 'prezenta' | 'grupe' | 'raport-prezenta' | 'stagii' | 'competitii' | 'plati-scadente' | 'jurnal-incasari' | 'raport-financiar' | 'configurare-preturi' | 'tipuri-abonament' | 'familii' | 'user-management' | 'editare-profil-personal' | 'evenimentele-mele' | 'data-maintenance' | 'activitati' | 'my-portal' | 'setari-club' | 'data-inspector' | 'profil-sportiv' | 'reduceri';

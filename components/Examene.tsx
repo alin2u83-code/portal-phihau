@@ -54,16 +54,36 @@ const ExamenDetail: React.FC<ExamenDetailProps> = ({ examen, participari, setPar
             const admittedParticipations = allParticipari
                 .filter(p => p.sportiv_id === sportiv.id && p.rezultat === 'Admis')
                 .sort((a,b) => (getGrad(b.grad_sustinut_id, grade)?.ordine ?? 0) - (getGrad(a.grad_sustinut_id, grade)?.ordine ?? 0));
-            const currentGrad = admittedParticipations.length > 0 ? getGrad(admittedParticipations[0].grad_sustinut_id, grade) : null;
             
-            if (currentGrad) {
-                setCurrentGradDisplay(currentGrad.nume);
-            } else {
+            // Logic for beginners
+            if (admittedParticipations.length === 0) {
                 setCurrentGradDisplay('Începător');
+                const ageAtExam = getAgeOnDate(sportiv.data_nasterii, examen.data);
+                let targetGradeName = '';
+                if (ageAtExam < 7) {
+                    targetGradeName = 'galben';
+                } else if (ageAtExam >= 7 && ageAtExam <= 12) {
+                    targetGradeName = 'roșu';
+                } else { // >= 13
+                    targetGradeName = 'albastru';
+                }
+                
+                const startingGrade = sortedGrades.find(g => g.nume.toLowerCase().includes(targetGradeName));
+                if (startingGrade) {
+                    setGradSustinutId(startingGrade.id);
+                    setProposedGradId(startingGrade.id);
+                } else {
+                    setGradSustinutId('');
+                    setProposedGradId(null);
+                }
+                return;
             }
 
+            // Logic for advanced sportivi
+            const currentGrad = admittedParticipations.length > 0 ? getGrad(admittedParticipations[0].grad_sustinut_id, grade) : null;
+            setCurrentGradDisplay(currentGrad?.nume || 'Începător');
+
             const nextGrad = currentGrad ? sortedGrades.find(g => g.ordine === currentGrad.ordine + 1) : sortedGrades.find(g => g.ordine === 1);
-            
             if (nextGrad) {
                 setGradSustinutId(nextGrad.id);
                 setProposedGradId(nextGrad.id);
@@ -77,10 +97,9 @@ const ExamenDetail: React.FC<ExamenDetailProps> = ({ examen, participari, setPar
             setProposedGradId(null);
             setCurrentGradDisplay('Începător');
         }
-    }, [sportivId, allParticipari, grade, sportivi, sortedGrades]);
+    }, [sportivId, allParticipari, grade, sportivi, sortedGrades, examen.data]);
 
     useEffect(() => {
-        // Reset states
         setEligibilityInfo(null);
         setTaxaExamen(null);
         setIsEligible(false);
@@ -91,30 +110,21 @@ const ExamenDetail: React.FC<ExamenDetailProps> = ({ examen, participari, setPar
         const gradToSustain = grade.find(g => g.id === gradSustinutId);
         if (!sportiv || !gradToSustain) return;
     
-        // Tax calculation
         const pretExamenConfig = getPretProdus(preturi, 'Taxa Examen', gradToSustain.nume, { dataReferinta: examen.data });
         setTaxaExamen(pretExamenConfig?.suma ?? null);
     
-        // Eligibility Check
         const ageAtExam = getAgeOnDate(sportiv.data_nasterii, examen.data);
-        const ageOk = ageAtExam >= gradToSustain.varsta_minima;
+        if (ageAtExam < gradToSustain.varsta_minima) {
+            setEligibilityInfo({ message: `Vârstă minimă: ${gradToSustain.varsta_minima} ani (are ${ageAtExam}).`, type: 'warning' });
+            return;
+        }
     
         const admittedParticipations = allParticipari.filter(p => p.sportiv_id === sportiv.id && p.rezultat === 'Admis').sort((a,b) => (getGrad(b.grad_sustinut_id, grade)?.ordine ?? 0) - (getGrad(a.grad_sustinut_id, grade)?.ordine ?? 0));
         const lastAdmittedPart = admittedParticipations[0];
     
-        // If it's the first exam, only age matters
         if (!lastAdmittedPart) {
-            if (ageOk) {
-                setIsEligible(true);
-                setEligibilityInfo({ message: "Eligibil pentru primul examen.", type: 'success' });
-            } else {
-                setEligibilityInfo({ message: `Vârstă minimă: ${gradToSustain.varsta_minima} ani (are ${ageAtExam}).`, type: 'warning' });
-            }
-            return;
-        }
-        
-        if (!ageOk) {
-            setEligibilityInfo({ message: `Vârstă minimă: ${gradToSustain.varsta_minima} ani (are ${ageAtExam}).`, type: 'warning' });
+            setIsEligible(true);
+            setEligibilityInfo({ message: "Eligibil pentru primul examen (vârstă corespunzătoare).", type: 'success' });
             return;
         }
 
@@ -130,9 +140,8 @@ const ExamenDetail: React.FC<ExamenDetailProps> = ({ examen, participari, setPar
         const isHighRank = centuraViolet ? gradToSustain.ordine >= centuraViolet.ordine : false;
         
         if (isHighRank) {
-            if (!lastExam) { // Should not happen, but for safety
-                setIsEligible(true);
-                setEligibilityInfo({ message: "Eligibil (grad înalt, prim examen).", type: 'success' });
+            if (!lastExam) { 
+                setEligibilityInfo({ message: "Eroare: Nu s-a găsit ultimul examen pentru un grad înalt.", type: 'warning' });
                 return;
             }
             const currentSession = getExamSession(new Date(examen.data));
@@ -141,11 +150,12 @@ const ExamenDetail: React.FC<ExamenDetailProps> = ({ examen, participari, setPar
     
             if (timeOk && sessionOk) {
                 setIsEligible(true);
-                setEligibilityInfo({ message: "Condiții de grad înalt îndeplinite.", type: 'success' });
+                setEligibilityInfo({ message: "Condiții de grad înalt îndeplinite (timp și sesiune).", type: 'success' });
             } else {
-                const requiredWaitYears = Math.max(1, Math.ceil(monthsToWait / 12));
-                const nextValidYear = lastExamDate.getFullYear() + requiredWaitYears;
-                setEligibilityInfo({ message: `Lipsă timp așteptare: necesar sesiune ${lastSession} ${nextValidYear}.`, type: 'warning' });
+                let message = "Condiții de grad înalt neîndeplinite. ";
+                if (!timeOk) message += `Timp insuficient (eligibil după ${eligibilityDate.toLocaleDateString('ro-RO')}). `;
+                if (!sessionOk) message += `Sesiune incorectă (necesară sesiunea de ${lastSession}).`;
+                setEligibilityInfo({ message, type: 'warning' });
             }
         } else { // Lower rank
             if (timeOk) {

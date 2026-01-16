@@ -102,6 +102,22 @@ function App() {
         const formattedGrupe = (grData || []).map(g => ({ ...g, program: orarAntrenamente.filter(p => p.grupa_id === g.id) }));
         const formattedSportivi = (sData || []).map((s: any) => ({ ...s, roluri: s.roluri || [] }));
         
+        const gradeDataForTransform = gData || [];
+        const transformedCfData = (cfData || []).map((p: any): PretConfig | null => {
+            if (p.grad_id && p.hasOwnProperty('pret')) { // Heuristic to detect grade-price schema
+                if (p.is_activ === false) return null; // Ignore inactive prices
+                const grad = gradeDataForTransform.find(g => g.id === p.grad_id);
+                return {
+                    id: p.id,
+                    categorie: 'Taxa Examen',
+                    denumire_serviciu: grad ? grad.nume : `Grad ID ${p.grad_id}`,
+                    suma: p.pret,
+                    valabil_de_la_data: p.data_activare,
+                };
+            }
+            return p as PretConfig; // Assume old schema otherwise
+        }).filter(Boolean) as PretConfig[];
+
         const isAdmin = user.roluri.some(r => r.nume === 'Admin' || r.nume === 'Instructor');
         const formattedAntrenamente = (antrenamenteData || []).map((a: any) => {
             const allPresentIds = a.prezenta_antrenament 
@@ -120,7 +136,7 @@ function App() {
         setGrade(gData || []);
         setGrupe(formattedGrupe);
         setEvenimente(evData || []);
-        setPreturiConfig(cfData || []);
+        setPreturiConfig(transformedCfData);
         setTipuriAbonament(abData || []);
         setAllRoles(roData || []);
         setReduceri(reduceriData || []);

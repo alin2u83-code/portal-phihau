@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Rol } from '../types';
-import { HomeIcon, UsersIcon, TrophyIcon, ClipboardDocumentListIcon, BanknotesIcon, CalendarDaysIcon, ArchiveBoxIcon, UserCircleIcon } from './icons';
+import { HomeIcon, UsersIcon, TrophyIcon, ClipboardDocumentListIcon, BanknotesIcon, CalendarDaysIcon, ArchiveBoxIcon, UserCircleIcon, ChatBubbleLeftEllipsisIcon } from './icons';
 
 export interface MenuItem {
     label: string;
@@ -57,6 +57,7 @@ export const adminMenu: MenuItem[] = [
             { view: 'tipuri-abonament', label: 'Config. Abonamente' }, 
             { view: 'configurare-preturi', label: 'Config. Prețuri' },
             { view: 'reduceri', label: 'Config. Reduceri' },
+            { view: 'notificari', label: 'Trimite Anunțuri' }
         ] 
     },
     { 

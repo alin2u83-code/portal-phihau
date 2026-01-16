@@ -32,6 +32,7 @@ import { AdminHeader } from './components/AdminHeader';
 import { DataInspector } from './components/DataInspector';
 import { ProfilSportiv } from './components/Financiar';
 import { ReduceriManagement } from './components/Reduceri';
+import { Notificari } from './components/Notificari';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -69,7 +70,7 @@ function App() {
     try {
         const [
             { data: eData }, { data: gData }, { data: grData }, { data: evData },
-            { data: cfData }, { data: abData }, { data: roData }, { data: progData },
+            { data: cfData }, { data: gradePricesData }, { data: abData }, { data: roData }, { data: progData },
             { data: reduceriData },
             { data: sData }, { data: paData }, { data: fData }, { data: plData },
             { data: tData }, { data: rData }, { data: antrenamenteData }, { data: anunturiData }
@@ -80,6 +81,7 @@ function App() {
             supabase.from('grupe').select('*'),
             supabase.from('evenimente').select('*'),
             supabase.from('preturi_config').select('*'),
+            supabase.from('grade_preturi_config').select('*'), // Fetch specific grade prices
             supabase.from('tipuri_abonament').select('*'),
             supabase.from('roluri').select('*'),
             supabase.from('program_antrenamente').select('*').is('data', null),
@@ -95,28 +97,32 @@ function App() {
             supabase.from('program_antrenamente').select('*, prezenta_antrenament!antrenament_id(sportiv_id)').not('data', 'is', null),
             supabase.from('anunturi_prezenta').select('*')
         ]);
+        
+        const gradesData = gData || [];
 
-        // Process data
+        // Transform grade prices into the generic PretConfig format
+        const transformedGradePrices = (gradePricesData || [])
+            .filter((p: any) => p.is_activ !== false)
+            .map((p: any): PretConfig | null => {
+                const grad = gradesData.find(g => g.id === p.grad_id);
+                if (!grad) return null;
+                return {
+                    id: p.id,
+                    categorie: 'Taxa Examen',
+                    denumire_serviciu: grad.nume,
+                    suma: p.suma,
+                    valabil_de_la_data: p.data_activare,
+                };
+            }).filter(Boolean) as PretConfig[];
+        
+        const otherPrices = cfData ? cfData as PretConfig[] : [];
+        const allPrices = [...otherPrices, ...transformedGradePrices];
+        
+        // Process other data
         const orarAntrenamente = progData || [];
         const formattedGrupe = (grData || []).map(g => ({ ...g, program: orarAntrenamente.filter(p => p.grupa_id === g.id) }));
         const formattedSportivi = (sData || []).map((s: any) => ({ ...s, roluri: s.roluri || [] }));
         
-        const gradeDataForTransform = gData || [];
-        const transformedCfData = (cfData || []).map((p: any): PretConfig | null => {
-            if (p.grad_id && p.hasOwnProperty('pret')) { // Heuristic to detect grade-price schema
-                if (p.is_activ === false) return null; // Ignore inactive prices
-                const grad = gradeDataForTransform.find(g => g.id === p.grad_id);
-                return {
-                    id: p.id,
-                    categorie: 'Taxa Examen',
-                    denumire_serviciu: grad ? grad.nume : `Grad ID ${p.grad_id}`,
-                    suma: p.pret,
-                    valabil_de_la_data: p.data_activare,
-                };
-            }
-            return p as PretConfig; // Assume old schema otherwise
-        }).filter(Boolean) as PretConfig[];
-
         const isAdmin = user.roluri.some(r => r.nume === 'Admin' || r.nume === 'Instructor');
         const formattedAntrenamente = (antrenamenteData || []).map((a: any) => {
             const allPresentIds = a.prezenta_antrenament 
@@ -132,10 +138,10 @@ function App() {
 
         // Set state for all data
         setExamene(eData || []);
-        setGrade(gData || []);
+        setGrade(gradesData);
         setGrupe(formattedGrupe);
         setEvenimente(evData || []);
-        setPreturiConfig(transformedCfData);
+        setPreturiConfig(allPrices);
         setTipuriAbonament(abData || []);
         setAllRoles(roData || []);
         setReduceri(reduceriData || []);
@@ -205,17 +211,16 @@ function App() {
         }
         if (!supabase || !currentUser) return;
 
-        /*
-        // The 'notificari' table is not found in the schema, this feature is temporarily disabled to prevent a crash.
         const channel = supabase.channel('notificari_channel')
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notificari' },
                 (payload) => {
                     const newAnunt = payload.new as AnuntGeneral;
-                    if (newAnunt.sent_by === currentUser.id) {
+                    // Nu afișa notificarea pentru utilizatorul care a trimis-o
+                    if (newAnunt.sent_by === currentUser.user_id) {
                         return;
                     }
-                    const allowNotifications = currentUser.notificari_anunturi ?? true;
-                    if (Notification.permission === "granted" && allowNotifications) {
+                    
+                    if (Notification.permission === "granted") {
                         new Notification(newAnunt.title, {
                             body: newAnunt.body,
                             icon: '/vite.svg'
@@ -227,7 +232,6 @@ function App() {
         return () => {
             supabase.removeChannel(channel);
         };
-        */
     }, [currentUser]);
 
 
@@ -348,6 +352,7 @@ function App() {
       case 'activitati': return <ProgramareActivitati grupe={grupe} antrenamente={antrenamente} setAntrenamente={setAntrenamente} onBack={() => setActiveView('dashboard')} />;
       case 'setari-club': return <ClubSettings onBack={() => setActiveView('dashboard')} />;
       case 'data-inspector': return <DataInspector antrenamente={antrenamente} onBack={() => setActiveView('dashboard')} />;
+      case 'notificari': return <Notificari onBack={() => setActiveView('dashboard')} currentUser={currentUser} />;
       default: return <Dashboard onNavigate={setActiveView} />;
     }
   };

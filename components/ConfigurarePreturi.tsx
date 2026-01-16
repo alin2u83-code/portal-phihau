@@ -4,10 +4,11 @@ import { Button, Modal, Input, Select, Card } from './ui';
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon } from './icons';
 import { getPretProdus } from '../utils/pricing';
 import { supabase } from '../supabaseClient';
+import { useError } from './ErrorProvider';
 
 const emptyFormState: Omit<PretConfig, 'id' | 'valabil_de_la_data'> = { categorie: 'Taxa Examen', denumire_serviciu: '', suma: 0, specificatii: {} };
 
-interface PretFormProps { isOpen: boolean; onClose: () => void; onSave: (pret: Omit<PretConfig, 'id'>) => Promise<void>; pretToEdit: PretConfig | null; grade: Grad[]; }
+interface PretFormProps { isOpen: boolean; onClose: () => void; onSave: (pret: Omit<PretConfig, 'id'>, pretToEdit: PretConfig | null) => Promise<void>; pretToEdit: PretConfig | null; grade: Grad[]; }
 const PretForm: React.FC<PretFormProps> = ({ isOpen, onClose, onSave, pretToEdit, grade }) => {
     const [formState, setFormState] = useState<Omit<PretConfig, 'id'>>({ ...emptyFormState, valabil_de_la_data: new Date().toISOString().split('T')[0] });
     const [loading, setLoading] = useState(false);
@@ -37,12 +38,12 @@ const PretForm: React.FC<PretFormProps> = ({ isOpen, onClose, onSave, pretToEdit
     const handleSubmit = async (e: React.FormEvent) => { 
         e.preventDefault(); 
         setLoading(true);
-        await onSave(formState);
+        await onSave(formState, pretToEdit);
         setLoading(false);
         onClose(); 
     };
 
-    return ( <Modal isOpen={isOpen} onClose={onClose} title={pretToEdit ? "Editează Preț" : "Adaugă Preț Nou"}> <form onSubmit={handleSubmit} className="space-y-4"> <div className="grid grid-cols-1 md:grid-cols-2 gap-4"> <Select label="Categorie" name="categorie" value={formState.categorie} onChange={handleChange}> <option value="Taxa Examen">Taxa Examen</option> <option value="Taxa Stagiu">Taxa Stagiu</option> <option value="Taxa Competitie">Taxa Competiție</option> <option value="Echipament">Echipament</option> </Select> 
+    return ( <Modal isOpen={isOpen} onClose={onClose} title={pretToEdit ? "Editează Preț" : "Adaugă Preț Nou"}> <form onSubmit={handleSubmit} className="space-y-4"> <div className="grid grid-cols-1 md:grid-cols-2 gap-4"> <Select label="Categorie" name="categorie" value={formState.categorie} onChange={handleChange} disabled={!!pretToEdit}> <option value="Taxa Examen">Taxa Examen</option> <option value="Taxa Stagiu">Taxa Stagiu</option> <option value="Taxa Competitie">Taxa Competiție</option> <option value="Echipament">Echipament</option> </Select> 
     {formState.categorie === 'Taxa Examen' ? (
         <Select label="Grad (Denumire Serviciu)" name="denumire_serviciu" value={formState.denumire_serviciu} onChange={handleChange} required>
             <option value="">Selectează grad...</option>
@@ -58,30 +59,72 @@ interface ConfigurarePreturiProps { preturi: PretConfig[]; setPreturi: React.Dis
 export const ConfigurarePreturi: React.FC<ConfigurarePreturiProps> = ({ preturi, setPreturi, onBack, sportivi, grade }) => {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [pretToEdit, setPretToEdit] = useState<PretConfig | null>(null);
+    const { showError, showSuccess } = useError();
 
     const [checkerSportivId, setCheckerSportivId] = useState('');
     const [checkerEchipament, setCheckerEchipament] = useState('');
     const [calculatedPriceInfo, setCalculatedPriceInfo] = useState<{ suma: number; marime: string } | null>(null);
 
-    const handleSave = async (pretData: Omit<PretConfig, 'id'>) => {
-        if(!supabase) return;
-        if (pretToEdit) {
-            const { data, error } = await supabase.from('preturi_config').update(pretData).eq('id', pretToEdit.id).select().single();
-            if(error) { alert(`Eroare la actualizare: ${error.message}`); }
-            else if (data) { setPreturi(prev => prev.map(p => p.id === pretToEdit.id ? data as PretConfig : p)); }
+    const handleSave = async (pretData: Omit<PretConfig, 'id'>, pretToEdit: PretConfig | null) => {
+        if (!supabase) { showError("Eroare Configurare", "Clientul Supabase nu a putut fi stabilit."); return; }
+
+        let tableName: string;
+        let dataToSave: any;
+        const isTaxaExamen = pretData.categorie === 'Taxa Examen';
+
+        if (isTaxaExamen) {
+            tableName = 'grade_preturi_config';
+            const grad = grade.find(g => g.nume === pretData.denumire_serviciu);
+            if (!grad) { showError("Eroare", `Gradul "${pretData.denumire_serviciu}" nu a fost găsit.`); return; }
+            dataToSave = {
+                grad_id: grad.id,
+                suma: pretData.suma,
+                data_activare: pretData.valabil_de_la_data,
+                is_activ: true // Assume active on creation/update from UI
+            };
         } else {
-            const { data, error } = await supabase.from('preturi_config').insert(pretData).select().single();
-            if(error) { alert(`Eroare la salvare: ${error.message}`); }
-            else if (data) { setPreturi(prev => [...prev, data as PretConfig]); }
+            tableName = 'preturi_config';
+            dataToSave = pretData;
+        }
+
+        if (pretToEdit) {
+            if (pretToEdit.categorie !== pretData.categorie) {
+                showError("Funcționalitate Limitată", "Schimbarea categoriei unui preț nu este suportată. Ștergeți și adăugați din nou.");
+                return;
+            }
+            const { data, error } = await supabase.from(tableName).update(dataToSave).eq('id', pretToEdit.id).select().single();
+            if (error) { showError("Eroare la actualizare", error); }
+            else if (data) {
+                const updatedPret = isTaxaExamen ? { ...pretData, id: data.id, suma: data.suma, valabil_de_la_data: data.data_activare } : data as PretConfig;
+                setPreturi(prev => prev.map(p => p.id === pretToEdit.id ? updatedPret : p));
+                showSuccess("Succes", "Prețul a fost actualizat.");
+            }
+        } else { // Creare
+            const { data, error } = await supabase.from(tableName).insert(dataToSave).select().single();
+            if (error) { showError("Eroare la salvare", error); }
+            else if (data) {
+                const newPret = isTaxaExamen ? { ...pretData, id: data.id, suma: data.suma, valabil_de_la_data: data.data_activare } : data as PretConfig;
+                setPreturi(prev => [...prev, newPret]);
+                showSuccess("Succes", "Prețul a fost adăugat.");
+            }
         }
     };
+    
     const handleEdit = (pret: PretConfig) => { setPretToEdit(pret); setIsFormOpen(true); };
+    
     const handleDelete = async (id: string) => { 
         if(!supabase) return;
-        if (window.confirm("Sunteți sigur că doriți să ștergeți această înregistrare? Această acțiune este ireversibilă.")) { 
-            const { error } = await supabase.from('preturi_config').delete().eq('id', id);
-            if(error) { alert(`Eroare la ștergere: ${error.message}`); }
-            else { setPreturi(prev => prev.filter(p => p.id !== id)); }
+        const pretToDelete = preturi.find(p => p.id === id);
+        if (!pretToDelete) { showError("Eroare", "Prețul de șters nu a fost găsit."); return; }
+
+        if (window.confirm("Sunteți sigur că doriți să ștergeți această înregistrare? Acțiunea este ireversibilă.")) { 
+            const tableName = pretToDelete.categorie === 'Taxa Examen' ? 'grade_preturi_config' : 'preturi_config';
+            const { error } = await supabase.from(tableName).delete().eq('id', id);
+            if(error) { showError(`Eroare la ștergere`, error); }
+            else { 
+                setPreturi(prev => prev.filter(p => p.id !== id)); 
+                showSuccess("Succes", "Prețul a fost șters.");
+            }
         } 
     };
 

@@ -18,13 +18,56 @@ export const Notificari: React.FC<NotificariProps> = ({ onBack, currentUser }) =
     const { showError, showSuccess } = useError();
 
     useEffect(() => {
-        // Temporarily disabled as the 'notificari' table is missing from the database schema.
-        setHistory([]);
+        const fetchHistory = async () => {
+            if (!supabase) return;
+            const { data, error } = await supabase
+                .from('notificari')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .limit(20);
+            
+            if (error) {
+                showError("Eroare la preluarea istoricului", error);
+            } else {
+                setHistory(data as AnuntGeneral[]);
+            }
+        };
+        fetchHistory();
     }, [showError]);
 
     const handleSend = async (e: React.FormEvent) => {
         e.preventDefault();
-        showError("Funcționalitate Indisponibilă", "Tabelul 'notificari' necesar pentru această funcție lipsește din baza de date. Contactați administratorul.");
+        if (!supabase) {
+             showError("Eroare Configurare", "Clientul Supabase nu este inițializat.");
+             return;
+        }
+        if (!title.trim() || !body.trim()) {
+            showError("Date Incomplete", "Titlul și mesajul sunt obligatorii.");
+            return;
+        }
+
+        setLoading(true);
+
+        const { data, error } = await supabase
+            .from('notificari')
+            .insert({
+                title: title,
+                body: body,
+                sent_by: currentUser.user_id
+            })
+            .select()
+            .single();
+
+        setLoading(false);
+
+        if (error) {
+            showError("Eroare la trimitere", `Asigurați-vă că rolul dumneavoastră are permisiunea de a insera în tabelul 'notificari'. Detalii: ${error.message}`);
+        } else if (data) {
+            showSuccess("Succes", "Anunțul a fost trimis cu succes!");
+            setHistory(prev => [data as AnuntGeneral, ...prev]);
+            setTitle('');
+            setBody('');
+        }
     };
 
     return (
@@ -47,7 +90,7 @@ export const Notificari: React.FC<NotificariProps> = ({ onBack, currentUser }) =
 
             <Card>
                 <h3 className="text-xl font-bold text-white mb-4">Ultimele Anunțuri Trimise</h3>
-                <div className="space-y-3">
+                <div className="space-y-3 max-h-96 overflow-y-auto">
                     {history.length > 0 ? history.map(anunt => (
                         <div key={anunt.id} className="bg-slate-700/50 p-3 rounded-md">
                             <p className="font-bold text-white">{anunt.title}</p>
@@ -55,7 +98,7 @@ export const Notificari: React.FC<NotificariProps> = ({ onBack, currentUser }) =
                             <p className="text-xs text-slate-500 mt-1">Trimis la: {new Date(anunt.created_at).toLocaleString('ro-RO')}</p>
                         </div>
                     )) : (
-                        <p className="text-slate-400 italic">Niciun anunț trimis recent. (Funcționalitate temporar dezactivată)</p>
+                        <p className="text-slate-400 italic">Niciun anunț trimis recent.</p>
                     )}
                 </div>
             </Card>

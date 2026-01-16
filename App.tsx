@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
-import { Sportiv, Examen, Grad, Participare, View, Antrenament, Grupa, Plata, Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, Rol, AnuntPrezenta, Reducere } from './types';
+import { Sportiv, Examen, Grad, Participare, View, Antrenament, Grupa, Plata, Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, Rol, AnuntPrezenta, Reducere, AnuntGeneral } from './types';
 import { Dashboard } from './components/Dashboard';
 import { SportiviManagement } from './components/SportiviManagement';
 import { UserProfile } from './components/UserProfile';
@@ -32,6 +32,7 @@ import { AdminHeader } from './components/AdminHeader';
 import { DataInspector } from './components/DataInspector';
 import { ProfilSportiv } from './components/Financiar';
 import { ReduceriManagement } from './components/Reduceri';
+import { Notificari } from './components/Notificari';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -181,6 +182,35 @@ function App() {
 
     return () => subscription?.unsubscribe();
   }, [fetchUserProfile]);
+  
+    useEffect(() => {
+        if (!('Notification' in window)) {
+            console.log("Acest browser nu suportă notificări.");
+            return;
+        }
+        if (!supabase || !currentUser) return;
+
+        const channel = supabase.channel('anunturi_generale_channel')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'anunturi_generale' },
+                (payload) => {
+                    const newAnunt = payload.new as AnuntGeneral;
+                    if (newAnunt.sent_by === currentUser.id) {
+                        return;
+                    }
+                    if (Notification.permission === "granted") {
+                        new Notification(newAnunt.title, {
+                            body: newAnunt.body,
+                            icon: '/vite.svg'
+                        });
+                    }
+                })
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [currentUser]);
+
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -299,6 +329,7 @@ function App() {
       case 'activitati': return <ProgramareActivitati grupe={grupe} antrenamente={antrenamente} setAntrenamente={setAntrenamente} onBack={() => setActiveView('dashboard')} />;
       case 'setari-club': return <ClubSettings onBack={() => setActiveView('dashboard')} />;
       case 'data-inspector': return <DataInspector antrenamente={antrenamente} onBack={() => setActiveView('dashboard')} />;
+      case 'notificari': return <Notificari onBack={() => setActiveView('dashboard')} currentUser={currentUser} />;
       default: return <Dashboard onNavigate={setActiveView} />;
     }
   };

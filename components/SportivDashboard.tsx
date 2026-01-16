@@ -3,6 +3,7 @@ import { Sportiv, Participare, Examen, Grad, Antrenament, Grupa, Plata, User, Fa
 import { Card, Button } from './ui';
 import { ShieldCheckIcon, CogIcon, ArchiveBoxIcon, DocumentArrowDownIcon, EditIcon } from './icons';
 import { AnuntPrezentaWidget } from './AnuntPrezentaWidget';
+import { NotificationPermissionWidget } from './NotificationPermissionWidget';
 
 const getGrad = (gradId: string, allGrades: Grad[]) => allGrades.find(g => g.id === gradId);
 const zileSaptamana: Record<number, string> = { 0: 'Duminică', 1: 'Luni', 2: 'Marți', 3: 'Miercuri', 4: 'Joi', 5: 'Vineri', 6: 'Sâmbătă' };
@@ -120,6 +121,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
 
     return (
         <div className="space-y-6" style={{ fontSize: '13px' }}>
+            {isViewingOwnProfile && <NotificationPermissionWidget />}
             {isViewingOwnProfile && <AnuntPrezentaWidget currentUser={currentUser} antrenamente={antrenamente} anunturi={anunturi} setAnunturi={setAnunturi} />}
             {isAdmin && isViewingOwnProfile && <AdminQuickAccessBar onNavigate={onNavigate} />}
 

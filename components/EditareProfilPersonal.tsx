@@ -19,8 +19,6 @@ export const EditareProfilPersonal: React.FC<EditareProfilPersonalProps> = ({ us
         username: user.username || '',
         parola: '',
         confirmParola: '',
-        notificari_examene: user.notificari_examene ?? true,
-        notificari_anunturi: user.notificari_anunturi ?? true
     });
     const [successMessage, setSuccessMessage] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
@@ -49,7 +47,7 @@ export const EditareProfilPersonal: React.FC<EditareProfilPersonalProps> = ({ us
         e.preventDefault();
         
         // Validări Frontend
-        if (!validateEmail(formData.email)) {
+        if (!formData.email || !validateEmail(formData.email)) {
             setErrorMessage("Adresa de email nu are un format valid.");
             return;
         }
@@ -119,8 +117,6 @@ export const EditareProfilPersonal: React.FC<EditareProfilPersonalProps> = ({ us
             prenume: formData.prenume,
             email: formData.email,
             username: formData.username,
-            notificari_examene: formData.notificari_examene,
-            notificari_anunturi: formData.notificari_anunturi
         };
         const { data, error } = await supabase.from('sportivi').update(profileUpdates).eq('user_id', user.user_id).select('*, sportivi_roluri(roluri(id, nume))').single();
 
@@ -158,30 +154,13 @@ export const EditareProfilPersonal: React.FC<EditareProfilPersonalProps> = ({ us
                      <FormSection title="Date Personale & Cont">
                         <Input label="Nume" name="nume" value={formData.nume} onChange={handleChange} required />
                         <Input label="Prenume" name="prenume" value={formData.prenume} onChange={handleChange} required />
-                        <Input label="Email (Login)" name="email" type="email" value={formData.email} onChange={handleChange} required />
+                        <Input label="Email (Login)" name="email" type="email" value={formData.email || ''} onChange={handleChange} required />
                         <Input label="Nume Utilizator" name="username" type="text" value={formData.username} onChange={handleChange} placeholder="ex: ion.popescu"/>
                     </FormSection>
 
                     <FormSection title="Securitate Cont">
                         <Input label="Parolă Nouă (lasă gol pentru a o păstra)" name="parola" type="password" value={formData.parola} onChange={handleChange} />
                         <Input label="Confirmă Parola Nouă" name="confirmParola" type="password" value={formData.confirmParola} onChange={handleChange} />
-                    </FormSection>
-                    
-                    <FormSection title="Preferințe Notificări">
-                        <div className="sm:col-span-2 flex flex-col space-y-3 pt-2">
-                            <Switch 
-                                label="Memento Examene & Evenimente"
-                                name="notificari_examene"
-                                checked={formData.notificari_examene}
-                                onChange={handleChange}
-                            />
-                            <Switch
-                                label="Anunțuri Generale Club"
-                                name="notificari_anunturi"
-                                checked={formData.notificari_anunturi}
-                                onChange={handleChange}
-                            />
-                        </div>
                     </FormSection>
 
                     {errorMessage && <p className="text-red-400 text-sm p-3 bg-red-900/30 rounded-md border border-red-500/30">{errorMessage}</p>}

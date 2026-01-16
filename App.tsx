@@ -32,7 +32,6 @@ import { AdminHeader } from './components/AdminHeader';
 import { DataInspector } from './components/DataInspector';
 import { ProfilSportiv } from './components/Financiar';
 import { ReduceriManagement } from './components/Reduceri';
-import { Notificari } from './components/Notificari';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -349,7 +348,6 @@ function App() {
       case 'activitati': return <ProgramareActivitati grupe={grupe} antrenamente={antrenamente} setAntrenamente={setAntrenamente} onBack={() => setActiveView('dashboard')} />;
       case 'setari-club': return <ClubSettings onBack={() => setActiveView('dashboard')} />;
       case 'data-inspector': return <DataInspector antrenamente={antrenamente} onBack={() => setActiveView('dashboard')} />;
-      case 'notificari': return <Notificari onBack={() => setActiveView('dashboard')} currentUser={currentUser} />;
       default: return <Dashboard onNavigate={setActiveView} />;
     }
   };

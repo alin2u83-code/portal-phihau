@@ -57,7 +57,6 @@ export const adminMenu: MenuItem[] = [
             { view: 'tipuri-abonament', label: 'Config. Abonamente' }, 
             { view: 'configurare-preturi', label: 'Config. Prețuri' },
             { view: 'reduceri', label: 'Config. Reduceri' },
-            { view: 'notificari', label: 'Trimite Anunțuri' },
         ] 
     },
     { 

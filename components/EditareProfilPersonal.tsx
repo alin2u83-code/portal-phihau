@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Sportiv, User } from '../types';
-import { Button, Input, Card } from './ui';
+import { Button, Input, Card, FormSection, Switch } from './ui';
 import { ArrowLeftIcon } from './icons';
 import { supabase } from '../supabaseClient';
 
@@ -18,14 +18,20 @@ export const EditareProfilPersonal: React.FC<EditareProfilPersonalProps> = ({ us
         email: user.email,
         username: user.username || '',
         parola: '',
-        confirmParola: ''
+        confirmParola: '',
+        notificari_examene: user.notificari_examene ?? true,
+        notificari_anunturi: user.notificari_anunturi ?? true
     });
     const [successMessage, setSuccessMessage] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
     const [loading, setLoading] = useState(false);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+        const { name, value, type, checked } = e.target;
+        setFormData(prev => ({ 
+            ...prev, 
+            [name]: type === 'checkbox' ? checked : value 
+        }));
     };
 
     const validateEmail = (email: string) => {
@@ -113,6 +119,8 @@ export const EditareProfilPersonal: React.FC<EditareProfilPersonalProps> = ({ us
             prenume: formData.prenume,
             email: formData.email,
             username: formData.username,
+            notificari_examene: formData.notificari_examene,
+            notificari_anunturi: formData.notificari_anunturi
         };
         const { data, error } = await supabase.from('sportivi').update(profileUpdates).eq('user_id', user.user_id).select('*, sportivi_roluri(roluri(id, nume))').single();
 
@@ -146,19 +154,36 @@ export const EditareProfilPersonal: React.FC<EditareProfilPersonalProps> = ({ us
             <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Portal</Button>
             <Card>
                 <h2 className="text-2xl font-bold text-white mb-4">Profil & Securitate</h2>
-                <form onSubmit={handleSave} className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <form onSubmit={handleSave} className="space-y-6">
+                     <FormSection title="Date Personale & Cont">
                         <Input label="Nume" name="nume" value={formData.nume} onChange={handleChange} required />
                         <Input label="Prenume" name="prenume" value={formData.prenume} onChange={handleChange} required />
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <Input label="Email (Login)" name="email" type="email" value={formData.email} onChange={handleChange} required />
                         <Input label="Nume Utilizator" name="username" type="text" value={formData.username} onChange={handleChange} placeholder="ex: ion.popescu"/>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    </FormSection>
+
+                    <FormSection title="Securitate Cont">
                         <Input label="Parolă Nouă (lasă gol pentru a o păstra)" name="parola" type="password" value={formData.parola} onChange={handleChange} />
                         <Input label="Confirmă Parola Nouă" name="confirmParola" type="password" value={formData.confirmParola} onChange={handleChange} />
-                    </div>
+                    </FormSection>
+                    
+                    <FormSection title="Preferințe Notificări">
+                        <div className="sm:col-span-2 flex flex-col space-y-3 pt-2">
+                            <Switch 
+                                label="Memento Examene & Evenimente"
+                                name="notificari_examene"
+                                checked={formData.notificari_examene}
+                                onChange={handleChange}
+                            />
+                            <Switch
+                                label="Anunțuri Generale Club"
+                                name="notificari_anunturi"
+                                checked={formData.notificari_anunturi}
+                                onChange={handleChange}
+                            />
+                        </div>
+                    </FormSection>
+
                     {errorMessage && <p className="text-red-400 text-sm p-3 bg-red-900/30 rounded-md border border-red-500/30">{errorMessage}</p>}
                     <div className="flex justify-end items-center gap-4 pt-2">
                         {successMessage && <p className="text-green-400 text-sm font-semibold">{successMessage}</p>}

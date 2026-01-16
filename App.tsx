@@ -213,7 +213,8 @@ function App() {
                     if (newAnunt.sent_by === currentUser.id) {
                         return;
                     }
-                    if (Notification.permission === "granted") {
+                    const allowNotifications = currentUser.notificari_anunturi ?? true;
+                    if (Notification.permission === "granted" && allowNotifications) {
                         new Notification(newAnunt.title, {
                             body: newAnunt.body,
                             icon: '/vite.svg'

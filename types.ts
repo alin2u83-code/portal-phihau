@@ -24,6 +24,8 @@ export interface Sportiv {
   participa_vacanta: boolean;
   telefon?: string | null;
   adresa?: string | null;
+  notificari_examene?: boolean;
+  notificari_anunturi?: boolean;
   [key: string]: any; // Permite adăugarea de câmpuri custom
 }
 

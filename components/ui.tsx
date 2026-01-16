@@ -130,3 +130,23 @@ export const Select: React.FC<SelectProps> = ({ label, id, children, ...props })
         </select>
     </div>
 );
+
+export const FormSection: React.FC<{ title: string, children: React.ReactNode }> = ({ title, children }) => (
+    <div>
+        <h3 className="text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider border-b border-slate-700 pb-1.5">{title}</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3 mt-3">
+            {children}
+        </div>
+    </div>
+);
+
+export const Switch: React.FC<{ label: string; name: string; checked: boolean; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }> = ({ label, name, checked, onChange }) => (
+    <label className="flex items-center space-x-2 cursor-pointer group">
+        <div className="relative">
+            <input type="checkbox" name={name} checked={checked} onChange={onChange} className="sr-only" />
+            <div className={`block w-9 h-5 rounded-full transition-colors ${checked ? 'bg-brand-secondary' : 'bg-slate-600'}`}></div>
+            <div className={`dot absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform ${checked ? 'translate-x-4' : ''}`}></div>
+        </div>
+        <span className="text-xs font-bold text-slate-400 uppercase group-hover:text-white transition-colors">{label}</span>
+    </label>
+);

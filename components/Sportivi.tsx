@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Sportiv, Grupa, Familie, TipAbonament } from '../types';
-import { Button, Modal, Input, Select } from './ui';
+import { Button, Modal, Input, Select, FormSection, Switch } from './ui';
 import { PlusIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
@@ -55,26 +55,6 @@ const initialFormState: Partial<Sportiv> = {
 };
 
 // --- Componente noi pentru UI Formular ---
-
-const FormSection: React.FC<{ title: string, children: React.ReactNode }> = ({ title, children }) => (
-    <div>
-        <h3 className="text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider border-b border-slate-700 pb-1.5">{title}</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3 mt-3">
-            {children}
-        </div>
-    </div>
-);
-
-const Switch: React.FC<{ label: string; name: string; checked: boolean; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }> = ({ label, name, checked, onChange }) => (
-    <label className="flex items-center space-x-2 cursor-pointer group">
-        <div className="relative">
-            <input type="checkbox" name={name} checked={checked} onChange={onChange} className="sr-only" />
-            <div className={`block w-9 h-5 rounded-full transition-colors ${checked ? 'bg-brand-secondary' : 'bg-slate-600'}`}></div>
-            <div className={`dot absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform ${checked ? 'translate-x-4' : ''}`}></div>
-        </div>
-        <span className="text-xs font-bold text-slate-400 uppercase group-hover:text-white transition-colors">{label}</span>
-    </label>
-);
 
 const SportivFormFields: React.FC<{
     formState: Partial<Sportiv>;
@@ -181,33 +161,33 @@ export const SportivFormModal: React.FC<{
     const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement> | { target: { name: string, value: any }}) => {
         const { name, value } = e.target;
         
-        let type = 'text';
-        if ('type' in e.target) {
-            type = e.target.type;
+        // Handle checkbox type (e.g., 'participa_vacanta')
+        // FIX: The type of `e.target` is a union, and not all types in the union have `type` or `checked` properties.
+        // Adding a check for the existence of `type` before accessing it narrows the type and allows safe access.
+        if ('type' in e.target && e.target.type === 'checkbox' && 'checked' in e.target) {
+            setEditData(prev => ({ ...prev, [name]: e.target.checked }));
+            return;
         }
         
-        const isCheckbox = type === 'checkbox';
-        const checked = isCheckbox ? (e.target as HTMLInputElement).checked : false;
-
+        // Handle other input types
         setEditData(prev => {
-            let finalValue: any;
+            let finalValue: any = value;
 
-            if (isCheckbox) {
-                finalValue = checked; // Pentru 'participa_vacanta'
-            } else if (name === 'inaltime') {
-                finalValue = value === '' ? null : parseInt(value, 10) || 0; // Convertește la număr întreg
+            // Specific handling for numeric or nullable fields
+            if (name === 'inaltime') {
+                const num = parseInt(value, 10);
+                finalValue = isNaN(num) ? null : num;
             } else if (['familie_id', 'grupa_id', 'tip_abonament_id'].includes(name)) {
-                finalValue = value === '' ? null : value; // Setează null pentru selecții goale
-            } else {
-                finalValue = value;
+                finalValue = value === '' ? null : value;
             }
 
-            const updatedState: Partial<Sportiv> = { ...prev, [name as keyof Sportiv]: finalValue };
+            const updatedState: Partial<Sportiv> = { ...prev, [name]: finalValue };
 
+            // If a family is selected, nullify the individual subscription
             if (name === 'familie_id' && finalValue) {
                 updatedState.tip_abonament_id = null;
             }
-            
+
             return updatedState;
         });
     }, []);

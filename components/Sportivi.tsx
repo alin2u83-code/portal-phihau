@@ -72,8 +72,9 @@ const SportivFormFields: React.FC<{
             <FormSection title="Date Personale">
                 <Input label="Nume" name="nume" value={formState.nume || ''} onChange={handleChange} required disabled={loading} className="!py-1.5" />
                 <Input label="Prenume" name="prenume" value={formState.prenume || ''} onChange={handleChange} required disabled={loading} className="!py-1.5" />
-                <Input label="CNP (Opțional)" name="cnp" value={formState.cnp || ''} onChange={handleChange} maxLength={13} disabled={loading} className="!py-1.5" />
                 <BirthDateInput label="Data Nașterii" value={formState.data_nasterii} onChange={(v) => handleChange({ target: { name: 'data_nasterii', value: v } })} required />
+                <Input label="Email (Opțional)" name="email" type="email" value={formState.email || ''} onChange={handleChange} disabled={loading} className="!py-1.5"/>
+                <Input label="CNP (Opțional)" name="cnp" value={formState.cnp || ''} onChange={handleChange} maxLength={13} disabled={loading} className="!py-1.5" />
             </FormSection>
 
             <FormSection title="Club & Antrenament">
@@ -163,7 +164,7 @@ export const SportivFormModal: React.FC<{
         
         // Handle checkbox type (e.g., 'participa_vacanta')
         // FIX: The original type guard was unsafe for a union type. This now checks if the target
-        // is a checkbox input element before accessing `checked`.
+        // is an HTMLInputElement before accessing the `checked` property.
         if (e.target instanceof HTMLInputElement && e.target.type === 'checkbox') {
             setEditData(prev => ({ ...prev, [name]: e.target.checked }));
             return;
@@ -194,6 +195,12 @@ export const SportivFormModal: React.FC<{
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (editData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editData.email)) {
+            showError("Email Invalid", "Adresa de email nu are un format valid.");
+            return;
+        }
+
         setLoading(true);
         try {
             // Whitelist de coloane: Extrage doar datele "curate" pentru a evita erorile de schema
@@ -202,7 +209,7 @@ export const SportivFormModal: React.FC<{
             const result = await onSave(cleanData);
             
             if (result.success) {
-                showSuccess('Succes', sportivToEdit ? 'Actualizat cu succes!' : 'Sportiv adăugat cu succes!');
+                showSuccess('Succes', sportivToEdit ? 'Sportiv actualizat cu succes!' : 'Sportiv adăugat cu succes!');
                 onClose();
             } else {
                 // RLS Debug: Afișează eroarea exactă în consolă

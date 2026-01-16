@@ -206,8 +206,8 @@ function App() {
         }
         if (!supabase || !currentUser) return;
 
-        const channel = supabase.channel('anunturi_generale_channel')
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'anunturi_generale' },
+        const channel = supabase.channel('notificari_channel')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notificari' },
                 (payload) => {
                     const newAnunt = payload.new as AnuntGeneral;
                     if (newAnunt.sent_by === currentUser.id) {

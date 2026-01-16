@@ -162,9 +162,9 @@ export const SportivFormModal: React.FC<{
         const { name, value } = e.target;
         
         // Handle checkbox type (e.g., 'participa_vacanta')
-        // FIX: The type of `e.target` is a union, and not all types in the union have `type` or `checked` properties.
-        // Adding a check for the existence of `type` before accessing it narrows the type and allows safe access.
-        if ('type' in e.target && e.target.type === 'checkbox' && 'checked' in e.target) {
+        // FIX: The type of `e.target` is a union. Check for `checked` property to narrow the type
+        // and safely access the boolean value for checkboxes.
+        if ('checked' in e.target && e.target.type === 'checkbox') {
             setEditData(prev => ({ ...prev, [name]: e.target.checked }));
             return;
         }

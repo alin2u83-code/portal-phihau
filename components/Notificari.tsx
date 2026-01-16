@@ -21,7 +21,7 @@ export const Notificari: React.FC<NotificariProps> = ({ onBack, currentUser }) =
         const fetchHistory = async () => {
             if (!supabase) return;
             const { data, error } = await supabase
-                .from('anunturi_generale')
+                .from('notificari')
                 .select('*')
                 .order('created_at', { ascending: false })
                 .limit(10);
@@ -40,7 +40,7 @@ export const Notificari: React.FC<NotificariProps> = ({ onBack, currentUser }) =
         if (!supabase) return;
 
         setLoading(true);
-        const { data, error } = await supabase.from('anunturi_generale').insert({
+        const { data, error } = await supabase.from('notificari').insert({
             title,
             body,
             sent_by: currentUser.id

@@ -56,6 +56,7 @@ function App() {
   const [allRoles, setAllRoles] = useState<Rol[]>([]);
   const [anunturi, setAnunturi] = useState<AnuntPrezenta[]>([]);
   const [reduceri, setReduceri] = useState<Reducere[]>([]);
+  const [rawGradePrices, setRawGradePrices] = useState<any[]>([]); // For debugging
   
   const [isSidebarExpanded, setIsSidebarExpanded] = useLocalStorage('phi-hau-sidebar-expanded', true);
   const [activeView, setActiveView] = useLocalStorage<View>('phi-hau-active-view', 'sportivi');
@@ -98,6 +99,7 @@ function App() {
             supabase.from('anunturi_prezenta').select('*')
         ]);
         
+        setRawGradePrices(gradePricesData || []); // Store raw data for debugging
         const gradesData = gData || [];
 
         // Transform grade prices into the generic PretConfig format
@@ -351,7 +353,7 @@ function App() {
         />;
       case 'activitati': return <ProgramareActivitati grupe={grupe} antrenamente={antrenamente} setAntrenamente={setAntrenamente} onBack={() => setActiveView('dashboard')} />;
       case 'setari-club': return <ClubSettings onBack={() => setActiveView('dashboard')} />;
-      case 'data-inspector': return <DataInspector antrenamente={antrenamente} onBack={() => setActiveView('dashboard')} />;
+      case 'data-inspector': return <DataInspector antrenamente={antrenamente} preturiConfig={preturiConfig} rawGradePrices={rawGradePrices} grade={grade} onBack={() => setActiveView('dashboard')} />;
       case 'notificari': return <Notificari onBack={() => setActiveView('dashboard')} currentUser={currentUser} />;
       default: return <Dashboard onNavigate={setActiveView} />;
     }

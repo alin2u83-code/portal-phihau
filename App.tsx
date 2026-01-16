@@ -206,6 +206,8 @@ function App() {
         }
         if (!supabase || !currentUser) return;
 
+        /*
+        // The 'notificari' table is not found in the schema, this feature is temporarily disabled to prevent a crash.
         const channel = supabase.channel('notificari_channel')
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notificari' },
                 (payload) => {
@@ -226,6 +228,7 @@ function App() {
         return () => {
             supabase.removeChannel(channel);
         };
+        */
     }, [currentUser]);
 
 

@@ -18,45 +18,13 @@ export const Notificari: React.FC<NotificariProps> = ({ onBack, currentUser }) =
     const { showError, showSuccess } = useError();
 
     useEffect(() => {
-        const fetchHistory = async () => {
-            if (!supabase) return;
-            const { data, error } = await supabase
-                .from('notificari')
-                .select('*')
-                .order('created_at', { ascending: false })
-                .limit(10);
-            if (error) showError("Eroare istoric", error);
-            else setHistory(data as AnuntGeneral[]);
-        };
-        fetchHistory();
+        // Temporarily disabled as the 'notificari' table is missing from the database schema.
+        setHistory([]);
     }, [showError]);
 
     const handleSend = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!title.trim() || !body.trim()) {
-            showError("Date Incomplete", "Titlul și mesajul sunt obligatorii.");
-            return;
-        }
-        if (!supabase) return;
-
-        setLoading(true);
-        const { data, error } = await supabase.from('notificari').insert({
-            title,
-            body,
-            sent_by: currentUser.id
-        }).select().single();
-        setLoading(false);
-
-        if (error) {
-            showError("Eroare la trimitere", error);
-        } else {
-            showSuccess("Anunț Trimis", "Anunțul a fost trimis tuturor utilizatorilor activi.");
-            setTitle('');
-            setBody('');
-            if (data) {
-                setHistory(prev => [data as AnuntGeneral, ...prev]);
-            }
-        }
+        showError("Funcționalitate Indisponibilă", "Tabelul 'notificari' necesar pentru această funcție lipsește din baza de date. Contactați administratorul.");
     };
 
     return (
@@ -87,7 +55,7 @@ export const Notificari: React.FC<NotificariProps> = ({ onBack, currentUser }) =
                             <p className="text-xs text-slate-500 mt-1">Trimis la: {new Date(anunt.created_at).toLocaleString('ro-RO')}</p>
                         </div>
                     )) : (
-                        <p className="text-slate-400 italic">Niciun anunț trimis recent.</p>
+                        <p className="text-slate-400 italic">Niciun anunț trimis recent. (Funcționalitate temporar dezactivată)</p>
                     )}
                 </div>
             </Card>

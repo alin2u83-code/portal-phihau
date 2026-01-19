@@ -10,9 +10,10 @@ interface TaxaAnualaConfig {
     id: string;
     nume: string;
     suma: number;
-    valabilitate_start: string | null;
-    valabilitate_end: string | null;
-    descriere_perioada: string | null;
+    data_inceput: string;
+    data_sfarsit: string;
+    is_activ: boolean;
+    created_at: string;
 }
 
 interface TaxeAnualeProps {
@@ -25,13 +26,19 @@ interface TaxeAnualeProps {
 
 const TaxaCard: React.FC<{
     taxa: TaxaAnualaConfig;
-    onUpdate: (id: string, updates: Partial<TaxaAnualaConfig>) => void;
+    onUpdate: (id: string, updates: Partial<Omit<TaxaAnualaConfig, 'id' | 'created_at'>>) => void;
     onGenerate: (taxa: TaxaAnualaConfig) => void;
     isAdmin: boolean;
 }> = ({ taxa, onUpdate, onGenerate, isAdmin }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [editState, setEditState] = useState(taxa);
     const { showError } = useError();
+
+    const descrierePerioada = useMemo(() => {
+        const anInceput = new Date(taxa.data_inceput).getFullYear();
+        const anSfarsit = new Date(taxa.data_sfarsit).getFullYear();
+        return anInceput === anSfarsit ? `Anul ${anInceput}` : `Sezonul ${anInceput}-${anSfarsit}`;
+    }, [taxa.data_inceput, taxa.data_sfarsit]);
 
     const handleSave = () => {
         if (editState.suma <= 0) {
@@ -52,11 +59,9 @@ const TaxaCard: React.FC<{
             <div className="flex justify-between items-start">
                 <div>
                     <h3 className="text-xl font-bold text-white">{taxa.nume}</h3>
-                    {taxa.descriere_perioada && (
-                        <span className="text-xs font-semibold px-2 py-1 rounded-full bg-slate-600 text-slate-200 mt-1 inline-block">
-                            {taxa.descriere_perioada}
-                        </span>
-                    )}
+                    <span className="text-xs font-semibold px-2 py-1 rounded-full bg-slate-600 text-slate-200 mt-1 inline-block">
+                        {descrierePerioada}
+                    </span>
                 </div>
                 {!isEditing ? (
                     <Button variant="secondary" size="sm" onClick={() => setIsEditing(true)}>
@@ -82,17 +87,17 @@ const TaxaCard: React.FC<{
                     <div>
                         <label className="block text-xs font-bold text-slate-400 mb-1">Valabil de la</label>
                         {isEditing ? (
-                            <Input type="date" value={editState.valabilitate_start || ''} onChange={e => setEditState({...editState, valabilitate_start: e.target.value})} />
+                            <Input type="date" value={editState.data_inceput || ''} onChange={e => setEditState({...editState, data_inceput: e.target.value})} />
                         ) : (
-                            <p className="font-semibold">{taxa.valabilitate_start ? new Date(taxa.valabilitate_start + 'T00:00:00').toLocaleDateString('ro-RO') : 'N/A'}</p>
+                            <p className="font-semibold">{taxa.data_inceput ? new Date(taxa.data_inceput + 'T00:00:00').toLocaleDateString('ro-RO') : 'N/A'}</p>
                         )}
                     </div>
                      <div>
                         <label className="block text-xs font-bold text-slate-400 mb-1">Până la</label>
                         {isEditing ? (
-                            <Input type="date" value={editState.valabilitate_end || ''} onChange={e => setEditState({...editState, valabilitate_end: e.target.value})} />
+                            <Input type="date" value={editState.data_sfarsit || ''} onChange={e => setEditState({...editState, data_sfarsit: e.target.value})} />
                         ) : (
-                            <p className="font-semibold">{taxa.valabilitate_end ? new Date(taxa.valabilitate_end + 'T00:00:00').toLocaleDateString('ro-RO') : 'N/A'}</p>
+                            <p className="font-semibold">{taxa.data_sfarsit ? new Date(taxa.data_sfarsit + 'T00:00:00').toLocaleDateString('ro-RO') : 'N/A'}</p>
                         )}
                     </div>
                 </div>
@@ -118,7 +123,7 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
     const fetchTaxe = useCallback(async () => {
         if (!supabase) return;
         setLoading(true);
-        const { data, error } = await supabase.from('taxe_anuale_config').select('*');
+        const { data, error } = await supabase.from('taxe_anuale_config').select('*').eq('is_activ', true);
         if (error) {
             showError("Eroare la încărcare", error);
         } else {
@@ -131,7 +136,7 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
         fetchTaxe();
     }, [fetchTaxe]);
 
-    const handleUpdate = async (id: string, updates: Partial<TaxaAnualaConfig>) => {
+    const handleUpdate = async (id: string, updates: Partial<Omit<TaxaAnualaConfig, 'id' | 'created_at'>>) => {
         if(!supabase) return;
         const { data, error } = await supabase.from('taxe_anuale_config').update(updates).eq('id', id).select().single();
         if(error) {
@@ -147,7 +152,11 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
 
         setIsGenerating(true);
         const sportiviActivi = sportivi.filter(s => s.status === 'Activ');
-        const descriereFactura = `${taxaToGenerate.nume} ${taxaToGenerate.descriere_perioada}`;
+        
+        const anInceput = new Date(taxaToGenerate.data_inceput).getFullYear();
+        const anSfarsit = new Date(taxaToGenerate.data_sfarsit).getFullYear();
+        const perioada = anInceput === anSfarsit ? `Anul ${anInceput}` : `Sezonul ${anInceput}-${anSfarsit}`;
+        const descriereFactura = `${taxaToGenerate.nume} ${perioada}`;
 
         const existingPlatiDesc = new Set(
             plati.filter(p => p.descriere === descriereFactura).map(p => p.sportiv_id)
@@ -212,8 +221,8 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
                     ))
                 ) : (
                     <Card className="md:col-span-2 text-center">
-                        <p className="text-slate-400">Nicio taxă anuală configurată. Vă rugăm adăugați-le în baza de date (tabel: `taxe_anuale_config`).</p>
-                        <p className="text-xs text-slate-500 mt-2">Exemplu: (nume: 'Taxa FRQKD', suma: 170, descriere_perioada: 'Sezon Sportiv 2024-2025')</p>
+                        <p className="text-slate-400">Nicio taxă anuală activă configurată. Vă rugăm adăugați-le în baza de date (tabel: `taxe_anuale_config`).</p>
+                        <p className="text-xs text-slate-500 mt-2">Exemplu: (nume: 'Taxa FRQKD', suma: 170, data_inceput: '2024-09-01', data_sfarsit: '2025-08-31')</p>
                     </Card>
                 )}
             </div>

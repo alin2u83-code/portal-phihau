@@ -283,16 +283,15 @@ CREATE POLICY "Authenticated users can see roles" ON public.roluri FOR SELECT US
 -- Tabel: taxe_anuale_config
 -- -----------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.taxe_anuale_config (
-    id uuid NOT NULL DEFAULT gen_random_uuid(),
-    created_at timestamp with time zone NOT NULL DEFAULT now(),
-    nume text NOT NULL,
-    suma numeric NOT NULL,
-    valabilitate_start date,
-    valabilitate_end date,
-    descriere_perioada text
+  id uuid not null default gen_random_uuid (),
+  nume text not null,
+  suma numeric(10, 2) not null,
+  data_inceput date not null,
+  data_sfarsit date not null,
+  is_activ boolean null default true,
+  created_at timestamp with time zone null default now(),
+  constraint taxe_anuale_config_pkey primary key (id)
 );
-
-ALTER TABLE public.taxe_anuale_config ADD CONSTRAINT taxe_anuale_config_pkey PRIMARY KEY (id);
 ALTER TABLE public.taxe_anuale_config ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Admins can manage annual fees" ON public.taxe_anuale_config;

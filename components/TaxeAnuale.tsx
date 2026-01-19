@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../supabaseClient';
 import { User, Sportiv, Plata } from '../types';
 import { Button, Card, Input } from './ui';
-import { ArrowLeftIcon, CogIcon } from './icons';
+import { ArrowLeftIcon, CogIcon, BanknotesIcon } from './icons';
 import { useError } from './ErrorProvider';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
@@ -231,9 +231,13 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
                 isOpen={!!taxaToGenerate}
                 onClose={() => setTaxaToGenerate(null)}
                 onConfirm={confirmGenerateInvoices}
-                tableName="" // Nu ștergem, doar confirmăm
+                title="Confirmare Generare Facturi"
+                tableName=""
                 isLoading={isGenerating}
                 customMessage={`Sigur dorești să generezi facturi pentru "${taxaToGenerate?.nume}" pentru TOȚI sportivii activi care nu au deja această factură?`}
+                confirmButtonText="Da, generează"
+                confirmButtonVariant="success"
+                icon={BanknotesIcon}
             />
         </div>
     );

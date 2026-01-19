@@ -87,7 +87,7 @@ const SportivFormFields: React.FC<{
                 </div>
                  {!formState.familie_id && (
                     <Select
-                        label="Abonament Individual"
+                        label="Abonament"
                         name="tip_abonament_id"
                         value={formState.tip_abonament_id || ''}
                         onChange={handleChange}
@@ -95,8 +95,10 @@ const SportivFormFields: React.FC<{
                         className="!py-1.5"
                     >
                         <option value="">Niciunul (automat)</option>
-                        {tipuriAbonament.filter(t => t.numar_membri === 1).map(t => (
-                            <option key={t.id} value={t.id}>{`${t.denumire} (${t.pret} RON)`}</option>
+                        {tipuriAbonament.map(t => (
+                            <option key={t.id} value={t.id}>
+                                {`${t.denumire} (${t.numar_membri} ${t.numar_membri === 1 ? 'membru' : 'membri'}) - ${t.pret} RON`}
+                            </option>
                         ))}
                     </Select>
                 )}

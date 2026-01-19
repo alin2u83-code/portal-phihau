@@ -59,6 +59,7 @@ function App() {
   const [rawGradePrices, setRawGradePrices] = useState<any[]>([]); // For debugging
   
   const [isSidebarExpanded, setIsSidebarExpanded] = useLocalStorage('phi-hau-sidebar-expanded', true);
+  // Vizualizarea implicită este setată la 'sportivi' pentru a naviga direct la această secțiune la încărcare.
   const [activeView, setActiveView] = useLocalStorage<View>('phi-hau-active-view', 'sportivi');
   const [selectedPlatiForIncasare, setSelectedPlatiForIncasare] = useState<Plata[]>([]);
   const [viewedSportiv, setViewedSportiv] = useState<Sportiv | null>(null);

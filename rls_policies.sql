@@ -57,13 +57,10 @@ CREATE POLICY "Sportivi can update their own profile" ON public.sportivi
 -- Tabel: familii
 -- -----------------------------------------------------------------
 ALTER TABLE public.familii ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Admins can manage all families" ON public.familii;
-CREATE POLICY "Admins can manage all families" ON public.familii
-    FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
-
-DROP POLICY IF EXISTS "Users can see their own family" ON public.familii;
-CREATE POLICY "Users can see their own family" ON public.familii
-    FOR SELECT USING (id IN (SELECT familie_id FROM public.sportivi WHERE user_id = auth.uid()));
+DROP POLICY IF EXISTS "Admins can manage families" ON public.familii;
+DROP POLICY IF EXISTS "Authenticated users can see families" ON public.familii;
+CREATE POLICY "Authenticated users can see families" ON public.familii FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "Admins can manage families" ON public.familii FOR INSERT, UPDATE, DELETE USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
 
 -- -----------------------------------------------------------------
 -- Tabel: plati (Datorii)
@@ -180,20 +177,9 @@ CREATE POLICY "Authenticated users can read notifications" ON public.notificari
 -- -----------------------------------------------------------------
 ALTER TABLE public.examene ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage exams" ON public.examene;
-CREATE POLICY "Admins can manage exams" ON public.examene 
-    FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
-
-DROP POLICY IF EXISTS "Users can see relevant exams" ON public.examene;
-CREATE POLICY "Users can see relevant exams" ON public.examene
-    FOR SELECT USING (
-        (data >= now()::date) OR
-        (id IN (
-            SELECT p.examen_id 
-            FROM public.participari p
-            JOIN public.sportivi s ON p.sportiv_id = s.id
-            WHERE s.user_id = auth.uid()
-        ))
-    );
+DROP POLICY IF EXISTS "Authenticated users can see exams" ON public.examene;
+CREATE POLICY "Authenticated users can see exams" ON public.examene FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "Admins can manage exams" ON public.examene FOR INSERT, UPDATE, DELETE USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
 
 -- -----------------------------------------------------------------
 -- Tabel: grade

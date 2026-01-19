@@ -1,11 +1,12 @@
 import React from 'react';
 import { View } from '../types';
-import { Card } from './ui';
+import { Card, Button } from './ui';
 // FIX: Removed unused icon imports `AcademicCapIcon` and `CogIcon`. `AcademicCapIcon` was causing an error as it's not exported.
 import { UsersIcon, BanknotesIcon, TrophyIcon, ClipboardDocumentListIcon } from './icons';
 
 interface DashboardProps {
   onNavigate: (view: View) => void;
+  showPriceWarning: boolean;
 }
 
 interface NavItem {
@@ -69,9 +70,22 @@ const NavCard: React.FC<{ item: NavItem, onClick: () => void }> = ({ item, onCli
 );
 
 
-export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, showPriceWarning }) => {
   return (
     <div className="max-w-7xl mx-auto">
+      {showPriceWarning && (
+        <Card className="mb-8 bg-amber-900/50 border-l-4 border-amber-400">
+            <div className="flex items-center justify-between flex-wrap gap-4">
+                <div>
+                    <h3 className="font-bold text-amber-300">Atenție: Configurare Incompletă</h3>
+                    <p className="text-sm text-amber-200 mt-1">Taxele de examen pentru grade nu sunt configurate. Funcționalitatea de înscriere la examen nu va genera facturi corect.</p>
+                </div>
+                <Button variant="info" onClick={() => onNavigate('configurare-preturi')}>
+                    Configurează Prețuri Acum
+                </Button>
+            </div>
+        </Card>
+      )}
       <h1 className="text-4xl md:text-5xl font-extrabold mb-4 text-white text-center" style={{ textShadow: '2px 2px 8px rgba(0,0,0,0.6)' }}>Clubul Phi Hau Iași</h1>
       <p className="text-center text-slate-300 mb-12 max-w-2xl mx-auto">
         Bun venit în panoul de administrare. Selectați un modul de mai jos pentru a începe gestionarea activității clubului.

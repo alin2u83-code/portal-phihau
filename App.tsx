@@ -59,10 +59,10 @@ function App() {
   const [rawGradePrices, setRawGradePrices] = useState<any[]>([]); // For debugging
   
   const [isSidebarExpanded, setIsSidebarExpanded] = useLocalStorage('phi-hau-sidebar-expanded', true);
-  // Vizualizarea implicită este setată la 'sportivi' pentru a naviga direct la această secțiune la încărcare.
   const [activeView, setActiveView] = useLocalStorage<View>('phi-hau-active-view', 'sportivi');
   const [selectedPlatiForIncasare, setSelectedPlatiForIncasare] = useState<Plata[]>([]);
   const [viewedSportiv, setViewedSportiv] = useState<Sportiv | null>(null);
+  const [showPriceWarning, setShowPriceWarning] = useState(false);
 
 
   const fetchData = useCallback(async (user: User) => {
@@ -100,8 +100,11 @@ function App() {
             supabase.from('anunturi_prezenta').select('*')
         ]);
         
-        setRawGradePrices(gradePricesData || []); // Store raw data for debugging
+        const rawPrices = gradePricesData || [];
+        setRawGradePrices(rawPrices); 
         const gradesData = gData || [];
+        
+        setShowPriceWarning(rawPrices.length === 0 && gradesData.length > 0);
 
         // Transform grade prices into the generic PretConfig format
         const transformedGradePrices = (gradePricesData || [])
@@ -297,7 +300,7 @@ function App() {
     }
 
     switch (activeView) {
-      case 'dashboard': return <Dashboard onNavigate={setActiveView} />;
+      case 'dashboard': return <Dashboard onNavigate={setActiveView} showPriceWarning={showPriceWarning} />;
       case 'sportivi': 
         return viewedSportiv ? (
             <UserProfile 
@@ -356,7 +359,7 @@ function App() {
       case 'setari-club': return <ClubSettings onBack={() => setActiveView('dashboard')} />;
       case 'data-inspector': return <DataInspector antrenamente={antrenamente} preturiConfig={preturiConfig} rawGradePrices={rawGradePrices} grade={grade} onBack={() => setActiveView('dashboard')} />;
       case 'notificari': return <Notificari onBack={() => setActiveView('dashboard')} currentUser={currentUser} />;
-      default: return <Dashboard onNavigate={setActiveView} />;
+      default: return <Dashboard onNavigate={setActiveView} showPriceWarning={showPriceWarning} />;
     }
   };
 

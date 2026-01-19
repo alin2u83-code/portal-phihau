@@ -7,7 +7,7 @@ import { Sportiv, Grad, PretConfig, Participare, Examen, Plata, View, Familie } 
 import { BirthDateInput } from './BirthDateInput';
 import { getPretProdus } from '../utils/pricing';
 
-const TABLES_TO_MANAGE = ['roluri', 'grade', 'familii', 'grupe', 'tipuri_abonament', 'examene', 'evenimente', 'preturi_config', 'sportivi', 'program_antrenamente', 'sportivi_roluri', 'participari', 'rezultate', 'plati', 'prezenta_antrenament', 'anunturi_prezenta', 'tranzactii'];
+const TABLES_TO_MANAGE = ['roluri', 'grade', 'familii', 'grupe', 'tipuri_abonament', 'examene', 'evenimente', 'preturi_config', 'grade_preturi_config', 'reduceri', 'sportivi', 'program_antrenamente', 'sportivi_roluri', 'participari', 'rezultate', 'plati', 'prezenta_antrenament', 'anunturi_prezenta', 'tranzactii', 'notificari'];
 
 // --- Sub-componente ---
 const QuickEditModal: React.FC<{
@@ -135,9 +135,113 @@ export const DataMaintenancePage: React.FC<DataMaintenanceProps> = ({ onBack, on
     };
 
     // --- Backup & Restore Logic ---
-    const handleGenerateBackup = async () => { /* ... (cod existent, neschimbat) ... */ };
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => { /* ... (cod existent, neschimbat) ... */ };
-    const processRestore = async (backupData: { [key: string]: any[] }) => { /* ... (cod existent, neschimbat) ... */ };
+    const handleGenerateBackup = async () => {
+        if (!supabase) {
+            showError("Eroare Configurare", "Clientul Supabase nu este inițializat.");
+            return;
+        }
+        setLoading(p => ({ ...p, backingUp: true }));
+        setProgressMessage('Se colectează datele...');
+
+        try {
+            const backupData: { [key: string]: any[] } = {};
+            
+            for (const table of TABLES_TO_MANAGE) {
+                setProgressMessage(`Se extrage tabelul: ${table}...`);
+                const { data, error } = await supabase.from(table).select('*');
+                if (error) {
+                    throw new Error(`Eroare la extragerea datelor din '${table}': ${error.message}`);
+                }
+                backupData[table] = data || [];
+            }
+            
+            setProgressMessage('Se generează fișierul...');
+            const jsonString = JSON.stringify(backupData, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            a.href = url;
+            a.download = `backup-phihau-complet-${timestamp}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showSuccess("Backup Generat", "Fișierul de backup complet a fost descărcat cu succes.");
+
+        } catch (err: any) {
+            showError("Eroare la Generare Backup", err.message);
+        } finally {
+            setLoading(p => ({ ...p, backingUp: false }));
+            setProgressMessage('');
+        }
+    };
+    
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        if (!window.confirm(`ATENȚIE!\n\nSunteți pe cale să restaurați datele din fișierul "${file.name}".\n\nAceastă acțiune este IREVERSIBILĂ și va ȘTERGE TOATE datele curente din tabelele manageriate, înlocuindu-le cu cele din fișierul de backup.\n\nSunteți absolut sigur că doriți să continuați?`)) {
+            event.target.value = ''; // Reset file input
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const text = e.target?.result;
+                if (typeof text !== 'string') throw new Error("Fișierul nu a putut fi citit.");
+                const backupData = JSON.parse(text);
+                await processRestore(backupData);
+            } catch (err: any) {
+                showError("Eroare la Restaurare", `Fișierul de backup este invalid sau corupt. ${err.message}`);
+            } finally {
+                event.target.value = '';
+            }
+        };
+        reader.readAsText(file);
+    };
+    
+    const processRestore = async (backupData: { [key: string]: any[] }) => {
+        if (!supabase) return;
+        setLoading(p => ({ ...p, restoring: true }));
+        setProgressMessage('Se pregătește restaurarea...');
+
+        const deletionOrder = ['tranzactii', 'anunturi_prezenta', 'prezenta_antrenament', 'rezultate', 'participari', 'plati', 'sportivi_roluri', 'program_antrenamente', 'sportivi', 'grade_preturi_config', 'preturi_config', 'examene', 'evenimente', 'grupe', 'familii', 'tipuri_abonament', 'reduceri', 'grade', 'roluri', 'notificari'];
+        const insertionOrder = [...deletionOrder].reverse();
+
+        try {
+            const backupTables = Object.keys(backupData);
+            
+            for (const table of deletionOrder) {
+                if (backupTables.includes(table)) {
+                    setProgressMessage(`Se șterg datele vechi din: ${table}...`);
+                    const { error } = await supabase.from(table).delete().neq('id', '00000000-0000-0000-0000-000000000000'); // Workaround to delete all
+                    if (error) throw new Error(`Eroare la ștergerea datelor din '${table}': ${error.message}`);
+                }
+            }
+
+            for (const table of insertionOrder) {
+                const dataToInsert = backupData[table];
+                if (dataToInsert && dataToInsert.length > 0) {
+                    setProgressMessage(`Se inserează date noi în: ${table}...`);
+                    const { error } = await supabase.from(table).insert(dataToInsert);
+                    if (error) throw new Error(`Eroare la inserarea datelor în '${table}': ${error.message}`);
+                }
+            }
+
+            showSuccess("Restaurare Completă", "Datele au fost restaurate. Aplicația se va reîncărca.");
+            setTimeout(() => onDataRestored(), 2000);
+
+        } catch (err: any) {
+            showError("Restaurare Eșuată", err.message);
+        } finally {
+            setLoading(p => ({ ...p, restoring: false }));
+            setProgressMessage('');
+        }
+    };
 
     return (
         <div className="space-y-8">
@@ -199,8 +303,7 @@ export const DataMaintenancePage: React.FC<DataMaintenanceProps> = ({ onBack, on
                  </div>
             </Card>
             
-            {/* Secțiunea de Backup & Restore existentă */}
-             <Card className="border-l-4 border-brand-primary">
+            <Card className="border-l-4 border-brand-primary">
                 <h2 className="text-2xl font-bold text-white mb-4">Backup & Restaurare Date</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div>
@@ -224,5 +327,4 @@ export const DataMaintenancePage: React.FC<DataMaintenanceProps> = ({ onBack, on
     );
 };
 
-// Exportăm componenta cu noul nume pentru a fi importată corect în App.tsx
 export { DataMaintenancePage as BackupManager };

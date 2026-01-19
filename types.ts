@@ -55,6 +55,7 @@ export interface Participare {
 }
 
 export interface ProgramItem {
+    id: string;
     ziua: 'Luni' | 'Marți' | 'Miercuri' | 'Joi' | 'Vineri' | 'Sâmbătă' | 'Duminică';
     ora_start: string;
     ora_sfarsit: string;

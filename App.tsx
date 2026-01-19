@@ -59,7 +59,7 @@ function App() {
   const [rawGradePrices, setRawGradePrices] = useState<any[]>([]); // For debugging
   
   const [isSidebarExpanded, setIsSidebarExpanded] = useLocalStorage('phi-hau-sidebar-expanded', true);
-  const [activeView, setActiveView] = useLocalStorage<View>('phi-hau-active-view', 'sportivi');
+  const [activeView, setActiveView] = useLocalStorage<View>('phi-hau-active-view', 'dashboard');
   const [selectedPlatiForIncasare, setSelectedPlatiForIncasare] = useState<Plata[]>([]);
   const [viewedSportiv, setViewedSportiv] = useState<Sportiv | null>(null);
   const [showPriceWarning, setShowPriceWarning] = useState(false);
@@ -371,13 +371,12 @@ function App() {
   
   return (
     <div className="min-h-screen flex bg-slate-900">
-      {/* FIX: Corrected typo from isMyportalView to isMyPortalView */}
       <Sidebar currentUser={currentUser!} onNavigate={setActiveView} onLogout={handleLogout} activeView={activeView} isExpanded={isSidebarExpanded} setIsExpanded={setIsSidebarExpanded} isPortalView={!isAdmin || isMyPortalView} plati={plati} />
       <div className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'}`}>
          {isAdmin && !isMyPortalView && (
             <AdminHeader currentUser={currentUser!} onNavigate={setActiveView} onLogout={handleLogout} plati={plati} />
           )}
-        <main className="flex-1 p-8 overflow-y-auto">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
           {renderContent()}
         </main>
       </div>

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Antrenament, Sportiv, Grupa, Plata, TipAbonament, AnuntPrezenta } from '../types';
+import { Antrenament, Sportiv, Grupa, Plata, TipAbonament, AnuntPrezenta, ProgramItem } from '../types';
 import { Button, Card, Input, Select, Modal } from './ui';
 import { PlusIcon, ArrowLeftIcon, TrashIcon, EditIcon, XIcon, ChatBubbleLeftEllipsisIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -331,7 +331,7 @@ export const PrezentaManagement: React.FC<{
     const [selectedAntrenamentId, setSelectedAntrenamentId] = useLocalStorage<string | null>('phi-hau-selected-antrenament-id', null);
     const selectedAntrenament = useMemo(() => antrenamente.find(p => p.id === selectedAntrenamentId) || null, [antrenamente, selectedAntrenamentId]);
 
-    const handleSetSelectedAntrenament = (antrenament: Antrenament | null) => {
+    const handleSetSelectedAntrenament = (antrenament: Antrenament) => {
         setSelectedAntrenamentId(antrenament ? antrenament.id : null);
     };
 
@@ -395,23 +395,46 @@ export const PrezentaManagement: React.FC<{
     const handleOpenEdit = (antrenament: Antrenament) => { setAntrenamentToEdit(antrenament); setIsFormOpen(true); };
 
     const filteredAntrenamente = useMemo(() => {
-        let sorted = [...antrenamente].sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime() || (b.ora_start || '').localeCompare(a.ora_start || ''));
+        const today = new Date();
+        const displayDate = filters.data || today.toISOString().split('T')[0];
+
+        let itemsToShow: (Antrenament | (any & { isTemplate: true }))[] = antrenamente.filter(a => a.data === displayDate);
         
-        if (filters.tip) {
-            if (filters.tip === 'Vacanta') {
-                sorted = sorted.filter(p => !p.grupa_id);
-            } else if (filters.tip === 'Normal') {
-                sorted = sorted.filter(p => !!p.grupa_id);
-            }
+        // Fallback: If no date is manually selected and no fixed trainings exist for today, show recurrent schedule for today.
+        if (!filters.data && itemsToShow.length === 0) {
+            const dayOfWeekMap: ProgramItem['ziua'][] = ['Duminică', 'Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă'];
+            const todayDayIndex = today.getDay();
+            const todayDayName = dayOfWeekMap[todayDayIndex];
+            
+            itemsToShow = grupe.flatMap(g =>
+                g.program
+                .filter(p => p.ziua === todayDayName && p.is_activ !== false)
+                .map(p => ({
+                    id: `recurent-${p.id}`,
+                    data: displayDate,
+                    ora_start: p.ora_start,
+                    ora_sfarsit: p.ora_sfarsit,
+                    grupa_id: g.id,
+                    ziua: p.ziua,
+                    sportivi_prezenti_ids: [],
+                    isTemplate: true // Custom property to identify fallback items
+                }))
+            );
         }
-        if (filters.data) {
-            sorted = sorted.filter(p => p.data === filters.data);
+        
+        // Apply other filters
+        if (filters.tip) {
+            if (filters.tip === 'Vacanta') itemsToShow = itemsToShow.filter(p => !p.grupa_id);
+            else if (filters.tip === 'Normal') itemsToShow = itemsToShow.filter(p => !!p.grupa_id);
         }
         if (filters.grupa) {
-            sorted = sorted.filter(p => p.grupa_id === filters.grupa);
+            itemsToShow = itemsToShow.filter(p => p.grupa_id === filters.grupa);
         }
-        return sorted;
-    }, [antrenamente, filters]);
+        
+        // Sort by start time
+        return itemsToShow.sort((a, b) => (a.ora_start || '').localeCompare(b.ora_start || ''));
+    }, [antrenamente, grupe, filters]);
+
 
     if (selectedAntrenament) {
         return <AttendanceDetail 
@@ -427,11 +450,18 @@ export const PrezentaManagement: React.FC<{
         />;
     }
 
+    const displayDate = filters.data || new Date().toISOString().split('T')[0];
+
     return (
         <div>
             <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold text-white">Istoric Antrenamente</h1>
+                 <div className="flex items-center gap-4">
+                    <h1 className="text-3xl font-bold text-white">Istoric Antrenamente</h1>
+                    <span className="px-3 py-1 text-sm font-semibold text-sky-200 bg-sky-600/30 border border-sky-600/50 rounded-full">
+                        Antrenamente pentru: {new Date(displayDate + 'T00:00:00').toLocaleDateString('ro-RO')}
+                    </span>
+                </div>
                 <Button onClick={handleOpenAdd} variant="info"><PlusIcon className="w-5 h-5 mr-2" /> Antrenament Nou</Button>
             </div>
 
@@ -478,15 +508,18 @@ export const PrezentaManagement: React.FC<{
                             {filteredAntrenamente.map(p => {
                                 const grupa = grupe.find(g => g.id === p.grupa_id);
                                 const tip = p.grupa_id ? 'Normal' : 'Vacanta';
+                                const isTemplate = (p as any).isTemplate;
                                 return (
                                     <tr key={p.id} className="hover:bg-slate-700/50">
                                         <td className="p-4 font-medium">
-                                            {new Date(p.data).toLocaleDateString('ro-RO')} - <span className="text-slate-400">{p.ora_start}</span>
+                                            {new Date(p.data + 'T00:00:00').toLocaleDateString('ro-RO')} - <span className="text-slate-400">{p.ora_start}</span>
                                         </td>
                                         <td className="p-4">
                                             <div className="flex items-center gap-2">
                                                 <span>{grupa?.denumire || (tip === 'Vacanta' ? 'Antrenament Vacanță' : tip)}</span>
-                                                {tip === 'Vacanta' ? (
+                                                {isTemplate ? (
+                                                    <span className="px-2 py-0.5 text-[10px] bg-purple-600/30 text-purple-400 border border-purple-600/50 rounded-full font-bold uppercase tracking-wider">Recurent</span>
+                                                ) : tip === 'Vacanta' ? (
                                                     <span className="px-2 py-0.5 text-[10px] bg-sky-600/30 text-sky-400 border border-sky-600/50 rounded-full font-bold uppercase tracking-wider">Vacanță</span>
                                                 ) : (
                                                     <span className="px-2 py-0.5 text-[10px] bg-slate-600/30 text-slate-400 border border-slate-600/50 rounded-full font-bold uppercase tracking-wider">Normal</span>
@@ -495,10 +528,22 @@ export const PrezentaManagement: React.FC<{
                                         </td>
                                         <td className="p-4 text-center font-bold text-brand-secondary">{p.sportivi_prezenti_ids.length}</td>
                                         <td className="p-4 text-right w-64">
-                                            <div className="flex items-center justify-end space-x-2">
-                                                <Button onClick={() => handleSetSelectedAntrenament(p)} variant="primary" size="sm">Gestionează Prezența</Button>
-                                                <Button onClick={() => handleOpenEdit(p)} variant="secondary" size="sm" title="Editează detaliile antrenamentului"><EditIcon /></Button>
-                                                <Button onClick={() => setAntrenamentToDelete(p)} variant="danger" size="sm" title="Șterge antrenamentul"><TrashIcon /></Button>
+                                             <div className="flex items-center justify-end space-x-2">
+                                                {isTemplate ? (
+                                                    <Button variant="secondary" size="sm" disabled title="Generează antrenamentul în calendar pentru a putea înregistra prezența.">
+                                                        Program Recurent
+                                                    </Button>
+                                                ) : (
+                                                    <Button onClick={() => handleSetSelectedAntrenament(p)} variant="primary" size="sm">
+                                                        Gestionează Prezența
+                                                    </Button>
+                                                )}
+                                                <Button onClick={() => handleOpenEdit(p)} variant="secondary" size="sm" title="Editează detaliile antrenamentului" disabled={isTemplate}>
+                                                    <EditIcon />
+                                                </Button>
+                                                <Button onClick={() => setAntrenamentToDelete(p)} variant="danger" size="sm" title="Șterge antrenamentul" disabled={isTemplate}>
+                                                    <TrashIcon />
+                                                </Button>
                                             </div>
                                         </td>
                                     </tr>

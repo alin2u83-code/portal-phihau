@@ -32,7 +32,7 @@ BEGIN
     ) INTO is_admin_user;
     RETURN is_admin_user;
 END;
-$$ LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path = public;
 
 
 -- =================================================================

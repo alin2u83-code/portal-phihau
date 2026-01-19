@@ -1,12 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User } from '../types';
 import { Button, Modal, Input, Select, Card } from './ui';
-import { PlusIcon, ArrowLeftIcon, ShieldCheckIcon } from './icons';
+import { PlusIcon, ArrowLeftIcon, ShieldCheckIcon, WalletIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { SportivFormModal } from './Sportivi';
 import { SportivAccountSettingsModal } from './SportivAccountSettings';
+import { SportivWallet } from './SportivWallet';
 
 const formatHeader = (key: string): string => {
     if (key === 'numeComplet') return 'Nume Complet';
@@ -42,6 +43,8 @@ export const SportiviManagement: React.FC<{
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
     const [sportivToEdit, setSportivToEdit] = useState<Sportiv | null>(null);
     const [accountSettingsSportiv, setAccountSettingsSportiv] = useState<Sportiv | null>(null);
+    const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
+    const [sportivForWallet, setSportivForWallet] = useState<Sportiv | null>(null);
 
     const { showError } = useError();
 
@@ -54,6 +57,11 @@ export const SportiviManagement: React.FC<{
     
     const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setFilters(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    };
+    
+    const handleOpenWallet = (sportiv: Sportiv) => {
+        setSportivForWallet(sportiv);
+        setIsWalletModalOpen(true);
     };
 
     const familyBalances = useMemo(() => {
@@ -116,10 +124,14 @@ export const SportiviManagement: React.FC<{
                 return grupe.find(g => g.id === s.grupa_id)?.denumire || '-';
             case 'actiuni':
                  return (
-                    <Button size="sm" variant="secondary" onClick={() => setAccountSettingsSportiv(s)}>
-                        <ShieldCheckIcon className="w-4 h-4 mr-1" />
-                        Setări Cont
-                    </Button>
+                    <div className="flex justify-end items-center gap-2">
+                        <Button size="sm" variant="info" onClick={() => handleOpenWallet(s)} title="Portofel Sportiv">
+                            <WalletIcon className="w-4 h-4" />
+                        </Button>
+                        <Button size="sm" variant="secondary" onClick={() => setAccountSettingsSportiv(s)} title="Setări Cont de Acces">
+                            <ShieldCheckIcon className="w-4 h-4" />
+                        </Button>
+                    </div>
                 );
             default:
                 const value = s[columnKey] as React.ReactNode;
@@ -250,6 +262,20 @@ export const SportiviManagement: React.FC<{
                 setAllRoles={setAllRoles}
                 currentUser={currentUser}
             />
+
+            {isWalletModalOpen && sportivForWallet && (
+                <SportivWallet
+                    sportiv={sportivForWallet}
+                    familie={familii.find(f => f.id === sportivForWallet.familie_id)}
+                    allPlati={plati}
+                    allTranzactii={tranzactii}
+                    setTranzactii={setTranzactii}
+                    onClose={() => {
+                        setIsWalletModalOpen(false);
+                        setSportivForWallet(null);
+                    }}
+                />
+            )}
         </div>
     );
 };

@@ -314,3 +314,20 @@ ALTER TABLE public.sportivi DROP COLUMN IF EXISTS adresa;
 -- Eliminarea coloanelor pentru note din 'participari'
 ALTER TABLE public.participari DROP COLUMN IF EXISTS nota_tehnica;
 ALTER TABLE public.participari DROP COLUMN IF EXISTS nota_thao_quyen;
+
+-- =================================================================
+-- Schema Corrections
+-- =================================================================
+
+-- Add 'Taxa Anuala' to the allowed types in the 'plati' table to fix check constraint violation.
+ALTER TABLE public.plati DROP CONSTRAINT IF EXISTS plati_tip_check;
+ALTER TABLE public.plati ADD CONSTRAINT plati_tip_check CHECK (
+    tip = ANY (ARRAY[
+        'Abonament'::text, 
+        'Taxa Examen'::text, 
+        'Taxa Stagiu'::text, 
+        'Taxa Competitie'::text, 
+        'Echipament'::text,
+        'Taxa Anuala'::text
+    ])
+);

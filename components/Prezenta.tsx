@@ -341,11 +341,21 @@ export const PrezentaManagement: React.FC<{
     const [isDeleting, setIsDeleting] = useState(false);
     const { showError, showSuccess } = useError();
 
-    const initialFilters = { tip: '', data: '', grupa: '' };
+    const initialFilters = { tip: '', data: '', grupa: '', ziua: '' };
     const [filters, setFilters] = useLocalStorage('phi-hau-prezenta-filters', initialFilters);
+    const zileSaptamana: ProgramItem['ziua'][] = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'];
 
     const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        setFilters(prev => ({...prev, [e.target.name]: e.target.value}));
+        const { name, value } = e.target;
+        setFilters(prev => {
+            const next = { ...prev, [name]: value };
+            if (name === 'data' && value) {
+                next.ziua = '';
+            } else if (name === 'ziua' && value) {
+                next.data = '';
+            }
+            return next;
+        });
     };
 
     const handleResetFilters = () => {
@@ -393,53 +403,108 @@ export const PrezentaManagement: React.FC<{
 
     const handleOpenAdd = () => { setAntrenamentToEdit(null); setIsFormOpen(true); };
     const handleOpenEdit = (antrenament: Antrenament) => { setAntrenamentToEdit(antrenament); setIsFormOpen(true); };
+    
+    const ZILE_SAPTAMANA: ProgramItem['ziua'][] = ['Duminică', 'Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă'];
+    const dayNameToIndex = (name: ProgramItem['ziua']) => ZILE_SAPTAMANA.indexOf(name);
 
     const filteredAntrenamente = useMemo(() => {
-        const today = new Date();
-        const displayDate = filters.data || today.toISOString().split('T')[0];
+        let baseItems: (Antrenament | (any & { isTemplate: true }))[] = [];
 
-        let itemsToShow: (Antrenament | (any & { isTemplate: true }))[] = antrenamente.filter(a => a.data === displayDate);
-        
-        // Fallback: If no date is manually selected and no fixed trainings exist for today, show recurrent schedule for today.
-        if (!filters.data && itemsToShow.length === 0) {
-            const dayOfWeekMap: ProgramItem['ziua'][] = ['Duminică', 'Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă'];
-            const todayDayIndex = today.getDay();
-            const todayDayName = dayOfWeekMap[todayDayIndex];
+        // Step 1: Determine the base list of trainings based on date/day filters
+        if (filters.data) {
+            const displayDate = filters.data;
+            baseItems = antrenamente.filter(a => a.data === displayDate);
             
-            itemsToShow = grupe.flatMap(g =>
-                g.program
-                .filter(p => p.ziua === todayDayName && p.is_activ !== false)
-                .map(p => ({
-                    id: `recurent-${p.id}`,
-                    data: displayDate,
-                    ora_start: p.ora_start,
-                    ora_sfarsit: p.ora_sfarsit,
-                    grupa_id: g.id,
-                    ziua: p.ziua,
-                    sportivi_prezenti_ids: [],
-                    isTemplate: true // Custom property to identify fallback items
-                }))
-            );
+            if (baseItems.length === 0) {
+                const selectedDate = new Date(displayDate + 'T00:00:00Z');
+                const dayName = ZILE_SAPTAMANA[selectedDate.getUTCDay()];
+                
+                baseItems = grupe.flatMap(g =>
+                    g.program
+                    .filter(p => p.ziua === dayName && p.is_activ !== false)
+                    .map(p => ({
+                        id: `recurent-${p.id}-${displayDate}`,
+                        data: displayDate,
+                        ora_start: p.ora_start,
+                        ora_sfarsit: p.ora_sfarsit,
+                        grupa_id: g.id,
+                        ziua: p.ziua,
+                        sportivi_prezenti_ids: [],
+                        is_recurent: true,
+                        isTemplate: true
+                    }))
+                );
+            }
+        } else if (filters.ziua) {
+            const dayIndex = dayNameToIndex(filters.ziua as ProgramItem['ziua']);
+            if (dayIndex !== -1) {
+                baseItems = antrenamente.filter(a => {
+                    const trainDate = new Date(a.data + 'T00:00:00Z');
+                    return trainDate.getUTCDay() === dayIndex;
+                });
+            } else { // Handle 'Toate zilele'
+                baseItems = antrenamente;
+            }
+        } else { // Default to today
+            const today = new Date();
+            const displayDate = today.toISOString().split('T')[0];
+            baseItems = antrenamente.filter(a => a.data === displayDate);
+            
+            if (baseItems.length === 0) {
+                const dayName = ZILE_SAPTAMANA[today.getUTCDay()];
+                baseItems = grupe.flatMap(g =>
+                    g.program
+                    .filter(p => p.ziua === dayName && p.is_activ !== false)
+                    .map(p => ({
+                        id: `recurent-${p.id}-${displayDate}`,
+                        data: displayDate,
+                        ora_start: p.ora_start,
+                        ora_sfarsit: p.ora_sfarsit,
+                        grupa_id: g.id,
+                        ziua: p.ziua,
+                        sportivi_prezenti_ids: [],
+                        is_recurent: true,
+                        isTemplate: true
+                    }))
+                );
+            }
         }
-        
-        // Apply other filters
+
+        // Step 2: Apply other filters
+        let filteredItems = baseItems;
         if (filters.tip) {
-            if (filters.tip === 'Vacanta') itemsToShow = itemsToShow.filter(p => !p.grupa_id);
-            else if (filters.tip === 'Normal') itemsToShow = itemsToShow.filter(p => !!p.grupa_id);
+            if (filters.tip === 'Vacanta') filteredItems = filteredItems.filter(p => !p.grupa_id);
+            else if (filters.tip === 'Normal') filteredItems = filteredItems.filter(p => !!p.grupa_id);
         }
         if (filters.grupa) {
-            itemsToShow = itemsToShow.filter(p => p.grupa_id === filters.grupa);
+            filteredItems = filteredItems.filter(p => p.grupa_id === filters.grupa);
         }
         
-        // Sort by start time
-        return itemsToShow.sort((a, b) => (a.ora_start || '').localeCompare(b.ora_start || ''));
+        // Step 3: Sort
+        return filteredItems.sort((a, b) => {
+            if (filters.ziua) {
+                const dateCompare = new Date(b.data).getTime() - new Date(a.data).getTime();
+                if (dateCompare !== 0) return dateCompare;
+            }
+            return (a.ora_start || '').localeCompare(b.ora_start || '');
+        });
+
     }, [antrenamente, grupe, filters]);
 
+    const getHeaderTitle = () => {
+        if (filters.data) {
+            return `Antrenamente pentru: ${new Date(filters.data + 'T00:00:00').toLocaleDateString('ro-RO')}`;
+        }
+        if (filters.ziua) {
+            return `Antrenamente din zilele de ${filters.ziua}`;
+        }
+        return `Antrenamente pentru Astăzi: ${new Date().toLocaleDateString('ro-RO')}`;
+    };
 
     if (selectedAntrenament) {
         return <AttendanceDetail 
             antrenament={selectedAntrenament} 
-            onBack={() => handleSetSelectedAntrenament(null)} 
+            onBack={() => setSelectedAntrenamentId(null)} 
             sportivi={sportivi} 
             grupe={grupe} 
             setAntrenamente={setAntrenamente} 
@@ -450,8 +515,6 @@ export const PrezentaManagement: React.FC<{
         />;
     }
 
-    const displayDate = filters.data || new Date().toISOString().split('T')[0];
-
     return (
         <div>
             <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
@@ -459,7 +522,7 @@ export const PrezentaManagement: React.FC<{
                  <div className="flex items-center gap-4">
                     <h1 className="text-3xl font-bold text-white">Istoric Antrenamente</h1>
                     <span className="px-3 py-1 text-sm font-semibold text-sky-200 bg-sky-600/30 border border-sky-600/50 rounded-full">
-                        Antrenamente pentru: {new Date(displayDate + 'T00:00:00').toLocaleDateString('ro-RO')}
+                        {getHeaderTitle()}
                     </span>
                 </div>
                 <Button onClick={handleOpenAdd} variant="info"><PlusIcon className="w-5 h-5 mr-2" /> Antrenament Nou</Button>
@@ -468,8 +531,12 @@ export const PrezentaManagement: React.FC<{
             <Card className="mb-6">
                 <h3 className="text-lg font-semibold text-white mb-3">Filtrare Antrenamente</h3>
                 <div className="flex flex-col lg:flex-row items-end gap-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-grow w-full">
-                        <Input label="Dată" name="data" type="date" value={filters.data} onChange={handleFilterChange} />
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 flex-grow w-full">
+                        <Input label="Dată Specifică" name="data" type="date" value={filters.data} onChange={handleFilterChange} disabled={!!filters.ziua} />
+                        <Select label="Ziua Săptămânii" name="ziua" value={filters.ziua} onChange={handleFilterChange} disabled={!!filters.data}>
+                            <option value="">Toate Zilele</option>
+                            {zileSaptamana.map(z => <option key={z} value={z}>{z}</option>)}
+                        </Select>
                         <Select label="Grupă" name="grupa" value={filters.grupa} onChange={handleFilterChange}>
                             <option value="">Toate Grupele</option>
                             {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
@@ -509,6 +576,7 @@ export const PrezentaManagement: React.FC<{
                                 const grupa = grupe.find(g => g.id === p.grupa_id);
                                 const tip = p.grupa_id ? 'Normal' : 'Vacanta';
                                 const isTemplate = (p as any).isTemplate;
+                                const isRecurent = p.is_recurent && !isTemplate;
                                 return (
                                     <tr key={p.id} className="hover:bg-slate-700/50">
                                         <td className="p-4 font-medium">
@@ -517,8 +585,10 @@ export const PrezentaManagement: React.FC<{
                                         <td className="p-4">
                                             <div className="flex items-center gap-2">
                                                 <span>{grupa?.denumire || (tip === 'Vacanta' ? 'Antrenament Vacanță' : tip)}</span>
-                                                {isTemplate ? (
+                                                {isRecurent ? (
                                                     <span className="px-2 py-0.5 text-[10px] bg-purple-600/30 text-purple-400 border border-purple-600/50 rounded-full font-bold uppercase tracking-wider">Recurent</span>
+                                                ) : isTemplate ? (
+                                                     <span className="px-2 py-0.5 text-[10px] bg-indigo-600/30 text-indigo-400 border border-indigo-600/50 rounded-full font-bold uppercase tracking-wider">Programat</span>
                                                 ) : tip === 'Vacanta' ? (
                                                     <span className="px-2 py-0.5 text-[10px] bg-sky-600/30 text-sky-400 border border-sky-600/50 rounded-full font-bold uppercase tracking-wider">Vacanță</span>
                                                 ) : (
@@ -534,14 +604,14 @@ export const PrezentaManagement: React.FC<{
                                                         Program Recurent
                                                     </Button>
                                                 ) : (
-                                                    <Button onClick={() => handleSetSelectedAntrenament(p)} variant="primary" size="sm">
+                                                    <Button onClick={() => handleSetSelectedAntrenament(p as Antrenament)} variant="primary" size="sm">
                                                         Gestionează Prezența
                                                     </Button>
                                                 )}
-                                                <Button onClick={() => handleOpenEdit(p)} variant="secondary" size="sm" title="Editează detaliile antrenamentului" disabled={isTemplate}>
+                                                <Button onClick={() => handleOpenEdit(p as Antrenament)} variant="secondary" size="sm" title="Editează detaliile antrenamentului" disabled={isTemplate}>
                                                     <EditIcon />
                                                 </Button>
-                                                <Button onClick={() => setAntrenamentToDelete(p)} variant="danger" size="sm" title="Șterge antrenamentul" disabled={isTemplate}>
+                                                <Button onClick={() => setAntrenamentToDelete(p as Antrenament)} variant="danger" size="sm" title="Șterge antrenamentul" disabled={isTemplate}>
                                                     <TrashIcon />
                                                 </Button>
                                             </div>

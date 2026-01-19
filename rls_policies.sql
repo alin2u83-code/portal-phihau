@@ -10,29 +10,13 @@
 -- =================================================================
 
 -- -----------------------------------------------------------------
--- Helper Function: Verifică dacă utilizatorul curent este Admin sau Instructor
+-- Helper Function: is_admin() a fost eliminată.
 -- -----------------------------------------------------------------
--- Această funcție este esențială pentru a simplifica politicile.
--- O definim ca SECURITY DEFINER pentru a rula cu privilegiile celui care a creat-o,
--- permițând verificarea rolurilor fără a acorda acces direct la tabelele de roluri.
-CREATE OR REPLACE FUNCTION is_admin()
-RETURNS BOOLEAN AS $$
-DECLARE
-    is_admin_user BOOLEAN;
-BEGIN
-    -- Verifică dacă ID-ul utilizatorului autentificat este asociat cu un sportiv
-    -- care are rolul de 'Admin' sau 'Instructor'.
-    SELECT EXISTS (
-        SELECT 1
-        FROM public.sportivi s
-        JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id
-        JOIN public.roluri r ON sr.rol_id = r.id
-        WHERE s.user_id = auth.uid()
-          AND (r.nume = 'Admin' OR r.nume = 'Instructor')
-    ) INTO is_admin_user;
-    RETURN is_admin_user;
-END;
-$$ LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path = public;
+-- Logica de verificare a rolului de admin/instructor este acum
+-- inclusă direct în fiecare politică pentru a evita probleme
+-- de context de securitate (SECURITY DEFINER).
+-- -----------------------------------------------------------------
+DROP FUNCTION IF EXISTS is_admin();
 
 
 -- =================================================================
@@ -45,7 +29,17 @@ $$ LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path = public;
 ALTER TABLE public.sportivi ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage all sportivi" ON public.sportivi;
 CREATE POLICY "Admins can manage all sportivi" ON public.sportivi
-    FOR ALL USING (is_admin()) WITH CHECK (is_admin());
+    FOR ALL USING (
+        EXISTS (
+            SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id
+            WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor')
+        )
+    ) WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id
+            WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor')
+        )
+    );
 
 DROP POLICY IF EXISTS "Sportivi can see their own profile" ON public.sportivi;
 CREATE POLICY "Sportivi can see their own profile" ON public.sportivi
@@ -61,7 +55,17 @@ CREATE POLICY "Sportivi can update their own profile" ON public.sportivi
 ALTER TABLE public.familii ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage all families" ON public.familii;
 CREATE POLICY "Admins can manage all families" ON public.familii
-    FOR ALL USING (is_admin()) WITH CHECK (is_admin());
+    FOR ALL USING (
+        EXISTS (
+            SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id
+            WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor')
+        )
+    ) WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id
+            WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor')
+        )
+    );
 
 DROP POLICY IF EXISTS "Users can see their own family" ON public.familii;
 CREATE POLICY "Users can see their own family" ON public.familii
@@ -73,7 +77,17 @@ CREATE POLICY "Users can see their own family" ON public.familii
 ALTER TABLE public.plati ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage all payments" ON public.plati;
 CREATE POLICY "Admins can manage all payments" ON public.plati
-    FOR ALL USING (is_admin()) WITH CHECK (is_admin());
+    FOR ALL USING (
+        EXISTS (
+            SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id
+            WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor')
+        )
+    ) WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id
+            WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor')
+        )
+    );
 
 DROP POLICY IF EXISTS "Users can see their own and family payments" ON public.plati;
 CREATE POLICY "Users can see their own and family payments" ON public.plati
@@ -88,7 +102,17 @@ CREATE POLICY "Users can see their own and family payments" ON public.plati
 ALTER TABLE public.tranzactii ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage all transactions" ON public.tranzactii;
 CREATE POLICY "Admins can manage all transactions" ON public.tranzactii
-    FOR ALL USING (is_admin()) WITH CHECK (is_admin());
+    FOR ALL USING (
+        EXISTS (
+            SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id
+            WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor')
+        )
+    ) WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id
+            WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor')
+        )
+    );
 
 DROP POLICY IF EXISTS "Users can see their own and family transactions" ON public.tranzactii;
 CREATE POLICY "Users can see their own and family transactions" ON public.tranzactii
@@ -103,7 +127,17 @@ CREATE POLICY "Users can see their own and family transactions" ON public.tranza
 ALTER TABLE public.participari ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage all exam participations" ON public.participari;
 CREATE POLICY "Admins can manage all exam participations" ON public.participari
-    FOR ALL USING (is_admin()) WITH CHECK (is_admin());
+    FOR ALL USING (
+        EXISTS (
+            SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id
+            WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor')
+        )
+    ) WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id
+            WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor')
+        )
+    );
 
 DROP POLICY IF EXISTS "Users can see their own exam participations" ON public.participari;
 CREATE POLICY "Users can see their own exam participations" ON public.participari
@@ -115,7 +149,17 @@ CREATE POLICY "Users can see their own exam participations" ON public.participar
 ALTER TABLE public.prezenta_antrenament ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage all attendance records" ON public.prezenta_antrenament;
 CREATE POLICY "Admins can manage all attendance records" ON public.prezenta_antrenament
-    FOR ALL USING (is_admin()) WITH CHECK (is_admin());
+    FOR ALL USING (
+        EXISTS (
+            SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id
+            WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor')
+        )
+    ) WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id
+            WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor')
+        )
+    );
 
 DROP POLICY IF EXISTS "Users can see their own attendance" ON public.prezenta_antrenament;
 CREATE POLICY "Users can see their own attendance" ON public.prezenta_antrenament
@@ -127,7 +171,17 @@ CREATE POLICY "Users can see their own attendance" ON public.prezenta_antrenamen
 ALTER TABLE public.rezultate ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage all results" ON public.rezultate;
 CREATE POLICY "Admins can manage all results" ON public.rezultate
-    FOR ALL USING (is_admin()) WITH CHECK (is_admin());
+    FOR ALL USING (
+        EXISTS (
+            SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id
+            WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor')
+        )
+    ) WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id
+            WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor')
+        )
+    );
 
 DROP POLICY IF EXISTS "Users can see their own results" ON public.rezultate;
 CREATE POLICY "Users can see their own results" ON public.rezultate
@@ -139,7 +193,17 @@ CREATE POLICY "Users can see their own results" ON public.rezultate
 ALTER TABLE public.anunturi_prezenta ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage all attendance announcements" ON public.anunturi_prezenta;
 CREATE POLICY "Admins can manage all attendance announcements" ON public.anunturi_prezenta
-    FOR ALL USING (is_admin()) WITH CHECK (is_admin());
+    FOR ALL USING (
+        EXISTS (
+            SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id
+            WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor')
+        )
+    ) WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id
+            WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor')
+        )
+    );
 
 DROP POLICY IF EXISTS "Users can see their own announcements" ON public.anunturi_prezenta;
 CREATE POLICY "Users can see their own announcements" ON public.anunturi_prezenta
@@ -155,7 +219,17 @@ CREATE POLICY "Users can create and update their own announcements" ON public.an
 ALTER TABLE public.sportivi_roluri ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage roles" ON public.sportivi_roluri;
 CREATE POLICY "Admins can manage roles" ON public.sportivi_roluri
-    FOR ALL USING (is_admin()) WITH CHECK (is_admin());
+    FOR ALL USING (
+        EXISTS (
+            SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id
+            WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor')
+        )
+    ) WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id
+            WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor')
+        )
+    );
 
 DROP POLICY IF EXISTS "Users can see their own roles" ON public.sportivi_roluri;
 CREATE POLICY "Users can see their own roles" ON public.sportivi_roluri
@@ -167,7 +241,17 @@ CREATE POLICY "Users can see their own roles" ON public.sportivi_roluri
 ALTER TABLE public.notificari ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage notifications" ON public.notificari;
 CREATE POLICY "Admins can manage notifications" ON public.notificari
-    FOR ALL USING (is_admin()) WITH CHECK (is_admin());
+    FOR ALL USING (
+        EXISTS (
+            SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id
+            WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor')
+        )
+    ) WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id
+            WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor')
+        )
+    );
 
 DROP POLICY IF EXISTS "Authenticated users can read notifications" ON public.notificari;
 CREATE POLICY "Authenticated users can read notifications" ON public.notificari
@@ -185,7 +269,7 @@ CREATE POLICY "Authenticated users can read notifications" ON public.notificari
 -- -----------------------------------------------------------------
 ALTER TABLE public.grade ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage grades" ON public.grade;
-CREATE POLICY "Admins can manage grades" ON public.grade FOR ALL USING (is_admin()) WITH CHECK (is_admin());
+CREATE POLICY "Admins can manage grades" ON public.grade FOR ALL USING (EXISTS (SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor'))) WITH CHECK (EXISTS (SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor')));
 DROP POLICY IF EXISTS "Authenticated users can see grades" ON public.grade;
 CREATE POLICY "Authenticated users can see grades" ON public.grade FOR SELECT USING (auth.role() = 'authenticated');
 
@@ -194,16 +278,27 @@ CREATE POLICY "Authenticated users can see grades" ON public.grade FOR SELECT US
 -- -----------------------------------------------------------------
 ALTER TABLE public.examene ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage exams" ON public.examene;
-CREATE POLICY "Admins can manage exams" ON public.examene FOR ALL USING (is_admin()) WITH CHECK (is_admin());
-DROP POLICY IF EXISTS "Authenticated users can see exams" ON public.examene;
-CREATE POLICY "Authenticated users can see exams" ON public.examene FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "Admins can manage exams" ON public.examene 
+    FOR ALL USING (EXISTS (SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor'))) WITH CHECK (EXISTS (SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor')));
+
+DROP POLICY IF EXISTS "Users can see relevant exams" ON public.examene;
+CREATE POLICY "Users can see relevant exams" ON public.examene
+    FOR SELECT USING (
+        (data >= now()::date) OR
+        (id IN (
+            SELECT p.examen_id 
+            FROM public.participari p
+            JOIN public.sportivi s ON p.sportiv_id = s.id
+            WHERE s.user_id = auth.uid()
+        ))
+    );
 
 -- -----------------------------------------------------------------
 -- Tabel: grupe
 -- -----------------------------------------------------------------
 ALTER TABLE public.grupe ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage groups" ON public.grupe;
-CREATE POLICY "Admins can manage groups" ON public.grupe FOR ALL USING (is_admin()) WITH CHECK (is_admin());
+CREATE POLICY "Admins can manage groups" ON public.grupe FOR ALL USING (EXISTS (SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor'))) WITH CHECK (EXISTS (SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor')));
 DROP POLICY IF EXISTS "Authenticated users can see groups" ON public.grupe;
 CREATE POLICY "Authenticated users can see groups" ON public.grupe FOR SELECT USING (auth.role() = 'authenticated');
 
@@ -212,7 +307,7 @@ CREATE POLICY "Authenticated users can see groups" ON public.grupe FOR SELECT US
 -- -----------------------------------------------------------------
 ALTER TABLE public.program_antrenamente ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage training schedules" ON public.program_antrenamente;
-CREATE POLICY "Admins can manage training schedules" ON public.program_antrenamente FOR ALL USING (is_admin()) WITH CHECK (is_admin());
+CREATE POLICY "Admins can manage training schedules" ON public.program_antrenamente FOR ALL USING (EXISTS (SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor'))) WITH CHECK (EXISTS (SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor')));
 DROP POLICY IF EXISTS "Authenticated users can see training schedules" ON public.program_antrenamente;
 CREATE POLICY "Authenticated users can see training schedules" ON public.program_antrenamente FOR SELECT USING (auth.role() = 'authenticated');
 
@@ -221,7 +316,7 @@ CREATE POLICY "Authenticated users can see training schedules" ON public.program
 -- -----------------------------------------------------------------
 ALTER TABLE public.evenimente ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage events" ON public.evenimente;
-CREATE POLICY "Admins can manage events" ON public.evenimente FOR ALL USING (is_admin()) WITH CHECK (is_admin());
+CREATE POLICY "Admins can manage events" ON public.evenimente FOR ALL USING (EXISTS (SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor'))) WITH CHECK (EXISTS (SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor')));
 DROP POLICY IF EXISTS "Authenticated users can see events" ON public.evenimente;
 CREATE POLICY "Authenticated users can see events" ON public.evenimente FOR SELECT USING (auth.role() = 'authenticated');
 
@@ -230,7 +325,7 @@ CREATE POLICY "Authenticated users can see events" ON public.evenimente FOR SELE
 -- -----------------------------------------------------------------
 ALTER TABLE public.preturi_config ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage price configs" ON public.preturi_config;
-CREATE POLICY "Admins can manage price configs" ON public.preturi_config FOR ALL USING (is_admin()) WITH CHECK (is_admin());
+CREATE POLICY "Admins can manage price configs" ON public.preturi_config FOR ALL USING (EXISTS (SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor'))) WITH CHECK (EXISTS (SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor')));
 DROP POLICY IF EXISTS "Authenticated users can see price configs" ON public.preturi_config;
 CREATE POLICY "Authenticated users can see price configs" ON public.preturi_config FOR SELECT USING (auth.role() = 'authenticated');
 
@@ -239,7 +334,7 @@ CREATE POLICY "Authenticated users can see price configs" ON public.preturi_conf
 -- -----------------------------------------------------------------
 ALTER TABLE public.grade_preturi_config ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage grade price configs" ON public.grade_preturi_config;
-CREATE POLICY "Admins can manage grade price configs" ON public.grade_preturi_config FOR ALL USING (is_admin()) WITH CHECK (is_admin());
+CREATE POLICY "Admins can manage grade price configs" ON public.grade_preturi_config FOR ALL USING (EXISTS (SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor'))) WITH CHECK (EXISTS (SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor')));
 DROP POLICY IF EXISTS "Authenticated users can see grade price configs" ON public.grade_preturi_config;
 CREATE POLICY "Authenticated users can see grade price configs" ON public.grade_preturi_config FOR SELECT USING (auth.role() = 'authenticated');
 
@@ -248,7 +343,7 @@ CREATE POLICY "Authenticated users can see grade price configs" ON public.grade_
 -- -----------------------------------------------------------------
 ALTER TABLE public.tipuri_abonament ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage subscription types" ON public.tipuri_abonament;
-CREATE POLICY "Admins can manage subscription types" ON public.tipuri_abonament FOR ALL USING (is_admin()) WITH CHECK (is_admin());
+CREATE POLICY "Admins can manage subscription types" ON public.tipuri_abonament FOR ALL USING (EXISTS (SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor'))) WITH CHECK (EXISTS (SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor')));
 DROP POLICY IF EXISTS "Authenticated users can see subscription types" ON public.tipuri_abonament;
 CREATE POLICY "Authenticated users can see subscription types" ON public.tipuri_abonament FOR SELECT USING (auth.role() = 'authenticated');
 
@@ -257,7 +352,7 @@ CREATE POLICY "Authenticated users can see subscription types" ON public.tipuri_
 -- -----------------------------------------------------------------
 ALTER TABLE public.reduceri ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage discounts" ON public.reduceri;
-CREATE POLICY "Admins can manage discounts" ON public.reduceri FOR ALL USING (is_admin()) WITH CHECK (is_admin());
+CREATE POLICY "Admins can manage discounts" ON public.reduceri FOR ALL USING (EXISTS (SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor'))) WITH CHECK (EXISTS (SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor')));
 DROP POLICY IF EXISTS "Authenticated users can see discounts" ON public.reduceri;
 CREATE POLICY "Authenticated users can see discounts" ON public.reduceri FOR SELECT USING (auth.role() = 'authenticated');
 
@@ -266,6 +361,6 @@ CREATE POLICY "Authenticated users can see discounts" ON public.reduceri FOR SEL
 -- -----------------------------------------------------------------
 ALTER TABLE public.roluri ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage roles" ON public.roluri;
-CREATE POLICY "Admins can manage roles" ON public.roluri FOR ALL USING (is_admin()) WITH CHECK (is_admin());
+CREATE POLICY "Admins can manage roles" ON public.roluri FOR ALL USING (EXISTS (SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor'))) WITH CHECK (EXISTS (SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor')));
 DROP POLICY IF EXISTS "Authenticated users can see roles" ON public.roluri;
 CREATE POLICY "Authenticated users can see roles" ON public.roluri FOR SELECT USING (auth.role() = 'authenticated');

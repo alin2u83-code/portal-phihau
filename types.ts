@@ -17,13 +17,10 @@ export interface Sportiv {
   inaltime?: number; // în cm, pentru calcul preț echipament
   data_inscrierii: string;
   status: 'Activ' | 'Inactiv';
-  club_provenienta: string;
   grupa_id: string | null;
   familie_id: string | null; // ID-ul familiei
   tip_abonament_id: string | null; // ID-ul tipului de abonament individual
   participa_vacanta: boolean;
-  telefon?: string | null;
-  adresa?: string | null;
   [key: string]: any; // Permite adăugarea de câmpuri custom
 }
 
@@ -49,8 +46,6 @@ export interface Participare {
     examen_id: string;
     grad_sustinut_id: string;
     rezultat: 'Admis' | 'Respins' | 'Neprezentat';
-    nota_tehnica?: number | null;
-    nota_thao_quyen?: number | null;
     observatii?: string;
 }
 

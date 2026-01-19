@@ -278,3 +278,16 @@ DROP POLICY IF EXISTS "Admins can manage roles" ON public.roluri;
 CREATE POLICY "Admins can manage roles" ON public.roluri FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
 DROP POLICY IF EXISTS "Authenticated users can see roles" ON public.roluri;
 CREATE POLICY "Authenticated users can see roles" ON public.roluri FOR SELECT USING (auth.role() = 'authenticated');
+
+-- =================================================================
+-- Schema Cleanup (Eliminare Coloane Neutilizate)
+-- =================================================================
+
+-- Eliminarea coloanelor neutilizate din tabelul 'sportivi'
+ALTER TABLE public.sportivi DROP COLUMN IF EXISTS club_provenienta;
+ALTER TABLE public.sportivi DROP COLUMN IF EXISTS telefon;
+ALTER TABLE public.sportivi DROP COLUMN IF EXISTS adresa;
+
+-- Eliminarea coloanelor pentru note din 'participari'
+ALTER TABLE public.participari DROP COLUMN IF EXISTS nota_tehnica;
+ALTER TABLE public.participari DROP COLUMN IF EXISTS nota_thao_quyen;

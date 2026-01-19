@@ -50,7 +50,7 @@ const QuickAddModal: React.FC<{
 const initialFormState: Partial<Sportiv> = {
     nume: '', prenume: '', status: 'Activ', 
     data_inscrierii: new Date().toISOString().split('T')[0],
-    club_provenienta: 'Phi Hau Iași', participa_vacanta: false,
+    participa_vacanta: false,
     data_nasterii: ''
 };
 
@@ -113,7 +113,6 @@ const SportivFormFields: React.FC<{
                     <option value="Activ">Activ</option>
                     <option value="Inactiv">Inactiv</option>
                 </Select>
-                <Input label="Club Proveniență" name="club_provenienta" value={formState.club_provenienta || ''} onChange={handleChange} disabled={loading} className="!py-1.5" />
             </FormSection>
 
             <FormSection title="Opțiuni">

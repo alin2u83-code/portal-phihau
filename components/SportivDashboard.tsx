@@ -141,8 +141,6 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                      <DataField label="CNP" value={viewedUser.cnp} />
                      <DataField label="Data Nașterii" value={new Date(viewedUser.data_nasterii).toLocaleDateString('ro-RO')} />
                      <DataField label="Data Înscrierii" value={new Date(viewedUser.data_inscrierii).toLocaleDateString('ro-RO')} />
-                     <DataField label="Telefon" value={viewedUser.telefon} />
-                     <DataField label="Adresă" value={viewedUser.adresa} />
                      <DataField label="Antrenament Vacanță" value={viewedUser.participa_vacanta ? 'Da' : 'Nu'} />
                 </Card>
                 
@@ -161,8 +159,14 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                     <div className="mt-4 overflow-x-auto pt-3 border-t border-slate-700">
                         <dt className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Istoric Examinări</dt>
                         <table className="w-full text-left text-sm">
-                            <thead className="bg-slate-700/50"><tr><th className="p-2">Data</th><th className="p-2">Grad</th><th className="p-2 text-center">Tehnică</th><th className="p-2 text-center">Thao Quyen</th><th className="p-2 text-center">Media</th></tr></thead>
-                            <tbody className="divide-y divide-slate-700">{admittedParticipations.map(p => { const media = (p.nota_tehnica != null && p.nota_thao_quyen != null) ? ((p.nota_tehnica + p.nota_thao_quyen) / 2).toFixed(2) : 'N/A'; return (<tr key={p.id}><td className="p-2">{p.examen?.data}</td><td className="p-2 font-semibold">{p.grad?.nume}</td><td className="p-2 text-center">{p.nota_tehnica ?? '-'}</td><td className="p-2 text-center">{p.nota_thao_quyen ?? '-'}</td><td className="p-2 text-center font-bold">{media}</td></tr>);})}{admittedParticipations.length === 0 && (<tr><td colSpan={5} className="p-4 text-center text-slate-500 italic">Niciun examen promovat.</td></tr>)}</tbody>
+                            <thead className="bg-slate-700/50"><tr><th className="p-2">Data</th><th className="p-2">Grad</th><th className="p-2">Observații</th></tr></thead>
+                            <tbody className="divide-y divide-slate-700">{admittedParticipations.map(p => (
+                                <tr key={p.id}>
+                                    <td className="p-2">{p.examen?.data}</td>
+                                    <td className="p-2 font-semibold">{p.grad?.nume}</td>
+                                    <td className="p-2 text-slate-400">{p.observatii || '-'}</td>
+                                </tr>
+                            ))}{admittedParticipations.length === 0 && (<tr><td colSpan={3} className="p-4 text-center text-slate-500 italic">Niciun examen promovat.</td></tr>)}</tbody>
                         </table>
                     </div>
                 </Card>

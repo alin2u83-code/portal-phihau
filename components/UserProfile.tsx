@@ -139,6 +139,27 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
         return { sold: currentSold, financialHistory: historyItems };
     }, [sportiv, plati, tranzactii, financialFilter, reduceri]);
 
+    const trainingHistory = useMemo(() => {
+        const threeMonthsAgo = new Date();
+        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+
+        return antrenamente
+            .filter(a => {
+                const trainingDate = new Date(a.data);
+                if (trainingDate < threeMonthsAgo) return false;
+
+                const isForGroup = a.grupa_id && a.grupa_id === sportiv.grupa_id;
+                const isVacationTraining = !a.grupa_id && sportiv.participa_vacanta;
+                
+                return isForGroup || isVacationTraining;
+            })
+            .map(a => ({
+                ...a,
+                status: a.sportivi_prezenti_ids.includes(sportiv.id) ? 'Prezent' : 'Absent',
+                grupaNume: grupe.find(g => g.id === a.grupa_id)?.denumire || 'Vacanță'
+            }))
+            .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+    }, [sportiv, antrenamente, grupe]);
 
     const handleSaveRoles = async () => {
         if (!isAdmin) return;
@@ -301,6 +322,41 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                                 </tr>
                             ))}
                             {financialHistory.length === 0 && <tr><td colSpan={5} className="p-4 text-center text-slate-500 italic">Niciun istoric pentru filtrul selectat.</td></tr>}
+                        </tbody>
+                    </table>
+                </div>
+            </Card>
+            
+            <Card className="p-0">
+                <div className="p-4 bg-slate-700/50">
+                    <h3 className="font-bold text-white">Istoric Antrenamente (Ultimele 3 Luni)</h3>
+                </div>
+                <div className="overflow-x-auto max-h-80">
+                    <table className="w-full text-sm text-left">
+                        <thead className="bg-slate-800/50 text-xs uppercase text-slate-400 sticky top-0 backdrop-blur-sm">
+                            <tr>
+                                <th className="p-3">Data</th>
+                                <th className="p-3">Grupa</th>
+                                <th className="p-3 text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-700">
+                            {trainingHistory.map(antrenament => (
+                                <tr key={antrenament.id}>
+                                    <td className="p-2">{new Date(antrenament.data).toLocaleDateString('ro-RO')}</td>
+                                    <td className="p-2">{antrenament.grupaNume}</td>
+                                    <td className={`p-2 text-center font-bold ${antrenament.status === 'Prezent' ? 'text-green-400' : 'text-red-400'}`}>
+                                        {antrenament.status}
+                                    </td>
+                                </tr>
+                            ))}
+                            {trainingHistory.length === 0 && (
+                                <tr>
+                                    <td colSpan={3} className="p-4 text-center text-slate-500 italic">
+                                        Niciun antrenament înregistrat în ultimele 3 luni.
+                                    </td>
+                                </tr>
+                            )}
                         </tbody>
                     </table>
                 </div>

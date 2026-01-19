@@ -12,35 +12,25 @@
 -- -----------------------------------------------------------------
 -- Helper Function: Verifică dacă utilizatorul curent este Admin sau Instructor
 -- -----------------------------------------------------------------
--- Folosește JWT claims pentru a obține ID-ul utilizatorului în mod fiabil.
--- Este SECURITY DEFINER pentru a evita probleme de RLS recursiv.
 DROP FUNCTION IF EXISTS public.is_admin_or_instructor();
 CREATE OR REPLACE FUNCTION public.is_admin_or_instructor()
 RETURNS boolean AS $$
-DECLARE
-    auth_user_id uuid;
-    is_admin_user boolean;
 BEGIN
-    -- Obține ID-ul utilizatorului din JWT claims; este mai robust decât auth.uid() în funcții SECURITY DEFINER.
-    auth_user_id := (current_setting('request.jwt.claims', true)::jsonb ->> 'sub')::uuid;
-
-    IF auth_user_id IS NULL THEN
-        RETURN false;
-    END IF;
-
-    -- Verifică dacă ID-ul utilizatorului este asociat cu un rol de Admin/Instructor.
-    SELECT EXISTS (
+    -- Această funcție rulează cu permisiunile invocatorului (SECURITY INVOKER este implicit).
+    -- Politica RLS "Sportivi can see their own profile" (`USING (user_id = auth.uid())`)
+    -- permite sub-interogării să vadă rândul utilizatorului curent în tabelul 'sportivi'.
+    -- Acest lucru este suficient pentru a verifica rolul utilizatorului fără a cauza o buclă recursivă
+    -- care ar apărea dacă funcția ar avea nevoie să vadă toate rândurile din tabel.
+    RETURN EXISTS (
         SELECT 1
         FROM public.sportivi s
         JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id
         JOIN public.roluri r ON sr.rol_id = r.id
-        WHERE s.user_id = auth_user_id
+        WHERE s.user_id = auth.uid()
           AND (r.nume = 'Admin' OR r.nume = 'Instructor')
-    ) INTO is_admin_user;
-
-    RETURN is_admin_user;
+    );
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql;
 
 
 -- =================================================================

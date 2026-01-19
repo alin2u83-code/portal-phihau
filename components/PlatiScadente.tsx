@@ -14,7 +14,6 @@ interface PlatiScadenteProps {
     familii: Familie[]; 
     tipuriAbonament: TipAbonament[];
     tranzactii: Tranzactie[];
-    // FIX: Add reduceri prop to align with its usage in App.tsx
     reduceri: Reducere[];
     onIncaseazaMultiple: (plati: Plata[]) => void;
     onBack: () => void;
@@ -30,7 +29,6 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const { showError, showSuccess } = useError();
     const [isGenerating, setIsGenerating] = useState(false);
-    // FIX: Add saving state for edit modal
     const [isSaving, setIsSaving] = useState(false);
 
     // Calculăm soldul curent pentru fiecare familie și sportiv individual
@@ -237,15 +235,24 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
         }
     };
 
+    const getEntityName = (plata: Plata) => {
+        if (plata.familie_id) {
+            const f = familii.find(fam => fam.id === plata.familie_id);
+            return f ? `Familia ${f.nume}` : 'Familie N/A';
+        }
+        const s = sportivi.find(sp => sp.id === plata.sportiv_id);
+        return s ? `${s.nume} ${s.prenume}` : 'N/A';
+    };
+
     const filteredPlati = useMemo(() => {
         return plati.filter(p => {
-            const s = sportivi.find(sp => sp.id === p.sportiv_id);
-            const nameMatch = !filter.sportiv || (s && `${s.nume} ${s.prenume}`.toLowerCase().includes(filter.sportiv.toLowerCase()));
+            const entityName = getEntityName(p);
+            const nameMatch = !filter.sportiv || entityName.toLowerCase().includes(filter.sportiv.toLowerCase());
             const typeMatch = !filter.tip || p.tip === filter.tip;
             const statusMatch = !filter.status || p.status === filter.status;
             return nameMatch && typeMatch && statusMatch;
         }).sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime());
-    }, [plati, sportivi, filter]);
+    }, [plati, sportivi, familii, filter]);
 
     const handleToggleSelect = (id: string) => {
         setSelectedIds(prev => {
@@ -259,15 +266,6 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
     const handleSelectAllVisible = () => {
         if (selectedIds.size === filteredPlati.length) setSelectedIds(new Set());
         else setSelectedIds(new Set(filteredPlati.map(p => p.id)));
-    };
-
-    const getEntityName = (plata: Plata) => {
-        if (plata.familie_id) {
-            const f = familii.find(fam => fam.id === plata.familie_id);
-            return f ? `Familia ${f.nume}` : 'Familie N/A';
-        }
-        const s = sportivi.find(sp => sp.id === plata.sportiv_id);
-        return s ? `${s.nume} ${s.prenume}` : 'N/A';
     };
 
     return (

@@ -265,15 +265,6 @@ CREATE POLICY "Authenticated users can read notifications" ON public.notificari
 -- le pot citi, dar doar adminii le pot modifica.
 
 -- -----------------------------------------------------------------
--- Tabel: grade
--- -----------------------------------------------------------------
-ALTER TABLE public.grade ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Admins can manage grades" ON public.grade;
-CREATE POLICY "Admins can manage grades" ON public.grade FOR ALL USING (EXISTS (SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor'))) WITH CHECK (EXISTS (SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor')));
-DROP POLICY IF EXISTS "Authenticated users can see grades" ON public.grade;
-CREATE POLICY "Authenticated users can see grades" ON public.grade FOR SELECT USING (auth.role() = 'authenticated');
-
--- -----------------------------------------------------------------
 -- Tabel: examene
 -- -----------------------------------------------------------------
 ALTER TABLE public.examene ENABLE ROW LEVEL SECURITY;
@@ -292,6 +283,15 @@ CREATE POLICY "Users can see relevant exams" ON public.examene
             WHERE s.user_id = auth.uid()
         ))
     );
+
+-- -----------------------------------------------------------------
+-- Tabel: grade
+-- -----------------------------------------------------------------
+ALTER TABLE public.grade ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Admins can manage grades" ON public.grade;
+CREATE POLICY "Admins can manage grades" ON public.grade FOR ALL USING (EXISTS (SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor'))) WITH CHECK (EXISTS (SELECT 1 FROM public.sportivi s JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id JOIN public.roluri r ON sr.rol_id = r.id WHERE s.user_id = auth.uid() AND (r.nume = 'Admin' OR r.nume = 'Instructor')));
+DROP POLICY IF EXISTS "Authenticated users can see grades" ON public.grade;
+CREATE POLICY "Authenticated users can see grades" ON public.grade FOR SELECT USING (auth.role() = 'authenticated');
 
 -- -----------------------------------------------------------------
 -- Tabel: grupe

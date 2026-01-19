@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { PretConfig, Sportiv, Grad } from '../types';
 import { Button, Modal, Input, Select, Card } from './ui';
-import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon } from './icons';
+import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon, SaveIcon, XIcon } from './icons';
 import { getPretProdus } from '../utils/pricing';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
@@ -58,16 +58,19 @@ const PretForm: React.FC<PretFormProps> = ({ isOpen, onClose, onSave, pretToEdit
 interface ConfigurarePreturiProps { preturi: PretConfig[]; setPreturi: React.Dispatch<React.SetStateAction<PretConfig[]>>; onBack: () => void; sportivi: Sportiv[]; grade: Grad[]; }
 export const ConfigurarePreturi: React.FC<ConfigurarePreturiProps> = ({ preturi, setPreturi, onBack, sportivi, grade }) => {
     const [isFormOpen, setIsFormOpen] = useState(false);
-    const [pretToEdit, setPretToEdit] = useState<PretConfig | null>(null);
+    const [pretToEditForAdd, setPretToEditForAdd] = useState<PretConfig | null>(null);
     const { showError, showSuccess } = useError();
+
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [editingSuma, setEditingSuma] = useState('');
+    const [isSaving, setIsSaving] = useState(false);
 
     const [checkerSportivId, setCheckerSportivId] = useState('');
     const [checkerEchipament, setCheckerEchipament] = useState('');
     const [calculatedPriceInfo, setCalculatedPriceInfo] = useState<{ suma: number; marime: string } | null>(null);
 
-    const handleSave = async (pretData: Omit<PretConfig, 'id'>, pretToEdit: PretConfig | null) => {
+    const handleSaveNew = async (pretData: Omit<PretConfig, 'id'>, pretToEdit: PretConfig | null) => {
         if (!supabase) { showError("Eroare Configurare", "Clientul Supabase nu a putut fi stabilit."); return; }
-
         let tableName: string;
         let dataToSave: any;
         const isTaxaExamen = pretData.categorie === 'Taxa Examen';
@@ -76,41 +79,68 @@ export const ConfigurarePreturi: React.FC<ConfigurarePreturiProps> = ({ preturi,
             tableName = 'grade_preturi_config';
             const grad = grade.find(g => g.nume === pretData.denumire_serviciu);
             if (!grad) { showError("Eroare", `Gradul "${pretData.denumire_serviciu}" nu a fost găsit.`); return; }
-            dataToSave = {
-                grad_id: grad.id,
-                suma: pretData.suma,
-                data_activare: pretData.valabil_de_la_data,
-                is_activ: true // Assume active on creation/update from UI
-            };
+            dataToSave = { grad_id: grad.id, suma: pretData.suma, data_activare: pretData.valabil_de_la_data, is_activ: true };
         } else {
             tableName = 'preturi_config';
             dataToSave = pretData;
         }
 
-        if (pretToEdit) {
-            if (pretToEdit.categorie !== pretData.categorie) {
-                showError("Funcționalitate Limitată", "Schimbarea categoriei unui preț nu este suportată. Ștergeți și adăugați din nou.");
-                return;
-            }
-            const { data, error } = await supabase.from(tableName).update(dataToSave).eq('id', pretToEdit.id).select().single();
-            if (error) { showError("Eroare la actualizare", error); }
-            else if (data) {
-                const updatedPret = isTaxaExamen ? { ...pretData, id: data.id, suma: data.suma, valabil_de_la_data: data.data_activare } : data as PretConfig;
-                setPreturi(prev => prev.map(p => p.id === pretToEdit.id ? updatedPret : p));
-                showSuccess("Succes", "Prețul a fost actualizat.");
-            }
-        } else { // Creare
-            const { data, error } = await supabase.from(tableName).insert(dataToSave).select().single();
-            if (error) { showError("Eroare la salvare", error); }
-            else if (data) {
-                const newPret = isTaxaExamen ? { ...pretData, id: data.id, suma: data.suma, valabil_de_la_data: data.data_activare } : data as PretConfig;
-                setPreturi(prev => [...prev, newPret]);
-                showSuccess("Succes", "Prețul a fost adăugat.");
-            }
+        const { data, error } = await supabase.from(tableName).insert(dataToSave).select().single();
+        if (error) { showError("Eroare la salvare", error); }
+        else if (data) {
+            const newPret = isTaxaExamen ? { ...pretData, id: data.id, suma: data.suma, valabil_de_la_data: data.data_activare } : data as PretConfig;
+            setPreturi(prev => [...prev, newPret]);
+            showSuccess("Succes", "Prețul a fost adăugat.");
         }
     };
-    
-    const handleEdit = (pret: PretConfig) => { setPretToEdit(pret); setIsFormOpen(true); };
+
+    const handleEditClick = (pret: PretConfig) => {
+        setEditingId(pret.id);
+        setEditingSuma(String(pret.suma));
+    };
+
+    const handleCancelEdit = () => {
+        setEditingId(null);
+        setEditingSuma('');
+    };
+
+    const handleSaveEdit = async (originalPret: PretConfig) => {
+        if (!supabase) { showError("Eroare", "Client Supabase neinițializat."); return; }
+        
+        const newSuma = parseFloat(editingSuma);
+        if (isNaN(newSuma) || newSuma < 0) {
+            showError("Valoare invalidă", "Suma trebuie să fie un număr pozitiv.");
+            return;
+        }
+
+        setIsSaving(true);
+        try {
+            if (originalPret.categorie === 'Taxa Examen') {
+                const { error: updateError } = await supabase.from('grade_preturi_config').update({ is_activ: false }).eq('id', originalPret.id);
+                if (updateError) throw updateError;
+
+                const grad = grade.find(g => g.nume === originalPret.denumire_serviciu);
+                if (!grad) throw new Error("Gradul asociat nu a fost găsit.");
+
+                const { data: newPriceData, error: insertError } = await supabase.from('grade_preturi_config').insert({ grad_id: grad.id, suma: newSuma, data_activare: new Date().toISOString().split('T')[0], is_activ: true }).select().single();
+                if (insertError) throw insertError;
+                
+                const newTransformedPrice: PretConfig = { id: newPriceData.id, categorie: 'Taxa Examen', denumire_serviciu: grad.nume, suma: newPriceData.suma, valabil_de_la_data: newPriceData.data_activare };
+                setPreturi(prev => [...prev.filter(p => p.id !== originalPret.id), newTransformedPrice]);
+
+            } else {
+                const { data, error } = await supabase.from('preturi_config').update({ suma: newSuma }).eq('id', originalPret.id).select().single();
+                if (error) throw error;
+                setPreturi(prev => prev.map(p => (p.id === originalPret.id ? { ...p, suma: data.suma } : p)));
+            }
+            showSuccess("Succes", "Prețul a fost actualizat.");
+            handleCancelEdit();
+        } catch (err: any) {
+            showError("Eroare la salvare", err);
+        } finally {
+            setIsSaving(false);
+        }
+    };
     
     const handleDelete = async (id: string) => { 
         if(!supabase) return;
@@ -128,14 +158,8 @@ export const ConfigurarePreturi: React.FC<ConfigurarePreturiProps> = ({ preturi,
         } 
     };
 
-    const sortedPreturi = [...preturi].sort((a, b) => {
-        if (a.denumire_serviciu < b.denumire_serviciu) return -1;
-        if (a.denumire_serviciu > b.denumire_serviciu) return 1;
-        return (a.specificatii?.inaltimeMin || 0) - (b.specificatii?.inaltimeMin || 0);
-    });
-    
     const formatSpecificatii = (s?: PretConfig['specificatii']) => {
-        if (!s) return 'N/A';
+        if (!s || Object.keys(s).length === 0) return 'N/A';
         const parts: string[] = [];
         if (s.inaltimeMin && s.inaltimeMax) parts.push(`${s.inaltimeMin}-${s.inaltimeMax}cm`);
         else if (s.inaltimeMin) parts.push(`> ${s.inaltimeMin}cm`);
@@ -143,31 +167,50 @@ export const ConfigurarePreturi: React.FC<ConfigurarePreturiProps> = ({ preturi,
         return parts.join(', ') || 'Standard';
     };
     
-    const echipamenteDisponibile = useMemo(() => {
-        return [...new Set(preturi.filter(p => p.categorie === 'Echipament').map(p => p.denumire_serviciu))]
-    }, [preturi]);
+    const echipamenteDisponibile = useMemo(() => [...new Set(preturi.filter(p => p.categorie === 'Echipament').map(p => p.denumire_serviciu))], [preturi]);
 
     useEffect(() => {
         if (checkerSportivId && checkerEchipament) {
             const sportiv = sportivi.find(s => s.id === checkerSportivId);
             if (sportiv && sportiv.inaltime) {
                 const pretConfig = getPretProdus(preturi, 'Echipament', checkerEchipament, { inaltime: sportiv.inaltime });
-                if (pretConfig) {
-                    setCalculatedPriceInfo({
-                        suma: pretConfig.suma,
-                        marime: formatSpecificatii(pretConfig.specificatii)
-                    });
-                } else {
-                    setCalculatedPriceInfo(null);
-                }
-            } else {
-                setCalculatedPriceInfo(null);
-            }
-        } else {
-            setCalculatedPriceInfo(null);
-        }
+                setCalculatedPriceInfo(pretConfig ? { suma: pretConfig.suma, marime: formatSpecificatii(pretConfig.specificatii) } : null);
+            } else setCalculatedPriceInfo(null);
+        } else setCalculatedPriceInfo(null);
     }, [checkerSportivId, checkerEchipament, sportivi, preturi]);
+    
+    const sortedTaxeExamen = useMemo(() => preturi.filter(p => p.categorie === 'Taxa Examen').sort((a,b) => (grade.find(g => g.nume === a.denumire_serviciu)?.ordine || 99) - (grade.find(g => g.nume === b.denumire_serviciu)?.ordine || 99)), [preturi, grade]);
+    const sortedAltePreturi = useMemo(() => preturi.filter(p => p.categorie !== 'Taxa Examen').sort((a,b) => a.categorie.localeCompare(b.categorie) || a.denumire_serviciu.localeCompare(b.denumire_serviciu)), [preturi]);
 
+    const renderPriceRow = (pret: PretConfig) => {
+        const isEditing = editingId === pret.id;
+        return (
+            <tr key={pret.id} className="hover:bg-slate-700/50 transition-colors">
+                <td className="p-3 font-medium text-white">{pret.denumire_serviciu}</td>
+                <td className="p-3"><span className="px-2 py-1 text-xs font-semibold rounded-full bg-slate-600 text-slate-300">{pret.categorie}</span></td>
+                <td className="p-3 text-slate-400">{formatSpecificatii(pret.specificatii)}</td>
+                <td className="p-3 font-bold text-brand-secondary w-40">
+                    {isEditing ? ( <Input type="number" value={editingSuma} onChange={e => setEditingSuma(e.target.value)} className="!py-1 w-28 bg-slate-900" autoFocus/> ) : ( `${pret.suma.toFixed(2)}` )}
+                </td>
+                <td className="p-3 text-slate-400">{new Date(pret.valabil_de_la_data).toLocaleDateString('ro-RO')}</td>
+                <td className="p-3 text-right w-32">
+                    <div className="flex items-center justify-end space-x-2">
+                        {isEditing ? (
+                            <>
+                                <Button onClick={() => handleSaveEdit(pret)} variant="success" size="sm" isLoading={isSaving} title="Salvează"><SaveIcon className="w-4 h-4" /></Button>
+                                <Button onClick={handleCancelEdit} variant="secondary" size="sm" title="Anulează"><XIcon className="w-4 h-4" /></Button>
+                            </>
+                        ) : (
+                            <>
+                                <Button onClick={() => handleEditClick(pret)} variant="primary" size="sm" title="Editează"><EditIcon className="w-4 h-4"/></Button>
+                                <Button onClick={() => handleDelete(pret.id)} variant="danger" size="sm" title="Șterge"><TrashIcon className="w-4 h-4"/></Button>
+                            </>
+                        )}
+                    </div>
+                </td>
+            </tr>
+        );
+    };
 
     return ( <div> <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
         <Card className="mb-6">
@@ -176,28 +219,40 @@ export const ConfigurarePreturi: React.FC<ConfigurarePreturiProps> = ({ preturi,
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
                 <Select label="Sportiv" value={checkerSportivId} onChange={e => setCheckerSportivId(e.target.value)}>
                     <option value="">Selectează sportiv...</option>
-                    {sportivi.filter(s => s.status === 'Activ' && s.inaltime).map(s => (
-                        <option key={s.id} value={s.id}>{s.nume} {s.prenume} ({s.inaltime} cm)</option>
-                    ))}
+                    {sportivi.filter(s => s.status === 'Activ' && s.inaltime).map(s => (<option key={s.id} value={s.id}>{s.nume} {s.prenume} ({s.inaltime} cm)</option>))}
                 </Select>
-                    <Select label="Produs Echipament" value={checkerEchipament} onChange={e => setCheckerEchipament(e.target.value)} disabled={!checkerSportivId}>
+                <Select label="Produs Echipament" value={checkerEchipament} onChange={e => setCheckerEchipament(e.target.value)} disabled={!checkerSportivId}>
                     <option value="">Selectează produs...</option>
-                    {echipamenteDisponibile.map(item => (
-                        <option key={item} value={item}>{item}</option>
-                    ))}
+                    {echipamenteDisponibile.map(item => (<option key={item} value={item}>{item}</option>))}
                 </Select>
                 <div className="md:pl-4">
-                    {calculatedPriceInfo ? (
-                        <div>
-                            <p className="text-sm text-slate-400">Preț Calculat:</p>
-                            <p className="text-3xl font-bold text-green-400">{calculatedPriceInfo.suma.toFixed(2)} RON</p>
-                            <p className="text-xs text-slate-400">Regula aplicată: {calculatedPriceInfo.marime}</p>
-                        </div>
-                    ) : (
-                        <p className="text-slate-400 text-sm">{checkerSportivId && checkerEchipament ? "Niciun preț găsit pentru înălțimea sportivului." : "Aștept selecție..."}</p>
-                    )}
+                    {calculatedPriceInfo ? ( <div><p className="text-sm text-slate-400">Preț Calculat:</p><p className="text-3xl font-bold text-green-400">{calculatedPriceInfo.suma.toFixed(2)} RON</p><p className="text-xs text-slate-400">Regula aplicată: {calculatedPriceInfo.marime}</p></div> ) : ( <p className="text-slate-400 text-sm">{checkerSportivId && checkerEchipament ? "Niciun preț găsit pentru înălțimea sportivului." : "Aștept selecție..."}</p> )}
                 </div>
             </div>
         </Card>
-    <div className="flex justify-between items-center mb-6"> <h1 className="text-3xl font-bold text-white">Configurare Prețuri (Taxe, Echipamente, etc.)</h1> <Button onClick={() => { setPretToEdit(null); setIsFormOpen(true); }} variant="info"><PlusIcon className="w-5 h-5 mr-2" />Adaugă Preț</Button> </div> <div className="bg-slate-800 rounded-lg shadow-lg overflow-x-auto"> <table className="w-full text-left min-w-[800px]"> <thead className="bg-slate-700"><tr><th className="p-4 font-semibold">Denumire Serviciu</th><th className="p-4 font-semibold">Categorie</th><th className="p-4 font-semibold">Specificații (Mărime/Înălțime)</th><th className="p-4 font-semibold">Sumă</th><th className="p-4 font-semibold">Valabil De La</th><th className="p-4 font-semibold text-right">Acțiuni</th></tr></thead> <tbody className="divide-y divide-slate-700"> {sortedPreturi.map(pret => ( <tr key={pret.id}> <td className="p-4 font-medium">{pret.denumire_serviciu}</td> <td className="p-4"><span className="px-2 py-1 text-xs font-semibold rounded-full bg-slate-600">{pret.categorie}</span></td> <td className="p-4">{formatSpecificatii(pret.specificatii)}</td> <td className="p-4 font-bold">{pret.suma.toFixed(2)} RON</td> <td className="p-4">{new Date(pret.valabil_de_la_data).toLocaleDateString('ro-RO')}</td> <td className="p-4 text-right w-32"><div className="flex items-center justify-end space-x-2"><Button onClick={() => handleEdit(pret)} variant="primary" size="sm"><EditIcon /></Button><Button onClick={() => handleDelete(pret.id)} variant="danger" size="sm"><TrashIcon /></Button></div></td> </tr> ))} </tbody> </table> {sortedPreturi.length === 0 && <p className="p-4 text-center text-slate-400">Niciun preț configurat.</p>} </div> <PretForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} onSave={handleSave} pretToEdit={pretToEdit} grade={grade} /> </div> );
+    <div className="flex justify-between items-center mb-6"> <h1 className="text-3xl font-bold text-white">Configurare Prețuri</h1> <Button onClick={() => { setPretToEditForAdd(null); setIsFormOpen(true); }} variant="info"><PlusIcon className="w-5 h-5 mr-2" />Adaugă Preț</Button> </div> 
+    <div className="bg-slate-800 rounded-lg shadow-lg overflow-x-auto">
+        <table className="w-full text-left min-w-[800px] text-sm">
+            <thead className="bg-slate-700 text-xs uppercase text-slate-400">
+                <tr>
+                    <th className="p-3 font-semibold">Denumire Serviciu</th>
+                    <th className="p-3 font-semibold">Categorie</th>
+                    <th className="p-3 font-semibold">Specificații</th>
+                    <th className="p-3 font-semibold">Sumă (RON)</th>
+                    <th className="p-3 font-semibold">Valabil De La</th>
+                    <th className="p-3 font-semibold text-right">Acțiuni</th>
+                </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-700">
+                {sortedTaxeExamen.map(renderPriceRow)}
+                {sortedTaxeExamen.length > 0 && sortedAltePreturi.length > 0 && (
+                    <tr className="bg-slate-800/70"><td colSpan={6} className="py-2 px-3 text-xs font-bold text-slate-300 uppercase tracking-wider">Alte Categorii de Prețuri</td></tr>
+                )}
+                {sortedAltePreturi.map(renderPriceRow)}
+                {(sortedTaxeExamen.length === 0 && sortedAltePreturi.length === 0) && <tr><td colSpan={6}><p className="p-4 text-center text-slate-400">Niciun preț configurat.</p></td></tr>}
+            </tbody>
+        </table>
+    </div>
+    <PretForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} onSave={handleSaveNew} pretToEdit={pretToEditForAdd} grade={grade} /> 
+    </div> );
 };

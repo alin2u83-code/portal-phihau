@@ -3,7 +3,7 @@ import {
   Plus, Trash2, FilePenLine, ArrowLeft, Users, CalendarDays, Trophy,
   ClipboardList, Landmark, Settings, ShieldCheck, LayoutDashboard, UserCircle,
   LogOut, Menu, Wallet, BarChart3, Archive, FileDown, ChevronDown, X,
-  ClipboardCheck, MessageCircleQuestion
+  ClipboardCheck, MessageCircleQuestion, Save
 } from 'lucide-react';
 
 export const PlusIcon = Plus;
@@ -30,3 +30,4 @@ export const XIcon = X;
 export const ClipboardCheckIcon = ClipboardCheck;
 export const ClipboardDocumentListIcon = ClipboardList; 
 export const ChatBubbleLeftEllipsisIcon = MessageCircleQuestion;
+export const SaveIcon = Save;

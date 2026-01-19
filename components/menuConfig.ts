@@ -55,7 +55,7 @@ export const adminMenu: MenuItem[] = [
             { view: 'jurnal-incasari', label: 'Jurnal Încasări' }, 
             { view: 'raport-financiar', label: 'Raport Financiar' },
             { view: 'tipuri-abonament', label: 'Config. Abonamente' }, 
-            { view: 'configurare-preturi', label: 'Config. Prețuri' },
+            { view: 'configurare-preturi', label: 'Config. Prețuri', roles: ['Admin', 'Instructor'] },
             { view: 'reduceri', label: 'Config. Reduceri' },
             { view: 'notificari', label: 'Trimite Anunțuri' }
         ] 

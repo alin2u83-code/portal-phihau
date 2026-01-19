@@ -79,6 +79,30 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
     const [isMobileOpen, setIsMobileOpen] = useState(false);
     
     const menu = isPortalView ? sportivMenu : adminMenu;
+    const userRoles = useMemo(() => new Set(currentUser.roluri.map(r => r.nume)), [currentUser.roluri]);
+
+    const filteredMenu = useMemo(() => {
+        return menu.map(item => {
+            if (item.roles && !item.roles.some(role => userRoles.has(role))) {
+                return null;
+            }
+
+            if (item.submenu) {
+                const filteredSubmenu = item.submenu.filter(subItem => 
+                    !subItem.roles || subItem.roles.some(role => userRoles.has(role))
+                );
+
+                if (filteredSubmenu.length === 0 && !item.view) {
+                    return null;
+                }
+
+                return { ...item, submenu: filteredSubmenu };
+            }
+
+            return item;
+        }).filter((item): item is MenuItem => item !== null);
+    }, [menu, userRoles]);
+
 
     const handleNavigate = (view: View) => {
         onNavigate(view);
@@ -92,7 +116,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
             </div>
             
             <nav className="flex-1 px-3 py-4 space-y-2 overflow-y-auto">
-                {menu.map(item => {
+                {filteredMenu.map(item => {
                      const isActive = item.view === activeView || (item.submenu?.some(s => s.view === activeView) ?? false);
                      return <NavItem key={item.label} item={item} isExpanded={isExpanded} isActive={isActive} onNavigate={handleNavigate} activeView={activeView} />
                 })}

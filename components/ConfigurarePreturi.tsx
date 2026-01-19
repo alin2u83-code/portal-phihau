@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
 import { ArrowLeftIcon } from './icons';
 import { Button } from './ui';
+import { Grad } from '../types';
 
 // Simple interface for the raw data
 interface RawGradePrice {
@@ -12,43 +13,84 @@ interface RawGradePrice {
     is_activ: boolean;
 }
 
-// Keep the props simple, only need onBack for navigation
+// Update props to accept grades
 interface ConfigurarePreturiTestProps {
+    grade: Grad[];
     onBack: () => void;
 }
 
-export const ConfigurarePreturi: React.FC<ConfigurarePreturiTestProps> = ({ onBack }) => {
+export const ConfigurarePreturi: React.FC<ConfigurarePreturiTestProps> = ({ grade, onBack }) => {
     const [data, setData] = useState<RawGradePrice[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<Error | null>(null);
+    const [isInitializing, setIsInitializing] = useState(false);
+
+    const fetchData = useCallback(async () => {
+        if (!supabase) {
+            setError(new Error("Clientul Supabase nu a putut fi stabilit."));
+            setLoading(false);
+            return;
+        }
+
+        setLoading(true);
+        setError(null);
+
+        const { data: fetchedData, error: fetchError } = await supabase
+            .from('grade_preturi_config')
+            .select('*');
+
+        if (fetchError) {
+            setError(fetchError);
+        } else {
+            setData(fetchedData || []);
+        }
+
+        setLoading(false);
+    }, []);
 
     useEffect(() => {
-        const fetchData = async () => {
-            if (!supabase) {
-                setError(new Error("Clientul Supabase nu a putut fi stabilit."));
-                setLoading(false);
-                return;
-            }
-
-            setLoading(true);
-            setError(null);
-
-            // Simple select as requested
-            const { data: fetchedData, error: fetchError } = await supabase
-                .from('grade_preturi_config') // Assuming the user meant grade_preturi_config
-                .select('*');
-
-            if (fetchError) {
-                setError(fetchError);
-            } else {
-                setData(fetchedData || []);
-            }
-
-            setLoading(false);
-        };
-
+        // As requested by user
+        console.log('Tabelul `grade` primit ca prop:', grade);
         fetchData();
-    }, []);
+    }, [grade, fetchData]);
+    
+    const handleInitializePrices = async () => {
+        if (!supabase) {
+            alert("Client Supabase neconfigurat.");
+            return;
+        }
+
+        setIsInitializing(true);
+        
+        const gradesToPrice = grade.filter(g => g.ordine >= 2 && g.ordine <= 18);
+
+        if (gradesToPrice.length === 0) {
+            alert('Nu s-au găsit grade eligibile (ordine între 2 și 18) pentru inițializare.');
+            setIsInitializing(false);
+            return;
+        }
+
+        const newPricesToInsert = gradesToPrice.map(g => ({
+            grad_id: g.id,
+            suma: 100,
+            data_activare: new Date().toISOString(),
+            is_activ: true
+        }));
+        
+        // The user specified 'grade_preturi' but context implies 'grade_preturi_config'
+        const { error: insertError } = await supabase
+            .from('grade_preturi_config')
+            .insert(newPricesToInsert);
+
+        if (insertError) {
+            alert(`EROARE LA INSERARE: ${insertError.message}`);
+        } else {
+            // Refresh data
+            await fetchData();
+        }
+
+        setIsInitializing(false);
+    };
 
     if (loading) {
         return <div>Se încarcă datele de test...</div>;
@@ -59,7 +101,20 @@ export const ConfigurarePreturi: React.FC<ConfigurarePreturiTestProps> = ({ onBa
     }
 
     if (data.length === 0) {
-        return <h1>TABELUL ESTE GOL</h1>;
+        return (
+            <div className="text-center p-8">
+                <h1 className="text-2xl font-bold mb-4 text-white">TABELUL DE PREȚURI PENTRU GRADE ESTE GOL</h1>
+                <p className="text-slate-400 mb-8">Nicio configurație de preț pentru examene nu a fost găsită.</p>
+                <Button 
+                    onClick={handleInitializePrices}
+                    isLoading={isInitializing}
+                    variant="success"
+                    className="px-8 py-4 text-lg"
+                >
+                    Inițializează Prețuri Standard (100 RON)
+                </Button>
+            </div>
+        );
     }
 
     // If data exists, render a simple table to show it

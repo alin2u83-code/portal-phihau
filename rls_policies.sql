@@ -175,9 +175,6 @@ CREATE POLICY "Authenticated users can read notifications" ON public.notificari
 -- Tabele Publice / de Configurare (Read-Only pentru majoritatea)
 -- =================================================================
 
--- O politică standard pentru tabelele pe care toți utilizatorii autentificați
--- le pot citi, dar doar adminii le pot modifica.
-
 -- -----------------------------------------------------------------
 -- Tabel: examene
 -- -----------------------------------------------------------------
@@ -203,81 +200,82 @@ CREATE POLICY "Users can see relevant exams" ON public.examene
 -- -----------------------------------------------------------------
 ALTER TABLE public.grade ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage grades" ON public.grade;
-CREATE POLICY "Admins can manage grades" ON public.grade FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
 DROP POLICY IF EXISTS "Authenticated users can see grades" ON public.grade;
 CREATE POLICY "Authenticated users can see grades" ON public.grade FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "Admins can manage grades" ON public.grade FOR INSERT, UPDATE, DELETE USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
 
 -- -----------------------------------------------------------------
 -- Tabel: grupe
 -- -----------------------------------------------------------------
 ALTER TABLE public.grupe ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage groups" ON public.grupe;
-CREATE POLICY "Admins can manage groups" ON public.grupe FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
 DROP POLICY IF EXISTS "Authenticated users can see groups" ON public.grupe;
 CREATE POLICY "Authenticated users can see groups" ON public.grupe FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "Admins can manage groups" ON public.grupe FOR INSERT, UPDATE, DELETE USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
 
 -- -----------------------------------------------------------------
 -- Tabel: program_antrenamente
 -- -----------------------------------------------------------------
 ALTER TABLE public.program_antrenamente ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage training schedules" ON public.program_antrenamente;
-CREATE POLICY "Admins can manage training schedules" ON public.program_antrenamente FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
 DROP POLICY IF EXISTS "Authenticated users can see training schedules" ON public.program_antrenamente;
 CREATE POLICY "Authenticated users can see training schedules" ON public.program_antrenamente FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "Admins can manage training schedules" ON public.program_antrenamente FOR INSERT, UPDATE, DELETE USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
 
 -- -----------------------------------------------------------------
 -- Tabel: evenimente (Stagii, Competiții)
 -- -----------------------------------------------------------------
 ALTER TABLE public.evenimente ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage events" ON public.evenimente;
-CREATE POLICY "Admins can manage events" ON public.evenimente FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
 DROP POLICY IF EXISTS "Authenticated users can see events" ON public.evenimente;
 CREATE POLICY "Authenticated users can see events" ON public.evenimente FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "Admins can manage events" ON public.evenimente FOR INSERT, UPDATE, DELETE USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
 
 -- -----------------------------------------------------------------
 -- Tabel: preturi_config
 -- -----------------------------------------------------------------
 ALTER TABLE public.preturi_config ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage price configs" ON public.preturi_config;
-CREATE POLICY "Admins can manage price configs" ON public.preturi_config FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
 DROP POLICY IF EXISTS "Authenticated users can see price configs" ON public.preturi_config;
 CREATE POLICY "Authenticated users can see price configs" ON public.preturi_config FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "Admins can manage price configs" ON public.preturi_config FOR INSERT, UPDATE, DELETE USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
 
 -- -----------------------------------------------------------------
 -- Tabel: grade_preturi_config
 -- -----------------------------------------------------------------
 ALTER TABLE public.grade_preturi_config ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage grade price configs" ON public.grade_preturi_config;
-CREATE POLICY "Admins can manage grade price configs" ON public.grade_preturi_config FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
 DROP POLICY IF EXISTS "Authenticated users can see grade price configs" ON public.grade_preturi_config;
 CREATE POLICY "Authenticated users can see grade price configs" ON public.grade_preturi_config FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "Admins can manage grade price configs" ON public.grade_preturi_config FOR INSERT, UPDATE, DELETE USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
 
 -- -----------------------------------------------------------------
 -- Tabel: tipuri_abonament
 -- -----------------------------------------------------------------
 ALTER TABLE public.tipuri_abonament ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage subscription types" ON public.tipuri_abonament;
-CREATE POLICY "Admins can manage subscription types" ON public.tipuri_abonament FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
 DROP POLICY IF EXISTS "Authenticated users can see subscription types" ON public.tipuri_abonament;
 CREATE POLICY "Authenticated users can see subscription types" ON public.tipuri_abonament FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "Admins can manage subscription types" ON public.tipuri_abonament FOR INSERT, UPDATE, DELETE USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
 
 -- -----------------------------------------------------------------
 -- Tabel: reduceri
 -- -----------------------------------------------------------------
 ALTER TABLE public.reduceri ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage discounts" ON public.reduceri;
-CREATE POLICY "Admins can manage discounts" ON public.reduceri FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
 DROP POLICY IF EXISTS "Authenticated users can see discounts" ON public.reduceri;
 CREATE POLICY "Authenticated users can see discounts" ON public.reduceri FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "Admins can manage discounts" ON public.reduceri FOR INSERT, UPDATE, DELETE USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
 
 -- -----------------------------------------------------------------
 -- Tabel: roluri
 -- -----------------------------------------------------------------
 ALTER TABLE public.roluri ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage roles" ON public.roluri;
-CREATE POLICY "Admins can manage roles" ON public.roluri FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
 DROP POLICY IF EXISTS "Authenticated users can see roles" ON public.roluri;
 CREATE POLICY "Authenticated users can see roles" ON public.roluri FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "Admins can manage roles" ON public.roluri FOR INSERT, UPDATE, DELETE USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+
 
 -- -----------------------------------------------------------------
 -- Tabel: taxe_anuale_config
@@ -295,12 +293,16 @@ CREATE TABLE IF NOT EXISTS public.taxe_anuale_config (
 ALTER TABLE public.taxe_anuale_config ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Admins can manage annual fees" ON public.taxe_anuale_config;
-CREATE POLICY "Admins can manage annual fees" ON public.taxe_anuale_config
-    FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
-
 DROP POLICY IF EXISTS "Authenticated users can see annual fees" ON public.taxe_anuale_config;
-CREATE POLICY "Authenticated users can see annual fees" ON public.taxe_anuale_config
+DROP POLICY IF EXISTS "Authenticated users can read annual fees config" ON public.taxe_anuale_config;
+DROP POLICY IF EXISTS "Admins can manage annual fees config" ON public.taxe_anuale_config;
+
+CREATE POLICY "Authenticated users can read annual fees config" ON public.taxe_anuale_config
     FOR SELECT USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Admins can manage annual fees config" ON public.taxe_anuale_config
+    FOR INSERT, UPDATE, DELETE USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+
 
 -- =================================================================
 -- Schema Cleanup (Eliminare Coloane Neutilizate)

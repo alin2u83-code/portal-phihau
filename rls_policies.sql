@@ -279,6 +279,30 @@ CREATE POLICY "Admins can manage roles" ON public.roluri FOR ALL USING (public.i
 DROP POLICY IF EXISTS "Authenticated users can see roles" ON public.roluri;
 CREATE POLICY "Authenticated users can see roles" ON public.roluri FOR SELECT USING (auth.role() = 'authenticated');
 
+-- -----------------------------------------------------------------
+-- Tabel: taxe_anuale_config
+-- -----------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.taxe_anuale_config (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    created_at timestamp with time zone NOT NULL DEFAULT now(),
+    nume text NOT NULL,
+    suma numeric NOT NULL,
+    valabilitate_start date,
+    valabilitate_end date,
+    descriere_perioada text
+);
+
+ALTER TABLE public.taxe_anuale_config ADD CONSTRAINT taxe_anuale_config_pkey PRIMARY KEY (id);
+ALTER TABLE public.taxe_anuale_config ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Admins can manage annual fees" ON public.taxe_anuale_config;
+CREATE POLICY "Admins can manage annual fees" ON public.taxe_anuale_config
+    FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+
+DROP POLICY IF EXISTS "Authenticated users can see annual fees" ON public.taxe_anuale_config;
+CREATE POLICY "Authenticated users can see annual fees" ON public.taxe_anuale_config
+    FOR SELECT USING (auth.role() = 'authenticated');
+
 -- =================================================================
 -- Schema Cleanup (Eliminare Coloane Neutilizate)
 -- =================================================================

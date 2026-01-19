@@ -193,11 +193,7 @@ export const ConfigurarePreturi: React.FC<ConfigurarePreturiProps> = ({ grade, o
         return <div className="text-center p-8">Se încarcă configurația de prețuri...</div>;
     }
 
-    if (error) {
-        return <div className="text-center p-8 text-red-400">EROARE: {error}</div>;
-    }
-
-    if (prices.length === 0) {
+    if (prices.length === 0 && !error) {
         return (
             <div className="text-center p-8">
                 <h1 className="text-2xl font-bold mb-4 text-white">TABELUL DE PREȚURI PENTRU GRADE ESTE GOL</h1>
@@ -214,6 +210,12 @@ export const ConfigurarePreturi: React.FC<ConfigurarePreturiProps> = ({ grade, o
             <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
             <h1 className="text-3xl font-bold text-white">Configurare Prețuri Grade</h1>
             
+            {error && (
+                <div className="p-3 mb-4 text-center font-semibold text-white bg-red-600/50 border border-red-500 rounded-lg">
+                    EROARE: {error}
+                </div>
+            )}
+            
             <Card className="p-0 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left min-w-[600px]">
@@ -226,8 +228,10 @@ export const ConfigurarePreturi: React.FC<ConfigurarePreturiProps> = ({ grade, o
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-700">
-                            {activePrices.map(price => (
-                                <tr key={price.id}>
+                            {activePrices.map(price => {
+                                const isBlueBelt = price.gradOrdine >= 15 && price.gradOrdine <= 18;
+                                return (
+                                <tr key={price.id} className={isBlueBelt ? 'bg-sky-900/40 hover:bg-sky-900/60' : 'hover:bg-slate-700/20'}>
                                     <td className="p-3 font-semibold">{price.gradNume}</td>
                                     <td className="p-3 text-center font-bold text-brand-secondary">{price.suma.toFixed(2)}</td>
                                     <td className="p-3 text-center text-slate-400">{new Date(price.data_activare).toLocaleDateString('ro-RO')}</td>
@@ -237,7 +241,7 @@ export const ConfigurarePreturi: React.FC<ConfigurarePreturiProps> = ({ grade, o
                                         </Button>
                                     </td>
                                 </tr>
-                            ))}
+                            )})}
                         </tbody>
                     </table>
                 </div>

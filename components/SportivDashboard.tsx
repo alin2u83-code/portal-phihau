@@ -73,7 +73,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
     
     const admittedParticipations = useMemo(() => {
         return participari.filter(p => p.sportiv_id === viewedUser.id && p.rezultat === 'Admis')
-            .map(p => ({ ...p, grad: getGrad(p.grad_sustinut_id, grade), examen: examene.find(e => e.id === p.examen_id) }))
+            .map(p => ({ ...p, grad: getGrad(p.grad_sustinut_id, grade), examen: examene.find(e => e.id === p.sesiune_id) }))
             .sort((a, b) => new Date(b.examen?.data || 0).getTime() - new Date(a.examen?.data || 0).getTime());
     }, [participari, viewedUser.id, grade, examene]);
 
@@ -137,7 +137,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
             
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <Card className="lg:col-span-1 space-y-3">
-                     <h3 className="text-xl font-bold mb-2" style={{color: '#3D3D99'}}>Detalii Sportiv</h3>
+                     <h3 className="text-xl font-bold mb-2 text-brand-secondary">Detalii Sportiv</h3>
                      <DataField label="CNP" value={viewedUser.cnp} />
                      <DataField label="Data Nașterii" value={new Date(viewedUser.data_nasterii).toLocaleDateString('ro-RO')} />
                      <DataField label="Data Înscrierii" value={new Date(viewedUser.data_inscrierii).toLocaleDateString('ro-RO')} />
@@ -145,7 +145,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                 </Card>
                 
                 <Card className="lg:col-span-2 space-y-3">
-                    <h3 className="text-xl font-bold mb-2" style={{color: '#3D3D99'}}>Evoluție Tehnică & Financiar</h3>
+                    <h3 className="text-xl font-bold mb-2 text-brand-secondary">Evoluție Tehnică & Financiar</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <DataField label="Abonament Curent" value={abonamentCurent?.denumire || 'N/A'} />
                         <div>
@@ -162,7 +162,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                             <thead className="bg-slate-700/50"><tr><th className="p-2">Data</th><th className="p-2">Grad</th><th className="p-2">Observații</th></tr></thead>
                             <tbody className="divide-y divide-slate-700">{admittedParticipations.map(p => (
                                 <tr key={p.id}>
-                                    <td className="p-2">{p.examen?.data}</td>
+                                    <td className="p-2">{p.examen?.data ? new Date(p.examen.data + 'T00:00:00').toLocaleDateString('ro-RO') : 'N/A'}</td>
                                     <td className="p-2 font-semibold">{p.grad?.nume}</td>
                                     <td className="p-2 text-slate-400">{p.observatii || '-'}</td>
                                 </tr>
@@ -172,7 +172,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                 </Card>
 
                 <Card className="lg:col-span-3 bg-gradient-to-br from-slate-800/60 to-brand-primary/20">
-                    <h3 className="text-xl font-bold mb-4" style={{color: '#3D3D99'}}>Raport Detaliat Antrenamente</h3>
+                    <h3 className="text-xl font-bold mb-4 text-brand-secondary">Raport Detaliat Antrenamente</h3>
                     <div className="flex gap-2 mb-4">
                         <Button variant={periodFilter === 'current_month' ? 'primary' : 'secondary'} size="sm" onClick={() => setPeriodFilter('current_month')}>Luna Curentă</Button>
                         <Button variant={periodFilter === 'current_year' ? 'primary' : 'secondary'} size="sm" onClick={() => setPeriodFilter('current_year')}>Anul Curent</Button>

@@ -276,7 +276,6 @@ function App() {
         currentUser: currentUser,
         viewedUser: userToView,
         onSwitchView: () => {}, // Simplificat, comutarea se face prin meniu
-// FIX: Pass 'participari' and 'examene' props instead of 'inscrieriExamene' and 'sesiuniExamene' to match component expectations.
         participari: inscrieriExamene,
         examene: sesiuniExamene,
         grade: grade,
@@ -303,7 +302,6 @@ function App() {
       switch (activeView) {
         case 'evenimentele-mele': return <EvenimenteleMele viewedUser={currentUser} evenimente={evenimente} rezultate={rezultate} setRezultate={setRezultate} onBack={() => setActiveView(isAdmin ? 'my-portal' : 'dashboard')} />;
         case 'editare-profil-personal': return <EditareProfilPersonal user={currentUser} setSportivi={setSportivi} setCurrentUser={setCurrentUser} onBack={() => setActiveView(isAdmin ? 'my-portal' : 'dashboard')} />;
-// FIX: Pass 'participari' and 'examene' props instead of 'inscrieriExamene' and 'sesiuniExamene' to match component expectations.
         case 'profil-sportiv': return <ProfilSportiv currentUser={currentUser} plati={plati} tranzactii={tranzactii} grade={grade} grupe={grupe} participari={inscrieriExamene} examene={sesiuniExamene} onBack={() => setActiveView(isAdmin ? 'my-portal' : 'dashboard')} reduceri={reduceri} />;
         case 'my-portal':
         default: return <SportivDashboard {...commonProps} />;
@@ -318,7 +316,6 @@ function App() {
             <UserProfile 
                 sportiv={viewedSportiv}
                 currentUser={currentUser}
-// FIX: Pass 'participari' and 'examene' props instead of 'inscrieriExamene' and 'sesiuniExamene' to match component expectations.
                 participari={inscrieriExamene}
                 examene={sesiuniExamene}
                 grade={grade}
@@ -343,12 +340,10 @@ function App() {
       case 'prezenta': return <PrezentaManagement sportivi={sportivi} setSportivi={setSportivi} antrenamente={antrenamente} setAntrenamente={setAntrenamente} grupe={grupe} onBack={() => setActiveView('dashboard')} setPlati={setPlati} tipuriAbonament={tipuriAbonament} anunturi={anunturi}/>;
       case 'grupe': return <GrupeManagement grupe={grupe} setGrupe={setGrupe} onBack={() => setActiveView('dashboard')} />;
       case 'raport-prezenta': return <RaportPrezenta antrenamente={antrenamente} sportivi={sportivi} grupe={grupe} onBack={() => setActiveView('dashboard')} />;
-// FIX: Pass 'participari' and 'examene' props instead of 'inscrieriExamene' and 'sesiuniExamene' to match component expectations.
       case 'stagii': return <StagiiCompetitiiManagement type="Stagiu" evenimente={evenimente} setEvenimente={setEvenimente} rezultate={rezultate} setRezultate={setRezultate} sportivi={sportivi} setPlati={setPlati} preturiConfig={preturiConfig} participari={inscrieriExamene} examene={sesiuniExamene} grade={grade} onBack={() => setActiveView('dashboard')} />;
-// FIX: Pass 'participari' and 'examene' props instead of 'inscrieriExamene' and 'sesiuniExamene' to match component expectations.
       case 'competitii': return <StagiiCompetitiiManagement type="Competitie" evenimente={evenimente} setEvenimente={setEvenimente} rezultate={rezultate} setRezultate={setRezultate} sportivi={sportivi} setPlati={setPlati} preturiConfig={preturiConfig} participari={inscrieriExamene} examene={sesiuniExamene} grade={grade} onBack={() => setActiveView('dashboard')} />;
       case 'plati-scadente': return <PlatiScadente plati={plati} setPlati={setPlati} sportivi={sportivi} familii={familii} tipuriAbonament={tipuriAbonament} tranzactii={tranzactii} reduceri={reduceri} onIncaseazaMultiple={(plist) => { setSelectedPlatiForIncasare(plist); setActiveView('jurnal-incasari'); }} onBack={() => setActiveView('dashboard')} />;
-      case 'jurnal-incasari': return <JurnalIncasari plati={plati} setPlati={setPlati} sportivi={sportivi} familii={familii} preturiConfig={preturiConfig} tipuriAbonament={tipuriAbonament} tipuriPlati={tipuriPlati} setTipuriPlati={setTipuriPlati} tranzactii={tranzactii} setTranzactii={setTranzactii} reduceri={reduceri} platiInitiale={selectedPlatiForIncasare} onIncasareProcesata={() => { setSelectedPlatiForIncasare([]); fetchData(currentUser); }} onBack={() => setActiveView('plati-scadente')} />;
+      case 'jurnal-incasari': return <JurnalIncasari currentUser={currentUser} plati={plati} setPlati={setPlati} sportivi={sportivi} familii={familii} preturiConfig={preturiConfig} tipuriAbonament={tipuriAbonament} tipuriPlati={tipuriPlati} setTipuriPlati={setTipuriPlati} tranzactii={tranzactii} setTranzactii={setTranzactii} reduceri={reduceri} platiInitiale={selectedPlatiForIncasare} onIncasareProcesata={() => { setSelectedPlatiForIncasare([]); fetchData(currentUser); }} onBack={() => setActiveView('plati-scadente')} />;
       case 'configurare-preturi': return <ConfigurarePreturi grade={grade} onBack={() => setActiveView('dashboard')} />;
       case 'taxe-anuale': return <TaxeAnuale onBack={() => setActiveView('dashboard')} currentUser={currentUser} sportivi={sportivi} plati={plati} setPlati={setPlati} />;
       case 'tipuri-abonament': return <TipuriAbonamentManagement tipuriAbonament={tipuriAbonament} setTipuriAbonament={setTipuriAbonament} onBack={() => setActiveView('dashboard')} />;
@@ -364,7 +359,6 @@ function App() {
           setSportivi={setSportivi}
           grade={grade}
           preturiConfig={preturiConfig}
-// FIX: Pass 'participari' and 'examene' props instead of 'inscrieriExamene' and 'sesiuniExamene' to match component expectations.
           participari={inscrieriExamene}
           examene={sesiuniExamene}
           plati={plati}
@@ -392,7 +386,6 @@ function App() {
       <Sidebar currentUser={currentUser!} onNavigate={setActiveView} onLogout={handleLogout} activeView={activeView} isExpanded={isSidebarExpanded} setIsExpanded={setIsSidebarExpanded} isPortalView={!isAdmin || isMyPortalView} plati={plati} />
       <div className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'}`}>
          {isAdmin && !isMyPortalView && (
-// Fix: Changed 'onLogout' to 'handleLogout' to correctly pass the logout handler function.
             <AdminHeader currentUser={currentUser!} onNavigate={setActiveView} onLogout={handleLogout} plati={plati} />
           )}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">

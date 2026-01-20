@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
 import { Grad } from '../types';
-import { Button, Card, Input, Modal } from './ui';
-import { ArrowLeftIcon, EditIcon, SaveIcon } from './icons';
+import { Button, Card, Input } from './ui';
+import { ArrowLeftIcon, EditIcon, SaveIcon, XIcon } from './icons';
 import { useError } from './ErrorProvider';
 
 interface RawGradePrice {
@@ -23,65 +23,13 @@ interface ConfigurarePreturiProps {
     onBack: () => void;
 }
 
-const EditPriceModal: React.FC<{
-    priceData: DisplayPriceData | null;
-    onClose: () => void;
-    onSave: (oldPrice: RawGradePrice, newSuma: number) => Promise<void>;
-}> = ({ priceData, onClose, onSave }) => {
-    const [newSuma, setNewSuma] = useState<string>('');
-    const [loading, setLoading] = useState(false);
-
-    useEffect(() => {
-        if (priceData) {
-            setNewSuma(String(priceData.suma));
-        }
-    }, [priceData]);
-
-    const handleSave = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!priceData) return;
-        const sumaNum = parseFloat(newSuma);
-        if (isNaN(sumaNum) || sumaNum <= 0) {
-            alert('Suma trebuie să fie un număr pozitiv.');
-            return;
-        }
-
-        setLoading(true);
-        await onSave(priceData, sumaNum);
-        setLoading(false);
-    };
-
-    if (!priceData) return null;
-
-    return (
-        <Modal isOpen={true} onClose={onClose} title={`Editează Preț - ${priceData.gradNume}`}>
-            <form onSubmit={handleSave} className="space-y-4" style={{fontSize: '13px'}}>
-                <p className="text-sm text-slate-400">
-                    Modificarea prețului va dezactiva intrarea curentă și va crea una nouă cu valoarea actualizată, păstrând istoricul.
-                </p>
-                <Input
-                    label={`Preț nou pentru ${priceData.gradNume} (RON)`}
-                    type="number"
-                    step="1"
-                    value={newSuma}
-                    onChange={(e) => setNewSuma(e.target.value)}
-                    required
-                />
-                <div className="flex justify-end pt-4 space-x-2 border-t border-slate-700">
-                    <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button>
-                    <Button type="submit" variant="success" isLoading={loading}><SaveIcon className="w-4 h-4 mr-2" /> Salvează</Button>
-                </div>
-            </form>
-        </Modal>
-    );
-};
-
-
 export const ConfigurarePreturi: React.FC<ConfigurarePreturiProps> = ({ grade, onBack }) => {
     const [prices, setPrices] = useState<RawGradePrice[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [editingPrice, setEditingPrice] = useState<DisplayPriceData | null>(null);
+    const [editingRowId, setEditingRowId] = useState<string | null>(null);
+    const [editSuma, setEditSuma] = useState<string | number>('');
+
     const { showError, showSuccess } = useError();
 
     const fetchPrices = useCallback(async () => {
@@ -111,9 +59,9 @@ export const ConfigurarePreturi: React.FC<ConfigurarePreturiProps> = ({ grade, o
         if (!supabase) return;
         setLoading(true);
 
-        const gradesToPrice = grade.filter(g => g.ordine >= 2 && g.ordine <= 18);
+        const gradesToPrice = grade.filter(g => g.ordine >= 1 && g.ordine <= 18);
         if (gradesToPrice.length === 0) {
-            showError('Date Lipsă', 'Nu s-au găsit grade eligibile (ordine între 2 și 18) pentru inițializare.');
+            showError('Date Lipsă', 'Nu s-au găsit grade eligibile (ordine între 1 și 18) pentru inițializare.');
             setLoading(false);
             return;
         }
@@ -136,20 +84,39 @@ export const ConfigurarePreturi: React.FC<ConfigurarePreturiProps> = ({ grade, o
         setLoading(false);
     };
 
-    const handleSave = async (oldPrice: RawGradePrice, newSuma: number) => {
+    const handleEditClick = (price: DisplayPriceData) => {
+        setEditingRowId(price.id);
+        setEditSuma(price.suma);
+    };
+
+    const handleCancelClick = () => {
+        setEditingRowId(null);
+        setEditSuma('');
+    };
+
+    const handleSaveClick = async (oldPrice: RawGradePrice) => {
         if (!supabase) return;
+
+        const sumaNum = parseFloat(String(editSuma));
+        if (isNaN(sumaNum) || sumaNum <= 0) {
+            showError('Valoare Invalidă', 'Suma trebuie să fie un număr pozitiv.');
+            return;
+        }
+
+        setLoading(true);
 
         // Pas 1: Dezactivează prețul vechi
         const { error: updateError } = await supabase.from('grade_preturi_config').update({ is_activ: false }).eq('id', oldPrice.id);
         if (updateError) {
             showError("Eroare la dezactivarea prețului vechi", updateError);
+            setLoading(false);
             return;
         }
 
         // Pas 2: Inserează prețul nou
         const newPriceRecord = {
             grad_id: oldPrice.grad_id,
-            suma: newSuma,
+            suma: sumaNum,
             data_activare: new Date().toISOString().split('T')[0],
             is_activ: true
         };
@@ -157,19 +124,18 @@ export const ConfigurarePreturi: React.FC<ConfigurarePreturiProps> = ({ grade, o
         
         if (insertError) {
             showError("Eroare critică la salvare", "Prețul nou nu a putut fi salvat. Se încearcă reactivarea prețului vechi...");
-            // Rollback attempt
             await supabase.from('grade_preturi_config').update({ is_activ: true }).eq('id', oldPrice.id);
+            setLoading(false);
             return;
         }
 
         showSuccess("Succes", "Prețul a fost actualizat.");
-        setEditingPrice(null);
-        await fetchPrices(); // Reîmprospătează datele
+        setEditingRowId(null);
+        await fetchPrices();
     };
     
     const activePrices = useMemo((): DisplayPriceData[] => {
         const activeMap = new Map<string, RawGradePrice>();
-        // Găsește cel mai recent preț activ pentru fiecare grad
         prices
             .filter(p => p.is_activ)
             .sort((a, b) => new Date(b.data_activare).getTime() - new Date(a.data_activare).getTime())
@@ -189,7 +155,7 @@ export const ConfigurarePreturi: React.FC<ConfigurarePreturiProps> = ({ grade, o
         }).sort((a, b) => a.gradOrdine - b.gradOrdine);
     }, [prices, grade]);
 
-    if (loading) {
+    if (loading && prices.length === 0) {
         return <div className="text-center p-8">Se încarcă configurația de prețuri...</div>;
     }
 
@@ -229,16 +195,38 @@ export const ConfigurarePreturi: React.FC<ConfigurarePreturiProps> = ({ grade, o
                         </thead>
                         <tbody className="divide-y divide-slate-700">
                             {activePrices.map(price => {
+                                const isEditing = editingRowId === price.id;
                                 const isBlueBelt = price.gradOrdine >= 15 && price.gradOrdine <= 18;
                                 return (
-                                <tr key={price.id} className={isBlueBelt ? 'bg-sky-900/40 hover:bg-sky-900/60' : 'hover:bg-slate-700/20'}>
+                                <tr key={price.id} className={`${isBlueBelt ? 'bg-sky-900/40 hover:bg-sky-900/60' : 'hover:bg-slate-700/20'} ${isEditing ? 'bg-slate-700' : ''}`}>
                                     <td className="p-3 font-semibold">{price.gradNume}</td>
-                                    <td className="p-3 text-center font-bold text-brand-secondary">{price.suma.toFixed(2)}</td>
+                                    <td className="p-3 text-center">
+                                        {isEditing ? (
+                                            <Input
+                                                label=""
+                                                type="number"
+                                                step="1"
+                                                value={editSuma}
+                                                onChange={(e) => setEditSuma(e.target.value)}
+                                                className="!py-1 text-center max-w-[120px] mx-auto"
+                                                autoFocus
+                                            />
+                                        ) : (
+                                            <span className="font-bold text-brand-secondary">{price.suma.toFixed(2)}</span>
+                                        )}
+                                    </td>
                                     <td className="p-3 text-center text-slate-400">{new Date(price.data_activare).toLocaleDateString('ro-RO')}</td>
                                     <td className="p-3 text-right">
-                                        <Button size="sm" variant="secondary" onClick={() => setEditingPrice(price)}>
-                                            <EditIcon className="w-4 h-4 mr-1"/> Editare
-                                        </Button>
+                                        {isEditing ? (
+                                            <div className="flex justify-end gap-2">
+                                                <Button size="sm" variant="success" onClick={() => handleSaveClick(price)} isLoading={loading}><SaveIcon className="w-4 h-4" /></Button>
+                                                <Button size="sm" variant="secondary" onClick={handleCancelClick} disabled={loading}><XIcon className="w-4 h-4" /></Button>
+                                            </div>
+                                        ) : (
+                                            <Button size="sm" variant="secondary" onClick={() => handleEditClick(price)}>
+                                                <EditIcon className="w-4 h-4 mr-1"/> Editare
+                                            </Button>
+                                        )}
                                     </td>
                                 </tr>
                             )})}
@@ -246,12 +234,6 @@ export const ConfigurarePreturi: React.FC<ConfigurarePreturiProps> = ({ grade, o
                     </table>
                 </div>
             </Card>
-
-            <EditPriceModal
-                priceData={editingPrice}
-                onClose={() => setEditingPrice(null)}
-                onSave={handleSave}
-            />
         </div>
     );
 };

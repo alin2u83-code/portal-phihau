@@ -63,7 +63,17 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = ({ sesiune, inscrieri, set
         
         setLoading(true);
         try {
-            const newInscriere: Omit<InscriereExamen, 'id'> = { sesiune_id: sesiune.id, sportiv_id: sportiv.id, grad_actual_id: gradActual?.id || null, grad_sustinut_id: gradVizat.id, varsta_la_examen: varstaLaExamen, rezultat: 'Neprezentat', observatii: '' };
+            // Explicitly create a clean object for insertion to avoid any extra properties.
+            const newInscriere: Omit<InscriereExamen, 'id'> = {
+                sesiune_id: sesiune.id,
+                sportiv_id: sportiv.id,
+                grad_actual_id: gradActual?.id || null,
+                grad_sustinut_id: gradVizat.id,
+                varsta_la_examen: varstaLaExamen,
+                rezultat: 'Neprezentat',
+                observatii: ''
+            };
+
             const { data: inscriereData, error: pError } = await supabase.from('inscrieri_examene').insert(newInscriere).select().single();
             if (pError) throw pError;
             setInscrieri(prev => [...prev, inscriereData as InscriereExamen]);

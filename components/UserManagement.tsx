@@ -126,7 +126,7 @@ const MyProfile: React.FC<{ user: User; setSportivi: React.Dispatch<React.SetSta
                     <Input label="Prenume" name="prenume" value={formData.prenume} onChange={handleChange} required />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Input label="Email (Login)" name="email" type="email" value={formData.email} onChange={handleChange} required />
+                    <Input label="Email (Login)" name="email" type="email" value={formData.email || ''} onChange={handleChange} required />
                     <Input label="Nume Utilizator" name="username" type="text" value={formData.username} onChange={handleChange} placeholder="ex: ion.popescu"/>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -231,24 +231,20 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
         setCreateAccountForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
     };
     
-    // This function is no longer needed as the admin session is not overwritten.
-    // const restoreAdminSession = async (adminSession: any) => { ... };
-    
     const handleLinkExistingAccount = async () => {
         if (!supabase || !selectedUserForAccount) return;
         setCreateAccountLoading(true);
         setCreateAccountError('');
         
-        // TODO: This sign-in flow overwrites the admin's session.
-        // The session is restored afterward, but this is fragile.
-        // A better solution would be a separate Edge Function to validate credentials without signing in on the client.
         const { data: { session: adminSession } } = await supabase.auth.getSession();
 
         const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ email: createAccountForm.email, password: createAccountForm.parola });
 
         if (signInError) {
             setCreateAccountError("Parola este incorectă pentru contul existent. Asocierea a eșuat.");
-            await supabase.auth.setSession({ access_token: adminSession!.access_token, refresh_token: adminSession!.refresh_token });
+            if (adminSession) {
+                await supabase.auth.setSession({ access_token: adminSession!.access_token, refresh_token: adminSession!.refresh_token });
+            }
             setAccountCreationStep('initial');
             setCreateAccountLoading(false);
             return;
@@ -264,14 +260,12 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                 setCreateAccountError(`Contul este deja asociat cu sportivul ${linkedProfile.nume} ${linkedProfile.prenume}.`);
             } else {
                 const profileUpdates = { user_id: existingUserId, email: createAccountForm.email, username: createAccountForm.username };
-                const { data: updateData, error: updateError } = await supabase.from('sportivi').update(profileUpdates).eq('id', selectedUserForAccount.id).select('*, sportivi_roluri(roluri(id, nume))').single();
+                const { data: updateData, error: updateError } = await supabase.from('sportivi').update(profileUpdates).eq('id', selectedUserForAccount.id).select('*, roluri(id, nume)').single();
 
                 if (updateError) {
                     setCreateAccountError(`Asociere eșuată la actualizarea profilului: ${updateError.message}`);
                 } else if (updateData) {
-                    const updatedUser = updateData as any;
-                    updatedUser.roluri = updatedUser.sportivi_roluri.map((item: any) => item.roluri);
-                    delete updatedUser.sportivi_roluri;
+                    const updatedUser = { ...updateData, roluri: (updateData as any).roluri || [] };
                     setSportivi(prev => prev.map(s => s.id === selectedUserForAccount.id ? updatedUser : s));
                     
                     setIsCreateAccountModalOpen(false);
@@ -281,7 +275,9 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
             }
         }
         await supabase.auth.signOut();
-        await supabase.auth.setSession({ access_token: adminSession!.access_token, refresh_token: adminSession!.refresh_token });
+        if (adminSession) {
+            await supabase.auth.setSession({ access_token: adminSession!.access_token, refresh_token: adminSession!.refresh_token });
+        }
         setCreateAccountLoading(false);
     };
 
@@ -322,14 +318,12 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
     
         if (functionData.user) {
             const profileUpdates = { user_id: functionData.user.id, email: createAccountForm.email, username: createAccountForm.username };
-            const { data, error } = await supabase.from('sportivi').update(profileUpdates).eq('id', selectedUserForAccount.id).select('*, sportivi_roluri(roluri(id, nume))').single();
+            const { data, error } = await supabase.from('sportivi').update(profileUpdates).eq('id', selectedUserForAccount.id).select('*, roluri(id, nume)').single();
     
             if (error) {
                 setCreateAccountError(`Cont creat (ID: ${functionData.user.id}), dar eroare la legarea profilului: ${error.message}. Încercați să asociați contul manual.`);
             } else if (data) {
-                const updatedUser = data as any;
-                updatedUser.roluri = updatedUser.sportivi_roluri.map((item: any) => item.roluri);
-                delete updatedUser.sportivi_roluri;
+                const updatedUser = { ...data, roluri: (data as any).roluri || [] };
                 setSportivi(prev => prev.map(s => s.id === selectedUserForAccount.id ? updatedUser : s));
                 
                 setIsCreateAccountModalOpen(false);
@@ -489,7 +483,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                             <Input label="Confirmă Parola Contului Existent" name="parola" type="password" value={createAccountForm.parola} onChange={handleCreateAccountFormChange} required />
                              <div className="flex justify-end pt-4 space-x-2">
                                 <Button type="button" variant="secondary" onClick={() => { setCreateAccountError(''); setAccountCreationStep('initial'); }} disabled={createAccountLoading}>Înapoi</Button>
-                                <Button onClick={handleLinkExistingAccount} variant="success" disabled={createAccountLoading}>{createAccountLoading ? 'Se asociază...' : 'Da, Asociază Contul'}</Button>
+                                <Button onClick={() => handleLinkExistingAccount()} variant="success" disabled={createAccountLoading}>{createAccountLoading ? 'Se asociază...' : 'Da, Asociază Contul'}</Button>
                             </div>
                         </div>
                     )}

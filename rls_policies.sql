@@ -179,11 +179,22 @@ CREATE POLICY "Authenticated users can read notifications" ON public.notificari
 -- -----------------------------------------------------------------
 ALTER TABLE public.examene ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage exams" ON public.examene;
-DROP POLICY IF EXISTS "Authenticated users can see exams" ON public.examene;
 CREATE POLICY "Admins can manage exams" ON public.examene
     FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
-CREATE POLICY "Authenticated users can see exams" ON public.examene
-    FOR SELECT USING (auth.role() = 'authenticated');
+
+DROP POLICY IF EXISTS "Authenticated users can see exams" ON public.examene;
+DROP POLICY IF EXISTS "Authenticated users can see relevant exams" ON public.examene;
+CREATE POLICY "Authenticated users can see relevant exams" ON public.examene
+    FOR SELECT USING (
+        -- Sportivii pot vedea examenele viitoare
+        (data >= now()::date) OR
+        -- Sau examenele la care au participat
+        (id IN (
+            SELECT sesiune_id 
+            FROM public.participari -- Alias for 'inscrieri_examene'
+            WHERE sportiv_id IN (SELECT id FROM public.sportivi WHERE user_id = auth.uid())
+        ))
+    );
 
 -- -----------------------------------------------------------------
 -- Tabel: grade

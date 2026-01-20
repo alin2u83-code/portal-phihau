@@ -37,7 +37,7 @@ export interface SesiuneExamen {
   id: string;
   data: string;
   locatie_id: string;
-  comisia: string;
+  comisia: string[];
 }
 
 export interface Locatie {

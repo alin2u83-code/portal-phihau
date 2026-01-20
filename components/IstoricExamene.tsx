@@ -18,7 +18,7 @@ export const IstoricExamene: React.FC<IstoricExameneProps> = ({ viewedUser, part
             .filter(p => p.sportiv_id === viewedUser.id)
             .map(p => {
                 const sesiune = sesiuni.find(s => s.id === p.sesiune_id);
-                const grad = grade.find(g => g.id === p.grad_sustinut_id);
+                const grad = grade.find(g => g.id === p.grad_vizat_id);
                 return {
                     ...p,
                     data_examen: sesiune?.data || 'N/A',

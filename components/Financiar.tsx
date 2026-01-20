@@ -48,7 +48,7 @@ export const ProfilSportiv: React.FC<ProfilSportivProps> = ({ currentUser, plati
             });
         
         const lastParticipation = admittedParticipations[0];
-        const grad = lastParticipation ? getGrad(lastParticipation.grad_sustinut_id, grade) : null;
+        const grad = lastParticipation ? getGrad(lastParticipation.grad_vizat_id, grade) : null;
         const exam = lastParticipation ? examene.find(e => e.id === lastParticipation.sesiune_id) : null;
 
         const sortedGrades = [...grade].sort((a, b) => a.ordine - b.ordine);

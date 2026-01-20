@@ -30,7 +30,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
             .map(p => ({ ...p, examen: examene.find(e => e.id === p.sesiune_id) }))
             .sort((a, b) => new Date(b.examen?.data || 0).getTime() - new Date(a.examen?.data || 0).getTime());
         
-        return getGrad(admittedParticipations[0]?.grad_sustinut_id || null, grade);
+        return getGrad(admittedParticipations[0]?.grad_vizat_id || null, grade);
     }, [participari, viewedUser.id, grade, examene]);
     
     const sumaRestanta = useMemo(() => {

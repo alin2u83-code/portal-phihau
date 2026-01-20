@@ -43,6 +43,7 @@ export interface SesiuneExamen {
 export interface Locatie {
   id: string;
   nume: string;
+  adresa?: string | null;
 }
 
 export interface InscriereExamen {

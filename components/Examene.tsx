@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { SesiuneExamen, InscriereExamen, Sportiv, Grad, Plata, PretConfig, Locatie, View } from '../types';
 import { Button, Modal, Input, Select, Card } from './ui';
-// FIX: Changed AlertTriangleIcon to ExclamationTriangleIcon to match the export from ./icons.
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon, ExclamationTriangleIcon } from './icons';
 import { getPretProdus } from '../utils/pricing';
 import { supabase } from '../supabaseClient';
@@ -24,14 +23,94 @@ const DataField: React.FC<{label: string, value: React.ReactNode, className?: st
 
 // --- SUB-COMPONENTS ---
 
-interface SesiuneFormProps { isOpen: boolean; onClose: () => void; onSave: (sesiune: Partial<SesiuneExamen>) => Promise<void>; sesiuneToEdit: SesiuneExamen | null; locatii: Locatie[]; }
-const SesiuneForm: React.FC<SesiuneFormProps> = ({ isOpen, onClose, onSave, sesiuneToEdit, locatii }) => {
+interface LocatieFormProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (locatieData: { nume: string; adresa: string }) => Promise<void>;
+}
+const LocatieFormModal: React.FC<LocatieFormProps> = ({ isOpen, onClose, onSave }) => {
+  const [form, setForm] = useState({ nume: '', adresa: '' });
+  const [loading, setLoading] = useState(false);
+  const { showError } = useError();
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm(p => ({ ...p, [e.target.name]: e.target.value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.nume.trim()) {
+        showError("Validare eșuată", "Numele locației este obligatoriu.");
+        return;
+    }
+    setLoading(true);
+    await onSave({ nume: form.nume.trim(), adresa: form.adresa.trim() });
+    setLoading(false);
+    setForm({ nume: '', adresa: '' }); // Reset for next use
+  };
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title="Adaugă Locație Nouă">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Input label="Nume Locație" name="nume" value={form.nume} onChange={handleChange} required />
+        <Input label="Adresă (Opțional)" name="adresa" value={form.adresa} onChange={handleChange} />
+        <div className="flex justify-end pt-4 space-x-2">
+          <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button>
+          <Button variant="success" type="submit" isLoading={loading}>Salvează Locația</Button>
+        </div>
+      </form>
+    </Modal>
+  );
+};
+
+interface SesiuneFormProps { isOpen: boolean; onClose: () => void; onSave: (sesiune: Partial<SesiuneExamen>) => Promise<void>; sesiuneToEdit: SesiuneExamen | null; locatii: Locatie[]; setLocatii: React.Dispatch<React.SetStateAction<Locatie[]>>; }
+const SesiuneForm: React.FC<SesiuneFormProps> = ({ isOpen, onClose, onSave, sesiuneToEdit, locatii, setLocatii }) => {
   const [formState, setFormState] = useState<Partial<SesiuneExamen>>({ data: new Date().toISOString().split('T')[0], locatie_id: '', comisia: '' });
   const [loading, setLoading] = useState(false);
+  const [isLocatieModalOpen, setIsLocatieModalOpen] = useState(false);
+  const { showError, showSuccess } = useError();
+
   useEffect(() => { if (sesiuneToEdit) { setFormState(sesiuneToEdit); } else { setFormState({ data: new Date().toISOString().split('T')[0], locatie_id: '', comisia: '' }); } }, [sesiuneToEdit, isOpen]);
+  
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setFormState(p => ({ ...p, [e.target.name]: e.target.value }));
+  
   const handleSubmit = async (e: React.FormEvent) => { e.preventDefault(); setLoading(true); await onSave(formState); setLoading(false); onClose(); };
-  return ( <Modal isOpen={isOpen} onClose={onClose} title={sesiuneToEdit ? "Editează Sesiune Examen" : "Adaugă Sesiune Nouă"}><form onSubmit={handleSubmit} className="space-y-4"><Input label="Data Examenului" name="data" type="date" value={formState.data} onChange={handleChange} required /><Select label="Locația" name="locatie_id" value={formState.locatie_id} onChange={handleChange} required><option value="">Selectează locația...</option>{locatii.map(l => <option key={l.id} value={l.id}>{l.nume}</option>)}</Select><Input label="Comisia" name="comisia" value={formState.comisia} onChange={handleChange} required /><div className="flex justify-end pt-4 space-x-2"><Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button><Button variant="success" type="submit" disabled={loading}>{loading ? 'Se salvează...' : 'Salvează'}</Button></div></form></Modal> );
+
+  const handleSaveLocatie = async (locatieData: { nume: string, adresa: string }) => {
+        if (!supabase) { showError("Eroare", "Client Supabase neconfigurat."); return; }
+        const { data, error } = await supabase.from('nom_locatii').insert(locatieData).select().single();
+        if (error) {
+            showError("Eroare la salvare locație", error);
+        } else if (data) {
+            setLocatii(prev => [...prev, data]);
+            setFormState(p => ({ ...p, locatie_id: data.id })); // Auto-select new
+            setIsLocatieModalOpen(false);
+            showSuccess("Succes", "Locația a fost adăugată.");
+        }
+    };
+
+
+  return ( <>
+  <Modal isOpen={isOpen} onClose={onClose} title={sesiuneToEdit ? "Editează Sesiune Examen" : "Adaugă Sesiune Nouă"}>
+    <form onSubmit={handleSubmit} className="space-y-4">
+        <Input label="Data Examenului" name="data" type="date" value={formState.data} onChange={handleChange} required />
+        <div className="flex items-end gap-2">
+            <div className="flex-grow">
+                 <Select label="Locația" name="locatie_id" value={formState.locatie_id || ''} onChange={handleChange} required>
+                    <option value="">Selectează locația...</option>
+                    {locatii.map(l => <option key={l.id} value={l.id}>{l.nume}</option>)}
+                </Select>
+            </div>
+            <Button type="button" variant="secondary" onClick={() => setIsLocatieModalOpen(true)} className="h-[38px] aspect-square p-0" title="Adaugă locație nouă">
+                <PlusIcon className="w-5 h-5"/>
+            </Button>
+        </div>
+        <Input label="Comisia" name="comisia" value={formState.comisia} onChange={handleChange} required />
+        <div className="flex justify-end pt-4 space-x-2"><Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button><Button variant="success" type="submit" disabled={loading}>{loading ? 'Se salvează...' : 'Salvează'}</Button></div>
+    </form>
+  </Modal>
+  <LocatieFormModal isOpen={isLocatieModalOpen} onClose={() => setIsLocatieModalOpen(false)} onSave={handleSaveLocatie} />
+  </> );
 };
 
 interface DetaliiSesiuneProps { sesiune: SesiuneExamen; inscrieri: InscriereExamen[]; setInscrieri: React.Dispatch<React.SetStateAction<InscriereExamen[]>>; sportivi: Sportiv[]; grade: Grad[]; setPlati: React.Dispatch<React.SetStateAction<Plata[]>>; preturiConfig: PretConfig[]; allInscrieri: InscriereExamen[]; locatii: Locatie[]; onNavigate: (view: View) => void; onViewSportiv: (sportiv: Sportiv) => void; }
@@ -147,7 +226,6 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = ({ sesiune, inscrieri, set
                             <Select label="Grad Vizat (Confirmă / Modifică)" value={gradVizatId || ''} onChange={(e) => setGradVizatId(e.target.value)}>
                                 {sortedGrades.map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}
                             </Select>
-                            {/* FIX: Use ExclamationTriangleIcon instead of AlertTriangleIcon. */}
                             {gradVizatId !== sportivData.gradVizatAutomat?.id && <div className="pt-4" title="Se înscrie la un grad diferit de cel propus automat."><ExclamationTriangleIcon className="w-5 h-5 text-amber-400"/></div>}
                         </div>
                         <DataField label="Taxă Examen Calculată" value={sportivData.taxa ? `${sportivData.taxa.toFixed(2)} RON` : 'N/A'}/>
@@ -169,8 +247,8 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = ({ sesiune, inscrieri, set
 </div><ConfirmDeleteModal isOpen={!!inscriereToDelete} onClose={() => setInscriereToDelete(null)} onConfirm={() => { if(inscriereToDelete) confirmDeleteInscriere(inscriereToDelete.id) }} tableName="înscrieri" isLoading={false} /> </Card> );
 };
 
-interface GestiuneExameneProps { onBack: () => void; sesiuni: SesiuneExamen[]; setSesiuni: React.Dispatch<React.SetStateAction<SesiuneExamen[]>>; inscrieri: InscriereExamen[]; setInscrieri: React.Dispatch<React.SetStateAction<InscriereExamen[]>>; sportivi: Sportiv[]; grade: Grad[]; setPlati: React.Dispatch<React.SetStateAction<Plata[]>>; preturiConfig: PretConfig[]; locatii: Locatie[]; onNavigate: (view: View) => void; onViewSportiv: (sportiv: Sportiv) => void;}
-export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, sesiuni, setSesiuni, inscrieri, setInscrieri, sportivi, grade, setPlati, preturiConfig, locatii, onNavigate, onViewSportiv }) => {
+interface GestiuneExameneProps { onBack: () => void; sesiuni: SesiuneExamen[]; setSesiuni: React.Dispatch<React.SetStateAction<SesiuneExamen[]>>; inscrieri: InscriereExamen[]; setInscrieri: React.Dispatch<React.SetStateAction<InscriereExamen[]>>; sportivi: Sportiv[]; grade: Grad[]; setPlati: React.Dispatch<React.SetStateAction<Plata[]>>; preturiConfig: PretConfig[]; locatii: Locatie[]; setLocatii: React.Dispatch<React.SetStateAction<Locatie[]>>; onNavigate: (view: View) => void; onViewSportiv: (sportiv: Sportiv) => void;}
+export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, sesiuni, setSesiuni, inscrieri, setInscrieri, sportivi, grade, setPlati, preturiConfig, locatii, setLocatii, onNavigate, onViewSportiv }) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [sesiuneToEdit, setSesiuneToEdit] = useState<SesiuneExamen | null>(null);
   const [sesiuneToDelete, setSesiuneToDelete] = useState<SesiuneExamen | null>(null);
@@ -213,7 +291,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, sesiun
   if(selectedSesiune) { return ( <div><Button onClick={() => setSelectedSesiuneId(null)} className="mb-4" variant="secondary"><ArrowLeftIcon /> Înapoi la listă</Button><DetaliiSesiune sesiune={selectedSesiune} inscrieri={inscrieri.filter(p => p.sesiune_id === selectedSesiune.id)} setInscrieri={setInscrieri} sportivi={sportivi} grade={grade} setPlati={setPlati} preturiConfig={preturiConfig} allInscrieri={inscrieri} locatii={locatii} onNavigate={onNavigate} onViewSportiv={onViewSportiv} /></div> ) }
   const sortedSesiuni = [...sesiuni].sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime());
   
-  return ( <div><Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-white">Gestiune Sesiuni Examen</h1><Button onClick={() => { setSesiuneToEdit(null); setIsFormOpen(true); }} variant="info"><PlusIcon className="w-5 h-5 mr-2" />Adaugă Sesiune</Button></div><div className="bg-slate-800 rounded-lg shadow-lg overflow-hidden"><table className="w-full text-left"><thead className="bg-slate-700"><tr><th className="p-4 font-semibold">Data</th><th className="p-4 font-semibold">Locația</th><th className="p-4 font-semibold">Înscriși</th><th className="p-4 font-semibold text-right">Acțiuni</th></tr></thead><tbody className="divide-y divide-slate-700">{sortedSesiuni.map(s => ( <tr key={s.id} className="hover:bg-slate-700/50"><td className="p-4 font-medium cursor-pointer" onClick={() => setSelectedSesiuneId(s.id)}>{new Date(s.data+'T00:00:00').toLocaleDateString('ro-RO')}</td><td className="p-4 cursor-pointer" onClick={() => setSelectedSesiuneId(s.id)}>{locatii.find(l => l.id === s.locatie_id)?.nume || 'N/A'}</td><td className="p-4">{inscrieri.filter(p => p.sesiune_id === s.id).length}</td><td className="p-4 w-32"><div className="flex items-center justify-end space-x-2"><Button onClick={() => { setSesiuneToEdit(s); setIsFormOpen(true); }} variant="primary" size="sm"><EditIcon /></Button><Button onClick={() => setSesiuneToDelete(s)} variant="danger" size="sm"><TrashIcon /></Button></div></td></tr> ))}{sortedSesiuni.length === 0 && <tr><td colSpan={4}><p className="p-4 text-center text-slate-400">Nicio sesiune programată.</p></td></tr>}</tbody></table></div><SesiuneForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} onSave={handleSaveSesiune} sesiuneToEdit={sesiuneToEdit} locatii={locatii} /><ConfirmDeleteModal isOpen={!!sesiuneToDelete} onClose={() => setSesiuneToDelete(null)} onConfirm={() => { if(sesiuneToDelete) confirmDeleteSesiune(sesiuneToDelete.id) }} tableName="Sesiuni (și toate înscrierile asociate)" isLoading={isDeleting} /></div> );
+  return ( <div><Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-white">Gestiune Sesiuni Examen</h1><Button onClick={() => { setSesiuneToEdit(null); setIsFormOpen(true); }} variant="info"><PlusIcon className="w-5 h-5 mr-2" />Adaugă Sesiune</Button></div><div className="bg-slate-800 rounded-lg shadow-lg overflow-hidden"><table className="w-full text-left"><thead className="bg-slate-700"><tr><th className="p-4 font-semibold">Data</th><th className="p-4 font-semibold">Locația</th><th className="p-4 font-semibold">Înscriși</th><th className="p-4 font-semibold text-right">Acțiuni</th></tr></thead><tbody className="divide-y divide-slate-700">{sortedSesiuni.map(s => ( <tr key={s.id} className="hover:bg-slate-700/50"><td className="p-4 font-medium cursor-pointer" onClick={() => setSelectedSesiuneId(s.id)}>{new Date(s.data+'T00:00:00').toLocaleDateString('ro-RO')}</td><td className="p-4 cursor-pointer" onClick={() => setSelectedSesiuneId(s.id)}>{locatii.find(l => l.id === s.locatie_id)?.nume || 'N/A'}</td><td className="p-4">{inscrieri.filter(p => p.sesiune_id === s.id).length}</td><td className="p-4 w-32"><div className="flex items-center justify-end space-x-2"><Button onClick={() => { setSesiuneToEdit(s); setIsFormOpen(true); }} variant="primary" size="sm"><EditIcon /></Button><Button onClick={() => setSesiuneToDelete(s)} variant="danger" size="sm"><TrashIcon /></Button></div></td></tr> ))}{sortedSesiuni.length === 0 && <tr><td colSpan={4}><p className="p-4 text-center text-slate-400">Nicio sesiune programată.</p></td></tr>}</tbody></table></div><SesiuneForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} onSave={handleSaveSesiune} sesiuneToEdit={sesiuneToEdit} locatii={locatii} setLocatii={setLocatii} /><ConfirmDeleteModal isOpen={!!sesiuneToDelete} onClose={() => setSesiuneToDelete(null)} onConfirm={() => { if(sesiuneToDelete) confirmDeleteSesiune(sesiuneToDelete.id) }} tableName="Sesiuni (și toate înscrierile asociate)" isLoading={isDeleting} /></div> );
 };
 
 // Renaming the export to match the old filename for App.tsx compatibility

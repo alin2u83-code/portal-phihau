@@ -36,7 +36,7 @@ import { Notificari } from './components/Notificari';
 import { TaxeAnuale } from './components/TaxeAnuale';
 import { GestionareNomenclatoare } from './components/GestionareNomenclatoare';
 import { FinancialDashboard } from './components/FinancialDashboard';
-import { IstoricExamene } from './components/IstoricExamene';
+import { IstoricExameneSportiv } from './components/IstoricExameneSportiv';
 import { FacturiPersonale } from './components/FacturiPersonale';
 
 function App() {
@@ -307,7 +307,7 @@ function App() {
         case 'evenimentele-mele': return <EvenimenteleMele viewedUser={currentUser} evenimente={evenimente} rezultate={rezultate} setRezultate={setRezultate} onBack={portalBackNav} />;
         case 'editare-profil-personal': return <EditareProfilPersonal user={currentUser} setSportivi={setSportivi} setCurrentUser={setCurrentUser} onBack={portalBackNav} />;
         case 'profil-sportiv': return <ProfilSportiv currentUser={currentUser} plati={plati} tranzactii={tranzactii} grade={grade} grupe={grupe} participari={inscrieriExamene} examene={sesiuniExamene} onBack={portalBackNav} />;
-        case 'istoric-examene': return <IstoricExamene viewedUser={currentUser} participari={inscrieriExamene} sesiuni={sesiuniExamene} grade={grade} onBack={portalBackNav} />;
+        case 'istoric-examene': return <IstoricExameneSportiv viewedUser={currentUser} participari={inscrieriExamene} sesiuni={sesiuniExamene} grade={grade} onBack={portalBackNav} isAdmin={isAdmin} preturiConfig={preturiConfig} setPlati={setPlati} setInscrieri={setInscrieriExamene} allInscrieri={inscrieriExamene} locatii={locatii}/>;
         case 'facturi-personale': return <FacturiPersonale viewedUser={currentUser} plati={plati} tranzactii={tranzactii} onBack={portalBackNav} />;
         case 'my-portal':
         default: return <SportivDashboard {...commonProps} />;

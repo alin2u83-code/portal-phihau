@@ -54,6 +54,9 @@ export interface InscriereExamen {
     varsta_la_examen: number;
     rezultat: 'Admis' | 'Respins' | 'Neprezentat';
     observatii?: string;
+    nota_thao_quyen?: number | null;
+    nota_song_doi?: number | null;
+    media_generala?: number | null;
 }
 
 export interface ProgramItem {

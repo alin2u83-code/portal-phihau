@@ -230,31 +230,25 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
     const handleCreateAccountFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setCreateAccountForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
     };
-
-    const restoreAdminSession = async (adminSession: any) => {
-        if (adminSession) {
-            const { error } = await supabase.auth.setSession({ access_token: adminSession.access_token, refresh_token: adminSession.refresh_token });
-            if (error) {
-                console.error("Failed to restore admin session:", error);
-                setCreateAccountError("Eroare critică: Sesiunea de admin nu a putut fi restaurată. Reîncărcați pagina.");
-            }
-        } else {
-             setCreateAccountError("Sesiunea de administrator a expirat. Vă rugăm să vă autentificați din nou.");
-        }
-    };
+    
+    // This function is no longer needed as the admin session is not overwritten.
+    // const restoreAdminSession = async (adminSession: any) => { ... };
     
     const handleLinkExistingAccount = async () => {
         if (!supabase || !selectedUserForAccount) return;
         setCreateAccountLoading(true);
         setCreateAccountError('');
-
+        
+        // TODO: This sign-in flow overwrites the admin's session.
+        // The session is restored afterward, but this is fragile.
+        // A better solution would be a separate Edge Function to validate credentials without signing in on the client.
         const { data: { session: adminSession } } = await supabase.auth.getSession();
 
         const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ email: createAccountForm.email, password: createAccountForm.parola });
 
         if (signInError) {
             setCreateAccountError("Parola este incorectă pentru contul existent. Asocierea a eșuat.");
-            await restoreAdminSession(adminSession);
+            await supabase.auth.setSession({ access_token: adminSession!.access_token, refresh_token: adminSession!.refresh_token });
             setAccountCreationStep('initial');
             setCreateAccountLoading(false);
             return;
@@ -287,7 +281,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
             }
         }
         await supabase.auth.signOut();
-        await restoreAdminSession(adminSession);
+        await supabase.auth.setSession({ access_token: adminSession!.access_token, refresh_token: adminSession!.refresh_token });
         setCreateAccountLoading(false);
     };
 
@@ -301,36 +295,37 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
         setCreateAccountLoading(true);
         setCreateAccountError('');
     
-        const { data: { session: adminSession } } = await supabase.auth.getSession();
-    
         if (createAccountForm.username) {
             const { data: existingUser, error: checkError } = await supabase.from('sportivi').select('id').eq('username', createAccountForm.username).not('id', 'eq', selectedUserForAccount.id).limit(1);
             if (checkError) { setCreateAccountError(`Eroare la verificare: ${checkError.message}`); setCreateAccountLoading(false); return; }
             if (existingUser && existingUser.length > 0) { setCreateAccountError('Numele de utilizator este deja folosit.'); setCreateAccountLoading(false); return; }
         }
     
-        const { data: authData, error: authError } = await supabase.auth.signUp({ email: createAccountForm.email, password: createAccountForm.parola });
+        // Invoke the Edge Function instead of calling auth.signUp
+        const { data: functionData, error: functionError } = await supabase.functions.invoke('create-user-admin', {
+            body: {
+                email: createAccountForm.email,
+                password: createAccountForm.parola
+            }
+        });
     
-        if (authError) {
-            if (authError.message.includes("User already registered")) {
+        if (functionError) {
+            if (functionError.message.includes("User already exists")) {
                 setCreateAccountError(`Un cont cu email-ul "${createAccountForm.email}" există deja. Dacă parola introdusă este corectă, puteți asocia acest sportiv cu contul existent.`);
                 setAccountCreationStep('confirm_link');
             } else {
-                setCreateAccountError(`Eroare la crearea contului: ${authError.message}`);
+                setCreateAccountError(`Eroare la crearea contului: ${functionError.message}`);
             }
-            await restoreAdminSession(adminSession);
             setCreateAccountLoading(false);
             return;
         }
     
-        if (authData.user) {
-            const profileUpdates = { user_id: authData.user.id, email: createAccountForm.email, username: createAccountForm.username };
+        if (functionData.user) {
+            const profileUpdates = { user_id: functionData.user.id, email: createAccountForm.email, username: createAccountForm.username };
             const { data, error } = await supabase.from('sportivi').update(profileUpdates).eq('id', selectedUserForAccount.id).select('*, sportivi_roluri(roluri(id, nume))').single();
     
-            await restoreAdminSession(adminSession);
-    
             if (error) {
-                setCreateAccountError(`Cont creat, dar eroare la legarea profilului: ${error.message}`);
+                setCreateAccountError(`Cont creat (ID: ${functionData.user.id}), dar eroare la legarea profilului: ${error.message}. Încercați să asociați contul manual.`);
             } else if (data) {
                 const updatedUser = data as any;
                 updatedUser.roluri = updatedUser.sportivi_roluri.map((item: any) => item.roluri);
@@ -342,7 +337,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                 setTimeout(() => setUserListFeedback(null), 4000);
             }
         } else {
-            await restoreAdminSession(adminSession);
+            setCreateAccountError('Funcția Edge nu a returnat un utilizator valid.');
         }
         
         setCreateAccountLoading(false);

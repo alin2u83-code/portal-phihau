@@ -98,9 +98,8 @@ export const ProfilSportiv: React.FC<ProfilSportivProps> = ({ currentUser, plati
         const currentSold = totalIncasari - totalDatorii;
         
         // Asigură unicitatea (DISTINCT ON)
-        // FIX: The `[...map.values()]` pattern was causing a type inference issue, resulting in `unknown[]`.
-        // Switched to `Array.from(map.values())` to ensure the correct type `Plata[]` is inferred.
-        const uniquePlati: Plata[] = Array.from(new Map(allRelevantPlati.map(p => [p.id, p])).values());
+        // FIX: Explicitly set the generic type for `new Map` to resolve a type inference issue where the resulting array was being inferred as `unknown[]`.
+        const uniquePlati: Plata[] = Array.from(new Map<string, Plata>(allRelevantPlati.map(p => [p.id, p])).values());
 
         const processPlati = (platiList: Plata[]) => {
             return platiList.map(plata => {

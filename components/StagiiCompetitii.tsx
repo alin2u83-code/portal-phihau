@@ -56,170 +56,119 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment, rezultate,
     const { showError, showSuccess } = useError();
     const [rezultatToDelete, setRezultatToDelete] = useState<Rezultat | null>(null);
     const [isDeletingRezultat, setIsDeletingRezultat] = useState(false);
+    
+    const [formState, setFormState] = useState({ sportivId: '', rezultat: 'Participare', probe: [] as string[] });
 
-    const sortedRezultate = useMemo(() => {
-        const getGradOrder = (sportiv: Sportiv) => {
-            const admitted = participari
-                .filter(p => p.sportiv_id === sportiv.id && p.rezultat === 'Admis')
-                .map(p => ({ ...p, examen: examene.find(e => e.id === p.examen_id) }))
-                .filter(p => p.examen) // ensure exam is found
-                .sort((p1, p2) => new Date(p2.examen!.data).getTime() - new Date(p1.examen!.data).getTime());
-            
-            if (admitted.length === 0) return 0; // Beginner
-            const currentGrad = grade.find(g => g.id === admitted[0].grad_sustinut_id);
-            return currentGrad ? currentGrad.ordine : 0;
-        };
-
-        return [...rezultate].sort((a, b) => {
-            const sportivA = sportivi.find(s => s.id === a.sportiv_id);
-            const sportivB = sportivi.find(s => s.id === b.sportiv_id);
-            if (!sportivA || !sportivB) return 0;
-
-            const gradOrderA = getGradOrder(sportivA);
-            const gradOrderB = getGradOrder(sportivB);
-
-            if (gradOrderB !== gradOrderA) {
-                return gradOrderB - gradOrderA; // Higher grade (higher ordine) first
-            }
-
-            const nameA = `${sportivA.nume} ${sportivA.prenume}`;
-            const nameB = `${sportivB.nume} ${sportivB.prenume}`;
-            return nameA.localeCompare(nameB);
-        });
-    }, [rezultate, sportivi, participari, examene, grade]);
-
+    const participantiIds = useMemo(() => new Set(rezultate.map(r => r.sportiv_id)), [rezultate]);
+    const sportiviDisponibili = useMemo(() => sportivi.filter(s => s.status === 'Activ' && !participantiIds.has(s.id)), [sportivi, participantiIds]);
+    
     const handleAddParticipant = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!supabase) return;
-        const sportiv = sportivi.find(s => s.id === sportivId);
-        if (!sportiv || rezultate.some(r => r.sportiv_id === sportivId)) { showError("Selecție Invalidă", "Selectează un sportiv valid care nu este deja înscris."); return; }
+        if (!formState.sportivId) { showError("Date incomplete", "Vă rugăm selectați un sportiv."); return; }
 
-        const { data: rezultatData, error: rezultatError } = await supabase.from('rezultate').insert({ eveniment_id: eveniment.id, sportiv_id: sportivId, rezultat: 'Înscris' }).select().single();
-        if (rezultatError) { showError("Eroare la adăugarea participantului", rezultatError); return; }
+        const sportiv = sportivi.find(s => s.id === formState.sportivId);
+        if(!sportiv) return;
 
-        const categorie = eveniment.tip === 'Stagiu' ? 'Taxa Stagiu' : 'Taxa Competitie';
-        const pretConfig = getPretValabil(preturiConfig, categorie, eveniment.data);
+        let taxaConfig: PretConfig | undefined;
+        if(eveniment.tip === 'Stagiu') taxaConfig = getPretValabil(preturiConfig, 'Taxa Stagiu', eveniment.data);
+        else if(eveniment.tip === 'Competitie') taxaConfig = getPretValabil(preturiConfig, 'Taxa Competitie', eveniment.data);
 
-        if (pretConfig) {
-            const newPlata = { 
-                sportiv_id: sportiv.id, 
-                familie_id: sportiv.familie_id, 
-                suma: pretConfig.suma, 
-                data: new Date().toISOString().split('T')[0], 
-                status: 'Neachitat' as const, 
-                descriere: `Taxa ${eveniment.denumire}`, 
-                tip: categorie,
-                observatii: `Generată la înscrierea în eveniment.`, 
-            };
-            const { data: plataData, error: plataError } = await supabase.from('plati').insert(newPlata).select().single();
-            if(plataError) { 
-                let detailedMessage = plataError.message;
-                if (plataError.message.includes('plati_tip_check')) {
-                    detailedMessage = `Tipul de plată '${categorie}' nu este permis. Rulați scriptul 'rls_policies.sql' pentru a actualiza baza de date. (${plataError.message})`;
-                }
-                showError(`Participant adăugat, dar eroare la generare plată`, detailedMessage); 
-            }
-            if (plataData) setPlati(prev => [...prev, plataData as Plata]);
-        }
+        const newRezultat: Omit<Rezultat, 'id'> = { sportiv_id: formState.sportivId, eveniment_id: eveniment.id, rezultat: formState.rezultat, probe: formState.probe.join(', ') };
         
-        if(rezultatData) setRezultate(prev => [...prev, rezultatData as Rezultat]);
-        showSuccess("Succes", `Participantul ${sportiv.nume} ${sportiv.prenume} a fost înscris și taxa a fost generată.`);
-        setSportivId('');
-    };
-    
-    const handleUpdateRezultat = async (rezultatId: string, updates: Partial<Rezultat>) => { 
-        if (!supabase) return;
-        const {data, error} = await supabase.from('rezultate').update(updates).eq('id', rezultatId).select().single();
-        if(error) { showError("Eroare la actualizare", error); }
-        else if (data) { setRezultate(prev => prev.map(r => r.id === rezultatId ? data as Rezultat : r)); }
-    };
-
-    const confirmDeleteRezultat = async (rezultatId: string) => {
-        if (!supabase) return;
-        setIsDeletingRezultat(true);
         try {
-            const { error } = await supabase.from('rezultate').delete().eq('id', rezultatId);
+            const { data, error } = await supabase.from('rezultate').insert(newRezultat).select().single();
             if (error) throw error;
-            setRezultate(prev => prev.filter(r => r.id !== rezultatId));
-            showSuccess("Succes", "Înscrierea a fost ștearsă.");
-        } catch (err: any) {
-            showError("Eroare la ștergere", err);
-        } finally {
-            setIsDeletingRezultat(false);
-            setRezultatToDelete(null);
+            setRezultate(prev => [...prev, data as Rezultat]);
+
+            if (taxaConfig) {
+                const newPlata: Omit<Plata, 'id'> = { sportiv_id: sportiv.id, familie_id: sportiv.familie_id, suma: taxaConfig.suma, data: eveniment.data, status: 'Neachitat', descriere: `Taxa ${eveniment.tip}: ${eveniment.denumire}`, tip: eveniment.tip === 'Stagiu' ? 'Taxa Stagiu' : 'Taxa Competitie', observatii: 'Generat automat la înscriere.' };
+                const { data: plataData, error: plataError } = await supabase.from('plati').insert(newPlata).select().single();
+                if(plataError) throw plataError;
+                setPlati(prev => [...prev, plataData as Plata]);
+            }
+            showSuccess("Succes", `Sportivul a fost înscris${taxaConfig ? ' și taxa generată' : ''}.`);
+            setFormState({ sportivId: '', rezultat: 'Participare', probe: [] });
+        } catch (err) {
+            showError("Eroare la înscriere", err);
         }
     };
     
-    const handleProbeChange = (rezultatId: string, proba: string, isChecked: boolean) => {
-        const rezultat = rezultate.find(r => r.id === rezultatId);
-        if(!rezultat) return;
-        const currentProbes = rezultat.probe ? rezultat.probe.split(',').map(p => p.trim()).filter(Boolean) : [];
-        const newProbes = isChecked ? [...new Set([...currentProbes, proba])] : currentProbes.filter(p => p !== proba);
-        handleUpdateRezultat(rezultatId, { probe: newProbes.join(', ') });
+    const confirmDeleteRezultat = async (rezultatId: string) => {
+        setIsDeletingRezultat(true);
+        const { error } = await supabase.from('rezultate').delete().eq('id', rezultatId);
+        if (error) showError("Eroare la ștergere", error);
+        else { setRezultate(prev => prev.filter(r => r.id !== rezultatId)); showSuccess("Succes", "Înscrierea a fost ștearsă."); }
+        setIsDeletingRezultat(false);
+        setRezultatToDelete(null);
     };
 
-    return ( <Card> <h3 className="text-2xl font-bold text-white">{eveniment.denumire} - {formatDateRange(eveniment.data)}</h3> <p className="text-slate-400">{eveniment.locatie} (Org: {eveniment.organizator})</p> <div className="mt-6 border-t border-slate-700 pt-6"> <h4 className="text-xl font-semibold mb-4 text-white">Participanți & Rezultate</h4> <div className="space-y-2 mb-6">{sortedRezultate.map(r => { const sportiv = sportivi.find(s => s.id === r.sportiv_id); return ( <div key={r.id} className="bg-slate-700 p-3 rounded-md grid grid-cols-1 md:grid-cols-4 gap-4 items-center"> <p className="font-medium">{sportiv?.nume} {sportiv?.prenume}</p> <Input label="" value={r.rezultat} onBlur={e => handleUpdateRezultat(r.id, { rezultat: e.target.value })} onChange={e => setRezultate(prev => prev.map(res => res.id === r.id ? {...res, rezultat: e.target.value} : res))} placeholder="Ex: Locul 1, Medalie de aur" /> {eveniment.tip === 'Competitie' ? ( <div className="flex flex-wrap items-center gap-x-4 gap-y-2"> {eveniment.probe_disponibile && eveniment.probe_disponibile.length > 0 ? ( eveniment.probe_disponibile.map(proba => ( <label key={proba} className="flex items-center space-x-2 text-sm cursor-pointer"> <input type="checkbox" className="h-4 w-4 rounded border-slate-500 bg-slate-800 text-primary-600 focus:ring-primary-500" checked={r.probe?.includes(proba) || false} onChange={(e) => handleProbeChange(r.id, proba, e.target.checked)} /> <span>{proba}</span> </label> )) ) : ( <p className="text-xs text-slate-400">Nicio probă definită.</p> )} </div> ) : null} <Button onClick={() => setRezultatToDelete(r)} variant="danger" size="sm" className="justify-self-end md:col-start-4"><TrashIcon /></Button> </div> ) })} {rezultate.length === 0 && <p className="text-slate-400">Niciun participant înscris.</p>} </div> <Card className="bg-slate-900/50"> <h5 className="text-lg font-semibold mb-2 text-white">Adaugă Participant</h5> <form onSubmit={handleAddParticipant} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end"> <div className="col-span-2"> <Select label="Sportiv" value={sportivId} onChange={e => setSportivId(e.target.value)}> <option value="">Selectează Sportiv</option> {sportivi.filter(s => s.status === 'Activ' && !rezultate.some(p => p.sportiv_id === s.id)).map(s => ( <option key={s.id} value={s.id}>{s.nume} {s.prenume}</option> ))} </Select> </div> <Button type="submit" variant="info">Adaugă</Button> </form> </Card> </div> <ConfirmDeleteModal isOpen={!!rezultatToDelete} onClose={() => setRezultatToDelete(null)} onConfirm={() => { if(rezultatToDelete) confirmDeleteRezultat(rezultatToDelete.id) }} tableName="înscrieri" isLoading={isDeletingRezultat} /> </Card> );
+    const handleProbeChange = (proba: string, checked: boolean) => { setFormState(p => ({ ...p, probe: checked ? [...p.probe, proba] : p.probe.filter(pr => pr !== proba) })); };
+
+    const getSportivGrad = (sportivId: string) => {
+        const admittedParticipations = participari
+            .filter(p => p.sportiv_id === sportivId && p.rezultat === 'Admis')
+            .sort((a, b) => {
+                const dateA = examene.find(e => e.id === a.sesiune_id)?.data || '1970-01-01';
+                const dateB = examene.find(e => e.id === b.sesiune_id)?.data || '1970-01-01';
+                return new Date(dateB).getTime() - new Date(dateA).getTime();
+            });
+        return grade.find(g => g.id === admittedParticipations[0]?.grad_sustinut_id);
+    };
+
+    return ( <Card> <h3 className="text-2xl font-bold text-white">{eveniment.denumire}</h3> <p className="text-slate-400">{formatDateRange(eveniment.data)} - {eveniment.locatie}</p> <div className="mt-6 border-t border-slate-700 pt-6"> <h4 className="text-xl font-semibold mb-4 text-white">Participanți Înscriși ({rezultate.length})</h4>
+    <div className="space-y-2 mb-6 max-h-96 overflow-y-auto">{rezultate.map(r => { const s = sportivi.find(sp => sp.id === r.sportiv_id); const g = getSportivGrad(r.sportiv_id); return ( <div key={r.id} className="bg-slate-700/50 p-3 rounded-md grid grid-cols-1 md:grid-cols-4 gap-4 items-center"><div className="col-span-1 md:col-span-2"><p className="font-medium">{s?.nume} {s?.prenume}</p><p className="text-xs text-slate-400">{g?.nume || 'Începător'}</p></div><p className="font-semibold">{r.rezultat}</p><Button onClick={() => setRezultatToDelete(r)} variant="danger" size="sm" className="justify-self-end"><TrashIcon /></Button></div> )})}{rezultate.length === 0 && <p className="text-slate-400">Niciun participant înscris.</p>}</div>
+    <Card className="bg-slate-900/50">
+        <h5 className="text-lg font-semibold mb-4 text-white">Înscrie Participant</h5>
+        <form onSubmit={handleAddParticipant} className="space-y-4">
+            <Select label="Sportiv" value={formState.sportivId} onChange={e => setFormState(p => ({ ...p, sportivId: e.target.value }))}><option value="">Selectează...</option>{sportiviDisponibili.map(s => <option key={s.id} value={s.id}>{s.nume} {s.prenume}</option>)}</Select>
+            <Input label="Rezultat (ex: Participare, Locul 1)" name="rezultat" value={formState.rezultat} onChange={e => setFormState(p => ({ ...p, rezultat: e.target.value }))} />
+            {eveniment.tip === 'Competitie' && eveniment.probe_disponibile && eveniment.probe_disponibile.length > 0 && (
+                <div><label className="block text-sm font-medium text-slate-300 mb-2">Probe</label><div className="flex flex-wrap gap-x-4 gap-y-2">{eveniment.probe_disponibile.map(proba => (<label key={proba} className="flex items-center space-x-2 text-sm"><input type="checkbox" checked={formState.probe.includes(proba)} onChange={e => handleProbeChange(proba, e.target.checked)} className="h-4 w-4 rounded" /><span>{proba}</span></label>))}</div></div>
+            )}
+            <div className="flex justify-end pt-2"><Button type="submit" variant="info">Înscrie</Button></div>
+        </form>
+    </Card>
+</div><ConfirmDeleteModal isOpen={!!rezultatToDelete} onClose={() => setRezultatToDelete(null)} onConfirm={() => { if(rezultatToDelete) confirmDeleteRezultat(rezultatToDelete.id) }} tableName="înscriere" isLoading={isDeletingRezultat} /> </Card> );
 };
 
-interface StagiiCompetitiiProps { onBack: () => void; type: 'Stagiu' | 'Competitie'; evenimente: Eveniment[]; setEvenimente: React.Dispatch<React.SetStateAction<Eveniment[]>>; rezultate: Rezultat[]; setRezultate: React.Dispatch<React.SetStateAction<Rezultat[]>>; sportivi: Sportiv[]; setPlati: React.Dispatch<React.SetStateAction<Plata[]>>; preturiConfig: PretConfig[]; participari: Participare[]; examene: Examen[]; grade: Grad[]; }
-export const StagiiCompetitiiManagement: React.FC<StagiiCompetitiiProps> = ({ onBack, type, evenimente, setEvenimente, rezultate, setRezultate, sportivi, setPlati, preturiConfig, participari, examene, grade }) => {
+// --- Componenta Principală ---
+interface StagiiCompetitiiProps { type: 'Stagiu' | 'Competitie'; evenimente: Eveniment[]; setEvenimente: React.Dispatch<React.SetStateAction<Eveniment[]>>; rezultate: Rezultat[]; setRezultate: React.Dispatch<React.SetStateAction<Rezultat[]>>; sportivi: Sportiv[]; setPlati: React.Dispatch<React.SetStateAction<Plata[]>>; preturiConfig: PretConfig[]; participari: Participare[]; examene: Examen[]; grade: Grad[]; onBack: () => void; }
+export const StagiiCompetitiiManagement: React.FC<StagiiCompetitiiProps> = ({ type, evenimente, setEvenimente, rezultate, setRezultate, sportivi, setPlati, preturiConfig, participari, examene, grade, onBack }) => {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [evToEdit, setEvToEdit] = useState<Eveniment | null>(null);
     const [evToDelete, setEvToDelete] = useState<Eveniment | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
-    const [selectedEvId, setSelectedEvId] = useLocalStorage<string | null>(`phi-hau-selected-${type.toLowerCase()}-id`, null);
+    const [selectedEvenimentId, setSelectedEvenimentId] = useLocalStorage<string | null>(`phi-hau-selected-${type}`, null);
     const { showError, showSuccess } = useError();
-
-    const selectedEv = useMemo(() => {
-        if (!selectedEvId) return null;
-        return evenimente.find(ev => ev.id === selectedEvId) || null;
-    }, [selectedEvId, evenimente]);
-
-    const handleSetSelectedEv = (ev: Eveniment | null) => {
-        setSelectedEvId(ev ? ev.id : null);
-    };
     
+    const filteredEvenimente = useMemo(() => evenimente.filter(ev => ev.tip === type), [evenimente, type]);
+    const selectedEveniment = useMemo(() => selectedEvenimentId ? filteredEvenimente.find(e => e.id === selectedEvenimentId) || null : null, [selectedEvenimentId, filteredEvenimente]);
+
     const handleSave = async (evData: Omit<Eveniment, 'id'>) => {
-        if (!supabase) return;
         if (evToEdit) {
             const { data, error } = await supabase.from('evenimente').update(evData).eq('id', evToEdit.id).select().single();
-            if (error) { showError(`Eroare la actualizare ${type}`, error); } 
-            else if (data) { setEvenimente(prev => prev.map(e => e.id === evToEdit.id ? data as Eveniment : e)); }
+            if (error) { showError("Eroare la actualizare", error); } else if (data) { setEvenimente(prev => prev.map(e => e.id === data.id ? data : e)); showSuccess("Succes", `${type} actualizat.`); }
         } else {
             const { data, error } = await supabase.from('evenimente').insert(evData).select().single();
-            if (error) { showError(`Eroare la adăugare ${type}`, error); } 
-            else if (data) { setEvenimente(prev => [...prev, data as Eveniment]); }
+            if (error) { showError("Eroare la adăugare", error); } else if (data) { setEvenimente(prev => [...prev, data]); showSuccess("Succes", `${type} adăugat.`); }
         }
     };
     
-    const handleEdit = (ev: Eveniment) => { setEvToEdit(ev); setIsFormOpen(true); };
-    
-    const confirmDelete = async (evId: string) => {
-        if (!supabase) return;
+    const confirmDelete = async (id: string) => {
         setIsDeleting(true);
         try {
-            const { error: deleteRezultateError } = await supabase.from('rezultate').delete().eq('eveniment_id', evId);
-            if (deleteRezultateError) throw deleteRezultateError;
-
-            const { error: deleteEventError } = await supabase.from('evenimente').delete().eq('id', evId);
-            if (deleteEventError) throw deleteEventError;
-
-            setEvenimente(prev => prev.filter(e => e.id !== evId)); 
-            setRezultate(prev => prev.filter(p => p.eveniment_id !== evId)); 
-            if (selectedEv?.id === evId) handleSetSelectedEv(null);
-            showSuccess('Succes', `${type} și înscrierile asociate au fost șterse.`);
-        } catch (err: any) {
-            showError(`Eroare la ștergere ${type}`, err);
-        } finally {
-            setIsDeleting(false);
-            setEvToDelete(null);
-        }
+            await supabase.from('rezultate').delete().eq('eveniment_id', id);
+            await supabase.from('evenimente').delete().eq('id', id);
+            setEvenimente(prev => prev.filter(e => e.id !== id));
+            if (selectedEvenimentId === id) setSelectedEvenimentId(null);
+            showSuccess("Succes", `${type} și înscrierile asociate au fost șterse.`);
+        } catch(err) { showError("Eroare la ștergere", err); }
+        finally { setIsDeleting(false); setEvToDelete(null); }
     };
 
-    const filteredEvenimente = evenimente.filter(ev => ev.tip === type);
-
-    if(selectedEv) { return ( <div> <Button onClick={() => handleSetSelectedEv(null)} className="mb-4" variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la listă</Button> <EvenimentDetail eveniment={selectedEv} rezultate={rezultate.filter(r => r.eveniment_id === selectedEv.id)} setRezultate={setRezultate} sportivi={sportivi} setPlati={setPlati} preturiConfig={preturiConfig} participari={participari} examene={examene} grade={grade} /> </div> ); }
+    if (selectedEveniment) { return ( <div><Button onClick={() => setSelectedEvenimentId(null)} className="mb-4" variant="secondary"><ArrowLeftIcon /> Înapoi la listă</Button><EvenimentDetail eveniment={selectedEveniment} rezultate={rezultate.filter(r => r.eveniment_id === selectedEveniment.id)} setRezultate={setRezultate} sportivi={sportivi} setPlati={setPlati} preturiConfig={preturiConfig} participari={participari} examene={examene} grade={grade} /></div> ); }
     const sortedEvenimente = [...filteredEvenimente].sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime());
 
-    return ( <div> <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button> <div className="flex justify-between items-center mb-6"> <h1 className="text-3xl font-bold text-white">Management {type === 'Stagiu' ? 'Stagii' : 'Competiții'}</h1> <Button onClick={() => { setEvToEdit(null); setIsFormOpen(true); }} variant="info"><PlusIcon className="w-5 h-5 mr-2" />Adaugă {type}</Button> </div> <div className="bg-slate-800 rounded-lg shadow-lg overflow-hidden"> <table className="w-full text-left"> <thead className="bg-slate-700"><tr><th className="p-4 font-semibold">Eveniment</th><th className="p-4 font-semibold">Data</th><th className="p-4 font-semibold">Participanți</th><th className="p-4 font-semibold text-right">Acțiuni</th></tr></thead> <tbody className="divide-y divide-slate-700"> {sortedEvenimente.map(ev => ( <tr key={ev.id} className="hover:bg-slate-700/50"> <td className="p-4 font-medium cursor-pointer" onClick={() => handleSetSelectedEv(ev)}>{ev.denumire}</td> <td className="p-4 cursor-pointer" onClick={() => handleSetSelectedEv(ev)}>{formatDateRange(ev.data)}</td> <td className="p-4">{rezultate.filter(p => p.eveniment_id === ev.id).length}</td> <td className="p-4 text-right w-32"><div className="flex items-center justify-end space-x-2"><Button onClick={() => handleEdit(ev)} variant="primary" size="sm"><EditIcon /></Button><Button onClick={() => setEvToDelete(ev)} variant="danger" size="sm"><TrashIcon /></Button></div></td> </tr> ))} </tbody> </table> {sortedEvenimente.length === 0 && <p className="p-4 text-center text-slate-400">Niciun eveniment înregistrat.</p>} </div> <EvenimentForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} onSave={handleSave} evToEdit={evToEdit} type={type} /> <ConfirmDeleteModal isOpen={!!evToDelete} onClose={() => setEvToDelete(null)} onConfirm={() => { if(evToDelete) confirmDelete(evToDelete.id) }} tableName={`"${evToDelete?.denumire}" (și toate înscrierile asociate)`} isLoading={isDeleting} /> </div> );
+    return ( <div><Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-white">Gestiune {type === 'Stagiu' ? 'Stagii' : 'Competiții'}</h1><Button onClick={() => { setEvToEdit(null); setIsFormOpen(true); }} variant="info"><PlusIcon className="w-5 h-5 mr-2" /> Adaugă {type}</Button></div><div className="bg-slate-800 rounded-lg shadow-lg overflow-hidden"><table className="w-full text-left"><thead className="bg-slate-700"><tr><th className="p-4 font-semibold">Dată</th><th className="p-4 font-semibold">Denumire</th><th className="p-4 font-semibold">Înscriși</th><th className="p-4 font-semibold text-right">Acțiuni</th></tr></thead><tbody className="divide-y divide-slate-700">{sortedEvenimente.map(ev => ( <tr key={ev.id} className="hover:bg-slate-700/50"><td className="p-4 font-medium cursor-pointer" onClick={() => setSelectedEvenimentId(ev.id)}>{formatDateRange(ev.data)}</td><td className="p-4 cursor-pointer" onClick={() => setSelectedEvenimentId(ev.id)}>{ev.denumire}</td><td className="p-4">{rezultate.filter(r => r.eveniment_id === ev.id).length}</td><td className="p-4 w-32"><div className="flex items-center justify-end space-x-2"><Button onClick={() => { setEvToEdit(ev); setIsFormOpen(true); }} variant="primary" size="sm"><EditIcon /></Button><Button onClick={() => setEvToDelete(ev)} variant="danger" size="sm"><TrashIcon /></Button></div></td></tr> ))}{sortedEvenimente.length === 0 && <tr><td colSpan={4}><p className="p-4 text-center text-slate-400">Niciun eveniment de tipul '{type}' programat.</p></td></tr>}</tbody></table></div><EvenimentForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} onSave={handleSave} evToEdit={evToEdit} type={type} />{/* FIX: The original code was attempting to call a string property as a function. */}
+<ConfirmDeleteModal isOpen={!!evToDelete} onClose={() => setEvToDelete(null)} onConfirm={() => { if(evToDelete) confirmDelete(evToDelete.id) }} tableName={type} isLoading={isDeleting} /></div> );
 };

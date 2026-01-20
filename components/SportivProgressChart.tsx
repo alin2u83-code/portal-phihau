@@ -39,7 +39,8 @@ export const SportivProgressChart: React.FC<SportivProgressChartProps> = ({ spor
         const admittedExams = participari
             .filter(p => p.sportiv_id === sportiv.id && p.rezultat === 'Admis')
             .map(p => {
-                const examenInfo = examene.find(e => e.id === p.examen_id);
+                // FIX: Use 'sesiune_id' instead of the non-existent 'examen_id'.
+                const examenInfo = examene.find(e => e.id === p.sesiune_id);
                 const gradInfo = grade.find(g => g.id === p.grad_sustinut_id);
                 return {
                     date: examenInfo ? new Date(examenInfo.data).getTime() : 0,

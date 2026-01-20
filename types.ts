@@ -33,18 +33,25 @@ export interface Grad {
   grad_start_id: string | null; // ID-ul gradului necesar pentru a da acest examen
 }
 
-export interface Examen {
+export interface SesiuneExamen {
   id: string;
   data: string;
-  locatia: string;
+  locatie_id: string;
   comisia: string;
 }
 
-export interface Participare {
+export interface Locatie {
+  id: string;
+  nume: string;
+}
+
+export interface InscriereExamen {
     id: string;
     sportiv_id: string;
-    examen_id: string;
+    sesiune_id: string;
     grad_sustinut_id: string;
+    grad_actual_id: string | null;
+    varsta_la_examen: number;
     rezultat: 'Admis' | 'Respins' | 'Neprezentat';
     observatii?: string;
 }
@@ -182,3 +189,7 @@ export interface AnuntGeneral {
 export type User = Sportiv;
 
 export type View = 'dashboard' | 'sportivi' | 'examene' | 'grade' | 'prezenta' | 'grupe' | 'raport-prezenta' | 'stagii' | 'competitii' | 'plati-scadente' | 'jurnal-incasari' | 'raport-financiar' | 'configurare-preturi' | 'tipuri-abonament' | 'familii' | 'user-management' | 'editare-profil-personal' | 'evenimentele-mele' | 'data-maintenance' | 'activitati' | 'my-portal' | 'setari-club' | 'data-inspector' | 'profil-sportiv' | 'reduceri' | 'notificari' | 'taxe-anuale' | 'nomenclatoare' | 'financial-dashboard';
+
+// FIX: Add missing type aliases. This seems to be a refactoring artifact.
+export type Participare = InscriereExamen;
+export type Examen = SesiuneExamen;

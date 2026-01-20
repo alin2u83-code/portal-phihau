@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
-import { Sportiv, Examen, Grad, Participare, View, Antrenament, Grupa, Plata, Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, Rol, AnuntPrezenta, Reducere, AnuntGeneral, TipPlata } from './types';
+import { Sportiv, SesiuneExamen, Grad, InscriereExamen, View, Antrenament, Grupa, Plata, Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, Rol, AnuntPrezenta, Reducere, AnuntGeneral, TipPlata, Locatie } from './types';
 import { Dashboard } from './components/Dashboard';
 import { SportiviManagement } from './components/SportiviManagement';
 import { UserProfile } from './components/UserProfile';
-import { ExameneManagement } from './components/Examene';
+import { GestiuneExamene } from './components/Examene';
 import { GradeManagement } from './components/Grade';
 import { PrezentaManagement } from './components/Prezenta';
 import { GrupeManagement } from './components/Grupe';
@@ -44,9 +44,9 @@ function App() {
   const { showError } = useError();
 
   const [sportivi, setSportivi] = useState<Sportiv[]>([]);
-  const [examene, setExamene] = useState<Examen[]>([]);
+  const [sesiuniExamene, setSesiuniExamene] = useState<SesiuneExamen[]>([]);
   const [grade, setGrade] = useState<Grad[]>([]);
-  const [participari, setParticipari] = useState<Participare[]>([]);
+  const [inscrieriExamene, setInscrieriExamene] = useState<InscriereExamen[]>([]);
   const [antrenamente, setAntrenamente] = useState<Antrenament[]>([]);
   const [grupe, setGrupe] = useState<Grupa[]>([]);
   const [familii, setFamilii] = useState<Familie[]>([]);
@@ -57,6 +57,7 @@ function App() {
   const [preturiConfig, setPreturiConfig] = useState<PretConfig[]>([]);
   const [tipuriAbonament, setTipuriAbonament] = useState<TipAbonament[]>([]);
   const [tipuriPlati, setTipuriPlati] = useState<TipPlata[]>([]);
+  const [locatii, setLocatii] = useState<Locatie[]>([]);
   const [allRoles, setAllRoles] = useState<Rol[]>([]);
   const [anunturi, setAnunturi] = useState<AnuntPrezenta[]>([]);
   const [reduceri, setReduceri] = useState<Reducere[]>([]);
@@ -75,14 +76,14 @@ function App() {
     
     try {
         const [
-            { data: eData }, { data: gData }, { data: grData }, { data: evData },
+            { data: sesiuniData }, { data: gData }, { data: grData }, { data: evData },
             { data: cfData }, { data: gradePricesData }, { data: abData }, { data: roData }, { data: progData },
-            { data: reduceriData }, { data: tipuriPlatiData },
-            { data: sData }, { data: paData }, { data: fData }, { data: plData },
+            { data: reduceriData }, { data: tipuriPlatiData }, { data: locatiiData },
+            { data: sData }, { data: inscrieriData }, { data: fData }, { data: plData },
             { data: tData }, { data: rData }, { data: antrenamenteData }, { data: anunturiData }
         ] = await Promise.all([
             // Public/Shared data
-            supabase.from('examene').select('*'),
+            supabase.from('sesiuni_examene').select('*'),
             supabase.from('grade').select('*'),
             supabase.from('grupe').select('*'),
             supabase.from('evenimente').select('*'),
@@ -93,10 +94,11 @@ function App() {
             supabase.from('program_antrenamente').select('*').is('data', null),
             supabase.from('reduceri').select('*'),
             supabase.from('tipuri_plati').select('*'),
+            supabase.from('nom_locatii').select('*'),
 
             // RLS-protected data
             supabase.from('sportivi').select('*, roluri(id, nume)'),
-            supabase.from('participari').select('*'),
+            supabase.from('inscrieri_examene').select('*'),
             supabase.from('familii').select('*'),
             supabase.from('plati').select('*'),
             supabase.from('tranzactii').select('*'),
@@ -148,17 +150,18 @@ function App() {
 
 
         // Set state for all data
-        setExamene(eData || []);
+        setSesiuniExamene(sesiuniData || []);
         setGrade(gradesData);
         setGrupe(formattedGrupe);
         setEvenimente(evData || []);
         setPreturiConfig(allPrices);
         setTipuriAbonament(abData || []);
         setTipuriPlati(tipuriPlatiData || []);
+        setLocatii(locatiiData || []);
         setAllRoles(roData || []);
         setReduceri(reduceriData || []);
         setSportivi(formattedSportivi);
-        setParticipari(paData || []);
+        setInscrieriExamene(inscrieriData || []);
         setFamilii(fData || []);
         setPlati(plData || []);
         setTranzactii(tData || []);
@@ -273,8 +276,9 @@ function App() {
         currentUser: currentUser,
         viewedUser: userToView,
         onSwitchView: () => {}, // Simplificat, comutarea se face prin meniu
-        participari: participari,
-        examene: examene,
+// FIX: Pass 'participari' and 'examene' props instead of 'inscrieriExamene' and 'sesiuniExamene' to match component expectations.
+        participari: inscrieriExamene,
+        examene: sesiuniExamene,
         grade: grade,
         antrenamente: antrenamente,
         grupe: grupe,
@@ -299,7 +303,8 @@ function App() {
       switch (activeView) {
         case 'evenimentele-mele': return <EvenimenteleMele viewedUser={currentUser} evenimente={evenimente} rezultate={rezultate} setRezultate={setRezultate} onBack={() => setActiveView(isAdmin ? 'my-portal' : 'dashboard')} />;
         case 'editare-profil-personal': return <EditareProfilPersonal user={currentUser} setSportivi={setSportivi} setCurrentUser={setCurrentUser} onBack={() => setActiveView(isAdmin ? 'my-portal' : 'dashboard')} />;
-        case 'profil-sportiv': return <ProfilSportiv currentUser={currentUser} plati={plati} tranzactii={tranzactii} grade={grade} grupe={grupe} participari={participari} examene={examene} onBack={() => setActiveView(isAdmin ? 'my-portal' : 'dashboard')} reduceri={reduceri} />;
+// FIX: Pass 'participari' and 'examene' props instead of 'inscrieriExamene' and 'sesiuniExamene' to match component expectations.
+        case 'profil-sportiv': return <ProfilSportiv currentUser={currentUser} plati={plati} tranzactii={tranzactii} grade={grade} grupe={grupe} participari={inscrieriExamene} examene={sesiuniExamene} onBack={() => setActiveView(isAdmin ? 'my-portal' : 'dashboard')} reduceri={reduceri} />;
         case 'my-portal':
         default: return <SportivDashboard {...commonProps} />;
       }
@@ -313,8 +318,9 @@ function App() {
             <UserProfile 
                 sportiv={viewedSportiv}
                 currentUser={currentUser}
-                participari={participari}
-                examene={examene}
+// FIX: Pass 'participari' and 'examene' props instead of 'inscrieriExamene' and 'sesiuniExamene' to match component expectations.
+                participari={inscrieriExamene}
+                examene={sesiuniExamene}
                 grade={grade}
                 antrenamente={antrenamente}
                 plati={plati}
@@ -332,13 +338,15 @@ function App() {
         ) : (
             <SportiviManagement onBack={() => setActiveView('dashboard')} sportivi={sportivi} setSportivi={setSportivi} grupe={grupe} setGrupe={setGrupe} tipuriAbonament={tipuriAbonament} familii={familii} setFamilii={setFamilii} allRoles={allRoles} setAllRoles={setAllRoles} currentUser={currentUser} plati={plati} tranzactii={tranzactii} setTranzactii={setTranzactii} onViewSportiv={setViewedSportiv} />
         );
-      case 'examene': return <ExameneManagement examene={examene} setExamene={setExamene} participari={participari} setParticipari={setParticipari} sportivi={sportivi} grade={grade} setPlati={setPlati} preturiConfig={preturiConfig} onBack={() => setActiveView('dashboard')} />;
+      case 'examene': return <GestiuneExamene sesiuni={sesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={sportivi} grade={grade} setPlati={setPlati} preturiConfig={preturiConfig} locatii={locatii} onBack={() => setActiveView('dashboard')} />;
       case 'grade': return <GradeManagement grade={grade} setGrade={setGrade} onBack={() => setActiveView('dashboard')} />;
       case 'prezenta': return <PrezentaManagement sportivi={sportivi} setSportivi={setSportivi} antrenamente={antrenamente} setAntrenamente={setAntrenamente} grupe={grupe} onBack={() => setActiveView('dashboard')} setPlati={setPlati} tipuriAbonament={tipuriAbonament} anunturi={anunturi}/>;
       case 'grupe': return <GrupeManagement grupe={grupe} setGrupe={setGrupe} onBack={() => setActiveView('dashboard')} />;
       case 'raport-prezenta': return <RaportPrezenta antrenamente={antrenamente} sportivi={sportivi} grupe={grupe} onBack={() => setActiveView('dashboard')} />;
-      case 'stagii': return <StagiiCompetitiiManagement type="Stagiu" evenimente={evenimente} setEvenimente={setEvenimente} rezultate={rezultate} setRezultate={setRezultate} sportivi={sportivi} setPlati={setPlati} preturiConfig={preturiConfig} participari={participari} examene={evenimente as any} grade={grade} onBack={() => setActiveView('dashboard')} />;
-      case 'competitii': return <StagiiCompetitiiManagement type="Competitie" evenimente={evenimente} setEvenimente={setEvenimente} rezultate={rezultate} setRezultate={setRezultate} sportivi={sportivi} setPlati={setPlati} preturiConfig={preturiConfig} participari={participari} examene={evenimente as any} grade={grade} onBack={() => setActiveView('dashboard')} />;
+// FIX: Pass 'participari' and 'examene' props instead of 'inscrieriExamene' and 'sesiuniExamene' to match component expectations.
+      case 'stagii': return <StagiiCompetitiiManagement type="Stagiu" evenimente={evenimente} setEvenimente={setEvenimente} rezultate={rezultate} setRezultate={setRezultate} sportivi={sportivi} setPlati={setPlati} preturiConfig={preturiConfig} participari={inscrieriExamene} examene={sesiuniExamene} grade={grade} onBack={() => setActiveView('dashboard')} />;
+// FIX: Pass 'participari' and 'examene' props instead of 'inscrieriExamene' and 'sesiuniExamene' to match component expectations.
+      case 'competitii': return <StagiiCompetitiiManagement type="Competitie" evenimente={evenimente} setEvenimente={setEvenimente} rezultate={rezultate} setRezultate={setRezultate} sportivi={sportivi} setPlati={setPlati} preturiConfig={preturiConfig} participari={inscrieriExamene} examene={sesiuniExamene} grade={grade} onBack={() => setActiveView('dashboard')} />;
       case 'plati-scadente': return <PlatiScadente plati={plati} setPlati={setPlati} sportivi={sportivi} familii={familii} tipuriAbonament={tipuriAbonament} tranzactii={tranzactii} reduceri={reduceri} onIncaseazaMultiple={(plist) => { setSelectedPlatiForIncasare(plist); setActiveView('jurnal-incasari'); }} onBack={() => setActiveView('dashboard')} />;
       case 'jurnal-incasari': return <JurnalIncasari plati={plati} setPlati={setPlati} sportivi={sportivi} familii={familii} preturiConfig={preturiConfig} tipuriAbonament={tipuriAbonament} tipuriPlati={tipuriPlati} setTipuriPlati={setTipuriPlati} tranzactii={tranzactii} setTranzactii={setTranzactii} reduceri={reduceri} platiInitiale={selectedPlatiForIncasare} onIncasareProcesata={() => { setSelectedPlatiForIncasare([]); fetchData(currentUser); }} onBack={() => setActiveView('plati-scadente')} />;
       case 'configurare-preturi': return <ConfigurarePreturi grade={grade} onBack={() => setActiveView('dashboard')} />;
@@ -356,8 +364,9 @@ function App() {
           setSportivi={setSportivi}
           grade={grade}
           preturiConfig={preturiConfig}
-          participari={participari}
-          examene={examene}
+// FIX: Pass 'participari' and 'examene' props instead of 'inscrieriExamene' and 'sesiuniExamene' to match component expectations.
+          participari={inscrieriExamene}
+          examene={sesiuniExamene}
           plati={plati}
           setPlati={setPlati}
           familii={familii}

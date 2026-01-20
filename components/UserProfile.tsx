@@ -72,7 +72,8 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
     
     const sortedSportivParticipariForDisplay = useMemo(() => {
         return [...sportivParticipari]
-            .map(p => ({...p, examen: examene.find(e => e.id === p.examen_id)}))
+            // FIX: Use 'sesiune_id' instead of the non-existent 'examen_id'.
+            .map(p => ({...p, examen: examene.find(e => e.id === p.sesiune_id)}))
             .sort((a, b) => new Date(b.examen?.data || 0).getTime() - new Date(a.examen?.data || 0).getTime());
     }, [sportivParticipari, examene]);
 

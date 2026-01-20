@@ -24,8 +24,10 @@ export const ProfilSportiv: React.FC<ProfilSportivProps> = ({ currentUser, plati
         const admittedParticipations = participari
             .filter(p => p.sportiv_id === currentUser.id && p.rezultat === 'Admis')
             .sort((a, b) => {
-                const dateA = examene.find(e => e.id === a.examen_id)?.data || '1970-01-01';
-                const dateB = examene.find(e => e.id === b.examen_id)?.data || '1970-01-01';
+                // FIX: Use 'sesiune_id' instead of the non-existent 'examen_id'.
+                const dateA = examene.find(e => e.id === a.sesiune_id)?.data || '1970-01-01';
+                // FIX: Use 'sesiune_id' instead of the non-existent 'examen_id'.
+                const dateB = examene.find(e => e.id === b.sesiune_id)?.data || '1970-01-01';
                 return new Date(dateB).getTime() - new Date(dateA).getTime();
             });
         

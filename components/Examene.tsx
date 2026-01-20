@@ -113,8 +113,8 @@ const SesiuneForm: React.FC<SesiuneFormProps> = ({ isOpen, onClose, onSave, sesi
   </> );
 };
 
-interface DetaliiSesiuneProps { sesiune: SesiuneExamen; inscrieri: InscriereExamen[]; setInscrieri: React.Dispatch<React.SetStateAction<InscriereExamen[]>>; sportivi: Sportiv[]; grade: Grad[]; setPlati: React.Dispatch<React.SetStateAction<Plata[]>>; preturiConfig: PretConfig[]; allInscrieri: InscriereExamen[]; locatii: Locatie[]; onNavigate: (view: View) => void; onViewSportiv: (sportiv: Sportiv) => void; plati: Plata[]; }
-const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = ({ sesiune, inscrieri, setInscrieri, sportivi, grade, setPlati, preturiConfig, allInscrieri, locatii, onNavigate, onViewSportiv, plati }) => {
+interface DetaliiSesiuneProps { sesiune: SesiuneExamen; inscrieri: InscriereExamen[]; setInscrieri: React.Dispatch<React.SetStateAction<InscriereExamen[]>>; sportivi: Sportiv[]; grade: Grad[]; setPlati: React.Dispatch<React.SetStateAction<Plata[]>>; preturiConfig: PretConfig[]; allInscrieri: InscriereExamen[]; locatii: Locatie[]; onNavigate: (view: View) => void; onViewSportiv: (sportiv: Sportiv) => void; }
+const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = ({ sesiune, inscrieri, setInscrieri, sportivi, grade, setPlati, preturiConfig, allInscrieri, locatii, onNavigate, onViewSportiv }) => {
     const [sportivId, setSportivId] = useState('');
     const [gradVizatId, setGradVizatId] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
@@ -227,71 +227,40 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = ({ sesiune, inscrieri, set
         setInscriereToDelete(null);
     };
 
-    return ( 
-    <Card> <h3 className="text-2xl font-bold text-white">{locatii.find(l => l.id === sesiune.locatie_id)?.nume} - {new Date(sesiune.data + 'T00:00:00').toLocaleDateString('ro-RO')}</h3><p className="text-slate-400">Comisia: {sesiune.comisia}</p><div className="mt-6 border-t border-slate-700 pt-6"> <h4 className="text-xl font-semibold mb-4 text-white">Rezultate Examen ({inscrieri.length})</h4>
-    <div className="mb-6">
-        {/* Mobile View */}
-        <div className="md:hidden space-y-3">
-            {inscrieri.map(i => {
-                const s = sportivi.find(sp => sp.id === i.sportiv_id);
-                const g = grade.find(gr => gr.id === i.grad_vizat_id);
-                const plataExamen = plati.find(pl => pl.sportiv_id === i.sportiv_id && pl.tip === 'Taxa Examen' && pl.data === sesiune.data);
-                const statusPlata = plataExamen?.status || 'N/A';
-                
-                let statusColor = 'bg-slate-600/20 text-slate-400 border-slate-600/50';
-                if (statusPlata === 'Achitat') statusColor = 'bg-green-600/20 text-green-400 border-green-600/50';
-                else if (statusPlata === 'Neachitat' || statusPlata === 'Achitat Parțial') statusColor = 'bg-red-600/20 text-red-400 border-red-600/50';
-
-                return (
-                    <Card key={i.id} className="p-3 bg-slate-700/50">
-                        <div className="flex justify-between items-start">
-                            <div>
-                                <p className="font-bold text-white">{s?.nume} {s?.prenume}</p>
-                                <p className="text-sm text-slate-300">{g?.nume}</p>
-                            </div>
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${statusColor}`}>
-                                {statusPlata}
-                            </span>
-                        </div>
-                    </Card>
-                );
-            })}
-        </div>
-        {/* Desktop View */}
-        <div className="hidden md:block overflow-x-auto">
-            <table className="w-full text-left text-sm">
-                <thead className="bg-slate-700/50 text-xs uppercase">
-                    <tr>
-                        <th className="p-2 font-semibold">Nume Sportiv</th>
-                        <th className="p-2 font-semibold">Grad Vizat</th>
-                        <th className="p-2 font-semibold w-32">Nota Thao Quyen</th>
-                        <th className="p-2 font-semibold w-32">Nota Song Doi</th>
-                        <th className="p-2 font-semibold w-24 text-center">Media</th>
-                        <th className="p-2 font-semibold w-40">Rezultat</th>
-                        <th className="p-2 font-semibold">Observații</th>
-                        <th className="p-2 font-semibold text-right">Acțiuni</th>
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-700">
-                    {inscrieri.map(i => {
-                        const s = sportivi.find(sp => sp.id === i.sportiv_id);
-                        const g = grade.find(gr => gr.id === i.grad_vizat_id);
-                        return (
-                            <tr key={i.id} className="hover:bg-slate-700/20">
-                                <td className="p-1 font-medium text-white">{s?.nume} {s?.prenume}</td>
-                                <td className="p-1 text-slate-300">{g?.nume}</td>
-                                <td className="p-1"><Input type="number" step="0.01" label="" className="!py-1" defaultValue={i.nota_thao_quyen || ''} onBlur={e => handleNoteChange(i.id, 'nota_thao_quyen', e.target.value)} /></td>
-                                <td className="p-1"><Input type="number" step="0.01" label="" className="!py-1" defaultValue={i.nota_song_doi || ''} onBlur={e => handleNoteChange(i.id, 'nota_song_doi', e.target.value)} /></td>
-                                <td className="p-1 text-center font-bold text-brand-secondary font-mono">{i.media_generala?.toFixed(2) || '-'}</td>
-                                <td className="p-1"><Select label="" value={i.rezultat} className="!py-1" onChange={e => handleUpdateInscriere(i.id, 'rezultat', e.target.value)}><option value="Admis">Admis</option><option value="Respins">Respins</option><option value="Neprezentat">Neprezentat</option></Select></td>
-                                <td className="p-1"><Input label="" placeholder="..." className="!py-1" defaultValue={i.observatii || ''} onBlur={e => handleUpdateInscriere(i.id, 'observatii', e.target.value)} /></td>
-                                <td className="p-1 text-right"><Button onClick={() => setInscriereToDelete(i)} variant="danger" size="sm" className="!p-1.5"><TrashIcon className="w-4 h-4" /></Button></td>
-                            </tr>
-                        );
-                    })}
-                </tbody>
-            </table>
-        </div>
+    return ( <Card> <h3 className="text-2xl font-bold text-white">{locatii.find(l => l.id === sesiune.locatie_id)?.nume} - {new Date(sesiune.data + 'T00:00:00').toLocaleDateString('ro-RO')}</h3><p className="text-slate-400">Comisia: {sesiune.comisia}</p><div className="mt-6 border-t border-slate-700 pt-6"> <h4 className="text-xl font-semibold mb-4 text-white">Participanți Înscriși ({inscrieri.length})</h4>
+    <div className="overflow-x-auto mb-6">
+        <table className="w-full text-left text-sm">
+            <thead className="bg-slate-700/50 text-xs uppercase">
+                <tr>
+                    <th className="p-2 font-semibold">Nume Sportiv</th>
+                    <th className="p-2 font-semibold">Grad Vizat</th>
+                    <th className="p-2 font-semibold w-32">Nota Thao Quyen</th>
+                    <th className="p-2 font-semibold w-32">Nota Song Doi</th>
+                    <th className="p-2 font-semibold w-24 text-center">Media</th>
+                    <th className="p-2 font-semibold w-40">Rezultat</th>
+                    <th className="p-2 font-semibold">Observații</th>
+                    <th className="p-2 font-semibold text-right">Acțiuni</th>
+                </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-700">
+                {inscrieri.map(i => {
+                    const s = sportivi.find(sp => sp.id === i.sportiv_id);
+                    const g = grade.find(gr => gr.id === i.grad_vizat_id);
+                    return (
+                        <tr key={i.id} className="hover:bg-slate-700/20">
+                            <td className="p-1 font-medium text-white">{s?.nume} {s?.prenume}</td>
+                            <td className="p-1 text-slate-300">{g?.nume}</td>
+                            <td className="p-1"><Input type="number" step="0.01" label="" className="!py-1" defaultValue={i.nota_thao_quyen || ''} onBlur={e => handleNoteChange(i.id, 'nota_thao_quyen', e.target.value)} /></td>
+                            <td className="p-1"><Input type="number" step="0.01" label="" className="!py-1" defaultValue={i.nota_song_doi || ''} onBlur={e => handleNoteChange(i.id, 'nota_song_doi', e.target.value)} /></td>
+                            <td className="p-1 text-center font-bold text-brand-secondary font-mono">{i.media_generala?.toFixed(2) || '-'}</td>
+                            <td className="p-1"><Select label="" value={i.rezultat} className="!py-1" onChange={e => handleUpdateInscriere(i.id, 'rezultat', e.target.value)}><option value="Admis">Admis</option><option value="Respins">Respins</option><option value="Neprezentat">Neprezentat</option></Select></td>
+                            <td className="p-1"><Input label="" placeholder="..." className="!py-1" defaultValue={i.observatii || ''} onBlur={e => handleUpdateInscriere(i.id, 'observatii', e.target.value)} /></td>
+                            <td className="p-1 text-right"><Button onClick={() => setInscriereToDelete(i)} variant="danger" size="sm" className="!p-1.5"><TrashIcon className="w-4 h-4" /></Button></td>
+                        </tr>
+                    );
+                })}
+            </tbody>
+        </table>
         {inscrieri.length === 0 && <p className="text-slate-400 italic p-4 text-center">Niciun participant înscris.</p>}
     </div>
     <Card className="bg-slate-900/50">
@@ -331,8 +300,8 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = ({ sesiune, inscrieri, set
 </div><ConfirmDeleteModal isOpen={!!inscriereToDelete} onClose={() => setInscriereToDelete(null)} onConfirm={() => { if(inscriereToDelete) confirmDeleteInscriere(inscriereToDelete.id) }} tableName="înscrieri" isLoading={false} /> </Card> );
 };
 
-interface GestiuneExameneProps { onBack: () => void; sesiuni: SesiuneExamen[]; setSesiuni: React.Dispatch<React.SetStateAction<SesiuneExamen[]>>; inscrieri: InscriereExamen[]; setInscrieri: React.Dispatch<React.SetStateAction<InscriereExamen[]>>; sportivi: Sportiv[]; grade: Grad[]; setPlati: React.Dispatch<React.SetStateAction<Plata[]>>; preturiConfig: PretConfig[]; locatii: Locatie[]; setLocatii: React.Dispatch<React.SetStateAction<Locatie[]>>; onNavigate: (view: View) => void; onViewSportiv: (sportiv: Sportiv) => void; plati: Plata[]; }
-export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, sesiuni, setSesiuni, inscrieri, setInscrieri, sportivi, grade, setPlati, preturiConfig, locatii, setLocatii, onNavigate, onViewSportiv, plati }) => {
+interface GestiuneExameneProps { onBack: () => void; sesiuni: SesiuneExamen[]; setSesiuni: React.Dispatch<React.SetStateAction<SesiuneExamen[]>>; inscrieri: InscriereExamen[]; setInscrieri: React.Dispatch<React.SetStateAction<InscriereExamen[]>>; sportivi: Sportiv[]; grade: Grad[]; setPlati: React.Dispatch<React.SetStateAction<Plata[]>>; preturiConfig: PretConfig[]; locatii: Locatie[]; setLocatii: React.Dispatch<React.SetStateAction<Locatie[]>>; onNavigate: (view: View) => void; onViewSportiv: (sportiv: Sportiv) => void; }
+export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, sesiuni, setSesiuni, inscrieri, setInscrieri, sportivi, grade, setPlati, preturiConfig, locatii, setLocatii, onNavigate, onViewSportiv }) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [sesiuneToEdit, setSesiuneToEdit] = useState<SesiuneExamen | null>(null);
   const [sesiuneToDelete, setSesiuneToDelete] = useState<SesiuneExamen | null>(null);
@@ -372,7 +341,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, sesiun
     }
   };
 
-  if(selectedSesiune) { return ( <div><Button onClick={() => setSelectedSesiuneId(null)} className="mb-4" variant="secondary"><ArrowLeftIcon /> Înapoi la listă</Button><DetaliiSesiune plati={plati} sesiune={selectedSesiune} inscrieri={inscrieri.filter(p => p.sesiune_id === selectedSesiune.id)} setInscrieri={setInscrieri} sportivi={sportivi} grade={grade} setPlati={setPlati} preturiConfig={preturiConfig} allInscrieri={inscrieri} locatii={locatii} onNavigate={onNavigate} onViewSportiv={onViewSportiv} /></div> ) }
+  if(selectedSesiune) { return ( <div><Button onClick={() => setSelectedSesiuneId(null)} className="mb-4" variant="secondary"><ArrowLeftIcon /> Înapoi la listă</Button><DetaliiSesiune sesiune={selectedSesiune} inscrieri={inscrieri.filter(p => p.sesiune_id === selectedSesiune.id)} setInscrieri={setInscrieri} sportivi={sportivi} grade={grade} setPlati={setPlati} preturiConfig={preturiConfig} allInscrieri={inscrieri} locatii={locatii} onNavigate={onNavigate} onViewSportiv={onViewSportiv} /></div> ) }
   const sortedSesiuni = [...sesiuni].sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime());
   
   return ( <div><Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-white">Gestiune Sesiuni Examen</h1><Button onClick={() => { setSesiuneToEdit(null); setIsFormOpen(true); }} variant="info"><PlusIcon className="w-5 h-5 mr-2" />Adaugă Sesiune</Button></div><div className="bg-slate-800 rounded-lg shadow-lg overflow-hidden"><table className="w-full text-left"><thead className="bg-slate-700"><tr><th className="p-4 font-semibold">Data</th><th className="p-4 font-semibold">Locația</th><th className="p-4 font-semibold">Înscriși</th><th className="p-4 font-semibold text-right">Acțiuni</th></tr></thead><tbody className="divide-y divide-slate-700">{sortedSesiuni.map(s => ( <tr key={s.id} className="hover:bg-slate-700/50"><td className="p-4 font-medium cursor-pointer" onClick={() => setSelectedSesiuneId(s.id)}>{new Date(s.data+'T00:00:00').toLocaleDateString('ro-RO')}</td><td className="p-4 cursor-pointer" onClick={() => setSelectedSesiuneId(s.id)}>{locatii.find(l => l.id === s.locatie_id)?.nume || 'N/A'}</td><td className="p-4">{inscrieri.filter(p => p.sesiune_id === s.id).length}</td><td className="p-4 w-32"><div className="flex items-center justify-end space-x-2"><Button onClick={() => { setSesiuneToEdit(s); setIsFormOpen(true); }} variant="primary" size="sm"><EditIcon /></Button><Button onClick={() => setSesiuneToDelete(s)} variant="danger" size="sm"><TrashIcon /></Button></div></td></tr> ))}{sortedSesiuni.length === 0 && <tr><td colSpan={4}><p className="p-4 text-center text-slate-400">Nicio sesiune programată.</p></td></tr>}</tbody></table></div><SesiuneForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} onSave={handleSaveSesiune} sesiuneToEdit={sesiuneToEdit} locatii={locatii} setLocatii={setLocatii} /><ConfirmDeleteModal isOpen={!!sesiuneToDelete} onClose={() => setSesiuneToDelete(null)} onConfirm={() => { if(sesiuneToDelete) confirmDeleteSesiune(sesiuneToDelete.id) }} tableName="Sesiuni (și toate înscrierile asociate)" isLoading={isDeleting} /></div> );

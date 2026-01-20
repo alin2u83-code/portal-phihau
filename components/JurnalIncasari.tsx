@@ -2,9 +2,10 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Plata, Sportiv, PretConfig, TipAbonament, Tranzactie, Familie, Reducere, TipPlata } from '../types';
 import { Button, Input, Select, Card, Modal } from './ui';
 import { getPretValabil, getPretProdus } from '../utils/pricing';
-import { ArrowLeftIcon, PlusIcon } from './icons';
+import { ArrowLeftIcon, PlusIcon, TrashIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 const QuickAddTipPlataModal: React.FC<{ 
   isOpen: boolean; 
@@ -160,6 +161,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ plati, setPlati,
     const [loading, setLoading] = useState(false);
     const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
     const { showError, showSuccess } = useError();
+    const [tranzactieToDelete, setTranzactieToDelete] = useState<Tranzactie | null>(null);
 
     const isMultiple = platiInitiale.length > 1;
 
@@ -247,6 +249,15 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ plati, setPlati,
         try {
             if (platiInitiale.length > 0) {
                 const idsToUpdate = platiInitiale.map(p => p.id);
+
+                const { data: currentPlati, error: fetchError } = await supabase.from('plati').select('id, descriere, status').in('id', idsToUpdate);
+                if (fetchError) throw new Error("Nu am putut verifica statusul curent al facturilor.");
+
+                const alreadyPaid = currentPlati?.filter(p => p.status === 'Achitat');
+                if (alreadyPaid && alreadyPaid.length > 0) {
+                    throw new Error(`Plată Blocată: Factura "${alreadyPaid[0].descriere}" este deja achitată.`);
+                }
+                
                 const { data: tx, error: txError } = await supabase.from('tranzactii').insert({ plata_ids: idsToUpdate, sportiv_id: formState.sportiv_id || platiInitiale[0]?.sportiv_id, familie_id: formState.familie_id || platiInitiale[0]?.familie_id, suma: formState.suma, data_platii: formState.data_platii!, metoda_plata: formState.metoda_plata! }).select().single();
                 if (txError) throw txError;
                 tranzactieId = (tx as Tranzactie).id;
@@ -277,6 +288,32 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ plati, setPlati,
             if (newPlataId) { await supabase.from('plati').delete().eq('id', newPlataId); }
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleDeleteTranzactie = async () => {
+        if (!tranzactieToDelete || !supabase) return;
+        setLoading(true);
+
+        try {
+            const { plata_ids, id: tranzactieId } = tranzactieToDelete;
+            if (plata_ids && plata_ids.length > 0) {
+                const { error: updateError } = await supabase.from('plati').update({ status: 'Neachitat' }).in('id', plata_ids);
+                if (updateError) throw updateError;
+            }
+            const { error: deleteError } = await supabase.from('tranzactii').delete().eq('id', tranzactieId);
+            if (deleteError) throw deleteError;
+
+            setTranzactii(prev => prev.filter(t => t.id !== tranzactieId));
+            if (plata_ids && plata_ids.length > 0) {
+                setPlati(prev => prev.map(p => plata_ids.includes(p.id) ? { ...p, status: 'Neachitat' } : p));
+            }
+            showSuccess("Succes", "Tranzacția a fost ștearsă și facturile asociate au fost actualizate.");
+        } catch (err: any) {
+            showError("Eroare la ștergere", err);
+        } finally {
+            setLoading(false);
+            setTranzactieToDelete(null);
         }
     };
     
@@ -330,9 +367,10 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ plati, setPlati,
             </Card>
             <Card className="p-0 overflow-hidden">
                 <div className="bg-slate-700/50 p-4 border-b border-slate-600 font-bold">Istoric Încasări Recente</div>
-                <div className="overflow-x-auto"><table className="w-full text-left"><thead className="bg-slate-800 text-xs text-slate-400 uppercase"><tr><th className="p-4">Data</th><th className="p-4">Plătit de</th><th className="p-4">Descriere</th><th className="p-4 text-right">Sumă</th></tr></thead><tbody className="divide-y divide-slate-700">{sortedTranzactii.slice(0, 10).map(t => (<tr key={t.id} className="hover:bg-slate-700/20"><td className="p-4 text-sm">{new Date(t.data_platii).toLocaleDateString('ro-RO')}</td><td className="p-4 font-medium">{getEntityName(t)}</td><td className="p-4 text-sm text-slate-400">{getDescriereTranzactie(t)}</td><td className="p-4 text-right font-bold text-green-400">{t.suma.toFixed(2)} RON</td></tr>))}</tbody></table></div>
+                <div className="overflow-x-auto"><table className="w-full text-left"><thead className="bg-slate-800 text-xs text-slate-400 uppercase"><tr><th className="p-4">Data</th><th className="p-4">Plătit de</th><th className="p-4">Descriere</th><th className="p-4 text-right">Sumă</th><th className="p-4 text-right">Acțiuni</th></tr></thead><tbody className="divide-y divide-slate-700">{sortedTranzactii.slice(0, 10).map(t => (<tr key={t.id} className="hover:bg-slate-700/20"><td className="p-4 text-sm">{new Date(t.data_platii).toLocaleDateString('ro-RO')}</td><td className="p-4 font-medium">{getEntityName(t)}</td><td className="p-4 text-sm text-slate-400">{getDescriereTranzactie(t)}</td><td className="p-4 text-right font-bold text-green-400">{t.suma.toFixed(2)} RON</td><td className="p-4 text-right"><Button size="sm" variant="danger" onClick={() => setTranzactieToDelete(t)}><TrashIcon className="w-4 h-4"/></Button></td></tr>))}</tbody></table></div>
             </Card>
             <QuickAddTipPlataModal isOpen={isQuickAddOpen} onClose={() => setIsQuickAddOpen(false)} onSave={handleQuickAddTipPlata} />
+            <ConfirmDeleteModal isOpen={!!tranzactieToDelete} onClose={() => setTranzactieToDelete(null)} onConfirm={handleDeleteTranzactie} tableName="Tranzacție" isLoading={loading} customMessage="Sunteți sigur că doriți să ștergeți această încasare? Statusul facturilor asociate va fi resetat." />
         </div>
     );
 };

@@ -41,6 +41,7 @@ export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, 
         const currentSold = totalIncasari - totalDatorii;
         
         const platiHistory = relevantPlati.map(p => ({
+            id: p.id,
             date: p.data,
             amount: -p.suma,
             description: p.descriere,
@@ -48,10 +49,12 @@ export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, 
         }));
 
         const tranzactiiHistory = relevantTranzactii.map(t => ({
+            id: t.id,
             date: t.data_platii,
             amount: t.suma,
             description: t.descriere || `Încasare ${t.metoda_plata}`,
-            type: 'credit' as const
+            type: 'credit' as const,
+            facturi: t.plata_ids ? allPlati.filter(p => t.plata_ids.includes(p.id)) : []
         }));
 
         const combinedHistory = [...platiHistory, ...tranzactiiHistory].sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
@@ -139,10 +142,19 @@ export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, 
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-700">
-                                {history.map((item, index) => (
-                                    <tr key={index} className="hover:bg-white/5">
+                                {history.map((item: any) => (
+                                    <tr key={`${item.type}-${item.id}`} className="hover:bg-white/5">
                                         <td className="p-2 text-slate-400">{new Date(item.date).toLocaleDateString('ro-RO')}</td>
-                                        <td className="p-2">{item.description}</td>
+                                        <td className="p-2">
+                                            {item.description}
+                                            {item.type === 'credit' && item.facturi && item.facturi.length > 0 && (
+                                                <ul className="text-xs text-slate-500 pl-4 mt-1 list-disc list-inside">
+                                                    {item.facturi.map((f: any) => (
+                                                        <li key={f.id}>Stinge: "{f.descriere}"</li>
+                                                    ))}
+                                                </ul>
+                                            )}
+                                        </td>
                                         <td className={`p-2 text-right font-bold ${item.type === 'credit' ? 'text-green-400' : 'text-red-400'}`}>
                                             {item.type === 'credit' ? '+' : ''}{item.amount.toFixed(2)}
                                         </td>

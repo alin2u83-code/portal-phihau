@@ -30,6 +30,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
     const { showError, showSuccess } = useError();
     const [isGenerating, setIsGenerating] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [viewingHistoryFor, setViewingHistoryFor] = useState<Plata | null>(null);
 
     // Calculăm soldul curent pentru fiecare familie și sportiv individual
     const balances = useMemo(() => {
@@ -267,6 +268,11 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
         if (selectedIds.size === filteredPlati.length) setSelectedIds(new Set());
         else setSelectedIds(new Set(filteredPlati.map(p => p.id)));
     };
+    
+    const tranzactiiPentruPlata = useMemo(() => {
+        if (!viewingHistoryFor) return [];
+        return tranzactii.filter(t => t.plata_ids?.includes(viewingHistoryFor.id));
+    }, [viewingHistoryFor, tranzactii]);
 
     return (
         <div className="space-y-6">
@@ -351,6 +357,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
                                     </td>
                                     <td className="p-2 text-right">
                                         <div className="flex justify-end gap-2">
+                                            <Button size="sm" variant="info" onClick={() => setViewingHistoryFor(p)} title="Istoric Încasări"><BanknotesIcon className="w-4 h-4"/></Button>
                                             <Button size="sm" variant="secondary" onClick={() => setEditingPlata(p)} title="Editează detalii"><EditIcon className="w-4 h-4"/></Button>
                                             <Button size="sm" variant="danger" onClick={() => setPlataToDelete(p)} title="Șterge factură"><TrashIcon className="w-4 h-4"/></Button>
                                         </div>
@@ -395,6 +402,39 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
                           Salvează
                         </Button>
                     </div>
+                </Modal>
+            )}
+            
+            {viewingHistoryFor && (
+                <Modal
+                    isOpen={!!viewingHistoryFor}
+                    onClose={() => setViewingHistoryFor(null)}
+                    title={`Istoric Încasări pentru: ${viewingHistoryFor.descriere}`}
+                >
+                    {tranzactiiPentruPlata.length > 0 ? (
+                        <table className="w-full text-left text-sm">
+                            <thead className="bg-slate-700">
+                                <tr>
+                                    <th className="p-2">Data Plății</th>
+                                    <th className="p-2">Suma</th>
+                                    <th className="p-2">Metoda</th>
+                                    <th className="p-2">Descriere</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-700">
+                                {tranzactiiPentruPlata.map(t => (
+                                    <tr key={t.id}>
+                                        <td className="p-2">{new Date(t.data_platii).toLocaleDateString('ro-RO')}</td>
+                                        <td className="p-2 font-bold">{t.suma.toFixed(2)} RON</td>
+                                        <td className="p-2">{t.metoda_plata}</td>
+                                        <td className="p-2 text-slate-400">{t.descriere}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    ) : (
+                        <p className="text-center text-slate-400 p-8">Nicio încasare înregistrată pentru această factură.</p>
+                    )}
                 </Modal>
             )}
         </div>

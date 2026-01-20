@@ -104,8 +104,9 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
         const currentSold = totalIncasari - totalDatorii;
         
         // Asigură unicitatea folosind un Map, echivalent cu DISTINCT ON (id)
-        // FIX: Explicitly type `uniquePlati` as `Plata[]` to resolve type inference issues.
-        const uniquePlati: Plata[] = Array.from(new Map(allRelevantPlati.map(p => [p.id, p])).values());
+        // FIX: Use spread syntax to correctly infer the type of `uniquePlati` as `Plata[]`.
+        // The `Array.from(map.values())` pattern was causing a type inference issue.
+        const uniquePlati: Plata[] = [...new Map(allRelevantPlati.map(p => [p.id, p])).values()];
 
         const processPlati = (platiList: Plata[]) => {
             let historyItems = platiList.map(plata => {

@@ -51,9 +51,10 @@ export const adminMenu: MenuItem[] = [
         label: 'Administrativ', 
         icon: BanknotesIcon, 
         submenu: [ 
+            { view: 'financial-dashboard', label: 'Dashboard Financiar' },
             { view: 'plati-scadente', label: 'Facturi & Plăți' }, 
             { view: 'jurnal-incasari', label: 'Jurnal Încasări' }, 
-            { view: 'raport-financiar', label: 'Raport Financiar' },
+            { view: 'raport-financiar', label: 'Raport Detaliat' },
             { view: 'tipuri-abonament', label: 'Config. Abonamente' }, 
             { view: 'configurare-preturi', label: 'Taxe Grade', roles: ['Admin', 'Instructor'] },
             { view: 'taxe-anuale', label: 'Taxe Anuale', roles: ['Admin', 'Instructor'] },

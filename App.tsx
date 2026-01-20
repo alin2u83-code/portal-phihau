@@ -35,6 +35,7 @@ import { ReduceriManagement } from './components/Reduceri';
 import { Notificari } from './components/Notificari';
 import { TaxeAnuale } from './components/TaxeAnuale';
 import { GestionareNomenclatoare } from './components/GestionareNomenclatoare';
+import { FinancialDashboard } from './components/FinancialDashboard';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -306,6 +307,7 @@ function App() {
 
     switch (activeView) {
       case 'dashboard': return <Dashboard onNavigate={setActiveView} showPriceWarning={showPriceWarning} />;
+      case 'financial-dashboard': return <FinancialDashboard plati={plati} tranzactii={tranzactii} sportivi={sportivi} onBack={() => setActiveView('dashboard')} />;
       case 'sportivi': 
         return viewedSportiv ? (
             <UserProfile 

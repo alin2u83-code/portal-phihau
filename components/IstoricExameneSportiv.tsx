@@ -54,8 +54,8 @@ export const IstoricExameneSportiv: React.FC<IstoricExameneSportivProps> = ({ vi
         if (!sesiune) return null;
 
         const varstaLaExamen = getAgeOnDate(viewedUser.data_nasterii, sesiune.data);
-        const admittedInscrieri = allInscrieri.filter(i => i.sportiv_id === viewedUser.id && i.rezultat === 'Admis').sort((a, b) => (getGrad(b.grad_sustinut_id, grade)?.ordine ?? 0) - (getGrad(a.grad_sustinut_id, grade)?.ordine ?? 0));
-        const gradActual = getGrad(admittedInscrieri[0]?.grad_sustinut_id, grade);
+        const admittedInscrieri = allInscrieri.filter(i => i.sportiv_id === viewedUser.id && i.rezultat === 'Admis').sort((a, b) => (getGrad(b.grad_vizat_id, grade)?.ordine ?? 0) - (getGrad(a.grad_vizat_id, grade)?.ordine ?? 0));
+        const gradActual = getGrad(admittedInscrieri[0]?.grad_vizat_id, grade);
 
         let gradVizatAutomat: Grad | undefined;
         let eligibilityMessage = "";
@@ -102,7 +102,7 @@ export const IstoricExameneSportiv: React.FC<IstoricExameneSportivProps> = ({ vi
         
         setLoading(true);
         try {
-            const newInscriere = { sesiune_id: sesiune.id, sportiv_id: viewedUser.id, grad_actual_id: gradActual?.id || null, grad_sustinut_id: gradVizat.id, varsta_la_examen: varstaLaExamen, rezultat: 'Neprezentat' as const, observatii: '' };
+            const newInscriere = { sesiune_id: sesiune.id, sportiv_id: viewedUser.id, grad_actual_id: gradActual?.id || null, grad_vizat_id: gradVizat.id, varsta_la_examen: varstaLaExamen, rezultat: 'Neprezentat' as const, observatii: '' };
             const { data: iData, error: iError } = await supabase.from('inscrieri_examene').insert(newInscriere).select().single();
             if (iError) throw iError;
             setInscrieri(prev => [...prev, iData as InscriereExamen]);
@@ -126,7 +126,7 @@ export const IstoricExameneSportiv: React.FC<IstoricExameneSportivProps> = ({ vi
     const userParticipari = useMemo(() => {
         return participari.map(p => {
                 const sesiune = sesiuni.find(s => s.id === p.sesiune_id);
-                const grad = grade.find(g => g.id === p.grad_sustinut_id);
+                const grad = grade.find(g => g.id === p.grad_vizat_id);
                 return { ...p, data_examen: sesiune?.data || 'N/A', nume_grad: grad?.nume || 'N/A' };
             })
             .sort((a, b) => new Date(b.data_examen).getTime() - new Date(a.data_examen).getTime());

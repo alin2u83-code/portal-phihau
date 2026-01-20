@@ -49,7 +49,7 @@ export interface InscriereExamen {
     id: string;
     sportiv_id: string;
     sesiune_id: string;
-    grad_sustinut_id: string;
+    grad_vizat_id: string; // Renamed from grad_sustinut_id
     grad_actual_id: string | null;
     varsta_la_examen: number;
     rezultat: 'Admis' | 'Respins' | 'Neprezentat';

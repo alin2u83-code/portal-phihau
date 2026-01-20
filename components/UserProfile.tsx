@@ -10,7 +10,7 @@ import { DeleteAuditModal } from './DeleteAuditModal';
 import { SportivFeedbackReport } from './SportivFeedbackReport';
 import { SportivProgressChart } from './SportivProgressChart';
 
-const getGrad = (gradId: string, allGrades: Grad[]) => allGrades.find(g => g.id === gradId);
+const getGrad = (gradId: string | null, allGrades: Grad[]) => gradId ? allGrades.find(g => g.id === gradId) : null;
 const getAge = (dateString: string) => { const today = new Date(); const birthDate = new Date(dateString); let age = today.getFullYear() - birthDate.getFullYear(); const m = today.getMonth() - birthDate.getMonth(); if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; } return age; };
 const parseDurationToMonths = (durationStr: string): number => { const parts = durationStr.split(' '); if (parts.length < 2) return 0; const value = parseInt(parts[0], 10); const unit = parts[1].toLowerCase(); if (unit.startsWith('lun')) return value; if (unit.startsWith('an')) return value * 12; return 0; };
 
@@ -78,7 +78,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
 
     const admittedParticipations = useMemo(() => sortedSportivParticipariForDisplay.filter(p => p.rezultat === 'Admis'), [sortedSportivParticipariForDisplay]);
     
-    const currentGrad = useMemo(() => getGrad(admittedParticipations[0]?.grad_sustinut_id, grade), [admittedParticipations, grade]);
+    const currentGrad = useMemo(() => getGrad(admittedParticipations[0]?.grad_vizat_id, grade), [admittedParticipations, grade]);
     const currentGradParticipationId = admittedParticipations.length > 0 ? admittedParticipations[0].id : null;
 
     const eligibility = useMemo(() => {
@@ -356,7 +356,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                         <tr key={p.id} className={isCurrentGradRow ? 'bg-brand-primary font-bold' : ''}>
                             <td className="p-2">{p.examen?.data}</td>
                             <td className={`p-2 ${isCurrentGradRow ? 'text-brand-secondary' : 'font-semibold'}`}>
-                                {grade.find(g => g.id === p.grad_sustinut_id)?.nume}
+                                {grade.find(g => g.id === p.grad_vizat_id)?.nume}
                                 {isCurrentGradRow && <span className="ml-2 text-xs uppercase">(CURENT)</span>}
                             </td>
                             <td className={`p-2 font-bold ${p.rezultat === 'Admis' ? 'text-green-400' : 'text-red-400'}`}>{p.rezultat}</td>

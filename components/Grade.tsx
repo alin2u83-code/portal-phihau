@@ -99,8 +99,7 @@ export const GradeManagement: React.FC<GradeManagementProps> = ({ grade, setGrad
       if (!supabase) return;
       setIsDeleting(true);
       try {
-// FIX: The table name was incorrect. Changed 'participari' to 'inscrieri_examene'.
-          const { data, error: checkError } = await supabase.from('inscrieri_examene').select('id').eq('grad_sustinut_id', gradId).limit(1);
+          const { data, error: checkError } = await supabase.from('inscrieri_examene').select('id').eq('grad_vizat_id', gradId).limit(1);
           if (checkError) throw checkError;
           if (data && data.length > 0) {
               throw new Error("Acest grad nu poate fi șters deoarece este asociat cu istoricul de examinări al unor sportivi. Îl puteți edita dacă este necesar.");

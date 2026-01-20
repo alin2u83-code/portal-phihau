@@ -58,9 +58,10 @@ CREATE POLICY "Sportivi can update their own profile" ON public.sportivi
 -- -----------------------------------------------------------------
 ALTER TABLE public.familii ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage families" ON public.familii;
-DROP POLICY IF EXISTS "Authenticated users can see families" ON public.familii;
 CREATE POLICY "Admins can manage families" ON public.familii
     FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+
+DROP POLICY IF EXISTS "Authenticated users can see families" ON public.familii;
 CREATE POLICY "Authenticated users can see families" ON public.familii
     FOR SELECT USING (auth.role() = 'authenticated');
 
@@ -95,15 +96,15 @@ CREATE POLICY "Users can see their own and family transactions" ON public.tranza
     );
     
 -- -----------------------------------------------------------------
--- Tabel: participari (la Examene)
+-- Tabel: participari (la Examene) / inscrieri_examene
 -- -----------------------------------------------------------------
-ALTER TABLE public.participari ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Admins can manage all exam participations" ON public.participari;
-CREATE POLICY "Admins can manage all exam participations" ON public.participari
+ALTER TABLE public.inscrieri_examene ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Admins can manage all exam participations" ON public.inscrieri_examene;
+CREATE POLICY "Admins can manage all exam participations" ON public.inscrieri_examene
     FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
 
-DROP POLICY IF EXISTS "Users can see their own exam participations" ON public.participari;
-CREATE POLICY "Users can see their own exam participations" ON public.participari
+DROP POLICY IF EXISTS "Users can see their own exam participations" ON public.inscrieri_examene;
+CREATE POLICY "Users can see their own exam participations" ON public.inscrieri_examene
     FOR SELECT USING (sportiv_id IN (SELECT id FROM public.sportivi WHERE user_id = auth.uid()));
 
 -- -----------------------------------------------------------------
@@ -175,23 +176,22 @@ CREATE POLICY "Authenticated users can read notifications" ON public.notificari
 -- =================================================================
 
 -- -----------------------------------------------------------------
--- Tabel: examene
+-- Tabel: sesiuni_examene
 -- -----------------------------------------------------------------
-ALTER TABLE public.examene ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Admins can manage exams" ON public.examene;
-CREATE POLICY "Admins can manage exams" ON public.examene
+ALTER TABLE public.sesiuni_examene ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Admins can manage exams" ON public.sesiuni_examene;
+CREATE POLICY "Admins can manage exams" ON public.sesiuni_examene
     FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
 
-DROP POLICY IF EXISTS "Authenticated users can see exams" ON public.examene;
-DROP POLICY IF EXISTS "Authenticated users can see relevant exams" ON public.examene;
-CREATE POLICY "Authenticated users can see relevant exams" ON public.examene
+DROP POLICY IF EXISTS "Authenticated users can see relevant exams" ON public.sesiuni_examene;
+CREATE POLICY "Authenticated users can see relevant exams" ON public.sesiuni_examene
     FOR SELECT USING (
         -- Sportivii pot vedea examenele viitoare
         (data >= now()::date) OR
         -- Sau examenele la care au participat
         (id IN (
             SELECT sesiune_id 
-            FROM public.participari -- Alias for 'inscrieri_examene'
+            FROM public.inscrieri_examene
             WHERE sportiv_id IN (SELECT id FROM public.sportivi WHERE user_id = auth.uid())
         ))
     );
@@ -201,9 +201,10 @@ CREATE POLICY "Authenticated users can see relevant exams" ON public.examene
 -- -----------------------------------------------------------------
 ALTER TABLE public.grade ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage grades" ON public.grade;
-DROP POLICY IF EXISTS "Authenticated users can see grades" ON public.grade;
 CREATE POLICY "Admins can manage grades" ON public.grade
     FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+
+DROP POLICY IF EXISTS "Authenticated users can see grades" ON public.grade;
 CREATE POLICY "Authenticated users can see grades" ON public.grade
     FOR SELECT USING (auth.role() = 'authenticated');
 
@@ -212,9 +213,10 @@ CREATE POLICY "Authenticated users can see grades" ON public.grade
 -- -----------------------------------------------------------------
 ALTER TABLE public.grupe ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage groups" ON public.grupe;
-DROP POLICY IF EXISTS "Authenticated users can see groups" ON public.grupe;
 CREATE POLICY "Admins can manage groups" ON public.grupe
     FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+
+DROP POLICY IF EXISTS "Authenticated users can see groups" ON public.grupe;
 CREATE POLICY "Authenticated users can see groups" ON public.grupe
     FOR SELECT USING (auth.role() = 'authenticated');
 
@@ -223,9 +225,10 @@ CREATE POLICY "Authenticated users can see groups" ON public.grupe
 -- -----------------------------------------------------------------
 ALTER TABLE public.program_antrenamente ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage training schedules" ON public.program_antrenamente;
-DROP POLICY IF EXISTS "Authenticated users can see training schedules" ON public.program_antrenamente;
 CREATE POLICY "Admins can manage training schedules" ON public.program_antrenamente
     FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+
+DROP POLICY IF EXISTS "Authenticated users can see training schedules" ON public.program_antrenamente;
 CREATE POLICY "Authenticated users can see training schedules" ON public.program_antrenamente
     FOR SELECT USING (auth.role() = 'authenticated');
 
@@ -234,9 +237,10 @@ CREATE POLICY "Authenticated users can see training schedules" ON public.program
 -- -----------------------------------------------------------------
 ALTER TABLE public.evenimente ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage events" ON public.evenimente;
-DROP POLICY IF EXISTS "Authenticated users can see events" ON public.evenimente;
 CREATE POLICY "Admins can manage events" ON public.evenimente
     FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+
+DROP POLICY IF EXISTS "Authenticated users can see events" ON public.evenimente;
 CREATE POLICY "Authenticated users can see events" ON public.evenimente
     FOR SELECT USING (auth.role() = 'authenticated');
 
@@ -245,9 +249,10 @@ CREATE POLICY "Authenticated users can see events" ON public.evenimente
 -- -----------------------------------------------------------------
 ALTER TABLE public.preturi_config ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage price configs" ON public.preturi_config;
-DROP POLICY IF EXISTS "Authenticated users can see price configs" ON public.preturi_config;
 CREATE POLICY "Admins can manage price configs" ON public.preturi_config
     FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+
+DROP POLICY IF EXISTS "Authenticated users can see price configs" ON public.preturi_config;
 CREATE POLICY "Authenticated users can see price configs" ON public.preturi_config
     FOR SELECT USING (auth.role() = 'authenticated');
 
@@ -256,9 +261,10 @@ CREATE POLICY "Authenticated users can see price configs" ON public.preturi_conf
 -- -----------------------------------------------------------------
 ALTER TABLE public.grade_preturi_config ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage grade price configs" ON public.grade_preturi_config;
-DROP POLICY IF EXISTS "Authenticated users can see grade price configs" ON public.grade_preturi_config;
 CREATE POLICY "Admins can manage grade price configs" ON public.grade_preturi_config
     FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+
+DROP POLICY IF EXISTS "Authenticated users can see grade price configs" ON public.grade_preturi_config;
 CREATE POLICY "Authenticated users can see grade price configs" ON public.grade_preturi_config
     FOR SELECT USING (auth.role() = 'authenticated');
 
@@ -267,9 +273,10 @@ CREATE POLICY "Authenticated users can see grade price configs" ON public.grade_
 -- -----------------------------------------------------------------
 ALTER TABLE public.tipuri_abonament ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage subscription types" ON public.tipuri_abonament;
-DROP POLICY IF EXISTS "Authenticated users can see subscription types" ON public.tipuri_abonament;
 CREATE POLICY "Admins can manage subscription types" ON public.tipuri_abonament
     FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+
+DROP POLICY IF EXISTS "Authenticated users can see subscription types" ON public.tipuri_abonament;
 CREATE POLICY "Authenticated users can see subscription types" ON public.tipuri_abonament
     FOR SELECT USING (auth.role() = 'authenticated');
     
@@ -290,9 +297,10 @@ CREATE POLICY "Authenticated users can see payment types" ON public.tipuri_plati
 -- -----------------------------------------------------------------
 ALTER TABLE public.reduceri ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage discounts" ON public.reduceri;
-DROP POLICY IF EXISTS "Authenticated users can see discounts" ON public.reduceri;
 CREATE POLICY "Admins can manage discounts" ON public.reduceri
     FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+
+DROP POLICY IF EXISTS "Authenticated users can see discounts" ON public.reduceri;
 CREATE POLICY "Authenticated users can see discounts" ON public.reduceri
     FOR SELECT USING (auth.role() = 'authenticated');
 
@@ -301,57 +309,50 @@ CREATE POLICY "Authenticated users can see discounts" ON public.reduceri
 -- -----------------------------------------------------------------
 ALTER TABLE public.roluri ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage roles" ON public.roluri;
-DROP POLICY IF EXISTS "Authenticated users can see roles" ON public.roluri;
 CREATE POLICY "Admins can manage roles" ON public.roluri
     FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+
+DROP POLICY IF EXISTS "Authenticated users can see roles" ON public.roluri;
 CREATE POLICY "Authenticated users can see roles" ON public.roluri
     FOR SELECT USING (auth.role() = 'authenticated');
 
+-- -----------------------------------------------------------------
+-- Tabel: nom_locatii
+-- -----------------------------------------------------------------
+ALTER TABLE public.nom_locatii ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Admins can manage locations" ON public.nom_locatii;
+CREATE POLICY "Admins can manage locations" ON public.nom_locatii
+    FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+
+DROP POLICY IF EXISTS "Authenticated users can read locations" ON public.nom_locatii;
+CREATE POLICY "Authenticated users can read locations" ON public.nom_locatii
+    FOR SELECT USING (auth.role() = 'authenticated');
 
 -- -----------------------------------------------------------------
 -- Tabel: taxe_anuale_config
 -- -----------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS public.taxe_anuale_config (
-  id uuid not null default gen_random_uuid (),
-  nume text not null,
-  suma numeric(10, 2) not null,
-  data_inceput date not null,
-  data_sfarsit date not null,
-  is_activ boolean null default true,
-  created_at timestamp with time zone null default now(),
-  constraint taxe_anuale_config_pkey primary key (id)
-);
 ALTER TABLE public.taxe_anuale_config ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Admins can manage annual fees" ON public.taxe_anuale_config;
-DROP POLICY IF EXISTS "Authenticated users can see annual fees" ON public.taxe_anuale_config;
-DROP POLICY IF EXISTS "Authenticated users can read annual fees config" ON public.taxe_anuale_config;
 DROP POLICY IF EXISTS "Admins can manage annual fees config" ON public.taxe_anuale_config;
-
 CREATE POLICY "Admins can manage annual fees config" ON public.taxe_anuale_config
     FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+
+DROP POLICY IF EXISTS "Authenticated users can read annual fees config" ON public.taxe_anuale_config;
 CREATE POLICY "Authenticated users can read annual fees config" ON public.taxe_anuale_config
     FOR SELECT USING (auth.role() = 'authenticated');
 
 
 -- =================================================================
--- Schema Cleanup (Eliminare Coloane Neutilizate)
+-- Schema Cleanup & Corrections
 -- =================================================================
 
--- Eliminarea coloanelor neutilizate din tabelul 'sportivi'
+-- Eliminarea coloanelor neutilizate și corectarea denumirilor
 ALTER TABLE public.sportivi DROP COLUMN IF EXISTS club_provenienta;
 ALTER TABLE public.sportivi DROP COLUMN IF EXISTS telefon;
 ALTER TABLE public.sportivi DROP COLUMN IF EXISTS adresa;
+ALTER TABLE public.inscrieri_examene DROP COLUMN IF EXISTS nota_tehnica;
+ALTER TABLE public.inscrieri_examene DROP COLUMN IF EXISTS nota_thao_quyen;
 
--- Eliminarea coloanelor pentru note din 'participari'
-ALTER TABLE public.participari DROP COLUMN IF EXISTS nota_tehnica;
-ALTER TABLE public.participari DROP COLUMN IF EXISTS nota_thao_quyen;
-
--- =================================================================
--- Schema Corrections
--- =================================================================
-
--- Add 'Taxa Anuala' to the allowed types in the 'plati' table to fix check constraint violation.
+-- Corectare constrângere 'plati_tip_check' pentru a include 'Taxa Anuala'
 ALTER TABLE public.plati DROP CONSTRAINT IF EXISTS plati_tip_check;
 ALTER TABLE public.plati ADD CONSTRAINT plati_tip_check CHECK (
     tip = ANY (ARRAY[
@@ -363,3 +364,7 @@ ALTER TABLE public.plati ADD CONSTRAINT plati_tip_check CHECK (
         'Taxa Anuala'::text
     ])
 );
+
+-- Replicare pentru tabelele cu alias-uri (dacă mai există)
+ALTER TABLE public.examene RENAME TO sesiuni_examene;
+ALTER TABLE public.participari RENAME TO inscrieri_examene;

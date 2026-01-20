@@ -1,14 +1,13 @@
 import React, { useMemo } from 'react';
-import { User, Plata, Tranzactie, Grad, Grupa, Participare, Examen, Reducere } from '../types';
-import { Card, Button } from './ui';
-import { ArrowLeftIcon, BanknotesIcon } from './icons';
+import { User, Plata, Tranzactie, Grad, Grupa, Participare, Examen } from '../types';
+import { Button } from './ui';
+import { ArrowLeftIcon } from './icons';
 
 // Props
 interface ProfilSportivProps {
     currentUser: User;
     plati: Plata[];
     tranzactii: Tranzactie[];
-    reduceri: Reducere[];
     grade: Grad[];
     grupe: Grupa[];
     participari: Participare[];
@@ -16,65 +15,30 @@ interface ProfilSportivProps {
     onBack: () => void;
 }
 
-const getGrad = (gradId: string, allGrades: Grad[]) => allGrades.find(g => g.id === gradId);
+const getGrad = (gradId: string | null, allGrades: Grad[]): Grad | null => gradId ? allGrades.find(g => g.id === gradId) || null : null;
 
-const HistoryTable: React.FC<{ items: any[], title: string, emptyMessage: string }> = ({ items, title, emptyMessage }) => (
-    <>
-        <div className="p-4 bg-slate-700/80">
-            <h4 className="font-semibold text-white">{title}</h4>
+// Componentă card reutilizabilă pentru statistici
+const StatCard: React.FC<{ title: string, children: React.ReactNode, actions?: React.ReactNode, className?: string }> = ({ title, children, actions, className }) => (
+    <div className={`bg-slate-800 rounded-xl shadow-sm border border-slate-700 p-6 flex flex-col text-center md:text-left ${className}`}>
+        <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3">{title}</h3>
+        <div className="flex-grow space-y-4">
+            {children}
         </div>
-        <div className="overflow-x-auto max-h-72">
-            <table className="w-full text-left text-sm">
-                 <thead className="bg-slate-800 text-slate-400 text-xs uppercase sticky top-0 backdrop-blur-sm">
-                    <tr>
-                        <th className="p-3">Descriere</th>
-                        <th className="p-3 text-right">Sumă</th>
-                        <th className="p-3">Data Emiterii</th>
-                        <th className="p-3 text-center">Status</th>
-                        <th className="p-3">Data Încasării</th>
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-700">
-                    {items.map(item => (
-                        <tr key={item.id} className="hover:bg-slate-700/30">
-                            <td className="p-3 font-medium text-white">{item.descriere}</td>
-                            <td className="p-3 text-right font-semibold">
-                                {item.suma_initiala && item.suma_initiala > item.suma ? (
-                                    <div>
-                                        <span>{item.suma.toFixed(2)} lei</span>
-                                        <div className="text-xs text-slate-400 font-normal leading-tight whitespace-nowrap">
-                                            ({item.suma_initiala.toFixed(2)} - {item.discountInfo})
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <span>{item.suma.toFixed(2)} lei</span>
-                                )}
-                            </td>
-                            <td className="p-3 text-slate-400">{new Date(item.data).toLocaleDateString('ro-RO')}</td>
-                            <td className="p-3 text-center">
-                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
-                                    item.status === 'Achitat' ? 'bg-green-600/20 text-green-400 border-green-600/50' : 
-                                    item.status === 'Achitat Parțial' ? 'bg-amber-600/20 text-amber-400 border-amber-600/50' : 
-                                    'bg-red-600/20 text-red-400 border-red-600/50'
-                                }`}>
-                                    {item.status}
-                                </span>
-                            </td>
-                            <td className="p-3 text-slate-400">
-                                {item.dataIncasare ? new Date(item.dataIncasare).toLocaleDateString('ro-RO') : '-'}
-                            </td>
-                        </tr>
-                    ))}
-                    {items.length === 0 && <tr><td colSpan={5} className="p-8 text-center text-slate-500 italic">{emptyMessage}</td></tr>}
-                </tbody>
-            </table>
-        </div>
-    </>
+        {actions && <div className="mt-6 pt-4 border-t border-slate-700/50 text-center md:text-right">{actions}</div>}
+    </div>
 );
 
-export const ProfilSportiv: React.FC<ProfilSportivProps> = ({ currentUser, plati, tranzactii, reduceri, grade, grupe, participari, examene, onBack }) => {
+// Componentă pentru afișarea unui câmp de date
+const DataField: React.FC<{ label: string, value: string | React.ReactNode, valueClassName?: string }> = ({ label, value, valueClassName }) => (
+    <div>
+        <p className="text-xs text-slate-500">{label}</p>
+        <p className={`font-bold text-lg text-white ${valueClassName}`}>{value}</p>
+    </div>
+);
 
-    const { currentGrad, currentGrupa } = useMemo(() => {
+export const ProfilSportiv: React.FC<ProfilSportivProps> = ({ currentUser, plati, tranzactii, grade, grupe, participari, examene, onBack }) => {
+
+    const { currentGrad, lastExamDate, nextGrad } = useMemo(() => {
         const admittedParticipations = participari
             .filter(p => p.sportiv_id === currentUser.id && p.rezultat === 'Admis')
             .sort((a, b) => {
@@ -83,82 +47,79 @@ export const ProfilSportiv: React.FC<ProfilSportivProps> = ({ currentUser, plati
                 return new Date(dateB).getTime() - new Date(dateA).getTime();
             });
         
-        const grad = admittedParticipations.length > 0 ? getGrad(admittedParticipations[0].grad_sustinut_id, grade) : null;
-        const grupa = grupe.find(g => g.id === currentUser.grupa_id);
+        const lastParticipation = admittedParticipations[0];
+        const grad = lastParticipation ? getGrad(lastParticipation.grad_sustinut_id, grade) : null;
+        const exam = lastParticipation ? examene.find(e => e.id === lastParticipation.sesiune_id) : null;
 
-        return { currentGrad: grad, currentGrupa: grupa };
-    }, [currentUser, participari, examene, grade, grupe]);
+        const sortedGrades = [...grade].sort((a, b) => a.ordine - b.ordine);
+        const nextGrade = grad ? sortedGrades.find(g => g.ordine === (grad.ordine ?? 0) + 1) : sortedGrades.find(g => g.ordine === 1);
 
-    const { sold, individualHistory, familieHistory } = useMemo(() => {
-        // Calcul sold total
-        const allRelevantPlati = plati.filter(p => p.sportiv_id === currentUser.id || (p.familie_id && p.familie_id === currentUser.familie_id));
-        const allRelevantTranzactii = tranzactii.filter(t => t.sportiv_id === currentUser.id || (t.familie_id && t.familie_id === currentUser.familie_id));
-        const totalDatorii = allRelevantPlati.reduce((sum, p) => sum + p.suma, 0);
-        const totalIncasari = allRelevantTranzactii.reduce((sum, t) => sum + t.suma, 0);
-        const currentSold = totalIncasari - totalDatorii;
-        
-        // Asigură unicitatea (DISTINCT ON)
-        // FIX: Explicitly set the generic type for `new Map` to resolve a type inference issue where the resulting array was being inferred as `unknown[]`.
-        const uniquePlati: Plata[] = Array.from(new Map<string, Plata>(allRelevantPlati.map(p => [p.id, p])).values());
-
-        const processPlati = (platiList: Plata[]) => {
-            return platiList.map(plata => {
-                let dataIncasare: string | null = null;
-                if (plata.status === 'Achitat' || plata.status === 'Achitat Parțial') {
-                    const tranzactieCorespondenta = tranzactii.find(t => t.plata_ids?.includes(plata.id));
-                    if (tranzactieCorespondenta) dataIncasare = tranzactieCorespondenta.data_platii;
-                }
-                const reducereAplicata = plata.reducere_id ? reduceri.find(r => r.id === plata.reducere_id) : null;
-                let discountInfo = null;
-                if (reducereAplicata && plata.suma_initiala) {
-                    const valoareReducere = plata.suma_initiala - plata.suma;
-                    discountInfo = `${valoareReducere.toFixed(2)} lei (${reducereAplicata.nume})`;
-                }
-                return { ...plata, dataIncasare, discountInfo };
-            }).sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+        return { 
+            currentGrad: grad, 
+            lastExamDate: exam ? new Date(exam.data + 'T00:00:00').toLocaleDateString('ro-RO') : 'N/A',
+            nextGrad: nextGrade
         };
+    }, [currentUser, participari, examene, grade]);
 
-        const individualPlati = uniquePlati.filter(p => p.sportiv_id === currentUser.id && !p.familie_id);
-        const familiePlati = uniquePlati.filter(p => p.familie_id && p.familie_id === currentUser.familie_id);
+    const { totalRestante, ultimaPlata } = useMemo(() => {
+        const platiRelevante = plati.filter(p => p.sportiv_id === currentUser.id || (p.familie_id && p.familie_id === currentUser.familie_id));
         
+        const restante = platiRelevante
+            .filter(p => p.status === 'Neachitat')
+            .reduce((sum, p) => sum + p.suma, 0);
+
+        const tranzactiiRelevante = tranzactii.filter(t => t.sportiv_id === currentUser.id || (t.familie_id && t.familie_id === currentUser.familie_id))
+            .sort((a,b) => new Date(b.data_platii).getTime() - new Date(a.data_platii).getTime());
+        
+        const ultimaTranzactie = tranzactiiRelevante[0];
+
         return {
-            sold: currentSold,
-            individualHistory: processPlati(individualPlati),
-            familieHistory: processPlati(familiePlati)
+            totalRestante: restante,
+            ultimaPlata: ultimaTranzactie 
+                ? `${ultimaTranzactie.suma.toFixed(2)} lei la ${new Date(ultimaTranzactie.data_platii).toLocaleDateString('ro-RO')}` 
+                : "Nicio plată înregistrată"
         };
-    }, [plati, tranzactii, currentUser, reduceri]);
-
+    }, [currentUser, plati, tranzactii]);
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 text-white">
             <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Portal</Button>
             
-            <Card className="bg-slate-800/70 border-brand-secondary/20">
-                <div className="flex items-center gap-4">
-                    <BanknotesIcon className="w-10 h-10 text-brand-secondary"/>
-                    <div>
-                        <h1 className="text-2xl font-bold text-white">{currentUser.nume} {currentUser.prenume}</h1>
-                        <p className="text-sm text-slate-300">
-                            {currentGrupa?.denumire || 'Fără grupă'} / {currentGrad?.nume || 'Începător'}
-                        </p>
-                    </div>
-                </div>
-            </Card>
+            <header className="text-center md:text-left">
+                 <h1 className="text-3xl font-bold text-white">{currentUser.nume} {currentUser.prenume}</h1>
+                 <p className="text-lg text-slate-300">{grupe.find(g => g.id === currentUser.grupa_id)?.denumire || 'Fără grupă'}</p>
+            </header>
 
-            <Card className="p-0 overflow-hidden">
-                <div className="p-4 bg-slate-700/50 flex justify-between items-center">
-                    <h2 className="text-xl font-bold text-white">Facturile mele</h2>
-                    <p className={`text-sm font-bold ${sold >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                        Sold Curent: {sold.toFixed(2)} RON
-                    </p>
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <StatCard 
+                    title="Progres Tehnic"
+                    actions={
+                        <Button variant="info" size="sm" onClick={() => alert('Navigare către istoric examene...')}>
+                            Istoric Examene
+                        </Button>
+                    }
+                >
+                    <DataField label="Grad Actual" value={currentGrad?.nume || 'Începător'} valueClassName="text-brand-secondary" />
+                    <DataField label="Data Ultimului Examen" value={lastExamDate} />
+                    <DataField label="Următorul Grad" value={nextGrad?.nume || 'Maxim atins'} />
+                </StatCard>
 
-                <HistoryTable items={individualHistory} title="Plăți Individuale" emptyMessage="Nicio plată individuală înregistrată." />
-
-                {currentUser.familie_id && (
-                     <HistoryTable items={familieHistory} title="Plăți Familie" emptyMessage="Nicio plată de familie înregistrată." />
-                )}
-            </Card>
+                <StatCard 
+                    title="Situație Financiară"
+                    actions={
+                        <Button variant="info" size="sm" onClick={() => alert('Navigare către istoric plăți...')}>
+                            Istoric Plăți
+                        </Button>
+                    }
+                >
+                    <DataField 
+                        label="Total de Plată (Restanțe)" 
+                        value={`${totalRestante.toFixed(2)} lei`}
+                        valueClassName={totalRestante > 0 ? 'text-red-500' : 'text-green-500'}
+                    />
+                    <DataField label="Ultima Plată Înregistrată" value={ultimaPlata} />
+                </StatCard>
+            </div>
         </div>
     );
 };

@@ -16,11 +16,10 @@ DROP FUNCTION IF EXISTS public.is_admin_or_instructor();
 CREATE OR REPLACE FUNCTION public.is_admin_or_instructor()
 RETURNS boolean AS $$
 BEGIN
-    -- Această funcție rulează cu permisiunile invocatorului (SECURITY INVOKER este implicit).
-    -- Politica RLS "Sportivi can see their own profile" (`USING (user_id = auth.uid())`)
-    -- permite sub-interogării să vadă rândul utilizatorului curent în tabelul 'sportivi'.
-    -- Acest lucru este suficient pentru a verifica rolul utilizatorului fără a cauza o buclă recursivă
-    -- care ar apărea dacă funcția ar avea nevoie să vadă toate rândurile din tabel.
+    -- This function must be SECURITY DEFINER to break recursive RLS checks.
+    -- It runs with the permissions of the function owner. By setting the owner
+    -- to 'postgres' (a superuser), this function bypasses RLS, allowing it to
+    -- query sportivi/roles tables without re-triggering policies that call it.
     RETURN EXISTS (
         SELECT 1
         FROM public.sportivi s
@@ -31,6 +30,11 @@ BEGIN
     );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Set the owner to 'postgres' to bypass RLS within the function.
+-- This is CRITICAL to prevent recursive policy checks in Supabase environments
+-- where the default migration role does not bypass RLS.
+ALTER FUNCTION public.is_admin_or_instructor() OWNER TO postgres;
 
 
 -- =================================================================

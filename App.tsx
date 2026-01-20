@@ -36,6 +36,8 @@ import { Notificari } from './components/Notificari';
 import { TaxeAnuale } from './components/TaxeAnuale';
 import { GestionareNomenclatoare } from './components/GestionareNomenclatoare';
 import { FinancialDashboard } from './components/FinancialDashboard';
+import { IstoricExamene } from './components/IstoricExamene';
+import { FacturiPersonale } from './components/FacturiPersonale';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -299,10 +301,14 @@ function App() {
         setAnunturi: setAnunturi,
       };
 
+      const portalBackNav = () => setActiveView(isAdmin ? 'my-portal' : 'dashboard');
+
       switch (activeView) {
-        case 'evenimentele-mele': return <EvenimenteleMele viewedUser={currentUser} evenimente={evenimente} rezultate={rezultate} setRezultate={setRezultate} onBack={() => setActiveView(isAdmin ? 'my-portal' : 'dashboard')} />;
-        case 'editare-profil-personal': return <EditareProfilPersonal user={currentUser} setSportivi={setSportivi} setCurrentUser={setCurrentUser} onBack={() => setActiveView(isAdmin ? 'my-portal' : 'dashboard')} />;
-        case 'profil-sportiv': return <ProfilSportiv currentUser={currentUser} plati={plati} tranzactii={tranzactii} grade={grade} grupe={grupe} participari={inscrieriExamene} examene={sesiuniExamene} onBack={() => setActiveView(isAdmin ? 'my-portal' : 'dashboard')} />;
+        case 'evenimentele-mele': return <EvenimenteleMele viewedUser={currentUser} evenimente={evenimente} rezultate={rezultate} setRezultate={setRezultate} onBack={portalBackNav} />;
+        case 'editare-profil-personal': return <EditareProfilPersonal user={currentUser} setSportivi={setSportivi} setCurrentUser={setCurrentUser} onBack={portalBackNav} />;
+        case 'profil-sportiv': return <ProfilSportiv currentUser={currentUser} plati={plati} tranzactii={tranzactii} grade={grade} grupe={grupe} participari={inscrieriExamene} examene={sesiuniExamene} onBack={portalBackNav} />;
+        case 'istoric-examene': return <IstoricExamene viewedUser={currentUser} participari={inscrieriExamene} sesiuni={sesiuniExamene} grade={grade} onBack={portalBackNav} />;
+        case 'facturi-personale': return <FacturiPersonale viewedUser={currentUser} plati={plati} tranzactii={tranzactii} onBack={portalBackNav} />;
         case 'my-portal':
         default: return <SportivDashboard {...commonProps} />;
       }

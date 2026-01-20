@@ -30,7 +30,7 @@ BEGIN
           AND (r.nume = 'Admin' OR r.nume = 'Instructor')
     );
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 
 -- =================================================================
@@ -52,18 +52,6 @@ CREATE POLICY "Sportivi can see their own profile" ON public.sportivi
 DROP POLICY IF EXISTS "Sportivi can update their own profile" ON public.sportivi;
 CREATE POLICY "Sportivi can update their own profile" ON public.sportivi
     FOR UPDATE USING (user_id = auth.uid());
-
--- -----------------------------------------------------------------
--- Tabel: familii
--- -----------------------------------------------------------------
-ALTER TABLE public.familii ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Admins can manage families" ON public.familii;
-CREATE POLICY "Admins can manage families" ON public.familii
-    FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
-
-DROP POLICY IF EXISTS "Authenticated users can see families" ON public.familii;
-CREATE POLICY "Authenticated users can see families" ON public.familii
-    FOR SELECT USING (auth.role() = 'authenticated');
 
 -- -----------------------------------------------------------------
 -- Tabel: plati (Datorii)
@@ -96,7 +84,7 @@ CREATE POLICY "Users can see their own and family transactions" ON public.tranza
     );
     
 -- -----------------------------------------------------------------
--- Tabel: participari (la Examene) / inscrieri_examene
+-- Tabel: inscrieri_examene
 -- -----------------------------------------------------------------
 ALTER TABLE public.inscrieri_examene ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage all exam participations" ON public.inscrieri_examene;
@@ -172,7 +160,7 @@ CREATE POLICY "Authenticated users can read notifications" ON public.notificari
     FOR SELECT USING (auth.role() = 'authenticated');
     
 -- =================================================================
--- Tabele Publice / de Configurare (Read-Only pentru majoritatea)
+-- Tabele Publice / de Configurare (Read-Only pentru Sportivi)
 -- =================================================================
 
 -- -----------------------------------------------------------------
@@ -186,9 +174,7 @@ CREATE POLICY "Admins can manage exams" ON public.sesiuni_examene
 DROP POLICY IF EXISTS "Authenticated users can see relevant exams" ON public.sesiuni_examene;
 CREATE POLICY "Authenticated users can see relevant exams" ON public.sesiuni_examene
     FOR SELECT USING (
-        -- Sportivii pot vedea examenele viitoare
         (data >= now()::date) OR
-        -- Sau examenele la care au participat
         (id IN (
             SELECT sesiune_id 
             FROM public.inscrieri_examene
@@ -329,6 +315,18 @@ CREATE POLICY "Authenticated users can read locations" ON public.nom_locatii
     FOR SELECT USING (auth.role() = 'authenticated');
 
 -- -----------------------------------------------------------------
+-- Tabel: familii
+-- -----------------------------------------------------------------
+ALTER TABLE public.familii ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Admins can manage families" ON public.familii;
+CREATE POLICY "Admins can manage families" ON public.familii
+    FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+
+DROP POLICY IF EXISTS "Authenticated users can see families" ON public.familii;
+CREATE POLICY "Authenticated users can see families" ON public.familii
+    FOR SELECT USING (auth.role() = 'authenticated');
+    
+-- -----------------------------------------------------------------
 -- Tabel: taxe_anuale_config
 -- -----------------------------------------------------------------
 ALTER TABLE public.taxe_anuale_config ENABLE ROW LEVEL SECURITY;
@@ -345,26 +343,16 @@ CREATE POLICY "Authenticated users can read annual fees config" ON public.taxe_a
 -- Schema Cleanup & Corrections
 -- =================================================================
 
--- Eliminarea coloanelor neutilizate și corectarea denumirilor
-ALTER TABLE public.sportivi DROP COLUMN IF EXISTS club_provenienta;
-ALTER TABLE public.sportivi DROP COLUMN IF EXISTS telefon;
-ALTER TABLE public.sportivi DROP COLUMN IF EXISTS adresa;
-ALTER TABLE public.inscrieri_examene DROP COLUMN IF EXISTS nota_tehnica;
-ALTER TABLE public.inscrieri_examene DROP COLUMN IF EXISTS nota_thao_quyen;
-
--- Corectare constrângere 'plati_tip_check' pentru a include 'Taxa Anuala'
+-- Corectare constrângere 'plati_tip_check' pentru a include 'Taxa Anuala' și alte tipuri.
 ALTER TABLE public.plati DROP CONSTRAINT IF EXISTS plati_tip_check;
 ALTER TABLE public.plati ADD CONSTRAINT plati_tip_check CHECK (
-    tip = ANY (ARRAY[
-        'Abonament'::text, 
-        'Taxa Examen'::text, 
-        'Taxa Stagiu'::text, 
-        'Taxa Competitie'::text, 
-        'Echipament'::text,
-        'Taxa Anuala'::text
-    ])
+    tip IN (
+        'Abonament', 
+        'Taxa Examen', 
+        'Taxa Stagiu', 
+        'Taxa Competitie', 
+        'Echipament',
+        'Taxa Anuala'
+        -- Adăugați aici alte tipuri custom permise dacă este necesar
+    )
 );
-
--- Replicare pentru tabelele cu alias-uri (dacă mai există)
-ALTER TABLE public.examene RENAME TO sesiuni_examene;
-ALTER TABLE public.participari RENAME TO inscrieri_examene;

@@ -91,14 +91,12 @@ export const SportivFeedbackReport: React.FC<SportivFeedbackReportProps> = ({ is
         const vointaDeFier = weeklyPresenceFlags.slice(0, -1).join('').includes('false,false,true');
 
         // 4. Eligibility Message
-        // FIX: Use 'sesiune_id' instead of the non-existent 'examen_id'.
         const admitted = participari.filter(p => p.sportiv_id === sportiv.id && p.rezultat === 'Admis').sort((a,b) => new Date(examene.find(e=>e.id===b.sesiune_id)!.data).getTime() - new Date(examene.find(e=>e.id===a.sesiune_id)!.data).getTime());
-        const currentGrad = grade.find(g => g.id === admitted[0]?.grad_sustinut_id);
+        const currentGrad = grade.find(g => g.id === admitted[0]?.grad_vizat_id);
         const sortedGrades = [...grade].sort((a, b) => a.ordine - b.ordine);
         const nextGrad = currentGrad ? sortedGrades.find(g => g.ordine === currentGrad.ordine + 1) : sortedGrades[0];
         let eligibilityMsg = "Felicitări pentru progresul de până acum!";
         if (nextGrad) {
-            // FIX: Use 'sesiune_id' instead of the non-existent 'examen_id'.
             const lastExamDate = admitted[0] ? new Date(examene.find(e=>e.id===admitted[0].sesiune_id)!.data) : new Date(sportiv.data_inscrierii);
             const monthsToWait = parseDurationToMonths(nextGrad.timp_asteptare);
             const eligibilityDate = new Date(lastExamDate);

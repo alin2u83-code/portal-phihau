@@ -91,8 +91,8 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 sm:p-4" onClick={() => !persistent && onClose()}>
-      <div className="bg-slate-800 sm:rounded-lg shadow-2xl w-full h-full sm:h-auto sm:max-w-2xl sm:max-h-[95vh] flex flex-col sm:border border-slate-600 animate-fade-in-down" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black/80 z-50 flex sm:items-center sm:justify-center sm:p-4" onClick={() => !persistent && onClose()}>
+      <div className="bg-slate-800 w-full h-full flex flex-col sm:h-auto sm:max-h-[95vh] sm:max-w-2xl sm:rounded-lg sm:border border-slate-600 shadow-2xl animate-fade-in-down" onClick={(e) => e.stopPropagation()}>
         <div className="flex justify-between items-center p-3 border-b border-slate-700">
           <h2 className="text-lg font-bold text-white uppercase tracking-tight">{title}</h2>
           <button onClick={onClose} className="p-1 text-slate-400 hover:text-white transition-colors">

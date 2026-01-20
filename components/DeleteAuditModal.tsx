@@ -40,7 +40,6 @@ export const DeleteAuditModal: React.FC<DeleteAuditModalProps> = ({ isOpen, onCl
                 try {
                     const [platiRes, participariRes, prezenteRes, rezultateRes] = await Promise.all([
                         supabase.from('plati').select('id', { count: 'exact', head: true }).eq('sportiv_id', sportivId),
-                        // FIX: The table name was incorrect. Changed 'participari' to 'inscrieri_examene'.
                         supabase.from('inscrieri_examene').select('id', { count: 'exact', head: true }).eq('sportiv_id', sportivId),
                         supabase.from('prezenta_antrenament').select('sportiv_id', { count: 'exact', head: true }).eq('sportiv_id', sportivId),
                         supabase.from('rezultate').select('id', { count: 'exact', head: true }).eq('sportiv_id', sportivId)

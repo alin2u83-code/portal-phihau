@@ -147,7 +147,7 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
         }
     };
 
-    const confirmGenerateInvoices = async () => {
+    const handleGenerareMasiva = async () => {
         if (!taxaToGenerate || !supabase) return;
 
         setIsGenerating(true);
@@ -189,7 +189,8 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
         if (error) {
             let detailedMessage = error.message;
             if (error.message.includes('plati_tip_check')) {
-                detailedMessage = `Tipul de plată 'Taxa Anuala' nu este permis de baza de date. Vă rugăm să rulați cel mai recent script 'rls_policies.sql' în editorul SQL Supabase pentru a actualiza constrângerile. (${error.message})`;
+                const allowedTypes = ['Abonament', 'Taxa Examen', 'Taxa Stagiu', 'Taxa Competitie', 'Echipament', 'Taxa Anuala'].join(', ');
+                detailedMessage = `Eroare de constrângere a bazei de date. Tipul de plată 'Taxa Anuala' nu este permis. Tipurile permise sunt: [${allowedTypes}]. Asigurați-vă că ați rulat cel mai recent script 'rls_policies.sql' în editorul SQL Supabase. Detalii: ${error.message}`;
             }
             showError("Eroare la generarea facturilor", detailedMessage);
         } else if (data) {
@@ -234,7 +235,7 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
             <ConfirmDeleteModal
                 isOpen={!!taxaToGenerate}
                 onClose={() => setTaxaToGenerate(null)}
-                onConfirm={confirmGenerateInvoices}
+                onConfirm={handleGenerareMasiva}
                 title="Confirmare Generare Facturi"
                 tableName=""
                 isLoading={isGenerating}

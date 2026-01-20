@@ -72,7 +72,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
     
     const sortedSportivParticipariForDisplay = useMemo(() => {
         return [...sportivParticipari]
-            // FIX: Use 'sesiune_id' instead of the non-existent 'examen_id'.
             .map(p => ({...p, examen: examene.find(e => e.id === p.sesiune_id)}))
             .sort((a, b) => new Date(b.examen?.data || 0).getTime() - new Date(a.examen?.data || 0).getTime());
     }, [sportivParticipari, examene]);
@@ -96,49 +95,60 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
         return { eligible: true, message: "Eligibil pentru examinare.", nextGrad };
     }, [currentGrad, grade, sportiv, admittedParticipations]);
     
-    const { sold, financialHistory } = useMemo(() => {
-        const relevantPlati = plati.filter(p => p.sportiv_id === sportiv.id || (p.familie_id && p.familie_id === sportiv.familie_id));
-        const relevantTranzactii = tranzactii.filter(t => t.sportiv_id === sportiv.id || (t.familie_id && t.familie_id === sportiv.familie_id));
-        
-        const totalDatorii = relevantPlati.reduce((sum, p) => sum + p.suma, 0);
-        const totalIncasari = relevantTranzactii.reduce((sum, t) => sum + t.suma, 0);
+    const { sold, individualHistory, familieHistory } = useMemo(() => {
+        // Calculează soldul total
+        const allRelevantPlati = plati.filter(p => p.sportiv_id === sportiv.id || (p.familie_id && p.familie_id === sportiv.familie_id));
+        const allRelevantTranzactii = tranzactii.filter(t => t.sportiv_id === sportiv.id || (t.familie_id && t.familie_id === sportiv.familie_id));
+        const totalDatorii = allRelevantPlati.reduce((sum, p) => sum + p.suma, 0);
+        const totalIncasari = allRelevantTranzactii.reduce((sum, t) => sum + t.suma, 0);
         const currentSold = totalIncasari - totalDatorii;
-
-        let historyItems = relevantPlati.map(plata => {
-            let paymentDate: string | null = null;
-            if (plata.status === 'Achitat' || plata.status === 'Achitat Parțial') {
-                const payingTransaction = tranzactii.find(t => t.plata_ids?.includes(plata.id));
-                if (payingTransaction) {
-                    paymentDate = payingTransaction.data_platii;
-                }
-            }
-
-            const reducereAplicata = plata.reducere_id ? reduceri.find(r => r.id === plata.reducere_id) : null;
-            let discountInfo = null;
-            if (reducereAplicata && plata.suma_initiala) {
-                const valoareReducere = plata.suma_initiala - plata.suma;
-                discountInfo = `${valoareReducere.toFixed(2)} lei (${reducereAplicata.nume})`;
-            }
-
-            return {
-                id: plata.id,
-                facturaDate: plata.data,
-                description: plata.descriere,
-                amount: plata.suma,
-                initialAmount: plata.suma_initiala,
-                discount: discountInfo,
-                status: plata.status,
-                type: plata.tip,
-                paymentDate: paymentDate
-            };
-        }).sort((a,b) => new Date(b.facturaDate).getTime() - new Date(a.facturaDate).getTime());
-
-        if (financialFilter !== 'Toate') {
-            historyItems = historyItems.filter(item => item.type === financialFilter);
-        }
         
-        return { sold: currentSold, financialHistory: historyItems };
-    }, [sportiv, plati, tranzactii, financialFilter, reduceri]);
+        // Asigură unicitatea folosind un Map, echivalent cu DISTINCT ON (id)
+        // FIX: Explicitly type `uniquePlati` as `Plata[]` to resolve type inference issues.
+        const uniquePlati: Plata[] = Array.from(new Map(allRelevantPlati.map(p => [p.id, p])).values());
+
+        const processPlati = (platiList: Plata[]) => {
+            let historyItems = platiList.map(plata => {
+                let paymentDate: string | null = null;
+                if (plata.status === 'Achitat' || plata.status === 'Achitat Parțial') {
+                    const payingTransaction = tranzactii.find(t => t.plata_ids?.includes(plata.id));
+                    if (payingTransaction) paymentDate = payingTransaction.data_platii;
+                }
+                const reducereAplicata = plata.reducere_id ? reduceri.find(r => r.id === plata.reducere_id) : null;
+                let discountInfo = null;
+                if (reducereAplicata && plata.suma_initiala) {
+                    const valoareReducere = plata.suma_initiala - plata.suma;
+                    discountInfo = `${valoareReducere.toFixed(2)} lei (${reducereAplicata.nume})`;
+                }
+                return {
+                    id: plata.id,
+                    facturaDate: plata.data,
+                    description: plata.descriere,
+                    amount: plata.suma,
+                    initialAmount: plata.suma_initiala,
+                    discount: discountInfo,
+                    status: plata.status,
+                    type: plata.tip,
+                    paymentDate: paymentDate
+                };
+            }).sort((a, b) => new Date(b.facturaDate).getTime() - new Date(a.facturaDate).getTime());
+            
+            if (financialFilter !== 'Toate') {
+                historyItems = historyItems.filter(item => item.type === financialFilter);
+            }
+            return historyItems;
+        };
+        
+        const individualPlati = uniquePlati.filter(p => p.sportiv_id === sportiv.id && !p.familie_id);
+        const familiePlati = uniquePlati.filter(p => p.familie_id && p.familie_id === sportiv.familie_id);
+
+        return { 
+            sold: currentSold, 
+            individualHistory: processPlati(individualPlati), 
+            familieHistory: processPlati(familiePlati)
+        };
+    }, [sportiv, plati, tranzactii, financialFilter, reduceri, familii]);
+
 
     const trainingHistory = useMemo(() => {
         const threeMonthsAgo = new Date();
@@ -280,52 +290,29 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                         ))}
                     </div>
                 </div>
-                <div className="overflow-x-auto max-h-80">
+
+                <div className="p-4 bg-slate-700/80 mt-1">
+                    <h4 className="font-semibold text-white">Plăți Individuale</h4>
+                </div>
+                <div className="overflow-x-auto max-h-60">
                     <table className="w-full text-sm text-left min-w-[600px]">
-                        <thead className="bg-slate-800/50 text-xs uppercase text-slate-400 sticky top-0 backdrop-blur-sm">
-                            <tr>
-                                <th className="p-3">Data Factură</th>
-                                <th className="p-3">Descriere</th>
-                                <th className="p-3 text-right">Sumă</th>
-                                <th className="p-3 text-center">Status</th>
-                                <th className="p-3">Data Încasare</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-700">
-                            {financialHistory.map(item => (
-                                <tr key={item.id}>
-                                    <td className="p-2">{new Date(item.facturaDate).toLocaleDateString('ro-RO')}</td>
-                                    <td className="p-2">{item.description}</td>
-                                    <td className="p-2 text-right font-semibold">
-                                        {item.initialAmount && item.initialAmount > item.amount ? (
-                                            <div className="text-right">
-                                                <span>{item.amount.toFixed(2)} lei</span>
-                                                <div className="text-xs text-slate-400 font-normal leading-tight">
-                                                    ({item.initialAmount.toFixed(2)} - {item.discount})
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <span>{item.amount.toFixed(2)} lei</span>
-                                        )}
-                                    </td>
-                                    <td className="p-2 text-center">
-                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
-                                            item.status === 'Achitat' ? 'bg-green-600/20 text-green-400 border-green-600/50' : 
-                                            item.status === 'Achitat Parțial' ? 'bg-amber-600/20 text-amber-400 border-amber-600/50' : 
-                                            'bg-red-600/20 text-red-400 border-red-600/50'
-                                        }`}>{item.status}</span>
-                                    </td>
-                                    <td className="p-2">
-                                        {item.paymentDate ? new Date(item.paymentDate).toLocaleDateString('ro-RO') : (
-                                            <span className="text-xs text-slate-500 italic">În așteptare</span>
-                                        )}
-                                    </td>
-                                </tr>
-                            ))}
-                            {financialHistory.length === 0 && <tr><td colSpan={5} className="p-4 text-center text-slate-500 italic">Niciun istoric pentru filtrul selectat.</td></tr>}
-                        </tbody>
+                        <thead className="bg-slate-800/50 text-xs uppercase text-slate-400 sticky top-0 backdrop-blur-sm"><tr><th className="p-3">Data Factură</th><th className="p-3">Descriere</th><th className="p-3 text-right">Sumă</th><th className="p-3 text-center">Status</th><th className="p-3">Data Încasare</th></tr></thead>
+                        <tbody className="divide-y divide-slate-700">{individualHistory.map(item => (
+                            <tr key={item.id}><td className="p-2">{new Date(item.facturaDate).toLocaleDateString('ro-RO')}</td><td className="p-2">{item.description}</td><td className="p-2 text-right font-semibold">{item.initialAmount && item.initialAmount > item.amount ? (<div className="text-right"><span>{item.amount.toFixed(2)} lei</span><div className="text-xs text-slate-400 font-normal leading-tight">({item.initialAmount.toFixed(2)} - {item.discount})</div></div>) : (<span>{item.amount.toFixed(2)} lei</span>)}</td><td className="p-2 text-center"><span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${item.status === 'Achitat' ? 'bg-green-600/20 text-green-400 border-green-600/50' : item.status === 'Achitat Parțial' ? 'bg-amber-600/20 text-amber-400 border-amber-600/50' : 'bg-red-600/20 text-red-400 border-red-600/50'}`}>{item.status}</span></td><td className="p-2">{item.paymentDate ? new Date(item.paymentDate).toLocaleDateString('ro-RO') : (<span className="text-xs text-slate-500 italic">În așteptare</span>)}</td></tr>
+                        ))}{individualHistory.length === 0 && <tr><td colSpan={5} className="p-4 text-center text-slate-500 italic">Nicio plată individuală.</td></tr>}</tbody>
                     </table>
                 </div>
+
+                {sportiv.familie_id && (
+                    <><div className="p-4 bg-slate-700/80 mt-4"><h4 className="font-semibold text-white">Plăți Familie ({familii.find(f => f.id === sportiv.familie_id)?.nume})</h4></div><div className="overflow-x-auto max-h-60">
+                        <table className="w-full text-sm text-left min-w-[600px]">
+                            <thead className="bg-slate-800/50 text-xs uppercase text-slate-400 sticky top-0 backdrop-blur-sm"><tr><th className="p-3">Data Factură</th><th className="p-3">Descriere</th><th className="p-3 text-right">Sumă</th><th className="p-3 text-center">Status</th><th className="p-3">Data Încasare</th></tr></thead>
+                            <tbody className="divide-y divide-slate-700">{familieHistory.map(item => (
+                                <tr key={item.id}><td className="p-2">{new Date(item.facturaDate).toLocaleDateString('ro-RO')}</td><td className="p-2">{item.description}</td><td className="p-2 text-right font-semibold">{item.initialAmount && item.initialAmount > item.amount ? (<div className="text-right"><span>{item.amount.toFixed(2)} lei</span><div className="text-xs text-slate-400 font-normal leading-tight">({item.initialAmount.toFixed(2)} - {item.discount})</div></div>) : (<span>{item.amount.toFixed(2)} lei</span>)}</td><td className="p-2 text-center"><span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${item.status === 'Achitat' ? 'bg-green-600/20 text-green-400 border-green-600/50' : item.status === 'Achitat Parțial' ? 'bg-amber-600/20 text-amber-400 border-amber-600/50' : 'bg-red-600/20 text-red-400 border-red-600/50'}`}>{item.status}</span></td><td className="p-2">{item.paymentDate ? new Date(item.paymentDate).toLocaleDateString('ro-RO') : (<span className="text-xs text-slate-500 italic">În așteptare</span>)}</td></tr>
+                            ))}{familieHistory.length === 0 && <tr><td colSpan={5} className="p-4 text-center text-slate-500 italic">Nicio plată de familie.</td></tr>}</tbody>
+                        </table>
+                    </div></>
+                )}
             </Card>
             
             <Card className="p-0">

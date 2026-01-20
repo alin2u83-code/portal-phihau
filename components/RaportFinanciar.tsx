@@ -105,7 +105,12 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({ plati, sportiv
                     </Select>
                     <Select label="Categorie" name="tip" value={filters.tip} onChange={handleFilterChange}>
                         <option value="">Toate</option>
-                        <option value="Abonament">Abonament</option><option value="Taxa Examen">Taxa Examen</option><option value="Taxa Stagiu">Taxa Stagiu</option><option value="Taxa Competitie">Taxa Competitie</option><option value="Echipament">Echipament</option>
+                        <option value="Abonament">Abonament</option>
+                        <option value="Taxa Examen">Taxa Examen</option>
+                        <option value="Taxa Stagiu">Taxa Stagiu</option>
+                        <option value="Taxa Competitie">Taxa Competitie</option>
+                        <option value="Echipament">Echipament</option>
+                        <option value="Taxa Anuala">Taxa Anuală</option>
                     </Select>
                 </div>
 

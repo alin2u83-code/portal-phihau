@@ -200,7 +200,13 @@ const ExamenDetail: React.FC<ExamenDetailProps> = ({ examen, participari, setPar
         };
 
         const {data: plataData, error: plError} = await supabase.from('plati').insert(newPlata).select().single();
-        if(plError) { showError("Eroare Plată", `Participant adăugat, dar eroare la generare plată: ${plError.message}`); }
+        if(plError) { 
+            let detailedMessage = plError.message;
+            if (plError.message.includes('plati_tip_check')) {
+                detailedMessage = `Tipul de plată 'Taxa Examen' nu este permis. Rulați scriptul 'rls_policies.sql' pentru a actualiza baza de date. (${plError.message})`;
+            }
+            showError("Eroare Plată", `Participant adăugat, dar eroare la generare plată: ${detailedMessage}`);
+        }
         if (plataData) setPlati(prev => [...prev, plataData as Plata]);
         
         showSuccess("Succes", `Factura pentru ${sportiv.nume} ${sportiv.prenume} a fost generată.`);

@@ -187,7 +187,11 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
         setTaxaToGenerate(null);
 
         if (error) {
-            showError("Eroare la generarea facturilor", error);
+            let detailedMessage = error.message;
+            if (error.message.includes('plati_tip_check')) {
+                detailedMessage = `Tipul de plată 'Taxa Anuala' nu este permis de baza de date. Vă rugăm să rulați cel mai recent script 'rls_policies.sql' în editorul SQL Supabase pentru a actualiza constrângerile. (${error.message})`;
+            }
+            showError("Eroare la generarea facturilor", detailedMessage);
         } else if (data) {
             setPlati(prev => [...prev, ...data]);
             const skippedCount = sportiviActivi.length - sportiviDeFacturat.length;

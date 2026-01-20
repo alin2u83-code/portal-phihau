@@ -262,7 +262,11 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ plati, setPlati,
             setTimeout(() => onBack(), 1500);
 
         } catch (err: any) {
-            showError("Eroare la procesarea încasării", err);
+            let detailedMessage = err.message || err;
+            if (String(detailedMessage).includes('plati_tip_check')) {
+                detailedMessage = `Tipul de plată selectat ('${formState.tip}') nu este permis de baza de date. Rulați cel mai recent script 'rls_policies.sql' din proiect pentru a actualiza constrângerile. (${detailedMessage})`;
+            }
+            showError("Eroare la procesarea încasării", detailedMessage);
             // Compensating actions
             if (tranzactieId) {
                 await supabase.from('tranzactii').delete().eq('id', tranzactieId);
@@ -338,6 +342,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ plati, setPlati,
                             <option value="Taxa Examen">Taxa Examen</option>
                             <option value="Taxa Stagiu">Taxa Stagiu</option>
                             <option value="Taxa Competitie">Taxa Competiție</option>
+                            <option value="Taxa Anuala">Taxa Anuală</option>
                         </Select>
                         {formState.tip === 'Echipament' && !isMultiple && (
                             <>

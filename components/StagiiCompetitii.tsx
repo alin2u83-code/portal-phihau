@@ -112,7 +112,13 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment, rezultate,
                 observatii: `Generată la înscrierea în eveniment.`, 
             };
             const { data: plataData, error: plataError } = await supabase.from('plati').insert(newPlata).select().single();
-            if(plataError) { showError(`Participant adăugat, dar eroare la generare plată`, plataError); }
+            if(plataError) { 
+                let detailedMessage = plataError.message;
+                if (plataError.message.includes('plati_tip_check')) {
+                    detailedMessage = `Tipul de plată '${categorie}' nu este permis. Rulați scriptul 'rls_policies.sql' pentru a actualiza baza de date. (${plataError.message})`;
+                }
+                showError(`Participant adăugat, dar eroare la generare plată`, detailedMessage); 
+            }
             if (plataData) setPlati(prev => [...prev, plataData as Plata]);
         }
         

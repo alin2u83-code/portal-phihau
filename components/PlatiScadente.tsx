@@ -294,6 +294,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
                     <option value="Taxa Stagiu">Taxa Stagiu</option>
                     <option value="Taxa Competitie">Taxa Competiție</option>
                     <option value="Echipament">Echipament</option>
+                    <option value="Taxa Anuala">Taxa Anuală</option>
                 </Select>
                 <Select label="Status" value={filter.status} onChange={e => setFilter({...filter, status: e.target.value})}>
                     <option value="">Toate</option>

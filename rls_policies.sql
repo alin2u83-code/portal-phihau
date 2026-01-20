@@ -59,8 +59,10 @@ CREATE POLICY "Sportivi can update their own profile" ON public.sportivi
 ALTER TABLE public.familii ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage families" ON public.familii;
 DROP POLICY IF EXISTS "Authenticated users can see families" ON public.familii;
-CREATE POLICY "Authenticated users can see families" ON public.familii FOR SELECT USING (auth.role() = 'authenticated');
-CREATE POLICY "Admins can manage families" ON public.familii FOR INSERT, UPDATE, DELETE USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+CREATE POLICY "Admins can manage families" ON public.familii
+    FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+CREATE POLICY "Authenticated users can see families" ON public.familii
+    FOR SELECT USING (auth.role() = 'authenticated');
 
 -- -----------------------------------------------------------------
 -- Tabel: plati (Datorii)
@@ -178,8 +180,10 @@ CREATE POLICY "Authenticated users can read notifications" ON public.notificari
 ALTER TABLE public.examene ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage exams" ON public.examene;
 DROP POLICY IF EXISTS "Authenticated users can see exams" ON public.examene;
-CREATE POLICY "Authenticated users can see exams" ON public.examene FOR SELECT USING (auth.role() = 'authenticated');
-CREATE POLICY "Admins can manage exams" ON public.examene FOR INSERT, UPDATE, DELETE USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+CREATE POLICY "Admins can manage exams" ON public.examene
+    FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+CREATE POLICY "Authenticated users can see exams" ON public.examene
+    FOR SELECT USING (auth.role() = 'authenticated');
 
 -- -----------------------------------------------------------------
 -- Tabel: grade
@@ -187,8 +191,10 @@ CREATE POLICY "Admins can manage exams" ON public.examene FOR INSERT, UPDATE, DE
 ALTER TABLE public.grade ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage grades" ON public.grade;
 DROP POLICY IF EXISTS "Authenticated users can see grades" ON public.grade;
-CREATE POLICY "Authenticated users can see grades" ON public.grade FOR SELECT USING (auth.role() = 'authenticated');
-CREATE POLICY "Admins can manage grades" ON public.grade FOR INSERT, UPDATE, DELETE USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+CREATE POLICY "Admins can manage grades" ON public.grade
+    FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+CREATE POLICY "Authenticated users can see grades" ON public.grade
+    FOR SELECT USING (auth.role() = 'authenticated');
 
 -- -----------------------------------------------------------------
 -- Tabel: grupe
@@ -196,8 +202,10 @@ CREATE POLICY "Admins can manage grades" ON public.grade FOR INSERT, UPDATE, DEL
 ALTER TABLE public.grupe ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage groups" ON public.grupe;
 DROP POLICY IF EXISTS "Authenticated users can see groups" ON public.grupe;
-CREATE POLICY "Authenticated users can see groups" ON public.grupe FOR SELECT USING (auth.role() = 'authenticated');
-CREATE POLICY "Admins can manage groups" ON public.grupe FOR INSERT, UPDATE, DELETE USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+CREATE POLICY "Admins can manage groups" ON public.grupe
+    FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+CREATE POLICY "Authenticated users can see groups" ON public.grupe
+    FOR SELECT USING (auth.role() = 'authenticated');
 
 -- -----------------------------------------------------------------
 -- Tabel: program_antrenamente
@@ -205,8 +213,10 @@ CREATE POLICY "Admins can manage groups" ON public.grupe FOR INSERT, UPDATE, DEL
 ALTER TABLE public.program_antrenamente ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage training schedules" ON public.program_antrenamente;
 DROP POLICY IF EXISTS "Authenticated users can see training schedules" ON public.program_antrenamente;
-CREATE POLICY "Authenticated users can see training schedules" ON public.program_antrenamente FOR SELECT USING (auth.role() = 'authenticated');
-CREATE POLICY "Admins can manage training schedules" ON public.program_antrenamente FOR INSERT, UPDATE, DELETE USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+CREATE POLICY "Admins can manage training schedules" ON public.program_antrenamente
+    FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+CREATE POLICY "Authenticated users can see training schedules" ON public.program_antrenamente
+    FOR SELECT USING (auth.role() = 'authenticated');
 
 -- -----------------------------------------------------------------
 -- Tabel: evenimente (Stagii, Competiții)
@@ -214,8 +224,10 @@ CREATE POLICY "Admins can manage training schedules" ON public.program_antrename
 ALTER TABLE public.evenimente ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage events" ON public.evenimente;
 DROP POLICY IF EXISTS "Authenticated users can see events" ON public.evenimente;
-CREATE POLICY "Authenticated users can see events" ON public.evenimente FOR SELECT USING (auth.role() = 'authenticated');
-CREATE POLICY "Admins can manage events" ON public.evenimente FOR INSERT, UPDATE, DELETE USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+CREATE POLICY "Admins can manage events" ON public.evenimente
+    FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+CREATE POLICY "Authenticated users can see events" ON public.evenimente
+    FOR SELECT USING (auth.role() = 'authenticated');
 
 -- -----------------------------------------------------------------
 -- Tabel: preturi_config
@@ -223,8 +235,10 @@ CREATE POLICY "Admins can manage events" ON public.evenimente FOR INSERT, UPDATE
 ALTER TABLE public.preturi_config ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage price configs" ON public.preturi_config;
 DROP POLICY IF EXISTS "Authenticated users can see price configs" ON public.preturi_config;
-CREATE POLICY "Authenticated users can see price configs" ON public.preturi_config FOR SELECT USING (auth.role() = 'authenticated');
-CREATE POLICY "Admins can manage price configs" ON public.preturi_config FOR INSERT, UPDATE, DELETE USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+CREATE POLICY "Admins can manage price configs" ON public.preturi_config
+    FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+CREATE POLICY "Authenticated users can see price configs" ON public.preturi_config
+    FOR SELECT USING (auth.role() = 'authenticated');
 
 -- -----------------------------------------------------------------
 -- Tabel: grade_preturi_config
@@ -232,8 +246,10 @@ CREATE POLICY "Admins can manage price configs" ON public.preturi_config FOR INS
 ALTER TABLE public.grade_preturi_config ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage grade price configs" ON public.grade_preturi_config;
 DROP POLICY IF EXISTS "Authenticated users can see grade price configs" ON public.grade_preturi_config;
-CREATE POLICY "Authenticated users can see grade price configs" ON public.grade_preturi_config FOR SELECT USING (auth.role() = 'authenticated');
-CREATE POLICY "Admins can manage grade price configs" ON public.grade_preturi_config FOR INSERT, UPDATE, DELETE USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+CREATE POLICY "Admins can manage grade price configs" ON public.grade_preturi_config
+    FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+CREATE POLICY "Authenticated users can see grade price configs" ON public.grade_preturi_config
+    FOR SELECT USING (auth.role() = 'authenticated');
 
 -- -----------------------------------------------------------------
 -- Tabel: tipuri_abonament
@@ -241,8 +257,10 @@ CREATE POLICY "Admins can manage grade price configs" ON public.grade_preturi_co
 ALTER TABLE public.tipuri_abonament ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage subscription types" ON public.tipuri_abonament;
 DROP POLICY IF EXISTS "Authenticated users can see subscription types" ON public.tipuri_abonament;
-CREATE POLICY "Authenticated users can see subscription types" ON public.tipuri_abonament FOR SELECT USING (auth.role() = 'authenticated');
-CREATE POLICY "Admins can manage subscription types" ON public.tipuri_abonament FOR INSERT, UPDATE, DELETE USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+CREATE POLICY "Admins can manage subscription types" ON public.tipuri_abonament
+    FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+CREATE POLICY "Authenticated users can see subscription types" ON public.tipuri_abonament
+    FOR SELECT USING (auth.role() = 'authenticated');
 
 -- -----------------------------------------------------------------
 -- Tabel: reduceri
@@ -250,8 +268,10 @@ CREATE POLICY "Admins can manage subscription types" ON public.tipuri_abonament 
 ALTER TABLE public.reduceri ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage discounts" ON public.reduceri;
 DROP POLICY IF EXISTS "Authenticated users can see discounts" ON public.reduceri;
-CREATE POLICY "Authenticated users can see discounts" ON public.reduceri FOR SELECT USING (auth.role() = 'authenticated');
-CREATE POLICY "Admins can manage discounts" ON public.reduceri FOR INSERT, UPDATE, DELETE USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+CREATE POLICY "Admins can manage discounts" ON public.reduceri
+    FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+CREATE POLICY "Authenticated users can see discounts" ON public.reduceri
+    FOR SELECT USING (auth.role() = 'authenticated');
 
 -- -----------------------------------------------------------------
 -- Tabel: roluri
@@ -259,8 +279,10 @@ CREATE POLICY "Admins can manage discounts" ON public.reduceri FOR INSERT, UPDAT
 ALTER TABLE public.roluri ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage roles" ON public.roluri;
 DROP POLICY IF EXISTS "Authenticated users can see roles" ON public.roluri;
-CREATE POLICY "Authenticated users can see roles" ON public.roluri FOR SELECT USING (auth.role() = 'authenticated');
-CREATE POLICY "Admins can manage roles" ON public.roluri FOR INSERT, UPDATE, DELETE USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+CREATE POLICY "Admins can manage roles" ON public.roluri
+    FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+CREATE POLICY "Authenticated users can see roles" ON public.roluri
+    FOR SELECT USING (auth.role() = 'authenticated');
 
 
 -- -----------------------------------------------------------------
@@ -283,11 +305,10 @@ DROP POLICY IF EXISTS "Authenticated users can see annual fees" ON public.taxe_a
 DROP POLICY IF EXISTS "Authenticated users can read annual fees config" ON public.taxe_anuale_config;
 DROP POLICY IF EXISTS "Admins can manage annual fees config" ON public.taxe_anuale_config;
 
+CREATE POLICY "Admins can manage annual fees config" ON public.taxe_anuale_config
+    FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
 CREATE POLICY "Authenticated users can read annual fees config" ON public.taxe_anuale_config
     FOR SELECT USING (auth.role() = 'authenticated');
-
-CREATE POLICY "Admins can manage annual fees config" ON public.taxe_anuale_config
-    FOR INSERT, UPDATE, DELETE USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
 
 
 -- =================================================================

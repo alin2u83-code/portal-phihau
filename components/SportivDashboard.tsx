@@ -70,7 +70,8 @@ interface SportivDashboardProps {
 export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser, viewedUser, participari, examene, grade, antrenamente, grupe, plati, tranzactii, tipuriAbonament, onNavigate, onNavigateToEditProfil, anunturi, setAnunturi }) => {
     
     const [periodFilter, setPeriodFilter] = useState<'current_month' | 'current_year'>('current_month');
-    
+    const [financialFilter, setFinancialFilter] = useState('Toate');
+
     const admittedParticipations = useMemo(() => {
         return participari.filter(p => p.sportiv_id === viewedUser.id && p.rezultat === 'Admis')
             .map(p => ({ ...p, grad: getGrad(p.grad_sustinut_id, grade), examen: examene.find(e => e.id === p.sesiune_id) }))
@@ -82,14 +83,38 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
     const isAdmin = useMemo(() => currentUser.roluri.some(r => r.nume === 'Admin' || r.nume === 'Instructor'), [currentUser.roluri]);
     const isViewingOwnProfile = currentUser.id === viewedUser.id;
     
-    const { sold, abonamentCurent } = useMemo(() => {
+    const { sold, abonamentCurent, financialHistory } = useMemo(() => {
         const relevantPlati = plati.filter(p => p.sportiv_id === viewedUser.id || (p.familie_id && p.familie_id === viewedUser.familie_id));
         const relevantTranzactii = tranzactii.filter(t => t.sportiv_id === viewedUser.id || (t.familie_id && t.familie_id === viewedUser.familie_id));
+        
         const totalDatorii = relevantPlati.reduce((sum, p) => sum + p.suma, 0);
         const totalIncasari = relevantTranzactii.reduce((sum, t) => sum + t.suma, 0);
+        const currentSold = totalIncasari - totalDatorii;
+        
         const abonament = tipuriAbonament.find(ab => ab.id === viewedUser.tip_abonament_id);
-        return { sold: totalIncasari - totalDatorii, abonamentCurent: abonament };
-    }, [viewedUser, plati, tranzactii, tipuriAbonament]);
+
+        const debitItems = relevantPlati.map(p => ({
+            id: `p-${p.id}`, date: p.data, description: p.descriere, amount: -p.suma, type: p.tip, isDebit: true
+        }));
+        
+        const creditItems = relevantTranzactii.map(t => {
+            let description = t.descriere || `Încasare ${t.metoda_plata}`;
+            if (!t.descriere && t.plata_ids && t.plata_ids.length > 0) {
+                const firstPlata = plati.find(p => p.id === t.plata_ids[0]);
+                description = firstPlata ? `Stingere: ${firstPlata.descriere}` : description;
+                if (t.plata_ids.length > 1) description += ` (+${t.plata_ids.length-1})`;
+            }
+            const firstPlataForType = t.plata_ids && plati.find(p => p.id === t.plata_ids[0]);
+            return {
+                id: `t-${t.id}`, date: t.data_platii, description, amount: t.suma, type: firstPlataForType?.tip || 'Incasare', isDebit: false
+            };
+        });
+
+        const combined = [...debitItems, ...creditItems].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        const filtered = financialFilter === 'Toate' ? combined : combined.filter(item => item.type === financialFilter);
+
+        return { sold: currentSold, abonamentCurent: abonament, financialHistory: filtered };
+    }, [viewedUser, plati, tranzactii, tipuriAbonament, financialFilter]);
     
     const reportTrainings = useMemo(() => {
         const now = new Date();
@@ -118,6 +143,8 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
             .filter(a => a.status === 'Prezent')
             .reduce((acc, curr) => acc + calculateDuration(curr.ora_start, curr.ora_sfarsit), 0);
     }, [reportTrainings]);
+    
+    const financialFilterTypes = ['Toate', 'Abonament', 'Taxa Examen', 'Echipament', 'Taxa Stagiu', 'Taxa Competitie'];
 
     return (
         <div className="space-y-6" style={{ fontSize: '13px' }}>
@@ -145,17 +172,8 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                 </Card>
                 
                 <Card className="lg:col-span-2 space-y-3">
-                    <h3 className="text-xl font-bold mb-2 text-brand-secondary">Evoluție Tehnică & Financiar</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <DataField label="Abonament Curent" value={abonamentCurent?.denumire || 'N/A'} />
-                        <div>
-                             <dt className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Sold Cont</dt>
-                             <dd className={`mt-1 text-2xl font-bold ${sold >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                {sold.toFixed(2)} RON
-                                <span className="ml-2 text-xs uppercase">{sold >= 0 ? '(Credit)' : '(Datorie)'}</span>
-                            </dd>
-                        </div>
-                    </div>
+                    <h3 className="text-xl font-bold mb-2 text-brand-secondary">Evoluție Tehnică</h3>
+                     <DataField label="Abonament Curent" value={abonamentCurent?.denumire || 'N/A'} />
                     <div className="mt-4 overflow-x-auto pt-3 border-t border-slate-700">
                         <dt className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Istoric Examinări</dt>
                         <table className="w-full text-left text-sm">
@@ -170,6 +188,40 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                         </table>
                     </div>
                 </Card>
+
+                <Card className="lg:col-span-3">
+                    <h3 className="text-xl font-bold text-brand-secondary mb-2">Portofel & Istoric Financiar</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-slate-700/30 rounded-lg">
+                        <div className="md:col-span-1">
+                             <dt className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Sold Cont</dt>
+                             <dd className={`mt-1 text-4xl font-bold ${sold >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                {sold.toFixed(2)}
+                                <span className="text-2xl ml-2">RON</span>
+                            </dd>
+                             <span className="text-xs uppercase font-semibold">{sold >= 0 ? '(Credit)' : '(Datorie)'}</span>
+                        </div>
+                        <div className="md:col-span-2 flex items-center justify-start md:justify-end flex-wrap gap-2">
+                            {financialFilterTypes.map(filter => (
+                                <Button key={filter} variant={financialFilter === filter ? 'primary' : 'secondary'} size="sm" onClick={() => setFinancialFilter(filter)}>
+                                    {filter}
+                                </Button>
+                            ))}
+                        </div>
+                    </div>
+                     <div className="mt-4 overflow-x-auto max-h-64 border border-slate-700 rounded-lg">
+                        <table className="w-full text-left text-sm">
+                            <thead className="bg-slate-700/50 sticky top-0 backdrop-blur-sm"><tr><th className="p-2">Data</th><th className="p-2">Descriere</th><th className="p-2 text-right">Sumă</th></tr></thead>
+                            <tbody className="divide-y divide-slate-700">{financialHistory.map(item => (
+                                <tr key={item.id} className="hover:bg-slate-700/20">
+                                    <td className="p-2 text-slate-400">{new Date(item.date).toLocaleDateString('ro-RO')}</td>
+                                    <td className="p-2">{item.description}</td>
+                                    <td className={`p-2 text-right font-bold ${item.isDebit ? 'text-red-400' : 'text-green-400'}`}>{item.amount.toFixed(2)} RON</td>
+                                </tr>
+                            ))}{financialHistory.length === 0 && <tr><td colSpan={3} className="p-8 text-center italic text-slate-500">Nicio tranzacție conform filtrului.</td></tr>}</tbody>
+                        </table>
+                    </div>
+                </Card>
+
 
                 <Card className="lg:col-span-3 bg-gradient-to-br from-slate-800/60 to-brand-primary/20">
                     <h3 className="text-xl font-bold mb-4 text-brand-secondary">Raport Detaliat Antrenamente</h3>

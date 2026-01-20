@@ -11,11 +11,13 @@ import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 // --- UTILITIES ---
 const getGrad = (gradId: string | null, allGrades: Grad[]) => gradId ? allGrades.find(g => g.id === gradId) : null;
 const getAgeOnDate = (birthDateStr: string, onDateStr: string) => { const onDate = new Date(onDateStr); const birthDate = new Date(birthDateStr); let age = onDate.getFullYear() - birthDate.getFullYear(); const m = onDate.getMonth() - birthDate.getMonth(); if (m < 0 || (m === 0 && onDate.getDate() < birthDate.getDate())) { age--; } return age; };
+const parseDurationToMonths = (durationStr: string): number => { if (!durationStr) return 0; const parts = durationStr.split(' '); if (parts.length < 2) return 0; const value = parseInt(parts[0], 10); const unit = parts[1].toLowerCase(); if (unit.startsWith('lun')) return value; if (unit.startsWith('an')) return value * 12; return 0; };
+
 
 // FIX: Define the missing DataField component.
-const DataField: React.FC<{label: string, value: React.ReactNode}> = ({label, value}) => (
-    <div>
-        <p className="text-xs text-slate-400">{label}</p>
+const DataField: React.FC<{label: string, value: React.ReactNode, className?: string}> = ({label, value, className}) => (
+    <div className={className}>
+        <p className="text-xs text-slate-400 uppercase tracking-wider">{label}</p>
         <p className="font-semibold text-white">{value}</p>
     </div>
 );
@@ -37,43 +39,73 @@ const SesiuneForm: React.FC<SesiuneFormProps> = ({ isOpen, onClose, onSave, sesi
 interface DetaliiSesiuneProps { sesiune: SesiuneExamen; inscrieri: InscriereExamen[]; setInscrieri: React.Dispatch<React.SetStateAction<InscriereExamen[]>>; sportivi: Sportiv[]; grade: Grad[]; setPlati: React.Dispatch<React.SetStateAction<Plata[]>>; preturiConfig: PretConfig[]; allInscrieri: InscriereExamen[]; locatii: Locatie[]; }
 const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = ({ sesiune, inscrieri, setInscrieri, sportivi, grade, setPlati, preturiConfig, allInscrieri, locatii }) => {
     const [sportivId, setSportivId] = useState('');
+    const [selectedGradId, setSelectedGradId] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [inscriereToDelete, setInscriereToDelete] = useState<InscriereExamen | null>(null);
     const { showError, showSuccess } = useError();
-    const sortedGrades = [...grade].sort((a,b) => a.ordine - b.ordine);
+    const sortedGrades = useMemo(() => [...grade].sort((a,b) => a.ordine - b.ordine), [grade]);
     
     const sportivData = useMemo(() => {
         if (!sportivId) return null;
         const sportiv = sportivi.find(s => s.id === sportivId);
         if (!sportiv) return null;
 
+        const varstaLaExamen = getAgeOnDate(sportiv.data_nasterii, sesiune.data);
         const admittedInscrieri = allInscrieri.filter(i => i.sportiv_id === sportiv.id && i.rezultat === 'Admis').sort((a, b) => (getGrad(b.grad_sustinut_id, grade)?.ordine ?? 0) - (getGrad(a.grad_sustinut_id, grade)?.ordine ?? 0));
         const gradActual = getGrad(admittedInscrieri[0]?.grad_sustinut_id, grade);
-        const gradVizat = gradActual ? sortedGrades.find(g => g.ordine === gradActual.ordine + 1) : sortedGrades[0];
-        const taxa = gradVizat ? getPretProdus(preturiConfig, 'Taxa Examen', gradVizat.nume, { dataReferinta: sesiune.data })?.suma : null;
 
-        return { sportiv, gradActual, gradVizat, varstaLaExamen: getAgeOnDate(sportiv.data_nasterii, sesiune.data), taxa };
-    }, [sportivId, sportivi, allInscrieri, grade, sortedGrades, preturiConfig, sesiune.data]);
+        let gradVizatAutomat: Grad | undefined;
+        let eligibilityMessage = "";
+        
+        if (!gradActual) {
+            if (varstaLaExamen >= 5 && varstaLaExamen <= 6) {
+                gradVizatAutomat = sortedGrades.find(g => g.nume.toLowerCase().includes('galben'));
+                eligibilityMessage = "Primul examen, propunere bazată pe vârstă (5-6 ani).";
+            } else if (varstaLaExamen >= 7 && varstaLaExamen <= 12) {
+                gradVizatAutomat = sortedGrades.find(g => g.nume.toLowerCase().includes('roș'));
+                eligibilityMessage = "Primul examen, propunere bazată pe vârstă (7-12 ani).";
+            } else {
+                gradVizatAutomat = sortedGrades.find(g => g.nume.toLowerCase().includes('albastr'));
+                eligibilityMessage = "Primul examen, propunere bazată pe vârstă (13+ ani).";
+            }
+        } else {
+            gradVizatAutomat = sortedGrades.find(g => g.ordine === gradActual.ordine + 1);
+            if (gradVizatAutomat) {
+                const lastExamDate = admittedInscrieri[0]?.examen ? new Date(admittedInscrieri[0].examen.data) : new Date(sportiv.data_inscrierii);
+                const monthsToWait = parseDurationToMonths(gradVizatAutomat.timp_asteptare);
+                const eligibilityDate = new Date(lastExamDate);
+                eligibilityDate.setMonth(eligibilityDate.getMonth() + monthsToWait);
+                eligibilityMessage = new Date() < eligibilityDate
+                    ? `Timp așteptare: ${gradVizatAutomat.timp_asteptare}. Devine eligibil după ${eligibilityDate.toLocaleDateString('ro-RO')}.`
+                    : `Timp așteptare (${gradVizatAutomat.timp_asteptare}) îndeplinit.`;
+            } else {
+                eligibilityMessage = "Grad maxim atins.";
+            }
+        }
+
+        const gradVizatFinal = selectedGradId ? sortedGrades.find(g => g.id === selectedGradId) : gradVizatAutomat;
+        const taxa = gradVizatFinal ? getPretProdus(preturiConfig, 'Taxa Examen', gradVizatFinal.nume, { dataReferinta: sesiune.data })?.suma : null;
+        
+        return { sportiv, gradActual, gradVizatAutomat, varstaLaExamen, eligibilityMessage, taxa };
+    }, [sportivId, sportivi, allInscrieri, grade, sortedGrades, preturiConfig, sesiune.data, selectedGradId]);
+    
+    useEffect(() => {
+        setSelectedGradId(sportivData?.gradVizatAutomat?.id || null);
+    }, [sportivData?.gradVizatAutomat]);
 
     const handleAddParticipant = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!sportivData || !sportivData.gradVizat) { showError("Date Invalide", "Sportivul sau gradul vizat nu sunt valide."); return; }
-        const { sportiv, gradActual, gradVizat, varstaLaExamen, taxa } = sportivData;
+        if (!sportivData || !selectedGradId) { showError("Date Invalide", "Sportivul sau gradul vizat nu sunt valide."); return; }
+        
+        const { sportiv, gradActual, varstaLaExamen, taxa } = sportivData;
+        const gradVizat = sortedGrades.find(g => g.id === selectedGradId);
+        if (!gradVizat) return;
+
         if (inscrieri.some(i => i.sportiv_id === sportiv.id)) { showError("Conflict", "Acest sportiv este deja înscris."); return; }
         
         setLoading(true);
         try {
-            // Explicitly create a clean object for insertion to avoid any extra properties.
-            const newInscriere: Omit<InscriereExamen, 'id'> = {
-                sesiune_id: sesiune.id,
-                sportiv_id: sportiv.id,
-                grad_actual_id: gradActual?.id || null,
-                grad_sustinut_id: gradVizat.id,
-                varsta_la_examen: varstaLaExamen,
-                rezultat: 'Neprezentat',
-                observatii: ''
-            };
-
+            const newInscriere: Omit<InscriereExamen, 'id'> = { sesiune_id: sesiune.id, sportiv_id: sportiv.id, grad_actual_id: gradActual?.id || null, grad_sustinut_id: gradVizat.id, varsta_la_examen: varstaLaExamen, rezultat: 'Neprezentat', observatii: '' };
             const { data: inscriereData, error: pError } = await supabase.from('inscrieri_examene').insert(newInscriere).select().single();
             if (pError) throw pError;
             setInscrieri(prev => [...prev, inscriereData as InscriereExamen]);
@@ -113,13 +145,27 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = ({ sesiune, inscrieri, set
         <h5 className="text-lg font-semibold mb-4 text-white">Înscrie Sportiv Nou</h5>
         <form onSubmit={handleAddParticipant} className="space-y-4">
             <Select label="Sportiv" value={sportivId} onChange={e => setSportivId(e.target.value)}><option value="">Selectează...</option>{sportivi.filter(s => s.status === 'Activ' && !inscrieri.some(i => i.sportiv_id === s.id)).map(s => ( <option key={s.id} value={s.id}>{s.nume} {s.prenume}</option> ))}</Select>
-            {sportivData && (<div className="p-3 bg-slate-800/50 rounded-md grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-                <DataField label="Vârsta la Examen" value={`${sportivData.varstaLaExamen} ani`} />
-                <DataField label="Grad Actual" value={sportivData.gradActual?.nume || 'Începător'} />
-                <DataField label="Grad Vizat" value={sportivData.gradVizat?.nume || 'N/A'} />
-                <DataField label="Taxă Examen" value={sportivData.taxa ? `${sportivData.taxa.toFixed(2)} RON` : 'N/A'} />
+            {sportivData && (<div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700 space-y-4 animate-fade-in-down">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                    <div className="text-center md:text-left order-2 md:order-1">
+                        <p className="text-xs text-slate-400">Propunere Grad (Automat)</p>
+                        <p className="text-3xl md:text-4xl font-bold text-brand-secondary">{sportivData.gradVizatAutomat?.nume || 'N/A'}</p>
+                        <p className="text-xs text-slate-500 mt-1 hidden md:block">{sportivData.eligibilityMessage}</p>
+                    </div>
+                    <div className="space-y-3 order-1 md:order-2">
+                        <Select label="Grad Susținut (Confirmă sau Modifică)" value={selectedGradId || ''} onChange={(e) => setSelectedGradId(e.target.value)}>
+                            {sortedGrades.map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}
+                        </Select>
+                        <div className="grid grid-cols-2 gap-2 text-sm pt-2">
+                            <DataField label="Vârsta la Examen" value={`${sportivData.varstaLaExamen} ani`} />
+                            <DataField label="Taxă Examen" value={sportivData.taxa ? `${sportivData.taxa.toFixed(2)} RON` : 'N/A'} className="text-right md:text-left" />
+                        </div>
+                    </div>
+                </div>
+                <div className="flex justify-center md:justify-end pt-4 border-t border-slate-700">
+                    <Button type="submit" variant="info" isLoading={loading} disabled={!selectedGradId} className="w-full md:w-auto">Înscrie și Generează Factură</Button>
+                </div>
             </div>)}
-            <div className="flex justify-end pt-2"><Button type="submit" variant="info" isLoading={loading} disabled={!sportivData || !sportivData.gradVizat}>Înscrie și Generează Factură</Button></div>
         </form>
     </Card>
 </div><ConfirmDeleteModal isOpen={!!inscriereToDelete} onClose={() => setInscriereToDelete(null)} onConfirm={() => { if(inscriereToDelete) confirmDeleteInscriere(inscriereToDelete.id) }} tableName="înscrieri" isLoading={false} /> </Card> );

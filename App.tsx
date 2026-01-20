@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
-import { Sportiv, Examen, Grad, Participare, View, Antrenament, Grupa, Plata, Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, Rol, AnuntPrezenta, Reducere, AnuntGeneral } from './types';
+import { Sportiv, Examen, Grad, Participare, View, Antrenament, Grupa, Plata, Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, Rol, AnuntPrezenta, Reducere, AnuntGeneral, TipPlata } from './types';
 import { Dashboard } from './components/Dashboard';
 import { SportiviManagement } from './components/SportiviManagement';
 import { UserProfile } from './components/UserProfile';
@@ -34,6 +34,7 @@ import { ProfilSportiv } from './components/Financiar';
 import { ReduceriManagement } from './components/Reduceri';
 import { Notificari } from './components/Notificari';
 import { TaxeAnuale } from './components/TaxeAnuale';
+import { GestionareNomenclatoare } from './components/GestionareNomenclatoare';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -54,6 +55,7 @@ function App() {
   const [rezultate, setRezultate] = useState<Rezultat[]>([]);
   const [preturiConfig, setPreturiConfig] = useState<PretConfig[]>([]);
   const [tipuriAbonament, setTipuriAbonament] = useState<TipAbonament[]>([]);
+  const [tipuriPlati, setTipuriPlati] = useState<TipPlata[]>([]);
   const [allRoles, setAllRoles] = useState<Rol[]>([]);
   const [anunturi, setAnunturi] = useState<AnuntPrezenta[]>([]);
   const [reduceri, setReduceri] = useState<Reducere[]>([]);
@@ -74,7 +76,7 @@ function App() {
         const [
             { data: eData }, { data: gData }, { data: grData }, { data: evData },
             { data: cfData }, { data: gradePricesData }, { data: abData }, { data: roData }, { data: progData },
-            { data: reduceriData },
+            { data: reduceriData }, { data: tipuriPlatiData },
             { data: sData }, { data: paData }, { data: fData }, { data: plData },
             { data: tData }, { data: rData }, { data: antrenamenteData }, { data: anunturiData }
         ] = await Promise.all([
@@ -89,6 +91,7 @@ function App() {
             supabase.from('roluri').select('*'),
             supabase.from('program_antrenamente').select('*').is('data', null),
             supabase.from('reduceri').select('*'),
+            supabase.from('tipuri_plati').select('*'),
 
             // RLS-protected data
             supabase.from('sportivi').select('*, roluri(id, nume)'),
@@ -150,6 +153,7 @@ function App() {
         setEvenimente(evData || []);
         setPreturiConfig(allPrices);
         setTipuriAbonament(abData || []);
+        setTipuriPlati(tipuriPlatiData || []);
         setAllRoles(roData || []);
         setReduceri(reduceriData || []);
         setSportivi(formattedSportivi);
@@ -334,7 +338,7 @@ function App() {
       case 'stagii': return <StagiiCompetitiiManagement type="Stagiu" evenimente={evenimente} setEvenimente={setEvenimente} rezultate={rezultate} setRezultate={setRezultate} sportivi={sportivi} setPlati={setPlati} preturiConfig={preturiConfig} participari={participari} examene={evenimente as any} grade={grade} onBack={() => setActiveView('dashboard')} />;
       case 'competitii': return <StagiiCompetitiiManagement type="Competitie" evenimente={evenimente} setEvenimente={setEvenimente} rezultate={rezultate} setRezultate={setRezultate} sportivi={sportivi} setPlati={setPlati} preturiConfig={preturiConfig} participari={participari} examene={evenimente as any} grade={grade} onBack={() => setActiveView('dashboard')} />;
       case 'plati-scadente': return <PlatiScadente plati={plati} setPlati={setPlati} sportivi={sportivi} familii={familii} tipuriAbonament={tipuriAbonament} tranzactii={tranzactii} reduceri={reduceri} onIncaseazaMultiple={(plist) => { setSelectedPlatiForIncasare(plist); setActiveView('jurnal-incasari'); }} onBack={() => setActiveView('dashboard')} />;
-      case 'jurnal-incasari': return <JurnalIncasari plati={plati} setPlati={setPlati} sportivi={sportivi} familii={familii} preturiConfig={preturiConfig} tipuriAbonament={tipuriAbonament} tranzactii={tranzactii} setTranzactii={setTranzactii} reduceri={reduceri} platiInitiale={selectedPlatiForIncasare} onIncasareProcesata={() => { setSelectedPlatiForIncasare([]); fetchData(currentUser); }} onBack={() => setActiveView('plati-scadente')} />;
+      case 'jurnal-incasari': return <JurnalIncasari plati={plati} setPlati={setPlati} sportivi={sportivi} familii={familii} preturiConfig={preturiConfig} tipuriAbonament={tipuriAbonament} tipuriPlati={tipuriPlati} setTipuriPlati={setTipuriPlati} tranzactii={tranzactii} setTranzactii={setTranzactii} reduceri={reduceri} platiInitiale={selectedPlatiForIncasare} onIncasareProcesata={() => { setSelectedPlatiForIncasare([]); fetchData(currentUser); }} onBack={() => setActiveView('plati-scadente')} />;
       case 'configurare-preturi': return <ConfigurarePreturi grade={grade} onBack={() => setActiveView('dashboard')} />;
       case 'taxe-anuale': return <TaxeAnuale onBack={() => setActiveView('dashboard')} currentUser={currentUser} sportivi={sportivi} plati={plati} setPlati={setPlati} />;
       case 'tipuri-abonament': return <TipuriAbonamentManagement tipuriAbonament={tipuriAbonament} setTipuriAbonament={setTipuriAbonament} onBack={() => setActiveView('dashboard')} />;
@@ -357,6 +361,7 @@ function App() {
           familii={familii}
           onNavigate={setActiveView}
         />;
+      case 'nomenclatoare': return <GestionareNomenclatoare onBack={() => setActiveView('dashboard')} tipuriPlati={tipuriPlati} setTipuriPlati={setTipuriPlati} plati={plati} />;
       case 'activitati': return <ProgramareActivitati grupe={grupe} antrenamente={antrenamente} setAntrenamente={setAntrenamente} onBack={() => setActiveView('dashboard')} />;
       case 'setari-club': return <ClubSettings onBack={() => setActiveView('dashboard')} />;
       case 'data-inspector': return <DataInspector antrenamente={antrenamente} preturiConfig={preturiConfig} rawGradePrices={rawGradePrices} grade={grade} onBack={() => setActiveView('dashboard')} />;

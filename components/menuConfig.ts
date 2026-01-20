@@ -58,7 +58,8 @@ export const adminMenu: MenuItem[] = [
             { view: 'configurare-preturi', label: 'Taxe Grade', roles: ['Admin', 'Instructor'] },
             { view: 'taxe-anuale', label: 'Taxe Anuale', roles: ['Admin', 'Instructor'] },
             { view: 'reduceri', label: 'Config. Reduceri' },
-            { view: 'notificari', label: 'Trimite Anunțuri' }
+            { view: 'notificari', label: 'Trimite Anunțuri' },
+            { view: 'nomenclatoare', label: 'Nomenclatoare', roles: ['Admin']}
         ] 
     },
     { 

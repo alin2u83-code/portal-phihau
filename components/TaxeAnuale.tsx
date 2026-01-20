@@ -177,7 +177,7 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
             data: new Date().toISOString().split('T')[0],
             status: 'Neachitat',
             descriere: descriereFactura,
-            tip: 'Taxa Anuala',
+            tip: taxaToGenerate.nume as Plata['tip'],
             observatii: 'Generat automat'
         }));
 
@@ -189,8 +189,7 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
         if (error) {
             let detailedMessage = error.message;
             if (error.message.includes('plati_tip_check')) {
-                const allowedTypes = ['Abonament', 'Taxa Examen', 'Taxa Stagiu', 'Taxa Competitie', 'Echipament', 'Taxa Anuala'].join(', ');
-                detailedMessage = `Eroare de constrângere a bazei de date. Tipul de plată 'Taxa Anuala' nu este permis. Tipurile permise sunt: [${allowedTypes}]. Asigurați-vă că ați rulat cel mai recent script 'rls_policies.sql' în editorul SQL Supabase. Detalii: ${error.message}`;
+                detailedMessage = `Eroare de constrângere a bazei de date ('plati_tip_check'). Tipul de plată '${taxaToGenerate.nume}' nu este permis. Verificați dacă schema bazei de date (constrângerea 'plati_tip_check' din tabelul 'plati') este actualizată pentru a include acest tip. Detaliile erorii originale: ${error.message}`;
             }
             showError("Eroare la generarea facturilor", detailedMessage);
         } else if (data) {

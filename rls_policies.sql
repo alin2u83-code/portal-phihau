@@ -261,6 +261,18 @@ CREATE POLICY "Admins can manage subscription types" ON public.tipuri_abonament
     FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
 CREATE POLICY "Authenticated users can see subscription types" ON public.tipuri_abonament
     FOR SELECT USING (auth.role() = 'authenticated');
+    
+-- -----------------------------------------------------------------
+-- Tabel: tipuri_plati
+-- -----------------------------------------------------------------
+ALTER TABLE public.tipuri_plati ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Admins can manage payment types" ON public.tipuri_plati;
+CREATE POLICY "Admins can manage payment types" ON public.tipuri_plati
+    FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+
+DROP POLICY IF EXISTS "Authenticated users can see payment types" ON public.tipuri_plati;
+CREATE POLICY "Authenticated users can see payment types" ON public.tipuri_plati
+    FOR SELECT USING (auth.role() = 'authenticated');
 
 -- -----------------------------------------------------------------
 -- Tabel: reduceri

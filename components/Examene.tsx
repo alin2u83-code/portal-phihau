@@ -176,6 +176,7 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = ({ sesiune, inscrieri, set
     const [gradVizatId, setGradVizatId] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [inscriereToDelete, setInscriereToDelete] = useState<InscriereExamen | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
     const { showError, showSuccess } = useError();
     const sortedGrades = useMemo(() => [...grade].sort((a,b) => a.ordine - b.ordine), [grade]);
     
@@ -277,11 +278,38 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = ({ sesiune, inscrieri, set
         else if (data) { setInscrieri(prev => prev.map(p => p.id === inscriereId ? data as InscriereExamen : p)); }
     };
     
-    const confirmDeleteInscriere = async (inscriereId: string) => {
-        const { error } = await supabase.from('inscrieri_examene').delete().eq('id', inscriereId);
-        if (error) { showError("Eroare la ștergere", error); }
-        else { setInscrieri(prev => prev.filter(p => p.id !== inscriereId)); showSuccess("Succes", "Înscrierea a fost ștearsă."); }
-        setInscriereToDelete(null);
+    const confirmDeleteInscriere = async (inscriere: InscriereExamen) => {
+        setIsDeleting(true);
+        try {
+            const gradVizat = grade.find(g => g.id === inscriere.grad_vizat_id);
+            const descriereAsteptata = gradVizat ? `Taxa examen grad ${gradVizat.nume}` : null;
+            
+            let plataIdToDelete: string | null = null;
+            if (descriereAsteptata) {
+                const { data: foundPlati, error: findError } = await supabase.from('plati').select('id').match({ sportiv_id: inscriere.sportiv_id, tip: 'Taxa Examen', data: sesiune.data, descriere: descriereAsteptata }).limit(1);
+                if (findError) { showError("Avertisment", `Nu am putut căuta taxa asociată: ${findError.message}`); } 
+                else if (foundPlati && foundPlati.length > 0) { plataIdToDelete = foundPlati[0].id; }
+            }
+            
+            const { error: inscrieriError } = await supabase.from('inscrieri_examene').delete().eq('id', inscriere.id);
+            if (inscrieriError) throw inscrieriError;
+    
+            if (plataIdToDelete) {
+                const { error: platiError } = await supabase.from('plati').delete().eq('id', plataIdToDelete);
+                if (platiError) { showError("Avertisment", "Înscrierea a fost ștearsă, dar a eșuat ștergerea taxei. Ștergeți manual."); }
+            }
+    
+            setInscrieri(prev => prev.filter(p => p.id !== inscriere.id));
+            if (plataIdToDelete) { setPlati(prev => prev.filter(p => p.id !== plataIdToDelete)); }
+    
+            showSuccess("Succes", "Înscrierea și taxa asociată au fost șterse.");
+    
+        } catch (err: any) {
+            showError("Eroare la ștergere", err.message);
+        } finally {
+            setIsDeleting(false);
+            setInscriereToDelete(null);
+        }
     };
 
     const ultimiiInscrisi = useMemo(() => {
@@ -389,7 +417,7 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = ({ sesiune, inscrieri, set
             </div>
         </Card>
     </div>
-</div><ConfirmDeleteModal isOpen={!!inscriereToDelete} onClose={() => setInscriereToDelete(null)} onConfirm={() => { if(inscriereToDelete) confirmDeleteInscriere(inscriereToDelete.id) }} tableName="înscrieri" isLoading={false} /> </Card> );
+</div><ConfirmDeleteModal isOpen={!!inscriereToDelete} onClose={() => setInscriereToDelete(null)} onConfirm={() => { if(inscriereToDelete) confirmDeleteInscriere(inscriereToDelete) }} tableName="înscriere (și taxa asociată)" isLoading={isDeleting} /> </Card> );
 };
 
 interface GestiuneExameneProps { onBack: () => void; sesiuni: SesiuneExamen[]; setSesiuni: React.Dispatch<React.SetStateAction<SesiuneExamen[]>>; inscrieri: InscriereExamen[]; setInscrieri: React.Dispatch<React.SetStateAction<InscriereExamen[]>>; sportivi: Sportiv[]; grade: Grad[]; setPlati: React.Dispatch<React.SetStateAction<Plata[]>>; preturiConfig: PretConfig[]; locatii: Locatie[]; setLocatii: React.Dispatch<React.SetStateAction<Locatie[]>>; onNavigate: (view: View) => void; onViewSportiv: (sportiv: Sportiv) => void; }

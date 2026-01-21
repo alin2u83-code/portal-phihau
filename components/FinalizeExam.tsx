@@ -30,7 +30,7 @@ interface FinalizeExamProps {
 export const FinalizeExam: React.FC<FinalizeExamProps> = ({ sesiune, inscrieriSesiune, sportivi, grade, plati, setInscrieri, setSportivi, onBack }) => {
     const { showError, showSuccess } = useError();
     const [participants, setParticipants] = useState<ParticipantFinalizare[]>([]);
-    const [isBulkPromoting, setIsBulkPromoting] = useState(false);
+    const [loadingId, setLoadingId] = useState<string | null>(null);
 
     useEffect(() => {
         const enhancedParticipants = inscrieriSesiune.map(inscriere => {
@@ -50,66 +50,51 @@ export const FinalizeExam: React.FC<FinalizeExamProps> = ({ sesiune, inscrieriSe
             };
         });
         setParticipants(enhancedParticipants);
-    }, [inscrieriSesiune, plati, sesiune.data]);
+    }, [inscrieriSesiune, sportivi, grade, plati, sesiune.data]);
 
     const sortedParticipants = useMemo(() => {
         return [...participants].sort((a, b) => b.gradOrdine - a.gradOrdine);
     }, [participants]);
 
-    const participantsToPromote = useMemo(() => {
-        return sortedParticipants.filter(p => p.rezultatCurent !== 'Admis');
-    }, [sortedParticipants]);
+    const promoveazaSportiv = useCallback(async (participant: ParticipantFinalizare) => {
+        setLoadingId(participant.inscriere_id);
+        try {
+            await supabase.from('inscrieri_examene').update({ rezultat: 'Admis' }).eq('id', participant.inscriere_id).throwOnError();
+            await supabase.from('sportivi').update({ grad_actual_id: participant.gradSustinutId }).eq('id', participant.sportiv_id).throwOnError();
+            await supabase.from('istoric_grade').insert({
+                sportiv_id: participant.sportiv_id,
+                grad_id: participant.gradSustinutId,
+                data_obtinere: sesiune.data,
+                sesiune_examen_id: sesiune.id
+            }).throwOnError();
 
-    const promoveazaGrup = async () => {
-        if (participantsToPromote.length === 0) {
-            showSuccess("Info", "Toți sportivii sunt deja promovați.");
-            return;
+            setParticipants(prev => prev.map(p => p.inscriere_id === participant.inscriere_id ? { ...p, rezultatCurent: 'Admis' } : p));
+            setInscrieri(prev => prev.map(i => i.id === participant.inscriere_id ? { ...i, rezultat: 'Admis', media_generala: null } : i));
+            setSportivi(prev => prev.map(s => s.id === participant.sportiv_id ? { ...s, grad_actual_id: participant.gradSustinutId } : s));
+            
+            showSuccess("Succes", `${participant.numeComplet} a fost promovat.`);
+        } catch (err: any) {
+            showError(`Eroare la promovarea lui ${participant.numeComplet}`, err.message);
+        } finally {
+            setLoadingId(null);
         }
+    }, [sesiune.id, sesiune.data, setInscrieri, setSportivi, showError, showSuccess]);
 
-        if (!window.confirm(`Sunteți sigur că doriți să promovați ${participantsToPromote.length} sportivi? Această acțiune este ireversibilă.`)) {
-            return;
+    const respingeSportiv = useCallback(async (participant: ParticipantFinalizare) => {
+        setLoadingId(participant.inscriere_id);
+        try {
+            await supabase.from('inscrieri_examene').update({ rezultat: 'Respins' }).eq('id', participant.inscriere_id).throwOnError();
+            
+            setParticipants(prev => prev.map(p => p.inscriere_id === participant.inscriere_id ? { ...p, rezultatCurent: 'Respins' } : p));
+            setInscrieri(prev => prev.map(i => i.id === participant.inscriere_id ? { ...i, rezultat: 'Respins', media_generala: null } : i));
+
+            showSuccess("Info", `${participant.numeComplet} a fost marcat ca respins.`);
+        } catch (err: any) {
+            showError(`Eroare la respingerea lui ${participant.numeComplet}`, err.message);
+        } finally {
+            setLoadingId(null);
         }
-
-        setIsBulkPromoting(true);
-        let successCount = 0;
-        
-        for (const participant of participantsToPromote) {
-            try {
-                await supabase.from('inscrieri_examene').update({ rezultat: 'Admis' }).eq('id', participant.inscriere_id).throwOnError();
-                await supabase.from('sportivi').update({ grad_actual_id: participant.gradSustinutId }).eq('id', participant.sportiv_id).throwOnError();
-                await supabase.from('istoric_grade').insert({
-                    sportiv_id: participant.sportiv_id,
-                    grad_id: participant.gradSustinutId,
-                    data_obtinere: sesiune.data,
-                    sesiune_examen_id: sesiune.id
-                }).throwOnError();
-                
-                successCount++;
-            } catch (err: any) {
-                showError(`Eroare la promovarea lui ${participant.numeComplet}`, err.message);
-                break; 
-            }
-        }
-        
-        if (successCount > 0) {
-            const promotedInscrieriIds = new Set(participantsToPromote.slice(0, successCount).map(p => p.inscriere_id));
-            const promotedSportiviMap = new Map(participantsToPromote.slice(0, successCount).map(p => [p.sportiv_id, p.gradSustinutId]));
-
-            setParticipants(prev => prev.map(p => 
-                promotedInscrieriIds.has(p.inscriere_id) ? { ...p, rezultatCurent: 'Admis' } : p
-            ));
-            setInscrieri(prev => prev.map(i => 
-                promotedInscrieriIds.has(i.id) ? { ...i, rezultat: 'Admis', media_generala: null } : i
-            ));
-            setSportivi(prev => prev.map(s => 
-                promotedSportiviMap.has(s.id) ? { ...s, grad_actual_id: promotedSportiviMap.get(s.id)! } : s
-            ));
-
-            showSuccess("Operațiune finalizată", `S-au actualizat ${successCount} profile de sportivi.`);
-        }
-
-        setIsBulkPromoting(false);
-    };
+    }, [setInscrieri, showError, showSuccess]);
 
     return (
         <div>
@@ -117,24 +102,14 @@ export const FinalizeExam: React.FC<FinalizeExamProps> = ({ sesiune, inscrieriSe
             
             <div className="flex justify-between items-center mb-6 no-print">
                 <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2"/> Înapoi</Button>
-                
-                <Button 
-                    onClick={promoveazaGrup} 
-                    variant="success" 
-                    className="!px-6 !py-3 !text-base"
-                    isLoading={isBulkPromoting}
-                    disabled={participantsToPromote.length === 0 || isBulkPromoting}
-                >
-                    APROBĂ TOȚI SPORTIVII ({participantsToPromote.length})
-                </Button>
-
+                <h1 className="text-xl font-bold text-white text-center">Finalizare Examen</h1>
                 <Button onClick={() => window.print()} variant="secondary">Descarcă Tabel</Button>
             </div>
             
             <div id="printable-exam-report">
                 <div className="text-center mb-6">
                     <img src="/logo-phi-hau.png" alt="Logo Club Phi Hau" className="h-20 w-auto print-logo hidden mx-auto mb-4" />
-                    <h1 className="text-3xl font-bold text-white printable-title">Finalizare Examen</h1>
+                    <h1 className="text-3xl font-bold text-white printable-title">Rezultate Examen</h1>
                     <p className="text-slate-400 printable-subtitle">Sesiunea din {new Date(sesiune.data + 'T00:00:00').toLocaleDateString('ro-RO')}</p>
                 </div>
                 
@@ -145,30 +120,52 @@ export const FinalizeExam: React.FC<FinalizeExamProps> = ({ sesiune, inscrieriSe
                                 <tr>
                                     <th className="p-3 font-semibold">Nume Sportiv</th>
                                     <th className="p-3 font-semibold">Grad Susținut</th>
-                                    <th className="p-3 font-semibold text-center">Status Actual</th>
                                     <th className="p-3 font-semibold text-center">Taxa</th>
+                                    <th className="p-3 font-semibold text-center">Rezultat / Acțiuni</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-700">
                                 {sortedParticipants.map(p => {
-                                    const rowClass = p.rezultatCurent === 'Admis' ? 'bg-green-900/40' : '';
+                                    const rowClass = p.rezultatCurent === 'Admis' ? 'bg-green-900/40' : p.rezultatCurent === 'Respins' ? 'bg-red-900/40' : '';
                                     return (
                                         <tr key={p.inscriere_id} className={`${rowClass} hover:bg-slate-700/50`}>
                                             <td className="p-3 font-medium">{p.numeComplet}</td>
                                             <td className="p-3 text-slate-300">{p.gradSustinut}</td>
-                                            <td className="p-3 text-center">
-                                                <span className={`px-2 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${
-                                                    p.rezultatCurent === 'Admis' ? 'bg-green-600/20 text-green-400 border-green-600/50' : 
-                                                    p.rezultatCurent === 'Respins' ? 'bg-red-900/40 text-red-400 border-red-900/50' : 
-                                                    'bg-slate-600/20 text-slate-400 border-slate-600/50'}`
-                                                }>
-                                                    {p.rezultatCurent || 'În așteptare'}
-                                                </span>
-                                            </td>
                                             <td className="p-3 text-center status-indicator">
                                                 <div className="flex justify-center items-center">
                                                     <span className={`h-3 w-3 rounded-full ${p.taxaAchitata ? 'bg-green-500' : 'bg-red-500'}`} title={p.taxaAchitata ? 'Taxa achitată' : 'Taxa neachitată'}></span>
                                                 </div>
+                                            </td>
+                                            <td className="p-3 text-center">
+                                                {p.rezultatCurent === 'Admis' || p.rezultatCurent === 'Respins' ? (
+                                                    <span className={`px-2 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${
+                                                        p.rezultatCurent === 'Admis' ? 'bg-green-600/20 text-green-400 border-green-600/50' : 
+                                                        'bg-red-900/40 text-red-400 border-red-900/50'}`
+                                                    }>
+                                                        {p.rezultatCurent}
+                                                    </span>
+                                                ) : (
+                                                    <div className="flex justify-center gap-2">
+                                                        <Button 
+                                                            size="sm" 
+                                                            variant="success"
+                                                            onClick={() => promoveazaSportiv(p)}
+                                                            isLoading={loadingId === p.inscriere_id}
+                                                            disabled={loadingId !== null}
+                                                        >
+                                                            Admis
+                                                        </Button>
+                                                        <Button 
+                                                            size="sm" 
+                                                            variant="danger"
+                                                            onClick={() => respingeSportiv(p)}
+                                                            isLoading={loadingId === p.inscriere_id}
+                                                            disabled={loadingId !== null}
+                                                        >
+                                                            Respins
+                                                        </Button>
+                                                    </div>
+                                                )}
                                             </td>
                                         </tr>
                                     );

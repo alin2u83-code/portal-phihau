@@ -229,8 +229,8 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = ({ sesiune, inscrieri, set
         
         setLoading(true);
         try {
-            const newInscriere: Omit<InscriereExamen, 'id'> = { sesiune_id: sesiune.id, sportiv_id: sportiv.id, grad_actual_id: gradActual?.id || null, grad_vizat_id: gradVizat.id, varsta_la_examen: varstaLaExamen, observatii: '' };
-            const { data: inscriereData, error: pError } = await supabase.from('inscrieri_examene').insert(newInscriere).select().single();
+            const newInscriere: Omit<InscriereExamen, 'id' | 'sportivi' | 'grade'> = { sesiune_id: sesiune.id, sportiv_id: sportiv.id, grad_actual_id: gradActual?.id || null, grad_vizat_id: gradVizat.id, varsta_la_examen: varstaLaExamen, observatii: '' };
+            const { data: inscriereData, error: pError } = await supabase.from('inscrieri_examene').insert(newInscriere).select('*, sportivi:sportiv_id(*), grade:grad_vizat_id(*)').single();
             if (pError) throw pError;
             setInscrieri(prev => [...prev, inscriereData as InscriereExamen]);
 
@@ -292,17 +292,19 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = ({ sesiune, inscrieri, set
             .slice(-5) // Get the last 5
             .reverse() // Show the most recent first
             .map(inscriere => {
-                const sportiv = sportivi.find(s => s.id === inscriere.sportiv_id);
-                const grad = grade.find(g => g.id === inscriere.grad_vizat_id);
-                const taxa = grad ? getPretProdus(preturiConfig, 'Taxa Examen', grad.nume, { dataReferinta: sesiune.data })?.suma : 0;
+                const taxa = inscriere.grade ? getPretProdus(preturiConfig, 'Taxa Examen', inscriere.grade.nume, { dataReferinta: sesiune.data })?.suma : 0;
                 return {
                     id: inscriere.id,
-                    numeComplet: sportiv ? `${sportiv.nume} ${sportiv.prenume}` : 'N/A',
-                    numeGrad: grad?.nume || 'N/A',
+                    numeComplet: inscriere.sportivi ? `${inscriere.sportivi.nume} ${inscriere.sportivi.prenume}` : 'N/A',
+                    numeGrad: inscriere.grade?.nume || 'N/A',
                     taxa: taxa || 0
                 };
             });
-    }, [inscrieri, sportivi, grade, preturiConfig, sesiune.data]);
+    }, [inscrieri, preturiConfig, sesiune.data]);
+
+    if (!Array.isArray(inscrieri)) {
+        return <Card><p>Încărcare...</p></Card>;
+    }
 
     return ( <Card> <div className="flex justify-between items-start flex-wrap gap-4"><h3 className="text-2xl font-bold text-white">{locatii.find(l => l.id === sesiune.locatie_id)?.nume} - {new Date(sesiune.data + 'T00:00:00').toLocaleDateString('ro-RO')}</h3><div className="flex gap-2"><Button variant="success" onClick={() => onNavigateTo('finalizare-examen')}><ShieldCheckIcon className="w-5 h-5 mr-2"/>Notare & Finalizare Examen</Button></div></div><p className="text-slate-400">Comisia: {Array.isArray(sesiune.comisia) ? sesiune.comisia.join(', ') : sesiune.comisia}</p><div className="mt-6 border-t border-slate-700 pt-6"> <h4 className="text-xl font-semibold mb-4 text-white">Participanți Înscriși ({inscrieri.length})</h4>
     <div className="overflow-x-auto mb-6">
@@ -318,8 +320,8 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = ({ sesiune, inscrieri, set
             </thead>
             <tbody className="divide-y divide-slate-700">
                 {inscrieri.map(i => {
-                    const s = sportivi.find(sp => sp.id === i.sportiv_id);
-                    const g = grade.find(gr => gr.id === i.grad_vizat_id);
+                    const s = i.sportivi;
+                    const g = i.grade;
                     const isPassed = i.rezultat === 'Admis';
                     return (
                         <tr key={i.id} className="hover:bg-slate-700/20">

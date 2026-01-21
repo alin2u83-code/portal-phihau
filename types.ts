@@ -61,6 +61,9 @@ export interface InscriereExamen {
     nota_tehnica_2?: number | null;
     media_generala?: number | null;
     rezultat?: 'Admis' | 'Respins' | 'Neprezentat' | null;
+    // Nested data from unified query
+    sportivi: Sportiv; 
+    grade: Grad;
 }
 
 export interface IstoricGrade {

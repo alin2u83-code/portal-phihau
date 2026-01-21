@@ -100,7 +100,7 @@ function App() {
 
             // RLS-protected data
             supabase.from('sportivi').select('*, roluri(id, nume)'),
-            supabase.from('inscrieri_examene').select('*'),
+            supabase.from('inscrieri_examene').select('*, sportivi:sportiv_id(*), grade:grad_vizat_id(*)').order('ordine', { foreignTable: 'grade', ascending: false }),
             supabase.from('familii').select('*'),
             supabase.from('plati').select('*'),
             supabase.from('tranzactii').select('*'),
@@ -163,7 +163,7 @@ function App() {
         setAllRoles(roData || []);
         setReduceri(reduceriData || []);
         setSportivi(formattedSportivi);
-        setInscrieriExamene(inscrieriData || []);
+        setInscrieriExamene(inscrieriData as InscriereExamen[] || []);
         setFamilii(fData || []);
         setPlati(plData || []);
         setTranzactii(tData || []);
@@ -341,7 +341,7 @@ function App() {
         ) : (
             <SportiviManagement onBack={() => setActiveView('dashboard')} sportivi={sportivi} setSportivi={setSportivi} grupe={grupe} setGrupe={setGrupe} tipuriAbonament={tipuriAbonament} familii={familii} setFamilii={setFamilii} allRoles={allRoles} setAllRoles={setAllRoles} currentUser={currentUser} plati={plati} tranzactii={tranzactii} setTranzactii={setTranzactii} onViewSportiv={setViewedSportiv} />
         );
-      case 'examene': return <GestiuneExamene plati={plati} sesiuni={sesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={sportivi} grade={grade} setPlati={setPlati} preturiConfig={preturiConfig} locatii={locatii} setLocatii={setLocatii} onBack={() => setActiveView('dashboard')} onNavigate={setActiveView} onViewSportiv={setViewedSportiv} />;
+      case 'examene': return <GestiuneExamene plati={plati} sesiuni={sesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={sportivi} setSportivi={setSportivi} grade={grade} setPlati={setPlati} preturiConfig={preturiConfig} locatii={locatii} setLocatii={setLocatii} onBack={() => setActiveView('dashboard')} />;
       case 'grade': return <GradeManagement grade={grade} setGrade={setGrade} onBack={() => setActiveView('dashboard')} />;
       case 'prezenta': return <PrezentaManagement sportivi={sportivi} setSportivi={setSportivi} antrenamente={antrenamente} setAntrenamente={setAntrenamente} grupe={grupe} onBack={() => setActiveView('dashboard')} setPlati={setPlati} tipuriAbonament={tipuriAbonament} anunturi={anunturi}/>;
       case 'grupe': return <GrupeManagement grupe={grupe} setGrupe={setGrupe} onBack={() => setActiveView('dashboard')} />;
@@ -377,6 +377,7 @@ function App() {
       case 'setari-club': return <ClubSettings onBack={() => setActiveView('dashboard')} />;
       case 'data-inspector': return <DataInspector antrenamente={antrenamente} preturiConfig={preturiConfig} rawGradePrices={rawGradePrices} grade={grade} onBack={() => setActiveView('dashboard')} />;
       case 'notificari': return <Notificari onBack={() => setActiveView('dashboard')} currentUser={currentUser} />;
+      case 'examene': return <GestiuneExamene onBack={() => setActiveView('dashboard')} sesiuni={sesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={sportivi} setSportivi={setSportivi} grade={grade} plati={plati} setPlati={setPlati} preturiConfig={preturiConfig} locatii={locatii} setLocatii={setLocatii} />;
       default: return <Dashboard onNavigate={setActiveView} showPriceWarning={showPriceWarning} />;
     }
   };
@@ -392,7 +393,6 @@ function App() {
       <Sidebar currentUser={currentUser!} onNavigate={setActiveView} onLogout={handleLogout} activeView={activeView} isExpanded={isSidebarExpanded} setIsExpanded={setIsSidebarExpanded} isPortalView={!isAdmin || isMyPortalView} plati={plati} />
       <div className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'}`}>
          {isAdmin && !isMyPortalView && (
-            // FIX: Pass `handleLogout` to the `onLogout` prop of `AdminHeader` instead of the undefined `onLogout`.
             <AdminHeader currentUser={currentUser!} onNavigate={setActiveView} onLogout={handleLogout} plati={plati} />
           )}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">

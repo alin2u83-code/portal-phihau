@@ -40,14 +40,14 @@ export const FinalizeExam: React.FC<FinalizeExamProps> = ({ sesiune, inscrieriSe
     const [participants, setParticipants] = useState<ParticipantValidare[]>([]);
     const [isFinalizing, setIsFinalizing] = useState(false);
     const [isFinalized, setIsFinalized] = useState(true);
-    const [sortConfig, setSortConfig] = useState<{ key: 'numeComplet' | 'gradOrdine' }>({ key: 'numeComplet' });
+    const [sortConfig, setSortConfig] = useState<{ key: 'numeComplet' | 'gradOrdine' }>({ key: 'gradOrdine' });
 
     useEffect(() => {
         const validInscrieri = Array.isArray(inscrieriSesiune) ? inscrieriSesiune : [];
         
         const enhancedParticipants = validInscrieri.map(inscriere => {
-            const sportiv = sportivi.find(s => s.id === inscriere.sportiv_id);
-            const grad = grade.find(g => g.id === inscriere.grad_vizat_id);
+            const sportiv = inscriere.sportivi;
+            const grad = inscriere.grade;
             const taxa = plati.find(p => p.sportiv_id === inscriere.sportiv_id && p.tip === 'Taxa Examen' && p.data === sesiune.data && p.descriere.includes(grad?.nume || '---'));
 
             return {
@@ -72,7 +72,7 @@ export const FinalizeExam: React.FC<FinalizeExamProps> = ({ sesiune, inscrieriSe
         
         setParticipants(enhancedParticipants);
         setIsFinalized(true);
-    }, [inscrieriSesiune, sportivi, grade, plati, sesiune.data]);
+    }, [inscrieriSesiune, plati, sesiune.data]);
 
     const sortedParticipants = useMemo(() => {
         return [...participants].sort((a, b) => {
@@ -151,7 +151,8 @@ export const FinalizeExam: React.FC<FinalizeExamProps> = ({ sesiune, inscrieriSe
                 setInscrieri(prev => prev.map(i => {
                     const changed = participants.find(p => p.inscriere_id === i.id);
                     if (!changed) return i;
-                    return { ...i, rezultat: changed.rezultatCurent, media_generala: changed.media, nota_thao_quyen: changed.nota_thao_quyen, nota_song_doi: changed.nota_song_doi, nota_tehnica_1: changed.nota_tehnica_1, nota_tehnica_2: changed.nota_tehnica_2, observatii: changed.observatii };
+                    const { sportivi, grade, ...restOfInscriere } = i;
+                    return { ...restOfInscriere, sportivi, grade, rezultat: changed.rezultatCurent, media_generala: changed.media, nota_thao_quyen: changed.nota_thao_quyen, nota_song_doi: changed.nota_song_doi, nota_tehnica_1: changed.nota_tehnica_1, nota_tehnica_2: changed.nota_tehnica_2, observatii: changed.observatii };
                 }));
             }
 

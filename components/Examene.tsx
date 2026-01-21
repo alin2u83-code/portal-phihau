@@ -1,14 +1,13 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { SesiuneExamen, InscriereExamen, Sportiv, Grad, Plata, PretConfig, Locatie, View } from '../types';
 import { Button, Modal, Input, Select, Card } from './ui';
-import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon, ExclamationTriangleIcon, ShieldCheckIcon, ClipboardCheckIcon } from './icons';
+import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon, ExclamationTriangleIcon, ShieldCheckIcon } from './icons';
 import { getPretProdus } from '../utils/pricing';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { FinalizeExam } from './FinalizeExam';
-import { ValidareRezultate } from './ValidareRezultate';
 
 // --- UTILITIES ---
 const getGrad = (gradId: string | null, allGrades: Grad[]) => gradId ? allGrades.find(g => g.id === gradId) : null;
@@ -172,7 +171,7 @@ const SesiuneForm: React.FC<SesiuneFormProps> = ({ isOpen, onClose, onSave, sesi
   </> );
 };
 
-interface DetaliiSesiuneProps { sesiune: SesiuneExamen; inscrieri: InscriereExamen[]; setInscrieri: React.Dispatch<React.SetStateAction<InscriereExamen[]>>; sportivi: Sportiv[]; grade: Grad[]; setPlati: React.Dispatch<React.SetStateAction<Plata[]>>; preturiConfig: PretConfig[]; allInscrieri: InscriereExamen[]; locatii: Locatie[]; onNavigateTo: (view: 'finalize' | 'validare') => void; }
+interface DetaliiSesiuneProps { sesiune: SesiuneExamen; inscrieri: InscriereExamen[]; setInscrieri: React.Dispatch<React.SetStateAction<InscriereExamen[]>>; sportivi: Sportiv[]; grade: Grad[]; setPlati: React.Dispatch<React.SetStateAction<Plata[]>>; preturiConfig: PretConfig[]; allInscrieri: InscriereExamen[]; locatii: Locatie[]; onNavigateTo: (view: 'finalizare-examen') => void; }
 const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = ({ sesiune, inscrieri, setInscrieri, sportivi, grade, setPlati, preturiConfig, allInscrieri, locatii, onNavigateTo }) => {
     const [sportivId, setSportivId] = useState('');
     const [gradVizatId, setGradVizatId] = useState<string | null>(null);
@@ -336,7 +335,7 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = ({ sesiune, inscrieri, set
             });
     }, [inscrieri, sportivi, grade, preturiConfig, sesiune.data]);
 
-    return ( <Card> <div className="flex justify-between items-start flex-wrap gap-4"><h3 className="text-2xl font-bold text-white">{locatii.find(l => l.id === sesiune.locatie_id)?.nume} - {new Date(sesiune.data + 'T00:00:00').toLocaleDateString('ro-RO')}</h3><div className="flex gap-2"><Button variant="primary" onClick={() => onNavigateTo('validare')}><ClipboardCheckIcon className="w-5 h-5 mr-2"/>Validează Rezultate</Button><Button variant="success" onClick={() => onNavigateTo('finalize')}><ShieldCheckIcon className="w-5 h-5 mr-2"/>Finalizează & Promovează</Button></div></div><p className="text-slate-400">Comisia: {Array.isArray(sesiune.comisia) ? sesiune.comisia.join(', ') : sesiune.comisia}</p><div className="mt-6 border-t border-slate-700 pt-6"> <h4 className="text-xl font-semibold mb-4 text-white">Participanți Înscriși ({inscrieri.length})</h4>
+    return ( <Card> <div className="flex justify-between items-start flex-wrap gap-4"><h3 className="text-2xl font-bold text-white">{locatii.find(l => l.id === sesiune.locatie_id)?.nume} - {new Date(sesiune.data + 'T00:00:00').toLocaleDateString('ro-RO')}</h3><div className="flex gap-2"><Button variant="success" onClick={() => onNavigateTo('finalizare-examen')}><ShieldCheckIcon className="w-5 h-5 mr-2"/>Finalizare Examen</Button></div></div><p className="text-slate-400">Comisia: {Array.isArray(sesiune.comisia) ? sesiune.comisia.join(', ') : sesiune.comisia}</p><div className="mt-6 border-t border-slate-700 pt-6"> <h4 className="text-xl font-semibold mb-4 text-white">Participanți Înscriși ({inscrieri.length})</h4>
     <div className="overflow-x-auto mb-6">
         <table className="w-full text-left text-sm">
             <thead className="bg-slate-700/50 text-xs uppercase">
@@ -438,14 +437,14 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, sesiun
   const [sesiuneToDelete, setSesiuneToDelete] = useState<SesiuneExamen | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedSesiuneId, setSelectedSesiuneId] = useLocalStorage<string | null>('phi-hau-selected-sesiune-id', null);
-  const [view, setView] = useState<'list' | 'details' | 'finalize' | 'validare'>('list');
+  const [view, setView] = useState<'list' | 'details' | 'finalizare-examen'>('list');
   const { showError, showSuccess } = useError();
   
   const selectedSesiune = useMemo(() => selectedSesiuneId ? sesiuni.find(e => e.id === selectedSesiuneId) || null : null, [selectedSesiuneId, sesiuni]);
 
   useEffect(() => {
     if (selectedSesiuneId) {
-        if(view !== 'finalize' && view !== 'validare') setView('details');
+        if(view !== 'finalizare-examen') setView('details');
     } else {
         setView('list');
     }
@@ -491,12 +490,9 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, sesiun
         case 'details':
             if (!selectedSesiune) return null;
             return (<div><Button onClick={handleBackToList} className="mb-4" variant="secondary"><ArrowLeftIcon /> Înapoi la listă</Button><DetaliiSesiune sesiune={selectedSesiune} inscrieri={inscrieri.filter(p => p.sesiune_id === selectedSesiune.id)} setInscrieri={setInscrieri} sportivi={sportivi} grade={grade} setPlati={setPlati} preturiConfig={preturiConfig} allInscrieri={inscrieri} locatii={locatii} onNavigateTo={(v) => setView(v)} /></div>)
-        case 'finalize':
+        case 'finalizare-examen':
              if (!selectedSesiune) return null;
-             return <FinalizeExam sesiune={selectedSesiune} inscrieriSesiune={inscrieri.filter(i => i.sesiune_id === selectedSesiune.id)} sportivi={sportivi} setSportivi={setSportivi} grade={grade} setInscrieri={setInscrieri} onBack={() => setView('details')} />
-        case 'validare':
-             if (!selectedSesiune) return null;
-             return <ValidareRezultate sesiune={selectedSesiune} inscrieriSesiune={inscrieri.filter(i => i.sesiune_id === selectedSesiune.id)} sportivi={sportivi} setSportivi={setSportivi} grade={grade} plati={plati} setInscrieri={setInscrieri} onBack={() => setView('details')} />
+             return <FinalizeExam sesiune={selectedSesiune} inscrieriSesiune={inscrieri.filter(i => i.sesiune_id === selectedSesiune.id)} sportivi={sportivi} setSportivi={setSportivi} grade={grade} plati={plati} setInscrieri={setInscrieri} onBack={() => setView('details')} />
         case 'list':
         default:
             const sortedSesiuni = [...sesiuni].sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime());

@@ -1,15 +1,20 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { SesiuneExamen, InscriereExamen, Sportiv, Grad } from '../types';
-import { Button, Card, Switch } from './ui';
-import { ArrowLeftIcon, ShieldCheckIcon } from './icons';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { SesiuneExamen, InscriereExamen, Sportiv, Grad, Plata } from '../types';
+import { Button, Card, Select } from './ui';
+import { ArrowLeftIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
-import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
-interface ParticipantStatus extends InscriereExamen {
+interface ParticipantValidare {
+    inscriere_id: string;
+    sportiv_id: string;
     numeComplet: string;
-    numeGrad: string;
-    isAdmis: boolean;
+    gradSustinut: string;
+    gradAnteriorId: string | null;
+    gradSustinutId: string;
+    media: number | null;
+    rezultatCurent: 'Admis' | 'Respins' | 'Neprezentat' | null;
+    taxaAchitata: boolean;
 }
 
 interface FinalizeExamProps {
@@ -17,111 +22,108 @@ interface FinalizeExamProps {
     inscrieriSesiune: InscriereExamen[];
     sportivi: Sportiv[];
     grade: Grad[];
+    plati: Plata[];
     setInscrieri: React.Dispatch<React.SetStateAction<InscriereExamen[]>>;
     setSportivi: React.Dispatch<React.SetStateAction<Sportiv[]>>;
     onBack: () => void;
 }
 
-export const FinalizeExam: React.FC<FinalizeExamProps> = ({ sesiune, inscrieriSesiune, sportivi, grade, setInscrieri, setSportivi, onBack }) => {
+export const FinalizeExam: React.FC<FinalizeExamProps> = ({ sesiune, inscrieriSesiune, sportivi, grade, plati, setInscrieri, setSportivi, onBack }) => {
     const { showError, showSuccess } = useError();
-    const [participants, setParticipants] = useState<ParticipantStatus[]>([]);
-    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-    const [loading, setLoading] = useState(false);
+    const [participants, setParticipants] = useState<ParticipantValidare[]>([]);
+    const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
 
     useEffect(() => {
         const enhancedParticipants = inscrieriSesiune.map(inscriere => {
             const sportiv = sportivi.find(s => s.id === inscriere.sportiv_id);
             const grad = grade.find(g => g.id === inscriere.grad_vizat_id);
+            const taxa = plati.find(p => 
+                p.sportiv_id === inscriere.sportiv_id &&
+                p.tip === 'Taxa Examen' &&
+                p.data === sesiune.data &&
+                p.descriere.includes(grad?.nume || '---')
+            );
+
             return {
-                ...inscriere,
+                inscriere_id: inscriere.id,
+                sportiv_id: inscriere.sportiv_id,
                 numeComplet: sportiv ? `${sportiv.nume} ${sportiv.prenume}` : 'N/A',
-                numeGrad: grad?.nume || 'N/A',
-                isAdmis: inscriere.rezultat === 'Admis' || (!inscriere.rezultat && (inscriere.media_generala || 0) >= 5)
+                gradSustinut: grad?.nume || 'N/A',
+                gradAnteriorId: inscriere.grad_actual_id,
+                gradSustinutId: inscriere.grad_vizat_id,
+                media: inscriere.media_generala,
+                rezultatCurent: inscriere.rezultat,
+                taxaAchitata: taxa?.status === 'Achitat',
             };
         }).sort((a,b) => a.numeComplet.localeCompare(b.numeComplet));
         setParticipants(enhancedParticipants);
-    }, [inscrieriSesiune, sportivi, grade]);
-    
-    const handleStatusChange = (id: string, isAdmis: boolean) => {
-        setParticipants(prev => prev.map(p => p.id === id ? { ...p, isAdmis } : p));
-    };
+    }, [inscrieriSesiune, sportivi, grade, plati, sesiune.data]);
 
-    const handleFinalize = async () => {
-        setIsConfirmModalOpen(false);
-        setLoading(true);
-
-        const sportiviAdmis = participants.filter(p => p.isAdmis);
-
-        const inscrieriUpdates = participants.map(p => ({
-            id: p.id,
-            rezultat: p.isAdmis ? 'Admis' as const : 'Respins' as const,
-        }));
+    const handleStatusChange = useCallback(async (inscriere_id: string, newStatus: 'Admis' | 'Respins' | 'Neprezentat' | null) => {
+        setLoadingStates(prev => ({...prev, [inscriere_id]: true}));
         
-        const sportiviUpdates = sportiviAdmis.map(p => ({
-            id: p.sportiv_id,
-            grad_actual_id: p.grad_vizat_id,
-        }));
-        
-        const istoricInserts = sportiviAdmis.map(p => ({
-            sportiv_id: p.sportiv_id,
-            grad_id: p.grad_vizat_id,
-            data_obtinere: sesiune.data,
-            sesiune_examen_id: sesiune.id,
-        }));
+        const participant = participants.find(p => p.inscriere_id === inscriere_id);
+        if(!participant) {
+            showError("Eroare", "Participantul nu a fost găsit.");
+            setLoadingStates(prev => ({...prev, [inscriere_id]: false}));
+            return;
+        }
 
+        const oldStatus = participant.rezultatCurent;
+        
+        setParticipants(prev => prev.map(p => p.inscriere_id === inscriere_id ? {...p, rezultatCurent: newStatus} : p));
+        
         try {
-            // NOTE: Aceste operațiuni ar trebui ideal să fie într-o tranzacție (RPC).
-            // Le executăm secvențial pentru a asigura o consistență mai bună în caz de eroare.
-            if(inscrieriUpdates.length > 0) {
-                const { error } = await supabase.from('inscrieri_examene').upsert(inscrieriUpdates);
-                if(error) throw error;
-            }
-            if(sportiviUpdates.length > 0) {
-                // Supabase upsert doesn't work well for batch updates on different rows, so we use RPC or loop
-                for (const update of sportiviUpdates) {
-                    const { error } = await supabase.from('sportivi').update({ grad_actual_id: update.grad_actual_id }).eq('id', update.id);
-                    if (error) throw new Error(`Eroare la actualizarea sportivului ${update.id}: ${error.message}`);
-                }
-            }
-            if(istoricInserts.length > 0) {
-                const { error } = await supabase.from('istoric_grade').insert(istoricInserts);
-                if(error) throw error;
+            const { error: updateInscriereError } = await supabase.from('inscrieri_examene').update({ rezultat: newStatus }).eq('id', inscriere_id);
+            if(updateInscriereError) throw updateInscriereError;
+
+            const wasAdmis = oldStatus === 'Admis';
+            const isAdmis = newStatus === 'Admis';
+
+            if(isAdmis && !wasAdmis) { // Promote
+                const { error: sportivError } = await supabase.from('sportivi').update({ grad_actual_id: participant.gradSustinutId }).eq('id', participant.sportiv_id);
+                if(sportivError) throw sportivError;
+                const { error: istoricError } = await supabase.from('istoric_grade').insert({ sportiv_id: participant.sportiv_id, grad_id: participant.gradSustinutId, data_obtinere: sesiune.data, sesiune_examen_id: sesiune.id });
+                if(istoricError) throw istoricError;
+            } else if (wasAdmis && !isAdmis) { // Revert promotion
+                const { error: sportivError } = await supabase.from('sportivi').update({ grad_actual_id: participant.gradAnteriorId }).eq('id', participant.sportiv_id);
+                if(sportivError) throw sportivError;
+                const { error: istoricError } = await supabase.from('istoric_grade').delete().match({ sportiv_id: participant.sportiv_id, sesiune_examen_id: sesiune.id });
+                if(istoricError) throw istoricError;
             }
 
-            // Update local state
-            setInscrieri(prev => prev.map(i => {
-                const update = inscrieriUpdates.find(u => u.id === i.id);
-                return update ? { ...i, rezultat: update.rezultat } : i;
-            }));
-            setSportivi(prev => prev.map(s => {
-                const update = sportiviUpdates.find(u => u.id === s.id);
-                return update ? { ...s, grad_actual_id: update.grad_actual_id } : s;
-            }));
+            setInscrieri(prev => prev.map(i => i.id === inscriere_id ? {...i, rezultat: newStatus} : i));
+            if (isAdmis || wasAdmis) {
+                const newGradId = isAdmis ? participant.gradSustinutId : participant.gradAnteriorId;
+                setSportivi(prev => prev.map(s => s.id === participant.sportiv_id ? {...s, grad_actual_id: newGradId} : s));
+            }
 
-            showSuccess("Examen Finalizat!", `${sportiviAdmis.length} sportivi au fost promovați cu succes.`);
-            onBack();
+            if (isAdmis && !wasAdmis) {
+                showSuccess("Promovare Automată", `Gradul sportivului ${participant.numeComplet} a fost actualizat în profil!`);
+            } else if (wasAdmis && !isAdmis) {
+                showSuccess("Retrogradare Automată", `Promovarea pentru ${participant.numeComplet} a fost anulată.`);
+            } else {
+                showSuccess("Status Actualizat", `Statusul pentru ${participant.numeComplet} a fost salvat.`);
+            }
 
         } catch (err: any) {
-            showError("Eroare la Finalizare", err);
+            setParticipants(prev => prev.map(p => p.inscriere_id === inscriere_id ? {...p, rezultatCurent: oldStatus} : p));
+            if (err.message.includes('violates row-level security policy')) {
+                showError("Permisiune Refuzată (RLS)", "Nu aveți permisiunile necesare pentru a modifica gradul acestui sportiv. Contactați un administrator.");
+            } else {
+                showError("Eroare la Salvare", err.message);
+            }
         } finally {
-            setLoading(false);
+            setLoadingStates(prev => ({...prev, [inscriere_id]: false}));
         }
-    };
+    }, [participants, supabase, showError, showSuccess, setInscrieri, setSportivi, sesiune.data, sesiune.id]);
     
     return (
         <div>
             <Button onClick={onBack} variant="secondary" className="mb-4"><ArrowLeftIcon /> Înapoi la detalii</Button>
             <Card>
-                <div className="flex justify-between items-start mb-4">
-                    <div>
-                        <h2 className="text-2xl font-bold text-white">Finalizare Examen & Promovare</h2>
-                        <p className="text-slate-400">Sesiunea din {new Date(sesiune.data + 'T00:00:00').toLocaleDateString('ro-RO')}</p>
-                    </div>
-                     <Button variant="success" onClick={() => setIsConfirmModalOpen(true)} isLoading={loading}>
-                        <ShieldCheckIcon className="w-5 h-5 mr-2" />
-                        Finalizează Examen
-                    </Button>
-                </div>
+                 <h2 className="text-2xl font-bold text-white mb-1">Finalizare Interactivă Examen</h2>
+                 <p className="text-slate-400 mb-4">Sesiunea din {new Date(sesiune.data + 'T00:00:00').toLocaleDateString('ro-RO')}</p>
 
                  <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
@@ -129,40 +131,45 @@ export const FinalizeExam: React.FC<FinalizeExamProps> = ({ sesiune, inscrieriSe
                             <tr>
                                 <th className="p-2 font-semibold">Nume Sportiv</th>
                                 <th className="p-2 font-semibold">Grad Susținut</th>
-                                <th className="p-2 font-semibold text-center">Medie Generală</th>
-                                <th className="p-2 font-semibold text-center">Status Final (Admis)</th>
+                                <th className="p-2 font-semibold text-center">Media</th>
+                                <th className="p-2 font-semibold text-center">Taxa Achitată</th>
+                                <th className="p-2 font-semibold">Status Final</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-700">
-                            {participants.map(p => (
-                                <tr key={p.id} className="hover:bg-slate-700/20">
-                                    <td className="p-2 font-medium">{p.numeComplet}</td>
-                                    <td className="p-2">{p.numeGrad}</td>
-                                    <td className={`p-2 text-center font-bold ${ (p.media_generala || 0) >= 5 ? 'text-green-400' : 'text-red-400'}`}>
-                                        {p.media_generala?.toFixed(2) ?? 'N/A'}
-                                    </td>
-                                    <td className="p-2 text-center">
-                                         <Switch label="" name={`admis-${p.id}`} checked={p.isAdmis} onChange={e => handleStatusChange(p.id, e.target.checked)} />
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
+                         <tbody className="divide-y divide-slate-700">
+                             {participants.map(p => {
+                                 const rowClass = p.rezultatCurent === 'Admis' ? 'bg-green-900/40' : p.rezultatCurent === 'Respins' ? 'bg-red-900/40' : '';
+                                 const isLoading = loadingStates[p.inscriere_id];
+                                 return (
+                                     <tr key={p.inscriere_id} className={`${rowClass} hover:bg-slate-700/50`}>
+                                        <td className="p-2 font-medium">{p.numeComplet}</td>
+                                        <td className="p-2 text-slate-300">{p.gradSustinut}</td>
+                                        <td className={`p-2 text-center font-bold ${ (p.media || 0) >= 5 ? 'text-green-400' : 'text-red-400'}`}>
+                                            {p.media?.toFixed(2) ?? 'N/A'}
+                                        </td>
+                                        <td className="p-2 text-center">
+                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${p.taxaAchitata ? 'bg-green-600/30 text-green-400' : 'bg-red-600/30 text-red-400'}`}>
+                                                {p.taxaAchitata ? 'Achitată' : 'Neachitată'}
+                                            </span>
+                                        </td>
+                                        <td className="p-2 w-48">
+                                            <Select label="" value={p.rezultatCurent ?? 'Neprezentat'}
+                                                onChange={e => handleStatusChange(p.inscriere_id, e.target.value as any)}
+                                                disabled={!p.taxaAchitata || isLoading}
+                                                className={isLoading ? 'animate-pulse' : ''}
+                                            >
+                                                <option value="Neprezentat">Așteptare</option>
+                                                <option value="Admis">Admis</option>
+                                                <option value="Respins">Respins</option>
+                                            </Select>
+                                        </td>
+                                     </tr>
+                                 );
+                             })}
+                         </tbody>
                     </table>
                  </div>
             </Card>
-
-            <ConfirmDeleteModal
-                isOpen={isConfirmModalOpen}
-                onClose={() => setIsConfirmModalOpen(false)}
-                onConfirm={handleFinalize}
-                tableName="examen"
-                isLoading={loading}
-                title="Confirmare Finalizare"
-                customMessage={`Sunteți sigur că doriți să finalizați examenul? Această acțiune va actualiza gradele pentru ${participants.filter(p => p.isAdmis).length} sportivi și nu poate fi anulată.`}
-                confirmButtonText="Da, finalizează"
-                confirmButtonVariant="success"
-                icon={ShieldCheckIcon}
-            />
         </div>
     );
 };

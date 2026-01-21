@@ -39,6 +39,7 @@ export const FinalizeExam: React.FC<FinalizeExamProps> = ({ sesiune, inscrieriSe
     const { showError, showSuccess } = useError();
     const [participants, setParticipants] = useState<ParticipantValidare[]>([]);
     const [isFinalizing, setIsFinalizing] = useState(false);
+    const [isBulkPromoting, setIsBulkPromoting] = useState(false);
     const [isFinalized, setIsFinalized] = useState(true);
     const [sortConfig, setSortConfig] = useState<{ key: 'numeComplet' | 'gradOrdine' }>({ key: 'gradOrdine' });
     const [promotingId, setPromotingId] = useState<string | null>(null);
@@ -110,63 +111,69 @@ export const FinalizeExam: React.FC<FinalizeExamProps> = ({ sesiune, inscrieriSe
         setIsFinalized(false);
     };
 
+    const promoteSportivInDb = useCallback(async (participant: ParticipantValidare) => {
+        // 1. Update inscrieri_examene (fără note)
+        await supabase.from('inscrieri_examene').update({ rezultat: 'Admis', media_generala: null }).eq('id', participant.inscriere_id).throwOnError();
+        // 2. Update sportivi
+        await supabase.from('sportivi').update({ grad_actual_id: participant.gradSustinutId }).eq('id', participant.sportiv_id).throwOnError();
+        // 3. Insert into istoric_grade
+        await supabase.from('istoric_grade').insert({ sportiv_id: participant.sportiv_id, grad_id: participant.gradSustinutId, data_obtinere: sesiune.data, sesiune_examen_id: sesiune.id }).throwOnError();
+    }, [sesiune.data, sesiune.id]);
+
     const handlePromovareRapida = async (participant: ParticipantValidare) => {
-        if (!window.confirm(`Sunteți sigur că doriți să promovați instantaneu sportivul ${participant.numeComplet} la gradul ${participant.gradSustinut}, fără note?`)) {
-            return;
-        }
+        if (!window.confirm(`Sunteți sigur că doriți să promovați instantaneu sportivul ${participant.numeComplet} la gradul ${participant.gradSustinut}, fără note?`)) return;
         setPromotingId(participant.inscriere_id);
         try {
-            // 1. Update inscrieri_examene
-            await supabase
-                .from('inscrieri_examene')
-                .update({ rezultat: 'Admis', media_generala: null })
-                .eq('id', participant.inscriere_id)
-                .throwOnError();
+            await promoteSportivInDb(participant);
 
-            // 2. Update sportivi
-            await supabase
-                .from('sportivi')
-                .update({ grad_actual_id: participant.gradSustinutId })
-                .eq('id', participant.sportiv_id)
-                .throwOnError();
-
-            // 3. Insert into istoric_grade
-            await supabase
-                .from('istoric_grade')
-                .insert({
-                    sportiv_id: participant.sportiv_id,
-                    grad_id: participant.gradSustinutId,
-                    data_obtinere: sesiune.data,
-                    sesiune_examen_id: sesiune.id
-                })
-                .throwOnError();
-
-            // Update local state to reflect changes instantly
-            setParticipants(prev => prev.map(p => 
-                p.inscriere_id === participant.inscriere_id 
-                ? { ...p, rezultatCurent: 'Admis', media: null } 
-                : p
-            ));
-
-            setSportivi(prev => prev.map(s => 
-                s.id === participant.sportiv_id 
-                ? { ...s, grad_actual_id: participant.gradSustinutId } 
-                : s
-            ));
-            
-            setInscrieri(prev => prev.map(i => 
-                 i.id === participant.inscriere_id 
-                 ? { ...i, rezultat: 'Admis', media_generala: null } 
-                 : i
-            ));
+            setParticipants(prev => prev.map(p => p.inscriere_id === participant.inscriere_id ? { ...p, rezultatCurent: 'Admis', media: null } : p));
+            setSportivi(prev => prev.map(s => s.id === participant.sportiv_id ? { ...s, grad_actual_id: participant.gradSustinutId } : s));
+            setInscrieri(prev => prev.map(i => i.id === participant.inscriere_id ? { ...i, rezultat: 'Admis', media_generala: null } : i));
 
             showSuccess("Succes", `${participant.numeComplet} a fost promovat.`);
-
         } catch (err: any) {
             showError("Eroare la promovare rapidă", err.message);
         } finally {
             setPromotingId(null);
         }
+    };
+
+    const handlePromoteAllAdmitted = async () => {
+        const participantsToPromote = participants.filter(p => {
+            const original = inscrieriSesiune.find(i => i.id === p.inscriere_id);
+            return p.rezultatCurent === 'Admis' && original?.rezultat !== 'Admis';
+        });
+
+        if (participantsToPromote.length === 0) {
+            showSuccess("Info", "Nu există sportivi nou admiși pentru a fi promovați în masă.");
+            return;
+        }
+
+        if (!window.confirm(`Sunteți pe cale să promovați ${participantsToPromote.length} sportivi. Această acțiune va ignora notele și va finaliza examenul pentru ei. Continuați?`)) return;
+
+        setIsBulkPromoting(true);
+        let successCount = 0;
+        for (const participant of participantsToPromote) {
+            try {
+                await promoteSportivInDb(participant);
+                successCount++;
+            } catch (err: any) {
+                showError(`Eroare la promovarea lui ${participant.numeComplet}`, err.message);
+                break; // Stop on first error
+            }
+        }
+
+        if (successCount > 0) {
+            const promotedIds = new Set(participantsToPromote.slice(0, successCount).map(p => p.inscriere_id));
+            const promotedSportiviMap = new Map(participantsToPromote.slice(0, successCount).map(p => [p.sportiv_id, p.gradSustinutId]));
+
+            setParticipants(prev => prev.map(p => promotedIds.has(p.inscriere_id) ? { ...p, rezultatCurent: 'Admis', media: null } : p));
+            setInscrieri(prev => prev.map(i => promotedIds.has(i.id) ? { ...i, rezultat: 'Admis', media_generala: null } : i));
+            setSportivi(prev => prev.map(s => promotedSportiviMap.has(s.id) ? { ...s, grad_actual_id: promotedSportiviMap.get(s.id) ?? s.grad_actual_id } : s));
+
+            showSuccess("Operațiune finalizată", `S-au actualizat ${successCount} profile de sportivi.`);
+        }
+        setIsBulkPromoting(false);
     };
 
     const handleFinalizeAll = async () => {
@@ -265,13 +272,27 @@ export const FinalizeExam: React.FC<FinalizeExamProps> = ({ sesiune, inscrieriSe
         }
     };
     
+    const newlyAdmittedCount = useMemo(() => {
+        return participants.filter(p => {
+            const original = inscrieriSesiune.find(i => i.id === p.inscriere_id);
+            return p.rezultatCurent === 'Admis' && original?.rezultat !== 'Admis';
+        }).length;
+    }, [participants, inscrieriSesiune]);
+
     return (
         <div>
              <style>{`@media print { body { background-color: white !important; font-size: 10pt; } body * { visibility: hidden; } #printable-exam-report, #printable-exam-report * { visibility: visible; } #printable-exam-report { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; color: black; } .no-print { display: none !important; } #printable-exam-report .print-logo { display: block !important; } #printable-exam-report .printable-title, #printable-exam-report .printable-subtitle { color: black !important; } #printable-exam-report .card-print-override { background-color: transparent !important; border: none !important; box-shadow: none !important; padding: 0 !important; } #printable-exam-report .printable-table { color: black; width: 100%; border-collapse: collapse; } .printable-table th, .printable-table td { border: 1px solid #ccc; padding: 6px; text-align: left; } .printable-table th { background-color: #eee !important; color: black !important; } .printable-table .input-print-hidden { display: none; } .printable-table .print-only-text { display: inline-block !important; } .printable-table .status-indicator span { border: 1px solid #ccc; } }`}</style>
             <div className="flex justify-between items-center mb-4 no-print">
                 <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2"/> Înapoi la detalii</Button>
-                {isFinalized ? ( <div className="flex items-center gap-2 px-4 py-2 text-green-400 bg-green-900/50 rounded-md"><CheckCircleIcon className="w-5 h-5" /><span>Salvat!</span></div> ) : ( <Button onClick={handleFinalizeAll} variant="success" isLoading={isFinalizing}><SaveIcon className="w-5 h-5 mr-2"/>SALVEAZĂ NOTE & GRADE</Button> )}
-                <Button onClick={() => window.print()} variant="info">Descarcă Tabel Federație</Button>
+                <div className="flex items-center gap-2">
+                    {newlyAdmittedCount > 0 && (
+                        <Button onClick={handlePromoteAllAdmitted} variant="success" isLoading={isBulkPromoting}>
+                            Aprobă {newlyAdmittedCount} Admiși
+                        </Button>
+                    )}
+                    {isFinalized ? ( <div className="flex items-center gap-2 px-4 py-2 text-green-400 bg-green-900/50 rounded-md"><CheckCircleIcon className="w-5 h-5" /><span>Salvat!</span></div> ) : ( <Button onClick={handleFinalizeAll} variant="info" isLoading={isFinalizing}><SaveIcon className="w-5 h-5 mr-2"/>SALVEAZĂ NOTE & GRADE</Button> )}
+                </div>
+                <Button onClick={() => window.print()} variant="secondary">Descarcă Tabel Federație</Button>
             </div>
             <div id="printable-exam-report">
                 <div className="flex justify-between items-center mb-6"><img src="/logo-phi-hau.png" alt="Logo Club Phi Hau" className="h-20 w-auto print-logo hidden" /><div className="text-right flex-grow"><h1 className="text-3xl font-bold text-white printable-title">Tabelul Examenelor Locale</h1><p className="text-slate-400 printable-subtitle">Clubul Phi Hau Iași - Sesiunea din {new Date(sesiune.data + 'T00:00:00').toLocaleDateString('ro-RO')}</p></div></div>

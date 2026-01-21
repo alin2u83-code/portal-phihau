@@ -29,7 +29,7 @@ BEGIN
           AND (r.nume = 'Admin' OR r.nume = 'Instructor')
     );
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, auth, pg_temp;
 
 -- Set the owner to 'postgres' to bypass RLS within the function.
 -- This is CRITICAL to prevent recursive policy checks in Supabase environments

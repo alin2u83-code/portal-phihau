@@ -185,7 +185,7 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = ({ sesiune, inscrieri, set
         if (!sportiv) return null;
 
         const varstaLaExamen = getAgeOnDate(sportiv.data_nasterii, sesiune.data);
-        const admittedInscrieri = allInscrieri.filter(i => i.sportiv_id === sportiv.id && i.rezultat === 'Admis').sort((a, b) => (getGrad(b.grad_vizat_id, grade)?.ordine ?? 0) - (getGrad(a.grad_vizat_id, grade)?.ordine ?? 0));
+        const admittedInscrieri = allInscrieri.filter(i => i.sportiv_id === sportiv.id && (i.media_generala || 0) >= 5).sort((a, b) => (getGrad(b.grad_vizat_id, grade)?.ordine ?? 0) - (getGrad(a.grad_vizat_id, grade)?.ordine ?? 0));
         const gradActual = getGrad(admittedInscrieri[0]?.grad_vizat_id, grade);
 
         let gradVizatAutomat: Grad | undefined;
@@ -227,7 +227,7 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = ({ sesiune, inscrieri, set
         
         setLoading(true);
         try {
-            const newInscriere: Omit<InscriereExamen, 'id'> = { sesiune_id: sesiune.id, sportiv_id: sportiv.id, grad_actual_id: gradActual?.id || null, grad_vizat_id: gradVizat.id, varsta_la_examen: varstaLaExamen, rezultat: 'Neprezentat', observatii: '' };
+            const newInscriere: Omit<InscriereExamen, 'id'> = { sesiune_id: sesiune.id, sportiv_id: sportiv.id, grad_actual_id: gradActual?.id || null, grad_vizat_id: gradVizat.id, varsta_la_examen: varstaLaExamen, observatii: '' };
             const { data: inscriereData, error: pError } = await supabase.from('inscrieri_examene').insert(newInscriere).select().single();
             if (pError) throw pError;
             setInscrieri(prev => [...prev, inscriereData as InscriereExamen]);
@@ -294,7 +294,6 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = ({ sesiune, inscrieri, set
                     <th className="p-2 font-semibold w-32">Nota Thao Quyen</th>
                     <th className="p-2 font-semibold w-32">Nota Song Doi</th>
                     <th className="p-2 font-semibold w-24 text-center">Media</th>
-                    <th className="p-2 font-semibold w-40">Rezultat</th>
                     <th className="p-2 font-semibold">Observații</th>
                     <th className="p-2 font-semibold text-right">Acțiuni</th>
                 </tr>
@@ -303,14 +302,16 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = ({ sesiune, inscrieri, set
                 {inscrieri.map(i => {
                     const s = sportivi.find(sp => sp.id === i.sportiv_id);
                     const g = grade.find(gr => gr.id === i.grad_vizat_id);
+                    const isPassed = (i.media_generala || 0) >= 5;
                     return (
                         <tr key={i.id} className="hover:bg-slate-700/20">
                             <td className="p-1 font-medium text-white">{s?.nume} {s?.prenume}</td>
                             <td className="p-1 text-slate-300">{g?.nume}</td>
                             <td className="p-1"><Input type="number" step="0.01" label="" className="!py-1" defaultValue={i.nota_thao_quyen || ''} onBlur={e => handleNoteChange(i.id, 'nota_thao_quyen', e.target.value)} /></td>
                             <td className="p-1"><Input type="number" step="0.01" label="" className="!py-1" defaultValue={i.nota_song_doi || ''} onBlur={e => handleNoteChange(i.id, 'nota_song_doi', e.target.value)} /></td>
-                            <td className="p-1 text-center font-bold text-brand-secondary font-mono">{i.media_generala?.toFixed(2) || '-'}</td>
-                            <td className="p-1"><Select label="" value={i.rezultat} className="!py-1" onChange={e => handleUpdateInscriere(i.id, 'rezultat', e.target.value)}><option value="Admis">Admis</option><option value="Respins">Respins</option><option value="Neprezentat">Neprezentat</option></Select></td>
+                            <td className={`p-1 text-center font-bold font-mono ${i.media_generala !== null && i.media_generala !== undefined ? (isPassed ? 'text-green-400' : 'text-red-400') : 'text-brand-secondary'}`}>
+                                {i.media_generala?.toFixed(2) || '-'}
+                            </td>
                             <td className="p-1"><Input label="" placeholder="..." className="!py-1" defaultValue={i.observatii || ''} onBlur={e => handleUpdateInscriere(i.id, 'observatii', e.target.value)} /></td>
                             <td className="p-1 text-right"><Button onClick={() => setInscriereToDelete(i)} variant="danger" size="sm" className="!p-1.5"><TrashIcon className="w-4 h-4" /></Button></td>
                         </tr>

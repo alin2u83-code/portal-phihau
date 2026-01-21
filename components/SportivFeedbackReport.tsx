@@ -91,7 +91,7 @@ export const SportivFeedbackReport: React.FC<SportivFeedbackReportProps> = ({ is
         const vointaDeFier = weeklyPresenceFlags.slice(0, -1).join('').includes('false,false,true');
 
         // 4. Eligibility Message
-        const admitted = participari.filter(p => p.sportiv_id === sportiv.id && p.rezultat === 'Admis').sort((a,b) => new Date(examene.find(e=>e.id===b.sesiune_id)!.data).getTime() - new Date(examene.find(e=>e.id===a.sesiune_id)!.data).getTime());
+        const admitted = participari.filter(p => p.sportiv_id === sportiv.id && (p.media_generala || 0) >= 5).sort((a,b) => new Date(examene.find(e=>e.id===b.sesiune_id)!.data).getTime() - new Date(examene.find(e=>e.id===a.sesiune_id)!.data).getTime());
         const currentGrad = grade.find(g => g.id === admitted[0]?.grad_vizat_id);
         const sortedGrades = [...grade].sort((a, b) => a.ordine - b.ordine);
         const nextGrad = currentGrad ? sortedGrades.find(g => g.ordine === currentGrad.ordine + 1) : sortedGrades[0];

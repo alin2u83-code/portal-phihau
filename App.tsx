@@ -306,7 +306,7 @@ function App() {
       switch (activeView) {
         case 'evenimentele-mele': return <EvenimenteleMele viewedUser={currentUser} evenimente={evenimente} rezultate={rezultate} setRezultate={setRezultate} onBack={portalBackNav} />;
         case 'editare-profil-personal': return <EditareProfilPersonal user={currentUser} setSportivi={setSportivi} setCurrentUser={setCurrentUser} onBack={portalBackNav} />;
-        case 'profil-sportiv': return <ProfilSportiv currentUser={currentUser} plati={plati} tranzactii={tranzactii} grade={grade} grupe={grupe} participari={inscrieriExamene} examene={sesiuniExamene} onBack={portalBackNav} />;
+        case 'profil-sportiv': return <ProfilSportiv currentUser={currentUser} plati={plati} tranzactii={tranzactii} grade={grade} grupe={grupe} participari={inscrieriExamene} examene={sesiuniExamene} onBack={portalBackNav} onNavigate={setActiveView} />;
         case 'istoric-examene': return <IstoricExameneSportiv viewedUser={currentUser} participari={inscrieriExamene} sesiuni={sesiuniExamene} grade={grade} onBack={portalBackNav} isAdmin={isAdmin} preturiConfig={preturiConfig} setPlati={setPlati} setInscrieri={setInscrieriExamene} allInscrieri={inscrieriExamene} locatii={locatii}/>;
         case 'facturi-personale': return <FacturiPersonale viewedUser={currentUser} plati={plati} tranzactii={tranzactii} onBack={portalBackNav} />;
         case 'my-portal':

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { User, Plata, Tranzactie, Grad, Grupa, Participare, Examen } from '../types';
+import { User, Plata, Tranzactie, Grad, Grupa, Participare, Examen, View } from '../types';
 import { Button } from './ui';
 import { ArrowLeftIcon } from './icons';
 
@@ -13,6 +13,7 @@ interface ProfilSportivProps {
     participari: Participare[];
     examene: Examen[];
     onBack: () => void;
+    onNavigate: (view: View) => void;
 }
 
 const getGrad = (gradId: string | null, allGrades: Grad[]): Grad | null => gradId ? allGrades.find(g => g.id === gradId) || null : null;
@@ -36,11 +37,11 @@ const DataField: React.FC<{ label: string, value: string | React.ReactNode, valu
     </div>
 );
 
-export const ProfilSportiv: React.FC<ProfilSportivProps> = ({ currentUser, plati, tranzactii, grade, grupe, participari, examene, onBack }) => {
+export const ProfilSportiv: React.FC<ProfilSportivProps> = ({ currentUser, plati, tranzactii, grade, grupe, participari, examene, onBack, onNavigate }) => {
 
     const { currentGrad, lastExamDate, nextGrad } = useMemo(() => {
         const admittedParticipations = participari
-            .filter(p => p.sportiv_id === currentUser.id && p.rezultat === 'Admis')
+            .filter(p => p.sportiv_id === currentUser.id && (p.media_generala || 0) >= 5)
             .sort((a, b) => {
                 const dateA = examene.find(e => e.id === a.sesiune_id)?.data || '1970-01-01';
                 const dateB = examene.find(e => e.id === b.sesiune_id)?.data || '1970-01-01';
@@ -65,7 +66,7 @@ export const ProfilSportiv: React.FC<ProfilSportivProps> = ({ currentUser, plati
         const platiRelevante = plati.filter(p => p.sportiv_id === currentUser.id || (p.familie_id && p.familie_id === currentUser.familie_id));
         
         const restante = platiRelevante
-            .filter(p => p.status === 'Neachitat')
+            .filter(p => p.status === 'Neachitat' || p.status === 'Achitat Parțial')
             .reduce((sum, p) => sum + p.suma, 0);
 
         const tranzactiiRelevante = tranzactii.filter(t => t.sportiv_id === currentUser.id || (t.familie_id && t.familie_id === currentUser.familie_id))
@@ -94,7 +95,7 @@ export const ProfilSportiv: React.FC<ProfilSportivProps> = ({ currentUser, plati
                 <StatCard 
                     title="Progres Tehnic"
                     actions={
-                        <Button variant="info" size="sm" onClick={() => alert('Navigare către istoric examene...')}>
+                        <Button variant="info" size="sm" onClick={() => onNavigate('istoric-examene')}>
                             Istoric Examene
                         </Button>
                     }
@@ -107,8 +108,8 @@ export const ProfilSportiv: React.FC<ProfilSportivProps> = ({ currentUser, plati
                 <StatCard 
                     title="Situație Financiară"
                     actions={
-                        <Button variant="info" size="sm" onClick={() => alert('Navigare către istoric plăți...')}>
-                            Istoric Plăți
+                        <Button variant="info" size="sm" onClick={() => onNavigate('facturi-personale')}>
+                            Vezi Facturi
                         </Button>
                     }
                 >

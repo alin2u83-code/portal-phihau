@@ -41,6 +41,7 @@ export const FinalizeExam: React.FC<FinalizeExamProps> = ({ sesiune, inscrieriSe
     const [isFinalizing, setIsFinalizing] = useState(false);
     const [isFinalized, setIsFinalized] = useState(true);
     const [sortConfig, setSortConfig] = useState<{ key: 'numeComplet' | 'gradOrdine' }>({ key: 'gradOrdine' });
+    const [promotingId, setPromotingId] = useState<string | null>(null);
 
     useEffect(() => {
         const validInscrieri = Array.isArray(inscrieriSesiune) ? inscrieriSesiune : [];
@@ -107,6 +108,65 @@ export const FinalizeExam: React.FC<FinalizeExamProps> = ({ sesiune, inscrieriSe
             });
         });
         setIsFinalized(false);
+    };
+
+    const handlePromovareRapida = async (participant: ParticipantValidare) => {
+        if (!window.confirm(`Sunteți sigur că doriți să promovați instantaneu sportivul ${participant.numeComplet} la gradul ${participant.gradSustinut}, fără note?`)) {
+            return;
+        }
+        setPromotingId(participant.inscriere_id);
+        try {
+            // 1. Update inscrieri_examene
+            await supabase
+                .from('inscrieri_examene')
+                .update({ rezultat: 'Admis', media_generala: null })
+                .eq('id', participant.inscriere_id)
+                .throwOnError();
+
+            // 2. Update sportivi
+            await supabase
+                .from('sportivi')
+                .update({ grad_actual_id: participant.gradSustinutId })
+                .eq('id', participant.sportiv_id)
+                .throwOnError();
+
+            // 3. Insert into istoric_grade
+            await supabase
+                .from('istoric_grade')
+                .insert({
+                    sportiv_id: participant.sportiv_id,
+                    grad_id: participant.gradSustinutId,
+                    data_obtinere: sesiune.data,
+                    sesiune_examen_id: sesiune.id
+                })
+                .throwOnError();
+
+            // Update local state to reflect changes instantly
+            setParticipants(prev => prev.map(p => 
+                p.inscriere_id === participant.inscriere_id 
+                ? { ...p, rezultatCurent: 'Admis', media: null } 
+                : p
+            ));
+
+            setSportivi(prev => prev.map(s => 
+                s.id === participant.sportiv_id 
+                ? { ...s, grad_actual_id: participant.gradSustinutId } 
+                : s
+            ));
+            
+            setInscrieri(prev => prev.map(i => 
+                 i.id === participant.inscriere_id 
+                 ? { ...i, rezultat: 'Admis', media_generala: null } 
+                 : i
+            ));
+
+            showSuccess("Succes", `${participant.numeComplet} a fost promovat.`);
+
+        } catch (err: any) {
+            showError("Eroare la promovare rapidă", err.message);
+        } finally {
+            setPromotingId(null);
+        }
     };
 
     const handleFinalizeAll = async () => {
@@ -178,11 +238,12 @@ export const FinalizeExam: React.FC<FinalizeExamProps> = ({ sesiune, inscrieriSe
             if(changedParticipants.length > 0) {
                 const sportivIdsToUpdate = changedParticipants.map(p => p.sportiv_id).filter((v, i, a) => a.indexOf(v) === i);
                 if (sportivIdsToUpdate.length > 0) {
-                    const { data: updatedSportivi, error: sportiviError } = await supabase.from('sportivi').select('*').in('id', sportivIdsToUpdate);
+                    const { data: updatedSportivi, error: sportiviError } = await supabase.from('sportivi').select('*, roluri(id, nume)').in('id', sportivIdsToUpdate);
                     if (sportiviError) throw sportiviError;
                     setSportivi(prev => {
                         const otherSportivi = prev.filter(s => !sportivIdsToUpdate.includes(s.id));
-                        return [...otherSportivi, ...updatedSportivi];
+                        const formattedSportivi = updatedSportivi.map((s: any) => ({ ...s, roluri: s.roluri || [] }));
+                        return [...otherSportivi, ...formattedSportivi];
                     });
                 }
                 
@@ -218,19 +279,36 @@ export const FinalizeExam: React.FC<FinalizeExamProps> = ({ sesiune, inscrieriSe
                     <div className="flex justify-between items-center mb-4 no-print"><h2 className="text-2xl font-bold text-white">Notare & Finalizare Examen</h2><div className="flex items-center gap-2"><span className="text-sm text-slate-400">Sortează după:</span><Button size="sm" onClick={() => setSortConfig({ key: 'numeComplet' })} variant={sortConfig.key === 'numeComplet' ? 'info' : 'secondary'}>Nume (A-Z)</Button><Button size="sm" onClick={() => setSortConfig({ key: 'gradOrdine' })} variant={sortConfig.key === 'gradOrdine' ? 'info' : 'secondary'}>Grad (Desc.)</Button></div></div>
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm printable-table min-w-[1200px]">
-                            <thead className="bg-slate-700/50"><tr><th className="p-2 font-semibold">Nume Sportiv</th><th className="p-2 font-semibold">Grad Susținut</th><th className="p-2 font-semibold w-24">Thao Quyen</th><th className="p-2 font-semibold w-24">Song Doi</th><th className="p-2 font-semibold w-24">Tehnica 1</th><th className="p-2 font-semibold w-24">Tehnica 2</th><th className="p-2 font-semibold text-center w-20">Media</th><th className="p-2 font-semibold text-center w-28">Status</th><th className="p-2 font-semibold">Observații</th><th className="p-2 font-semibold text-center">Taxa</th></tr></thead>
+                            <thead className="bg-slate-700/50"><tr><th className="p-2 font-semibold">Nume Sportiv</th><th className="p-2 font-semibold">Grad Susținut</th><th className="p-2 font-semibold w-24">Thao Quyen</th><th className="p-2 font-semibold w-24">Song Doi</th><th className="p-2 font-semibold w-24">Tehnica 1</th><th className="p-2 font-semibold w-24">Tehnica 2</th><th className="p-2 font-semibold text-center w-20">Media</th><th className="p-2 font-semibold text-center w-28">Status</th><th className="p-2 font-semibold">Observații</th><th className="p-2 font-semibold text-center">Acțiune Rapidă</th><th className="p-2 font-semibold text-center">Taxa</th></tr></thead>
                             <tbody className="divide-y divide-slate-700">{sortedParticipants.map(p => {
                                 const rowClass = p.rezultatCurent === 'Admis' ? 'bg-green-900/40' : p.rezultatCurent === 'Respins' ? 'bg-red-900/40' : '';
                                 return (<tr key={p.inscriere_id} className={`${rowClass} hover:bg-slate-700/50`}>
                                     <td className="p-2 font-medium">{p.numeComplet}</td>
                                     <td className="p-2 text-slate-300">{p.gradSustinut}</td>
-                                    <td className="p-1"><Input type="number" step="0.01" label="" className="!py-1 input-print-hidden" value={p.nota_thao_quyen ?? ''} onChange={e => handleFieldChange(p.inscriere_id, 'nota_thao_quyen', e.target.value)} disabled={isFinalizing} /><span className="print-only-text hidden">{p.nota_thao_quyen}</span></td>
-                                    <td className="p-1"><Input type="number" step="0.01" label="" className="!py-1 input-print-hidden" value={p.nota_song_doi ?? ''} onChange={e => handleFieldChange(p.inscriere_id, 'nota_song_doi', e.target.value)} disabled={isFinalizing} /><span className="print-only-text hidden">{p.nota_song_doi}</span></td>
-                                    <td className="p-1"><Input type="number" step="0.01" label="" className="!py-1 input-print-hidden" value={p.nota_tehnica_1 ?? ''} onChange={e => handleFieldChange(p.inscriere_id, 'nota_tehnica_1', e.target.value)} disabled={isFinalizing} /><span className="print-only-text hidden">{p.nota_tehnica_1}</span></td>
-                                    <td className="p-1"><Input type="number" step="0.01" label="" className="!py-1 input-print-hidden" value={p.nota_tehnica_2 ?? ''} onChange={e => handleFieldChange(p.inscriere_id, 'nota_tehnica_2', e.target.value)} disabled={isFinalizing} /><span className="print-only-text hidden">{p.nota_tehnica_2}</span></td>
+                                    <td className="p-1"><Input type="number" step="0.01" label="" className="!py-1 input-print-hidden" value={p.nota_thao_quyen ?? ''} onChange={e => handleFieldChange(p.inscriere_id, 'nota_thao_quyen', e.target.value)} disabled={isFinalizing || promotingId !== null} /><span className="print-only-text hidden">{p.nota_thao_quyen}</span></td>
+                                    <td className="p-1"><Input type="number" step="0.01" label="" className="!py-1 input-print-hidden" value={p.nota_song_doi ?? ''} onChange={e => handleFieldChange(p.inscriere_id, 'nota_song_doi', e.target.value)} disabled={isFinalizing || promotingId !== null} /><span className="print-only-text hidden">{p.nota_song_doi}</span></td>
+                                    <td className="p-1"><Input type="number" step="0.01" label="" className="!py-1 input-print-hidden" value={p.nota_tehnica_1 ?? ''} onChange={e => handleFieldChange(p.inscriere_id, 'nota_tehnica_1', e.target.value)} disabled={isFinalizing || promotingId !== null} /><span className="print-only-text hidden">{p.nota_tehnica_1}</span></td>
+                                    <td className="p-1"><Input type="number" step="0.01" label="" className="!py-1 input-print-hidden" value={p.nota_tehnica_2 ?? ''} onChange={e => handleFieldChange(p.inscriere_id, 'nota_tehnica_2', e.target.value)} disabled={isFinalizing || promotingId !== null} /><span className="print-only-text hidden">{p.nota_tehnica_2}</span></td>
                                     <td className={`p-2 text-center font-bold font-mono ${(p.media || 0) >= 5 ? 'text-green-400' : 'text-red-400'}`}>{p.media?.toFixed(2) ?? 'N/A'}</td>
                                     <td className="p-2 text-center"><span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${p.rezultatCurent === 'Admis' ? 'bg-green-600/20 text-green-400 border-green-600/50' : p.rezultatCurent === 'Respins' ? 'bg-red-900/40 text-red-400 border-red-900/50' : 'bg-slate-600/20 text-slate-400 border-slate-600/50'}`}>{p.rezultatCurent || 'Așteptare'}</span></td>
-                                    <td className="p-1"><Input label="" placeholder="..." className="!py-1 input-print-hidden" value={p.observatii} onChange={e => handleFieldChange(p.inscriere_id, 'observatii', e.target.value)} disabled={isFinalizing}/><span className="print-only-text hidden">{p.observatii}</span></td>
+                                    <td className="p-1"><Input label="" placeholder="..." className="!py-1 input-print-hidden" value={p.observatii} onChange={e => handleFieldChange(p.inscriere_id, 'observatii', e.target.value)} disabled={isFinalizing || promotingId !== null}/><span className="print-only-text hidden">{p.observatii}</span></td>
+                                    <td className="p-2 text-center">
+                                        {p.rezultatCurent === 'Admis' ? (
+                                            <CheckCircleIcon className="w-6 h-6 text-green-400 mx-auto" />
+                                        ) : (
+                                            <Button
+                                                size="sm"
+                                                variant="info"
+                                                onClick={() => handlePromovareRapida(p)}
+                                                isLoading={promotingId === p.inscriere_id}
+                                                disabled={isFinalizing || promotingId !== null}
+                                                className="input-print-hidden"
+                                                title="Promovează instantaneu sportivul, fără a calcula notele."
+                                            >
+                                                Promovează
+                                            </Button>
+                                        )}
+                                    </td>
                                     <td className="p-2 text-center status-indicator"><div className="flex justify-center items-center"><span className={`h-3 w-3 rounded-full ${p.taxaAchitata ? 'bg-green-500' : 'bg-red-500'}`} title={p.taxaAchitata ? 'Taxa a fost achitată' : 'Taxa este neachitată'}></span></div></td>
                                 </tr>);
                             })}</tbody>

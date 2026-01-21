@@ -1,10 +1,9 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { SesiuneExamen, InscriereExamen, Sportiv, Grad, Locatie, Plata, View } from '../types';
+import { SesiuneExamen, InscriereExamen, Sportiv, Grad, Locatie, Plata } from '../types';
 import { Button, Modal, Input, Select, Card } from './ui';
 import { ArrowLeftIcon, PlusIcon, MinusIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
-import { useDebouncedCallback } from 'use-debounce';
 
 // --- PROPS ---
 interface RapoarteExamenProps {
@@ -26,10 +25,11 @@ type Participant = InscriereExamen & {
 // --- Main Component ---
 export const RapoarteExamen: React.FC<RapoarteExamenProps> = (props) => {
     const { onBack, sesiuni, inscrieri, setInscrieri, sportivi, grade, locatii, plati } = props;
-    const { showError, showSuccess } = useError();
+    const { showError } = useError();
     const [view, setView] = useState<'note' | 'federatie'>('note');
     const [selectedSesiuneId, setSelectedSesiuneId] = useState<string>('');
     const [participants, setParticipants] = useState<Participant[]>([]);
+    const [searchTerm, setSearchTerm] = useState('');
 
     const selectedSesiune = useMemo(() => {
         if (!selectedSesiuneId) return null;
@@ -59,12 +59,19 @@ export const RapoarteExamen: React.FC<RapoarteExamenProps> = (props) => {
         }
     }, [selectedSesiuneId, inscrieri, sportivi, grade]);
 
-    const handleSaveNotes = useDebouncedCallback(async (inscriereId: string, updates: Partial<InscriereExamen>) => {
-        const { nota_thao_quyen, nota_song_doi } = updates;
-        const notes = [nota_thao_quyen, nota_song_doi].filter(n => n !== null && n !== undefined && !isNaN(n)) as number[];
+    const filteredParticipants = useMemo(() => {
+        if (!searchTerm) return participants;
+        return participants.filter(p => p.numeComplet.toLowerCase().includes(searchTerm.toLowerCase()));
+    }, [participants, searchTerm]);
+
+    const handleSaveNotes = useCallback(async (inscriereId: string, updates: Partial<InscriereExamen>) => {
+        const participant = participants.find(p => p.id === inscriereId);
+        if (!participant) return;
+
+        const newValues = { ...participant, ...updates };
+        const notes = [newValues.nota_thao_quyen, newValues.nota_song_doi, newValues.nota_tehnica_1, newValues.nota_tehnica_2].filter(n => n != null && !isNaN(n)) as number[];
         const media_generala = notes.length > 0 ? notes.reduce((a, b) => a + b, 0) / notes.length : null;
-        
-        const finalUpdates = { ...updates, media_generala };
+        const finalUpdates = { ...updates, media_generala, rezultat: media_generala === null ? 'Neprezentat' : media_generala >= 5 ? 'Admis' : 'Respins' };
         
         const { data, error } = await supabase.from('inscrieri_examene').update(finalUpdates).eq('id', inscriereId).select().single();
 
@@ -73,17 +80,15 @@ export const RapoarteExamen: React.FC<RapoarteExamenProps> = (props) => {
         } else if (data) {
             setInscrieri(prev => prev.map(i => i.id === inscriereId ? { ...i, ...data } : i));
         }
-    }, 500);
+    }, [participants, supabase, showError, setInscrieri]);
 
-    const handleNoteChange = (inscriereId: string, field: 'nota_thao_quyen' | 'nota_song_doi', value: number | null) => {
-        setParticipants(prev => prev.map(p => {
-            if (p.id === inscriereId) {
-                const updatedParticipant = { ...p, [field]: value };
-                handleSaveNotes(inscriereId, { [field]: value });
-                return updatedParticipant;
-            }
-            return p;
-        }));
+
+    const handleNoteChange = (inscriereId: string, field: keyof InscriereExamen, value: number | null) => {
+        setParticipants(prev => {
+            const newParticipants = prev.map(p => p.id === inscriereId ? { ...p, [field]: value } : p);
+            handleSaveNotes(inscriereId, { [field]: value });
+            return newParticipants;
+        });
     };
 
     return (
@@ -104,7 +109,7 @@ export const RapoarteExamen: React.FC<RapoarteExamenProps> = (props) => {
             </div>
             <h1 className="text-3xl font-bold text-white">Rapoarte Examen</h1>
 
-            <Card className="no-print">
+            <Card className="no-print space-y-4">
                 <Select label="Selectați Sesiunea de Examen" value={selectedSesiuneId} onChange={e => setSelectedSesiuneId(e.target.value)}>
                     <option value="">Alegeți o sesiune...</option>
                     {[...sesiuni].sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime()).map(s => (
@@ -113,6 +118,7 @@ export const RapoarteExamen: React.FC<RapoarteExamenProps> = (props) => {
                         </option>
                     ))}
                 </Select>
+                 {selectedSesiuneId && <Input label="Filtrează sportiv..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Introduceți un nume..." />}
             </Card>
 
             {selectedSesiune && (
@@ -134,8 +140,8 @@ export const RapoarteExamen: React.FC<RapoarteExamenProps> = (props) => {
                         
                         <div className="mt-4">
                             {view === 'note' ? 
-                                <NoteTehniceView participants={participants} onNoteChange={handleNoteChange} /> : 
-                                <RaportFederatieView participants={participants} plati={plati} dataExamen={selectedSesiune.data} />
+                                <NoteTehniceView participants={filteredParticipants} onNoteChange={handleNoteChange} /> : 
+                                <RaportFederatieView participants={filteredParticipants} plati={plati} dataExamen={selectedSesiune.data} />
                             }
                         </div>
                     </Card>
@@ -148,17 +154,15 @@ export const RapoarteExamen: React.FC<RapoarteExamenProps> = (props) => {
 // --- Note Tehnice View ---
 const NoteTehniceView: React.FC<{
     participants: Participant[];
-    onNoteChange: (inscriereId: string, field: 'nota_thao_quyen' | 'nota_song_doi', value: number | null) => void;
+    onNoteChange: (inscriereId: string, field: keyof InscriereExamen, value: number | null) => void;
 }> = ({ participants, onNoteChange }) => {
     
-    const StepperInput: React.FC<{ value: number | null | undefined, onChange: (newValue: number) => void }> = ({ value, onChange }) => {
+    const StepperInput: React.FC<{ value: number | null | undefined, onChange: (newValue: number | null) => void }> = ({ value, onChange }) => {
         const numValue = value ?? 0;
         return (
             <div className="flex items-center gap-1">
-                {/* FIX: Use MinusIcon for the stepper button. */}
                 <Button type="button" size="sm" variant="secondary" className="!p-2 h-8 w-8" onClick={() => onChange(Math.max(0, numValue - 0.25))}><MinusIcon className="w-4 h-4" /></Button>
-                <Input label="" type="number" step="0.25" value={value ?? ''} onChange={e => onChange(parseFloat(e.target.value) || 0)} className="w-20 text-center font-bold !py-1" />
-                {/* FIX: Use PlusIcon for the stepper button. */}
+                <Input label="" type="number" step="0.25" value={value ?? ''} onChange={e => onChange(e.target.value === '' ? null : parseFloat(e.target.value) || 0)} className="w-20 text-center font-bold !py-1" />
                 <Button type="button" size="sm" variant="secondary" className="!p-2 h-8 w-8" onClick={() => onChange(Math.min(10, numValue + 0.25))}><PlusIcon className="w-4 h-4" /></Button>
             </div>
         );
@@ -176,6 +180,8 @@ const NoteTehniceView: React.FC<{
                             <th className="p-2 font-semibold">Grad Susținut</th>
                             <th className="p-2 font-semibold text-center">Notă Thao Quyen</th>
                             <th className="p-2 font-semibold text-center">Notă Song Doi</th>
+                            <th className="p-2 font-semibold text-center">Notă Tehnică 1</th>
+                            <th className="p-2 font-semibold text-center">Notă Tehnică 2</th>
                             <th className="p-2 font-semibold text-center">Media Generală</th>
                         </tr>
                     </thead>
@@ -187,6 +193,8 @@ const NoteTehniceView: React.FC<{
                                 <td className="p-2">{p.numeGrad}</td>
                                 <td className="p-2 text-center"><Input label="" type="number" step="0.01" className="!py-1 w-24 mx-auto text-center" defaultValue={p.nota_thao_quyen ?? ''} onBlur={e => onNoteChange(p.id, 'nota_thao_quyen', e.target.value === '' ? null : parseFloat(e.target.value))} /></td>
                                 <td className="p-2 text-center"><Input label="" type="number" step="0.01" className="!py-1 w-24 mx-auto text-center" defaultValue={p.nota_song_doi ?? ''} onBlur={e => onNoteChange(p.id, 'nota_song_doi', e.target.value === '' ? null : parseFloat(e.target.value))} /></td>
+                                <td className="p-2 text-center"><Input label="" type="number" step="0.01" className="!py-1 w-24 mx-auto text-center" defaultValue={p.nota_tehnica_1 ?? ''} onBlur={e => onNoteChange(p.id, 'nota_tehnica_1', e.target.value === '' ? null : parseFloat(e.target.value))} /></td>
+                                <td className="p-2 text-center"><Input label="" type="number" step="0.01" className="!py-1 w-24 mx-auto text-center" defaultValue={p.nota_tehnica_2 ?? ''} onBlur={e => onNoteChange(p.id, 'nota_tehnica_2', e.target.value === '' ? null : parseFloat(e.target.value))} /></td>
                                 <td className={`p-2 text-center font-bold text-lg ${p.media_generala && p.media_generala >= 5 ? 'text-green-400' : 'text-red-400'}`}>{p.media_generala?.toFixed(2) ?? '-'}</td>
                             </tr>
                         ))}
@@ -205,6 +213,8 @@ const NoteTehniceView: React.FC<{
                         <div className="space-y-3">
                             <div className="flex justify-between items-center"><label>Notă Thao Quyen</label><StepperInput value={p.nota_thao_quyen} onChange={val => onNoteChange(p.id, 'nota_thao_quyen', val)} /></div>
                             <div className="flex justify-between items-center"><label>Notă Song Doi</label><StepperInput value={p.nota_song_doi} onChange={val => onNoteChange(p.id, 'nota_song_doi', val)} /></div>
+                            <div className="flex justify-between items-center"><label>Notă Tehnică 1</label><StepperInput value={p.nota_tehnica_1} onChange={val => onNoteChange(p.id, 'nota_tehnica_1', val)} /></div>
+                            <div className="flex justify-between items-center"><label>Notă Tehnică 2</label><StepperInput value={p.nota_tehnica_2} onChange={val => onNoteChange(p.id, 'nota_tehnica_2', val)} /></div>
                         </div>
                         <div className="mt-4 pt-3 border-t border-slate-700 flex justify-between items-center">
                             <label className="font-bold">Media Generală</label>
@@ -244,7 +254,7 @@ const RaportFederatieView: React.FC<{
                 </thead>
                 <tbody className="divide-y divide-slate-700">
                     {participants.map((p, index) => {
-                        const rezultat = p.media_generala === null || p.media_generala === undefined ? 'Neprezentat' : p.media_generala >= 5 ? 'Admis' : 'Respins';
+                        const rezultat = p.rezultat ?? (p.media_generala === null || p.media_generala === undefined ? 'Neprezentat' : p.media_generala >= 5 ? 'Admis' : 'Respins');
                         return (
                             <tr key={p.id}>
                                 <td className="p-2">{index + 1}</td>

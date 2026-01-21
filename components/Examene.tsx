@@ -8,6 +8,7 @@ import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { FinalizeExam } from './FinalizeExam';
+import { ManagementInscrieri } from './ManagementInscrieri';
 
 // --- UTILITIES ---
 const getGrad = (gradId: string | null, allGrades: Grad[]) => gradId ? allGrades.find(g => g.id === gradId) : null;
@@ -180,6 +181,7 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = ({ sesiune, inscrieri, set
     const [isDeleting, setIsDeleting] = useState(false);
     const { showError, showSuccess } = useError();
     const sortedGrades = useMemo(() => [...grade].sort((a,b) => a.ordine - b.ordine), [grade]);
+    const [isBulkEnrollOpen, setIsBulkEnrollOpen] = useState(false);
     
     const sportivData = useMemo(() => {
         if (!sportivId) return null;
@@ -306,7 +308,7 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = ({ sesiune, inscrieri, set
         return <Card><p>Încărcare...</p></Card>;
     }
 
-    return ( <Card> <div className="flex justify-between items-start flex-wrap gap-4"><h3 className="text-2xl font-bold text-white">{locatii.find(l => l.id === sesiune.locatie_id)?.nume} - {new Date(sesiune.data + 'T00:00:00').toLocaleDateString('ro-RO')}</h3><div className="flex gap-2"><Button variant="success" onClick={() => onNavigateTo('finalizare-examen')}><ShieldCheckIcon className="w-5 h-5 mr-2"/>Notare & Finalizare Examen</Button></div></div><p className="text-slate-400">Comisia: {Array.isArray(sesiune.comisia) ? sesiune.comisia.join(', ') : sesiune.comisia}</p><div className="mt-6 border-t border-slate-700 pt-6"> <h4 className="text-xl font-semibold mb-4 text-white">Participanți Înscriși ({inscrieri.length})</h4>
+    return ( <><Card> <div className="flex justify-between items-start flex-wrap gap-4"><h3 className="text-2xl font-bold text-white">{locatii.find(l => l.id === sesiune.locatie_id)?.nume} - {new Date(sesiune.data + 'T00:00:00').toLocaleDateString('ro-RO')}</h3><div className="flex gap-2"><Button variant="primary" onClick={() => setIsBulkEnrollOpen(true)}>Înscriere Rapidă</Button><Button variant="success" onClick={() => onNavigateTo('finalizare-examen')}><ShieldCheckIcon className="w-5 h-5 mr-2"/>Notare & Finalizare Examen</Button></div></div><p className="text-slate-400">Comisia: {Array.isArray(sesiune.comisia) ? sesiune.comisia.join(', ') : sesiune.comisia}</p><div className="mt-6 border-t border-slate-700 pt-6"> <h4 className="text-xl font-semibold mb-4 text-white">Participanți Înscriși ({inscrieri.length})</h4>
     <div className="overflow-x-auto mb-6">
         <table className="w-full text-left text-sm">
             <thead className="bg-slate-700/50 text-xs uppercase">
@@ -390,7 +392,19 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = ({ sesiune, inscrieri, set
             </div>
         </Card>
     </div>
-</div><ConfirmDeleteModal isOpen={!!inscriereToDelete} onClose={() => setInscriereToDelete(null)} onConfirm={() => { if(inscriereToDelete) confirmDeleteInscriere(inscriereToDelete) }} tableName="înscriere (și taxa asociată)" isLoading={isDeleting} /> </Card> );
+</div><ConfirmDeleteModal isOpen={!!inscriereToDelete} onClose={() => setInscriereToDelete(null)} onConfirm={() => { if(inscriereToDelete) confirmDeleteInscriere(inscriereToDelete) }} tableName="înscriere (și taxa asociată)" isLoading={isDeleting} /> </Card>
+<Modal isOpen={isBulkEnrollOpen} onClose={() => setIsBulkEnrollOpen(false)} title="Înscriere Rapidă la Examen">
+    <ManagementInscrieri
+        sesiune={sesiune}
+        sportivi={sportivi}
+        allInscrieri={allInscrieri}
+        grade={grade}
+        preturiConfig={preturiConfig}
+        setInscrieri={setInscrieri}
+        setPlati={setPlati}
+    />
+</Modal>
+</> );
 };
 
 interface GestiuneExameneProps { onBack: () => void; sesiuni: SesiuneExamen[]; setSesiuni: React.Dispatch<React.SetStateAction<SesiuneExamen[]>>; inscrieri: InscriereExamen[]; setInscrieri: React.Dispatch<React.SetStateAction<InscriereExamen[]>>; sportivi: Sportiv[]; setSportivi: React.Dispatch<React.SetStateAction<Sportiv[]>>; grade: Grad[]; plati: Plata[]; setPlati: React.Dispatch<React.SetStateAction<Plata[]>>; preturiConfig: PretConfig[]; locatii: Locatie[]; setLocatii: React.Dispatch<React.SetStateAction<Locatie[]>>; }

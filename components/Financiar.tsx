@@ -40,8 +40,10 @@ const DataField: React.FC<{ label: string, value: string | React.ReactNode, valu
 export const ProfilSportiv: React.FC<ProfilSportivProps> = ({ currentUser, plati, tranzactii, grade, grupe, participari, examene, onBack, onNavigate }) => {
 
     const { currentGrad, lastExamDate, nextGrad } = useMemo(() => {
+        const officialGrad = getGrad(currentUser.grad_actual_id, grade);
+
         const admittedParticipations = participari
-            .filter(p => p.sportiv_id === currentUser.id && (p.media_generala || 0) >= 5)
+            .filter(p => p.sportiv_id === currentUser.id && p.rezultat === 'Admis')
             .sort((a, b) => {
                 const dateA = examene.find(e => e.id === a.sesiune_id)?.data || '1970-01-01';
                 const dateB = examene.find(e => e.id === b.sesiune_id)?.data || '1970-01-01';
@@ -49,7 +51,10 @@ export const ProfilSportiv: React.FC<ProfilSportivProps> = ({ currentUser, plati
             });
         
         const lastParticipation = admittedParticipations[0];
-        const grad = lastParticipation ? getGrad(lastParticipation.grad_vizat_id, grade) : null;
+        const historyGrad = lastParticipation ? getGrad(lastParticipation.grad_vizat_id, grade) : null;
+
+        const grad = officialGrad || historyGrad;
+
         const exam = lastParticipation ? examene.find(e => e.id === lastParticipation.sesiune_id) : null;
 
         const sortedGrades = [...grade].sort((a, b) => a.ordine - b.ordine);

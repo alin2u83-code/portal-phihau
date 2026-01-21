@@ -25,13 +25,16 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
     const isViewingOwnProfile = currentUser.id === viewedUser.id;
 
     const currentGrad = useMemo(() => {
+        const officialGrad = getGrad(viewedUser.grad_actual_id, grade);
+        if (officialGrad) return officialGrad;
+
         const admittedParticipations = participari
             .filter(p => p.sportiv_id === viewedUser.id && p.rezultat === 'Admis')
             .map(p => ({ ...p, examen: examene.find(e => e.id === p.sesiune_id) }))
             .sort((a, b) => new Date(b.examen?.data || 0).getTime() - new Date(a.examen?.data || 0).getTime());
         
         return getGrad(admittedParticipations[0]?.grad_vizat_id || null, grade);
-    }, [participari, viewedUser.id, grade, examene]);
+    }, [participari, viewedUser.grad_actual_id, viewedUser.id, grade, examene]);
     
     const sumaRestanta = useMemo(() => {
         return plati

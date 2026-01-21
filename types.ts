@@ -18,6 +18,7 @@ export interface Sportiv {
   data_inscrierii: string;
   status: 'Activ' | 'Inactiv';
   grupa_id: string | null;
+  grad_actual_id?: string | null; // FK to grade
   familie_id: string | null; // ID-ul familiei
   tip_abonament_id: string | null; // ID-ul tipului de abonament individual
   participa_vacanta: boolean;
@@ -56,7 +57,18 @@ export interface InscriereExamen {
     observatii?: string;
     nota_thao_quyen?: number | null;
     nota_song_doi?: number | null;
+    nota_tehnica_1?: number | null;
+    nota_tehnica_2?: number | null;
     media_generala?: number | null;
+    rezultat?: 'Admis' | 'Respins' | 'Neprezentat' | null;
+}
+
+export interface IstoricGrade {
+    id: string;
+    sportiv_id: string;
+    grad_id: string;
+    data_obtinere: string;
+    sesiune_examen_id?: string;
 }
 
 export interface ProgramItem {
@@ -191,7 +203,7 @@ export interface AnuntGeneral {
 
 export type User = Sportiv;
 
-export type View = 'dashboard' | 'sportivi' | 'examene' | 'grade' | 'prezenta' | 'grupe' | 'raport-prezenta' | 'stagii' | 'competitii' | 'plati-scadente' | 'jurnal-incasari' | 'raport-financiar' | 'configurare-preturi' | 'tipuri-abonament' | 'familii' | 'user-management' | 'editare-profil-personal' | 'evenimentele-mele' | 'data-maintenance' | 'activitati' | 'my-portal' | 'setari-club' | 'data-inspector' | 'profil-sportiv' | 'reduceri' | 'notificari' | 'taxe-anuale' | 'nomenclatoare' | 'financial-dashboard' | 'istoric-examene' | 'facturi-personale';
+export type View = 'dashboard' | 'sportivi' | 'examene' | 'grade' | 'prezenta' | 'grupe' | 'raport-prezenta' | 'stagii' | 'competitii' | 'plati-scadente' | 'jurnal-incasari' | 'raport-financiar' | 'configurare-preturi' | 'tipuri-abonament' | 'familii' | 'user-management' | 'editare-profil-personal' | 'evenimentele-mele' | 'data-maintenance' | 'activitati' | 'my-portal' | 'setari-club' | 'data-inspector' | 'profil-sportiv' | 'reduceri' | 'notificari' | 'taxe-anuale' | 'nomenclatoare' | 'financial-dashboard' | 'istoric-examene' | 'facturi-personale' | 'finalizare-examen';
 
 // FIX: Add missing type aliases. This seems to be a refactoring artifact.
 export type Participare = InscriereExamen;

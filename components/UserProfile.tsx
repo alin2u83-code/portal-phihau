@@ -78,7 +78,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
 
     const admittedParticipations = useMemo(() => sortedSportivParticipariForDisplay.filter(p => p.rezultat === 'Admis'), [sortedSportivParticipariForDisplay]);
     
-    const currentGrad = useMemo(() => getGrad(admittedParticipations[0]?.grad_vizat_id, grade), [admittedParticipations, grade]);
+    const currentGrad = useMemo(() => getGrad(sportiv.grad_actual_id, grade) || getGrad(admittedParticipations[0]?.grad_vizat_id, grade), [admittedParticipations, grade, sportiv.grad_actual_id]);
     const currentGradParticipationId = admittedParticipations.length > 0 ? admittedParticipations[0].id : null;
 
     const eligibility = useMemo(() => {

@@ -119,12 +119,50 @@ export const FinalizeExam: React.FC<FinalizeExamProps> = ({ sesiune, inscrieriSe
                 return original.rezultat !== p.rezultatCurent || original.media_generala !== p.media || original.nota_thao_quyen !== p.nota_thao_quyen || original.nota_song_doi !== p.nota_song_doi || original.nota_tehnica_1 !== p.nota_tehnica_1 || original.nota_tehnica_2 !== p.nota_tehnica_2 || (original.observatii || '') !== p.observatii;
             });
 
+            const probeMapping: { [key in keyof ParticipantValidare]?: string } = {
+                nota_thao_quyen: 'Thao Quyen',
+                nota_song_doi: 'Song Doi',
+                nota_tehnica_1: 'Tehnica 1',
+                nota_tehnica_2: 'Tehnica 2',
+            };
+            const noteFields = Object.keys(probeMapping) as (keyof ParticipantValidare)[];
+
             for (const participant of changedParticipants) {
-                const originalInscriere = inscrieriSesiune.find(i => i.id === participant.inscriere_id);
+                // 1. Salvează notele în tabelul normalizat `note_examene`
+                const notesToUpsert = [];
+                const probesToDelete = [];
                 
-                const updatesForInscriere = { rezultat: participant.rezultatCurent, media_generala: participant.media, nota_thao_quyen: participant.nota_thao_quyen, nota_song_doi: participant.nota_song_doi, nota_tehnica_1: participant.nota_tehnica_1, nota_tehnica_2: participant.nota_tehnica_2, observatii: participant.observatii, };
+                for (const field of noteFields) {
+                    const probaName = probeMapping[field];
+                    const nota = participant[field] as number | null;
+                    if (nota !== null && !isNaN(nota) && probaName) {
+                        notesToUpsert.push({
+                            inscriere_id: participant.inscriere_id,
+                            tip_proba: probaName,
+                            nota: nota,
+                        });
+                    } else if (probaName) {
+                        probesToDelete.push(probaName);
+                    }
+                }
+                
+                if (notesToUpsert.length > 0) {
+                    await supabase.from('note_examene').upsert(notesToUpsert, { onConflict: 'inscriere_id, tip_proba' }).throwOnError();
+                }
+                if (probesToDelete.length > 0) {
+                    await supabase.from('note_examene').delete().eq('inscriere_id', participant.inscriere_id).in('tip_proba', probesToDelete).throwOnError();
+                }
+
+                // 2. Actualizează `inscrieri_examene` cu media și rezultatul
+                const updatesForInscriere = {
+                    media_generala: participant.media,
+                    rezultat: participant.rezultatCurent,
+                    observatii: participant.observatii,
+                };
                 await supabase.from('inscrieri_examene').update(updatesForInscriere).eq('id', participant.inscriere_id).throwOnError();
                 
+                // 3. Logica de promovare (actualizare grad sportiv și istoric)
+                const originalInscriere = inscrieriSesiune.find(i => i.id === participant.inscriere_id);
                 const wasAdmis = originalInscriere?.rezultat === 'Admis';
                 const isAdmis = participant.rezultatCurent === 'Admis';
 

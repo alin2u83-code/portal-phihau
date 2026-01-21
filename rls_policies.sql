@@ -100,6 +100,34 @@ CREATE POLICY "Users can see their own exam participations" ON public.inscrieri_
     FOR SELECT USING (sportiv_id IN (SELECT id FROM public.sportivi WHERE user_id = auth.uid()));
 
 -- -----------------------------------------------------------------
+-- Tabel: istoric_grade
+-- -----------------------------------------------------------------
+ALTER TABLE public.istoric_grade ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Admins can manage grade history" ON public.istoric_grade;
+CREATE POLICY "Admins can manage grade history" ON public.istoric_grade
+    FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+
+DROP POLICY IF EXISTS "Users can see their own grade history" ON public.istoric_grade;
+CREATE POLICY "Users can see their own grade history" ON public.istoric_grade
+    FOR SELECT USING (sportiv_id IN (SELECT id FROM public.sportivi WHERE user_id = auth.uid()));
+
+-- -----------------------------------------------------------------
+-- Tabel: note_examene
+-- -----------------------------------------------------------------
+ALTER TABLE public.note_examene ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Admins can manage exam notes" ON public.note_examene;
+CREATE POLICY "Admins can manage exam notes" ON public.note_examene
+    FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+
+DROP POLICY IF EXISTS "Users can see notes for their own exams" ON public.note_examene;
+CREATE POLICY "Users can see notes for their own exams" ON public.note_examene
+    FOR SELECT USING (
+        inscriere_id IN (
+            SELECT id FROM public.inscrieri_examene WHERE sportiv_id IN (SELECT id FROM public.sportivi WHERE user_id = auth.uid())
+        )
+    );
+    
+-- -----------------------------------------------------------------
 -- Tabel: prezenta_antrenament
 -- -----------------------------------------------------------------
 ALTER TABLE public.prezenta_antrenament ENABLE ROW LEVEL SECURITY;

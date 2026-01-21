@@ -100,7 +100,7 @@ function App() {
 
             // RLS-protected data
             supabase.from('sportivi').select('*, roluri(id, nume)'),
-            supabase.from('inscrieri_examene').select('*, sportivi:sportiv_id(*), grade:grad_vizat_id(*)').order('ordine', { foreignTable: 'grade', ascending: false }),
+            supabase.from('inscrieri_examene').select('*, sportivi:sportiv_id(*), grade:grad_vizat_id(*), note_examene(nota, tip_proba)').order('ordine', { foreignTable: 'grade', ascending: false }),
             supabase.from('familii').select('*'),
             supabase.from('plati').select('*'),
             supabase.from('tranzactii').select('*'),
@@ -150,6 +150,28 @@ function App() {
             };
         });
 
+        // Map normalized notes to flat properties on inscrieri_examene
+        const probeMapping: { [key: string]: keyof InscriereExamen } = {
+            'Thao Quyen': 'nota_thao_quyen',
+            'Song Doi': 'nota_song_doi',
+            'Tehnica 1': 'nota_tehnica_1',
+            'Tehnica 2': 'nota_tehnica_2',
+        };
+
+        const mappedInscrieri = (inscrieriData || []).map((inscriere: any) => {
+            const notesArray = inscriere.note_examene || [];
+            const flatNotes: Partial<InscriereExamen> = {};
+
+            for (const note of notesArray) {
+                const field = probeMapping[note.tip_proba];
+                if (field) {
+                    (flatNotes as any)[field] = note.nota;
+                }
+            }
+            
+            const { note_examene, ...rest } = inscriere;
+            return { ...rest, ...flatNotes };
+        });
 
         // Set state for all data
         setSesiuniExamene(sesiuniData || []);
@@ -163,7 +185,7 @@ function App() {
         setAllRoles(roData || []);
         setReduceri(reduceriData || []);
         setSportivi(formattedSportivi);
-        setInscrieriExamene(inscrieriData as InscriereExamen[] || []);
+        setInscrieriExamene(mappedInscrieri as InscriereExamen[]);
         setFamilii(fData || []);
         setPlati(plData || []);
         setTranzactii(tData || []);
@@ -307,7 +329,7 @@ function App() {
         case 'evenimentele-mele': return <EvenimenteleMele viewedUser={currentUser} evenimente={evenimente} rezultate={rezultate} setRezultate={setRezultate} onBack={portalBackNav} />;
         case 'editare-profil-personal': return <EditareProfilPersonal user={currentUser} setSportivi={setSportivi} setCurrentUser={setCurrentUser} onBack={portalBackNav} />;
         case 'profil-sportiv': return <ProfilSportiv currentUser={currentUser} plati={plati} tranzactii={tranzactii} grade={grade} grupe={grupe} participari={inscrieriExamene} examene={sesiuniExamene} onBack={portalBackNav} onNavigate={setActiveView} />;
-        case 'istoric-examene': return <IstoricExameneSportiv viewedUser={currentUser} participari={inscrieriExamene} sesiuni={sesiuniExamene} grade={grade} onBack={portalBackNav} isAdmin={isAdmin} preturiConfig={preturiConfig} setPlati={setPlati} setInscrieri={setInscrieriExamene} allInscrieri={inscrieriExamene} locatii={locatii}/>;
+        case 'istoric-examene': return <IstoricExameneSportiv viewedUser={currentUser} participari={inscrieriExamene.filter(p=>p.sportiv_id === currentUser.id)} sesiuni={sesiuniExamene} grade={grade} onBack={portalBackNav} isAdmin={isAdmin} preturiConfig={preturiConfig} setPlati={setPlati} setInscrieri={setInscrieriExamene} allInscrieri={inscrieriExamene} locatii={locatii}/>;
         case 'facturi-personale': return <FacturiPersonale viewedUser={currentUser} plati={plati} tranzactii={tranzactii} onBack={portalBackNav} />;
         case 'my-portal':
         default: return <SportivDashboard {...commonProps} />;

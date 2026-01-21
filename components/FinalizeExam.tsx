@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { SesiuneExamen, InscriereExamen, Sportiv, Grad, Plata } from '../types';
 import { Button, Card, Select } from './ui';
-import { ArrowLeftIcon } from './icons';
+import { ArrowLeftIcon, SaveIcon, CheckCircleIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 
@@ -32,7 +32,8 @@ interface FinalizeExamProps {
 export const FinalizeExam: React.FC<FinalizeExamProps> = ({ sesiune, inscrieriSesiune, sportivi, grade, plati, setInscrieri, setSportivi, onBack }) => {
     const { showError, showSuccess } = useError();
     const [participants, setParticipants] = useState<ParticipantValidare[]>([]);
-    const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
+    const [isFinalizing, setIsFinalizing] = useState(false);
+    const [isFinalized, setIsFinalized] = useState(true); // Start as true since no changes are made yet
 
     useEffect(() => {
         const validInscrieri = Array.isArray(inscrieriSesiune) ? inscrieriSesiune : [];
@@ -62,66 +63,82 @@ export const FinalizeExam: React.FC<FinalizeExamProps> = ({ sesiune, inscrieriSe
         }).sort((a,b) => a.numeComplet.localeCompare(b.numeComplet));
         
         setParticipants(enhancedParticipants);
+        setIsFinalized(true); // Reset state when data reloads
     }, [inscrieriSesiune, sportivi, grade, plati, sesiune.data]);
 
-    const handleStatusChange = useCallback(async (inscriere_id: string, newStatus: 'Admis' | 'Respins' | 'Neprezentat' | null) => {
-        setLoadingStates(prev => ({...prev, [inscriere_id]: true}));
-        
-        const participant = participants.find(p => p.inscriere_id === inscriere_id);
-        if(!participant) {
-            showError("Eroare", "Participantul nu a fost găsit.");
-            setLoadingStates(prev => ({...prev, [inscriere_id]: false}));
-            return;
-        }
+    const handleLocalStatusChange = (inscriere_id: string, newStatus: 'Admis' | 'Respins' | 'Neprezentat' | null) => {
+        setParticipants(prev => 
+            prev.map(p => 
+                p.inscriere_id === inscriere_id 
+                ? {...p, rezultatCurent: newStatus} 
+                : p
+            )
+        );
+        setIsFinalized(false); // A change has been made, needs saving
+    };
 
-        const oldStatus = participant.rezultatCurent;
-        
-        setParticipants(prev => prev.map(p => p.inscriere_id === inscriere_id ? {...p, rezultatCurent: newStatus} : p));
-        
+    const handleFinalizeAll = async () => {
+        setIsFinalizing(true);
         try {
-            const { error: updateInscriereError } = await supabase.from('inscrieri_examene').update({ rezultat: newStatus }).eq('id', inscriere_id);
-            if(updateInscriereError) throw updateInscriereError;
+            for (const participant of participants) {
+                const originalInscriere = inscrieriSesiune.find(i => i.id === participant.inscriere_id);
+                const oldStatus = originalInscriere?.rezultat;
+                const newStatus = participant.rezultatCurent;
 
-            const wasAdmis = oldStatus === 'Admis';
-            const isAdmis = newStatus === 'Admis';
+                if (oldStatus === newStatus) continue;
 
-            if(isAdmis && !wasAdmis) {
-                const { error: sportivError } = await supabase.from('sportivi').update({ grad_actual_id: participant.gradSustinutId }).eq('id', participant.sportiv_id);
-                if(sportivError) throw sportivError;
-                const { error: istoricError } = await supabase.from('istoric_grade').insert({ sportiv_id: participant.sportiv_id, grad_id: participant.gradSustinutId, data_obtinere: sesiune.data, sesiune_examen_id: sesiune.id });
-                if(istoricError) throw istoricError;
-            } else if (wasAdmis && !isAdmis) {
-                const { error: sportivError } = await supabase.from('sportivi').update({ grad_actual_id: participant.gradAnteriorId }).eq('id', participant.sportiv_id);
-                if(sportivError) throw sportivError;
-                const { error: istoricError } = await supabase.from('istoric_grade').delete().match({ sportiv_id: participant.sportiv_id, sesiune_examen_id: sesiune.id });
-                if(istoricError) throw istoricError;
+                // 1. Update inscrieri_examene
+                const { error: updateError } = await supabase
+                    .from('inscrieri_examene')
+                    .update({ rezultat: newStatus })
+                    .eq('id', participant.inscriere_id);
+                if (updateError) throw updateError;
+                
+                // 2. Promotion/Reversion logic
+                const wasAdmis = oldStatus === 'Admis';
+                const isAdmis = newStatus === 'Admis';
+
+                if (isAdmis && !wasAdmis) { // Promote
+                    await supabase.from('sportivi').update({ grad_actual_id: participant.gradSustinutId }).eq('id', participant.sportiv_id);
+                    await supabase.from('istoric_grade').insert({ 
+                        sportiv_id: participant.sportiv_id, 
+                        grad_id: participant.gradSustinutId, 
+                        data_obtinere: sesiune.data,
+                        sesiune_examen_id: sesiune.id 
+                    });
+                } else if (wasAdmis && !isAdmis) { // Revert promotion
+                    await supabase.from('sportivi').update({ grad_actual_id: participant.gradAnteriorId }).eq('id', participant.sportiv_id);
+                    await supabase.from('istoric_grade').delete().match({ sportiv_id: participant.sportiv_id, sesiune_examen_id: sesiune.id });
+                }
             }
 
-            setInscrieri(prev => prev.map(i => i.id === inscriere_id ? {...i, rezultat: newStatus} : i));
-            if (isAdmis || wasAdmis) {
-                const newGradId = isAdmis ? participant.gradSustinutId : participant.gradAnteriorId;
-                setSportivi(prev => prev.map(s => s.id === participant.sportiv_id ? {...s, grad_actual_id: newGradId} : s));
-            }
+            // Sync global state after all operations
+            const sportivIdsToUpdate = participants.map(p => p.sportiv_id);
+            const { data: updatedSportivi, error: sportiviError } = await supabase.from('sportivi').select('*').in('id', sportivIdsToUpdate);
+            if (sportiviError) throw sportiviError;
+            
+            setInscrieri(prev => prev.map(i => {
+                const changed = participants.find(p => p.inscriere_id === i.id);
+                return changed ? { ...i, rezultat: changed.rezultatCurent } : i;
+            }));
+            setSportivi(prev => {
+                const otherSportivi = prev.filter(s => !sportivIdsToUpdate.includes(s.id));
+                return [...otherSportivi, ...updatedSportivi];
+            });
 
-            if (isAdmis && !wasAdmis) {
-                showSuccess("Promovare Automată", `Gradul sportivului ${participant.numeComplet} a fost actualizat în profil!`);
-            } else if (wasAdmis && !isAdmis) {
-                showSuccess("Retrogradare Automată", `Promovarea pentru ${participant.numeComplet} a fost anulată.`);
-            } else {
-                showSuccess("Status Actualizat", `Statusul pentru ${participant.numeComplet} a fost salvat.`);
-            }
+            showSuccess("Finalizare cu Succes", "Toate rezultatele au fost salvate și gradele actualizate.");
+            setIsFinalized(true);
 
         } catch (err: any) {
-            setParticipants(prev => prev.map(p => p.inscriere_id === inscriere_id ? {...p, rezultatCurent: oldStatus} : p));
-            if (err.message.includes('violates row-level security policy')) {
+             if (err.message.includes('violates row-level security policy')) {
                 showError("Permisiune Refuzată (RLS)", "Nu aveți permisiunile necesare pentru a modifica gradul acestui sportiv. Contactați un administrator.");
             } else {
-                showError("Eroare la Salvare", err.message);
+                showError("Eroare la Finalizare", err.message);
             }
         } finally {
-            setLoadingStates(prev => ({...prev, [inscriere_id]: false}));
+            setIsFinalizing(false);
         }
-    }, [participants, supabase, showError, showSuccess, setInscrieri, setSportivi, sesiune.data, sesiune.id]);
+    };
     
     return (
         <div>
@@ -143,22 +160,29 @@ export const FinalizeExam: React.FC<FinalizeExamProps> = ({ sesiune, inscrieriSe
                 }
             `}</style>
             <div className="flex justify-between items-center mb-4 no-print">
-                <Button onClick={onBack} variant="secondary"><ArrowLeftIcon /> Înapoi la detalii</Button>
+                <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2"/> Înapoi la detalii</Button>
+                {isFinalized ? (
+                    <div className="flex items-center gap-2 px-4 py-2 text-green-400 bg-green-900/50 rounded-md">
+                        <CheckCircleIcon className="w-5 h-5" />
+                        <span>Salvat!</span>
+                    </div>
+                ) : (
+                    <Button onClick={handleFinalizeAll} variant="success" isLoading={isFinalizing}>
+                        <SaveIcon className="w-5 h-5 mr-2"/>
+                        Salvează Rezultatele & Actualizează Gradele
+                    </Button>
+                )}
                 <Button onClick={() => window.print()} variant="info">Descarcă Tabel Federație</Button>
             </div>
             
             <div id="printable-exam-report">
-                 <div className="flex items-center gap-4 mb-6">
-                    <svg className="w-16 h-16 text-brand-secondary shrink-0" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
-                    <div>
-                        <h1 className="text-3xl font-bold text-white printable-title">Proces Verbal de Examinare</h1>
-                        <p className="text-slate-400 printable-subtitle">Clubul Phi Hau Iași - Sesiunea din {new Date(sesiune.data + 'T00:00:00').toLocaleDateString('ro-RO')}</p>
-                    </div>
+                <div className="mb-6">
+                    <h1 className="text-3xl font-bold text-white printable-title">Proces Verbal de Examinare</h1>
+                    <p className="text-slate-400 printable-subtitle">Clubul Phi Hau Iași - Sesiunea din {new Date(sesiune.data + 'T00:00:00').toLocaleDateString('ro-RO')}</p>
                 </div>
 
                 <Card className="card-print-override">
                     <h2 className="text-2xl font-bold text-white mb-4 no-print">Finalizare Interactivă Examen</h2>
-
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm printable-table">
                             <thead className="bg-slate-700/50">
@@ -174,7 +198,6 @@ export const FinalizeExam: React.FC<FinalizeExamProps> = ({ sesiune, inscrieriSe
                             <tbody className="divide-y divide-slate-700">
                                 {Array.isArray(participants) && participants.map(p => {
                                     const rowClass = p.rezultatCurent === 'Admis' ? 'bg-green-900/40' : p.rezultatCurent === 'Respins' ? 'bg-red-900/40' : '';
-                                    const isLoading = loadingStates[p.inscriere_id];
                                     return (
                                         <tr key={p.inscriere_id} className={`${rowClass} hover:bg-slate-700/50`}>
                                             <td className="p-2 font-medium">{p.numeComplet}</td>
@@ -194,9 +217,9 @@ export const FinalizeExam: React.FC<FinalizeExamProps> = ({ sesiune, inscrieriSe
                                             <td className="p-2 w-48">
                                                 <div className="select-wrapper">
                                                     <Select label="" value={p.rezultatCurent ?? 'Neprezentat'}
-                                                        onChange={e => handleStatusChange(p.inscriere_id, e.target.value as any)}
-                                                        disabled={isLoading}
-                                                        className={isLoading ? 'animate-pulse' : ''}
+                                                        onChange={e => handleLocalStatusChange(p.inscriere_id, e.target.value as any)}
+                                                        disabled={isFinalizing}
+                                                        className={isFinalizing ? 'animate-pulse' : ''}
                                                     >
                                                         <option value="Neprezentat">Așteptare</option>
                                                         <option value="Admis">Admis</option>

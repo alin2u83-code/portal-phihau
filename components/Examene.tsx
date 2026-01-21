@@ -229,7 +229,7 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = ({ sesiune, inscrieri, set
         
         setLoading(true);
         try {
-            const newInscriere: Omit<InscriereExamen, 'id' | 'sportivi' | 'grade'> = { sesiune_id: sesiune.id, sportiv_id: sportiv.id, grad_actual_id: gradActual?.id || null, grad_vizat_id: gradVizat.id, varsta_la_examen: varstaLaExamen, observatii: '' };
+            const newInscriere: Omit<InscriereExamen, 'id' | 'sportivi' | 'grade'> = { sesiune_id: sesiune.id, sportiv_id: sportiv.id, grad_actual_id: gradActual?.id || null, grad_vizat_id: gradVizat.id, varsta_la_examen: varstaLaExamen, observatii: '', rezultat: 'Neprezentat' };
             const { data: inscriereData, error: pError } = await supabase.from('inscrieri_examene').insert(newInscriere).select('*, sportivi:sportiv_id(*), grade:grad_vizat_id(*)').single();
             if (pError) throw pError;
             setInscrieri(prev => [...prev, inscriereData as InscriereExamen]);

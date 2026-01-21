@@ -38,6 +38,7 @@ import { GestionareNomenclatoare } from './components/GestionareNomenclatoare';
 import { FinancialDashboard } from './components/FinancialDashboard';
 import { IstoricExameneSportiv } from './components/IstoricExameneSportiv';
 import { FacturiPersonale } from './components/FacturiPersonale';
+import { RapoarteExamen } from './components/RapoarteExamen';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -342,6 +343,7 @@ function App() {
             <SportiviManagement onBack={() => setActiveView('dashboard')} sportivi={sportivi} setSportivi={setSportivi} grupe={grupe} setGrupe={setGrupe} tipuriAbonament={tipuriAbonament} familii={familii} setFamilii={setFamilii} allRoles={allRoles} setAllRoles={setAllRoles} currentUser={currentUser} plati={plati} tranzactii={tranzactii} setTranzactii={setTranzactii} onViewSportiv={setViewedSportiv} />
         );
       case 'examene': return <GestiuneExamene plati={plati} sesiuni={sesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={sportivi} grade={grade} setPlati={setPlati} preturiConfig={preturiConfig} locatii={locatii} setLocatii={setLocatii} onBack={() => setActiveView('dashboard')} onNavigate={setActiveView} onViewSportiv={setViewedSportiv} />;
+      case 'rapoarte-examen': return <RapoarteExamen onBack={() => setActiveView('dashboard')} sesiuni={sesiuniExamene} inscrieri={inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={sportivi} grade={grade} locatii={locatii} plati={plati} />;
       case 'grade': return <GradeManagement grade={grade} setGrade={setGrade} onBack={() => setActiveView('dashboard')} />;
       case 'prezenta': return <PrezentaManagement sportivi={sportivi} setSportivi={setSportivi} antrenamente={antrenamente} setAntrenamente={setAntrenamente} grupe={grupe} onBack={() => setActiveView('dashboard')} setPlati={setPlati} tipuriAbonament={tipuriAbonament} anunturi={anunturi}/>;
       case 'grupe': return <GrupeManagement grupe={grupe} setGrupe={setGrupe} onBack={() => setActiveView('dashboard')} />;

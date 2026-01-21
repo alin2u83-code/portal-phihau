@@ -204,15 +204,9 @@ CREATE POLICY "Admins can manage exams" ON public.sesiuni_examene
     FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
 
 DROP POLICY IF EXISTS "Authenticated users can see relevant exams" ON public.sesiuni_examene;
-CREATE POLICY "Authenticated users can see relevant exams" ON public.sesiuni_examene
-    FOR SELECT USING (
-        (data >= now()::date) OR
-        (id IN (
-            SELECT sesiune_id 
-            FROM public.inscrieri_examene
-            WHERE sportiv_id IN (SELECT id FROM public.sportivi WHERE user_id = auth.uid())
-        ))
-    );
+DROP POLICY IF EXISTS "Authenticated users can see exams" ON public.sesiuni_examene;
+CREATE POLICY "Authenticated users can see exams" ON public.sesiuni_examene
+    FOR SELECT USING (auth.role() = 'authenticated');
 
 -- -----------------------------------------------------------------
 -- Tabel: grade

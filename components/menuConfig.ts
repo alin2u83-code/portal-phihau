@@ -32,7 +32,6 @@ export const adminMenu: MenuItem[] = [
         icon: TrophyIcon,
         submenu: [
              { view: 'examene', label: 'Examene & Înscrieri' },
-             { view: 'rapoarte-examen', label: 'Rapoarte Examen' },
              { view: 'stagii', label: 'Stagii' },
              { view: 'competitii', label: 'Competiții' },
              { view: 'grade', label: 'Nomenclator Grade' },

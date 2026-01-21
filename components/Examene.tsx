@@ -252,37 +252,6 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = ({ sesiune, inscrieri, set
             setLoading(false);
         }
     };
-
-    const handleUpdateInscriere = async (inscriereId: string, field: keyof InscriereExamen, value: any) => {
-        const { data, error } = await supabase.from('inscrieri_examene').update({ [field]: value }).eq('id', inscriereId).select().single();
-        if (error) { showError("Eroare la actualizare", error); }
-        else if(data) setInscrieri(prev => prev.map(p => p.id === inscriereId ? data as InscriereExamen : p));
-    };
-    
-    const handleNoteChange = async (inscriereId: string, field: keyof InscriereExamen, value: string) => {
-        const targetInscriere = allInscrieri.find(p => p.id === inscriereId);
-        if (!targetInscriere) return;
-
-        const numericValue = value === '' ? null : parseFloat(value);
-        
-        const allNotes = {
-            nota_thao_quyen: field === 'nota_thao_quyen' ? numericValue : targetInscriere.nota_thao_quyen,
-            nota_song_doi: field === 'nota_song_doi' ? numericValue : targetInscriere.nota_song_doi,
-            nota_tehnica_1: field === 'nota_tehnica_1' ? numericValue : targetInscriere.nota_tehnica_1,
-            nota_tehnica_2: field === 'nota_tehnica_2' ? numericValue : targetInscriere.nota_tehnica_2,
-        };
-
-        const validNotes = Object.values(allNotes).filter(n => n !== null && !isNaN(n as any)) as number[];
-        const media = validNotes.length > 0 ? validNotes.reduce((a, b) => a + b, 0) / validNotes.length : null;
-        const rezultat = media === null ? 'Neprezentat' : media >= 5 ? 'Admis' : 'Respins';
-
-        const updates = { [field]: numericValue, media_generala: media, rezultat: rezultat };
-
-        const { data, error } = await supabase.from('inscrieri_examene').update(updates).eq('id', inscriereId).select().single();
-        
-        if (error) { showError("Eroare la actualizarea notei", error); } 
-        else if (data) { setInscrieri(prev => prev.map(p => p.id === inscriereId ? data as InscriereExamen : p)); }
-    };
     
     const confirmDeleteInscriere = async (inscriere: InscriereExamen) => {
         setIsDeleting(true);
@@ -335,18 +304,14 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = ({ sesiune, inscrieri, set
             });
     }, [inscrieri, sportivi, grade, preturiConfig, sesiune.data]);
 
-    return ( <Card> <div className="flex justify-between items-start flex-wrap gap-4"><h3 className="text-2xl font-bold text-white">{locatii.find(l => l.id === sesiune.locatie_id)?.nume} - {new Date(sesiune.data + 'T00:00:00').toLocaleDateString('ro-RO')}</h3><div className="flex gap-2"><Button variant="success" onClick={() => onNavigateTo('finalizare-examen')}><ShieldCheckIcon className="w-5 h-5 mr-2"/>Finalizare Examen</Button></div></div><p className="text-slate-400">Comisia: {Array.isArray(sesiune.comisia) ? sesiune.comisia.join(', ') : sesiune.comisia}</p><div className="mt-6 border-t border-slate-700 pt-6"> <h4 className="text-xl font-semibold mb-4 text-white">Participanți Înscriși ({inscrieri.length})</h4>
+    return ( <Card> <div className="flex justify-between items-start flex-wrap gap-4"><h3 className="text-2xl font-bold text-white">{locatii.find(l => l.id === sesiune.locatie_id)?.nume} - {new Date(sesiune.data + 'T00:00:00').toLocaleDateString('ro-RO')}</h3><div className="flex gap-2"><Button variant="success" onClick={() => onNavigateTo('finalizare-examen')}><ShieldCheckIcon className="w-5 h-5 mr-2"/>Notare & Finalizare Examen</Button></div></div><p className="text-slate-400">Comisia: {Array.isArray(sesiune.comisia) ? sesiune.comisia.join(', ') : sesiune.comisia}</p><div className="mt-6 border-t border-slate-700 pt-6"> <h4 className="text-xl font-semibold mb-4 text-white">Participanți Înscriși ({inscrieri.length})</h4>
     <div className="overflow-x-auto mb-6">
         <table className="w-full text-left text-sm">
             <thead className="bg-slate-700/50 text-xs uppercase">
                 <tr>
                     <th className="p-2 font-semibold">Nume Sportiv</th>
                     <th className="p-2 font-semibold">Grad Vizat</th>
-                    <th className="p-2 font-semibold w-28">Thao Quyen</th>
-                    <th className="p-2 font-semibold w-28">Song Doi</th>
-                    <th className="p-2 font-semibold w-28">Tehnica 1</th>
-                    <th className="p-2 font-semibold w-28">Tehnica 2</th>
-                    <th className="p-2 font-semibold w-24 text-center">Media</th>
+                    <th className="p-2 font-semibold text-center">Media</th>
                     <th className="p-2 font-semibold">Observații</th>
                     <th className="p-2 font-semibold text-right">Acțiuni</th>
                 </tr>
@@ -358,17 +323,13 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = ({ sesiune, inscrieri, set
                     const isPassed = i.rezultat === 'Admis';
                     return (
                         <tr key={i.id} className="hover:bg-slate-700/20">
-                            <td className="p-1 font-medium text-white">{s?.nume} {s?.prenume}</td>
-                            <td className="p-1 text-slate-300">{g?.nume}</td>
-                            <td className="p-1"><Input type="number" step="0.01" label="" className="!py-1" defaultValue={i.nota_thao_quyen || ''} onBlur={e => handleNoteChange(i.id, 'nota_thao_quyen', e.target.value)} /></td>
-                            <td className="p-1"><Input type="number" step="0.01" label="" className="!py-1" defaultValue={i.nota_song_doi || ''} onBlur={e => handleNoteChange(i.id, 'nota_song_doi', e.target.value)} /></td>
-                            <td className="p-1"><Input type="number" step="0.01" label="" className="!py-1" defaultValue={i.nota_tehnica_1 || ''} onBlur={e => handleNoteChange(i.id, 'nota_tehnica_1', e.target.value)} /></td>
-                            <td className="p-1"><Input type="number" step="0.01" label="" className="!py-1" defaultValue={i.nota_tehnica_2 || ''} onBlur={e => handleNoteChange(i.id, 'nota_tehnica_2', e.target.value)} /></td>
-                            <td className={`p-1 text-center font-bold font-mono ${i.media_generala !== null && i.media_generala !== undefined ? (isPassed ? 'text-green-400' : 'text-red-400') : 'text-brand-secondary'}`}>
+                            <td className="p-2 font-medium text-white">{s?.nume} {s?.prenume}</td>
+                            <td className="p-2 text-slate-300">{g?.nume}</td>
+                            <td className={`p-2 text-center font-bold font-mono ${i.media_generala !== null && i.media_generala !== undefined ? (isPassed ? 'text-green-400' : 'text-red-400') : 'text-brand-secondary'}`}>
                                 {i.media_generala?.toFixed(2) || '-'}
                             </td>
-                            <td className="p-1"><Input label="" placeholder="..." className="!py-1" defaultValue={i.observatii || ''} onBlur={e => handleUpdateInscriere(i.id, 'observatii', e.target.value)} /></td>
-                            <td className="p-1 text-right"><Button onClick={() => setInscriereToDelete(i)} variant="danger" size="sm" className="!p-1.5"><TrashIcon className="w-4 h-4" /></Button></td>
+                            <td className="p-2 text-slate-400">{i.observatii || '-'}</td>
+                            <td className="p-2 text-right"><Button onClick={() => setInscriereToDelete(i)} variant="danger" size="sm" className="!p-1.5"><TrashIcon className="w-4 h-4" /></Button></td>
                         </tr>
                     );
                 })}

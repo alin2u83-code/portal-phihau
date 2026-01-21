@@ -240,9 +240,9 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = ({ sesiune, inscrieri, set
             }
             showSuccess("Succes", `Sportivul ${sportiv.nume} a fost înscris și taxa generată.`);
             
-            // Navigare către profilul sportivului
-            onViewSportiv(sportiv);
-            onNavigate('sportivi');
+            // Reset form for next entry
+            setSportivId('');
+            setGradVizatId(null);
 
         } catch(err) {
             showError("Eroare la înscriere", err);
@@ -284,6 +284,23 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = ({ sesiune, inscrieri, set
         setInscriereToDelete(null);
     };
 
+    const ultimiiInscrisi = useMemo(() => {
+        return [...inscrieri]
+            .slice(-5) // Get the last 5
+            .reverse() // Show the most recent first
+            .map(inscriere => {
+                const sportiv = sportivi.find(s => s.id === inscriere.sportiv_id);
+                const grad = grade.find(g => g.id === inscriere.grad_vizat_id);
+                const taxa = grad ? getPretProdus(preturiConfig, 'Taxa Examen', grad.nume, { dataReferinta: sesiune.data })?.suma : 0;
+                return {
+                    id: inscriere.id,
+                    numeComplet: sportiv ? `${sportiv.nume} ${sportiv.prenume}` : 'N/A',
+                    numeGrad: grad?.nume || 'N/A',
+                    taxa: taxa || 0
+                };
+            });
+    }, [inscrieri, sportivi, grade, preturiConfig, sesiune.data]);
+
     return ( <Card> <h3 className="text-2xl font-bold text-white">{locatii.find(l => l.id === sesiune.locatie_id)?.nume} - {new Date(sesiune.data + 'T00:00:00').toLocaleDateString('ro-RO')}</h3><p className="text-slate-400">Comisia: {Array.isArray(sesiune.comisia) ? sesiune.comisia.join(', ') : sesiune.comisia}</p><div className="mt-6 border-t border-slate-700 pt-6"> <h4 className="text-xl font-semibold mb-4 text-white">Participanți Înscriși ({inscrieri.length})</h4>
     <div className="overflow-x-auto mb-6">
         <table className="w-full text-left text-sm">
@@ -321,40 +338,57 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = ({ sesiune, inscrieri, set
         </table>
         {inscrieri.length === 0 && <p className="text-slate-400 italic p-4 text-center">Niciun participant înscris.</p>}
     </div>
-    <Card className="bg-slate-900/50">
-        <h5 className="text-lg font-semibold mb-4 text-white">Înscrie Sportiv Nou</h5>
-        <form onSubmit={handleAddParticipant} className="space-y-4">
-            <Select label="Sportiv" value={sportivId} onChange={e => setSportivId(e.target.value)}><option value="">Selectează...</option>{sportivi.filter(s => s.status === 'Activ' && !inscrieri.some(i => i.sportiv_id === s.id)).map(s => ( <option key={s.id} value={s.id}>{s.nume} {s.prenume}</option> ))}</Select>
-            {sportivData && (<div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700 space-y-4 animate-fade-in-down">
-                <div className="flex flex-col md:flex-row gap-6 items-center">
-                    <div className="w-full md:w-1/2 text-center bg-slate-900/50 p-6 rounded-lg">
-                        <p className="text-xs text-slate-400">Propunere Grad</p>
-                        <p className="text-4xl font-bold text-brand-secondary my-2">{sportivData.gradVizatAutomat?.nume || 'N/A'}</p>
-                        <p className={`text-xs font-semibold ${sportivData.esteEligibil ? 'text-green-400' : 'text-amber-400'}`}>{sportivData.esteEligibil ? '✔ Eligibil' : '✖ Neeligibil'}</p>
-                    </div>
-                    <div className="w-full md:w-1/2 space-y-3">
-                         <div className="flex items-center gap-2">
-                            <Select label="Grad Vizat (Confirmă / Modifică)" value={gradVizatId || ''} onChange={(e) => setGradVizatId(e.target.value)}>
-                                {sortedGrades.map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}
-                            </Select>
-                            {gradVizatId !== sportivData.gradVizatAutomat?.id && <div className="pt-4" title="Se înscrie la un grad diferit de cel propus automat."><ExclamationTriangleIcon className="w-5 h-5 text-amber-400"/></div>}
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card className="lg:col-span-2 bg-slate-900/50">
+            <h5 className="text-lg font-semibold mb-4 text-white">Înscrie Sportiv Nou</h5>
+            <form onSubmit={handleAddParticipant} className="space-y-4">
+                <Select label="Sportiv" value={sportivId} onChange={e => setSportivId(e.target.value)}><option value="">Selectează...</option>{sportivi.filter(s => s.status === 'Activ' && !inscrieri.some(i => i.sportiv_id === s.id)).map(s => ( <option key={s.id} value={s.id}>{s.nume} {s.prenume}</option> ))}</Select>
+                {sportivData && (<div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700 space-y-4 animate-fade-in-down">
+                    <div className="flex flex-col md:flex-row gap-6 items-center">
+                        <div className="w-full md:w-1/2 text-center bg-slate-900/50 p-6 rounded-lg">
+                            <p className="text-xs text-slate-400">Propunere Grad</p>
+                            <p className="text-4xl font-bold text-brand-secondary my-2">{sportivData.gradVizatAutomat?.nume || 'N/A'}</p>
+                            <p className={`text-xs font-semibold ${sportivData.esteEligibil ? 'text-green-400' : 'text-amber-400'}`}>{sportivData.esteEligibil ? '✔ Eligibil' : '✖ Neeligibil'}</p>
                         </div>
-                        <DataField label="Taxă Examen Calculată" value={sportivData.taxa ? `${sportivData.taxa.toFixed(2)} RON` : 'N/A'}/>
+                        <div className="w-full md:w-1/2 space-y-3">
+                             <div className="flex items-center gap-2">
+                                <Select label="Grad Vizat (Confirmă / Modifică)" value={gradVizatId || ''} onChange={(e) => setGradVizatId(e.target.value)}>
+                                    {sortedGrades.map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}
+                                </Select>
+                                {gradVizatId !== sportivData.gradVizatAutomat?.id && <div className="pt-4" title="Se înscrie la un grad diferit de cel propus automat."><ExclamationTriangleIcon className="w-5 h-5 text-amber-400"/></div>}
+                            </div>
+                            <DataField label="Taxă Examen Calculată" value={sportivData.taxa ? `${sportivData.taxa.toFixed(2)} RON` : 'N/A'}/>
+                        </div>
                     </div>
-                </div>
-                <div className="hidden md:block pt-4 border-t border-slate-700/50 mt-4">
-                    <h4 className="text-xs uppercase font-bold text-slate-400 mb-2">Verificare Eligibilitate</h4>
-                    <div className="text-sm space-y-1">
-                        <div className="flex justify-between items-center"><span className="text-slate-300">Cerință vârstă minimă:</span> <span className="font-mono">{sportivData.gradVizatAutomat?.varsta_minima || 'N/A'} ani</span></div>
-                        <div className="flex justify-between items-center"><span className="text-slate-300">Vârstă sportiv la examen:</span> <span className="font-mono">{sportivData.varstaLaExamen} ani</span></div>
+                    <div className="hidden md:block pt-4 border-t border-slate-700/50 mt-4">
+                        <h4 className="text-xs uppercase font-bold text-slate-400 mb-2">Verificare Eligibilitate</h4>
+                        <div className="text-sm space-y-1">
+                            <div className="flex justify-between items-center"><span className="text-slate-300">Cerință vârstă minimă:</span> <span className="font-mono">{sportivData.gradVizatAutomat?.varsta_minima || 'N/A'} ani</span></div>
+                            <div className="flex justify-between items-center"><span className="text-slate-300">Vârstă sportiv la examen:</span> <span className="font-mono">{sportivData.varstaLaExamen} ani</span></div>
+                        </div>
                     </div>
-                </div>
-                <div className="flex justify-center md:justify-end pt-4 mt-4 border-t border-slate-700">
-                    <Button type="submit" variant="info" isLoading={loading} disabled={!gradVizatId} className="w-full md:w-auto">Înscrie și Vezi Profil</Button>
-                </div>
-            </div>)}
-        </form>
-    </Card>
+                    <div className="flex justify-center md:justify-end pt-4 mt-4 border-t border-slate-700">
+                        <Button type="submit" variant="info" isLoading={loading} disabled={!gradVizatId} className="w-full md:w-auto">Înscrie Următorul Sportiv</Button>
+                    </div>
+                </div>)}
+            </form>
+        </Card>
+        <Card className="lg:col-span-1 bg-slate-900/50">
+            <h5 className="text-lg font-semibold mb-4 text-white">Ultimii Înscriși</h5>
+            <div className="space-y-2 text-xs">
+                {ultimiiInscrisi.map((item, index) => (
+                    <div key={item.id} className="bg-slate-800/50 p-2 rounded flex justify-between items-center">
+                        <div>
+                            <span className="font-bold text-white">{index + 1}. {item.numeComplet}</span>
+                            <span className="text-slate-400 ml-2">({item.numeGrad})</span>
+                        </div>
+                        <span className="font-semibold text-brand-secondary">{item.taxa.toFixed(2)} lei</span>
+                    </div>
+                ))}
+                {ultimiiInscrisi.length === 0 && <p className="text-slate-500 italic text-center">Așteptare înscrieri...</p>}
+            </div>
+        </Card>
+    </div>
 </div><ConfirmDeleteModal isOpen={!!inscriereToDelete} onClose={() => setInscriereToDelete(null)} onConfirm={() => { if(inscriereToDelete) confirmDeleteInscriere(inscriereToDelete.id) }} tableName="înscrieri" isLoading={false} /> </Card> );
 };
 

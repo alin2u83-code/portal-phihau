@@ -158,14 +158,17 @@ export const FinalizeExam: React.FC<FinalizeExamProps> = ({ sesiune, inscrieriSe
                                             {p.media?.toFixed(2) ?? 'N/A'}
                                         </td>
                                         <td className="p-2 text-center">
-                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${p.taxaAchitata ? 'bg-green-600/30 text-green-400' : 'bg-red-600/30 text-red-400'}`}>
-                                                {p.taxaAchitata ? 'Achitată' : 'Neachitată'}
-                                            </span>
+                                            <div className="flex justify-center items-center">
+                                                <span
+                                                    className={`h-3 w-3 rounded-full ${p.taxaAchitata ? 'bg-green-500' : 'bg-red-500'}`}
+                                                    title={p.taxaAchitata ? 'Taxa a fost achitată' : 'Taxa este neachitată'}
+                                                ></span>
+                                            </div>
                                         </td>
                                         <td className="p-2 w-48">
                                             <Select label="" value={p.rezultatCurent ?? 'Neprezentat'}
                                                 onChange={e => handleStatusChange(p.inscriere_id, e.target.value as any)}
-                                                disabled={!p.taxaAchitata || isLoading}
+                                                disabled={isLoading}
                                                 className={isLoading ? 'animate-pulse' : ''}
                                             >
                                                 <option value="Neprezentat">Așteptare</option>

@@ -176,9 +176,13 @@ CREATE POLICY "Admins can manage exams" ON public.sesiuni_examene
     FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
 
 DROP POLICY IF EXISTS "Authenticated users can see relevant exams" ON public.sesiuni_examene;
-CREATE POLICY "Authenticated users can see relevant exams" ON public.sesiuni_examene
+DROP POLICY IF EXISTS "Sportivii pot vedea examenele viitoare si istoricul propriu" ON public.sesiuni_examene;
+CREATE POLICY "Sportivii pot vedea examenele viitoare si istoricul propriu" ON public.sesiuni_examene
     FOR SELECT USING (
-        (data >= now()::date) OR
+        -- Condiția 1: Permite vizualizarea tuturor examenelor viitoare
+        (data >= now()::date) 
+        OR 
+        -- Condiția 2: Permite vizualizarea examenelor trecute la care sportivul a participat
         (id IN (
             SELECT sesiune_id 
             FROM public.inscrieri_examene

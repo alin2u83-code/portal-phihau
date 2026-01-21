@@ -34,7 +34,10 @@ export const FinalizeExam: React.FC<FinalizeExamProps> = ({ sesiune, inscrieriSe
     const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
 
     useEffect(() => {
-        const enhancedParticipants = inscrieriSesiune.map(inscriere => {
+        // Asigură că 'inscrieriSesiune' este un array înainte de a folosi .map()
+        const validInscrieri = Array.isArray(inscrieriSesiune) ? inscrieriSesiune : [];
+        
+        const enhancedParticipants = validInscrieri.map(inscriere => {
             const sportiv = sportivi.find(s => s.id === inscriere.sportiv_id);
             const grad = grade.find(g => g.id === inscriere.grad_vizat_id);
             const taxa = plati.find(p => 
@@ -56,6 +59,7 @@ export const FinalizeExam: React.FC<FinalizeExamProps> = ({ sesiune, inscrieriSe
                 taxaAchitata: taxa?.status === 'Achitat',
             };
         }).sort((a,b) => a.numeComplet.localeCompare(b.numeComplet));
+        
         setParticipants(enhancedParticipants);
     }, [inscrieriSesiune, sportivi, grade, plati, sesiune.data]);
 
@@ -74,30 +78,35 @@ export const FinalizeExam: React.FC<FinalizeExamProps> = ({ sesiune, inscrieriSe
         setParticipants(prev => prev.map(p => p.inscriere_id === inscriere_id ? {...p, rezultatCurent: newStatus} : p));
         
         try {
+            // 1. Update inscrieri_examene
             const { error: updateInscriereError } = await supabase.from('inscrieri_examene').update({ rezultat: newStatus }).eq('id', inscriere_id);
             if(updateInscriereError) throw updateInscriereError;
 
             const wasAdmis = oldStatus === 'Admis';
             const isAdmis = newStatus === 'Admis';
 
-            if(isAdmis && !wasAdmis) { // Promote
+            if(isAdmis && !wasAdmis) { // Logic for Promotion
+                // 2. Update sportivi
                 const { error: sportivError } = await supabase.from('sportivi').update({ grad_actual_id: participant.gradSustinutId }).eq('id', participant.sportiv_id);
                 if(sportivError) throw sportivError;
+                // 3. Insert istoric_grade
                 const { error: istoricError } = await supabase.from('istoric_grade').insert({ sportiv_id: participant.sportiv_id, grad_id: participant.gradSustinutId, data_obtinere: sesiune.data, sesiune_examen_id: sesiune.id });
                 if(istoricError) throw istoricError;
-            } else if (wasAdmis && !isAdmis) { // Revert promotion
+            } else if (wasAdmis && !isAdmis) { // Logic for Reverting Promotion
                 const { error: sportivError } = await supabase.from('sportivi').update({ grad_actual_id: participant.gradAnteriorId }).eq('id', participant.sportiv_id);
                 if(sportivError) throw sportivError;
                 const { error: istoricError } = await supabase.from('istoric_grade').delete().match({ sportiv_id: participant.sportiv_id, sesiune_examen_id: sesiune.id });
                 if(istoricError) throw istoricError;
             }
 
+            // Update local state
             setInscrieri(prev => prev.map(i => i.id === inscriere_id ? {...i, rezultat: newStatus} : i));
             if (isAdmis || wasAdmis) {
                 const newGradId = isAdmis ? participant.gradSustinutId : participant.gradAnteriorId;
                 setSportivi(prev => prev.map(s => s.id === participant.sportiv_id ? {...s, grad_actual_id: newGradId} : s));
             }
 
+            // Display success message
             if (isAdmis && !wasAdmis) {
                 showSuccess("Promovare Automată", `Gradul sportivului ${participant.numeComplet} a fost actualizat în profil!`);
             } else if (wasAdmis && !isAdmis) {
@@ -107,6 +116,7 @@ export const FinalizeExam: React.FC<FinalizeExamProps> = ({ sesiune, inscrieriSe
             }
 
         } catch (err: any) {
+            // Revert UI on error and show specific message for RLS
             setParticipants(prev => prev.map(p => p.inscriere_id === inscriere_id ? {...p, rezultatCurent: oldStatus} : p));
             if (err.message.includes('violates row-level security policy')) {
                 showError("Permisiune Refuzată (RLS)", "Nu aveți permisiunile necesare pentru a modifica gradul acestui sportiv. Contactați un administrator.");
@@ -137,7 +147,7 @@ export const FinalizeExam: React.FC<FinalizeExamProps> = ({ sesiune, inscrieriSe
                             </tr>
                         </thead>
                          <tbody className="divide-y divide-slate-700">
-                             {participants.map(p => {
+                             {Array.isArray(participants) && participants.map(p => {
                                  const rowClass = p.rezultatCurent === 'Admis' ? 'bg-green-900/40' : p.rezultatCurent === 'Respins' ? 'bg-red-900/40' : '';
                                  const isLoading = loadingStates[p.inscriere_id];
                                  return (

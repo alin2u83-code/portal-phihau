@@ -205,17 +205,31 @@ CREATE POLICY "Users can see their own results" ON public.rezultate
 -- Tabel: anunturi_prezenta
 -- -----------------------------------------------------------------
 ALTER TABLE public.anunturi_prezenta ENABLE ROW LEVEL SECURITY;
+
+-- Politica 1: Adminii și instructorii au acces total (CRUD) la toate anunțurile.
+-- Această politică le permite să vadă, adauge, modifice și șteargă orice anunț.
 DROP POLICY IF EXISTS "Admins can manage all attendance announcements" ON public.anunturi_prezenta;
 CREATE POLICY "Admins can manage all attendance announcements" ON public.anunturi_prezenta
-    FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+    FOR ALL
+    USING (public.is_admin_or_instructor())
+    WITH CHECK (public.is_admin_or_instructor());
 
+-- Politica 2: Sportivii (utilizatorii non-admin) își pot gestiona propriile anunțuri.
+-- Le permite să vadă, creeze, modifice și șteargă DOAR propriile anunțuri.
+-- Clauza `NOT public.is_admin_or_instructor()` previne aplicarea ambiguă a regulilor pentru utilizatorii cu roluri multiple.
 DROP POLICY IF EXISTS "Users can see their own announcements" ON public.anunturi_prezenta;
-CREATE POLICY "Users can see their own announcements" ON public.anunturi_prezenta
-    FOR SELECT USING (sportiv_id IN (SELECT id FROM public.sportivi WHERE user_id = auth.uid()));
-
 DROP POLICY IF EXISTS "Users can create and update their own announcements" ON public.anunturi_prezenta;
-CREATE POLICY "Users can create and update their own announcements" ON public.anunturi_prezenta
-    FOR INSERT, UPDATE WITH CHECK (sportiv_id IN (SELECT id FROM public.sportivi WHERE user_id = auth.uid()));
+DROP POLICY IF EXISTS "Users can manage their own announcements" ON public.anunturi_prezenta;
+CREATE POLICY "Users can manage their own announcements" ON public.anunturi_prezenta
+    FOR ALL
+    USING (
+        (NOT public.is_admin_or_instructor()) AND
+        (sportiv_id IN (SELECT id FROM public.sportivi WHERE user_id = auth.uid()))
+    )
+    WITH CHECK (
+        (NOT public.is_admin_or_instructor()) AND
+        (sportiv_id IN (SELECT id FROM public.sportivi WHERE user_id = auth.uid()))
+    );
     
 -- -----------------------------------------------------------------
 -- Tabel: sportivi_roluri

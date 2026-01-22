@@ -191,6 +191,7 @@ const DetaliiSesiuneSimplificat: React.FC<{
                     <ManagementInscrieri
                         sesiune={sesiune}
                         sportivi={sportivi}
+                        setSportivi={setSportivi}
                         allInscrieri={allInscrieri}
                         grade={grade}
                         setInscrieri={setInscrieri}

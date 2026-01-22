@@ -3,6 +3,7 @@ import { View } from '../types';
 import { Card, Button } from './ui';
 // FIX: Removed unused icon imports `AcademicCapIcon` and `CogIcon`. `AcademicCapIcon` was causing an error as it's not exported.
 import { UsersIcon, BanknotesIcon, TrophyIcon, ClipboardDocumentListIcon } from './icons';
+import { NotificationPermissionWidget } from './NotificationPermissionWidget';
 
 interface DashboardProps {
   onNavigate: (view: View) => void;
@@ -73,6 +74,9 @@ const NavCard: React.FC<{ item: NavItem, onClick: () => void }> = ({ item, onCli
 export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, showPriceWarning }) => {
   return (
     <div className="max-w-7xl mx-auto">
+      <div className="mb-6">
+        <NotificationPermissionWidget />
+      </div>
       {showPriceWarning && (
         <Card className="mb-8 bg-amber-900/50 border-l-4 border-amber-400">
             <div className="flex items-center justify-between flex-wrap gap-4">

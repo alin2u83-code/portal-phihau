@@ -6,6 +6,7 @@ import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { getPretProdus } from '../utils/pricing';
+import { QuickAddSportivExamenModal } from './QuickAddSportivExamenModal';
 
 // Helper functions
 const getAgeOnDate = (birthDateStr: string, onDateStr: string): number => {
@@ -24,6 +25,7 @@ const getGrad = (gradId: string | null, allGrades: Grad[]): Grad | null => gradI
 interface ManagementInscrieriProps {
     sesiune: SesiuneExamen;
     sportivi: Sportiv[];
+    setSportivi: React.Dispatch<React.SetStateAction<Sportiv[]>>;
     allInscrieri: InscriereExamen[];
     grade: Grad[];
     setInscrieri: React.Dispatch<React.SetStateAction<InscriereExamen[]>>;
@@ -32,11 +34,12 @@ interface ManagementInscrieriProps {
     preturiConfig: PretConfig[];
 }
 
-export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiune, sportivi, allInscrieri, grade, setInscrieri, plati, setPlati, preturiConfig }) => {
+export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiune, sportivi, setSportivi, allInscrieri, grade, setInscrieri, plati, setPlati, preturiConfig }) => {
     const { showError, showSuccess } = useError();
     const [searchTerm, setSearchTerm] = useState('');
     const [isDropdownVisible, setIsDropdownVisible] = useState(false);
     const searchContainerRef = useRef<HTMLDivElement>(null);
+    const [isQuickAddModalOpen, setIsQuickAddModalOpen] = useState(false);
 
     // State for modal
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -119,6 +122,15 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         setSelectedSportiv(null);
         setInscriereToEdit(null); // Reset edit state
         setGradSustinutId('');
+    };
+    
+    const handleQuickAddSuccess = (newSportiv: Sportiv) => {
+        setSportivi(prev => [...prev, newSportiv]);
+        setIsQuickAddModalOpen(false);
+        // Use a small timeout to allow state to update before opening the next modal
+        setTimeout(() => {
+            handleOpenModal(newSportiv);
+        }, 100);
     };
 
     const handleSaveInscriere = async () => {
@@ -304,40 +316,45 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         <div className="space-y-6">
              <Card>
                 <h3 className="text-lg font-bold text-white mb-2">Adaugă Participant</h3>
-                <div className="relative" ref={searchContainerRef}>
-                    <Input
-                        label=""
-                        placeholder="Caută sportiv activ..."
-                        value={searchTerm}
-                        onChange={e => {
-                            setSearchTerm(e.target.value);
-                            setIsDropdownVisible(e.target.value.length > 0);
-                        }}
-                        onFocus={() => {
-                            if (searchTerm.length > 0) setIsDropdownVisible(true);
-                        }}
-                    />
-                    {isDropdownVisible && sportiviDisponibili.length > 0 && (
-                        <div className="absolute z-10 w-full mt-1 bg-slate-800 border border-slate-600 rounded-md shadow-lg max-h-60 overflow-y-auto">
-                            {sportiviDisponibili.map(sportiv => (
-                                <div
-                                    key={sportiv.id}
-                                    className="p-2 hover:bg-brand-secondary/20 cursor-pointer border-b border-slate-700 last:border-b-0"
-                                    onMouseDown={() => {
-                                        handleOpenModal(sportiv);
-                                        setSearchTerm('');
-                                        setIsDropdownVisible(false);
-                                    }}
-                                >
-                                    <p className="font-medium">{sportiv.nume} {sportiv.prenume}</p>
-                                    <p className="text-xs text-slate-400">{getGrad(sportiv.grad_actual_id, grade)?.nume || 'Începător'}</p>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                     {isDropdownVisible && searchTerm.length > 0 && sportiviDisponibili.length === 0 && (
-                        <div className="absolute z-10 w-full mt-1 bg-slate-800 border border-slate-600 rounded-md shadow-lg p-3 text-sm text-slate-400 italic">Niciun sportiv disponibil găsit.</div>
-                    )}
+                <div className="flex items-end gap-2">
+                    <div className="relative flex-grow" ref={searchContainerRef}>
+                        <Input
+                            label=""
+                            placeholder="Caută sportiv activ..."
+                            value={searchTerm}
+                            onChange={e => {
+                                setSearchTerm(e.target.value);
+                                setIsDropdownVisible(e.target.value.length > 0);
+                            }}
+                            onFocus={() => {
+                                if (searchTerm.length > 0) setIsDropdownVisible(true);
+                            }}
+                        />
+                        {isDropdownVisible && sportiviDisponibili.length > 0 && (
+                            <div className="absolute z-10 w-full mt-1 bg-slate-800 border border-slate-600 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                                {sportiviDisponibili.map(sportiv => (
+                                    <div
+                                        key={sportiv.id}
+                                        className="p-2 hover:bg-brand-secondary/20 cursor-pointer border-b border-slate-700 last:border-b-0"
+                                        onMouseDown={() => {
+                                            handleOpenModal(sportiv);
+                                            setSearchTerm('');
+                                            setIsDropdownVisible(false);
+                                        }}
+                                    >
+                                        <p className="font-medium">{sportiv.nume} {sportiv.prenume}</p>
+                                        <p className="text-xs text-slate-400">{getGrad(sportiv.grad_actual_id, grade)?.nume || 'Începător'}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        {isDropdownVisible && searchTerm.length > 0 && sportiviDisponibili.length === 0 && (
+                            <div className="absolute z-10 w-full mt-1 bg-slate-800 border border-slate-600 rounded-md shadow-lg p-3 text-sm text-slate-400 italic">Niciun sportiv disponibil găsit.</div>
+                        )}
+                    </div>
+                    <Button variant="info" onClick={() => setIsQuickAddModalOpen(true)} title="Adaugă un sportiv nou">
+                        <PlusIcon className="w-5 h-5 sm:mr-1"/> <span className="hidden sm:inline">Sportiv Nou</span>
+                    </Button>
                 </div>
             </Card>
 
@@ -417,6 +434,13 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 title="Confirmare Retragere"
                 customMessage={deleteMessage}
                 confirmButtonText="Da, retrage"
+            />
+
+            <QuickAddSportivExamenModal
+                isOpen={isQuickAddModalOpen}
+                onClose={() => setIsQuickAddModalOpen(false)}
+                grades={grade}
+                onSaveSuccess={handleQuickAddSuccess}
             />
         </div>
     );

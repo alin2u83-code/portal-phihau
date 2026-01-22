@@ -50,6 +50,46 @@
         }
       }
     </script>
+    <style>
+      @media print {
+        body * {
+          visibility: hidden;
+        }
+        #printable-area, #printable-area * {
+          visibility: visible;
+        }
+        #printable-area {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: auto;
+          padding: 1rem;
+          color: black !important;
+          background-color: white !important;
+        }
+        .no-print {
+          display: none !important;
+        }
+        #printable-area table {
+          width: 100%;
+          border-collapse: collapse;
+          -webkit-print-color-adjust: exact; 
+          print-color-adjust: exact;
+        }
+        #printable-area th, #printable-area td {
+          border: 1px solid #ddd;
+          padding: 8px;
+          font-size: 10pt;
+        }
+        #printable-area th {
+          background-color: #f2f2f2 !important;
+        }
+        #printable-area h1, #printable-area h2, #printable-area h3, #printable-area p {
+            color: black !important;
+        }
+      }
+    </style>
   <script type="importmap">
 {
   "imports": {

@@ -4,7 +4,7 @@ import {
   ClipboardList, Landmark, Settings, ShieldCheck, LayoutDashboard, UserCircle,
   LogOut, Menu, Wallet, BarChart3, Archive, FileDown, ChevronDown, X,
   ClipboardCheck, MessageCircleQuestion, Save, AlertTriangle, CheckCircle,
-  ChevronLeft, ChevronRight
+  ChevronLeft, ChevronRight, Printer
 } from 'lucide-react';
 
 export const PlusIcon = Plus;
@@ -35,5 +35,7 @@ export const SaveIcon = Save;
 export const CheckCircleIcon = CheckCircle;
 export const ChevronLeftIcon = ChevronLeft;
 export const ChevronRightIcon = ChevronRight;
+// FIX: Add PrinterIcon to fix import error in RapoarteExamen.tsx
+export const PrinterIcon = Printer;
 // FIX: Export AlertTriangle as ExclamationTriangleIcon to fix import error in FinancialDashboard.
 export const ExclamationTriangleIcon = AlertTriangle;

@@ -62,6 +62,15 @@ export interface InscriereExamen {
     grade: Grad;
 }
 
+export interface NoteExamen {
+    id: string;
+    inscriere_id: string;
+    nota_tehnica: number | null;
+    nota_forta: number | null;
+    nota_viteza: number | null;
+    nota_atitudine: number | null;
+}
+
 export interface IstoricGrade {
     id: string;
     sportiv_id: string;
@@ -202,7 +211,7 @@ export interface AnuntGeneral {
 
 export type User = Sportiv;
 
-export type View = 'dashboard' | 'sportivi' | 'examene' | 'grade' | 'prezenta' | 'grupe' | 'raport-prezenta' | 'stagii' | 'competitii' | 'plati-scadente' | 'jurnal-incasari' | 'raport-financiar' | 'configurare-preturi' | 'tipuri-abonament' | 'familii' | 'user-management' | 'editare-profil-personal' | 'evenimentele-mele' | 'data-maintenance' | 'activitati' | 'my-portal' | 'setari-club' | 'data-inspector' | 'profil-sportiv' | 'reduceri' | 'notificari' | 'taxe-anuale' | 'nomenclatoare' | 'financial-dashboard' | 'istoric-examene' | 'facturi-personale' | 'finalizare-examen' | 'calendar';
+export type View = 'dashboard' | 'sportivi' | 'examene' | 'grade' | 'prezenta' | 'grupe' | 'raport-prezenta' | 'stagii' | 'competitii' | 'plati-scadente' | 'jurnal-incasari' | 'raport-financiar' | 'configurare-preturi' | 'tipuri-abonament' | 'familii' | 'user-management' | 'editare-profil-personal' | 'evenimentele-mele' | 'data-maintenance' | 'activitati' | 'my-portal' | 'setari-club' | 'data-inspector' | 'profil-sportiv' | 'reduceri' | 'notificari' | 'taxe-anuale' | 'nomenclatoare' | 'financial-dashboard' | 'istoric-examene' | 'facturi-personale' | 'finalizare-examen' | 'calendar' | 'rapoarte-examen';
 
 // FIX: Add missing type aliases. This seems to be a refactoring artifact.
 export type Participare = InscriereExamen;

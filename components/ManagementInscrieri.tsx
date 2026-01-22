@@ -91,6 +91,8 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
     }, [sportivi, inscrisiInSesiuneIds, searchTerm]);
 
     const sortedGrades = useMemo(() => [...grade].sort((a,b) => a.ordine - b.ordine), [grade]);
+    
+    const isAlreadyEnrolled = selectedSportiv && inscrisiInSesiuneIds.has(selectedSportiv.id);
 
     const handleOpenModal = (sportiv: Sportiv) => {
         setSelectedSportiv(sportiv);
@@ -164,6 +166,8 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                         newPlata = pData as Plata;
                         facturaMessage = ' și factura a fost generată';
                     }
+                } else {
+                    facturaMessage = ', dar ATENȚIE: nu s-a găsit o configurație de preț pentru a genera factura';
                 }
             }
             
@@ -294,13 +298,20 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                     title={`Înscriere: ${selectedSportiv.nume} ${selectedSportiv.prenume}`}
                 >
                     <div className="space-y-4">
-                        <Select label="Selectează gradul vizat pentru examen" value={gradSustinutId} onChange={(e) => setGradSustinutId(e.target.value)} required>
-                            <option value="">Alege un grad...</option>
-                            {sortedGrades.map(g => (<option key={g.id} value={g.id}>{g.nume}</option>))}
-                        </Select>
+                        {isAlreadyEnrolled ? (
+                            <div className="text-center p-4 bg-amber-900/50 border border-amber-500 rounded-md">
+                                <p className="font-bold text-amber-300">Sportiv Deja Înscris</p>
+                                <p className="text-sm text-amber-200 mt-1">Acest sportiv este deja pe listă!</p>
+                            </div>
+                        ) : (
+                            <Select label="Selectează gradul vizat pentru examen" value={gradSustinutId} onChange={(e) => setGradSustinutId(e.target.value)} required>
+                                <option value="">Alege un grad...</option>
+                                {sortedGrades.map(g => (<option key={g.id} value={g.id}>{g.nume}</option>))}
+                            </Select>
+                        )}
                         <div className="flex justify-end pt-4 gap-2 border-t border-slate-700">
                             <Button variant="secondary" onClick={handleCloseModal} disabled={isSaving}>Anulează</Button>
-                            <Button variant="primary" onClick={handleSaveInscriere} isLoading={isSaving} disabled={!gradSustinutId}>Salvează</Button>
+                            <Button variant="primary" onClick={handleSaveInscriere} isLoading={isSaving} disabled={!gradSustinutId || isAlreadyEnrolled}>Salvează</Button>
                         </div>
                     </div>
                 </Modal>

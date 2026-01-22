@@ -68,6 +68,17 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             .sort((a,b) => (a.sportivi?.nume || '').localeCompare(b.sportivi?.nume || ''));
     }, [allInscrieri, sesiune.id]);
     
+    const participantNameCounts = useMemo(() => {
+        const counts = new Map<string, number>();
+        participantiInscrisi.forEach(i => {
+            if (i.sportivi) {
+                const fullName = `${i.sportivi.nume} ${i.sportivi.prenume}`;
+                counts.set(fullName, (counts.get(fullName) || 0) + 1);
+            }
+        });
+        return counts;
+    }, [participantiInscrisi]);
+
     const sportiviDisponibili = useMemo(() => {
         if (searchTerm.length === 0) return [];
         return sportivi
@@ -251,15 +262,27 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             <Card>
                 <h3 className="text-lg font-bold text-white mb-2">Participanți Înscriși ({participantiInscrisi.length})</h3>
                 <div className="max-h-80 overflow-y-auto pr-2 space-y-2">
-                    {participantiInscrisi.map(inscriere => (
-                        <div key={inscriere.id} className="flex justify-between items-center bg-slate-700/50 p-2 rounded-md">
-                            <div>
-                                <p className="font-medium">{inscriere.sportivi.nume} {inscriere.sportivi.prenume}</p>
-                                <p className="text-xs font-semibold text-brand-secondary">{inscriere.grade.nume}</p>
+                    {participantiInscrisi.map(inscriere => {
+                        const fullName = `${inscriere.sportivi.nume} ${inscriere.sportivi.prenume}`;
+                        const isDuplicate = (participantNameCounts.get(fullName) || 0) > 1;
+
+                        return (
+                            <div key={inscriere.id} className="flex justify-between items-center bg-slate-700/50 p-2 rounded-md">
+                                <div>
+                                    <p className="font-medium flex items-center gap-2">
+                                        {inscriere.sportivi.nume} {inscriere.sportivi.prenume}
+                                        {isDuplicate && (
+                                            <span className="px-2 py-0.5 text-[10px] font-bold text-red-400 bg-red-900/50 border border-red-500/50 rounded-full">
+                                                DUPLICAT
+                                            </span>
+                                        )}
+                                    </p>
+                                    <p className="text-xs font-semibold text-brand-secondary">{inscriere.grade.nume}</p>
+                                </div>
+                                <Button size="sm" variant='danger' onClick={() => setInscriereToDelete(inscriere)} title="Retrage înscriere"><TrashIcon className="w-4 h-4" /></Button>
                             </div>
-                            <Button size="sm" variant='danger' onClick={() => setInscriereToDelete(inscriere)} title="Retrage înscriere"><TrashIcon className="w-4 h-4" /></Button>
-                        </div>
-                    ))}
+                        );
+                    })}
                     {participantiInscrisi.length === 0 && <p className="p-4 text-center text-slate-500 italic">Niciun sportiv înscris la această sesiune.</p>}
                 </div>
             </Card>

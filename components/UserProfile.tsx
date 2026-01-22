@@ -257,11 +257,33 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                 />
             </Card>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card className="transition-all duration-200 ease-in-out hover:scale-[1.02]"><h3 className="text-lg font-bold text-white mb-2">Date Personale</h3><div className="space-y-2 text-sm"><DataField label="Vârstă" value={`${getAge(sportiv.data_nasterii)} ani`} /><DataField label="Grupă" value={grupe.find(g => g.id === sportiv.grupa_id)?.denumire} /><DataField label="Status" value={sportiv.status} /></div></Card>
-                <Card className="transition-all duration-200 ease-in-out hover:scale-[1.02]"><h3 className="text-lg font-bold text-white mb-2">Progres Grad</h3><div className="space-y-2 text-sm"><DataField label="Grad Actual" value={currentGrad?.nume || 'Începător'} /><DataField label="Următorul Grad" value={eligibility.nextGrad?.nume || 'Maxim'} /><p className={`text-xs mt-1 ${eligibility.eligible ? 'text-green-400' : 'text-yellow-400'}`}>{eligibility.message}</p></div></Card>
-                <Card className="transition-all duration-200 ease-in-out hover:scale-[1.02]"><h3 className="text-lg font-bold text-white mb-2">Activitate & Cont</h3><div className="space-y-2 text-sm"><DataField label="Prezențe lună curentă" value={`${antrenamente.filter(a => new Date(a.data).getMonth() === new Date().getMonth() && a.sportivi_prezenti_ids.includes(sportiv.id)).length} antrenamente`} /><DataField label="Cont de acces" value={sportiv.user_id ? "Activ" : "Inexistent"}/></div></Card>
-            </div>
+            <Card>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <h3 className="text-lg font-bold text-white mb-2">Date Personale</h3>
+                        <div className="space-y-2 text-sm">
+                            <DataField label="Vârstă" value={`${getAge(sportiv.data_nasterii)} ani`} />
+                            <DataField label="Grupă" value={grupe.find(g => g.id === sportiv.grupa_id)?.denumire} />
+                            <DataField label="Status" value={sportiv.status} />
+                        </div>
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-bold text-white mb-2">Progres Grad</h3>
+                        <div className="space-y-2 text-sm">
+                            <DataField label="Grad Actual" value={currentGrad?.nume || 'Începător'} />
+                            <DataField label="Următorul Grad" value={eligibility.nextGrad?.nume || 'Maxim'} />
+                            <p className={`text-xs mt-1 ${eligibility.eligible ? 'text-green-400' : 'text-yellow-400'}`}>{eligibility.message}</p>
+                        </div>
+                    </div>
+                     <div>
+                        <h3 className="text-lg font-bold text-white mb-2">Activitate & Cont</h3>
+                        <div className="space-y-2 text-sm">
+                            <DataField label="Prezențe lună curentă" value={`${antrenamente.filter(a => new Date(a.data).getMonth() === new Date().getMonth() && a.sportivi_prezenti_ids.includes(sportiv.id)).length} antrenamente`} />
+                            <DataField label="Cont de acces" value={sportiv.user_id ? "Activ" : "Inexistent"}/>
+                        </div>
+                    </div>
+                </div>
+            </Card>
             
             {isAdmin && (
             <Card>

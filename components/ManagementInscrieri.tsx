@@ -1,9 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { SesiuneExamen, Sportiv, InscriereExamen, Grad } from '../types';
-import { Button, Input, Modal, Select } from './ui';
-import { CheckIcon } from './icons';
+import { Button, Input, Modal, Select, Card } from './ui';
+import { TrashIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 // Helper functions
 const getAgeOnDate = (birthDateStr: string, onDateStr: string): number => {
@@ -31,50 +32,62 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
     const { showError, showSuccess } = useError();
     const [searchTerm, setSearchTerm] = useState('');
 
+    // State for modal
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [sportivPentruInscriere, setSportivPentruInscriere] = useState<Sportiv | null>(null);
+    const [selectedSportiv, setSelectedSportiv] = useState<Sportiv | null>(null);
     const [gradSustinutId, setGradSustinutId] = useState<string>('');
     const [isSaving, setIsSaving] = useState(false);
+    
+    // State for deletion confirmation
+    const [inscriereToDelete, setInscriereToDelete] = useState<InscriereExamen | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const inscrisiInSesiuneIds = useMemo(() => {
         return new Set(allInscrieri.filter(i => i.sesiune_id === sesiune.id).map(i => i.sportiv_id));
     }, [allInscrieri, sesiune.id]);
     
-    const sortedGrades = useMemo(() => [...grade].sort((a,b) => a.ordine - b.ordine), [grade]);
-
-    const filteredSportivi = useMemo(() => {
+    const participantiInscrisi = useMemo(() => {
+        return allInscrieri
+            .filter(i => i.sesiune_id === sesiune.id)
+            .sort((a,b) => (a.sportivi?.nume || '').localeCompare(b.sportivi?.nume || ''));
+    }, [allInscrieri, sesiune.id]);
+    
+    const sportiviDisponibili = useMemo(() => {
         return sportivi
             .filter(s => 
                 s.status === 'Activ' && 
+                !inscrisiInSesiuneIds.has(s.id) &&
                 `${s.nume} ${s.prenume}`.toLowerCase().includes(searchTerm.toLowerCase())
             )
             .sort((a, b) => a.nume.localeCompare(b.nume));
-    }, [sportivi, searchTerm]);
+    }, [sportivi, inscrisiInSesiuneIds, searchTerm]);
+
+    const sortedGrades = useMemo(() => [...grade].sort((a,b) => a.ordine - b.ordine), [grade]);
 
     const handleOpenModal = (sportiv: Sportiv) => {
-        setSportivPentruInscriere(sportiv);
+        setSelectedSportiv(sportiv);
         setIsModalOpen(true);
     };
 
     const handleCloseModal = () => {
         setIsModalOpen(false);
-        setSportivPentruInscriere(null);
+        setSelectedSportiv(null);
         setGradSustinutId('');
     };
 
     const handleSaveInscriere = async () => {
-        if (!sportivPentruInscriere || !gradSustinutId) {
-            showError("Date lipsă", "Vă rugăm selectați un grad pentru care sportivul va susține examenul.");
+        if (!selectedSportiv || !gradSustinutId) {
+            showError("Date lipsă", "Vă rugăm selectați un grad.");
             return;
         }
 
         setIsSaving(true);
         try {
-            const varstaLaExamen = getAgeOnDate(sportivPentruInscriere.data_nasterii, sesiune.data);
+            const varstaLaExamen = getAgeOnDate(selectedSportiv.data_nasterii, sesiune.data);
             const newInscriere = { 
-                sportiv_id: sportivPentruInscriere.id, 
+                sportiv_id: selectedSportiv.id, 
                 sesiune_id: sesiune.id, 
-                grad_actual_id: sportivPentruInscriere.grad_actual_id || null,
+                grad_actual_id: selectedSportiv.grad_actual_id || null,
                 grad_vizat_id: gradSustinutId,
                 varsta_la_examen: varstaLaExamen,
                 rezultat: 'Neprezentat' as const
@@ -89,7 +102,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             if (iError) throw iError;
             
             setInscrieri(prev => [...prev, iData as InscriereExamen]);
-            showSuccess("Succes", `${sportivPentruInscriere.nume} a fost înscris.`);
+            showSuccess("Succes", `${selectedSportiv.nume} a fost înscris.`);
             handleCloseModal();
 
         } catch (err: any) {
@@ -99,77 +112,109 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         }
     };
 
+    const handleWithdraw = async () => {
+        if (!inscriereToDelete) return;
+        setIsDeleting(true);
+        try {
+            const { error } = await supabase.from('inscrieri_examene').delete().eq('id', inscriereToDelete.id);
+            if (error) throw error;
+
+            setInscrieri(prev => prev.filter(i => i.id !== inscriereToDelete.id));
+            showSuccess("Succes", "Înscrierea a fost retrasă.");
+        } catch (err: any) {
+            showError("Eroare la Retragere", err.message);
+        } finally {
+            setIsDeleting(false);
+            setInscriereToDelete(null);
+        }
+    };
+
     return (
-        <div className="space-y-4" style={{minWidth: '600px'}}>
-            <h3 className="text-lg font-bold text-white mb-2">Înscriere Sportivi la Examen</h3>
-            <Input label="" placeholder="Caută sportiv..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
-            <div className="max-h-[50vh] overflow-y-auto mt-2">
-                <table className="w-full text-left text-sm">
-                    <thead className="bg-slate-700/50 sticky top-0">
-                        <tr>
-                            <th className="p-2 font-semibold">Sportiv</th>
-                            <th className="p-2 font-semibold">Grad Actual</th>
-                            <th className="p-2 font-semibold text-right">Acțiuni</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-700">
-                        {filteredSportivi.map(sportiv => {
-                            const isInscris = inscrisiInSesiuneIds.has(sportiv.id);
-                            const gradActual = getGrad(sportiv.grad_actual_id, grade);
-                            return (
-                                <tr key={sportiv.id} className={`hover:bg-slate-700/30 transition-colors ${isInscris ? 'bg-slate-700/20' : ''}`}>
+        <div className="space-y-6">
+            <Card>
+                <h3 className="text-lg font-bold text-white mb-2">Sportivi Disponibili pentru Înscriere</h3>
+                <Input label="" placeholder="Caută sportiv..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+                <div className="max-h-60 overflow-y-auto mt-4 pr-2">
+                    <table className="w-full text-left text-sm">
+                        <tbody className="divide-y divide-slate-700">
+                            {sportiviDisponibili.map(sportiv => (
+                                <tr key={sportiv.id} className="hover:bg-slate-700/30">
                                     <td className="p-2 font-medium">{sportiv.nume} {sportiv.prenume}</td>
-                                    <td className="p-2 text-slate-400">{gradActual?.nume || 'Începător'}</td>
+                                    <td className="p-2 text-slate-400">{getGrad(sportiv.grad_actual_id, grade)?.nume || 'Începător'}</td>
                                     <td className="p-2 text-right">
-                                        {isInscris ? (
-                                            <Button size="sm" variant="success" disabled className="!cursor-default opacity-80">
-                                                <CheckIcon className="w-4 h-4 mr-1"/> Înscris
-                                            </Button>
-                                        ) : (
-                                            <Button 
-                                                size="sm"
-                                                variant='info'
-                                                onClick={() => handleOpenModal(sportiv)}
-                                            >
-                                                Înscrie
-                                            </Button>
-                                        )}
+                                        <Button size="sm" variant='info' onClick={() => handleOpenModal(sportiv)}>Înscrie</Button>
                                     </td>
                                 </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
-                {filteredSportivi.length === 0 && <p className="p-8 text-center text-slate-500 italic">Niciun sportiv activ nu corespunde căutării.</p>}
-            </div>
+                            ))}
+                        </tbody>
+                    </table>
+                    {sportiviDisponibili.length === 0 && <p className="p-4 text-center text-slate-500 italic">Toți sportivii activi sunt înscriși sau nu corespund căutării.</p>}
+                </div>
+            </Card>
 
-            {sportivPentruInscriere && (
+            <Card>
+                <h3 className="text-lg font-bold text-white mb-2">Participanți Înscriși ({participantiInscrisi.length})</h3>
+                <div className="max-h-60 overflow-y-auto pr-2">
+                     <table className="w-full text-left text-sm">
+                        <thead className="bg-slate-700/50 sticky top-0">
+                            <tr>
+                                <th className="p-2 font-semibold">Sportiv</th>
+                                <th className="p-2 font-semibold">Grad Vizat</th>
+                                <th className="p-2 font-semibold text-right">Acțiuni</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-700">
+                            {participantiInscrisi.map(inscriere => (
+                                <tr key={inscriere.id} className="hover:bg-slate-700/30">
+                                    <td className="p-2 font-medium">{inscriere.sportivi.nume} {inscriere.sportivi.prenume}</td>
+                                    <td className="p-2 font-semibold text-brand-secondary">{inscriere.grade.nume}</td>
+                                    <td className="p-2 text-right">
+                                        <Button size="sm" variant='danger' onClick={() => setInscriereToDelete(inscriere)}><TrashIcon className="w-4 h-4" /></Button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                    {participantiInscrisi.length === 0 && <p className="p-4 text-center text-slate-500 italic">Niciun sportiv înscris la această sesiune.</p>}
+                </div>
+            </Card>
+
+            {isModalOpen && selectedSportiv && (
                 <Modal 
                     isOpen={isModalOpen} 
                     onClose={handleCloseModal} 
-                    title={`Înscriere Examen: ${sportivPentruInscriere.nume} ${sportivPentruInscriere.prenume}`}
+                    title={`Înscriere: ${selectedSportiv.nume} ${selectedSportiv.prenume}`}
                 >
                     <div className="space-y-4">
                         <Select
-                            label="Selectează gradul pentru care va susține examenul"
+                            label="Selectează gradul vizat pentru examen"
                             value={gradSustinutId}
                             onChange={(e) => setGradSustinutId(e.target.value)}
                             required
                         >
                             <option value="">Alege un grad...</option>
                             {sortedGrades.map(g => (
-                                <option key={g.id} value={g.id}>{g.nume} (ord. {g.ordine})</option>
+                                <option key={g.id} value={g.id}>{g.nume}</option>
                             ))}
                         </Select>
                         <div className="flex justify-end pt-4 gap-2 border-t border-slate-700">
                             <Button variant="secondary" onClick={handleCloseModal} disabled={isSaving}>Anulează</Button>
-                            <Button variant="primary" onClick={handleSaveInscriere} isLoading={isSaving} disabled={!gradSustinutId}>
-                                Salvează Înscrierea
-                            </Button>
+                            <Button variant="primary" onClick={handleSaveInscriere} isLoading={isSaving} disabled={!gradSustinutId}>Salvează</Button>
                         </div>
                     </div>
                 </Modal>
             )}
+
+            <ConfirmDeleteModal 
+                isOpen={!!inscriereToDelete}
+                onClose={() => setInscriereToDelete(null)}
+                onConfirm={handleWithdraw}
+                tableName="înscriere"
+                isLoading={isDeleting}
+                title="Confirmare Retragere"
+                customMessage={`Sunteți sigur că doriți să retrageți înscrierea sportivului ${inscriereToDelete?.sportivi?.nume} ${inscriereToDelete?.sportivi?.prenume}?`}
+                confirmButtonText="Da, retrage"
+            />
         </div>
     );
 };

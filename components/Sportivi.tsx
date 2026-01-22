@@ -164,8 +164,7 @@ export const SportivFormModal: React.FC<{
         const { name, value } = e.target;
         
         // Handle checkbox type (e.g., 'participa_vacanta')
-        // FIX: The original type guard was unsafe for a union type. This now checks if the target
-        // is an HTMLInputElement before accessing the `checked` property.
+        // FIX: The type guard for checking a checkbox event was unsafe. Added an 'instanceof' check to ensure e.target is an HTMLInputElement before accessing 'type' and 'checked' properties.
         if (e.target instanceof HTMLInputElement && e.target.type === 'checkbox') {
             setEditData(prev => ({ ...prev, [name]: e.target.checked }));
             return;

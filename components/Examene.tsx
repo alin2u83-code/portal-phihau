@@ -6,7 +6,7 @@ import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
-import { ModulInscriereExamen } from './ModulInscriereExamen';
+import { ManagementInscrieri } from './ManagementInscrieri';
 import { FinalizareSimplaExamen } from './FinalizeExam';
 
 // --- SUB-COMPONENTE PENTRU MANAGEMENTUL SESIUNILOR (PĂSTRATE) ---
@@ -186,7 +186,7 @@ const DetaliiSesiuneSimplificat: React.FC<{
 
             <div>
                 {activeTab === 'inscriere' && (
-                    <ModulInscriereExamen
+                    <ManagementInscrieri
                         sesiune={sesiune}
                         sportivi={sportivi}
                         allInscrieri={allInscrieri}

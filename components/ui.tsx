@@ -109,14 +109,24 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
     label: string;
+    error?: string;
 }
   
-export const Input: React.FC<InputProps> = ({ label, id, ...props }) => (
-    <div className="w-full">
-        {label && <label htmlFor={id} className="block text-[11px] uppercase font-bold text-slate-400 mb-1 ml-1">{label}</label>}
-        <input id={id} {...props} className={`w-full bg-slate-900/50 border border-slate-600 rounded px-2 py-1 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-brand-secondary focus:border-brand-secondary transition-all ${props.className}`} />
-    </div>
-);
+export const Input: React.FC<InputProps> = ({ label, id, error, ...props }) => {
+    const errorClasses = error ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-slate-600 focus:ring-brand-secondary focus:border-brand-secondary';
+    return (
+        <div className="w-full">
+            {label && <label htmlFor={id} className="block text-[11px] uppercase font-bold text-slate-400 mb-1 ml-1">{label}</label>}
+            <input 
+                id={id} 
+                {...props} 
+                className={`w-full bg-slate-900/50 border rounded px-2 py-1 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 transition-all ${errorClasses} ${props.className}`} 
+            />
+            {error && <p className="text-red-400 text-xs mt-1 ml-1">{error}</p>}
+        </div>
+    );
+};
+
 
 interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
     label: string;

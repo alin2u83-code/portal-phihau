@@ -6,9 +6,10 @@ interface BirthDateInputProps {
   value: string | null | undefined; // YYYY-MM-DD
   onChange: (value: string) => void;
   required?: boolean;
+  error?: string;
 }
 
-export const BirthDateInput: React.FC<BirthDateInputProps> = ({ label, value, onChange, required }) => {
+export const BirthDateInput: React.FC<BirthDateInputProps> = ({ label, value, onChange, required, error }) => {
   const [day, setDay] = useState<string>('');
   const [month, setMonth] = useState<string>('');
   const [year, setYear] = useState<string>('');
@@ -94,6 +95,7 @@ export const BirthDateInput: React.FC<BirthDateInputProps> = ({ label, value, on
           {years.map(y => <option key={y} value={y}>{y}</option>)}
         </Select>
       </div>
+      {error && <p className="text-red-400 text-xs mt-1 ml-1">{error}</p>}
     </div>
   );
 };

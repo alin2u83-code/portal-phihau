@@ -54,42 +54,114 @@ const initialFormState: Partial<Sportiv> = {
     data_nasterii: ''
 };
 
-// --- Componente noi pentru UI Formular ---
-
-const SportivFormFields: React.FC<{
-    formState: Partial<Sportiv>;
-    handleChange: (e: any) => void;
+// --- Componente noi pentru UI Formular (MODIFICAT) ---
+interface SportivFormFieldsProps {
+    initialData: Partial<Sportiv>;
+    onFormChange: (data: Partial<Sportiv>, isValid: boolean) => void;
     loading: boolean;
     grupe: Grupa[];
     familii: Familie[];
     tipuriAbonament: TipAbonament[];
     onQuickAddGrupa: () => void;
     onQuickAddFamilie: () => void;
-}> = ({ formState, handleChange, loading, grupe, familii, tipuriAbonament, onQuickAddGrupa, onQuickAddFamilie }) => {
-    
+}
+
+const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
+    initialData,
+    onFormChange,
+    loading,
+    grupe,
+    familii,
+    tipuriAbonament,
+    onQuickAddGrupa,
+    onQuickAddFamilie,
+}) => {
+    const [formData, setFormData] = useState(initialData);
+    const [errors, setErrors] = useState<Record<string, string>>({});
+
+    const validate = useCallback((data: Partial<Sportiv>) => {
+        const newErrors: Record<string, string> = {};
+        if (!data.nume?.trim()) newErrors.nume = "Numele este obligatoriu.";
+        if (!data.prenume?.trim()) newErrors.prenume = "Prenumele este obligatoriu.";
+        if (!data.data_nasterii) {
+            newErrors.data_nasterii = "Data nașterii este obligatorie.";
+        } else {
+            const birthYear = new Date(data.data_nasterii).getFullYear();
+            if (birthYear < 1950 || birthYear > new Date().getFullYear() - 3) {
+                newErrors.data_nasterii = "Anul nașterii pare invalid.";
+            }
+        }
+        if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+            newErrors.email = "Adresa de email nu este validă.";
+        }
+        if (data.cnp && (data.cnp.length !== 13 || !/^\d+$/.test(data.cnp))) {
+            newErrors.cnp = "CNP-ul trebuie să conțină 13 cifre.";
+        }
+        
+        return newErrors;
+    }, []);
+
+    useEffect(() => {
+        setFormData(initialData);
+        const initialErrors = validate(initialData);
+        setErrors(initialErrors);
+        onFormChange(initialData, Object.keys(initialErrors).length === 0);
+    }, [initialData, onFormChange, validate]);
+
+
+    const handleChange = (e: any) => {
+        const { name, value, type, checked } = e.target;
+        
+        const updatedData: Partial<Sportiv> = { ...formData };
+        let finalValue: any;
+
+        if (type === 'checkbox') {
+            finalValue = checked;
+        } else if (name === 'inaltime') {
+            const num = parseInt(value, 10);
+            finalValue = isNaN(num) ? null : num;
+        } else if (['familie_id', 'grupa_id', 'tip_abonament_id'].includes(name)) {
+            finalValue = value === '' ? null : value;
+        } else {
+            finalValue = value;
+        }
+
+        updatedData[name as keyof Sportiv] = finalValue;
+
+        if (name === 'familie_id' && finalValue) {
+            updatedData.tip_abonament_id = null;
+        }
+        
+        setFormData(updatedData);
+        
+        const newErrors = validate(updatedData);
+        setErrors(newErrors);
+        onFormChange(updatedData, Object.keys(newErrors).length === 0);
+    };
+
     return (
         <div className="space-y-4">
             <FormSection title="Date Personale">
-                <Input label="Nume" name="nume" value={formState.nume || ''} onChange={handleChange} required disabled={loading} className="!py-1.5" />
-                <Input label="Prenume" name="prenume" value={formState.prenume || ''} onChange={handleChange} required disabled={loading} className="!py-1.5" />
-                <BirthDateInput label="Data Nașterii" value={formState.data_nasterii} onChange={(v) => handleChange({ target: { name: 'data_nasterii', value: v } })} required />
-                <Input label="Email (Opțional)" name="email" type="email" value={formState.email || ''} onChange={handleChange} disabled={loading} className="!py-1.5"/>
-                <Input label="CNP (Opțional)" name="cnp" value={formState.cnp || ''} onChange={handleChange} maxLength={13} disabled={loading} className="!py-1.5" />
+                <Input label="Nume" name="nume" value={formData.nume || ''} onChange={handleChange} required disabled={loading} className="!py-1.5" error={errors.nume} />
+                <Input label="Prenume" name="prenume" value={formData.prenume || ''} onChange={handleChange} required disabled={loading} className="!py-1.5" error={errors.prenume} />
+                <BirthDateInput label="Data Nașterii" value={formData.data_nasterii} onChange={(v) => handleChange({ target: { name: 'data_nasterii', value: v } })} required error={errors.data_nasterii}/>
+                <Input label="Email (Opțional)" name="email" type="email" value={formData.email || ''} onChange={handleChange} disabled={loading} className="!py-1.5" error={errors.email}/>
+                <Input label="CNP (Opțional)" name="cnp" value={formData.cnp || ''} onChange={handleChange} maxLength={13} disabled={loading} className="!py-1.5" error={errors.cnp} />
             </FormSection>
 
             <FormSection title="Club & Antrenament">
                 <div className="flex gap-1 items-end">
-                    <Select label="Grupă" name="grupa_id" value={formState.grupa_id || ''} onChange={handleChange} disabled={loading} className="flex-grow !py-1.5">
+                    <Select label="Grupă" name="grupa_id" value={formData.grupa_id || ''} onChange={handleChange} disabled={loading} className="flex-grow !py-1.5">
                         <option value="">Fără grupă</option>
                         {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
                     </Select>
                     <Button type="button" variant="secondary" size="sm" onClick={onQuickAddGrupa} className="h-[34px]"><PlusIcon className="w-4 h-4"/></Button>
                 </div>
-                 {!formState.familie_id && (
+                 {!formData.familie_id && (
                     <Select
                         label="Abonament"
                         name="tip_abonament_id"
-                        value={formState.tip_abonament_id || ''}
+                        value={formData.tip_abonament_id || ''}
                         onChange={handleChange}
                         disabled={loading}
                         className="!py-1.5"
@@ -103,22 +175,22 @@ const SportivFormFields: React.FC<{
                     </Select>
                 )}
                 <div className="flex gap-1 items-end">
-                    <Select label="Familie" name="familie_id" value={formState.familie_id || ''} onChange={handleChange} disabled={loading} className="flex-grow !py-1.5">
+                    <Select label="Familie" name="familie_id" value={formData.familie_id || ''} onChange={handleChange} disabled={loading} className="flex-grow !py-1.5">
                         <option value="">Individual</option>
                         {familii.map(f => <option key={f.id} value={f.id}>{f.nume}</option>)}
                     </Select>
                     <Button type="button" variant="secondary" size="sm" onClick={onQuickAddFamilie} className="h-[34px]"><PlusIcon className="w-4 h-4"/></Button>
                 </div>
-                <Select label="Status" name="status" value={formState.status || 'Activ'} onChange={handleChange} disabled={loading} className="!py-1.5">
+                <Select label="Status" name="status" value={formData.status || 'Activ'} onChange={handleChange} disabled={loading} className="!py-1.5">
                     <option value="Activ">Activ</option>
                     <option value="Inactiv">Inactiv</option>
                 </Select>
             </FormSection>
 
             <FormSection title="Opțiuni">
-                 <Input label="Înălțime (cm)" name="inaltime" type="number" value={formState.inaltime || ''} onChange={handleChange} disabled={loading} className="!py-1.5" />
+                 <Input label="Înălțime (cm)" name="inaltime" type="number" value={formData.inaltime || ''} onChange={handleChange} disabled={loading} className="!py-1.5" />
                  <div className="flex items-center pt-5">
-                    <Switch label="Participă Vacanță" name="participa_vacanta" checked={!!formState.participa_vacanta} onChange={handleChange} />
+                    <Switch label="Participă Vacanță" name="participa_vacanta" checked={!!formData.participa_vacanta} onChange={handleChange} />
                 </div>
             </FormSection>
         </div>
@@ -150,70 +222,42 @@ export const SportivFormModal: React.FC<{
 }) => {
     const { showError, showSuccess } = useError();
     const [loading, setLoading] = useState(false);
-    const [editData, setEditData] = useState<Partial<Sportiv>>(initialFormState);
+    const [initialData, setInitialData] = useState<Partial<Sportiv>>(initialFormState);
+    const [formData, setFormData] = useState<Partial<Sportiv>>(initialFormState);
+    const [isFormValid, setIsFormValid] = useState(false);
     const [isGrupaModalOpen, setIsGrupaModalOpen] = useState(false);
     const [isFamilieModalOpen, setIsFamilieModalOpen] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
-            setEditData(sportivToEdit || initialFormState);
+            const data = sportivToEdit || initialFormState;
+            setInitialData(data);
+            setFormData(data);
         }
     }, [isOpen, sportivToEdit]);
     
-    const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement> | { target: { name: string, value: any }}) => {
-        // FIX: The type guard for checking a checkbox event was unsafe because e.target could be an object literal without a 'type' property. Added an 'instanceof HTMLInputElement' check to safely access 'type' and 'checked'.
-        // Handle checkbox type (e.g., 'participa_vacanta')
-        if (e.target instanceof HTMLInputElement && e.target.type === 'checkbox') {
-            const { name, checked } = e.target;
-            setEditData(prev => ({ ...prev, [name]: checked }));
-            return;
-        }
-        
-        const { name, value } = e.target;
-
-        // Handle other input types
-        setEditData(prev => {
-            let finalValue: any = value;
-
-            // Specific handling for numeric or nullable fields
-            if (name === 'inaltime') {
-                const num = parseInt(value, 10);
-                finalValue = isNaN(num) ? null : num;
-            } else if (['familie_id', 'grupa_id', 'tip_abonament_id'].includes(name)) {
-                finalValue = value === '' ? null : value;
-            }
-
-            const updatedState: Partial<Sportiv> = { ...prev, [name]: finalValue };
-
-            // If a family is selected, nullify the individual subscription
-            if (name === 'familie_id' && finalValue) {
-                updatedState.tip_abonament_id = null;
-            }
-
-            return updatedState;
-        });
+    const handleFormChange = useCallback((data: Partial<Sportiv>, isValid: boolean) => {
+        setFormData(data);
+        setIsFormValid(isValid);
     }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (editData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editData.email)) {
-            showError("Email Invalid", "Adresa de email nu are un format valid.");
+        if (!isFormValid) {
+            showError("Formular Invalid", "Vă rugăm corectați erorile înainte de a salva.");
             return;
         }
 
         setLoading(true);
         try {
-            // Whitelist de coloane: Extrage doar datele "curate" pentru a evita erorile de schema
-            const { roluri, id, created_at, parola, ...cleanData } = editData;
-
+            const { roluri, id, created_at, parola, ...cleanData } = formData;
             const result = await onSave(cleanData);
             
             if (result.success) {
                 showSuccess('Succes', sportivToEdit ? 'Sportiv actualizat cu succes!' : 'Sportiv adăugat cu succes!');
                 onClose();
             } else {
-                // RLS Debug: Afișează eroarea exactă în consolă
                 console.error("Eroare la salvare (posibil RLS):", result.error); 
                 showError("Eroare Salvare", result.error);
             }
@@ -229,14 +273,14 @@ export const SportivFormModal: React.FC<{
         const { data, error } = await supabase.from('grupe').insert({ denumire: nume, sala: 'N/A' }).select().single();
         if (error) throw error;
         setGrupe(prev => [...prev, { ...data, program: [] }]);
-        setEditData(p => ({ ...p, grupa_id: data.id }));
+        setInitialData(p => ({ ...p, grupa_id: data.id }));
     };
 
     const handleQuickAddFamilie = async (nume: string) => {
         const { data, error } = await supabase.from('familii').insert({ nume }).select().single();
         if (error) throw error;
         setFamilii(prev => [...prev, data]);
-        setEditData(p => ({ ...p, familie_id: data.id }));
+        setInitialData(p => ({ ...p, familie_id: data.id }));
     };
 
     return (
@@ -244,8 +288,8 @@ export const SportivFormModal: React.FC<{
             <Modal isOpen={isOpen} onClose={onClose} title={sportivToEdit ? "Editează Sportiv" : "Adaugă Sportiv"} persistent>
                 <form onSubmit={handleSubmit}>
                     <SportivFormFields
-                        formState={editData}
-                        handleChange={handleChange}
+                        initialData={initialData}
+                        onFormChange={handleFormChange}
                         loading={loading}
                         grupe={grupe}
                         familii={familii}
@@ -255,7 +299,7 @@ export const SportivFormModal: React.FC<{
                     />
                     <div className="flex justify-end pt-4 mt-4 gap-2 border-t border-slate-700">
                         <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Închide</Button>
-                        <Button type="submit" variant="primary" isLoading={loading}>Salvează</Button>
+                        <Button type="submit" variant="primary" isLoading={loading} disabled={!isFormValid || loading}>Salvează</Button>
                     </div>
                 </form>
             </Modal>

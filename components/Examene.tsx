@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { SesiuneExamen, InscriereExamen, Sportiv, Grad, Locatie, Plata } from '../types';
+import { SesiuneExamen, InscriereExamen, Sportiv, Grad, Locatie, Plata, PretConfig } from '../types';
 import { Button, Modal, Input, Select, Card } from './ui';
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -161,7 +161,9 @@ const DetaliiSesiuneSimplificat: React.FC<{
     allInscrieri: InscriereExamen[];
     locatii: Locatie[];
     plati: Plata[];
-}> = ({ sesiune, inscrieri, setInscrieri, sportivi, setSportivi, grade, allInscrieri, locatii, plati }) => {
+    setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
+    preturiConfig: PretConfig[];
+}> = ({ sesiune, inscrieri, setInscrieri, sportivi, setSportivi, grade, allInscrieri, locatii, plati, setPlati, preturiConfig }) => {
     const [activeTab, setActiveTab] = useState<'inscriere' | 'decizie'>('inscriere');
 
     return (
@@ -192,6 +194,9 @@ const DetaliiSesiuneSimplificat: React.FC<{
                         allInscrieri={allInscrieri}
                         grade={grade}
                         setInscrieri={setInscrieri}
+                        plati={plati}
+                        setPlati={setPlati}
+                        preturiConfig={preturiConfig}
                     />
                 )}
                 {activeTab === 'decizie' && (
@@ -224,9 +229,11 @@ interface GestiuneExameneProps {
     locatii: Locatie[]; 
     setLocatii: React.Dispatch<React.SetStateAction<Locatie[]>>; 
     plati: Plata[];
+    setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
+    preturiConfig: PretConfig[];
 }
 
-export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, sesiuni, setSesiuni, inscrieri, setInscrieri, sportivi, setSportivi, grade, locatii, setLocatii, plati }) => {
+export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, sesiuni, setSesiuni, inscrieri, setInscrieri, sportivi, setSportivi, grade, locatii, setLocatii, plati, setPlati, preturiConfig }) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [sesiuneToEdit, setSesiuneToEdit] = useState<SesiuneExamen | null>(null);
   const [sesiuneToDelete, setSesiuneToDelete] = useState<SesiuneExamen | null>(null);
@@ -288,6 +295,8 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, sesiun
                 allInscrieri={inscrieri}
                 locatii={locatii}
                 plati={plati}
+                setPlati={setPlati}
+                preturiConfig={preturiConfig}
             />
         </div>
      );

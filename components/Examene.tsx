@@ -239,11 +239,17 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, sesiun
   const handleBackToList = () => setSelectedSesiuneId(null);
 
   const handleSaveSesiune = async (sesiuneData: Partial<SesiuneExamen>) => {
+    const locatieSelectata = locatii.find(l => l.id === sesiuneData.locatie_id);
+    const dataToSave = {
+        ...sesiuneData,
+        localitate: locatieSelectata ? locatieSelectata.nume : 'Necunoscută'
+    };
+
     if (sesiuneToEdit) {
-        const { data, error } = await supabase.from('sesiuni_examene').update(sesiuneData).eq('id', sesiuneToEdit.id).select().single();
+        const { data, error } = await supabase.from('sesiuni_examene').update(dataToSave).eq('id', sesiuneToEdit.id).select().single();
         if (error) { showError("Eroare la actualizare", error); } else if (data) { setSesiuni(prev => prev.map(e => e.id === data.id ? data as SesiuneExamen : e)); showSuccess("Succes", "Sesiunea a fost actualizată."); }
     } else {
-        const { data, error } = await supabase.from('sesiuni_examene').insert(sesiuneData).select().single();
+        const { data, error } = await supabase.from('sesiuni_examene').insert(dataToSave).select().single();
         if (error) { showError("Eroare la adăugare", error); } else if (data) { setSesiuni(prev => [...prev, data as SesiuneExamen]); showSuccess("Succes", "Sesiunea a fost creată."); }
     }
   };

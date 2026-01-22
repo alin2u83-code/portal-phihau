@@ -38,6 +38,7 @@ export interface SesiuneExamen {
   id: string;
   data: string;
   locatie_id: string;
+  localitate?: string;
   comisia: string[];
 }
 

@@ -48,6 +48,8 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
     // State for deletion confirmation
     const [inscriereToDelete, setInscriereToDelete] = useState<InscriereExamen | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isCheckingDelete, setIsCheckingDelete] = useState<string | null>(null); // store inscriere.id
+    const [deleteMessage, setDeleteMessage] = useState('');
     
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -228,6 +230,43 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         }
     };
 
+    const handleInitiateDelete = async (inscriere: InscriereExamen) => {
+        if (!supabase) {
+            showError("Eroare Configurare", "Clientul Supabase nu a putut fi inițializat.");
+            return;
+        }
+        setIsCheckingDelete(inscriere.id);
+
+        try {
+            const { error: checkError, count } = await supabase
+                .from('inscrieri_examene')
+                .select('*', { count: 'exact', head: true })
+                .eq('sportiv_id', inscriere.sportiv_id)
+                .eq('grad_vizat_id', inscriere.grad_vizat_id)
+                .not('id', 'eq', inscriere.id);
+
+            if (checkError) {
+                throw checkError;
+            }
+
+            const defaultMessage = `Sunteți sigur că doriți să retrageți înscrierea sportivului ${inscriere.sportivi?.nume} ${inscriere.sportivi?.prenume}? Factura asociată (dacă există și este neachitată) va fi de asemenea ștearsă.`;
+
+            if (count && count > 0) {
+                const gradName = inscriere.grade?.nume || 'acest grad';
+                setDeleteMessage(`Atenție! Acest sportiv a mai susținut/fost înscris pentru gradul ${gradName} și în trecut. Sigur vrei să ștergi această înregistrare curentă?`);
+            } else {
+                setDeleteMessage(defaultMessage);
+            }
+            
+            setInscriereToDelete(inscriere);
+
+        } catch (err: any) {
+            showError("Eroare la verificarea istoricului", err.message);
+        } finally {
+            setIsCheckingDelete(null);
+        }
+    };
+
     const handleWithdraw = async () => {
         if (!inscriereToDelete) return;
         setIsDeleting(true);
@@ -326,7 +365,13 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                                     <Button size="sm" variant="secondary" onClick={() => handleOpenEditModal(inscriere)} title="Modifică înscrierea">
                                         <EditIcon className="w-4 h-4" />
                                     </Button>
-                                    <Button size="sm" variant='danger' onClick={() => setInscriereToDelete(inscriere)} title="Retrage înscriere">
+                                    <Button 
+                                        size="sm" 
+                                        variant='danger' 
+                                        onClick={() => handleInitiateDelete(inscriere)} 
+                                        title="Retrage înscriere"
+                                        isLoading={isCheckingDelete === inscriere.id}
+                                    >
                                         <TrashIcon className="w-4 h-4" />
                                     </Button>
                                 </div>
@@ -370,7 +415,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 tableName="înscriere"
                 isLoading={isDeleting}
                 title="Confirmare Retragere"
-                customMessage={`Sunteți sigur că doriți să retrageți înscrierea sportivului ${inscriereToDelete?.sportivi?.nume} ${inscriereToDelete?.sportivi?.prenume}? Factura asociată (dacă există și este neachitată) va fi de asemenea ștearsă.`}
+                customMessage={deleteMessage}
                 confirmButtonText="Da, retrage"
             />
         </div>

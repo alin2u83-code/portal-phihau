@@ -97,32 +97,72 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
     };
 
     const handleSaveInscriere = async () => {
-        if (!selectedSportiv || !gradSustinutId) { showError("Date lipsă", "Vă rugăm selectați un grad."); return; }
+        if (!selectedSportiv || !gradSustinutId) {
+            showError("Date lipsă", "Vă rugăm selectați un grad.");
+            return;
+        }
+
         setIsSaving(true);
         try {
             const varstaLaExamen = getAgeOnDate(selectedSportiv.data_nasterii, sesiune.data);
-            const newInscriereData = { sportiv_id: selectedSportiv.id, sesiune_id: sesiune.id, grad_actual_id: selectedSportiv.grad_actual_id || null, grad_vizat_id: gradSustinutId, varsta_la_examen: varstaLaExamen, rezultat: 'Neprezentat' as const };
-            const { data: iData, error: iError } = await supabase.from('inscrieri_examene').insert(newInscriereData).select('*, sportivi:sportiv_id(*), grade:grad_vizat_id(*)').single();
+            const newInscriereData = { 
+                sportiv_id: selectedSportiv.id, 
+                sesiune_id: sesiune.id, 
+                grad_actual_id: selectedSportiv.grad_actual_id || null,
+                grad_vizat_id: gradSustinutId,
+                varsta_la_examen: varstaLaExamen,
+                rezultat: 'Neprezentat' as const
+            };
+
+            const { data: iData, error: iError } = await supabase
+                .from('inscrieri_examene')
+                .insert(newInscriereData)
+                .select('*, sportivi:sportiv_id(*), grade:grad_vizat_id(*)')
+                .single();
+
             if (iError) throw iError;
             
+            // --- Invoice Generation ---
             const gradSustinut = grade.find(g => g.id === gradSustinutId);
             let newPlata: Plata | null = null;
             let facturaMessage = '';
     
             if (gradSustinut) {
                 const taxaConfig = getPretProdus(preturiConfig, 'Taxa Examen', gradSustinut.nume, { dataReferinta: sesiune.data });
+    
                 if (taxaConfig) {
-                    const plataData: Omit<Plata, 'id'> = { sportiv_id: selectedSportiv.id, familie_id: selectedSportiv.familie_id, suma: taxaConfig.suma, data: sesiune.data, status: 'Neachitat', descriere: `Taxa examen ${gradSustinut.nume}`, tip: 'Taxa Examen', observatii: 'Generat automat la înscriere examen.' };
+                    const plataData: Omit<Plata, 'id'> = {
+                        sportiv_id: selectedSportiv.id,
+                        familie_id: selectedSportiv.familie_id,
+                        suma: taxaConfig.suma,
+                        data: sesiune.data,
+                        status: 'Neachitat',
+                        descriere: `Taxa examen ${gradSustinut.nume}`,
+                        tip: 'Taxa Examen',
+                        observatii: `Generat automat. Ref Inscriere: ${iData.id}`
+                    };
+    
                     const { data: pData, error: pError } = await supabase.from('plati').insert(plataData).select().single();
-                    if (pError) { showError("Avertisment", `Înscriere salvată, dar factura nu a putut fi generată: ${pError.message}`); } 
-                    else { newPlata = pData as Plata; facturaMessage = ' și factura a fost generată'; }
+                    
+                    if (pError) {
+                        // Compensating transaction: try to delete the registration
+                        showError("Eroare Critică Facturare", `Factura nu a putut fi generată. Se anulează înscrierea... Detalii: ${pError.message}`);
+                        await supabase.from('inscrieri_examene').delete().eq('id', iData.id);
+                        throw new Error(`Factura nu a putut fi generată. Înscrierea pentru ${selectedSportiv.nume} a fost anulată automat.`);
+                    } else {
+                        newPlata = pData as Plata;
+                        facturaMessage = ' și factura a fost generată';
+                    }
                 }
             }
             
             setInscrieri(prev => [...prev, iData as InscriereExamen]);
-            if (newPlata) { setPlati(prev => [...prev, newPlata]); }
+            if (newPlata) {
+                setPlati(prev => [...prev, newPlata]);
+            }
             showSuccess("Succes", `${selectedSportiv.nume} a fost înscris${facturaMessage}.`);
             handleCloseModal();
+
         } catch (err: any) {
             showError("Eroare la Înscriere", err.message);
         } finally {
@@ -134,16 +174,24 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         if (!inscriereToDelete) return;
         setIsDeleting(true);
         try {
-            const descriereFactura = `Taxa examen ${inscriereToDelete.grade.nume}`;
-            const plataAsociata = plati.find(p => p.sportiv_id === inscriereToDelete.sportiv_id && p.tip === 'Taxa Examen' && p.data === sesiune.data && p.descriere === descriereFactura);
+            // Find associated invoice using the unique reference ID
+            const referenceId = `Ref Inscriere: ${inscriereToDelete.id}`;
+            const plataAsociata = plati.find(p => p.observatii?.includes(referenceId));
+    
             if (plataAsociata) {
-                if (plataAsociata.status !== 'Neachitat') { throw new Error("Factura asociată a fost deja achitată (parțial sau total) și nu poate fi ștearsă automat. Anulați manual încasarea întâi."); }
+                if (plataAsociata.status !== 'Neachitat') {
+                    throw new Error("Factura asociată a fost deja achitată (parțial sau total) și nu poate fi ștearsă automat. Anulați manual încasarea întâi.");
+                }
+                
                 const { error: plataError } = await supabase.from('plati').delete().eq('id', plataAsociata.id);
                 if (plataError) throw plataError;
                 setPlati(prev => prev.filter(p => p.id !== plataAsociata.id));
             }
+            
+            // Delete enrollment
             const { error } = await supabase.from('inscrieri_examene').delete().eq('id', inscriereToDelete.id);
             if (error) throw error;
+    
             setInscrieri(prev => prev.filter(i => i.id !== inscriereToDelete.id));
             showSuccess("Succes", "Înscrierea și factura asociată (dacă a existat) au fost retrase.");
         } catch (err: any) {

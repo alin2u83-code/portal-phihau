@@ -38,6 +38,7 @@ import { GestionareNomenclatoare } from './components/GestionareNomenclatoare';
 import { FinancialDashboard } from './components/FinancialDashboard';
 import { IstoricExameneSportiv } from './components/IstoricExameneSportiv';
 import { FacturiPersonale } from './components/FacturiPersonale';
+import { CalendarView } from './components/CalendarView';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -100,7 +101,7 @@ function App() {
 
             // RLS-protected data
             supabase.from('sportivi').select('*, roluri(id, nume)'),
-            supabase.from('inscrieri_examene').select('*, sportivi:sportiv_id(*), grade:grad_vizat_id(*), note_examene(nota, tip_proba)').order('ordine', { foreignTable: 'grade', ascending: false }),
+            supabase.from('inscrieri_examene').select('*, sportivi:sportiv_id(*), grade:grad_vizat_id(*)').order('ordine', { foreignTable: 'grade', ascending: false }),
             supabase.from('familii').select('*'),
             supabase.from('plati').select('*'),
             supabase.from('tranzactii').select('*'),
@@ -150,29 +151,6 @@ function App() {
             };
         });
 
-        // Map normalized notes to flat properties on inscrieri_examene
-        const probeMapping: { [key: string]: keyof InscriereExamen } = {
-            'Thao Quyen': 'nota_thao_quyen',
-            'Song Doi': 'nota_song_doi',
-            'Tehnica 1': 'nota_tehnica_1',
-            'Tehnica 2': 'nota_tehnica_2',
-        };
-
-        const mappedInscrieri = (inscrieriData || []).map((inscriere: any) => {
-            const notesArray = inscriere.note_examene || [];
-            const flatNotes: Partial<InscriereExamen> = {};
-
-            for (const note of notesArray) {
-                const field = probeMapping[note.tip_proba];
-                if (field) {
-                    (flatNotes as any)[field] = note.nota;
-                }
-            }
-            
-            const { note_examene, ...rest } = inscriere;
-            return { ...rest, ...flatNotes };
-        });
-
         // Set state for all data
         setSesiuniExamene(sesiuniData || []);
         setGrade(gradesData);
@@ -185,7 +163,7 @@ function App() {
         setAllRoles(roData || []);
         setReduceri(reduceriData || []);
         setSportivi(formattedSportivi);
-        setInscrieriExamene(mappedInscrieri as InscriereExamen[]);
+        setInscrieriExamene((inscrieriData || []) as InscriereExamen[]);
         setFamilii(fData || []);
         setPlati(plData || []);
         setTranzactii(tData || []);
@@ -363,7 +341,7 @@ function App() {
         ) : (
             <SportiviManagement onBack={() => setActiveView('dashboard')} sportivi={sportivi} setSportivi={setSportivi} grupe={grupe} setGrupe={setGrupe} tipuriAbonament={tipuriAbonament} familii={familii} setFamilii={setFamilii} allRoles={allRoles} setAllRoles={setAllRoles} currentUser={currentUser} plati={plati} tranzactii={tranzactii} setTranzactii={setTranzactii} onViewSportiv={setViewedSportiv} />
         );
-      case 'examene': return <GestiuneExamene plati={plati} sesiuni={sesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={sportivi} setSportivi={setSportivi} grade={grade} setPlati={setPlati} preturiConfig={preturiConfig} locatii={locatii} setLocatii={setLocatii} onBack={() => setActiveView('dashboard')} />;
+      case 'examene': return <GestiuneExamene sesiuni={sesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={sportivi} setSportivi={setSportivi} grade={grade} locatii={locatii} setLocatii={setLocatii} onBack={() => setActiveView('dashboard')} />;
       case 'grade': return <GradeManagement grade={grade} setGrade={setGrade} onBack={() => setActiveView('dashboard')} />;
       case 'prezenta': return <PrezentaManagement sportivi={sportivi} setSportivi={setSportivi} antrenamente={antrenamente} setAntrenamente={setAntrenamente} grupe={grupe} onBack={() => setActiveView('dashboard')} setPlati={setPlati} tipuriAbonament={tipuriAbonament} anunturi={anunturi}/>;
       case 'grupe': return <GrupeManagement grupe={grupe} setGrupe={setGrupe} onBack={() => setActiveView('dashboard')} />;
@@ -396,10 +374,10 @@ function App() {
         />;
       case 'nomenclatoare': return <GestionareNomenclatoare onBack={() => setActiveView('dashboard')} tipuriPlati={tipuriPlati} setTipuriPlati={setTipuriPlati} plati={plati} />;
       case 'activitati': return <ProgramareActivitati grupe={grupe} antrenamente={antrenamente} setAntrenamente={setAntrenamente} onBack={() => setActiveView('dashboard')} />;
+      case 'calendar': return <CalendarView antrenamente={antrenamente} sesiuniExamene={sesiuniExamene} grupe={grupe} locatii={locatii} onBack={() => setActiveView('dashboard')} />;
       case 'setari-club': return <ClubSettings onBack={() => setActiveView('dashboard')} />;
       case 'data-inspector': return <DataInspector antrenamente={antrenamente} preturiConfig={preturiConfig} rawGradePrices={rawGradePrices} grade={grade} onBack={() => setActiveView('dashboard')} />;
       case 'notificari': return <Notificari onBack={() => setActiveView('dashboard')} currentUser={currentUser} />;
-      case 'examene': return <GestiuneExamene onBack={() => setActiveView('dashboard')} sesiuni={sesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={sportivi} setSportivi={setSportivi} grade={grade} plati={plati} setPlati={setPlati} preturiConfig={preturiConfig} locatii={locatii} setLocatii={setLocatii} />;
       default: return <Dashboard onNavigate={setActiveView} showPriceWarning={showPriceWarning} />;
     }
   };

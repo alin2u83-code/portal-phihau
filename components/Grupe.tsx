@@ -19,13 +19,15 @@ const sortProgram = (program: ProgramItem[]): ProgramItem[] => {
 // Componentă pentru editarea programului
 const ProgramEditor: React.FC<{ program: ProgramItem[], setProgram: React.Dispatch<React.SetStateAction<ProgramItem[]>> }> = ({ program, setProgram }) => {
     const zileSaptamana: ProgramItem['ziua'][] = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'];
-    const [newItem, setNewItem] = useState<ProgramItem>({ ziua: 'Luni', ora_start: '18:00', ora_sfarsit: '19:30', is_activ: true });
+    // FIX: The state for a new item should not be a full ProgramItem, as it lacks an ID.
+    const [newItem, setNewItem] = useState<Omit<ProgramItem, 'id'>>({ ziua: 'Luni', ora_start: '18:00', ora_sfarsit: '19:30', is_activ: true });
 
-    const handleAdd = () => { setProgram(p => [...p, newItem]); };
+    // FIX: Generate a temporary unique ID when adding a new item to the program list.
+    const handleAdd = () => { setProgram(p => [...p, { ...newItem, id: `new-${Date.now()}-${Math.random()}`}]); };
     const handleRemove = (itemToRemoveRef: ProgramItem) => {
         setProgram(p => p.filter(item => item !== itemToRemoveRef));
     };
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => { setNewItem(prev => ({ ...prev, [e.target.name]: e.target.value })) };
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => { setNewItem(prev => ({ ...prev, [e.target.name]: e.target.value as any })) };
     
     const handleToggle = (itemToToggleRef: ProgramItem) => {
         setProgram(p => p.map(item =>

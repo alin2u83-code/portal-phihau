@@ -3,7 +3,8 @@ import {
   Plus, Trash2, FilePenLine, ArrowLeft, Users, CalendarDays, Trophy,
   ClipboardList, Landmark, Settings, ShieldCheck, LayoutDashboard, UserCircle,
   LogOut, Menu, Wallet, BarChart3, Archive, FileDown, ChevronDown, X,
-  ClipboardCheck, MessageCircleQuestion, Save, AlertTriangle, CheckCircle
+  ClipboardCheck, MessageCircleQuestion, Save, AlertTriangle, CheckCircle,
+  ChevronLeft, ChevronRight
 } from 'lucide-react';
 
 export const PlusIcon = Plus;
@@ -32,5 +33,7 @@ export const ClipboardDocumentListIcon = ClipboardList;
 export const ChatBubbleLeftEllipsisIcon = MessageCircleQuestion;
 export const SaveIcon = Save;
 export const CheckCircleIcon = CheckCircle;
+export const ChevronLeftIcon = ChevronLeft;
+export const ChevronRightIcon = ChevronRight;
 // FIX: Export AlertTriangle as ExclamationTriangleIcon to fix import error in FinancialDashboard.
 export const ExclamationTriangleIcon = AlertTriangle;

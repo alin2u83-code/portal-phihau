@@ -47,6 +47,7 @@ export const adminMenu: MenuItem[] = [
             { view: 'raport-prezenta', label: 'Raport Prezențe' } 
         ] 
     },
+    { label: 'Calendar', icon: CalendarDaysIcon, view: 'calendar' },
     { 
         label: 'Administrativ', 
         icon: BanknotesIcon, 

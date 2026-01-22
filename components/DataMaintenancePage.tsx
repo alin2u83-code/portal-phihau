@@ -78,6 +78,7 @@ export const DataMaintenancePage: React.FC<DataMaintenanceProps> = ({ onBack, on
 
     const facturiExamenLipsa = useMemo(() => {
         return participari.filter(p => {
+            // FIX: Use 'sesiune_id' instead of the non-existent 'examen_id'.
             const examen = examene.find(e => e.id === p.sesiune_id);
             if (!examen) return false;
             return !plati.some(pl => pl.sportiv_id === p.sportiv_id && pl.tip === 'Taxa Examen' && pl.data === examen.data);
@@ -106,6 +107,7 @@ export const DataMaintenancePage: React.FC<DataMaintenanceProps> = ({ onBack, on
         const newPlatiToInsert: Omit<Plata, 'id'>[] = [];
         
         for (const p of facturiExamenLipsa) {
+            // FIX: Use 'sesiune_id' instead of the non-existent 'examen_id'.
             const examen = examene.find(e => e.id === p.sesiune_id);
             const sportiv = sportivi.find(s => s.id === p.sportiv_id);
             // FIX: The property was renamed from `grad_sustinut_id` to `grad_vizat_id`.

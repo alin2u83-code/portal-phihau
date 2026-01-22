@@ -43,7 +43,6 @@ export const FinalizeExam: React.FC<FinalizeExamProps> = ({ sesiune, inscrieriSe
     };
 
     const handleSaveAll = async () => {
-        // FIX: Add a null check for the Supabase client to ensure type safety.
         if (!supabase) {
             showError("Eroare de configurare", "Clientul Supabase nu este inițializat.");
             return;
@@ -58,7 +57,6 @@ export const FinalizeExam: React.FC<FinalizeExamProps> = ({ sesiune, inscrieriSe
             return;
         }
 
-        // FIX: Refactor to use a single promise array to avoid the spread operator issue.
         const allPromises: Promise<any>[] = [];
         const sportiviUpdatesLocal: Partial<Sportiv>[] = [];
 
@@ -89,6 +87,7 @@ export const FinalizeExam: React.FC<FinalizeExamProps> = ({ sesiune, inscrieriSe
         }
 
         try {
+            // FIX: Removed incorrect spread operator. Promise.all expects an array of promises, which `allPromises` already is.
             const results = await Promise.all(allPromises);
 
             const anyError = results.find(res => res.error);

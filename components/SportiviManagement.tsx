@@ -217,7 +217,7 @@ export const SportiviManagement: React.FC<{
                         </thead>
                         <tbody className="divide-y divide-slate-700">
                              {filteredSportivi.map((s: Sportiv) => (
-                                <tr key={s.id} className="hover:bg-brand-secondary/10 transition-colors">
+                                <tr key={s.id} className="hover:bg-brand-secondary/10 transition-all duration-200 ease-in-out hover:scale-[1.02]">
                                     {finalColumns.map((key) => {
                                         const isNameColumn = key === 'numeComplet';
                                         return (

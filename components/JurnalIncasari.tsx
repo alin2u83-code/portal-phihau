@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Plata, Sportiv, PretConfig, TipAbonament, Tranzactie, Familie, Reducere, TipPlata } from '../types';
+import { Plata, Sportiv, PretConfig, TipAbonament, Tranzactie, Familie, Reducere, TipPlata, User } from '../types';
 import { Button, Input, Select, Card, Modal } from './ui';
 import { getPretValabil, getPretProdus } from '../utils/pricing';
 import { ArrowLeftIcon, PlusIcon, TrashIcon } from './icons';
@@ -46,6 +46,7 @@ const QuickAddTipPlataModal: React.FC<{
 };
 
 interface JurnalIncasariProps {
+    currentUser: User;
     plati: Plata[];
     setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
     sportivi: Sportiv[];
@@ -154,7 +155,7 @@ const AdaugaAvans: React.FC<{
 };
 
 
-export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ plati, setPlati, sportivi, familii, preturiConfig, tipuriAbonament, tipuriPlati, setTipuriPlati, tranzactii, setTranzactii, reduceri, platiInitiale, onIncasareProcesata, onBack }) => {
+export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, plati, setPlati, sportivi, familii, preturiConfig, tipuriAbonament, tipuriPlati, setTipuriPlati, tranzactii, setTranzactii, reduceri, platiInitiale, onIncasareProcesata, onBack }) => {
     const [formState, setFormState] = useState(emptyIncasareState);
     const [selectedEchipament, setSelectedEchipament] = useState('');
     const [selectedMarimeId, setSelectedMarimeId] = useState('');

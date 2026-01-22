@@ -163,8 +163,8 @@ export const SportivFormModal: React.FC<{
     const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement> | { target: { name: string, value: any }}) => {
         const { name, value } = e.target;
         
-        // Handle checkbox type (e.g., 'participa_vacanta')
         // FIX: The type guard for checking a checkbox event was unsafe because e.target could be an object literal without a 'type' property. Added an 'instanceof HTMLInputElement' check to safely access 'type' and 'checked'.
+        // Handle checkbox type (e.g., 'participa_vacanta')
         if (e.target instanceof HTMLInputElement && e.target.type === 'checkbox') {
             setEditData(prev => ({ ...prev, [name]: e.target.checked }));
             return;

@@ -1,11 +1,12 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { SesiuneExamen, InscriereExamen, Sportiv, Grad, Locatie, Plata } from '../types';
+import { SesiuneExamen, InscriereExamen, Sportiv, Grad, Locatie, Plata, PretConfig } from '../types';
 import { Button, Modal, Input, Select, Card } from './ui';
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
+import { ManagementInscrieri } from './ManagementInscrieri';
 import { FinalizareSimplaExamen } from './FinalizeExam';
 
 // --- SUB-COMPONENTE PENTRU MANAGEMENTUL SESIUNILOR (PĂSTRATE) ---
@@ -157,28 +158,59 @@ const DetaliiSesiuneSimplificat: React.FC<{
     sportivi: Sportiv[];
     setSportivi: React.Dispatch<React.SetStateAction<Sportiv[]>>;
     grade: Grad[];
+    allInscrieri: InscriereExamen[];
     locatii: Locatie[];
     plati: Plata[];
-}> = ({ sesiune, inscrieri, setInscrieri, sportivi, setSportivi, grade, locatii, plati }) => {
-    
+    setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
+    preturiConfig: PretConfig[];
+}> = ({ sesiune, inscrieri, setInscrieri, sportivi, setSportivi, grade, allInscrieri, locatii, plati, setPlati, preturiConfig }) => {
+    const [activeTab, setActiveTab] = useState<'inscriere' | 'decizie'>('inscriere');
+
     return (
         <Card>
             <h3 className="text-2xl font-bold text-white">{locatii.find(l => l.id === sesiune.locatie_id)?.nume} - {new Date(sesiune.data + 'T00:00:00').toLocaleDateString('ro-RO')}</h3>
             <p className="text-slate-400">Comisia: {Array.isArray(sesiune.comisia) ? sesiune.comisia.join(', ') : sesiune.comisia}</p>
             
-            <div className="mt-6">
-                 <h4 className="text-xl font-bold text-white mb-2">Finalizare Examen & Promovare</h4>
-                <p className="text-sm text-slate-400 mb-6">Acordați decizia 'Admis' sau 'Respins' pentru fiecare participant. Sportivii admiși vor fi promovați automat la gradul următor.</p>
-                <FinalizareSimplaExamen
-                    sesiune={sesiune}
-                    inscrieriSesiune={inscrieri}
-                    sportivi={sportivi}
-                    grade={grade}
-                    plati={plati}
-                    setInscrieri={setInscrieri}
-                    setSportivi={setSportivi}
-                    onBack={() => {}}
-                />
+            <div className="border-b border-slate-700 mt-6 mb-6">
+                <button
+                    onClick={() => setActiveTab('inscriere')}
+                    className={`px-4 py-2 text-sm font-bold rounded-t-lg transition-colors ${activeTab === 'inscriere' ? 'bg-slate-700/50 text-brand-secondary' : 'text-white/70 hover:text-white'}`}
+                >
+                    Înscriere Participanți
+                </button>
+                 <button
+                    onClick={() => setActiveTab('decizie')}
+                    className={`px-4 py-2 text-sm font-bold rounded-t-lg transition-colors ${activeTab === 'decizie' ? 'bg-slate-700/50 text-brand-secondary' : 'text-white/70 hover:text-white'}`}
+                >
+                    Finalizare Examen
+                </button>
+            </div>
+
+            <div>
+                {activeTab === 'inscriere' && (
+                    <ManagementInscrieri
+                        sesiune={sesiune}
+                        sportivi={sportivi}
+                        allInscrieri={allInscrieri}
+                        grade={grade}
+                        setInscrieri={setInscrieri}
+                        plati={plati}
+                        setPlati={setPlati}
+                        preturiConfig={preturiConfig}
+                    />
+                )}
+                {activeTab === 'decizie' && (
+                    <FinalizareSimplaExamen
+                        sesiune={sesiune}
+                        inscrieriSesiune={inscrieri}
+                        sportivi={sportivi}
+                        grade={grade}
+                        plati={plati}
+                        setInscrieri={setInscrieri}
+                        setSportivi={setSportivi}
+                        onBack={() => setActiveTab('inscriere')}
+                    />
+                )}
             </div>
         </Card>
     );
@@ -197,9 +229,11 @@ interface GestiuneExameneProps {
     locatii: Locatie[]; 
     setLocatii: React.Dispatch<React.SetStateAction<Locatie[]>>; 
     plati: Plata[];
+    setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
+    preturiConfig: PretConfig[];
 }
 
-export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, sesiuni, setSesiuni, inscrieri, setInscrieri, sportivi, setSportivi, grade, locatii, setLocatii, plati }) => {
+export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, sesiuni, setSesiuni, inscrieri, setInscrieri, sportivi, setSportivi, grade, locatii, setLocatii, plati, setPlati, preturiConfig }) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [sesiuneToEdit, setSesiuneToEdit] = useState<SesiuneExamen | null>(null);
   const [sesiuneToDelete, setSesiuneToDelete] = useState<SesiuneExamen | null>(null);
@@ -258,8 +292,11 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, sesiun
                 sportivi={sportivi} 
                 setSportivi={setSportivi}
                 grade={grade} 
+                allInscrieri={inscrieri}
                 locatii={locatii}
                 plati={plati}
+                setPlati={setPlati}
+                preturiConfig={preturiConfig}
             />
         </div>
      );

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { SesiuneExamen, Sportiv, InscriereExamen, Grad, Plata, PretConfig } from '../types';
 import { Button, Input, Modal, Select, Card } from './ui';
 import { TrashIcon } from './icons';
@@ -70,6 +70,16 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
 
     const handleOpenModal = (sportiv: Sportiv) => {
         setSelectedSportiv(sportiv);
+
+        const currentGrade = grade.find(g => g.id === sportiv.grad_actual_id);
+        const currentOrder = currentGrade ? currentGrade.ordine : 0;
+        const nextGrade = sortedGrades.find(g => g.ordine === currentOrder + 1);
+
+        if (nextGrade) {
+            setGradSustinutId(nextGrade.id);
+        } else {
+            setGradSustinutId('');
+        }
         setIsModalOpen(true);
     };
 
@@ -270,7 +280,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 tableName="înscriere"
                 isLoading={isDeleting}
                 title="Confirmare Retragere"
-                customMessage={`Sunteți sigur că doriți să retrageți înscrierea sportivului ${inscriereToDelete?.sportivi?.nume} ${inscriereToDelete?.sportivi?.prenume}?`}
+                customMessage={`Sunteți sigur că doriți să retrageți înscrierea sportivului ${inscriereToDelete?.sportivi?.nume} ${inscriereToDelete?.sportivi?.prenume}? Factura asociată (dacă există și este neachitată) va fi de asemenea ștearsă.`}
                 confirmButtonText="Da, retrage"
             />
         </div>

@@ -173,28 +173,33 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
     const handleWithdraw = async () => {
         if (!inscriereToDelete) return;
         setIsDeleting(true);
+
+        const referenceId = `Ref Inscriere: ${inscriereToDelete.id}`;
+        const plataAsociata = plati.find(p => p.observatii?.includes(referenceId));
+        
         try {
-            // Find associated invoice using the unique reference ID
-            const referenceId = `Ref Inscriere: ${inscriereToDelete.id}`;
-            const plataAsociata = plati.find(p => p.observatii?.includes(referenceId));
-    
+            // Step 1: Delete associated invoice first, if it exists.
             if (plataAsociata) {
                 if (plataAsociata.status !== 'Neachitat') {
                     throw new Error("Factura asociată a fost deja achitată (parțial sau total) și nu poate fi ștearsă automat. Anulați manual încasarea întâi.");
                 }
-                
                 const { error: plataError } = await supabase.from('plati').delete().eq('id', plataAsociata.id);
                 if (plataError) throw plataError;
-                setPlati(prev => prev.filter(p => p.id !== plataAsociata.id));
             }
             
-            // Delete enrollment
-            const { error } = await supabase.from('inscrieri_examene').delete().eq('id', inscriereToDelete.id);
-            if (error) throw error;
+            // Step 2: Then, delete the enrollment itself.
+            const { error: inscriereError } = await supabase.from('inscrieri_examene').delete().eq('id', inscriereToDelete.id);
+            if (inscriereError) throw inscriereError;
     
+            // Step 3: If all DB operations succeed, update the local state to sync the UI.
+            if (plataAsociata) {
+                setPlati(prev => prev.filter(p => p.id !== plataAsociata.id));
+            }
             setInscrieri(prev => prev.filter(i => i.id !== inscriereToDelete.id));
+            
             showSuccess("Succes", "Înscrierea și factura asociată (dacă a existat) au fost retrase.");
         } catch (err: any) {
+            // On error, the UI state is not updated, preventing a mismatch.
             showError("Eroare la Retragere", err.message);
         } finally {
             setIsDeleting(false);

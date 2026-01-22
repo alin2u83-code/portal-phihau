@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { SesiuneExamen, Sportiv, InscriereExamen, Grad } from '../types';
-import { Button, Input } from './ui';
+import { Button, Input, Modal, Select } from './ui';
 import { CheckIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
@@ -29,8 +29,12 @@ interface ManagementInscrieriProps {
 
 export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiune, sportivi, allInscrieri, grade, setInscrieri }) => {
     const { showError, showSuccess } = useError();
-    const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
     const [searchTerm, setSearchTerm] = useState('');
+
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [sportivPentruInscriere, setSportivPentruInscriere] = useState<Sportiv | null>(null);
+    const [gradSustinutId, setGradSustinutId] = useState<string>('');
+    const [isSaving, setIsSaving] = useState(false);
 
     const inscrisiInSesiuneIds = useMemo(() => {
         return new Set(allInscrieri.filter(i => i.sesiune_id === sesiune.id).map(i => i.sportiv_id));
@@ -38,41 +42,40 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
     
     const sortedGrades = useMemo(() => [...grade].sort((a,b) => a.ordine - b.ordine), [grade]);
 
-    const sportiviPentruInscriereData = useMemo(() => {
+    const filteredSportivi = useMemo(() => {
         return sportivi
             .filter(s => 
                 s.status === 'Activ' && 
                 `${s.nume} ${s.prenume}`.toLowerCase().includes(searchTerm.toLowerCase())
             )
-            .map(s => {
-                const gradActual = getGrad(s.grad_actual_id, grade);
-                let gradVizat: Grad | undefined;
-                if (!gradActual) {
-                    gradVizat = sortedGrades[0];
-                } else {
-                    gradVizat = sortedGrades.find(g => g.ordine === gradActual.ordine + 1);
-                }
-                
-                return { sportiv: s, gradActual, gradVizat };
-            })
-            .sort((a, b) => a.sportiv.nume.localeCompare(b.sportiv.nume));
-    }, [sportivi, searchTerm, grade, sortedGrades]);
+            .sort((a, b) => a.nume.localeCompare(b.nume));
+    }, [sportivi, searchTerm]);
 
-    const handleInscriere = async (sportiv: Sportiv, gradVizat: Grad | undefined) => {
-        if (!gradVizat) {
-            showError("Acțiune Imposibilă", "Nu s-a putut determina gradul vizat (posibil grad maxim atins).");
+    const handleOpenModal = (sportiv: Sportiv) => {
+        setSportivPentruInscriere(sportiv);
+        setIsModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        setSportivPentruInscriere(null);
+        setGradSustinutId('');
+    };
+
+    const handleSaveInscriere = async () => {
+        if (!sportivPentruInscriere || !gradSustinutId) {
+            showError("Date lipsă", "Vă rugăm selectați un grad pentru care sportivul va susține examenul.");
             return;
         }
 
-        setLoadingStates(prev => ({ ...prev, [sportiv.id]: true }));
-
+        setIsSaving(true);
         try {
-            const varstaLaExamen = getAgeOnDate(sportiv.data_nasterii, sesiune.data);
+            const varstaLaExamen = getAgeOnDate(sportivPentruInscriere.data_nasterii, sesiune.data);
             const newInscriere = { 
-                sportiv_id: sportiv.id, 
+                sportiv_id: sportivPentruInscriere.id, 
                 sesiune_id: sesiune.id, 
-                grad_actual_id: sportiv.grad_actual_id || null,
-                grad_vizat_id: gradVizat.id,
+                grad_actual_id: sportivPentruInscriere.grad_actual_id || null,
+                grad_vizat_id: gradSustinutId,
                 varsta_la_examen: varstaLaExamen,
                 rezultat: 'Neprezentat' as const
             };
@@ -86,12 +89,13 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             if (iError) throw iError;
             
             setInscrieri(prev => [...prev, iData as InscriereExamen]);
-            showSuccess("Succes", `${sportiv.nume} a fost înscris.`);
+            showSuccess("Succes", `${sportivPentruInscriere.nume} a fost înscris.`);
+            handleCloseModal();
 
         } catch (err: any) {
             showError("Eroare la Înscriere", err.message);
         } finally {
-            setLoadingStates(prev => ({ ...prev, [sportiv.id]: false }));
+            setIsSaving(false);
         }
     };
 
@@ -105,18 +109,17 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                         <tr>
                             <th className="p-2 font-semibold">Sportiv</th>
                             <th className="p-2 font-semibold">Grad Actual</th>
-                            <th className="p-2 font-semibold">Grad Vizat</th>
                             <th className="p-2 font-semibold text-right">Acțiuni</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-700">
-                        {sportiviPentruInscriereData.map(({ sportiv, gradActual, gradVizat }) => {
+                        {filteredSportivi.map(sportiv => {
                             const isInscris = inscrisiInSesiuneIds.has(sportiv.id);
+                            const gradActual = getGrad(sportiv.grad_actual_id, grade);
                             return (
                                 <tr key={sportiv.id} className={`hover:bg-slate-700/30 transition-colors ${isInscris ? 'bg-slate-700/20' : ''}`}>
                                     <td className="p-2 font-medium">{sportiv.nume} {sportiv.prenume}</td>
                                     <td className="p-2 text-slate-400">{gradActual?.nume || 'Începător'}</td>
-                                    <td className="p-2 font-semibold text-brand-secondary">{gradVizat?.nume || 'N/A'}</td>
                                     <td className="p-2 text-right">
                                         {isInscris ? (
                                             <Button size="sm" variant="success" disabled className="!cursor-default opacity-80">
@@ -126,9 +129,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                                             <Button 
                                                 size="sm"
                                                 variant='info'
-                                                onClick={() => handleInscriere(sportiv, gradVizat)}
-                                                disabled={!gradVizat || loadingStates[sportiv.id]}
-                                                isLoading={loadingStates[sportiv.id]}
+                                                onClick={() => handleOpenModal(sportiv)}
                                             >
                                                 Înscrie
                                             </Button>
@@ -139,8 +140,36 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                         })}
                     </tbody>
                 </table>
-                {sportiviPentruInscriereData.length === 0 && <p className="p-8 text-center text-slate-500 italic">Niciun sportiv activ nu corespunde căutării.</p>}
+                {filteredSportivi.length === 0 && <p className="p-8 text-center text-slate-500 italic">Niciun sportiv activ nu corespunde căutării.</p>}
             </div>
+
+            {sportivPentruInscriere && (
+                <Modal 
+                    isOpen={isModalOpen} 
+                    onClose={handleCloseModal} 
+                    title={`Înscriere Examen: ${sportivPentruInscriere.nume} ${sportivPentruInscriere.prenume}`}
+                >
+                    <div className="space-y-4">
+                        <Select
+                            label="Selectează gradul pentru care va susține examenul"
+                            value={gradSustinutId}
+                            onChange={(e) => setGradSustinutId(e.target.value)}
+                            required
+                        >
+                            <option value="">Alege un grad...</option>
+                            {sortedGrades.map(g => (
+                                <option key={g.id} value={g.id}>{g.nume} (ord. {g.ordine})</option>
+                            ))}
+                        </Select>
+                        <div className="flex justify-end pt-4 gap-2 border-t border-slate-700">
+                            <Button variant="secondary" onClick={handleCloseModal} disabled={isSaving}>Anulează</Button>
+                            <Button variant="primary" onClick={handleSaveInscriere} isLoading={isSaving} disabled={!gradSustinutId}>
+                                Salvează Înscrierea
+                            </Button>
+                        </div>
+                    </div>
+                </Modal>
+            )}
         </div>
     );
 };

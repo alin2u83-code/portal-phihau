@@ -5,7 +5,7 @@ import { ArrowLeftIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 
-interface FinalizeExamProps {
+interface FinalizareSimplaExamenProps {
     sesiune: SesiuneExamen;
     inscrieriSesiune: InscriereExamen[];
     sportivi: Sportiv[];
@@ -16,7 +16,7 @@ interface FinalizeExamProps {
     onBack: () => void;
 }
 
-export const FinalizeExam: React.FC<FinalizeExamProps> = ({ sesiune, inscrieriSesiune, sportivi, grade, plati, setInscrieri, setSportivi, onBack }) => {
+export const FinalizareSimplaExamen: React.FC<FinalizareSimplaExamenProps> = ({ sesiune, inscrieriSesiune, sportivi, grade, plati, setInscrieri, setSportivi, onBack }) => {
     const { showError, showSuccess } = useError();
     const [rezultateLocale, setRezultateLocale] = useState<Record<string, 'Admis' | 'Respins' | 'Neprezentat'>>({});
     const [loading, setLoading] = useState(false);
@@ -96,7 +96,7 @@ export const FinalizeExam: React.FC<FinalizeExamProps> = ({ sesiune, inscrieriSe
             // Actualizează starea locală la succes
             setInscrieri(prev => prev.map(i => {
                 const change = changes.find(([id]) => id === i.id);
-                return change ? { ...i, rezultat: change[1] } : i;
+                return change ? { ...i, rezultat: change[1] as any } : i;
             }));
 
             setSportivi(prev => {
@@ -123,7 +123,6 @@ export const FinalizeExam: React.FC<FinalizeExamProps> = ({ sesiune, inscrieriSe
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
-                <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2"/> Înapoi</Button>
                 <h1 className="text-xl font-bold text-white text-center">Finalizare Simplă Examen</h1>
                 <Button onClick={handleSaveAll} variant="success" isLoading={loading}>Salvează Toate Rezultatele</Button>
             </div>

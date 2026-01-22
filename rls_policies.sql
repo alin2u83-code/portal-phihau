@@ -36,6 +36,56 @@ $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, auth, pg_temp;
 -- where the default migration role does not bypass RLS.
 ALTER FUNCTION public.is_admin_or_instructor() OWNER TO postgres;
 
+-- -----------------------------------------------------------------
+-- Helper Functions for Hierarchical Role Management
+-- -----------------------------------------------------------------
+DROP FUNCTION IF EXISTS public.is_admin();
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS boolean AS $$
+BEGIN
+    RETURN EXISTS (
+        SELECT 1
+        FROM public.sportivi s
+        JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id
+        JOIN public.roluri r ON sr.rol_id = r.id
+        WHERE s.user_id = auth.uid()
+          AND r.nume = 'Admin'
+    );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, auth, pg_temp;
+ALTER FUNCTION public.is_admin() OWNER TO postgres;
+
+DROP FUNCTION IF EXISTS public.get_role_level(text);
+CREATE OR REPLACE FUNCTION public.get_role_level(role_name text)
+RETURNS int AS $$
+BEGIN
+    RETURN CASE role_name
+        WHEN 'Admin' THEN 3
+        WHEN 'Instructor' THEN 2
+        WHEN 'Sportiv' THEN 1
+        ELSE 0
+    END;
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+DROP FUNCTION IF EXISTS public.get_current_user_max_role_level();
+CREATE OR REPLACE FUNCTION public.get_current_user_max_role_level()
+RETURNS int AS $$
+DECLARE
+    max_level int;
+BEGIN
+    SELECT MAX(public.get_role_level(r.nume))
+    INTO max_level
+    FROM public.sportivi s
+    JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id
+    JOIN public.roluri r ON sr.rol_id = r.id
+    WHERE s.user_id = auth.uid();
+    
+    RETURN COALESCE(max_level, 0);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, auth, pg_temp;
+ALTER FUNCTION public.get_current_user_max_role_level() OWNER TO postgres;
+
 
 -- =================================================================
 -- Tabele cu Acces Restricționat (Date Personale și Specifice)
@@ -171,9 +221,35 @@ CREATE POLICY "Users can create and update their own announcements" ON public.an
 -- Tabel: sportivi_roluri
 -- -----------------------------------------------------------------
 ALTER TABLE public.sportivi_roluri ENABLE ROW LEVEL SECURITY;
+
 DROP POLICY IF EXISTS "Admins can manage roles assignments" ON public.sportivi_roluri;
-CREATE POLICY "Admins can manage roles assignments" ON public.sportivi_roluri
-    FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+DROP POLICY IF EXISTS "Users can manage roles of lower-level users" ON public.sportivi_roluri;
+
+CREATE POLICY "Users can manage roles of lower-level users" ON public.sportivi_roluri
+FOR ALL USING (
+    -- Admins can see everything
+    public.is_admin() OR
+    -- Users can see role assignments for users with a lower max role level
+    (
+        (SELECT public.get_current_user_max_role_level()) > 
+        (SELECT COALESCE(MAX(public.get_role_level(r.nume)), 0)
+         FROM public.sportivi_roluri sr
+         JOIN public.roluri r ON sr.rol_id = r.id
+         WHERE sr.sportiv_id = public.sportivi_roluri.sportiv_id)
+    )
+) WITH CHECK (
+    -- Admins can assign anything
+    public.is_admin() OR
+    -- Other users can only assign roles with a level strictly lower than their own, to users with a level strictly lower than their own.
+    (
+        (SELECT public.get_current_user_max_role_level()) > (SELECT public.get_role_level(nume) FROM public.roluri WHERE id = rol_id)
+        AND
+        (SELECT public.get_current_user_max_role_level()) > (SELECT COALESCE(MAX(public.get_role_level(r.nume)), 0)
+         FROM public.sportivi_roluri sr
+         JOIN public.roluri r ON sr.rol_id = r.id
+         WHERE sr.sportiv_id = public.sportivi_roluri.sportiv_id)
+    )
+);
 
 DROP POLICY IF EXISTS "Users can see their own roles assignments" ON public.sportivi_roluri;
 CREATE POLICY "Users can see their own roles assignments" ON public.sportivi_roluri
@@ -333,7 +409,7 @@ CREATE POLICY "Authenticated users can see discounts" ON public.reduceri
 ALTER TABLE public.roluri ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage roles definitions" ON public.roluri;
 CREATE POLICY "Admins can manage roles definitions" ON public.roluri
-    FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
+    FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
 
 DROP POLICY IF EXISTS "Authenticated users can see roles definitions" ON public.roluri;
 CREATE POLICY "Authenticated users can see roles definitions" ON public.roluri

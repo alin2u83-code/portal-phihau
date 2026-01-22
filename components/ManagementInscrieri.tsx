@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { SesiuneExamen, Sportiv, InscriereExamen, Grad } from '../types';
 import { Button, Input } from './ui';
+import { CheckIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 
@@ -37,11 +38,10 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
     
     const sortedGrades = useMemo(() => [...grade].sort((a,b) => a.ordine - b.ordine), [grade]);
 
-    const sportiviDisponibiliData = useMemo(() => {
+    const sportiviPentruInscriereData = useMemo(() => {
         return sportivi
             .filter(s => 
                 s.status === 'Activ' && 
-                !inscrisiInSesiuneIds.has(s.id) &&
                 `${s.nume} ${s.prenume}`.toLowerCase().includes(searchTerm.toLowerCase())
             )
             .map(s => {
@@ -56,7 +56,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 return { sportiv: s, gradActual, gradVizat };
             })
             .sort((a, b) => a.sportiv.nume.localeCompare(b.sportiv.nume));
-    }, [sportivi, searchTerm, grade, sortedGrades, inscrisiInSesiuneIds]);
+    }, [sportivi, searchTerm, grade, sortedGrades]);
 
     const handleInscriere = async (sportiv: Sportiv, gradVizat: Grad | undefined) => {
         if (!gradVizat) {
@@ -98,7 +98,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
     return (
         <div className="space-y-4" style={{minWidth: '600px'}}>
             <h3 className="text-lg font-bold text-white mb-2">Înscriere Sportivi la Examen</h3>
-            <Input label="" placeholder="Caută sportiv de înscris..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+            <Input label="" placeholder="Caută sportiv..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
             <div className="max-h-[50vh] overflow-y-auto mt-2">
                 <table className="w-full text-left text-sm">
                     <thead className="bg-slate-700/50 sticky top-0">
@@ -110,27 +110,36 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-700">
-                        {sportiviDisponibiliData.map(({ sportiv, gradActual, gradVizat }) => (
-                            <tr key={sportiv.id} className="hover:bg-slate-700/30">
-                                <td className="p-2 font-medium">{sportiv.nume} {sportiv.prenume}</td>
-                                <td className="p-2 text-slate-400">{gradActual?.nume || 'Începător'}</td>
-                                <td className="p-2 font-semibold text-brand-secondary">{gradVizat?.nume || 'N/A'}</td>
-                                <td className="p-2 text-right">
-                                    <Button 
-                                        size="sm"
-                                        variant='info'
-                                        onClick={() => handleInscriere(sportiv, gradVizat)}
-                                        disabled={!gradVizat}
-                                        isLoading={loadingStates[sportiv.id]}
-                                    >
-                                        Înscrie
-                                    </Button>
-                                </td>
-                            </tr>
-                        ))}
+                        {sportiviPentruInscriereData.map(({ sportiv, gradActual, gradVizat }) => {
+                            const isInscris = inscrisiInSesiuneIds.has(sportiv.id);
+                            return (
+                                <tr key={sportiv.id} className={`hover:bg-slate-700/30 transition-colors ${isInscris ? 'bg-slate-700/20' : ''}`}>
+                                    <td className="p-2 font-medium">{sportiv.nume} {sportiv.prenume}</td>
+                                    <td className="p-2 text-slate-400">{gradActual?.nume || 'Începător'}</td>
+                                    <td className="p-2 font-semibold text-brand-secondary">{gradVizat?.nume || 'N/A'}</td>
+                                    <td className="p-2 text-right">
+                                        {isInscris ? (
+                                            <Button size="sm" variant="success" disabled className="!cursor-default opacity-80">
+                                                <CheckIcon className="w-4 h-4 mr-1"/> Înscris
+                                            </Button>
+                                        ) : (
+                                            <Button 
+                                                size="sm"
+                                                variant='info'
+                                                onClick={() => handleInscriere(sportiv, gradVizat)}
+                                                disabled={!gradVizat || loadingStates[sportiv.id]}
+                                                isLoading={loadingStates[sportiv.id]}
+                                            >
+                                                Înscrie
+                                            </Button>
+                                        )}
+                                    </td>
+                                </tr>
+                            );
+                        })}
                     </tbody>
                 </table>
-                {sportiviDisponibiliData.length === 0 && <p className="p-8 text-center text-slate-500 italic">Toți sportivii activi sunt înscriși sau nu corespund căutării.</p>}
+                {sportiviPentruInscriereData.length === 0 && <p className="p-8 text-center text-slate-500 italic">Niciun sportiv activ nu corespunde căutării.</p>}
             </div>
         </div>
     );

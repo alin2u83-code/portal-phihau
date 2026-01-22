@@ -205,7 +205,7 @@ export const SportivFormModal: React.FC<{
         setLoading(true);
         try {
             // Whitelist de coloane: Extrage doar datele "curate" pentru a evita erorile de schema
-            const { roluri, id, created_at, ...cleanData } = editData;
+            const { roluri, id, created_at, parola, ...cleanData } = editData;
 
             const result = await onSave(cleanData);
             

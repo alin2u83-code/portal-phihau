@@ -171,12 +171,12 @@ CREATE POLICY "Users can create and update their own announcements" ON public.an
 -- Tabel: sportivi_roluri
 -- -----------------------------------------------------------------
 ALTER TABLE public.sportivi_roluri ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Admins can manage roles" ON public.sportivi_roluri;
-CREATE POLICY "Admins can manage roles" ON public.sportivi_roluri
+DROP POLICY IF EXISTS "Admins can manage roles assignments" ON public.sportivi_roluri;
+CREATE POLICY "Admins can manage roles assignments" ON public.sportivi_roluri
     FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
 
-DROP POLICY IF EXISTS "Users can see their own roles" ON public.sportivi_roluri;
-CREATE POLICY "Users can see their own roles" ON public.sportivi_roluri
+DROP POLICY IF EXISTS "Users can see their own roles assignments" ON public.sportivi_roluri;
+CREATE POLICY "Users can see their own roles assignments" ON public.sportivi_roluri
     FOR SELECT USING (sportiv_id IN (SELECT id FROM public.sportivi WHERE user_id = auth.uid()));
 
 -- -----------------------------------------------------------------
@@ -331,12 +331,12 @@ CREATE POLICY "Authenticated users can see discounts" ON public.reduceri
 -- Tabel: roluri
 -- -----------------------------------------------------------------
 ALTER TABLE public.roluri ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Admins can manage roles" ON public.roluri;
-CREATE POLICY "Admins can manage roles" ON public.roluri
+DROP POLICY IF EXISTS "Admins can manage roles definitions" ON public.roluri;
+CREATE POLICY "Admins can manage roles definitions" ON public.roluri
     FOR ALL USING (public.is_admin_or_instructor()) WITH CHECK (public.is_admin_or_instructor());
 
-DROP POLICY IF EXISTS "Authenticated users can see roles" ON public.roluri;
-CREATE POLICY "Authenticated users can see roles" ON public.roluri
+DROP POLICY IF EXISTS "Authenticated users can see roles definitions" ON public.roluri;
+CREATE POLICY "Authenticated users can see roles definitions" ON public.roluri
     FOR SELECT USING (auth.role() = 'authenticated');
 
 -- -----------------------------------------------------------------

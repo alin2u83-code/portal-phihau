@@ -278,68 +278,34 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         }
     };
 
-    const handleInitiateDelete = async (inscriere: InscriereExamen) => {
-        if (!supabase) {
-            showError("Eroare Configurare", "Clientul Supabase nu a putut fi inițializat.");
-            return;
-        }
-        setIsCheckingDelete(inscriere.id);
-
-        try {
-            const { error: checkError, count } = await supabase
-                .from('inscrieri_examene')
-                .select('*', { count: 'exact', head: true })
-                .eq('sportiv_id', inscriere.sportiv_id)
-                .eq('grad_vizat_id', inscriere.grad_vizat_id)
-                .not('id', 'eq', inscriere.id);
-
-            if (checkError) {
-                throw checkError;
-            }
-
-            const defaultMessage = `Sunteți sigur că doriți să retrageți înscrierea sportivului ${inscriere.sportivi?.nume} ${inscriere.sportivi?.prenume}? Factura asociată (dacă există și este neachitată) va fi de asemenea ștearsă.`;
-
-            if (count && count > 0) {
-                const gradName = inscriere.grade?.nume || 'acest grad';
-                setDeleteMessage(`Atenție! Acest sportiv a mai susținut/fost înscris pentru gradul ${gradName} și în trecut. Sigur vrei să ștergi această înregistrare curentă?`);
-            } else {
-                setDeleteMessage(defaultMessage);
-            }
-            
-            setInscriereToDelete(inscriere);
-
-        } catch (err: any) {
-            showError("Eroare la verificarea istoricului", err.message);
-        } finally {
-            setIsCheckingDelete(null);
-        }
+    const handleInitiateDelete = (inscriere: InscriereExamen) => {
+        setDeleteMessage(`Sunteți sigur că doriți să retrageți înscrierea sportivului ${inscriere.sportivi?.nume} ${inscriere.sportivi?.prenume}? Factura asociată (dacă există și este neachitată) va fi de asemenea ștearsă.`);
+        setInscriereToDelete(inscriere);
     };
 
     const handleWithdraw = async () => {
         if (!inscriereToDelete || !supabase) return;
         setIsDeleting(true);
 
-        const referenceId = `Ref Inscriere: ${inscriereToDelete.id}`;
-        const plataAsociata = plati.find(p => p.observatii?.includes(referenceId));
-        
         try {
-            if (plataAsociata) {
-                if (plataAsociata.status !== 'Neachitat') {
-                    throw new Error("Factura asociată a fost deja achitată (parțial sau total) și nu poate fi ștearsă automat. Anulați manual încasarea întâi.");
-                }
-                const { error: plataError } = await supabase.from('plati').delete().eq('id', plataAsociata.id);
-                if (plataError) throw plataError;
+            const { data, error } = await supabase.rpc('delete_exam_registration', {
+                p_inscriere_id: inscriereToDelete.id
+            });
+
+            if (error) {
+                throw error;
             }
-            
-            const { error: inscriereError } = await supabase.from('inscrieri_examene').delete().eq('id', inscriereToDelete.id);
-            if (inscriereError) throw inscriereError;
-    
-            if (plataAsociata) {
-                setPlati(prev => prev.filter(p => p.id !== plataAsociata.id));
-            }
+
+            // Database operation was successful, now update UI.
             setInscrieri(prev => prev.filter(i => i.id !== inscriereToDelete.id));
             
-            showSuccess("Succes", "Înscrierea și factura asociată (dacă a existat) au fost retrase.");
+            // The RPC function returns the ID of the deleted payment, if any.
+            if (data && data.deleted_plata_id) {
+                setPlati(prev => prev.filter(p => p.id !== data.deleted_plata_id));
+            }
+            
+            showSuccess("Succes", data.message || "Înscrierea a fost retrasă cu succes din baza de date.");
+
         } catch (err: any) {
             showError("Eroare la Retragere", err.message);
         } finally {

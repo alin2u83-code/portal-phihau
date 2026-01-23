@@ -236,38 +236,19 @@ CREATE POLICY "Users can manage their own announcements" ON public.anunturi_prez
 -- -----------------------------------------------------------------
 ALTER TABLE public.sportivi_roluri ENABLE ROW LEVEL SECURITY;
 
-DROP POLICY IF EXISTS "Admins can manage roles assignments" ON public.sportivi_roluri;
-DROP POLICY IF EXISTS "Users can manage roles of lower-level users" ON public.sportivi_roluri;
-
-CREATE POLICY "Users can manage roles of lower-level users" ON public.sportivi_roluri
-FOR ALL USING (
-    -- Admins can see everything
-    public.is_admin() OR
-    -- Users can see role assignments for users with a lower max role level
-    (
-        (SELECT public.get_current_user_max_role_level()) > 
-        (SELECT COALESCE(MAX(public.get_role_level(r.nume)), 0)
-         FROM public.sportivi_roluri sr
-         JOIN public.roluri r ON sr.rol_id = r.id
-         WHERE sr.sportiv_id = public.sportivi_roluri.sportiv_id)
-    )
-) WITH CHECK (
-    -- Admins can assign anything
-    public.is_admin() OR
-    -- Other users can only assign roles with a level strictly lower than their own, to users with a level strictly lower than their own.
-    (
-        (SELECT public.get_current_user_max_role_level()) > (SELECT public.get_role_level(nume) FROM public.roluri WHERE id = rol_id)
-        AND
-        (SELECT public.get_current_user_max_role_level()) > (SELECT COALESCE(MAX(public.get_role_level(r.nume)), 0)
-         FROM public.sportivi_roluri sr
-         JOIN public.roluri r ON sr.rol_id = r.id
-         WHERE sr.sportiv_id = public.sportivi_roluri.sportiv_id)
-    )
-);
+DROP POLICY IF EXISTS "Admins and Instructors can manage roles assignments" ON public.sportivi_roluri;
+CREATE POLICY "Admins and Instructors can manage roles assignments"
+    ON public.sportivi_roluri
+    FOR ALL
+    USING (public.is_admin_or_instructor())
+    WITH CHECK (public.is_admin_or_instructor());
 
 DROP POLICY IF EXISTS "Users can see their own roles assignments" ON public.sportivi_roluri;
-CREATE POLICY "Users can see their own roles assignments" ON public.sportivi_roluri
-    FOR SELECT USING (sportiv_id IN (SELECT id FROM public.sportivi WHERE user_id = auth.uid()));
+CREATE POLICY "Users can see their own roles assignments" 
+    ON public.sportivi_roluri
+    FOR SELECT 
+    USING (sportiv_id IN (SELECT id FROM public.sportivi WHERE user_id = auth.uid()));
+
 
 -- -----------------------------------------------------------------
 -- Tabel: notificari
@@ -421,9 +402,12 @@ CREATE POLICY "Authenticated users can see discounts" ON public.reduceri
 -- Tabel: roluri
 -- -----------------------------------------------------------------
 ALTER TABLE public.roluri ENABLE ROW LEVEL SECURITY;
+
 DROP POLICY IF EXISTS "Admins can manage roles definitions" ON public.roluri;
 CREATE POLICY "Admins can manage roles definitions" ON public.roluri
-    FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
+    FOR ALL 
+    USING (public.is_admin()) 
+    WITH CHECK (public.is_admin());
 
 DROP POLICY IF EXISTS "Authenticated users can see roles definitions" ON public.roluri;
 CREATE POLICY "Authenticated users can see roles definitions" ON public.roluri

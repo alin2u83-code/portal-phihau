@@ -53,6 +53,10 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
     const [isDeleting, setIsDeleting] = useState(false);
     const [isCheckingDelete, setIsCheckingDelete] = useState<string | null>(null); // store inscriere.id
     const [deleteMessage, setDeleteMessage] = useState('');
+
+    // State for results
+    const [rezultateLocale, setRezultateLocale] = useState<Record<string, 'Admis' | 'Respins' | 'Neprezentat'>>({});
+    const [isSavingResults, setIsSavingResults] = useState(false);
     
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -71,19 +75,24 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
     const participantiInscrisi = useMemo(() => {
         return allInscrieri
             .filter(i => i.sesiune_id === sesiune.id)
-            .sort((a,b) => (a.sportivi?.nume || '').localeCompare(b.sportivi?.nume || ''));
+            .sort((a, b) => {
+                const gradeOrderDiff = (b.grade?.ordine ?? 0) - (a.grade?.ordine ?? 0);
+                if (gradeOrderDiff !== 0) return gradeOrderDiff;
+                return (a.sportivi?.nume || '').localeCompare(b.sportivi?.nume || '');
+            });
     }, [allInscrieri, sesiune.id]);
-    
-    const participantNameCounts = useMemo(() => {
-        const counts = new Map<string, number>();
+
+    const initialRezultate = useMemo(() => {
+        const initial: Record<string, 'Admis' | 'Respins' | 'Neprezentat'> = {};
         participantiInscrisi.forEach(i => {
-            if (i.sportivi) {
-                const fullName = `${i.sportivi.nume} ${i.sportivi.prenume}`;
-                counts.set(fullName, (counts.get(fullName) || 0) + 1);
-            }
+            initial[i.id] = i.rezultat || 'Neprezentat';
         });
-        return counts;
+        return initial;
     }, [participantiInscrisi]);
+
+    useEffect(() => {
+        setRezultateLocale(initialRezultate);
+    }, [initialRezultate]);
 
     const sportiviDisponibili = useMemo(() => {
         if (searchTerm.length === 0) return [];
@@ -339,6 +348,98 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         }
     };
 
+    const handleResultChange = (inscriereId: string, newResult: 'Admis' | 'Respins' | 'Neprezentat') => {
+        setRezultateLocale(prev => ({ ...prev, [inscriereId]: newResult }));
+    };
+
+    const handleSaveResults = async () => {
+        if (!supabase) {
+            showError("Eroare de configurare", "Clientul Supabase nu este inițializat.");
+            return;
+        }
+        setIsSavingResults(true);
+        const changes = Object.entries(rezultateLocale)
+            .filter(([id, rezultat]) => rezultat !== initialRezultate[id]);
+
+        if (changes.length === 0) {
+            showSuccess("Info", "Nicio modificare de salvat.");
+            setIsSavingResults(false);
+            return;
+        }
+
+        const allPromises: Promise<any>[] = [];
+        const sportiviUpdatesLocal: Partial<Sportiv>[] = [];
+
+        for (const [id, rezultat] of changes) {
+            const inscriere = participantiInscrisi.find(i => i.id === id);
+            if (!inscriere) continue;
+
+            allPromises.push(
+                supabase.from('inscrieri_examene').update({ rezultat }).eq('id', id)
+            );
+
+            if (rezultat === 'Admis') {
+                allPromises.push(
+                    supabase.from('sportivi').update({ grad_actual_id: inscriere.grad_vizat_id }).eq('id', inscriere.sportiv_id)
+                );
+                allPromises.push(
+                    supabase.from('istoric_grade').insert({
+                        sportiv_id: inscriere.sportiv_id,
+                        grad_id: inscriere.grad_vizat_id,
+                        data_obtinere: sesiune.data,
+                        sesiune_examen_id: sesiune.id
+                    })
+                );
+                sportiviUpdatesLocal.push({ id: inscriere.sportiv_id, grad_actual_id: inscriere.grad_vizat_id });
+            // FIX: This comparison appears to be unintentional because the types '"Respins" | "Neprezentat"' and '"Admis"' have no overlap.
+            // The `rezultat !== 'Admis'` is redundant because this is an `else if` after `if (rezultat === 'Admis')`, so it's implied.
+            } else if (initialRezultate[id] === 'Admis') {
+                allPromises.push(
+                    supabase.from('sportivi').update({ grad_actual_id: inscriere.grad_actual_id }).eq('id', inscriere.sportiv_id)
+                );
+                allPromises.push(
+                    supabase.from('istoric_grade').delete().match({ sportiv_id: inscriere.sportiv_id, sesiune_examen_id: sesiune.id })
+                );
+                sportiviUpdatesLocal.push({ id: inscriere.sportiv_id, grad_actual_id: inscriere.grad_actual_id });
+            }
+        }
+
+        try {
+            const results = await Promise.all(allPromises);
+            const anyError = results.find(res => res.error);
+            if (anyError) throw anyError.error;
+
+            setInscrieri(prev => {
+                const changesMap = new Map(changes);
+                return prev.map(i => {
+                    if (changesMap.has(i.id)) {
+                        return { ...i, rezultat: changesMap.get(i.id) as any };
+                    }
+                    return i;
+                });
+            });
+            
+            setSportivi(prev => {
+                const updatedSportiviMap = new Map(prev.map(s => [s.id, s]));
+                sportiviUpdatesLocal.forEach(update => {
+                    const existing = updatedSportiviMap.get(update.id!);
+                    if (existing) {
+                        updatedSportiviMap.set(update.id!, { ...existing, ...update });
+                    }
+                });
+                return Array.from(updatedSportiviMap.values());
+            });
+
+            showSuccess("Succes", `${changes.length} rezultate au fost salvate cu succes!`);
+
+        } catch (err: any) {
+            showError("Eroare la Salvare", `Una sau mai multe operațiuni au eșuat. Detalii: ${err.message}`);
+        } finally {
+            setIsSavingResults(false);
+        }
+    };
+
+
     return (
         <div className="space-y-6">
              <Card>
@@ -386,43 +487,74 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             </Card>
 
             <Card>
-                <h3 className="text-lg font-bold text-white mb-2">Participanți Înscriși ({participantiInscrisi.length})</h3>
-                <div className="max-h-80 overflow-y-auto pr-2 space-y-2">
-                    {participantiInscrisi.map(inscriere => {
-                        const fullName = `${inscriere.sportivi.nume} ${inscriere.sportivi.prenume}`;
-                        const isDuplicate = (participantNameCounts.get(fullName) || 0) > 1;
+                 <div className="flex justify-between items-center mb-2">
+                    <h3 className="text-lg font-bold text-white">Participanți Înscriși ({participantiInscrisi.length})</h3>
+                    <Button onClick={handleSaveResults} variant="success" size="sm" isLoading={isSavingResults} disabled={Object.entries(rezultateLocale).every(([id, res]) => res === initialRezultate[id])}>
+                        Salvează Rezultate
+                    </Button>
+                </div>
+                <div className="max-h-96 overflow-y-auto pr-2">
+                    {participantiInscrisi.length > 0 ? (
+                        <table className="w-full text-left text-sm min-w-[700px]">
+                            <thead className="bg-slate-700/50 sticky top-0">
+                                <tr>
+                                    <th className="p-2 font-semibold">Nume Sportiv</th>
+                                    <th className="p-2 font-semibold">Grad Vizat</th>
+                                    <th className="p-2 font-semibold w-56 text-center">Rezultat</th>
+                                    <th className="p-2 font-semibold text-right">Acțiuni</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-700">
+                                {participantiInscrisi.map(inscriere => {
+                                    const rezultat = rezultateLocale[inscriere.id] || 'Neprezentat';
+                                    let statusColorClass = '';
+                                    if (rezultat === 'Admis') statusColorClass = 'bg-green-900/40 text-green-300';
+                                    else if (rezultat === 'Respins') statusColorClass = 'bg-red-900/40 text-red-300';
 
-                        return (
-                            <div key={inscriere.id} className="flex justify-between items-center bg-slate-700/50 p-2 rounded-md">
-                                <div>
-                                    <p className="font-medium flex items-center gap-2">
-                                        {inscriere.sportivi.nume} {inscriere.sportivi.prenume}
-                                        {isDuplicate && (
-                                            <span className="px-2 py-0.5 text-[10px] font-bold text-red-400 bg-red-900/50 border border-red-500/50 rounded-full">
-                                                DUPLICAT
-                                            </span>
-                                        )}
-                                    </p>
-                                    <p className="text-xs font-semibold text-brand-secondary">{inscriere.grade.nume}</p>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Button size="sm" variant="secondary" onClick={() => handleOpenEditModal(inscriere)} title="Modifică înscrierea">
-                                        <EditIcon className="w-4 h-4" />
-                                    </Button>
-                                    <Button 
-                                        size="sm" 
-                                        variant='danger' 
-                                        onClick={() => handleInitiateDelete(inscriere)} 
-                                        title="Retrage înscriere"
-                                        isLoading={isCheckingDelete === inscriere.id}
-                                    >
-                                        <TrashIcon className="w-4 h-4" />
-                                    </Button>
-                                </div>
-                            </div>
-                        );
-                    })}
-                    {participantiInscrisi.length === 0 && <p className="p-4 text-center text-slate-500 italic">Niciun sportiv înscris la această sesiune.</p>}
+                                    return (
+                                        <tr key={inscriere.id} className="hover:bg-slate-700/20">
+                                            <td className="p-2">
+                                                <p className="font-medium text-white">
+                                                    {inscriere.sportivi.nume} {inscriere.sportivi.prenume}
+                                                </p>
+                                            </td>
+                                            <td className="p-2 text-brand-secondary font-semibold">{inscriere.grade.nume}</td>
+                                            <td className="p-2 text-center">
+                                                <Select 
+                                                    label="" 
+                                                    value={rezultat}
+                                                    onChange={(e) => handleResultChange(inscriere.id, e.target.value as any)}
+                                                    className={`!py-1 ${statusColorClass}`}
+                                                >
+                                                    <option value="Neprezentat">În așteptare</option>
+                                                    <option value="Admis">Admis</option>
+                                                    <option value="Respins">Respins</option>
+                                                </Select>
+                                            </td>
+                                            <td className="p-2">
+                                                <div className="flex items-center justify-end gap-2">
+                                                    <Button size="sm" variant="secondary" onClick={() => handleOpenEditModal(inscriere)} title="Modifică gradul vizat">
+                                                        <EditIcon className="w-4 h-4" />
+                                                    </Button>
+                                                    <Button 
+                                                        size="sm" 
+                                                        variant='danger' 
+                                                        onClick={() => handleInitiateDelete(inscriere)} 
+                                                        title="Retrage înscriere"
+                                                        isLoading={isCheckingDelete === inscriere.id}
+                                                    >
+                                                        <TrashIcon className="w-4 h-4" />
+                                                    </Button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    ) : (
+                        <p className="p-4 text-center text-slate-500 italic">Niciun sportiv înscris la această sesiune.</p>
+                    )}
                 </div>
             </Card>
 
@@ -430,7 +562,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 <Modal 
                     isOpen={isModalOpen} 
                     onClose={handleCloseModal} 
-                    title={inscriereToEdit ? `Modifică Înscriere: ${selectedSportiv.nume} ${selectedSportiv.prenume}` : `Înscriere: ${selectedSportiv.nume} ${selectedSportiv.prenume}`}
+                    title={inscriereToEdit ? `Modifică Grad Vizat: ${selectedSportiv.nume} ${selectedSportiv.prenume}` : `Înscriere: ${selectedSportiv.nume} ${selectedSportiv.prenume}`}
                 >
                     <div className="space-y-4">
                         {isAlreadyEnrolled ? (

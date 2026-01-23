@@ -282,7 +282,15 @@ const DetaliiSesiuneSimplificat: React.FC<{
             sportiv: sportivi.find(s => s.id === i.sportiv_id),
             grad: grade.find(g => g.id === i.grad_vizat_id)
         }))
-        .sort((a, b) => (a.sportiv?.nume || '').localeCompare(b.sportiv?.nume || ''));
+        .sort((a, b) => {
+            const gradeOrderDiff = (b.grad?.ordine ?? 0) - (a.grad?.ordine ?? 0);
+            if (gradeOrderDiff !== 0) {
+                return gradeOrderDiff;
+            }
+            const nameA = `${a.sportiv?.nume || ''} ${a.sportiv?.prenume || ''}`;
+            const nameB = `${b.sportiv?.nume || ''} ${b.sportiv?.prenume || ''}`;
+            return nameA.localeCompare(nameB);
+        });
     }, [inscrieri, sportivi, grade]);
 
     return (

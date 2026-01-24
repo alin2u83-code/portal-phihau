@@ -466,3 +466,7 @@ ALTER TABLE public.plati ADD CONSTRAINT plati_tip_check CHECK (
         -- Adăugați aici alte tipuri custom permise dacă este necesar
     )
 );
+-- =================================================================
+-- Functie RPC pentru stergere atomica inscriere examen
+-- =================================================================
+DROP FUNCTION IF EXISTS public.delete_exam_registration(uuid);

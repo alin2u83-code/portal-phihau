@@ -288,48 +288,33 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         setIsDeleting(true);
 
         try {
-            const referenceId = `Ref Inscriere: ${inscriereToDelete.id}`;
-            const plataAsociata = plati.find(p => p.observatii?.includes(referenceId));
+            const { data, error } = await supabase.rpc('delete_exam_registration', {
+                p_inscriere_id: inscriereToDelete.id
+            });
 
-            if (plataAsociata && plataAsociata.status !== 'Neachitat') {
-                throw new Error("Nu se poate retrage înscrierea. Factura asociată a fost deja achitată (parțial sau total). Anulați manual încasarea întâi.");
+            if (error) {
+                throw error;
             }
 
-            // Step 1: Delete the main registration record.
-            const { error: inscriereError } = await supabase
-                .from('inscrieri_examene')
-                .delete()
-                .eq('id', inscriereToDelete.id);
-
-            if (inscriereError) {
-                throw inscriereError; // Abort if this fails.
-            }
-            
-            // Step 2 (optional): Delete the associated invoice.
-            let wasPlataDeleted = false;
-            if (plataAsociata) {
-                const { error: plataError } = await supabase
-                    .from('plati')
-                    .delete()
-                    .eq('id', plataAsociata.id);
-                
-                if (plataError) {
-                    showError("Avertisment", `Înscrierea a fost ștearsă, dar a eșuat ștergerea facturii asociate (ID: ${plataAsociata.id}). Ștergeți-o manual. Eroare: ${plataError.message}`);
-                } else {
-                    wasPlataDeleted = true;
-                }
-            }
-            
-            // Step 3: Update local state based on successful DB operations.
+            // Database operation was successful, now update UI.
             setInscrieri(prev => prev.filter(i => i.id !== inscriereToDelete.id));
-            if (wasPlataDeleted && plataAsociata) {
-                setPlati(prev => prev.filter(p => p.id !== plataAsociata.id));
+            
+            // The RPC function returns the ID of the deleted payment, if any.
+            if (data && data.deleted_plata_id) {
+                setPlati(prev => prev.filter(p => p.id !== data.deleted_plata_id));
             }
             
-            showSuccess("Succes", `Înscrierea a fost retrasă cu succes.${wasPlataDeleted ? ' Factura asociată a fost de asemenea ștearsă.' : ''}`);
+            showSuccess("Succes", data.message || "Înscrierea a fost retrasă cu succes.");
 
         } catch (err: any) {
-            showError("Eroare la Retragere", err.message);
+             if (err.message && (err.message.includes('function public.delete_exam_registration') || err.message.includes('Could not find the function'))) {
+                showError(
+                    "Eroare de Configurare Bază de Date", 
+                    "Funcția necesară pentru ștergere ('delete_exam_registration') nu a fost găsită. Rulați scriptul SQL de actualizare a bazei de date sau contactați administratorul."
+                );
+            } else {
+                showError("Eroare la Retragere", err.message);
+            }
         } finally {
             setIsDeleting(false);
             setInscriereToDelete(null);

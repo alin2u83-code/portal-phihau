@@ -470,3 +470,46 @@ ALTER TABLE public.plati ADD CONSTRAINT plati_tip_check CHECK (
 -- Functie RPC pentru stergere atomica inscriere examen
 -- =================================================================
 DROP FUNCTION IF EXISTS public.delete_exam_registration(uuid);
+CREATE OR REPLACE FUNCTION public.delete_exam_registration(p_inscriere_id uuid)
+RETURNS json AS $$
+DECLARE
+    plata_record RECORD;
+    inscriere_record RECORD;
+    deleted_plata_id_res uuid;
+BEGIN
+    -- This function must run with elevated privileges to manage related data across tables.
+    -- Ensure it is owned by postgres to bypass RLS.
+    IF NOT public.is_admin_or_instructor() THEN
+        RAISE EXCEPTION 'Permisiune refuzată. Doar administratorii pot șterge înscrieri.';
+    END IF;
+
+    -- Find the registration to be deleted
+    SELECT * INTO inscriere_record FROM public.inscrieri_examene WHERE id = p_inscriere_id;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Inscrierea cu ID-ul % nu a fost găsită.', p_inscriere_id;
+    END IF;
+
+    -- Find the associated payment using the reference in 'observatii'
+    SELECT * INTO plata_record FROM public.plati WHERE observatii LIKE '%Ref Inscriere: ' || p_inscriere_id || '%';
+
+    -- If a payment exists, check its status and delete it
+    IF FOUND THEN
+        IF plata_record.status != 'Neachitat' THEN
+            RAISE EXCEPTION 'Nu se poate șterge înscrierea. Factura asociată a fost deja achitată (parțial sau total). Anulați manual încasarea întâi.';
+        END IF;
+
+        DELETE FROM public.plati WHERE id = plata_record.id RETURNING id INTO deleted_plata_id_res;
+    END IF;
+
+    -- Delete the main registration record
+    DELETE FROM public.inscrieri_examene WHERE id = p_inscriere_id;
+
+    RETURN json_build_object(
+        'success', true,
+        'message', 'Înscrierea a fost ștearsă cu succes.',
+        'deleted_plata_id', deleted_plata_id_res -- can be null
+    );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+ALTER FUNCTION public.delete_exam_registration(uuid) OWNER TO postgres;

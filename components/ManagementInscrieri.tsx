@@ -370,21 +370,26 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             });
 
             if (error) {
-                const errorMessage = error?.message || 'A apărut o eroare RPC necunoscută.';
-                if (errorMessage.includes('function public.delete_exam_registration') || errorMessage.includes('Could not find the function')) {
-                    showError("Eroare de Configurare Bază de Date", "Funcția necesară ('delete_exam_registration') nu a fost găsită. Rulați scriptul SQL sau contactați administratorul.");
-                } else {
-                    showError("Eroare la Retragere", errorMessage);
-                }
-            } else {
-                setInscrieri(prev => prev.filter(i => i.id !== inscriereToDelete.id));
-                if (data?.deleted_plata_id) {
-                    setPlati(prev => prev.filter(p => p.id !== data.deleted_plata_id));
-                }
-                showSuccess("Succes", data?.message || "Înscrierea a fost retrasă cu succes.");
+                // Aruncăm eroarea pentru a fi prinsă și gestionată centralizat în blocul catch.
+                throw error;
             }
+
+            // Calea de succes: actualizăm starea locală pentru feedback vizual instantaneu.
+            setInscrieri(prev => prev.filter(i => i.id !== inscriereToDelete.id));
+            if (data?.deleted_plata_id) {
+                setPlati(prev => prev.filter(p => p.id !== data.deleted_plata_id));
+            }
+            showSuccess("Succes", data?.message || "Înscrierea a fost retrasă cu succes.");
+
         } catch (err: any) {
-            showError("Eroare la Retragere", err?.message || 'A apărut o eroare neașteptată.');
+            // Gestionare centralizată a erorilor (RPC, rețea, etc.)
+            const errorMessage = err?.message || 'A apărut o eroare necunoscută.';
+            
+            if (errorMessage.includes('function public.delete_exam_registration') || errorMessage.includes('Could not find the function')) {
+                showError("Eroare de Configurare Bază de Date", "Funcția necesară ('delete_exam_registration') nu a fost găsită. Rulați scriptul SQL sau contactați administratorul.");
+            } else {
+                showError("Eroare la Retragere", errorMessage);
+            }
         } finally {
             setIsDeleting(false);
             setInscriereToDelete(null);

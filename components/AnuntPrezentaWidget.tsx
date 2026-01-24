@@ -5,37 +5,23 @@ import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { ChatBubbleLeftEllipsisIcon } from './icons';
 
-interface AnuntPrezentaWidgetProps {
+interface SingleTrainingAnuntProps {
+    training: Antrenament;
     currentUser: User;
-    antrenamente: Antrenament[];
     anunturi: AnuntPrezenta[];
     setAnunturi: React.Dispatch<React.SetStateAction<AnuntPrezenta[]>>;
 }
 
-export const AnuntPrezentaWidget: React.FC<AnuntPrezentaWidgetProps> = ({ currentUser, antrenamente, anunturi, setAnunturi }) => {
+const SingleTrainingAnunt: React.FC<SingleTrainingAnuntProps> = ({ training, currentUser, anunturi, setAnunturi }) => {
     const { showSuccess, showError } = useError();
     const [mode, setMode] = useState<'options' | 'delay' | 'absent'>('options');
     const [delayTime, setDelayTime] = useState('15');
     const [absentReason, setAbsentReason] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const todayString = useMemo(() => new Date().toISOString().split('T')[0], []);
-
-    const todaysTraining = useMemo(() => {
-        return antrenamente.find(a => 
-            a.data === todayString &&
-            (a.grupa_id === currentUser.grupa_id || (currentUser.participa_vacanta && a.grupa_id === null))
-        );
-    }, [antrenamente, todayString, currentUser]);
-
     const existingAnunt = useMemo(() => {
-        if (!todaysTraining) return null;
-        return anunturi.find(a => a.antrenament_id === todaysTraining.id && a.sportiv_id === currentUser.id);
-    }, [anunturi, todaysTraining, currentUser.id]);
-
-    if (!todaysTraining) {
-        return null; // Nu afișa nimic dacă nu există antrenament azi
-    }
+        return anunturi.find(a => a.antrenament_id === training.id && a.sportiv_id === currentUser.id);
+    }, [anunturi, training.id, currentUser.id]);
 
     const handleSendAnunt = async (status: 'Confirm' | 'Intarziat' | 'Absent', detalii: string | null) => {
         if (!supabase) return;
@@ -57,7 +43,7 @@ export const AnuntPrezentaWidget: React.FC<AnuntPrezentaWidgetProps> = ({ curren
                 result = await supabase
                     .from('anunturi_prezenta')
                     .insert({
-                        antrenament_id: todaysTraining.id,
+                        antrenament_id: training.id,
                         sportiv_id: currentUser.id,
                         status,
                         detalii
@@ -137,17 +123,57 @@ export const AnuntPrezentaWidget: React.FC<AnuntPrezentaWidgetProps> = ({ curren
             <Button variant="secondary" onClick={() => setMode('options')}>Anulează</Button>
         </div>
     );
-    
-    return (
-        <Card className="bg-slate-700/30 border-slate-600 mb-6">
-            <h3 className="text-lg font-bold text-white mb-2">Antrenamentul de azi ({todaysTraining.ora_start})</h3>
-            <p className="text-sm text-slate-400 mb-4">Anunță instructorul despre prezența ta.</p>
 
+    return (
+        <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-600">
+            <p className="font-bold text-white">Antrenament la ora {training.ora_start}</p>
+            <p className="text-sm text-slate-400 mb-4">Anunță instructorul despre prezența ta.</p>
             {existingAnunt && mode === 'options' ? renderExistingAnunt() :
                 mode === 'options' ? renderOptions() :
                 mode === 'delay' ? renderDelayForm() :
                 renderAbsentForm()
             }
+        </div>
+    );
+};
+
+interface AnuntPrezentaWidgetProps {
+    currentUser: User;
+    antrenamente: Antrenament[];
+    anunturi: AnuntPrezenta[];
+    setAnunturi: React.Dispatch<React.SetStateAction<AnuntPrezenta[]>>;
+}
+
+export const AnuntPrezentaWidget: React.FC<AnuntPrezentaWidgetProps> = ({ currentUser, antrenamente, anunturi, setAnunturi }) => {
+    const todayString = useMemo(() => new Date().toISOString().split('T')[0], []);
+
+    const todaysTrainings = useMemo(() => {
+        return antrenamente
+            .filter(a => 
+                a.data === todayString &&
+                (a.grupa_id === currentUser.grupa_id || (currentUser.participa_vacanta && a.grupa_id === null))
+            )
+            .sort((a, b) => a.ora_start.localeCompare(b.ora_start));
+    }, [antrenamente, todayString, currentUser]);
+
+    if (todaysTrainings.length === 0) {
+        return null; // Nu afișa nimic dacă nu există antrenament azi
+    }
+    
+    return (
+        <Card className="bg-slate-700/30 border-slate-600 mb-6">
+            <h3 className="text-lg font-bold text-white mb-4">Antrenamentele de Azi</h3>
+            <div className="space-y-4">
+                {todaysTrainings.map(training => (
+                    <SingleTrainingAnunt
+                        key={training.id}
+                        training={training}
+                        currentUser={currentUser}
+                        anunturi={anunturi}
+                        setAnunturi={setAnunturi}
+                    />
+                ))}
+            </div>
         </Card>
     );
 };

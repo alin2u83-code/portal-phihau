@@ -279,20 +279,26 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             });
 
             if (error) {
-                 if (error.message.includes('function public.delete_exam_registration') || error.message.includes('Could not find the function')) {
+                // Asigurăm verificarea pentru null a obiectului error și a proprietății message.
+                const errorMessage = error?.message || 'A apărut o eroare RPC necunoscută.';
+                
+                if (errorMessage.includes('function public.delete_exam_registration') || errorMessage.includes('Could not find the function')) {
                     showError("Eroare de Configurare Bază de Date", "Funcția necesară ('delete_exam_registration') nu a fost găsită. Rulați scriptul SQL sau contactați administratorul.");
                 } else {
-                    throw error;
+                    // Implementăm un 'default message' pentru a evita crash-ul.
+                    showError("Eroare la Retragere", errorMessage);
                 }
             } else {
+                // Actualizăm starea locală pentru feedback vizual instantaneu.
                 setInscrieri(prev => prev.filter(i => i.id !== inscriereToDelete.id));
-                if (data && data.deleted_plata_id) {
+                if (data?.deleted_plata_id) {
                     setPlati(prev => prev.filter(p => p.id !== data.deleted_plata_id));
                 }
-                showSuccess("Succes", data.message || "Înscrierea a fost retrasă cu succes.");
+                showSuccess("Succes", data?.message || "Înscrierea a fost retrasă cu succes.");
             }
         } catch (err: any) {
-            showError("Eroare la Retragere", err.message);
+            // Prindem erorile neașteptate (ex: de rețea) și afișăm un mesaj generic.
+            showError("Eroare la Retragere", err?.message || 'A apărut o eroare neașteptată în timpul comunicării cu serverul.');
         } finally {
             setIsDeleting(false);
             setInscriereToDelete(null);

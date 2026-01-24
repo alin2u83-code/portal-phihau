@@ -86,7 +86,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({ plati, sportiv
         <div>
             <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
             <h1 className="text-3xl font-bold text-white mb-6">Raport Financiar Încasări</h1>
-            <Card className="bg-navy-card-mobile md:bg-light-navy">
+            <Card>
                 <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6 p-4 bg-slate-700/50 rounded-lg">
                     <Input label="Data Start" type="date" name="startDate" value={filters.startDate} onChange={handleFilterChange} />
                     <Input label="Data Sfârșit" type="date" name="endDate" value={filters.endDate} onChange={handleFilterChange} />

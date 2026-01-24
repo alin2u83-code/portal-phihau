@@ -291,7 +291,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
                 </Button>
             </div>
 
-            <Card className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-navy-card-mobile md:bg-light-navy">
+            <Card className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Input label="Caută Sportiv/Familie" value={filter.sportiv} onChange={e => setFilter({...filter, sportiv: e.target.value})} />
                 <Select label="Categorie" value={filter.tip} onChange={e => setFilter({...filter, tip: e.target.value})}>
                     <option value="">Toate</option>
@@ -317,7 +317,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
                 </div>
             )}
 
-            <Card className="p-0 overflow-hidden bg-navy-card-mobile md:bg-light-navy">
+            <Card className="p-0 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
                         <thead className="bg-slate-700/50">

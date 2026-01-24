@@ -17,7 +17,7 @@ interface SportivDashboardProps {
   onNavigate: (view: View) => void;
   antrenamente: any[]; // Prop needed for AnuntPrezentaWidget
   anunturi: AnuntPrezenta[]; // Prop needed for AnuntPrezentaWidget
-  setAnunturi: React.Dispatch<React.SetStateAction<AnuntPrezenta[]>>; // Prop needed for AnuntPrezentaWidget
+  setAnunturi: React.Dispatch<React.SetStateAction<AnuntPrezenta[]>>;
 }
 
 export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser, viewedUser, participari, examene, grade, grupe, plati, onNavigate, antrenamente, anunturi, setAnunturi }) => {
@@ -48,6 +48,21 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
     const grupaCurenta = useMemo(() => {
         return grupe.find(g => g.id === viewedUser.grupa_id)?.denumire || 'Fără grupă';
     }, [viewedUser.grupa_id, grupe]);
+
+    const userParticipari = useMemo(() => {
+        return participari
+            .filter(p => p.sportiv_id === viewedUser.id)
+            .map(p => {
+                const sesiune = examene.find(s => s.id === p.sesiune_id);
+                const grad = grade.find(g => g.id === p.grad_vizat_id);
+                return {
+                    ...p,
+                    data_examen: sesiune?.data || 'N/A',
+                    nume_grad: grad?.nume || 'N/A'
+                };
+            })
+            .sort((a, b) => new Date(b.data_examen).getTime() - new Date(a.data_examen).getTime());
+    }, [viewedUser.id, participari, examene, grade]);
 
     return (
         <div className="space-y-6">
@@ -86,6 +101,34 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                     </Button>
                 </Card>
             </div>
+
+            <Card>
+                <h3 className="text-lg font-bold text-white mb-4">Istoric Recent Examene</h3>
+                {userParticipari.length > 0 ? (
+                    <div className="space-y-3">
+                        {userParticipari.slice(0, 3).map(p => (
+                            <div key={p.id} className="bg-slate-800/50 p-3 rounded-md flex justify-between items-center">
+                                <div>
+                                    <p className="font-semibold text-white">{p.nume_grad}</p>
+                                    <p className="text-sm text-slate-400">{new Date(p.data_examen + 'T00:00:00').toLocaleDateString('ro-RO')}</p>
+                                </div>
+                                <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                                    p.rezultat === 'Admis' ? 'bg-green-600/20 text-green-400' :
+                                    p.rezultat === 'Respins' ? 'bg-red-600/20 text-red-400' :
+                                    'bg-slate-600/20 text-slate-400'
+                                }`}>{p.rezultat || 'N/A'}</span>
+                            </div>
+                        ))}
+                        {userParticipari.length > 3 && (
+                            <Button onClick={() => onNavigate('istoric-examene')} variant="secondary" className="w-full mt-4">
+                                Vezi tot istoricul
+                            </Button>
+                        )}
+                    </div>
+                ) : (
+                    <p className="text-slate-400 italic">Niciun examen susținut.</p>
+                )}
+            </Card>
         </div>
     );
 };

@@ -44,28 +44,30 @@ export const ClubProvider: React.FC<ClubProviderProps> = ({ children, currentUse
   }, [currentUser]);
 
   useEffect(() => {
-    // When user changes, reset the selected club for SuperAdmins
-    // or set it for ClubAdmins.
     if (isSuperAdmin) {
-        // We start with null (all clubs) for super admin
-        setSelectedClubId(null);
+      const storedClubId = localStorage.getItem('phi-hau-selected-club-id');
+      setSelectedClubId(storedClubId ? JSON.parse(storedClubId) : null);
     } else {
-        setSelectedClubId(userClubId);
+      setSelectedClubId(userClubId);
     }
   }, [isSuperAdmin, userClubId]);
   
-  // The clubId used for filtering depends on the user's role.
-  // A Club Admin is always locked to their club.
-  // A Super Admin can change their selection.
+  const handleSetClubId = (clubId: string | null) => {
+      setSelectedClubId(clubId);
+      if(isSuperAdmin) {
+        localStorage.setItem('phi-hau-selected-club-id', JSON.stringify(clubId));
+      }
+  };
+  
   const activeClubId = isSuperAdmin ? selectedClubId : userClubId;
   
   const value = {
     clubId: activeClubId,
-    setClubId: setSelectedClubId,
+    setClubId: handleSetClubId,
     userClubId,
     isSuperAdmin,
     isClubAdmin,
-    availableClubs: allClubs, // Super admin needs all clubs for the dropdown
+    availableClubs: allClubs,
   };
 
   return (

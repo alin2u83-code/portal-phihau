@@ -438,7 +438,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             setSportivi(prev => {
                 const updatedSportiviMap = new Map(prev.map(s => [s.id, s]));
                 sportiviUpdatesLocal.forEach(update => {
-                    if (update && update.id) {
+                    if (update && typeof update === 'object' && update.id) {
                         const existing = updatedSportiviMap.get(update.id);
                         if (existing) {
                             updatedSportiviMap.set(update.id, { ...existing, ...update });

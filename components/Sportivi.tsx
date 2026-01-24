@@ -5,6 +5,7 @@ import { PlusIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { BirthDateInput } from './BirthDateInput';
+import { useClub } from './ClubProvider';
 
 // --- Modale de adăugare rapidă ---
 const QuickAddModal: React.FC<{ 
@@ -63,7 +64,6 @@ interface SportivFormFieldsProps {
     familii: Familie[];
     tipuriAbonament: TipAbonament[];
     clubs: Club[];
-    currentUser: User | null;
     onQuickAddGrupa: () => void;
     onQuickAddFamilie: () => void;
 }
@@ -76,14 +76,12 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
     familii,
     tipuriAbonament,
     clubs,
-    currentUser,
     onQuickAddGrupa,
     onQuickAddFamilie,
 }) => {
     const [formData, setFormData] = useState(initialData);
     const [errors, setErrors] = useState<Record<string, string>>({});
-    
-    const isClubAdmin = currentUser?.roluri.some(r => r.nume === 'Admin Club') || false;
+    const { isClubAdmin, clubId, isSuperAdmin } = useClub();
 
     const validate = useCallback((data: Partial<Sportiv>) => {
         const newErrors: Record<string, string> = {};
@@ -109,14 +107,16 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
 
     useEffect(() => {
         let data = { ...initialData };
-        if (isClubAdmin && !data.club_id) {
-            data.club_id = currentUser?.club_id;
+        // If it's a new sportiv (no ID), and the user is a club admin or a super admin viewing a specific club,
+        // pre-fill the club_id.
+        if (!initialData.id && clubId) {
+            data.club_id = clubId;
         }
         setFormData(data);
         const initialErrors = validate(data);
         setErrors(initialErrors);
         onFormChange(data, Object.keys(initialErrors).length === 0);
-    }, [initialData, onFormChange, validate, isClubAdmin, currentUser]);
+    }, [initialData, onFormChange, validate, clubId]);
 
 
     const handleChange = (e: any) => {
@@ -157,7 +157,7 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
                 <BirthDateInput label="Data Nașterii" value={formData.data_nasterii} onChange={(v) => handleChange({ target: { name: 'data_nasterii', value: v } })} required error={errors.data_nasterii}/>
                 <Input label="Email (Opțional)" name="email" type="email" value={formData.email || ''} onChange={handleChange} disabled={loading} className="!py-1.5" error={errors.email}/>
                 <Input label="CNP (Opțional)" name="cnp" value={formData.cnp || ''} onChange={handleChange} maxLength={13} disabled={loading} className="!py-1.5" error={errors.cnp} />
-                 <Select label="Club" name="club_id" value={formData.club_id || ''} onChange={handleChange} disabled={loading || isClubAdmin} className="!py-1.5">
+                 <Select label="Club" name="club_id" value={formData.club_id || ''} onChange={handleChange} disabled={loading || isClubAdmin} className="!py-1.5" required={isSuperAdmin}>
                     <option value="">Nespecificat</option>
                     {clubs.map(c => <option key={c.id} value={c.id}>{c.nume}</option>)}
                 </Select>
@@ -224,7 +224,7 @@ export const SportivFormModal: React.FC<{
     setFamilii: React.Dispatch<React.SetStateAction<Familie[]>>;
     tipuriAbonament: TipAbonament[];
     clubs: Club[];
-    currentUser: User | null;
+    currentUser: User | null; // Keep for now, might be needed for other checks
 }> = ({ 
   isOpen,
   onClose,
@@ -313,7 +313,6 @@ export const SportivFormModal: React.FC<{
                         familii={familii}
                         tipuriAbonament={tipuriAbonament}
                         clubs={clubs}
-                        currentUser={currentUser}
                         onQuickAddGrupa={() => setIsGrupaModalOpen(true)}
                         onQuickAddFamilie={() => setIsFamilieModalOpen(true)}
                     />

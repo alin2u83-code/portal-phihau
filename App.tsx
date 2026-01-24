@@ -484,7 +484,7 @@ function App() {
         />;
       case 'nomenclatoare': return <GestionareNomenclatoare onBack={() => setActiveView('dashboard')} tipuriPlati={tipuriPlati} setTipuriPlati={setTipuriPlati} plati={plati} />;
       case 'activitati': return <ProgramareActivitati grupe={displayGrupe} antrenamente={displayAntrenamente} setAntrenamente={setAntrenamente} onBack={() => setActiveView('dashboard')} />;
-      case 'calendar': return <CalendarView antrenamente={antrenamente} sesiuniExamene={sesiuniExamene} evenimente={evenimente} grupe={grupe} locatii={locatii} onBack={() => setActiveView('dashboard')} currentUser={currentUser} onNavigate={setActiveView} />;
+      case 'calendar': return <CalendarView antrenamente={antrenamente} sesiuniExamene={sesiuniExamene} evenimente={evenimente} grupe={grupe} locatii={locatii} onBack={() => setActiveView('dashboard')} currentUser={currentUser} onNavigate={setActiveView} sportivi={displaySportivi} rezultate={displayRezultate} setRezultate={setRezultate} plati={displayPlati} setPlati={setPlati} preturiConfig={preturiConfig} />;
       case 'setari-club': return <ClubSettings onBack={() => setActiveView('dashboard')} />;
       case 'data-inspector': return <DataInspector antrenamente={antrenamente} preturiConfig={preturiConfig} rawGradePrices={rawGradePrices} grade={grade} onBack={() => setActiveView('dashboard')} />;
       case 'notificari': return <Notificari onBack={() => setActiveView('dashboard')} currentUser={currentUser} />;

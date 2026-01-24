@@ -1,15 +1,137 @@
-import React, { useState, useMemo } from 'react';
-import { Antrenament, SesiuneExamen, Grupa, Locatie, Eveniment, View, User } from '../types';
-import { Button } from './ui';
+import React, { useState, useMemo, useCallback } from 'react';
+import { Antrenament, SesiuneExamen, Grupa, Locatie, Eveniment, View, User, Sportiv, Rezultat, Plata, PretConfig } from '../types';
+import { Button, Modal, Input, Select } from './ui';
 import { ArrowLeftIcon, ChevronLeftIcon, ChevronRightIcon, PlusIcon } from './icons';
 import { usePermissions } from '../hooks/usePermissions';
+import { useError } from './ErrorProvider';
+import { getPretValabil } from '../utils/pricing';
+import { supabase } from '../supabaseClient';
+
 
 interface CalendarEvent {
   id: string;
   title: string;
   scope: 'club' | 'federatie';
   time: string;
+  date: string;
+  isFuture: boolean;
+  type: 'Antrenament' | 'Examen' | 'Stagiu' | 'Competitie';
+  originalEvent: Eveniment;
 }
+
+interface BulkRegistrationModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    onSave: (selectedSportivIds: string[]) => Promise<void>;
+    event: Eveniment;
+    clubSportivi: Sportiv[];
+    registrations: Rezultat[];
+}
+
+const BulkRegistrationModal: React.FC<BulkRegistrationModalProps> = ({ isOpen, onClose, onSave, event, clubSportivi, registrations }) => {
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+    const [filterTerm, setFilterTerm] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    const registeredIds = useMemo(() => new Set(registrations.filter(r => r.eveniment_id === event.id).map(r => r.sportiv_id)), [registrations, event.id]);
+
+    const availableSportivi = useMemo(() => {
+        return clubSportivi.filter(s => s.status === 'Activ' && !registeredIds.has(s.id));
+    }, [clubSportivi, registeredIds]);
+
+    const filteredSportivi = useMemo(() => {
+        if (!filterTerm) return availableSportivi;
+        return availableSportivi.filter(s => `${s.nume} ${s.prenume}`.toLowerCase().includes(filterTerm.toLowerCase()));
+    }, [availableSportivi, filterTerm]);
+
+    const handleToggle = (id: string) => {
+        setSelectedIds(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    };
+
+    const handleSaveClick = async () => {
+        setLoading(true);
+        await onSave(Array.from(selectedIds));
+        setLoading(false);
+    };
+
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title={`Înscrie Lot la ${event.denumire}`}>
+            <div className="space-y-4">
+                <Input label="" placeholder="Filtrează sportivi..." value={filterTerm} onChange={e => setFilterTerm(e.target.value)} />
+                <div className="max-h-80 overflow-y-auto space-y-2 p-2 bg-slate-900/50 rounded-lg border border-slate-700">
+                    {filteredSportivi.map(s => (
+                        <label key={s.id} className="flex items-center gap-3 p-2 rounded-md bg-slate-700/50 hover:bg-slate-700 cursor-pointer">
+                            <input type="checkbox" checked={selectedIds.has(s.id)} onChange={() => handleToggle(s.id)} className="h-5 w-5 rounded border-slate-500 bg-slate-900 text-brand-secondary focus:ring-brand-secondary" />
+                            <span className="font-medium">{s.nume} {s.prenume}</span>
+                        </label>
+                    ))}
+                    {filteredSportivi.length === 0 && <p className="text-center italic text-slate-400 p-4">Toți sportivii din club sunt deja înscriși sau nu există sportivi activi.</p>}
+                </div>
+                <div className="flex justify-end pt-4 gap-2 border-t border-slate-700">
+                    <Button variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button>
+                    <Button variant="primary" className="bg-slate-900 text-white" onClick={handleSaveClick} isLoading={loading} disabled={selectedIds.size === 0}>Înscrie {selectedIds.size > 0 ? `${selectedIds.size} Sportivi` : ''}</Button>
+                </div>
+            </div>
+        </Modal>
+    );
+};
+
+interface EventActionsProps {
+    event: CalendarEvent;
+    currentUser: User;
+    rezultate: Rezultat[];
+    clubSportivi: Sportiv[];
+    onSingleRegister: (event: Eveniment) => Promise<void>;
+    onBulkRegister: (event: Eveniment) => void;
+}
+
+const EventActions: React.FC<EventActionsProps> = ({ event, currentUser, rezultate, clubSportivi, onSingleRegister, onBulkRegister }) => {
+    const permissions = usePermissions(currentUser);
+    const [loading, setLoading] = useState(false);
+
+    const registrationStatus = useMemo(() => {
+        if (permissions.isSportiv) {
+            const isRegistered = rezultate.some(r => r.sportiv_id === currentUser.id && r.eveniment_id === event.id);
+            return { isRegistered };
+        }
+        if (permissions.isAdminClub || permissions.isFederationAdmin) {
+            const clubSportiviIds = new Set(clubSportivi.map(s => s.id));
+            const registeredCount = rezultate.filter(r => r.eveniment_id === event.id && clubSportiviIds.has(r.sportiv_id)).length;
+            return { registeredCount };
+        }
+        return {};
+    }, [rezultate, currentUser, event.id, permissions, clubSportivi]);
+
+    if (!event.isFuture || event.scope !== 'federatie') return null;
+    
+    const handleSingleClick = async () => {
+        setLoading(true);
+        await onSingleRegister(event.originalEvent);
+        setLoading(false);
+    };
+
+    if (permissions.isSportiv) {
+        if (registrationStatus.isRegistered) {
+            return <div className="text-center text-sm font-bold bg-green-100 text-green-800 p-2 rounded-md w-full">Înscris</div>;
+        }
+        return <Button onClick={handleSingleClick} isLoading={loading} className="bg-slate-900 text-white w-full md:w-auto">Mă înscriu</Button>;
+    }
+
+    if (permissions.isAdminClub || permissions.isFederationAdmin) {
+        if ((registrationStatus.registeredCount ?? 0) > 0) {
+            return <div className="text-center text-sm font-bold bg-green-100 text-green-800 p-2 rounded-md w-full">Lot Înscris ({registrationStatus.registeredCount})</div>;
+        }
+        return <Button onClick={() => onBulkRegister(event.originalEvent)} className="bg-slate-900 text-white w-full md:w-auto">Înscriere Lot</Button>;
+    }
+
+    return null;
+};
+
 
 interface CalendarViewProps {
     antrenamente: Antrenament[];
@@ -20,11 +142,19 @@ interface CalendarViewProps {
     onBack: () => void;
     onNavigate: (view: View) => void;
     currentUser: User;
+    sportivi: Sportiv[];
+    rezultate: Rezultat[];
+    setRezultate: React.Dispatch<React.SetStateAction<Rezultat[]>>;
+    plati: Plata[];
+    setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
+    preturiConfig: PretConfig[];
 }
 
-export const CalendarView: React.FC<CalendarViewProps> = ({ antrenamente, sesiuniExamene, evenimente, grupe, locatii, onBack, onNavigate, currentUser }) => {
+export const CalendarView: React.FC<CalendarViewProps> = ({ antrenamente, sesiuniExamene, evenimente, grupe, locatii, onBack, onNavigate, currentUser, sportivi, rezultate, setRezultate, plati, setPlati, preturiConfig }) => {
     const [currentDate, setCurrentDate] = useState(new Date());
     const permissions = usePermissions(currentUser);
+    const { showError, showSuccess } = useError();
+    const [modalEvent, setModalEvent] = useState<Eveniment | null>(null);
 
     const changeMonth = (delta: number) => {
         setCurrentDate(prev => {
@@ -35,35 +165,90 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ antrenamente, sesiun
         });
     };
 
+    const handleSingleRegistration = async (event: Eveniment) => {
+        if (!supabase) { showError("Eroare Configurare", "Client Supabase neconfigurat."); return; }
+        const taxaConfig = getPretValabil(preturiConfig, event.tip === 'Stagiu' ? 'Taxa Stagiu' : 'Taxa Competitie', event.data);
+        const newRezultat: Omit<Rezultat, 'id'> = { sportiv_id: currentUser.id, eveniment_id: event.id, rezultat: 'Participare' };
+
+        try {
+            const { data: rData, error: rError } = await supabase.from('rezultate').insert(newRezultat).select().single();
+            if (rError) throw rError;
+            setRezultate(prev => [...prev, rData as Rezultat]);
+
+            if (taxaConfig) {
+                const newPlata: Omit<Plata, 'id'> = { sportiv_id: currentUser.id, familie_id: currentUser.familie_id, suma: taxaConfig.suma, data: event.data, status: 'Neachitat', descriere: `Taxa ${event.tip}: ${event.denumire}`, tip: event.tip === 'Stagiu' ? 'Taxa Stagiu' : 'Taxa Competitie', observatii: 'Generat automat la înscriere.' };
+                const { data: pData, error: pError } = await supabase.from('plati').insert(newPlata).select().single();
+                if (pError) throw pError;
+                setPlati(prev => [...prev, pData as Plata]);
+            }
+            showSuccess("Înscriere reușită!", `Te-ai înscris la ${event.denumire}.`);
+        } catch (err) {
+            showError("Eroare la înscriere", err);
+        }
+    };
+
+    const handleSaveBulkRegistration = async (selectedSportivIds: string[]) => {
+        if (!supabase || !modalEvent) return;
+        let newPlati: Plata[] = [];
+        let newRezultate: Rezultat[] = [];
+        let errorCount = 0;
+
+        for (const sportivId of selectedSportivIds) {
+            const sportiv = sportivi.find(s => s.id === sportivId);
+            if (!sportiv) { errorCount++; continue; }
+            
+            const taxaConfig = getPretValabil(preturiConfig, modalEvent.tip === 'Stagiu' ? 'Taxa Stagiu' : 'Taxa Competitie', modalEvent.data);
+            
+            try {
+                const { data: rData, error: rError } = await supabase.from('rezultate').insert({ sportiv_id: sportiv.id, eveniment_id: modalEvent.id, rezultat: 'Participare' }).select().single();
+                if (rError) throw rError;
+                newRezultate.push(rData as Rezultat);
+
+                if (taxaConfig) {
+                    const newPlata: Omit<Plata, 'id'> = { sportiv_id: sportiv.id, familie_id: sportiv.familie_id, suma: taxaConfig.suma, data: modalEvent.data, status: 'Neachitat', descriere: `Taxa ${modalEvent.tip}: ${modalEvent.denumire}`, tip: modalEvent.tip === 'Stagiu' ? 'Taxa Stagiu' : 'Taxa Competitie', observatii: 'Generat automat la înscriere lot.' };
+                    const { data: pData, error: pError } = await supabase.from('plati').insert(newPlata).select().single();
+                    if (pError) throw pError;
+                    newPlati.push(pData as Plata);
+                }
+            } catch (err) {
+                errorCount++;
+                showError(`Eroare la înscrierea lui ${sportiv.nume}`, err);
+            }
+        }
+
+        if (newRezultate.length > 0) setRezultate(prev => [...prev, ...newRezultate]);
+        if (newPlati.length > 0) setPlati(prev => [...prev, ...newPlati]);
+        if (newRezultate.length > 0) showSuccess("Succes", `${newRezultate.length} sportivi au fost înscriși.`);
+        if (errorCount > 0) showError("Atenție", `${errorCount} înscrieri au eșuat.`);
+        setModalEvent(null);
+    };
+
     const eventsByDate = useMemo(() => {
         const eventMap = new Map<string, CalendarEvent[]>();
+        const today = new Date();
+        today.setHours(0,0,0,0);
 
-        // Club Events: Antrenamente
-        antrenamente.forEach(a => {
-            const grupa = grupe.find(g => g.id === a.grupa_id);
-            const event: CalendarEvent = { id: a.id, title: grupa?.denumire || 'Antrenament', scope: 'club', time: a.ora_start };
-            const dateKey = a.data;
-            const existing = eventMap.get(dateKey) || [];
-            eventMap.set(dateKey, [...existing, event]);
-        });
-        
-        // Club Events: Examene
-        sesiuniExamene.forEach(e => {
-            const locatie = locatii.find(l => l.id === e.locatie_id);
-            const event: CalendarEvent = { id: e.id, title: `Examen ${locatie?.nume || ''}`, scope: 'club', time: '09:00' };
-            const dateKey = e.data;
-            const existing = eventMap.get(dateKey) || [];
-            eventMap.set(dateKey, [...existing, event]);
-        });
+        const allEvents = [
+            ...antrenamente.map(a => ({...a, type: 'Antrenament' as const, denumire: grupe.find(g => g.id === a.grupa_id)?.denumire || 'Antrenament'})),
+            ...sesiuniExamene.map(e => ({...e, type: 'Examen' as const, denumire: `Examen ${locatii.find(l => l.id === e.locatie_id)?.nume || ''}`})),
+            ...evenimente,
+        ];
 
-        // Federation or Club Events: Stagii/Competitii
-        evenimente.forEach(e => {
+        allEvents.forEach(e => {
+            const eventDate = new Date(e.data);
             const event: CalendarEvent = {
                 id: e.id,
                 title: e.denumire,
-                scope: e.club_id ? 'club' : 'federatie',
-                time: '' 
+                scope: 'club_id' in e && e.club_id ? 'club' : 'federatie',
+                time: 'ora_start' in e ? e.ora_start : '',
+                date: e.data,
+                isFuture: eventDate >= today,
+                type: e.type,
+                originalEvent: e as Eveniment,
             };
+            if(e.type === 'Antrenament') event.scope = 'club';
+            if(e.type === 'Examen') event.scope = 'club';
+
             const dateKey = e.data;
             const existing = eventMap.get(dateKey) || [];
             eventMap.set(dateKey, [...existing, event]);
@@ -75,6 +260,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ antrenamente, sesiun
 
         return eventMap;
     }, [antrenamente, sesiuniExamene, evenimente, grupe, locatii]);
+
 
     const { days, monthName } = useMemo(() => {
         const year = currentDate.getFullYear();
@@ -141,11 +327,14 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ antrenamente, sesiun
                             return (
                                 <div key={dateString} className="border-r border-b border-slate-200 dark:border-slate-700 p-2 flex flex-col relative min-h-[120px]">
                                     <span className={`font-bold text-sm ${isCurrentDay ? 'bg-brand-primary text-white rounded-full h-6 w-6 flex items-center justify-center' : 'text-slate-600 dark:text-slate-300'}`}>{day.getDate()}</span>
-                                    <div className="mt-2 space-y-1 overflow-y-auto">
+                                    <div className="mt-2 space-y-2 overflow-y-auto">
                                         {dayEvents.map(event => (
-                                            <div key={event.id} title={event.title} className={`p-1 rounded-md text-[10px] font-bold truncate border ${eventStyles[event.scope]}`}>
-                                                {event.time && <span className="font-mono mr-1">{event.time}</span>}
-                                                {event.title}
+                                            <div key={event.id} className="space-y-1">
+                                                <div title={event.title} className={`p-1 rounded-md text-[10px] font-bold truncate border ${eventStyles[event.scope]}`}>
+                                                    {event.time && <span className="font-mono mr-1">{event.time}</span>}
+                                                    {event.title}
+                                                </div>
+                                                <EventActions event={event} currentUser={currentUser} rezultate={rezultate} clubSportivi={sportivi} onSingleRegister={handleSingleRegistration} onBulkRegister={setModalEvent} />
                                             </div>
                                         ))}
                                     </div>
@@ -161,11 +350,16 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ antrenamente, sesiun
                         agendaDays.map(({ day, events }) => (
                             <div key={day.toISOString()} className="p-4 border-b border-slate-200 dark:border-slate-700">
                                 <h3 className="font-bold text-brand-primary dark:text-brand-secondary">{day.toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric' })}</h3>
-                                <div className="mt-2 space-y-2">
+                                <div className="mt-2 space-y-4">
                                     {events.map(event => (
-                                        <div key={event.id} className={`p-2 rounded-md ${eventStyles[event.scope]}`}>
-                                            <p className="font-bold">{event.title}</p>
-                                            {event.time && <p className="text-xs font-mono">{event.time}</p>}
+                                        <div key={event.id}>
+                                            <div className={`p-2 rounded-md ${eventStyles[event.scope]}`}>
+                                                <p className="font-bold">{event.title}</p>
+                                                {event.time && <p className="text-xs font-mono">{event.time}</p>}
+                                            </div>
+                                            <div className="mt-2">
+                                                 <EventActions event={event} currentUser={currentUser} rezultate={rezultate} clubSportivi={sportivi} onSingleRegister={handleSingleRegistration} onBulkRegister={setModalEvent} />
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
@@ -176,6 +370,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ antrenamente, sesiun
                     )}
                 </div>
             </div>
+
+            {modalEvent && <BulkRegistrationModal isOpen={!!modalEvent} onClose={() => setModalEvent(null)} onSave={handleSaveBulkRegistration} event={modalEvent} clubSportivi={sportivi} registrations={rezultate} />}
         </div>
     );
 };

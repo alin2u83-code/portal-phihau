@@ -409,7 +409,6 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
 
         if (changes.length === 0) { showSuccess("Info", "Nicio modificare de salvat."); setIsSavingResults(false); return; }
         
-        // FIX: Change type of promise array to any[] to fix typescript issue with supabase builders.
         const allPromises: any[] = [];
         const sportiviUpdatesLocal: Partial<Sportiv>[] = [];
 
@@ -434,18 +433,16 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             if (anyError) throw anyError.error;
 
             setInscrieri(prev => { const changesMap = new Map(changes); return prev.map(i => changesMap.has(i.id) ? { ...i, rezultat: changesMap.get(i.id) as any } : i); });
-            // FIX: Added defensive checks for the `update` object and its `id` before using it. This prevents a "Spread types may only be created from object types" error if an invalid update object were to be processed.
+            // FIX: Refactor state update to a more robust functional pattern, avoiding potential mutation issues and type inference problems that can cause "Spread types may only be created from object types" errors.
             setSportivi(prev => {
-                const updatedSportiviMap = new Map(prev.map(s => [s.id, s]));
-                sportiviUpdatesLocal.forEach(update => {
-                    if (update && typeof update === 'object' && update.id) {
-                        const existing = updatedSportiviMap.get(update.id);
-                        if (existing) {
-                            updatedSportiviMap.set(update.id, { ...existing, ...update });
-                        }
+                const updatesMap = new Map(sportiviUpdatesLocal.map(u => [u.id, u]));
+                return prev.map(sportiv => {
+                    const update = updatesMap.get(sportiv.id);
+                    if (update) {
+                        return { ...sportiv, ...update };
                     }
+                    return sportiv;
                 });
-                return Array.from(updatedSportiviMap.values());
             });
 
             showSuccess("Succes", `${changes.length} rezultate au fost salvate!`);

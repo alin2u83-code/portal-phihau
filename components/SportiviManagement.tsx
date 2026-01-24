@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User } from '../types';
+import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club } from '../types';
 import { Button, Modal, Input, Select, Card } from './ui';
 import { PlusIcon, ArrowLeftIcon, ShieldCheckIcon, WalletIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -12,12 +12,13 @@ import { SportivWallet } from './SportivWallet';
 const formatHeader = (key: string): string => {
     if (key === 'numeComplet') return 'Nume Complet';
     if (key === 'grupa_id') return 'Grupă';
+    if (key === 'club_id') return 'Club';
     if (key === 'actiuni') return 'Acțiuni';
     return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 };
 
 const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
-    const colorClasses: Record<Rol['nume'], string> = { Admin: 'bg-red-600 text-white', Instructor: 'bg-sky-600 text-white', Sportiv: 'bg-slate-600 text-slate-200' };
+    const colorClasses: Record<Rol['nume'], string> = { Admin: 'bg-red-600 text-white', 'Super Admin': 'bg-red-800 text-white', 'Admin Club': 'bg-blue-600 text-white', Instructor: 'bg-sky-600 text-white', Sportiv: 'bg-slate-600 text-slate-200' };
     return <span className={`px-2 py-1 text-[10px] font-semibold rounded-full ${colorClasses[role.nume] || 'bg-gray-500 text-white'}`}>{role.nume}</span>;
 };
 
@@ -39,7 +40,8 @@ export const SportiviManagement: React.FC<{
     tranzactii: Tranzactie[];
     setTranzactii: React.Dispatch<React.SetStateAction<Tranzactie[]>>;
     onViewSportiv: (sportiv: Sportiv) => void;
-}> = ({ onBack, sportivi, setSportivi, grupe, setGrupe, tipuriAbonament, familii, setFamilii, allRoles, setAllRoles, currentUser, plati, tranzactii, setTranzactii, onViewSportiv }) => {
+    clubs: Club[];
+}> = ({ onBack, sportivi, setSportivi, grupe, setGrupe, tipuriAbonament, familii, setFamilii, allRoles, setAllRoles, currentUser, plati, tranzactii, setTranzactii, onViewSportiv, clubs }) => {
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
     const [sportivToEdit, setSportivToEdit] = useState<Sportiv | null>(null);
     const [accountSettingsSportiv, setAccountSettingsSportiv] = useState<Sportiv | null>(null);
@@ -83,7 +85,7 @@ export const SportiviManagement: React.FC<{
     }, [sportivi, filters]);
 
     const finalColumns = useMemo(() => {
-        return ['numeComplet', 'roluri', 'status', 'grupa_id', 'actiuni'];
+        return ['numeComplet', 'club_id', 'roluri', 'status', 'grupa_id', 'actiuni'];
     }, []);
     
     const renderCellContent = (s: Sportiv, columnKey: string) => {
@@ -120,6 +122,8 @@ export const SportiviManagement: React.FC<{
                         {s.status}
                     </span>
                 );
+            case 'club_id':
+                return clubs.find(c => c.id === s.club_id)?.nume || '-';
             case 'grupa_id':
                 return grupe.find(g => g.id === s.grupa_id)?.denumire || '-';
             case 'actiuni':
@@ -250,6 +254,8 @@ export const SportiviManagement: React.FC<{
                     familii={familii}
                     setFamilii={setFamilii}
                     tipuriAbonament={tipuriAbonament}
+                    clubs={clubs}
+                    currentUser={currentUser}
                 />
             )}
 

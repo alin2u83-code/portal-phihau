@@ -24,7 +24,8 @@ export const adminMenu: MenuItem[] = [
         submenu: [
              { label: 'Listă Sportivi', view: 'sportivi' },
              { label: 'Gestiune Familii', view: 'familii', roles: ['Admin', 'Instructor'] },
-             { label: 'Acces Utilizatori', view: 'user-management', roles: ['Admin'] }
+             { label: 'Gestiune Cluburi', view: 'cluburi', roles: ['Admin', 'Super Admin'] },
+             { label: 'Acces Utilizatori', view: 'user-management', roles: ['Admin', 'Super Admin'] }
         ]
     },
     {

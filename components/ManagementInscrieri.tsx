@@ -337,9 +337,12 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             }
 
             const { data: updatedInscriere, error: updateError } = await supabase.from('inscrieri_examene').update({ grad_vizat_id: gradSustinutId, plata_id: newPlataId }).eq('id', inscriereToEdit.id).select('*, sportivi:sportiv_id(*), grade:grad_vizat_id(*)').single();
+            // FIX: Add a null check for 'updatedInscriere' to prevent spreading null.
             if (updateError) throw updateError;
             
-            setInscrieri(prev => prev.map(i => i.id === updatedInscriere.id ? updatedInscriere : i));
+            if (updatedInscriere) {
+                setInscrieri(prev => prev.map(i => i.id === updatedInscriere.id ? updatedInscriere as InscriereExamen : i));
+            }
             
             if (plataResult) {
                 if (plataResult.action === 'delete') setPlati(prev => prev.filter(p => p.id !== plataResult!.data.id));

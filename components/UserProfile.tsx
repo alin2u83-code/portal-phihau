@@ -22,7 +22,14 @@ const DataField: React.FC<{label: string, value: React.ReactNode}> = ({label, va
 );
 
 const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
-    const colorClasses: Record<Rol['nume'], string> = { Admin: 'bg-red-600 text-white', Instructor: 'bg-sky-600 text-white', Sportiv: 'bg-slate-600 text-slate-200' };
+    // FIX: Add missing 'Super Admin' and 'Admin Club' roles to satisfy the Record type.
+    const colorClasses: Record<Rol['nume'], string> = {
+        Admin: 'bg-red-600 text-white',
+        'Super Admin': 'bg-red-800 text-white',
+        'Admin Club': 'bg-blue-600 text-white',
+        Instructor: 'bg-sky-600 text-white',
+        Sportiv: 'bg-slate-600 text-slate-200'
+    };
     return <span className={`px-2 py-1 text-xs font-semibold rounded-full ${colorClasses[role.nume] || 'bg-gray-500 text-white'}`}>{role.nume}</span>;
 };
 

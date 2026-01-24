@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Sportiv, Grupa, Familie, TipAbonament } from '../types';
+import { Sportiv, Grupa, Familie, TipAbonament, Club, User } from '../types';
 import { Button, Modal, Input, Select, FormSection, Switch } from './ui';
 import { PlusIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -62,6 +62,8 @@ interface SportivFormFieldsProps {
     grupe: Grupa[];
     familii: Familie[];
     tipuriAbonament: TipAbonament[];
+    clubs: Club[];
+    currentUser: User | null;
     onQuickAddGrupa: () => void;
     onQuickAddFamilie: () => void;
 }
@@ -73,11 +75,15 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
     grupe,
     familii,
     tipuriAbonament,
+    clubs,
+    currentUser,
     onQuickAddGrupa,
     onQuickAddFamilie,
 }) => {
     const [formData, setFormData] = useState(initialData);
     const [errors, setErrors] = useState<Record<string, string>>({});
+    
+    const isClubAdmin = currentUser?.roluri.some(r => r.nume === 'Admin Club') || false;
 
     const validate = useCallback((data: Partial<Sportiv>) => {
         const newErrors: Record<string, string> = {};
@@ -102,11 +108,15 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
     }, []);
 
     useEffect(() => {
-        setFormData(initialData);
-        const initialErrors = validate(initialData);
+        let data = { ...initialData };
+        if (isClubAdmin && !data.club_id) {
+            data.club_id = currentUser?.club_id;
+        }
+        setFormData(data);
+        const initialErrors = validate(data);
         setErrors(initialErrors);
-        onFormChange(initialData, Object.keys(initialErrors).length === 0);
-    }, [initialData, onFormChange, validate]);
+        onFormChange(data, Object.keys(initialErrors).length === 0);
+    }, [initialData, onFormChange, validate, isClubAdmin, currentUser]);
 
 
     const handleChange = (e: any) => {
@@ -120,7 +130,7 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
         } else if (name === 'inaltime') {
             const num = parseInt(value, 10);
             finalValue = isNaN(num) ? null : num;
-        } else if (['familie_id', 'grupa_id', 'tip_abonament_id'].includes(name)) {
+        } else if (['familie_id', 'grupa_id', 'tip_abonament_id', 'club_id'].includes(name)) {
             finalValue = value === '' ? null : value;
         } else {
             finalValue = value;
@@ -147,6 +157,10 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
                 <BirthDateInput label="Data Nașterii" value={formData.data_nasterii} onChange={(v) => handleChange({ target: { name: 'data_nasterii', value: v } })} required error={errors.data_nasterii}/>
                 <Input label="Email (Opțional)" name="email" type="email" value={formData.email || ''} onChange={handleChange} disabled={loading} className="!py-1.5" error={errors.email}/>
                 <Input label="CNP (Opțional)" name="cnp" value={formData.cnp || ''} onChange={handleChange} maxLength={13} disabled={loading} className="!py-1.5" error={errors.cnp} />
+                 <Select label="Club" name="club_id" value={formData.club_id || ''} onChange={handleChange} disabled={loading || isClubAdmin} className="!py-1.5">
+                    <option value="">Nespecificat</option>
+                    {clubs.map(c => <option key={c.id} value={c.id}>{c.nume}</option>)}
+                </Select>
             </FormSection>
 
             <FormSection title="Club & Antrenament">
@@ -209,6 +223,8 @@ export const SportivFormModal: React.FC<{
     familii: Familie[];
     setFamilii: React.Dispatch<React.SetStateAction<Familie[]>>;
     tipuriAbonament: TipAbonament[];
+    clubs: Club[];
+    currentUser: User | null;
 }> = ({ 
   isOpen,
   onClose,
@@ -218,7 +234,9 @@ export const SportivFormModal: React.FC<{
   setGrupe,
   familii,
   setFamilii,
-  tipuriAbonament
+  tipuriAbonament,
+  clubs,
+  currentUser
 }) => {
     const { showError, showSuccess } = useError();
     const [loading, setLoading] = useState(false);
@@ -294,6 +312,8 @@ export const SportivFormModal: React.FC<{
                         grupe={grupe}
                         familii={familii}
                         tipuriAbonament={tipuriAbonament}
+                        clubs={clubs}
+                        currentUser={currentUser}
                         onQuickAddGrupa={() => setIsGrupaModalOpen(true)}
                         onQuickAddFamilie={() => setIsFamilieModalOpen(true)}
                     />

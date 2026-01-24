@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
-import { Sportiv, SesiuneExamen, Grad, InscriereExamen, View, Antrenament, Grupa, Plata, Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, Rol, AnuntPrezenta, Reducere, AnuntGeneral, TipPlata, Locatie } from './types';
+import { Sportiv, SesiuneExamen, Grad, InscriereExamen, View, Antrenament, Grupa, Plata, Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, Rol, AnuntPrezenta, Reducere, AnuntGeneral, TipPlata, Locatie, Club } from './types';
 import { Dashboard } from './components/Dashboard';
 import { SportiviManagement } from './components/SportiviManagement';
 import { UserProfile } from './components/UserProfile';
@@ -42,6 +42,7 @@ import { CalendarView } from './components/CalendarView';
 import { RapoarteExamen } from './components/RapoarteExamen';
 import { SportivFormModal } from './components/Sportivi';
 import { PlusIcon } from './components/icons';
+import { CluburiManagement } from './components/CluburiManagement';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -55,6 +56,7 @@ function App() {
   const [inscrieriExamene, setInscrieriExamene] = useState<InscriereExamen[]>([]);
   const [antrenamente, setAntrenamente] = useState<Antrenament[]>([]);
   const [grupe, setGrupe] = useState<Grupa[]>([]);
+  const [cluburi, setCluburi] = useState<Club[]>([]);
   const [familii, setFamilii] = useState<Familie[]>([]);
   const [plati, setPlati] = useState<Plata[]>([]);
   const [tranzactii, setTranzactii] = useState<Tranzactie[]>([]);
@@ -85,7 +87,7 @@ function App() {
         const [
             { data: sesiuniData }, { data: gData }, { data: grData }, { data: evData },
             { data: cfData }, { data: gradePricesData }, { data: abData }, { data: roData }, { data: progData },
-            { data: reduceriData }, { data: tipuriPlatiData }, { data: locatiiData },
+            { data: reduceriData }, { data: tipuriPlatiData }, { data: locatiiData }, { data: cluburiData },
             { data: sData }, { data: inscrieriData }, { data: fData }, { data: plData },
             { data: tData }, { data: rData }, { data: antrenamenteData }, { data: anunturiData }
         ] = await Promise.all([
@@ -102,6 +104,7 @@ function App() {
             supabase.from('reduceri').select('*'),
             supabase.from('tipuri_plati').select('*'),
             supabase.from('nom_locatii').select('*'),
+            supabase.from('cluburi').select('*'),
 
             // RLS-protected data
             supabase.from('sportivi').select('*, roluri(id, nume)'),
@@ -159,6 +162,7 @@ function App() {
         setSesiuniExamene(sesiuniData || []);
         setGrade(gradesData);
         setGrupe(formattedGrupe);
+        setCluburi(cluburiData || []);
         setEvenimente(evData || []);
         setPreturiConfig(allPrices);
         setTipuriAbonament(abData || []);
@@ -191,6 +195,10 @@ function App() {
                     dataToSave.tip_abonament_id = individualSubscription.id;
                 }
             }
+            if (currentUser?.roluri.some(r => r.nume === 'Admin Club') && !dataToSave.club_id) {
+                dataToSave.club_id = currentUser.club_id;
+            }
+
             const { data, error } = await supabase.from('sportivi').insert(dataToSave).select().single();
             if (error) throw error;
 
@@ -302,7 +310,7 @@ function App() {
 
   const renderContent = () => {
     if (!currentUser) return null;
-    const isAdmin = currentUser.roluri.some(r => r.nume === 'Admin' || r.nume === 'Instructor');
+    const isAdmin = currentUser.roluri.some(r => ['Admin', 'Super Admin', 'Instructor', 'Admin Club'].includes(r.nume));
     const isMyPortalView = activeView === 'my-portal';
 
     if (!isAdmin || isMyPortalView) {
@@ -373,8 +381,9 @@ function App() {
                 reduceri={reduceri}
             />
         ) : (
-            <SportiviManagement onBack={() => setActiveView('dashboard')} sportivi={sportivi} setSportivi={setSportivi} grupe={grupe} setGrupe={setGrupe} tipuriAbonament={tipuriAbonament} familii={familii} setFamilii={setFamilii} allRoles={allRoles} setAllRoles={setAllRoles} currentUser={currentUser} plati={plati} tranzactii={tranzactii} setTranzactii={setTranzactii} onViewSportiv={setViewedSportiv} />
+            <SportiviManagement onBack={() => setActiveView('dashboard')} sportivi={sportivi} setSportivi={setSportivi} grupe={grupe} setGrupe={setGrupe} tipuriAbonament={tipuriAbonament} familii={familii} setFamilii={setFamilii} allRoles={allRoles} setAllRoles={setAllRoles} currentUser={currentUser} plati={plati} tranzactii={tranzactii} setTranzactii={setTranzactii} onViewSportiv={setViewedSportiv} clubs={cluburi} />
         );
+      case 'cluburi': return <CluburiManagement clubs={cluburi} setClubs={setCluburi} onBack={() => setActiveView('dashboard')} />;
       case 'examene': return <GestiuneExamene sesiuni={sesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={sportivi} setSportivi={setSportivi} grade={grade} locatii={locatii} setLocatii={setLocatii} plati={plati} setPlati={setPlati} preturiConfig={preturiConfig} onBack={() => setActiveView('dashboard')} />;
       case 'rapoarte-examen': return <RapoarteExamen sesiuni={sesiuniExamene} inscrieri={inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={sportivi} grade={grade} locatii={locatii} plati={plati} onBack={() => setActiveView('dashboard')} />;
       case 'grade': return <GradeManagement grade={grade} setGrade={setGrade} onBack={() => setActiveView('dashboard')} />;
@@ -420,7 +429,7 @@ function App() {
   if (loading) return <div className="flex items-center justify-center min-h-screen">Se încarcă...</div>;
   if (!session) return <Login />;
 
-  const isAdmin = currentUser!.roluri.some(r => r.nume === 'Admin' || r.nume === 'Instructor');
+  const isAdmin = currentUser!.roluri.some(r => r.nume === 'Admin' || r.nume === 'Instructor' || r.nume === 'Super Admin' || r.nume === 'Admin Club');
   const isMyPortalView = activeView === 'my-portal';
   
   return (
@@ -464,6 +473,8 @@ function App() {
                     familii={familii}
                     setFamilii={setFamilii}
                     tipuriAbonament={tipuriAbonament}
+                    clubs={cluburi}
+                    currentUser={currentUser}
                 />
             </>
         )}

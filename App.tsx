@@ -419,7 +419,8 @@ function App() {
     }
 
     switch (activeView) {
-      case 'dashboard': return <Dashboard onNavigate={setActiveView} showPriceWarning={showPriceWarning} />;
+      // FIX: Use 'cluburi' state variable instead of undefined 'clubs'.
+      case 'dashboard': return <Dashboard currentUser={currentUser} onNavigate={setActiveView} showPriceWarning={showPriceWarning} clubs={cluburi} />;
       case 'financial-dashboard': return <FinancialDashboard plati={displayPlati} tranzactii={displayTranzactii} sportivi={displaySportivi} onBack={() => setActiveView('dashboard')} />;
       case 'sportivi': 
         return viewedSportiv ? (
@@ -485,7 +486,8 @@ function App() {
       case 'setari-club': return <ClubSettings onBack={() => setActiveView('dashboard')} />;
       case 'data-inspector': return <DataInspector antrenamente={antrenamente} preturiConfig={preturiConfig} rawGradePrices={rawGradePrices} grade={grade} onBack={() => setActiveView('dashboard')} />;
       case 'notificari': return <Notificari onBack={() => setActiveView('dashboard')} currentUser={currentUser} />;
-      default: return <Dashboard onNavigate={setActiveView} showPriceWarning={showPriceWarning} />;
+      // FIX: Use 'cluburi' state variable instead of undefined 'clubs'.
+      default: return <Dashboard currentUser={currentUser!} onNavigate={setActiveView} showPriceWarning={showPriceWarning} clubs={cluburi} />;
     }
   };
 
@@ -506,6 +508,7 @@ function App() {
         plati={plati}
         isExpanded={isSidebarExpanded}
         setIsExpanded={setIsSidebarExpanded}
+        // FIX: Use 'cluburi' state variable instead of undefined 'clubs'.
         clubs={cluburi}
         globalClubFilter={globalClubFilter}
         setGlobalClubFilter={setGlobalClubFilter}

@@ -1,104 +1,110 @@
-import React from 'react';
-import { View } from '../types';
-import { Card, Button } from './ui';
-// FIX: Removed unused icon imports `AcademicCapIcon` and `CogIcon`. `AcademicCapIcon` was causing an error as it's not exported.
-import { UsersIcon, BanknotesIcon, TrophyIcon, ClipboardDocumentListIcon } from './icons';
+import React, { useMemo } from 'react';
+import { View, User, Club } from '../types';
+import { UsersIcon, BanknotesIcon, TrophyIcon, CogIcon } from './icons';
 import { NotificationPermissionWidget } from './NotificationPermissionWidget';
 
-interface DashboardProps {
-  onNavigate: (view: View) => void;
-  showPriceWarning: boolean;
-}
+// Define roles for clarity
+type UserRole = 'SUPER_ADMIN_FEDERATIE' | 'ADMIN_CLUB' | 'INSTRUCTOR' | 'SPORTIV' | 'UNKNOWN';
 
-interface NavItem {
-  view: View; 
-  title: string;
-  description: string;
-  tooltip: string;
-  icon: React.ElementType;
-  color: string;
-}
-
-const navItems: NavItem[] = [
-  {
-    view: 'sportivi',
-    title: 'Sportivi & Utilizatori',
-    description: 'Gestionează sportivi, familii și conturi de acces.',
-    tooltip: 'Gestiune Date Sportivi, Familii & Conturi',
-    icon: UsersIcon,
-    color: 'bg-brand-primary'
-  },
-  {
-    view: 'examene',
-    title: 'Activități & Evaluări',
-    description: 'Definește examene, stagii și competiții.',
-    tooltip: 'Management Examene, Stagii & Competiții',
-    icon: TrophyIcon,
-    color: 'bg-status-warning'
-  },
-  {
-    view: 'prezenta',
-    title: 'Antrenamente',
-    description: 'Înregistrează prezența și configurează orarul.',
-    tooltip: 'Monitorizare Prezență & Orar',
-    icon: ClipboardDocumentListIcon,
-    color: 'bg-brand-secondary'
-  },
-  {
-    view: 'plati-scadente',
-    title: 'Financiar',
-    description: 'Gestionează plăți, facturi și rapoarte financiare.',
-    tooltip: 'Management Financiar & Facturare',
-    icon: BanknotesIcon,
-    color: 'bg-status-success'
-  },
-];
-
-const NavCard: React.FC<{ item: NavItem, onClick: () => void }> = ({ item, onClick }) => (
-    <div 
-      onClick={onClick} 
-      className="group relative cursor-pointer"
-      title={item.tooltip}
+// Card sub-component
+const NavCard: React.FC<{ title: string; description: string; icon: React.ElementType; onClick: () => void; }> = ({ title, description, icon: Icon, onClick }) => (
+    <div
+        onClick={onClick}
+        className="group bg-white dark:bg-slate-800 rounded-lg shadow-md p-6 flex flex-col items-center text-center cursor-pointer hover:shadow-xl hover:scale-105 transition-all duration-300 border border-transparent hover:border-brand-secondary"
     >
-      <Card className="flex flex-col items-center justify-center text-center h-full border-slate-700 group-hover:border-brand-secondary/40 rounded-lg bg-slate-800/50 backdrop-blur-sm shadow-lg shadow-brand-primary/20 group-hover:shadow-xl group-hover:shadow-brand-secondary/20 transition-all duration-300 group-hover:scale-105">
-        <div className={`p-4 rounded-full ${item.color} mb-4 shadow-lg group-hover:ring-4 group-hover:ring-white/10 transition-all`}>
-          <item.icon className="h-10 w-10 text-white" />
+        <div className="p-4 bg-brand-secondary/10 text-brand-secondary rounded-full mb-4">
+            <Icon className="h-8 w-8" />
         </div>
-        <h3 className="text-xl font-bold text-white mb-2 group-hover:text-brand-secondary transition-colors">{item.title}</h3>
-        <p className="text-slate-400 text-sm">{item.description}</p>
-      </Card>
+        <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-2">{title}</h3>
+        <p className="text-sm text-slate-500 dark:text-slate-400">{description}</p>
     </div>
 );
 
-
-export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, showPriceWarning }) => {
-  return (
-    <div className="max-w-7xl mx-auto">
-      <div className="mb-6">
-        <NotificationPermissionWidget />
-      </div>
-      {showPriceWarning && (
-        <Card className="mb-8 bg-amber-900/50 border-l-4 border-amber-400">
-            <div className="flex items-center justify-between flex-wrap gap-4">
-                <div>
-                    <h3 className="font-bold text-amber-300">Atenție: Configurare Incompletă</h3>
-                    <p className="text-sm text-amber-200 mt-1">Taxele de examen pentru grade nu sunt configurate. Funcționalitatea de înscriere la examen nu va genera facturi corect.</p>
-                </div>
-                <Button variant="info" onClick={() => onNavigate('configurare-preturi')}>
-                    Configurează Prețuri Acum
-                </Button>
+// Header sub-component
+const DashboardHeader: React.FC<{ userRole: UserRole; clubName?: string }> = ({ userRole, clubName }) => {
+    if (userRole === 'SUPER_ADMIN_FEDERATIE') {
+        return (
+            <div className="bg-blue-800 text-white p-6 rounded-lg shadow-lg mb-8">
+                <h1 className="text-3xl font-bold">Panou de Administrare Federație</h1>
+                <p className="mt-1 text-blue-200">Management centralizat al cluburilor și utilizatorilor.</p>
             </div>
-        </Card>
-      )}
-      <h1 className="text-4xl md:text-5xl font-extrabold mb-4 text-white text-center" style={{ textShadow: '2px 2px 8px rgba(0,0,0,0.6)' }}>Clubul Phi Hau Iași</h1>
-      <p className="text-center text-slate-300 mb-12 max-w-2xl mx-auto">
-        Bun venit în panoul de administrare. Selectați un modul de mai jos pentru a începe gestionarea activității clubului.
-      </p>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 px-4">
-        {navItems.map(item => (
-          <NavCard key={item.view} item={item} onClick={() => onNavigate(item.view)} />
-        ))}
-      </div>
-    </div>
-  );
+        );
+    }
+
+    if (userRole === 'ADMIN_CLUB' || userRole === 'INSTRUCTOR') {
+        return (
+            <div className="bg-slate-700 text-white p-6 rounded-lg shadow-lg mb-8">
+                <h1 className="text-3xl font-bold">{clubName || 'Panou de Administrare Club'}</h1>
+                <p className="mt-1 text-slate-300">Managementul activității clubului.</p>
+            </div>
+        );
+    }
+    
+    // Fallback for other roles or no role
+    return (
+        <div className="bg-slate-700 text-white p-6 rounded-lg shadow-lg mb-8">
+            <h1 className="text-3xl font-bold">Portal Qwan Ki Do</h1>
+             <p className="mt-1 text-slate-300">Bun venit în panoul de administrare.</p>
+        </div>
+    );
+};
+
+interface DashboardProps {
+  currentUser: User;
+  onNavigate: (view: View) => void;
+  showPriceWarning: boolean;
+  clubs: Club[];
+}
+
+export const Dashboard: React.FC<DashboardProps> = ({ currentUser, onNavigate, clubs }) => {
+    
+    const { userRole, clubName } = useMemo(() => {
+        if (!currentUser || !currentUser.roluri) return { userRole: 'UNKNOWN' as UserRole, clubName: undefined };
+        
+        const roles = new Set(currentUser.roluri.map(r => r.nume));
+        let role: UserRole = 'UNKNOWN';
+
+        if (roles.has('Super Admin') || roles.has('Admin')) {
+            role = 'SUPER_ADMIN_FEDERATIE';
+        } else if (roles.has('Admin Club')) {
+            role = 'ADMIN_CLUB';
+        } else if (roles.has('Instructor')) {
+            role = 'INSTRUCTOR';
+        } else {
+            role = 'SPORTIV';
+        }
+        
+        const club = clubs.find(c => c.id === currentUser.club_id);
+
+        return { userRole: role, clubName: club?.nume };
+    }, [currentUser, clubs]);
+
+    const navItems = [
+      { view: 'sportivi', title: 'Sportivi', description: 'Gestionează sportivi și familii.', icon: UsersIcon },
+      { view: 'examene', title: 'Evenimente', description: 'Definește examene, stagii și competiții.', icon: TrophyIcon },
+      { view: 'plati-scadente', title: 'Facturare', description: 'Gestionează plăți și rapoarte.', icon: BanknotesIcon },
+      { view: 'user-management', title: 'Setări', description: 'Configurează conturi și permisiuni.', icon: CogIcon }
+    ];
+
+    return (
+        <div className="max-w-7xl mx-auto p-4 md:p-6 text-slate-900 dark:text-white">
+            <div className="mb-6">
+                <NotificationPermissionWidget />
+            </div>
+            
+            <DashboardHeader userRole={userRole} clubName={clubName} />
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {navItems.map(item => (
+                    <NavCard
+                        key={item.view}
+                        title={item.title}
+                        description={item.description}
+                        icon={item.icon}
+                        onClick={() => onNavigate(item.view as View)}
+                    />
+                ))}
+            </div>
+        </div>
+    );
 };

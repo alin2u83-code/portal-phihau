@@ -200,9 +200,12 @@ BEGIN
         RAISE EXCEPTION 'Acces neautorizat: Doar un Super Admin poate transfera sportivi.';
     END IF;
 
-    -- Actualizează clubul sportivului
+    -- Actualizează clubul sportivului și resetează afilierile specifice clubului
     UPDATE public.sportivi
-    SET club_id = p_new_club_id
+    SET 
+        club_id = p_new_club_id,
+        grupa_id = NULL,
+        tip_abonament_id = NULL
     WHERE id = p_sportiv_id;
 
     -- Înregistrează transferul în istoric

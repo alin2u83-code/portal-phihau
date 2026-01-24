@@ -340,8 +340,6 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             if (updateError) throw updateError;
             
             if (updatedInscriere) {
-                // FIX: The original code used spread syntax ({ ...i, ...updatedInscriere }) which can cause issues if type inference for `updatedInscriere` is incorrect.
-                // Replaced with direct assignment as `updatedInscriere` contains the full, updated object from the database.
                 setInscrieri(prev => prev.map(i => i.id === updatedInscriere.id ? updatedInscriere as InscriereExamen : i));
             }
             
@@ -436,9 +434,17 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             if (anyError) throw anyError.error;
 
             setInscrieri(prev => { const changesMap = new Map(changes); return prev.map(i => changesMap.has(i.id) ? { ...i, rezultat: changesMap.get(i.id) as any } : i); });
+            // FIX: Added defensive checks for the `update` object and its `id` before using it. This prevents a "Spread types may only be created from object types" error if an invalid update object were to be processed.
             setSportivi(prev => {
                 const updatedSportiviMap = new Map(prev.map(s => [s.id, s]));
-                sportiviUpdatesLocal.forEach(update => { const existing = updatedSportiviMap.get(update.id!); if (existing) { updatedSportiviMap.set(update.id!, { ...existing, ...update }); } });
+                sportiviUpdatesLocal.forEach(update => {
+                    if (update && update.id) {
+                        const existing = updatedSportiviMap.get(update.id);
+                        if (existing) {
+                            updatedSportiviMap.set(update.id, { ...existing, ...update });
+                        }
+                    }
+                });
                 return Array.from(updatedSportiviMap.values());
             });
 

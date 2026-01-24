@@ -287,7 +287,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ antrenamente, sesiun
     const today = useMemo(() => { const d = new Date(); d.setHours(0,0,0,0); return d; }, []);
     const weekdays = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'];
     const eventStyles = {
-        club: 'bg-slate-700 text-slate-200 border-l-4 border-slate-500',
+        club: 'bg-slate-700 text-slate-200 border-l-4 border-slate-700',
         federatie: 'bg-slate-800 text-white border-l-4 border-brand-secondary'
     };
 

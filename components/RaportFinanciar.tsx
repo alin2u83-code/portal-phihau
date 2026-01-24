@@ -86,7 +86,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({ plati, sportiv
         <div>
             <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
             <h1 className="text-3xl font-bold text-white mb-6">Raport Financiar Încasări</h1>
-            <Card>
+            <Card className="bg-navy-card-mobile md:bg-light-navy">
                 <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6 p-4 bg-slate-700/50 rounded-lg">
                     <Input label="Data Start" type="date" name="startDate" value={filters.startDate} onChange={handleFilterChange} />
                     <Input label="Data Sfârșit" type="date" name="endDate" value={filters.endDate} onChange={handleFilterChange} />
@@ -134,10 +134,10 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({ plati, sportiv
                             {filteredTranzactii.sort((a,b) => new Date(b.data_platii).getTime() - new Date(a.data_platii).getTime()).map(tranzactie => (
                                 <tr key={tranzactie.id} className="border-b border-slate-700">
                                     <td className="p-4">{new Date(tranzactie.data_platii).toLocaleDateString('ro-RO')}</td>
-                                    <td className="p-4 font-medium">{tranzactie.familie_id ? `Familia ${getFamilieName(tranzactie.familie_id)}` : getSportivName(tranzactie.sportiv_id)}</td>
+                                    <td className="p-4 font-bold text-white">{tranzactie.familie_id ? `Familia ${getFamilieName(tranzactie.familie_id)}` : getSportivName(tranzactie.sportiv_id)}</td>
                                     <td className="p-4">{getDescriereTranzactie(tranzactie)}</td>
                                     <td className="p-4">{tranzactie.metoda_plata}</td>
-                                    <td className="p-4 text-right font-semibold">{tranzactie.suma.toFixed(2)} RON</td>
+                                    <td className="p-4 text-right font-bold text-white">{tranzactie.suma.toFixed(2)} RON</td>
                                 </tr>
                             ))}
                         </tbody>

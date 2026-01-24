@@ -14,7 +14,7 @@ interface FinancialDashboardProps {
 const COLORS = ['#4DBCE9', '#3D3D99', '#16a34a', '#f59e0b', '#dc2626', '#8b5cf6', '#ec4899', '#64748b'];
 
 const KpiCard: React.FC<{ title: string; value: string; icon: React.ElementType; color: string }> = ({ title, value, icon: Icon, color }) => (
-    <Card className={`relative overflow-hidden border-l-4 ${color}`}>
+    <Card className={`relative overflow-hidden border-l-4 ${color} bg-navy-card-mobile md:bg-light-navy`}>
         <div className="flex items-start justify-between">
             <div>
                 <p className="text-sm font-bold uppercase text-slate-400 tracking-wider">{title}</p>
@@ -126,7 +126,7 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ plati, t
                 <KpiCard title="Număr Sportivi Activi" value={String(kpiData.nrSportiviActivi)} icon={UsersIcon} color="border-sky-500" />
             </div>
 
-            <Card>
+            <Card className="bg-navy-card-mobile md:bg-light-navy">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
                     <h3 className="text-xl font-bold text-white mb-2 sm:mb-0">Distribuția Veniturilor</h3>
                     <Select label="" value={period} onChange={e => setPeriod(e.target.value)} className="w-full sm:w-auto">

@@ -291,7 +291,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
                 </Button>
             </div>
 
-            <Card className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-navy-card-mobile md:bg-light-navy">
                 <Input label="Caută Sportiv/Familie" value={filter.sportiv} onChange={e => setFilter({...filter, sportiv: e.target.value})} />
                 <Select label="Categorie" value={filter.tip} onChange={e => setFilter({...filter, tip: e.target.value})}>
                     <option value="">Toate</option>
@@ -317,7 +317,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
                 </div>
             )}
 
-            <Card className="p-0 overflow-hidden">
+            <Card className="p-0 overflow-hidden bg-navy-card-mobile md:bg-light-navy">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
                         <thead className="bg-slate-700/50">
@@ -340,12 +340,12 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
                                         <input type="checkbox" checked={selectedIds.has(p.id)} onChange={() => handleToggleSelect(p.id)} className="rounded border-slate-500 bg-slate-900 text-brand-secondary focus:ring-brand-secondary"/>
                                     </td>
                                     <td className="p-2 text-slate-400">{new Date(p.data).toLocaleDateString('ro-RO')}</td>
-                                    <td className="p-2 font-medium">{getEntityName(p)}</td>
+                                    <td className="p-2 font-bold text-white">{getEntityName(p)}</td>
                                     <td className="p-2">
                                         <div className="font-semibold">{p.descriere}</div>
                                         {p.observatii && <div className="text-[10px] text-slate-500 italic max-w-xs truncate" title={p.observatii}>{p.observatii}</div>}
                                     </td>
-                                    <td className="p-2 text-right font-bold">{p.suma.toFixed(2)} lei</td>
+                                    <td className="p-2 text-right font-bold text-white">{p.suma.toFixed(2)} lei</td>
                                     <td className="p-2 text-center">
                                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
                                             p.status === 'Achitat' ? 'border-brand-secondary text-brand-secondary' : 

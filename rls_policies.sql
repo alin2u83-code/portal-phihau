@@ -178,21 +178,66 @@ CREATE POLICY "Users can view relevant presence records" ON public.prezenta_antr
 -- o interogare a tabelului 'sportivi', care este deja filtrat prin RLS.
 -- -----------------------------------------------------------------
 
--- Exemplu: Politica pentru 'plati' nu necesită modificare.
--- Ea va funcționa corect în contextul multi-tenant.
-/*
-    CREATE POLICY "Users can see their own and family payments" ON public.plati
-    FOR SELECT USING (
-        (sportiv_id IN (SELECT id FROM public.sportivi WHERE user_id = auth.uid())) OR
-        (familie_id IN (SELECT familie_id FROM public.sportivi WHERE user_id = auth.uid() AND familie_id IS NOT NULL))
-    );
-    -- Când un Club Admin rulează `SELECT * FROM plati`, sub-interogarea `SELECT id FROM sportivi`
-    -- va returna DOAR ID-urile sportivilor din clubul său, filtrând astfel automat plățile.
-*/
-
 -- Asigurăm că toate tabelele au RLS activat
 ALTER TABLE public.plati ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Admins can manage payments in their scope" ON public.plati;
+CREATE POLICY "Admins can manage payments in their scope" ON public.plati
+    FOR ALL USING (
+        public.is_super_admin() OR
+        (
+            (get_my_club_id() IS NOT NULL) AND (
+                (sportiv_id IN (SELECT id FROM sportivi WHERE club_id = get_my_club_id())) OR
+                (familie_id IN (SELECT id FROM familii WHERE id IN (SELECT DISTINCT familie_id FROM sportivi WHERE club_id = get_my_club_id() AND familie_id IS NOT NULL)))
+            )
+        )
+    )
+    WITH CHECK (
+        public.is_super_admin() OR
+        (
+            (get_my_club_id() IS NOT NULL) AND (
+                (sportiv_id IN (SELECT id FROM sportivi WHERE club_id = get_my_club_id())) OR
+                (familie_id IN (SELECT id FROM familii WHERE id IN (SELECT DISTINCT familie_id FROM sportivi WHERE club_id = get_my_club_id() AND familie_id IS NOT NULL)))
+            )
+        )
+    );
+
+DROP POLICY IF EXISTS "Sportivi can view their own and family payments" ON public.plati;
+CREATE POLICY "Sportivi can view their own and family payments" ON public.plati
+    FOR SELECT USING (
+        (sportiv_id = (SELECT id FROM sportivi WHERE user_id = auth.uid())) OR
+        (familie_id = (SELECT familie_id FROM sportivi WHERE user_id = auth.uid() AND familie_id IS NOT NULL))
+    );
+
+
 ALTER TABLE public.tranzactii ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Admins can manage transactions in their scope" ON public.tranzactii;
+CREATE POLICY "Admins can manage transactions in their scope" ON public.tranzactii
+    FOR ALL USING (
+        public.is_super_admin() OR
+        (
+            (get_my_club_id() IS NOT NULL) AND (
+                (sportiv_id IN (SELECT id FROM sportivi WHERE club_id = get_my_club_id())) OR
+                (familie_id IN (SELECT id FROM familii WHERE id IN (SELECT DISTINCT familie_id FROM sportivi WHERE club_id = get_my_club_id() AND familie_id IS NOT NULL)))
+            )
+        )
+    )
+    WITH CHECK (
+        public.is_super_admin() OR
+        (
+            (get_my_club_id() IS NOT NULL) AND (
+                (sportiv_id IN (SELECT id FROM sportivi WHERE club_id = get_my_club_id())) OR
+                (familie_id IN (SELECT id FROM familii WHERE id IN (SELECT DISTINCT familie_id FROM sportivi WHERE club_id = get_my_club_id() AND familie_id IS NOT NULL)))
+            )
+        )
+    );
+
+DROP POLICY IF EXISTS "Sportivi can view their own and family transactions" ON public.tranzactii;
+CREATE POLICY "Sportivi can view their own and family transactions" ON public.tranzactii
+    FOR SELECT USING (
+        (sportiv_id = (SELECT id FROM sportivi WHERE user_id = auth.uid())) OR
+        (familie_id = (SELECT familie_id FROM sportivi WHERE user_id = auth.uid() AND familie_id IS NOT NULL))
+    );
+
 ALTER TABLE public.inscrieri_examene ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.istoric_grade ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.note_examene ENABLE ROW LEVEL SECURITY;

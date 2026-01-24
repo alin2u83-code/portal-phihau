@@ -104,7 +104,7 @@ export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6" style={{fontSize: '13px'}}>
                 {/* Left side: Balance and Quick Pay */}
                 <div className="md:col-span-1 space-y-4">
-                    <Card className="text-center bg-brand-primary/20">
+                    <Card className="text-center bg-navy-card-mobile md:bg-brand-primary/20">
                         <h3 className="text-sm font-bold uppercase text-slate-400 tracking-wider">Sold Curent</h3>
                         <p className={`text-4xl font-bold mt-2 ${sold >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                            {sold >= 0 ? '+' : ''}{sold.toFixed(2)}

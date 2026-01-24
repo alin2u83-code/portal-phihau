@@ -131,7 +131,7 @@ const AdaugaAvans: React.FC<{
     };
 
     return (
-        <Card>
+        <Card className="bg-navy-card-mobile md:bg-light-navy">
             <h3 className="text-xl font-bold text-white mb-4">Adaugă Sumă în Avans</h3>
             <form onSubmit={handleSaveAvans} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -370,7 +370,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
         <div className="space-y-6">
             <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi</Button>
             <AdaugaAvans sportivi={sportivi} familii={familii} setTranzactii={setTranzactii} />
-            <Card>
+            <Card className="bg-navy-card-mobile md:bg-light-navy">
                 <h3 className="text-xl font-bold text-white mb-4">{platiInitiale.length > 0 ? (isMultiple ? `Încasare Colectivă (${platiInitiale.length} facturi)` : "Încasare Datorie") : "Încasare Directă Nouă (Generează Factură & Încasare)"}</h3>
                 <form onSubmit={handleSaveIncasare} className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -401,6 +401,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
                     {!isMultiple && reducereAplicata && (
                         <div className="p-3 bg-green-900/40 rounded-lg text-center border border-green-700/50 animate-fade-in-down">
                             <p className="text-sm text-green-300">Reducere aplicată: <strong>{reducereAplicata.nume}</strong></p>
+                            <p className="text-sm text-orange-300">(-{(formState.suma_initiala - formState.suma).toFixed(2)} RON)</p>
                             <p className="text-xs text-slate-400">Sumă inițială: <span className="line-through">{formState.suma_initiala.toFixed(2)} RON</span></p>
                         </div>
                     )}
@@ -413,7 +414,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
                     <div className="flex justify-end pt-4"><Button type="submit" variant="success" className="px-10" disabled={loading}>{loading ? 'Se procesează...' : 'Finalizează Încasarea'}</Button></div>
                 </form>
             </Card>
-            <Card className="p-0 overflow-hidden">
+            <Card className="p-0 overflow-hidden bg-navy-card-mobile md:bg-light-navy">
                 <div className="bg-slate-700/50 p-4 border-b border-slate-600 font-bold">Istoric Încasări Recente</div>
                 <div className="overflow-x-auto"><table className="w-full text-left"><thead className="bg-slate-800 text-xs text-slate-400 uppercase"><tr><th className="p-4">Data</th><th className="p-4">Plătit de</th><th className="p-4">Descriere</th><th className="p-4 text-right">Sumă</th><th className="p-4 text-right">Acțiuni</th></tr></thead><tbody className="divide-y divide-slate-700">{sortedTranzactii.slice(0, 10).map(t => (<tr key={t.id} className="hover:bg-slate-700/20"><td className="p-4 text-sm">{new Date(t.data_platii).toLocaleDateString('ro-RO')}</td><td className="p-4 font-medium">{getEntityName(t)}</td><td className="p-4 text-sm text-slate-400">{getDescriereTranzactie(t)}</td><td className="p-4 text-right font-bold text-green-400">{t.suma.toFixed(2)} RON</td><td className="p-4 text-right"><Button size="sm" variant="danger" onClick={() => setTranzactieToDelete(t)}><TrashIcon className="w-4 h-4"/></Button></td></tr>))}</tbody></table></div>
             </Card>

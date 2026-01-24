@@ -15,6 +15,7 @@ interface RaportPrezentaProps {
 interface RaportFilters {
     searchTerm: string;
     grupaFilter: string;
+    salaFilter: string;
     yearFilter: string;
     tipFilter: string;
 }
@@ -22,6 +23,7 @@ interface RaportFilters {
 const initialFilters: RaportFilters = {
     searchTerm: '',
     grupaFilter: '',
+    salaFilter: '',
     yearFilter: new Date().getFullYear().toString(),
     tipFilter: '',
 };
@@ -37,6 +39,8 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ antrenamente, sp
     };
     
     const monthNames = useMemo(() => ["Ian", "Feb", "Mar", "Apr", "Mai", "Iun", "Iul", "Aug", "Sep", "Oct", "Nov", "Dec"], []);
+    
+    const sali = useMemo(() => [...new Set(grupe.map(g => g.sala).filter(Boolean))], [grupe]);
 
     const allRecords = useMemo(() => {
         return antrenamente.flatMap(a => 
@@ -64,12 +68,14 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ antrenamente, sp
 
             const nameMatch = filters.searchTerm === '' || rec.sportivNume.toLowerCase().includes(filters.searchTerm.toLowerCase());
             const grupaMatch = filters.grupaFilter === '' || rec.grupaId === filters.grupaFilter;
+            const grupaPentruRecord = rec.grupaId ? grupe.find(g => g.id === rec.grupaId) : null;
+            const salaMatch = filters.salaFilter === '' || (grupaPentruRecord && grupaPentruRecord.sala === filters.salaFilter);
             const yearMatch = filters.yearFilter === '' || year === parseInt(filters.yearFilter);
             const tipMatch = filters.tipFilter === '' || rec.tip === filters.tipFilter;
 
-            return nameMatch && grupaMatch && yearMatch && tipMatch;
+            return nameMatch && grupaMatch && yearMatch && tipMatch && salaMatch;
         });
-    }, [allRecords, filters]);
+    }, [allRecords, filters, grupe]);
 
     const { groupChartData, activeGroups } = useMemo(() => {
         // FIX: Explicitly set the generic type for `new Set` to `<string>` to resolve a type inference issue where the resulting array was being inferred as `unknown[]` instead of `string[]`.
@@ -155,6 +161,10 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ antrenamente, sp
                         <Select label="Grupă" name="grupaFilter" value={filters.grupaFilter} onChange={handleFilterChange}>
                             <option value="">Toate Grupele</option>
                             {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
+                        </Select>
+                        <Select label="Sală" name="salaFilter" value={filters.salaFilter} onChange={handleFilterChange}>
+                            <option value="">Toate sălile</option>
+                            {sali.map(s => <option key={s} value={s}>{s}</option>)}
                         </Select>
                         <div className="grid grid-cols-2 gap-2">
                             <Select label="An" name="yearFilter" value={filters.yearFilter} onChange={handleFilterChange}>

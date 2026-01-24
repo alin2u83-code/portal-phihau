@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { User, View, Plata } from '../types';
+import { User, View, Plata, Club } from '../types';
 import { adminMenu, sportivMenu, MenuItem } from './menuConfig';
 import { ArrowRightOnRectangleIcon, Bars3Icon, ChevronDownIcon, UserCircleIcon } from './icons';
 import { AdminProfileQuickAccess } from './AdminProfileQuickAccess';
+import { Select } from './ui';
 
 const NavItem: React.FC<{
     item: MenuItem;
@@ -73,9 +74,13 @@ interface SidebarProps {
     setIsExpanded: React.Dispatch<React.SetStateAction<boolean>>;
     isPortalView: boolean;
     plati: Plata[];
+    clubs: Club[];
+    globalClubFilter: string | null;
+    setGlobalClubFilter: React.Dispatch<React.SetStateAction<string | null>>;
+    isSuperAdmin: boolean;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLogout, activeView, isExpanded, setIsExpanded, isPortalView, plati }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLogout, activeView, isExpanded, setIsExpanded, isPortalView, plati, clubs, globalClubFilter, setGlobalClubFilter, isSuperAdmin }) => {
     const [isMobileOpen, setIsMobileOpen] = useState(false);
     
     const menu = isPortalView ? sportivMenu : adminMenu;
@@ -115,6 +120,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
                {/* Spațiu gol lăsat intenționat după eliminarea logo-ului */}
             </div>
             
+             {isSuperAdmin && isExpanded && (
+                <div className="px-3 py-2 border-b border-white/10">
+                    <Select
+                        label="Filtrează Club"
+                        value={globalClubFilter || ''}
+                        onChange={(e) => setGlobalClubFilter(e.target.value || null)}
+                        className="!py-1 text-xs w-full"
+                    >
+                        <option value="">Toate Cluburile</option>
+                        {clubs.map(c => <option key={c.id} value={c.id}>{c.nume}</option>)}
+                    </Select>
+                </div>
+            )}
+
             <nav className="flex-1 px-3 py-4 space-y-2 overflow-y-auto">
                 {filteredMenu.map(item => {
                      const isActive = item.view === activeView || (item.submenu?.some(s => s.view === activeView) ?? false);

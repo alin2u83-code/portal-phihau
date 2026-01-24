@@ -10,7 +10,7 @@ type UserRole = 'SUPER_ADMIN_FEDERATIE' | 'ADMIN_CLUB' | 'INSTRUCTOR' | 'SPORTIV
 const NavCard: React.FC<{ title: string; description: string; icon: React.ElementType; onClick: () => void; }> = ({ title, description, icon: Icon, onClick }) => (
     <div
         onClick={onClick}
-        className="group bg-light-navy rounded-lg shadow-md p-6 flex flex-col items-center text-center cursor-pointer hover:shadow-xl hover:scale-105 transition-all duration-300 border border-slate-700 hover:border-brand-secondary"
+        className="group bg-light-navy rounded-lg shadow-md p-6 flex flex-col items-center text-center cursor-pointer hover:shadow-xl hover:scale-105 transition-all duration-300 border border-slate-800 hover:border-brand-secondary"
     >
         <div className="p-4 bg-brand-secondary/10 text-brand-secondary rounded-full mb-4">
             <Icon className="h-8 w-8" />

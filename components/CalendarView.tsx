@@ -287,9 +287,17 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ antrenamente, sesiun
     const today = useMemo(() => { const d = new Date(); d.setHours(0,0,0,0); return d; }, []);
     const weekdays = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'];
     const eventStyles = {
-        club: 'bg-slate-700 text-slate-200 border-l-4 border-slate-700',
-        federatie: 'bg-slate-800 text-white border-l-4 border-brand-secondary'
+        antrenament: 'bg-slate-700 text-slate-200 border border-slate-600',
+        clubDefault: 'bg-slate-700 text-slate-200 border-l-4 border-slate-700',
+        federatie: 'bg-slate-800 text-white border-l-4 border-brand-secondary shadow-glow-blue'
     };
+    
+    const getEventStyleClass = (event: CalendarEvent) => {
+        if (event.scope === 'federatie') return eventStyles.federatie;
+        if (event.type === 'Antrenament') return eventStyles.antrenament;
+        return eventStyles.clubDefault;
+    };
+
 
     return (
         <div className="space-y-6">
@@ -320,17 +328,17 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ antrenamente, sesiun
                     </div>
                     <div className="grid grid-cols-7 min-h-[60vh]">
                         {days.map((day, index) => {
-                            if (!day) return <div key={`pad-${index}`} className="border-r border-b border-slate-700 bg-slate-800/50"></div>;
+                            if (!day) return <div key={`pad-${index}`} className="border-r border-b border-slate-700 bg-deep-navy"></div>;
                             const dateString = day.toISOString().split('T')[0];
                             const dayEvents = eventsByDate.get(dateString) || [];
                             const isCurrentDay = day.getTime() === today.getTime();
                             return (
-                                <div key={dateString} className="border-r border-b border-slate-700 p-2 flex flex-col relative min-h-[120px]">
+                                <div key={dateString} className="border-r border-b border-slate-700 p-2 flex flex-col relative min-h-[120px] bg-light-navy/50 transition-colors hover:bg-light-navy/70">
                                     <span className={`font-bold text-sm ${isCurrentDay ? 'bg-brand-primary text-white rounded-full h-6 w-6 flex items-center justify-center' : 'text-slate-300'}`}>{day.getDate()}</span>
                                     <div className="mt-2 space-y-2 overflow-y-auto">
                                         {dayEvents.map(event => (
                                             <div key={event.id} className="space-y-1">
-                                                <div title={event.title} className={`p-1 rounded-md text-[10px] font-bold truncate ${eventStyles[event.scope]}`}>
+                                                <div title={event.title} className={`p-1 rounded-md text-[10px] font-bold truncate ${getEventStyleClass(event)}`}>
                                                     {event.time && <span className="font-mono mr-1">{event.time}</span>}
                                                     {event.title}
                                                 </div>
@@ -353,7 +361,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ antrenamente, sesiun
                                 <div className="mt-2 space-y-4">
                                     {events.map(event => (
                                         <div key={event.id}>
-                                            <div className={`p-2 rounded-md ${eventStyles[event.scope]}`}>
+                                            <div className={`p-2 rounded-md ${getEventStyleClass(event)}`}>
                                                 <p className="font-bold">{event.title}</p>
                                                 {event.time && <p className="text-xs font-mono">{event.time}</p>}
                                             </div>

@@ -162,7 +162,7 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ antrenamente, sp
                             <option value="">Toate Grupele</option>
                             {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
                         </Select>
-                        <Select label="Sală" name="salaFilter" value={filters.salaFilter} onChange={handleFilterChange}>
+                        <Select label="Sală" name="salaFilter" value={filters.salaFilter} onChange={handleFilterChange} className="!bg-light-navy !text-slate-200">
                             <option value="">Toate sălile</option>
                             {sali.map(s => <option key={s} value={s}>{s}</option>)}
                         </Select>

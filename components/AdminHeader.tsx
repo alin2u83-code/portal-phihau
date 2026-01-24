@@ -2,15 +2,17 @@ import React, { useState, useMemo } from 'react';
 import { User, View, Plata } from '../types';
 import { ChevronDownIcon } from './icons';
 import { AdminProfileQuickAccess } from './AdminProfileQuickAccess';
+import { Permissions } from '../hooks/usePermissions';
 
 interface AdminHeaderProps {
     currentUser: User;
     onNavigate: (view: View) => void;
     onLogout: () => void;
     plati: Plata[];
+    permissions: Permissions;
 }
 
-export const AdminHeader: React.FC<AdminHeaderProps> = ({ currentUser, onNavigate, onLogout, plati }) => {
+export const AdminHeader: React.FC<AdminHeaderProps> = ({ currentUser, onNavigate, onLogout, plati, permissions }) => {
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
     
     const hasOverduePayments = useMemo(() => {
@@ -64,6 +66,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ currentUser, onNavigat
                             onNavigate={(view) => { onNavigate(view); setIsProfileMenuOpen(false); }}
                             onLogout={onLogout}
                             isExpanded={true}
+                            isSuperAdmin={permissions.isSuperAdmin}
                         />
                     )}
                  </div>

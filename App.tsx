@@ -41,89 +41,11 @@ import { FacturiPersonale } from './components/FacturiPersonale';
 import { CalendarView } from './components/CalendarView';
 import { RapoarteExamen } from './components/RapoarteExamen';
 import { SportivFormModal } from './components/Sportivi';
-// FIX: Import ArrowLeftIcon to fix missing component error.
-import { PlusIcon, ExclamationTriangleIcon, ArrowLeftIcon } from './components/icons';
+import { PlusIcon } from './components/icons';
 import { CluburiManagement } from './components/CluburiManagement';
 import { adminMenu } from './components/menuConfig';
-// FIX: Import Button to fix missing component error.
-import { Button, Card } from './components/ui';
-
-// --- START: Inlined usePermissions Hook ---
-export interface Permissions {
-    isSuperAdmin: boolean;
-    isAdmin: boolean;
-    isFederationAdmin: boolean; // Super Admin or regular Admin
-    isAdminClub: boolean;
-    isInstructor: boolean;
-    isSportiv: boolean;
-    hasAdminAccess: boolean; // Helper for general admin panel access
-}
-
-const initialPermissions: Permissions = {
-    isSuperAdmin: false,
-    isAdmin: false,
-    isFederationAdmin: false,
-    isAdminClub: false,
-    isInstructor: false,
-    isSportiv: false,
-    hasAdminAccess: false,
-};
-
-export const usePermissions = (user: User | null): Permissions => {
-    const permissions = useMemo((): Permissions => {
-        if (!user || !user.roluri) {
-            return initialPermissions;
-        }
-
-        const roles = new Set(user.roluri.map(r => r.nume));
-
-        const isSuperAdmin = roles.has('Super Admin');
-        const isAdmin = roles.has('Admin');
-        const isAdminClub = roles.has('Admin Club');
-        const isInstructor = roles.has('Instructor');
-        const isSportiv = roles.has('Sportiv');
-        
-        const isFederationAdmin = isSuperAdmin || isAdmin;
-        const hasAdminAccess = isFederationAdmin || isAdminClub || isInstructor;
-
-        return {
-            isSuperAdmin,
-            isAdmin,
-            isFederationAdmin,
-            isAdminClub,
-            isInstructor,
-            isSportiv,
-            hasAdminAccess,
-        };
-    }, [user]);
-
-    return permissions;
-};
-// --- END: Inlined usePermissions Hook ---
-
-// --- START: Inlined AccessDenied Component ---
-interface AccessDeniedProps {
-    onBack: () => void;
-}
-const AccessDenied: React.FC<AccessDeniedProps> = ({ onBack }) => {
-    return (
-        <div className="flex items-center justify-center h-full">
-            <Card className="max-w-md text-center border-l-4 border-red-500">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-900/50">
-                    <ExclamationTriangleIcon className="h-8 w-8 text-red-400" />
-                </div>
-                <h1 className="text-3xl font-bold text-white mt-4">Acces Interzis (403)</h1>
-                <p className="text-slate-300 mt-2">
-                    Nu aveți permisiunile necesare pentru a accesa această pagină. Vă rugăm contactați un administrator dacă credeți că aceasta este o eroare.
-                </p>
-                <Button onClick={onBack} variant="secondary" className="mt-6">
-                    <ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Panoul Principal
-                </Button>
-            </Card>
-        </div>
-    );
-};
-// --- END: Inlined AccessDenied Component ---
+import { usePermissions } from './hooks/usePermissions';
+import AccessDenied from './components/AccessDenied';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -576,7 +498,7 @@ function App() {
       />
       <div className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'}`}>
          {isAdmin && !isMyPortalView && (
-            <AdminHeader currentUser={currentUser!} onNavigate={setActiveView} onLogout={handleLogout} plati={plati} />
+            <AdminHeader currentUser={currentUser!} onNavigate={setActiveView} onLogout={handleLogout} plati={plati} permissions={permissions} />
           )}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
           {renderContent()}

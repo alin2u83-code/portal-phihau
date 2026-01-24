@@ -7,10 +7,10 @@ interface AdminProfileQuickAccessProps {
   onNavigate: (view: View) => void;
   onLogout: () => void;
   isExpanded: boolean;
+  isSuperAdmin: boolean;
 }
 
-export const AdminProfileQuickAccess: React.FC<AdminProfileQuickAccessProps> = ({ user, onNavigate, onLogout, isExpanded }) => {
-    const isSuperAdmin = user.roluri.some(r => r.nume === 'Super Admin');
+export const AdminProfileQuickAccess: React.FC<AdminProfileQuickAccessProps> = ({ user, onNavigate, onLogout, isExpanded, isSuperAdmin }) => {
     // Determină poziționarea pe baza modului de afișare (sidebar sau navbar)
     const positionClasses = isExpanded 
         ? "absolute bottom-full mb-2 w-56 right-0" // Sidebar extins SAU Navbar

@@ -78,7 +78,6 @@ function App() {
   const [activeView, setActiveView] = useLocalStorage<View>('phi-hau-active-view', 'dashboard');
   const [selectedPlatiForIncasare, setSelectedPlatiForIncasare] = useState<Plata[]>([]);
   const [viewedSportiv, setViewedSportiv] = useState<Sportiv | null>(null);
-  const [showPriceWarning, setShowPriceWarning] = useState(false);
   const [isGlobalSportivFormOpen, setIsGlobalSportivFormOpen] = useState(false);
   const [isSidebarExpanded, setIsSidebarExpanded] = useLocalStorage<boolean>('phi-hau-sidebar-expanded', true);
 
@@ -105,7 +104,7 @@ function App() {
 
     const createClubScopedQuery = (table: string, select = '*') => {
         let query = supabase.from(table).select(select);
-        const clubIdTables = ['sportivi', 'grupe', 'sesiuni_examene', 'evenimente', 'tipuri_abonament', 'cluburi'];
+        const clubIdTables = ['sportivi', 'grupe', 'sesiuni_examene', 'tipuri_abonament', 'cluburi'];
         if (isClubScoped && userClubId && clubIdTables.includes(table)) {
             query = query.eq('club_id', userClubId);
         }
@@ -124,7 +123,7 @@ function App() {
             createClubScopedQuery('sesiuni_examene'),
             supabase.from('grade').select('*'),
             createClubScopedQuery('grupe'),
-            createClubScopedQuery('evenimente'),
+            supabase.from('evenimente').select('*'),
             supabase.from('preturi_config').select('*'),
             supabase.from('grade_preturi_config').select('*'),
             createClubScopedQuery('tipuri_abonament'),
@@ -150,8 +149,6 @@ function App() {
         setRawGradePrices(rawPrices); 
         const gradesData = gData || [];
         
-        setShowPriceWarning(rawPrices.length === 0 && gradesData.length > 0);
-
         // Transform grade prices into the generic PretConfig format
         const transformedGradePrices = (gradePricesData || [])
             .filter((p: any) => p.is_activ !== false)
@@ -220,7 +217,13 @@ function App() {
     const displayGrupe = useMemo(() => permissions.isFederationAdmin && globalClubFilter ? grupe.filter(g => g.club_id === globalClubFilter) : grupe, [grupe, permissions.isFederationAdmin, globalClubFilter]);
     const displayCluburi = useMemo(() => permissions.isFederationAdmin && globalClubFilter ? cluburi.filter(c => c.id === globalClubFilter) : cluburi, [cluburi, permissions.isFederationAdmin, globalClubFilter]);
     const displaySesiuniExamene = useMemo(() => permissions.isFederationAdmin && globalClubFilter ? sesiuniExamene.filter(s => s.club_id === globalClubFilter) : sesiuniExamene, [sesiuniExamene, permissions.isFederationAdmin, globalClubFilter]);
-    const displayEvenimente = useMemo(() => permissions.isFederationAdmin && globalClubFilter ? evenimente.filter(e => e.club_id === globalClubFilter) : evenimente, [evenimente, permissions.isFederationAdmin, globalClubFilter]);
+    const displayEvenimente = useMemo(() => {
+        if (permissions.isFederationAdmin && globalClubFilter) {
+            // Show events for the selected club OR federation events (club_id is null)
+            return evenimente.filter(e => e.club_id === globalClubFilter || e.club_id === null);
+        }
+        return evenimente;
+    }, [evenimente, permissions.isFederationAdmin, globalClubFilter]);
     const displayTipuriAbonament = useMemo(() => permissions.isFederationAdmin && globalClubFilter ? tipuriAbonament.filter(t => t.club_id === globalClubFilter) : tipuriAbonament, [tipuriAbonament, permissions.isFederationAdmin, globalClubFilter]);
 
     const displaySportiviIds = useMemo(() => new Set(displaySportivi.map(s => s.id)), [displaySportivi]);
@@ -419,8 +422,7 @@ function App() {
     }
 
     switch (activeView) {
-      // FIX: Use 'cluburi' state variable instead of undefined 'clubs'.
-      case 'dashboard': return <Dashboard currentUser={currentUser} onNavigate={setActiveView} showPriceWarning={showPriceWarning} clubs={cluburi} />;
+      case 'dashboard': return <Dashboard currentUser={currentUser} onNavigate={setActiveView} clubs={cluburi} />;
       case 'financial-dashboard': return <FinancialDashboard plati={displayPlati} tranzactii={displayTranzactii} sportivi={displaySportivi} onBack={() => setActiveView('dashboard')} />;
       case 'sportivi': 
         return viewedSportiv ? (
@@ -454,8 +456,8 @@ function App() {
       case 'prezenta': return <PrezentaManagement sportivi={displaySportivi} setSportivi={setSportivi} antrenamente={displayAntrenamente} setAntrenamente={setAntrenamente} grupe={displayGrupe} onBack={() => setActiveView('dashboard')} setPlati={setPlati} tipuriAbonament={displayTipuriAbonament} anunturi={displayAnunturi}/>;
       case 'grupe': return <GrupeManagement grupe={displayGrupe} setGrupe={setGrupe} onBack={() => setActiveView('dashboard')} />;
       case 'raport-prezenta': return <RaportPrezenta antrenamente={displayAntrenamente} sportivi={displaySportivi} grupe={displayGrupe} onBack={() => setActiveView('dashboard')} />;
-      case 'stagii': return <StagiiCompetitiiManagement type="Stagiu" evenimente={displayEvenimente} setEvenimente={setEvenimente} rezultate={displayRezultate} setRezultate={setRezultate} sportivi={displaySportivi} setPlati={setPlati} preturiConfig={preturiConfig} participari={displayInscrieriExamene} examene={displaySesiuniExamene} grade={grade} onBack={() => setActiveView('dashboard')} />;
-      case 'competitii': return <StagiiCompetitiiManagement type="Competitie" evenimente={displayEvenimente} setEvenimente={setEvenimente} rezultate={displayRezultate} setRezultate={setRezultate} sportivi={displaySportivi} setPlati={setPlati} preturiConfig={preturiConfig} participari={displayInscrieriExamene} examene={displaySesiuniExamene} grade={grade} onBack={() => setActiveView('dashboard')} />;
+      case 'stagii': return <StagiiCompetitiiManagement type="Stagiu" evenimente={displayEvenimente} setEvenimente={setEvenimente} rezultate={displayRezultate} setRezultate={setRezultate} sportivi={displaySportivi} setPlati={setPlati} preturiConfig={preturiConfig} participari={displayInscrieriExamene} examene={displaySesiuniExamene} grade={grade} onBack={() => setActiveView('dashboard')} currentUser={currentUser} />;
+      case 'competitii': return <StagiiCompetitiiManagement type="Competitie" evenimente={displayEvenimente} setEvenimente={setEvenimente} rezultate={displayRezultate} setRezultate={setRezultate} sportivi={displaySportivi} setPlati={setPlati} preturiConfig={preturiConfig} participari={displayInscrieriExamene} examene={displaySesiuniExamene} grade={grade} onBack={() => setActiveView('dashboard')} currentUser={currentUser} />;
       case 'plati-scadente': return <PlatiScadente plati={displayPlati} setPlati={setPlati} sportivi={displaySportivi} familii={displayFamilii} tipuriAbonament={displayTipuriAbonament} tranzactii={displayTranzactii} reduceri={reduceri} onIncaseazaMultiple={(plist) => { setSelectedPlatiForIncasare(plist); setActiveView('jurnal-incasari'); }} onBack={() => setActiveView('dashboard')} />;
       case 'jurnal-incasari': return <JurnalIncasari currentUser={currentUser} plati={displayPlati} setPlati={setPlati} sportivi={displaySportivi} familii={displayFamilii} preturiConfig={preturiConfig} tipuriAbonament={displayTipuriAbonament} tipuriPlati={tipuriPlati} setTipuriPlati={setTipuriPlati} tranzactii={displayTranzactii} setTranzactii={setTranzactii} reduceri={reduceri} platiInitiale={selectedPlatiForIncasare} onIncasareProcesata={() => { setSelectedPlatiForIncasare([]); fetchData(currentUser); }} onBack={() => setActiveView('plati-scadente')} />;
       case 'configurare-preturi': return <ConfigurarePreturi grade={grade} onBack={() => setActiveView('dashboard')} />;
@@ -482,12 +484,11 @@ function App() {
         />;
       case 'nomenclatoare': return <GestionareNomenclatoare onBack={() => setActiveView('dashboard')} tipuriPlati={tipuriPlati} setTipuriPlati={setTipuriPlati} plati={plati} />;
       case 'activitati': return <ProgramareActivitati grupe={displayGrupe} antrenamente={displayAntrenamente} setAntrenamente={setAntrenamente} onBack={() => setActiveView('dashboard')} />;
-      case 'calendar': return <CalendarView antrenamente={displayAntrenamente} sesiuniExamene={displaySesiuniExamene} grupe={displayGrupe} locatii={locatii} onBack={() => setActiveView('dashboard')} />;
+      case 'calendar': return <CalendarView antrenamente={antrenamente} sesiuniExamene={sesiuniExamene} evenimente={evenimente} grupe={grupe} locatii={locatii} onBack={() => setActiveView('dashboard')} currentUser={currentUser} onNavigate={setActiveView} />;
       case 'setari-club': return <ClubSettings onBack={() => setActiveView('dashboard')} />;
       case 'data-inspector': return <DataInspector antrenamente={antrenamente} preturiConfig={preturiConfig} rawGradePrices={rawGradePrices} grade={grade} onBack={() => setActiveView('dashboard')} />;
       case 'notificari': return <Notificari onBack={() => setActiveView('dashboard')} currentUser={currentUser} />;
-      // FIX: Use 'cluburi' state variable instead of undefined 'clubs'.
-      default: return <Dashboard currentUser={currentUser!} onNavigate={setActiveView} showPriceWarning={showPriceWarning} clubs={cluburi} />;
+      default: return <Dashboard currentUser={currentUser!} onNavigate={setActiveView} clubs={cluburi} />;
     }
   };
 
@@ -498,7 +499,7 @@ function App() {
   const isMyPortalView = activeView === 'my-portal';
   
   return (
-    <div className="min-h-screen flex bg-slate-900">
+    <div className="min-h-screen flex">
       <Sidebar 
         currentUser={currentUser!} 
         onNavigate={setActiveView} 
@@ -508,7 +509,6 @@ function App() {
         plati={plati}
         isExpanded={isSidebarExpanded}
         setIsExpanded={setIsSidebarExpanded}
-        // FIX: Use 'cluburi' state variable instead of undefined 'clubs'.
         clubs={cluburi}
         globalClubFilter={globalClubFilter}
         setGlobalClubFilter={setGlobalClubFilter}

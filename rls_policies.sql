@@ -473,47 +473,38 @@ DROP FUNCTION IF EXISTS public.delete_exam_registration(uuid);
 CREATE OR REPLACE FUNCTION public.delete_exam_registration(p_inscriere_id uuid)
 RETURNS json AS $$
 DECLARE
-    factura_record RECORD;
-    inscriere_record RECORD;
-    updated_plata_id_res uuid;
+    v_plata_id uuid;
+    plata_record RECORD;
+    deleted_plata_id_res uuid;
 BEGIN
-    -- This function must run with elevated privileges to manage related data across tables.
-    -- Ensure it is owned by postgres to bypass RLS.
     IF NOT public.is_admin_or_instructor() THEN
-        RAISE EXCEPTION 'Permisiune refuzată. Doar administratorii pot șterge înscrieri.';
+        RAISE EXCEPTION 'Permisiune refuzată.';
     END IF;
 
-    -- Find the registration to be deleted
-    SELECT * INTO inscriere_record FROM public.inscrieri_examene WHERE id = p_inscriere_id;
+    -- Get the plata_id from the registration to be deleted
+    SELECT plata_id INTO v_plata_id FROM public.inscrieri_examene WHERE id = p_inscriere_id;
     IF NOT FOUND THEN
-        RAISE EXCEPTION 'Inscrierea cu ID-ul % nu a fost găsită.', p_inscriere_id;
+        RAISE EXCEPTION 'Înscrierea cu ID-ul % nu a fost găsită.', p_inscriere_id;
     END IF;
 
-    -- Find the associated payment using the reference in 'observatii'
-    SELECT * INTO factura_record FROM public.plati WHERE observatii LIKE '%Ref Inscriere: ' || p_inscriere_id || '%';
-
-    -- If a payment exists, check its status and CANCEL it instead of deleting
-    IF FOUND THEN
-        IF factura_record.status != 'Neachitat' THEN
-            RAISE EXCEPTION 'Nu se poate anula înscrierea. Factura asociată a fost deja achitată (parțial sau total). Anulați manual încasarea întâi.';
+    -- If there is an associated payment, check its status and delete it
+    IF v_plata_id IS NOT NULL THEN
+        SELECT * INTO plata_record FROM public.plati WHERE id = v_plata_id;
+        IF FOUND THEN
+            IF plata_record.status != 'Neachitat' THEN
+                RAISE EXCEPTION 'Nu se poate șterge. Factura asociată a fost deja achitată (parțial sau total).';
+            END IF;
+            DELETE FROM public.plati WHERE id = v_plata_id RETURNING id INTO deleted_plata_id_res;
         END IF;
-
-        UPDATE public.plati
-        SET 
-            suma = 0,
-            status = 'Achitat', -- Mark as paid to remove from overdue lists
-            observatii = factura_record.observatii || ' | ANULAT - retragere examen. Suma inițială: ' || factura_record.suma
-        WHERE id = factura_record.id
-        RETURNING id INTO updated_plata_id_res;
     END IF;
 
-    -- Delete the main registration record
+    -- Delete the registration itself
     DELETE FROM public.inscrieri_examene WHERE id = p_inscriere_id;
-
+    
     RETURN json_build_object(
         'success', true,
-        'message', 'Înscrierea a fost retrasă cu succes. Factura asociată a fost anulată.',
-        'updated_plata_id', updated_plata_id_res -- can be null
+        'message', 'Înscrierea și factura asociată (dacă a existat) au fost șterse.',
+        'deleted_plata_id', deleted_plata_id_res
     );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;

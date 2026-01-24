@@ -83,8 +83,7 @@ export const sportivMenu: MenuItem[] = [
         label: 'Pagina Mea', 
         icon: UserCircleIcon, 
         submenu: [
-            { label: 'Panou Principal', view: 'dashboard' },
-            { label: 'Situație Financiară', view: 'profil-sportiv' },
+            { label: 'Dashboard', view: 'profil-sportiv' },
             { label: 'Evenimentele Mele', view: 'evenimentele-mele' },
         ]
     },

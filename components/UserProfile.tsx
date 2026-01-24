@@ -9,6 +9,7 @@ import { SportivWallet } from './SportivWallet';
 import { DeleteAuditModal } from './DeleteAuditModal';
 import { SportivFeedbackReport } from './SportivFeedbackReport';
 import { SportivProgressChart } from './SportivProgressChart';
+import { IstoricExameneSportiv } from './IstoricExameneSportiv';
 
 const getGrad = (gradId: string | null, allGrades: Grad[]) => gradId ? allGrades.find(g => g.id === gradId) : null;
 const getAge = (dateString: string) => { const today = new Date(); const birthDate = new Date(dateString); let age = today.getFullYear() - birthDate.getFullYear(); const m = today.getMonth() - birthDate.getMonth(); if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; } return age; };
@@ -149,14 +150,28 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isReportModalOpen, setIsReportModalOpen] = useState(false);
     const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+    const [showHistory, setShowHistory] = useState(false);
 
     const [isEditingRoles, setIsEditingRoles] = useState(false);
     const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>(sportiv.roluri.map(r => r.id));
+
+    const [isEditingFeedback, setIsEditingFeedback] = useState(false);
+    const [feedbackData, setFeedbackData] = useState({
+        puncte_forte: sportiv.puncte_forte || '',
+        puncte_slabe: sportiv.puncte_slabe || '',
+        obiective: sportiv.obiective || '',
+    });
+    const [isSavingFeedback, setIsSavingFeedback] = useState(false);
     
     const [financialFilter, setFinancialFilter] = useState<'Toate' | 'Abonament' | 'Taxa Examen' | 'Echipament'>('Toate');
 
     useEffect(() => {
         setSelectedRoleIds(sportiv.roluri.map(r => r.id));
+        setFeedbackData({
+            puncte_forte: sportiv.puncte_forte || '',
+            puncte_slabe: sportiv.puncte_slabe || '',
+            obiective: sportiv.obiective || '',
+        });
     }, [sportiv]);
 
     const isAdmin = currentUser.roluri.some(r => r.nume === 'Admin');
@@ -303,6 +318,29 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
         setSportivi((prev: Sportiv[]) => prev.map(s => s.id === sportiv.id ? { ...s, ...data } : s));
         return { success: true };
     };
+
+    const handleFeedbackChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        setFeedbackData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSaveFeedback = async () => {
+        setIsSavingFeedback(true);
+        const { error } = await supabase.from('sportivi').update({
+            puncte_forte: feedbackData.puncte_forte,
+            puncte_slabe: feedbackData.puncte_slabe,
+            obiective: feedbackData.obiective,
+        }).eq('id', sportiv.id);
+
+        if (error) {
+            showError("Eroare la salvare feedback", error);
+        } else {
+            setSportivi(prev => prev.map(s => s.id === sportiv.id ? { ...s, ...feedbackData } : s));
+            showSuccess("Feedback salvat", "Observațiile au fost salvate cu succes.");
+            setIsEditingFeedback(false);
+        }
+        setIsSavingFeedback(false);
+    };
     
     const handleDeactivate = async (s: Sportiv) => {
         const { data, error } = await supabase.from('sportivi').update({ status: 'Inactiv' }).eq('id', s.id).select().single();
@@ -321,6 +359,16 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
         setIsTransferModalOpen(false);
         onBack();
     };
+
+    if (showHistory) {
+        return <IstoricExameneSportiv 
+            viewedUser={sportiv}
+            participari={sportivParticipari}
+            sesiuni={examene}
+            grade={grade}
+            onBack={() => setShowHistory(false)}
+        />
+    }
 
 
     return (
@@ -343,150 +391,94 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                 </div>
             </Card>
 
-            <Card>
-                <h3 className="text-lg font-bold text-white mb-4">Evoluție & Progres</h3>
-                <SportivProgressChart
-                    sportiv={sportiv}
-                    participari={participari}
-                    examene={examene}
-                    grade={grade}
-                    antrenamente={antrenamente}
-                />
-            </Card>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 space-y-6">
+                    <Card>
+                        <h3 className="text-lg font-bold text-white mb-4">Evoluție & Progres</h3>
+                        <SportivProgressChart
+                            sportiv={sportiv}
+                            participari={participari}
+                            examene={examene}
+                            grade={grade}
+                            antrenamente={antrenamente}
+                        />
+                    </Card>
+                    <Card>
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg font-bold text-white">Feedback & Obiective</h3>
+                            {!isEditingFeedback ? (
+                                <Button variant="secondary" size="sm" onClick={() => setIsEditingFeedback(true)}>Editează</Button>
+                            ) : (
+                                <div className="flex gap-2">
+                                    <Button variant="secondary" size="sm" onClick={() => { setIsEditingFeedback(false); setFeedbackData({ puncte_forte: sportiv.puncte_forte || '', puncte_slabe: sportiv.puncte_slabe || '', obiective: sportiv.obiective || '' }); }}>Anulează</Button>
+                                    <Button variant="success" size="sm" onClick={handleSaveFeedback} isLoading={isSavingFeedback}>Salvează</Button>
+                                </div>
+                            )}
+                        </div>
+                        <div className="space-y-4 text-sm">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-400 mb-1">Puncte Forte</label>
+                                {isEditingFeedback ? ( <textarea name="puncte_forte" value={feedbackData.puncte_forte} onChange={handleFeedbackChange} className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-secondary focus:border-brand-secondary transition-all" rows={3}></textarea>
+                                ) : ( <p className="text-slate-200 whitespace-pre-wrap p-2 bg-slate-800/50 rounded-md min-h-[4rem]">{sportiv.puncte_forte || <span className="italic text-slate-500">Nespecificat</span>}</p> )}
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-400 mb-1">Puncte Slabe</label>
+                                {isEditingFeedback ? ( <textarea name="puncte_slabe" value={feedbackData.puncte_slabe} onChange={handleFeedbackChange} className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-secondary focus:border-brand-secondary transition-all" rows={3}></textarea>
+                                ) : ( <p className="text-slate-200 whitespace-pre-wrap p-2 bg-slate-800/50 rounded-md min-h-[4rem]">{sportiv.puncte_slabe || <span className="italic text-slate-500">Nespecificat</span>}</p> )}
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-400 mb-1">Obiective pentru Următorul Grad</label>
+                                {isEditingFeedback ? ( <textarea name="obiective" value={feedbackData.obiective} onChange={handleFeedbackChange} className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-secondary focus:border-brand-secondary transition-all" rows={3}></textarea>
+                                ) : ( <p className="text-slate-200 whitespace-pre-wrap p-2 bg-slate-800/50 rounded-md min-h-[4rem]">{sportiv.obiective || <span className="italic text-slate-500">Nespecificat</span>}</p> )}
+                            </div>
+                        </div>
+                    </Card>
+                </div>
 
-            <Card>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div>
-                        <h3 className="text-lg font-bold text-white mb-2">Date Personale</h3>
+                <div className="lg:col-span-1 space-y-6">
+                    <Card>
+                         <h3 className="text-lg font-bold text-white mb-2">Date Personale</h3>
                         <div className="space-y-2 text-sm">
                             <DataField label="Vârstă" value={`${getAge(sportiv.data_nasterii)} ani`} />
                             <DataField label="Grupă" value={grupe.find(g => g.id === sportiv.grupa_id)?.denumire} />
                             <DataField label="Club" value={clubs.find(c => c.id === sportiv.club_id)?.nume || 'N/A'} />
                             <DataField label="Status" value={sportiv.status} />
+                            <DataField label="Cont de acces" value={sportiv.user_id ? "Activ" : "Inexistent"}/>
                         </div>
-                    </div>
-                    <div>
-                        <h3 className="text-lg font-bold text-white mb-2">Progres Grad</h3>
+                    </Card>
+                     <Card>
+                        <div className="flex justify-between items-start mb-2">
+                            <h3 className="text-lg font-bold text-white">Progres Tehnic</h3>
+                            <Button size="sm" variant="secondary" onClick={() => setShowHistory(true)}>Istoric</Button>
+                        </div>
                         <div className="space-y-2 text-sm">
                             <DataField label="Grad Actual" value={currentGrad?.nume || 'Începător'} />
                             <DataField label="Următorul Grad" value={eligibility.nextGrad?.nume || 'Maxim'} />
                             <p className={`text-xs mt-1 ${eligibility.eligible ? 'text-green-400' : 'text-yellow-400'}`}>{eligibility.message}</p>
                         </div>
-                    </div>
-                     <div>
-                        <h3 className="text-lg font-bold text-white mb-2">Activitate & Cont</h3>
-                        <div className="space-y-2 text-sm">
-                            <DataField label="Prezențe lună curentă" value={`${antrenamente.filter(a => new Date(a.data).getMonth() === new Date().getMonth() && a.sportivi_prezenti_ids.includes(sportiv.id)).length} antrenamente`} />
-                            <DataField label="Cont de acces" value={sportiv.user_id ? "Activ" : "Inexistent"}/>
+                    </Card>
+
+                    {isAdmin && (
+                    <Card>
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg font-bold text-white flex items-center gap-2"><ShieldCheckIcon className="w-5 h-5 text-amber-400"/> Roluri Cont</h3>
+                            {!isEditingRoles ? (
+                                <Button variant="secondary" size="sm" onClick={() => setIsEditingRoles(true)}>Modifică</Button>
+                            ) : (
+                                <div className="flex gap-2"><Button size="sm" variant="secondary" onClick={() => { setIsEditingRoles(false); setSelectedRoleIds(sportiv.roluri.map(r => r.id)); }}>Anulează</Button><Button size="sm" variant="success" onClick={handleSaveRoles}>Salvează</Button></div>
+                            )}
                         </div>
-                    </div>
-                </div>
-            </Card>
-            
-            {isAdmin && (
-            <Card>
-                <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-bold text-white flex items-center gap-2"><ShieldCheckIcon className="w-5 h-5 text-amber-400"/> Setări Cont & Roluri</h3>
-                    {!isEditingRoles ? (
-                        <Button variant="secondary" size="sm" onClick={() => setIsEditingRoles(true)}>Modifică Roluri</Button>
-                    ) : (
-                        <div className="flex gap-2"><Button size="sm" variant="secondary" onClick={() => { setIsEditingRoles(false); setSelectedRoleIds(sportiv.roluri.map(r => r.id)); }}>Anulează</Button><Button size="sm" variant="success" onClick={handleSaveRoles}>Salvează</Button></div>
+                        {isEditingRoles ? (
+                            <div className="flex flex-wrap gap-x-4 gap-y-2 p-2 bg-slate-900/50 rounded">
+                                {allRoles.map(role => ( <label key={role.id} className="flex items-center space-x-2 text-sm cursor-pointer"> <input type="checkbox" className="h-4 w-4 rounded border-slate-500 bg-slate-800 text-brand-secondary focus:ring-brand-secondary" checked={selectedRoleIds.includes(role.id)} onChange={(e) => setSelectedRoleIds(p => e.target.checked ? [...p, role.id] : p.filter(id => id !== role.id))} disabled={sportiv.id === currentUser.id && role.nume === 'Admin'} /> <span>{role.nume}</span> </label> ))}
+                            </div>
+                        ) : (
+                            <div className="flex flex-wrap gap-2">{sportiv.roluri.length > 0 ? sportiv.roluri.map(r => <RoleBadge key={r.id} role={r}/>) : <span className="text-sm text-slate-400 italic">Niciun rol.</span>}</div>
+                        )}
+                    </Card>
                     )}
                 </div>
-                {isEditingRoles ? (
-                    <div className="flex flex-wrap gap-x-4 gap-y-2 p-2 bg-slate-900/50 rounded">
-                        {allRoles.map(role => ( <label key={role.id} className="flex items-center space-x-2 text-sm cursor-pointer"> <input type="checkbox" className="h-4 w-4 rounded border-slate-500 bg-slate-800 text-brand-secondary focus:ring-brand-secondary" checked={selectedRoleIds.includes(role.id)} onChange={(e) => setSelectedRoleIds(p => e.target.checked ? [...p, role.id] : p.filter(id => id !== role.id))} disabled={sportiv.id === currentUser.id && role.nume === 'Admin'} /> <span>{role.nume}</span> </label> ))}
-                    </div>
-                ) : (
-                    <div className="flex flex-wrap gap-2">{sportiv.roluri.length > 0 ? sportiv.roluri.map(r => <RoleBadge key={r.id} role={r}/>) : <span className="text-sm text-slate-400 italic">Niciun rol.</span>}</div>
-                )}
-            </Card>
-            )}
-
-             <Card className="lg:col-span-2 p-0 overflow-hidden">
-                <div className="p-4 bg-slate-700/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <div>
-                        <h3 className="font-bold text-white">Istoric Financiar Detaliat</h3>
-                        <p className={`text-sm font-bold ${sold >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                            Sold Curent: {sold.toFixed(2)} RON {sold >= 0 ? '(Credit)' : '(Datorie)'}
-                        </p>
-                    </div>
-                    <div className="flex gap-1 bg-slate-800 p-1 rounded-md">
-                        {(['Toate', 'Abonament', 'Taxa Examen', 'Echipament'] as const).map(filter => (
-                            <Button key={filter} size="sm" variant={financialFilter === filter ? 'primary' : 'secondary'} onClick={() => setFinancialFilter(filter)} className="!py-1 !text-xs">
-                                {filter}
-                            </Button>
-                        ))}
-                    </div>
-                </div>
-
-                <div className="p-4 bg-slate-700/80 mt-1">
-                    <h4 className="font-semibold text-white">Plăți Individuale</h4>
-                </div>
-                <div className="overflow-x-auto max-h-60">
-                    <table className="w-full text-sm text-left min-w-[600px]">
-                        <thead className="bg-slate-800/50 text-xs uppercase text-slate-400 sticky top-0 backdrop-blur-sm"><tr><th className="p-3">Data Factură</th><th className="p-3">Descriere</th><th className="p-3 text-right">Sumă</th><th className="p-3 text-center">Status</th><th className="p-3">Data Încasare</th></tr></thead>
-                        <tbody className="divide-y divide-slate-700">{individualHistory.map(item => (
-                            <tr key={item.id}><td className="p-2">{new Date(item.facturaDate).toLocaleDateString('ro-RO')}</td><td className="p-2">{item.description}</td><td className="p-2 text-right font-semibold">{item.initialAmount && item.initialAmount > item.amount ? (<div className="text-right"><span>{item.amount.toFixed(2)} lei</span><div className="text-xs text-slate-400 font-normal leading-tight">({item.initialAmount.toFixed(2)} - <span className="text-orange-300 font-semibold">{item.discount}</span>)</div></div>) : (<span>{item.amount.toFixed(2)} lei</span>)}</td><td className="p-2 text-center"><span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${item.status === 'Achitat' ? 'bg-green-600/20 text-green-400 border-green-600/50' : item.status === 'Achitat Parțial' ? 'bg-amber-600/20 text-amber-400 border-amber-600/50' : 'bg-red-600/20 text-red-400 border-red-600/50'}`}>{item.status}</span></td><td className="p-2">{item.paymentDate ? new Date(item.paymentDate).toLocaleDateString('ro-RO') : (<span className="text-xs text-slate-500 italic">În așteptare</span>)}</td></tr>
-                        ))}{individualHistory.length === 0 && <tr><td colSpan={5} className="p-4 text-center text-slate-500 italic">Nicio plată individuală.</td></tr>}</tbody>
-                    </table>
-                </div>
-
-                {sportiv.familie_id && (
-                    <><div className="p-4 bg-slate-700/80 mt-4"><h4 className="font-semibold text-white">Plăți Familie ({familii.find(f => f.id === sportiv.familie_id)?.nume})</h4></div><div className="overflow-x-auto max-h-60">
-                        <table className="w-full text-sm text-left min-w-[600px]">
-                            <thead className="bg-slate-800/50 text-xs uppercase text-slate-400 sticky top-0 backdrop-blur-sm"><tr><th className="p-3">Data Factură</th><th className="p-3">Descriere</th><th className="p-3 text-right">Sumă</th><th className="p-3 text-center">Status</th><th className="p-3">Data Încasare</th></tr></thead>
-                            <tbody className="divide-y divide-slate-700">{familieHistory.map(item => (
-                                <tr key={item.id}><td className="p-2">{new Date(item.facturaDate).toLocaleDateString('ro-RO')}</td><td className="p-2">{item.description}</td><td className="p-2 text-right font-semibold">{item.initialAmount && item.initialAmount > item.amount ? (<div className="text-right"><span>{item.amount.toFixed(2)} lei</span><div className="text-xs text-slate-400 font-normal leading-tight">({item.initialAmount.toFixed(2)} - <span className="text-orange-300 font-semibold">{item.discount}</span>)</div></div>) : (<span>{item.amount.toFixed(2)} lei</span>)}</td><td className="p-2 text-center"><span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${item.status === 'Achitat' ? 'bg-green-600/20 text-green-400 border-green-600/50' : item.status === 'Achitat Parțial' ? 'bg-amber-600/20 text-amber-400 border-amber-600/50' : 'bg-red-600/20 text-red-400 border-red-600/50'}`}>{item.status}</span></td><td className="p-2">{item.paymentDate ? new Date(item.paymentDate).toLocaleDateString('ro-RO') : (<span className="text-xs text-slate-500 italic">În așteptare</span>)}</td></tr>
-                            ))}{familieHistory.length === 0 && <tr><td colSpan={5} className="p-4 text-center text-slate-500 italic">Nicio plată de familie.</td></tr>}</tbody>
-                        </table>
-                    </div></>
-                )}
-            </Card>
-            
-            <Card className="p-0"><div className="p-4 bg-slate-700/50"><h3 className="font-bold text-white">Istoric Antrenamente (Ultimele 3 Luni)</h3></div><div className="overflow-x-auto max-h-80">
-                    <table className="w-full text-sm text-left">
-                        <thead className="bg-slate-800/50 text-xs uppercase text-slate-400 sticky top-0 backdrop-blur-sm">
-                            <tr>
-                                <th className="p-3">Data</th>
-                                <th className="p-3">Grupa</th>
-                                <th className="p-3 text-center">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-700">
-                            {trainingHistory.map(antrenament => (
-                                <tr key={antrenament.id}>
-                                    <td className="p-2">{new Date(antrenament.data).toLocaleDateString('ro-RO')}</td>
-                                    <td className="p-2">{antrenament.grupaNume}</td>
-                                    <td className={`p-2 text-center font-bold ${antrenament.status === 'Prezent' ? 'text-green-400' : 'text-red-400'}`}>
-                                        {antrenament.status}
-                                    </td>
-                                </tr>
-                            ))}
-                            {trainingHistory.length === 0 && (
-                                <tr>
-                                    <td colSpan={3} className="p-4 text-center text-slate-500 italic">
-                                        Niciun antrenament înregistrat în ultimele 3 luni.
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div></Card>
-
-            <Card className="p-0"><div className="p-4 bg-slate-700/50"><h3 className="font-bold text-white">Istoric Examinări</h3></div><div className="overflow-x-auto"><table className="w-full text-sm text-left"><thead className="bg-slate-800/50 text-xs uppercase text-slate-400"><tr><th className="p-3">Data</th><th className="p-3">Grad Susținut</th><th className="p-3">Rezultat</th></tr></thead><tbody className="divide-y divide-slate-700">{sortedSportivParticipariForDisplay.map(p => {
-                    const isCurrentGradRow = p.id === currentGradParticipationId;
-                    return (
-                        <tr key={p.id} className={isCurrentGradRow ? 'bg-brand-primary font-bold' : ''}>
-                            <td className="p-2">{p.examen?.data}</td>
-                            <td className={`p-2 ${isCurrentGradRow ? 'text-brand-secondary' : 'font-semibold'}`}>
-                                {grade.find(g => g.id === p.grad_vizat_id)?.nume}
-                                {isCurrentGradRow && <span className="ml-2 text-xs uppercase">(CURENT)</span>}
-                            </td>
-                            <td className={`p-2 font-bold ${p.rezultat === 'Admis' ? 'text-green-400' : 'text-red-400'}`}>{p.rezultat}</td>
-                        </tr>
-                    );
-                })}</tbody></table></div></Card>
+            </div>
 
             <SportivFormModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} onSave={handleSaveSportiv} sportivToEdit={sportiv} grupe={grupe} setGrupe={()=>{}} familii={familii} setFamilii={()=>{}} tipuriAbonament={tipuriAbonament} clubs={clubs} currentUser={currentUser} />
             {isWalletModalOpen && <SportivWallet sportiv={sportiv} familie={familii.find(f => f.id === sportiv.familie_id)} allPlati={plati} allTranzactii={tranzactii} setTranzactii={setTranzactii} onClose={() => setIsWalletModalOpen(false)} />}

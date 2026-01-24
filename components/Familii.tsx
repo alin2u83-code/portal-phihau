@@ -162,9 +162,9 @@ export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({
                             {familii.map(f => {
                                 const membri = sportivi.filter(s => s.familie_id === f.id);
                                 return (
-                                <tr key={f.id} className="bg-deep-navy">
+                                <tr key={f.id} className="bg-deep-navy text-white">
                                     <td className="p-2 w-1/3"><Input label="" defaultValue={f.nume} onBlur={e => handleEdit(f.id, { nume: e.target.value })} className="!bg-deep-navy"/></td>
-                                    <td className="p-3 text-sm text-slate-300">{membri.map(m => `${m.nume} ${m.prenume}`).join(', ')}</td>
+                                    <td className="p-3 text-sm">{membri.map(m => `${m.nume} ${m.prenume}`).join(', ')}</td>
                                     <td className="p-2 w-72">
                                         <Select label="" value={f.tip_abonament_id || ''} onChange={(e) => handleEdit(f.id, { tip_abonament_id: e.target.value || null })} className="!bg-deep-navy text-sm">
                                             <option value="">Automat (după nr. membri)</option>

@@ -81,7 +81,7 @@ export function ResponsiveTable<T extends { id: string }>({
                                 {columns.map(col => (
                                     <td 
                                         key={`${item.id}-${String(col.key)}`} 
-                                        className={`p-3 align-top ${col.cellClassName || ''}`}
+                                        className={`p-3 align-top text-white ${col.cellClassName || ''}`}
                                     >
                                         {col.render ? col.render(item) : (item[col.key as keyof T] as React.ReactNode) || '-'}
                                     </td>

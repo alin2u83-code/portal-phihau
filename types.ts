@@ -31,6 +31,9 @@ export interface Sportiv {
   familie_id: string | null; // ID-ul familiei
   tip_abonament_id: string | null; // ID-ul tipului de abonament individual
   participa_vacanta: boolean;
+  puncte_forte?: string | null;
+  puncte_slabe?: string | null;
+  obiective?: string | null;
   [key: string]: any; // Permite adăugarea de câmpuri custom
 }
 

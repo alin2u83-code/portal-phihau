@@ -585,7 +585,7 @@ export const PrezentaManagement: React.FC<{
             <Card className="p-0 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left min-w-[800px]">
-                        <thead className="bg-slate-700/50">
+                        <thead className="bg-slate-700/50 text-blue-400 text-xs uppercase">
                             <tr>
                                 <th className="p-4 font-semibold">Data & Ora</th>
                                 <th className="p-4 font-semibold">Grupa / Tip</th>
@@ -600,7 +600,7 @@ export const PrezentaManagement: React.FC<{
                                 const isTemplate = (p as any).isTemplate;
                                 const isRecurent = p.is_recurent && !isTemplate;
                                 return (
-                                    <tr key={p.id} className="hover:bg-slate-700/50">
+                                    <tr key={p.id} className="hover:bg-slate-700/50 text-white">
                                         <td className="p-4 font-medium">
                                             {new Date(p.data + 'T00:00:00').toLocaleDateString('ro-RO')} - <span className="text-slate-400">{p.ora_start}</span>
                                         </td>

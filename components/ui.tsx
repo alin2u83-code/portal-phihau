@@ -74,7 +74,7 @@ interface CardProps {
 }
 
 export const Card: React.FC<CardProps> = ({ children, className }) => (
-  <div className={`bg-slate-800/50 backdrop-blur-sm p-4 rounded-lg border border-slate-700 shadow-lg shadow-black/20 ${className}`}>
+  <div className={`bg-light-navy p-4 rounded-lg border border-slate-700 shadow-lg shadow-black/20 ${className}`}>
     {children}
   </div>
 );
@@ -114,14 +114,11 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   
 export const Input: React.FC<InputProps> = ({ label, id, error, ...props }) => {
     const errorClasses = error ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-slate-600 focus:ring-brand-secondary focus:border-brand-secondary';
-    const isDarkMode = document.body.classList.contains('bg-slate-100');
-    const themeClasses = isDarkMode 
-        ? 'bg-slate-900/50 text-white placeholder-slate-500' 
-        : 'bg-white text-slate-800 placeholder-slate-400';
+    const themeClasses = 'bg-slate-700 text-white placeholder-slate-400';
 
     return (
         <div className="w-full">
-            {label && <label htmlFor={id} className={`block text-[11px] uppercase font-bold  mb-1 ml-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>{label}</label>}
+            {label && <label htmlFor={id} className={`block text-[11px] uppercase font-bold text-slate-400 mb-1 ml-1`}>{label}</label>}
             <input 
                 id={id} 
                 {...props} 
@@ -140,7 +137,7 @@ interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
 export const Select: React.FC<SelectProps> = ({ label, id, children, ...props }) => (
     <div className="w-full">
         {label && <label htmlFor={id} className="block text-[11px] uppercase font-bold text-slate-400 mb-1 ml-1">{label}</label>}
-        <select id={id} {...props} className={`w-full bg-slate-900/50 border border-slate-600 rounded px-2 py-1 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-secondary focus:border-brand-secondary transition-all appearance-none ${props.className}`}>
+        <select id={id} {...props} className={`w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-secondary focus:border-brand-secondary transition-all appearance-none ${props.className}`}>
             {children}
         </select>
     </div>

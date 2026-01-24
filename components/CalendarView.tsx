@@ -74,7 +74,7 @@ const BulkRegistrationModal: React.FC<BulkRegistrationModalProps> = ({ isOpen, o
                 </div>
                 <div className="flex justify-end pt-4 gap-2 border-t border-slate-700">
                     <Button variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button>
-                    <Button variant="primary" className="bg-slate-900 text-white" onClick={handleSaveClick} isLoading={loading} disabled={selectedIds.size === 0}>Înscrie {selectedIds.size > 0 ? `${selectedIds.size} Sportivi` : ''}</Button>
+                    <Button variant="primary" className="bg-blue-700 hover:bg-blue-600 text-white" onClick={handleSaveClick} isLoading={loading} disabled={selectedIds.size === 0}>Înscrie {selectedIds.size > 0 ? `${selectedIds.size} Sportivi` : ''}</Button>
                 </div>
             </div>
         </Modal>
@@ -117,16 +117,16 @@ const EventActions: React.FC<EventActionsProps> = ({ event, currentUser, rezulta
 
     if (permissions.isSportiv) {
         if (registrationStatus.isRegistered) {
-            return <div className="text-center text-sm font-bold bg-green-100 text-green-800 p-2 rounded-md w-full">Înscris</div>;
+            return <div className="text-center text-sm font-bold bg-green-900/50 text-green-300 p-2 rounded-md w-full">Înscris</div>;
         }
-        return <Button onClick={handleSingleClick} isLoading={loading} className="bg-slate-900 text-white w-full md:w-auto">Mă înscriu</Button>;
+        return <Button onClick={handleSingleClick} isLoading={loading} className="bg-blue-700 hover:bg-blue-600 text-white w-full md:w-auto">Mă înscriu</Button>;
     }
 
     if (permissions.isAdminClub || permissions.isFederationAdmin) {
         if ((registrationStatus.registeredCount ?? 0) > 0) {
-            return <div className="text-center text-sm font-bold bg-green-100 text-green-800 p-2 rounded-md w-full">Lot Înscris ({registrationStatus.registeredCount})</div>;
+            return <div className="text-center text-sm font-bold bg-green-900/50 text-green-300 p-2 rounded-md w-full">Lot Înscris ({registrationStatus.registeredCount})</div>;
         }
-        return <Button onClick={() => onBulkRegister(event.originalEvent)} className="bg-slate-900 text-white w-full md:w-auto">Înscriere Lot</Button>;
+        return <Button onClick={() => onBulkRegister(event.originalEvent)} className="bg-blue-700 hover:bg-blue-600 text-white w-full md:w-auto">Înscriere Lot</Button>;
     }
 
     return null;
@@ -287,50 +287,50 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ antrenamente, sesiun
     const today = useMemo(() => { const d = new Date(); d.setHours(0,0,0,0); return d; }, []);
     const weekdays = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'];
     const eventStyles = {
-        club: 'bg-slate-100 text-slate-900 border-l-4 border-slate-400',
-        federatie: 'bg-slate-900 text-white border-l-4 border-blue-400'
+        club: 'bg-slate-700 text-slate-200 border-l-4 border-slate-500',
+        federatie: 'bg-slate-800 text-white border-l-4 border-brand-secondary'
     };
 
     return (
-        <div className="space-y-6 text-slate-900 dark:text-white">
+        <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <Button onClick={onBack} variant="secondary" className="dark:bg-slate-700 dark:hover:bg-slate-600"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
+                <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
                 {permissions.hasAdminAccess && (
-                    <Button onClick={() => onNavigate('stagii')} variant="primary" className="dark:bg-brand-primary dark:hover:bg-blue-800">
+                    <Button onClick={() => onNavigate('stagii')} variant="primary">
                         <PlusIcon className="w-5 h-5 mr-2" /> Adaugă Eveniment
                     </Button>
                 )}
             </div>
-            <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md border border-slate-200 dark:border-slate-700">
-                <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
-                    <h2 className="text-xl font-bold capitalize text-slate-800 dark:text-white">{monthName}</h2>
+            <div className="bg-light-navy rounded-lg shadow-md border border-slate-700">
+                <div className="flex items-center justify-between p-4 border-b border-slate-700">
+                    <h2 className="text-xl font-bold capitalize text-white">{monthName}</h2>
                     <div className="flex items-center gap-2">
-                        <Button variant="secondary" size="sm" onClick={() => changeMonth(-1)} className="!p-1.5 h-auto dark:bg-slate-700 dark:hover:bg-slate-600"><ChevronLeftIcon className="w-5 h-5"/></Button>
-                        <Button variant="secondary" size="sm" onClick={() => setCurrentDate(new Date())} className="text-xs px-3 dark:bg-slate-700 dark:hover:bg-slate-600">Azi</Button>
-                        <Button variant="secondary" size="sm" onClick={() => changeMonth(1)} className="!p-1.5 h-auto dark:bg-slate-700 dark:hover:bg-slate-600"><ChevronRightIcon className="w-5 h-5"/></Button>
+                        <Button variant="secondary" size="sm" onClick={() => changeMonth(-1)} className="!p-1.5 h-auto"><ChevronLeftIcon className="w-5 h-5"/></Button>
+                        <Button variant="secondary" size="sm" onClick={() => setCurrentDate(new Date())} className="text-xs px-3">Azi</Button>
+                        <Button variant="secondary" size="sm" onClick={() => changeMonth(1)} className="!p-1.5 h-auto"><ChevronRightIcon className="w-5 h-5"/></Button>
                     </div>
                 </div>
 
                 {/* Desktop: Grid View */}
                 <div className="hidden md:block">
-                    <div className="grid grid-cols-7 border-b border-slate-200 dark:border-slate-700">
+                    <div className="grid grid-cols-7 border-b border-slate-700">
                         {weekdays.map(day => (
-                            <div key={day} className="py-2 text-center text-xs font-bold uppercase text-slate-500 dark:text-slate-400">{day}</div>
+                            <div key={day} className="py-2 text-center text-xs font-bold uppercase text-slate-400">{day}</div>
                         ))}
                     </div>
                     <div className="grid grid-cols-7 min-h-[60vh]">
                         {days.map((day, index) => {
-                            if (!day) return <div key={`pad-${index}`} className="border-r border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/20"></div>;
+                            if (!day) return <div key={`pad-${index}`} className="border-r border-b border-slate-700 bg-slate-800/50"></div>;
                             const dateString = day.toISOString().split('T')[0];
                             const dayEvents = eventsByDate.get(dateString) || [];
                             const isCurrentDay = day.getTime() === today.getTime();
                             return (
-                                <div key={dateString} className="border-r border-b border-slate-200 dark:border-slate-700 p-2 flex flex-col relative min-h-[120px]">
-                                    <span className={`font-bold text-sm ${isCurrentDay ? 'bg-brand-primary text-white rounded-full h-6 w-6 flex items-center justify-center' : 'text-slate-600 dark:text-slate-300'}`}>{day.getDate()}</span>
+                                <div key={dateString} className="border-r border-b border-slate-700 p-2 flex flex-col relative min-h-[120px]">
+                                    <span className={`font-bold text-sm ${isCurrentDay ? 'bg-brand-primary text-white rounded-full h-6 w-6 flex items-center justify-center' : 'text-slate-300'}`}>{day.getDate()}</span>
                                     <div className="mt-2 space-y-2 overflow-y-auto">
                                         {dayEvents.map(event => (
                                             <div key={event.id} className="space-y-1">
-                                                <div title={event.title} className={`p-1 rounded-md text-[10px] font-bold truncate border ${eventStyles[event.scope]}`}>
+                                                <div title={event.title} className={`p-1 rounded-md text-[10px] font-bold truncate ${eventStyles[event.scope]}`}>
                                                     {event.time && <span className="font-mono mr-1">{event.time}</span>}
                                                     {event.title}
                                                 </div>
@@ -348,8 +348,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ antrenamente, sesiun
                 <div className="md:hidden">
                     {agendaDays.length > 0 ? (
                         agendaDays.map(({ day, events }) => (
-                            <div key={day.toISOString()} className="p-4 border-b border-slate-200 dark:border-slate-700">
-                                <h3 className="font-bold text-brand-primary dark:text-brand-secondary">{day.toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric' })}</h3>
+                            <div key={day.toISOString()} className="p-4 border-b border-slate-700">
+                                <h3 className="font-bold text-brand-secondary">{day.toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric' })}</h3>
                                 <div className="mt-2 space-y-4">
                                     {events.map(event => (
                                         <div key={event.id}>

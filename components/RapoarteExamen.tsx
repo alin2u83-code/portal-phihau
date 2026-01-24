@@ -91,8 +91,8 @@ export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ sesiuni, inscrie
 
     const renderHeader = () => (
         <div className="mb-4">
-            <h2 className="text-2xl font-bold text-slate-800">Sesiune Examen {new Date(selectedSesiune!.data + 'T00:00:00').toLocaleDateString('ro-RO')}</h2>
-            <p className="text-slate-600">Locație: {locatii.find(l => l.id === selectedSesiune!.locatie_id)?.nume || 'N/A'}</p>
+            <h2 className="text-2xl font-bold text-white">Sesiune Examen {new Date(selectedSesiune!.data + 'T00:00:00').toLocaleDateString('ro-RO')}</h2>
+            <p className="text-slate-300">Locație: {locatii.find(l => l.id === selectedSesiune!.locatie_id)?.nume || 'N/A'}</p>
         </div>
     );
 

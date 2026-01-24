@@ -10,13 +10,13 @@ type UserRole = 'SUPER_ADMIN_FEDERATIE' | 'ADMIN_CLUB' | 'INSTRUCTOR' | 'SPORTIV
 const NavCard: React.FC<{ title: string; description: string; icon: React.ElementType; onClick: () => void; }> = ({ title, description, icon: Icon, onClick }) => (
     <div
         onClick={onClick}
-        className="group bg-white rounded-lg shadow-md p-6 flex flex-col items-center text-center cursor-pointer hover:shadow-xl hover:scale-105 transition-all duration-300 border border-slate-200"
+        className="group bg-light-navy rounded-lg shadow-md p-6 flex flex-col items-center text-center cursor-pointer hover:shadow-xl hover:scale-105 transition-all duration-300 border border-slate-700 hover:border-brand-secondary"
     >
         <div className="p-4 bg-brand-secondary/10 text-brand-secondary rounded-full mb-4">
             <Icon className="h-8 w-8" />
         </div>
-        <h3 className="text-lg font-bold text-slate-900 mb-2">{title}</h3>
-        <p className="text-base text-slate-600">{description}</p>
+        <h3 className="text-lg font-bold text-slate-100 mb-2">{title}</h3>
+        <p className="text-base text-slate-400">{description}</p>
     </div>
 );
 
@@ -86,7 +86,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ currentUser, onNavigate, c
     ];
 
     return (
-        <div className="max-w-7xl mx-auto p-4 md:p-6 text-slate-900">
+        <div className="max-w-7xl mx-auto p-4 md:p-6">
             <div className="mb-6">
                 <NotificationPermissionWidget />
             </div>

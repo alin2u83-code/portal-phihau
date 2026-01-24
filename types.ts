@@ -49,6 +49,7 @@ export interface SesiuneExamen {
   locatie_id: string;
   localitate?: string;
   comisia: string[];
+  club_id?: string | null;
 }
 
 export interface Locatie {
@@ -70,9 +71,7 @@ export interface InscriereExamen {
     nota_forta: number | null;
     nota_viteza: number | null;
     nota_atitudine: number | null;
-    // FIX: Add 'rezultat' property to fix type errors across components
     rezultat?: 'Admis' | 'Respins' | 'Neprezentat' | null;
-    // Nested data from unified query
     sportivi: Sportiv; 
     grade: Grad;
 }
@@ -94,7 +93,7 @@ export interface ProgramItem {
 }
 
 export interface Antrenament {
-  id: string; // uuid from program_antrenamente
+  id: string;
   data: string;
   ora_start: string;
   ora_sfarsit: string | null;
@@ -118,6 +117,7 @@ export interface Grupa {
     denumire: string;
     program: ProgramItem[];
     sala: string;
+    club_id?: string | null;
 }
 
 export interface Eveniment {
@@ -128,23 +128,24 @@ export interface Eveniment {
     organizator: string;
     tip: 'Stagiu' | 'Competitie';
     probe_disponibile?: string[];
+    club_id?: string | null;
 }
 
 export interface Rezultat {
     id: string;
     sportiv_id: string;
     eveniment_id: string;
-    rezultat: string; // e.g., "Locul 1 Kata", "Participare", "Medalia de aur"
-    probe?: string; // e.g., "Quyen, Song Dau, Arme"
+    rezultat: string; 
+    probe?: string;
 }
 
 export interface PretConfig {
     id: string;
     categorie: 'Taxa Examen' | 'Taxa Stagiu' | 'Taxa Competitie' | 'Echipament';
-    denumire_serviciu: string; // Ex: "Vo Phuc", "Tricou", "Stagiu National", "Competitie Copii"
+    denumire_serviciu: string; 
     suma: number;
     valabil_de_la_data: string;
-    specificatii?: { // Câmp flexibil pentru atribute
+    specificatii?: {
         inaltimeMin?: number;
         inaltimeMax?: number;
         marime?: 'S' | 'M' | 'L' | 'XL';
@@ -157,29 +158,29 @@ export interface TipAbonament {
     id: string;
     denumire: string;
     pret: number;
-    numar_membri: number; // 1 pt individual, 2 pt familie de 2, etc. 
+    numar_membri: number;
+    club_id?: string | null;
 }
 
 export interface Tranzactie {
   id: string;
-  plata_ids: string[]; // ID-urile datoriilor pe care le stinge
-  sportiv_id: string | null; // Pentru referinta rapida
-  familie_id: string | null; // Pentru referinta rapida
+  plata_ids: string[];
+  sportiv_id: string | null;
+  familie_id: string | null;
   suma: number;
   data_platii: string;
   metoda_plata: 'Cash' | 'Transfer Bancar';
-  descriere?: string; // Adăugat pentru a descrie tranzacții fără plată, ex: Plată în avans
+  descriere?: string;
 }
 
-// Reprezintă o DATORIE (ceva ce trebuie plătit)
 export interface Plata {
     id: string;
     sportiv_id: string | null; 
     familie_id: string | null; 
-    suma_initiala?: number | null; // Suma inainte de reducere
-    reducere_id?: string | null; // FK to reduceri.id
-    suma: number; // Suma finala datorata
-    data: string; // Data generarii datoriei
+    suma_initiala?: number | null;
+    reducere_id?: string | null;
+    suma: number;
+    data: string;
     status: 'Achitat' | 'Neachitat' | 'Achitat Parțial';
     descriere: string;
     tip: string;
@@ -212,13 +213,12 @@ export interface AnuntGeneral {
   created_at: string;
   title: string;
   body: string;
-  sent_by: string; // user_id of the sender
+  sent_by: string;
 }
 
 export type User = Sportiv;
 
 export type View = 'dashboard' | 'sportivi' | 'examene' | 'grade' | 'prezenta' | 'grupe' | 'raport-prezenta' | 'stagii' | 'competitii' | 'plati-scadente' | 'jurnal-incasari' | 'raport-financiar' | 'configurare-preturi' | 'tipuri-abonament' | 'familii' | 'user-management' | 'editare-profil-personal' | 'evenimentele-mele' | 'data-maintenance' | 'activitati' | 'my-portal' | 'setari-club' | 'data-inspector' | 'profil-sportiv' | 'reduceri' | 'notificari' | 'taxe-anuale' | 'nomenclatoare' | 'financial-dashboard' | 'istoric-examene' | 'facturi-personale' | 'finalizare-examen' | 'calendar' | 'rapoarte-examen' | 'cluburi';
 
-// FIX: Add missing type aliases. This seems to be a refactoring artifact.
 export type Participare = InscriereExamen;
 export type Examen = SesiuneExamen;

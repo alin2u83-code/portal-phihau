@@ -10,6 +10,7 @@ interface AdminProfileQuickAccessProps {
 }
 
 export const AdminProfileQuickAccess: React.FC<AdminProfileQuickAccessProps> = ({ user, onNavigate, onLogout, isExpanded }) => {
+    const isSuperAdmin = user.roluri.some(r => r.nume === 'Super Admin');
     // Determină poziționarea pe baza modului de afișare (sidebar sau navbar)
     const positionClasses = isExpanded 
         ? "absolute bottom-full mb-2 w-56 right-0" // Sidebar extins SAU Navbar
@@ -25,13 +26,15 @@ export const AdminProfileQuickAccess: React.FC<AdminProfileQuickAccessProps> = (
                     <p className="text-xs text-slate-400 truncate">{user.roluri.map(r => r.nume).join(', ')}</p>
                 </div>
                 <div className="py-1">
-                    <button
-                        onClick={() => onNavigate('setari-club')}
-                        className="w-full text-left flex items-center px-4 py-2 text-sm text-slate-300 hover:bg-brand-primary hover:text-white transition-colors"
-                    >
-                        <CogIcon className="w-5 h-5 mr-3" />
-                        Setări Club
-                    </button>
+                    {isSuperAdmin && (
+                        <button
+                            onClick={() => onNavigate('setari-club')}
+                            className="w-full text-left flex items-center px-4 py-2 text-sm text-slate-300 hover:bg-brand-primary hover:text-white transition-colors"
+                        >
+                            <CogIcon className="w-5 h-5 mr-3" />
+                            Configurare Federație
+                        </button>
+                    )}
                 </div>
                 <div className="py-1 border-t border-slate-600">
                      <button

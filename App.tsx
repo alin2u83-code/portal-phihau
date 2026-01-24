@@ -41,8 +41,89 @@ import { FacturiPersonale } from './components/FacturiPersonale';
 import { CalendarView } from './components/CalendarView';
 import { RapoarteExamen } from './components/RapoarteExamen';
 import { SportivFormModal } from './components/Sportivi';
-import { PlusIcon } from './components/icons';
+// FIX: Import ArrowLeftIcon to fix missing component error.
+import { PlusIcon, ExclamationTriangleIcon, ArrowLeftIcon } from './components/icons';
 import { CluburiManagement } from './components/CluburiManagement';
+import { adminMenu } from './components/menuConfig';
+// FIX: Import Button to fix missing component error.
+import { Button, Card } from './components/ui';
+
+// --- START: Inlined usePermissions Hook ---
+export interface Permissions {
+    isSuperAdmin: boolean;
+    isAdmin: boolean;
+    isFederationAdmin: boolean; // Super Admin or regular Admin
+    isAdminClub: boolean;
+    isInstructor: boolean;
+    isSportiv: boolean;
+    hasAdminAccess: boolean; // Helper for general admin panel access
+}
+
+const initialPermissions: Permissions = {
+    isSuperAdmin: false,
+    isAdmin: false,
+    isFederationAdmin: false,
+    isAdminClub: false,
+    isInstructor: false,
+    isSportiv: false,
+    hasAdminAccess: false,
+};
+
+export const usePermissions = (user: User | null): Permissions => {
+    const permissions = useMemo((): Permissions => {
+        if (!user || !user.roluri) {
+            return initialPermissions;
+        }
+
+        const roles = new Set(user.roluri.map(r => r.nume));
+
+        const isSuperAdmin = roles.has('Super Admin');
+        const isAdmin = roles.has('Admin');
+        const isAdminClub = roles.has('Admin Club');
+        const isInstructor = roles.has('Instructor');
+        const isSportiv = roles.has('Sportiv');
+        
+        const isFederationAdmin = isSuperAdmin || isAdmin;
+        const hasAdminAccess = isFederationAdmin || isAdminClub || isInstructor;
+
+        return {
+            isSuperAdmin,
+            isAdmin,
+            isFederationAdmin,
+            isAdminClub,
+            isInstructor,
+            isSportiv,
+            hasAdminAccess,
+        };
+    }, [user]);
+
+    return permissions;
+};
+// --- END: Inlined usePermissions Hook ---
+
+// --- START: Inlined AccessDenied Component ---
+interface AccessDeniedProps {
+    onBack: () => void;
+}
+const AccessDenied: React.FC<AccessDeniedProps> = ({ onBack }) => {
+    return (
+        <div className="flex items-center justify-center h-full">
+            <Card className="max-w-md text-center border-l-4 border-red-500">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-900/50">
+                    <ExclamationTriangleIcon className="h-8 w-8 text-red-400" />
+                </div>
+                <h1 className="text-3xl font-bold text-white mt-4">Acces Interzis (403)</h1>
+                <p className="text-slate-300 mt-2">
+                    Nu aveți permisiunile necesare pentru a accesa această pagină. Vă rugăm contactați un administrator dacă credeți că aceasta este o eroare.
+                </p>
+                <Button onClick={onBack} variant="secondary" className="mt-6">
+                    <ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Panoul Principal
+                </Button>
+            </Card>
+        </div>
+    );
+};
+// --- END: Inlined AccessDenied Component ---
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -79,7 +160,15 @@ function App() {
   const [isSidebarExpanded, setIsSidebarExpanded] = useLocalStorage<boolean>('phi-hau-sidebar-expanded', true);
 
   const [globalClubFilter, setGlobalClubFilter] = useState<string | null>(null);
-  const isSuperAdmin = useMemo(() => currentUser?.roluri.some(r => r.nume === 'Admin' || r.nume === 'Super Admin'), [currentUser]);
+  const permissions = usePermissions(currentUser);
+
+  const adminViews = useMemo(() => 
+    new Set(
+      adminMenu.flatMap(item => 
+        item.submenu ? item.submenu.map(sub => sub.view) : [item.view]
+      ).filter((view): view is View => !!view)
+    ), 
+  []);
 
 
   const fetchData = useCallback(async (user: User) => {
@@ -149,7 +238,7 @@ function App() {
         const formattedGrupe = (grData || []).map(g => ({ ...g, program: orarAntrenamente.filter(p => p.grupa_id === g.id) }));
         const formattedSportivi = (sData || []).map((s: any) => ({ ...s, roluri: s.roluri || [] }));
         
-        const isAdmin = user.roluri.some(r => r.nume === 'Admin' || r.nume === 'Instructor');
+        const hasAdminAccess = user.roluri.some(r => ['Admin', 'Super Admin', 'Instructor', 'Admin Club'].includes(r.nume));
         const formattedAntrenamente = (antrenamenteData || []).map((a: any) => {
             const allPresentIds = a.prezenta_antrenament 
                 ? a.prezenta_antrenament.map((p: any) => p.sportiv_id) 
@@ -157,7 +246,7 @@ function App() {
 
             return {
                 ...a,
-                sportivi_prezenti_ids: isAdmin ? allPresentIds : (allPresentIds.includes(user.id) ? [user.id] : [])
+                sportivi_prezenti_ids: hasAdminAccess ? allPresentIds : (allPresentIds.includes(user.id) ? [user.id] : [])
             };
         });
 
@@ -190,12 +279,12 @@ function App() {
   }, [showError]);
   
   // --- Data Filtering for Super Admin ---
-    const displaySportivi = useMemo(() => isSuperAdmin && globalClubFilter ? sportivi.filter(s => s.club_id === globalClubFilter) : sportivi, [sportivi, isSuperAdmin, globalClubFilter]);
-    const displayGrupe = useMemo(() => isSuperAdmin && globalClubFilter ? grupe.filter(g => g.club_id === globalClubFilter) : grupe, [grupe, isSuperAdmin, globalClubFilter]);
-    const displayCluburi = useMemo(() => isSuperAdmin && globalClubFilter ? cluburi.filter(c => c.id === globalClubFilter) : cluburi, [cluburi, isSuperAdmin, globalClubFilter]);
-    const displaySesiuniExamene = useMemo(() => isSuperAdmin && globalClubFilter ? sesiuniExamene.filter(s => s.club_id === globalClubFilter) : sesiuniExamene, [sesiuniExamene, isSuperAdmin, globalClubFilter]);
-    const displayEvenimente = useMemo(() => isSuperAdmin && globalClubFilter ? evenimente.filter(e => e.club_id === globalClubFilter) : evenimente, [evenimente, isSuperAdmin, globalClubFilter]);
-    const displayTipuriAbonament = useMemo(() => isSuperAdmin && globalClubFilter ? tipuriAbonament.filter(t => t.club_id === globalClubFilter) : tipuriAbonament, [tipuriAbonament, isSuperAdmin, globalClubFilter]);
+    const displaySportivi = useMemo(() => permissions.isFederationAdmin && globalClubFilter ? sportivi.filter(s => s.club_id === globalClubFilter) : sportivi, [sportivi, permissions.isFederationAdmin, globalClubFilter]);
+    const displayGrupe = useMemo(() => permissions.isFederationAdmin && globalClubFilter ? grupe.filter(g => g.club_id === globalClubFilter) : grupe, [grupe, permissions.isFederationAdmin, globalClubFilter]);
+    const displayCluburi = useMemo(() => permissions.isFederationAdmin && globalClubFilter ? cluburi.filter(c => c.id === globalClubFilter) : cluburi, [cluburi, permissions.isFederationAdmin, globalClubFilter]);
+    const displaySesiuniExamene = useMemo(() => permissions.isFederationAdmin && globalClubFilter ? sesiuniExamene.filter(s => s.club_id === globalClubFilter) : sesiuniExamene, [sesiuniExamene, permissions.isFederationAdmin, globalClubFilter]);
+    const displayEvenimente = useMemo(() => permissions.isFederationAdmin && globalClubFilter ? evenimente.filter(e => e.club_id === globalClubFilter) : evenimente, [evenimente, permissions.isFederationAdmin, globalClubFilter]);
+    const displayTipuriAbonament = useMemo(() => permissions.isFederationAdmin && globalClubFilter ? tipuriAbonament.filter(t => t.club_id === globalClubFilter) : tipuriAbonament, [tipuriAbonament, permissions.isFederationAdmin, globalClubFilter]);
 
     const displaySportiviIds = useMemo(() => new Set(displaySportivi.map(s => s.id)), [displaySportivi]);
     const displayFamiliiIds = useMemo(() => {
@@ -204,19 +293,19 @@ function App() {
         return famIds;
     }, [displaySportivi]);
     
-    const displayFamilii = useMemo(() => isSuperAdmin && globalClubFilter ? familii.filter(f => displayFamiliiIds.has(f.id)) : familii, [familii, isSuperAdmin, globalClubFilter, displayFamiliiIds]);
-    const displayPlati = useMemo(() => isSuperAdmin && globalClubFilter ? plati.filter(p => (p.sportiv_id && displaySportiviIds.has(p.sportiv_id)) || (p.familie_id && displayFamiliiIds.has(p.familie_id))) : plati, [plati, isSuperAdmin, globalClubFilter, displaySportiviIds, displayFamiliiIds]);
-    const displayTranzactii = useMemo(() => isSuperAdmin && globalClubFilter ? tranzactii.filter(t => (t.sportiv_id && displaySportiviIds.has(t.sportiv_id)) || (t.familie_id && displayFamiliiIds.has(t.familie_id))) : tranzactii, [tranzactii, isSuperAdmin, globalClubFilter, displaySportiviIds, displayFamiliiIds]);
-    const displayInscrieriExamene = useMemo(() => isSuperAdmin && globalClubFilter ? inscrieriExamene.filter(i => displaySportiviIds.has(i.sportiv_id)) : inscrieriExamene, [inscrieriExamene, isSuperAdmin, globalClubFilter, displaySportiviIds]);
-    const displayRezultate = useMemo(() => isSuperAdmin && globalClubFilter ? rezultate.filter(r => displaySportiviIds.has(r.sportiv_id)) : rezultate, [rezultate, isSuperAdmin, globalClubFilter, displaySportiviIds]);
+    const displayFamilii = useMemo(() => permissions.isFederationAdmin && globalClubFilter ? familii.filter(f => displayFamiliiIds.has(f.id)) : familii, [familii, permissions.isFederationAdmin, globalClubFilter, displayFamiliiIds]);
+    const displayPlati = useMemo(() => permissions.isFederationAdmin && globalClubFilter ? plati.filter(p => (p.sportiv_id && displaySportiviIds.has(p.sportiv_id)) || (p.familie_id && displayFamiliiIds.has(p.familie_id))) : plati, [plati, permissions.isFederationAdmin, globalClubFilter, displaySportiviIds, displayFamiliiIds]);
+    const displayTranzactii = useMemo(() => permissions.isFederationAdmin && globalClubFilter ? tranzactii.filter(t => (t.sportiv_id && displaySportiviIds.has(t.sportiv_id)) || (t.familie_id && displayFamiliiIds.has(t.familie_id))) : tranzactii, [tranzactii, permissions.isFederationAdmin, globalClubFilter, displaySportiviIds, displayFamiliiIds]);
+    const displayInscrieriExamene = useMemo(() => permissions.isFederationAdmin && globalClubFilter ? inscrieriExamene.filter(i => displaySportiviIds.has(i.sportiv_id)) : inscrieriExamene, [inscrieriExamene, permissions.isFederationAdmin, globalClubFilter, displaySportiviIds]);
+    const displayRezultate = useMemo(() => permissions.isFederationAdmin && globalClubFilter ? rezultate.filter(r => displaySportiviIds.has(r.sportiv_id)) : rezultate, [rezultate, permissions.isFederationAdmin, globalClubFilter, displaySportiviIds]);
     const displayAntrenamente = useMemo(() => {
-        if (isSuperAdmin && globalClubFilter) {
+        if (permissions.isFederationAdmin && globalClubFilter) {
             const clubGrupeIds = new Set(displayGrupe.map(g => g.id));
             return antrenamente.filter(a => (a.grupa_id && clubGrupeIds.has(a.grupa_id)) || a.sportivi_prezenti_ids.some(sid => displaySportiviIds.has(sid)));
         }
         return antrenamente;
-    }, [antrenamente, isSuperAdmin, globalClubFilter, displayGrupe, displaySportiviIds]);
-    const displayAnunturi = useMemo(() => isSuperAdmin && globalClubFilter ? anunturi.filter(a => displaySportiviIds.has(a.sportiv_id)) : anunturi, [anunturi, isSuperAdmin, globalClubFilter, displaySportiviIds]);
+    }, [antrenamente, permissions.isFederationAdmin, globalClubFilter, displayGrupe, displaySportiviIds]);
+    const displayAnunturi = useMemo(() => permissions.isFederationAdmin && globalClubFilter ? anunturi.filter(a => displaySportiviIds.has(a.sportiv_id)) : anunturi, [anunturi, permissions.isFederationAdmin, globalClubFilter, displaySportiviIds]);
 
   const handleGlobalSaveSportiv = async (formData: Partial<Sportiv>) => {
         try {
@@ -342,10 +431,14 @@ function App() {
 
   const renderContent = () => {
     if (!currentUser) return null;
-    const isAdmin = currentUser.roluri.some(r => ['Admin', 'Super Admin', 'Instructor', 'Admin Club'].includes(r.nume));
+
+    if (!permissions.hasAdminAccess && adminViews.has(activeView)) {
+        return <AccessDenied onBack={() => setActiveView('dashboard')} />;
+    }
+
     const isMyPortalView = activeView === 'my-portal';
 
-    if (!isAdmin || isMyPortalView) {
+    if (!permissions.hasAdminAccess || isMyPortalView) {
       const userToView = isMyPortalView ? currentUser : currentUser;
       
       const commonProps = {
@@ -375,7 +468,7 @@ function App() {
         setAnunturi: setAnunturi,
       };
 
-      const portalBackNav = () => setActiveView(isAdmin ? 'my-portal' : 'dashboard');
+      const portalBackNav = () => setActiveView(permissions.hasAdminAccess ? 'my-portal' : 'dashboard');
 
       switch (activeView) {
         case 'evenimentele-mele': return <EvenimenteleMele viewedUser={currentUser} evenimente={evenimente} rezultate={rezultate} setRezultate={setRezultate} onBack={portalBackNav} />;
@@ -462,7 +555,7 @@ function App() {
   if (loading) return <div className="flex items-center justify-center min-h-screen">Se încarcă...</div>;
   if (!session) return <Login />;
 
-  const isAdmin = currentUser!.roluri.some(r => r.nume === 'Admin' || r.nume === 'Instructor' || r.nume === 'Super Admin' || r.nume === 'Admin Club');
+  const isAdmin = permissions.hasAdminAccess;
   const isMyPortalView = activeView === 'my-portal';
   
   return (
@@ -479,7 +572,7 @@ function App() {
         clubs={cluburi}
         globalClubFilter={globalClubFilter}
         setGlobalClubFilter={setGlobalClubFilter}
-        isSuperAdmin={isSuperAdmin}
+        isSuperAdmin={permissions.isFederationAdmin}
       />
       <div className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'}`}>
          {isAdmin && !isMyPortalView && (

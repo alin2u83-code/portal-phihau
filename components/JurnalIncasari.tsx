@@ -67,6 +67,8 @@ const emptyIncasareState = {
     sportiv_id: '',
     familie_id: null,
     suma: 0,
+    suma_initiala: 0,
+    reducere_id: null as string | null,
     metoda_plata: 'Cash' as 'Cash' | 'Transfer Bancar',
     data_platii: new Date().toISOString().split('T')[0],
     tip: 'Abonament',
@@ -168,6 +170,8 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
 
     const echipamenteDisponibile = useMemo(() => [...new Set(preturiConfig.filter(p => p.categorie === 'Echipament').map(p => p.denumire_serviciu))], [preturiConfig]);
     const marimiDisponibile = useMemo(() => preturiConfig.filter(p => p.categorie === 'Echipament' && p.denumire_serviciu === selectedEchipament), [preturiConfig, selectedEchipament]);
+    const reducereAplicata = useMemo(() => formState.reducere_id ? reduceri.find(r => r.id === formState.reducere_id) : null, [formState.reducere_id, reduceri]);
+
 
     useEffect(() => {
         if (platiInitiale.length > 0) {
@@ -175,14 +179,13 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
             const commonDesc = isMultiple ? `Încasare multiplă (${platiInitiale.length} elemente)` : platiInitiale[0].descriere;
             
             setFormState({
+                ...emptyIncasareState,
                 sportiv_id: platiInitiale[0].sportiv_id || '',
                 familie_id: platiInitiale[0].familie_id,
                 suma: totalSuma,
-                metoda_plata: 'Cash',
-                data_platii: new Date().toISOString().split('T')[0],
+                suma_initiala: totalSuma,
                 tip: platiInitiale[0].tip,
                 descriere: commonDesc,
-                observatii: ''
             });
         } else {
             setFormState(emptyIncasareState);
@@ -216,11 +219,12 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
         if (platiInitiale.length > 0) return; 
 
         const sportiv = sportivi.find(s => s.id === formState.sportiv_id);
-        if (!sportiv) { setFormState(prev => ({...prev, suma: 0, descriere: ''})); return; }
+        if (!sportiv) { setFormState(prev => ({...prev, suma: 0, suma_initiala: 0, reducere_id: null, descriere: ''})); return; }
         
         const lunaText = new Date(formState.data_platii || new Date()).toLocaleString('ro-RO', { month: 'long', year: 'numeric'});
-        
         const systemTypesForAutoCalc: PretConfig['categorie'][] = ['Taxa Examen', 'Taxa Stagiu', 'Taxa Competitie', 'Echipament'];
+        let calculatedPrice = 0;
+        let description = '';
 
         if (formState.tip === 'Abonament') {
             let config;
@@ -230,15 +234,43 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
             } else {
                 config = tipuriAbonament.find(ab => ab.id === sportiv.tip_abonament_id);
             }
-            setFormState(prev => ({ ...prev, suma: config?.pret || 0, descriere: config ? `Abonament ${config.denumire} ${lunaText}` : '' }));
+            calculatedPrice = config?.pret || 0;
+            description = config ? `Abonament ${config.denumire} ${lunaText}` : '';
         } else if (formState.tip === 'Echipament' && selectedMarimeId) {
             const config = preturiConfig.find(p => p.id === selectedMarimeId);
-            if (config) setFormState(prev => ({...prev, suma: config.suma, descriere: `${config.denumire_serviciu} (${formatMarime(config)})`}));
+            if (config) {
+                calculatedPrice = config.suma;
+                description = `${config.denumire_serviciu} (${formatMarime(config)})`;
+            }
         } else if (systemTypesForAutoCalc.includes(formState.tip as any)) {
             const config = getPretValabil(preturiConfig, formState.tip as any, formState.data_platii!);
-            setFormState(prev => ({ ...prev, suma: config?.suma || 0, descriere: config?.denumire_serviciu || '' }));
+            calculatedPrice = config?.suma || 0;
+            description = config?.denumire_serviciu || '';
         }
-    }, [formState.sportiv_id, formState.tip, selectedMarimeId, formState.data_platii, sportivi, preturiConfig, tipuriAbonament, platiInitiale]);
+        
+        // --- NOU: Calcul Reducere ---
+        let appliedDiscount: Reducere | null = null;
+        let finalPrice = calculatedPrice;
+
+        const activeDiscounts = reduceri.filter(r => r.este_activa && (r.categorie_aplicabila === formState.tip || r.categorie_aplicabila === 'Toate'));
+        if (activeDiscounts.length > 0) {
+            appliedDiscount = activeDiscounts[0]; // Simplificare: luăm prima reducere aplicabilă
+            if (appliedDiscount.tip === 'procent') {
+                finalPrice = calculatedPrice * (1 - appliedDiscount.valoare / 100);
+            } else { // suma_fixa
+                finalPrice = Math.max(0, calculatedPrice - appliedDiscount.valoare);
+            }
+        }
+        
+        setFormState(prev => ({ 
+            ...prev, 
+            suma: finalPrice, 
+            suma_initiala: calculatedPrice,
+            reducere_id: appliedDiscount?.id || null,
+            descriere: description,
+        }));
+
+    }, [formState.sportiv_id, formState.tip, selectedMarimeId, formState.data_platii, sportivi, preturiConfig, tipuriAbonament, platiInitiale, reduceri]);
 
     const handleSaveIncasare = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -269,7 +301,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
                 showSuccess('Succes', `Încasare confirmată! ${idsToUpdate.length} datorii stinse.`);
             } else {
                 const sportiv = sportivi.find(s => s.id === formState.sportiv_id);
-                const { data: newPlata, error: plataError } = await supabase.from('plati').insert({ sportiv_id: formState.sportiv_id, familie_id: sportiv?.familie_id, suma: formState.suma, data: formState.data_platii!, status: 'Achitat', descriere: formState.descriere, tip: formState.tip, observatii: formState.observatii }).select().single();
+                const { data: newPlata, error: plataError } = await supabase.from('plati').insert({ sportiv_id: formState.sportiv_id, familie_id: sportiv?.familie_id, suma: formState.suma, suma_initiala: formState.suma_initiala > 0 ? formState.suma_initiala : null, reducere_id: formState.reducere_id, data: formState.data_platii!, status: 'Achitat', descriere: formState.descriere, tip: formState.tip, observatii: formState.observatii }).select().single();
                 if (plataError) throw plataError;
                 newPlataId = (newPlata as Plata).id;
                 const { data: tx, error: txError } = await supabase.from('tranzactii').insert({ plata_ids: [newPlataId], sportiv_id: formState.sportiv_id, familie_id: sportiv?.familie_id, suma: formState.suma, data_platii: formState.data_platii!, metoda_plata: formState.metoda_plata! }).select().single();
@@ -350,7 +382,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
                         <Select label="Metodă Plată" name="metoda_plata" value={formState.metoda_plata!} onChange={handleFormChange}><option value="Cash">Cash</option><option value="Transfer Bancar">Transfer Bancar</option></Select>
                     </div>
                     {isMultiple && (<div className="p-3 bg-slate-700/50 rounded-md border border-slate-600"><p className="text-sm font-semibold mb-2">Facturi selectate pentru stingere:</p><ul className="text-xs space-y-1 text-slate-300">{platiInitiale.map(p => <li key={p.id}>• {p.descriere} - <strong>{p.suma.toFixed(2)} RON</strong></li>)}</ul></div>)}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                          <div className="flex gap-1 items-end">
                             <Select label="Categorie" name="tip" value={formState.tip} onChange={handleFormChange} disabled={platiInitiale.length > 0}>
                                 {tipuriPlati.sort((a,b) => a.nume.localeCompare(b.nume)).map(tp => <option key={tp.id} value={tp.nume}>{tp.nume}</option>)}
@@ -358,11 +390,26 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
                             <Button type="button" variant="secondary" size="sm" onClick={() => setIsQuickAddOpen(true)} className="h-[34px]"><PlusIcon className="w-4 h-4"/></Button>
                         </div>
                         {formState.tip === 'Echipament' && !isMultiple && (
-                            <><Select label="Produs" value={selectedEchipament} onChange={e => setSelectedEchipament(e.target.value)}><option value="">Alege...</option>{echipamenteDisponibile.map(e => <option key={e} value={e}>{e}</option>)}</Select><Select label="Mărime" value={selectedMarimeId} onChange={e => setSelectedMarimeId(e.target.value)}><option value="">Alege...</option>{marimiDisponibile.map(m => <option key={m.id} value={m.id}>{formatMarime(m)}</option>)}</Select></>
+                            <div className="grid grid-cols-2 gap-2">
+                                <Select label="Produs" value={selectedEchipament} onChange={e => setSelectedEchipament(e.target.value)}><option value="">Alege...</option>{echipamenteDisponibile.map(e => <option key={e} value={e}>{e}</option>)}</Select>
+                                <Select label="Mărime" value={selectedMarimeId} onChange={e => setSelectedMarimeId(e.target.value)}><option value="">Alege...</option>{marimiDisponibile.map(m => <option key={m.id} value={m.id}>{formatMarime(m)}</option>)}</Select>
+                            </div>
                         )}
-                        <Input label="Sumă Totală (RON)" type="number" step="0.01" name="suma" value={formState.suma} onChange={handleFormChange} required />
                     </div>
                     <Input label="Descriere Tranzacție" name="descriere" value={formState.descriere} onChange={handleFormChange} required />
+                    
+                    {!isMultiple && reducereAplicata && (
+                        <div className="p-3 bg-green-900/40 rounded-lg text-center border border-green-700/50 animate-fade-in-down">
+                            <p className="text-sm text-green-300">Reducere aplicată: <strong>{reducereAplicata.nume}</strong></p>
+                            <p className="text-xs text-slate-400">Sumă inițială: <span className="line-through">{formState.suma_initiala.toFixed(2)} RON</span></p>
+                        </div>
+                    )}
+                    
+                    <div className="p-4 bg-light-navy rounded-lg text-center">
+                        <label className="text-sm uppercase text-slate-400">Sumă Finală de Plată</label>
+                        <p className="text-4xl font-bold text-brand-secondary mt-1">{formState.suma.toFixed(2)} RON</p>
+                    </div>
+
                     <div className="flex justify-end pt-4"><Button type="submit" variant="success" className="px-10" disabled={loading}>{loading ? 'Se procesează...' : 'Finalizează Încasarea'}</Button></div>
                 </form>
             </Card>

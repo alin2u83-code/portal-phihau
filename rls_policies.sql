@@ -100,10 +100,13 @@ CREATE POLICY "Sportivi can update their own profile" ON public.sportivi
 -- Tabel: cluburi
 -- -----------------------------------------------------------------
 ALTER TABLE public.cluburi ENABLE ROW LEVEL SECURITY;
+
+-- Politica 1: Super Adminii pot vedea, adăuga, modifica și șterge orice club.
 DROP POLICY IF EXISTS "Super Admins can manage all clubs" ON public.cluburi;
 CREATE POLICY "Super Admins can manage all clubs" ON public.cluburi
     FOR ALL USING (public.is_super_admin()) WITH CHECK (public.is_super_admin());
 
+-- Politica 2: Administratorii de club pot vedea doar propriul club.
 DROP POLICY IF EXISTS "Club Admins can see their own club" ON public.cluburi;
 CREATE POLICY "Club Admins can see their own club" ON public.cluburi
     FOR SELECT USING (id = public.get_my_club_id());
@@ -111,6 +114,7 @@ CREATE POLICY "Club Admins can see their own club" ON public.cluburi
 -- -----------------------------------------------------------------
 -- Tabel: tipuri_abonament
 -- -----------------------------------------------------------------
+ALTER TABLE public.tipuri_abonament ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Users can see relevant subscription types" ON public.tipuri_abonament;
 CREATE POLICY "Users can see relevant subscription types" ON public.tipuri_abonament
     FOR SELECT USING (
@@ -128,6 +132,7 @@ CREATE POLICY "Admins can manage subscription types for their scope" ON public.t
 -- -----------------------------------------------------------------
 -- Tabel: program_antrenamente
 -- -----------------------------------------------------------------
+ALTER TABLE public.program_antrenamente ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins and instructors can manage trainings in their scope" ON public.program_antrenamente;
 CREATE POLICY "Admins and instructors can manage trainings in their scope" ON public.program_antrenamente
     FOR ALL USING (
@@ -149,6 +154,7 @@ CREATE POLICY "Users can view relevant trainings" ON public.program_antrenamente
 -- -----------------------------------------------------------------
 -- Tabel: prezenta_antrenament
 -- -----------------------------------------------------------------
+ALTER TABLE public.prezenta_antrenament ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage presence for their trainings" ON public.prezenta_antrenament;
 CREATE POLICY "Admins can manage presence for their trainings" ON public.prezenta_antrenament
     FOR ALL USING (

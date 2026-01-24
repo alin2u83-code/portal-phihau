@@ -1,0 +1,96 @@
+import React from 'react';
+import { Input } from './ui';
+import { Search } from 'lucide-react';
+
+// --- TYPE DEFINITIONS ---
+
+export interface Column<T> {
+    key: keyof T | 'actions';
+    label: string;
+    isEssential?: boolean; // If true, visible on mobile
+    render?: (item: T) => React.ReactNode;
+    headerClassName?: string;
+    cellClassName?: string;
+}
+
+interface ResponsiveTableProps<T> {
+    columns: Column<T>[];
+    data: T[];
+    searchTerm: string;
+    onSearchChange: (value: string) => void;
+    onRowClick?: (item: T) => void;
+    searchPlaceholder?: string;
+}
+
+// --- MAIN COMPONENT ---
+
+export function ResponsiveTable<T extends { id: string }>({
+    columns,
+    data,
+    searchTerm,
+    onSearchChange,
+    onRowClick,
+    searchPlaceholder = 'Caută...',
+}: ResponsiveTableProps<T>) {
+
+    return (
+        <div className="bg-white rounded-lg shadow-md overflow-hidden border border-slate-200">
+            {/* Search Bar */}
+            <div className="p-4 border-b border-slate-200">
+                <div className="relative w-full md:w-64">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                    <Input
+                        label=""
+                        type="text"
+                        value={searchTerm}
+                        onChange={(e) => onSearchChange(e.target.value)}
+                        placeholder={searchPlaceholder}
+                        className="!bg-slate-50 !border-slate-300 !text-slate-800 !pl-10"
+                    />
+                </div>
+            </div>
+
+            {/* Table */}
+            <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left text-slate-600">
+                    <thead className="bg-slate-50 text-xs text-slate-500 uppercase">
+                        <tr>
+                            {columns.map(col => (
+                                <th 
+                                    key={String(col.key)} 
+                                    scope="col" 
+                                    className={`p-3 font-semibold ${col.isEssential ? '' : 'hidden md:table-cell'} ${col.headerClassName || ''}`}
+                                >
+                                    {col.label}
+                                </th>
+                            ))}
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200">
+                        {data.map(item => (
+                            <tr 
+                                key={item.id} 
+                                className={`transition-colors ${onRowClick ? 'cursor-pointer hover:bg-slate-50' : ''}`}
+                                onClick={() => onRowClick?.(item)}
+                            >
+                                {columns.map(col => (
+                                    <td 
+                                        key={`${item.id}-${String(col.key)}`} 
+                                        className={`py-4 px-3 md:p-3 align-top ${col.isEssential ? '' : 'hidden md:table-cell'} ${col.cellClassName || ''}`}
+                                    >
+                                        {col.render ? col.render(item) : (item[col.key as keyof T] as React.ReactNode) || '-'}
+                                    </td>
+                                ))}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+                 {data.length === 0 && (
+                    <div className="p-12 text-center text-slate-500 italic">
+                        Niciun rezultat găsit.
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}

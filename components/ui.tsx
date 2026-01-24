@@ -114,13 +114,18 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   
 export const Input: React.FC<InputProps> = ({ label, id, error, ...props }) => {
     const errorClasses = error ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-slate-600 focus:ring-brand-secondary focus:border-brand-secondary';
+    const isDarkMode = document.body.classList.contains('bg-slate-100');
+    const themeClasses = isDarkMode 
+        ? 'bg-slate-900/50 text-white placeholder-slate-500' 
+        : 'bg-white text-slate-800 placeholder-slate-400';
+
     return (
         <div className="w-full">
-            {label && <label htmlFor={id} className="block text-[11px] uppercase font-bold text-slate-400 mb-1 ml-1">{label}</label>}
+            {label && <label htmlFor={id} className={`block text-[11px] uppercase font-bold  mb-1 ml-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>{label}</label>}
             <input 
                 id={id} 
                 {...props} 
-                className={`w-full bg-slate-900/50 border rounded px-2 py-1 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 transition-all ${errorClasses} ${props.className}`} 
+                className={`w-full border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 transition-all ${errorClasses} ${themeClasses} ${props.className}`} 
             />
             {error && <p className="text-red-400 text-xs mt-1 ml-1">{error}</p>}
         </div>

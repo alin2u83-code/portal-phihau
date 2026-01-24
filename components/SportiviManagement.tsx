@@ -8,14 +8,7 @@ import { useLocalStorage } from '../hooks/useLocalStorage';
 import { SportivFormModal } from './Sportivi';
 import { SportivAccountSettingsModal } from './SportivAccountSettings';
 import { SportivWallet } from './SportivWallet';
-
-const formatHeader = (key: string): string => {
-    if (key === 'numeComplet') return 'Nume Complet';
-    if (key === 'grupa_id') return 'Grupă';
-    if (key === 'club_id') return 'Club';
-    if (key === 'actiuni') return 'Acțiuni';
-    return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-};
+import { ResponsiveTable, Column } from './ResponsiveTable';
 
 const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
     const colorClasses: Record<Rol['nume'], string> = { Admin: 'bg-red-600 text-white', 'Super Admin': 'bg-red-800 text-white', 'Admin Club': 'bg-blue-600 text-white', Instructor: 'bg-sky-600 text-white', Sportiv: 'bg-slate-600 text-slate-200' };
@@ -57,8 +50,8 @@ export const SportiviManagement: React.FC<{
         rolFilter: '',
     });
     
-    const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        setFilters(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    const handleFilterChange = (name: keyof typeof filters, value: string) => {
+        setFilters(prev => ({ ...prev, [name]: value }));
     };
     
     const handleOpenWallet = (sportiv: Sportiv) => {
@@ -83,65 +76,72 @@ export const SportiviManagement: React.FC<{
             (filters.rolFilter ? s.roluri.some(r => r.id === filters.rolFilter) : true)
         ).sort((a: Sportiv, b: Sportiv) => a.nume.localeCompare(b.nume));
     }, [sportivi, filters]);
-
-    const finalColumns = useMemo(() => {
-        return ['numeComplet', 'club_id', 'roluri', 'status', 'grupa_id', 'actiuni'];
-    }, []);
     
-    const renderCellContent = (s: Sportiv, columnKey: string) => {
-        switch (columnKey) {
-            case 'numeComplet': {
+     const columns: Column<Sportiv>[] = [
+        {
+            key: 'nume',
+            label: 'Nume Complet',
+            isEssential: true,
+            render: (s) => {
                 const familie = s.familie_id ? familii.find(f => f.id === s.familie_id) : null;
                 const familieBalance = s.familie_id ? familyBalances.get(s.familie_id) : undefined;
                 return (
-                    <>
-                        <div className="hover:text-brand-secondary">{s.nume} {s.prenume}</div>
-                         {familie && familieBalance !== undefined && (
-                            <div className="text-xs font-normal text-slate-400" style={{fontSize: '11px'}}>
+                    <div>
+                        <div className="font-bold text-slate-800 hover:text-brand-primary">{s.nume} {s.prenume}</div>
+                        {familie && familieBalance !== undefined && (
+                            <div className="text-xs text-slate-500 mt-1">
                                 Familia {familie.nume}
-                                <span className={`ml-2 font-bold ${familieBalance >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                <span className={`ml-2 font-bold ${familieBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                                     Sold: {familieBalance >= 0 ? '+' : ''}{familieBalance.toFixed(2)} lei
                                 </span>
                             </div>
                         )}
-                    </>
-                );
-            }
-            case 'roluri':
-                return (
-                    <div className="flex flex-wrap gap-1">
-                        {s.roluri.length > 0 
-                            ? s.roluri.map(r => <RoleBadge key={r.id} role={r}/>)
-                            : <span className="text-slate-500 italic">N/A</span>
-                        }
                     </div>
                 );
-            case 'status':
-                return (
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${s.status === 'Activ' ? 'bg-green-600/20 text-green-400 border border-green-600/50' : 'bg-red-600/20 text-red-400 border border-red-600/50'}`}>
-                        {s.status}
-                    </span>
-                );
-            case 'club_id':
-                return clubs.find(c => c.id === s.club_id)?.nume || '-';
-            case 'grupa_id':
-                return grupe.find(g => g.id === s.grupa_id)?.denumire || '-';
-            case 'actiuni':
-                 return (
-                    <div className="flex justify-end items-center gap-2">
-                        <Button size="sm" variant="info" onClick={() => handleOpenWallet(s)} title="Portofel Sportiv">
-                            <WalletIcon className="w-4 h-4" />
-                        </Button>
-                        <Button size="sm" variant="secondary" onClick={() => setAccountSettingsSportiv(s)} title="Setări Cont de Acces">
-                            <ShieldCheckIcon className="w-4 h-4" />
-                        </Button>
-                    </div>
-                );
-            default:
-                const value = s[columnKey] as React.ReactNode;
-                return (typeof value === 'boolean') ? (value ? 'Da' : 'Nu') : (value || '-');
+            },
+        },
+        { key: 'club_id', label: 'Club', render: (s) => clubs.find(c => c.id === s.club_id)?.nume || '-' },
+        { 
+            key: 'roluri', 
+            label: 'Roluri', 
+            isEssential: true,
+            render: (s) => (
+                <div className="flex flex-wrap gap-1">
+                    {s.roluri.length > 0 
+                        ? s.roluri.map(r => <RoleBadge key={r.id} role={r}/>)
+                        : <span className="text-slate-500 italic">N/A</span>
+                    }
+                </div>
+            )
+        },
+        { 
+            key: 'status', 
+            label: 'Status',
+            render: (s) => (
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${s.status === 'Activ' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                    {s.status}
+                </span>
+            )
+        },
+        { key: 'grupa_id', label: 'Grupă', render: (s) => grupe.find(g => g.id === s.grupa_id)?.denumire || '-' },
+        {
+            key: 'actions',
+            label: 'Acțiuni',
+            isEssential: true,
+            headerClassName: 'text-right',
+            cellClassName: 'text-right',
+            render: (s) => (
+                <div className="flex justify-end items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                    <Button size="sm" variant="info" onClick={() => handleOpenWallet(s)} title="Portofel Sportiv" className="!p-2">
+                        <WalletIcon className="w-4 h-4" />
+                    </Button>
+                    <Button size="sm" variant="secondary" onClick={() => setAccountSettingsSportiv(s)} title="Setări Cont de Acces" className="!p-2">
+                        <ShieldCheckIcon className="w-4 h-4" />
+                    </Button>
+                </div>
+            )
         }
-    };
+    ];
 
     const handleSave = async (formData: Partial<Sportiv>) => {
         const { roluri, ...sportivData } = formData;
@@ -192,56 +192,32 @@ export const SportiviManagement: React.FC<{
                 </Button>
             </div>
 
-            <Card className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input label="Caută Sportiv" name="searchTerm" value={filters.searchTerm} onChange={handleFilterChange} placeholder="Nume sau prenume..." />
-                <Select label="Status" name="statusFilter" value={filters.statusFilter} onChange={handleFilterChange}>
+            <Card className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Select label="Status" value={filters.statusFilter} onChange={e => handleFilterChange('statusFilter', e.target.value)}>
                     <option value="Activ">Activi</option>
                     <option value="Inactiv">Inactivi</option>
                     <option value="">Toți</option>
                 </Select>
-                <Select label="Grupă" name="grupaFilter" value={filters.grupaFilter} onChange={handleFilterChange}>
+                <Select label="Grupă" value={filters.grupaFilter} onChange={e => handleFilterChange('grupaFilter', e.target.value)}>
                     <option value="">Toate grupele</option>
                     {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
                 </Select>
-                <Select label="Rol" name="rolFilter" value={filters.rolFilter} onChange={handleFilterChange}>
+                <Select label="Rol" value={filters.rolFilter} onChange={e => handleFilterChange('rolFilter', e.target.value)}>
                     <option value="">Toate rolurile</option>
                     {allRoles.map(r => <option key={r.id} value={r.id}>{r.nume}</option>)}
                 </Select>
             </Card>
 
-            <Card className="p-0 overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm table-auto">
-                        <thead className="bg-slate-700/50">
-                            <tr>
-                                {finalColumns.map(key => (
-                                    <th key={key} className="p-3 font-bold uppercase text-[10px] whitespace-nowrap">{formatHeader(key)}</th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-700">
-                             {filteredSportivi.map((s: Sportiv) => (
-                                <tr key={s.id} className="hover:bg-brand-secondary/10 transition-all duration-200 ease-in-out hover:scale-[1.02]">
-                                    {finalColumns.map((key) => {
-                                        const isNameColumn = key === 'numeComplet';
-                                        return (
-                                            <td 
-                                                key={key} 
-                                                className={`p-3 text-xs align-top ${isNameColumn ? 'font-semibold text-white cursor-pointer' : 'text-slate-400'}`}
-                                                onClick={isNameColumn ? () => onViewSportiv(s) : undefined}
-                                                style={{ minWidth: isNameColumn ? '200px' : 'auto' }}
-                                            >
-                                                {renderCellContent(s, key)}
-                                            </td>
-                                        );
-                                    })}
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                    {filteredSportivi.length === 0 && <p className="p-8 text-center text-slate-500 italic">Niciun sportiv găsit.</p>}
-                </div>
-            </Card>
+            <div className="text-slate-900">
+                <ResponsiveTable
+                    columns={columns}
+                    data={filteredSportivi}
+                    searchTerm={filters.searchTerm}
+                    onSearchChange={(val) => handleFilterChange('searchTerm', val)}
+                    onRowClick={onViewSportiv}
+                    searchPlaceholder="Caută sportiv după nume..."
+                />
+            </div>
 
             {isFormModalOpen && (
                  <SportivFormModal 

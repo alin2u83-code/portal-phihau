@@ -348,9 +348,9 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
                                     <td className="p-2 text-right font-bold">{p.suma.toFixed(2)} lei</td>
                                     <td className="p-2 text-center">
                                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
-                                            p.status === 'Achitat' ? 'bg-green-600/20 text-green-400 border-green-600/50' : 
-                                            p.status === 'Achitat Parțial' ? 'bg-amber-600/20 text-amber-400 border-amber-600/50' : 
-                                            'bg-red-600/20 text-red-400 border-red-600/50'
+                                            p.status === 'Achitat' ? 'border-brand-secondary text-brand-secondary' : 
+                                            p.status === 'Achitat Parțial' ? 'border-amber-500 text-amber-400' : 
+                                            'border-red-800 text-red-400'
                                         }`}>
                                             {p.status}
                                         </span>

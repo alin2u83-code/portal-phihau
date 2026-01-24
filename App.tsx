@@ -24,7 +24,7 @@ import { EditareProfilPersonal } from './components/EditareProfilPersonal';
 import { EvenimenteleMele } from './components/EvenimenteleMele';
 import { Sidebar } from './components/Sidebar';
 import { useError } from './components/ErrorProvider';
-import { DataMaintenancePage } from './components/DataMaintenancePage';
+import { DataMaintenancePage } from './components/BackupManager';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { ProgramareActivitati } from './components/Activitati';
 import { ClubSettings } from './components/ClubSettings';

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TipAbonament } from '../types';
+import { TipAbonament, User } from '../types';
 import { Button, Input, Card } from './ui';
 import { PlusIcon, TrashIcon, ArrowLeftIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -10,9 +10,10 @@ interface TipuriAbonamentManagementProps {
     tipuriAbonament: TipAbonament[];
     setTipuriAbonament: React.Dispatch<React.SetStateAction<TipAbonament[]>>;
     onBack: () => void;
+    currentUser: User | null;
 }
 
-export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps> = ({ tipuriAbonament, setTipuriAbonament, onBack }) => {
+export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps> = ({ tipuriAbonament, setTipuriAbonament, onBack, currentUser }) => {
     const [newDenumire, setNewDenumire] = useState('');
     const [newPret, setNewPret] = useState<number | string>('');
     const [newNrMembri, setNewNrMembri] = useState<number | string>(1);
@@ -32,7 +33,16 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
         if (isNaN(nrMembriNum) || nrMembriNum <= 0) { showError("Validare Eșuată", "Numărul de membri trebuie să fie cel puțin 1."); return; }
         if (nrMembriNum > 1 && !newDenumire.toLowerCase().includes('familie')) { if (!window.confirm("Ați introdus mai mult de 1 membru, dar denumirea nu conține 'Familie'. Doriți să continuați?")) { return; } }
 
-        const newAbonament: Omit<TipAbonament, 'id'> = { denumire: newDenumire.trim(), pret: pretNum, numar_membri: nrMembriNum };
+        const newAbonament: Omit<TipAbonament, 'id'> & { club_id?: string | null } = {
+            denumire: newDenumire.trim(),
+            pret: pretNum,
+            numar_membri: nrMembriNum
+        };
+
+        const isClubAdmin = currentUser?.roluri.some(r => r.nume === 'Admin Club');
+        if (isClubAdmin && currentUser?.club_id) {
+            newAbonament.club_id = currentUser.club_id;
+        }
         
         setLoading(true);
         const { data, error: insertError } = await supabase.from('tipuri_abonament').insert(newAbonament).select().single();

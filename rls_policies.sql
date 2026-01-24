@@ -109,6 +109,62 @@ CREATE POLICY "Club Admins can see their own club" ON public.cluburi
     FOR SELECT USING (id = public.get_my_club_id());
 
 -- -----------------------------------------------------------------
+-- Tabel: tipuri_abonament
+-- -----------------------------------------------------------------
+DROP POLICY IF EXISTS "Users can see relevant subscription types" ON public.tipuri_abonament;
+CREATE POLICY "Users can see relevant subscription types" ON public.tipuri_abonament
+    FOR SELECT USING (
+        club_id IS NULL OR club_id = public.get_my_club_id()
+    );
+
+DROP POLICY IF EXISTS "Admins can manage subscription types for their scope" ON public.tipuri_abonament;
+CREATE POLICY "Admins can manage subscription types for their scope" ON public.tipuri_abonament
+    FOR ALL USING (
+        public.is_super_admin() OR club_id = public.get_my_club_id()
+    ) WITH CHECK (
+        public.is_super_admin() OR club_id = public.get_my_club_id()
+    );
+
+-- -----------------------------------------------------------------
+-- Tabel: program_antrenamente
+-- -----------------------------------------------------------------
+DROP POLICY IF EXISTS "Admins and instructors can manage trainings in their scope" ON public.program_antrenamente;
+CREATE POLICY "Admins and instructors can manage trainings in their scope" ON public.program_antrenamente
+    FOR ALL USING (
+        public.is_super_admin() OR 
+        (grupa_id IN (SELECT id FROM public.grupe WHERE club_id = public.get_my_club_id()))
+    ) WITH CHECK (
+        public.is_super_admin() OR
+        (grupa_id IN (SELECT id FROM public.grupe WHERE club_id = public.get_my_club_id()))
+    );
+
+DROP POLICY IF EXISTS "Users can view relevant trainings" ON public.program_antrenamente;
+CREATE POLICY "Users can view relevant trainings" ON public.program_antrenamente
+    FOR SELECT USING (
+        public.is_admin_or_instructor() OR
+        (grupa_id = (SELECT grupa_id FROM public.sportivi WHERE user_id = auth.uid())) OR
+        (grupa_id IS NULL) -- Vacation trainings are public to all authenticated users
+    );
+
+-- -----------------------------------------------------------------
+-- Tabel: prezenta_antrenament
+-- -----------------------------------------------------------------
+DROP POLICY IF EXISTS "Admins can manage presence for their trainings" ON public.prezenta_antrenament;
+CREATE POLICY "Admins can manage presence for their trainings" ON public.prezenta_antrenament
+    FOR ALL USING (
+        public.is_admin_or_instructor() AND (antrenament_id IN (SELECT id FROM public.program_antrenamente))
+    ) WITH CHECK (
+        public.is_admin_or_instructor() AND (antrenament_id IN (SELECT id FROM public.program_antrenamente))
+    );
+
+DROP POLICY IF EXISTS "Users can view relevant presence records" ON public.prezenta_antrenament;
+CREATE POLICY "Users can view relevant presence records" ON public.prezenta_antrenament
+    FOR SELECT USING (
+        (sportiv_id = (SELECT id FROM public.sportivi WHERE user_id = auth.uid())) OR
+        (public.is_admin_or_instructor() AND (antrenament_id IN (SELECT id FROM public.program_antrenamente)))
+    );
+
+-- -----------------------------------------------------------------
 -- Restul politicilor rămân în mare parte neschimbate, deoarece
 -- accesul la celelalte tabele este derivat din accesul la sportivi.
 -- De exemplu, un Admin de Club va vedea doar plățile sportivilor

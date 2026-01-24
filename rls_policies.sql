@@ -473,9 +473,9 @@ DROP FUNCTION IF EXISTS public.delete_exam_registration(uuid);
 CREATE OR REPLACE FUNCTION public.delete_exam_registration(p_inscriere_id uuid)
 RETURNS json AS $$
 DECLARE
-    plata_record RECORD;
+    factura_record RECORD;
     inscriere_record RECORD;
-    deleted_plata_id_res uuid;
+    updated_plata_id_res uuid;
 BEGIN
     -- This function must run with elevated privileges to manage related data across tables.
     -- Ensure it is owned by postgres to bypass RLS.
@@ -490,15 +490,21 @@ BEGIN
     END IF;
 
     -- Find the associated payment using the reference in 'observatii'
-    SELECT * INTO plata_record FROM public.plati WHERE observatii LIKE '%Ref Inscriere: ' || p_inscriere_id || '%';
+    SELECT * INTO factura_record FROM public.plati WHERE observatii LIKE '%Ref Inscriere: ' || p_inscriere_id || '%';
 
-    -- If a payment exists, check its status and delete it
+    -- If a payment exists, check its status and CANCEL it instead of deleting
     IF FOUND THEN
-        IF plata_record.status != 'Neachitat' THEN
-            RAISE EXCEPTION 'Nu se poate șterge înscrierea. Factura asociată a fost deja achitată (parțial sau total). Anulați manual încasarea întâi.';
+        IF factura_record.status != 'Neachitat' THEN
+            RAISE EXCEPTION 'Nu se poate anula înscrierea. Factura asociată a fost deja achitată (parțial sau total). Anulați manual încasarea întâi.';
         END IF;
 
-        DELETE FROM public.plati WHERE id = plata_record.id RETURNING id INTO deleted_plata_id_res;
+        UPDATE public.plati
+        SET 
+            suma = 0,
+            status = 'Achitat', -- Mark as paid to remove from overdue lists
+            observatii = factura_record.observatii || ' | ANULAT - retragere examen. Suma inițială: ' || factura_record.suma
+        WHERE id = factura_record.id
+        RETURNING id INTO updated_plata_id_res;
     END IF;
 
     -- Delete the main registration record
@@ -506,8 +512,8 @@ BEGIN
 
     RETURN json_build_object(
         'success', true,
-        'message', 'Înscrierea a fost ștearsă cu succes.',
-        'deleted_plata_id', deleted_plata_id_res -- can be null
+        'message', 'Înscrierea a fost retrasă cu succes. Factura asociată a fost anulată.',
+        'updated_plata_id', updated_plata_id_res -- can be null
     );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;

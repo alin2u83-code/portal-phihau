@@ -279,7 +279,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
     };
 
     const handleInitiateDelete = (inscriere: InscriereExamen) => {
-        setDeleteMessage(`Sunteți sigur că doriți să retrageți înscrierea sportivului ${inscriere.sportivi?.nume} ${inscriere.sportivi?.prenume}? Factura asociată (dacă există și este neachitată) va fi de asemenea ștearsă.`);
+        setDeleteMessage(`Sunteți sigur că doriți să retrageți înscrierea sportivului ${inscriere.sportivi?.nume} ${inscriere.sportivi?.prenume}? Factura asociată (dacă există și este neachitată) va fi de asemenea anulată.`);
         setInscriereToDelete(inscriere);
     };
 
@@ -293,28 +293,34 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             });
 
             if (error) {
+                if (error.message.includes('function public.delete_exam_registration') || error.message.includes('Could not find the function')) {
+                    showError(
+                        "Eroare de Configurare Bază de Date", 
+                        "Funcția necesară pentru ștergere ('delete_exam_registration') nu a fost găsită. Rulați scriptul SQL de actualizare a bazei de date sau contactați administratorul."
+                    );
+                    return; 
+                }
                 throw error;
             }
 
             // Database operation was successful, now update UI.
             setInscrieri(prev => prev.filter(i => i.id !== inscriereToDelete.id));
             
-            // The RPC function returns the ID of the deleted payment, if any.
-            if (data && data.deleted_plata_id) {
-                setPlati(prev => prev.filter(p => p.id !== data.deleted_plata_id));
+            // The RPC function returns the ID of the UPDATED payment, if any.
+            if (data && data.updated_plata_id) {
+                setPlati(prev => prev.map(p => {
+                    if (p.id === data.updated_plata_id) {
+                        // The RPC sets suma to 0 and status to Achitat
+                        return { ...p, suma: 0, status: 'Achitat' };
+                    }
+                    return p;
+                }));
             }
             
             showSuccess("Succes", data.message || "Înscrierea a fost retrasă cu succes.");
 
         } catch (err: any) {
-             if (err.message && (err.message.includes('function public.delete_exam_registration') || err.message.includes('Could not find the function'))) {
-                showError(
-                    "Eroare de Configurare Bază de Date", 
-                    "Funcția necesară pentru ștergere ('delete_exam_registration') nu a fost găsită. Rulați scriptul SQL de actualizare a bazei de date sau contactați administratorul."
-                );
-            } else {
-                showError("Eroare la Retragere", err.message);
-            }
+            showError("Eroare la Retragere", err.message);
         } finally {
             setIsDeleting(false);
             setInscriereToDelete(null);

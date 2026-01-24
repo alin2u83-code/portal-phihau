@@ -87,9 +87,9 @@ export const SportiviManagement: React.FC<{
                 const familieBalance = s.familie_id ? familyBalances.get(s.familie_id) : undefined;
                 return (
                     <div>
-                        <div className="font-bold text-slate-800 hover:text-brand-primary">{s.nume} {s.prenume}</div>
+                        <div className="font-bold text-white hover:text-brand-primary">{s.nume} {s.prenume}</div>
                         {familie && familieBalance !== undefined && (
-                            <div className="text-xs text-slate-500 mt-1">
+                            <div className="text-xs text-slate-300 mt-1">
                                 Familia {familie.nume}
                                 <span className={`ml-2 font-bold ${familieBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                                     Sold: {familieBalance >= 0 ? '+' : ''}{familieBalance.toFixed(2)} lei

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { SesiuneExamen, Sportiv, InscriereExamen, Grad, Plata, PretConfig } from '../types';
 import { Button, Input, Modal, Select, Card } from './ui';
 import { TrashIcon, PlusIcon, EditIcon } from './icons';
@@ -6,7 +6,6 @@ import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { getPretProdus } from '../utils/pricing';
-import { QuickAddSportivExamenModal } from './QuickAddSportivExamenModal';
 
 // Helper functions
 const getAgeOnDate = (birthDateStr: string, onDateStr: string): number => {
@@ -20,7 +19,131 @@ const getAgeOnDate = (birthDateStr: string, onDateStr: string): number => {
     }
     return age;
 };
-const getGrad = (gradId: string | null, allGrades: Grad[]): Grad | null => gradId ? allGrades.find(g => g.id === gradId) || null : null;
+
+const getDefaultNextGradeId = (sportiv: Sportiv, allGrades: Grad[]): string => {
+    const currentGrade = allGrades.find(g => g.id === sportiv.grad_actual_id);
+    const currentOrder = currentGrade ? currentGrade.ordine : -1;
+    const sortedGrades = [...allGrades].sort((a,b) => a.ordine - b.ordine);
+    const nextGrade = sortedGrades.find(g => g.ordine === currentOrder + 1);
+    return nextGrade ? nextGrade.id : '';
+};
+
+interface BulkAddSportiviModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    onSave: (selections: { sportiv_id: string; grad_vizat_id: string }[]) => Promise<void>;
+    sportivi: Sportiv[];
+    grade: Grad[];
+    inscrisiIds: Set<string>;
+}
+
+const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps> = ({ isOpen, onClose, onSave, sportivi, grade, inscrisiIds }) => {
+    const [selections, setSelections] = useState<Map<string, string>>(new Map());
+    const [filterTerm, setFilterTerm] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    const availableSportivi = useMemo(() => {
+        return sportivi
+            .filter(s => s.status === 'Activ' && !inscrisiIds.has(s.id))
+            .map(s => ({
+                ...s,
+                defaultNextGradeId: getDefaultNextGradeId(s, grade)
+            }))
+            .sort((a, b) => a.nume.localeCompare(b.nume));
+    }, [sportivi, grade, inscrisiIds]);
+    
+    const filteredSportivi = useMemo(() => {
+        if (!filterTerm) return availableSportivi;
+        return availableSportivi.filter(s => 
+            `${s.nume} ${s.prenume}`.toLowerCase().includes(filterTerm.toLowerCase())
+        );
+    }, [availableSportivi, filterTerm]);
+
+    const handleSelect = (sportivId: string, gradVizatId: string, isChecked: boolean) => {
+        setSelections(prev => {
+            const next = new Map(prev);
+            if (isChecked) {
+                next.set(sportivId, gradVizatId);
+            } else {
+                next.delete(sportivId);
+            }
+            return next;
+        });
+    };
+
+    const handleGradeChange = (sportivId: string, newGradId: string) => {
+        setSelections(prev => {
+            const next = new Map(prev);
+            if (next.has(sportivId)) {
+                next.set(sportivId, newGradId);
+            }
+            return next;
+        });
+    };
+    
+    const handleSaveClick = async () => {
+        setLoading(true);
+        const selectionsArray = Array.from(selections.entries()).map(([sportiv_id, grad_vizat_id]) => ({
+            sportiv_id,
+            grad_vizat_id,
+        }));
+        await onSave(selectionsArray);
+        setLoading(false);
+    };
+
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title="Adaugă Participanți la Examen">
+            <div className="space-y-4">
+                <Input
+                    label=""
+                    placeholder="Filtrează sportivi..."
+                    value={filterTerm}
+                    onChange={e => setFilterTerm(e.target.value)}
+                />
+                <div className="max-h-96 overflow-y-auto space-y-2 p-2 bg-slate-900/50 rounded-lg border border-slate-700">
+                   {filteredSportivi.map(s => {
+                       const isSelected = selections.has(s.id);
+                       return (
+                           <div key={s.id} className={`p-2 rounded-md transition-colors ${isSelected ? 'bg-brand-secondary/20' : 'bg-slate-700/50'}`}>
+                               <div className="flex items-center gap-3">
+                                   <input
+                                       type="checkbox"
+                                       checked={isSelected}
+                                       onChange={(e) => handleSelect(s.id, selections.get(s.id) || s.defaultNextGradeId, e.target.checked)}
+                                       className="h-5 w-5 rounded border-slate-500 bg-slate-900 text-brand-secondary focus:ring-brand-secondary"
+                                   />
+                                   <div className="flex-grow">
+                                       <p className="font-medium">{s.nume} {s.prenume}</p>
+                                       <p className="text-xs text-slate-400">Grad actual: {grade.find(g=>g.id === s.grad_actual_id)?.nume || 'Începător'}</p>
+                                   </div>
+                                   <div className="w-48">
+                                       <Select
+                                           label=""
+                                           value={selections.get(s.id) || s.defaultNextGradeId}
+                                           onChange={(e) => handleGradeChange(s.id, e.target.value)}
+                                           disabled={!isSelected}
+                                           className="!py-1 text-xs"
+                                       >
+                                           <option value="">Alege grad...</option>
+                                           {grade.map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}
+                                       </Select>
+                                   </div>
+                               </div>
+                           </div>
+                       );
+                   })}
+                </div>
+                <div className="flex justify-end pt-4 gap-2 border-t border-slate-700">
+                    <Button variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button>
+                    <Button variant="primary" onClick={handleSaveClick} isLoading={loading} disabled={selections.size === 0}>
+                        Adaugă {selections.size > 0 ? `${selections.size} Participanți` : ''}
+                    </Button>
+                </div>
+            </div>
+        </Modal>
+    );
+};
+
 
 interface ManagementInscrieriProps {
     sesiune: SesiuneExamen;
@@ -36,38 +159,23 @@ interface ManagementInscrieriProps {
 
 export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiune, sportivi, setSportivi, allInscrieri, grade, setInscrieri, plati, setPlati, preturiConfig }) => {
     const { showError, showSuccess } = useError();
-    const [searchTerm, setSearchTerm] = useState('');
-    const [isDropdownVisible, setIsDropdownVisible] = useState(false);
-    const searchContainerRef = useRef<HTMLDivElement>(null);
-    const [isQuickAddModalOpen, setIsQuickAddModalOpen] = useState(false);
+    const [isBulkAddModalOpen, setIsBulkAddModalOpen] = useState(false);
 
-    // State for modal
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedSportiv, setSelectedSportiv] = useState<Sportiv | null>(null);
+    // State for EDIT modal
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [inscriereToEdit, setInscriereToEdit] = useState<InscriereExamen | null>(null);
     const [gradSustinutId, setGradSustinutId] = useState<string>('');
     const [isSaving, setIsSaving] = useState(false);
-    const [inscriereToEdit, setInscriereToEdit] = useState<InscriereExamen | null>(null);
     
     // State for deletion confirmation
     const [inscriereToDelete, setInscriereToDelete] = useState<InscriereExamen | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
-    const [isCheckingDelete, setIsCheckingDelete] = useState<string | null>(null); // store inscriere.id
     const [deleteMessage, setDeleteMessage] = useState('');
 
     // State for results
     const [rezultateLocale, setRezultateLocale] = useState<Record<string, 'Admis' | 'Respins' | 'Neprezentat'>>({});
     const [isSavingResults, setIsSavingResults] = useState(false);
     
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
-                setIsDropdownVisible(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
     const inscrisiInSesiuneIds = useMemo(() => {
         return new Set(allInscrieri.filter(i => i.sesiune_id === sesiune.id).map(i => i.sportiv_id));
     }, [allInscrieri, sesiune.id]);
@@ -94,171 +202,154 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         setRezultateLocale(initialRezultate);
     }, [initialRezultate]);
 
-    const sportiviDisponibili = useMemo(() => {
-        if (searchTerm.length === 0) return [];
-        return sportivi
-            .filter(s => 
-                s.status === 'Activ' && 
-                !inscrisiInSesiuneIds.has(s.id) &&
-                `${s.nume} ${s.prenume}`.toLowerCase().includes(searchTerm.toLowerCase())
-            )
-            .sort((a, b) => a.nume.localeCompare(b.nume));
-    }, [sportivi, inscrisiInSesiuneIds, searchTerm]);
-
     const sortedGrades = useMemo(() => [...grade].sort((a,b) => a.ordine - b.ordine), [grade]);
-    
-    const isAlreadyEnrolled = !inscriereToEdit && selectedSportiv && inscrisiInSesiuneIds.has(selectedSportiv.id);
-
-    const handleOpenModal = (sportiv: Sportiv) => {
-        setSelectedSportiv(sportiv);
-        setInscriereToEdit(null); // Ensure edit mode is off
-        const currentGrade = grade.find(g => g.id === sportiv.grad_actual_id);
-        const currentOrder = currentGrade ? currentGrade.ordine : 0;
-        const nextGrade = sortedGrades.find(g => g.ordine === currentOrder + 1);
-        setGradSustinutId(nextGrade ? nextGrade.id : '');
-        setIsModalOpen(true);
-    };
 
     const handleOpenEditModal = (inscriere: InscriereExamen) => {
         setInscriereToEdit(inscriere);
-        setSelectedSportiv(inscriere.sportivi);
         setGradSustinutId(inscriere.grad_vizat_id);
-        setIsModalOpen(true);
+        setIsEditModalOpen(true);
     };
 
-    const handleCloseModal = () => {
-        setIsModalOpen(false);
-        setSelectedSportiv(null);
-        setInscriereToEdit(null); // Reset edit state
+    const handleCloseEditModal = () => {
+        setIsEditModalOpen(false);
+        setInscriereToEdit(null);
         setGradSustinutId('');
     };
     
-    const handleQuickAddSuccess = (newSportiv: Sportiv) => {
-        setSportivi(prev => [...prev, newSportiv]);
-        setIsQuickAddModalOpen(false);
-        // Use a small timeout to allow state to update before opening the next modal
-        setTimeout(() => {
-            handleOpenModal(newSportiv);
-        }, 100);
+    const handleBulkSave = async (selections: { sportiv_id: string; grad_vizat_id: string }[]) => {
+        setIsSaving(true);
+        let newPlati: Plata[] = [];
+        let newInscrieri: InscriereExamen[] = [];
+        let errorCount = 0;
+    
+        for (const selection of selections) {
+            const { sportiv_id, grad_vizat_id } = selection;
+            const sportiv = sportivi.find(s => s.id === sportiv_id);
+            const grad = grade.find(g => g.id === grad_vizat_id);
+    
+            if (!sportiv || !grad) {
+                errorCount++;
+                continue;
+            }
+    
+            try {
+                let plataId: string | null = null;
+                const taxaConfig = getPretProdus(preturiConfig, 'Taxa Examen', grad.nume, { dataReferinta: sesiune.data });
+    
+                if (taxaConfig) {
+                    const plataData = {
+                        sportiv_id: sportiv.id, familie_id: sportiv.familie_id, suma: taxaConfig.suma, data: sesiune.data, status: 'Neachitat' as const,
+                        descriere: `Taxa examen ${grad.nume}`, tip: 'Taxa Examen' as const, observatii: `Generat automat la înscriere examen.`
+                    };
+                    const { data: pData, error: pError } = await supabase.from('plati').insert(plataData).select().single();
+                    if (pError) throw new Error(`Factura pt ${sportiv.nume} nu a putut fi generată: ${pError.message}`);
+                    plataId = pData.id;
+                    newPlati.push(pData as Plata);
+                }
+    
+                const varstaLaExamen = getAgeOnDate(sportiv.data_nasterii, sesiune.data);
+                const inscriereData = {
+                    sportiv_id: sportiv.id, sesiune_id: sesiune.id, plata_id: plataId,
+                    grad_actual_id: sportiv.grad_actual_id || null, grad_vizat_id: grad_vizat_id,
+                    varsta_la_examen: varstaLaExamen, rezultat: 'Neprezentat' as const
+                };
+                
+                const { data: iData, error: iError } = await supabase.from('inscrieri_examene').insert(inscriereData).select('*, sportivi:sportiv_id(*), grade:grad_vizat_id(*)').single();
+                if (iError) throw iError;
+    
+                newInscrieri.push(iData as InscriereExamen);
+            } catch (err: any) {
+                errorCount++;
+                showError(`Eroare la înscrierea lui ${sportiv.nume}`, err.message);
+                // Rollback payment if enrollment fails
+                if (newPlati.length > 0) {
+                    const lastPlata = newPlati.pop();
+                    if (lastPlata) {
+                        await supabase.from('plati').delete().eq('id', lastPlata.id);
+                    }
+                }
+            }
+        }
+    
+        setPlati(prev => [...prev, ...newPlati]);
+        setInscrieri(prev => [...prev, ...newInscrieri]);
+    
+        const successCount = selections.length - errorCount;
+        if (successCount > 0) {
+            showSuccess("Înscriere finalizată", `${successCount} sportivi au fost înscriși cu succes.`);
+        }
+        if (errorCount > 0) {
+            showError("Înscrieri eșuate", `${errorCount} sportivi nu au putut fi înscriși.`);
+        }
+    
+        setIsSaving(false);
+        setIsBulkAddModalOpen(false);
     };
 
-    const handleSaveInscriere = async () => {
-        if (!selectedSportiv || !gradSustinutId) {
-            showError("Date lipsă", "Vă rugăm selectați un grad.");
-            return;
-        }
+    const handleSaveInscriereEdit = async () => {
+        if (!inscriereToEdit || !gradSustinutId) return;
     
         setIsSaving(true);
         try {
-            if (inscriereToEdit) {
-                // --- UPDATE LOGIC ---
-                if (gradSustinutId === inscriereToEdit.grad_vizat_id) { showSuccess("Info", "Nicio modificare detectată."); handleCloseModal(); return; }
-    
-                const plataAsociata = plati.find(p => p.id === inscriereToEdit.plata_id);
-    
-                if (plataAsociata && plataAsociata.status !== 'Neachitat') {
-                    throw new Error("Nu se poate modifica gradul deoarece factura asociată a fost deja achitată (parțial sau total). Retrageți înscrierea și adăugați-o din nou dacă este necesar.");
-                }
-                
-                let newPlataId: string | null = inscriereToEdit.plata_id;
-                let facturaMessage = '';
-                let plataResult: { action: 'add' | 'update' | 'delete', data: Plata } | null = null;
-    
-                const gradSustinut = grade.find(g => g.id === gradSustinutId);
-                const taxaConfig = getPretProdus(preturiConfig, 'Taxa Examen', gradSustinut?.nume || '', { dataReferinta: sesiune.data });
-    
-                if (taxaConfig) { // New grade has a fee
-                    const descriereFactura = `Taxa examen ${gradSustinut?.nume}`;
-                    if (plataAsociata) { // Old grade also had a fee -> UPDATE payment
-                        const { data: pData, error: pError } = await supabase.from('plati').update({ suma: taxaConfig.suma, descriere: descriereFactura }).eq('id', plataAsociata.id).select().single();
-                        if (pError) throw pError;
-                        plataResult = { action: 'update', data: pData as Plata };
-                        facturaMessage = ' și factura a fost actualizată';
-                    } else { // Old grade had no fee -> CREATE payment
-                        const plataData: Omit<Plata, 'id'> = {
-                            sportiv_id: selectedSportiv.id, familie_id: selectedSportiv.familie_id, suma: taxaConfig.suma, data: sesiune.data, status: 'Neachitat',
-                            descriere: descriereFactura, tip: 'Taxa Examen', observatii: 'Generat automat la modificare înscriere.'
-                        };
-                        const { data: pData, error: pError } = await supabase.from('plati').insert(plataData).select().single();
-                        if (pError) throw pError;
-                        plataResult = { action: 'add', data: pData as Plata };
-                        newPlataId = pData.id;
-                        facturaMessage = ' și o factură nouă a fost generată';
-                    }
-                } else { // New grade has no fee
-                    if (plataAsociata) { // Old grade had a fee -> DELETE payment
-                        const { error: pError } = await supabase.from('plati').delete().eq('id', plataAsociata.id);
-                        if (pError) throw pError;
-                        plataResult = { action: 'delete', data: plataAsociata };
-                        newPlataId = null;
-                        facturaMessage = ' și factura asociată a fost ștearsă (noul grad nu are taxă)';
-                    } else { // No fee before, no fee now
-                        facturaMessage = ', iar noul grad selectat nu are o taxă configurată';
-                    }
-                }
-    
-                const { data: updatedInscriere, error: updateError } = await supabase
-                    .from('inscrieri_examene').update({ grad_vizat_id: gradSustinutId, plata_id: newPlataId }).eq('id', inscriereToEdit.id)
-                    .select('*, sportivi:sportiv_id(*), grade:grad_vizat_id(*)').single();
-    
-                if (updateError) throw updateError;
-                
-                setInscrieri(prev => prev.map(i => i.id === updatedInscriere.id ? updatedInscriere : i));
-                
-                if (plataResult) {
-                    if (plataResult.action === 'delete') setPlati(prev => prev.filter(p => p.id !== plataResult!.data.id));
-                    else if (plataResult.action === 'add') setPlati(prev => [...prev, plataResult!.data]);
-                    else setPlati(prev => prev.map(p => p.id === plataResult!.data.id ? plataResult!.data : p));
-                }
-                showSuccess("Succes", `Înscrierea a fost modificată${facturaMessage}.`);
-            } else {
-                // --- INSERT LOGIC ---
-                const gradSustinut = grade.find(g => g.id === gradSustinutId);
-                let newPlata: Plata | null = null;
-                let facturaMessage = '';
-                let plataId: string | null = null;
+            if (gradSustinutId === inscriereToEdit.grad_vizat_id) { showSuccess("Info", "Nicio modificare detectată."); handleCloseEditModal(); return; }
 
-                if (gradSustinut) {
-                    const taxaConfig = getPretProdus(preturiConfig, 'Taxa Examen', gradSustinut.nume, { dataReferinta: sesiune.data });
-                    if (taxaConfig) {
-                        const plataData: Omit<Plata, 'id'> = {
-                            sportiv_id: selectedSportiv.id, familie_id: selectedSportiv.familie_id, suma: taxaConfig.suma, data: sesiune.data, status: 'Neachitat',
-                            descriere: `Taxa examen ${gradSustinut.nume}`, tip: 'Taxa Examen', observatii: `Generat automat la înscriere examen.`
-                        };
-                        const { data: pData, error: pError } = await supabase.from('plati').insert(plataData).select().single();
-                        if (pError) throw new Error(`Factura nu a putut fi generată: ${pError.message}`);
-                        
-                        newPlata = pData as Plata;
-                        plataId = newPlata.id;
-                        facturaMessage = ' și factura a fost generată';
-                    } else {
-                        facturaMessage = ', dar ATENȚIE: nu s-a găsit o configurație de preț pentru a genera factura';
-                    }
-                }
+            const plataAsociata = plati.find(p => p.id === inscriereToEdit.plata_id);
 
-                const varstaLaExamen = getAgeOnDate(selectedSportiv.data_nasterii, sesiune.data);
-                const newInscriereData = {
-                    sportiv_id: selectedSportiv.id, sesiune_id: sesiune.id, plata_id: plataId,
-                    grad_actual_id: selectedSportiv.grad_actual_id || null, grad_vizat_id: gradSustinutId,
-                    varsta_la_examen: varstaLaExamen, rezultat: 'Neprezentat' as const
-                };
-    
-                const { data: iData, error: iError } = await supabase
-                    .from('inscrieri_examene').insert(newInscriereData).select('*, sportivi:sportiv_id(*), grade:grad_vizat_id(*)').single();
-    
-                if (iError) {
-                    if (plataId) await supabase.from('plati').delete().eq('id', plataId); // Rollback
-                    throw iError;
-                }
-                
-                setInscrieri(prev => [...prev, iData as InscriereExamen]);
-                if (newPlata) setPlati(prev => [...prev, newPlata]);
-                showSuccess("Succes", `${selectedSportiv.nume} a fost înscris${facturaMessage}.`);
+            if (plataAsociata && plataAsociata.status !== 'Neachitat') {
+                throw new Error("Nu se poate modifica gradul deoarece factura asociată a fost deja achitată. Retrageți înscrierea și adăugați-o din nou.");
             }
-    
-            handleCloseModal();
+            
+            let newPlataId: string | null = inscriereToEdit.plata_id;
+            let facturaMessage = '';
+            let plataResult: { action: 'add' | 'update' | 'delete', data: Plata } | null = null;
+
+            const gradSustinut = grade.find(g => g.id === gradSustinutId);
+            const taxaConfig = getPretProdus(preturiConfig, 'Taxa Examen', gradSustinut?.nume || '', { dataReferinta: sesiune.data });
+
+            if (taxaConfig) {
+                const descriereFactura = `Taxa examen ${gradSustinut?.nume}`;
+                if (plataAsociata) {
+                    const { data: pData, error: pError } = await supabase.from('plati').update({ suma: taxaConfig.suma, descriere: descriereFactura }).eq('id', plataAsociata.id).select().single();
+                    if (pError) throw pError;
+                    plataResult = { action: 'update', data: pData as Plata };
+                    facturaMessage = ' și factura a fost actualizată';
+                } else {
+                    const plataData: Omit<Plata, 'id'> = {
+                        sportiv_id: inscriereToEdit.sportiv_id, familie_id: inscriereToEdit.sportivi.familie_id, suma: taxaConfig.suma, data: sesiune.data, status: 'Neachitat',
+                        descriere: descriereFactura, tip: 'Taxa Examen', observatii: 'Generat automat la modificare înscriere.'
+                    };
+                    const { data: pData, error: pError } = await supabase.from('plati').insert(plataData).select().single();
+                    if (pError) throw pError;
+                    plataResult = { action: 'add', data: pData as Plata };
+                    newPlataId = pData.id;
+                    facturaMessage = ' și o factură nouă a fost generată';
+                }
+            } else {
+                if (plataAsociata) {
+                    const { error: pError } = await supabase.from('plati').delete().eq('id', plataAsociata.id);
+                    if (pError) throw pError;
+                    plataResult = { action: 'delete', data: plataAsociata };
+                    newPlataId = null;
+                    facturaMessage = ' și factura asociată a fost ștearsă (noul grad nu are taxă)';
+                } else {
+                    facturaMessage = ', iar noul grad selectat nu are o taxă configurată';
+                }
+            }
+
+            const { data: updatedInscriere, error: updateError } = await supabase.from('inscrieri_examene').update({ grad_vizat_id: gradSustinutId, plata_id: newPlataId }).eq('id', inscriereToEdit.id).select('*, sportivi:sportiv_id(*), grade:grad_vizat_id(*)').single();
+            if (updateError) throw updateError;
+            
+            setInscrieri(prev => prev.map(i => i.id === updatedInscriere.id ? updatedInscriere : i));
+            
+            if (plataResult) {
+                if (plataResult.action === 'delete') setPlati(prev => prev.filter(p => p.id !== plataResult!.data.id));
+                else if (plataResult.action === 'add') setPlati(prev => [...prev, plataResult!.data]);
+                else setPlati(prev => prev.map(p => p.id === plataResult!.data.id ? plataResult!.data : p));
+            }
+            showSuccess("Succes", `Înscrierea a fost modificată${facturaMessage}.`);
+            handleCloseEditModal();
         } catch (err: any) {
-            showError(inscriereToEdit ? "Eroare la Modificare" : "Eroare la Înscriere", err.message);
+            showError("Eroare la Modificare", err.message);
         } finally {
             setIsSaving(false);
         }
@@ -279,17 +370,13 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             });
 
             if (error) {
-                // Asigurăm verificarea pentru null a obiectului error și a proprietății message.
                 const errorMessage = error?.message || 'A apărut o eroare RPC necunoscută.';
-                
                 if (errorMessage.includes('function public.delete_exam_registration') || errorMessage.includes('Could not find the function')) {
                     showError("Eroare de Configurare Bază de Date", "Funcția necesară ('delete_exam_registration') nu a fost găsită. Rulați scriptul SQL sau contactați administratorul.");
                 } else {
-                    // Implementăm un 'default message' pentru a evita crash-ul.
                     showError("Eroare la Retragere", errorMessage);
                 }
             } else {
-                // Actualizăm starea locală pentru feedback vizual instantaneu.
                 setInscrieri(prev => prev.filter(i => i.id !== inscriereToDelete.id));
                 if (data?.deleted_plata_id) {
                     setPlati(prev => prev.filter(p => p.id !== data.deleted_plata_id));
@@ -297,8 +384,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 showSuccess("Succes", data?.message || "Înscrierea a fost retrasă cu succes.");
             }
         } catch (err: any) {
-            // Prindem erorile neașteptate (ex: de rețea) și afișăm un mesaj generic.
-            showError("Eroare la Retragere", err?.message || 'A apărut o eroare neașteptată în timpul comunicării cu serverul.');
+            showError("Eroare la Retragere", err?.message || 'A apărut o eroare neașteptată.');
         } finally {
             setIsDeleting(false);
             setInscriereToDelete(null);
@@ -310,19 +396,11 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
     };
 
     const handleSaveResults = async () => {
-        if (!supabase) {
-            showError("Eroare de configurare", "Clientul Supabase nu este inițializat.");
-            return;
-        }
+        if (!supabase) { showError("Eroare de configurare", "Clientul Supabase nu este inițializat."); return; }
         setIsSavingResults(true);
-        const changes = Object.entries(rezultateLocale)
-            .filter(([id, rezultat]) => rezultat !== initialRezultate[id]);
+        const changes = Object.entries(rezultateLocale).filter(([id, rezultat]) => rezultat !== initialRezultate[id]);
 
-        if (changes.length === 0) {
-            showSuccess("Info", "Nicio modificare de salvat.");
-            setIsSavingResults(false);
-            return;
-        }
+        if (changes.length === 0) { showSuccess("Info", "Nicio modificare de salvat."); setIsSavingResults(false); return; }
 
         const allPromises: Promise<any>[] = [];
         const sportiviUpdatesLocal: Partial<Sportiv>[] = [];
@@ -330,31 +408,14 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         for (const [id, rezultat] of changes) {
             const inscriere = participantiInscrisi.find(i => i.id === id);
             if (!inscriere) continue;
-
-            allPromises.push(
-                supabase.from('inscrieri_examene').update({ rezultat }).eq('id', id)
-            );
-
+            allPromises.push(supabase.from('inscrieri_examene').update({ rezultat }).eq('id', id));
             if (rezultat === 'Admis') {
-                allPromises.push(
-                    supabase.from('sportivi').update({ grad_actual_id: inscriere.grad_vizat_id }).eq('id', inscriere.sportiv_id)
-                );
-                allPromises.push(
-                    supabase.from('istoric_grade').insert({
-                        sportiv_id: inscriere.sportiv_id,
-                        grad_id: inscriere.grad_vizat_id,
-                        data_obtinere: sesiune.data,
-                        sesiune_examen_id: sesiune.id
-                    })
-                );
+                allPromises.push(supabase.from('sportivi').update({ grad_actual_id: inscriere.grad_vizat_id }).eq('id', inscriere.sportiv_id));
+                allPromises.push(supabase.from('istoric_grade').insert({ sportiv_id: inscriere.sportiv_id, grad_id: inscriere.grad_vizat_id, data_obtinere: sesiune.data, sesiune_examen_id: sesiune.id }));
                 sportiviUpdatesLocal.push({ id: inscriere.sportiv_id, grad_actual_id: inscriere.grad_vizat_id });
             } else if (initialRezultate[id] === 'Admis') {
-                allPromises.push(
-                    supabase.from('sportivi').update({ grad_actual_id: inscriere.grad_actual_id }).eq('id', inscriere.sportiv_id)
-                );
-                allPromises.push(
-                    supabase.from('istoric_grade').delete().match({ sportiv_id: inscriere.sportiv_id, sesiune_examen_id: sesiune.id })
-                );
+                allPromises.push(supabase.from('sportivi').update({ grad_actual_id: inscriere.grad_actual_id }).eq('id', inscriere.sportiv_id));
+                allPromises.push(supabase.from('istoric_grade').delete().match({ sportiv_id: inscriere.sportiv_id, sesiune_examen_id: sesiune.id }));
                 sportiviUpdatesLocal.push({ id: inscriere.sportiv_id, grad_actual_id: inscriere.grad_actual_id });
             }
         }
@@ -364,29 +425,14 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             const anyError = results.find(res => res.error);
             if (anyError) throw anyError.error;
 
-            setInscrieri(prev => {
-                const changesMap = new Map(changes);
-                return prev.map(i => {
-                    if (changesMap.has(i.id)) {
-                        return { ...i, rezultat: changesMap.get(i.id) as any };
-                    }
-                    return i;
-                });
-            });
-            
+            setInscrieri(prev => { const changesMap = new Map(changes); return prev.map(i => changesMap.has(i.id) ? { ...i, rezultat: changesMap.get(i.id) as any } : i); });
             setSportivi(prev => {
                 const updatedSportiviMap = new Map(prev.map(s => [s.id, s]));
-                sportiviUpdatesLocal.forEach(update => {
-                    const existing = updatedSportiviMap.get(update.id!);
-                    if (existing) {
-                        updatedSportiviMap.set(update.id!, { ...existing, ...update });
-                    }
-                });
+                sportiviUpdatesLocal.forEach(update => { const existing = updatedSportiviMap.get(update.id!); if (existing) { updatedSportiviMap.set(update.id!, { ...existing, ...update }); } });
                 return Array.from(updatedSportiviMap.values());
             });
 
-            showSuccess("Succes", `${changes.length} rezultate au fost salvate cu succes!`);
-
+            showSuccess("Succes", `${changes.length} rezultate au fost salvate!`);
         } catch (err: any) {
             showError("Eroare la Salvare", `Una sau mai multe operațiuni au eșuat. Detalii: ${err.message}`);
         } finally {
@@ -398,47 +444,10 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
     return (
         <div className="space-y-6">
              <Card>
-                <h3 className="text-lg font-bold text-white mb-2">Adaugă Participant</h3>
-                <div className="flex items-end gap-2">
-                    <div className="relative flex-grow" ref={searchContainerRef}>
-                        <Input
-                            label=""
-                            placeholder="Caută sportiv activ..."
-                            value={searchTerm}
-                            onChange={e => {
-                                setSearchTerm(e.target.value);
-                                setIsDropdownVisible(e.target.value.length > 0);
-                            }}
-                            onFocus={() => {
-                                if (searchTerm.length > 0) setIsDropdownVisible(true);
-                            }}
-                        />
-                        {isDropdownVisible && sportiviDisponibili.length > 0 && (
-                            <div className="absolute z-10 w-full mt-1 bg-slate-800 border border-slate-600 rounded-md shadow-lg max-h-60 overflow-y-auto">
-                                {sportiviDisponibili.map(sportiv => (
-                                    <div
-                                        key={sportiv.id}
-                                        className="p-2 hover:bg-brand-secondary/20 cursor-pointer border-b border-slate-700 last:border-b-0"
-                                        onMouseDown={() => {
-                                            handleOpenModal(sportiv);
-                                            setSearchTerm('');
-                                            setIsDropdownVisible(false);
-                                        }}
-                                    >
-                                        <p className="font-medium">{sportiv.nume} {sportiv.prenume}</p>
-                                        <p className="text-xs text-slate-400">{getGrad(sportiv.grad_actual_id, grade)?.nume || 'Începător'}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                        {isDropdownVisible && searchTerm.length > 0 && sportiviDisponibili.length === 0 && (
-                            <div className="absolute z-10 w-full mt-1 bg-slate-800 border border-slate-600 rounded-md shadow-lg p-3 text-sm text-slate-400 italic">Niciun sportiv disponibil găsit.</div>
-                        )}
-                    </div>
-                    <Button variant="info" onClick={() => setIsQuickAddModalOpen(true)} title="Adaugă un sportiv nou">
-                        <PlusIcon className="w-5 h-5 sm:mr-1"/> <span className="hidden sm:inline">Sportiv Nou</span>
-                    </Button>
-                </div>
+                <h3 className="text-lg font-bold text-white mb-2">Înscriere Participanți</h3>
+                <Button onClick={() => setIsBulkAddModalOpen(true)} variant="info" className="w-full">
+                    <PlusIcon className="w-5 h-5 mr-2" /> Adaugă Participanți (Bulk)
+                </Button>
             </Card>
 
             <Card>
@@ -496,7 +505,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                                                         variant='danger' 
                                                         onClick={() => handleInitiateDelete(inscriere)} 
                                                         title="Retrage înscriere"
-                                                        isLoading={isCheckingDelete === inscriere.id}
+                                                        isLoading={false}
                                                     >
                                                         <TrashIcon className="w-4 h-4" />
                                                     </Button>
@@ -513,27 +522,20 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 </div>
             </Card>
 
-            {isModalOpen && selectedSportiv && (
+            {isEditModalOpen && inscriereToEdit && (
                 <Modal 
-                    isOpen={isModalOpen} 
-                    onClose={handleCloseModal} 
-                    title={inscriereToEdit ? `Modifică Grad Vizat: ${selectedSportiv.nume} ${selectedSportiv.prenume}` : `Înscriere: ${selectedSportiv.nume} ${selectedSportiv.prenume}`}
+                    isOpen={isEditModalOpen} 
+                    onClose={handleCloseEditModal} 
+                    title={`Modifică Grad Vizat: ${inscriereToEdit.sportivi.nume} ${inscriereToEdit.sportivi.prenume}`}
                 >
                     <div className="space-y-4">
-                        {isAlreadyEnrolled ? (
-                            <div className="text-center p-4 bg-amber-900/50 border border-amber-500 rounded-md">
-                                <p className="font-bold text-amber-300">Sportiv Deja Înscris</p>
-                                <p className="text-sm text-amber-200 mt-1">Acest sportiv este deja pe listă!</p>
-                            </div>
-                        ) : (
-                            <Select label="Selectează gradul vizat pentru examen" value={gradSustinutId} onChange={(e) => setGradSustinutId(e.target.value)} required>
-                                <option value="">Alege un grad...</option>
-                                {sortedGrades.map(g => (<option key={g.id} value={g.id}>{g.nume}</option>))}
-                            </Select>
-                        )}
+                        <Select label="Selectează gradul vizat pentru examen" value={gradSustinutId} onChange={(e) => setGradSustinutId(e.target.value)} required>
+                            <option value="">Alege un grad...</option>
+                            {sortedGrades.map(g => (<option key={g.id} value={g.id}>{g.nume}</option>))}
+                        </Select>
                         <div className="flex justify-end pt-4 gap-2 border-t border-slate-700">
-                            <Button variant="secondary" onClick={handleCloseModal} disabled={isSaving}>Anulează</Button>
-                            <Button variant="primary" onClick={handleSaveInscriere} isLoading={isSaving} disabled={!gradSustinutId || isAlreadyEnrolled}>Salvează</Button>
+                            <Button variant="secondary" onClick={handleCloseEditModal} disabled={isSaving}>Anulează</Button>
+                            <Button variant="primary" onClick={handleSaveInscriereEdit} isLoading={isSaving} disabled={!gradSustinutId}>Salvează</Button>
                         </div>
                     </div>
                 </Modal>
@@ -550,11 +552,13 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 confirmButtonText="Da, retrage"
             />
 
-            <QuickAddSportivExamenModal
-                isOpen={isQuickAddModalOpen}
-                onClose={() => setIsQuickAddModalOpen(false)}
-                grades={grade}
-                onSaveSuccess={handleQuickAddSuccess}
+            <BulkAddSportiviModal
+                isOpen={isBulkAddModalOpen}
+                onClose={() => setIsBulkAddModalOpen(false)}
+                onSave={handleBulkSave}
+                sportivi={sportivi}
+                grade={grade}
+                inscrisiIds={inscrisiInSesiuneIds}
             />
         </div>
     );

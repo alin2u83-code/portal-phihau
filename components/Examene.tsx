@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { SesiuneExamen, InscriereExamen, Sportiv, Grad, Locatie, Plata, PretConfig, NoteExamen } from '../types';
+import { SesiuneExamen, InscriereExamen, Sportiv, Grad, Locatie, Plata, PretConfig } from '../types';
 import { Button, Modal, Input, Select, Card } from './ui';
-import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon, SaveIcon } from './icons';
+import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
@@ -104,7 +104,6 @@ const SesiuneForm: React.FC<SesiuneFormProps> = ({ isOpen, onClose, onSave, sesi
 
   useEffect(() => {
       if (sesiuneToEdit) {
-          // FIX: The `comisia` property is expected to be an array, but might be a string in older data. This ensures it's always handled as an array.
           const comisiaAsAny = sesiuneToEdit.comisia as any;
           const comisieArray = Array.isArray(comisiaAsAny) ? comisiaAsAny : (typeof comisiaAsAny === 'string' ? comisiaAsAny.split(',').map(s => s.trim()).filter(Boolean) : []);
           setFormState({ ...sesiuneToEdit, comisia: comisieArray });
@@ -149,117 +148,8 @@ const SesiuneForm: React.FC<SesiuneFormProps> = ({ isOpen, onClose, onSave, sesi
   </> );
 };
 
-const Stepper: React.FC<{ value: number; onChange: (newValue: number) => void }> = ({ value, onChange }) => {
-    const step = (amount: number) => onChange(Math.max(0, Math.min(10, value + amount)));
-    return (
-        <div className="flex items-center gap-2">
-            <Button size="sm" variant="secondary" className="!p-1 h-6 w-6" onClick={() => step(-1)}>-</Button>
-            <span className="font-bold text-lg w-8 text-center">{value}</span>
-            <Button size="sm" variant="secondary" className="!p-1 h-6 w-6" onClick={() => step(1)}>+</Button>
-        </div>
-    );
-};
-
-const NotareExamen: React.FC<{
-    participanti: (InscriereExamen & { sportiv?: Sportiv; grad?: Grad })[];
-    note: NoteExamen[];
-    setNote: React.Dispatch<React.SetStateAction<NoteExamen[]>>;
-}> = ({ participanti, note, setNote }) => {
-    const [localNotes, setLocalNotes] = useState<Record<string, Partial<Omit<NoteExamen, 'id' | 'inscriere_id'>>>>({});
-    const [loading, setLoading] = useState(false);
-    const { showError, showSuccess } = useError();
-
-    useEffect(() => {
-        const initialNotes: Record<string, Partial<Omit<NoteExamen, 'id' | 'inscriere_id'>>> = {};
-        participanti.forEach(p => {
-            const existingNote = note.find(n => n.inscriere_id === p.id);
-            initialNotes[p.id] = {
-                nota_tehnica: existingNote?.nota_tehnica ?? null,
-                nota_forta: existingNote?.nota_forta ?? null,
-                nota_viteza: existingNote?.nota_viteza ?? null,
-                nota_atitudine: existingNote?.nota_atitudine ?? null,
-            };
-        });
-        setLocalNotes(initialNotes);
-    }, [participanti, note]);
-
-    const handleNoteChange = (inscriereId: string, field: keyof Omit<NoteExamen, 'id' | 'inscriere_id'>, value: string) => {
-        const numValue = value === '' ? null : Math.max(0, Math.min(10, parseFloat(value)));
-        setLocalNotes(prev => ({
-            ...prev,
-            [inscriereId]: { ...prev[inscriereId], [field]: numValue }
-        }));
-    };
-
-    const handleSaveNotes = async () => {
-        if (!supabase) { showError("Eroare Configurare", "Client Supabase neconfigurat."); return; }
-        setLoading(true);
-
-        const upsertData = Object.entries(localNotes)
-            .map(([inscriere_id, noteValues]) => ({
-                inscriere_id,
-                ...noteValues
-            }));
-            
-        const { data, error } = await supabase.from('note_examene').upsert(upsertData, { onConflict: 'inscriere_id' }).select();
-
-        setLoading(false);
-        if (error) {
-            showError("Eroare la Salvarea Notelor", error);
-        } else if (data) {
-            setNote(prev => {
-                const updatedNotes = new Map(prev.map(n => [n.inscriere_id, n]));
-                data.forEach(d => updatedNotes.set(d.inscriere_id, d as NoteExamen));
-                return Array.from(updatedNotes.values());
-            });
-            showSuccess("Succes!", "Notele au fost salvate.");
-        }
-    };
-
-    return (
-        <div>
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold text-white">Notare Detaliată</h2>
-                <Button onClick={handleSaveNotes} variant="success" isLoading={loading}><SaveIcon className="w-4 h-4 mr-2"/> Salvează Note</Button>
-            </div>
-            <div className="hidden md:block">
-                <table className="w-full text-left text-sm">
-                    <thead><tr className="bg-slate-700/50">
-                        <th className="p-2">Nr.</th><th className="p-2">Nume Prenume</th><th className="p-2">Grad Susținut</th>
-                        <th className="p-2 w-24 text-center">Tehnică</th><th className="p-2 w-24 text-center">Forță</th>
-                        <th className="p-2 w-24 text-center">Viteză</th><th className="p-2 w-24 text-center">Atitudine</th>
-                        <th className="p-2 w-28 text-center font-bold">Medie</th>
-                    </tr></thead>
-                    <tbody>{participanti.map((p, idx) => {
-                        const note = localNotes[p.id] || {};
-                        const n = [note.nota_tehnica, note.nota_forta, note.nota_viteza, note.nota_atitudine];
-                        const media = n.every(val => typeof val === 'number') ? (n.reduce((acc, val) => acc + (val || 0), 0) / 4).toFixed(2) : 'N/A';
-                        return <tr key={p.id} className="border-b border-slate-700">
-                            <td className="p-2">{idx+1}.</td><td className="p-2 font-semibold">{p.sportiv?.nume} {p.sportiv?.prenume}</td><td>{p.grad?.nume}</td>
-                            <td><Input label="" type="number" step="0.5" min="0" max="10" value={note.nota_tehnica ?? ''} onChange={e => handleNoteChange(p.id, 'nota_tehnica', e.target.value)} className="text-center"/></td>
-                            <td><Input label="" type="number" step="0.5" min="0" max="10" value={note.nota_forta ?? ''} onChange={e => handleNoteChange(p.id, 'nota_forta', e.target.value)} className="text-center"/></td>
-                            <td><Input label="" type="number" step="0.5" min="0" max="10" value={note.nota_viteza ?? ''} onChange={e => handleNoteChange(p.id, 'nota_viteza', e.target.value)} className="text-center"/></td>
-                            <td><Input label="" type="number" step="0.5" min="0" max="10" value={note.nota_atitudine ?? ''} onChange={e => handleNoteChange(p.id, 'nota_atitudine', e.target.value)} className="text-center"/></td>
-                            <td className="p-2 text-center font-bold text-lg text-brand-secondary">{media}</td>
-                        </tr>
-                    })}</tbody>
-                </table>
-            </div>
-            <div className="md:hidden space-y-4">{participanti.map((p, idx) => {
-                const note = localNotes[p.id] || {};
-                const n = [note.nota_tehnica, note.nota_forta, note.nota_viteza, note.nota_atitudine];
-                const media = n.every(val => typeof val === 'number') ? (n.reduce((acc, val) => acc + (val || 0), 0) / 4).toFixed(2) : 'N/A';
-                return <Card key={p.id} className="bg-slate-800"><p className="font-bold">{idx+1}. {p.sportiv?.nume} {p.sportiv?.prenume} - <span className="text-brand-secondary">{p.grad?.nume}</span></p><div className="mt-4 grid grid-cols-2 gap-4">
-                    {(Object.keys(note) as (keyof typeof note)[]).map(key => <div key={key} className="flex justify-between items-center"><span className="text-sm capitalize">{key.split('_')[1]}</span><Stepper value={note[key] ?? 0} onChange={val => handleNoteChange(p.id, key, String(val))}/></div>)}
-                </div><div className="mt-4 pt-3 border-t border-slate-700 flex justify-between items-center"><span className="font-bold">Media Generală</span><span className="font-bold text-lg text-brand-secondary">{media}</span></div></Card>
-            })}</div>
-        </div>
-    );
-};
-
-
 // --- NOUA VIZUALIZARE DE DETALIU PENTRU SESIUNE ---
-const DetaliiSesiuneSimplificat: React.FC<{
+const DetaliiSesiune: React.FC<{
     sesiune: SesiuneExamen;
     inscrieri: InscriereExamen[];
     setInscrieri: React.Dispatch<React.SetStateAction<InscriereExamen[]>>;
@@ -271,71 +161,14 @@ const DetaliiSesiuneSimplificat: React.FC<{
     plati: Plata[];
     setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
     preturiConfig: PretConfig[];
-    note: NoteExamen[];
-    setNote: React.Dispatch<React.SetStateAction<NoteExamen[]>>;
-}> = ({ sesiune, inscrieri, setInscrieri, sportivi, setSportivi, grade, allInscrieri, locatii, plati, setPlati, preturiConfig, note, setNote }) => {
-    const [activeTab, setActiveTab] = useState<'inscriere' | 'notare'>('inscriere');
-
-    const participantiCuDetalii = useMemo(() => {
-        return inscrieri.map(i => ({
-            ...i,
-            sportiv: sportivi.find(s => s.id === i.sportiv_id),
-            grad: grade.find(g => g.id === i.grad_vizat_id)
-        }))
-        .sort((a, b) => {
-            const gradeOrderDiff = (b.grad?.ordine ?? 0) - (a.grad?.ordine ?? 0);
-            if (gradeOrderDiff !== 0) {
-                return gradeOrderDiff;
-            }
-            const nameA = `${a.sportiv?.nume || ''} ${a.sportiv?.prenume || ''}`;
-            const nameB = `${b.sportiv?.nume || ''} ${b.sportiv?.prenume || ''}`;
-            return nameA.localeCompare(nameB);
-        });
-    }, [inscrieri, sportivi, grade]);
-
+}> = (props) => {
+    
     return (
         <Card>
-            <h3 className="text-2xl font-bold text-white">{locatii.find(l => l.id === sesiune.locatie_id)?.nume} - {new Date(sesiune.data + 'T00:00:00').toLocaleDateString('ro-RO')}</h3>
-            <p className="text-slate-400">Comisia: {Array.isArray(sesiune.comisia) ? sesiune.comisia.join(', ') : sesiune.comisia}</p>
+            <h3 className="text-2xl font-bold text-white">{props.locatii.find(l => l.id === props.sesiune.locatie_id)?.nume} - {new Date(props.sesiune.data + 'T00:00:00').toLocaleDateString('ro-RO')}</h3>
+            <p className="text-slate-400 mb-6">Comisia: {Array.isArray(props.sesiune.comisia) ? props.sesiune.comisia.join(', ') : props.sesiune.comisia}</p>
             
-            <div className="border-b border-slate-700 mt-6 mb-6">
-                <button
-                    onClick={() => setActiveTab('inscriere')}
-                    className={`px-4 py-2 text-sm font-bold rounded-t-lg transition-colors ${activeTab === 'inscriere' ? 'bg-slate-700/50 text-brand-secondary' : 'text-white/70 hover:text-white'}`}
-                >
-                    Înscriere & Rezultate
-                </button>
-                 <button
-                    onClick={() => setActiveTab('notare')}
-                    className={`px-4 py-2 text-sm font-bold rounded-t-lg transition-colors ${activeTab === 'notare' ? 'bg-slate-700/50 text-brand-secondary' : 'text-white/70 hover:text-white'}`}
-                >
-                    Notare Detaliată
-                </button>
-            </div>
-
-            <div>
-                {activeTab === 'inscriere' && (
-                    <ManagementInscrieri
-                        sesiune={sesiune}
-                        sportivi={sportivi}
-                        setSportivi={setSportivi}
-                        allInscrieri={allInscrieri}
-                        grade={grade}
-                        setInscrieri={setInscrieri}
-                        plati={plati}
-                        setPlati={setPlati}
-                        preturiConfig={preturiConfig}
-                    />
-                )}
-                {activeTab === 'notare' && (
-                    // FIX: Removed unused 'sesiune' prop from NotareExamen component call to fix TypeScript error.
-                    <NotareExamen
-                        participanti={participantiCuDetalii}
-                        note={note}
-                        setNote={setNote}
-                    />
-                )}
-            </div>
+            <ManagementInscrieri {...props} />
         </Card>
     );
 };
@@ -355,11 +188,9 @@ interface GestiuneExameneProps {
     plati: Plata[];
     setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
     preturiConfig: PretConfig[];
-    note: NoteExamen[];
-    setNote: React.Dispatch<React.SetStateAction<NoteExamen[]>>;
 }
 
-export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, sesiuni, setSesiuni, inscrieri, setInscrieri, sportivi, setSportivi, grade, locatii, setLocatii, plati, setPlati, preturiConfig, note, setNote }) => {
+export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, sesiuni, setSesiuni, inscrieri, setInscrieri, sportivi, setSportivi, grade, locatii, setLocatii, plati, setPlati, preturiConfig }) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [sesiuneToEdit, setSesiuneToEdit] = useState<SesiuneExamen | null>(null);
   const [sesiuneToDelete, setSesiuneToDelete] = useState<SesiuneExamen | null>(null);
@@ -411,7 +242,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, sesiun
      return (
         <div>
             <Button onClick={handleBackToList} className="mb-4" variant="secondary"><ArrowLeftIcon /> Înapoi la listă</Button>
-            <DetaliiSesiuneSimplificat 
+            <DetaliiSesiune 
                 sesiune={selectedSesiune} 
                 inscrieri={inscrieri.filter(p => p.sesiune_id === selectedSesiune.id)} 
                 setInscrieri={setInscrieri} 
@@ -423,8 +254,6 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, sesiun
                 plati={plati}
                 setPlati={setPlati}
                 preturiConfig={preturiConfig}
-                note={note}
-                setNote={setNote}
             />
         </div>
      );

@@ -76,7 +76,7 @@ export const DeleteAuditModal: React.FC<DeleteAuditModalProps> = ({ isOpen, onCl
         onClose();
     }
 
-    // Fix: Calculate total activity by summing report properties directly for type safety, resolving potential 'unknown' type issues with Object.values.
+    // FIX: Calculate total activity by summing report properties directly for type safety, resolving potential 'unknown' type issues with Object.values.
     const totalActivity = report ? report.plati + report.examene + report.prezente + report.competitii : 0;
     const hasActivity = totalActivity > 0;
 
@@ -104,7 +104,7 @@ export const DeleteAuditModal: React.FC<DeleteAuditModalProps> = ({ isOpen, onCl
                                     <h4 className="font-bold mb-2">Raport Activitate:</h4>
                                     <table className="w-full" style={{ fontSize: '13px' }}>
                                         <tbody>
-                                            {/* Fix: Cast `value` to number for comparison and display, as Object.entries returns `[string, unknown]`. */}
+                                            {/* FIX: Cast `value` to number for comparison and display, as Object.entries returns `[string, unknown]`. */}
                                             {Object.entries(report).map(([key, value]) => (value as number) > 0 && (
                                                 <tr key={key} className="border-b border-slate-700/50 last:border-none">
                                                     <td className="py-1 pr-2 capitalize text-slate-400">{key === 'examene' ? 'Examene' : key === 'competitii' ? 'Competiții' : key}:</td>

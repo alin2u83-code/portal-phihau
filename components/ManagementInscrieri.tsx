@@ -406,8 +406,9 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         const changes = Object.entries(rezultateLocale).filter(([id, rezultat]) => rezultat !== initialRezultate[id]);
 
         if (changes.length === 0) { showSuccess("Info", "Nicio modificare de salvat."); setIsSavingResults(false); return; }
-
-        const allPromises: Promise<any>[] = [];
+        
+        // FIX: Change type of promise array to any[] to fix typescript issue with supabase builders.
+        const allPromises: any[] = [];
         const sportiviUpdatesLocal: Partial<Sportiv>[] = [];
 
         for (const [id, rezultat] of changes) {

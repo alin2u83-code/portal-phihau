@@ -57,19 +57,15 @@ export interface InscriereExamen {
     grad_actual_id: string | null;
     varsta_la_examen: number;
     observatii?: string;
-    rezultat?: 'Admis' | 'Respins' | 'Neprezentat' | null;
-    // Nested data from unified query
-    sportivi: Sportiv; 
-    grade: Grad;
-}
-
-export interface NoteExamen {
-    id: string;
-    inscriere_id: string;
     nota_tehnica: number | null;
     nota_forta: number | null;
     nota_viteza: number | null;
     nota_atitudine: number | null;
+    // FIX: Add 'rezultat' property to fix type errors across components
+    rezultat?: 'Admis' | 'Respins' | 'Neprezentat' | null;
+    // Nested data from unified query
+    sportivi: Sportiv; 
+    grade: Grad;
 }
 
 export interface IstoricGrade {

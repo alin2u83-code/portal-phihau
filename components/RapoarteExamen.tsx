@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { SesiuneExamen, InscriereExamen, Sportiv, Grad, Locatie, Plata, NoteExamen } from '../types';
-import { Button, Select, Card, Input } from './ui';
+import { SesiuneExamen, InscriereExamen, Sportiv, Grad, Locatie, Plata } from '../types';
+import { Button, Select, Card, Input, Stepper } from './ui';
 import { ArrowLeftIcon, PrinterIcon, SaveIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
@@ -8,8 +8,7 @@ import { useError } from './ErrorProvider';
 interface RapoarteExamenProps {
     sesiuni: SesiuneExamen[];
     inscrieri: InscriereExamen[];
-    note: NoteExamen[];
-    setNote: React.Dispatch<React.SetStateAction<NoteExamen[]>>;
+    setInscrieri: React.Dispatch<React.SetStateAction<InscriereExamen[]>>;
     sportivi: Sportiv[];
     grade: Grad[];
     locatii: Locatie[];
@@ -19,22 +18,10 @@ interface RapoarteExamenProps {
 
 type View = 'note' | 'federatie';
 
-// --- Sub-componente interne ---
-const Stepper: React.FC<{ value: number; onChange: (newValue: number) => void }> = ({ value, onChange }) => {
-    const step = (amount: number) => onChange(Math.max(0, Math.min(10, value + amount)));
-    return (
-        <div className="flex items-center gap-2">
-            <Button size="sm" variant="secondary" className="!p-1 h-6 w-6" onClick={() => step(-1)}>-</Button>
-            <span className="font-bold text-lg w-8 text-center">{value}</span>
-            <Button size="sm" variant="secondary" className="!p-1 h-6 w-6" onClick={() => step(1)}>+</Button>
-        </div>
-    );
-};
-
-export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ sesiuni, inscrieri, note, setNote, sportivi, grade, locatii, plati, onBack }) => {
+export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ sesiuni, inscrieri, setInscrieri, sportivi, grade, locatii, plati, onBack }) => {
     const [activeView, setActiveView] = useState<View>('note');
     const [selectedSesiuneId, setSelectedSesiuneId] = useState<string>('');
-    const [localNotes, setLocalNotes] = useState<Record<string, Partial<Omit<NoteExamen, 'id' | 'inscriere_id'>>>>({});
+    const [localInscrieri, setLocalInscrieri] = useState<InscriereExamen[]>([]);
     const [loading, setLoading] = useState(false);
     const { showError, showSuccess } = useError();
 
@@ -44,62 +31,63 @@ export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ sesiuni, inscrie
         if (!selectedSesiuneId) return [];
         return inscrieri
             .filter(i => i.sesiune_id === selectedSesiuneId)
-            .map(i => ({
-                ...i,
-                sportiv: sportivi.find(s => s.id === i.sportiv_id),
-                grad: grade.find(g => g.id === i.grad_vizat_id),
-            }))
-            .sort((a, b) => a.sportiv?.nume.localeCompare(b.sportiv?.nume || '') || 0);
-    }, [selectedSesiuneId, inscrieri, sportivi, grade]);
+            .sort((a, b) => (a.sportivi?.nume || '').localeCompare(b.sportivi?.nume || '') || 0);
+    }, [selectedSesiuneId, inscrieri]);
 
     useEffect(() => {
-        const initialNotes: Record<string, Partial<Omit<NoteExamen, 'id' | 'inscriere_id'>>> = {};
-        participanti.forEach(p => {
-            const existingNote = note.find(n => n.inscriere_id === p.id);
-            initialNotes[p.id] = {
-                nota_tehnica: existingNote?.nota_tehnica ?? null,
-                nota_forta: existingNote?.nota_forta ?? null,
-                nota_viteza: existingNote?.nota_viteza ?? null,
-                nota_atitudine: existingNote?.nota_atitudine ?? null,
-            };
-        });
-        setLocalNotes(initialNotes);
-    }, [participanti, note]);
+        setLocalInscrieri(participanti);
+    }, [participanti]);
 
-    const handleNoteChange = (inscriereId: string, field: keyof Omit<NoteExamen, 'id' | 'inscriere_id'>, value: string) => {
-        const numValue = value === '' ? null : Math.max(0, Math.min(10, parseFloat(value)));
-        setLocalNotes(prev => ({
-            ...prev,
-            [inscriereId]: { ...prev[inscriereId], [field]: numValue }
-        }));
+    const handleNoteChange = (inscriereId: string, field: keyof InscriereExamen, value: number | null) => {
+        setLocalInscrieri(prev => 
+            prev.map(i => i.id === inscriereId ? { ...i, [field]: value } : i)
+        );
     };
     
     const handleSaveNotes = async () => {
         if (!supabase) { showError("Eroare Configurare", "Client Supabase neconfigurat."); return; }
         setLoading(true);
 
-        const upsertData = Object.entries(localNotes)
-            .map(([inscriere_id, noteValues]) => ({
-                inscriere_id,
-                ...noteValues
-            }));
+        const updates = localInscrieri.map(i => ({
+            id: i.id,
+            nota_tehnica: i.nota_tehnica,
+            nota_forta: i.nota_forta,
+            nota_viteza: i.nota_viteza,
+            nota_atitudine: i.nota_atitudine,
+        }));
             
-        const { data, error } = await supabase.from('note_examene').upsert(upsertData, { onConflict: 'inscriere_id' }).select();
+        const { data, error } = await supabase.from('inscrieri_examene').upsert(updates).select('*, sportivi:sportiv_id(*), grade:grad_vizat_id(*)');
 
         setLoading(false);
         if (error) {
             showError("Eroare la Salvarea Notelor", error);
         } else if (data) {
-            setNote(prev => {
-                const updatedNotes = new Map(prev.map(n => [n.inscriere_id, n]));
-                data.forEach(d => updatedNotes.set(d.inscriere_id, d as NoteExamen));
-                return Array.from(updatedNotes.values());
+            setInscrieri(prev => {
+                const updatedMap = new Map(prev.map(item => [item.id, item]));
+                data.forEach(d => updatedMap.set(d.id, d as InscriereExamen));
+                return Array.from(updatedMap.values());
             });
             showSuccess("Succes!", "Notele au fost salvate.");
         }
     };
     
     const handlePrint = () => window.print();
+
+    const getExamOutcome = (inscriere: InscriereExamen) => {
+        const notes = [inscriere.nota_tehnica, inscriere.nota_forta, inscriere.nota_viteza, inscriere.nota_atitudine];
+        if (notes.some(n => n === null)) {
+            return { media: 'N/A', rezultat: 'Neprezentat' };
+        }
+        const numericNotes = notes as number[];
+        if (numericNotes.some(n => n < 5)) {
+            return { media: (numericNotes.reduce((a, b) => a + b, 0) / 4).toFixed(2), rezultat: 'Respins' };
+        }
+        const media = numericNotes.reduce((a, b) => a + b, 0) / 4;
+        return {
+            media: media.toFixed(2),
+            rezultat: media >= 5 ? 'Admis' : 'Respins'
+        };
+    };
 
     const renderHeader = () => (
         <div className="mb-4">
@@ -144,28 +132,27 @@ export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ sesiuni, inscrie
                                             <th className="p-2 w-24 text-center">Viteză</th><th className="p-2 w-24 text-center">Atitudine</th>
                                             <th className="p-2 w-28 text-center font-bold">Medie</th>
                                         </tr></thead>
-                                        <tbody>{participanti.map((p, idx) => {
-                                            const note = localNotes[p.id] || {};
-                                            const n = [note.nota_tehnica, note.nota_forta, note.nota_viteza, note.nota_atitudine];
-                                            const media = n.every(val => typeof val === 'number') ? (n.reduce((acc, val) => acc + (val || 0), 0) / 4).toFixed(2) : 'N/A';
+                                        <tbody>{localInscrieri.map((p, idx) => {
+                                            const { media } = getExamOutcome(p);
                                             return <tr key={p.id} className="border-b border-slate-700">
-                                                <td className="p-2">{idx+1}.</td><td className="p-2 font-semibold">{p.sportiv?.nume} {p.sportiv?.prenume}</td><td>{p.grad?.nume}</td>
-                                                <td><Input label="" type="number" step="0.5" min="0" max="10" value={note.nota_tehnica ?? ''} onChange={e => handleNoteChange(p.id, 'nota_tehnica', e.target.value)} className="text-center"/></td>
-                                                <td><Input label="" type="number" step="0.5" min="0" max="10" value={note.nota_forta ?? ''} onChange={e => handleNoteChange(p.id, 'nota_forta', e.target.value)} className="text-center"/></td>
-                                                <td><Input label="" type="number" step="0.5" min="0" max="10" value={note.nota_viteza ?? ''} onChange={e => handleNoteChange(p.id, 'nota_viteza', e.target.value)} className="text-center"/></td>
-                                                <td><Input label="" type="number" step="0.5" min="0" max="10" value={note.nota_atitudine ?? ''} onChange={e => handleNoteChange(p.id, 'nota_atitudine', e.target.value)} className="text-center"/></td>
+                                                <td className="p-2">{idx+1}.</td><td className="p-2 font-semibold">{p.sportivi?.nume} {p.sportivi?.prenume}</td><td>{p.grade?.nume}</td>
+                                                <td><Input label="" type="number" step="0.5" min="0" max="10" value={p.nota_tehnica ?? ''} onChange={e => handleNoteChange(p.id, 'nota_tehnica', e.target.value === '' ? null : parseFloat(e.target.value))} className="text-center"/></td>
+                                                <td><Input label="" type="number" step="0.5" min="0" max="10" value={p.nota_forta ?? ''} onChange={e => handleNoteChange(p.id, 'nota_forta', e.target.value === '' ? null : parseFloat(e.target.value))} className="text-center"/></td>
+                                                <td><Input label="" type="number" step="0.5" min="0" max="10" value={p.nota_viteza ?? ''} onChange={e => handleNoteChange(p.id, 'nota_viteza', e.target.value === '' ? null : parseFloat(e.target.value))} className="text-center"/></td>
+                                                <td><Input label="" type="number" step="0.5" min="0" max="10" value={p.nota_atitudine ?? ''} onChange={e => handleNoteChange(p.id, 'nota_atitudine', e.target.value === '' ? null : parseFloat(e.target.value))} className="text-center"/></td>
                                                 <td className="p-2 text-center font-bold text-lg text-brand-secondary">{media}</td>
                                             </tr>
                                         })}</tbody>
                                     </table>
                                 </div>
                                 {/* --- VEDERE MOBIL NOTE --- */}
-                                <div className="md:hidden space-y-4">{participanti.map((p, idx) => {
-                                    const note = localNotes[p.id] || {};
-                                    const n = [note.nota_tehnica, note.nota_forta, note.nota_viteza, note.nota_atitudine];
-                                    const media = n.every(val => typeof val === 'number') ? (n.reduce((acc, val) => acc + (val || 0), 0) / 4).toFixed(2) : 'N/A';
-                                    return <Card key={p.id} className="bg-slate-800"><p className="font-bold">{idx+1}. {p.sportiv?.nume} {p.sportiv?.prenume} - <span className="text-brand-secondary">{p.grad?.nume}</span></p><div className="mt-4 grid grid-cols-2 gap-4">
-                                        {(Object.keys(note) as (keyof typeof note)[]).map(key => <div key={key} className="flex justify-between items-center"><span className="text-sm capitalize">{key.split('_')[1]}</span><Stepper value={note[key] ?? 0} onChange={val => handleNoteChange(p.id, key, String(val))}/></div>)}
+                                <div className="md:hidden space-y-4">{localInscrieri.map((p, idx) => {
+                                    const { media } = getExamOutcome(p);
+                                    return <Card key={p.id} className="bg-slate-800"><p className="font-bold">{idx+1}. {p.sportivi?.nume} {p.sportivi?.prenume} - <span className="text-brand-secondary">{p.grade?.nume}</span></p><div className="mt-4 grid grid-cols-2 gap-4">
+                                        <div className="flex justify-between items-center"><span className="text-sm">Tehnică</span><Stepper value={p.nota_tehnica ?? 0} onChange={val => handleNoteChange(p.id, 'nota_tehnica', val)}/></div>
+                                        <div className="flex justify-between items-center"><span className="text-sm">Forță</span><Stepper value={p.nota_forta ?? 0} onChange={val => handleNoteChange(p.id, 'nota_forta', val)}/></div>
+                                        <div className="flex justify-between items-center"><span className="text-sm">Viteză</span><Stepper value={p.nota_viteza ?? 0} onChange={val => handleNoteChange(p.id, 'nota_viteza', val)}/></div>
+                                        <div className="flex justify-between items-center"><span className="text-sm">Atitudine</span><Stepper value={p.nota_atitudine ?? 0} onChange={val => handleNoteChange(p.id, 'nota_atitudine', val)}/></div>
                                     </div><div className="mt-4 pt-3 border-t border-slate-700 flex justify-between items-center"><span className="font-bold">Media Generală</span><span className="font-bold text-lg text-brand-secondary">{media}</span></div></Card>
                                 })}</div>
                             </>
@@ -176,9 +163,10 @@ export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ sesiuni, inscrie
                                     <th className="p-2">Rezultat</th><th className="p-2">Contribuția</th><th className="p-2">Observații</th>
                                 </tr></thead>
                                 <tbody>{participanti.map((p, idx) => {
+                                    const { rezultat } = getExamOutcome(p);
                                     const taxa = plati.find(pl => pl.sportiv_id === p.sportiv_id && pl.tip === 'Taxa Examen' && pl.data === selectedSesiune.data);
                                     return <tr key={p.id} className="border-b border-slate-700">
-                                        <td className="p-2">{idx+1}.</td><td className="p-2 font-semibold">{p.sportiv?.nume} {p.sportiv?.prenume}</td><td>{p.grad?.nume}</td><td>{p.rezultat}</td><td>{taxa ? `${taxa.suma.toFixed(2)} RON` : 'N/A'}</td><td>{p.observatii || ''}</td>
+                                        <td className="p-2">{idx+1}.</td><td className="p-2 font-semibold">{p.sportivi?.nume} {p.sportivi?.prenume}</td><td>{p.grade?.nume}</td><td>{rezultat}</td><td>{taxa ? `${taxa.suma.toFixed(2)} RON` : 'N/A'}</td><td>{p.observatii || ''}</td>
                                     </tr>
                                 })}</tbody>
                             </table>

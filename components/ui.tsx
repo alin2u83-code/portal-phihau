@@ -160,3 +160,19 @@ export const Switch: React.FC<{ label: string; name: string; checked: boolean; o
         <span className="text-xs font-bold text-slate-400 uppercase group-hover:text-white transition-colors">{label}</span>
     </label>
 );
+
+export const Stepper: React.FC<{ value: number; onChange: (newValue: number) => void }> = ({ value, onChange }) => {
+    const step = (amount: number) => {
+        const stepAmount = 0.5;
+        const newValue = Math.max(0, Math.min(10, value + (amount * stepAmount)));
+        onChange(newValue);
+    };
+
+    return (
+        <div className="flex items-center gap-2">
+            <Button size="sm" variant="secondary" className="!p-1 h-7 w-7" onClick={() => step(-1)}>-</Button>
+            <span className="font-bold text-lg w-10 text-center">{value.toFixed(1)}</span>
+            <Button size="sm" variant="secondary" className="!p-1 h-7 w-7" onClick={() => step(1)}>+</Button>
+        </div>
+    );
+};

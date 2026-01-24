@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
-import { Sportiv, SesiuneExamen, Grad, InscriereExamen, View, Antrenament, Grupa, Plata, Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, Rol, AnuntPrezenta, Reducere, AnuntGeneral, TipPlata, Locatie, NoteExamen } from './types';
+import { Sportiv, SesiuneExamen, Grad, InscriereExamen, View, Antrenament, Grupa, Plata, Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, Rol, AnuntPrezenta, Reducere, AnuntGeneral, TipPlata, Locatie } from './types';
 import { Dashboard } from './components/Dashboard';
 import { SportiviManagement } from './components/SportiviManagement';
 import { UserProfile } from './components/UserProfile';
@@ -51,7 +51,6 @@ function App() {
   const [sesiuniExamene, setSesiuniExamene] = useState<SesiuneExamen[]>([]);
   const [grade, setGrade] = useState<Grad[]>([]);
   const [inscrieriExamene, setInscrieriExamene] = useState<InscriereExamen[]>([]);
-  const [noteExamene, setNoteExamene] = useState<NoteExamen[]>([]);
   const [antrenamente, setAntrenamente] = useState<Antrenament[]>([]);
   const [grupe, setGrupe] = useState<Grupa[]>([]);
   const [familii, setFamilii] = useState<Familie[]>([]);
@@ -85,7 +84,7 @@ function App() {
             { data: cfData }, { data: gradePricesData }, { data: abData }, { data: roData }, { data: progData },
             { data: reduceriData }, { data: tipuriPlatiData }, { data: locatiiData },
             { data: sData }, { data: inscrieriData }, { data: fData }, { data: plData },
-            { data: tData }, { data: rData }, { data: antrenamenteData }, { data: anunturiData }, { data: noteData }
+            { data: tData }, { data: rData }, { data: antrenamenteData }, { data: anunturiData }
         ] = await Promise.all([
             // Public/Shared data
             supabase.from('sesiuni_examene').select('*'),
@@ -110,7 +109,6 @@ function App() {
             supabase.from('rezultate').select('*'),
             supabase.from('program_antrenamente').select('*, prezenta_antrenament!antrenament_id(sportiv_id)').not('data', 'is', null),
             supabase.from('anunturi_prezenta').select('*'),
-            supabase.from('note_examene').select('*')
         ]);
         
         const rawPrices = gradePricesData || [];
@@ -167,7 +165,6 @@ function App() {
         setReduceri(reduceriData || []);
         setSportivi(formattedSportivi);
         setInscrieriExamene((inscrieriData || []) as InscriereExamen[]);
-        setNoteExamene(noteData || []);
         setFamilii(fData || []);
         setPlati(plData || []);
         setTranzactii(tData || []);
@@ -345,8 +342,8 @@ function App() {
         ) : (
             <SportiviManagement onBack={() => setActiveView('dashboard')} sportivi={sportivi} setSportivi={setSportivi} grupe={grupe} setGrupe={setGrupe} tipuriAbonament={tipuriAbonament} familii={familii} setFamilii={setFamilii} allRoles={allRoles} setAllRoles={setAllRoles} currentUser={currentUser} plati={plati} tranzactii={tranzactii} setTranzactii={setTranzactii} onViewSportiv={setViewedSportiv} />
         );
-      case 'examene': return <GestiuneExamene sesiuni={sesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={sportivi} setSportivi={setSportivi} grade={grade} locatii={locatii} setLocatii={setLocatii} plati={plati} setPlati={setPlati} preturiConfig={preturiConfig} onBack={() => setActiveView('dashboard')} note={noteExamene} setNote={setNoteExamene} />;
-      case 'rapoarte-examen': return <RapoarteExamen sesiuni={sesiuniExamene} inscrieri={inscrieriExamene} note={noteExamene} setNote={setNoteExamene} sportivi={sportivi} grade={grade} locatii={locatii} plati={plati} onBack={() => setActiveView('dashboard')} />;
+      case 'examene': return <GestiuneExamene sesiuni={sesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={sportivi} setSportivi={setSportivi} grade={grade} locatii={locatii} setLocatii={setLocatii} plati={plati} setPlati={setPlati} preturiConfig={preturiConfig} onBack={() => setActiveView('dashboard')} />;
+      case 'rapoarte-examen': return <RapoarteExamen sesiuni={sesiuniExamene} inscrieri={inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={sportivi} grade={grade} locatii={locatii} plati={plati} onBack={() => setActiveView('dashboard')} />;
       case 'grade': return <GradeManagement grade={grade} setGrade={setGrade} onBack={() => setActiveView('dashboard')} />;
       case 'prezenta': return <PrezentaManagement sportivi={sportivi} setSportivi={setSportivi} antrenamente={antrenamente} setAntrenamente={setAntrenamente} grupe={grupe} onBack={() => setActiveView('dashboard')} setPlati={setPlati} tipuriAbonament={tipuriAbonament} anunturi={anunturi}/>;
       case 'grupe': return <GrupeManagement grupe={grupe} setGrupe={setGrupe} onBack={() => setActiveView('dashboard')} />;

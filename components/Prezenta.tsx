@@ -108,22 +108,30 @@ const AttendanceDetail: React.FC<{
     const [loading, setLoading] = useState(false);
     const { showError, showSuccess } = useError();
     const [isQuickAddModalOpen, setIsQuickAddModalOpen] = useState(false);
+    const [salaFilter, setSalaFilter] = useState('');
     
     const tip = antrenament.grupa_id ? 'Normal' : 'Vacanta';
 
     const anunturiAntrenament = useMemo(() => {
         return anunturi.filter(a => a.antrenament_id === antrenament.id && (a.status === 'Intarziat' || a.status === 'Absent'));
     }, [anunturi, antrenament.id]);
+    
+    const sali = useMemo(() => [...new Set(grupe.map(g => g.sala).filter(Boolean))], [grupe]);
 
     const sportiviInGrupa = useMemo(() => {
         let sportiviAfisati: Sportiv[];
         if (tip === 'Vacanta') {
              sportiviAfisati = sportivi.filter(s => s.status === 'Activ' && s.participa_vacanta);
+             if (salaFilter) {
+                const grupaIdsInSala = new Set(grupe.filter(g => g.sala === salaFilter).map(g => g.id));
+                sportiviAfisati = sportiviAfisati.filter(s => s.grupa_id && grupaIdsInSala.has(s.grupa_id));
+             }
         } else {
              sportiviAfisati = sportivi.filter(s => s.status === 'Activ' && s.grupa_id === antrenament.grupa_id);
         }
         return sportiviAfisati.sort((a,b) => a.nume.localeCompare(b.nume));
-    }, [sportivi, antrenament.grupa_id, tip]);
+    }, [sportivi, antrenament.grupa_id, tip, salaFilter, grupe]);
+
 
     const sportiviExtraDisponibili = useMemo(() => {
         const idsInGrupa = new Set(sportiviInGrupa.map(s => s.id));
@@ -237,6 +245,19 @@ const AttendanceDetail: React.FC<{
                         {anunturiAntrenament.length} sportiv(i) au anunțat întârziere sau absență.
                     </div>
                 )}
+                {tip === 'Vacanta' && (
+                    <div className="mt-4 pt-4 border-t border-slate-700">
+                        <Select
+                            label="Filtrează după Sală"
+                            value={salaFilter}
+                            onChange={e => setSalaFilter(e.target.value)}
+                            className="!bg-light-navy"
+                        >
+                            <option value="">Toate Sălile</option>
+                            {sali.map(s => <option key={s} value={s}>{s}</option>)}
+                        </Select>
+                    </div>
+                )}
             </div>
             <div className="space-y-6">
                 <div>
@@ -250,15 +271,16 @@ const AttendanceDetail: React.FC<{
                     <div className="max-h-96 overflow-y-auto space-y-2 p-3 bg-slate-800/50 rounded-lg border border-slate-700">
                         {sportiviInGrupa.map(sportiv => {
                             const anunt = anunturiAntrenament.find(a => a.sportiv_id === sportiv.id);
+                            const isPresent = presentIds.has(sportiv.id);
                             let anuntClass = '';
                             if (anunt) {
                                 if (anunt.status === 'Intarziat') anuntClass = 'bg-amber-900/40 hover:bg-amber-900/60 border-l-4 border-amber-500';
                                 else if (anunt.status === 'Absent') anuntClass = 'bg-red-900/40 hover:bg-red-900/60 border-l-4 border-red-500';
                             }
                             return (
-                                <label key={sportiv.id} className={`flex items-center gap-3 p-2 rounded-md hover:bg-slate-700/50 cursor-pointer transition-colors ${anuntClass}`}>
-                                    <input type="checkbox" className="h-5 w-5 rounded border-slate-500 bg-slate-900 text-brand-secondary focus:ring-brand-secondary" checked={presentIds.has(sportiv.id)} onChange={(e) => handleCheckboxChange(sportiv.id, e.target.checked)} />
-                                    <span className="font-medium flex-grow">{sportiv.nume} {sportiv.prenume}</span>
+                                <label key={sportiv.id} className={`flex items-center gap-3 p-2 rounded-md hover:bg-slate-700/50 cursor-pointer transition-colors ${anuntClass} ${isPresent ? 'bg-brand-secondary/20 border-l-4 border-brand-secondary' : ''}`}>
+                                    <input type="checkbox" className="h-5 w-5 rounded border-slate-500 bg-slate-900 text-brand-secondary focus:ring-brand-secondary" checked={isPresent} onChange={(e) => handleCheckboxChange(sportiv.id, e.target.checked)} />
+                                    <span className={`font-medium flex-grow ${isPresent ? 'text-white' : ''}`}>{sportiv.nume} {sportiv.prenume}</span>
                                     {anunt && (
                                         <div className="relative group">
                                              <ChatBubbleLeftEllipsisIcon className={`w-5 h-5 ${anunt.status === 'Intarziat' ? 'text-amber-400' : 'text-red-400'}`}/>

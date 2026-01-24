@@ -118,7 +118,6 @@ export interface Grupa {
     denumire: string;
     program: ProgramItem[];
     sala: string;
-    club_id?: string | null;
 }
 
 export interface Eveniment {
@@ -159,7 +158,6 @@ export interface TipAbonament {
     denumire: string;
     pret: number;
     numar_membri: number; // 1 pt individual, 2 pt familie de 2, etc. 
-    club_id?: string | null;
 }
 
 export interface Tranzactie {

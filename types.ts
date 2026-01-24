@@ -84,6 +84,16 @@ export interface IstoricGrade {
     sesiune_examen_id?: string;
 }
 
+export interface IstoricTransfer {
+    id: string;
+    created_at: string;
+    sportiv_id: string;
+    club_vechi_id: string | null;
+    club_nou_id: string;
+    data_transfer: string;
+    aprobat_de_user_id: string;
+}
+
 export interface ProgramItem {
     id: string;
     ziua: 'Luni' | 'Marți' | 'Miercuri' | 'Joi' | 'Vineri' | 'Sâmbătă' | 'Duminică';

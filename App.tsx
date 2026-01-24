@@ -379,6 +379,7 @@ function App() {
                 setTranzactii={setTranzactii}
                 onBack={() => setViewedSportiv(null)}
                 reduceri={reduceri}
+                clubs={cluburi}
             />
         ) : (
             <SportiviManagement onBack={() => setActiveView('dashboard')} sportivi={sportivi} setSportivi={setSportivi} grupe={grupe} setGrupe={setGrupe} tipuriAbonament={tipuriAbonament} familii={familii} setFamilii={setFamilii} allRoles={allRoles} setAllRoles={setAllRoles} currentUser={currentUser} plati={plati} tranzactii={tranzactii} setTranzactii={setTranzactii} onViewSportiv={setViewedSportiv} clubs={cluburi} />

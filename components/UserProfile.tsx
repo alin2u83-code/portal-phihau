@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Sportiv, User, Rol, Participare, Examen, Grad, Antrenament, Plata, Familie, TipAbonament, Tranzactie, Reducere } from '../types';
-import { Button, Card, Select } from './ui';
-import { ArrowLeftIcon, EditIcon, WalletIcon, TrashIcon, ShieldCheckIcon, PlusIcon, ChartBarIcon } from './icons';
+import { Sportiv, User, Rol, Participare, Examen, Grad, Antrenament, Plata, Familie, TipAbonament, Tranzactie, Reducere, Club } from '../types';
+import { Button, Card, Select, Modal, Input } from './ui';
+import { ArrowLeftIcon, EditIcon, WalletIcon, TrashIcon, ShieldCheckIcon, PlusIcon, ChartBarIcon, TransferIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { SportivFormModal } from './Sportivi';
@@ -14,6 +14,73 @@ const getGrad = (gradId: string | null, allGrades: Grad[]) => gradId ? allGrades
 const getAge = (dateString: string) => { const today = new Date(); const birthDate = new Date(dateString); let age = today.getFullYear() - birthDate.getFullYear(); const m = today.getMonth() - birthDate.getMonth(); if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; } return age; };
 const parseDurationToMonths = (durationStr: string): number => { const parts = durationStr.split(' '); if (parts.length < 2) return 0; const value = parseInt(parts[0], 10); const unit = parts[1].toLowerCase(); if (unit.startsWith('lun')) return value; if (unit.startsWith('an')) return value * 12; return 0; };
 
+interface TransferModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    sportiv: Sportiv;
+    clubs: Club[];
+    onTransferComplete: (updatedSportiv: Sportiv) => void;
+}
+const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose, sportiv, clubs, onTransferComplete }) => {
+    const [newClubId, setNewClubId] = useState('');
+    const [loading, setLoading] = useState(false);
+    const { showError, showSuccess } = useError();
+    
+    const availableClubs = clubs.filter(c => c.id !== sportiv.club_id);
+
+    const handleTransfer = async () => {
+        if (!newClubId) {
+            showError("Validare", "Vă rugăm selectați noul club.");
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const { error: rpcError } = await supabase.rpc('transfer_sportiv', {
+                p_sportiv_id: sportiv.id,
+                p_new_club_id: newClubId,
+                p_old_club_id: sportiv.club_id
+            });
+            if (rpcError) throw rpcError;
+
+            const { data: updatedSportiv, error: fetchError } = await supabase
+                .from('sportivi')
+                .select('*, roluri(id, nume)')
+                .eq('id', sportiv.id)
+                .single();
+            if (fetchError) throw fetchError;
+
+            showSuccess("Transfer Finalizat", `${sportiv.nume} ${sportiv.prenume} a fost mutat la noul club.`);
+            onTransferComplete(updatedSportiv as Sportiv);
+        } catch (err: any) {
+            showError("Eroare la Transfer", err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+    
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title={`Transfer Sportiv: ${sportiv.nume}`}>
+            <div className="space-y-4">
+                <p>Selectați noul club pentru <strong>{sportiv.nume} {sportiv.prenume}</strong>.</p>
+                <Select
+                    label="Club Destinație"
+                    value={newClubId}
+                    onChange={e => setNewClubId(e.target.value)}
+                >
+                    <option value="">Alege un club...</option>
+                    {availableClubs.map(c => <option key={c.id} value={c.id}>{c.nume}</option>)}
+                </Select>
+                <div className="flex justify-end pt-4 gap-2 border-t border-slate-700">
+                    <Button variant="secondary" onClick={onClose}>Anulează</Button>
+                    <Button variant="primary" onClick={handleTransfer} isLoading={loading}>Confirmă Transfer</Button>
+                </div>
+            </div>
+        </Modal>
+    );
+};
+
+
 const DataField: React.FC<{label: string, value: React.ReactNode}> = ({label, value}) => (
     <div>
         <dt className="text-sm font-medium text-slate-400">{label}</dt>
@@ -22,14 +89,7 @@ const DataField: React.FC<{label: string, value: React.ReactNode}> = ({label, va
 );
 
 const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
-    // FIX: Add missing 'Super Admin' and 'Admin Club' roles to satisfy the Record type.
-    const colorClasses: Record<Rol['nume'], string> = {
-        Admin: 'bg-red-600 text-white',
-        'Super Admin': 'bg-red-800 text-white',
-        'Admin Club': 'bg-blue-600 text-white',
-        Instructor: 'bg-sky-600 text-white',
-        Sportiv: 'bg-slate-600 text-slate-200'
-    };
+    const colorClasses: Record<Rol['nume'], string> = { Admin: 'bg-red-600 text-white', 'Super Admin': 'bg-red-800 text-white', 'Admin Club': 'bg-blue-600 text-white', Instructor: 'bg-sky-600 text-white', Sportiv: 'bg-slate-600 text-slate-200' };
     return <span className={`px-2 py-1 text-xs font-semibold rounded-full ${colorClasses[role.nume] || 'bg-gray-500 text-white'}`}>{role.nume}</span>;
 };
 
@@ -51,22 +111,21 @@ interface UserProfileProps {
     setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
     setTranzactii: React.Dispatch<React.SetStateAction<any[]>>;
     onBack: () => void;
+    clubs: Club[];
 }
 
-export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, participari, examene, grade, antrenamente, plati, tranzactii, reduceri, grupe, familii, tipuriAbonament, allRoles, setSportivi, setPlati, setTranzactii, onBack }) => {
+export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, participari, examene, grade, antrenamente, plati, tranzactii, reduceri, grupe, familii, tipuriAbonament, allRoles, setSportivi, setPlati, setTranzactii, onBack, clubs }) => {
     const { showError, showSuccess } = useError();
     
-    // State for modals
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+    const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
 
-    // State for role editing
     const [isEditingRoles, setIsEditingRoles] = useState(false);
     const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>(sportiv.roluri.map(r => r.id));
     
-    // State for financial history filter
     const [financialFilter, setFinancialFilter] = useState<'Toate' | 'Abonament' | 'Taxa Examen' | 'Echipament'>('Toate');
 
     useEffect(() => {
@@ -74,6 +133,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
     }, [sportiv]);
 
     const isAdmin = currentUser.roluri.some(r => r.nume === 'Admin');
+    const isSuperAdmin = currentUser.roluri.some(r => r.nume === 'Super Admin' || r.nume === 'Admin');
 
     const sportivParticipari = useMemo(() => participari.filter(p => p.sportiv_id === sportiv.id), [participari, sportiv.id]);
     
@@ -86,12 +146,10 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
     const admittedParticipations = useMemo(() => sortedSportivParticipariForDisplay.filter(p => p.rezultat === 'Admis'), [sortedSportivParticipariForDisplay]);
     
     const currentGrad = useMemo(() => {
-        // Prioritize the official grade from the sportiv's profile, as this is the source of truth updated after exams.
         const officialGrad = getGrad(sportiv.grad_actual_id, grade);
         if (officialGrad) {
             return officialGrad;
         }
-        // As a reliable fallback, calculate the latest grade from the exam history.
         const lastAdmittedGrade = getGrad(admittedParticipations[0]?.grad_vizat_id, grade);
         return lastAdmittedGrade;
     }, [admittedParticipations, grade, sportiv.grad_actual_id]);
@@ -112,15 +170,12 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
     }, [currentGrad, grade, sportiv, admittedParticipations]);
     
     const { sold, individualHistory, familieHistory } = useMemo(() => {
-        // Calculează soldul total
         const allRelevantPlati = plati.filter(p => p.sportiv_id === sportiv.id || (p.familie_id && p.familie_id === sportiv.familie_id));
         const allRelevantTranzactii = tranzactii.filter(t => t.sportiv_id === sportiv.id || (t.familie_id && t.familie_id === sportiv.familie_id));
         const totalDatorii = allRelevantPlati.reduce((sum, p) => sum + p.suma, 0);
         const totalIncasari = allRelevantTranzactii.reduce((sum, t) => sum + t.suma, 0);
         const currentSold = totalIncasari - totalDatorii;
         
-        // Asigură unicitatea folosind un Map, echivalent cu DISTINCT ON (id)
-        // FIX: Explicitly set the generic type for `new Map` to resolve a type inference issue.
         const uniquePlati: Plata[] = Array.from(new Map<string, Plata>(allRelevantPlati.map(p => [p.id, p])).values());
 
         const processPlati = (platiList: Plata[]) => {
@@ -245,7 +300,8 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                         <p className="text-slate-400">Profil detaliat și istoric activitate</p>
                     </div>
                     <div className="flex gap-2 self-end sm:self-center flex-wrap">
-                        <Button variant="secondary" onClick={() => setIsReportModalOpen(true)}><ChartBarIcon className="w-4 h-4 mr-2"/> Raport Activitate</Button>
+                        {isSuperAdmin && <Button variant="secondary" onClick={() => setIsTransferModalOpen(true)}><TransferIcon className="w-4 h-4 mr-2"/> Transfer</Button>}
+                        <Button variant="secondary" onClick={() => setIsReportModalOpen(true)}><ChartBarIcon className="w-4 h-4 mr-2"/> Raport</Button>
                         <Button variant="secondary" onClick={() => setIsEditModalOpen(true)}><EditIcon className="w-4 h-4 mr-2"/> Editează</Button>
                         <Button variant="info" onClick={() => setIsWalletModalOpen(true)}><WalletIcon className="w-4 h-4 mr-2"/> Portofel</Button>
                         <Button variant="danger" onClick={() => setIsDeleteModalOpen(true)}><TrashIcon className="w-4 h-4 mr-2"/> Șterge</Button>
@@ -271,6 +327,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                         <div className="space-y-2 text-sm">
                             <DataField label="Vârstă" value={`${getAge(sportiv.data_nasterii)} ani`} />
                             <DataField label="Grupă" value={grupe.find(g => g.id === sportiv.grupa_id)?.denumire} />
+                            <DataField label="Club" value={clubs.find(c => c.id === sportiv.club_id)?.nume || 'N/A'} />
                             <DataField label="Status" value={sportiv.status} />
                         </div>
                     </div>
@@ -353,11 +410,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                 )}
             </Card>
             
-            <Card className="p-0">
-                <div className="p-4 bg-slate-700/50">
-                    <h3 className="font-bold text-white">Istoric Antrenamente (Ultimele 3 Luni)</h3>
-                </div>
-                <div className="overflow-x-auto max-h-80">
+            <Card className="p-0"><div className="p-4 bg-slate-700/50"><h3 className="font-bold text-white">Istoric Antrenamente (Ultimele 3 Luni)</h3></div><div className="overflow-x-auto max-h-80">
                     <table className="w-full text-sm text-left">
                         <thead className="bg-slate-800/50 text-xs uppercase text-slate-400 sticky top-0 backdrop-blur-sm">
                             <tr>
@@ -385,8 +438,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                             )}
                         </tbody>
                     </table>
-                </div>
-            </Card>
+                </div></Card>
 
             <Card className="p-0"><div className="p-4 bg-slate-700/50"><h3 className="font-bold text-white">Istoric Examinări</h3></div><div className="overflow-x-auto"><table className="w-full text-sm text-left"><thead className="bg-slate-800/50 text-xs uppercase text-slate-400"><tr><th className="p-3">Data</th><th className="p-3">Grad Susținut</th><th className="p-3">Rezultat</th></tr></thead><tbody className="divide-y divide-slate-700">{sortedSportivParticipariForDisplay.map(p => {
                     const isCurrentGradRow = p.id === currentGradParticipationId;
@@ -402,10 +454,11 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                     );
                 })}</tbody></table></div></Card>
 
-            <SportivFormModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} onSave={handleSaveSportiv} sportivToEdit={sportiv} grupe={grupe} setGrupe={()=>{}} familii={familii} setFamilii={()=>{}} tipuriAbonament={tipuriAbonament} />
+            <SportivFormModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} onSave={handleSaveSportiv} sportivToEdit={sportiv} grupe={grupe} setGrupe={()=>{}} familii={familii} setFamilii={()=>{}} tipuriAbonament={tipuriAbonament} clubs={clubs} currentUser={currentUser} />
             {isWalletModalOpen && <SportivWallet sportiv={sportiv} familie={familii.find(f => f.id === sportiv.familie_id)} allPlati={plati} allTranzactii={tranzactii} setTranzactii={setTranzactii} onClose={() => setIsWalletModalOpen(false)} />}
             {isDeleteModalOpen && <DeleteAuditModal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} sportiv={sportiv} onDeactivate={handleDeactivate} onDelete={handleDelete} />}
             {isReportModalOpen && <SportivFeedbackReport isOpen={isReportModalOpen} onClose={() => setIsReportModalOpen(false)} sportiv={sportiv} antrenamente={antrenamente} grupe={grupe} grade={grade} participari={participari} examene={examene} />}
+            {isTransferModalOpen && <TransferModal isOpen={isTransferModalOpen} onClose={() => setIsTransferModalOpen(false)} sportiv={sportiv} clubs={clubs} onTransferComplete={(updatedSportiv) => setSportivi(prev => prev.map(s => s.id === updatedSportiv.id ? updatedSportiv : s))} />}
         </div>
     );
 };

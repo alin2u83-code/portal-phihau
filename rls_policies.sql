@@ -153,3 +153,60 @@ ALTER TABLE public.roluri ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.nom_locatii ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.familii ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.taxe_anuale_config ENABLE ROW LEVEL SECURITY;
+
+-- =================================================================
+-- Tabel & Funcție pentru Transfer Sportivi
+-- =================================================================
+
+-- Tabel nou pentru istoricul transferurilor
+CREATE TABLE IF NOT EXISTS public.istoric_transferuri (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    created_at timestamp with time zone NOT NULL DEFAULT now(),
+    sportiv_id uuid NOT NULL,
+    club_vechi_id uuid,
+    club_nou_id uuid NOT NULL,
+    data_transfer date NOT NULL,
+    aprobat_de_user_id uuid NOT NULL,
+    CONSTRAINT istoric_transferuri_pkey PRIMARY KEY (id),
+    CONSTRAINT istoric_transferuri_aprobat_de_user_id_fkey FOREIGN KEY (aprobat_de_user_id) REFERENCES auth.users(id),
+    CONSTRAINT istoric_transferuri_club_nou_id_fkey FOREIGN KEY (club_nou_id) REFERENCES public.cluburi(id),
+    CONSTRAINT istoric_transferuri_club_vechi_id_fkey FOREIGN KEY (club_vechi_id) REFERENCES public.cluburi(id),
+    CONSTRAINT istoric_transferuri_sportiv_id_fkey FOREIGN KEY (sportiv_id) REFERENCES public.sportivi(id) ON DELETE CASCADE
+);
+
+-- Politici RLS pentru tabelul de istoric
+ALTER TABLE public.istoric_transferuri ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "RLS Istoric Transferuri" ON public.istoric_transferuri;
+CREATE POLICY "RLS Istoric Transferuri" ON public.istoric_transferuri
+    FOR ALL
+    USING (
+        public.is_super_admin() OR
+        club_vechi_id = public.get_my_club_id() OR
+        club_nou_id = public.get_my_club_id() OR
+        sportiv_id IN (SELECT id FROM public.sportivi WHERE user_id = auth.uid())
+    )
+    WITH CHECK (public.is_super_admin());
+
+-- Funcție RPC pentru a efectua transferul atomic
+CREATE OR REPLACE FUNCTION public.transfer_sportiv(
+    p_sportiv_id uuid,
+    p_new_club_id uuid,
+    p_old_club_id uuid
+)
+RETURNS void AS $$
+BEGIN
+    -- Verificare autorizație: doar Super Adminii pot executa
+    IF NOT public.is_super_admin() THEN
+        RAISE EXCEPTION 'Acces neautorizat: Doar un Super Admin poate transfera sportivi.';
+    END IF;
+
+    -- Actualizează clubul sportivului
+    UPDATE public.sportivi
+    SET club_id = p_new_club_id
+    WHERE id = p_sportiv_id;
+
+    -- Înregistrează transferul în istoric
+    INSERT INTO public.istoric_transferuri(sportiv_id, club_vechi_id, club_nou_id, data_transfer, aprobat_de_user_id)
+    VALUES(p_sportiv_id, p_old_club_id, p_new_club_id, current_date, auth.uid());
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;

@@ -337,11 +337,12 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             }
 
             const { data: updatedInscriere, error: updateError } = await supabase.from('inscrieri_examene').update({ grad_vizat_id: gradSustinutId, plata_id: newPlataId }).eq('id', inscriereToEdit.id).select('*, sportivi:sportiv_id(*), grade:grad_vizat_id(*)').single();
-            // FIX: Spread types may only be created from object types.
             if (updateError) throw updateError;
             
             if (updatedInscriere) {
-                setInscrieri(prev => prev.map(i => i.id === updatedInscriere.id ? { ...i, ...updatedInscriere } as InscriereExamen : i));
+                // FIX: The original code used spread syntax ({ ...i, ...updatedInscriere }) which can cause issues if type inference for `updatedInscriere` is incorrect.
+                // Replaced with direct assignment as `updatedInscriere` contains the full, updated object from the database.
+                setInscrieri(prev => prev.map(i => i.id === updatedInscriere.id ? updatedInscriere as InscriereExamen : i));
             }
             
             if (plataResult) {

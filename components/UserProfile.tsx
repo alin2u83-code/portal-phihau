@@ -289,6 +289,13 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
         else { setSportivi(p => p.filter(sp => sp.id !== s.id)); showSuccess("Succes", "Sportiv șters definitiv."); onBack(); }
     };
 
+    const handleTransferComplete = (updatedSportiv: Sportiv) => {
+        setSportivi(prev => prev.map(s => s.id === updatedSportiv.id ? updatedSportiv : s));
+        setIsTransferModalOpen(false);
+        onBack();
+    };
+
+
     return (
         <div className="space-y-6">
             <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Listă</Button>
@@ -458,7 +465,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
             {isWalletModalOpen && <SportivWallet sportiv={sportiv} familie={familii.find(f => f.id === sportiv.familie_id)} allPlati={plati} allTranzactii={tranzactii} setTranzactii={setTranzactii} onClose={() => setIsWalletModalOpen(false)} />}
             {isDeleteModalOpen && <DeleteAuditModal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} sportiv={sportiv} onDeactivate={handleDeactivate} onDelete={handleDelete} />}
             {isReportModalOpen && <SportivFeedbackReport isOpen={isReportModalOpen} onClose={() => setIsReportModalOpen(false)} sportiv={sportiv} antrenamente={antrenamente} grupe={grupe} grade={grade} participari={participari} examene={examene} />}
-            {isTransferModalOpen && <TransferModal isOpen={isTransferModalOpen} onClose={() => setIsTransferModalOpen(false)} sportiv={sportiv} clubs={clubs} onTransferComplete={(updatedSportiv) => setSportivi(prev => prev.map(s => s.id === updatedSportiv.id ? updatedSportiv : s))} />}
+            {isTransferModalOpen && <TransferModal isOpen={isTransferModalOpen} onClose={() => setIsTransferModalOpen(false)} sportiv={sportiv} clubs={clubs} onTransferComplete={handleTransferComplete} />}
         </div>
     );
 };

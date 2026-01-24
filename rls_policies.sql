@@ -189,9 +189,9 @@ CREATE POLICY "RLS Istoric Transferuri" ON public.istoric_transferuri
 
 -- Funcție RPC pentru a efectua transferul atomic
 CREATE OR REPLACE FUNCTION public.transfer_sportiv(
+    p_sportiv_id uuid,
     p_new_club_id uuid,
-    p_old_club_id uuid,
-    p_sportiv_id uuid
+    p_old_club_id uuid
 )
 RETURNS void AS $$
 BEGIN

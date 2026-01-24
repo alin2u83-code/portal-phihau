@@ -46,6 +46,7 @@ import { CluburiManagement } from './components/CluburiManagement';
 import { adminMenu } from './components/menuConfig';
 import { usePermissions } from './hooks/usePermissions';
 import AccessDenied from './components/AccessDenied';
+import { useClubFilter } from './hooks/useClubFilter';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -81,8 +82,8 @@ function App() {
   const [isGlobalSportivFormOpen, setIsGlobalSportivFormOpen] = useState(false);
   const [isSidebarExpanded, setIsSidebarExpanded] = useLocalStorage<boolean>('phi-hau-sidebar-expanded', true);
 
-  const [globalClubFilter, setGlobalClubFilter] = useState<string | null>(null);
   const permissions = usePermissions(currentUser);
+  const { globalClubFilter, setGlobalClubFilter, canChangeClub } = useClubFilter(currentUser);
 
   const adminViews = useMemo(() => 
     new Set(
@@ -96,6 +97,20 @@ function App() {
   const fetchData = useCallback(async (user: User) => {
     if (!supabase) return;
     setLoading(true);
+
+    const userRoles = new Set(user.roluri.map(r => r.nume));
+    const isFederationAdmin = userRoles.has('Super Admin') || userRoles.has('Admin');
+    const isClubScoped = (userRoles.has('Admin Club') || userRoles.has('Instructor')) && !isFederationAdmin;
+    const userClubId = user.club_id;
+
+    const createClubScopedQuery = (table: string, select = '*') => {
+        let query = supabase.from(table).select(select);
+        const clubIdTables = ['sportivi', 'grupe', 'sesiuni_examene', 'evenimente', 'tipuri_abonament', 'cluburi'];
+        if (isClubScoped && userClubId && clubIdTables.includes(table)) {
+            query = query.eq('club_id', userClubId);
+        }
+        return query;
+    };
     
     try {
         const [
@@ -106,22 +121,22 @@ function App() {
             { data: tData }, { data: rData }, { data: antrenamenteData }, { data: anunturiData }
         ] = await Promise.all([
             // Public/Shared data
-            supabase.from('sesiuni_examene').select('*'),
+            createClubScopedQuery('sesiuni_examene'),
             supabase.from('grade').select('*'),
-            supabase.from('grupe').select('*'),
-            supabase.from('evenimente').select('*'),
+            createClubScopedQuery('grupe'),
+            createClubScopedQuery('evenimente'),
             supabase.from('preturi_config').select('*'),
-            supabase.from('grade_preturi_config').select('*'), // Fetch specific grade prices
-            supabase.from('tipuri_abonament').select('*'),
+            supabase.from('grade_preturi_config').select('*'),
+            createClubScopedQuery('tipuri_abonament'),
             supabase.from('roluri').select('*'),
             supabase.from('program_antrenamente').select('*').is('data', null),
             supabase.from('reduceri').select('*'),
             supabase.from('tipuri_plati').select('*'),
             supabase.from('nom_locatii').select('*'),
-            supabase.from('cluburi').select('*'),
+            createClubScopedQuery('cluburi'),
 
-            // RLS-protected data
-            supabase.from('sportivi').select('*, roluri(id, nume)'),
+            // RLS-protected data (RLS will still apply on top of client-side filter)
+            createClubScopedQuery('sportivi', '*, roluri(id, nume)'),
             supabase.from('inscrieri_examene').select('*, sportivi:sportiv_id(*), grade:grad_vizat_id(*)').order('ordine', { foreignTable: 'grade', ascending: false }),
             supabase.from('familii').select('*'),
             supabase.from('plati').select('*'),
@@ -494,7 +509,7 @@ function App() {
         clubs={cluburi}
         globalClubFilter={globalClubFilter}
         setGlobalClubFilter={setGlobalClubFilter}
-        isSuperAdmin={permissions.isFederationAdmin}
+        isSuperAdmin={canChangeClub}
       />
       <div className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'}`}>
          {isAdmin && !isMyPortalView && (

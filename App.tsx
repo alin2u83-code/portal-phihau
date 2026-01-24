@@ -40,12 +40,14 @@ import { IstoricExameneSportiv } from './components/IstoricExameneSportiv';
 import { FacturiPersonale } from './components/FacturiPersonale';
 import { CalendarView } from './components/CalendarView';
 import { RapoarteExamen } from './components/RapoarteExamen';
+import { SportivFormModal } from './components/Sportivi';
+import { PlusIcon } from './components/icons';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const { showError } = useError();
+  const { showError, showSuccess } = useError();
 
   const [sportivi, setSportivi] = useState<Sportiv[]>([]);
   const [sesiuniExamene, setSesiuniExamene] = useState<SesiuneExamen[]>([]);
@@ -67,11 +69,12 @@ function App() {
   const [reduceri, setReduceri] = useState<Reducere[]>([]);
   const [rawGradePrices, setRawGradePrices] = useState<any[]>([]); // For debugging
   
-  const [isSidebarExpanded, setIsSidebarExpanded] = useLocalStorage('phi-hau-sidebar-expanded', true);
   const [activeView, setActiveView] = useLocalStorage<View>('phi-hau-active-view', 'dashboard');
   const [selectedPlatiForIncasare, setSelectedPlatiForIncasare] = useState<Plata[]>([]);
   const [viewedSportiv, setViewedSportiv] = useState<Sportiv | null>(null);
   const [showPriceWarning, setShowPriceWarning] = useState(false);
+  const [isGlobalSportivFormOpen, setIsGlobalSportivFormOpen] = useState(false);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useLocalStorage<boolean>('phi-hau-sidebar-expanded', true);
 
 
   const fetchData = useCallback(async (user: User) => {
@@ -178,6 +181,36 @@ function App() {
         setLoading(false);
     }
   }, [showError]);
+  
+  const handleGlobalSaveSportiv = async (formData: Partial<Sportiv>) => {
+        try {
+            const dataToSave = { ...formData };
+            if (!dataToSave.familie_id) {
+                const individualSubscription = tipuriAbonament.find(ab => ab.numar_membri === 1);
+                if (individualSubscription) {
+                    dataToSave.tip_abonament_id = individualSubscription.id;
+                }
+            }
+            const { data, error } = await supabase.from('sportivi').insert(dataToSave).select().single();
+            if (error) throw error;
+
+            let newSportiv = { ...data, roluri: [] } as Sportiv;
+            const sportivRole = allRoles.find(r => r.nume === 'Sportiv');
+            if (sportivRole) {
+                const { error: roleError } = await supabase.from('sportivi_roluri').insert({ sportiv_id: data.id, rol_id: sportivRole.id });
+                if (roleError) {
+                    showError("Utilizator creat, dar eroare la asignarea rolului", roleError);
+                } else {
+                    newSportiv.roluri = [sportivRole];
+                }
+            }
+            setSportivi(prev => [...prev, newSportiv]);
+            return { success: true };
+        } catch (err: any) {
+            return { success: false, error: err };
+        }
+    };
+
 
   const fetchUserProfile = useCallback(async (userId: string) => {
     if (!supabase) return;
@@ -392,7 +425,16 @@ function App() {
   
   return (
     <div className="min-h-screen flex bg-slate-900">
-      <Sidebar currentUser={currentUser!} onNavigate={setActiveView} onLogout={handleLogout} activeView={activeView} isExpanded={isSidebarExpanded} setIsExpanded={setIsSidebarExpanded} isPortalView={!isAdmin || isMyPortalView} plati={plati} />
+      <Sidebar 
+        currentUser={currentUser!} 
+        onNavigate={setActiveView} 
+        onLogout={handleLogout} 
+        activeView={activeView} 
+        isPortalView={!isAdmin || isMyPortalView} 
+        plati={plati}
+        isExpanded={isSidebarExpanded}
+        setIsExpanded={setIsSidebarExpanded}
+      />
       <div className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'}`}>
          {isAdmin && !isMyPortalView && (
             <AdminHeader currentUser={currentUser!} onNavigate={setActiveView} onLogout={handleLogout} plati={plati} />
@@ -401,6 +443,30 @@ function App() {
           {renderContent()}
         </main>
       </div>
+
+       {isAdmin && (
+            <>
+                <button
+                    onClick={() => setIsGlobalSportivFormOpen(true)}
+                    className="fixed bottom-6 right-6 bg-brand-secondary hover:bg-sky-500 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg z-40 animate-fade-in-down"
+                    aria-label="Adaugă Sportiv Nou"
+                    title="Adaugă Sportiv Nou"
+                >
+                    <PlusIcon className="w-8 h-8" />
+                </button>
+                <SportivFormModal
+                    isOpen={isGlobalSportivFormOpen}
+                    onClose={() => setIsGlobalSportivFormOpen(false)}
+                    onSave={handleGlobalSaveSportiv}
+                    sportivToEdit={null}
+                    grupe={grupe}
+                    setGrupe={setGrupe}
+                    familii={familii}
+                    setFamilii={setFamilii}
+                    tipuriAbonament={tipuriAbonament}
+                />
+            </>
+        )}
     </div>
   );
 }

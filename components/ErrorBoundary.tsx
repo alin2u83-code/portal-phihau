@@ -4,7 +4,6 @@ import { Button } from './ui';
 import { ArrowLeftIcon } from './icons';
 
 interface Props {
-  // FIX: Made children optional to fix "Property 'children' is missing" error from an unseen component usage.
   children?: ReactNode;
   onNavigate?: (view: View) => void;
 }
@@ -15,11 +14,15 @@ interface State {
 }
 
 class ErrorBoundary extends React.Component<Props, State> {
-  // FIX: Switched to class property for state initialization. This is a more modern and concise approach that avoids potential `this` context issues in a constructor, resolving the typing errors for `this.state`, `this.props`, and `this.setState`.
-  state: State = {
-    hasError: false,
-    error: undefined,
-  };
+  // FIX: Switched to a constructor for state initialization and method binding to ensure 'this' context is correctly resolved across different environments, fixing errors where 'this.props' and 'this.setState' were not recognized on the component type.
+  constructor(props: Props) {
+    super(props);
+    this.state = {
+      hasError: false,
+      error: undefined,
+    };
+    this.handleRedirect = this.handleRedirect.bind(this);
+  }
 
   static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
@@ -29,8 +32,8 @@ class ErrorBoundary extends React.Component<Props, State> {
     console.error("Uncaught error:", error, errorInfo);
   }
 
-  // FIX: Using an arrow function correctly binds `this` to the component instance, ensuring `this.setState` and `this.props` are available.
-  handleRedirect = () => {
+  // FIX: Changed to a regular class method, bound in the constructor.
+  handleRedirect() {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {
         this.props.onNavigate('dashboard');

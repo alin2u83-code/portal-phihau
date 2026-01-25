@@ -67,7 +67,12 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
     return (
         <div className="space-y-6">
             {isViewingOwnProfile && <NotificationPermissionWidget />}
-            {isViewingOwnProfile && <AthleteQuickActions currentUser={currentUser} antrenamente={antrenamente} anunturi={anunturi} setAnunturi={setAnunturi} />}
+            {isViewingOwnProfile && (
+                <div className="space-y-4">
+                    <h2 className="text-xl font-bold text-white -mb-2">Acțiuni Rapide</h2>
+                    <AthleteQuickActions currentUser={currentUser} antrenamente={antrenamente} anunturi={anunturi} setAnunturi={setAnunturi} />
+                </div>
+            )}
             
             <header className="text-center md:text-left">
                 <h1 className="text-3xl font-bold text-white">{viewedUser.nume} {viewedUser.prenume}</h1>

@@ -74,7 +74,7 @@ interface CardProps {
 }
 
 export const Card: React.FC<CardProps> = ({ children, className }) => (
-  <div className={`bg-light-navy p-4 rounded-lg border border-slate-800 shadow-lg shadow-black/20 ${className}`}>
+  <div className={`bg-[var(--card-bg)] p-4 rounded-lg border border-[var(--border-color)] shadow-lg shadow-black/20 ${className}`}>
     {children}
   </div>
 );

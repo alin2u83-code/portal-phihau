@@ -36,7 +36,9 @@ export const FacturiPersonale: React.FC<FacturiPersonaleProps> = ({ viewedUser, 
 
     return (
         <div className="space-y-6">
-            <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Portal</Button>
+            <Button onClick={onBack} variant="secondary" className="text-slate-300 hover:text-white">
+                <ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Dashboard
+            </Button>
             
             <header className="text-left">
                  <h1 className="text-3xl font-bold text-white">Facturile Mele</h1>

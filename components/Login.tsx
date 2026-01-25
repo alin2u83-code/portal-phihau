@@ -52,7 +52,7 @@ export const Login: React.FC<LoginProps> = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-deep-navy p-4">
+        <div className="min-h-screen flex items-center justify-center bg-[var(--main-bg)] p-4">
             <div className="w-full max-w-md">
                 <Card>
                     <div className="text-center mb-8">

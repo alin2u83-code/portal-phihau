@@ -54,11 +54,16 @@ const applyTheme = (user: User | null, clubs: Club[]) => {
         '--main-bg': '#0a192f', '--card-bg': '#112240', '--card-mobile-bg': '#1d2d50', '--input-bg': '#334155',
         '--text-primary': '#e2e8f0', '--text-secondary': '#94a3b8', '--text-tertiary': '#64748b',
         '--border-color': '#1e293b', '--border-color-light': '#334155', '--table-header-bg': '#1e293b',
-        '--table-row-hover-bg': 'rgba(45, 55, 72, 0.5)', '--brand-primary': '#3D3D99', '--brand-secondary': '#4DBCE9',
+        '--table-row-hover-bg': 'rgba(45, 55, 72, 0.5)', 
+        '--brand-primary': '#1d4ed8', // Updated accent color
+        '--brand-secondary': '#4DBCE9',
     };
 
     let themeToApply = defaultTheme;
-    if (user?.club_id && clubs.length > 0) {
+    const isFederationAdmin = user?.roluri.some(r => r.nume === 'Super Admin' || r.nume === 'Admin');
+
+    // Load club theme only if user is not a fed admin and has a club
+    if (user && !isFederationAdmin && user.club_id && clubs.length > 0) {
         const userClub = clubs.find(c => c.id === user.club_id);
         if (userClub?.theme_config) {
             themeToApply = { ...defaultTheme, ...userClub.theme_config };

@@ -21,7 +21,7 @@ DROP FUNCTION IF EXISTS public.get_my_club_id();
 CREATE OR REPLACE FUNCTION public.get_my_club_id()
 RETURNS UUID AS $$
 DECLARE
-    user_club_id UUID;
+    user_club_id UUID := NULL; -- Explicitly initialize to NULL
 BEGIN
     SELECT club_id INTO user_club_id
     FROM public.sportivi

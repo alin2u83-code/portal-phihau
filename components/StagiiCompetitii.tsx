@@ -76,8 +76,8 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment, rezultate,
     
     const [formState, setFormState] = useState({ sportivId: '', rezultat: 'Participare', probe: [] as string[] });
 
-    const participantiIds = useMemo(() => new Set(rezultate.map(r => r.sportiv_id)), [rezultate]);
-    const sportiviDisponibili = useMemo(() => sportivi.filter(s => s.status === 'Activ' && !participantiIds.has(s.id)), [sportivi, participantiIds]);
+    const participantiIds = useMemo(() => new Set((rezultate || []).map(r => r.sportiv_id)), [rezultate]);
+    const sportiviDisponibili = useMemo(() => (sportivi || []).filter(s => s.status === 'Activ' && !participantiIds.has(s.id)), [sportivi, participantiIds]);
     
     const handleAddParticipant = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -133,14 +133,14 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment, rezultate,
     };
 
     return ( <Card> <h3 className="text-2xl font-bold text-white">{eveniment.denumire}</h3> <p className="text-slate-400">{formatDateRange(eveniment.data)} - {eveniment.locatie}</p> <div className="mt-6 border-t border-slate-700 pt-6"> <h4 className="text-xl font-semibold mb-4 text-white">Participanți Înscriși ({rezultate.length})</h4>
-    <div className="space-y-2 mb-6 max-h-96 overflow-y-auto">{rezultate.map(r => { const s = sportivi.find(sp => sp.id === r.sportiv_id); const g = getSportivGrad(r.sportiv_id); return ( <div key={r.id} className="bg-slate-700/50 p-3 rounded-md grid grid-cols-1 md:grid-cols-4 gap-4 items-center"><div className="col-span-1 md:col-span-2"><p className="font-medium">{s?.nume} {s?.prenume}</p><p className="text-xs text-slate-400">{g?.nume || 'Începător'}</p></div><p className="font-semibold">{r.rezultat}</p><Button onClick={() => setRezultatToDelete(r)} variant="danger" size="sm" className="justify-self-end"><TrashIcon /></Button></div> )})}{rezultate.length === 0 && <p className="text-slate-400">Niciun participant înscris.</p>}</div>
+    <div className="space-y-2 mb-6 max-h-96 overflow-y-auto">{(rezultate || []).map(r => { const s = sportivi.find(sp => sp.id === r.sportiv_id); const g = getSportivGrad(r.sportiv_id); return ( <div key={r.id} className="bg-slate-700/50 p-3 rounded-md grid grid-cols-1 md:grid-cols-4 gap-4 items-center"><div className="col-span-1 md:col-span-2"><p className="font-medium">{s?.nume} {s?.prenume}</p><p className="text-xs text-slate-400">{g?.nume || 'Începător'}</p></div><p className="font-semibold">{r.rezultat}</p><Button onClick={() => setRezultatToDelete(r)} variant="danger" size="sm" className="justify-self-end"><TrashIcon /></Button></div> )})}{(rezultate || []).length === 0 && <p className="text-slate-400">Niciun participant înscris.</p>}</div>
     <Card className="bg-slate-900/50">
         <h5 className="text-lg font-semibold mb-4 text-white">Înscrie Participant</h5>
         <form onSubmit={handleAddParticipant} className="space-y-4">
             <Select label="Sportiv" value={formState.sportivId} onChange={e => setFormState(p => ({ ...p, sportivId: e.target.value }))}><option value="">Selectează...</option>{sportiviDisponibili.map(s => <option key={s.id} value={s.id}>{s.nume} {s.prenume}</option>)}</Select>
             <Input label="Rezultat (ex: Participare, Locul 1)" name="rezultat" value={formState.rezultat} onChange={e => setFormState(p => ({ ...p, rezultat: e.target.value }))} />
             {eveniment.tip === 'Competitie' && eveniment.probe_disponibile && eveniment.probe_disponibile.length > 0 && (
-                <div><label className="block text-sm font-medium text-slate-300 mb-2">Probe</label><div className="flex flex-wrap gap-x-4 gap-y-2">{eveniment.probe_disponibile.map(proba => (<label key={proba} className="flex items-center space-x-2 text-sm"><input type="checkbox" checked={formState.probe.includes(proba)} onChange={e => handleProbeChange(proba, e.target.checked)} className="h-4 w-4 rounded" /><span>{proba}</span></label>))}</div></div>
+                <div><label className="block text-sm font-medium text-slate-300 mb-2">Probe</label><div className="flex flex-wrap gap-x-4 gap-y-2">{(eveniment.probe_disponibile || []).map(proba => (<label key={proba} className="flex items-center space-x-2 text-sm"><input type="checkbox" checked={formState.probe.includes(proba)} onChange={e => handleProbeChange(proba, e.target.checked)} className="h-4 w-4 rounded" /><span>{proba}</span></label>))}</div></div>
             )}
             <div className="flex justify-end pt-2"><Button type="submit" variant="info">Înscrie</Button></div>
         </form>
@@ -158,7 +158,7 @@ export const StagiiCompetitiiManagement: React.FC<StagiiCompetitiiProps> = ({ ty
     const [selectedEvenimentId, setSelectedEvenimentId] = useLocalStorage<string | null>(`phi-hau-selected-${type}`, null);
     const { showError, showSuccess } = useError();
     
-    const filteredEvenimente = useMemo(() => evenimente.filter(ev => ev.tip === type), [evenimente, type]);
+    const filteredEvenimente = useMemo(() => (evenimente || []).filter(ev => ev.tip === type), [evenimente, type]);
     const selectedEveniment = useMemo(() => selectedEvenimentId ? filteredEvenimente.find(e => e.id === selectedEvenimentId) || null : null, [selectedEvenimentId, filteredEvenimente]);
 
     const handleSave = async (evData: Omit<Eveniment, 'id'>) => {

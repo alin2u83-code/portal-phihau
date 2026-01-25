@@ -129,7 +129,7 @@ export const CluburiManagement: React.FC<CluburiManagementProps> = ({ clubs, set
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-700">
-                            {clubs.map(club => (
+                            {(clubs || []).map(club => (
                                 <tr key={club.id}>
                                     <td className="p-4 font-medium">{club.nume}</td>
                                     <td className="p-4">{club.oras || '-'}</td>

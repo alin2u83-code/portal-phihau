@@ -23,7 +23,7 @@ export const AdminProfileQuickAccess: React.FC<AdminProfileQuickAccessProps> = (
             <div className="py-1">
                 <div className="px-4 py-3 border-b border-slate-600">
                     <p className="text-sm font-semibold text-white truncate">{user.nume} {user.prenume}</p>
-                    <p className="text-xs text-slate-400 truncate">{user.roluri.map(r => r.nume).join(', ')}</p>
+                    <p className="text-xs text-slate-400 truncate">{(user.roluri || []).map(r => r.nume).join(', ')}</p>
                 </div>
                 <div className="py-1">
                     {isSuperAdmin && (

@@ -69,7 +69,7 @@ export const SportiviManagement: React.FC<{
     }, [familii, plati, tranzactii]);
 
     const filteredSportivi = useMemo(() => {
-        return sportivi.filter((s: Sportiv) =>
+        return (sportivi || []).filter((s: Sportiv) =>
             (`${s.nume} ${s.prenume}`.toLowerCase().includes(filters.searchTerm.toLowerCase())) &&
             (filters.statusFilter ? s.status === filters.statusFilter : true) &&
             (filters.grupaFilter ? s.grupa_id === filters.grupaFilter : true) &&

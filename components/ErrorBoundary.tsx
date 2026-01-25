@@ -13,20 +13,16 @@ interface State {
   error?: Error;
 }
 
-// FIX: Changed 'extends Component' to 'extends React.Component' to avoid potential naming conflicts and ensure correct type inheritance.
 class ErrorBoundary extends React.Component<Props, State> {
-  // FIX: Removed unnecessary 'public' keyword. It's the default accessibility.
   state: State = {
     hasError: false,
     error: undefined,
   };
 
-  // FIX: Removed unnecessary 'public' keyword.
   static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
   }
 
-  // FIX: Removed unnecessary 'public' keyword.
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error("Uncaught error:", error, errorInfo);
   }
@@ -38,7 +34,6 @@ class ErrorBoundary extends React.Component<Props, State> {
     }
   };
 
-  // FIX: Removed unnecessary 'public' keyword.
   render() {
     if (this.state.hasError) {
       return (

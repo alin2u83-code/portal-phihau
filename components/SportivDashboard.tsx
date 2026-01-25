@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { Sportiv, Participare, Grad, Grupa, Plata, User, View, AnuntPrezenta, SesiuneExamen } from '../types';
 import { Card, Button } from './ui';
-import { AnuntPrezentaWidget } from './AnuntPrezentaWidget';
+import { AthleteQuickActions } from './AthleteQuickActions';
 import { NotificationPermissionWidget } from './NotificationPermissionWidget';
 
 const getGrad = (gradId: string | null, allGrades: Grad[]) => gradId ? allGrades.find(g => g.id === gradId) : null;
@@ -15,8 +15,8 @@ interface SportivDashboardProps {
   grupe: Grupa[];
   plati: Plata[];
   onNavigate: (view: View) => void;
-  antrenamente: any[]; // Prop needed for AnuntPrezentaWidget
-  anunturi: AnuntPrezenta[]; // Prop needed for AnuntPrezentaWidget
+  antrenamente: any[]; // Prop needed for AthleteQuickActions
+  anunturi: AnuntPrezenta[]; // Prop needed for AthleteQuickActions
   setAnunturi: React.Dispatch<React.SetStateAction<AnuntPrezenta[]>>;
 }
 
@@ -67,7 +67,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
     return (
         <div className="space-y-6">
             {isViewingOwnProfile && <NotificationPermissionWidget />}
-            {isViewingOwnProfile && <AnuntPrezentaWidget currentUser={currentUser} antrenamente={antrenamente} anunturi={anunturi} setAnunturi={setAnunturi} />}
+            {isViewingOwnProfile && <AthleteQuickActions currentUser={currentUser} antrenamente={antrenamente} anunturi={anunturi} setAnunturi={setAnunturi} />}
             
             <header className="text-center md:text-left">
                 <h1 className="text-3xl font-bold text-white">{viewedUser.nume} {viewedUser.prenume}</h1>

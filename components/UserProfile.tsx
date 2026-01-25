@@ -404,6 +404,36 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                         />
                     </Card>
                     <Card>
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg font-bold text-white animate-fade-in-down">Feedback & Obiective</h3>
+                            {!isEditingFeedback ? (
+                                <Button variant="secondary" size="sm" onClick={() => setIsEditingFeedback(true)}>Editează</Button>
+                            ) : (
+                                <div className="flex gap-2">
+                                    <Button variant="secondary" size="sm" onClick={() => { setIsEditingFeedback(false); setFeedbackData({ puncte_forte: sportiv.puncte_forte || '', puncte_slabe: sportiv.puncte_slabe || '', obiective: sportiv.obiective || '' }); }}>Anulează</Button>
+                                    <Button variant="success" size="sm" onClick={handleSaveFeedback} isLoading={isSavingFeedback}>Salvează</Button>
+                                </div>
+                            )}
+                        </div>
+                        <div className="space-y-4 text-sm">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-400 mb-1">Puncte Forte</label>
+                                {isEditingFeedback ? ( <textarea name="puncte_forte" value={feedbackData.puncte_forte} onChange={handleFeedbackChange} className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-secondary focus:border-brand-secondary transition-all" rows={3}></textarea>
+                                ) : ( <p className="font-semibold text-slate-300 leading-relaxed whitespace-pre-wrap p-2 bg-slate-800/50 rounded-md min-h-[4rem]">{sportiv.puncte_forte || <span className="italic text-slate-500">Nespecificat</span>}</p> )}
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-400 mb-1">Puncte Slabe</label>
+                                {isEditingFeedback ? ( <textarea name="puncte_slabe" value={feedbackData.puncte_slabe} onChange={handleFeedbackChange} className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-secondary focus:border-brand-secondary transition-all" rows={3}></textarea>
+                                ) : ( <p className="font-semibold text-slate-300 leading-relaxed whitespace-pre-wrap p-2 bg-slate-800/50 rounded-md min-h-[4rem]">{sportiv.puncte_slabe || <span className="italic text-slate-500">Nespecificat</span>}</p> )}
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-400 mb-1">Obiective pentru Următorul Grad</label>
+                                {isEditingFeedback ? ( <textarea name="obiective" value={feedbackData.obiective} onChange={handleFeedbackChange} className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-secondary focus:border-brand-secondary transition-all" rows={3}></textarea>
+                                ) : ( <p className="font-semibold text-slate-300 leading-relaxed whitespace-pre-wrap p-2 bg-slate-800/50 rounded-md min-h-[4rem]">{sportiv.obiective || <span className="italic text-slate-500">Nespecificat</span>}</p> )}
+                            </div>
+                        </div>
+                    </Card>
+                     <Card>
                         <div className="flex justify-between items-start mb-2">
                             <h3 className="text-lg font-bold text-white animate-fade-in-down">Progres Tehnic</h3>
                             <Button size="sm" variant="secondary" onClick={() => setShowHistory(true)}>Istoric</Button>
@@ -422,36 +452,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                             />
                             <DataField label="Următorul Grad" value={eligibility.nextGrad?.nume || 'Maxim'} />
                             <p className={`text-xs mt-1 ${eligibility.eligible ? 'text-green-400' : 'text-yellow-400'}`}>{eligibility.message}</p>
-                        </div>
-                    </Card>
-                    <Card>
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-bold text-white animate-fade-in-down">Feedback & Obiective</h3>
-                            {!isEditingFeedback ? (
-                                <Button variant="secondary" size="sm" onClick={() => setIsEditingFeedback(true)}>Editează</Button>
-                            ) : (
-                                <div className="flex gap-2">
-                                    <Button variant="secondary" size="sm" onClick={() => { setIsEditingFeedback(false); setFeedbackData({ puncte_forte: sportiv.puncte_forte || '', puncte_slabe: sportiv.puncte_slabe || '', obiective: sportiv.obiective || '' }); }}>Anulează</Button>
-                                    <Button variant="success" size="sm" onClick={handleSaveFeedback} isLoading={isSavingFeedback}>Salvează</Button>
-                                </div>
-                            )}
-                        </div>
-                        <div className="space-y-4 text-sm">
-                            <div>
-                                <label className="block text-xs font-bold text-slate-400 mb-1">Puncte Forte</label>
-                                {isEditingFeedback ? ( <textarea name="puncte_forte" value={feedbackData.puncte_forte} onChange={handleFeedbackChange} className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-secondary focus:border-brand-secondary transition-all" rows={3}></textarea>
-                                ) : ( <p className="text-slate-200 whitespace-pre-wrap p-2 bg-slate-800/50 rounded-md min-h-[4rem] leading-relaxed">{sportiv.puncte_forte || <span className="italic text-slate-500">Nespecificat</span>}</p> )}
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-slate-400 mb-1">Puncte Slabe</label>
-                                {isEditingFeedback ? ( <textarea name="puncte_slabe" value={feedbackData.puncte_slabe} onChange={handleFeedbackChange} className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-secondary focus:border-brand-secondary transition-all" rows={3}></textarea>
-                                ) : ( <p className="text-slate-200 whitespace-pre-wrap p-2 bg-slate-800/50 rounded-md min-h-[4rem] leading-relaxed">{sportiv.puncte_slabe || <span className="italic text-slate-500">Nespecificat</span>}</p> )}
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-slate-400 mb-1">Obiective pentru Următorul Grad</label>
-                                {isEditingFeedback ? ( <textarea name="obiective" value={feedbackData.obiective} onChange={handleFeedbackChange} className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-secondary focus:border-brand-secondary transition-all" rows={3}></textarea>
-                                ) : ( <p className="text-slate-200 whitespace-pre-wrap p-2 bg-slate-800/50 rounded-md min-h-[4rem] leading-relaxed">{sportiv.obiective || <span className="italic text-slate-500">Nespecificat</span>}</p> )}
-                            </div>
                         </div>
                     </Card>
                 </div>

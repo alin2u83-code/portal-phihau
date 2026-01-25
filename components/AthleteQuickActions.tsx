@@ -14,7 +14,6 @@ interface TrainingActionCardProps {
 
 const TrainingActionCard: React.FC<TrainingActionCardProps> = ({ training, anunt, onStatusChange }) => {
     const [loading, setLoading] = useState(false);
-    const currentStatus = anunt?.status;
 
     const handleClick = async (status: AnuntStatus) => {
         setLoading(true);
@@ -23,16 +22,41 @@ const TrainingActionCard: React.FC<TrainingActionCardProps> = ({ training, anunt
     };
 
     const getButtonClasses = (status: AnuntStatus) => {
-        const base = 'text-white font-bold transition-all duration-200';
-        const colors = {
-            Confirm: 'bg-emerald-600 hover:bg-emerald-500',
-            Intarziat: 'bg-amber-600 hover:bg-amber-500',
-            Absent: 'bg-rose-700 hover:bg-rose-600',
-        };
-        const active = currentStatus === status;
-        const inactive = currentStatus !== undefined && !active;
+        const base = 'text-white font-bold transition-all duration-200 active:scale-95';
         
-        return `${base} ${colors[status]} ${active ? 'ring-2 ring-white ring-offset-2 ring-offset-light-navy' : ''} ${inactive ? 'opacity-50 hover:opacity-100' : ''}`;
+        const styles: Record<AnuntStatus, { bg: string; hover: string; }> = {
+            Confirm: {
+                bg: 'bg-emerald-600',
+                hover: 'hover:bg-emerald-500 hover:shadow-glow-blue',
+            },
+            Intarziat: {
+                bg: 'bg-amber-600',
+                hover: 'hover:bg-amber-500 hover:ring-2 hover:ring-white hover:ring-offset-2 hover:ring-offset-light-navy',
+            },
+            Absent: {
+                bg: 'bg-rose-700',
+                hover: 'hover:bg-rose-600 hover:shadow-glow-blue hover:scale-105',
+            }
+        };
+
+        const isSelected = anunt?.status === status;
+        const isInactive = anunt !== undefined && !isSelected;
+
+        const classes = [
+            base,
+            styles[status].bg,
+            styles[status].hover
+        ];
+
+        if (isSelected) {
+            classes.push('ring-2 ring-white ring-offset-2 ring-offset-light-navy');
+        }
+
+        if (isInactive) {
+            classes.push('opacity-50 hover:opacity-100');
+        }
+
+        return classes.join(' ');
     };
 
     return (

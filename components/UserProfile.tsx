@@ -153,7 +153,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
     const [showHistory, setShowHistory] = useState(false);
 
     const [isEditingRoles, setIsEditingRoles] = useState(false);
-    const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>(sportiv.roluri.map(r => r.id));
+    const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>((sportiv.roluri || []).map(r => r.id));
 
     const [isEditingFeedback, setIsEditingFeedback] = useState(false);
     const [feedbackData, setFeedbackData] = useState({
@@ -166,7 +166,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
     const [financialFilter, setFinancialFilter] = useState<'Toate' | 'Abonament' | 'Taxa Examen' | 'Echipament'>('Toate');
 
     useEffect(() => {
-        setSelectedRoleIds(sportiv.roluri.map(r => r.id));
+        setSelectedRoleIds((sportiv.roluri || []).map(r => r.id));
         setFeedbackData({
             puncte_forte: sportiv.puncte_forte || '',
             puncte_slabe: sportiv.puncte_slabe || '',
@@ -483,7 +483,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                                 {allRoles.map(role => ( <label key={role.id} className="flex items-center space-x-2 text-sm cursor-pointer"> <input type="checkbox" className="h-4 w-4 rounded border-slate-500 bg-slate-800 text-brand-secondary focus:ring-brand-secondary" checked={selectedRoleIds.includes(role.id)} onChange={(e) => setSelectedRoleIds(p => e.target.checked ? [...p, role.id] : p.filter(id => id !== role.id))} disabled={sportiv.id === currentUser.id && role.nume === 'Admin'} /> <span>{role.nume}</span> </label> ))}
                             </div>
                         ) : (
-                            <div className="flex flex-wrap gap-2">{sportiv.roluri.length > 0 ? sportiv.roluri.map(r => <RoleBadge key={r.id} role={r}/>) : <span className="text-sm text-slate-400 italic">Niciun rol.</span>}</div>
+                            <div className="flex flex-wrap gap-2">{(sportiv.roluri || []).length > 0 ? (sportiv.roluri || []).map(r => <RoleBadge key={r.id} role={r}/>) : <span className="text-sm text-slate-400 italic">Niciun rol.</span>}</div>
                         )}
                     </Card>
                     )}

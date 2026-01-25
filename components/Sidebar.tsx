@@ -84,7 +84,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
     const [isMobileOpen, setIsMobileOpen] = useState(false);
     
     const menu = isPortalView ? sportivMenu : adminMenu;
-    const userRoles = useMemo(() => new Set(currentUser.roluri.map(r => r.nume)), [currentUser.roluri]);
+    const userRoles = useMemo(() => new Set((currentUser?.roluri || []).map(r => r.nume)), [currentUser]);
 
     const filteredMenu = useMemo(() => {
         return menu.map(item => {

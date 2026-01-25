@@ -176,7 +176,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
 
     const handleEdit = (user: User) => {
         setEditingId(user.id);
-        setNewRoleIds(user.roluri.map(r => r.id));
+        setNewRoleIds((user.roluri || []).map(r => r.id));
     };
 
     const handleCancel = () => {
@@ -441,7 +441,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                                                 <td className="p-4">
                                                     {user.user_id ? (
                                                         <div className="flex flex-wrap gap-1">
-                                                            {user.roluri.map(role => <RoleBadge key={role.id} role={role} />)}
+                                                            {(user.roluri || []).map(role => <RoleBadge key={role.id} role={role} />)}
                                                         </div>
                                                     ) : (
                                                         <span className="px-2 py-1 text-xs font-semibold rounded-full bg-slate-500 text-white">

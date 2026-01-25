@@ -48,7 +48,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ currentUser, onNavigat
                             </div>
                             <div className="hidden sm:block text-left">
                                 <p className="text-sm font-semibold text-white truncate">{currentUser.nume} {currentUser.prenume}</p>
-                                <p className="text-xs text-slate-400 truncate">{currentUser.roluri.map(r => r.nume).join(', ')}</p>
+                                <p className="text-xs text-slate-400 truncate">{(currentUser.roluri || []).map(r => r.nume).join(', ')}</p>
                             </div>
                         </div>
                         <button

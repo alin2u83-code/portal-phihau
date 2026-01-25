@@ -1,4 +1,4 @@
-import React, { ReactNode, useId } from 'react';
+import React, { ReactNode } from 'react';
 import { XIcon } from './icons';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -26,11 +26,11 @@ export const Button: React.FC<ButtonProps & { as?: 'label', htmlFor?: string }> 
   };
   
   const variantClasses = {
-    primary: "bg-[var(--brand-primary)] hover:bg-blue-800 focus:ring-blue-700 text-white hover:shadow-glow-blue",
+    primary: "bg-[#3D3D99] hover:bg-[#2A2A7A] focus:ring-[#3D3D99] text-white hover:shadow-glow-blue", // Albastru Club
     secondary: "bg-slate-600 hover:bg-slate-700 focus:ring-slate-500 text-white hover:shadow-glow-blue",
     danger: "bg-red-600 hover:bg-red-700 focus:ring-red-500 text-white hover:shadow-glow-blue",
     success: "bg-green-600 hover:bg-green-700 focus:ring-green-500 text-white hover:shadow-glow-blue",
-    info: "bg-[var(--brand-secondary)] hover:bg-blue-800 focus:ring-blue-700 text-white hover:shadow-glow-blue",
+    info: "bg-brand-secondary hover:bg-sky-500 focus:ring-brand-secondary text-white hover:shadow-glow-blue",
   };
 
   const finalClassName = `${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${className}`;
@@ -85,31 +85,16 @@ interface ModalProps {
   title: string;
   children: ReactNode;
   persistent?: boolean;
-  description?: ReactNode;
-  titleClassName?: string;
 }
 
-export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, persistent = false, description, titleClassName }) => {
-  const titleId = useId();
-  const descriptionId = useId();
-
+export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, persistent = false }) => {
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/80 z-50 flex sm:items-center sm:justify-center sm:p-4" onClick={() => !persistent && onClose()}>
-      <div 
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        {...(description && { 'aria-describedby': descriptionId })}
-        className="bg-[var(--card-bg)] w-full h-full flex flex-col sm:h-auto sm:max-h-[95vh] sm:max-w-2xl sm:rounded-lg sm:border border-[var(--border-color-light)] shadow-2xl animate-fade-in-down" 
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex justify-between items-start p-3 border-b border-[var(--border-color)]">
-          <div>
-            <h2 id={titleId} className={`text-lg font-bold text-white uppercase tracking-tight ${titleClassName}`}>{title}</h2>
-            {description && <p id={descriptionId} className="mt-1 text-sm text-slate-400">{description}</p>}
-          </div>
+      <div className="bg-[var(--card-bg)] w-full h-full flex flex-col sm:h-auto sm:max-h-[95vh] sm:max-w-2xl sm:rounded-lg sm:border border-[var(--border-color-light)] shadow-2xl animate-fade-in-down" onClick={(e) => e.stopPropagation()}>
+        <div className="flex justify-between items-center p-3 border-b border-[var(--border-color)]">
+          <h2 className="text-lg font-bold text-white uppercase tracking-tight">{title}</h2>
           <button onClick={onClose} className="p-1 text-[var(--text-secondary)] hover:text-white transition-colors">
             <XIcon className="w-5 h-5" />
           </button>

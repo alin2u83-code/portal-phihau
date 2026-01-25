@@ -117,13 +117,7 @@ export const SportivFeedbackReport: React.FC<SportivFeedbackReportProps> = ({ is
     const handlePrint = () => { window.print(); };
 
     return (
-        <Modal 
-            isOpen={isOpen} 
-            onClose={onClose} 
-            title="Raport de Activitate" 
-            titleClassName="sr-only"
-            description="Un sumar al progresului, prezenței și eligibilității sportivului pentru următorul grad."
-        >
+        <Modal isOpen={isOpen} onClose={onClose} title="">
             <div id="raport-content" className="bg-white text-gray-800 p-6 rounded-lg font-sans" style={{ fontSize: '13px' }}>
                 <style>{`
                     @media print {
@@ -158,7 +152,7 @@ export const SportivFeedbackReport: React.FC<SportivFeedbackReportProps> = ({ is
                                             <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} allowDecimals={false} />
                                             <Bar dataKey="prezente" radius={[4, 4, 0, 0]}>
                                                 {reportData.weeklyAttendance.map((entry, index) => (
-                                                    <Cell key={`cell-${index}`} fill={entry.prezente > 0 ? '#1d4ed8' : '#a0aec0'} />
+                                                    <Cell key={`cell-${index}`} fill={entry.prezente > 0 ? '#3D3D99' : '#a0aec0'} />
                                                 ))}
                                             </Bar>
                                         </BarChart>

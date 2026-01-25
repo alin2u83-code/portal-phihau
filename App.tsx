@@ -565,6 +565,7 @@ function App() {
          {isAdmin && !isMyPortalView && (
             <TopNavigationBar 
               currentUser={currentUser!} 
+              onNavigate={setActiveView}
               onLogout={handleLogout} 
               permissions={permissions}
               clubs={cluburi}

@@ -4,7 +4,7 @@ import {
   ClipboardList, Landmark, Settings, ShieldCheck, LayoutDashboard, UserCircle,
   LogOut, Menu, Wallet, BarChart3, Archive, FileDown, ChevronDown, X,
   ClipboardCheck, MessageCircleQuestion, Save, AlertTriangle, CheckCircle,
-  ChevronLeft, ChevronRight, Printer, Check, ArrowRightLeft, Search
+  ChevronLeft, ChevronRight, Printer, Check, ArrowRightLeft, Search, Palette
 } from 'lucide-react';
 
 export const PlusIcon = Plus;
@@ -40,3 +40,4 @@ export const PrinterIcon = Printer;
 export const TransferIcon = ArrowRightLeft;
 export const ExclamationTriangleIcon = AlertTriangle;
 export const SearchIcon = Search;
+export const PaletteIcon = Palette;

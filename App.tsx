@@ -47,6 +47,7 @@ import { adminMenu } from './components/menuConfig';
 import { usePermissions } from './hooks/usePermissions';
 import AccessDenied from './components/AccessDenied';
 import { useClubFilter } from './hooks/useClubFilter';
+import { MandatoryPasswordChange } from './components/MandatoryPasswordChange';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -293,19 +294,26 @@ function App() {
 
     if (error) {
       showError("Eroare la preluarea profilului", error);
+      setLoading(false);
       return;
     }
 
     if (!data) {
       showError("Profil Inexistent", "Profilul de sportiv asociat acestui cont nu a fost găsit. Veți fi deconectat. Vă rugăm contactați administratorul.");
       await supabase?.auth.signOut();
+      setLoading(false);
       return;
     }
 
     const user = data as any;
     user.roluri = user.roluri || [];
     setCurrentUser(user);
-    fetchData(user); // Pass user object to fetch data according to roles
+
+    if (user.trebuie_schimbata_parola) {
+        setLoading(false);
+    } else {
+        fetchData(user);
+    }
   }, [fetchData, showError]);
   
   useEffect(() => {
@@ -364,7 +372,9 @@ function App() {
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible' && session && currentUser && !loading) {
-        fetchData(currentUser);
+        if (!currentUser.trebuie_schimbata_parola) {
+            fetchData(currentUser);
+        }
       }
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -462,8 +472,8 @@ function App() {
       case 'prezenta': return <PrezentaManagement sportivi={displaySportivi} setSportivi={setSportivi} antrenamente={displayAntrenamente} setAntrenamente={setAntrenamente} grupe={displayGrupe} onBack={() => setActiveView('dashboard')} setPlati={setPlati} tipuriAbonament={displayTipuriAbonament} anunturi={displayAnunturi}/>;
       case 'grupe': return <GrupeManagement grupe={displayGrupe} setGrupe={setGrupe} onBack={() => setActiveView('dashboard')} />;
       case 'raport-prezenta': return <RaportPrezenta antrenamente={displayAntrenamente} sportivi={displaySportivi} grupe={displayGrupe} onBack={() => setActiveView('dashboard')} />;
-      case 'stagii': return <StagiiCompetitiiManagement type="Stagiu" evenimente={displayEvenimente} setEvenimente={setEvenimente} rezultate={displayRezultate} setRezultate={setRezultate} sportivi={displaySportivi} setPlati={setPlati} preturiConfig={preturiConfig} participari={displayInscrieriExamene} examene={displaySesiuniExamene} grade={grade} onBack={() => setActiveView('dashboard')} currentUser={currentUser} />;
-      case 'competitii': return <StagiiCompetitiiManagement type="Competitie" evenimente={displayEvenimente} setEvenimente={setEvenimente} rezultate={displayRezultate} setRezultate={setRezultate} sportivi={displaySportivi} setPlati={setPlati} preturiConfig={preturiConfig} participari={displayInscrieriExamene} examene={displaySesiuniExamene} grade={grade} onBack={() => setActiveView('dashboard')} currentUser={currentUser} />;
+      case 'stagii': return <StagiiCompetitiiManagement type="Stagiu" evenimente={displayEvenimente} setEvenimente={setEvenimente} rezultate={displayRezultate} setRezultate={setRezultate} sportivi={displaySportivi} setPlati={setPlati} preturiConfig={preturiConfig} participari={displayInscrieriExamene} examene={sesiuniExamene} grade={grade} onBack={() => setActiveView('dashboard')} currentUser={currentUser} />;
+      case 'competitii': return <StagiiCompetitiiManagement type="Competitie" evenimente={displayEvenimente} setEvenimente={setEvenimente} rezultate={displayRezultate} setRezultate={setRezultate} sportivi={displaySportivi} setPlati={setPlati} preturiConfig={preturiConfig} participari={displayInscrieriExamene} examene={sesiuniExamene} grade={grade} onBack={() => setActiveView('dashboard')} currentUser={currentUser} />;
       case 'plati-scadente': return <PlatiScadente plati={displayPlati} setPlati={setPlati} sportivi={displaySportivi} familii={displayFamilii} tipuriAbonament={displayTipuriAbonament} tranzactii={displayTranzactii} reduceri={reduceri} onIncaseazaMultiple={(plist) => { setSelectedPlatiForIncasare(plist); setActiveView('jurnal-incasari'); }} onBack={() => setActiveView('dashboard')} />;
       case 'jurnal-incasari': return <JurnalIncasari currentUser={currentUser} plati={displayPlati} setPlati={setPlati} sportivi={displaySportivi} familii={displayFamilii} preturiConfig={preturiConfig} tipuriAbonament={displayTipuriAbonament} tipuriPlati={tipuriPlati} setTipuriPlati={setTipuriPlati} tranzactii={displayTranzactii} setTranzactii={setTranzactii} reduceri={reduceri} platiInitiale={selectedPlatiForIncasare} onIncasareProcesata={() => { setSelectedPlatiForIncasare([]); fetchData(currentUser); }} onBack={() => setActiveView('plati-scadente')} />;
       case 'configurare-preturi': return <ConfigurarePreturi grade={grade} onBack={() => setActiveView('dashboard')} />;
@@ -500,6 +510,13 @@ function App() {
 
   if (loading) return <div className="flex items-center justify-center min-h-screen">Se încarcă...</div>;
   if (!session) return <Login />;
+
+  if (currentUser && currentUser.trebuie_schimbata_parola) {
+      return <MandatoryPasswordChange currentUser={currentUser} onPasswordChanged={() => {
+          setLoading(true);
+          fetchUserProfile(session.user.id);
+      }} />;
+  }
 
   const isAdmin = permissions.hasAdminAccess;
   const isMyPortalView = activeView === 'my-portal';

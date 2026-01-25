@@ -34,6 +34,7 @@ export interface Sportiv {
   puncte_forte?: string | null;
   puncte_slabe?: string | null;
   obiective?: string | null;
+  trebuie_schimbata_parola?: boolean;
   [key: string]: any; // Permite adăugarea de câmpuri custom
 }
 
@@ -76,7 +77,7 @@ export interface InscriereExamen {
     nota_atitudine: number | null;
     rezultat?: 'Admis' | 'Respins' | 'Neprezentat' | null;
     sportivi: Sportiv; 
-    grade: Grad;
+    grades: Grad;
 }
 
 export interface IstoricGrade {

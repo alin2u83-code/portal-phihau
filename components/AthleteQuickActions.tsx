@@ -3,7 +3,6 @@ import { User, Antrenament, AnuntPrezenta } from '../types';
 import { Card, Button } from './ui';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
-import { CheckIcon } from './icons';
 
 type AnuntStatus = 'Confirm' | 'Intarziat' | 'Absent';
 
@@ -24,21 +23,16 @@ const TrainingActionCard: React.FC<TrainingActionCardProps> = ({ training, anunt
     };
 
     const getButtonClasses = (status: AnuntStatus) => {
-        const base = 'text-white font-bold transition-all duration-200 active:scale-95';
-        
+        const base = 'text-white font-bold transition-all duration-200';
         const colors = {
-            Confirm: 'bg-emerald-600 hover:bg-emerald-500 hover:shadow-glow-blue hover:scale-105 active:ring-2 active:ring-white',
-            Intarziat: 'bg-amber-600 hover:bg-amber-500 hover:scale-105 hover:shadow-glow-blue hover:ring-2 hover:ring-white',
-            Absent: 'bg-rose-700 hover:bg-rose-600 hover:shadow-glow-blue hover:scale-105',
+            Confirm: 'bg-emerald-600 hover:bg-emerald-500',
+            Intarziat: 'bg-amber-600 hover:bg-amber-500',
+            Absent: 'bg-rose-700 hover:bg-rose-600',
         };
-
-        const isActive = currentStatus === status;
-        const isInactive = currentStatus !== undefined && !isActive;
+        const active = currentStatus === status;
+        const inactive = currentStatus !== undefined && !active;
         
-        const activeStateRing = isActive ? 'ring-2 ring-white ring-offset-2 ring-offset-light-navy' : '';
-        const inactiveOpacity = isInactive ? 'opacity-50 hover:opacity-100' : '';
-
-        return `${base} ${colors[status]} ${activeStateRing} ${inactiveOpacity}`;
+        return `${base} ${colors[status]} ${active ? 'ring-2 ring-white ring-offset-2 ring-offset-light-navy' : ''} ${inactive ? 'opacity-50 hover:opacity-100' : ''}`;
     };
 
     return (
@@ -47,11 +41,9 @@ const TrainingActionCard: React.FC<TrainingActionCardProps> = ({ training, anunt
                 Antrenamentul de azi: {new Date(training.data + 'T' + training.ora_start).toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' })}
             </h3>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-                <Button onClick={() => handleClick('Confirm')} className={getButtonClasses('Confirm')} disabled={loading}>
-                    <CheckIcon className="w-4 h-4 mr-1" /> Participă
-                </Button>
+                <Button onClick={() => handleClick('Confirm')} className={getButtonClasses('Confirm')} disabled={loading}>Particip</Button>
                 <Button onClick={() => handleClick('Intarziat')} className={getButtonClasses('Intarziat')} disabled={loading}>Întârzii</Button>
-                <Button onClick={() => handleClick('Absent')} className={getButtonClasses('Absent')} disabled={loading}>Nu pot ajunge</Button>
+                <Button onClick={() => handleClick('Absent')} className={getButtonClasses('Absent')} disabled={loading}>Nu vin</Button>
             </div>
         </Card>
     );

@@ -2,7 +2,6 @@ import React, { useMemo } from 'react';
 import { User, InscriereExamen, SesiuneExamen, Grad } from '../types';
 import { Button, Card } from './ui';
 import { ArrowLeftIcon } from './icons';
-import { usePermissions } from '../hooks/usePermissions';
 
 interface IstoricExameneSportivProps {
     viewedUser: User;
@@ -14,8 +13,6 @@ interface IstoricExameneSportivProps {
 
 
 export const IstoricExameneSportiv: React.FC<IstoricExameneSportivProps> = ({ viewedUser, participari, sesiuni, grade, onBack }) => {
-    const permissions = usePermissions(viewedUser);
-    const backButtonText = permissions.hasAdminAccess ? 'Înapoi la Panoul Principal' : 'Înapoi la Dashboard';
 
     const userParticipari = useMemo(() => {
         return participari
@@ -29,9 +26,7 @@ export const IstoricExameneSportiv: React.FC<IstoricExameneSportivProps> = ({ vi
 
     return (
         <div className="space-y-6">
-            <Button onClick={onBack} variant="secondary" className="text-slate-300 hover:text-white">
-                <ArrowLeftIcon className="w-5 h-5 mr-2" /> {backButtonText}
-            </Button>
+            <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi</Button>
             <header className="text-left">
                  <h1 className="text-3xl font-bold text-white">Istoric Examinări</h1>
                  <p className="text-lg text-slate-300">{viewedUser.nume} {viewedUser.prenume}</p>

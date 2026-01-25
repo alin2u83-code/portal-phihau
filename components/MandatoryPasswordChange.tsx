@@ -77,7 +77,7 @@ export const MandatoryPasswordChange: React.FC<MandatoryPasswordChangeProps> = (
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[var(--main-bg)] p-4">
+        <div className="min-h-screen flex items-center justify-center bg-deep-navy p-4">
             <div className="w-full max-w-md">
                 <Card className="border-t-4 border-brand-secondary">
                     <div className="text-center mb-6">

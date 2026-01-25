@@ -49,27 +49,6 @@ import AccessDenied from './components/AccessDenied';
 import { useClubFilter } from './hooks/useClubFilter';
 import { MandatoryPasswordChange } from './components/MandatoryPasswordChange';
 
-const applyTheme = (user: User | null, clubs: Club[]) => {
-    const defaultTheme = {
-        '--main-bg': '#0a192f', '--card-bg': '#112240', '--card-mobile-bg': '#1d2d50', '--input-bg': '#334155',
-        '--text-primary': '#e2e8f0', '--text-secondary': '#94a3b8', '--text-tertiary': '#64748b',
-        '--border-color': '#1e293b', '--border-color-light': '#334155', '--table-header-bg': '#1e293b',
-        '--table-row-hover-bg': 'rgba(45, 55, 72, 0.5)', '--brand-primary': '#3D3D99', '--brand-secondary': '#4DBCE9',
-    };
-
-    let themeToApply = defaultTheme;
-    if (user?.club_id && clubs.length > 0) {
-        const userClub = clubs.find(c => c.id === user.club_id);
-        if (userClub?.theme_config) {
-            themeToApply = { ...defaultTheme, ...userClub.theme_config };
-        }
-    }
-
-    Object.entries(themeToApply).forEach(([key, value]) => {
-        document.documentElement.style.setProperty(key, value);
-    });
-};
-
 function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -106,10 +85,6 @@ function App() {
   const permissions = usePermissions(currentUser);
   const { globalClubFilter, setGlobalClubFilter, canChangeClub } = useClubFilter(currentUser);
 
-  useEffect(() => {
-    applyTheme(currentUser, cluburi);
-  }, [currentUser, cluburi]);
-
   const adminViews = useMemo(() => 
     new Set(
       adminMenu.flatMap(item => 
@@ -129,15 +104,16 @@ function App() {
     if (!supabase) return;
     setLoading(true);
 
+    const userRoles = new Set(user.roluri.map(r => r.nume));
+    const isFederationAdmin = userRoles.has('Super Admin') || userRoles.has('Admin');
+    const isClubScoped = (userRoles.has('Admin Club') || userRoles.has('Instructor')) && !isFederationAdmin;
+    const userClubId = user.club_id;
+
     const createClubScopedQuery = (table: string, select = '*') => {
-        // RLS handles club-scoping, so we don't need to add .eq('club_id', ...) for most tables.
-        // This was redundant. We only keep it for tables where RLS might be missing or complex.
-        const userRoles = new Set(user.roluri.map(r => r.nume));
-        const isClubScoped = (userRoles.has('Admin Club') || userRoles.has('Instructor')) && !(userRoles.has('Super Admin') || userRoles.has('Admin'));
         let query = supabase.from(table).select(select);
-        const tablesRequiringClientFilter = ['sesiuni_examene'];
-        if (isClubScoped && user.club_id && tablesRequiringClientFilter.includes(table)) {
-            query = query.eq('club_id', user.club_id);
+        const clubIdTables = ['sportivi', 'grupe', 'sesiuni_examene', 'tipuri_abonament', 'cluburi'];
+        if (isClubScoped && userClubId && clubIdTables.includes(table)) {
+            query = query.eq('club_id', userClubId);
         }
         return query;
     };
@@ -154,7 +130,7 @@ function App() {
             createClubScopedQuery('sesiuni_examene'),
             supabase.from('grade').select('*'),
             createClubScopedQuery('grupe'),
-            supabase.from('evenimente').select('*'), // RLS handles events for clubs vs federation
+            supabase.from('evenimente').select('*'),
             supabase.from('preturi_config').select('*'),
             supabase.from('grade_preturi_config').select('*'),
             createClubScopedQuery('tipuri_abonament'),
@@ -165,7 +141,7 @@ function App() {
             supabase.from('nom_locatii').select('*'),
             createClubScopedQuery('cluburi'),
 
-            // RLS-protected data
+            // RLS-protected data (RLS will still apply on top of client-side filter)
             createClubScopedQuery('sportivi', '*, roluri(id, nume)'),
             supabase.from('inscrieri_examene').select('*, sportivi:sportiv_id(*), grade:grad_vizat_id(*)').order('ordine', { foreignTable: 'grade', ascending: false }),
             supabase.from('familii').select('*'),

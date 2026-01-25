@@ -74,7 +74,7 @@ interface CardProps {
 }
 
 export const Card: React.FC<CardProps> = ({ children, className }) => (
-  <div className={`bg-[var(--card-bg)] p-4 rounded-lg border border-[var(--border-color)] shadow-lg shadow-black/20 ${className}`}>
+  <div className={`bg-light-navy p-4 rounded-lg border border-slate-800 shadow-lg shadow-black/20 ${className}`}>
     {children}
   </div>
 );
@@ -92,10 +92,10 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
 
   return (
     <div className="fixed inset-0 bg-black/80 z-50 flex sm:items-center sm:justify-center sm:p-4" onClick={() => !persistent && onClose()}>
-      <div className="bg-[var(--card-bg)] w-full h-full flex flex-col sm:h-auto sm:max-h-[95vh] sm:max-w-2xl sm:rounded-lg sm:border border-[var(--border-color-light)] shadow-2xl animate-fade-in-down" onClick={(e) => e.stopPropagation()}>
-        <div className="flex justify-between items-center p-3 border-b border-[var(--border-color)]">
+      <div className="bg-slate-800 w-full h-full flex flex-col sm:h-auto sm:max-h-[95vh] sm:max-w-2xl sm:rounded-lg sm:border border-slate-600 shadow-2xl animate-fade-in-down" onClick={(e) => e.stopPropagation()}>
+        <div className="flex justify-between items-center p-3 border-b border-slate-700">
           <h2 className="text-lg font-bold text-white uppercase tracking-tight">{title}</h2>
-          <button onClick={onClose} className="p-1 text-[var(--text-secondary)] hover:text-white transition-colors">
+          <button onClick={onClose} className="p-1 text-slate-400 hover:text-white transition-colors">
             <XIcon className="w-5 h-5" />
           </button>
         </div>
@@ -113,12 +113,12 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 }
   
 export const Input: React.FC<InputProps> = ({ label, id, error, ...props }) => {
-    const errorClasses = error ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-[var(--border-color-light)] focus:ring-brand-secondary focus:border-brand-secondary';
-    const themeClasses = 'bg-[var(--input-bg)] text-white placeholder-[var(--text-tertiary)]';
+    const errorClasses = error ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-slate-600 focus:ring-brand-secondary focus:border-brand-secondary';
+    const themeClasses = 'bg-slate-700 text-white placeholder-slate-400';
 
     return (
         <div className="w-full">
-            {label && <label htmlFor={id} className={`block text-[11px] uppercase font-bold text-[var(--text-secondary)] mb-1 ml-1`}>{label}</label>}
+            {label && <label htmlFor={id} className={`block text-[11px] uppercase font-bold text-slate-400 mb-1 ml-1`}>{label}</label>}
             <input 
                 id={id} 
                 {...props} 
@@ -136,8 +136,8 @@ interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
 
 export const Select: React.FC<SelectProps> = ({ label, id, children, ...props }) => (
     <div className="w-full">
-        {label && <label htmlFor={id} className="block text-[11px] uppercase font-bold text-[var(--text-secondary)] mb-1 ml-1">{label}</label>}
-        <select id={id} {...props} className={`w-full bg-[var(--input-bg)] border border-[var(--border-color-light)] rounded px-2 py-1 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-secondary focus:border-brand-secondary transition-all appearance-none ${props.className}`}>
+        {label && <label htmlFor={id} className="block text-[11px] uppercase font-bold text-slate-400 mb-1 ml-1">{label}</label>}
+        <select id={id} {...props} className={`w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-secondary focus:border-brand-secondary transition-all appearance-none ${props.className}`}>
             {children}
         </select>
     </div>
@@ -145,7 +145,7 @@ export const Select: React.FC<SelectProps> = ({ label, id, children, ...props })
 
 export const FormSection: React.FC<{ title: string, children: React.ReactNode }> = ({ title, children }) => (
     <div>
-        <h3 className="text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider border-b border-[var(--border-color)] pb-1.5">{title}</h3>
+        <h3 className="text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider border-b border-slate-700 pb-1.5">{title}</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3 mt-3">
             {children}
         </div>

@@ -10,7 +10,7 @@ type UserRole = 'SUPER_ADMIN_FEDERATIE' | 'ADMIN_CLUB' | 'INSTRUCTOR' | 'SPORTIV
 const NavCard: React.FC<{ title: string; description: string; icon: React.ElementType; onClick: () => void; }> = ({ title, description, icon: Icon, onClick }) => (
     <div
         onClick={onClick}
-        className="group bg-[var(--card-bg)] rounded-lg shadow-md p-6 flex flex-col items-center text-center cursor-pointer hover:shadow-xl hover:scale-105 transition-all duration-300 border border-[var(--border-color)] hover:border-brand-secondary"
+        className="group bg-light-navy rounded-lg shadow-md p-6 flex flex-col items-center text-center cursor-pointer hover:shadow-xl hover:scale-105 transition-all duration-300 border border-slate-800 hover:border-brand-secondary"
     >
         <div className="p-4 bg-brand-secondary/10 text-brand-secondary rounded-full mb-4">
             <Icon className="h-8 w-8" />
@@ -22,11 +22,9 @@ const NavCard: React.FC<{ title: string; description: string; icon: React.Elemen
 
 // Header sub-component
 const DashboardHeader: React.FC<{ userRole: UserRole; clubName?: string }> = ({ userRole, clubName }) => {
-    const commonClasses = "bg-[var(--card-bg)] text-white p-6 rounded-lg shadow-lg mb-8 text-center sm:text-left";
-    
     if (userRole === 'SUPER_ADMIN_FEDERATIE') {
         return (
-            <div className={commonClasses}>
+            <div className="bg-slate-900 text-white p-6 rounded-lg shadow-lg mb-8 text-center sm:text-left">
                 <h1 className="text-3xl font-bold">Federația Română de Qwan Ki Do</h1>
                 <p className="mt-1 text-slate-300">Bun venit în panoul de administrare centralizat.</p>
             </div>
@@ -35,7 +33,7 @@ const DashboardHeader: React.FC<{ userRole: UserRole; clubName?: string }> = ({ 
 
     if (userRole === 'ADMIN_CLUB' || userRole === 'INSTRUCTOR') {
         return (
-            <div className={commonClasses}>
+            <div className="bg-slate-900 text-white p-6 rounded-lg shadow-lg mb-8 text-center sm:text-left">
                 <h1 className="text-3xl font-bold">{clubName ? `Clubul Sportiv ${clubName}` : 'Panou de Administrare Club'}</h1>
                 <p className="mt-1 text-slate-300">Bun venit în panoul de administrare.</p>
             </div>
@@ -44,7 +42,7 @@ const DashboardHeader: React.FC<{ userRole: UserRole; clubName?: string }> = ({ 
     
     // Fallback for other roles or no role
     return (
-        <div className={commonClasses}>
+        <div className="bg-slate-900 text-white p-6 rounded-lg shadow-lg mb-8 text-center sm:text-left">
             <h1 className="text-3xl font-bold">Portal Qwan Ki Do</h1>
              <p className="mt-1 text-slate-300">Bun venit în panoul de administrare.</p>
         </div>

@@ -9,7 +9,6 @@ export interface Club {
   cif?: string | null;
   oras?: string | null;
   federatie_id?: string | null;
-  theme_config?: any | null;
 }
 
 export interface Sportiv {

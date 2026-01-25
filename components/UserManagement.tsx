@@ -9,7 +9,7 @@ const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
     // FIX: Add missing 'Super Admin' and 'Admin Club' roles to satisfy the Record type.
     const colorClasses: Record<Rol['nume'], string> = {
         Admin: 'bg-red-600 text-white',
-        'Super Admin': 'bg-red-800 text-white',
+        'SUPER_ADMIN_FEDERATIE': 'bg-red-800 text-white',
         'Admin Club': 'bg-blue-600 text-white',
         Instructor: 'bg-sky-600 text-white',
         Sportiv: 'bg-slate-600 text-slate-200',
@@ -380,7 +380,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
             
             <MyProfile user={currentUser} setSportivi={setSportivi} setCurrentUser={setCurrentUser} />
 
-            {currentUser.roluri.some(r => r.nume === 'Admin' || r.nume === 'Super Admin') && (
+            {currentUser.roluri.some(r => r.nume === 'Admin' || r.nume === 'SUPER_ADMIN_FEDERATIE') && (
                 <>
                 <Card className="mb-8">
                      <h3 className="text-xl font-bold text-white mb-4">Adaugă Rol Nou</h3>
@@ -422,7 +422,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                                                                     className="h-4 w-4 rounded border-slate-500 bg-slate-800 text-primary-600 focus:ring-primary-500"
                                                                     checked={newRoleIds.includes(role.id)}
                                                                     onChange={(e) => handleRoleChange(role.id, e.target.checked)}
-                                                                    disabled={user.id === currentUser.id && (role.nume === 'Admin' || role.nume === 'Super Admin')}
+                                                                    disabled={user.id === currentUser.id && (role.nume === 'Admin' || role.nume === 'SUPER_ADMIN_FEDERATIE')}
                                                                 />
                                                                 <span>{role.nume}</span>
                                                             </label>
@@ -452,7 +452,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                                                 <td className="p-4 text-right w-32">
                                                     <div className="flex items-center justify-end gap-2">
                                                         {user.user_id ? (
-                                                            <Button onClick={() => handleEdit(user)} variant="primary" size="sm" disabled={user.id === currentUser.id && !currentUser.roluri.some(r => r.nume === 'Super Admin')}><EditIcon /></Button>
+                                                            <Button onClick={() => handleEdit(user)} variant="primary" size="sm" disabled={user.id === currentUser.id && !currentUser.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE')}><EditIcon /></Button>
                                                         ) : (
                                                             <Button onClick={() => handleOpenCreateAccountModal(user)} variant="info" size="sm">Creează Cont</Button>
                                                         )}

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { User } from '../types';
-import { FEDERATIE_ID } from '../constants';
+import { SUPER_ADMIN_ROLE_ID, ADMIN_CLUB_ROLE_ID } from '../constants';
 
 export interface Permissions {
     isSuperAdmin: boolean;
@@ -29,14 +29,13 @@ export const usePermissions = (user: User | null): Permissions => {
         }
 
         const roles = new Set(user.roluri.map(r => r.nume));
+        const roleIds = new Set(user.roluri.map(r => r.id));
         
-        // Federation/Super Admin status is now based on role, not club_id, for robustness.
-        const isSuperAdmin = roles.has('Super Admin');
+        const isSuperAdmin = roleIds.has(SUPER_ADMIN_ROLE_ID);
         const isAdmin = roles.has('Admin');
         const isFederationAdmin = isSuperAdmin || isAdmin;
 
-        // Club-scoped roles should explicitly NOT be federation admins.
-        const isAdminClub = roles.has('Admin Club') && !isFederationAdmin;
+        const isAdminClub = roleIds.has(ADMIN_CLUB_ROLE_ID) && !isFederationAdmin;
         const isInstructor = roles.has('Instructor') && !isFederationAdmin;
         const isSportiv = roles.has('Sportiv');
         

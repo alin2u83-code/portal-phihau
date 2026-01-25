@@ -129,19 +129,28 @@ function App() {
 
     const createClubScopedQuery = (table: string, select = '*') => {
         let query = supabase.from(table).select(select);
-        const clubIdTables = ['sportivi', 'grupe', 'sesiuni_examene', 'tipuri_abonament', 'cluburi'];
-        
+
         if (permissions.isFederationAdmin) {
-            return query;
+            return query; // Super admin sees everything
         }
 
         const userClubId = user.club_id;
-        if (userClubId && clubIdTables.includes(table)) {
-            if (table === 'cluburi') {
-                query = query.eq('id', userClubId);
-            } else {
-                query = query.eq('club_id', userClubId);
+        if (!userClubId) {
+            const strictlyScopedTables = ['sportivi', 'grupe', 'sesiuni_examene', 'tipuri_abonament', 'evenimente', 'cluburi'];
+            if(strictlyScopedTables.includes(table)) {
+                return query.limit(0);
             }
+            return query; 
+        }
+        
+        const clubIdTables = ['sportivi', 'grupe', 'sesiuni_examene', 'tipuri_abonament'];
+        
+        if (clubIdTables.includes(table)) {
+            query = query.eq('club_id', userClubId);
+        } else if (table === 'cluburi') {
+            query = query.eq('id', userClubId);
+        } else if (table === 'evenimente') {
+            query = query.or(`club_id.eq.${userClubId},club_id.is.null`);
         }
         return query;
     };
@@ -158,7 +167,7 @@ function App() {
             createClubScopedQuery('sesiuni_examene'),
             supabase.from('grade').select('*'),
             createClubScopedQuery('grupe'),
-            supabase.from('evenimente').select('*'),
+            createClubScopedQuery('evenimente'),
             supabase.from('preturi_config').select('*'),
             supabase.from('grade_preturi_config').select('*'),
             createClubScopedQuery('tipuri_abonament'),
@@ -207,7 +216,7 @@ function App() {
         const formattedGrupe = (grData || []).map(g => ({ ...g, program: orarAntrenamente.filter(p => p.grupa_id === g.id) }));
         const formattedSportivi = (sData || []).map((s: any) => ({ ...s, roluri: s.roluri || [] }));
         
-        const hasAdminAccess = user.roluri.some(r => ['Admin', 'Super Admin', 'Instructor', 'Admin Club'].includes(r.nume));
+        const hasAdminAccess = user.roluri.some(r => ['Admin', 'SUPER_ADMIN_FEDERATIE', 'Instructor', 'Admin Club'].includes(r.nume));
         const formattedAntrenamente = (antrenamenteData || []).map((a: any) => {
             const allPresentIds = a.prezenta_antrenament 
                 ? a.prezenta_antrenament.map((p: any) => p.sportiv_id) 
@@ -496,7 +505,7 @@ function App() {
         ) : (
             <SportiviManagement onBack={() => setActiveView('dashboard')} sportivi={displaySportivi} setSportivi={setSportivi} grupe={displayGrupe} setGrupe={setGrupe} tipuriAbonament={displayTipuriAbonament} familii={displayFamilii} setFamilii={setFamilii} allRoles={allRoles} setAllRoles={setAllRoles} currentUser={currentUser} plati={displayPlati} tranzactii={displayTranzactii} setTranzactii={setTranzactii} onViewSportiv={setViewedSportiv} clubs={cluburi} />
         );
-      case 'cluburi': return <CluburiManagement clubs={displayCluburi} setClubs={setCluburi} onBack={() => setActiveView('dashboard')} />;
+      case 'cluburi': return <CluburiManagement clubs={displayCluburi} setClubs={setCluburi} onBack={() => setActiveView('dashboard')} currentUser={currentUser} />;
       case 'examene': return <GestiuneExamene currentUser={currentUser} clubs={displayCluburi} sesiuni={displaySesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={displayInscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={displaySportivi} setSportivi={setSportivi} grade={grade} locatii={locatii} setLocatii={setLocatii} plati={displayPlati} setPlati={setPlati} preturiConfig={preturiConfig} onBack={() => setActiveView('dashboard')} />;
       case 'rapoarte-examen': return <RapoarteExamen sesiuni={displaySesiuniExamene} inscrieri={displayInscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={displaySportivi} grade={grade} locatii={locatii} plati={displayPlati} onBack={() => setActiveView('dashboard')} />;
       case 'grade': return <GradeManagement grade={grade} setGrade={setGrade} onBack={() => setActiveView('dashboard')} />;

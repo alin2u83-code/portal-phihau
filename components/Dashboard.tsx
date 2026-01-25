@@ -64,7 +64,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ currentUser, onNavigate, c
         const roles = new Set(currentUser.roluri.map(r => r.nume));
         let role: UserRole = 'UNKNOWN';
 
-        if (roles.has('Super Admin') || roles.has('Admin')) {
+        if (roles.has('SUPER_ADMIN_FEDERATIE') || roles.has('Admin')) {
             role = 'SUPER_ADMIN_FEDERATIE';
         } else if (roles.has('Admin Club')) {
             role = 'ADMIN_CLUB';

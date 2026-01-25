@@ -43,7 +43,7 @@ BEGIN
         FROM public.sportivi s
         JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id
         JOIN public.roluri r ON sr.rol_id = r.id
-        WHERE s.user_id = auth.uid() AND (r.nume = 'Super Admin' OR r.nume = 'Admin')
+        WHERE s.user_id = auth.uid() AND (r.nume = 'SUPER_ADMIN_FEDERATIE' OR r.nume = 'Admin')
     );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
@@ -60,7 +60,7 @@ BEGIN
         JOIN public.sportivi_roluri sr ON s.id = sr.sportiv_id
         JOIN public.roluri r ON sr.rol_id = r.id
         WHERE s.user_id = auth.uid()
-          AND (r.nume = 'Admin' OR r.nume = 'Instructor' OR r.nume = 'Super Admin' OR r.nume = 'Admin Club')
+          AND (r.nume = 'Admin' OR r.nume = 'Instructor' OR r.nume = 'SUPER_ADMIN_FEDERATIE' OR r.nume = 'Admin Club')
     );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;

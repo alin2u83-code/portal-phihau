@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Club } from '../types';
+import { Club, User } from '../types';
 import { Button, Modal, Input, Card } from './ui';
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
+import { usePermissions } from '../hooks/usePermissions';
 
 interface ClubFormModalProps {
     isOpen: boolean;
@@ -62,17 +63,24 @@ interface CluburiManagementProps {
     clubs: Club[];
     setClubs: React.Dispatch<React.SetStateAction<Club[]>>;
     onBack: () => void;
+    currentUser: User;
 }
 
-export const CluburiManagement: React.FC<CluburiManagementProps> = ({ clubs, setClubs, onBack }) => {
+export const CluburiManagement: React.FC<CluburiManagementProps> = ({ clubs, setClubs, onBack, currentUser }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [clubToEdit, setClubToEdit] = useState<Club | null>(null);
     const [clubToDelete, setClubToDelete] = useState<Club | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const { showError, showSuccess } = useError();
+    const permissions = usePermissions(currentUser);
 
     const handleSave = async (clubData: Partial<Club>) => {
         if (!supabase) return;
+        if (!clubToEdit && !permissions.isSuperAdmin) {
+            showError("Acces Interzis", "Doar un Super Administrator poate adăuga cluburi noi.");
+            return;
+        }
+
         if (clubToEdit) {
             const { id, ...updates } = clubData;
             const { data, error } = await supabase.from('cluburi').update(updates).eq('id', id!).select().single();
@@ -114,9 +122,11 @@ export const CluburiManagement: React.FC<CluburiManagementProps> = ({ clubs, set
             <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-bold text-white">Gestiune Cluburi</h1>
-                <Button onClick={() => { setClubToEdit(null); setIsModalOpen(true); }} variant="info">
-                    <PlusIcon className="w-5 h-5 mr-2" /> Adaugă Club
-                </Button>
+                {permissions.isSuperAdmin && (
+                    <Button onClick={() => { setClubToEdit(null); setIsModalOpen(true); }} variant="info">
+                        <PlusIcon className="w-5 h-5 mr-2" /> Adaugă Club
+                    </Button>
+                )}
             </div>
             <Card className="p-0 overflow-hidden">
                 <div className="overflow-x-auto">
@@ -137,8 +147,8 @@ export const CluburiManagement: React.FC<CluburiManagementProps> = ({ clubs, set
                                     <td className="p-4">{club.cif || '-'}</td>
                                     <td className="p-4 text-right">
                                         <div className="flex items-center justify-end space-x-2">
-                                            <Button disabled={club.id === FEDERATIE_ID} onClick={() => { setClubToEdit(club); setIsModalOpen(true); }} variant="primary" size="sm"><EditIcon /></Button>
-                                            <Button disabled={club.id === FEDERATIE_ID} onClick={() => setClubToDelete(club)} variant="danger" size="sm"><TrashIcon /></Button>
+                                            <Button disabled={club.id === FEDERATIE_ID || !permissions.isSuperAdmin} onClick={() => { setClubToEdit(club); setIsModalOpen(true); }} variant="primary" size="sm"><EditIcon /></Button>
+                                            <Button disabled={club.id === FEDERATIE_ID || !permissions.isSuperAdmin} onClick={() => setClubToDelete(club)} variant="danger" size="sm"><TrashIcon /></Button>
                                         </div>
                                     </td>
                                 </tr>

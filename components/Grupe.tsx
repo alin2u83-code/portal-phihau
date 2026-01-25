@@ -59,7 +59,7 @@ const GrupaFormModal: React.FC<{ isOpen: boolean; onClose: () => void; onSave: (
     const [program, setProgram] = useState<ProgramItem[]>([]);
     const [loading, setLoading] = useState(false);
     const { showError } = useError();
-    const isFederationAdmin = currentUser.roluri.some(r => r.nume === 'Super Admin' || r.nume === 'Admin');
+    const isFederationAdmin = currentUser.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'Admin');
 
     React.useEffect(() => {
         if (isOpen) {

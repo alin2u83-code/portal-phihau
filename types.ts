@@ -1,6 +1,6 @@
 export interface Rol {
   id: string;
-  nume: 'Sportiv' | 'Instructor' | 'Admin' | 'Super Admin' | 'Admin Club';
+  nume: 'Sportiv' | 'Instructor' | 'Admin' | 'SUPER_ADMIN_FEDERATIE' | 'Admin Club';
 }
 
 export interface Club {

@@ -24,7 +24,7 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
     const [isDeleting, setIsDeleting] = useState(false);
     const { showError, showSuccess } = useError();
 
-    const isFederationAdmin = currentUser?.roluri.some(r => r.nume === 'Super Admin' || r.nume === 'Admin');
+    const isFederationAdmin = currentUser?.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'Admin');
 
     const handleAdd = async () => {
         if(!supabase) { showError("Eroare Configurare", "Client Supabase neinițializat."); return; }

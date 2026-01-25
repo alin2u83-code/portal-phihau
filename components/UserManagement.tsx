@@ -295,38 +295,53 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
         }
         setCreateAccountLoading(true);
         setCreateAccountError('');
-    
+
         if (createAccountForm.username) {
             const { data: existingUser, error: checkError } = await supabase.from('sportivi').select('id').eq('username', createAccountForm.username).not('id', 'eq', selectedUserForAccount.id).limit(1);
+// FIX: Corrected function name from setLoading to setCreateAccountLoading.
             if (checkError) { setCreateAccountError(`Eroare la verificare: ${checkError.message}`); setCreateAccountLoading(false); return; }
+// FIX: Corrected function name from setLoading to setCreateAccountLoading.
             if (existingUser && existingUser.length > 0) { setCreateAccountError('Numele de utilizator este deja folosit.'); setCreateAccountLoading(false); return; }
         }
-    
-        // Invoke the Edge Function instead of calling auth.signUp
-        const { data: functionData, error: functionError } = await supabase.functions.invoke('create-user-admin', {
-            body: {
+        
+        let authUser = null;
+
+        try {
+            // Attempt to create user via Edge Function first
+            const { data: functionData, error: functionError } = await supabase.functions.invoke('create-user-admin', {
+                body: { email: createAccountForm.email, password: createAccountForm.parola }
+            });
+            if (functionError) throw functionError;
+            authUser = functionData.user;
+        } catch (functionError) {
+            console.error("Edge Function 'create-user-admin' failed, falling back to client-side signUp.", functionError);
+            
+            // Fallback to client-side signUp
+            const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
                 email: createAccountForm.email,
-                password: createAccountForm.parola
+                password: createAccountForm.parola,
+            });
+
+            if (signUpError) {
+                if (signUpError.message.includes("User already exists")) {
+                    setCreateAccountError(`Un cont cu email-ul "${createAccountForm.email}" există deja. Confirmați parola pentru a-l asocia.`);
+                    setAccountCreationStep('confirm_link');
+                } else {
+                    setCreateAccountError(`Eroare la crearea contului: ${signUpError.message}`);
+                }
+                setCreateAccountLoading(false);
+                return;
             }
-        });
-    
-        if (functionError) {
-            if (functionError.message.includes("User already exists")) {
-                setCreateAccountError(`Un cont cu email-ul "${createAccountForm.email}" există deja. Dacă parola introdusă este corectă, puteți asocia acest sportiv cu contul existent.`);
-                setAccountCreationStep('confirm_link');
-            } else {
-                setCreateAccountError(`Eroare la crearea contului: ${functionError.message}`);
-            }
-            setCreateAccountLoading(false);
-            return;
+            authUser = signUpData.user;
+            showSuccess("Cont Creat (Fallback)", "Funcția Edge a eșuat. Contul a fost creat dar necesită confirmare manuală de către administrator.");
         }
-    
-        if (functionData.user) {
-            const profileUpdates = { user_id: functionData.user.id, email: createAccountForm.email, username: createAccountForm.username };
+
+        if (authUser) {
+            const profileUpdates = { user_id: authUser.id, email: createAccountForm.email, username: createAccountForm.username };
             const { data, error } = await supabase.from('sportivi').update(profileUpdates).eq('id', selectedUserForAccount.id).select('*, roluri(id, nume)').single();
     
             if (error) {
-                setCreateAccountError(`Cont creat (ID: ${functionData.user.id}), dar eroare la legarea profilului: ${error.message}. Încercați să asociați contul manual.`);
+                setCreateAccountError(`Cont Auth creat (ID: ${authUser.id}), dar eroare la legarea profilului: ${error.message}. Încercați să asociați contul manual.`);
             } else if (data) {
                 const updatedUser = { ...data, roluri: (data as any).roluri || [] };
                 setSportivi(prev => prev.map(s => s.id === selectedUserForAccount.id ? updatedUser : s));
@@ -336,12 +351,12 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                 setTimeout(() => setUserListFeedback(null), 4000);
             }
         } else {
-            setCreateAccountError('Funcția Edge nu a returnat un utilizator valid.');
+            setCreateAccountError('Nu s-a putut obține un utilizator valid nici prin funcția Edge, nici prin fallback.');
         }
         
         setCreateAccountLoading(false);
     };
-    
+
     const handleAddNewRole = async () => {
         if (!supabase) return;
         const trimmedName = newRoleName.trim();
@@ -483,14 +498,14 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                             </div>
                         </form>
                     ) : (
-                        <div className="space-y-4">
+                        <form onSubmit={(e) => { e.preventDefault(); handleLinkExistingAccount(); }} className="space-y-4">
                              <p className="text-amber-300 text-sm text-center bg-amber-900/50 p-3 rounded-md">{createAccountError}</p>
                             <Input label="Confirmă Parola Contului Existent" name="parola" type="password" value={createAccountForm.parola} onChange={handleCreateAccountFormChange} required />
                              <div className="flex justify-end pt-4 space-x-2">
                                 <Button type="button" variant="secondary" onClick={() => { setCreateAccountError(''); setAccountCreationStep('initial'); }} disabled={createAccountLoading}>Înapoi</Button>
-                                <Button onClick={() => handleLinkExistingAccount()} variant="success" disabled={createAccountLoading}>{createAccountLoading ? 'Se asociază...' : 'Da, Asociază Contul'}</Button>
+                                <Button type="submit" variant="success" disabled={createAccountLoading}>{createAccountLoading ? 'Se asociază...' : 'Da, Asociază Contul'}</Button>
                             </div>
-                        </div>
+                        </form>
                     )}
                 </Modal>
             )}

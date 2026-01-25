@@ -77,20 +77,28 @@ export const CluburiManagement: React.FC<CluburiManagementProps> = ({ clubs, set
     const handleSave = async (clubData: Partial<Club>) => {
         if (!supabase) return;
         if (!clubToEdit && !permissions.isSuperAdmin) {
-            showError("Acces Interzis", "Doar un Super Administrator poate adăuga cluburi noi.");
+            showError("Acces Interzis", "Doar un SUPER_ADMIN_FEDERATIE poate adăuga cluburi noi.");
             return;
         }
 
-        if (clubToEdit) {
-            const { id, ...updates } = clubData;
-            const { data, error } = await supabase.from('cluburi').update(updates).eq('id', id!).select().single();
-            if (error) showError("Eroare la actualizare", error);
-            else if (data) { setClubs(prev => prev.map(c => c.id === id ? data : c)); showSuccess("Succes", "Club actualizat."); }
-        } else {
-            const { id, ...insertData } = clubData;
-            const { data, error } = await supabase.from('cluburi').insert(insertData).select().single();
-            if (error) showError("Eroare la adăugare", error);
-            else if (data) { setClubs(prev => [...prev, data]); showSuccess("Succes", "Club adăugat."); }
+        try {
+            if (clubToEdit) {
+                const { id, ...updates } = clubData;
+                const { data, error } = await supabase.from('cluburi').update(updates).eq('id', id!).select().single();
+                if (error) throw error;
+                if (data) { setClubs(prev => prev.map(c => c.id === id ? data : c)); showSuccess("Succes", "Club actualizat."); }
+            } else {
+                const { id, ...insertData } = clubData;
+                const { data, error } = await supabase.from('cluburi').insert([insertData]).select().single();
+                if (error) throw error;
+                if (data) { setClubs(prev => [...prev, data]); showSuccess("Succes", "Club adăugat."); }
+            }
+        } catch (err: any) {
+             if (err.message.includes('violates row-level security policy')) {
+                showError("Permisiune Refuzată (RLS)", "Politica de securitate a bazei de date a blocat acțiunea. Asigurați-vă că rolul dumneavoastră ('SUPER_ADMIN_FEDERATIE') este corect configurat.");
+            } else {
+                showError("Eroare la Salvare", err);
+            }
         }
     };
 

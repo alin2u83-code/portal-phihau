@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { SesiuneExamen, InscriereExamen, Sportiv, Grad, Locatie, Plata, PretConfig } from '../types';
+import { SesiuneExamen, InscriereExamen, Sportiv, Grad, Locatie, Plata, PretConfig, User, Club } from '../types';
 import { Button, Modal, Input, Select, Card } from './ui';
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -95,12 +95,13 @@ const LocatieFormModal: React.FC<LocatieFormProps> = ({ isOpen, onClose, onSave 
   );
 };
 
-interface SesiuneFormProps { isOpen: boolean; onClose: () => void; onSave: (sesiune: Partial<SesiuneExamen>) => Promise<void>; sesiuneToEdit: SesiuneExamen | null; locatii: Locatie[]; setLocatii: React.Dispatch<React.SetStateAction<Locatie[]>>; }
-const SesiuneForm: React.FC<SesiuneFormProps> = ({ isOpen, onClose, onSave, sesiuneToEdit, locatii, setLocatii }) => {
+interface SesiuneFormProps { isOpen: boolean; onClose: () => void; onSave: (sesiune: Partial<SesiuneExamen>) => Promise<void>; sesiuneToEdit: SesiuneExamen | null; locatii: Locatie[]; setLocatii: React.Dispatch<React.SetStateAction<Locatie[]>>; clubs: Club[]; currentUser: User; }
+const SesiuneForm: React.FC<SesiuneFormProps> = ({ isOpen, onClose, onSave, sesiuneToEdit, locatii, setLocatii, clubs, currentUser }) => {
   const [formState, setFormState] = useState<Partial<SesiuneExamen>>({ data: new Date().toISOString().split('T')[0], locatie_id: '', comisia: [] });
   const [loading, setLoading] = useState(false);
   const [isLocatieModalOpen, setIsLocatieModalOpen] = useState(false);
   const { showError, showSuccess } = useError();
+  const isSuperAdmin = useMemo(() => currentUser.roluri.some(r => r.nume === 'Super Admin' || r.nume === 'Admin'), [currentUser]);
 
   useEffect(() => {
       if (sesiuneToEdit) {
@@ -108,9 +109,14 @@ const SesiuneForm: React.FC<SesiuneFormProps> = ({ isOpen, onClose, onSave, sesi
           const comisieArray = Array.isArray(comisiaAsAny) ? comisiaAsAny : (typeof comisiaAsAny === 'string' ? comisiaAsAny.split(',').map(s => s.trim()).filter(Boolean) : []);
           setFormState({ ...sesiuneToEdit, comisia: comisieArray });
       } else {
-          setFormState({ data: new Date().toISOString().split('T')[0], locatie_id: '', comisia: [] });
+          setFormState({ 
+              data: new Date().toISOString().split('T')[0], 
+              locatie_id: '', 
+              comisia: [],
+              club_id: isSuperAdmin ? '' : currentUser.club_id
+          });
       }
-  }, [sesiuneToEdit, isOpen]);
+  }, [sesiuneToEdit, isOpen, isSuperAdmin, currentUser.club_id]);
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setFormState(p => ({ ...p, [e.target.name]: e.target.value }));
   const handleSubmit = async (e: React.FormEvent) => { e.preventDefault(); setLoading(true); await onSave(formState); setLoading(false); onClose(); };
@@ -131,6 +137,12 @@ const SesiuneForm: React.FC<SesiuneFormProps> = ({ isOpen, onClose, onSave, sesi
   <Modal isOpen={isOpen} onClose={onClose} title={sesiuneToEdit ? "Editează Sesiune Examen" : "Adaugă Sesiune Nouă"}>
     <form onSubmit={handleSubmit} className="space-y-4">
         <Input label="Data Examenului" name="data" type="date" value={formState.data} onChange={handleChange} required />
+        {isSuperAdmin && (
+            <Select label="Club Organizator" name="club_id" value={formState.club_id || ''} onChange={handleChange}>
+                <option value="">Federație (eveniment central)</option>
+                {clubs.map(c => <option key={c.id} value={c.id}>{c.nume}</option>)}
+            </Select>
+        )}
         <div className="flex items-end gap-2">
             <div className="flex-grow">
                  <Select label="Locația" name="locatie_id" value={formState.locatie_id || ''} onChange={handleChange} required>
@@ -175,6 +187,8 @@ const DetaliiSesiune: React.FC<{
 
 // --- COMPONENTA PRINCIPALĂ (REFActorizată) ---
 interface GestiuneExameneProps { 
+    currentUser: User;
+    clubs: Club[];
     onBack: () => void; 
     sesiuni: SesiuneExamen[]; 
     setSesiuni: React.Dispatch<React.SetStateAction<SesiuneExamen[]>>; 
@@ -190,7 +204,7 @@ interface GestiuneExameneProps {
     preturiConfig: PretConfig[];
 }
 
-export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, sesiuni, setSesiuni, inscrieri, setInscrieri, sportivi, setSportivi, grade, locatii, setLocatii, plati, setPlati, preturiConfig }) => {
+export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, clubs, onBack, sesiuni, setSesiuni, inscrieri, setInscrieri, sportivi, setSportivi, grade, locatii, setLocatii, plati, setPlati, preturiConfig }) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [sesiuneToEdit, setSesiuneToEdit] = useState<SesiuneExamen | null>(null);
   const [sesiuneToDelete, setSesiuneToDelete] = useState<SesiuneExamen | null>(null);
@@ -204,9 +218,10 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, sesiun
 
   const handleSaveSesiune = async (sesiuneData: Partial<SesiuneExamen>) => {
     const locatieSelectata = locatii.find(l => l.id === sesiuneData.locatie_id);
-    const dataToSave = {
+    const dataToSave: Partial<SesiuneExamen> = {
         ...sesiuneData,
-        localitate: locatieSelectata ? locatieSelectata.nume : 'Necunoscută'
+        localitate: locatieSelectata ? locatieSelectata.nume : 'Necunoscută',
+        club_id: sesiuneData.club_id === '' ? null : sesiuneData.club_id
     };
 
     if (sesiuneToEdit) {
@@ -273,7 +288,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, sesiun
             </tbody>
         </table>
       </div>
-      <SesiuneForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} onSave={handleSaveSesiune} sesiuneToEdit={sesiuneToEdit} locatii={locatii} setLocatii={setLocatii} />
+      <SesiuneForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} onSave={handleSaveSesiune} sesiuneToEdit={sesiuneToEdit} locatii={locatii} setLocatii={setLocatii} clubs={clubs} currentUser={currentUser} />
       <ConfirmDeleteModal isOpen={!!sesiuneToDelete} onClose={() => setSesiuneToDelete(null)} onConfirm={() => { if(sesiuneToDelete) confirmDeleteSesiune(sesiuneToDelete.id) }} tableName="Sesiuni (și toate înscrierile asociate)" isLoading={isDeleting} />
     </div> 
   );

@@ -24,8 +24,9 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   public render() {
-    // FIX: Destructuring props and state from `this` to resolve a potential type inference issue.
+    // FIX: Corrected destructuring from `this.state`.
     const { hasError, error } = this.state;
+    // FIX: Corrected destructuring from `this.props`.
     const { children } = this.props;
 
     if (hasError) {
@@ -42,7 +43,7 @@ class ErrorBoundary extends Component<Props, State> {
       );
     }
 
-    // FIX: Destructuring `this.props` to ensure correct type inference for `children`.
+    // FIX: Using the destructured `children` variable.
     return children;
   }
 }

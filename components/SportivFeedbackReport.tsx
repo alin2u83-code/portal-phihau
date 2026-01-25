@@ -158,7 +158,7 @@ export const SportivFeedbackReport: React.FC<SportivFeedbackReportProps> = ({ is
                                             <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} allowDecimals={false} />
                                             <Bar dataKey="prezente" radius={[4, 4, 0, 0]}>
                                                 {reportData.weeklyAttendance.map((entry, index) => (
-                                                    <Cell key={`cell-${index}`} fill={entry.prezente > 0 ? '#3D3D99' : '#a0aec0'} />
+                                                    <Cell key={`cell-${index}`} fill={entry.prezente > 0 ? '#1d4ed8' : '#a0aec0'} />
                                                 ))}
                                             </Bar>
                                         </BarChart>

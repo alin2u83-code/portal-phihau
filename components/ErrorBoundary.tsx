@@ -25,14 +25,17 @@ class ErrorBoundary extends Component<Props, State> {
 
   public render() {
     // FIX: Destructuring props and state from `this` to resolve a potential type inference issue.
-    if (this.state.hasError) {
+    const { hasError, error } = this.state;
+    const { children } = this.props;
+
+    if (hasError) {
       return (
         <div className="p-8 text-center bg-red-900/50 text-red-300 rounded-lg border border-red-700">
           <h1 className="text-2xl font-bold">A apărut o eroare neașteptată.</h1>
           <p className="mt-2">Ceva nu a funcționat corect în această secțiune. Încercați să reîncărcați pagina sau să navigați la o altă secțiune.</p>
-          {this.state.error && (
+          {error && (
             <pre className="mt-4 text-left text-xs bg-black/30 p-2 rounded overflow-auto">
-              {this.state.error.toString()}
+              {error.toString()}
             </pre>
           )}
         </div>
@@ -40,7 +43,6 @@ class ErrorBoundary extends Component<Props, State> {
     }
 
     // FIX: Destructuring `this.props` to ensure correct type inference for `children`.
-    const { children } = this.props;
     return children;
   }
 }

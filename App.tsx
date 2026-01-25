@@ -49,13 +49,13 @@ import AccessDenied from './components/AccessDenied';
 import { useClubFilter } from './hooks/useClubFilter';
 import { MandatoryPasswordChange } from './components/MandatoryPasswordChange';
 import ErrorBoundary from './components/ErrorBoundary';
-import { FEDERATIE_ID } from './constants';
-import { federationTheme, clubTheme, applyTheme } from './themes';
+import { SystemGuardian } from './components/SystemGuardian';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [profileError, setProfileError] = useState<string | null>(null);
   const { showError, showSuccess } = useError();
 
   const [sportivi, setSportivi] = useState<Sportiv[]>([]);
@@ -96,19 +96,6 @@ function App() {
     ), 
   []);
 
-  useEffect(() => {
-    if (currentUser) {
-      if (currentUser.club_id === FEDERATIE_ID) {
-        applyTheme(federationTheme);
-      } else {
-        applyTheme(clubTheme);
-      }
-    } else {
-      // Fallback for login page
-      applyTheme(federationTheme);
-    }
-  }, [currentUser]);
-
   const { hasAdminAccess } = permissions;
   useEffect(() => {
     if (currentUser && !hasAdminAccess && adminViews.has(activeView)) {
@@ -120,11 +107,8 @@ function App() {
     if (!supabase) return;
     setLoading(true);
 
-    // Replicate permission logic here to avoid dependency cycle with the hook
     const userRoles = new Set(user.roluri.map(r => r.nume));
-    const isUserInFederation = user.club_id === FEDERATIE_ID;
-    const isFederationAdmin = (userRoles.has('Super Admin') || userRoles.has('Admin')) && isUserInFederation;
-    const isClubScoped = (userRoles.has('Admin Club') || userRoles.has('Instructor')) && !isUserInFederation;
+    const isClubScoped = (userRoles.has('Admin Club') || userRoles.has('Instructor')) && !permissions.isFederationAdmin;
     const userClubId = user.club_id;
 
     const createClubScopedQuery = (table: string, select = '*') => {
@@ -239,7 +223,7 @@ function App() {
     } finally {
         setLoading(false);
     }
-  }, [showError]);
+  }, [showError, permissions.isFederationAdmin]);
   
   // --- Data Filtering for Super Admin ---
     const displaySportivi = useMemo(() => permissions.isFederationAdmin && globalClubFilter ? sportivi.filter(s => s.club_id === globalClubFilter) : sportivi, [sportivi, permissions.isFederationAdmin, globalClubFilter]);
@@ -312,16 +296,19 @@ function App() {
 
   const fetchUserProfile = useCallback(async (userId: string) => {
     if (!supabase) return;
+    setProfileError(null);
     const { data, error } = await supabase.from('sportivi').select('*, roluri(id, nume)').eq('user_id', userId).maybeSingle();
 
     if (error) {
       showError("Eroare la preluarea profilului", error);
+      setProfileError(`Eroare la preluarea profilului: ${error.message}`);
       setLoading(false);
       return;
     }
 
     if (!data) {
       showError("Profil Inexistent", "Profilul de sportiv asociat acestui cont nu a fost găsit. Veți fi deconectat. Vă rugăm contactați administratorul.");
+      setProfileError("Profilul de sportiv asociat acestui cont nu a fost găsit. Contactați administratorul.");
       await supabase?.auth.signOut();
       setLoading(false);
       return;
@@ -503,7 +490,7 @@ function App() {
       case 'tipuri-abonament': return <TipuriAbonamentManagement tipuriAbonament={displayTipuriAbonament} setTipuriAbonament={setTipuriAbonament} onBack={() => setActiveView('dashboard')} currentUser={currentUser} />;
       case 'reduceri': return <ReduceriManagement reduceri={reduceri} setReduceri={setReduceri} onBack={() => setActiveView('dashboard')} />;
       case 'raport-financiar': return <RaportFinanciar plati={displayPlati} sportivi={displaySportivi} familii={displayFamilii} tranzactii={displayTranzactii} onBack={() => setActiveView('dashboard')} />;
-      case 'familii': return <FamiliiManagement familii={displayFamilii} setFamilii={setFamilii} sportivi={displaySportivi} onBack={() => setActiveView('dashboard')} tipuriAbonament={displayTipuriAbonament} />;
+      case 'familii': return <FamiliiManagement currentUser={currentUser} grupe={grupe} familii={displayFamilii} setFamilii={setFamilii} sportivi={displaySportivi} setSportivi={setSportivi} onBack={() => setActiveView('dashboard')} tipuriAbonament={displayTipuriAbonament} />;
       case 'user-management': return <UserManagement sportivi={sportivi} setSportivi={setSportivi} currentUser={currentUser} setCurrentUser={setCurrentUser} allRoles={allRoles} setAllRoles={setAllRoles} onBack={() => setActiveView('dashboard')} />;
       case 'editare-profil-personal': return <EditareProfilPersonal user={currentUser} setSportivi={setSportivi} setCurrentUser={setCurrentUser} onBack={() => setActiveView('dashboard')} />;
       case 'data-maintenance': return <DataMaintenancePage 
@@ -530,7 +517,6 @@ function App() {
     }
   };
 
-  if (loading) return <div className="flex items-center justify-center min-h-screen">Se încarcă...</div>;
   if (!session) return <Login />;
 
   if (currentUser && currentUser.trebuie_schimbata_parola) {
@@ -564,7 +550,14 @@ function App() {
             <AdminHeader currentUser={currentUser!} onNavigate={setActiveView} onLogout={handleLogout} plati={plati} permissions={permissions} />
           )}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
-          {renderContent()}
+          <SystemGuardian
+              isLoading={loading}
+              currentUser={currentUser}
+              permissions={permissions}
+              error={profileError}
+          >
+              {renderContent()}
+          </SystemGuardian>
         </main>
       </div>
 
@@ -588,6 +581,7 @@ function App() {
                     familii={familii}
                     setFamilii={setFamilii}
                     tipuriAbonament={tipuriAbonament}
+                    // FIX: Cannot find name 'clubs'. Changed to 'cluburi' which is the correct state variable.
                     clubs={cluburi}
                     currentUser={currentUser}
                 />

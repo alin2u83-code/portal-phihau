@@ -394,7 +394,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-6">
                     <Card>
-                        <h3 className="text-lg font-bold text-white mb-4">Evoluție & Progres</h3>
+                        <h3 className="text-lg font-bold text-white mb-4 animate-fade-in-down">Evoluție & Progres</h3>
                         <SportivProgressChart
                             sportiv={sportiv}
                             participari={participari}
@@ -404,8 +404,29 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                         />
                     </Card>
                     <Card>
+                        <div className="flex justify-between items-start mb-2">
+                            <h3 className="text-lg font-bold text-white animate-fade-in-down">Progres Tehnic</h3>
+                            <Button size="sm" variant="secondary" onClick={() => setShowHistory(true)}>Istoric</Button>
+                        </div>
+                        <div className="space-y-2 text-sm">
+                            <DataField 
+                                label="Grad Actual" 
+                                value={
+                                    <span 
+                                        className="text-brand-secondary hover:underline cursor-pointer font-bold"
+                                        onClick={() => setShowHistory(true)}
+                                    >
+                                        {currentGrad?.nume || 'Începător'}
+                                    </span>
+                                } 
+                            />
+                            <DataField label="Următorul Grad" value={eligibility.nextGrad?.nume || 'Maxim'} />
+                            <p className={`text-xs mt-1 ${eligibility.eligible ? 'text-green-400' : 'text-yellow-400'}`}>{eligibility.message}</p>
+                        </div>
+                    </Card>
+                    <Card>
                         <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-bold text-white">Feedback & Obiective</h3>
+                            <h3 className="text-lg font-bold text-white animate-fade-in-down">Feedback & Obiective</h3>
                             {!isEditingFeedback ? (
                                 <Button variant="secondary" size="sm" onClick={() => setIsEditingFeedback(true)}>Editează</Button>
                             ) : (
@@ -419,17 +440,17 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                             <div>
                                 <label className="block text-xs font-bold text-slate-400 mb-1">Puncte Forte</label>
                                 {isEditingFeedback ? ( <textarea name="puncte_forte" value={feedbackData.puncte_forte} onChange={handleFeedbackChange} className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-secondary focus:border-brand-secondary transition-all" rows={3}></textarea>
-                                ) : ( <p className="text-slate-200 whitespace-pre-wrap p-2 bg-slate-800/50 rounded-md min-h-[4rem]">{sportiv.puncte_forte || <span className="italic text-slate-500">Nespecificat</span>}</p> )}
+                                ) : ( <p className="text-slate-200 whitespace-pre-wrap p-2 bg-slate-800/50 rounded-md min-h-[4rem] leading-relaxed">{sportiv.puncte_forte || <span className="italic text-slate-500">Nespecificat</span>}</p> )}
                             </div>
                             <div>
                                 <label className="block text-xs font-bold text-slate-400 mb-1">Puncte Slabe</label>
                                 {isEditingFeedback ? ( <textarea name="puncte_slabe" value={feedbackData.puncte_slabe} onChange={handleFeedbackChange} className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-secondary focus:border-brand-secondary transition-all" rows={3}></textarea>
-                                ) : ( <p className="text-slate-200 whitespace-pre-wrap p-2 bg-slate-800/50 rounded-md min-h-[4rem]">{sportiv.puncte_slabe || <span className="italic text-slate-500">Nespecificat</span>}</p> )}
+                                ) : ( <p className="text-slate-200 whitespace-pre-wrap p-2 bg-slate-800/50 rounded-md min-h-[4rem] leading-relaxed">{sportiv.puncte_slabe || <span className="italic text-slate-500">Nespecificat</span>}</p> )}
                             </div>
                             <div>
                                 <label className="block text-xs font-bold text-slate-400 mb-1">Obiective pentru Următorul Grad</label>
                                 {isEditingFeedback ? ( <textarea name="obiective" value={feedbackData.obiective} onChange={handleFeedbackChange} className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-secondary focus:border-brand-secondary transition-all" rows={3}></textarea>
-                                ) : ( <p className="text-slate-200 whitespace-pre-wrap p-2 bg-slate-800/50 rounded-md min-h-[4rem]">{sportiv.obiective || <span className="italic text-slate-500">Nespecificat</span>}</p> )}
+                                ) : ( <p className="text-slate-200 whitespace-pre-wrap p-2 bg-slate-800/50 rounded-md min-h-[4rem] leading-relaxed">{sportiv.obiective || <span className="italic text-slate-500">Nespecificat</span>}</p> )}
                             </div>
                         </div>
                     </Card>
@@ -437,7 +458,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
 
                 <div className="lg:col-span-1 space-y-6">
                     <Card>
-                         <h3 className="text-lg font-bold text-white mb-2">Date Personale</h3>
+                         <h3 className="text-lg font-bold text-white mb-2 animate-fade-in-down">Date Personale</h3>
                         <div className="space-y-2 text-sm">
                             <DataField label="Vârstă" value={`${getAge(sportiv.data_nasterii)} ani`} />
                             <DataField label="Grupă" value={grupe.find(g => g.id === sportiv.grupa_id)?.denumire} />
@@ -446,22 +467,11 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                             <DataField label="Cont de acces" value={sportiv.user_id ? "Activ" : "Inexistent"}/>
                         </div>
                     </Card>
-                     <Card>
-                        <div className="flex justify-between items-start mb-2">
-                            <h3 className="text-lg font-bold text-white">Progres Tehnic</h3>
-                            <Button size="sm" variant="secondary" onClick={() => setShowHistory(true)}>Istoric</Button>
-                        </div>
-                        <div className="space-y-2 text-sm">
-                            <DataField label="Grad Actual" value={currentGrad?.nume || 'Începător'} />
-                            <DataField label="Următorul Grad" value={eligibility.nextGrad?.nume || 'Maxim'} />
-                            <p className={`text-xs mt-1 ${eligibility.eligible ? 'text-green-400' : 'text-yellow-400'}`}>{eligibility.message}</p>
-                        </div>
-                    </Card>
 
                     {isAdmin && (
                     <Card>
                         <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-bold text-white flex items-center gap-2"><ShieldCheckIcon className="w-5 h-5 text-amber-400"/> Roluri Cont</h3>
+                            <h3 className="text-lg font-bold text-white flex items-center gap-2 animate-fade-in-down"><ShieldCheckIcon className="w-5 h-5 text-amber-400"/> Roluri Cont</h3>
                             {!isEditingRoles ? (
                                 <Button variant="secondary" size="sm" onClick={() => setIsEditingRoles(true)}>Modifică</Button>
                             ) : (

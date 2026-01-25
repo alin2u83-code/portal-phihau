@@ -142,21 +142,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
                 })}
             </nav>
 
-            {isPortalView && (
-                 <div className="p-3 border-t border-white/10">
-                    <button
-                        onClick={onLogout}
-                        className={`w-full flex items-center p-2 rounded-md transition-colors text-left text-red-400 hover:bg-red-600/20 hover:text-red-300`}
-                    >
-                        <ArrowRightOnRectangleIcon className={`h-6 w-6 shrink-0 ${isExpanded ? 'mr-3' : 'mx-auto'}`} />
-                        {isExpanded && (
-                            <div className="overflow-hidden">
-                                <p className="text-sm font-semibold truncate">Deconectare</p>
-                            </div>
-                        )}
-                    </button>
-                </div>
-            )}
+             <div className="p-3 border-t border-white/10">
+                <button
+                    onClick={onLogout}
+                    title={!isExpanded ? "Deconectare" : ""}
+                    className={`w-full flex items-center p-2 rounded-md transition-colors text-left text-red-400 hover:bg-red-600/20 hover:text-red-300`}
+                >
+                    <ArrowRightOnRectangleIcon className={`h-6 w-6 shrink-0 ${isExpanded ? 'mr-3' : 'mx-auto'}`} />
+                    {isExpanded && (
+                        <span className="text-sm font-semibold truncate">Deconectare</span>
+                    )}
+                </button>
+            </div>
         </div>
     );
 

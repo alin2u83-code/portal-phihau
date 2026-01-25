@@ -414,7 +414,7 @@ function App() {
     };
   }, [fetchData, session, currentUser, loading]);
 
-  const handleLogout = async () => { await supabase?.auth.signOut(); setActiveView('dashboard'); };
+  const handleLogout = async () => { await supabase?.auth.signOut(); };
 
   const renderContent = () => {
     if (!currentUser) return null;
@@ -469,7 +469,7 @@ function App() {
     }
 
     switch (activeView) {
-      case 'dashboard': return <ErrorBoundary><Dashboard currentUser={currentUser} onNavigate={setActiveView} clubs={cluburi} /></ErrorBoundary>;
+      case 'dashboard': return <Dashboard currentUser={currentUser} onNavigate={setActiveView} clubs={cluburi} />;
       case 'financial-dashboard': return <FinancialDashboard plati={displayPlati} tranzactii={displayTranzactii} sportivi={displaySportivi} onBack={() => setActiveView('dashboard')} />;
       case 'sportivi': 
         return viewedSportiv ? (
@@ -578,7 +578,9 @@ function App() {
               permissions={permissions}
               error={profileError}
           >
-              {renderContent()}
+              <ErrorBoundary onNavigate={setActiveView}>
+                {renderContent()}
+              </ErrorBoundary>
           </SystemGuardian>
         </main>
       </div>
@@ -603,7 +605,6 @@ function App() {
                     familii={familii}
                     setFamilii={setFamilii}
                     tipuriAbonament={tipuriAbonament}
-                    // FIX: Cannot find name 'clubs'. Changed to 'cluburi' which is the correct state variable.
                     clubs={cluburi}
                     currentUser={currentUser}
                 />

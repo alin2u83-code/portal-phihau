@@ -117,7 +117,13 @@ export const SportivFeedbackReport: React.FC<SportivFeedbackReportProps> = ({ is
     const handlePrint = () => { window.print(); };
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="">
+        <Modal 
+            isOpen={isOpen} 
+            onClose={onClose} 
+            title="Raport de Activitate" 
+            titleClassName="sr-only"
+            description="Un sumar al progresului, prezenței și eligibilității sportivului pentru următorul grad."
+        >
             <div id="raport-content" className="bg-white text-gray-800 p-6 rounded-lg font-sans" style={{ fontSize: '13px' }}>
                 <style>{`
                     @media print {

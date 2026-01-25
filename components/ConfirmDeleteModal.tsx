@@ -47,21 +47,13 @@ export const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
       secondary: 'bg-slate-900/50 border-slate-700',
   }[variant];
 
+  const description = customMessage || `Sigur dorești să ștergi această înregistrare din ${tableName}? Această acțiune este ireversibilă.`;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={title}>
+    <Modal isOpen={isOpen} onClose={onClose} title={title} description={description}>
       <div className="text-center">
         <div className={`mx-auto flex h-12 w-12 items-center justify-center rounded-full border ${iconBgClass}`}>
           <Icon className={`h-6 w-6 ${iconColorClass}`} />
-        </div>
-        <div className="mt-4">
-            <h3 className="text-lg font-semibold text-white">Atenție!</h3>
-            <p className="mt-2 text-sm text-slate-300" style={{ fontSize: '13px' }}>
-                {customMessage || `Sigur dorești să ștergi această înregistrare din ${tableName}?`}
-            </p>
-             <p className="mt-1 text-xs text-slate-500">
-                Această acțiune este ireversibilă.
-            </p>
         </div>
       </div>
       <div className="mt-6 flex justify-center gap-3">

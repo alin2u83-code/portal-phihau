@@ -24,7 +24,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ currentUser, onNavigat
     const initials = (currentUser.nume?.[0] || '') + (currentUser.prenume?.[0] || '');
 
     return (
-        <header className="sticky top-0 z-20 bg-slate-900/80 backdrop-blur-sm border-b border-slate-700">
+        <header className="sticky top-0 z-20 bg-[var(--main-bg)]/80 backdrop-blur-sm border-b border-[var(--border-color)]">
             <div className="flex items-center justify-end h-16 px-4 sm:px-6 lg:px-8">
                  <div className="relative">
                     <div

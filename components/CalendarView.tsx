@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Antrenament, SesiuneExamen, Grupa, Locatie, Eveniment, View, User, Sportiv, Rezultat, Plata, PretConfig } from '../types';
-import { Button, Modal, Input, Select } from './ui';
+import { Button, Modal, Input, Select, Switch } from './ui';
 import { ArrowLeftIcon, ChevronLeftIcon, ChevronRightIcon, PlusIcon } from './icons';
 import { usePermissions } from '../hooks/usePermissions';
 import { useError } from './ErrorProvider';
@@ -152,6 +152,7 @@ interface CalendarViewProps {
 
 export const CalendarView: React.FC<CalendarViewProps> = ({ antrenamente, sesiuniExamene, evenimente, grupe, locatii, onBack, onNavigate, currentUser, sportivi, rezultate, setRezultate, plati, setPlati, preturiConfig }) => {
     const [currentDate, setCurrentDate] = useState(new Date());
+    const [showFederationOnly, setShowFederationOnly] = useState(false);
     const permissions = usePermissions(currentUser);
     const { showError, showSuccess } = useError();
     const [modalEvent, setModalEvent] = useState<Eveniment | null>(null);
@@ -228,13 +229,17 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ antrenamente, sesiun
         const today = new Date();
         today.setHours(0,0,0,0);
 
-        const allEvents = [
+        let allEventsRaw = [
             ...antrenamente.map(a => ({...a, type: 'Antrenament' as const, denumire: grupe.find(g => g.id === a.grupa_id)?.denumire || 'Antrenament'})),
             ...sesiuniExamene.map(e => ({...e, type: 'Examen' as const, denumire: `Examen ${locatii.find(l => l.id === e.locatie_id)?.nume || ''}`})),
             ...evenimente,
         ];
+        
+        if (showFederationOnly) {
+            allEventsRaw = allEventsRaw.filter(e => e.club_id === null && e.type !== 'Antrenament' && e.type !== 'Examen');
+        }
 
-        allEvents.forEach(e => {
+        allEventsRaw.forEach(e => {
             const eventDate = new Date(e.data);
             const event: CalendarEvent = {
                 id: e.id,
@@ -259,7 +264,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ antrenamente, sesiun
         });
 
         return eventMap;
-    }, [antrenamente, sesiuniExamene, evenimente, grupe, locatii]);
+    }, [antrenamente, sesiuniExamene, evenimente, grupe, locatii, showFederationOnly]);
 
 
     const { days, monthName } = useMemo(() => {
@@ -287,15 +292,20 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ antrenamente, sesiun
     const today = useMemo(() => { const d = new Date(); d.setHours(0,0,0,0); return d; }, []);
     const weekdays = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'];
     const eventStyles = {
-        antrenament: 'bg-slate-700 text-slate-200 border border-slate-600',
-        clubDefault: 'bg-slate-700 text-slate-200 border-l-4 border-slate-700',
-        federatie: 'bg-slate-800 text-white border-l-4 border-brand-secondary shadow-glow-blue'
+        antrenament: 'bg-[var(--card-bg)] text-[var(--text-primary)] border border-[var(--border-color)]',
+        clubDefault: 'bg-[var(--card-bg)] text-[var(--text-primary)] border-l-4 border-[var(--border-color-light)]',
+        federatie: 'bg-cyan-900/40 text-cyan-200 border-l-4 border-cyan-500 shadow-glow-blue'
     };
     
     const getEventStyleClass = (event: CalendarEvent) => {
         if (event.scope === 'federatie') return eventStyles.federatie;
         if (event.type === 'Antrenament') return eventStyles.antrenament;
         return eventStyles.clubDefault;
+    };
+    const getDotStyleClass = (event: CalendarEvent) => {
+        if (event.scope === 'federatie') return 'bg-cyan-400';
+        if (event.type === 'Antrenament') return 'bg-slate-500';
+        return 'bg-brand-secondary';
     };
 
 
@@ -309,10 +319,11 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ antrenamente, sesiun
                     </Button>
                 )}
             </div>
-            <div className="bg-light-navy rounded-lg shadow-md border border-slate-700">
-                <div className="flex items-center justify-between p-4 border-b border-slate-700">
+            <div className="bg-light-navy rounded-lg shadow-md border border-[var(--border-color)]">
+                <div className="flex items-center justify-between p-4 border-b border-[var(--border-color)]">
                     <h2 className="text-xl font-bold capitalize text-white">{monthName}</h2>
                     <div className="flex items-center gap-2">
+                         <Switch label="Doar Federație" name="fed_only" checked={showFederationOnly} onChange={e => setShowFederationOnly(e.target.checked)} />
                         <Button variant="secondary" size="sm" onClick={() => changeMonth(-1)} className="!p-1.5 h-auto"><ChevronLeftIcon className="w-5 h-5"/></Button>
                         <Button variant="secondary" size="sm" onClick={() => setCurrentDate(new Date())} className="text-xs px-3">Azi</Button>
                         <Button variant="secondary" size="sm" onClick={() => changeMonth(1)} className="!p-1.5 h-auto"><ChevronRightIcon className="w-5 h-5"/></Button>
@@ -321,19 +332,19 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ antrenamente, sesiun
 
                 {/* Desktop: Grid View */}
                 <div className="hidden md:block">
-                    <div className="grid grid-cols-7 border-b border-slate-700">
+                    <div className="grid grid-cols-7 border-b border-[var(--border-color)]">
                         {weekdays.map(day => (
                             <div key={day} className="py-2 text-center text-xs font-bold uppercase text-slate-400">{day}</div>
                         ))}
                     </div>
                     <div className="grid grid-cols-7 min-h-[60vh]">
                         {days.map((day, index) => {
-                            if (!day) return <div key={`pad-${index}`} className="border-r border-b border-slate-700 bg-deep-navy"></div>;
+                            if (!day) return <div key={`pad-${index}`} className="border-r border-b border-[var(--border-color)] bg-[var(--main-bg)]"></div>;
                             const dateString = day.toISOString().split('T')[0];
                             const dayEvents = eventsByDate.get(dateString) || [];
                             const isCurrentDay = day.getTime() === today.getTime();
                             return (
-                                <div key={dateString} className="border-r border-b border-slate-700 p-2 flex flex-col relative min-h-[120px] bg-light-navy/50 transition-colors hover:bg-light-navy/70">
+                                <div key={dateString} className="border-r border-b border-[var(--border-color)] p-2 flex flex-col relative min-h-[120px] bg-[var(--card-bg)]/50 transition-colors hover:bg-[var(--card-bg)]/70">
                                     <span className={`font-bold text-sm ${isCurrentDay ? 'bg-brand-primary text-white rounded-full h-6 w-6 flex items-center justify-center' : 'text-slate-300'}`}>{day.getDate()}</span>
                                     <div className="mt-2 space-y-2 overflow-y-auto">
                                         {dayEvents.map(event => (
@@ -356,14 +367,17 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ antrenamente, sesiun
                 <div className="md:hidden">
                     {agendaDays.length > 0 ? (
                         agendaDays.map(({ day, events }) => (
-                            <div key={day.toISOString()} className="p-4 border-b border-slate-700">
+                            <div key={day.toISOString()} className="p-4 border-b border-[var(--border-color)]">
                                 <h3 className="font-bold text-brand-secondary">{day.toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric' })}</h3>
                                 <div className="mt-2 space-y-4">
                                     {events.map(event => (
                                         <div key={event.id}>
-                                            <div className={`p-2 rounded-md ${getEventStyleClass(event)}`}>
-                                                <p className="font-bold">{event.title}</p>
-                                                {event.time && <p className="text-xs font-mono">{event.time}</p>}
+                                            <div className={`p-2 rounded-md flex items-start gap-3 ${getEventStyleClass(event)}`}>
+                                                <span className={`mt-1.5 w-2 h-2 rounded-full flex-shrink-0 ${getDotStyleClass(event)}`}></span>
+                                                <div>
+                                                    <p className="font-bold">{event.title}</p>
+                                                    {event.time && <p className="text-xs font-mono">{event.time}</p>}
+                                                </div>
                                             </div>
                                             <div className="mt-2">
                                                  <EventActions event={event} currentUser={currentUser} rezultate={rezultate} clubSportivi={sportivi} onSingleRegister={handleSingleRegistration} onBulkRegister={setModalEvent} />

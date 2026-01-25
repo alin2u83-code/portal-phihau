@@ -28,7 +28,6 @@ import { DataMaintenancePage } from './components/BackupManager';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { ProgramareActivitati } from './components/Activitati';
 import { ClubSettings } from './components/ClubSettings';
-import { TopNavigationBar } from './components/TopNavigationBar';
 import { DataInspector } from './components/DataInspector';
 import { ProfilSportiv } from './components/Financiar';
 import { ReduceriManagement } from './components/Reduceri';
@@ -48,32 +47,6 @@ import { usePermissions } from './hooks/usePermissions';
 import AccessDenied from './components/AccessDenied';
 import { useClubFilter } from './hooks/useClubFilter';
 import { MandatoryPasswordChange } from './components/MandatoryPasswordChange';
-
-const applyTheme = (user: User | null, clubs: Club[]) => {
-    const defaultTheme = {
-        '--main-bg': '#0a192f', '--card-bg': '#112240', '--card-mobile-bg': '#1d2d50', '--input-bg': '#334155',
-        '--text-primary': '#e2e8f0', '--text-secondary': '#94a3b8', '--text-tertiary': '#64748b',
-        '--border-color': '#1e293b', '--border-color-light': '#334155', '--table-header-bg': '#1e293b',
-        '--table-row-hover-bg': 'rgba(45, 55, 72, 0.5)', 
-        '--brand-primary': '#1d4ed8', // Updated accent color
-        '--brand-secondary': '#4DBCE9',
-    };
-
-    let themeToApply = defaultTheme;
-    const isFederationAdmin = user?.roluri.some(r => r.nume === 'Super Admin' || r.nume === 'Admin');
-
-    // Load club theme only if user is not a fed admin and has a club
-    if (user && !isFederationAdmin && user.club_id && clubs.length > 0) {
-        const userClub = clubs.find(c => c.id === user.club_id);
-        if (userClub?.theme_config) {
-            themeToApply = { ...defaultTheme, ...userClub.theme_config };
-        }
-    }
-
-    Object.entries(themeToApply).forEach(([key, value]) => {
-        document.documentElement.style.setProperty(key, value);
-    });
-};
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -110,10 +83,6 @@ function App() {
 
   const permissions = usePermissions(currentUser);
   const { globalClubFilter, setGlobalClubFilter, canChangeClub } = useClubFilter(currentUser);
-
-  useEffect(() => {
-    applyTheme(currentUser, cluburi);
-  }, [currentUser, cluburi]);
 
   const adminViews = useMemo(() => 
     new Set(
@@ -567,16 +536,6 @@ function App() {
         isSuperAdmin={canChangeClub}
       />
       <div className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'}`}>
-         {isAdmin && !isMyPortalView && (
-            <TopNavigationBar 
-              currentUser={currentUser!} 
-              onNavigate={setActiveView}
-              onLogout={handleLogout} 
-              permissions={permissions}
-              clubs={cluburi}
-              setClubs={setCluburi}
-            />
-          )}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
           {renderContent()}
         </main>
@@ -586,7 +545,7 @@ function App() {
             <>
                 <button
                     onClick={() => setIsGlobalSportivFormOpen(true)}
-                    className="fixed bottom-6 right-6 bg-brand-secondary hover:bg-sky-500 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg z-40 animate-fade-in-down"
+                    className="fixed bottom-6 right-6 bg-brand-secondary hover:bg-red-800 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg z-40 animate-fade-in-down"
                     aria-label="Adaugă Sportiv Nou"
                     title="Adaugă Sportiv Nou"
                 >

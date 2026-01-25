@@ -26,11 +26,11 @@ export const Button: React.FC<ButtonProps & { as?: 'label', htmlFor?: string }> 
   };
   
   const variantClasses = {
-    primary: "bg-[#3D3D99] hover:bg-[#2A2A7A] focus:ring-[#3D3D99] text-white hover:shadow-glow-blue", // Albastru Club
+    primary: "bg-[var(--brand-primary)] hover:bg-red-800 focus:ring-red-700 text-white hover:shadow-glow-blue",
     secondary: "bg-slate-600 hover:bg-slate-700 focus:ring-slate-500 text-white hover:shadow-glow-blue",
     danger: "bg-red-600 hover:bg-red-700 focus:ring-red-500 text-white hover:shadow-glow-blue",
     success: "bg-green-600 hover:bg-green-700 focus:ring-green-500 text-white hover:shadow-glow-blue",
-    info: "bg-brand-secondary hover:bg-sky-500 focus:ring-brand-secondary text-white hover:shadow-glow-blue",
+    info: "bg-[var(--brand-secondary)] hover:bg-red-800 focus:ring-red-700 text-white hover:shadow-glow-blue",
   };
 
   const finalClassName = `${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${className}`;

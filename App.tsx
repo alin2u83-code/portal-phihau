@@ -28,7 +28,7 @@ import { DataMaintenancePage } from './components/BackupManager';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { ProgramareActivitati } from './components/Activitati';
 import { ClubSettings } from './components/ClubSettings';
-import { AdminHeader } from './components/AdminHeader';
+import { TopNavigationBar } from './components/TopNavigationBar';
 import { DataInspector } from './components/DataInspector';
 import { ProfilSportiv } from './components/Financiar';
 import { ReduceriManagement } from './components/Reduceri';
@@ -563,7 +563,13 @@ function App() {
       />
       <div className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'}`}>
          {isAdmin && !isMyPortalView && (
-            <AdminHeader currentUser={currentUser!} onNavigate={setActiveView} onLogout={handleLogout} plati={plati} permissions={permissions} />
+            <TopNavigationBar 
+              currentUser={currentUser!} 
+              onLogout={handleLogout} 
+              permissions={permissions}
+              clubs={cluburi}
+              setClubs={setCluburi}
+            />
           )}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
           {renderContent()}

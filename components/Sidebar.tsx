@@ -4,6 +4,7 @@ import { adminMenu, sportivMenu, MenuItem } from './menuConfig';
 import { ArrowRightOnRectangleIcon, Bars3Icon, ChevronDownIcon, UserCircleIcon } from './icons';
 import { AdminProfileQuickAccess } from './AdminProfileQuickAccess';
 import { Select } from './ui';
+import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
 
 const NavItem: React.FC<{
     item: MenuItem;
@@ -129,7 +130,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
                         className="!py-1 text-xs w-full"
                     >
                         <option value="">Toate Cluburile</option>
-                        {clubs.map(c => <option key={c.id} value={c.id}>{c.nume}</option>)}
+                        {clubs.map(c => <option key={c.id} value={c.id}>{c.id === FEDERATIE_ID ? FEDERATIE_NAME : c.nume}</option>)}
                     </Select>
                 </div>
             )}

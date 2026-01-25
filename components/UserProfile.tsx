@@ -10,6 +10,7 @@ import { DeleteAuditModal } from './DeleteAuditModal';
 import { SportivFeedbackReport } from './SportivFeedbackReport';
 import { SportivProgressChart } from './SportivProgressChart';
 import { IstoricExameneSportiv } from './IstoricExameneSportiv';
+import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
 
 const getGrad = (gradId: string | null, allGrades: Grad[]) => gradId ? allGrades.find(g => g.id === gradId) : null;
 const getAge = (dateString: string) => { const today = new Date(); const birthDate = new Date(dateString); let age = today.getFullYear() - birthDate.getFullYear(); const m = today.getMonth() - birthDate.getMonth(); if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; } return age; };
@@ -462,7 +463,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                         <div className="space-y-2 text-sm">
                             <DataField label="Vârstă" value={`${getAge(sportiv.data_nasterii)} ani`} />
                             <DataField label="Grupă" value={grupe.find(g => g.id === sportiv.grupa_id)?.denumire} />
-                            <DataField label="Club" value={clubs.find(c => c.id === sportiv.club_id)?.nume || 'N/A'} />
+                            <DataField label="Club" value={sportiv.club_id === FEDERATIE_ID ? FEDERATIE_NAME : clubs.find(c => c.id === sportiv.club_id)?.nume || 'N/A'} />
                             <DataField label="Status" value={sportiv.status} />
                             <DataField label="Cont de acces" value={sportiv.user_id ? "Activ" : "Inexistent"}/>
                         </div>

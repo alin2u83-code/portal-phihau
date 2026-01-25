@@ -5,6 +5,7 @@ import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
+import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
 
 interface ClubFormModalProps {
     isOpen: boolean;
@@ -131,13 +132,13 @@ export const CluburiManagement: React.FC<CluburiManagementProps> = ({ clubs, set
                         <tbody className="divide-y divide-slate-700">
                             {(clubs || []).map(club => (
                                 <tr key={club.id}>
-                                    <td className="p-4 font-medium">{club.nume}</td>
+                                    <td className="p-4 font-medium">{club.id === FEDERATIE_ID ? FEDERATIE_NAME : club.nume}</td>
                                     <td className="p-4">{club.oras || '-'}</td>
                                     <td className="p-4">{club.cif || '-'}</td>
                                     <td className="p-4 text-right">
                                         <div className="flex items-center justify-end space-x-2">
-                                            <Button onClick={() => { setClubToEdit(club); setIsModalOpen(true); }} variant="primary" size="sm"><EditIcon /></Button>
-                                            <Button onClick={() => setClubToDelete(club)} variant="danger" size="sm"><TrashIcon /></Button>
+                                            <Button disabled={club.id === FEDERATIE_ID} onClick={() => { setClubToEdit(club); setIsModalOpen(true); }} variant="primary" size="sm"><EditIcon /></Button>
+                                            <Button disabled={club.id === FEDERATIE_ID} onClick={() => setClubToDelete(club)} variant="danger" size="sm"><TrashIcon /></Button>
                                         </div>
                                     </td>
                                 </tr>

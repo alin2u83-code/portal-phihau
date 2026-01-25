@@ -5,6 +5,7 @@ import { PlusIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { BirthDateInput } from './BirthDateInput';
+import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
 
 // --- Modale de adăugare rapidă ---
 const QuickAddModal: React.FC<{ 
@@ -159,7 +160,7 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
                 <Input label="CNP (Opțional)" name="cnp" value={formData.cnp || ''} onChange={handleChange} maxLength={13} disabled={loading} className="!py-1.5" error={errors.cnp} />
                  <Select label="Club" name="club_id" value={formData.club_id || ''} onChange={handleChange} disabled={loading || isClubAdmin} className="!py-1.5">
                     <option value="">Nespecificat</option>
-                    {clubs.map(c => <option key={c.id} value={c.id}>{c.nume}</option>)}
+                    {clubs.map(c => <option key={c.id} value={c.id}>{c.id === FEDERATIE_ID ? FEDERATIE_NAME : c.nume}</option>)}
                 </Select>
             </FormSection>
 

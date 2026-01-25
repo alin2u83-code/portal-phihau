@@ -114,7 +114,11 @@ function App() {
         let query = supabase.from(table).select(select);
         const clubIdTables = ['sportivi', 'grupe', 'sesiuni_examene', 'tipuri_abonament', 'cluburi'];
         if (isClubScoped && userClubId && clubIdTables.includes(table)) {
-            query = query.eq('club_id', userClubId);
+            if (table === 'cluburi') {
+                query = query.eq('id', userClubId);
+            } else {
+                query = query.eq('club_id', userClubId);
+            }
         }
         return query;
     };
@@ -144,7 +148,7 @@ function App() {
 
             // RLS-protected data (RLS will still apply on top of client-side filter)
             createClubScopedQuery('sportivi', '*, roluri(id, nume)'),
-            supabase.from('inscrieri_examene').select('*, sportivi:sportiv_id(*), grade:grad_vizat_id(*)').order('ordine', { foreignTable: 'grade', ascending: false }),
+            supabase.from('inscrieri_examene').select('*, sportivi:sportiv_id(*), grades:grad_vizat_id(*)').order('ordine', { foreignTable: 'grades', ascending: false }),
             supabase.from('familii').select('*'),
             supabase.from('plati').select('*'),
             supabase.from('tranzactii').select('*'),

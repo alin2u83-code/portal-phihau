@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { View, User, Club } from '../types';
 import { UsersIcon, BanknotesIcon, TrophyIcon, CogIcon } from './icons';
 import { NotificationPermissionWidget } from './NotificationPermissionWidget';
+import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
 
 // Define roles for clarity
 type UserRole = 'SUPER_ADMIN_FEDERATIE' | 'ADMIN_CLUB' | 'INSTRUCTOR' | 'SPORTIV' | 'UNKNOWN';
@@ -74,8 +75,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ currentUser, onNavigate, c
         }
         
         const club = clubs.find(c => c.id === currentUser.club_id);
+        const clubDisplayName = club ? (club.id === FEDERATIE_ID ? FEDERATIE_NAME : club.nume) : undefined;
 
-        return { userRole: role, clubName: club?.nume };
+        return { userRole: role, clubName: clubDisplayName };
     }, [currentUser, clubs]);
 
     const navItems = [

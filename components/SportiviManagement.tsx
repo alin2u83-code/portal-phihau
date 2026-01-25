@@ -9,6 +9,7 @@ import { SportivFormModal } from './Sportivi';
 import { SportivAccountSettingsModal } from './SportivAccountSettings';
 import { SportivWallet } from './SportivWallet';
 import { ResponsiveTable, Column } from './ResponsiveTable';
+import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
 
 const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
     const colorClasses: Record<Rol['nume'], string> = { Admin: 'bg-red-600 text-white', 'Super Admin': 'bg-red-800 text-white', 'Admin Club': 'bg-blue-600 text-white', Instructor: 'bg-sky-600 text-white', Sportiv: 'bg-slate-600 text-slate-200' };
@@ -100,7 +101,7 @@ export const SportiviManagement: React.FC<{
                 );
             },
         },
-        { key: 'club_id', label: 'Club', render: (s) => clubs.find(c => c.id === s.club_id)?.nume || '-' },
+        { key: 'club_id', label: 'Club', render: (s) => s.club_id === FEDERATIE_ID ? FEDERATIE_NAME : clubs.find(c => c.id === s.club_id)?.nume || '-' },
         { 
             key: 'roluri', 
             label: 'Roluri', 

@@ -25,7 +25,7 @@ const DashboardHeader: React.FC<{ userRole: UserRole; clubName?: string }> = ({ 
     if (userRole === 'SUPER_ADMIN_FEDERATIE') {
         return (
             <div className="bg-[var(--bg-card)] text-white p-6 rounded-lg shadow-lg mb-8 text-center sm:text-left">
-                <h1 className="text-3xl font-bold">Federația Română de Qwan Ki Do</h1>
+                <h1 className="text-3xl font-bold">Departamentul Român de Qwan Ki Do</h1>
                 <p className="mt-1 text-slate-300">Bun venit în panoul de administrare centralizat.</p>
             </div>
         );

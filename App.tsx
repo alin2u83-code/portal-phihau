@@ -48,6 +48,7 @@ import { usePermissions } from './hooks/usePermissions';
 import AccessDenied from './components/AccessDenied';
 import { useClubFilter } from './hooks/useClubFilter';
 import { MandatoryPasswordChange } from './components/MandatoryPasswordChange';
+import ErrorBoundary from './components/ErrorBoundary';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -438,7 +439,7 @@ function App() {
     }
 
     switch (activeView) {
-      case 'dashboard': return <Dashboard currentUser={currentUser} onNavigate={setActiveView} clubs={cluburi} />;
+      case 'dashboard': return <ErrorBoundary><Dashboard currentUser={currentUser} onNavigate={setActiveView} clubs={cluburi} /></ErrorBoundary>;
       case 'financial-dashboard': return <FinancialDashboard plati={displayPlati} tranzactii={displayTranzactii} sportivi={displaySportivi} onBack={() => setActiveView('dashboard')} />;
       case 'sportivi': 
         return viewedSportiv ? (

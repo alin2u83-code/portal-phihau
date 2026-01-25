@@ -29,7 +29,7 @@ const initialFilters: RaportFilters = {
 };
 
 // Define colors for the chart
-const GROUP_COLORS = ['#4DBCE9', '#3D3D99', '#16a34a', '#f59e0b', '#dc2626', '#8b5cf6', '#ec4899'];
+const GROUP_COLORS = ['#4DBCE9', '#3D3D99', '#16a34a', '#f59e0b', '#dc2626', '#8b5cf6', '#ec4899', '#64748b'];
 
 export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ antrenamente, sportivi, grupe, onBack }) => {
     const [filters, setFilters] = useLocalStorage('phi-hau-raport-prezenta-filters', initialFilters);
@@ -78,7 +78,6 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ antrenamente, sp
     }, [allRecords, filters, grupe]);
 
     const { groupChartData, activeGroups } = useMemo(() => {
-        // FIX: Explicitly set the generic type for `new Set` to `<string>` to resolve a type inference issue where the resulting array was being inferred as `unknown[]` instead of `string[]`.
         const groupNames: string[] = [...new Set<string>(filteredRecords.map(r => r.grupaNume))].sort();
         
         const data = monthNames.map(monthName => {
@@ -162,7 +161,7 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ antrenamente, sp
                             <option value="">Toate Grupele</option>
                             {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
                         </Select>
-                        <Select label="Sală" name="salaFilter" value={filters.salaFilter} onChange={handleFilterChange} className="!bg-light-navy !text-slate-200">
+                        <Select label="Sală" name="salaFilter" value={filters.salaFilter} onChange={handleFilterChange}>
                             <option value="">Toate sălile</option>
                             {sali.map(s => <option key={s} value={s}>{s}</option>)}
                         </Select>

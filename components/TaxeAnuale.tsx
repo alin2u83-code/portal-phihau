@@ -63,11 +63,11 @@ const TaxaCard: React.FC<{
                         {descrierePerioada}
                     </span>
                 </div>
-                {!isEditing ? (
+                {isAdmin && !isEditing ? (
                     <Button variant="secondary" size="sm" onClick={() => setIsEditing(true)}>
                         <CogIcon className="w-4 h-4 mr-2" /> Configurează
                     </Button>
-                ) : (
+                ) : isAdmin && (
                     <div className="flex gap-2">
                          <Button variant="secondary" size="sm" onClick={handleCancel}>Anulează</Button>
                          <Button variant="success" size="sm" onClick={handleSave}>Salvează</Button>
@@ -78,7 +78,6 @@ const TaxaCard: React.FC<{
                 <div>
                     <label className="block text-xs font-bold text-slate-400 mb-1">Sumă</label>
                     {isEditing ? (
-                        // FIX: Add missing 'label' prop.
                         <Input label="" type="number" value={editState.suma} onChange={e => setEditState({...editState, suma: parseFloat(e.target.value) || 0})} />
                     ) : (
                         <p className="text-2xl font-bold text-brand-secondary">{taxa.suma.toFixed(2)} RON</p>
@@ -88,7 +87,6 @@ const TaxaCard: React.FC<{
                     <div>
                         <label className="block text-xs font-bold text-slate-400 mb-1">Valabil de la</label>
                         {isEditing ? (
-                            // FIX: Add missing 'label' prop.
                             <Input label="" type="date" value={editState.data_inceput || ''} onChange={e => setEditState({...editState, data_inceput: e.target.value})} />
                         ) : (
                             <p className="font-semibold">{taxa.data_inceput ? new Date(taxa.data_inceput + 'T00:00:00').toLocaleDateString('ro-RO') : 'N/A'}</p>
@@ -97,7 +95,6 @@ const TaxaCard: React.FC<{
                      <div>
                         <label className="block text-xs font-bold text-slate-400 mb-1">Până la</label>
                         {isEditing ? (
-                            // FIX: Add missing 'label' prop.
                             <Input label="" type="date" value={editState.data_sfarsit || ''} onChange={e => setEditState({...editState, data_sfarsit: e.target.value})} />
                         ) : (
                             <p className="font-semibold">{taxa.data_sfarsit ? new Date(taxa.data_sfarsit + 'T00:00:00').toLocaleDateString('ro-RO') : 'N/A'}</p>

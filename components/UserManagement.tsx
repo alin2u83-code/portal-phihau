@@ -107,7 +107,7 @@ const MyProfile: React.FC<{ user: User; setSportivi: React.Dispatch<React.SetSta
         // 3. Actualizează starea locală
         if(data) {
             const updatedUser = data as any;
-            updatedUser.roluri = updatedUser.sportivi_roluri.map((item: any) => item.roluri);
+            updatedUser.roluri = (updatedUser.sportivi_roluri || []).map((item: any) => item.roluri);
             delete updatedUser.sportivi_roluri;
 
             setSportivi(prev => prev.map(s => s.id === user.id ? updatedUser : s));
@@ -198,9 +198,11 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
         const { error: deleteError } = await supabase.from('sportivi_roluri').delete().eq('sportiv_id', userId);
         if (deleteError) { alert(`Eroare (pas 1/2): ${deleteError.message}`); return; }
 
-        const newRolesToInsert = finalRoleIds.map(rol_id => ({ sportiv_id: userId, rol_id }));
-        const { error: insertError } = await supabase.from('sportivi_roluri').insert(newRolesToInsert);
-        if (insertError) { alert(`Eroare (pas 2/2): ${insertError.message}`); return; }
+        if (finalRoleIds.length > 0) {
+          const newRolesToInsert = finalRoleIds.map(rol_id => ({ sportiv_id: userId, rol_id }));
+          const { error: insertError } = await supabase.from('sportivi_roluri').insert(newRolesToInsert);
+          if (insertError) { alert(`Eroare (pas 2/2): ${insertError.message}`); return; }
+        }
 
         const updatedRoles = allRoles.filter(r => finalRoleIds.includes(r.id));
         setSportivi(prev => prev.map(s => s.id === userId ? { ...s, roluri: updatedRoles } : s));
@@ -378,7 +380,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
             
             <MyProfile user={currentUser} setSportivi={setSportivi} setCurrentUser={setCurrentUser} />
 
-            {currentUser.roluri.some(r => r.nume === 'Admin') && (
+            {currentUser.roluri.some(r => r.nume === 'Admin' || r.nume === 'Super Admin') && (
                 <>
                 <Card className="mb-8">
                      <h3 className="text-xl font-bold text-white mb-4">Adaugă Rol Nou</h3>
@@ -420,7 +422,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                                                                     className="h-4 w-4 rounded border-slate-500 bg-slate-800 text-primary-600 focus:ring-primary-500"
                                                                     checked={newRoleIds.includes(role.id)}
                                                                     onChange={(e) => handleRoleChange(role.id, e.target.checked)}
-                                                                    disabled={user.id === currentUser.id && role.nume === 'Admin'}
+                                                                    disabled={user.id === currentUser.id && (role.nume === 'Admin' || role.nume === 'Super Admin')}
                                                                 />
                                                                 <span>{role.nume}</span>
                                                             </label>
@@ -450,7 +452,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                                                 <td className="p-4 text-right w-32">
                                                     <div className="flex items-center justify-end gap-2">
                                                         {user.user_id ? (
-                                                            <Button onClick={() => handleEdit(user)} variant="primary" size="sm" disabled={user.id === currentUser.id}><EditIcon /></Button>
+                                                            <Button onClick={() => handleEdit(user)} variant="primary" size="sm" disabled={user.id === currentUser.id && !currentUser.roluri.some(r => r.nume === 'Super Admin')}><EditIcon /></Button>
                                                         ) : (
                                                             <Button onClick={() => handleOpenCreateAccountModal(user)} variant="info" size="sm">Creează Cont</Button>
                                                         )}

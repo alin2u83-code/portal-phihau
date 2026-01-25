@@ -19,7 +19,7 @@ export const ExamenPhiHauSimplu: React.FC<ExamenPhiHauSimpluProps> = ({ sesiune,
     const { showError, showSuccess } = useError();
 
     useEffect(() => {
-        const sorted = [...inscrieriInitiale].sort((a, b) => (b.grade?.ordine ?? 0) - (a.grade?.ordine ?? 0));
+        const sorted = [...inscrieriInitiale].sort((a, b) => (b.grades?.ordine ?? 0) - (a.grades?.ordine ?? 0));
         setParticipanti(sorted);
         if (sorted.length === 0) {
             setError('EROARE: NU SUNT DATE');
@@ -36,7 +36,6 @@ export const ExamenPhiHauSimplu: React.FC<ExamenPhiHauSimpluProps> = ({ sesiune,
         }
 
         const oldResult = inscriere.rezultat || 'Neprezentat';
-        // FIX: Explicitly type the newResult constant to help TypeScript's inference.
         const newResult: 'Admis' | 'Respins' | 'Neprezentat' = oldResult === toggledResult ? 'Neprezentat' : toggledResult;
 
         setLoadingStates(prev => ({ ...prev, [inscriere.id]: true }));

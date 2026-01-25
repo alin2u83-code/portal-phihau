@@ -295,50 +295,44 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
         }
         setCreateAccountLoading(true);
         setCreateAccountError('');
-
+    
         if (createAccountForm.username) {
             const { data: existingUser, error: checkError } = await supabase.from('sportivi').select('id').eq('username', createAccountForm.username).not('id', 'eq', selectedUserForAccount.id).limit(1);
-// FIX: Corrected function name from setLoading to setCreateAccountLoading.
             if (checkError) { setCreateAccountError(`Eroare la verificare: ${checkError.message}`); setCreateAccountLoading(false); return; }
-// FIX: Corrected function name from setLoading to setCreateAccountLoading.
             if (existingUser && existingUser.length > 0) { setCreateAccountError('Numele de utilizator este deja folosit.'); setCreateAccountLoading(false); return; }
         }
-        
-        let authUser = null;
-
-        try {
-            // Attempt to create user via Edge Function first
-            const { data: functionData, error: functionError } = await supabase.functions.invoke('create-user-admin', {
-                body: { email: createAccountForm.email, password: createAccountForm.parola }
-            });
-            if (functionError) throw functionError;
-            authUser = functionData.user;
-        } catch (functionError) {
-            console.error("Edge Function 'create-user-admin' failed, falling back to client-side signUp.", functionError);
-            
-            // Fallback to client-side signUp
-            const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-                email: createAccountForm.email,
-                password: createAccountForm.parola,
-            });
-
-            if (signUpError) {
-                if (signUpError.message.includes("User already exists")) {
-                    setCreateAccountError(`Un cont cu email-ul "${createAccountForm.email}" există deja. Confirmați parola pentru a-l asocia.`);
-                    setAccountCreationStep('confirm_link');
-                } else {
-                    setCreateAccountError(`Eroare la crearea contului: ${signUpError.message}`);
-                }
-                setCreateAccountLoading(false);
-                return;
+    
+        const { data: { session: adminSession } } = await supabase.auth.getSession();
+    
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+            email: createAccountForm.email,
+            password: createAccountForm.parola,
+        });
+    
+        if (signUpError) {
+            if (signUpError.message.includes("User already exists")) {
+                setCreateAccountError(`Un cont cu email-ul "${createAccountForm.email}" există deja. Confirmați parola pentru a-l asocia.`);
+                setAccountCreationStep('confirm_link');
+            } else {
+                setCreateAccountError(`Eroare la crearea contului: ${signUpError.message}`);
             }
-            authUser = signUpData.user;
-            showSuccess("Cont Creat (Fallback)", "Funcția Edge a eșuat. Contul a fost creat dar necesită confirmare manuală de către administrator.");
+            if(adminSession) {
+                 await supabase.auth.setSession({ access_token: adminSession.access_token, refresh_token: adminSession.refresh_token });
+            }
+            setCreateAccountLoading(false);
+            return;
         }
-
+        
+        const authUser = signUpData.user;
+    
         if (authUser) {
             const profileUpdates = { user_id: authUser.id, email: createAccountForm.email, username: createAccountForm.username };
             const { data, error } = await supabase.from('sportivi').update(profileUpdates).eq('id', selectedUserForAccount.id).select('*, roluri(id, nume)').single();
+    
+            await supabase.auth.signOut().catch(()=>{});
+            if (adminSession) {
+                await supabase.auth.setSession({ access_token: adminSession.access_token, refresh_token: adminSession.refresh_token });
+            }
     
             if (error) {
                 setCreateAccountError(`Cont Auth creat (ID: ${authUser.id}), dar eroare la legarea profilului: ${error.message}. Încercați să asociați contul manual.`);
@@ -347,11 +341,15 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                 setSportivi(prev => prev.map(s => s.id === selectedUserForAccount.id ? updatedUser : s));
                 
                 setIsCreateAccountModalOpen(false);
-                setUserListFeedback({ type: 'success', message: `Cont creat cu succes pentru ${selectedUserForAccount.nume} ${selectedUserForAccount.prenume}!` });
-                setTimeout(() => setUserListFeedback(null), 4000);
+                showSuccess("Cont Creat", `Contul pentru ${selectedUserForAccount.nume} a fost creat. Utilizatorul va trebui să confirme adresa de email.`);
+                setUserListFeedback({ type: 'success', message: `Cont creat pentru ${selectedUserForAccount.nume}. Este necesară confirmarea adresei de email.` });
+                setTimeout(() => setUserListFeedback(null), 5000);
             }
         } else {
-            setCreateAccountError('Nu s-a putut obține un utilizator valid nici prin funcția Edge, nici prin fallback.');
+            if(adminSession) {
+                 await supabase.auth.setSession({ access_token: adminSession.access_token, refresh_token: adminSession.refresh_token });
+            }
+            setCreateAccountError('Nu s-a putut crea contul de autentificare. Răspunsul de la server a fost gol.');
         }
         
         setCreateAccountLoading(false);

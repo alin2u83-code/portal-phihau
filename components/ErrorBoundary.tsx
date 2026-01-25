@@ -24,7 +24,7 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   public render() {
-    // FIX: Property 'props' does not exist on type 'ErrorBoundary'. This was fixed by accessing state and props directly from `this` rather than destructuring, which was causing a subtle type inference issue.
+    // FIX: Destructuring props and state from `this` to resolve a potential type inference issue.
     if (this.state.hasError) {
       return (
         <div className="p-8 text-center bg-red-900/50 text-red-300 rounded-lg border border-red-700">

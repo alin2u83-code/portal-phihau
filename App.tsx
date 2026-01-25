@@ -49,6 +49,8 @@ import AccessDenied from './components/AccessDenied';
 import { useClubFilter } from './hooks/useClubFilter';
 import { MandatoryPasswordChange } from './components/MandatoryPasswordChange';
 import ErrorBoundary from './components/ErrorBoundary';
+import { FEDERATIE_ID } from './constants';
+import { federationTheme, clubTheme, applyTheme } from './themes';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -94,6 +96,19 @@ function App() {
     ), 
   []);
 
+  useEffect(() => {
+    if (currentUser) {
+      if (currentUser.club_id === FEDERATIE_ID) {
+        applyTheme(federationTheme);
+      } else {
+        applyTheme(clubTheme);
+      }
+    } else {
+      // Fallback for login page
+      applyTheme(federationTheme);
+    }
+  }, [currentUser]);
+
   const { hasAdminAccess } = permissions;
   useEffect(() => {
     if (currentUser && !hasAdminAccess && adminViews.has(activeView)) {
@@ -105,9 +120,11 @@ function App() {
     if (!supabase) return;
     setLoading(true);
 
+    // Replicate permission logic here to avoid dependency cycle with the hook
     const userRoles = new Set(user.roluri.map(r => r.nume));
-    const isFederationAdmin = userRoles.has('Super Admin') || userRoles.has('Admin');
-    const isClubScoped = (userRoles.has('Admin Club') || userRoles.has('Instructor')) && !isFederationAdmin;
+    const isUserInFederation = user.club_id === FEDERATIE_ID;
+    const isFederationAdmin = (userRoles.has('Super Admin') || userRoles.has('Admin')) && isUserInFederation;
+    const isClubScoped = (userRoles.has('Admin Club') || userRoles.has('Instructor')) && !isUserInFederation;
     const userClubId = user.club_id;
 
     const createClubScopedQuery = (table: string, select = '*') => {

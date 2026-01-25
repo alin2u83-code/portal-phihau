@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { User } from '../types';
+import { FEDERATIE_ID } from '../constants';
 
 export interface Permissions {
     isSuperAdmin: boolean;
@@ -28,14 +29,18 @@ export const usePermissions = (user: User | null): Permissions => {
         }
 
         const roles = new Set(user.roluri.map(r => r.nume));
+        
+        // Federation/Super Admin status is now tied to the special club ID
+        const isUserInFederation = user.club_id === FEDERATIE_ID;
 
-        const isSuperAdmin = roles.has('Super Admin');
-        const isAdmin = roles.has('Admin');
-        const isAdminClub = roles.has('Admin Club');
-        const isInstructor = roles.has('Instructor');
+        const isSuperAdmin = roles.has('Super Admin') && isUserInFederation;
+        const isAdmin = roles.has('Admin') && isUserInFederation;
+        const isFederationAdmin = isSuperAdmin || isAdmin;
+
+        const isAdminClub = roles.has('Admin Club') && !isUserInFederation;
+        const isInstructor = roles.has('Instructor') && !isUserInFederation;
         const isSportiv = roles.has('Sportiv');
         
-        const isFederationAdmin = isSuperAdmin || isAdmin;
         const hasAdminAccess = isFederationAdmin || isAdminClub || isInstructor;
 
         return {

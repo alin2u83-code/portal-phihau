@@ -550,7 +550,7 @@ function App() {
             <>
                 <button
                     onClick={() => setIsGlobalSportivFormOpen(true)}
-                    className="fixed bottom-6 right-6 bg-brand-secondary hover:bg-sky-500 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg z-40 animate-fade-in-down"
+                    className="fixed bottom-6 right-6 bg-brand-secondary hover:bg-[var(--accent-hover)] text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg z-40 animate-fade-in-down"
                     aria-label="Adaugă Sportiv Nou"
                     title="Adaugă Sportiv Nou"
                 >

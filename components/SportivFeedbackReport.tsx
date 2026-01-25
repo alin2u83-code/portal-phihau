@@ -20,10 +20,10 @@ const BadgeIcon: React.FC<{ icon: 'dragon' | 'will' | 'target' | 'chart' }> = ({
 // --- Sub-components ---
 const StatCard: React.FC<{ title: string, value: string, icon: 'chart' | 'target' }> = ({ title, value, icon }) => (
     <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 flex items-center gap-4">
-        <div className="p-2 bg-blue-100 text-brand-primary rounded-full"><BadgeIcon icon={icon} /></div>
+        <div className="p-2 bg-blue-100 text-[var(--accent)] rounded-full"><BadgeIcon icon={icon} /></div>
         <div>
             <p className="text-xs text-slate-500 font-semibold uppercase">{title}</p>
-            <p className="text-2xl font-bold text-brand-primary">{value}</p>
+            <p className="text-2xl font-bold text-[var(--accent)]">{value}</p>
         </div>
     </div>
 );
@@ -131,7 +131,7 @@ export const SportivFeedbackReport: React.FC<SportivFeedbackReportProps> = ({ is
                 <div id="raport-print-area">
                     <header className="flex justify-between items-start pb-4 border-b-2 border-slate-200">
                         <div>
-                            <h2 className="text-2xl font-bold text-brand-primary">Raport de Activitate</h2>
+                            <h2 className="text-2xl font-bold text-[var(--accent)]">Raport de Activitate</h2>
                             <p className="text-lg font-semibold text-slate-700">{sportiv.nume} {sportiv.prenume}</p>
                             <p className="text-xs text-slate-500">Generat la: {new Date().toLocaleDateString('ro-RO')}</p>
                         </div>
@@ -152,7 +152,7 @@ export const SportivFeedbackReport: React.FC<SportivFeedbackReportProps> = ({ is
                                             <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} allowDecimals={false} />
                                             <Bar dataKey="prezente" radius={[4, 4, 0, 0]}>
                                                 {reportData.weeklyAttendance.map((entry, index) => (
-                                                    <Cell key={`cell-${index}`} fill={entry.prezente > 0 ? '#3D3D99' : '#a0aec0'} />
+                                                    <Cell key={`cell-${index}`} fill={entry.prezente > 0 ? '#1d4ed8' : '#a0aec0'} />
                                                 ))}
                                             </Bar>
                                         </BarChart>
@@ -160,7 +160,7 @@ export const SportivFeedbackReport: React.FC<SportivFeedbackReportProps> = ({ is
                                 </div>
                             </div>
                             <div className="bg-blue-50 border-t-4 border-blue-300 p-4 rounded-b-lg">
-                                <p className="font-semibold text-brand-primary text-center">{reportData.eligibilityMsg}</p>
+                                <p className="font-semibold text-[var(--accent)] text-center">{reportData.eligibilityMsg}</p>
                             </div>
                         </section>
 

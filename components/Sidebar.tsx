@@ -31,7 +31,7 @@ const NavItem: React.FC<{
     };
 
     const baseClasses = "flex items-center p-2 text-white rounded-md cursor-pointer transition-colors duration-200";
-    const activeClasses = isActive ? "bg-brand-secondary text-white shadow-lg" : "hover:bg-white/10";
+    const activeClasses = isActive ? "bg-[var(--accent)] text-white shadow-lg" : "hover:bg-white/10";
 
     return (
         <div>
@@ -54,7 +54,7 @@ const NavItem: React.FC<{
                         <div
                             key={subItem.view}
                             onClick={() => onNavigate(subItem.view)}
-                            className={`block p-2 text-sm rounded-md cursor-pointer transition-colors ${subItem.view === activeView ? 'bg-brand-secondary/50 font-bold' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
+                            className={`block p-2 text-sm rounded-md cursor-pointer transition-colors ${subItem.view === activeView ? 'bg-[var(--accent)]/50 font-bold' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
                         >
                             {subItem.label}
                         </div>
@@ -115,7 +115,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
     };
 
     const sidebarContent = (
-        <div className="flex flex-col h-full bg-brand-primary text-white shadow-xl">
+        <div className="flex flex-col h-full bg-[var(--bg-card)] text-white shadow-xl">
             <div className="h-16 flex items-center justify-center p-4 border-b border-white/10">
                {/* Spațiu gol lăsat intenționat după eliminarea logo-ului */}
             </div>
@@ -183,7 +183,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
                 {sidebarContent}
             </aside>
              <button
-                className={`hidden lg:block fixed top-4 z-40 p-1 bg-white/10 rounded-full text-white hover:bg-brand-secondary transition-all duration-300 ${isExpanded ? 'left-[15.2rem]' : 'left-[4.2rem]'}`}
+                className={`hidden lg:block fixed top-4 z-40 p-1 bg-white/10 rounded-full text-white hover:bg-[var(--accent)] transition-all duration-300 ${isExpanded ? 'left-[15.2rem]' : 'left-[4.2rem]'}`}
                 onClick={() => setIsExpanded(!isExpanded)}
                 title={isExpanded ? "Restrânge meniul" : "Extinde meniul"}
              >

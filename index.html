@@ -12,31 +12,14 @@
         theme: {
           extend: {
             colors: {
-              'deep-navy': '#0a192f',
-              'light-navy': '#112240',
-              'navy-card-mobile': '#1d2d50',
-              'orange-300': '#fdba74',
-              'brand-primary': '#3D3D99',      // Albastru Închis
-              'brand-secondary': '#4DBCE9',   // Albastru Deschis
-              'status-success': '#16a34a',     // Verde (green-600)
-              'status-danger': '#dc2626',      // Roșu (red-600)
-              'status-warning': '#f59e0b',     // Galben (amber-500)
-              'primary': { // Paleta originala pentru compatibilitate
-                '50': '#eff6ff',
-                '100': '#dbeafe',
-                '200': '#bfdbfe',
-                '300': '#93c5fd',
-                '400': '#60a5fa',
-                '500': '#3b82f6',
-                '600': '#2563eb',
-                '700': '#1d4ed8',
-                '800': '#1e40af',
-                '900': '#1e3a8a',
-                '950': '#172554'
-              }
+              'brand-primary': '#1d4ed8',
+              'brand-secondary': '#1d4ed8',
+              'status-success': '#16a34a',
+              'status-danger': '#dc2626',
+              'status-warning': '#f59e0b',
             },
             boxShadow: {
-              'glow-blue': '0 0 12px 3px rgba(77, 188, 233, 0.25)',
+              'glow-blue': '0 0 12px 3px rgba(29, 78, 216, 0.25)',
             },
             animation: {
               'fade-in-down': 'fade-in-down 0.5s ease-out forwards'
@@ -60,6 +43,20 @@
     <style>
       * {
         color-scheme: dark;
+      }
+      :root {
+        --bg-main: #0a192f;
+        --bg-card: #112240;
+        --bg-input: #1e293b;
+        --accent: #1d4ed8;
+        --accent-hover: #1e40af;
+        --text-primary: #e2e8f0;
+        --text-secondary: #94a3b8;
+        --border-color: #334155;
+      }
+      body {
+        background-color: var(--bg-main);
+        color: var(--text-primary);
       }
       h1, h2 {
         color: white;
@@ -116,7 +113,7 @@
 }
 </script>
 </head>
-  <body class="bg-deep-navy text-slate-200">
+  <body>
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>

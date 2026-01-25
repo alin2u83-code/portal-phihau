@@ -83,7 +83,7 @@ export const sportivMenu: MenuItem[] = [
         label: 'Pagina Mea', 
         icon: UserCircleIcon, 
         submenu: [
-            { label: 'Dashboard', view: 'profil-sportiv' },
+            { label: 'Dashboard', view: 'my-portal' },
             { label: 'Evenimentele Mele', view: 'evenimentele-mele' },
         ]
     },

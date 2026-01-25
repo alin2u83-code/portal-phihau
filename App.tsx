@@ -92,6 +92,12 @@ function App() {
     ), 
   []);
 
+  const { hasAdminAccess } = permissions;
+  useEffect(() => {
+    if (currentUser && !hasAdminAccess && adminViews.has(activeView)) {
+        setActiveView('my-portal');
+    }
+  }, [currentUser, hasAdminAccess, activeView, setActiveView, adminViews]);
 
   const fetchData = useCallback(async (user: User) => {
     if (!supabase) return;

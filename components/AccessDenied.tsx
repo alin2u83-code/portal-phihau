@@ -18,7 +18,7 @@ const AccessDenied: React.FC<AccessDeniedProps> = ({ onBack }) => {
                     Nu aveți permisiunile necesare pentru a accesa această pagină. Vă rugăm contactați un administrator dacă credeți că aceasta este o eroare.
                 </p>
                 <Button onClick={onBack} variant="secondary" className="mt-6">
-                    <ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Panoul Principal
+                    <ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Dashboard
                 </Button>
             </Card>
         </div>

@@ -30,15 +30,14 @@ export const usePermissions = (user: User | null): Permissions => {
 
         const roles = new Set(user.roluri.map(r => r.nume));
         
-        // Federation/Super Admin status is now tied to the special club ID
-        const isUserInFederation = user.club_id === FEDERATIE_ID;
-
-        const isSuperAdmin = roles.has('Super Admin') && isUserInFederation;
-        const isAdmin = roles.has('Admin') && isUserInFederation;
+        // Federation/Super Admin status is now based on role, not club_id, for robustness.
+        const isSuperAdmin = roles.has('Super Admin');
+        const isAdmin = roles.has('Admin');
         const isFederationAdmin = isSuperAdmin || isAdmin;
 
-        const isAdminClub = roles.has('Admin Club') && !isUserInFederation;
-        const isInstructor = roles.has('Instructor') && !isUserInFederation;
+        // Club-scoped roles should explicitly NOT be federation admins.
+        const isAdminClub = roles.has('Admin Club') && !isFederationAdmin;
+        const isInstructor = roles.has('Instructor') && !isFederationAdmin;
         const isSportiv = roles.has('Sportiv');
         
         const hasAdminAccess = isFederationAdmin || isAdminClub || isInstructor;

@@ -37,9 +37,10 @@ export const clubTheme: Theme = {
   '--brand-secondary': '#3b82f6',
 };
 
-export const applyTheme = (theme: Theme) => {
+export const applyTheme = (theme?: Theme) => {
+  const themeToApply = theme || federationTheme; // Fallback to a hardcoded theme
   const root = document.documentElement;
-  Object.entries(theme).forEach(([key, value]) => {
+  Object.entries(themeToApply).forEach(([key, value]) => {
     root.style.setProperty(key, value);
   });
 };

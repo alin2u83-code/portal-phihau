@@ -89,12 +89,19 @@ interface ModalProps {
 
 export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, persistent = false }) => {
   if (!isOpen) return null;
+  const titleId = React.useId();
 
   return (
-    <div className="fixed inset-0 bg-black/80 z-50 flex sm:items-center sm:justify-center sm:p-4" onClick={() => !persistent && onClose()}>
+    <div
+      className="fixed inset-0 bg-black/80 z-50 flex sm:items-center sm:justify-center sm:p-4"
+      onClick={() => !persistent && onClose()}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
+    >
       <div className="bg-[var(--bg-card)] w-full h-full flex flex-col sm:h-auto sm:max-h-[95vh] sm:max-w-2xl sm:rounded-lg sm:border border-[var(--border-color)] shadow-2xl animate-fade-in-down" onClick={(e) => e.stopPropagation()}>
         <div className="flex justify-between items-center p-3 border-b border-[var(--border-color)]">
-          <h2 className="text-lg font-bold text-white uppercase tracking-tight">{title}</h2>
+          <h2 id={titleId} className="text-lg font-bold text-white uppercase tracking-tight">{title}</h2>
           <button onClick={onClose} className="p-1 text-[var(--text-secondary)] hover:text-white transition-colors">
             <XIcon className="w-5 h-5" />
           </button>

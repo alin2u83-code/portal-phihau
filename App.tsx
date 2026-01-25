@@ -373,7 +373,7 @@ function App() {
     if (!currentUser) return null;
 
     if (!permissions.hasAdminAccess && adminViews.has(activeView)) {
-        return <AccessDenied onBack={() => setActiveView('dashboard')} />;
+        return <AccessDenied onBack={() => setActiveView('my-portal')} />;
     }
 
     const isMyPortalView = activeView === 'my-portal';

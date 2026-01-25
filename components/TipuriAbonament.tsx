@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { TipAbonament, User } from '../types';
-import { Button, Input, Card } from './ui';
+import { TipAbonament, User, Club } from '../types';
+import { Button, Input, Card, Select } from './ui';
 import { PlusIcon, TrashIcon, ArrowLeftIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
@@ -11,16 +11,20 @@ interface TipuriAbonamentManagementProps {
     setTipuriAbonament: React.Dispatch<React.SetStateAction<TipAbonament[]>>;
     onBack: () => void;
     currentUser: User | null;
+    clubs: Club[];
 }
 
-export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps> = ({ tipuriAbonament, setTipuriAbonament, onBack, currentUser }) => {
+export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps> = ({ tipuriAbonament, setTipuriAbonament, onBack, currentUser, clubs }) => {
     const [newDenumire, setNewDenumire] = useState('');
     const [newPret, setNewPret] = useState<number | string>('');
     const [newNrMembri, setNewNrMembri] = useState<number | string>(1);
+    const [newClubId, setNewClubId] = useState('');
     const [loading, setLoading] = useState(false);
     const [toDelete, setToDelete] = useState<TipAbonament | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const { showError, showSuccess } = useError();
+
+    const isFederationAdmin = currentUser?.roluri.some(r => r.nume === 'Super Admin' || r.nume === 'Admin');
 
     const handleAdd = async () => {
         if(!supabase) { showError("Eroare Configurare", "Client Supabase neinițializat."); return; }
@@ -39,8 +43,9 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
             numar_membri: nrMembriNum
         };
 
-        const isClubAdmin = currentUser?.roluri.some(r => r.nume === 'Admin Club');
-        if (isClubAdmin && currentUser?.club_id) {
+        if (isFederationAdmin) {
+            newAbonament.club_id = newClubId || null;
+        } else if (currentUser?.club_id) {
             newAbonament.club_id = currentUser.club_id;
         }
         
@@ -51,7 +56,7 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
         if(insertError) { showError("Eroare la adăugare", insertError); }
         else if (data) {
             setTipuriAbonament(prev => [...prev, data as TipAbonament]);
-            setNewDenumire(''); setNewPret(''); setNewNrMembri(1);
+            setNewDenumire(''); setNewPret(''); setNewNrMembri(1); setNewClubId('');
             showSuccess("Succes", "Tipul de abonament a fost adăugat.");
         }
     };
@@ -101,7 +106,13 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
                     <PlusIcon className="w-5 h-5 text-brand-secondary" /> Definește Abonament Nou
                 </h3>
                 
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                <div className={`grid grid-cols-1 md:grid-cols-${isFederationAdmin ? 5 : 4} gap-4 items-end`}>
+                    {isFederationAdmin && (
+                         <Select label="Club" value={newClubId} onChange={e => setNewClubId(e.target.value)}>
+                            <option value="">Federație (General)</option>
+                            {clubs.map(c => <option key={c.id} value={c.id}>{c.nume}</option>)}
+                        </Select>
+                    )}
                     <div className="md:col-span-2">
                         <Input label="Denumire (ex: Individual, Familie 2)" value={newDenumire} onChange={e => setNewDenumire(e.target.value)} placeholder="Introduceți numele..."/>
                     </div>
@@ -125,6 +136,7 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
                         <thead className="bg-slate-700/30 text-slate-400 text-xs uppercase tracking-wider">
                             <tr>
                                 <th className="p-4 font-semibold">Denumire</th>
+                                {isFederationAdmin && <th className="p-4 font-semibold">Club</th>}
                                 <th className="p-4 font-semibold text-center">Membri Alocați</th>
                                 <th className="p-4 font-semibold">Tarif Lunar</th>
                                 <th className="p-4 font-semibold text-right">Acțiuni</th>
@@ -136,6 +148,11 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
                                     <td className="p-3">
                                         <Input label="" value={ab.denumire} onBlur={e => handleEdit(ab.id, 'denumire', e.target.value)} onChange={e => setTipuriAbonament(prev => prev.map(a => a.id === ab.id ? {...a, denumire: e.target.value} : a))} className="bg-transparent border-slate-700 focus:bg-slate-700"/>
                                     </td>
+                                    {isFederationAdmin && (
+                                        <td className="p-3 text-xs">
+                                            {clubs.find(c => c.id === ab.club_id)?.nume || 'Federație'}
+                                        </td>
+                                    )}
                                      <td className="p-3">
                                         <Input label="" type="number" min="1" value={ab.numar_membri} onBlur={e => handleEdit(ab.id, 'numar_membri', e.target.value)} onChange={e => setTipuriAbonament(prev => prev.map(a => a.id === ab.id ? {...a, numar_membri: parseInt(e.target.value) || 1} : a))} className="w-24 mx-auto text-center bg-transparent border-slate-700"/>
                                     </td>

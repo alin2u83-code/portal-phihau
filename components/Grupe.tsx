@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Grupa, ProgramItem } from '../types';
+import { Grupa, ProgramItem, User, Club } from '../types';
 import { Button, Modal, Input, Select } from './ui';
 import { PlusIcon, TrashIcon, EditIcon, ArrowLeftIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -54,34 +54,63 @@ const ProgramEditor: React.FC<{ program: ProgramItem[], setProgram: React.Dispat
 };
 
 // Modal pentru adăugare/editare grupă
-const GrupaFormModal: React.FC<{ isOpen: boolean; onClose: () => void; onSave: (grupa: Grupa) => Promise<void>; grupaToEdit: Grupa | null }> = ({ isOpen, onClose, onSave, grupaToEdit }) => {
-    const [formState, setFormState] = useState({ denumire: '', sala: '' });
+const GrupaFormModal: React.FC<{ isOpen: boolean; onClose: () => void; onSave: (grupa: Grupa) => Promise<void>; grupaToEdit: Grupa | null; currentUser: User; clubs: Club[]; }> = ({ isOpen, onClose, onSave, grupaToEdit, currentUser, clubs }) => {
+    const [formState, setFormState] = useState({ denumire: '', sala: '', club_id: '' });
     const [program, setProgram] = useState<ProgramItem[]>([]);
     const [loading, setLoading] = useState(false);
-    
+    const { showError } = useError();
+    const isFederationAdmin = currentUser.roluri.some(r => r.nume === 'Super Admin' || r.nume === 'Admin');
+
     React.useEffect(() => {
         if (isOpen) {
-            setFormState({ denumire: grupaToEdit?.denumire || '', sala: grupaToEdit?.sala || '' });
+            setFormState({ 
+                denumire: grupaToEdit?.denumire || '', 
+                sala: grupaToEdit?.sala || '',
+                club_id: grupaToEdit?.club_id || (isFederationAdmin ? '' : currentUser.club_id || '')
+            });
             setProgram(grupaToEdit?.program || []);
         }
-    }, [isOpen, grupaToEdit]);
+    }, [isOpen, grupaToEdit, currentUser, isFederationAdmin]);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => setFormState(p => ({ ...p, [e.target.name]: e.target.value }));
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setFormState(p => ({ ...p, [e.target.name]: e.target.value }));
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (isFederationAdmin && !formState.club_id) {
+            showError("Validare eșuată", "Super Adminii trebuie să selecteze un club.");
+            return;
+        }
         setLoading(true);
-        const finalGrupa: Grupa = { id: grupaToEdit?.id || '', ...formState, program };
+        const finalGrupa: Grupa = { 
+            id: grupaToEdit?.id || '', 
+            denumire: formState.denumire,
+            sala: formState.sala,
+            program: program,
+            club_id: formState.club_id || null
+        };
         await onSave(finalGrupa);
         setLoading(false);
         onClose();
     };
     
-    return ( <Modal isOpen={isOpen} onClose={onClose} title={grupaToEdit ? "Editează Grupă" : "Adaugă Grupă Nouă"}> <form onSubmit={handleSubmit} className="space-y-4"> <Input label="Denumire Grupă" name="denumire" value={formState.denumire} onChange={handleChange} required /> <Input label="Sala" name="sala" value={formState.sala} onChange={handleChange} /> <ProgramEditor program={program} setProgram={setProgram} /> <div className="flex justify-end pt-4 space-x-2"><Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button><Button variant="success" type="submit" disabled={loading}>{loading ? 'Se salvează...' : 'Salvează'}</Button></div> </form> </Modal> );
+    return ( <Modal isOpen={isOpen} onClose={onClose} title={grupaToEdit ? "Editează Grupă" : "Adaugă Grupă Nouă"}> <form onSubmit={handleSubmit} className="space-y-4"> <Input label="Denumire Grupă" name="denumire" value={formState.denumire} onChange={handleChange} required />
+    {isFederationAdmin && (
+        <Select label="Club" name="club_id" value={formState.club_id} onChange={handleChange} required>
+            <option value="">Selectează club...</option>
+            {clubs.map(c => <option key={c.id} value={c.id}>{c.nume}</option>)}
+        </Select>
+    )}
+    <Input label="Sala" name="sala" value={formState.sala} onChange={handleChange} /> <ProgramEditor program={program} setProgram={setProgram} /> <div className="flex justify-end pt-4 space-x-2"><Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button><Button variant="success" type="submit" disabled={loading}>{loading ? 'Se salvează...' : 'Salvează'}</Button></div> </form> </Modal> );
 };
 
 
-interface GrupeManagementProps { grupe: Grupa[]; setGrupe: React.Dispatch<React.SetStateAction<Grupa[]>>; onBack: () => void; }
-export const GrupeManagement: React.FC<GrupeManagementProps> = ({ grupe, setGrupe, onBack }) => {
+interface GrupeManagementProps { 
+    grupe: Grupa[]; 
+    setGrupe: React.Dispatch<React.SetStateAction<Grupa[]>>; 
+    onBack: () => void; 
+    currentUser: User;
+    clubs: Club[];
+}
+export const GrupeManagement: React.FC<GrupeManagementProps> = ({ grupe, setGrupe, onBack, currentUser, clubs }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [grupaToEdit, setGrupaToEdit] = useState<Grupa | null>(null);
   const [grupaToDelete, setGrupaToDelete] = useState<Grupa | null>(null);
@@ -185,7 +214,7 @@ export const GrupeManagement: React.FC<GrupeManagementProps> = ({ grupe, setGrup
         </table>
         {grupe.length === 0 && <p className="p-4 text-center text-slate-400">Nicio grupă definită.</p>}
       </div>
-      <GrupaFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSave} grupaToEdit={grupaToEdit} />
+      <GrupaFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSave} grupaToEdit={grupaToEdit} currentUser={currentUser} clubs={clubs} />
       <ConfirmDeleteModal isOpen={!!grupaToDelete} onClose={() => setGrupaToDelete(null)} onConfirm={() => { if(grupaToDelete) confirmDelete(grupaToDelete.id) }} tableName="Grupe" isLoading={isDeleting} />
     </div>
   );

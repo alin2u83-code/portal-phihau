@@ -29,7 +29,7 @@ const TrainingActionCard: React.FC<TrainingActionCardProps> = ({ training, anunt
         const colors = {
             Confirm: 'bg-emerald-600 hover:bg-emerald-500 hover:shadow-glow-blue hover:scale-105 active:ring-2 active:ring-white',
             Intarziat: 'bg-amber-600 hover:bg-amber-500 hover:scale-105 hover:shadow-glow-blue hover:ring-2 hover:ring-white',
-            Absent: 'bg-rose-700 hover:bg-rose-600 hover:shadow-glow-blue hover:scale-105 active:ring-2 active:ring-white',
+            Absent: 'bg-rose-700 hover:bg-rose-600 hover:shadow-glow-blue hover:scale-105',
         };
 
         const isActive = currentStatus === status;

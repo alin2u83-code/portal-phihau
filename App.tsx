@@ -135,7 +135,7 @@ function App() {
             supabase.from('reduceri').select('*'),
             supabase.from('sportivi').select('*, sportivi_roluri(roluri(id, nume))'),
             supabase.from('sesiuni_examene').select('*'),
-            supabase.from('inscrieri_examene').select('*, sportivi:sportiv_id(*), grade:grad_vizat_id(*)'),
+            supabase.from('inscrieri_examene').select('*, sportivi:sportiv_id(*), grades:grad_vizat_id(*)'),
             supabase.from('program_antrenamente').select('*, prezenta_antrenament!antrenament_id(sportiv_id)'),
             supabase.from('plati').select('*'),
             supabase.from('tranzactii').select('*'),
@@ -272,12 +272,10 @@ function App() {
             activeView={activeView} 
             isExpanded={isSidebarExpanded} 
             setIsExpanded={setIsSidebarExpanded} 
-            isPortalView={!permissions.hasAdminAccess}
             plati={plati}
             clubs={clubs}
             globalClubFilter={globalClubFilter}
             setGlobalClubFilter={setGlobalClubFilter}
-            isSuperAdmin={permissions.isSuperAdmin}
           />
           <main className={`flex-1 transition-all duration-300 ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'}`}>
             <AdminHeader currentUser={currentUser!} onNavigate={setActiveView} onLogout={handleLogout} plati={plati} permissions={permissions} />

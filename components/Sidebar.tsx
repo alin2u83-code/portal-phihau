@@ -5,6 +5,7 @@ import { ArrowRightOnRectangleIcon, Bars3Icon, ChevronDownIcon, UserCircleIcon }
 import { AdminProfileQuickAccess } from './AdminProfileQuickAccess';
 import { Select } from './ui';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
+import { usePermissions } from '../hooks/usePermissions';
 
 const NavItem: React.FC<{
     item: MenuItem;
@@ -73,16 +74,17 @@ interface SidebarProps {
     activeView: View;
     isExpanded: boolean;
     setIsExpanded: React.Dispatch<React.SetStateAction<boolean>>;
-    isPortalView: boolean;
     plati: Plata[];
     clubs: Club[];
     globalClubFilter: string | null;
     setGlobalClubFilter: React.Dispatch<React.SetStateAction<string | null>>;
-    isSuperAdmin: boolean;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLogout, activeView, isExpanded, setIsExpanded, isPortalView, plati, clubs, globalClubFilter, setGlobalClubFilter, isSuperAdmin }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLogout, activeView, isExpanded, setIsExpanded, plati, clubs, globalClubFilter, setGlobalClubFilter }) => {
     const [isMobileOpen, setIsMobileOpen] = useState(false);
+    const permissions = usePermissions(currentUser);
+    const isPortalView = !permissions.hasAdminAccess;
+    const { isSuperAdmin } = permissions;
     
     const menu = isPortalView ? sportivMenu : adminMenu;
     

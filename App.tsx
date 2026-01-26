@@ -43,17 +43,13 @@ import { useClubFilter } from './hooks/useClubFilter';
 import { MandatoryPasswordChange } from './components/MandatoryPasswordChange';
 import ErrorBoundary from './components/ErrorBoundary';
 import { SystemGuardian } from './components/SystemGuardian';
-import { DevNavigationToolbar } from './components/DevNavigationToolbar';
+import { RoleSwitcher } from './components/RoleSwitcher';
 import { getAuthenticatedUser } from './utils/auth';
 import { FederationInvoices } from './components/FederationInvoices';
 import { MartialAttendance } from './components/MartialAttendance';
 import { AccountSettings } from './components/AccountSettings';
 import { GlobalContextSwitcher } from './components/GlobalContextSwitcher';
 import { FederationDashboard } from './components/FederationDashboard';
-import { LiveAttendanceRadar } from './components/LiveAttendanceRadar';
-import { PersonalProfile } from './components/PersonalProfile';
-import { AccessGuardian } from './components/AccessGuardian';
-import { AttendanceTable } from './components/AttendanceTable';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -87,9 +83,8 @@ function App() {
   const [selectedSportiv, setSelectedSportiv] = useState<Sportiv | null>(null);
   const [isSidebarExpanded, setIsSidebarExpanded] = useLocalStorage('phi-hau-sidebar-expanded', true);
   const [adminContext, setAdminContext] = useLocalStorage<'club' | 'federation'>('phi-hau-admin-context', 'club');
-  const [simulatedRole, setSimulatedRole] = useLocalStorage<Rol['nume'] | null>('phi-hau-simulated-role', null);
 
-  const permissions = usePermissions(currentUser, simulatedRole);
+  const permissions = usePermissions(currentUser);
   const { activeClubId, globalClubFilter, setGlobalClubFilter } = useClubFilter(currentUser);
 
   const initializeAndFetchData = useCallback(async () => {
@@ -237,12 +232,12 @@ function App() {
 
   const renderContent = () => {
     if (!currentUser) return <AuthContainer />;
-    if (currentUser.trebuie_schimbata_parola && !simulatedRole) return <MandatoryPasswordChange currentUser={currentUser} onPasswordChanged={initializeAndFetchData} />;
+    if (currentUser.trebuie_schimbata_parola) return <MandatoryPasswordChange currentUser={currentUser} onPasswordChanged={initializeAndFetchData} />;
     
     switch (activeView) {
       case 'dashboard':
       case 'my-portal':
-        if (permissions.isFederationAdmin && adminContext === 'federation' && !simulatedRole) {
+        if (permissions.isSuperAdmin && adminContext === 'federation') {
             return <FederationDashboard onNavigate={setActiveView} />;
         }
         return <FinalUnifiedDashboard 
@@ -259,7 +254,6 @@ function App() {
             grade={grade}
             grupe={grupe}
             sesiuniExamene={sesiuniExamene}
-            tranzactii={tranzactii}
         />;
 
       case 'sportivi':
@@ -307,13 +301,8 @@ function App() {
       case 'account-settings':
         return <AccountSettings currentUser={currentUser} onBack={() => setActiveView('my-portal')} />;
 
-      case 'personal-profile':
-        return <PersonalProfile currentUser={currentUser} onNavigate={setActiveView} grade={grade} grupe={grupe} clubs={clubs} onBack={() => setActiveView(permissions.hasAdminAccess ? 'dashboard' : 'my-portal')} />;
-
       case 'data-maintenance':
         return <BackupManager onBack={() => setActiveView('dashboard')} onDataRestored={() => window.location.reload()} sportivi={sportivi} setSportivi={setSportivi} grade={grade} preturiConfig={preturiConfig} participari={inscrieriExamene} examene={sesiuniExamene} plati={plati} setPlati={setPlati} familii={familii} onNavigate={setActiveView} />;
-      case 'live-attendance':
-        return <AttendanceTable grupe={grupe} grade={grade} currentUser={currentUser} onBack={() => setActiveView('dashboard')} />;
       // FIX: Pass the necessary props to the RapoarteExamen component.
       case 'rapoarte-examen':
         return <RapoarteExamen currentUser={currentUser} clubs={clubs} onBack={() => setActiveView('dashboard')} sesiuni={sesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={sportivi} setSportivi={setSportivi} grade={grade} locatii={locatii} setLocatii={setLocatii} plati={plati} setPlati={setPlati} preturiConfig={preturiConfig} deconturiFederatie={deconturiFederatie} setDeconturiFederatie={setDeconturiFederatie} />;
@@ -333,7 +322,6 @@ function App() {
             grade={grade}
             grupe={grupe}
             sesiuniExamene={sesiuniExamene}
-            tranzactii={tranzactii}
         />;
     }
   };
@@ -354,16 +342,10 @@ function App() {
             globalClubFilter={globalClubFilter}
             setGlobalClubFilter={setGlobalClubFilter}
           />
-          <LiveAttendanceRadar 
-            currentUser={currentUser!}
-            sportivi={sportivi}
-            permissions={permissions}
-          />
-          <AccessGuardian currentUser={currentUser} />
           <main className={`flex-1 transition-all duration-300 ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'}`}>
             <AdminHeader currentUser={currentUser!} onNavigate={setActiveView} onLogout={handleLogout} plati={plati} permissions={permissions} />
             <div className="p-4 md:p-8 max-w-7xl mx-auto">
-              {permissions.isSuperAdmin && activeView === 'dashboard' && !simulatedRole && <GlobalContextSwitcher activeContext={adminContext} onContextChange={setAdminContext} />}
+              {permissions.isSuperAdmin && activeView === 'dashboard' && <GlobalContextSwitcher activeContext={adminContext} onContextChange={setAdminContext} />}
               <ErrorBoundary onNavigate={setActiveView}>
                 {renderContent()}
               </ErrorBoundary>
@@ -371,10 +353,10 @@ function App() {
           </main>
           {/* // FIX: Property 'env' does not exist on type 'ImportMeta'. Cast to any to access Vite env variables. */}
           {(import.meta as any).env.DEV && currentUser && (
-            <DevNavigationToolbar 
+            <RoleSwitcher 
                 currentUser={currentUser} 
                 onNavigate={setActiveView}
-                setSimulatedRole={setSimulatedRole}
+                activeView={activeView}
             />
           )}
         </div>

@@ -1,11 +1,9 @@
 import React from 'react';
-import { User, View, DecontFederatie, Antrenament, Sportiv, Grupa, InscriereExamen, Plata, AnuntPrezenta, SesiuneExamen, Grad, Tranzactie } from '../types';
+import { User, View, DecontFederatie, Antrenament, Sportiv, Grupa, InscriereExamen, Plata, AnuntPrezenta, SesiuneExamen, Grad } from '../types';
 import { Permissions } from '../hooks/usePermissions';
 import { GeneralAttendanceWidget } from './GeneralAttendanceWidget';
-import { ClubManagementHub } from './ClubManagementHub';
+import { AdminMasterMap } from './AdminMasterMap';
 import { SportivDashboard } from './SportivDashboard';
-import { AttendanceAlerts } from './AttendanceAlerts';
-import { ClubOverview } from './ClubOverview';
 
 // Props
 interface FinalUnifiedDashboardProps {
@@ -22,13 +20,12 @@ interface FinalUnifiedDashboardProps {
     grade: Grad[];
     grupe: Grupa[];
     sesiuniExamene: SesiuneExamen[];
-    tranzactii: Tranzactie[];
 }
 
 
 // Main Component
 export const FinalUnifiedDashboard: React.FC<FinalUnifiedDashboardProps> = (props) => {
-    const { currentUser, onNavigate, deconturiFederatie, permissions, inscrieriExamene, plati, sportivi, antrenamente, tranzactii, ...sportivDashboardProps } = props;
+    const { currentUser, onNavigate, deconturiFederatie, permissions, inscrieriExamene, plati, ...sportivDashboardProps } = props;
 
     if (!currentUser) {
         return (
@@ -42,60 +39,28 @@ export const FinalUnifiedDashboard: React.FC<FinalUnifiedDashboardProps> = (prop
         );
     }
     
-    // Club Admin View
-    if (permissions.isAdminClub) {
+    // Admin View
+    if (permissions.hasAdminAccess) {
         return (
             <div className="space-y-8 animate-fade-in-down">
                 <header>
-                    <h1 className="text-3xl font-bold text-white">Panou de Control Club</h1>
-                    <p className="text-slate-400">Sumar, alerte și scurtături rapide.</p>
-                </header>
-                
-                <ClubOverview 
-                    currentUser={currentUser}
-                    sportivi={sportivi}
-                    tranzactii={tranzactii}
-                    deconturiFederatie={deconturiFederatie}
-                    onNavigate={onNavigate}
-                />
-                
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div className="lg:col-span-2">
-                        <ClubManagementHub
-                            currentUser={currentUser}
-                            onNavigate={onNavigate}
-                            permissions={permissions}
-                        />
-                    </div>
-                    <div className="lg:col-span-1 space-y-6">
-                        <GeneralAttendanceWidget currentUser={currentUser} />
-                        <AttendanceAlerts currentUser={currentUser} sportivi={sportivi} antrenamente={antrenamente} />
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    // Instructor View
-    if (permissions.isInstructor) {
-        return (
-            <div className="space-y-8 animate-fade-in-down">
-                <header>
-                    <h1 className="text-3xl font-bold text-white">Panou de Control Instructor</h1>
+                    <h1 className="text-3xl font-bold text-white">Panou de Control Principal</h1>
                     <p className="text-slate-400">Selectează un modul pentru a începe.</p>
                 </header>
                 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2">
-                        <ClubManagementHub
-                            currentUser={currentUser}
+                        <AdminMasterMap 
                             onNavigate={onNavigate}
-                            permissions={permissions}
+                            deconturiFederatie={deconturiFederatie}
+                            inscrieriExamene={inscrieriExamene}
+                            plati={plati}
                         />
                     </div>
-                    <div className="lg:col-span-1 space-y-6">
-                        <GeneralAttendanceWidget currentUser={currentUser} />
-                        <AttendanceAlerts currentUser={currentUser} sportivi={sportivi} antrenamente={antrenamente} />
+                    <div className="lg:col-span-1">
+                        {(permissions.isAdminClub || permissions.isInstructor) && (
+                            <GeneralAttendanceWidget currentUser={currentUser} />
+                        )}
                     </div>
                 </div>
             </div>
@@ -103,24 +68,16 @@ export const FinalUnifiedDashboard: React.FC<FinalUnifiedDashboardProps> = (prop
     }
 
     // Sportiv View
-     if (permissions.isSportiv && !permissions.hasAdminAccess) {
-        return (
-            <SportivDashboard 
-                currentUser={currentUser}
-                viewedUser={currentUser} 
-                participari={inscrieriExamene}
-                examene={sportivDashboardProps.sesiuniExamene}
-                plati={plati}
-                onNavigate={onNavigate}
-                sportivi={sportivi}
-                antrenamente={antrenamente}
-                {...sportivDashboardProps}
-            />
-        );
-    }
-    
-    // Fallback/Default view (e.g., for a user who is ONLY super-admin but not in club context)
-    // This will be handled by the main App component's routing logic.
-    // Returning null or a loading indicator here prevents rendering an inappropriate dashboard.
-    return null;
+    return (
+        <SportivDashboard 
+            currentUser={currentUser}
+            viewedUser={currentUser} 
+            participari={inscrieriExamene}
+            examene={sportivDashboardProps.sesiuniExamene}
+            // FIX: Pass the missing `plati` and `onNavigate` props to the SportivDashboard component.
+            plati={plati}
+            onNavigate={onNavigate}
+            {...sportivDashboardProps}
+        />
+    );
 };

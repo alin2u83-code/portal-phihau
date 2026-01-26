@@ -39,47 +39,18 @@ const ProgramEditor: React.FC<{ program: ProgramItem[], setProgram: React.Dispat
 
     const sortedProgram = sortProgram(program);
 
-    return (
-        <div className="space-y-4">
-            <div>
-                <h4 className="text-lg font-semibold mb-2 text-white">Program Curent</h4>
-                {sortedProgram.length > 0 ? (
-                    sortedProgram.map((item, index) => (
-                        <div key={index} className="flex items-center gap-3 bg-slate-700 p-2 rounded mb-2">
-                            <input
-                                type="checkbox"
-                                checked={item.is_activ ?? true}
-                                onChange={() => handleToggle(item)}
-                                className="form-checkbox h-5 w-5 shrink-0 rounded bg-slate-800 border-slate-600 text-brand-secondary focus:ring-brand-secondary cursor-pointer"
-                                title={(item.is_activ ?? true) ? "Dezactivează acest interval" : "Activează acest interval"}
-                            />
-                            <span className={`font-semibold flex-grow ${(item.is_activ ?? true) ? 'text-white' : 'text-slate-500 line-through'}`}>
-                                {item.ziua}: {item.ora_start} - {item.ora_sfarsit}
-                            </span>
-                            <Button type="button" size="sm" variant="danger" onClick={() => handleRemove(item)}>
-                                <TrashIcon />
-                            </Button>
-                        </div>
-                    ))
-                ) : (
-                    <p className="text-slate-400">Niciun interval adăugat.</p>
-                )}
-            </div>
-            <div className="p-4 bg-slate-900/50 rounded-lg space-y-2">
-                <h4 className="text-md font-semibold text-white">Adaugă Interval Nou</h4>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-2 items-end">
-                    <Select label="Ziua" name="ziua" value={newItem.ziua} onChange={handleChange}>
-                        {zileSaptamana.map(zi => <option key={zi} value={zi}>{zi}</option>)}
-                    </Select>
-                    <Input label="Ora Start" type="time" name="ora_start" value={newItem.ora_start} onChange={handleChange} />
-                    <Input label="Ora Sfârșit" type="time" name="ora_sfarsit" value={newItem.ora_sfarsit} onChange={handleChange} />
-                    <Button type="button" variant="info" onClick={handleAdd}>
-                        <PlusIcon />
-                    </Button>
-                </div>
-            </div>
-        </div>
-    );
+    return ( <div className="space-y-4"> <div> <h4 className="text-lg font-semibold mb-2 text-white">Program Curent</h4> {sortedProgram.length > 0 ? ( sortedProgram.map((item, index) => ( 
+    <div key={index} className="flex items-center gap-3 bg-slate-700 p-2 rounded mb-2">
+        <input
+            type="checkbox"
+            checked={item.is_activ ?? true}
+            onChange={() => handleToggle(item)}
+            className="form-checkbox h-5 w-5 shrink-0 rounded bg-slate-800 border-slate-600 text-brand-secondary focus:ring-brand-secondary cursor-pointer"
+            title={ (item.is_activ ?? true) ? "Dezactivează acest interval" : "Activează acest interval" }
+        />
+        <span className={`font-semibold flex-grow ${ (item.is_activ ?? true) ? 'text-white' : 'text-slate-500 line-through'}`}>{item.ziua}: {item.ora_start} - {item.ora_sfarsit}</span>
+        <Button type="button" size="sm" variant="danger" onClick={() => handleRemove(item)}><TrashIcon /></Button> 
+    </div> ))) : <p className="text-slate-400">Niciun interval adăugat.</p>} </div> <div className="p-4 bg-slate-900/50 rounded-lg space-y-2"> <h4 className="text-md font-semibold text-white">Adaugă Interval Nou</h4> <div className="grid grid-cols-1 md:grid-cols-4 gap-2 items-end"> <Select label="Ziua" name="ziua" value={newItem.ziua} onChange={handleChange}> {zileSaptamana.map(zi => <option key={zi} value={zi}>{zi}</option>)} </Select> <Input label="Ora Start" type="time" name="ora_start" value={newItem.ora_start} onChange={handleChange} /> <Input label="Ora Sfârșit" type="time" name="ora_sfarsit" value={newItem.ora_sfarsit} onChange={handleChange} /> <Button type="button" variant="info" onClick={handleAdd}><PlusIcon /></Button> </div> </div> </div> );
 };
 
 // Modal pentru adăugare/editare grupă
@@ -121,27 +92,14 @@ const GrupaFormModal: React.FC<{ isOpen: boolean; onClose: () => void; onSave: (
         onClose();
     };
     
-    return (
-        <Modal isOpen={isOpen} onClose={onClose} title={grupaToEdit ? "Editează Grupă" : "Adaugă Grupă Nouă"}>
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <Input label="Denumire Grupă" name="denumire" value={formState.denumire} onChange={handleChange} required />
-                {isFederationAdmin && (
-                    <Select label="Club" name="club_id" value={formState.club_id} onChange={handleChange} required>
-                        <option value="">Selectează club...</option>
-                        {clubs.map(c => <option key={c.id} value={c.id}>{c.nume}</option>)}
-                    </Select>
-                )}
-                <Input label="Sala" name="sala" value={formState.sala} onChange={handleChange} />
-                <ProgramEditor program={program} setProgram={setProgram} />
-                <div className="flex justify-end pt-4 space-x-2">
-                    <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button>
-                    <Button variant="success" type="submit" disabled={loading}>
-                        {loading ? 'Se salvează...' : 'Salvează'}
-                    </Button>
-                </div>
-            </form>
-        </Modal>
-    );
+    return ( <Modal isOpen={isOpen} onClose={onClose} title={grupaToEdit ? "Editează Grupă" : "Adaugă Grupă Nouă"}> <form onSubmit={handleSubmit} className="space-y-4"> <Input label="Denumire Grupă" name="denumire" value={formState.denumire} onChange={handleChange} required />
+    {isFederationAdmin && (
+        <Select label="Club" name="club_id" value={formState.club_id} onChange={handleChange} required>
+            <option value="">Selectează club...</option>
+            {clubs.map(c => <option key={c.id} value={c.id}>{c.nume}</option>)}
+        </Select>
+    )}
+    <Input label="Sala" name="sala" value={formState.sala} onChange={handleChange} /> <ProgramEditor program={program} setProgram={setProgram} /> <div className="flex justify-end pt-4 space-x-2"><Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button><Button variant="success" type="submit" disabled={loading}>{loading ? 'Se salvează...' : 'Salvează'}</Button></div> </form> </Modal> );
 };
 
 
@@ -257,7 +215,6 @@ export const GrupeManagement: React.FC<GrupeManagementProps> = ({ grupe, setGrup
         {grupe.length === 0 && <p className="p-4 text-center text-slate-400">Nicio grupă definită.</p>}
       </div>
       <GrupaFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSave} grupaToEdit={grupaToEdit} currentUser={currentUser} clubs={clubs} />
-      {/* FIX: Corrected variable names to match state definitions */}
       <ConfirmDeleteModal isOpen={!!grupaToDelete} onClose={() => setGrupaToDelete(null)} onConfirm={() => { if(grupaToDelete) confirmDelete(grupaToDelete.id) }} tableName="Grupe" isLoading={isDeleting} />
     </div>
   );

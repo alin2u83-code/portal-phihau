@@ -43,6 +43,7 @@ import { useClubFilter } from './hooks/useClubFilter';
 import { MandatoryPasswordChange } from './components/MandatoryPasswordChange';
 import ErrorBoundary from './components/ErrorBoundary';
 import { SystemGuardian } from './components/SystemGuardian';
+import { GestiuneStaff } from './components/GestiuneStaff';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -244,6 +245,9 @@ function App() {
       case 'user-management':
         return <UserManagement sportivi={sportivi} setSportivi={setSportivi} currentUser={currentUser} setCurrentUser={setCurrentUser} allRoles={allRoles} setAllRoles={setAllRoles} onBack={() => setActiveView('dashboard')} />;
       
+      case 'staff-management':
+        return permissions.isFederationAdmin ? <GestiuneStaff onBack={() => setActiveView('dashboard')} currentUser={currentUser} clubs={clubs} allRoles={allRoles} setSportivi={setSportivi} /> : <AccessDenied onBack={() => setActiveView('dashboard')} />;
+
       case 'cluburi':
         return <CluburiManagement clubs={clubs} setClubs={setClubs} onBack={() => setActiveView('dashboard')} currentUser={currentUser} />;
 

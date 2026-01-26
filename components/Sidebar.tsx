@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { User, View, Plata, Club, Rol } from '../types';
-import { adminMenu, sportivMenu, MenuItem } from './menuConfig';
+import { User, View, Plata, Club } from '../types';
+import { federationAdminMenu, clubAdminMenu, instructorMenu, sportivMenu, MenuItem } from './menuConfig';
 import { ArrowRightOnRectangleIcon, Bars3Icon, ChevronDownIcon, UserCircleIcon } from './icons';
 import { AdminProfileQuickAccess } from './AdminProfileQuickAccess';
 import { Select } from './ui';
@@ -84,40 +84,18 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLogout, activeView, isExpanded, setIsExpanded, plati, clubs, globalClubFilter, setGlobalClubFilter, permissions }) => {
     const [isMobileOpen, setIsMobileOpen] = useState(false);
     
-    const menu = permissions.hasAdminAccess ? adminMenu : sportivMenu;
-
-    // Filtrarea corectă a meniului pe baza listei de roluri a utilizatorului
-    const filteredMenu = useMemo(() => {
-        const userRoles = new Set((currentUser.roluri || []).map(r => r.nume));
-        if (currentUser.rol) {
-            userRoles.add(currentUser.rol as Rol['nume']);
+    const menu = useMemo(() => {
+        if (permissions.isFederationAdmin) {
+            return federationAdminMenu;
         }
-
-        return menu.map(item => {
-            // Verifică dacă utilizatorul are vreunul dintre rolurile necesare pentru elementul părinte
-            const hasParentAccess = !item.roles || item.roles.some(requiredRole => userRoles.has(requiredRole));
-            
-            if (!hasParentAccess) {
-                return null;
-            }
-
-            // Dacă elementul are un submeniu, filtrează și elementele copil
-            if (item.submenu) {
-                const filteredSubmenu = item.submenu.filter(subItem => 
-                    !subItem.roles || subItem.roles.some(requiredRole => userRoles.has(requiredRole))
-                );
-
-                // Dacă niciun copil nu este vizibil și părintele nu are o pagină proprie, ascunde părintele
-                if (filteredSubmenu.length === 0 && !item.view) {
-                    return null;
-                }
-
-                return { ...item, submenu: filteredSubmenu };
-            }
-
-            return item;
-        }).filter((item): item is MenuItem => item !== null);
-    }, [menu, currentUser.roluri, currentUser.rol]);
+        if (permissions.isAdminClub) {
+            return clubAdminMenu;
+        }
+        if (permissions.isInstructor) {
+            return instructorMenu;
+        }
+        return sportivMenu;
+    }, [permissions]);
 
 
     const handleNavigate = (view: View) => {
@@ -146,7 +124,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
             )}
 
             <nav className="flex-1 px-3 py-4 space-y-2 overflow-y-auto">
-                {filteredMenu.map(item => {
+                {menu.map(item => {
                      const isActive = item.view === activeView || (item.submenu?.some(s => s.view === activeView) ?? false);
                      return <NavItem key={item.label} item={item} isExpanded={isExpanded} isActive={isActive} onNavigate={handleNavigate} activeView={activeView} />
                 })}

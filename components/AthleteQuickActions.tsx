@@ -155,7 +155,7 @@ export const AthleteQuickActions: React.FC<AthleteQuickActionsProps> = ({ curren
                     sender_sportiv_id: currentUser.id
                 }));
                 
-                const { error: notifError } = await supabase.from('in_app_notificari').insert(notificationsToInsert);
+                const { error: notifError } = await supabase.from('notificari').insert(notificationsToInsert);
                 if (notifError) {
                     console.error("Nu s-a putut crea notificarea:", notifError);
                 }

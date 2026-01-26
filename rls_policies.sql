@@ -204,11 +204,11 @@ USING (
     OR (sportiv_id = public.get_my_sportiv_id())
 );
 
-ALTER TABLE public.in_app_notificari ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Notifications access policy" ON public.in_app_notificari;
-CREATE POLICY "Notifications access policy" ON public.in_app_notificari FOR ALL
+ALTER TABLE public.notificari ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Notifications access policy" ON public.notificari;
+CREATE POLICY "Notifications access policy" ON public.notificari FOR ALL
 USING (
-    recipient_user_id = auth.uid()
+    recipient_user_id = auth.uid() OR recipient_user_id IS NULL
 );
 
 -- Politica pentru program_antrenamente

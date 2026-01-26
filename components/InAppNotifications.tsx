@@ -36,13 +36,13 @@ export const InAppNotifications: React.FC<{ currentUser: User }> = ({ currentUse
 
         const fetchNotifications = async () => {
             const { data, error } = await supabase
-                .from('in_app_notificari')
+                .from('notificari')
                 .select('*')
                 .eq('recipient_user_id', currentUser.user_id)
                 .order('created_at', { ascending: false })
                 .limit(15);
             if (!error && data) {
-                setNotifications(data);
+                setNotifications(data as Notification[]);
             }
         };
         fetchNotifications();
@@ -50,7 +50,7 @@ export const InAppNotifications: React.FC<{ currentUser: User }> = ({ currentUse
         const channel = supabase.channel('in-app-notifications')
             .on(
                 'postgres_changes',
-                { event: 'INSERT', schema: 'public', table: 'in_app_notificari', filter: `recipient_user_id=eq.${currentUser.user_id}` },
+                { event: 'INSERT', schema: 'public', table: 'notificari', filter: `recipient_user_id=eq.${currentUser.user_id}` },
                 (payload) => {
                     setNotifications(prev => [payload.new as Notification, ...prev]);
                 }
@@ -80,7 +80,7 @@ export const InAppNotifications: React.FC<{ currentUser: User }> = ({ currentUse
 
         if (willBeOpen && unreadCount > 0) {
             const unreadIds = notifications.filter(n => !n.is_read).map(n => n.id);
-            const { error } = await supabase.from('in_app_notificari').update({ is_read: true }).in('id', unreadIds);
+            const { error } = await supabase.from('notificari').update({ is_read: true }).in('id', unreadIds);
             if (!error) {
                 setNotifications(prev => prev.map(n => unreadIds.includes(n.id) ? { ...n, is_read: true } : n));
             }

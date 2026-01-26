@@ -23,7 +23,7 @@ export const adminMenu: MenuItem[] = [
         icon: UsersIcon,
         submenu: [
              { label: 'Listă Sportivi', view: 'sportivi' },
-             { label: 'Gestiune Familii', view: 'familii', roles: ['Admin', 'Instructor'] },
+             { label: 'Gestiune Familii', view: 'familii', roles: ['Admin', 'Instructor', 'Admin Club'] },
              { label: 'Structură Federație', view: 'structura-federatie', roles: ['SUPER_ADMIN_FEDERATIE', 'Admin'] },
              { label: 'Gestionare Cluburi', view: 'cluburi', roles: ['SUPER_ADMIN_FEDERATIE'] },
              { label: 'Administrare Staff', view: 'user-management', roles: ['Admin', 'SUPER_ADMIN_FEDERATIE', 'Admin Club'] }
@@ -65,7 +65,7 @@ export const adminMenu: MenuItem[] = [
             { view: 'reduceri', label: 'Config. Reduceri' },
             { view: 'notificari', label: 'Trimite Anunțuri' },
             { view: 'nomenclatoare', label: 'Nomenclatoare', roles: ['Admin', 'SUPER_ADMIN_FEDERATIE']},
-            { view: 'setari-club', label: 'Configurare Federație', roles: ['SUPER_ADMIN_FEDERATIE'] }
+            { view: 'setari-club', label: 'Setări Club', roles: ['SUPER_ADMIN_FEDERATIE', 'Admin Club'] }
         ] 
     },
     { 

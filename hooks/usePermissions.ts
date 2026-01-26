@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import { User } from '../types';
-import { SUPER_ADMIN_ROLE_ID, ADMIN_CLUB_ROLE_ID } from '../constants';
 
 export interface Permissions {
     isSuperAdmin: boolean;
@@ -29,13 +28,12 @@ export const usePermissions = (user: User | null): Permissions => {
         }
 
         const roles = new Set(user.roluri.map(r => r.nume));
-        const roleIds = new Set(user.roluri.map(r => r.id));
         
-        const isSuperAdmin = roleIds.has(SUPER_ADMIN_ROLE_ID);
+        const isSuperAdmin = roles.has('SUPER_ADMIN_FEDERATIE');
         const isAdmin = roles.has('Admin');
         const isFederationAdmin = isSuperAdmin || isAdmin;
 
-        const isAdminClub = roleIds.has(ADMIN_CLUB_ROLE_ID) && !isFederationAdmin;
+        const isAdminClub = roles.has('Admin Club') && !isFederationAdmin;
         const isInstructor = roles.has('Instructor');
         const isSportiv = roles.has('Sportiv');
         

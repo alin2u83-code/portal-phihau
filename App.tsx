@@ -45,6 +45,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { SystemGuardian } from './components/SystemGuardian';
 import { RoleSwitcher } from './components/RoleSwitcher';
 import { getAuthenticatedUser } from './utils/auth';
+import AdminDashboard from './components/AdminDashboard';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -206,6 +207,9 @@ function App() {
 
     switch (activeView) {
       case 'dashboard':
+        if (permissions.isAdminClub) {
+            return <AdminDashboard currentUser={currentUser} />;
+        }
         return isPortalView ? 
           <SportivDashboard currentUser={currentUser} viewedUser={currentUser} participari={inscrieriExamene} examene={sesiuniExamene} grade={grade} grupe={grupe} plati={plati} onNavigate={setActiveView} antrenamente={antrenamente} anunturi={anunturiPrezenta} setAnunturi={setAnunturiPrezenta} sportivi={sportivi} /> : 
           <Dashboard currentUser={currentUser} onNavigate={setActiveView} clubs={clubs} permissions={permissions} />;

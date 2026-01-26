@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Sportiv, User, Rol } from '../types';
 import { Button, Input, Card, Select, Modal } from './ui';
 import { ArrowLeftIcon, EditIcon, ShieldCheckIcon, PlusIcon } from './icons';
@@ -174,6 +174,25 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
     const [newRoleName, setNewRoleName] = useState('');
     const [roleCreationFeedback, setRoleCreationFeedback] = useState<{ type: 'success' | 'error', message: string } | null>(null);
 
+    const roleWeights: Record<Rol['nume'], number> = useMemo(() => ({
+        'SUPER_ADMIN_FEDERATIE': 5,
+        'Admin': 4,
+        'Admin Club': 3,
+        'Instructor': 2,
+        'Sportiv': 1,
+    }), []);
+
+    const currentUserMaxWeight = useMemo(() => 
+        Math.max(0, ...currentUser.roluri.map(r => roleWeights[r.nume] || 0)),
+        [currentUser.roluri, roleWeights]
+    );
+
+    const availableRolesForAssignment = useMemo(() => 
+        allRoles.filter(r => (roleWeights[r.nume] || 0) <= currentUserMaxWeight),
+        [allRoles, currentUserMaxWeight, roleWeights]
+    );
+
+
     const handleEdit = (user: User) => {
         setEditingId(user.id);
         setNewRoleIds((user.roluri || []).map(r => r.id));
@@ -184,33 +203,64 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
     };
 
     const handleSaveRole = async (userId: string) => {
-        if (!supabase) {
-            alert("Eroare de configurare: Conexiunea la baza de date nu a putut fi stabilită.");
+        if (!supabase) { showError("Eroare", "Conexiunea la baza de date nu a putut fi stabilită."); return; }
+        
+        const targetUser = sportivi.find(s => s.id === userId);
+        if (!targetUser) { showError("Eroare", "Utilizatorul țintă nu a fost găsit."); return; }
+
+        const currentUserIsAdminClub = currentUser.roluri.some(r => r.nume === 'Admin Club');
+        const currentUserIsFederationAdmin = currentUser.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'Admin');
+        
+        // Verificare de securitate: Admin Club poate modifica doar utilizatorii din propriul club.
+        if (currentUserIsAdminClub && !currentUserIsFederationAdmin && targetUser.club_id !== currentUser.club_id) {
+            showError("Acces Interzis", "Administratorii de club pot modifica doar utilizatorii din propriul club.");
+            return;
+        }
+        
+        // Verificare de securitate: Prevenirea auto-blocării.
+        if (currentUser.id === userId) {
+            const isLosingAdminRole = !newRoleIds.some(roleId => {
+                const role = allRoles.find(r => r.id === roleId);
+                return role && (role.nume === 'SUPER_ADMIN_FEDERATIE' || role.nume === 'Admin');
+            });
+            if (currentUserIsFederationAdmin && isLosingAdminRole) {
+                showError("Acțiune Blocată", "Nu vă puteți elimina propriul rol de administrator de federație.");
+                return;
+            }
+        }
+        
+        // Verificare ierarhie: Nu se poate acorda un rol superior.
+        const assignedRolesWeight = newRoleIds.map(roleId => roleWeights[allRoles.find(r => r.id === roleId)?.nume || 'Sportiv'] || 0);
+        if (assignedRolesWeight.some(weight => weight > currentUserMaxWeight)) {
+            showError("Permisiune Refuzată", "Nu puteți acorda un rol cu privilegii mai mari decât rolul dumneavoastră.");
             return;
         }
 
         let finalRoleIds = [...newRoleIds];
         if (finalRoleIds.length === 0) {
             const sportivRole = allRoles.find(r => r.nume === 'Sportiv');
-            if(sportivRole) finalRoleIds.push(sportivRole.id);
+            if (sportivRole) finalRoleIds.push(sportivRole.id);
         }
         
-        const { error: deleteError } = await supabase.from('sportivi_roluri').delete().eq('sportiv_id', userId);
-        if (deleteError) { alert(`Eroare (pas 1/2): ${deleteError.message}`); return; }
+        // Apelarea funcției RPC securizate
+        const { error: rpcError } = await supabase.rpc('schimba_rol_utilizator', {
+            p_user_id: userId,
+            p_role_ids: finalRoleIds
+        });
 
-        if (finalRoleIds.length > 0) {
-          const newRolesToInsert = finalRoleIds.map(rol_id => ({ sportiv_id: userId, rol_id }));
-          const { error: insertError } = await supabase.from('sportivi_roluri').insert(newRolesToInsert);
-          if (insertError) { alert(`Eroare (pas 2/2): ${insertError.message}`); return; }
+        if (rpcError) {
+            showError("Eroare la schimbarea rolului", rpcError.message);
+            return;
         }
-
+        
+        // Actualizare stare locală la succes
         const updatedRoles = allRoles.filter(r => finalRoleIds.includes(r.id));
         setSportivi(prev => prev.map(s => s.id === userId ? { ...s, roluri: updatedRoles } : s));
         
-        setUserListFeedback({type: 'success', message: `Rolurile pentru ${sportivi.find(s=>s.id === userId)?.nume} au fost salvate!`})
-        setTimeout(() => setUserListFeedback(null), 3000);
+        showSuccess("Succes", `Rolurile pentru ${targetUser.nume} au fost salvate!`);
         setEditingId(null);
     };
+
 
     const handleRoleChange = (roleId: string, isChecked: boolean) => {
         setNewRoleIds(prev => isChecked ? [...new Set([...prev, roleId])] : prev.filter(id => id !== roleId));
@@ -393,7 +443,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
             
             <MyProfile user={currentUser} setSportivi={setSportivi} setCurrentUser={setCurrentUser} />
 
-            {currentUser.roluri.some(r => r.nume === 'Admin' || r.nume === 'SUPER_ADMIN_FEDERATIE') && (
+            {currentUser.roluri.some(r => r.nume === 'Admin' || r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'Admin Club') && (
                 <>
                 <Card className="mb-8">
                      <h3 className="text-xl font-bold text-white mb-4">Adaugă Rol Nou</h3>
@@ -428,14 +478,13 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                                             <>
                                                 <td className="p-2">
                                                     <div className="flex flex-wrap gap-x-4 gap-y-1">
-                                                        {allRoles.map(role => (
+                                                        {availableRolesForAssignment.map(role => (
                                                             <label key={role.id} className="flex items-center space-x-2 text-sm cursor-pointer">
                                                                 <input
                                                                     type="checkbox"
                                                                     className="h-4 w-4 rounded border-slate-500 bg-slate-800 text-primary-600 focus:ring-primary-500"
                                                                     checked={newRoleIds.includes(role.id)}
                                                                     onChange={(e) => handleRoleChange(role.id, e.target.checked)}
-                                                                    disabled={user.id === currentUser.id && (role.nume === 'Admin' || role.nume === 'SUPER_ADMIN_FEDERATIE')}
                                                                 />
                                                                 <span>{role.nume}</span>
                                                             </label>
@@ -465,7 +514,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                                                 <td className="p-4 text-right w-32">
                                                     <div className="flex items-center justify-end gap-2">
                                                         {user.user_id ? (
-                                                            <Button onClick={() => handleEdit(user)} variant="primary" size="sm" disabled={user.id === currentUser.id && !currentUser.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE')}><EditIcon /></Button>
+                                                            <Button onClick={() => handleEdit(user)} variant="primary" size="sm"><EditIcon /></Button>
                                                         ) : (
                                                             <Button onClick={() => handleOpenCreateAccountModal(user)} variant="info" size="sm">Creează Cont</Button>
                                                         )}

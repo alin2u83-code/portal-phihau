@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { SesiuneExamen, InscriereExamen, Sportiv, Grad, Locatie, Plata, PretConfig, User, Club } from '../types';
+import { SesiuneExamen, InscriereExamen, Sportiv, Grad, Locatie, Plata, PretConfig, User, Club, DecontFederatie } from '../types';
 import { Button, Modal, Input, Select, Card } from './ui';
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -173,12 +173,53 @@ const DetaliiSesiune: React.FC<{
     plati: Plata[];
     setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
     preturiConfig: PretConfig[];
+    setSesiuni: React.Dispatch<React.SetStateAction<SesiuneExamen[]>>;
+    setDeconturiFederatie: React.Dispatch<React.SetStateAction<DecontFederatie[]>>;
 }> = (props) => {
+    const { showError, showSuccess } = useError();
+    const [isFinalizing, setIsFinalizing] = useState(false);
+
+    const handleFinalizeExam = async () => {
+        if (!window.confirm("Această acțiune este ireversibilă. Se va marca examenul ca finalizat și se va genera decontul pentru federație. Doriți să continuați?")) {
+            return;
+        }
+        setIsFinalizing(true);
+        try {
+            // Presupunem că RPC-ul 'finalizeaza_examen' există și a fost creat în baza de date.
+            const { data, error } = await supabase.rpc('finalizeaza_examen', { p_sesiune_id: props.sesiune.id });
+            if (error) throw error;
+
+            props.setSesiuni(prev => prev.map(s => s.id === props.sesiune.id ? { ...s, status: 'Finalizat' } : s));
+            
+            if(data) {
+                props.setDeconturiFederatie(prev => [...prev, data]);
+            }
+            showSuccess("Examen Finalizat", "Decontul a fost generat și trimis către federație.");
+        } catch (err: any) {
+            showError("Eroare la finalizare", `Funcția RPC 'finalizeaza_examen' nu a putut fi executată. Asigurați-vă că există în baza de date. Detalii: ${err.message}`);
+        } finally {
+            setIsFinalizing(false);
+        }
+    };
     
     return (
         <Card>
-            <h3 className="text-2xl font-bold text-white">{props.locatii.find(l => l.id === props.sesiune.locatie_id)?.nume} - {new Date(props.sesiune.data + 'T00:00:00').toLocaleDateString('ro-RO')}</h3>
-            <p className="text-slate-400 mb-6">Comisia: {Array.isArray(props.sesiune.comisia) ? props.sesiune.comisia.join(', ') : props.sesiune.comisia}</p>
+            <div className="flex justify-between items-start mb-6">
+                <div>
+                    <h3 className="text-2xl font-bold text-white">{props.locatii.find(l => l.id === props.sesiune.locatie_id)?.nume} - {new Date(props.sesiune.data + 'T00:00:00').toLocaleDateString('ro-RO')}</h3>
+                    <p className="text-slate-400 mb-2">Comisia: {Array.isArray(props.sesiune.comisia) ? props.sesiune.comisia.join(', ') : props.sesiune.comisia}</p>
+                     {props.sesiune.status === 'Finalizat' ? (
+                        <span className="px-3 py-1 text-sm font-bold text-green-300 bg-green-900/50 border border-green-700/50 rounded-full">Finalizat</span>
+                    ) : (
+                        <span className="px-3 py-1 text-sm font-bold text-sky-300 bg-sky-900/50 border border-sky-700/50 rounded-full">Programat</span>
+                    )}
+                </div>
+                {props.sesiune.status !== 'Finalizat' && (
+                    <Button variant="success" onClick={handleFinalizeExam} isLoading={isFinalizing}>
+                        Finalizează & Generează Decont
+                    </Button>
+                )}
+            </div>
             
             <ManagementInscrieri {...props} />
         </Card>
@@ -202,9 +243,11 @@ interface GestiuneExameneProps {
     plati: Plata[];
     setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
     preturiConfig: PretConfig[];
+    deconturiFederatie: DecontFederatie[];
+    setDeconturiFederatie: React.Dispatch<React.SetStateAction<DecontFederatie[]>>;
 }
 
-export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, clubs, onBack, sesiuni, setSesiuni, inscrieri, setInscrieri, sportivi, setSportivi, grade, locatii, setLocatii, plati, setPlati, preturiConfig }) => {
+export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, clubs, onBack, sesiuni, setSesiuni, inscrieri, setInscrieri, sportivi, setSportivi, grade, locatii, setLocatii, plati, setPlati, preturiConfig, deconturiFederatie, setDeconturiFederatie }) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [sesiuneToEdit, setSesiuneToEdit] = useState<SesiuneExamen | null>(null);
   const [sesiuneToDelete, setSesiuneToDelete] = useState<SesiuneExamen | null>(null);
@@ -269,6 +312,8 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
                 plati={plati}
                 setPlati={setPlati}
                 preturiConfig={preturiConfig}
+                setSesiuni={setSesiuni}
+                setDeconturiFederatie={setDeconturiFederatie}
             />
         </div>
      );

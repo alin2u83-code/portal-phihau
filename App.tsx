@@ -48,6 +48,8 @@ import { getAuthenticatedUser } from './utils/auth';
 import { FederationInvoices } from './components/FederationInvoices';
 import { MartialAttendance } from './components/MartialAttendance';
 import { AccountSettings } from './components/AccountSettings';
+import { GlobalContextSwitcher } from './components/GlobalContextSwitcher';
+import { FederationDashboard } from './components/FederationDashboard';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -80,6 +82,7 @@ function App() {
   const [activeView, setActiveView] = useLocalStorage<View>('phi-hau-active-view', 'dashboard');
   const [selectedSportiv, setSelectedSportiv] = useState<Sportiv | null>(null);
   const [isSidebarExpanded, setIsSidebarExpanded] = useLocalStorage('phi-hau-sidebar-expanded', true);
+  const [adminContext, setAdminContext] = useLocalStorage<'club' | 'federation'>('phi-hau-admin-context', 'club');
 
   const permissions = usePermissions(currentUser);
   const { activeClubId, globalClubFilter, setGlobalClubFilter } = useClubFilter(currentUser);
@@ -234,6 +237,9 @@ function App() {
     switch (activeView) {
       case 'dashboard':
       case 'my-portal':
+        if (permissions.isSuperAdmin && adminContext === 'federation') {
+            return <FederationDashboard onNavigate={setActiveView} />;
+        }
         return <FinalUnifiedDashboard 
             currentUser={currentUser} 
             onNavigate={setActiveView} 
@@ -260,7 +266,7 @@ function App() {
         return permissions.isFederationAdmin ? <FederationStructure clubs={clubs} sportivi={sportivi} grupe={grupe} onBack={() => setActiveView('dashboard')} onNavigate={setActiveView} /> : <AccessDenied onBack={() => setActiveView('dashboard')} />;
 
       case 'examene':
-        return <GestiuneExamene currentUser={currentUser} clubs={clubs} onBack={() => setActiveView('dashboard')} sesiuni={sesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={sportivi} setSportivi={setSportivi} grade={grade} locatii={locatii} setLocatii={setLocatii} plati={plati} setPlati={setPlati} preturiConfig={preturiConfig} />;
+        return <GestiuneExamene currentUser={currentUser} clubs={clubs} onBack={() => setActiveView('dashboard')} sesiuni={sesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={sportivi} setSportivi={setSportivi} grade={grade} locatii={locatii} setLocatii={setLocatii} plati={plati} setPlati={setPlati} preturiConfig={preturiConfig} deconturiFederatie={deconturiFederatie} setDeconturiFederatie={setDeconturiFederatie} />;
 
       case 'prezenta':
         return <PrezentaManagement sportivi={sportivi} setSportivi={setSportivi} antrenamente={antrenamente} setAntrenamente={setAntrenamente} grupe={grupe} onBack={() => setActiveView('dashboard')} setPlati={setPlati} tipuriAbonament={tipuriAbonament} anunturi={anunturiPrezenta} />;
@@ -299,7 +305,7 @@ function App() {
         return <BackupManager onBack={() => setActiveView('dashboard')} onDataRestored={() => window.location.reload()} sportivi={sportivi} setSportivi={setSportivi} grade={grade} preturiConfig={preturiConfig} participari={inscrieriExamene} examene={sesiuniExamene} plati={plati} setPlati={setPlati} familii={familii} onNavigate={setActiveView} />;
       // FIX: Pass the necessary props to the RapoarteExamen component.
       case 'rapoarte-examen':
-        return <RapoarteExamen currentUser={currentUser} clubs={clubs} onBack={() => setActiveView('dashboard')} sesiuni={sesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={sportivi} setSportivi={setSportivi} grade={grade} locatii={locatii} setLocatii={setLocatii} plati={plati} setPlati={setPlati} preturiConfig={preturiConfig} />;
+        return <RapoarteExamen currentUser={currentUser} clubs={clubs} onBack={() => setActiveView('dashboard')} sesiuni={sesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={sportivi} setSportivi={setSportivi} grade={grade} locatii={locatii} setLocatii={setLocatii} plati={plati} setPlati={setPlati} preturiConfig={preturiConfig} deconturiFederatie={deconturiFederatie} setDeconturiFederatie={setDeconturiFederatie} />;
 
       default:
         return <FinalUnifiedDashboard 
@@ -339,6 +345,7 @@ function App() {
           <main className={`flex-1 transition-all duration-300 ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'}`}>
             <AdminHeader currentUser={currentUser!} onNavigate={setActiveView} onLogout={handleLogout} plati={plati} permissions={permissions} />
             <div className="p-4 md:p-8 max-w-7xl mx-auto">
+              {permissions.isSuperAdmin && activeView === 'dashboard' && <GlobalContextSwitcher activeContext={adminContext} onContextChange={setAdminContext} />}
               <ErrorBoundary onNavigate={setActiveView}>
                 {renderContent()}
               </ErrorBoundary>

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { User } from '../types';
+import { User, Rol } from '../types';
 
 export interface Permissions {
     isSuperAdmin: boolean;
@@ -21,29 +21,34 @@ const initialPermissions: Permissions = {
     hasAdminAccess: false,
 };
 
-export const usePermissions = (user: User | null): Permissions => {
+export const usePermissions = (user: User | null, overrideRole?: Rol['nume'] | null): Permissions => {
     const permissions = useMemo((): Permissions => {
-        if (!user) {
+        if (!user && !overrideRole) {
             return initialPermissions;
         }
 
-        const simpleRole = user.rol;
-        const complexRoles = new Set((user.roluri || []).map(r => r.nume));
+        const rolesSet = new Set<Rol['nume']>();
+
+        if (overrideRole) {
+            rolesSet.add(overrideRole);
+             // Special case for dev: if simulating a club admin, also add instructor rights for full view.
+            if (overrideRole === 'Admin Club') {
+                rolesSet.add('Instructor');
+            }
+        } else if (user) {
+            (user.roluri || []).forEach(r => rolesSet.add(r.nume));
+            if (user.rol) rolesSet.add(user.rol as Rol['nume']);
+        }
         
-        const isSuperAdmin = complexRoles.has('SUPER_ADMIN_FEDERATIE');
-        const isAdmin = complexRoles.has('Admin');
+        const isSuperAdmin = rolesSet.has('SUPER_ADMIN_FEDERATIE');
+        const isAdmin = rolesSet.has('Admin');
         const isFederationAdmin = isSuperAdmin || isAdmin;
 
-        // isStaff este true dacă rolul simplu este 'ADMIN_CLUB' sau rolurile complexe includ 'Instructor' sau 'Admin'.
-        const isStaff = simpleRole === 'ADMIN_CLUB' || complexRoles.has('Instructor') || isAdmin;
+        const isAdminClub = rolesSet.has('Admin Club') && !isFederationAdmin;
+        const isInstructor = rolesSet.has('Instructor');
+        const isSportiv = rolesSet.has('Sportiv');
         
-        // hasAdminAccess, care controlează meniul admin, include acum toți super-adminii și staff-ul.
-        const hasAdminAccess = isSuperAdmin || isStaff;
-
-        // isAdminClub este actualizat pentru a verifica ambele sisteme de roluri.
-        const isAdminClub = (simpleRole === 'ADMIN_CLUB' || complexRoles.has('Admin Club')) && !isFederationAdmin;
-        const isInstructor = complexRoles.has('Instructor');
-        const isSportiv = complexRoles.has('Sportiv');
+        const hasAdminAccess = isFederationAdmin || isAdminClub || isInstructor;
         
         return {
             isSuperAdmin,
@@ -54,7 +59,7 @@ export const usePermissions = (user: User | null): Permissions => {
             isSportiv,
             hasAdminAccess,
         };
-    }, [user]);
+    }, [user, overrideRole]);
 
     return permissions;
 };

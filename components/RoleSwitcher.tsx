@@ -1,19 +1,26 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { User, Rol, Club } from '../types';
 import { Button } from './ui';
-import { ShieldCheckIcon } from './icons';
+import { ShieldCheckIcon, RotateCcw } from 'lucide-react';
 import { FEDERATIE_ID } from '../constants';
 
-interface RoleSwitcherProps {
+interface DevRoleSwitcherProps {
     currentUser: User | null;
     setCurrentUser: React.Dispatch<React.SetStateAction<User | null>>;
     allRoles: Rol[];
     clubs: Club[];
 }
 
-const TEST_ROLES: Rol['nume'][] = ['SUPER_ADMIN_FEDERATIE', 'Admin Club', 'Instructor'];
+const TEST_CONFIG: { name: Rol['nume']; color: string }[] = [
+    { name: 'SUPER_ADMIN_FEDERATIE', color: 'bg-red-600 hover:bg-red-700' },
+    { name: 'Admin Club', color: 'bg-blue-600 hover:bg-blue-700' },
+    { name: 'Instructor', color: 'bg-green-600 hover:bg-green-700' },
+    { name: 'Sportiv', color: 'bg-amber-500 hover:bg-amber-600' },
+];
 
-export const RoleSwitcher: React.FC<RoleSwitcherProps> = ({ currentUser, setCurrentUser, allRoles, clubs }) => {
+const DEV_EMAIL = 'admin@phihau.ro'; 
+
+export const RoleSwitcher: React.FC<DevRoleSwitcherProps> = ({ currentUser, setCurrentUser, allRoles, clubs }) => {
     const [originalUser, setOriginalUser] = useState<User | null>(null);
 
     useEffect(() => {
@@ -27,24 +34,29 @@ export const RoleSwitcher: React.FC<RoleSwitcherProps> = ({ currentUser, setCurr
         
         const targetRole = allRoles.find(r => r.nume === roleName);
         if (!targetRole) {
-            console.error(`[RoleSwitcher] Rolul "${roleName}" nu a fost găsit în lista de roluri.`);
+            console.error(`[DevRoleSwitcher] Rolul "${roleName}" nu a fost găsit.`);
             return;
         }
 
-        const newUser = { ...currentUser, roluri: [targetRole] };
+        // Create a fresh copy from the original to avoid nested state changes
+        const newUser = JSON.parse(JSON.stringify(originalUser));
+        newUser.roluri = [targetRole];
 
+        // Assign appropriate club for the role
         if ((roleName === 'Admin Club' || roleName === 'Instructor') && (!newUser.club_id || newUser.club_id === FEDERATIE_ID)) {
              const firstClub = clubs.find(c => c.id !== FEDERATIE_ID);
              if (firstClub) {
                  newUser.club_id = firstClub.id;
                  newUser.cluburi = firstClub;
              }
-        }
-        
-        if (roleName === 'SUPER_ADMIN_FEDERATIE') {
+        } else if (roleName === 'SUPER_ADMIN_FEDERATIE') {
             const fedClub = clubs.find(c => c.id === FEDERATIE_ID);
             newUser.club_id = FEDERATIE_ID;
-            if(fedClub) newUser.cluburi = fedClub;
+            if (fedClub) newUser.cluburi = fedClub;
+        } else if (roleName === 'Sportiv') {
+            // Revert to original club if it was changed
+            newUser.club_id = originalUser.club_id;
+            newUser.cluburi = originalUser.cluburi;
         }
 
         setCurrentUser(newUser);
@@ -56,49 +68,51 @@ export const RoleSwitcher: React.FC<RoleSwitcherProps> = ({ currentUser, setCurr
         }
     };
     
-    const currentMockRole = useMemo(() => {
-        if (!currentUser || !originalUser) return 'Original';
-        if (JSON.stringify(currentUser.roluri) === JSON.stringify(originalUser.roluri)) {
-             return 'Original';
+    const currentSimulatedRole = useMemo(() => {
+        if (!currentUser || !originalUser || JSON.stringify(currentUser.roluri) === JSON.stringify(originalUser.roluri)) {
+             return null;
         }
-        return currentUser.roluri[0]?.nume || 'Necunoscut';
+        return currentUser.roluri[0]?.nume;
     }, [currentUser, originalUser]);
 
-    // FIX: Property 'env' does not exist on type 'ImportMeta'. Cast to any to access Vite env variables.
-    if (!(import.meta as any).env.DEV || !currentUser) {
+    // This component is only for development and for a specific user.
+    if (!currentUser || currentUser.email !== DEV_EMAIL) {
         return null;
     }
 
     return (
-        <div className="fixed bottom-4 right-4 z-[9999] bg-[var(--bg-card)] p-3 rounded-lg border-2 border-dashed border-amber-500 shadow-2xl w-72">
-            <h4 className="text-sm font-bold text-amber-400 flex items-center gap-2 mb-2">
-                <ShieldCheckIcon className="w-5 h-5"/>
-                Role Switcher (DEV)
-            </h4>
-            <p className="text-xs text-slate-400 mb-3">Rol Simulat: <strong className="text-white">{currentMockRole}</strong></p>
-
-            <div className="grid grid-cols-2 gap-2">
-                {TEST_ROLES.map(roleName => (
-                    <Button 
-                        key={roleName}
-                        size="sm"
-                        variant={currentMockRole === roleName ? 'primary' : 'secondary'}
-                        onClick={() => handleSwitchRole(roleName)}
-                        className="text-xs !justify-start"
-                    >
-                       {roleName}
-                    </Button>
-                ))}
+        <div className="fixed top-0 left-0 right-0 z-[9999] bg-slate-900/50 backdrop-blur-sm p-2 border-b-2 border-dashed border-amber-500 shadow-lg">
+            <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
+                    <ShieldCheckIcon className="w-5 h-5 text-amber-400"/>
+                    <h4 className="text-sm font-bold text-amber-400 hidden sm:block">
+                        Dev Role Switcher
+                    </h4>
+                </div>
+                <div className="flex items-center gap-2">
+                    {TEST_CONFIG.map(role => (
+                        <Button
+                            key={role.name}
+                            size="sm"
+                            onClick={() => handleSwitchRole(role.name)}
+                            className={`!text-xs !px-2 sm:!px-3 ${role.color} ${currentSimulatedRole === role.name ? 'ring-2 ring-white' : ''}`}
+                        >
+                           {role.name}
+                        </Button>
+                    ))}
+                </div>
+                <Button 
+                    onClick={handleReset}
+                    variant="secondary"
+                    size="sm"
+                    className="!text-xs !px-2 sm:!px-3"
+                    disabled={!currentSimulatedRole}
+                    title="Reset to Original Role"
+                >
+                    <RotateCcw className="w-4 h-4 sm:mr-1" />
+                    <span className="hidden sm:inline">Reset</span>
+                </Button>
             </div>
-            <Button 
-                onClick={handleReset}
-                variant="secondary"
-                size="sm"
-                className="w-full mt-2 text-xs"
-                disabled={currentMockRole === 'Original'}
-            >
-                Resetare la Rolul Original
-            </Button>
         </div>
     );
 };

@@ -436,6 +436,28 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                         </div>
                     </Card>
                      <Card>
+                        <h3 className="text-lg font-bold text-white mb-4">Istoric Prezențe Recente (Ultimele 3 Luni)</h3>
+                        <div className="max-h-72 overflow-y-auto pr-2 space-y-3">
+                            {trainingHistory.length > 0 ? (
+                                trainingHistory.map(antrenament => (
+                                    <div key={antrenament.id} className="flex justify-between items-center bg-slate-800/50 p-2 rounded-md">
+                                        <div>
+                                            <p className="font-semibold text-white">{new Date(antrenament.data + 'T00:00:00').toLocaleDateString('ro-RO')}</p>
+                                            <p className="text-xs text-slate-400">{antrenament.grupaNume}</p>
+                                        </div>
+                                        <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                                            antrenament.status === 'Prezent' ? 'bg-green-600/30 text-green-300' : 'bg-red-600/30 text-red-400'
+                                        }`}>
+                                            {antrenament.status}
+                                        </span>
+                                    </div>
+                                ))
+                            ) : (
+                                <p className="text-slate-500 italic text-center py-4">Nicio prezență înregistrată în ultimele 3 luni.</p>
+                            )}
+                        </div>
+                    </Card>
+                     <Card>
                         <div className="flex justify-between items-start mb-2">
                             <h3 className="text-lg font-bold text-white animate-fade-in-down">Progres Tehnic</h3>
                             <Button size="sm" variant="secondary" onClick={() => setShowHistory(true)}>Istoric</Button>

@@ -90,11 +90,14 @@ function App() {
     if (!supabase) return;
     setLoading(true);
     try {
-      const { data: userData, error: userError } = await supabase.from('sportivi').select('*, cluburi(*), sportivi_roluri(roluri(id, nume))').eq('user_id', userId).single();
+      // Pas 1: Preluăm profilul utilizatorului curent (fără join-uri care pot eșua din cauza RLS)
+      const { data: userData, error: userError } = await supabase
+        .from('sportivi')
+        .select('*, sportivi_roluri(roluri(id, nume))')
+        .eq('user_id', userId)
+        .single();
 
-      if (userError && userError.code !== 'PGRST116') { // PGRST116: "exact one row expected"
-        throw userError;
-      }
+      if (userError && userError.code !== 'PGRST116') throw userError;
 
       if (!userData) {
         showError("Profil utilizator lipsă", "Nu am putut încărca profilul. Este posibil ca acesta să fi fost șters. Veți fi delogat.");
@@ -105,6 +108,7 @@ function App() {
         return;
       }
 
+      // Pas 2: Preluăm nomenclatoarele (inclusiv cluburile vizibile)
       const [
         { data: clubsData },
         { data: rolesData },
@@ -124,12 +128,16 @@ function App() {
         supabase.from('tipuri_plati').select('*'),
         supabase.from('reduceri').select('*')
       ]);
+      
+      const clubsMap = new Map((clubsData || []).map(c => [c.id, c]));
 
+      // Pas 3: Formatăm și setăm utilizatorul curent, adăugând manual datele clubului
       const formattedUser = {
         ...userData,
-        roluri: ((userData as any).sportivi_roluri?.map((sr: any) => sr.roluri) || []).filter(Boolean)
+        roluri: ((userData as any).sportivi_roluri?.map((sr: any) => sr.roluri) || []).filter(Boolean),
+        cluburi: userData.club_id ? (clubsMap.get(userData.club_id) || { id: userData.club_id, nume: 'Club Indisponibil' }) : null
       };
-
+      
       setCurrentUser(formattedUser as User);
       setClubs(clubsData || []);
       setAllRoles(rolesData || []);
@@ -139,7 +147,8 @@ function App() {
       setLocatii(locatiiData || []);
       setTipuriPlati(platiTypesData || []);
       setReduceri(reduceriData || []);
-
+      
+      // Pas 4: Preluăm restul datelor (liste principale)
       const [
         { data: sportiviData },
         { data: sessionsData },
@@ -153,7 +162,7 @@ function App() {
         { data: anunturiData },
         { data: pricesData }
       ] = await Promise.all([
-        supabase.from('sportivi').select('*, cluburi(*), sportivi_roluri(roluri(id, nume))'),
+        supabase.from('sportivi').select('*, sportivi_roluri(roluri(id, nume))'),
         supabase.from('sesiuni_examene').select('*'),
         supabase.from('inscrieri_examene').select('*, sportivi:sportiv_id(*), grade:grad_vizat_id(*)'),
         supabase.from('program_antrenamente').select('*, prezenta_antrenament!antrenament_id(sportiv_id)'),
@@ -166,7 +175,14 @@ function App() {
         supabase.from('preturi_config').select('*')
       ]);
 
-      setSportivi(sportiviData?.map(s => ({ ...s, roluri: (((s as any).sportivi_roluri?.map((sr: any) => sr.roluri)) || []).filter(Boolean) })) || []);
+      // Pas 5: Formatăm sportivii cu datele despre club, folosind valorile deja preluate
+      const allSportivi = sportiviData?.map(s => ({
+            ...s,
+            roluri: (((s as any).sportivi_roluri?.map((sr: any) => sr.roluri)) || []).filter(Boolean),
+            cluburi: s.club_id ? (clubsMap.get(s.club_id) || { id: s.club_id, nume: 'Club Indisponibil' }) : null
+      })) || [];
+
+      setSportivi(allSportivi as Sportiv[]);
       setSesiuniExamene(sessionsData || []);
       setInscrieriExamene(registrationsData || []);
       setAntrenamente(trainingsData?.map(t => ({ ...t, sportivi_prezenti_ids: (t as any).prezenta_antrenament?.map((p: any) => p.sportiv_id) || [] })) || []);
@@ -185,6 +201,7 @@ function App() {
       setLoading(false);
     }
   }, [showError]);
+
 
   useEffect(() => {
     if (session?.user?.id) fetchData(session.user.id);

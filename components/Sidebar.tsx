@@ -55,7 +55,7 @@ const NavItem: React.FC<{
                         <div
                             key={subItem.view}
                             onClick={() => onNavigate(subItem.view)}
-                            className={`block p-2 text-sm rounded-md cursor-pointer transition-colors ${subItem.view === activeView ? 'bg-[var(--accent)]/50 font-bold' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
+                            className={`block p-2 text-sm rounded-md cursor-pointer transition-colors ${subItem.view === activeView ? 'bg-[var(--accent)]/50 font-bold text-white' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
                         >
                             {subItem.label}
                         </div>

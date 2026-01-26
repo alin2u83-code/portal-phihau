@@ -1,7 +1,6 @@
-
 -- =================================================================
--- Politici de Securitate la Nivel de Rând (RLS) - V5.0
--- Izolare Multi-Club și Protecție Date Personale
+-- Politici de Securitate la Nivel de Rând (RLS) - V5.1
+-- Izolare Multi-Club și Acces Public la Nomenclatoare
 -- =================================================================
 
 -- 1. Helper pentru Super Admin (Federație)
@@ -45,10 +44,27 @@ DROP POLICY IF EXISTS "Super Admin Cluburi Full" ON public.cluburi;
 CREATE POLICY "Super Admin Cluburi Full" ON public.cluburi
     FOR ALL USING (public.is_super_admin());
 
--- Membrii Clubului (Admini, Instructori, Sportivi): Văd doar clubul propriu
+-- MODIFICARE: Toți utilizatorii autentificați pot VEDEA toate cluburile.
+-- Doar Super Adminii le pot modifica.
 DROP POLICY IF EXISTS "Users View Own Club" ON public.cluburi;
-CREATE POLICY "Users View Own Club" ON public.cluburi
-    FOR SELECT USING (id = public.get_my_club_id());
+DROP POLICY IF EXISTS "Authenticated users can view all clubs" ON public.cluburi;
+CREATE POLICY "Authenticated users can view all clubs" ON public.cluburi
+    FOR SELECT USING (auth.role() = 'authenticated');
+
+-- -----------------------------------------------------------------
+-- POLITICI TABEL: grade (Nomenclator)
+-- -----------------------------------------------------------------
+ALTER TABLE public.grade ENABLE ROW LEVEL SECURITY;
+
+-- Toți utilizatorii autentificați pot VEDEA toate gradele.
+DROP POLICY IF EXISTS "Authenticated users can view all grades" ON public.grade;
+CREATE POLICY "Authenticated users can view all grades" ON public.grade
+    FOR SELECT USING (auth.role() = 'authenticated');
+
+-- Doar Super Adminii pot modifica gradele.
+DROP POLICY IF EXISTS "Super Admins can manage grades" ON public.grade;
+CREATE POLICY "Super Admins can manage grades" ON public.grade
+    FOR ALL USING (public.is_super_admin());
 
 -- -----------------------------------------------------------------
 -- POLITICI TABEL: prezenta_antrenament

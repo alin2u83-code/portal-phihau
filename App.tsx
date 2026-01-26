@@ -46,7 +46,7 @@ import { SystemGuardian } from './components/SystemGuardian';
 import { RoleSwitcher } from './components/RoleSwitcher';
 import { getAuthenticatedUser } from './utils/auth';
 import { FederationInvoices } from './components/FederationInvoices';
-import { SimpleAttendance } from './components/SimpleAttendance';
+import { MartialAttendance } from './components/MartialAttendance';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -283,7 +283,7 @@ function App() {
         return <CluburiManagement clubs={clubs} setClubs={setClubs} onBack={() => setActiveView('dashboard')} currentUser={currentUser} />;
       
       case 'istoric-prezenta':
-        return <SimpleAttendance currentUser={currentUser} antrenamente={antrenamente} onBack={() => setActiveView('my-portal')} />;
+        return <MartialAttendance currentUser={currentUser} antrenamente={antrenamente} grupe={grupe} onBack={() => setActiveView('my-portal')} />;
 
       case 'data-maintenance':
         return <BackupManager onBack={() => setActiveView('dashboard')} onDataRestored={() => window.location.reload()} sportivi={sportivi} setSportivi={setSportivi} grade={grade} preturiConfig={preturiConfig} participari={inscrieriExamene} examene={sesiuniExamene} plati={plati} setPlati={setPlati} familii={familii} onNavigate={setActiveView} />;

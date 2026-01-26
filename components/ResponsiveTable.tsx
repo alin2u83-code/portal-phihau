@@ -7,10 +7,10 @@ import { Search } from 'lucide-react';
 export interface Column<T> {
     key: keyof T | 'actions';
     label: string;
-    isEssential?: boolean; // If true, visible on mobile
     render?: (item: T) => React.ReactNode;
     headerClassName?: string;
     cellClassName?: string;
+    className?: string; // For responsive utilities
 }
 
 interface ResponsiveTableProps<T> {
@@ -33,11 +33,6 @@ export function ResponsiveTable<T extends { id: string }>({
     searchPlaceholder = 'Caută...',
 }: ResponsiveTableProps<T>) {
 
-    const essentialColumns = columns.filter(c => c.isEssential);
-    const mainColumn = essentialColumns.find(c => c.key !== 'actions') || essentialColumns[0];
-    const actionColumn = essentialColumns.find(c => c.key === 'actions');
-    const otherColumns = essentialColumns.filter(c => c.key !== mainColumn?.key && c.key !== 'actions');
-
     return (
         <div className="bg-light-navy rounded-lg shadow-md overflow-hidden border border-slate-700">
             {/* Search Bar */}
@@ -55,8 +50,8 @@ export function ResponsiveTable<T extends { id: string }>({
                 </div>
             </div>
 
-            {/* Desktop Table */}
-            <div className="overflow-x-auto hidden md:block">
+            {/* Unified Responsive Table */}
+            <div className="overflow-x-auto">
                 <table className="w-full text-sm text-left text-slate-300">
                     <thead className="bg-slate-800 text-xs text-blue-400 uppercase">
                         <tr>
@@ -64,7 +59,7 @@ export function ResponsiveTable<T extends { id: string }>({
                                 <th 
                                     key={String(col.key)} 
                                     scope="col" 
-                                    className={`p-3 font-semibold ${col.headerClassName || ''}`}
+                                    className={`p-3 font-semibold ${col.headerClassName || ''} ${col.className || ''}`}
                                 >
                                     {col.label}
                                 </th>
@@ -81,7 +76,7 @@ export function ResponsiveTable<T extends { id: string }>({
                                 {columns.map(col => (
                                     <td 
                                         key={`${item.id}-${String(col.key)}`} 
-                                        className={`p-3 align-top text-white ${col.cellClassName || ''}`}
+                                        className={`p-3 align-top text-white ${col.cellClassName || ''} ${col.className || ''}`}
                                     >
                                         {col.render ? col.render(item) : (item[col.key as keyof T] as React.ReactNode) || '-'}
                                     </td>
@@ -90,38 +85,6 @@ export function ResponsiveTable<T extends { id: string }>({
                         ))}
                     </tbody>
                 </table>
-            </div>
-
-            {/* Mobile Cards */}
-            <div className="md:hidden p-4 space-y-4">
-                {data.map(item => (
-                    <div 
-                        key={item.id} 
-                        className="bg-navy-card-mobile p-4 rounded-lg border border-slate-700" 
-                        onClick={() => onRowClick?.(item)}
-                    >
-                        {mainColumn && (
-                            <div className="mb-3 pb-3 border-b border-slate-700 text-lg">
-                                {mainColumn.render ? mainColumn.render(item) : (item[mainColumn.key as keyof T] as React.ReactNode) || '-'}
-                            </div>
-                        )}
-                        <div className="space-y-2">
-                            {otherColumns.map(col => (
-                                <div key={String(col.key)} className="flex justify-between items-start text-sm">
-                                    <span className="font-semibold text-slate-300">{col.label}</span>
-                                    <div className="text-right text-white">
-                                        {col.render ? col.render(item) : (item[col.key as keyof T] as React.ReactNode) || '-'}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                        {actionColumn && (
-                            <div className="mt-3 pt-3 border-t border-slate-700">
-                                {actionColumn.render ? actionColumn.render(item) : null}
-                            </div>
-                        )}
-                    </div>
-                ))}
             </div>
             
             {data.length === 0 && (

@@ -83,7 +83,6 @@ export const SportiviManagement: React.FC<{
         {
             key: 'nume',
             label: 'Nume Complet',
-            isEssential: true,
             render: (s) => {
                 const familie = s.familie_id ? familii.find(f => f.id === s.familie_id) : null;
                 const familieBalance = s.familie_id ? familyBalances.get(s.familie_id) : undefined;
@@ -102,11 +101,10 @@ export const SportiviManagement: React.FC<{
                 );
             },
         },
-        { key: 'club_id', label: 'Club', render: (s) => s.cluburi?.id === FEDERATIE_ID ? FEDERATIE_NAME : s.cluburi?.nume || '-' },
+        { key: 'club_id', label: 'Club', render: (s) => s.cluburi?.id === FEDERATIE_ID ? FEDERATIE_NAME : s.cluburi?.nume || '-', className: 'hidden md:table-cell' },
         { 
             key: 'roluri', 
             label: 'Roluri', 
-            isEssential: true,
             render: (s) => (
                 <div className="flex flex-wrap gap-1">
                     {s.roluri.length > 0 
@@ -119,17 +117,17 @@ export const SportiviManagement: React.FC<{
         { 
             key: 'status', 
             label: 'Status',
+            className: 'hidden md:table-cell',
             render: (s) => (
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${s.status === 'Activ' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                     {s.status}
                 </span>
             )
         },
-        { key: 'grupa_id', label: 'Grupă', render: (s) => grupe.find(g => g.id === s.grupa_id)?.denumire || '-' },
+        { key: 'grupa_id', label: 'Grupă', render: (s) => grupe.find(g => g.id === s.grupa_id)?.denumire || '-', className: 'hidden md:table-cell' },
         {
             key: 'actions',
             label: 'Acțiuni',
-            isEssential: true,
             headerClassName: 'text-right',
             cellClassName: 'text-right',
             render: (s) => (

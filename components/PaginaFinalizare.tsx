@@ -102,7 +102,8 @@ export const ExamenPhiHauSimplu: React.FC<ExamenPhiHauSimpluProps> = ({ sesiune,
                         return (
                             <tr key={item.id} className="border-b border-slate-700 hover:bg-brand-secondary/10 transition-colors">
                                 <td className="p-4 font-medium">{item.sportivi?.nume} {item.sportivi?.prenume}</td>
-                                <td className="p-4 text-brand-secondary font-bold">{item.grade?.nume}</td>
+{/* FIX: Property 'grade' does not exist on type 'InscriereExamen'. Did you mean 'grades'? */}
+                                <td className="p-4 text-brand-secondary font-bold">{item.grades?.nume}</td>
                                 <td className="p-4">
                                     <div className="flex justify-center gap-3">
                                         <Button

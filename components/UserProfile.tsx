@@ -177,7 +177,8 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
     }, [sportiv]);
 
     const isAdmin = currentUser.roluri.some(r => r.nume === 'Admin');
-    const isSuperAdmin = currentUser.roluri.some(r => r.nume === 'Super Admin' || r.nume === 'Admin');
+// FIX: Changed 'Super Admin' to 'SUPER_ADMIN_FEDERATIE' to match the Rol type.
+    const isSuperAdmin = currentUser.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'Admin');
 
     const sportivParticipari = useMemo(() => participari.filter(p => p.sportiv_id === sportiv.id), [participari, sportiv.id]);
     

@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { User, View, Plata } from '../types';
 import { ChevronDownIcon } from './icons';
 import { AdminProfileQuickAccess } from './AdminProfileQuickAccess';
+import { usePermissions } from '../hooks/usePermissions';
 
 interface NavbarAdminProps {
     currentUser: User;
@@ -12,6 +13,7 @@ interface NavbarAdminProps {
 
 export const NavbarAdmin: React.FC<NavbarAdminProps> = ({ currentUser, onNavigate, onLogout, plati }) => {
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+    const permissions = usePermissions(currentUser);
     
     const hasOverduePayments = useMemo(() => {
         const today = new Date();
@@ -49,6 +51,7 @@ export const NavbarAdmin: React.FC<NavbarAdminProps> = ({ currentUser, onNavigat
                             onNavigate={(view) => { onNavigate(view); setIsProfileMenuOpen(false); }}
                             onLogout={onLogout}
                             isExpanded={true} // Simulează meniul extins
+                            isSuperAdmin={permissions.isSuperAdmin}
                         />
                     )}
                  </div>

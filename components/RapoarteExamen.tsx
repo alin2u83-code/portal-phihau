@@ -135,7 +135,9 @@ export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ sesiuni, inscrie
                                         <tbody>{localInscrieri.map((p, idx) => {
                                             const { media } = getExamOutcome(p);
                                             return <tr key={p.id} className="border-b border-slate-700">
-                                                <td className="p-2">{idx+1}.</td><td className="p-2 font-semibold">{p.sportivi?.nume} {p.sportivi?.prenume}</td><td>{p.grade?.nume}</td>
+                                                <td className="p-2">{idx+1}.</td><td className="p-2 font-semibold">{p.sportivi?.nume} {p.sportivi?.prenume}</td>
+{/* FIX: Property 'grade' does not exist on type 'InscriereExamen'. Did you mean 'grades'? */}
+<td>{p.grades?.nume}</td>
                                                 <td><Input label="" type="number" step="0.5" min="0" max="10" value={p.nota_tehnica ?? ''} onChange={e => handleNoteChange(p.id, 'nota_tehnica', e.target.value === '' ? null : parseFloat(e.target.value))} className="text-center"/></td>
                                                 <td><Input label="" type="number" step="0.5" min="0" max="10" value={p.nota_forta ?? ''} onChange={e => handleNoteChange(p.id, 'nota_forta', e.target.value === '' ? null : parseFloat(e.target.value))} className="text-center"/></td>
                                                 <td><Input label="" type="number" step="0.5" min="0" max="10" value={p.nota_viteza ?? ''} onChange={e => handleNoteChange(p.id, 'nota_viteza', e.target.value === '' ? null : parseFloat(e.target.value))} className="text-center"/></td>
@@ -148,7 +150,9 @@ export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ sesiuni, inscrie
                                 {/* --- VEDERE MOBIL NOTE --- */}
                                 <div className="md:hidden space-y-4">{localInscrieri.map((p, idx) => {
                                     const { media } = getExamOutcome(p);
-                                    return <Card key={p.id} className="bg-slate-800"><p className="font-bold">{idx+1}. {p.sportivi?.nume} {p.sportivi?.prenume} - <span className="text-brand-secondary">{p.grade?.nume}</span></p><div className="mt-4 grid grid-cols-2 gap-4">
+                                    return <Card key={p.id} className="bg-slate-800">
+{/* FIX: Property 'grade' does not exist on type 'InscriereExamen'. Did you mean 'grades'? */}
+<p className="font-bold">{idx+1}. {p.sportivi?.nume} {p.sportivi?.prenume} - <span className="text-brand-secondary">{p.grades?.nume}</span></p><div className="mt-4 grid grid-cols-2 gap-4">
                                         <div className="flex justify-between items-center"><span className="text-sm">Tehnică</span><Stepper value={p.nota_tehnica ?? 0} onChange={val => handleNoteChange(p.id, 'nota_tehnica', val)}/></div>
                                         <div className="flex justify-between items-center"><span className="text-sm">Forță</span><Stepper value={p.nota_forta ?? 0} onChange={val => handleNoteChange(p.id, 'nota_forta', val)}/></div>
                                         <div className="flex justify-between items-center"><span className="text-sm">Viteză</span><Stepper value={p.nota_viteza ?? 0} onChange={val => handleNoteChange(p.id, 'nota_viteza', val)}/></div>
@@ -166,7 +170,9 @@ export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ sesiuni, inscrie
                                     const { rezultat } = getExamOutcome(p);
                                     const taxa = plati.find(pl => pl.sportiv_id === p.sportiv_id && pl.tip === 'Taxa Examen' && pl.data === selectedSesiune.data);
                                     return <tr key={p.id} className="border-b border-slate-700">
-                                        <td className="p-2">{idx+1}.</td><td className="p-2 font-semibold">{p.sportivi?.nume} {p.sportivi?.prenume}</td><td>{p.grade?.nume}</td><td>{rezultat}</td><td>{taxa ? `${taxa.suma.toFixed(2)} RON` : 'N/A'}</td><td>{p.observatii || ''}</td>
+                                        <td className="p-2">{idx+1}.</td><td className="p-2 font-semibold">{p.sportivi?.nume} {p.sportivi?.prenume}</td>
+{/* FIX: Property 'grade' does not exist on type 'InscriereExamen'. Did you mean 'grades'? */}
+<td>{p.grades?.nume}</td><td>{rezultat}</td><td>{taxa ? `${taxa.suma.toFixed(2)} RON` : 'N/A'}</td><td>{p.observatii || ''}</td>
                                     </tr>
                                 })}</tbody>
                             </table>

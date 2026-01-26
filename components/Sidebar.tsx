@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { User, View, Plata, Club } from '../types';
+import { User, View, Plata, Club, Rol } from '../types';
 import { adminMenu, sportivMenu, MenuItem } from './menuConfig';
 import { ArrowRightOnRectangleIcon, Bars3Icon, ChevronDownIcon, UserCircleIcon } from './icons';
 import { AdminProfileQuickAccess } from './AdminProfileQuickAccess';
@@ -85,7 +85,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
     const [isMobileOpen, setIsMobileOpen] = useState(false);
     
     const menu = isPortalView ? sportivMenu : adminMenu;
-    const userRoles = useMemo(() => new Set((currentUser?.roluri || []).map(r => r.nume)), [currentUser]);
+    
+    const userRoles = useMemo(() => {
+        const roles = new Set((currentUser?.roluri || []).map(r => r.nume));
+        if (currentUser?.rol) {
+            // Adaugă rolul simplu din profil în setul de roluri
+            // pentru a asigura filtrarea corectă a meniului.
+            roles.add(currentUser.rol as Rol['nume']);
+        }
+        return roles;
+    }, [currentUser]);
 
     const filteredMenu = useMemo(() => {
         return menu.map(item => {

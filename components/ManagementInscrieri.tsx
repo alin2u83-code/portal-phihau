@@ -184,8 +184,9 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         return allInscrieri
             .filter(i => i.sesiune_id === sesiune.id)
             .sort((a, b) => {
-                const gradeOrderDiff = (b.grade?.ordine ?? 0) - (a.grade?.ordine ?? 0);
-                if (gradeOrderDiff !== 0) return gradeOrderDiff;
+// FIX: Property 'grade' does not exist on type 'InscriereExamen'. Did you mean 'grades'?
+                const gradesOrderDiff = (b.grades?.ordine ?? 0) - (a.grades?.ordine ?? 0);
+                if (gradesOrderDiff !== 0) return gradesOrderDiff;
                 return (a.sportivi?.nume || '').localeCompare(b.sportivi?.nume || '');
             });
     }, [allInscrieri, sesiune.id]);
@@ -495,7 +496,8 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                                                     {inscriere.sportivi.nume} {inscriere.sportivi.prenume}
                                                 </p>
                                             </td>
-                                            <td className="p-2 text-brand-secondary font-semibold">{inscriere.grade.nume}</td>
+{/* FIX: Property 'grade' does not exist on type 'InscriereExamen'. Did you mean 'grades'? */}
+                                            <td className="p-2 text-brand-secondary font-semibold">{inscriere.grades.nume}</td>
                                             <td className="p-2 text-center">
                                                 <Select 
                                                     label="" 

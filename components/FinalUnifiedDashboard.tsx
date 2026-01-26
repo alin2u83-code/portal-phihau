@@ -51,7 +51,8 @@ export const FinalUnifiedDashboard: React.FC<FinalUnifiedDashboardProps> = (prop
                 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2">
-                        <ClubManagementHub 
+                        <ClubManagementHub
+                            currentUser={currentUser}
                             onNavigate={onNavigate}
                             permissions={permissions}
                         />

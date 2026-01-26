@@ -104,8 +104,14 @@ export const GeneralAttendanceWidget: React.FC<GeneralAttendanceWidgetProps> = (
             </div>
             
             {loading ? <LoadingSpinner/> : stats.trainingsCount === 0 ? (
-                <div className="flex-grow flex items-center justify-center">
-                    <p className="text-slate-400 italic">Niciun antrenament programat astăzi.</p>
+                <div className="flex-grow flex flex-col items-center justify-center text-center">
+                    {currentUser.club_id ? (
+                        <p className="text-slate-400 italic">Niciun antrenament programat astăzi.</p>
+                    ) : (
+                         <p className="text-amber-400 italic text-sm p-2 bg-amber-900/30 rounded-md border border-amber-500/30">
+                            Nu au fost găsite date. Verificați apartenența la club a contului curent.
+                         </p>
+                    )}
                 </div>
             ) : (
                 <div className="mt-4">

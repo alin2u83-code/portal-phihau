@@ -36,7 +36,7 @@ const TrainingActionCard: React.FC<TrainingActionCardProps> = ({ training, anunt
     };
 
     const getStyling = (status: AnuntStatus) => {
-        const baseClasses = ['font-bold', 'gap-2'];
+        const baseClasses = ['font-bold', 'gap-2', 'text-base'];
         const currentStatus = optimisticStatus;
         const isSelected = currentStatus === status;
         const isInactive = currentStatus !== null && !isSelected;
@@ -59,7 +59,7 @@ const TrainingActionCard: React.FC<TrainingActionCardProps> = ({ training, anunt
 
     return (
         <Card className="bg-light-navy border-slate-800">
-            <h3 className="text-lg font-bold text-white mb-4">
+            <h3 className="text-xl font-bold text-white mb-4">
                 Antrenamentul de azi: {new Date(training.data + 'T' + training.ora_start).toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' })}
             </h3>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">

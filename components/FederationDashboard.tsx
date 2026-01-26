@@ -4,7 +4,7 @@ import { Card } from './ui';
 import { TrophyIcon, UsersIcon } from './icons';
 
 const NavCard: React.FC<{ title: string; view: View; icon: React.ElementType; onNavigate: (view: View) => void; }> = ({ title, view, icon: Icon, onNavigate }) => (
-    <div onClick={() => onNavigate(view)} className="bg-slate-800/50 p-6 rounded-lg flex flex-col items-center text-center gap-4 cursor-pointer hover:bg-slate-700/50 transition-colors border border-slate-700">
+    <div onClick={() => onNavigate(view)} className="bg-slate-800/50 p-6 rounded-lg flex flex-col items-center justify-center text-center gap-4 cursor-pointer hover:bg-slate-700/50 transition-colors border border-slate-700 min-h-[200px]">
         <Icon className="w-10 h-10 text-red-400" />
         <span className="font-semibold text-white text-lg">{title}</span>
     </div>

@@ -81,9 +81,9 @@ export const AttendanceTracker: React.FC<AttendanceTrackerProps> = ({ currentUse
 
     return (
         <Card className="bg-slate-800/50 backdrop-blur-sm border border-amber-300/20 p-6 flex flex-col items-center">
-            <h3 className="text-lg font-bold text-white mb-4">Oglinda Perseverenței</h3>
+            <h3 className="text-xl font-bold text-white mb-4">Oglinda Perseverenței</h3>
             <ProgressRing percentage={attendancePercentage} totalAttended={totalAttended} />
-            <p className="mt-4 text-md font-bold text-slate-300">
+            <p className="mt-4 text-lg text-center font-bold text-slate-300">
                 Frecvență de <span className="text-amber-300">{attendancePercentage}%</span> în ultimele 60 de zile.
             </p>
             <div className="mt-6 pt-4 border-t border-amber-300/20 w-full">

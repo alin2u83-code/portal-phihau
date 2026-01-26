@@ -96,9 +96,9 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Card Progres Tehnic */}
                 <Card className="flex flex-col items-center md:items-start text-center md:text-left">
-                    <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400">Progres Tehnic</h3>
+                    <h3 className="text-base font-semibold uppercase tracking-wider text-slate-400">Progres Tehnic</h3>
                     <div className="my-4 flex-grow">
-                        <p className="text-xs text-slate-500">Grad Actual</p>
+                        <p className="text-sm text-slate-500">Grad Actual</p>
                         <p className="text-3xl font-bold text-brand-secondary">{currentGrad?.nume || 'Începător'}</p>
                     </div>
                     <Button onClick={() => onNavigate('istoric-examene')} variant="secondary" className="w-full mt-2">
@@ -108,9 +108,9 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
 
                 {/* Card Situație Financiară */}
                 <Card className="flex flex-col items-center md:items-start text-center md:text-left">
-                     <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400">Situație Financiară</h3>
+                     <h3 className="text-base font-semibold uppercase tracking-wider text-slate-400">Situație Financiară</h3>
                      <div className="my-4 flex-grow">
-                        <p className="text-xs text-slate-500">Sumă Restantă</p>
+                        <p className="text-sm text-slate-500">Sumă Restantă</p>
                         <p className={`text-3xl font-bold ${sumaRestanta > 0 ? 'text-red-400' : 'text-green-400'}`}>
                             {sumaRestanta.toFixed(2)} RON
                         </p>

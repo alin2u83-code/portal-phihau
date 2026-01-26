@@ -18,9 +18,9 @@ import {
 } from './icons';
 
 const ItemCard: React.FC<{ title: string; view: View; icon: React.ElementType; badge?: number; onNavigate: (view: View) => void; }> = ({ title, view, icon: Icon, badge, onNavigate }) => (
-    <div onClick={() => onNavigate(view)} className="relative bg-slate-800/50 p-4 rounded-lg flex items-center gap-4 cursor-pointer hover:bg-slate-700/50 transition-colors border border-slate-700">
-        <Icon className="w-6 h-6 text-amber-400 shrink-0" />
-        <span className="font-semibold text-white">{title}</span>
+    <div onClick={() => onNavigate(view)} className="relative bg-slate-800/50 p-6 rounded-lg flex items-center gap-4 cursor-pointer hover:bg-slate-700/50 transition-colors border border-slate-700">
+        <Icon className="w-8 h-8 text-amber-400 shrink-0" />
+        <span className="font-bold text-white text-base">{title}</span>
         {badge !== undefined && badge > 0 && (
             <span className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white ring-2 ring-slate-800">
                 {badge > 9 ? '9+' : badge}

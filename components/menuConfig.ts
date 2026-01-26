@@ -24,7 +24,6 @@ export const adminMenu: MenuItem[] = [
         submenu: [
              { label: 'Listă Sportivi', view: 'sportivi' },
              { label: 'Gestiune Familii', view: 'familii', roles: ['Admin', 'Instructor', 'Admin Club', 'SUPER_ADMIN_FEDERATIE'] },
-             { label: 'Nomenclator Grade', view: 'grade', roles: ['Admin', 'Instructor', 'Admin Club', 'SUPER_ADMIN_FEDERATIE'] },
              { label: 'Administrare Staff', view: 'user-management', roles: ['Admin', 'SUPER_ADMIN_FEDERATIE', 'Admin Club'] }
         ]
     },
@@ -48,16 +47,30 @@ export const adminMenu: MenuItem[] = [
         ]
     },
     { 
-        label: 'Administrativ & Plăți', 
+        label: 'Financiar', 
         icon: BanknotesIcon, 
+        roles: ['Admin', 'Admin Club', 'SUPER_ADMIN_FEDERATIE'],
         submenu: [ 
             { view: 'financial-dashboard', label: 'Dashboard Financiar' },
-            { view: 'plati-scadente', label: 'Facturi & Plăți' }, 
-            { view: 'deconturi-federatie', label: 'Deconturi Federație', roles: ['Admin Club', 'SUPER_ADMIN_FEDERATIE', 'Admin'] },
-            { view: 'tipuri-abonament', label: 'Config. Abonamente' }, 
-            { view: 'configurare-preturi', label: 'Configurare Prețuri', roles: ['Admin', 'Instructor', 'Admin Club', 'SUPER_ADMIN_FEDERATIE'] },
+            { view: 'plati-scadente', label: 'Facturi & Încasări' }, 
+            { view: 'deconturi-federatie', label: 'Deconturi Federație' },
         ] 
     },
+    {
+        label: 'Setări & Nomenclatoare',
+        icon: CogIcon,
+        roles: ['Admin', 'Admin Club', 'SUPER_ADMIN_FEDERATIE'],
+        submenu: [
+            { label: 'Config. Abonamente', view: 'tipuri-abonament' }, 
+            { label: 'Config. Taxe Examen', view: 'configurare-preturi' },
+            { label: 'Nomenclator Grade', view: 'grade' },
+            { label: 'Politici Reducere', view: 'reduceri' },
+            { label: 'Categorii Plăți', view: 'nomenclatoare' },
+            { label: 'Management Cluburi', view: 'cluburi', roles: ['Admin', 'SUPER_ADMIN_FEDERATIE'] },
+            { label: 'Trimite Notificări', view: 'notificari', roles: ['Admin', 'SUPER_ADMIN_FEDERATIE'] },
+            { label: 'Mentenanță Date', view: 'data-maintenance', roles: ['Admin', 'SUPER_ADMIN_FEDERATIE'] },
+        ]
+    }
 ];
 
 export const sportivMenu: MenuItem[] = [

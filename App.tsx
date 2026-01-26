@@ -44,6 +44,7 @@ import { MandatoryPasswordChange } from './components/MandatoryPasswordChange';
 import ErrorBoundary from './components/ErrorBoundary';
 import { SystemGuardian } from './components/SystemGuardian';
 import { RoleSwitcher } from './components/RoleSwitcher';
+import { getAuthenticatedUser } from './utils/auth';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -79,144 +80,127 @@ function App() {
   const permissions = usePermissions(currentUser);
   const { activeClubId, globalClubFilter, setGlobalClubFilter } = useClubFilter(currentUser);
 
-  useEffect(() => {
-    if (!supabase) return;
-    supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => setSession(session));
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const fetchData = useCallback(async (userId: string) => {
+  const initializeAndFetchData = useCallback(async () => {
     if (!supabase) return;
     setLoading(true);
-    try {
-      // Pas 1: Preluăm profilul utilizatorului curent (fără join-uri care pot eșua din cauza RLS)
-      const { data: userData, error: userError } = await supabase
-        .from('sportivi')
-        .select('*, sportivi_roluri(roluri(id, nume))')
-        .eq('user_id', userId)
-        .single();
+    setProfileError(null);
 
-      if (userError && userError.code !== 'PGRST116') throw userError;
+    const { user: profile, error: profileFetchError } = await getAuthenticatedUser(supabase);
 
-      if (!userData) {
-        showError("Profil utilizator lipsă", "Nu am putut încărca profilul. Este posibil ca acesta să fi fost șters. Veți fi delogat.");
-        await supabase?.auth.signOut();
+    if (profileFetchError) {
+        showError("Eroare Critică la Preluarea Profilului", profileFetchError);
+        setProfileError(profileFetchError.message);
+        setLoading(false);
+        await supabase.auth.signOut();
+        setCurrentUser(null);
+        setSession(null);
+        return;
+    }
+
+    if (!profile) {
         setCurrentUser(null);
         setSession(null);
         setLoading(false);
         return;
-      }
+    }
 
-      // Pas 2: Preluăm nomenclatoarele (inclusiv cluburile vizibile)
-      const [
-        { data: clubsData },
-        { data: rolesData },
-        { data: gradesData },
-        { data: groupsData },
-        { data: subscriptionTypesData },
-        { data: locatiiData },
-        { data: platiTypesData },
-        { data: reduceriData }
-      ] = await Promise.all([
-        supabase.from('cluburi').select('*'),
-        supabase.from('roluri').select('*'),
-        supabase.from('grade').select('*'),
-        supabase.from('grupe').select('*'),
-        supabase.from('tipuri_abonament').select('*'),
-        supabase.from('nom_locatii').select('*'),
-        supabase.from('tipuri_plati').select('*'),
-        supabase.from('reduceri').select('*')
-      ]);
-      
-      const clubsMap = new Map((clubsData || []).map(c => [c.id, c]));
+    const { data: { session } } = await supabase.auth.getSession();
+    setCurrentUser(profile);
+    setSession(session);
 
-      // Pas 3: Formatăm și setăm utilizatorul curent, adăugând manual datele clubului
-      const formattedUser = {
-        ...userData,
-        roluri: ((userData as any).sportivi_roluri?.map((sr: any) => sr.roluri) || []).filter(Boolean),
-        cluburi: userData.club_id ? (clubsMap.get(userData.club_id) || { id: userData.club_id, nume: 'Club Indisponibil' }) : null
-      };
-      
-      setCurrentUser(formattedUser as User);
-      setClubs(clubsData || []);
-      setAllRoles(rolesData || []);
-      setGrade(gradesData || []);
-      setGrupe(groupsData || []);
-      setTipuriAbonament(subscriptionTypesData || []);
-      setLocatii(locatiiData || []);
-      setTipuriPlati(platiTypesData || []);
-      setReduceri(reduceriData || []);
-      
-      // Pas 4: Preluăm restul datelor (liste principale)
-      const [
-        { data: sportiviData },
-        { data: sessionsData },
-        { data: registrationsData },
-        { data: trainingsData },
-        { data: platiData },
-        { data: tranzactiiData },
-        { data: eventsData },
-        { data: resultsData },
-        { data: familiesData },
-        { data: anunturiData },
-        { data: pricesData }
-      ] = await Promise.all([
-        supabase.from('sportivi').select('*, sportivi_roluri(roluri(id, nume))'),
-        supabase.from('sesiuni_examene').select('*'),
-        supabase.from('inscrieri_examene').select('*, sportivi:sportiv_id(*), grade:grad_vizat_id(*)'),
-        supabase.from('program_antrenamente').select('*, prezenta_antrenament!antrenament_id(sportiv_id)'),
-        supabase.from('plati').select('*'),
-        supabase.from('tranzactii').select('*'),
-        supabase.from('evenimente').select('*'),
-        supabase.from('rezultate').select('*'),
-        supabase.from('familii').select('*'),
-        supabase.from('anunturi_prezenta').select('*'),
-        supabase.from('preturi_config').select('*')
-      ]);
+    if (profile.trebuie_schimbata_parola) {
+        showError(
+            "Securitate Cont",
+            "Este necesar să vă schimbați parola. Aceasta este temporară sau a expirat."
+        );
+    }
 
-      // Pas 5: Formatăm sportivii cu datele despre club, folosind valorile deja preluate
-      const allSportivi = sportiviData?.map(s => ({
+    try {
+        const [
+            { data: clubsData }, { data: rolesData }, { data: gradesData }, { data: groupsData },
+            { data: subscriptionTypesData }, { data: locatiiData }, { data: platiTypesData },
+            { data: reduceriData }, { data: sportiviData }, { data: sessionsData },
+            { data: registrationsData }, { data: trainingsData }, { data: platiData },
+            { data: tranzactiiData }, { data: eventsData }, { data: resultsData },
+            { data: familiesData }, { data: anunturiData }, { data: pricesData }
+        ] = await Promise.all([
+            supabase.from('cluburi').select('*'),
+            supabase.from('roluri').select('*'),
+            supabase.from('grade').select('*'),
+            supabase.from('grupe').select('*'),
+            supabase.from('tipuri_abonament').select('*'),
+            supabase.from('nom_locatii').select('*'),
+            supabase.from('tipuri_plati').select('*'),
+            supabase.from('reduceri').select('*'),
+            supabase.from('sportivi').select('*, sportivi_roluri(roluri(id, nume))'),
+            supabase.from('sesiuni_examene').select('*'),
+            supabase.from('inscrieri_examene').select('*, sportivi:sportiv_id(*), grade:grad_vizat_id(*)'),
+            supabase.from('program_antrenamente').select('*, prezenta_antrenament!antrenament_id(sportiv_id)'),
+            supabase.from('plati').select('*'),
+            supabase.from('tranzactii').select('*'),
+            supabase.from('evenimente').select('*'),
+            supabase.from('rezultate').select('*'),
+            supabase.from('familii').select('*'),
+            supabase.from('anunturi_prezenta').select('*'),
+            supabase.from('preturi_config').select('*')
+        ]);
+        
+        const clubsMap = new Map((clubsData || []).map(c => [c.id, c]));
+
+        const allSportivi = sportiviData?.map(s => ({
             ...s,
             roluri: (((s as any).sportivi_roluri?.map((sr: any) => sr.roluri)) || []).filter(Boolean),
             cluburi: s.club_id ? (clubsMap.get(s.club_id) || { id: s.club_id, nume: 'Club Indisponibil' }) : null
-      })) || [];
+        })) || [];
 
-      setSportivi(allSportivi as Sportiv[]);
-      setSesiuniExamene(sessionsData || []);
-      setInscrieriExamene(registrationsData || []);
-      setAntrenamente(trainingsData?.map(t => ({ ...t, sportivi_prezenti_ids: (t as any).prezenta_antrenament?.map((p: any) => p.sportiv_id) || [] })) || []);
-      setPlati(platiData || []);
-      setTranzactii(tranzactiiData || []);
-      setEvenimente(eventsData || []);
-      setRezultate(resultsData || []);
-      setFamilii(familiesData || []);
-      setAnunturiPrezenta(anunturiData || []);
-      setPreturiConfig(pricesData || []);
+        setSportivi(allSportivi as Sportiv[]);
+        setSesiuniExamene(sessionsData || []);
+        setInscrieriExamene(registrationsData || []);
+        setAntrenamente(trainingsData?.map(t => ({ ...t, sportivi_prezenti_ids: (t as any).prezenta_antrenament?.map((p: any) => p.sportiv_id) || [] })) || []);
+        setPlati(platiData || []);
+        setTranzactii(tranzactiiData || []);
+        setEvenimente(eventsData || []);
+        setRezultate(resultsData || []);
+        setFamilii(familiesData || []);
+        setAnunturiPrezenta(anunturiData || []);
+        setPreturiConfig(pricesData || []);
+        setClubs(clubsData || []);
+        setAllRoles(rolesData || []);
+        setGrade(gradesData || []);
+        setGrupe(groupsData || []);
+        setTipuriAbonament(subscriptionTypesData || []);
+        setLocatii(locatiiData || []);
+        setTipuriPlati(platiTypesData || []);
+        setReduceri(reduceriData || []);
 
     } catch (err: any) {
-      setProfileError(err.message);
-      showError("Eroare la încărcarea datelor", err);
+        setProfileError(err.message);
+        showError("Eroare la încărcarea datelor aplicației", err);
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
   }, [showError]);
 
-
   useEffect(() => {
-    if (session?.user?.id) fetchData(session.user.id);
-    else setLoading(false);
-  }, [session, fetchData]);
+    if (!supabase) return;
+
+    initializeAndFetchData();
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        initializeAndFetchData();
+    });
+
+    return () => subscription.unsubscribe();
+  }, [initializeAndFetchData]);
+
 
   const handleLogout = async () => {
     await supabase?.auth.signOut();
-    setCurrentUser(null);
-    setSession(null);
   };
 
   const renderContent = () => {
     if (!currentUser) return <Login />;
-    if (currentUser.trebuie_schimbata_parola) return <MandatoryPasswordChange currentUser={currentUser} onPasswordChanged={() => fetchData(currentUser.user_id!)} />;
+    if (currentUser.trebuie_schimbata_parola) return <MandatoryPasswordChange currentUser={currentUser} onPasswordChanged={initializeAndFetchData} />;
 
     const isPortalView = !permissions.hasAdminAccess;
 
@@ -257,7 +241,7 @@ function App() {
         return <PlatiScadente plati={plati} setPlati={setPlati} sportivi={sportivi} familii={familii} tipuriAbonament={tipuriAbonament} tranzactii={tranzactii} reduceri={reduceri} onIncaseazaMultiple={(p) => setActiveView('jurnal-incasari')} onBack={() => setActiveView('dashboard')} />;
 
       case 'jurnal-incasari':
-        return <JurnalIncasari currentUser={currentUser} plati={plati} setPlati={setPlati} sportivi={sportivi} familii={familii} preturiConfig={preturiConfig} tipuriAbonament={tipuriAbonament} tipuriPlati={tipuriPlati} setTipuriPlati={setTipuriPlati} tranzactii={tranzactii} setTranzactii={setTranzactii} platiInitiale={[]} onIncasareProcesata={() => fetchData(currentUser.user_id!)} onBack={() => setActiveView('dashboard')} reduceri={reduceri} />;
+        return <JurnalIncasari currentUser={currentUser} plati={plati} setPlati={setPlati} sportivi={sportivi} familii={familii} preturiConfig={preturiConfig} tipuriAbonament={tipuriAbonament} tipuriPlati={tipuriPlati} setTipuriPlati={setTipuriPlati} tranzactii={tranzactii} setTranzactii={setTranzactii} platiInitiale={[]} onIncasareProcesata={initializeAndFetchData} onBack={() => setActiveView('dashboard')} reduceri={reduceri} />;
 
       case 'user-management':
         return <UserManagement sportivi={sportivi} setSportivi={setSportivi} currentUser={currentUser} setCurrentUser={setCurrentUser} allRoles={allRoles} setAllRoles={setAllRoles} onBack={() => setActiveView('dashboard')} clubs={clubs} />;

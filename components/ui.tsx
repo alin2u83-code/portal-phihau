@@ -2,7 +2,7 @@ import React, { ReactNode } from 'react';
 import { XIcon } from './icons';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'danger' | 'success' | 'info';
+  variant?: 'primary' | 'secondary' | 'danger' | 'success' | 'info' | 'warning';
   size?: 'sm' | 'md';
   isLoading?: boolean;
 }
@@ -31,6 +31,7 @@ export const Button: React.FC<ButtonProps & { as?: 'label', htmlFor?: string }> 
     danger: "bg-status-danger hover:bg-red-700 focus:ring-red-500 text-white",
     success: "bg-status-success hover:bg-green-700 focus:ring-green-500 text-white",
     info: "bg-[var(--accent)] hover:bg-[var(--accent-hover)] focus:ring-[var(--accent)] text-white hover:shadow-glow-blue",
+    warning: "bg-status-warning hover:bg-amber-600 focus:ring-amber-500 text-white",
   };
 
   const finalClassName = `${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${className}`;

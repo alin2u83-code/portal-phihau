@@ -119,7 +119,7 @@ export const DeleteAuditModal: React.FC<DeleteAuditModalProps> = ({ isOpen, onCl
                         </div>
                         <div className="mt-5 sm:mt-6 flex justify-center gap-3">
                             <Button variant="secondary" onClick={onClose}>Anulează</Button>
-                            <Button variant="info" onClick={handleDeactivate} className="bg-status-warning hover:bg-amber-600 focus:ring-amber-500">Dezactivează Sportivul</Button>
+                            <Button variant="warning" onClick={handleDeactivate}>Dezactivează Sportivul</Button>
                         </div>
                     </div>
                 );

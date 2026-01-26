@@ -45,8 +45,8 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { SystemGuardian } from './components/SystemGuardian';
 import { RoleSwitcher } from './components/RoleSwitcher';
 import { getAuthenticatedUser } from './utils/auth';
-import { DashboardHome } from './components/DashboardHome';
 import { FederationInvoices } from './components/FederationInvoices';
+import { UnifiedDashboard } from './components/UnifiedDashboard';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -211,12 +211,11 @@ function App() {
 
     switch (activeView) {
       case 'dashboard':
-        if (permissions.isAdminClub) {
-            return <DashboardHome currentUser={currentUser} onNavigate={setActiveView} />;
+        if (isPortalView) {
+            return <SportivDashboard currentUser={currentUser} viewedUser={currentUser} participari={inscrieriExamene} examene={sesiuniExamene} grade={grade} grupe={grupe} plati={plati} onNavigate={setActiveView} antrenamente={antrenamente} anunturi={anunturiPrezenta} setAnunturi={setAnunturiPrezenta} sportivi={sportivi} />;
+        } else {
+            return <UnifiedDashboard session={session} currentUser={currentUser} onNavigate={setActiveView} deconturiFederatie={deconturiFederatie} />;
         }
-        return isPortalView ? 
-          <SportivDashboard currentUser={currentUser} viewedUser={currentUser} participari={inscrieriExamene} examene={sesiuniExamene} grade={grade} grupe={grupe} plati={plati} onNavigate={setActiveView} antrenamente={antrenamente} anunturi={anunturiPrezenta} setAnunturi={setAnunturiPrezenta} sportivi={sportivi} /> : 
-          <Dashboard currentUser={currentUser} onNavigate={setActiveView} clubs={clubs} permissions={permissions} />;
       
       case 'my-portal':
         return <SportivDashboard currentUser={currentUser} viewedUser={currentUser} participari={inscrieriExamene} examene={sesiuniExamene} grade={grade} grupe={grupe} plati={plati} onNavigate={setActiveView} antrenamente={antrenamente} anunturi={anunturiPrezenta} setAnunturi={setAnunturiPrezenta} sportivi={sportivi} />;

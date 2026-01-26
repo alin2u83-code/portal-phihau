@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { User, Antrenament, AnuntPrezenta, Sportiv } from '../types';
 import { Card, Button } from './ui';
 import { supabase } from '../supabaseClient';
@@ -15,50 +15,46 @@ interface TrainingActionCardProps {
 
 const TrainingActionCard: React.FC<TrainingActionCardProps> = ({ training, anunt, onStatusChange }) => {
     const [loading, setLoading] = useState(false);
+    const [optimisticStatus, setOptimisticStatus] = useState<AnuntStatus | null>(null);
+
+    useEffect(() => {
+        setOptimisticStatus(anunt?.status || null);
+    }, [anunt]);
 
     const handleClick = async (status: AnuntStatus) => {
         setLoading(true);
-        await onStatusChange(training.id, status);
-        setLoading(false);
+        setOptimisticStatus(status); // Optimistic UI update
+
+        try {
+            await onStatusChange(training.id, status);
+        } catch (e) {
+            // In case of error, revert to the actual state from props
+            setOptimisticStatus(anunt?.status || null);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const getButtonClasses = (status: AnuntStatus) => {
-        // Most base styles are inherited from the <Button> component. 
-        // We only need to provide specific overrides and additions.
-        const base = 'font-bold gap-2'; // Make text bold and add space for icon.
+        const base = 'font-bold gap-2';
         
-        // Aligned styles with the 'Deep Navy' theme by using theme colors and consistent hover effects.
         const styles: Record<AnuntStatus, { bg: string; hover: string; }> = {
-            Confirm: {
-                bg: 'bg-status-success',
-                hover: 'hover:bg-green-700 hover:shadow-glow-blue',
-            },
-            Intarziat: {
-                bg: 'bg-status-warning',
-                hover: 'hover:bg-amber-600 hover:shadow-glow-blue',
-            },
-            Absent: {
-                bg: 'bg-status-danger',
-                hover: 'hover:bg-red-700 hover:shadow-glow-blue',
-            }
+            Confirm: { bg: 'bg-status-success', hover: 'hover:bg-green-700 hover:shadow-glow-blue' },
+            Intarziat: { bg: 'bg-status-warning', hover: 'hover:bg-amber-600 hover:shadow-glow-blue' },
+            Absent: { bg: 'bg-status-danger', hover: 'hover:bg-red-700 hover:shadow-glow-blue' }
         };
 
-        const isSelected = anunt?.status === status;
-        const isInactive = anunt !== undefined && !isSelected;
+        const currentStatus = optimisticStatus;
+        const isSelected = currentStatus === status;
+        const isInactive = currentStatus !== null && !isSelected;
 
-        const classes = [
-            base,
-            styles[status].bg,
-            styles[status].hover
-        ];
+        const classes = [base, styles[status].bg, styles[status].hover];
 
         if (isSelected) {
-            // Use theme variable for ring offset color.
             classes.push('ring-2 ring-white ring-offset-2 ring-offset-[var(--bg-card)] scale-[1.02]');
         }
 
         if (isInactive) {
-            // Fade out other buttons when one is selected.
             classes.push('opacity-50 hover:opacity-100');
         }
 
@@ -125,6 +121,7 @@ export const AthleteQuickActions: React.FC<AthleteQuickActionsProps> = ({ curren
 
         if (error) {
             showError("Eroare la trimitere", error);
+            throw error; // Throw error to be caught by the optimistic UI handler
         } else if (data) {
             showSuccess("Status actualizat", `Ai anunțat: ${status}`);
             setAnunturi(prev => {

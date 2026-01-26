@@ -1,9 +1,9 @@
 import React from 'react';
-// FIX: Add 'Club' to the import from '../types' to resolve the 'Cannot find name 'Club'' error.
-import { User, View, DecontFederatie, Club } from '../types';
+import { User, View, DecontFederatie, Club, Antrenament, Sportiv, Grupa } from '../types';
 import { Permissions } from '../hooks/usePermissions';
 import { UsersIcon, ArchiveBoxIcon, WalletIcon, BanknotesIcon, ClipboardCheckIcon, TrophyIcon } from './icons';
 import { Card } from './ui';
+import { GeneralAttendanceWidget } from './GeneralAttendanceWidget';
 
 // Props
 interface DashboardProps {
@@ -11,7 +11,10 @@ interface DashboardProps {
     onNavigate: (view: View) => void;
     deconturiFederatie: DecontFederatie[];
     permissions: Permissions;
-    clubs: Club[]; // Although not used in this simplified version, it's good practice to keep it for future-proofing if context changes.
+    clubs: Club[];
+    antrenamente: Antrenament[];
+    sportivi: Sportiv[];
+    grupe: Grupa[];
 }
 
 // Sub-components
@@ -37,7 +40,7 @@ const AdminSummaryCard: React.FC<{ deconturi: DecontFederatie[] }> = ({ decontur
     }, [deconturi]);
 
     return (
-        <Card className="bg-gradient-to-br from-slate-800 to-slate-900 border-amber-400/30 col-span-1 md:col-span-2 lg:col-span-4">
+        <Card className="bg-gradient-to-br from-slate-800 to-slate-900 border-amber-400/30">
             <h3 className="text-lg font-bold text-amber-400">Situație Plăți Federație</h3>
             <p className="text-4xl font-black text-white mt-2">{total.toFixed(2)} RON</p>
             <p className="text-sm text-slate-400">Total de plată pentru {count} sportivi din activități neachitate.</p>
@@ -46,7 +49,7 @@ const AdminSummaryCard: React.FC<{ deconturi: DecontFederatie[] }> = ({ decontur
 };
 
 // Main Component
-export const Dashboard: React.FC<DashboardProps> = ({ currentUser, onNavigate, deconturiFederatie, permissions }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ currentUser, onNavigate, deconturiFederatie, permissions, antrenamente, sportivi, grupe }) => {
 
     if (!currentUser) {
         return (
@@ -82,23 +85,33 @@ export const Dashboard: React.FC<DashboardProps> = ({ currentUser, onNavigate, d
                 <p className="text-slate-400">Selectează un modul pentru a începe.</p>
             </header>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {(isAdminClub || isFederationAdmin) && (
-                    <>
-                        <AdminSummaryCard deconturi={deconturiFederatie} />
-                        {adminLinks.map(link => (
-                            <NavCard key={link.view} title={link.title} icon={link.icon} onClick={() => onNavigate(link.view)} />
-                        ))}
-                    </>
-                )}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2 space-y-8">
+                    {(isAdminClub || isFederationAdmin) && (
+                        <>
+                            <AdminSummaryCard deconturi={deconturiFederatie} />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {adminLinks.map(link => (
+                                    <NavCard key={link.view} title={link.title} icon={link.icon} onClick={() => onNavigate(link.view)} />
+                                ))}
+                            </div>
+                        </>
+                    )}
 
-                {isInstructor && !isAdminClub && !isFederationAdmin && (
-                     <>
-                        {instructorLinks.map(link => (
-                            <NavCard key={link.view} title={link.title} icon={link.icon} onClick={() => onNavigate(link.view)} />
-                        ))}
-                    </>
-                )}
+                    {isInstructor && !isAdminClub && !isFederationAdmin && (
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {instructorLinks.map(link => (
+                                <NavCard key={link.view} title={link.title} icon={link.icon} onClick={() => onNavigate(link.view)} />
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                <div className="lg:col-span-1">
+                    {permissions.hasAdminAccess && (
+                        <GeneralAttendanceWidget antrenamente={antrenamente} sportivi={sportivi} grupe={grupe} />
+                    )}
+                </div>
             </div>
         </div>
     );

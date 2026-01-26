@@ -237,7 +237,7 @@ function App() {
         if (isPortalView) {
             return <SportivDashboard currentUser={currentUser} viewedUser={currentUser} participari={inscrieriExamene} examene={sesiuniExamene} grade={grade} grupe={grupe} plati={plati} onNavigate={setActiveView} antrenamente={antrenamente} anunturi={anunturiPrezenta} setAnunturi={setAnunturiPrezenta} sportivi={sportivi} />;
         } else {
-            return <Dashboard currentUser={currentUser} onNavigate={setActiveView} deconturiFederatie={deconturiFederatie} permissions={permissions} clubs={clubs} />;
+            return <Dashboard currentUser={currentUser} onNavigate={setActiveView} deconturiFederatie={deconturiFederatie} permissions={permissions} clubs={clubs} antrenamente={antrenamente} sportivi={sportivi} grupe={grupe} />;
         }
       
       case 'my-portal':
@@ -292,7 +292,7 @@ function App() {
         return <RapoarteExamen currentUser={currentUser} clubs={clubs} onBack={() => setActiveView('dashboard')} sesiuni={sesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={sportivi} setSportivi={setSportivi} grade={grade} locatii={locatii} setLocatii={setLocatii} plati={plati} setPlati={setPlati} preturiConfig={preturiConfig} />;
 
       default:
-        return <Dashboard currentUser={currentUser} onNavigate={setActiveView} clubs={clubs} permissions={permissions} deconturiFederatie={deconturiFederatie} />;
+        return <Dashboard currentUser={currentUser} onNavigate={setActiveView} clubs={clubs} permissions={permissions} deconturiFederatie={deconturiFederatie} antrenamente={antrenamente} sportivi={sportivi} grupe={grupe} />;
     }
   };
 

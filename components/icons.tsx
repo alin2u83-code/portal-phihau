@@ -5,7 +5,7 @@ import {
   LogOut, Menu, Wallet, BarChart3, Archive, FileDown, ChevronDown, X,
   ClipboardCheck, MessageCircleQuestion, Save, AlertTriangle, CheckCircle, ChevronLeft, 
   ChevronRight, Printer, Check, ArrowRightLeft, Search, Bell, Network, UploadCloud, 
-  Mail, Lock, UserPlus, BookOpen, BookMarked, FileText, Clock, MapPin, Phone
+  Mail, Lock, UserPlus, BookOpen, BookMarked, FileText, Clock, MapPin, Phone, HelpCircle
 } from 'lucide-react';
 
 export const PlusIcon = Plus;
@@ -54,3 +54,5 @@ export const FileTextIcon = FileText;
 export const ClockIcon = Clock;
 export const MapPinIcon = MapPin;
 export const PhoneIcon = Phone;
+export const AlertTriangleIcon = AlertTriangle;
+export const HelpCircleIcon = HelpCircle;

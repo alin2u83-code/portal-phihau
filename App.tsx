@@ -52,6 +52,7 @@ import { GlobalContextSwitcher } from './components/GlobalContextSwitcher';
 import { FederationDashboard } from './components/FederationDashboard';
 import { LiveAttendanceRadar } from './components/LiveAttendanceRadar';
 import { PersonalProfile } from './components/PersonalProfile';
+import { AccessGuardian } from './components/AccessGuardian';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -353,6 +354,7 @@ function App() {
             sportivi={sportivi}
             permissions={permissions}
           />
+          <AccessGuardian currentUser={currentUser} />
           <main className={`flex-1 transition-all duration-300 ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'}`}>
             <AdminHeader currentUser={currentUser!} onNavigate={setActiveView} onLogout={handleLogout} plati={plati} permissions={permissions} />
             <div className="p-4 md:p-8 max-w-7xl mx-auto">

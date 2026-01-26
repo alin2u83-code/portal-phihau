@@ -16,7 +16,7 @@ import { TipuriAbonamentManagement } from './components/TipuriAbonament';
 import { ConfigurarePreturi } from './components/ConfigurarePreturi';
 import { RaportFinanciar } from './components/RaportFinanciar';
 import { FamiliiManagement } from './components/Familii';
-import { Login } from './components/Login';
+import { AuthContainer } from './components/AuthContainer';
 import { SportivDashboard } from './components/SportivDashboard';
 import { UserManagement } from './components/UserManagement';
 import { Session } from '@supabase/supabase-js';
@@ -226,7 +226,7 @@ function App() {
   };
 
   const renderContent = () => {
-    if (!currentUser) return <Login />;
+    if (!currentUser) return <AuthContainer />;
     if (currentUser.trebuie_schimbata_parola) return <MandatoryPasswordChange currentUser={currentUser} onPasswordChanged={initializeAndFetchData} />;
 
     const isPortalView = !permissions.hasAdminAccess;
@@ -324,7 +324,7 @@ function App() {
           )}
         </div>
       ) : (
-        <Login />
+        <AuthContainer />
       )}
     </SystemGuardian>
   );

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Session } from '@supabase/supabase-js';
 import { User, View, DecontFederatie } from '../types';
-import { Login } from './Login';
+import { AuthContainer } from './AuthContainer';
 import { Card } from './ui';
 import { UsersIcon, TrophyIcon, BanknotesIcon, WalletIcon, ClipboardCheckIcon, ArchiveBoxIcon, CogIcon } from './icons';
 
@@ -69,7 +69,7 @@ const InstructorCards: React.FC<{ onNavigate: (view: View) => void }> = ({ onNav
 // Main Component Logic
 export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({ session, currentUser, onNavigate, deconturiFederatie }) => {
     if (!session || !currentUser) {
-        return <Login />;
+        return <AuthContainer />;
     }
 
     const navItems = [

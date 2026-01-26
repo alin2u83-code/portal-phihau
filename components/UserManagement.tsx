@@ -7,7 +7,7 @@ import { useError } from './ErrorProvider';
 import { usePermissions } from '../hooks/usePermissions';
 
 const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
-    // FIX: Add missing 'Super Admin' and 'Admin Club' roles to satisfy the Record type.
+    // FIX: Add missing 'SUPER_ADMIN_FEDERATIE' and 'Admin Club' roles to satisfy the Record type.
     const colorClasses: Record<Rol['nume'], string> = {
         Admin: 'bg-red-600 text-white',
         'SUPER_ADMIN_FEDERATIE': 'bg-red-800 text-white',

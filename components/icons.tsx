@@ -4,7 +4,8 @@ import {
   ClipboardList, Landmark, Settings, ShieldCheck, LayoutDashboard, UserCircle,
   LogOut, Menu, Wallet, BarChart3, Archive, FileDown, ChevronDown, X,
   ClipboardCheck, MessageCircleQuestion, Save, AlertTriangle, CheckCircle,
-  ChevronLeft, ChevronRight, Printer, Check, ArrowRightLeft, Search, Bell, Network
+  ChevronLeft, ChevronRight, Printer, Check, ArrowRightLeft, Search, Bell, Network,
+  UploadCloud
 } from 'lucide-react';
 
 export const PlusIcon = Plus;
@@ -42,3 +43,5 @@ export const ExclamationTriangleIcon = AlertTriangle;
 export const SearchIcon = Search;
 export const BellIcon = Bell;
 export const SitemapIcon = Network;
+// FIX: Export UploadCloudIcon, which is used in FederationInvoices.tsx.
+export const UploadCloudIcon = UploadCloud;

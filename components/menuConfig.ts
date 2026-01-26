@@ -58,6 +58,7 @@ export const adminMenu: MenuItem[] = [
             { view: 'financial-dashboard', label: 'Dashboard Financiar' },
             { view: 'plati-scadente', label: 'Facturi & Plăți' }, 
             { view: 'jurnal-incasari', label: 'Jurnal Încasări' }, 
+            { view: 'deconturi-federatie', label: 'Deconturi Federație', roles: ['Admin Club', 'SUPER_ADMIN_FEDERATIE', 'Admin'] },
             { view: 'raport-financiar', label: 'Raport Detaliat' },
             { view: 'tipuri-abonament', label: 'Config. Abonamente' }, 
             { view: 'configurare-preturi', label: 'Taxe Grade', roles: ['Admin', 'Instructor', 'Admin Club'] },

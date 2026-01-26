@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from './supabaseClient';
-import { Sportiv, SesiuneExamen, Grad, InscriereExamen, View, Antrenament, Grupa, Plata, Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, Rol, AnuntPrezenta, Reducere, AnuntGeneral, TipPlata, Locatie, Club } from './types';
+import { Sportiv, SesiuneExamen, Grad, InscriereExamen, View, Antrenament, Grupa, Plata, Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, Rol, AnuntPrezenta, Reducere, AnuntGeneral, TipPlata, Locatie, Club, DecontFederatie } from './types';
 import { Dashboard } from './components/Dashboard';
 import { SportiviManagement } from './components/SportiviManagement';
 import { UserProfile } from './components/UserProfile';
@@ -46,6 +46,7 @@ import { SystemGuardian } from './components/SystemGuardian';
 import { RoleSwitcher } from './components/RoleSwitcher';
 import { getAuthenticatedUser } from './utils/auth';
 import AdminDashboard from './components/AdminDashboard';
+import { FederationInvoices } from './components/FederationInvoices';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -73,6 +74,7 @@ function App() {
   const [tipuriPlati, setTipuriPlati] = useState<TipPlata[]>([]);
   const [locatii, setLocatii] = useState<Locatie[]>([]);
   const [clubs, setClubs] = useState<Club[]>([]);
+  const [deconturiFederatie, setDeconturiFederatie] = useState<DecontFederatie[]>([]);
 
   const [activeView, setActiveView] = useLocalStorage<View>('phi-hau-active-view', 'dashboard');
   const [selectedSportiv, setSelectedSportiv] = useState<Sportiv | null>(null);
@@ -123,7 +125,7 @@ function App() {
             { data: reduceriData }, { data: sportiviData }, { data: sessionsData },
             { data: registrationsData }, { data: trainingsData }, { data: platiData },
             { data: tranzactiiData }, { data: eventsData }, { data: resultsData },
-            { data: familiesData }, { data: anunturiData }, { data: pricesData }
+            { data: familiesData }, { data: anunturiData }, { data: pricesData }, { data: deconturiData }
         ] = await Promise.all([
             supabase.from('cluburi').select('*'),
             supabase.from('roluri').select('*'),
@@ -143,7 +145,8 @@ function App() {
             supabase.from('rezultate').select('*'),
             supabase.from('familii').select('*'),
             supabase.from('anunturi_prezenta').select('*'),
-            supabase.from('preturi_config').select('*')
+            supabase.from('preturi_config').select('*'),
+            supabase.from('deconturi_federatie').select('*'),
         ]);
         
         const clubsMap = new Map((clubsData || []).map(c => [c.id, c]));
@@ -173,6 +176,7 @@ function App() {
         setLocatii(locatiiData || []);
         setTipuriPlati(platiTypesData || []);
         setReduceri(reduceriData || []);
+        setDeconturiFederatie(deconturiData || []);
 
     } catch (err: any) {
         setProfileError(err.message);
@@ -240,6 +244,9 @@ function App() {
 
       case 'financial-dashboard':
         return <FinancialDashboard plati={plati} tranzactii={tranzactii} sportivi={sportivi} onBack={() => setActiveView('dashboard')} />;
+
+      case 'deconturi-federatie':
+        return <FederationInvoices deconturi={deconturiFederatie} setDeconturi={setDeconturiFederatie} currentUser={currentUser} onBack={() => setActiveView('dashboard')} />;
 
       case 'plati-scadente':
         return <PlatiScadente plati={plati} setPlati={setPlati} sportivi={sportivi} familii={familii} tipuriAbonament={tipuriAbonament} tranzactii={tranzactii} reduceri={reduceri} onIncaseazaMultiple={(p) => setActiveView('jurnal-incasari')} onBack={() => setActiveView('dashboard')} />;

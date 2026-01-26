@@ -1,8 +1,9 @@
 import React, { useMemo } from 'react';
 import { View, User, Club } from '../types';
-import { UsersIcon, BanknotesIcon, TrophyIcon, CogIcon } from './icons';
+import { UsersIcon, BanknotesIcon, TrophyIcon, CogIcon, SitemapIcon } from './icons';
 import { NotificationPermissionWidget } from './NotificationPermissionWidget';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
+import { Permissions } from '../hooks/usePermissions';
 
 // Define roles for clarity
 type UserRole = 'SUPER_ADMIN_FEDERATIE' | 'ADMIN_CLUB' | 'INSTRUCTOR' | 'SPORTIV' | 'UNKNOWN';
@@ -63,9 +64,10 @@ interface DashboardProps {
   currentUser: User;
   onNavigate: (view: View) => void;
   clubs: Club[];
+  permissions: Permissions;
 }
 
-export const Dashboard: React.FC<DashboardProps> = ({ currentUser, onNavigate, clubs }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ currentUser, onNavigate, clubs, permissions }) => {
     
     // FIX: Add a loading state to prevent rendering with incomplete user data.
     if (!currentUser) {
@@ -106,12 +108,24 @@ export const Dashboard: React.FC<DashboardProps> = ({ currentUser, onNavigate, c
         return { userRole: role, clubName: clubDisplayName };
     }, [currentUser]);
 
-    const navItems = [
-      { view: 'sportivi', title: 'Sportivi', description: 'Gestionează sportivi și familii.', icon: UsersIcon },
-      { view: 'examene', title: 'Evenimente', description: 'Definește examene, stagii și competiții.', icon: TrophyIcon },
-      { view: 'plati-scadente', title: 'Facturare', description: 'Gestionează plăți și rapoarte.', icon: BanknotesIcon },
-      { view: 'user-management', title: 'Setări', description: 'Configurează conturi și permisiuni.', icon: CogIcon }
-    ];
+    const navItems = useMemo(() => {
+        const clubAdminItems = [
+            { view: 'sportivi', title: 'Sportivi', description: 'Gestionează sportivi și familii.', icon: UsersIcon },
+            { view: 'examene', title: 'Evenimente', description: 'Definește examene, stagii și competiții.', icon: TrophyIcon },
+            { view: 'plati-scadente', title: 'Facturare', description: 'Gestionează plăți și rapoarte.', icon: BanknotesIcon },
+            { view: 'user-management', title: 'Setări Club', description: 'Configurează conturi și permisiuni.', icon: CogIcon }
+        ];
+
+        if (permissions.isFederationAdmin) {
+            return [
+                { view: 'structura-federatie', title: 'Structura Federației', description: 'Vizualizează ierarhia cluburilor.', icon: SitemapIcon },
+                ...clubAdminItems,
+            ];
+        }
+
+        return clubAdminItems;
+    }, [permissions]);
+
 
     return (
         <div className="max-w-7xl mx-auto p-4 md:p-6">

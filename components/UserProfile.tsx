@@ -13,7 +13,7 @@ import { IstoricExameneSportiv } from './IstoricExameneSportiv';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
 
 const getGrad = (gradId: string | null, allGrades: Grad[]) => gradId ? allGrades.find(g => g.id === gradId) : null;
-const getAge = (dateString: string) => { const today = new Date(); const birthDate = new Date(dateString); let age = today.getFullYear() - birthDate.getFullYear(); const m = today.getMonth() - birthDate.getMonth(); if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; } return age; };
+const getAge = (dateString: string) => { if (!dateString) return 0; const today = new Date(); const birthDate = new Date(dateString.includes('T') ? dateString : dateString + 'T00:00:00'); if (isNaN(birthDate.getTime())) { return 0; } let age = today.getFullYear() - birthDate.getFullYear(); const m = today.getMonth() - birthDate.getMonth(); if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; } return age; };
 const parseDurationToMonths = (durationStr: string): number => { const parts = durationStr.split(' '); if (parts.length < 2) return 0; const value = parseInt(parts[0], 10); const unit = parts[1].toLowerCase(); if (unit.startsWith('lun')) return value; if (unit.startsWith('an')) return value * 12; return 0; };
 
 interface TransferModalProps {
@@ -205,7 +205,8 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
         if (!nextGrad) return { eligible: false, message: "Ați atins gradul maxim.", nextGrad: null };
         const age = getAge(sportiv.data_nasterii);
         if (age < nextGrad.varsta_minima) return { eligible: false, message: `Vârsta minimă: ${nextGrad.varsta_minima} ani (are ${age}).`, nextGrad };
-        const lastExamDate = admittedParticipations[0]?.examen ? new Date(admittedParticipations[0].examen.data) : new Date(sportiv.data_inscrierii);
+        const lastExamDateStr = admittedParticipations[0]?.examen ? admittedParticipations[0].examen.data : sportiv.data_inscrierii;
+        const lastExamDate = new Date(lastExamDateStr + 'T00:00:00');
         const monthsToWait = parseDurationToMonths(nextGrad.timp_asteptare);
         const eligibilityDate = new Date(lastExamDate);
         eligibilityDate.setMonth(eligibilityDate.getMonth() + monthsToWait);
@@ -268,10 +269,12 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
     const trainingHistory = useMemo(() => {
         const threeMonthsAgo = new Date();
         threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+        threeMonthsAgo.setHours(0,0,0,0);
 
         return antrenamente
             .filter(a => {
-                const trainingDate = new Date(a.data);
+                if (!a.data) return false;
+                const trainingDate = new Date(a.data + 'T00:00:00');
                 if (trainingDate < threeMonthsAgo) return false;
 
                 const isForGroup = a.grupa_id && a.grupa_id === sportiv.grupa_id;
@@ -284,7 +287,11 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                 status: a.sportivi_prezenti_ids.includes(sportiv.id) ? 'Prezent' : 'Absent',
                 grupaNume: grupe.find(g => g.id === a.grupa_id)?.denumire || 'Vacanță'
             }))
-            .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+            .sort((a, b) => {
+                const dateA = a.data ? new Date(a.data + 'T00:00:00').getTime() : 0;
+                const dateB = b.data ? new Date(b.data + 'T00:00:00').getTime() : 0;
+                return dateB - dateA;
+            });
     }, [sportiv, antrenamente, grupe]);
 
     const handleSaveRoles = async () => {
@@ -457,27 +464,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                             )}
                         </div>
                     </Card>
-                     <Card>
-                        <div className="flex justify-between items-start mb-2">
-                            <h3 className="text-lg font-bold text-white animate-fade-in-down">Progres Tehnic</h3>
-                            <Button size="sm" variant="secondary" onClick={() => setShowHistory(true)}>Istoric</Button>
-                        </div>
-                        <div className="space-y-2 text-sm">
-                            <DataField 
-                                label="Grad Actual" 
-                                value={
-                                    <span 
-                                        className="text-brand-secondary hover:underline cursor-pointer font-bold"
-                                        onClick={() => setShowHistory(true)}
-                                    >
-                                        {currentGrad?.nume || 'Începător'}
-                                    </span>
-                                } 
-                            />
-                            <DataField label="Următorul Grad" value={eligibility.nextGrad?.nume || 'Maxim'} />
-                            <p className={`text-xs mt-1 ${eligibility.eligible ? 'text-green-400' : 'text-yellow-400'}`}>{eligibility.message}</p>
-                        </div>
-                    </Card>
                 </div>
 
                 <div className="lg:col-span-1 space-y-6">
@@ -518,6 +504,27 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                         )}
                     </Card>
                     )}
+                     <Card>
+                        <div className="flex justify-between items-start mb-2">
+                            <h3 className="text-lg font-bold text-white animate-fade-in-down">Progres Tehnic</h3>
+                            <Button size="sm" variant="secondary" onClick={() => setShowHistory(true)}>Istoric</Button>
+                        </div>
+                        <div className="space-y-2 text-sm">
+                            <DataField 
+                                label="Grad Actual" 
+                                value={
+                                    <span 
+                                        className="text-brand-secondary hover:underline cursor-pointer font-bold"
+                                        onClick={() => setShowHistory(true)}
+                                    >
+                                        {currentGrad?.nume || 'Începător'}
+                                    </span>
+                                } 
+                            />
+                            <DataField label="Următorul Grad" value={eligibility.nextGrad?.nume || 'Maxim'} />
+                            <p className={`text-xs mt-1 ${eligibility.eligible ? 'text-green-400' : 'text-yellow-400'}`}>{eligibility.message}</p>
+                        </div>
+                    </Card>
                 </div>
             </div>
 

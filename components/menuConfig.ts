@@ -60,11 +60,11 @@ export const adminMenu: MenuItem[] = [
             { view: 'jurnal-incasari', label: 'Jurnal Încasări' }, 
             { view: 'raport-financiar', label: 'Raport Detaliat' },
             { view: 'tipuri-abonament', label: 'Config. Abonamente' }, 
-            { view: 'configurare-preturi', label: 'Taxe Grade', roles: ['Admin', 'Instructor'] },
-            { view: 'taxe-anuale', label: 'Taxe Anuale', roles: ['Admin', 'Instructor'] },
+            { view: 'configurare-preturi', label: 'Taxe Grade', roles: ['Admin', 'Instructor', 'Admin Club'] },
+            { view: 'taxe-anuale', label: 'Taxe Anuale', roles: ['Admin', 'Instructor', 'Admin Club'] },
             { view: 'reduceri', label: 'Config. Reduceri' },
             { view: 'notificari', label: 'Trimite Anunțuri' },
-            { view: 'nomenclatoare', label: 'Nomenclatoare', roles: ['Admin']},
+            { view: 'nomenclatoare', label: 'Nomenclatoare', roles: ['Admin', 'SUPER_ADMIN_FEDERATIE']},
             { view: 'setari-club', label: 'Configurare Federație', roles: ['SUPER_ADMIN_FEDERATIE'] }
         ] 
     },

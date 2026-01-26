@@ -208,7 +208,7 @@ function App() {
       case 'dashboard':
         return isPortalView ? 
           <SportivDashboard currentUser={currentUser} viewedUser={currentUser} participari={inscrieriExamene} examene={sesiuniExamene} grade={grade} grupe={grupe} plati={plati} onNavigate={setActiveView} antrenamente={antrenamente} anunturi={anunturiPrezenta} setAnunturi={setAnunturiPrezenta} sportivi={sportivi} /> : 
-          <Dashboard currentUser={currentUser} onNavigate={setActiveView} clubs={clubs} />;
+          <Dashboard currentUser={currentUser} onNavigate={setActiveView} clubs={clubs} permissions={permissions} />;
       
       case 'my-portal':
         return <SportivDashboard currentUser={currentUser} viewedUser={currentUser} participari={inscrieriExamene} examene={sesiuniExamene} grade={grade} grupe={grupe} plati={plati} onNavigate={setActiveView} antrenamente={antrenamente} anunturi={anunturiPrezenta} setAnunturi={setAnunturiPrezenta} sportivi={sportivi} />;
@@ -253,7 +253,7 @@ function App() {
         return <BackupManager onBack={() => setActiveView('dashboard')} onDataRestored={() => window.location.reload()} sportivi={sportivi} setSportivi={setSportivi} grade={grade} preturiConfig={preturiConfig} participari={inscrieriExamene} examene={sesiuniExamene} plati={plati} setPlati={setPlati} familii={familii} onNavigate={setActiveView} />;
 
       default:
-        return <Dashboard currentUser={currentUser} onNavigate={setActiveView} clubs={clubs} />;
+        return <Dashboard currentUser={currentUser} onNavigate={setActiveView} clubs={clubs} permissions={permissions} />;
     }
   };
 

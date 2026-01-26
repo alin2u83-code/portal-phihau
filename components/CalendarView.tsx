@@ -231,7 +231,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ antrenamente, sesiun
         const allEvents = [
             ...antrenamente.map(a => ({...a, type: 'Antrenament' as const, denumire: grupe.find(g => g.id === a.grupa_id)?.denumire || 'Antrenament'})),
             ...sesiuniExamene.map(e => ({...e, type: 'Examen' as const, denumire: `Examen ${locatii.find(l => l.id === e.locatie_id)?.nume || ''}`})),
-            ...evenimente,
+            // FIX: Normalize the `Eveniment` objects to have a `type` property, consistent with other event sources.
+            ...evenimente.map(e => ({ ...e, type: e.tip })),
         ];
 
         allEvents.forEach(e => {

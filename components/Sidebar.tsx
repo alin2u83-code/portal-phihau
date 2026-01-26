@@ -5,7 +5,6 @@ import { ArrowRightOnRectangleIcon, Bars3Icon, ChevronDownIcon, UserCircleIcon }
 import { AdminProfileQuickAccess } from './AdminProfileQuickAccess';
 import { Select } from './ui';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
-import { usePermissions } from '../hooks/usePermissions';
 
 const NavItem: React.FC<{
     item: MenuItem;
@@ -82,33 +81,37 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLogout, activeView, isExpanded, setIsExpanded, plati, clubs, globalClubFilter, setGlobalClubFilter }) => {
     const [isMobileOpen, setIsMobileOpen] = useState(false);
-    const permissions = usePermissions(currentUser);
-    const isPortalView = !permissions.hasAdminAccess;
-    const { isSuperAdmin } = permissions;
     
-    const menu = isPortalView ? sportivMenu : adminMenu;
-    
-    const userRoles = useMemo(() => {
-        const roles = new Set((currentUser?.roluri || []).map(r => r.nume));
-        if (currentUser?.rol) {
-            // Adaugă rolul simplu din profil în setul de roluri
-            // pentru a asigura filtrarea corectă a meniului.
-            roles.add(currentUser.rol as Rol['nume']);
-        }
-        return roles;
-    }, [currentUser]);
+    // Simplificarea logicii de roluri, bazându-se direct pe `currentUser.rol`
+    const userRol = currentUser?.rol || 'SPORTIV';
 
+    const isStaff = useMemo(() => 
+        ['SUPER_ADMIN_FEDERATIE', 'ADMIN_CLUB', 'INSTRUCTOR', 'Admin'].includes(userRol),
+    [userRol]);
+
+    const isPortalView = !isStaff;
+    
+    const isSuperAdmin = useMemo(() => 
+        userRol === 'SUPER_ADMIN_FEDERATIE' || userRol === 'Admin',
+    [userRol]);
+
+    const menu = isPortalView ? sportivMenu : adminMenu;
+
+    // Filtrarea meniului pe baza `currentUser.rol`
     const filteredMenu = useMemo(() => {
         return menu.map(item => {
-            if (item.roles && !item.roles.some(role => userRoles.has(role))) {
+            // Dacă un element de meniu are roluri definite, verifică dacă rolul utilizatorului este inclus
+            if (item.roles && !item.roles.includes(userRol as Rol['nume'])) {
                 return null;
             }
 
+            // Dacă elementul are un submeniu, filtrează și elementele acestuia
             if (item.submenu) {
                 const filteredSubmenu = item.submenu.filter(subItem => 
-                    !subItem.roles || subItem.roles.some(role => userRoles.has(role))
+                    !subItem.roles || subItem.roles.includes(userRol as Rol['nume'])
                 );
 
+                // Dacă după filtrare nu mai rămâne niciun element în submeniu și elementul părinte nu are o vizualizare proprie, ascunde-l
                 if (filteredSubmenu.length === 0 && !item.view) {
                     return null;
                 }
@@ -118,7 +121,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
 
             return item;
         }).filter((item): item is MenuItem => item !== null);
-    }, [menu, userRoles]);
+    }, [menu, userRol]);
 
 
     const handleNavigate = (view: View) => {

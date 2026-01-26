@@ -85,6 +85,17 @@ function App() {
 
   const initializeAndFetchData = useCallback(async () => {
     if (!supabase) return;
+
+    // Safety check: ensure a session exists before attempting to fetch user-specific data.
+    // This helps prevent errors during logout transitions.
+    const { data: { session: currentSession } } = await supabase.auth.getSession();
+    if (!currentSession) {
+        setCurrentUser(null);
+        setSession(null);
+        setLoading(false); // Stop loading screen
+        return;
+    }
+
     setLoading(true);
     setProfileError(null);
 
@@ -107,9 +118,8 @@ function App() {
         return;
     }
 
-    const { data: { session } } = await supabase.auth.getSession();
     setCurrentUser(profile);
-    setSession(session);
+    setSession(currentSession);
 
     if (profile.trebuie_schimbata_parola) {
         showError(
@@ -189,10 +199,23 @@ function App() {
   useEffect(() => {
     if (!supabase) return;
 
+    // Fetch data on initial component mount.
     initializeAndFetchData();
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-        initializeAndFetchData();
+        // When the user signs out, `event` is 'SIGNED_OUT' and `session` is null.
+        // We explicitly clear the user and session state to prevent any further
+        // data fetching attempts for a logged-out user, thus avoiding AuthSessionMissingError.
+        if (event === 'SIGNED_OUT') {
+            setCurrentUser(null);
+            setSession(null);
+        } 
+        // For all other events (like SIGNED_IN, TOKEN_REFRESHED), `session` will be available.
+        // We can safely update our local session state and trigger a data refresh.
+        else if (session) {
+            setSession(session);
+            initializeAndFetchData();
+        }
     });
 
     return () => subscription.unsubscribe();

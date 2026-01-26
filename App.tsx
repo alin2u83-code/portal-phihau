@@ -44,6 +44,7 @@ import { MandatoryPasswordChange } from './components/MandatoryPasswordChange';
 import ErrorBoundary from './components/ErrorBoundary';
 import { SystemGuardian } from './components/SystemGuardian';
 import { GestiuneStaff } from './components/GestiuneStaff';
+import { RoleSwitcher } from './components/RoleSwitcher';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -285,6 +286,15 @@ function App() {
               </ErrorBoundary>
             </div>
           </main>
+          {/* // FIX: Property 'env' does not exist on type 'ImportMeta'. Cast to any to access Vite env variables. */}
+          {(import.meta as any).env.DEV && currentUser && (
+            <RoleSwitcher 
+                currentUser={currentUser} 
+                setCurrentUser={setCurrentUser} 
+                allRoles={allRoles}
+                clubs={clubs}
+            />
+          )}
         </div>
       ) : (
         <Login />

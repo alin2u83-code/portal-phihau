@@ -23,20 +23,23 @@ const TrainingActionCard: React.FC<TrainingActionCardProps> = ({ training, anunt
     };
 
     const getButtonClasses = (status: AnuntStatus) => {
-        const base = 'text-white font-bold transition-all duration-200 active:scale-95 flex items-center justify-center gap-2';
+        // Most base styles are inherited from the <Button> component. 
+        // We only need to provide specific overrides and additions.
+        const base = 'font-bold gap-2'; // Make text bold and add space for icon.
         
+        // Aligned styles with the 'Deep Navy' theme by using theme colors and consistent hover effects.
         const styles: Record<AnuntStatus, { bg: string; hover: string; }> = {
             Confirm: {
-                bg: 'bg-emerald-600',
-                hover: 'hover:bg-emerald-500 hover:shadow-glow-blue hover:scale-105',
+                bg: 'bg-status-success',
+                hover: 'hover:bg-green-700 hover:shadow-glow-blue',
             },
             Intarziat: {
-                bg: 'bg-amber-600',
-                hover: 'hover:bg-amber-500 hover:ring-2 hover:ring-white',
+                bg: 'bg-status-warning',
+                hover: 'hover:bg-amber-600 hover:shadow-glow-blue',
             },
             Absent: {
-                bg: 'bg-rose-700',
-                hover: 'hover:bg-rose-600 hover:opacity-100',
+                bg: 'bg-status-danger',
+                hover: 'hover:bg-red-700 hover:shadow-glow-blue',
             }
         };
 
@@ -50,10 +53,12 @@ const TrainingActionCard: React.FC<TrainingActionCardProps> = ({ training, anunt
         ];
 
         if (isSelected) {
-            classes.push('ring-2 ring-white ring-offset-2 ring-offset-light-navy scale-[1.02]');
+            // Use theme variable for ring offset color.
+            classes.push('ring-2 ring-white ring-offset-2 ring-offset-[var(--bg-card)] scale-[1.02]');
         }
 
         if (isInactive) {
+            // Fade out other buttons when one is selected.
             classes.push('opacity-50 hover:opacity-100');
         }
 

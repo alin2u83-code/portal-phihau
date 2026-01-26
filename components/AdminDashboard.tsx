@@ -11,8 +11,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Verifică dacă utilizatorul are rolul de 'Admin Club'
-  const isAdminClub = currentUser?.roluri?.some(r => r.nume === 'Admin Club');
+  // Verifică dacă utilizatorul are rolul de 'Admin Club' în oricare dintre sisteme
+  const isAdminClub = currentUser?.rol === 'ADMIN_CLUB' || currentUser?.roluri?.some(r => r.nume === 'Admin Club');
   
   useEffect(() => {
     // Nu se execută fetch dacă utilizatorul nu are rolul corect

@@ -23,22 +23,28 @@ const initialPermissions: Permissions = {
 
 export const usePermissions = (user: User | null): Permissions => {
     const permissions = useMemo((): Permissions => {
-        if (!user || !user.roluri) {
+        if (!user) {
             return initialPermissions;
         }
 
-        const roles = new Set(user.roluri.map(r => r.nume));
+        const simpleRole = user.rol;
+        const complexRoles = new Set((user.roluri || []).map(r => r.nume));
         
-        const isSuperAdmin = roles.has('SUPER_ADMIN_FEDERATIE');
-        const isAdmin = roles.has('Admin');
+        const isSuperAdmin = complexRoles.has('SUPER_ADMIN_FEDERATIE');
+        const isAdmin = complexRoles.has('Admin');
         const isFederationAdmin = isSuperAdmin || isAdmin;
 
-        const isAdminClub = roles.has('Admin Club') && !isFederationAdmin;
-        const isInstructor = roles.has('Instructor');
-        const isSportiv = roles.has('Sportiv');
+        // isStaff este true dacă rolul simplu este 'ADMIN_CLUB' sau rolurile complexe includ 'Instructor' sau 'Admin'.
+        const isStaff = simpleRole === 'ADMIN_CLUB' || complexRoles.has('Instructor') || isAdmin;
         
-        const hasAdminAccess = isFederationAdmin || isAdminClub || (isInstructor && !isFederationAdmin);
+        // hasAdminAccess, care controlează meniul admin, include acum toți super-adminii și staff-ul.
+        const hasAdminAccess = isSuperAdmin || isStaff;
 
+        // isAdminClub este actualizat pentru a verifica ambele sisteme de roluri.
+        const isAdminClub = (simpleRole === 'ADMIN_CLUB' || complexRoles.has('Admin Club')) && !isFederationAdmin;
+        const isInstructor = complexRoles.has('Instructor');
+        const isSportiv = complexRoles.has('Sportiv');
+        
         return {
             isSuperAdmin,
             isAdmin,

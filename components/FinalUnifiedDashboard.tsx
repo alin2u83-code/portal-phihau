@@ -1,10 +1,11 @@
 import React from 'react';
-import { User, View, DecontFederatie, Antrenament, Sportiv, Grupa, InscriereExamen, Plata, AnuntPrezenta, SesiuneExamen, Grad } from '../types';
+import { User, View, DecontFederatie, Antrenament, Sportiv, Grupa, InscriereExamen, Plata, AnuntPrezenta, SesiuneExamen, Grad, Tranzactie } from '../types';
 import { Permissions } from '../hooks/usePermissions';
 import { GeneralAttendanceWidget } from './GeneralAttendanceWidget';
 import { ClubManagementHub } from './ClubManagementHub';
 import { SportivDashboard } from './SportivDashboard';
 import { AttendanceAlerts } from './AttendanceAlerts';
+import { ClubOverview } from './ClubOverview';
 
 // Props
 interface FinalUnifiedDashboardProps {
@@ -21,12 +22,13 @@ interface FinalUnifiedDashboardProps {
     grade: Grad[];
     grupe: Grupa[];
     sesiuniExamene: SesiuneExamen[];
+    tranzactii: Tranzactie[];
 }
 
 
 // Main Component
 export const FinalUnifiedDashboard: React.FC<FinalUnifiedDashboardProps> = (props) => {
-    const { currentUser, onNavigate, deconturiFederatie, permissions, inscrieriExamene, plati, sportivi, antrenamente, ...sportivDashboardProps } = props;
+    const { currentUser, onNavigate, deconturiFederatie, permissions, inscrieriExamene, plati, sportivi, antrenamente, tranzactii, ...sportivDashboardProps } = props;
 
     if (!currentUser) {
         return (
@@ -40,12 +42,46 @@ export const FinalUnifiedDashboard: React.FC<FinalUnifiedDashboardProps> = (prop
         );
     }
     
-    // Club Admin / Instructor View
-    if (permissions.isAdminClub || permissions.isInstructor) {
+    // Club Admin View
+    if (permissions.isAdminClub) {
         return (
-             <div className="space-y-8 animate-fade-in-down">
+            <div className="space-y-8 animate-fade-in-down">
                 <header>
                     <h1 className="text-3xl font-bold text-white">Panou de Control Club</h1>
+                    <p className="text-slate-400">Sumar, alerte și scurtături rapide.</p>
+                </header>
+                
+                <ClubOverview 
+                    currentUser={currentUser}
+                    sportivi={sportivi}
+                    tranzactii={tranzactii}
+                    deconturiFederatie={deconturiFederatie}
+                    onNavigate={onNavigate}
+                />
+                
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="lg:col-span-2">
+                        <ClubManagementHub
+                            currentUser={currentUser}
+                            onNavigate={onNavigate}
+                            permissions={permissions}
+                        />
+                    </div>
+                    <div className="lg:col-span-1 space-y-6">
+                        <GeneralAttendanceWidget currentUser={currentUser} />
+                        <AttendanceAlerts currentUser={currentUser} sportivi={sportivi} antrenamente={antrenamente} />
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Instructor View
+    if (permissions.isInstructor) {
+        return (
+            <div className="space-y-8 animate-fade-in-down">
+                <header>
+                    <h1 className="text-3xl font-bold text-white">Panou de Control Instructor</h1>
                     <p className="text-slate-400">Selectează un modul pentru a începe.</p>
                 </header>
                 

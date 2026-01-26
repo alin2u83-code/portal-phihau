@@ -259,6 +259,7 @@ function App() {
             grade={grade}
             grupe={grupe}
             sesiuniExamene={sesiuniExamene}
+            tranzactii={tranzactii}
         />;
 
       case 'sportivi':
@@ -332,6 +333,7 @@ function App() {
             grade={grade}
             grupe={grupe}
             sesiuniExamene={sesiuniExamene}
+            tranzactii={tranzactii}
         />;
     }
   };

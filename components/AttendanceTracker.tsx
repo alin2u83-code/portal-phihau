@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
-import { User, Antrenament } from '../types';
-import { Card } from './ui';
+import { User, Antrenament, View } from '../types';
+import { Card, Button } from './ui';
 import { CalendarDaysIcon } from './icons';
 
 // Tip local pentru a reprezenta o înregistrare de prezență procesată
@@ -12,9 +12,10 @@ interface AttendanceRecord {
 interface AttendanceTrackerProps {
     currentUser: User;
     antrenamente: Antrenament[];
+    onNavigate: (view: View) => void;
 }
 
-export const AttendanceTracker: React.FC<AttendanceTrackerProps> = ({ currentUser, antrenamente }) => {
+export const AttendanceTracker: React.FC<AttendanceTrackerProps> = ({ currentUser, antrenamente, onNavigate }) => {
     
     // Procesează antrenamentele relevante din ultimele 60 de zile
     const attendanceData = useMemo(() => {
@@ -107,7 +108,7 @@ export const AttendanceTracker: React.FC<AttendanceTrackerProps> = ({ currentUse
             </div>
             
             <div className="max-h-48 overflow-y-auto space-y-2 border-t border-slate-700 pt-4">
-                {attendanceData.map(record => (
+                {attendanceData.slice(0, 5).map(record => (
                     <div key={record.date} className="flex justify-between items-center text-sm">
                         <span className="text-slate-300">
                             {new Date(record.date + 'T00:00:00').toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long' })}
@@ -120,6 +121,12 @@ export const AttendanceTracker: React.FC<AttendanceTrackerProps> = ({ currentUse
                  {attendanceData.length === 0 && (
                     <p className="text-center text-slate-500 italic py-4">Nicio prezență înregistrată în ultimele 60 de zile.</p>
                 )}
+            </div>
+            
+            <div className="mt-4 pt-4 border-t border-slate-700">
+                <Button onClick={() => onNavigate('istoric-prezenta')} variant="secondary" className="w-full">
+                    Vezi Istoric Detaliat
+                </Button>
             </div>
         </Card>
     );

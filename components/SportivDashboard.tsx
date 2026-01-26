@@ -89,7 +89,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
 
             {isViewingOwnProfile && (
                 <div className="animate-fade-in-down" style={{ animationDelay: '200ms' }}>
-                    <AttendanceTracker currentUser={currentUser} antrenamente={antrenamente} />
+                    <AttendanceTracker currentUser={currentUser} antrenamente={antrenamente} onNavigate={onNavigate} />
                 </div>
             )}
             

@@ -283,6 +283,9 @@ function App() {
 
       case 'data-maintenance':
         return <BackupManager onBack={() => setActiveView('dashboard')} onDataRestored={() => window.location.reload()} sportivi={sportivi} setSportivi={setSportivi} grade={grade} preturiConfig={preturiConfig} participari={inscrieriExamene} examene={sesiuniExamene} plati={plati} setPlati={setPlati} familii={familii} onNavigate={setActiveView} />;
+      // FIX: Pass the necessary props to the RapoarteExamen component.
+      case 'rapoarte-examen':
+        return <RapoarteExamen currentUser={currentUser} clubs={clubs} onBack={() => setActiveView('dashboard')} sesiuni={sesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={sportivi} setSportivi={setSportivi} grade={grade} locatii={locatii} setLocatii={setLocatii} plati={plati} setPlati={setPlati} preturiConfig={preturiConfig} />;
 
       default:
         return <Dashboard currentUser={currentUser} onNavigate={setActiveView} clubs={clubs} permissions={permissions} deconturiFederatie={deconturiFederatie} />;

@@ -3,6 +3,7 @@ import { Sportiv, Participare, Grad, Grupa, Plata, User, View, AnuntPrezenta, Se
 import { Card, Button } from './ui';
 import { AthleteQuickActions } from './AthleteQuickActions';
 import { NotificationPermissionWidget } from './NotificationPermissionWidget';
+import { AttendanceTracker } from './AttendanceTracker';
 
 const getGrad = (gradId: string | null, allGrades: Grad[]) => gradId ? allGrades.find(g => g.id === gradId) : null;
 
@@ -85,6 +86,12 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                     </div>
                 )}
             </header>
+
+            {isViewingOwnProfile && (
+                <div className="animate-fade-in-down" style={{ animationDelay: '200ms' }}>
+                    <AttendanceTracker currentUser={currentUser} antrenamente={antrenamente} />
+                </div>
+            )}
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Card Progres Tehnic */}

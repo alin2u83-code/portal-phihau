@@ -17,10 +17,8 @@ interface State {
  * Standard Error Boundary component to catch rendering errors in the UI tree.
  * Inheriting from Component ensures access to setState and lifecycle methods.
  */
-// FIX: Switched to modern class property syntax for state and arrow functions for methods.
-// This is the standard and safer way to handle `this` context in React class components,
-// resolving errors where `this.props`, `this.state`, and `this.setState` were not found.
 class ErrorBoundary extends React.Component<Props, State> {
+  // FIX: Switched to modern class property syntax for state to avoid issues with `this` in constructor.
   state: State = {
     hasError: false,
     error: undefined,
@@ -34,7 +32,7 @@ class ErrorBoundary extends React.Component<Props, State> {
     console.error("Uncaught error:", error, errorInfo);
   }
 
-  // FIX: Converted to arrow function to correctly bind `this` and resolve context errors.
+  // FIX: Converted to arrow function to correctly bind `this` and resolve context errors when used as an event handler.
   handleRedirect = () => {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {

@@ -1,9 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import { Sportiv, User, Rol } from '../types';
+import { Sportiv, User, Rol, Club } from '../types';
 import { Button, Input, Card, Select, Modal } from './ui';
 import { ArrowLeftIcon, EditIcon, ShieldCheckIcon, PlusIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
+import { usePermissions } from '../hooks/usePermissions';
 
 const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
     // FIX: Add missing 'Super Admin' and 'Admin Club' roles to satisfy the Record type.
@@ -146,6 +147,147 @@ const MyProfile: React.FC<{ user: User; setSportivi: React.Dispatch<React.SetSta
     );
 };
 
+const initialStaffFormState = {
+    nume: '',
+    prenume: '',
+    email: '',
+    parola: '',
+    rol_id: '',
+    club_id: '',
+};
+
+const CreateStaffModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    clubs: Club[];
+    allRoles: Rol[];
+    setSportivi: React.Dispatch<React.SetStateAction<Sportiv[]>>;
+}> = ({ isOpen, onClose, clubs, allRoles, setSportivi }) => {
+    const [formData, setFormData] = useState(initialStaffFormState);
+    const [loading, setLoading] = useState(false);
+    const { showError, showSuccess } = useError();
+
+    const staffRoles = useMemo(() => {
+        return allRoles.filter(r => r.nume === 'Instructor' || r.nume === 'Admin Club' || r.nume === 'Admin' || r.nume === 'SUPER_ADMIN_FEDERATIE');
+    }, [allRoles]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    };
+
+    const handleSave = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!supabase) {
+            showError("Eroare Configurare", "Clientul Supabase nu este inițializat.");
+            return;
+        }
+
+        if (formData.parola.length < 8) {
+             showError("Parolă Invalidă", "Parola trebuie să aibă cel puțin 8 caractere.");
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            const { data: authData, error: authError } = await supabase.functions.invoke('create-user-admin', {
+                body: { email: formData.email, password: formData.parola },
+            });
+
+            if (authError || authData.error) {
+                const errorMessage = authError?.message || authData?.error;
+                if (String(errorMessage).includes('User already exists')) {
+                     throw new Error('Un utilizator cu acest email există deja în sistemul de autentificare.');
+                }
+                throw new Error(errorMessage || 'A apărut o eroare la crearea contului de autentificare.');
+            }
+            
+            const newAuthUser = authData.user;
+            if (!newAuthUser || !newAuthUser.id) {
+                throw new Error('Funcția de creare a utilizatorului nu a returnat un ID valid.');
+            }
+
+            const newSportivProfile: Omit<Sportiv, 'id' | 'roluri' | 'cluburi'> = {
+                user_id: newAuthUser.id,
+                nume: formData.nume,
+                prenume: formData.prenume,
+                email: formData.email,
+                club_id: formData.club_id,
+                data_nasterii: '1990-01-01', // Placeholder
+                data_inscrierii: new Date().toISOString().split('T')[0],
+                status: 'Activ',
+                cnp: null,
+                familie_id: null,
+                tip_abonament_id: null,
+                participa_vacanta: false,
+                trebuie_schimbata_parola: true,
+            };
+
+            const { data: sportivData, error: sportivError } = await supabase
+                .from('sportivi')
+                .insert(newSportivProfile)
+                .select('*, cluburi(*)')
+                .single();
+
+            if (sportivError) {
+                throw new Error(`Contul de autentificare a fost creat, dar profilul nu. Ștergeți manual utilizatorul cu email-ul ${formData.email} din panoul Supabase. Eroare: ${sportivError.message}`);
+            }
+
+            const { error: roleError } = await supabase
+                .from('sportivi_roluri')
+                .insert({ sportiv_id: sportivData.id, rol_id: formData.rol_id });
+
+            if (roleError) {
+                throw new Error(`Profilul a fost creat, dar rolul nu a putut fi atribuit. Atribuiți-l manual din pagina de Management Utilizatori. Eroare: ${roleError.message}`);
+            }
+            
+            const rolAtribuit = allRoles.find(r => r.id === formData.rol_id);
+            const finalSportivObject: Sportiv = { ...sportivData, roluri: rolAtribuit ? [rolAtribuit] : [] };
+
+            setSportivi(prev => [...prev, finalSportivObject]);
+            showSuccess("Operațiune finalizată!", `${formData.nume} ${formData.prenume} a fost adăugat ca ${rolAtribuit?.nume}. Utilizatorul va trebui să-și schimbe parola la prima autentificare.`);
+            setFormData(initialStaffFormState);
+            onClose();
+
+        } catch (err: any) {
+            showError("Operațiune eșuată", err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+    
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title="Adaugă Membru Staff">
+            <form onSubmit={handleSave} className="space-y-6 pt-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Input label="Nume" name="nume" value={formData.nume} onChange={handleChange} required />
+                    <Input label="Prenume" name="prenume" value={formData.prenume} onChange={handleChange} required />
+                </div>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Input label="Email (pentru login)" name="email" type="email" value={formData.email} onChange={handleChange} required />
+                    <Input label="Parolă Inițială" name="parola" type="password" value={formData.parola} onChange={handleChange} required placeholder="Minim 8 caractere"/>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Select label="Rol" name="rol_id" value={formData.rol_id} onChange={handleChange} required>
+                        <option value="">Alege un rol...</option>
+                        {staffRoles.map(r => <option key={r.id} value={r.id}>{r.nume}</option>)}
+                    </Select>
+                    <Select label="Club" name="club_id" value={formData.club_id} onChange={handleChange} required>
+                        <option value="">Alege un club...</option>
+                        {clubs.map(c => <option key={c.id} value={c.id}>{c.nume}</option>)}
+                    </Select>
+                </div>
+                <div className="flex justify-end pt-4 border-t border-slate-700">
+                    <Button type="button" variant="secondary" onClick={onClose} className="mr-2">Anulează</Button>
+                    <Button type="submit" variant="success" isLoading={loading} className="px-8">
+                        Creează Utilizator
+                    </Button>
+                </div>
+            </form>
+        </Modal>
+    );
+};
+
 
 interface UserManagementProps {
     sportivi: Sportiv[];
@@ -156,14 +298,18 @@ interface UserManagementProps {
     setCurrentUser: React.Dispatch<React.SetStateAction<User | null>>;
     allRoles: Rol[];
     setAllRoles: React.Dispatch<React.SetStateAction<Rol[]>>;
+    clubs: Club[];
 }
 
-export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSportivi, onBack, isEmbedded = false, currentUser, setCurrentUser, allRoles, setAllRoles }) => {
+export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSportivi, onBack, isEmbedded = false, currentUser, setCurrentUser, allRoles, setAllRoles, clubs }) => {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [newRoleIds, setNewRoleIds] = useState<string[]>([]);
     const [userListFeedback, setUserListFeedback] = useState<{type: 'success' | 'error', message: string} | null>(null);
+    const [isCreateStaffModalOpen, setIsCreateStaffModalOpen] = useState(false);
 
     const { showError, showSuccess } = useError();
+    const { isFederationAdmin } = usePermissions(currentUser);
+    
     const [isCreateAccountModalOpen, setIsCreateAccountModalOpen] = useState(false);
     const [selectedUserForAccount, setSelectedUserForAccount] = useState<Sportiv | null>(null);
     const [createAccountForm, setCreateAccountForm] = useState({ email: '', username: '', parola: '' });
@@ -192,6 +338,12 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
         [allRoles, currentUserMaxWeight, roleWeights]
     );
 
+    const usersToDisplay = useMemo(() => {
+        return isFederationAdmin
+            ? sportivi
+            : sportivi.filter(s => s.club_id === currentUser.club_id);
+    }, [sportivi, currentUser, isFederationAdmin]);
+
 
     const handleEdit = (user: User) => {
         setEditingId(user.id);
@@ -211,13 +363,11 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
         const currentUserIsAdminClub = currentUser.roluri.some(r => r.nume === 'Admin Club');
         const currentUserIsFederationAdmin = currentUser.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'Admin');
         
-        // Verificare de securitate: Admin Club poate modifica doar utilizatorii din propriul club.
         if (currentUserIsAdminClub && !currentUserIsFederationAdmin && targetUser.club_id !== currentUser.club_id) {
             showError("Acces Interzis", "Administratorii de club pot modifica doar utilizatorii din propriul club.");
             return;
         }
         
-        // Verificare de securitate: Prevenirea auto-blocării.
         if (currentUser.id === userId) {
             const isLosingAdminRole = !newRoleIds.some(roleId => {
                 const role = allRoles.find(r => r.id === roleId);
@@ -229,7 +379,6 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
             }
         }
         
-        // Verificare ierarhie: Nu se poate acorda un rol superior.
         const assignedRolesWeight = newRoleIds.map(roleId => roleWeights[allRoles.find(r => r.id === roleId)?.nume || 'Sportiv'] || 0);
         if (assignedRolesWeight.some(weight => weight > currentUserMaxWeight)) {
             showError("Permisiune Refuzată", "Nu puteți acorda un rol cu privilegii mai mari decât rolul dumneavoastră.");
@@ -242,7 +391,6 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
             if (sportivRole) finalRoleIds.push(sportivRole.id);
         }
         
-        // Apelarea funcției RPC securizate
         const { error: rpcError } = await supabase.rpc('schimba_rol_utilizator', {
             p_user_id: userId,
             p_role_ids: finalRoleIds
@@ -253,7 +401,6 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
             return;
         }
         
-        // Actualizare stare locală la succes
         const updatedRoles = allRoles.filter(r => finalRoleIds.includes(r.id));
         setSportivi(prev => prev.map(s => s.id === userId ? { ...s, roluri: updatedRoles } : s));
         
@@ -315,13 +462,13 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                 setCreateAccountError(`Contul este deja asociat cu sportivul ${linkedProfile.nume} ${linkedProfile.prenume}.`);
             } else {
                 const profileUpdates = { user_id: existingUserId, email: createAccountForm.email, username: createAccountForm.username };
-                const { data: updateData, error: updateError } = await supabase.from('sportivi').update(profileUpdates).eq('id', selectedUserForAccount.id).select('*, roluri(id, nume)').single();
+                const { data: updateData, error: updateError } = await supabase.from('sportivi').update(profileUpdates).eq('id', selectedUserForAccount.id).select('*, sportivi_roluri(roluri(id, nume))').single();
 
                 if (updateError) {
                     setCreateAccountError(`Asociere eșuată la actualizarea profilului: ${updateError.message}`);
                 } else if (updateData) {
-                    const updatedUser = { ...updateData, roluri: (updateData as any).roluri || [] };
-                    setSportivi(prev => prev.map(s => s.id === selectedUserForAccount.id ? updatedUser : s));
+                    const updatedUser = { ...updateData, roluri: (updateData.sportivi_roluri || []).map((item: any) => item.roluri).filter(Boolean) };
+                    setSportivi(prev => prev.map(s => s.id === selectedUserForAccount.id ? updatedUser as Sportiv : s));
                     
                     setIsCreateAccountModalOpen(false);
                     setUserListFeedback({ type: 'success', message: `Sportivul a fost asociat cu succes contului existent!` });
@@ -377,7 +524,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
     
         if (authUser) {
             const profileUpdates = { user_id: authUser.id, email: createAccountForm.email, username: createAccountForm.username };
-            const { data, error } = await supabase.from('sportivi').update(profileUpdates).eq('id', selectedUserForAccount.id).select('*, roluri(id, nume)').single();
+            const { data, error } = await supabase.from('sportivi').update(profileUpdates).eq('id', selectedUserForAccount.id).select('*, sportivi_roluri(roluri(id, nume))').single();
     
             await supabase.auth.signOut().catch(()=>{});
             if (adminSession) {
@@ -387,8 +534,8 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
             if (error) {
                 setCreateAccountError(`Cont Auth creat (ID: ${authUser.id}), dar eroare la legarea profilului: ${error.message}. Încercați să asociați contul manual.`);
             } else if (data) {
-                const updatedUser = { ...data, roluri: (data as any).roluri || [] };
-                setSportivi(prev => prev.map(s => s.id === selectedUserForAccount.id ? updatedUser : s));
+                const updatedUser = { ...data, roluri: (data.sportivi_roluri || []).map((item: any) => item.roluri).filter(Boolean) };
+                setSportivi(prev => prev.map(s => s.id === selectedUserForAccount.id ? updatedUser as Sportiv : s));
                 
                 setIsCreateAccountModalOpen(false);
                 showSuccess("Cont Creat", `Contul pentru ${selectedUserForAccount.nume} a fost creat. Utilizatorul va trebui să confirme adresa de email.`);
@@ -455,9 +602,14 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                 </Card>
 
                 <Card>
-                    <div className="flex items-center gap-2 mb-4">
-                        <ShieldCheckIcon className="w-8 h-8 text-amber-400"/>
-                        <h2 className="text-2xl font-bold text-white">Panou Administrator - Management Roluri</h2>
+                    <div className="flex justify-between items-center gap-2 mb-4">
+                        <div className="flex items-center gap-2">
+                            <ShieldCheckIcon className="w-8 h-8 text-amber-400"/>
+                            <h2 className="text-2xl font-bold text-white">Administrare Staff & Roluri</h2>
+                        </div>
+                         <Button variant="info" onClick={() => setIsCreateStaffModalOpen(true)}>
+                            <PlusIcon className="w-5 h-5 mr-2" /> Adaugă Membru Staff
+                        </Button>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full text-left min-w-[800px]">
@@ -470,7 +622,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                                 </tr>
                             </thead>
                             <tbody>
-                                {sportivi.map(user => (
+                                {usersToDisplay.map(user => (
                                     <tr key={user.id} className="border-b border-slate-700">
                                         <td className="p-4 font-medium">{user.nume} {user.prenume}</td>
                                         <td className="p-4">{user.email}</td>
@@ -514,7 +666,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                                                 <td className="p-4 text-right w-32">
                                                     <div className="flex items-center justify-end gap-2">
                                                         {user.user_id ? (
-                                                            <Button onClick={() => handleEdit(user)} variant="primary" size="sm"><EditIcon /></Button>
+                                                            <Button onClick={() => handleEdit(user)} variant="primary" size="sm">Gestionează Roluri</Button>
                                                         ) : (
                                                             <Button onClick={() => handleOpenCreateAccountModal(user)} variant="info" size="sm">Creează Cont</Button>
                                                         )}
@@ -556,6 +708,14 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                     )}
                 </Modal>
             )}
+
+            <CreateStaffModal
+                isOpen={isCreateStaffModalOpen}
+                onClose={() => setIsCreateStaffModalOpen(false)}
+                clubs={clubs}
+                allRoles={allRoles}
+                setSportivi={setSportivi}
+            />
         </div>
     );
 };

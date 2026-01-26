@@ -1,5 +1,3 @@
-
-
 import React from 'react';
 import { View, Rol } from '../types';
 import { HomeIcon, UsersIcon, TrophyIcon, ClipboardDocumentListIcon, BanknotesIcon, CalendarDaysIcon, ArchiveBoxIcon, UserCircleIcon, ChatBubbleLeftEllipsisIcon, ShieldCheckIcon } from './icons';
@@ -28,7 +26,7 @@ export const adminMenu: MenuItem[] = [
              { label: 'Gestiune Familii', view: 'familii', roles: ['Admin', 'Instructor'] },
              { label: 'Structură Federație', view: 'structura-federatie', roles: ['SUPER_ADMIN_FEDERATIE', 'Admin'] },
              { label: 'Gestionare Cluburi', view: 'cluburi', roles: ['SUPER_ADMIN_FEDERATIE'] },
-             { label: 'Acces Utilizatori', view: 'user-management', roles: ['Admin', 'SUPER_ADMIN_FEDERATIE'] }
+             { label: 'Administrare Staff', view: 'user-management', roles: ['Admin', 'SUPER_ADMIN_FEDERATIE', 'Admin Club'] }
         ]
     },
     {
@@ -67,7 +65,6 @@ export const adminMenu: MenuItem[] = [
             { view: 'reduceri', label: 'Config. Reduceri' },
             { view: 'notificari', label: 'Trimite Anunțuri' },
             { view: 'nomenclatoare', label: 'Nomenclatoare', roles: ['Admin']},
-            { view: 'staff-management', label: 'Gestiune Staff', roles: ['Admin', 'SUPER_ADMIN_FEDERATIE'] },
             { view: 'setari-club', label: 'Configurare Federație', roles: ['SUPER_ADMIN_FEDERATIE'] }
         ] 
     },

@@ -43,7 +43,6 @@ import { useClubFilter } from './hooks/useClubFilter';
 import { MandatoryPasswordChange } from './components/MandatoryPasswordChange';
 import ErrorBoundary from './components/ErrorBoundary';
 import { SystemGuardian } from './components/SystemGuardian';
-import { GestiuneStaff } from './components/GestiuneStaff';
 import { RoleSwitcher } from './components/RoleSwitcher';
 
 function App() {
@@ -244,10 +243,7 @@ function App() {
         return <JurnalIncasari currentUser={currentUser} plati={plati} setPlati={setPlati} sportivi={sportivi} familii={familii} preturiConfig={preturiConfig} tipuriAbonament={tipuriAbonament} tipuriPlati={tipuriPlati} setTipuriPlati={setTipuriPlati} tranzactii={tranzactii} setTranzactii={setTranzactii} platiInitiale={[]} onIncasareProcesata={() => fetchData(currentUser.user_id!)} onBack={() => setActiveView('dashboard')} reduceri={reduceri} />;
 
       case 'user-management':
-        return <UserManagement sportivi={sportivi} setSportivi={setSportivi} currentUser={currentUser} setCurrentUser={setCurrentUser} allRoles={allRoles} setAllRoles={setAllRoles} onBack={() => setActiveView('dashboard')} />;
-      
-      case 'staff-management':
-        return permissions.isFederationAdmin ? <GestiuneStaff onBack={() => setActiveView('dashboard')} currentUser={currentUser} clubs={clubs} allRoles={allRoles} setSportivi={setSportivi} /> : <AccessDenied onBack={() => setActiveView('dashboard')} />;
+        return <UserManagement sportivi={sportivi} setSportivi={setSportivi} currentUser={currentUser} setCurrentUser={setCurrentUser} allRoles={allRoles} setAllRoles={setAllRoles} onBack={() => setActiveView('dashboard')} clubs={clubs} />;
 
       case 'cluburi':
         return <CluburiManagement clubs={clubs} setClubs={setClubs} onBack={() => setActiveView('dashboard')} currentUser={currentUser} />;

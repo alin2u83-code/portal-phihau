@@ -37,7 +37,7 @@ import { CalendarView } from './components/CalendarView';
 import { RapoarteExamen } from './components/RapoarteExamen';
 import { CluburiManagement } from './components/CluburiManagement';
 import { FederationStructure } from './components/FederationStructure';
-import { usePermissions } from './hooks/usePermissions';
+import { usePermissions, Permissions } from './hooks/usePermissions';
 import AccessDenied from './components/AccessDenied';
 import { useClubFilter } from './hooks/useClubFilter';
 import { MandatoryPasswordChange } from './components/MandatoryPasswordChange';
@@ -341,6 +341,7 @@ function App() {
             clubs={clubs}
             globalClubFilter={globalClubFilter}
             setGlobalClubFilter={setGlobalClubFilter}
+            permissions={permissions}
           />
           <main className={`flex-1 transition-all duration-300 ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'}`}>
             <AdminHeader currentUser={currentUser!} onNavigate={setActiveView} onLogout={handleLogout} plati={plati} permissions={permissions} />

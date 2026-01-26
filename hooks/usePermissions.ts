@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { User } from '../types';
+import { User, Rol } from '../types';
 
 export interface Permissions {
     isSuperAdmin: boolean;
@@ -38,7 +38,7 @@ export const usePermissions = (user: User | null): Permissions => {
         const isStaff = simpleRole === 'ADMIN_CLUB' || complexRoles.has('Instructor') || isAdmin;
         
         // hasAdminAccess, care controlează meniul admin, include acum toți super-adminii și staff-ul.
-        const hasAdminAccess = isSuperAdmin || isStaff;
+        const hasAdminAccess = isSuperAdmin || isStaff || complexRoles.has('Admin Club');
 
         // isAdminClub este actualizat pentru a verifica ambele sisteme de roluri.
         const isAdminClub = (simpleRole === 'ADMIN_CLUB' || complexRoles.has('Admin Club')) && !isFederationAdmin;

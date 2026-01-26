@@ -5,6 +5,7 @@ import { ArrowRightOnRectangleIcon, Bars3Icon, ChevronDownIcon, UserCircleIcon }
 import { AdminProfileQuickAccess } from './AdminProfileQuickAccess';
 import { Select } from './ui';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
+import { Permissions } from '../hooks/usePermissions';
 
 const NavItem: React.FC<{
     item: MenuItem;
@@ -77,41 +78,36 @@ interface SidebarProps {
     clubs: Club[];
     globalClubFilter: string | null;
     setGlobalClubFilter: React.Dispatch<React.SetStateAction<string | null>>;
+    permissions: Permissions;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLogout, activeView, isExpanded, setIsExpanded, plati, clubs, globalClubFilter, setGlobalClubFilter }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLogout, activeView, isExpanded, setIsExpanded, plati, clubs, globalClubFilter, setGlobalClubFilter, permissions }) => {
     const [isMobileOpen, setIsMobileOpen] = useState(false);
     
-    // Simplificarea logicii de roluri, bazându-se direct pe `currentUser.rol`
-    const userRol = currentUser?.rol || 'SPORTIV';
+    const menu = permissions.hasAdminAccess ? adminMenu : sportivMenu;
 
-    const isStaff = useMemo(() => 
-        ['SUPER_ADMIN_FEDERATIE', 'ADMIN_CLUB', 'INSTRUCTOR', 'Admin'].includes(userRol),
-    [userRol]);
-
-    const isPortalView = !isStaff;
-    
-    const isSuperAdmin = useMemo(() => 
-        userRol === 'SUPER_ADMIN_FEDERATIE' || userRol === 'Admin',
-    [userRol]);
-
-    const menu = isPortalView ? sportivMenu : adminMenu;
-
-    // Filtrarea meniului pe baza `currentUser.rol`
+    // Filtrarea corectă a meniului pe baza listei de roluri a utilizatorului
     const filteredMenu = useMemo(() => {
+        const userRoles = new Set((currentUser.roluri || []).map(r => r.nume));
+        if (currentUser.rol) {
+            userRoles.add(currentUser.rol as Rol['nume']);
+        }
+
         return menu.map(item => {
-            // Dacă un element de meniu are roluri definite, verifică dacă rolul utilizatorului este inclus
-            if (item.roles && !item.roles.includes(userRol as Rol['nume'])) {
+            // Verifică dacă utilizatorul are vreunul dintre rolurile necesare pentru elementul părinte
+            const hasParentAccess = !item.roles || item.roles.some(requiredRole => userRoles.has(requiredRole));
+            
+            if (!hasParentAccess) {
                 return null;
             }
 
-            // Dacă elementul are un submeniu, filtrează și elementele acestuia
+            // Dacă elementul are un submeniu, filtrează și elementele copil
             if (item.submenu) {
                 const filteredSubmenu = item.submenu.filter(subItem => 
-                    !subItem.roles || subItem.roles.includes(userRol as Rol['nume'])
+                    !subItem.roles || subItem.roles.some(requiredRole => userRoles.has(requiredRole))
                 );
 
-                // Dacă după filtrare nu mai rămâne niciun element în submeniu și elementul părinte nu are o vizualizare proprie, ascunde-l
+                // Dacă niciun copil nu este vizibil și părintele nu are o pagină proprie, ascunde părintele
                 if (filteredSubmenu.length === 0 && !item.view) {
                     return null;
                 }
@@ -121,7 +117,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
 
             return item;
         }).filter((item): item is MenuItem => item !== null);
-    }, [menu, userRol]);
+    }, [menu, currentUser.roluri, currentUser.rol]);
 
 
     const handleNavigate = (view: View) => {
@@ -135,7 +131,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
                {/* Spațiu gol lăsat intenționat după eliminarea logo-ului */}
             </div>
             
-             {isSuperAdmin && isExpanded && (
+             {permissions.isSuperAdmin && isExpanded && (
                 <div className="px-3 py-2 border-b border-white/10">
                     <Select
                         label="Filtrează Club"

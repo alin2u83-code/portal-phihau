@@ -273,6 +273,22 @@ CREATE POLICY "Athletes can manage their own announcements" ON public.anunturi_p
     USING (sportiv_id = public.get_my_sportiv_id())
     WITH CHECK (sportiv_id = public.get_my_sportiv_id());
 
+-- TABELUL: prezenta
+CALL public.reset_policies_for_table('prezenta');
+ALTER TABLE public.prezenta ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.prezenta FORCE ROW LEVEL SECURITY;
+
+CREATE POLICY "Super Admins have full access" ON public.prezenta FOR ALL 
+    USING (public.is_super_admin()) 
+    WITH CHECK (public.is_super_admin());
+
+CREATE POLICY "Club staff can manage attendance for their club" ON public.prezenta FOR ALL 
+    USING (public.is_club_staff() AND club_id = public.get_my_club_id()) 
+    WITH CHECK (public.is_club_staff() AND club_id = public.get_my_club_id());
+
+CREATE POLICY "Athletes can view their own attendance" ON public.prezenta FOR SELECT 
+    USING (sportiv_id = public.get_my_sportiv_id());
+
 -- TABELUL: notificari
 CALL public.reset_policies_for_table('notificari');
 ALTER TABLE public.notificari ENABLE ROW LEVEL SECURITY;

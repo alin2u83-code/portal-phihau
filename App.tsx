@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from './supabaseClient';
 import { Sportiv, SesiuneExamen, Grad, InscriereExamen, View, Antrenament, Grupa, Plata, Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, Rol, AnuntPrezenta, Reducere, AnuntGeneral, TipPlata, Locatie, Club, DecontFederatie } from './types';
-import { Dashboard } from './components/Dashboard';
+import { FinalUnifiedDashboard } from './components/FinalUnifiedDashboard';
 import { SportiviManagement } from './components/SportiviManagement';
 import { UserProfile } from './components/UserProfile';
 import { GestiuneExamene } from './components/Examene';
@@ -230,19 +230,25 @@ function App() {
   const renderContent = () => {
     if (!currentUser) return <AuthContainer />;
     if (currentUser.trebuie_schimbata_parola) return <MandatoryPasswordChange currentUser={currentUser} onPasswordChanged={initializeAndFetchData} />;
-
-    const isPortalView = !permissions.hasAdminAccess;
-
+    
     switch (activeView) {
       case 'dashboard':
-        if (isPortalView) {
-            return <SportivDashboard currentUser={currentUser} viewedUser={currentUser} participari={inscrieriExamene} examene={sesiuniExamene} grade={grade} grupe={grupe} plati={plati} onNavigate={setActiveView} antrenamente={antrenamente} anunturi={anunturiPrezenta} setAnunturi={setAnunturiPrezenta} sportivi={sportivi} />;
-        } else {
-            return <Dashboard currentUser={currentUser} onNavigate={setActiveView} deconturiFederatie={deconturiFederatie} permissions={permissions} clubs={clubs} antrenamente={antrenamente} sportivi={sportivi} grupe={grupe} />;
-        }
-      
       case 'my-portal':
-        return <SportivDashboard currentUser={currentUser} viewedUser={currentUser} participari={inscrieriExamene} examene={sesiuniExamene} grade={grade} grupe={grupe} plati={plati} onNavigate={setActiveView} antrenamente={antrenamente} anunturi={anunturiPrezenta} setAnunturi={setAnunturiPrezenta} sportivi={sportivi} />;
+        return <FinalUnifiedDashboard 
+            currentUser={currentUser} 
+            onNavigate={setActiveView} 
+            deconturiFederatie={deconturiFederatie} 
+            permissions={permissions} 
+            inscrieriExamene={inscrieriExamene}
+            plati={plati}
+            antrenamente={antrenamente}
+            anunturi={anunturiPrezenta}
+            setAnunturi={setAnunturiPrezenta}
+            sportivi={sportivi}
+            grade={grade}
+            grupe={grupe}
+            sesiuniExamene={sesiuniExamene}
+        />;
 
       case 'sportivi':
         return <SportiviManagement onBack={() => setActiveView('dashboard')} sportivi={sportivi} setSportivi={setSportivi} grupe={grupe} setGrupe={setGrupe} tipuriAbonament={tipuriAbonament} familii={familii} setFamilii={setFamilii} allRoles={allRoles} setAllRoles={setAllRoles} currentUser={currentUser} plati={plati} tranzactii={tranzactii} setTranzactii={setTranzactii} onViewSportiv={(s) => { setSelectedSportiv(s); setActiveView('profil-sportiv'); }} clubs={clubs} />;
@@ -296,7 +302,21 @@ function App() {
         return <RapoarteExamen currentUser={currentUser} clubs={clubs} onBack={() => setActiveView('dashboard')} sesiuni={sesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={sportivi} setSportivi={setSportivi} grade={grade} locatii={locatii} setLocatii={setLocatii} plati={plati} setPlati={setPlati} preturiConfig={preturiConfig} />;
 
       default:
-        return <Dashboard currentUser={currentUser} onNavigate={setActiveView} clubs={clubs} permissions={permissions} deconturiFederatie={deconturiFederatie} antrenamente={antrenamente} sportivi={sportivi} grupe={grupe} />;
+        return <FinalUnifiedDashboard 
+            currentUser={currentUser} 
+            onNavigate={setActiveView} 
+            deconturiFederatie={deconturiFederatie} 
+            permissions={permissions} 
+            inscrieriExamene={inscrieriExamene}
+            plati={plati}
+            antrenamente={antrenamente}
+            anunturi={anunturiPrezenta}
+            setAnunturi={setAnunturiPrezenta}
+            sportivi={sportivi}
+            grade={grade}
+            grupe={grupe}
+            sesiuniExamene={sesiuniExamene}
+        />;
     }
   };
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Rol } from '../types';
-import { HomeIcon, UsersIcon, TrophyIcon, ClipboardDocumentListIcon, BanknotesIcon, CalendarDaysIcon, ArchiveBoxIcon, UserCircleIcon, ChatBubbleLeftEllipsisIcon, ShieldCheckIcon } from './icons';
+import { HomeIcon, UsersIcon, TrophyIcon, ClipboardDocumentListIcon, BanknotesIcon, CalendarDaysIcon, UserCircleIcon, ShieldCheckIcon, ClipboardCheckIcon, ArchiveBoxIcon, CogIcon } from './icons';
 
 export interface MenuItem {
     label: string;
@@ -19,64 +19,44 @@ export interface SubMenuItem {
 export const adminMenu: MenuItem[] = [
     { label: 'Dashboard', icon: HomeIcon, view: 'dashboard' },
     { 
-        label: 'Sportivi', 
+        label: 'Gestiune Membri', 
         icon: UsersIcon,
         submenu: [
              { label: 'Listă Sportivi', view: 'sportivi' },
-             { label: 'Gestiune Familii', view: 'familii', roles: ['Admin', 'Instructor', 'Admin Club'] },
-             { label: 'Structură Federație', view: 'structura-federatie', roles: ['SUPER_ADMIN_FEDERATIE', 'Admin'] },
-             { label: 'Gestionare Cluburi', view: 'cluburi', roles: ['SUPER_ADMIN_FEDERATIE'] },
+             { label: 'Gestiune Familii', view: 'familii', roles: ['Admin', 'Instructor', 'Admin Club', 'SUPER_ADMIN_FEDERATIE'] },
+             { label: 'Nomenclator Grade', view: 'grade', roles: ['Admin', 'Instructor', 'Admin Club', 'SUPER_ADMIN_FEDERATIE'] },
              { label: 'Administrare Staff', view: 'user-management', roles: ['Admin', 'SUPER_ADMIN_FEDERATIE', 'Admin Club'] }
         ]
     },
     {
-        label: 'Evenimente',
+        label: 'Activitate Sală',
+        icon: ClipboardCheckIcon,
+        submenu: [
+            { label: 'Orar & Gestiune Grupe', view: 'grupe' },
+            { label: 'Generator Program', view: 'activitati' },
+            { label: 'Înregistrare Prezențe', view: 'prezenta' },
+            { label: 'Raport Prezențe', view: 'raport-prezenta' } 
+        ]
+    },
+    {
+        label: 'Evenimente & Examene',
         icon: TrophyIcon,
         submenu: [
-             { view: 'examene', label: 'Examene & Înscrieri' },
+             { view: 'examene', label: 'Sesiuni Examene' },
+             { view: 'stagii', label: 'Stagii & Competiții' },
              { view: 'rapoarte-examen', label: 'Rapoarte Examen' },
-             { view: 'stagii', label: 'Stagii' },
-             { view: 'competitii', label: 'Competiții' },
-             { view: 'grade', label: 'Nomenclator Grade' },
         ]
     },
     { 
-        label: 'Antrenamente', 
-        icon: ClipboardDocumentListIcon, 
-        submenu: [ 
-            { view: 'prezenta', label: 'Înregistrare Prezențe' }, 
-            { view: 'grupe', label: 'Orar & Gestiune Grupe' }, 
-            { view: 'activitati', label: 'Generator Program' },
-            { view: 'raport-prezenta', label: 'Raport Prezențe' } 
-        ] 
-    },
-    { label: 'Calendar', icon: CalendarDaysIcon, view: 'calendar' },
-    { 
-        label: 'Administrativ', 
+        label: 'Administrativ & Plăți', 
         icon: BanknotesIcon, 
         submenu: [ 
             { view: 'financial-dashboard', label: 'Dashboard Financiar' },
             { view: 'plati-scadente', label: 'Facturi & Plăți' }, 
-            { view: 'jurnal-incasari', label: 'Jurnal Încasări' }, 
             { view: 'deconturi-federatie', label: 'Deconturi Federație', roles: ['Admin Club', 'SUPER_ADMIN_FEDERATIE', 'Admin'] },
-            { view: 'raport-financiar', label: 'Raport Detaliat' },
             { view: 'tipuri-abonament', label: 'Config. Abonamente' }, 
-            { view: 'configurare-preturi', label: 'Taxe Grade', roles: ['Admin', 'Instructor', 'Admin Club'] },
-            { view: 'taxe-anuale', label: 'Taxe Anuale', roles: ['Admin', 'Instructor', 'Admin Club'] },
-            { view: 'reduceri', label: 'Config. Reduceri' },
-            { view: 'notificari', label: 'Trimite Anunțuri' },
-            { view: 'nomenclatoare', label: 'Nomenclatoare', roles: ['Admin', 'SUPER_ADMIN_FEDERATIE']},
-            { view: 'setari-club', label: 'Setări Club', roles: ['SUPER_ADMIN_FEDERATIE', 'Admin Club'] }
+            { view: 'configurare-preturi', label: 'Configurare Prețuri', roles: ['Admin', 'Instructor', 'Admin Club', 'SUPER_ADMIN_FEDERATIE'] },
         ] 
-    },
-    { 
-        label: 'Mentenanță', 
-        icon: ArchiveBoxIcon, 
-        roles: ['Admin'],
-        submenu: [
-            { view: 'data-maintenance', label: 'Backup & Audit' },
-            { view: 'data-inspector', label: 'Inspector Date (Debug)' }
-        ]
     },
 ];
 

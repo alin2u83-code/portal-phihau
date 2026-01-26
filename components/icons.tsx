@@ -5,7 +5,7 @@ import {
   LogOut, Menu, Wallet, BarChart3, Archive, FileDown, ChevronDown, X,
   ClipboardCheck, MessageCircleQuestion, Save, AlertTriangle, CheckCircle,
   ChevronLeft, ChevronRight, Printer, Check, ArrowRightLeft, Search, Bell, Network,
-  UploadCloud, Mail, Lock
+  UploadCloud, Mail, Lock, UserPlus, BookOpen, BookMarked, FileText
 } from 'lucide-react';
 
 export const PlusIcon = Plus;
@@ -47,3 +47,7 @@ export const SitemapIcon = Network;
 export const UploadCloudIcon = UploadCloud;
 export const MailIcon = Mail;
 export const LockIcon = Lock;
+export const UserPlusIcon = UserPlus;
+export const BookOpenIcon = BookOpen;
+export const BookMarkedIcon = BookMarked;
+export const FileTextIcon = FileText;

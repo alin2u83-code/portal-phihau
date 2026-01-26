@@ -45,7 +45,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { SystemGuardian } from './components/SystemGuardian';
 import { RoleSwitcher } from './components/RoleSwitcher';
 import { getAuthenticatedUser } from './utils/auth';
-import AdminDashboard from './components/AdminDashboard';
+import { DashboardHome } from './components/DashboardHome';
 import { FederationInvoices } from './components/FederationInvoices';
 
 function App() {
@@ -212,7 +212,7 @@ function App() {
     switch (activeView) {
       case 'dashboard':
         if (permissions.isAdminClub) {
-            return <AdminDashboard currentUser={currentUser} />;
+            return <DashboardHome currentUser={currentUser} onNavigate={setActiveView} />;
         }
         return isPortalView ? 
           <SportivDashboard currentUser={currentUser} viewedUser={currentUser} participari={inscrieriExamene} examene={sesiuniExamene} grade={grade} grupe={grupe} plati={plati} onNavigate={setActiveView} antrenamente={antrenamente} anunturi={anunturiPrezenta} setAnunturi={setAnunturiPrezenta} sportivi={sportivi} /> : 

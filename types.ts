@@ -1,3 +1,4 @@
+
 export interface Rol {
   id: string;
   nume: 'Sportiv' | 'Instructor' | 'Admin' | 'SUPER_ADMIN_FEDERATIE' | 'Admin Club';
@@ -9,6 +10,14 @@ export interface Club {
   cif?: string | null;
   oras?: string | null;
   federatie_id?: string | null;
+}
+
+export interface ClubStats {
+  id: string;
+  nume: string;
+  totalSportivi: number;
+  totalGrupe: number;
+  soldFinanciar: number;
 }
 
 export interface Sportiv {
@@ -35,7 +44,7 @@ export interface Sportiv {
   puncte_slabe?: string | null;
   obiective?: string | null;
   trebuie_schimbata_parola?: boolean;
-  [key: string]: any; // Permite adăugarea de câmpuri custom
+  [key: string]: any; 
 }
 
 export interface Grad {
@@ -43,8 +52,8 @@ export interface Grad {
   nume: string;
   ordine: number;
   varsta_minima: number;
-  timp_asteptare: string; // ex: "6 luni"
-  grad_start_id: string | null; // ID-ul gradului necesar pentru a da acest examen
+  timp_asteptare: string; 
+  grad_start_id: string | null; 
 }
 
 export interface SesiuneExamen {
@@ -67,7 +76,7 @@ export interface InscriereExamen {
     sportiv_id: string;
     sesiune_id: string;
     plata_id: string | null;
-    grad_vizat_id: string; // Renamed from grad_sustinut_id
+    grad_vizat_id: string; 
     grad_actual_id: string | null;
     varsta_la_examen: number;
     observatii?: string;
@@ -86,16 +95,6 @@ export interface IstoricGrade {
     grad_id: string;
     data_obtinere: string;
     sesiune_examen_id?: string;
-}
-
-export interface IstoricTransfer {
-    id: string;
-    created_at: string;
-    sportiv_id: string;
-    club_vechi_id: string | null;
-    club_nou_id: string;
-    data_transfer: string;
-    aprobat_de_user_id: string;
 }
 
 export interface ProgramItem {
@@ -232,7 +231,7 @@ export interface AnuntGeneral {
 
 export type User = Sportiv;
 
-export type View = 'dashboard' | 'sportivi' | 'examene' | 'grade' | 'prezenta' | 'grupe' | 'raport-prezenta' | 'stagii' | 'competitii' | 'plati-scadente' | 'jurnal-incasari' | 'raport-financiar' | 'configurare-preturi' | 'tipuri-abonament' | 'familii' | 'user-management' | 'editare-profil-personal' | 'evenimentele-mele' | 'data-maintenance' | 'activitati' | 'my-portal' | 'setari-club' | 'data-inspector' | 'profil-sportiv' | 'reduceri' | 'notificari' | 'taxe-anuale' | 'nomenclatoare' | 'financial-dashboard' | 'istoric-examene' | 'facturi-personale' | 'finalizare-examen' | 'calendar' | 'rapoarte-examen' | 'cluburi';
+export type View = 'dashboard' | 'sportivi' | 'examene' | 'grade' | 'prezenta' | 'grupe' | 'raport-prezenta' | 'stagii' | 'competitii' | 'plati-scadente' | 'jurnal-incasari' | 'raport-financiar' | 'configurare-preturi' | 'tipuri-abonament' | 'familii' | 'user-management' | 'editare-profil-personal' | 'evenimentele-mele' | 'data-maintenance' | 'activitati' | 'my-portal' | 'setari-club' | 'data-inspector' | 'profil-sportiv' | 'reduceri' | 'notificari' | 'taxe-anuale' | 'nomenclatoare' | 'financial-dashboard' | 'istoric-examene' | 'facturi-personale' | 'finalizare-examen' | 'calendar' | 'rapoarte-examen' | 'cluburi' | 'structura-federatie';
 
 export type Participare = InscriereExamen;
 export type Examen = SesiuneExamen;

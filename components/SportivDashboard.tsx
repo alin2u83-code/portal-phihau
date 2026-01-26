@@ -66,17 +66,23 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
 
     return (
         <div className="space-y-6">
-            {isViewingOwnProfile && <NotificationPermissionWidget />}
+            {/* 1. Acțiunile de prezență - Mutate în vârful absolut al Dashboard-ului */}
             {isViewingOwnProfile && (
-                <div className="space-y-4">
-                    <h2 className="text-xl font-bold text-white -mb-2">Acțiuni Rapide</h2>
+                <div className="animate-fade-in-down">
                     <AthleteQuickActions currentUser={currentUser} antrenamente={antrenamente} anunturi={anunturi} setAnunturi={setAnunturi} />
                 </div>
             )}
             
-            <header className="text-center md:text-left">
+            {/* 2. Header-ul cu numele și grupa */}
+            <header className="text-center md:text-left border-b border-slate-700/50 pb-4">
                 <h1 className="text-3xl font-bold text-white">{viewedUser.nume} {viewedUser.prenume}</h1>
                 <p className="text-lg text-slate-300">{grupaCurenta}</p>
+                {/* Notificările le mutăm aici, sub header, pentru a nu aglomera zona de prezență */}
+                {isViewingOwnProfile && (
+                    <div className="mt-4 max-w-md">
+                        <NotificationPermissionWidget />
+                    </div>
+                )}
             </header>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

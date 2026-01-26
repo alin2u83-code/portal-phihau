@@ -3,6 +3,7 @@ import { User, Antrenament, AnuntPrezenta } from '../types';
 import { Card, Button } from './ui';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
+import { CheckIcon } from './icons';
 
 type AnuntStatus = 'Confirm' | 'Intarziat' | 'Absent';
 
@@ -22,20 +23,20 @@ const TrainingActionCard: React.FC<TrainingActionCardProps> = ({ training, anunt
     };
 
     const getButtonClasses = (status: AnuntStatus) => {
-        const base = 'text-white font-bold transition-all duration-200 active:scale-95';
+        const base = 'text-white font-bold transition-all duration-200 active:scale-95 flex items-center justify-center gap-2';
         
         const styles: Record<AnuntStatus, { bg: string; hover: string; }> = {
             Confirm: {
                 bg: 'bg-emerald-600',
-                hover: 'hover:bg-emerald-500 hover:shadow-glow-blue',
+                hover: 'hover:bg-emerald-500 hover:shadow-glow-blue hover:scale-105',
             },
             Intarziat: {
                 bg: 'bg-amber-600',
-                hover: 'hover:bg-amber-500 hover:ring-2 hover:ring-white hover:ring-offset-2 hover:ring-offset-light-navy',
+                hover: 'hover:bg-amber-500 hover:ring-2 hover:ring-white',
             },
             Absent: {
                 bg: 'bg-rose-700',
-                hover: 'hover:bg-rose-600 hover:shadow-glow-blue hover:scale-105',
+                hover: 'hover:bg-rose-600 hover:opacity-100',
             }
         };
 
@@ -49,7 +50,7 @@ const TrainingActionCard: React.FC<TrainingActionCardProps> = ({ training, anunt
         ];
 
         if (isSelected) {
-            classes.push('ring-2 ring-white ring-offset-2 ring-offset-light-navy');
+            classes.push('ring-2 ring-white ring-offset-2 ring-offset-light-navy scale-[1.02]');
         }
 
         if (isInactive) {
@@ -65,9 +66,16 @@ const TrainingActionCard: React.FC<TrainingActionCardProps> = ({ training, anunt
                 Antrenamentul de azi: {new Date(training.data + 'T' + training.ora_start).toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' })}
             </h3>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-                <Button onClick={() => handleClick('Confirm')} className={getButtonClasses('Confirm')} disabled={loading}>Particip</Button>
+                <Button 
+                    onClick={() => handleClick('Confirm')} 
+                    className={getButtonClasses('Confirm')} 
+                    disabled={loading}
+                >
+                    Participă
+                    <CheckIcon className="w-5 h-5 text-green-200" />
+                </Button>
                 <Button onClick={() => handleClick('Intarziat')} className={getButtonClasses('Intarziat')} disabled={loading}>Întârzii</Button>
-                <Button onClick={() => handleClick('Absent')} className={getButtonClasses('Absent')} disabled={loading}>Nu vin</Button>
+                <Button onClick={() => handleClick('Absent')} className={getButtonClasses('Absent')} disabled={loading}>Absent</Button>
             </div>
         </Card>
     );

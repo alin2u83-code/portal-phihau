@@ -1,7 +1,8 @@
-import React, { useState, useCallback, useEffect } from 'react';
+
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { Sportiv, Grupa, Familie, TipAbonament, Club, User } from '../types';
 import { Button, Modal, Input, Select, FormSection, Switch } from './ui';
-import { PlusIcon } from './icons';
+import { PlusIcon, ExclamationTriangleIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { BirthDateInput } from './BirthDateInput';
@@ -55,7 +56,6 @@ const initialFormState: Partial<Sportiv> = {
     data_nasterii: ''
 };
 
-// --- Componente noi pentru UI Formular (MODIFICAT) ---
 interface SportivFormFieldsProps {
     initialData: Partial<Sportiv>;
     onFormChange: (data: Partial<Sportiv>, isValid: boolean) => void;
@@ -84,7 +84,15 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
     const [formData, setFormData] = useState(initialData);
     const [errors, setErrors] = useState<Record<string, string>>({});
     
-    const isClubAdmin = currentUser?.roluri.some(r => r.nume === 'Admin Club') || false;
+    const isSuperAdmin = useMemo(() => 
+        currentUser?.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'Admin'), 
+        [currentUser]
+    );
+
+    const isClubAdmin = useMemo(() => 
+        !isSuperAdmin && currentUser?.roluri.some(r => r.nume === 'Admin Club' || r.nume === 'Instructor'), 
+        [currentUser, isSuperAdmin]
+    );
 
     const validate = useCallback((data: Partial<Sportiv>) => {
         const newErrors: Record<string, string> = {};
@@ -92,37 +100,23 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
         if (!data.prenume?.trim()) newErrors.prenume = "Prenumele este obligatoriu.";
         if (!data.data_nasterii) {
             newErrors.data_nasterii = "Data nașterii este obligatorie.";
-        } else {
-            const birthYear = new Date(data.data_nasterii).getFullYear();
-            if (birthYear < 1950 || birthYear > new Date().getFullYear() - 3) {
-                newErrors.data_nasterii = "Anul nașterii pare invalid.";
-            }
         }
-        if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-            newErrors.email = "Adresa de email nu este validă.";
-        }
-        if (data.cnp && (data.cnp.length !== 13 || !/^\d+$/.test(data.cnp))) {
-            newErrors.cnp = "CNP-ul trebuie să conțină 13 cifre.";
-        }
-        
         return newErrors;
     }, []);
 
     useEffect(() => {
         let data = { ...initialData };
-        if (isClubAdmin && !data.club_id) {
+        if (!isSuperAdmin && !data.club_id) {
             data.club_id = currentUser?.club_id;
         }
         setFormData(data);
         const initialErrors = validate(data);
         setErrors(initialErrors);
         onFormChange(data, Object.keys(initialErrors).length === 0);
-    }, [initialData, onFormChange, validate, isClubAdmin, currentUser]);
-
+    }, [initialData, onFormChange, validate, isSuperAdmin, currentUser]);
 
     const handleChange = (e: any) => {
         const { name, value, type, checked } = e.target;
-        
         const updatedData: Partial<Sportiv> = { ...formData };
         let finalValue: any;
 
@@ -138,13 +132,8 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
         }
 
         updatedData[name as keyof Sportiv] = finalValue;
-
-        if (name === 'familie_id' && finalValue) {
-            updatedData.tip_abonament_id = null;
-        }
         
         setFormData(updatedData);
-        
         const newErrors = validate(updatedData);
         setErrors(newErrors);
         onFormChange(updatedData, Object.keys(newErrors).length === 0);
@@ -153,67 +142,40 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
     return (
         <div className="space-y-4">
             <FormSection title="Date Personale">
-                <Input label="Nume" name="nume" value={formData.nume || ''} onChange={handleChange} required disabled={loading} className="!py-1.5" error={errors.nume} />
-                <Input label="Prenume" name="prenume" value={formData.prenume || ''} onChange={handleChange} required disabled={loading} className="!py-1.5" error={errors.prenume} />
+                <Input label="Nume" name="nume" value={formData.nume || ''} onChange={handleChange} required disabled={loading} error={errors.nume} />
+                <Input label="Prenume" name="prenume" value={formData.prenume || ''} onChange={handleChange} required disabled={loading} error={errors.prenume} />
                 <BirthDateInput label="Data Nașterii" value={formData.data_nasterii} onChange={(v) => handleChange({ target: { name: 'data_nasterii', value: v } })} required error={errors.data_nasterii}/>
-                <Input label="Email (Opțional)" name="email" type="email" value={formData.email || ''} onChange={handleChange} disabled={loading} className="!py-1.5" error={errors.email}/>
-                <Input label="CNP (Opțional)" name="cnp" value={formData.cnp || ''} onChange={handleChange} maxLength={13} disabled={loading} className="!py-1.5" error={errors.cnp} />
-                 <Select label="Club" name="club_id" value={formData.club_id || ''} onChange={handleChange} disabled={loading || isClubAdmin} className="!py-1.5">
-                    <option value="">Nespecificat</option>
-                    {clubs.map(c => <option key={c.id} value={c.id}>{c.id === FEDERATIE_ID ? FEDERATIE_NAME : c.nume}</option>)}
+                 <Select label="Club" name="club_id" value={formData.club_id || ''} onChange={handleChange} disabled={loading || !isSuperAdmin}>
+                    {!isSuperAdmin && <option value={currentUser?.club_id || ''}>{clubs.find(c => c.id === currentUser?.club_id)?.nume || 'Clubul Meu'}</option>}
+                    {isSuperAdmin && (
+                        <>
+                            <option value="">Nespecificat</option>
+                            {clubs.map(c => <option key={c.id} value={c.id}>{c.id === FEDERATIE_ID ? FEDERATIE_NAME : c.nume}</option>)}
+                        </>
+                    )}
                 </Select>
             </FormSection>
 
             <FormSection title="Club & Antrenament">
                 <div className="flex gap-1 items-end">
-                    <Select label="Grupă" name="grupa_id" value={formData.grupa_id || ''} onChange={handleChange} disabled={loading} className="flex-grow !py-1.5">
+                    <Select label="Grupă" name="grupa_id" value={formData.grupa_id || ''} onChange={handleChange} disabled={loading} className="flex-grow">
                         <option value="">Fără grupă</option>
-                        {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
+                        {grupe.filter(g => !formData.club_id || g.club_id === formData.club_id).map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
                     </Select>
                     <Button type="button" variant="secondary" size="sm" onClick={onQuickAddGrupa} className="h-[34px]"><PlusIcon className="w-4 h-4"/></Button>
                 </div>
-                 {!formData.familie_id && (
-                    <Select
-                        label="Abonament"
-                        name="tip_abonament_id"
-                        value={formData.tip_abonament_id || ''}
-                        onChange={handleChange}
-                        disabled={loading}
-                        className="!py-1.5"
-                    >
-                        <option value="">Niciunul (automat)</option>
-                        {tipuriAbonament.map(t => (
-                            <option key={t.id} value={t.id}>
-                                {`${t.denumire} (${t.numar_membri} ${t.numar_membri === 1 ? 'membru' : 'membri'}) - ${t.pret} RON`}
-                            </option>
-                        ))}
-                    </Select>
-                )}
                 <div className="flex gap-1 items-end">
-                    <Select label="Familie" name="familie_id" value={formData.familie_id || ''} onChange={handleChange} disabled={loading} className="flex-grow !py-1.5">
+                    <Select label="Familie" name="familie_id" value={formData.familie_id || ''} onChange={handleChange} disabled={loading} className="flex-grow">
                         <option value="">Individual</option>
                         {familii.map(f => <option key={f.id} value={f.id}>{f.nume}</option>)}
                     </Select>
                     <Button type="button" variant="secondary" size="sm" onClick={onQuickAddFamilie} className="h-[34px]"><PlusIcon className="w-4 h-4"/></Button>
-                </div>
-                <Select label="Status" name="status" value={formData.status || 'Activ'} onChange={handleChange} disabled={loading} className="!py-1.5">
-                    <option value="Activ">Activ</option>
-                    <option value="Inactiv">Inactiv</option>
-                </Select>
-            </FormSection>
-
-            <FormSection title="Opțiuni">
-                 <Input label="Înălțime (cm)" name="inaltime" type="number" value={formData.inaltime || ''} onChange={handleChange} disabled={loading} className="!py-1.5" />
-                 <div className="flex items-center pt-5">
-                    <Switch label="Participă Vacanță" name="participa_vacanta" checked={!!formData.participa_vacanta} onChange={handleChange} />
                 </div>
             </FormSection>
         </div>
     );
 };
 
-
-// --- Formular Sportiv Principal (MODIFICAT) ---
 export const SportivFormModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
@@ -227,31 +189,20 @@ export const SportivFormModal: React.FC<{
     clubs: Club[];
     currentUser: User | null;
 }> = ({ 
-  isOpen,
-  onClose,
-  onSave,
-  sportivToEdit,
-  grupe,
-  setGrupe,
-  familii,
-  setFamilii,
-  tipuriAbonament,
-  clubs,
-  currentUser
+  isOpen, onClose, onSave, sportivToEdit, grupe, setGrupe, familii, setFamilii, tipuriAbonament, clubs, currentUser
 }) => {
     const { showError, showSuccess } = useError();
     const [loading, setLoading] = useState(false);
-    const [initialData, setInitialData] = useState<Partial<Sportiv>>(initialFormState);
     const [formData, setFormData] = useState<Partial<Sportiv>>(initialFormState);
     const [isFormValid, setIsFormValid] = useState(false);
     const [isGrupaModalOpen, setIsGrupaModalOpen] = useState(false);
     const [isFamilieModalOpen, setIsFamilieModalOpen] = useState(false);
+    const [criticalPermissionError, setCriticalPermissionError] = useState<string | null>(null);
 
     useEffect(() => {
         if (isOpen) {
-            const data = sportivToEdit || initialFormState;
-            setInitialData(data);
-            setFormData(data);
+            setFormData(sportivToEdit || initialFormState);
+            setCriticalPermissionError(null);
         }
     }, [isOpen, sportivToEdit]);
     
@@ -262,6 +213,15 @@ export const SportivFormModal: React.FC<{
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setCriticalPermissionError(null);
+
+        const isSuperAdmin = currentUser?.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'Admin');
+        
+        // Verificare critică Multi-Tenancy
+        if (!isSuperAdmin && formData.club_id && formData.club_id !== currentUser?.club_id) {
+            setCriticalPermissionError(`Tentativă de modificare neautorizată! Nu aveți drepturi de administrare pentru clubul selectat.`);
+            return;
+        }
 
         if (!isFormValid) {
             showError("Formular Invalid", "Vă rugăm corectați erorile înainte de a salva.");
@@ -272,16 +232,13 @@ export const SportivFormModal: React.FC<{
         try {
             const { roluri, id, created_at, parola, ...cleanData } = formData;
             const result = await onSave(cleanData);
-            
             if (result.success) {
-                showSuccess('Succes', sportivToEdit ? 'Sportiv actualizat cu succes!' : 'Sportiv adăugat cu succes!');
+                showSuccess('Succes', sportivToEdit ? 'Sportiv actualizat!' : 'Sportiv adăugat!');
                 onClose();
             } else {
-                console.error("Eroare la salvare (posibil RLS):", result.error); 
                 showError("Eroare Salvare", result.error);
             }
         } catch (err) {
-             console.error("Eroare Critică la handleSubmit:", err);
             showError("Eroare Critică", err);
         } finally {
             setLoading(false);
@@ -289,43 +246,56 @@ export const SportivFormModal: React.FC<{
     };
 
     const handleQuickAddGrupa = async (nume: string) => {
-        const { data, error } = await supabase.from('grupe').insert({ denumire: nume, sala: 'N/A' }).select().single();
+        const { data, error } = await supabase.from('grupe').insert({ 
+            denumire: nume, 
+            sala: 'N/A', 
+            club_id: isSuperAdmin ? null : currentUser?.club_id 
+        }).select().single();
         if (error) throw error;
         setGrupe(prev => [...prev, { ...data, program: [] }]);
-        setInitialData(p => ({ ...p, grupa_id: data.id }));
     };
 
-    const handleQuickAddFamilie = async (nume: string) => {
-        const { data, error } = await supabase.from('familii').insert({ nume }).select().single();
-        if (error) throw error;
-        setFamilii(prev => [...prev, data]);
-        setInitialData(p => ({ ...p, familie_id: data.id }));
-    };
+    const isSuperAdmin = currentUser?.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'Admin');
 
     return (
         <>
             <Modal isOpen={isOpen} onClose={onClose} title={sportivToEdit ? "Editează Sportiv" : "Adaugă Sportiv"} persistent>
-                <form onSubmit={handleSubmit}>
-                    <SportivFormFields
-                        initialData={initialData}
-                        onFormChange={handleFormChange}
-                        loading={loading}
-                        grupe={grupe}
-                        familii={familii}
-                        tipuriAbonament={tipuriAbonament}
-                        clubs={clubs}
-                        currentUser={currentUser}
-                        onQuickAddGrupa={() => setIsGrupaModalOpen(true)}
-                        onQuickAddFamilie={() => setIsFamilieModalOpen(true)}
-                    />
-                    <div className="flex justify-end pt-4 mt-4 gap-2 border-t border-slate-700">
-                        <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Închide</Button>
-                        <Button type="submit" variant="primary" isLoading={loading} disabled={!isFormValid || loading}>Salvează</Button>
+                {criticalPermissionError ? (
+                    <div className="p-6 rounded-lg bg-[#112240] border-2 border-red-500 text-center animate-fade-in-down">
+                        <ExclamationTriangleIcon className="w-12 h-12 text-red-500 mx-auto mb-4" />
+                        <h3 className="text-xl font-bold text-red-400 mb-2">Eroare de Securitate</h3>
+                        <p className="text-slate-300 mb-6">{criticalPermissionError}</p>
+                        <Button variant="danger" onClick={() => setCriticalPermissionError(null)} className="w-full">
+                            Am înțeles, reîncearcă
+                        </Button>
                     </div>
-                </form>
+                ) : (
+                    <form onSubmit={handleSubmit}>
+                        <SportivFormFields
+                            initialData={formData}
+                            onFormChange={handleFormChange}
+                            loading={loading}
+                            grupe={grupe}
+                            familii={familii}
+                            tipuriAbonament={tipuriAbonament}
+                            clubs={clubs}
+                            currentUser={currentUser}
+                            onQuickAddGrupa={() => setIsGrupaModalOpen(true)}
+                            onQuickAddFamilie={() => setIsFamilieModalOpen(true)}
+                        />
+                        <div className="flex justify-end pt-4 mt-4 gap-2 border-t border-slate-700">
+                            <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Închide</Button>
+                            <Button type="submit" variant="primary" isLoading={loading} disabled={!isFormValid || loading}>Salvează</Button>
+                        </div>
+                    </form>
+                )}
             </Modal>
-            <QuickAddModal title="Adaugă Grupă Nouă" label="Nume Grupă" isOpen={isGrupaModalOpen} onClose={() => setIsGrupaModalOpen(false)} onSave={handleQuickAddGrupa} />
-            <QuickAddModal title="Adaugă Familie Nouă" label="Nume Familie" isOpen={isFamilieModalOpen} onClose={() => setIsFamilieModalOpen(false)} onSave={handleQuickAddFamilie} />
+            <QuickAddModal title="Adaugă Grupă" label="Nume Grupă" isOpen={isGrupaModalOpen} onClose={() => setIsGrupaModalOpen(false)} onSave={handleQuickAddGrupa} />
+            <QuickAddModal title="Adaugă Familie" label="Nume Familie" isOpen={isFamilieModalOpen} onClose={() => setIsFamilieModalOpen(false)} onSave={async (n) => {
+                const { data, error } = await supabase.from('familii').insert({ nume: n }).select().single();
+                if (error) throw error;
+                setFamilii(prev => [...prev, data]);
+            }} />
         </>
     );
 };

@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { View, Rol } from '../types';
-import { HomeIcon, UsersIcon, TrophyIcon, ClipboardDocumentListIcon, BanknotesIcon, CalendarDaysIcon, ArchiveBoxIcon, UserCircleIcon, ChatBubbleLeftEllipsisIcon } from './icons';
+import { HomeIcon, UsersIcon, TrophyIcon, ClipboardDocumentListIcon, BanknotesIcon, CalendarDaysIcon, ArchiveBoxIcon, UserCircleIcon, ChatBubbleLeftEllipsisIcon, ShieldCheckIcon } from './icons';
 
 export interface MenuItem {
     label: string;
@@ -24,7 +25,8 @@ export const adminMenu: MenuItem[] = [
         submenu: [
              { label: 'Listă Sportivi', view: 'sportivi' },
              { label: 'Gestiune Familii', view: 'familii', roles: ['Admin', 'Instructor'] },
-             { label: 'Gestionare Federație', view: 'cluburi', roles: ['SUPER_ADMIN_FEDERATIE'] },
+             { label: 'Structură Federație', view: 'structura-federatie', roles: ['SUPER_ADMIN_FEDERATIE', 'Admin'] },
+             { label: 'Gestionare Cluburi', view: 'cluburi', roles: ['SUPER_ADMIN_FEDERATIE'] },
              { label: 'Acces Utilizatori', view: 'user-management', roles: ['Admin', 'SUPER_ADMIN_FEDERATIE'] }
         ]
     },

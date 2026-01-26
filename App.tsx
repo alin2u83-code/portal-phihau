@@ -47,6 +47,7 @@ import { RoleSwitcher } from './components/RoleSwitcher';
 import { getAuthenticatedUser } from './utils/auth';
 import { FederationInvoices } from './components/FederationInvoices';
 import { MartialAttendance } from './components/MartialAttendance';
+import { AccountSettings } from './components/AccountSettings';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -284,6 +285,9 @@ function App() {
       
       case 'istoric-prezenta':
         return <MartialAttendance currentUser={currentUser} antrenamente={antrenamente} grupe={grupe} onBack={() => setActiveView('my-portal')} />;
+
+      case 'account-settings':
+        return <AccountSettings currentUser={currentUser} onBack={() => setActiveView('my-portal')} />;
 
       case 'data-maintenance':
         return <BackupManager onBack={() => setActiveView('dashboard')} onDataRestored={() => window.location.reload()} sportivi={sportivi} setSportivi={setSportivi} grade={grade} preturiConfig={preturiConfig} participari={inscrieriExamene} examene={sesiuniExamene} plati={plati} setPlati={setPlati} familii={familii} onNavigate={setActiveView} />;

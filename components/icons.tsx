@@ -5,7 +5,7 @@ import {
   LogOut, Menu, Wallet, BarChart3, Archive, FileDown, ChevronDown, X,
   ClipboardCheck, MessageCircleQuestion, Save, AlertTriangle, CheckCircle,
   ChevronLeft, ChevronRight, Printer, Check, ArrowRightLeft, Search, Bell, Network,
-  UploadCloud
+  UploadCloud, Mail, Lock
 } from 'lucide-react';
 
 export const PlusIcon = Plus;
@@ -45,3 +45,5 @@ export const BellIcon = Bell;
 export const SitemapIcon = Network;
 // FIX: Export UploadCloudIcon, which is used in FederationInvoices.tsx.
 export const UploadCloudIcon = UploadCloud;
+export const MailIcon = Mail;
+export const LockIcon = Lock;

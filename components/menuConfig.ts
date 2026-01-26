@@ -87,6 +87,7 @@ export const sportivMenu: MenuItem[] = [
         submenu: [
             { label: 'Dashboard', view: 'my-portal' },
             { label: 'Evenimentele Mele', view: 'evenimentele-mele' },
+            { label: 'Setări Cont', view: 'account-settings' },
         ]
     },
 ];

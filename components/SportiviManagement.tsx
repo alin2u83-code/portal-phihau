@@ -102,7 +102,7 @@ export const SportiviManagement: React.FC<{
                 );
             },
         },
-        { key: 'club_id', label: 'Club', render: (s) => s.cluburi ? (s.cluburi.id === FEDERATIE_ID ? FEDERATIE_NAME : s.cluburi.nume) : '-' },
+        { key: 'club_id', label: 'Club', render: (s) => s.cluburi?.id === FEDERATIE_ID ? FEDERATIE_NAME : s.cluburi?.nume || '-' },
         { 
             key: 'roluri', 
             label: 'Roluri', 

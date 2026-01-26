@@ -22,7 +22,16 @@ const NavCard: React.FC<{ title: string; description: string; icon: React.Elemen
 );
 
 // Header sub-component
-const DashboardHeader: React.FC<{ userRole: UserRole; clubName?: string }> = ({ userRole, clubName }) => {
+const DashboardHeader: React.FC<{ userRole: UserRole; clubName?: string | null }> = ({ userRole, clubName }) => {
+    if (userRole !== 'SUPER_ADMIN_FEDERATIE' && clubName === null) {
+        return (
+            <div className="bg-red-900/50 text-white p-6 rounded-lg shadow-lg mb-8 text-center sm:text-left border border-red-700/50">
+                <h1 className="text-2xl font-bold text-red-300">Profil Nealocat</h1>
+                <p className="mt-1 text-red-200">Profil nealocat unui club. Contactați administratorul Lungu Alin.</p>
+            </div>
+        )
+    }
+
     if (userRole === 'SUPER_ADMIN_FEDERATIE') {
         return (
             <div className="bg-[var(--bg-card)] text-white p-6 rounded-lg shadow-lg mb-8 text-center sm:text-left">
@@ -85,10 +94,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ currentUser, onNavigate, c
             role = 'SPORTIV';
         }
         
-        // FIX: Use optional chaining and a fallback to prevent "reading 'nume' of null" error on login.
-        const clubDisplayName = currentUser?.cluburi?.id === FEDERATIE_ID 
-            ? FEDERATIE_NAME 
-            : currentUser?.cluburi?.nume || 'Club nespecificat';
+        let clubDisplayName: string | null;
+        if (!currentUser?.club_id) {
+            clubDisplayName = null; // Signal for unassigned club
+        } else if (currentUser?.cluburi?.id === FEDERATIE_ID) {
+            clubDisplayName = FEDERATIE_NAME;
+        } else {
+            clubDisplayName = currentUser?.cluburi?.nume || 'Club nespecificat';
+        }
 
         return { userRole: role, clubName: clubDisplayName };
     }, [currentUser]);

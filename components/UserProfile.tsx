@@ -486,7 +486,14 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                         <div className="space-y-2 text-sm">
                             <DataField label="Vârstă" value={`${getAge(sportiv.data_nasterii)} ani`} />
                             <DataField label="Grupă" value={grupe.find(g => g.id === sportiv.grupa_id)?.denumire} />
-                            <DataField label="Club" value={sportiv.cluburi ? (sportiv.cluburi.id === FEDERATIE_ID ? FEDERATIE_NAME : sportiv.cluburi.nume) : 'N/A'} />
+                            <DataField 
+                                label="Club" 
+                                value={
+                                    !sportiv.club_id 
+                                        ? <span className="text-red-400 font-normal text-sm">Profil nealocat unui club. Contactați administratorul Lungu Alin.</span> 
+                                        : (sportiv.cluburi?.id === FEDERATIE_ID ? FEDERATIE_NAME : sportiv.cluburi?.nume || 'N/A')
+                                } 
+                            />
                             <DataField label="Status" value={sportiv.status} />
                             <DataField label="Cont de acces" value={sportiv.user_id ? "Activ" : "Inexistent"}/>
                         </div>

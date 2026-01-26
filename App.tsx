@@ -50,6 +50,7 @@ import { MartialAttendance } from './components/MartialAttendance';
 import { AccountSettings } from './components/AccountSettings';
 import { GlobalContextSwitcher } from './components/GlobalContextSwitcher';
 import { FederationDashboard } from './components/FederationDashboard';
+import { LiveAttendanceRadar } from './components/LiveAttendanceRadar';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -342,6 +343,11 @@ function App() {
             clubs={clubs}
             globalClubFilter={globalClubFilter}
             setGlobalClubFilter={setGlobalClubFilter}
+          />
+          <LiveAttendanceRadar 
+            currentUser={currentUser!}
+            sportivi={sportivi}
+            permissions={permissions}
           />
           <main className={`flex-1 transition-all duration-300 ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'}`}>
             <AdminHeader currentUser={currentUser!} onNavigate={setActiveView} onLogout={handleLogout} plati={plati} permissions={permissions} />

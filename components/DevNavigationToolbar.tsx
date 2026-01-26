@@ -53,6 +53,13 @@ export const DevNavigationToolbar: React.FC<DevNavigationToolbarProps> = ({ curr
                     >
                         Reset
                     </button>
+                    <button
+                        onClick={() => handleSwitch(null, 'personal-profile')}
+                        className="px-2 py-1 rounded-md text-xs font-bold transition-all bg-slate-200 text-slate-800 hover:bg-white"
+                        title="Vezi propriul profil personal"
+                    >
+                        👤 Profil Personal
+                    </button>
                 </div>
             </div>
         </div>

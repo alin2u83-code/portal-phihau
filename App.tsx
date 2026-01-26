@@ -51,6 +51,7 @@ import { AccountSettings } from './components/AccountSettings';
 import { GlobalContextSwitcher } from './components/GlobalContextSwitcher';
 import { FederationDashboard } from './components/FederationDashboard';
 import { LiveAttendanceRadar } from './components/LiveAttendanceRadar';
+import { PersonalProfile } from './components/PersonalProfile';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -302,6 +303,9 @@ function App() {
 
       case 'account-settings':
         return <AccountSettings currentUser={currentUser} onBack={() => setActiveView('my-portal')} />;
+
+      case 'personal-profile':
+        return <PersonalProfile currentUser={currentUser} onNavigate={setActiveView} grade={grade} grupe={grupe} clubs={clubs} onBack={() => setActiveView(permissions.hasAdminAccess ? 'dashboard' : 'my-portal')} />;
 
       case 'data-maintenance':
         return <BackupManager onBack={() => setActiveView('dashboard')} onDataRestored={() => window.location.reload()} sportivi={sportivi} setSportivi={setSportivi} grade={grade} preturiConfig={preturiConfig} participari={inscrieriExamene} examene={sesiuniExamene} plati={plati} setPlati={setPlati} familii={familii} onNavigate={setActiveView} />;

@@ -3,9 +3,9 @@ import {
   Plus, Trash2, FilePenLine, ArrowLeft, Users, CalendarDays, Trophy,
   ClipboardList, Landmark, Settings, ShieldCheck, LayoutDashboard, UserCircle,
   LogOut, Menu, Wallet, BarChart3, Archive, FileDown, ChevronDown, X,
-  ClipboardCheck, MessageCircleQuestion, Save, AlertTriangle, CheckCircle,
-  ChevronLeft, ChevronRight, Printer, Check, ArrowRightLeft, Search, Bell, Network,
-  UploadCloud, Mail, Lock, UserPlus, BookOpen, BookMarked, FileText, Clock
+  ClipboardCheck, MessageCircleQuestion, Save, AlertTriangle, CheckCircle, ChevronLeft, 
+  ChevronRight, Printer, Check, ArrowRightLeft, Search, Bell, Network, UploadCloud, 
+  Mail, Lock, UserPlus, BookOpen, BookMarked, FileText, Clock, MapPin, Phone
 } from 'lucide-react';
 
 export const PlusIcon = Plus;
@@ -52,3 +52,5 @@ export const BookOpenIcon = BookOpen;
 export const BookMarkedIcon = BookMarked;
 export const FileTextIcon = FileText;
 export const ClockIcon = Clock;
+export const MapPinIcon = MapPin;
+export const PhoneIcon = Phone;

@@ -65,6 +65,7 @@ export const ClubManagementHub: React.FC<ClubManagementHubProps> = ({ onNavigate
         <div className="space-y-6">
             <Group title="Antrenamente">
                 <NavCard title="Prezență Azi" view="prezenta" icon={ClipboardCheckIcon} onNavigate={onNavigate} />
+                <NavCard title="Pontaj Live" view="live-attendance" icon={ClipboardCheckIcon} onNavigate={onNavigate} />
                 <NavCard title="Program Săptămânal" view="grupe" icon={CalendarDaysIcon} onNavigate={onNavigate} />
                 <NavCard title="Anunțuri Absențe" view="prezenta" icon={ChatBubbleLeftEllipsisIcon} onNavigate={onNavigate} />
                  <NavCard title="Generator Program" view="activitati" icon={CogIcon} onNavigate={onNavigate} />

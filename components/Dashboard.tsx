@@ -1,150 +1,104 @@
-import React, { useMemo } from 'react';
-import { View, User, Club } from '../types';
-import { UsersIcon, BanknotesIcon, TrophyIcon, CogIcon, SitemapIcon } from './icons';
-import { NotificationPermissionWidget } from './NotificationPermissionWidget';
-import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
+import React from 'react';
+// FIX: Add 'Club' to the import from '../types' to resolve the 'Cannot find name 'Club'' error.
+import { User, View, DecontFederatie, Club } from '../types';
 import { Permissions } from '../hooks/usePermissions';
+import { UsersIcon, ArchiveBoxIcon, WalletIcon, BanknotesIcon, ClipboardCheckIcon, TrophyIcon } from './icons';
+import { Card } from './ui';
 
-// Define roles for clarity
-type UserRole = 'SUPER_ADMIN_FEDERATIE' | 'ADMIN_CLUB' | 'INSTRUCTOR' | 'SPORTIV' | 'UNKNOWN';
+// Props
+interface DashboardProps {
+    currentUser: User;
+    onNavigate: (view: View) => void;
+    deconturiFederatie: DecontFederatie[];
+    permissions: Permissions;
+    clubs: Club[]; // Although not used in this simplified version, it's good practice to keep it for future-proofing if context changes.
+}
 
-// Card sub-component
-const NavCard: React.FC<{ title: string; description: string; icon: React.ElementType; onClick: () => void; }> = ({ title, description, icon: Icon, onClick }) => (
+// Sub-components
+const NavCard: React.FC<{ title: string; icon: React.ElementType; onClick: () => void; }> = ({ title, icon: Icon, onClick }) => (
     <div
         onClick={onClick}
-        className="group bg-[var(--bg-card)] rounded-lg shadow-md p-6 flex flex-col items-center text-center cursor-pointer hover:shadow-xl hover:scale-105 transition-all duration-300 border border-[var(--border-color)] hover:border-[var(--accent)]"
+        className="group bg-[var(--bg-card)] rounded-xl shadow-lg p-6 flex flex-col items-center text-center cursor-pointer hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 border border-[var(--border-color)] hover:border-amber-400/50"
     >
-        <div className="p-4 bg-[var(--accent)]/10 text-[var(--accent)] rounded-full mb-4">
-            <Icon className="h-8 w-8" />
+        <div className="p-4 bg-slate-700/50 text-amber-400 rounded-full mb-4 border border-slate-600">
+            <Icon className="h-10 w-10" />
         </div>
-        <h3 className="text-lg font-bold text-slate-100 mb-2">{title}</h3>
-        <p className="text-base text-[var(--text-secondary)]">{description}</p>
+        <h3 className="text-lg font-bold text-slate-100">{title}</h3>
     </div>
 );
 
-// Header sub-component
-const DashboardHeader: React.FC<{ userRole: UserRole; clubName?: string | null }> = ({ userRole, clubName }) => {
-    if (userRole !== 'SUPER_ADMIN_FEDERATIE' && clubName === null) {
-        return (
-            <div className="bg-red-900/50 text-white p-6 rounded-lg shadow-lg mb-8 text-center sm:text-left border border-red-700/50">
-                <h1 className="text-2xl font-bold text-red-300">Profil Nealocat</h1>
-                <p className="mt-1 text-red-200">Profil nealocat unui club. Contactați administratorul Lungu Alin.</p>
-            </div>
-        )
-    }
+const AdminSummaryCard: React.FC<{ deconturi: DecontFederatie[] }> = ({ deconturi }) => {
+    const { total, count } = React.useMemo(() => {
+        const pending = deconturi.filter(d => d.status === 'In asteptare');
+        return {
+            total: pending.reduce((sum, d) => sum + d.suma_totala, 0),
+            count: pending.reduce((sum, d) => sum + d.numar_sportivi, 0),
+        };
+    }, [deconturi]);
 
-    if (userRole === 'SUPER_ADMIN_FEDERATIE') {
-        return (
-            <div className="bg-[var(--bg-card)] text-white p-6 rounded-lg shadow-lg mb-8 text-center sm:text-left">
-                <h1 className="text-3xl font-bold">Departamentul Român de Qwan Ki Do</h1>
-                <p className="mt-1 text-slate-300">Bun venit în panoul de administrare centralizat.</p>
-            </div>
-        );
-    }
-
-    if (userRole === 'ADMIN_CLUB' || userRole === 'INSTRUCTOR') {
-        return (
-            <div className="bg-[var(--bg-card)] text-white p-6 rounded-lg shadow-lg mb-8 text-center sm:text-left">
-                <h1 className="text-3xl font-bold">{clubName ? `Clubul Sportiv ${clubName}` : 'Panou de Administrare Club'}</h1>
-                <p className="mt-1 text-slate-300">Bun venit în panoul de administrare.</p>
-            </div>
-        );
-    }
-    
-    // Fallback for other roles or no role
     return (
-        <div className="bg-[var(--bg-card)] text-white p-6 rounded-lg shadow-lg mb-8 text-center sm:text-left">
-            <h1 className="text-3xl font-bold">Portal Qwan Ki Do</h1>
-             <p className="mt-1 text-slate-300">Bun venit în panoul de administrare.</p>
-        </div>
+        <Card className="bg-gradient-to-br from-slate-800 to-slate-900 border-amber-400/30 col-span-1 md:col-span-2 lg:col-span-4">
+            <h3 className="text-lg font-bold text-amber-400">Situație Plăți Federație</h3>
+            <p className="text-4xl font-black text-white mt-2">{total.toFixed(2)} RON</p>
+            <p className="text-sm text-slate-400">Total de plată pentru {count} sportivi din activități neachitate.</p>
+        </Card>
     );
 };
 
-interface DashboardProps {
-  currentUser: User;
-  onNavigate: (view: View) => void;
-  clubs: Club[];
-  permissions: Permissions;
-}
+// Main Component
+export const Dashboard: React.FC<DashboardProps> = ({ currentUser, onNavigate, deconturiFederatie, permissions }) => {
 
-export const Dashboard: React.FC<DashboardProps> = ({ currentUser, onNavigate, clubs, permissions }) => {
-    
-    // FIX: Add a loading state to prevent rendering with incomplete user data.
     if (!currentUser) {
         return (
-            <div className="flex flex-col items-center justify-center h-full min-h-[50vh] text-center p-4">
+             <div className="flex flex-col items-center justify-center h-full min-h-[50vh] text-center p-4">
                 <svg className="animate-spin h-8 w-8 text-brand-primary mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                <h1 className="text-xl font-bold text-white">Se încarcă armura (datele)...</h1>
+                <h1 className="text-xl font-bold text-white">Se încarcă...</h1>
             </div>
         );
     }
 
-    const { userRole, clubName } = useMemo(() => {
-        const roles = new Set((currentUser.roluri || []).filter(Boolean).map(r => r.nume));
-        let role: UserRole = 'UNKNOWN';
+    const { isAdminClub, isInstructor, isFederationAdmin } = permissions;
 
-        if (roles.has('SUPER_ADMIN_FEDERATIE') || roles.has('Admin')) {
-            role = 'SUPER_ADMIN_FEDERATIE';
-        } else if (roles.has('Admin Club')) {
-            role = 'ADMIN_CLUB';
-        } else if (roles.has('Instructor')) {
-            role = 'INSTRUCTOR';
-        } else {
-            role = 'SPORTIV';
-        }
-        
-        let clubDisplayName: string | null;
-        if (!currentUser?.club_id) {
-            clubDisplayName = null; // Signal for unassigned club
-        } else if (currentUser?.cluburi?.id === FEDERATIE_ID) {
-            clubDisplayName = FEDERATIE_NAME;
-        } else {
-            clubDisplayName = currentUser?.cluburi?.nume || 'Club nespecificat';
-        }
+    const adminLinks = [
+        { title: 'Sportivi', icon: UsersIcon, view: 'sportivi' as View },
+        { title: 'Grupe', icon: ArchiveBoxIcon, view: 'grupe' as View },
+        { title: 'Finanțe Club', icon: WalletIcon, view: 'financial-dashboard' as View },
+        { title: 'Facturi Federale', icon: BanknotesIcon, view: 'deconturi-federatie' as View },
+    ];
 
-        return { userRole: role, clubName: clubDisplayName };
-    }, [currentUser]);
-
-    const navItems = useMemo(() => {
-        const clubAdminItems = [
-            { view: 'sportivi', title: 'Sportivi', description: 'Gestionează sportivi și familii.', icon: UsersIcon },
-            { view: 'examene', title: 'Evenimente', description: 'Definește examene, stagii și competiții.', icon: TrophyIcon },
-            { view: 'plati-scadente', title: 'Facturare', description: 'Gestionează plăți și rapoarte.', icon: BanknotesIcon },
-            { view: 'user-management', title: 'Setări Club', description: 'Configurează conturi și permisiuni.', icon: CogIcon }
-        ];
-
-        if (permissions.isFederationAdmin) {
-            return [
-                { view: 'structura-federatie', title: 'Structura Federației', description: 'Vizualizează ierarhia cluburilor.', icon: SitemapIcon },
-                ...clubAdminItems,
-            ];
-        }
-
-        return clubAdminItems;
-    }, [permissions]);
-
+    const instructorLinks = [
+        { title: 'Prezență Antrenament', icon: ClipboardCheckIcon, view: 'prezenta' as View },
+        { title: 'Înscrieri Examene', icon: TrophyIcon, view: 'examene' as View },
+        { title: 'Vizualizare Sportivi', icon: UsersIcon, view: 'sportivi' as View },
+    ];
 
     return (
-        <div className="max-w-7xl mx-auto p-4 md:p-6">
-            <div className="mb-6">
-                <NotificationPermissionWidget />
-            </div>
-            
-            <DashboardHeader userRole={userRole} clubName={clubName} />
+        <div className="space-y-8 animate-fade-in-down">
+            <header>
+                <h1 className="text-3xl font-bold text-white">Bun venit, {currentUser.prenume}!</h1>
+                <p className="text-slate-400">Selectează un modul pentru a începe.</p>
+            </header>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {navItems.map(item => (
-                    <NavCard
-                        key={item.view}
-                        title={item.title}
-                        description={item.description}
-                        icon={item.icon}
-                        onClick={() => onNavigate(item.view as View)}
-                    />
-                ))}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {(isAdminClub || isFederationAdmin) && (
+                    <>
+                        <AdminSummaryCard deconturi={deconturiFederatie} />
+                        {adminLinks.map(link => (
+                            <NavCard key={link.view} title={link.title} icon={link.icon} onClick={() => onNavigate(link.view)} />
+                        ))}
+                    </>
+                )}
+
+                {isInstructor && !isAdminClub && !isFederationAdmin && (
+                     <>
+                        {instructorLinks.map(link => (
+                            <NavCard key={link.view} title={link.title} icon={link.icon} onClick={() => onNavigate(link.view)} />
+                        ))}
+                    </>
+                )}
             </div>
         </div>
     );

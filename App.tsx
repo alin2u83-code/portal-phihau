@@ -328,9 +328,8 @@ function App() {
           {(import.meta as any).env.DEV && currentUser && (
             <RoleSwitcher 
                 currentUser={currentUser} 
-                setCurrentUser={setCurrentUser} 
-                allRoles={allRoles}
-                clubs={clubs}
+                onNavigate={setActiveView}
+                activeView={activeView}
             />
           )}
         </div>

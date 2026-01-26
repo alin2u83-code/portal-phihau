@@ -49,7 +49,7 @@ const AdminSummaryCard: React.FC<{ deconturi: DecontFederatie[] }> = ({ decontur
 };
 
 // Main Component
-export const Dashboard: React.FC<DashboardProps> = ({ currentUser, onNavigate, deconturiFederatie, permissions, antrenamente, sportivi, grupe }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ currentUser, onNavigate, deconturiFederatie, permissions }) => {
 
     if (!currentUser) {
         return (
@@ -108,8 +108,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ currentUser, onNavigate, d
                 </div>
 
                 <div className="lg:col-span-1">
-                    {permissions.hasAdminAccess && (
-                        <GeneralAttendanceWidget antrenamente={antrenamente} sportivi={sportivi} grupe={grupe} />
+                    {(isAdminClub || isInstructor) && (
+                        <GeneralAttendanceWidget currentUser={currentUser} />
                     )}
                 </div>
             </div>

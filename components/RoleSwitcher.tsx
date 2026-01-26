@@ -1,117 +1,59 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { User, Rol, Club } from '../types';
-import { Button } from './ui';
-import { ShieldCheckIcon, RotateCcw } from 'lucide-react';
-import { FEDERATIE_ID } from '../constants';
+import React from 'react';
+import { User, View } from '../types';
+import { HomeIcon, ShieldCheckIcon, UserCircleIcon, CogIcon, ClipboardCheckIcon } from './icons';
 
-interface DevRoleSwitcherProps {
+interface DevNavigationToolbarProps {
     currentUser: User | null;
-    setCurrentUser: React.Dispatch<React.SetStateAction<User | null>>;
-    allRoles: Rol[];
-    clubs: Club[];
+    onNavigate: (view: View) => void;
+    activeView: View;
 }
 
-const TEST_CONFIG: { name: Rol['nume']; color: string; label: string }[] = [
-    { name: 'SUPER_ADMIN_FEDERATIE', color: 'bg-red-600 hover:bg-red-700', label: '🔴 FRQKD Admin' },
-    { name: 'Admin Club', color: 'bg-blue-600 hover:bg-blue-700', label: '🔵 Phi Hau Admin' },
-    { name: 'Instructor', color: 'bg-green-600 hover:bg-green-700', label: '🟢 Instructor' },
-    { name: 'Sportiv', color: 'bg-amber-500 hover:bg-amber-600', label: '🟡 Sportiv' },
+const NAV_ITEMS = [
+    { view: 'dashboard', label: '🔴 FRQKD', title: 'Dashboard Federație' },
+    { view: 'dashboard', label: '🔵 Club', title: 'Dashboard Club' },
+    { view: 'prezenta', label: '🟢 Instructor', title: 'Modul Prezență' },
+    { view: 'my-portal', label: '🟡 Sportiv', title: 'Portal Sportiv' },
+    { view: 'account-settings', label: '⚙️ Cont', title: 'Setări Cont' },
 ];
 
 const DEV_EMAIL = 'admin@phihau.ro'; 
 
-export const RoleSwitcher: React.FC<DevRoleSwitcherProps> = ({ currentUser, setCurrentUser, allRoles, clubs }) => {
-    const [originalUser, setOriginalUser] = useState<User | null>(null);
-
-    useEffect(() => {
-        if (currentUser && !originalUser) {
-            setOriginalUser(JSON.parse(JSON.stringify(currentUser)));
-        }
-    }, [currentUser, originalUser]);
+export const RoleSwitcher: React.FC<DevNavigationToolbarProps> = ({ currentUser, onNavigate, activeView }) => {
     
-    const handleSwitchRole = (roleName: Rol['nume']) => {
-        if (!currentUser || !originalUser) return;
-        
-        const targetRole = allRoles.find(r => r.nume === roleName);
-        if (!targetRole) {
-            console.error(`[DevRoleSwitcher] Rolul "${roleName}" nu a fost găsit.`);
-            return;
-        }
-
-        const newUser = JSON.parse(JSON.stringify(originalUser));
-        newUser.roluri = [targetRole];
-        newUser.rol = targetRole.nume; // Also update the simple 'rol' property for compatibility
-
-        if ((roleName === 'Admin Club' || roleName === 'Instructor') && (!newUser.club_id || newUser.club_id === FEDERATIE_ID)) {
-             const firstClub = clubs.find(c => c.id !== FEDERATIE_ID);
-             if (firstClub) {
-                 newUser.club_id = firstClub.id;
-                 newUser.cluburi = firstClub;
-             }
-        } else if (roleName === 'SUPER_ADMIN_FEDERATIE' || roleName === 'Admin') {
-            const fedClub = clubs.find(c => c.id === FEDERATIE_ID);
-            newUser.club_id = FEDERATIE_ID;
-            if (fedClub) newUser.cluburi = fedClub;
-        } else if (roleName === 'Sportiv') {
-            newUser.club_id = originalUser.club_id;
-            newUser.cluburi = originalUser.cluburi;
-        }
-
-        setCurrentUser(newUser);
-    };
-
-    const handleReset = () => {
-        if (originalUser) {
-            setCurrentUser(originalUser);
-        }
-    };
-    
-    const currentSimulatedRole = useMemo(() => {
-        if (!currentUser || !originalUser || JSON.stringify(currentUser.roluri) === JSON.stringify(originalUser.roluri)) {
-             return null;
-        }
-        return currentUser.roluri[0]?.nume;
-    }, [currentUser, originalUser]);
-
     if (!currentUser || currentUser.email !== DEV_EMAIL) {
         return null;
     }
 
     return (
-        <div className="fixed top-0 left-0 right-0 z-[9999] bg-black/80 backdrop-blur-sm p-1.5 border-b border-amber-500 shadow-lg">
+        <div className="fixed bottom-0 left-0 right-0 z-[9999] bg-black/80 backdrop-blur-sm p-1.5 border-t border-amber-500 shadow-lg">
             <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
+                <div className="text-xs text-white hidden md:flex items-center gap-2">
                     <ShieldCheckIcon className="w-5 h-5 text-amber-400"/>
-                     <div className="text-xs text-white hidden md:block">
-                        <span className="font-bold text-amber-400">DEV TOOLBAR</span>
-                        <span className="text-slate-400 ml-2">Rol Activ:</span>
-                        <span className="font-semibold ml-1">{currentSimulatedRole || 'Original'}</span>
-                    </div>
+                    <span className="font-bold text-amber-400">DEV MODE</span>
                 </div>
-                <div className="flex items-center gap-2">
-                    {TEST_CONFIG.map(role => (
-                        <Button
-                            key={role.name}
-                            size="sm"
-                            onClick={() => handleSwitchRole(role.name)}
-                            className={`!text-xs !px-2 ${role.color} ${currentSimulatedRole === role.name ? 'ring-2 ring-white' : ''}`}
-                            title={`Simulează rolul: ${role.name}`}
-                        >
-                           <span className="hidden sm:inline">{role.label.split(' ')[1]}</span>
-                           <span className="sm:hidden">{role.label.split(' ')[0]}</span>
-                        </Button>
-                    ))}
+                <div className="flex items-center justify-center flex-grow gap-2">
+                    {NAV_ITEMS.map(item => {
+                        const isActive = activeView === item.view;
+                        let glowClass = '';
+                        if (isActive) {
+                            if (item.label.includes('🔴')) glowClass = 'shadow-[0_0_12px_3px_rgba(220,38,38,0.5)]';
+                            else if (item.label.includes('🔵')) glowClass = 'shadow-[0_0_12px_3px_rgba(59,130,246,0.5)]';
+                            else if (item.label.includes('🟢')) glowClass = 'shadow-[0_0_12px_3px_rgba(34,197,94,0.5)]';
+                            else if (item.label.includes('🟡')) glowClass = 'shadow-[0_0_12px_3px_rgba(245,158,11,0.5)]';
+                            else if (item.label.includes('⚙️')) glowClass = 'shadow-[0_0_12px_3px_rgba(156,163,175,0.5)]';
+                        }
+                        return (
+                            <button
+                                key={item.view}
+                                onClick={() => onNavigate(item.view as View)}
+                                className={`px-2 py-1 rounded-md text-xs font-bold transition-all ${isActive ? `bg-slate-600 text-white ${glowClass}` : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}
+                                title={item.title}
+                            >
+                               {item.label}
+                            </button>
+                        );
+                    })}
                 </div>
-                <Button 
-                    onClick={handleReset}
-                    variant="secondary"
-                    size="sm"
-                    className="!text-xs !px-2"
-                    disabled={!currentSimulatedRole}
-                    title="Reset to Original Role"
-                >
-                    <RotateCcw className="w-4 h-4" />
-                </Button>
             </div>
         </div>
     );

@@ -99,7 +99,7 @@ const SingleTrainingAnunt: React.FC<SingleTrainingAnuntProps> = ({ training, cur
     const renderOptions = () => (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <Button variant="success" size="md" className="!py-3" onClick={() => handleSendAnunt('Confirm', null)} isLoading={loading}>Confirm Prezența</Button>
-            <Button variant="secondary" size="md" className="!py-3 bg-status-warning hover:bg-amber-600" onClick={() => setMode('delay')} disabled={loading}>Anunț Întârziere</Button>
+            <Button variant="warning" size="md" className="!py-3" onClick={() => setMode('delay')} disabled={loading}>Anunț Întârziere</Button>
             <Button variant="danger" size="md" className="!py-3" onClick={() => setMode('absent')} disabled={loading}>Anunț Absență</Button>
         </div>
     );

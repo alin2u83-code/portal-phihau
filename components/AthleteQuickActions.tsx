@@ -35,31 +35,27 @@ const TrainingActionCard: React.FC<TrainingActionCardProps> = ({ training, anunt
         }
     };
 
-    const getButtonClasses = (status: AnuntStatus) => {
-        const base = 'font-bold gap-2';
-        
-        const styles: Record<AnuntStatus, { bg: string; hover: string; }> = {
-            Confirm: { bg: 'bg-status-success', hover: 'hover:bg-green-700 hover:shadow-glow-blue' },
-            Intarziat: { bg: 'bg-status-warning', hover: 'hover:bg-amber-600 hover:shadow-glow-blue' },
-            Absent: { bg: 'bg-status-danger', hover: 'hover:bg-red-700 hover:shadow-glow-blue' }
-        };
-
+    const getStyling = (status: AnuntStatus) => {
+        const baseClasses = ['font-bold', 'gap-2'];
         const currentStatus = optimisticStatus;
         const isSelected = currentStatus === status;
         const isInactive = currentStatus !== null && !isSelected;
 
-        const classes = [base, styles[status].bg, styles[status].hover];
-
         if (isSelected) {
-            classes.push('ring-2 ring-white ring-offset-2 ring-offset-[var(--bg-card)] scale-[1.02]');
+            baseClasses.push('ring-2', 'ring-white', 'ring-offset-2', 'ring-offset-[var(--bg-card)]', 'scale-[1.02]');
         }
-
         if (isInactive) {
-            classes.push('opacity-50 hover:opacity-100');
+            baseClasses.push('opacity-50', 'hover:opacity-100');
         }
+        
+        const variant: 'success' | 'warning' | 'danger' = status === 'Confirm' ? 'success' : status === 'Intarziat' ? 'warning' : 'danger';
 
-        return classes.join(' ');
+        return { variant, className: baseClasses.join(' ') };
     };
+
+    const confirmStyling = getStyling('Confirm');
+    const intarziatStyling = getStyling('Intarziat');
+    const absentStyling = getStyling('Absent');
 
     return (
         <Card className="bg-light-navy border-slate-800">
@@ -69,14 +65,29 @@ const TrainingActionCard: React.FC<TrainingActionCardProps> = ({ training, anunt
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
                 <Button 
                     onClick={() => handleClick('Confirm')} 
-                    className={getButtonClasses('Confirm')} 
+                    variant={confirmStyling.variant}
+                    className={confirmStyling.className}
                     disabled={loading}
                 >
                     Participă
                     <CheckIcon className="w-5 h-5 text-green-200" />
                 </Button>
-                <Button onClick={() => handleClick('Intarziat')} className={getButtonClasses('Intarziat')} disabled={loading}>Întârzii</Button>
-                <Button onClick={() => handleClick('Absent')} className={getButtonClasses('Absent')} disabled={loading}>Absent</Button>
+                <Button 
+                    onClick={() => handleClick('Intarziat')} 
+                    variant={intarziatStyling.variant} 
+                    className={intarziatStyling.className} 
+                    disabled={loading}
+                >
+                    Întârzii
+                </Button>
+                <Button 
+                    onClick={() => handleClick('Absent')} 
+                    variant={absentStyling.variant} 
+                    className={absentStyling.className} 
+                    disabled={loading}
+                >
+                    Absent
+                </Button>
             </div>
         </Card>
     );

@@ -18,9 +18,10 @@ interface SportivDashboardProps {
   antrenamente: any[]; // Prop needed for AthleteQuickActions
   anunturi: AnuntPrezenta[]; // Prop needed for AthleteQuickActions
   setAnunturi: React.Dispatch<React.SetStateAction<AnuntPrezenta[]>>;
+  sportivi: Sportiv[];
 }
 
-export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser, viewedUser, participari, examene, grade, grupe, plati, onNavigate, antrenamente, anunturi, setAnunturi }) => {
+export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser, viewedUser, participari, examene, grade, grupe, plati, onNavigate, antrenamente, anunturi, setAnunturi, sportivi }) => {
     
     const isViewingOwnProfile = currentUser.id === viewedUser.id;
 
@@ -69,7 +70,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
             {/* 1. Acțiunile de prezență - Mutate în vârful absolut al Dashboard-ului */}
             {isViewingOwnProfile && (
                 <div className="animate-fade-in-down">
-                    <AthleteQuickActions currentUser={currentUser} antrenamente={antrenamente} anunturi={anunturi} setAnunturi={setAnunturi} />
+                    <AthleteQuickActions currentUser={currentUser} antrenamente={antrenamente} anunturi={anunturi} setAnunturi={setAnunturi} sportivi={sportivi} />
                 </div>
             )}
             

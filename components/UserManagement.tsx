@@ -107,7 +107,7 @@ const MyProfile: React.FC<{ user: User; setSportivi: React.Dispatch<React.SetSta
         // 3. Actualizează starea locală
         if(data) {
             const updatedUser = data as any;
-            updatedUser.roluri = (updatedUser.sportivi_roluri || []).map((item: any) => item.roluri);
+            updatedUser.roluri = (updatedUser.sportivi_roluri || []).map((item: any) => item.roluri).filter(Boolean);
             delete updatedUser.sportivi_roluri;
 
             setSportivi(prev => prev.map(s => s.id === user.id ? updatedUser : s));

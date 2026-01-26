@@ -36,10 +36,10 @@ export const usePermissions = (user: User | null): Permissions => {
         const isFederationAdmin = isSuperAdmin || isAdmin;
 
         const isAdminClub = roleIds.has(ADMIN_CLUB_ROLE_ID) && !isFederationAdmin;
-        const isInstructor = roles.has('Instructor') && !isFederationAdmin;
+        const isInstructor = roles.has('Instructor');
         const isSportiv = roles.has('Sportiv');
         
-        const hasAdminAccess = isFederationAdmin || isAdminClub || isInstructor;
+        const hasAdminAccess = isFederationAdmin || isAdminClub || (isInstructor && !isFederationAdmin);
 
         return {
             isSuperAdmin,

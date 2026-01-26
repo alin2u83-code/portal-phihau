@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { User, Antrenament, AnuntPrezenta } from '../types';
+import { User, Antrenament, AnuntPrezenta, Sportiv } from '../types';
 import { Card, Button } from './ui';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
@@ -87,9 +87,10 @@ interface AthleteQuickActionsProps {
     antrenamente: Antrenament[];
     anunturi: AnuntPrezenta[];
     setAnunturi: React.Dispatch<React.SetStateAction<AnuntPrezenta[]>>;
+    sportivi: Sportiv[];
 }
 
-export const AthleteQuickActions: React.FC<AthleteQuickActionsProps> = ({ currentUser, antrenamente, anunturi, setAnunturi }) => {
+export const AthleteQuickActions: React.FC<AthleteQuickActionsProps> = ({ currentUser, antrenamente, anunturi, setAnunturi, sportivi }) => {
     const { showSuccess, showError } = useError();
     const todayString = useMemo(() => new Date().toISOString().split('T')[0], []);
 
@@ -131,6 +132,34 @@ export const AthleteQuickActions: React.FC<AthleteQuickActionsProps> = ({ curren
                     return [...prev, data];
                 }
             });
+
+            // --- NOU: Trimitere notificare către instructori ---
+            const antrenament = todaysTrainings.find(t => t.id === trainingId);
+            if (!antrenament) return;
+
+            const instructors = sportivi.filter(s =>
+                s.club_id === currentUser.club_id &&
+                s.roluri.some(r => r.nume === 'Instructor') &&
+                s.user_id // Asigură-te că instructorul are un cont de login
+            );
+
+            const recipientIds = instructors.map(i => i.user_id).filter(Boolean) as string[];
+
+            if (recipientIds.length > 0) {
+                const message = `${currentUser.nume} ${currentUser.prenume} a anunțat: ${status} la antrenamentul de la ${antrenament.ora_start}.`;
+                
+                const notificationsToInsert = recipientIds.map(userId => ({
+                    recipient_user_id: userId,
+                    message: message,
+                    link_to: `prezenta`, 
+                    sender_sportiv_id: currentUser.id
+                }));
+                
+                const { error: notifError } = await supabase.from('in_app_notificari').insert(notificationsToInsert);
+                if (notifError) {
+                    console.error("Nu s-a putut crea notificarea:", notifError);
+                }
+            }
         }
     };
 

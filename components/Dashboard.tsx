@@ -61,7 +61,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ currentUser, onNavigate, c
     const { userRole, clubName } = useMemo(() => {
         if (!currentUser || !currentUser.roluri) return { userRole: 'UNKNOWN' as UserRole, clubName: undefined };
         
-        const roles = new Set(currentUser.roluri.map(r => r.nume));
+        const roles = new Set((currentUser.roluri || []).filter(Boolean).map(r => r.nume));
         let role: UserRole = 'UNKNOWN';
 
         if (roles.has('SUPER_ADMIN_FEDERATIE') || roles.has('Admin')) {

@@ -130,7 +130,7 @@ export const EditareProfilPersonal: React.FC<EditareProfilPersonalProps> = ({ us
         if(data) {
             const updatedUser = data as any;
             if (updatedUser.sportivi_roluri) {
-                updatedUser.roluri = updatedUser.sportivi_roluri.map((item: any) => item.roluri);
+                updatedUser.roluri = updatedUser.sportivi_roluri.map((item: any) => item.roluri).filter(Boolean);
                 delete updatedUser.sportivi_roluri;
             } else {
                 updatedUser.roluri = [];

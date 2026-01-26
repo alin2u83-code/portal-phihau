@@ -89,8 +89,22 @@ function App() {
     if (!supabase) return;
     setLoading(true);
     try {
+      const { data: userData, error: userError } = await supabase.from('sportivi').select('*, sportivi_roluri(roluri(id, nume))').eq('user_id', userId).single();
+
+      if (userError && userError.code !== 'PGRST116') { // PGRST116: "exact one row expected"
+        throw userError;
+      }
+
+      if (!userData) {
+        showError("Profil utilizator lipsă", "Nu am putut încărca profilul. Este posibil ca acesta să fi fost șters. Veți fi delogat.");
+        await supabase?.auth.signOut();
+        setCurrentUser(null);
+        setSession(null);
+        setLoading(false);
+        return;
+      }
+
       const [
-        { data: userData, error: userError },
         { data: clubsData },
         { data: rolesData },
         { data: gradesData },
@@ -100,7 +114,6 @@ function App() {
         { data: platiTypesData },
         { data: reduceriData }
       ] = await Promise.all([
-        supabase.from('sportivi').select('*, sportivi_roluri(roluri(id, nume))').eq('user_id', userId).single(),
         supabase.from('cluburi').select('*'),
         supabase.from('roluri').select('*'),
         supabase.from('grade').select('*'),
@@ -111,14 +124,12 @@ function App() {
         supabase.from('reduceri').select('*')
       ]);
 
-      if (userError) throw userError;
-
       const formattedUser = {
         ...userData,
-        roluri: (userData as any).sportivi_roluri?.map((sr: any) => sr.roluri) || []
+        roluri: ((userData as any).sportivi_roluri?.map((sr: any) => sr.roluri) || []).filter(Boolean)
       };
 
-      setCurrentUser(formattedUser);
+      setCurrentUser(formattedUser as User);
       setClubs(clubsData || []);
       setAllRoles(rolesData || []);
       setGrade(gradesData || []);
@@ -154,7 +165,7 @@ function App() {
         supabase.from('preturi_config').select('*')
       ]);
 
-      setSportivi(sportiviData?.map(s => ({ ...s, roluri: (s as any).sportivi_roluri?.map((sr: any) => sr.roluri) || [] })) || []);
+      setSportivi(sportiviData?.map(s => ({ ...s, roluri: (((s as any).sportivi_roluri?.map((sr: any) => sr.roluri)) || []).filter(Boolean) })) || []);
       setSesiuniExamene(sessionsData || []);
       setInscrieriExamene(registrationsData || []);
       setAntrenamente(trainingsData?.map(t => ({ ...t, sportivi_prezenti_ids: (t as any).prezenta_antrenament?.map((p: any) => p.sportiv_id) || [] })) || []);
@@ -194,11 +205,11 @@ function App() {
     switch (activeView) {
       case 'dashboard':
         return isPortalView ? 
-          <SportivDashboard currentUser={currentUser} viewedUser={currentUser} participari={inscrieriExamene} examene={sesiuniExamene} grade={grade} grupe={grupe} plati={plati} onNavigate={setActiveView} antrenamente={antrenamente} anunturi={anunturiPrezenta} setAnunturi={setAnunturiPrezenta} /> : 
+          <SportivDashboard currentUser={currentUser} viewedUser={currentUser} participari={inscrieriExamene} examene={sesiuniExamene} grade={grade} grupe={grupe} plati={plati} onNavigate={setActiveView} antrenamente={antrenamente} anunturi={anunturiPrezenta} setAnunturi={setAnunturiPrezenta} sportivi={sportivi} /> : 
           <Dashboard currentUser={currentUser} onNavigate={setActiveView} clubs={clubs} />;
       
       case 'my-portal':
-        return <SportivDashboard currentUser={currentUser} viewedUser={currentUser} participari={inscrieriExamene} examene={sesiuniExamene} grade={grade} grupe={grupe} plati={plati} onNavigate={setActiveView} antrenamente={antrenamente} anunturi={anunturiPrezenta} setAnunturi={setAnunturiPrezenta} />;
+        return <SportivDashboard currentUser={currentUser} viewedUser={currentUser} participari={inscrieriExamene} examene={sesiuniExamene} grade={grade} grupe={grupe} plati={plati} onNavigate={setActiveView} antrenamente={antrenamente} anunturi={anunturiPrezenta} setAnunturi={setAnunturiPrezenta} sportivi={sportivi} />;
 
       case 'sportivi':
         return <SportiviManagement onBack={() => setActiveView('dashboard')} sportivi={sportivi} setSportivi={setSportivi} grupe={grupe} setGrupe={setGrupe} tipuriAbonament={tipuriAbonament} familii={familii} setFamilii={setFamilii} allRoles={allRoles} setAllRoles={setAllRoles} currentUser={currentUser} plati={plati} tranzactii={tranzactii} setTranzactii={setTranzactii} onViewSportiv={(s) => { setSelectedSportiv(s); setActiveView('profil-sportiv'); }} clubs={clubs} />;

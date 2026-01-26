@@ -251,12 +251,47 @@ ALTER TABLE public.prezenta_antrenament FORCE ROW LEVEL SECURITY;
 CREATE POLICY "Super Admins have full access" ON public.program_antrenamente FOR ALL USING (public.is_super_admin()) WITH CHECK (public.is_super_admin());
 CREATE POLICY "Super Admins have full access" ON public.prezenta_antrenament FOR ALL USING (public.is_super_admin()) WITH CHECK (public.is_super_admin());
 
-CREATE POLICY "Club staff can manage schedules and attendance" ON public.program_antrenamente FOR ALL
-    USING (public.is_club_staff() AND EXISTS (SELECT 1 FROM grupe g WHERE g.id = program_antrenamente.grupa_id AND g.club_id = public.get_my_club_id()))
-    WITH CHECK (public.is_club_staff() AND EXISTS (SELECT 1 FROM grupe g WHERE g.id = program_antrenamente.grupa_id AND g.club_id = public.get_my_club_id()));
-CREATE POLICY "Club staff can manage attendance records" ON public.prezenta_antrenament FOR ALL
-    USING (public.is_club_staff() AND EXISTS (SELECT 1 FROM sportivi s WHERE s.id = prezenta_antrenament.sportiv_id AND s.club_id = public.get_my_club_id()))
-    WITH CHECK (public.is_club_staff() AND EXISTS (SELECT 1 FROM sportivi s WHERE s.id = prezenta_antrenament.sportiv_id AND s.club_id = public.get_my_club_id()));
+CREATE POLICY "Club staff can manage schedules and attendance" ON public.program_antrenamente
+    FOR ALL
+    USING (
+        public.is_club_staff() AND (
+            program_antrenamente.grupa_id IS NULL OR -- Allow access to "vacation" trainings
+            EXISTS (
+                SELECT 1 FROM public.grupe g
+                WHERE g.id = program_antrenamente.grupa_id AND g.club_id = public.get_my_club_id()
+            )
+        )
+    )
+    WITH CHECK (
+        public.is_club_staff() AND (
+            program_antrenamente.grupa_id IS NULL OR
+            EXISTS (
+                SELECT 1 FROM public.grupe g
+                WHERE g.id = program_antrenamente.grupa_id AND g.club_id = public.get_my_club_id()
+            )
+        )
+    );
+
+CREATE POLICY "Club staff can manage attendance records" ON public.prezenta_antrenament
+    FOR ALL
+    USING (
+        public.is_club_staff() AND EXISTS (
+            SELECT 1 FROM public.sportivi s WHERE s.id = prezenta_antrenament.sportiv_id AND s.club_id = public.get_my_club_id()
+        )
+    )
+    WITH CHECK (
+        public.is_club_staff() AND
+        -- The user must be able to see the athlete (i.e., athlete is in their club)
+        EXISTS (SELECT 1 FROM public.sportivi s WHERE s.id = prezenta_antrenament.sportiv_id AND s.club_id = public.get_my_club_id()) AND
+        -- The user must be able to see the training
+        EXISTS (
+            SELECT 1
+            FROM public.program_antrenamente pa
+            LEFT JOIN public.grupe g ON pa.grupa_id = g.id
+            WHERE pa.id = prezenta_antrenament.antrenament_id
+            AND (pa.grupa_id IS NULL OR g.club_id = public.get_my_club_id())
+        )
+    );
     
 CREATE POLICY "Authenticated users can view schedules" ON public.program_antrenamente FOR SELECT USING (auth.role() = 'authenticated');
 CREATE POLICY "Athletes can view their own attendance" ON public.prezenta_antrenament FOR SELECT USING (sportiv_id = public.get_my_sportiv_id());

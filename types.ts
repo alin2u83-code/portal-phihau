@@ -1,4 +1,5 @@
 
+
 export interface Rol {
   id: string;
   nume: 'Sportiv' | 'Instructor' | 'Admin' | 'SUPER_ADMIN_FEDERATIE' | 'Admin Club';
@@ -36,6 +37,7 @@ export interface Sportiv {
   status: 'Activ' | 'Inactiv';
   grupa_id: string | null;
   club_id?: string | null; // FK to cluburi
+  cluburi?: Club | null; // From the join
   grad_actual_id?: string | null; // FK to grade
   familie_id: string | null; // ID-ul familiei
   tip_abonament_id: string | null; // ID-ul tipului de abonament individual

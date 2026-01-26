@@ -58,9 +58,11 @@ interface DashboardProps {
 
 export const Dashboard: React.FC<DashboardProps> = ({ currentUser, onNavigate, clubs }) => {
     
+    if (!currentUser) {
+        return null; // Safety guard
+    }
+
     const { userRole, clubName } = useMemo(() => {
-        if (!currentUser || !currentUser.roluri) return { userRole: 'UNKNOWN' as UserRole, clubName: undefined };
-        
         const roles = new Set((currentUser.roluri || []).filter(Boolean).map(r => r.nume));
         let role: UserRole = 'UNKNOWN';
 
@@ -74,11 +76,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ currentUser, onNavigate, c
             role = 'SPORTIV';
         }
         
-        const club = clubs.find(c => c.id === currentUser.club_id);
-        const clubDisplayName = club ? (club.id === FEDERATIE_ID ? FEDERATIE_NAME : club.nume) : undefined;
+        const club = currentUser.cluburi;
+        const clubDisplayName = club ? (club.id === FEDERATIE_ID ? FEDERATIE_NAME : club.nume) : 'Club nespecificat';
 
         return { userRole: role, clubName: clubDisplayName };
-    }, [currentUser, clubs]);
+    }, [currentUser]);
 
     const navItems = [
       { view: 'sportivi', title: 'Sportivi', description: 'Gestionează sportivi și familii.', icon: UsersIcon },

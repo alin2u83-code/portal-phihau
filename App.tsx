@@ -89,7 +89,7 @@ function App() {
     if (!supabase) return;
     setLoading(true);
     try {
-      const { data: userData, error: userError } = await supabase.from('sportivi').select('*, sportivi_roluri(roluri(id, nume))').eq('user_id', userId).single();
+      const { data: userData, error: userError } = await supabase.from('sportivi').select('*, cluburi(*), sportivi_roluri(roluri(id, nume))').eq('user_id', userId).single();
 
       if (userError && userError.code !== 'PGRST116') { // PGRST116: "exact one row expected"
         throw userError;
@@ -152,7 +152,7 @@ function App() {
         { data: anunturiData },
         { data: pricesData }
       ] = await Promise.all([
-        supabase.from('sportivi').select('*, sportivi_roluri(roluri(id, nume))'),
+        supabase.from('sportivi').select('*, cluburi(*), sportivi_roluri(roluri(id, nume))'),
         supabase.from('sesiuni_examene').select('*'),
         supabase.from('inscrieri_examene').select('*, sportivi:sportiv_id(*), grade:grad_vizat_id(*)'),
         supabase.from('program_antrenamente').select('*, prezenta_antrenament!antrenament_id(sportiv_id)'),

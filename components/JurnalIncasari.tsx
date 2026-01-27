@@ -131,7 +131,7 @@ const AdaugaAvans: React.FC<{
     };
 
     return (
-        <Card className="bg-navy-card-mobile md:bg-light-navy">
+        <Card>
             <h3 className="text-xl font-bold text-white mb-4">Adaugă Sumă în Avans</h3>
             <form onSubmit={handleSaveAvans} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -405,7 +405,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
         <div className="space-y-6">
             <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi</Button>
             <AdaugaAvans sportivi={sportivi} familii={familii} setTranzactii={setTranzactii} />
-            <Card className="bg-navy-card-mobile md:bg-light-navy">
+            <Card>
                 <h3 className="text-xl font-bold text-white mb-4">{platiInitiale.length > 0 ? (isMultiple ? `Încasare Colectivă (${platiInitiale.length} facturi)` : "Încasare Datorie") : "Încasare Directă Nouă (Generează Factură & Încasare)"}</h3>
                 <form onSubmit={handleSaveIncasare} className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -416,7 +416,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
                         </Select>
                         <Select label="Metodă Plată" name="metoda_plata" value={formState.metoda_plata!} onChange={handleFormChange}><option value="Cash">Cash</option><option value="Transfer Bancar">Transfer Bancar</option></Select>
                     </div>
-                    {isMultiple && (<div className="p-3 bg-slate-700/50 rounded-md border border-slate-600"><p className="text-sm font-semibold mb-2">Facturi selectate pentru stingere:</p><ul className="text-xs space-y-1 text-slate-300">{platiInitiale.map(p => <li key={p.id}>• {p.descriere} - <strong>{p.suma.toFixed(2)} RON</strong></li>)}</ul></div>)}
+                    {isMultiple && (<div className="p-3 bg-slate-700/50 rounded-md border border-[var(--border-color)]"><p className="text-sm font-semibold mb-2">Facturi selectate pentru stingere:</p><ul className="text-xs space-y-1 text-slate-300">{platiInitiale.map(p => <li key={p.id}>• {p.descriere} - <strong>{p.suma.toFixed(2)} RON</strong></li>)}</ul></div>)}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                          <div className="flex gap-1 items-end">
                             <Select label="Categorie" name="tip" value={formState.tip} onChange={handleFormChange} disabled={platiInitiale.length > 0}>
@@ -443,11 +443,11 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
                     
                     {platiInitiale.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="p-4 bg-slate-800/50 rounded-lg text-center border border-slate-700">
+                            <div className="p-4 bg-slate-800/50 rounded-lg text-center border border-[var(--border-color)]">
                                 <label className="text-sm uppercase text-slate-400">Total Datorat</label>
                                 <p className="text-4xl font-bold text-red-400 mt-1">{formState.suma_initiala.toFixed(2)} RON</p>
                             </div>
-                            <div className="p-4 bg-slate-900/50 rounded-lg text-center border border-slate-700">
+                            <div className="p-4 bg-slate-900/50 rounded-lg text-center border border-[var(--border-color)]">
                                 <label htmlFor="suma_incasata" className="text-sm uppercase text-slate-400">Sumă Încasată</label>
                                 <Input
                                     id="suma_incasata"
@@ -463,7 +463,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
                             </div>
                         </div>
                         ) : (
-                        <div className="p-4 bg-light-navy rounded-lg text-center">
+                        <div className="p-4 bg-[var(--bg-card-hover)] rounded-lg text-center">
                             <label htmlFor="suma_directa" className="text-sm uppercase text-slate-400">Sumă de Plată</label>
                              <Input
                                 id="suma_directa"
@@ -483,9 +483,9 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
                     <div className="flex justify-end pt-4"><Button type="submit" variant="success" className="px-10" disabled={loading}>{loading ? 'Se procesează...' : 'Finalizează Încasarea'}</Button></div>
                 </form>
             </Card>
-            <Card className="p-0 overflow-hidden bg-navy-card-mobile md:bg-light-navy">
-                <div className="bg-slate-700/50 p-4 border-b border-slate-600 font-bold">Istoric Încasări Recente</div>
-                <div className="overflow-x-auto"><table className="w-full text-left"><thead className="bg-slate-800 text-xs text-slate-400 uppercase"><tr><th className="p-4">Data</th><th className="p-4">Plătit de</th><th className="p-4">Descriere</th><th className="p-4 text-right">Sumă</th><th className="p-4 text-right">Acțiuni</th></tr></thead><tbody className="divide-y divide-slate-700">{sortedTranzactii.slice(0, 10).map(t => (<tr key={t.id} className="hover:bg-slate-700/20"><td className="p-4 text-sm">{new Date(t.data_platii).toLocaleDateString('ro-RO')}</td><td className="p-4 font-medium">{getEntityName(t)}</td><td className="p-4 text-sm text-slate-400">{getDescriereTranzactie(t)}</td><td className="p-4 text-right font-bold text-green-400">{t.suma.toFixed(2)} RON</td><td className="p-4 text-right"><Button size="sm" variant="danger" onClick={() => setTranzactieToDelete(t)}><TrashIcon className="w-4 h-4"/></Button></td></tr>))}</tbody></table></div>
+            <Card className="p-0 overflow-hidden">
+                <div className="bg-[var(--bg-table-header)] p-4 border-b border-[var(--border-color)] font-bold">Istoric Încasări Recente</div>
+                <div className="overflow-x-auto"><table className="w-full text-left"><thead className="bg-[var(--bg-table-header)] text-xs text-slate-400 uppercase"><tr><th className="p-4">Data</th><th className="p-4">Plătit de</th><th className="p-4">Descriere</th><th className="p-4 text-right">Sumă</th><th className="p-4 text-right">Acțiuni</th></tr></thead><tbody className="divide-y divide-[var(--border-color)]">{sortedTranzactii.slice(0, 10).map(t => (<tr key={t.id} className="hover:bg-[var(--bg-table-row-hover)]"><td className="p-4 text-sm">{new Date(t.data_platii).toLocaleDateString('ro-RO')}</td><td className="p-4 font-medium">{getEntityName(t)}</td><td className="p-4 text-sm text-slate-400">{getDescriereTranzactie(t)}</td><td className="p-4 text-right font-bold text-green-400">{t.suma.toFixed(2)} RON</td><td className="p-4 text-right"><Button size="sm" variant="danger" onClick={() => setTranzactieToDelete(t)}><TrashIcon className="w-4 h-4"/></Button></td></tr>))}</tbody></table></div>
             </Card>
             <QuickAddTipPlataModal isOpen={isQuickAddOpen} onClose={() => setIsQuickAddOpen(false)} onSave={handleQuickAddTipPlata} />
             <ConfirmDeleteModal isOpen={!!tranzactieToDelete} onClose={() => setTranzactieToDelete(null)} onConfirm={handleDeleteTranzactie} tableName="Tranzacție" isLoading={loading} customMessage="Sunteți sigur că doriți să ștergeți această încasare? Statusul facturilor asociate va fi resetat." />

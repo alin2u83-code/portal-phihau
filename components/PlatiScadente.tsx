@@ -320,10 +320,10 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
             <Card className="p-0 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
-                        <thead className="bg-slate-700/50">
+                        <thead className="bg-[var(--bg-table-header)]">
                             <tr>
                                 <th className="p-2 w-10">
-                                    <input type="checkbox" checked={selectedIds.size > 0 && selectedIds.size === filteredPlati.length} onChange={handleSelectAllVisible} className="rounded border-slate-500 bg-slate-900 text-brand-secondary focus:ring-brand-secondary"/>
+                                    <input type="checkbox" checked={selectedIds.size > 0 && selectedIds.size === filteredPlati.length} onChange={handleSelectAllVisible} className="rounded border-slate-500 bg-[var(--bg-input)] text-[var(--accent)] focus:ring-[var(--accent)]"/>
                                 </th>
                                 <th className="p-2 font-semibold">Data Scadență</th>
                                 <th className="p-2 font-semibold">Destinatar</th>
@@ -333,11 +333,11 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
                                 <th className="p-2 font-semibold text-right">Acțiuni</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-700">
+                        <tbody className="divide-y divide-[var(--border-color)]">
                             {filteredPlati.map(p => (
-                                <tr key={p.id} className="hover:bg-slate-700/30 transition-colors">
+                                <tr key={p.id} className="hover:bg-[var(--bg-table-row-hover)] transition-colors">
                                     <td className="p-2">
-                                        <input type="checkbox" checked={selectedIds.has(p.id)} onChange={() => handleToggleSelect(p.id)} className="rounded border-slate-500 bg-slate-900 text-brand-secondary focus:ring-brand-secondary"/>
+                                        <input type="checkbox" checked={selectedIds.has(p.id)} onChange={() => handleToggleSelect(p.id)} className="rounded border-slate-500 bg-[var(--bg-input)] text-[var(--accent)] focus:ring-[var(--accent)]"/>
                                     </td>
                                     <td className="p-2 text-slate-400">{new Date(p.data).toLocaleDateString('ro-RO')}</td>
                                     <td className="p-2 font-bold text-white">{getEntityName(p)}</td>
@@ -348,7 +348,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
                                     <td className="p-2 text-right font-bold text-white">{p.suma.toFixed(2)} lei</td>
                                     <td className="p-2 text-center">
                                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
-                                            p.status === 'Achitat' ? 'border-brand-secondary text-brand-secondary' : 
+                                            p.status === 'Achitat' ? 'border-green-700 text-green-400' : 
                                             p.status === 'Achitat Parțial' ? 'border-amber-500 text-amber-400' : 
                                             'border-red-800 text-red-400'
                                         }`}>

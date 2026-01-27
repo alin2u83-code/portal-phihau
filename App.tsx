@@ -78,6 +78,8 @@ function App() {
   const [locatii, setLocatii] = useState<Locatie[]>([]);
   const [clubs, setClubs] = useState<Club[]>([]);
   const [deconturiFederatie, setDeconturiFederatie] = useState<DecontFederatie[]>([]);
+  
+  const [platiPentruIncasare, setPlatiPentruIncasare] = useState<Plata[]>([]);
 
   const [activeView, setActiveView] = useLocalStorage<View>('phi-hau-active-view', 'dashboard');
   const [selectedSportiv, setSelectedSportiv] = useState<Sportiv | null>(null);
@@ -280,6 +282,22 @@ function App() {
   const handleLogout = async () => {
     await supabase?.auth.signOut();
   };
+  
+  const handleIncaseazaMultiple = (platiSelectate: Plata[]) => {
+    setPlatiPentruIncasare(platiSelectate);
+    setActiveView('jurnal-incasari');
+  };
+
+  const handleJurnalBack = () => {
+    const previousView = platiPentruIncasare.length > 0 ? 'plati-scadente' : 'dashboard';
+    setPlatiPentruIncasare([]); // Cleanup
+    setActiveView(previousView);
+  };
+
+  const handleIncasareProcesata = () => {
+    setPlatiPentruIncasare([]); // Cleanup
+    initializeAndFetchData();
+  };
 
   const renderContent = () => {
     if (!currentUser) return <AuthContainer />;
@@ -335,10 +353,10 @@ function App() {
         return <FederationInvoices deconturi={filteredData.deconturiFederatie} setDeconturi={setDeconturiFederatie} currentUser={currentUser} onBack={() => setActiveView('dashboard')} />;
 
       case 'plati-scadente':
-        return <PlatiScadente plati={filteredData.plati} setPlati={setPlati} sportivi={filteredData.sportivi} familii={filteredData.familii} tipuriAbonament={filteredData.tipuriAbonament} tranzactii={filteredData.tranzactii} reduceri={reduceri} onIncaseazaMultiple={(p) => setActiveView('jurnal-incasari')} onBack={() => setActiveView('dashboard')} />;
+        return <PlatiScadente plati={filteredData.plati} setPlati={setPlati} sportivi={filteredData.sportivi} familii={filteredData.familii} tipuriAbonament={filteredData.tipuriAbonament} tranzactii={filteredData.tranzactii} reduceri={reduceri} onIncaseazaMultiple={handleIncaseazaMultiple} onBack={() => setActiveView('dashboard')} />;
 
       case 'jurnal-incasari':
-        return <JurnalIncasari currentUser={currentUser} plati={filteredData.plati} setPlati={setPlati} sportivi={filteredData.sportivi} familii={filteredData.familii} preturiConfig={preturiConfig} tipuriAbonament={filteredData.tipuriAbonament} tipuriPlati={tipuriPlati} setTipuriPlati={setTipuriPlati} tranzactii={filteredData.tranzactii} setTranzactii={setTranzactii} platiInitiale={[]} onIncasareProcesata={initializeAndFetchData} onBack={() => setActiveView('dashboard')} reduceri={reduceri} />;
+        return <JurnalIncasari currentUser={currentUser} plati={filteredData.plati} setPlati={setPlati} sportivi={filteredData.sportivi} familii={filteredData.familii} preturiConfig={preturiConfig} tipuriAbonament={filteredData.tipuriAbonament} tipuriPlati={tipuriPlati} setTipuriPlati={setTipuriPlati} tranzactii={filteredData.tranzactii} setTranzactii={setTranzactii} platiInitiale={platiPentruIncasare} onIncasareProcesata={handleIncasareProcesata} onBack={handleJurnalBack} reduceri={reduceri} />;
 
       case 'user-management':
         return <UserManagement sportivi={filteredData.sportivi} setSportivi={setSportivi} currentUser={currentUser} setCurrentUser={setCurrentUser} allRoles={allRoles} setAllRoles={setAllRoles} onBack={() => setActiveView('dashboard')} clubs={clubs} />;

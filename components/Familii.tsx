@@ -110,7 +110,7 @@ export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({
             <Card>
                 <h3 className="text-xl font-bold text-white mb-4">Creează Familie prin Grupare</h3>
                 <form onSubmit={handleCreateFamilyFromGroup} className="space-y-4">
-                    <Select label="Filtru Sală/Filială (Opțional)" value={salaFilter} onChange={e => setSalaFilter(e.target.value)} className="!bg-navy-card-mobile !text-white">
+                    <Select label="Filtru Sală/Filială (Opțional)" value={salaFilter} onChange={e => setSalaFilter(e.target.value)} className="!bg-[var(--bg-card-hover)] !text-white">
                         <option value="">Toate sălile</option>
                         {sali.map(s => <option key={s} value={s}>{s}</option>)}
                     </Select>
@@ -138,10 +138,10 @@ export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({
                         const membri = sportivi.filter(s => s.familie_id === f.id);
                         const abonament = tipuriAbonament.find(t => t.id === f.tip_abonament_id);
                         return (
-                        <Card key={f.id} className="bg-light-navy">
+                        <Card key={f.id}>
                             <h4 className="font-bold text-white text-lg">{f.nume}</h4>
                             <p className="text-sm text-slate-300">Abonament: <span className="font-semibold">{abonament?.denumire || 'Automat'}</span></p>
-                            <div className="mt-3 pt-3 border-t border-slate-700">
+                            <div className="mt-3 pt-3 border-t border-[var(--border-color)]">
                                 <h5 className="text-xs uppercase font-bold text-slate-400 mb-1">Membri ({membri.length})</h5>
                                 <ul className="text-sm text-slate-200 list-disc list-inside">{membri.map(m => <li key={m.id}>{m.nume} {m.prenume}</li>)}</ul>
                             </div>
@@ -153,20 +153,20 @@ export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({
                 </div>
 
                 {/* Desktop Table View */}
-                <div className="hidden md:block bg-light-navy rounded-lg overflow-hidden border border-slate-700">
+                <div className="hidden md:block bg-[var(--bg-card)] rounded-lg overflow-hidden border border-[var(--border-color)]">
                     <table className="w-full text-left">
-                        <thead className="bg-light-navy text-blue-400 font-bold uppercase text-xs">
+                        <thead className="bg-[var(--bg-table-header)] text-[var(--brand-secondary)] font-bold uppercase text-xs">
                             <tr><th className="p-3">Nume Familie</th><th className="p-3">Membri</th><th className="p-3">Tip Abonament</th><th className="p-3 text-right">Acțiuni</th></tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-800">
+                        <tbody className="divide-y divide-[var(--border-color)]">
                             {familii.map(f => {
                                 const membri = sportivi.filter(s => s.familie_id === f.id);
                                 return (
-                                <tr key={f.id} className="bg-deep-navy text-white">
-                                    <td className="p-2 w-1/3"><Input label="" defaultValue={f.nume} onBlur={e => handleEdit(f.id, { nume: e.target.value })} className="!bg-deep-navy"/></td>
+                                <tr key={f.id} className="text-white">
+                                    <td className="p-2 w-1/3"><Input label="" defaultValue={f.nume} onBlur={e => handleEdit(f.id, { nume: e.target.value })} className="!bg-transparent"/></td>
                                     <td className="p-3 text-sm">{membri.map(m => `${m.nume} ${m.prenume}`).join(', ')}</td>
                                     <td className="p-2 w-72">
-                                        <Select label="" value={f.tip_abonament_id || ''} onChange={(e) => handleEdit(f.id, { tip_abonament_id: e.target.value || null })} className="!bg-deep-navy text-sm">
+                                        <Select label="" value={f.tip_abonament_id || ''} onChange={(e) => handleEdit(f.id, { tip_abonament_id: e.target.value || null })} className="!bg-transparent text-sm">
                                             <option value="">Automat (după nr. membri)</option>
                                             {tipuriAbonament.filter(t => t.numar_membri > 1).map(t => <option key={t.id} value={t.id}>{t.denumire} ({t.numar_membri} membri)</option>)}
                                         </Select>

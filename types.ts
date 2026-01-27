@@ -1,11 +1,4 @@
 
-
-
-
-
-
-
-
 export interface Rol {
   id: string;
   nume: 'Sportiv' | 'Instructor' | 'Admin' | 'SUPER_ADMIN_FEDERATIE' | 'Admin Club';
@@ -17,6 +10,7 @@ export interface Club {
   cif?: string | null;
   oras?: string | null;
   federatie_id?: string | null;
+  theme_config?: Record<string, string> | null;
 }
 
 export interface ClubStats {

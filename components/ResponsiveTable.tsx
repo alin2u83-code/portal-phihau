@@ -35,9 +35,9 @@ export function ResponsiveTable<T extends { id: string }>({
 }: ResponsiveTableProps<T>) {
 
     return (
-        <div className="bg-light-navy rounded-lg shadow-md overflow-hidden border border-slate-700">
+        <div className="bg-[var(--bg-card)] rounded-lg shadow-md overflow-hidden border border-[var(--border-color)]">
             {/* Search Bar */}
-            <div className="p-4 border-b border-slate-700">
+            <div className="p-4 border-b border-[var(--border-color)]">
                 <div className="relative w-full md:w-64">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                     <Input
@@ -46,7 +46,7 @@ export function ResponsiveTable<T extends { id: string }>({
                         value={searchTerm}
                         onChange={(e) => onSearchChange(e.target.value)}
                         placeholder={searchPlaceholder}
-                        className="!bg-slate-800 !border-slate-600 !text-white !pl-10"
+                        className="!bg-[var(--bg-input)] !border-[var(--border-color)] !text-white !pl-10"
                     />
                 </div>
             </div>
@@ -54,7 +54,7 @@ export function ResponsiveTable<T extends { id: string }>({
             {/* Unified Responsive Table */}
             <div className="overflow-x-auto">
                 <table className="w-full text-sm text-left text-slate-300">
-                    <thead className="bg-slate-800 text-xs text-blue-400 uppercase">
+                    <thead className="bg-[var(--bg-table-header)] text-xs text-[var(--brand-secondary)] uppercase">
                         <tr>
                             {columns.map(col => (
                                 <th 
@@ -68,11 +68,11 @@ export function ResponsiveTable<T extends { id: string }>({
                             ))}
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-800">
+                    <tbody className="divide-y divide-[var(--border-color)]">
                         {data.map(item => (
                             <tr 
                                 key={item.id} 
-                                className={`bg-light-navy ${onRowClick ? 'cursor-pointer hover:bg-slate-800/60' : ''}`}
+                                className={`${onRowClick ? 'cursor-pointer hover:bg-[var(--bg-table-row-hover)]' : ''}`}
                                 onClick={() => onRowClick?.(item)}
                             >
                                 {columns.map(col => (

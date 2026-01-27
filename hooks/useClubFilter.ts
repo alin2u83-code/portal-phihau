@@ -18,6 +18,8 @@ export const useClubFilter = (currentUser: User | null) => {
     }, [currentUser, permissions, globalClubFilter]);
     
     useEffect(() => {
+        // If user is not a federation admin, clear the global filter
+        // to avoid incorrect state if their role changes.
         if (!permissions.isFederationAdmin) {
             setGlobalClubFilter(null);
         }

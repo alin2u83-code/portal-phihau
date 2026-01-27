@@ -57,6 +57,7 @@ export const federationAdminMenu: MenuItem[] = [
         label: 'Setări & Nomenclatoare',
         icon: CogIcon,
         submenu: [
+            { label: 'Setări Club', view: 'setari-club' },
             { label: 'Config. Abonamente', view: 'tipuri-abonament' }, 
             { label: 'Config. Taxe Examen', view: 'configurare-preturi' },
             { label: 'Nomenclator Grade', view: 'grade' },
@@ -112,6 +113,7 @@ export const clubAdminMenu: MenuItem[] = [
         label: 'Setări Club',
         icon: CogIcon,
         submenu: [
+            { label: 'Setări Club', view: 'setari-club' },
             { label: 'Config. Abonamente', view: 'tipuri-abonament' }, 
             { label: 'Config. Taxe Examen', view: 'configurare-preturi' },
             { label: 'Nomenclator Grade', view: 'grade' },

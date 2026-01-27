@@ -56,7 +56,7 @@ export const GeneralAttendanceWidget: React.FC<GeneralAttendanceWidgetProps> = (
                     return;
                 }
                 
-                const { data: sportivi, error: sportiviError } = await supabase.from('sportivi').select('id, grupa_id, status, participa_vacanta').eq('club_id', currentUser.club_id);
+                const { data: sportivi, error: sportiviError } = await supabase.from('sportivi').select('id, grupa_id, status, participa_vacanta');
                 if (sportiviError) throw sportiviError;
 
                 const presentIds = new Set<string>();

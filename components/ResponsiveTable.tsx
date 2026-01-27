@@ -11,6 +11,7 @@ export interface Column<T> {
     headerClassName?: string;
     cellClassName?: string;
     className?: string; // For responsive utilities
+    tooltip?: string;
 }
 
 interface ResponsiveTableProps<T> {
@@ -60,6 +61,7 @@ export function ResponsiveTable<T extends { id: string }>({
                                     key={String(col.key)} 
                                     scope="col" 
                                     className={`p-3 font-semibold ${col.headerClassName || ''} ${col.className || ''}`}
+                                    title={col.tooltip}
                                 >
                                     {col.label}
                                 </th>

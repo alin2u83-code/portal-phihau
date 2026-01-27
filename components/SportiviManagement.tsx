@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club } from '../types';
+import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad } from '../types';
 import { Button, Modal, Input, Select, Card } from './ui';
 import { PlusIcon, ArrowLeftIcon, ShieldCheckIcon, WalletIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -10,6 +10,7 @@ import { SportivAccountSettingsModal } from './SportivAccountSettings';
 import { SportivWallet } from './SportivWallet';
 import { ResponsiveTable, Column } from './ResponsiveTable';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
+import { usePermissions } from '../hooks/usePermissions';
 
 const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
     // FIX: Corrected key from 'Super Admin' to 'SUPER_ADMIN_FEDERATIE' to match the 'Rol' type definition.
@@ -36,7 +37,8 @@ export const SportiviManagement: React.FC<{
     setTranzactii: React.Dispatch<React.SetStateAction<Tranzactie[]>>;
     onViewSportiv: (sportiv: Sportiv) => void;
     clubs: Club[];
-}> = ({ onBack, sportivi, setSportivi, grupe, setGrupe, tipuriAbonament, familii, setFamilii, allRoles, setAllRoles, currentUser, plati, tranzactii, setTranzactii, onViewSportiv, clubs }) => {
+    grade: Grad[];
+}> = ({ onBack, sportivi, setSportivi, grupe, setGrupe, tipuriAbonament, familii, setFamilii, allRoles, setAllRoles, currentUser, plati, tranzactii, setTranzactii, onViewSportiv, clubs, grade }) => {
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
     const [sportivToEdit, setSportivToEdit] = useState<Sportiv | null>(null);
     const [accountSettingsSportiv, setAccountSettingsSportiv] = useState<Sportiv | null>(null);
@@ -44,12 +46,14 @@ export const SportiviManagement: React.FC<{
     const [sportivForWallet, setSportivForWallet] = useState<Sportiv | null>(null);
 
     const { showError } = useError();
+    const permissions = usePermissions(currentUser);
 
     const [filters, setFilters] = useLocalStorage('phi-hau-sportivi-filters', {
         searchTerm: '',
         statusFilter: 'Activ',
         grupaFilter: '',
         rolFilter: '',
+        gradFilter: '',
     });
     
     const handleFilterChange = (name: keyof typeof filters, value: string) => {
@@ -75,6 +79,7 @@ export const SportiviManagement: React.FC<{
             (`${s.nume} ${s.prenume}`.toLowerCase().includes(filters.searchTerm.toLowerCase())) &&
             (filters.statusFilter ? s.status === filters.statusFilter : true) &&
             (filters.grupaFilter ? s.grupa_id === filters.grupaFilter : true) &&
+            (filters.gradFilter ? s.grad_actual_id === filters.gradFilter : true) &&
             (filters.rolFilter ? s.roluri.some(r => r.id === filters.rolFilter) : true)
         ).sort((a: Sportiv, b: Sportiv) => a.nume.localeCompare(b.nume));
     }, [sportivi, filters]);
@@ -83,6 +88,7 @@ export const SportiviManagement: React.FC<{
         {
             key: 'nume',
             label: 'Nume Complet',
+            tooltip: "Numele complet al sportivului. Dacă face parte dintr-o familie, este afișat și soldul familiei.",
             render: (s) => {
                 const familie = s.familie_id ? familii.find(f => f.id === s.familie_id) : null;
                 const familieBalance = s.familie_id ? familyBalances.get(s.familie_id) : undefined;
@@ -101,10 +107,11 @@ export const SportiviManagement: React.FC<{
                 );
             },
         },
-        { key: 'club_id', label: 'Club', render: (s) => s.cluburi?.id === FEDERATIE_ID ? FEDERATIE_NAME : s.cluburi?.nume || '-', className: 'hidden md:table-cell' },
+        { key: 'club_id', label: 'Club', tooltip: "Clubul de care aparține sportivul.", render: (s) => s.cluburi?.id === FEDERATIE_ID ? FEDERATIE_NAME : s.cluburi?.nume || '-', className: 'hidden md:table-cell' },
         { 
             key: 'roluri', 
             label: 'Roluri', 
+            tooltip: "Rolurile de acces ale utilizatorului în aplicație.",
             render: (s) => (
                 <div className="flex flex-wrap gap-1">
                     {s.roluri.length > 0 
@@ -117,6 +124,7 @@ export const SportiviManagement: React.FC<{
         { 
             key: 'status', 
             label: 'Status',
+            tooltip: "Indică dacă sportivul este activ sau inactiv.",
             className: 'hidden md:table-cell',
             render: (s) => (
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${s.status === 'Activ' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
@@ -124,10 +132,11 @@ export const SportiviManagement: React.FC<{
                 </span>
             )
         },
-        { key: 'grupa_id', label: 'Grupă', render: (s) => grupe.find(g => g.id === s.grupa_id)?.denumire || '-', className: 'hidden md:table-cell' },
+        { key: 'grupa_id', label: 'Grupă', tooltip: "Grupa de antrenament în care este încadrat sportivul.", render: (s) => grupe.find(g => g.id === s.grupa_id)?.denumire || '-', className: 'hidden md:table-cell' },
         {
             key: 'actions',
             label: 'Acțiuni',
+            tooltip: "Acțiuni rapide: gestionează portofelul sau setările contului.",
             headerClassName: 'text-right',
             cellClassName: 'text-right',
             render: (s) => (
@@ -187,9 +196,11 @@ export const SportiviManagement: React.FC<{
             
             <div className="flex justify-between items-center gap-4">
                 <h1 className="text-2xl font-bold text-white uppercase tracking-tight">Management Sportivi</h1>
-                <Button variant="primary" onClick={() => { setSportivToEdit(null); setIsFormModalOpen(true); }}>
-                    <PlusIcon className="w-5 h-5 mr-1"/> Adaugă Sportiv
-                </Button>
+                {permissions.hasAdminAccess && (
+                    <Button variant="primary" onClick={() => { setSportivToEdit(null); setIsFormModalOpen(true); }}>
+                        <PlusIcon className="w-5 h-5 mr-1"/> Adaugă Sportiv
+                    </Button>
+                )}
             </div>
 
             <Card className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -201,6 +212,11 @@ export const SportiviManagement: React.FC<{
                 <Select label="Grupă" value={filters.grupaFilter} onChange={e => handleFilterChange('grupaFilter', e.target.value)}>
                     <option value="">Toate grupele</option>
                     {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
+                </Select>
+                <Select label="Grad" value={filters.gradFilter} onChange={e => handleFilterChange('gradFilter', e.target.value)}>
+                    <option value="">Toate gradele</option>
+                    <option value="null">Începător (fără grad)</option>
+                    {grade.sort((a,b) => a.ordine - b.ordine).map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}
                 </Select>
                 <Select label="Rol" value={filters.rolFilter} onChange={e => handleFilterChange('rolFilter', e.target.value)}>
                     <option value="">Toate rolurile</option>

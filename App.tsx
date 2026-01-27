@@ -225,6 +225,57 @@ function App() {
     return () => subscription.unsubscribe();
   }, [initializeAndFetchData]);
 
+  const filteredData = useMemo(() => {
+    if (!activeClubId) {
+        return {
+            sportivi, sesiuniExamene, inscrieriExamene, antrenamente, grupe, plati,
+            tranzactii, evenimente, rezultate, tipuriAbonament, familii,
+            anunturiPrezenta, reduceri, deconturiFederatie
+        };
+    }
+
+    const fSportivi = sportivi.filter(s => s.club_id === activeClubId);
+    const fGrupe = grupe.filter(g => g.club_id === activeClubId);
+    
+    const fSesiuniExamene = sesiuniExamene.filter(s => s.club_id === activeClubId || s.club_id === null);
+    const fEvenimente = evenimente.filter(e => e.club_id === activeClubId || e.club_id === null);
+    const fTipuriAbonament = tipuriAbonament.filter(t => t.club_id === activeClubId || t.club_id === null);
+    const fDeconturiFederatie = deconturiFederatie.filter(d => d.club_id === activeClubId);
+
+    const sportivIdsInClub = new Set(fSportivi.map(s => s.id));
+    const grupaIdsInClub = new Set(fGrupe.map(g => g.id));
+    
+    const fFamilii = familii.filter(fam => sportivi.some(s => s.familie_id === fam.id && s.club_id === activeClubId));
+    const familieIdsInClub = new Set(fFamilii.map(f => f.id));
+
+    const fPlati = plati.filter(p => (p.sportiv_id && sportivIdsInClub.has(p.sportiv_id)) || (p.familie_id && familieIdsInClub.has(p.familie_id)));
+    const fTranzactii = tranzactii.filter(t => (t.sportiv_id && sportivIdsInClub.has(t.sportiv_id)) || (t.familie_id && familieIdsInClub.has(t.familie_id)));
+    const fAntrenamente = antrenamente.filter(a => a.grupa_id === null || (a.grupa_id && grupaIdsInClub.has(a.grupa_id)));
+    const fInscrieriExamene = inscrieriExamene.filter(i => sportivIdsInClub.has(i.sportiv_id));
+    const fRezultate = rezultate.filter(r => sportivIdsInClub.has(r.sportiv_id));
+    const fAnunturiPrezenta = anunturiPrezenta.filter(a => sportivIdsInClub.has(a.sportiv_id));
+
+    return {
+        sportivi: fSportivi,
+        sesiuniExamene: fSesiuniExamene,
+        inscrieriExamene: fInscrieriExamene,
+        antrenamente: fAntrenamente,
+        grupe: fGrupe,
+        plati: fPlati,
+        tranzactii: fTranzactii,
+        evenimente: fEvenimente,
+        rezultate: fRezultate,
+        tipuriAbonament: fTipuriAbonament,
+        familii: fFamilii,
+        anunturiPrezenta: fAnunturiPrezenta,
+        reduceri,
+        deconturiFederatie: fDeconturiFederatie,
+    };
+}, [
+    activeClubId, sportivi, sesiuniExamene, inscrieriExamene, antrenamente,
+    grupe, plati, tranzactii, evenimente, rezultate, tipuriAbonament,
+    familii, anunturiPrezenta, reduceri, deconturiFederatie
+]);
 
   const handleLogout = async () => {
     await supabase?.auth.signOut();
@@ -243,21 +294,21 @@ function App() {
         return <FinalUnifiedDashboard 
             currentUser={currentUser} 
             onNavigate={setActiveView} 
-            deconturiFederatie={deconturiFederatie} 
+            deconturiFederatie={filteredData.deconturiFederatie} 
             permissions={permissions} 
-            inscrieriExamene={inscrieriExamene}
-            plati={plati}
-            antrenamente={antrenamente}
-            anunturi={anunturiPrezenta}
+            inscrieriExamene={filteredData.inscrieriExamene}
+            plati={filteredData.plati}
+            antrenamente={filteredData.antrenamente}
+            anunturi={filteredData.anunturiPrezenta}
             setAnunturi={setAnunturiPrezenta}
-            sportivi={sportivi}
+            sportivi={filteredData.sportivi}
             grade={grade}
-            grupe={grupe}
-            sesiuniExamene={sesiuniExamene}
+            grupe={filteredData.grupe}
+            sesiuniExamene={filteredData.sesiuniExamene}
         />;
 
       case 'sportivi':
-        return <SportiviManagement onBack={() => setActiveView('dashboard')} sportivi={sportivi} setSportivi={setSportivi} grupe={grupe} setGrupe={setGrupe} tipuriAbonament={tipuriAbonament} familii={familii} setFamilii={setFamilii} allRoles={allRoles} setAllRoles={setAllRoles} currentUser={currentUser} plati={plati} tranzactii={tranzactii} setTranzactii={setTranzactii} onViewSportiv={(s) => { setSelectedSportiv(s); setActiveView('profil-sportiv'); }} clubs={clubs} />;
+        return <SportiviManagement onBack={() => setActiveView('dashboard')} sportivi={filteredData.sportivi} setSportivi={setSportivi} grupe={filteredData.grupe} setGrupe={setGrupe} tipuriAbonament={filteredData.tipuriAbonament} familii={filteredData.familii} setFamilii={setFamilii} allRoles={allRoles} setAllRoles={setAllRoles} currentUser={currentUser} plati={filteredData.plati} tranzactii={filteredData.tranzactii} setTranzactii={setTranzactii} onViewSportiv={(s) => { setSelectedSportiv(s); setActiveView('profil-sportiv'); }} clubs={clubs} grade={grade} />;
 
       case 'profil-sportiv':
         return selectedSportiv ? <UserProfile sportiv={selectedSportiv} currentUser={currentUser} participari={inscrieriExamene} examene={sesiuniExamene} grade={grade} antrenamente={antrenamente} plati={plati} tranzactii={tranzactii} reduceri={reduceri} grupe={grupe} familii={familii} tipuriAbonament={tipuriAbonament} allRoles={allRoles} setSportivi={setSportivi} setPlati={setPlati} setTranzactii={setTranzactii} onBack={() => setActiveView('sportivi')} clubs={clubs} /> : null;
@@ -266,31 +317,31 @@ function App() {
         return permissions.isFederationAdmin ? <FederationStructure clubs={clubs} sportivi={sportivi} grupe={grupe} onBack={() => setActiveView('dashboard')} onNavigate={setActiveView} /> : <AccessDenied onBack={() => setActiveView('dashboard')} />;
 
       case 'examene':
-        return <GestiuneExamene currentUser={currentUser} clubs={clubs} onBack={() => setActiveView('dashboard')} sesiuni={sesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={sportivi} setSportivi={setSportivi} grade={grade} locatii={locatii} setLocatii={setLocatii} plati={plati} setPlati={setPlati} preturiConfig={preturiConfig} deconturiFederatie={deconturiFederatie} setDeconturiFederatie={setDeconturiFederatie} />;
+        return <GestiuneExamene currentUser={currentUser} clubs={clubs} onBack={() => setActiveView('dashboard')} sesiuni={filteredData.sesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={filteredData.inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={filteredData.sportivi} setSportivi={setSportivi} grade={grade} locatii={locatii} setLocatii={setLocatii} plati={filteredData.plati} setPlati={setPlati} preturiConfig={preturiConfig} deconturiFederatie={filteredData.deconturiFederatie} setDeconturiFederatie={setDeconturiFederatie} />;
 
       case 'prezenta':
-        return <PrezentaManagement sportivi={sportivi} setSportivi={setSportivi} antrenamente={antrenamente} setAntrenamente={setAntrenamente} grupe={grupe} onBack={() => setActiveView('dashboard')} setPlati={setPlati} tipuriAbonament={tipuriAbonament} anunturi={anunturiPrezenta} />;
+        return <PrezentaManagement sportivi={filteredData.sportivi} setSportivi={setSportivi} antrenamente={filteredData.antrenamente} setAntrenamente={setAntrenamente} grupe={filteredData.grupe} onBack={() => setActiveView('dashboard')} setPlati={setPlati} tipuriAbonament={filteredData.tipuriAbonament} anunturi={filteredData.anunturiPrezenta} />;
 
       case 'grupe':
-        return <GrupeManagement grupe={grupe} setGrupe={setGrupe} onBack={() => setActiveView('dashboard')} currentUser={currentUser} clubs={clubs} />;
+        return <GrupeManagement grupe={filteredData.grupe} setGrupe={setGrupe} onBack={() => setActiveView('dashboard')} currentUser={currentUser} clubs={clubs} />;
 
       case 'calendar':
-        return <CalendarView antrenamente={antrenamente} sesiuniExamene={sesiuniExamene} evenimente={evenimente} grupe={grupe} locatii={locatii} onBack={() => setActiveView('dashboard')} onNavigate={setActiveView} currentUser={currentUser} sportivi={sportivi} rezultate={rezultate} setRezultate={setRezultate} plati={plati} setPlati={setPlati} preturiConfig={preturiConfig} />;
+        return <CalendarView antrenamente={filteredData.antrenamente} sesiuniExamene={filteredData.sesiuniExamene} evenimente={filteredData.evenimente} grupe={filteredData.grupe} locatii={locatii} onBack={() => setActiveView('dashboard')} onNavigate={setActiveView} currentUser={currentUser} sportivi={filteredData.sportivi} rezultate={filteredData.rezultate} setRezultate={setRezultate} plati={filteredData.plati} setPlati={setPlati} preturiConfig={preturiConfig} />;
 
       case 'financial-dashboard':
-        return <FinancialDashboard plati={plati} tranzactii={tranzactii} sportivi={sportivi} onBack={() => setActiveView('dashboard')} />;
+        return <FinancialDashboard plati={filteredData.plati} tranzactii={filteredData.tranzactii} sportivi={filteredData.sportivi} onBack={() => setActiveView('dashboard')} />;
 
       case 'deconturi-federatie':
-        return <FederationInvoices deconturi={deconturiFederatie} setDeconturi={setDeconturiFederatie} currentUser={currentUser} onBack={() => setActiveView('dashboard')} />;
+        return <FederationInvoices deconturi={filteredData.deconturiFederatie} setDeconturi={setDeconturiFederatie} currentUser={currentUser} onBack={() => setActiveView('dashboard')} />;
 
       case 'plati-scadente':
-        return <PlatiScadente plati={plati} setPlati={setPlati} sportivi={sportivi} familii={familii} tipuriAbonament={tipuriAbonament} tranzactii={tranzactii} reduceri={reduceri} onIncaseazaMultiple={(p) => setActiveView('jurnal-incasari')} onBack={() => setActiveView('dashboard')} />;
+        return <PlatiScadente plati={filteredData.plati} setPlati={setPlati} sportivi={filteredData.sportivi} familii={filteredData.familii} tipuriAbonament={filteredData.tipuriAbonament} tranzactii={filteredData.tranzactii} reduceri={reduceri} onIncaseazaMultiple={(p) => setActiveView('jurnal-incasari')} onBack={() => setActiveView('dashboard')} />;
 
       case 'jurnal-incasari':
-        return <JurnalIncasari currentUser={currentUser} plati={plati} setPlati={setPlati} sportivi={sportivi} familii={familii} preturiConfig={preturiConfig} tipuriAbonament={tipuriAbonament} tipuriPlati={tipuriPlati} setTipuriPlati={setTipuriPlati} tranzactii={tranzactii} setTranzactii={setTranzactii} platiInitiale={[]} onIncasareProcesata={initializeAndFetchData} onBack={() => setActiveView('dashboard')} reduceri={reduceri} />;
+        return <JurnalIncasari currentUser={currentUser} plati={filteredData.plati} setPlati={setPlati} sportivi={filteredData.sportivi} familii={filteredData.familii} preturiConfig={preturiConfig} tipuriAbonament={filteredData.tipuriAbonament} tipuriPlati={tipuriPlati} setTipuriPlati={setTipuriPlati} tranzactii={filteredData.tranzactii} setTranzactii={setTranzactii} platiInitiale={[]} onIncasareProcesata={initializeAndFetchData} onBack={() => setActiveView('dashboard')} reduceri={reduceri} />;
 
       case 'user-management':
-        return <UserManagement sportivi={sportivi} setSportivi={setSportivi} currentUser={currentUser} setCurrentUser={setCurrentUser} allRoles={allRoles} setAllRoles={setAllRoles} onBack={() => setActiveView('dashboard')} clubs={clubs} />;
+        return <UserManagement sportivi={filteredData.sportivi} setSportivi={setSportivi} currentUser={currentUser} setCurrentUser={setCurrentUser} allRoles={allRoles} setAllRoles={setAllRoles} onBack={() => setActiveView('dashboard')} clubs={clubs} />;
 
       case 'cluburi':
         return <CluburiManagement clubs={clubs} setClubs={setClubs} onBack={() => setActiveView('dashboard')} currentUser={currentUser} />;
@@ -303,9 +354,12 @@ function App() {
 
       case 'data-maintenance':
         return <BackupManager onBack={() => setActiveView('dashboard')} onDataRestored={() => window.location.reload()} sportivi={sportivi} setSportivi={setSportivi} grade={grade} preturiConfig={preturiConfig} participari={inscrieriExamene} examene={sesiuniExamene} plati={plati} setPlati={setPlati} familii={familii} onNavigate={setActiveView} />;
-      // FIX: Pass the necessary props to the RapoarteExamen component.
+      
       case 'rapoarte-examen':
-        return <RapoarteExamen currentUser={currentUser} clubs={clubs} onBack={() => setActiveView('dashboard')} sesiuni={sesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={sportivi} setSportivi={setSportivi} grade={grade} locatii={locatii} setLocatii={setLocatii} plati={plati} setPlati={setPlati} preturiConfig={preturiConfig} deconturiFederatie={deconturiFederatie} setDeconturiFederatie={setDeconturiFederatie} />;
+        return <RapoarteExamen currentUser={currentUser} clubs={clubs} onBack={() => setActiveView('dashboard')} sesiuni={filteredData.sesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={filteredData.inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={filteredData.sportivi} setSportivi={setSportivi} grade={grade} locatii={locatii} setLocatii={setLocatii} plati={filteredData.plati} setPlati={setPlati} preturiConfig={preturiConfig} deconturiFederatie={filteredData.deconturiFederatie} setDeconturiFederatie={setDeconturiFederatie} />;
+      
+      case 'setari-club':
+        return <ClubSettings onBack={() => setActiveView('dashboard')} />;
 
       default:
         return <FinalUnifiedDashboard 
@@ -337,14 +391,14 @@ function App() {
             activeView={activeView} 
             isExpanded={isSidebarExpanded} 
             setIsExpanded={setIsSidebarExpanded} 
-            plati={plati}
+            plati={filteredData.plati}
             clubs={clubs}
             globalClubFilter={globalClubFilter}
             setGlobalClubFilter={setGlobalClubFilter}
             permissions={permissions}
           />
           <main className={`flex-1 transition-all duration-300 ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'}`}>
-            <AdminHeader currentUser={currentUser!} onNavigate={setActiveView} onLogout={handleLogout} plati={plati} permissions={permissions} />
+            <AdminHeader currentUser={currentUser!} onNavigate={setActiveView} onLogout={handleLogout} plati={filteredData.plati} permissions={permissions} />
             <div className="p-4 md:p-8 max-w-7xl mx-auto">
               {permissions.isSuperAdmin && activeView === 'dashboard' && <GlobalContextSwitcher activeContext={adminContext} onContextChange={setAdminContext} />}
               <ErrorBoundary onNavigate={setActiveView}>
@@ -352,7 +406,6 @@ function App() {
               </ErrorBoundary>
             </div>
           </main>
-          {/* // FIX: Property 'env' does not exist on type 'ImportMeta'. Cast to any to access Vite env variables. */}
           {(import.meta as any).env.DEV && currentUser && (
             <RoleSwitcher 
                 currentUser={currentUser} 

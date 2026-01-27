@@ -281,6 +281,12 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
 
         try {
             if (platiInitiale.length > 0) {
+                 if (formState.suma > formState.suma_initiala + 0.01) {
+                    showError("Sumă Excesivă", "Suma încasată nu poate depăși totalul datorat. Pentru plăți în avans, folosiți modulul dedicat.");
+                    setLoading(false);
+                    return;
+                }
+
                 const idsToUpdate = platiInitiale.map(p => p.id);
 
                 const { data: currentPlati, error: fetchError } = await supabase.from('plati').select('id, descriere, status').in('id', idsToUpdate);
@@ -294,11 +300,40 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
                 const { data: tx, error: txError } = await supabase.from('tranzactii').insert({ plata_ids: idsToUpdate, sportiv_id: formState.sportiv_id || platiInitiale[0]?.sportiv_id, familie_id: formState.familie_id || platiInitiale[0]?.familie_id, suma: formState.suma, data_platii: formState.data_platii!, metoda_plata: formState.metoda_plata! }).select().single();
                 if (txError) throw txError;
                 tranzactieId = (tx as Tranzactie).id;
-                const { error: updateError } = await supabase.from('plati').update({ status: 'Achitat' }).in('id', idsToUpdate);
-                if (updateError) throw updateError;
-                setPlati(prevPlati => prevPlati.map(plata => idsToUpdate.includes(plata.id) ? { ...plata, status: 'Achitat' } : plata));
+
+                let amountToDistribute = formState.suma;
+                const platiUpdates: Partial<Plata>[] = [];
+                const sortedPlati = [...platiInitiale].sort((a,b) => new Date(a.data).getTime() - new Date(b.data).getTime());
+    
+                for (const plata of sortedPlati) {
+                    if (amountToDistribute <= 0.01) break;
+                    
+                    const paymentForThisPlata = Math.min(amountToDistribute, plata.suma);
+                    const remainingOnThisPlata = plata.suma - paymentForThisPlata;
+                    const newStatus: Plata['status'] = remainingOnThisPlata < 0.01 ? 'Achitat' : 'Achitat Parțial';
+
+                    platiUpdates.push({
+                        id: plata.id,
+                        suma: newStatus === 'Achitat' ? 0 : remainingOnThisPlata,
+                        status: newStatus
+                    });
+
+                    amountToDistribute -= paymentForThisPlata;
+                }
+
+                if (platiUpdates.length > 0) {
+                    const { error: updateError } = await supabase.from('plati').upsert(platiUpdates);
+                    if (updateError) throw updateError;
+                    
+                    setPlati(prevPlati => {
+                        const updatesMap = new Map(platiUpdates.map(p => [p.id, p]));
+                        return prevPlati.map(p => updatesMap.has(p.id!) ? { ...p, ...updatesMap.get(p.id!) } : p);
+                    });
+                }
+
                 setTranzactii(prev => [...prev, tx as Tranzactie]);
-                showSuccess('Succes', `Încasare confirmată! ${idsToUpdate.length} datorii stinse.`);
+                showSuccess('Succes', `Încasare de ${formState.suma.toFixed(2)} RON confirmată!`);
+
             } else {
                 const sportiv = sportivi.find(s => s.id === formState.sportiv_id);
                 const { data: newPlata, error: plataError } = await supabase.from('plati').insert({ sportiv_id: formState.sportiv_id, familie_id: sportiv?.familie_id, suma: formState.suma, suma_initiala: formState.suma_initiala > 0 ? formState.suma_initiala : null, reducere_id: formState.reducere_id, data: formState.data_platii!, status: 'Achitat', descriere: formState.descriere, tip: formState.tip, observatii: formState.observatii }).select().single();
@@ -406,10 +441,34 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
                         </div>
                     )}
                     
-                    <div className="p-4 bg-light-navy rounded-lg text-center">
-                        <label className="text-sm uppercase text-slate-400">Sumă Finală de Plată</label>
-                        <p className="text-4xl font-bold text-brand-secondary mt-1">{formState.suma.toFixed(2)} RON</p>
-                    </div>
+                    {platiInitiale.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="p-4 bg-slate-800/50 rounded-lg text-center border border-slate-700">
+                                <label className="text-sm uppercase text-slate-400">Total Datorat</label>
+                                <p className="text-4xl font-bold text-red-400 mt-1">{formState.suma_initiala.toFixed(2)} RON</p>
+                            </div>
+                            <div className="p-4 bg-slate-900/50 rounded-lg text-center border border-slate-700">
+                                <label htmlFor="suma_incasata" className="text-sm uppercase text-slate-400">Sumă Încasată</label>
+                                <Input
+                                    id="suma_incasata"
+                                    label=""
+                                    type="number"
+                                    name="suma"
+                                    value={formState.suma}
+                                    onChange={handleFormChange}
+                                    className="!text-4xl !font-bold !text-green-400 !text-center !p-0 !mt-1 !h-auto !bg-transparent !border-0 focus:!ring-0"
+                                    step="0.01"
+                                    required
+                                />
+                            </div>
+                        </div>
+                        ) : (
+                        <div className="p-4 bg-light-navy rounded-lg text-center">
+                            <label className="text-sm uppercase text-slate-400">Sumă Finală de Plată</label>
+                            <p className="text-4xl font-bold text-brand-secondary mt-1">{formState.suma.toFixed(2)} RON</p>
+                        </div>
+                    )}
+
 
                     <div className="flex justify-end pt-4"><Button type="submit" variant="success" className="px-10" disabled={loading}>{loading ? 'Se procesează...' : 'Finalizează Încasarea'}</Button></div>
                 </form>

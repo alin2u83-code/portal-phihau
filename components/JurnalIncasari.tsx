@@ -275,6 +275,12 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
     const handleSaveIncasare = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!supabase) return;
+
+        if (!formState.data_platii) {
+            showError("Dată lipsă", "Vă rugăm selectați o dată validă pentru încasare.");
+            return;
+        }
+
         setLoading(true);
         let tranzactieId: string | null = null;
         let newPlataId: string | null = null;

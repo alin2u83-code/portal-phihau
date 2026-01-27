@@ -155,9 +155,10 @@ interface ManagementInscrieriProps {
     plati: Plata[];
     setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
     preturiConfig: PretConfig[];
+    onViewSportiv: (sportiv: Sportiv) => void;
 }
 
-export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiune, sportivi, setSportivi, allInscrieri, grade, setInscrieri, plati, setPlati, preturiConfig }) => {
+export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiune, sportivi, setSportivi, allInscrieri, grade, setInscrieri, plati, setPlati, preturiConfig, onViewSportiv }) => {
     const { showError, showSuccess } = useError();
     const [isBulkAddModalOpen, setIsBulkAddModalOpen] = useState(false);
 
@@ -184,7 +185,6 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         return allInscrieri
             .filter(i => i.sesiune_id === sesiune.id)
             .sort((a, b) => {
-// FIX: Property 'grade' does not exist on type 'InscriereExamen'. Did you mean 'grades'?
                 const gradesOrderDiff = (b.grades?.ordine ?? 0) - (a.grades?.ordine ?? 0);
                 if (gradesOrderDiff !== 0) return gradesOrderDiff;
                 return (a.sportivi?.nume || '').localeCompare(b.sportivi?.nume || '');
@@ -434,7 +434,6 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             if (anyError) throw anyError.error;
 
             setInscrieri(prev => { const changesMap = new Map(changes); return prev.map(i => changesMap.has(i.id) ? { ...i, rezultat: changesMap.get(i.id) as any } : i); });
-            // FIX: Refactor state update to a more robust functional pattern, avoiding potential mutation issues and type inference problems that can cause "Spread types may only be created from object types" errors.
             setSportivi(prev => {
                 const updatesMap = new Map(sportiviUpdatesLocal.map(u => [u.id, u]));
                 return prev.map(sportiv => {
@@ -492,11 +491,13 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                                     return (
                                         <tr key={inscriere.id} className="hover:bg-slate-700/20">
                                             <td className="p-2">
-                                                <p className="font-medium text-white">
+                                                <p 
+                                                    className="font-medium text-white hover:text-brand-primary hover:underline cursor-pointer"
+                                                    onClick={(e) => { e.stopPropagation(); onViewSportiv(inscriere.sportivi); }}
+                                                >
                                                     {inscriere.sportivi.nume} {inscriere.sportivi.prenume}
                                                 </p>
                                             </td>
-{/* FIX: Property 'grade' does not exist on type 'InscriereExamen'. Did you mean 'grades'? */}
                                             <td className="p-2 text-brand-secondary font-semibold">{inscriere.grades.nume}</td>
                                             <td className="p-2 text-center">
                                                 <Select 

@@ -161,7 +161,7 @@ const SesiuneForm: React.FC<SesiuneFormProps> = ({ isOpen, onClose, onSave, sesi
 };
 
 // --- NOUA VIZUALIZARE DE DETALIU PENTRU SESIUNE ---
-const DetaliiSesiune: React.FC<{
+interface DetaliiSesiuneProps {
     sesiune: SesiuneExamen;
     inscrieri: InscriereExamen[];
     setInscrieri: React.Dispatch<React.SetStateAction<InscriereExamen[]>>;
@@ -175,7 +175,9 @@ const DetaliiSesiune: React.FC<{
     preturiConfig: PretConfig[];
     setSesiuni: React.Dispatch<React.SetStateAction<SesiuneExamen[]>>;
     setDeconturiFederatie: React.Dispatch<React.SetStateAction<DecontFederatie[]>>;
-}> = (props) => {
+    onViewSportiv: (sportiv: Sportiv) => void;
+}
+const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
     const { showError, showSuccess } = useError();
     const [isFinalizing, setIsFinalizing] = useState(false);
 
@@ -245,9 +247,10 @@ interface GestiuneExameneProps {
     preturiConfig: PretConfig[];
     deconturiFederatie: DecontFederatie[];
     setDeconturiFederatie: React.Dispatch<React.SetStateAction<DecontFederatie[]>>;
+    onViewSportiv: (sportiv: Sportiv) => void;
 }
 
-export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, clubs, onBack, sesiuni, setSesiuni, inscrieri, setInscrieri, sportivi, setSportivi, grade, locatii, setLocatii, plati, setPlati, preturiConfig, deconturiFederatie, setDeconturiFederatie }) => {
+export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, clubs, onBack, sesiuni, setSesiuni, inscrieri, setInscrieri, sportivi, setSportivi, grade, locatii, setLocatii, plati, setPlati, preturiConfig, deconturiFederatie, setDeconturiFederatie, onViewSportiv }) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [sesiuneToEdit, setSesiuneToEdit] = useState<SesiuneExamen | null>(null);
   const [sesiuneToDelete, setSesiuneToDelete] = useState<SesiuneExamen | null>(null);
@@ -314,6 +317,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
                 preturiConfig={preturiConfig}
                 setSesiuni={setSesiuni}
                 setDeconturiFederatie={setDeconturiFederatie}
+                onViewSportiv={onViewSportiv}
             />
         </div>
      );

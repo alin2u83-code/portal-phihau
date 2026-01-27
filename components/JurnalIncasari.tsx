@@ -464,8 +464,18 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
                         </div>
                         ) : (
                         <div className="p-4 bg-light-navy rounded-lg text-center">
-                            <label className="text-sm uppercase text-slate-400">Sumă Finală de Plată</label>
-                            <p className="text-4xl font-bold text-brand-secondary mt-1">{formState.suma.toFixed(2)} RON</p>
+                            <label htmlFor="suma_directa" className="text-sm uppercase text-slate-400">Sumă de Plată</label>
+                             <Input
+                                id="suma_directa"
+                                label=""
+                                type="number"
+                                name="suma"
+                                value={formState.suma}
+                                onChange={handleFormChange}
+                                className="!text-4xl !font-bold !text-green-400 !text-center !p-0 !mt-1 !h-auto !bg-transparent !border-0 focus:!ring-0"
+                                step="0.01"
+                                required
+                            />
                         </div>
                     )}
 

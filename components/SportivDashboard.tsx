@@ -63,7 +63,10 @@ const TrainingActionCard: React.FC<TrainingActionCardProps> = ({ training, anunt
         return (
             <Button onClick={() => handleClick(status)} variant={variant} className={className} disabled={loading || !currentUser?.id}>
                 {children}
-                {isSelected && <CheckIcon className="w-5 h-5 ml-2" />}
+                {status === 'Confirm' ? 
+                    <CheckIcon className="w-5 h-5 ml-2 text-white" /> :
+                    (isSelected && <CheckIcon className="w-5 h-5 ml-2" />)
+                }
             </Button>
         );
     };
@@ -231,7 +234,8 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
         const obtainedGradesMap = new Map<string, string>();
         admittedParticipations.forEach(p => {
             const examDate = examDateMap.get(p.sesiune_id);
-            if (examDate && !obtainedGradesMap.has(p.grad_vizat_id)) {
+            // FIX: Explicitly cast 'grad_vizat_id' to string to resolve a type inference issue where it was being treated as 'unknown'.
+            if (examDate && !obtainedGradesMap.has(p.grad_vizat_id as string)) {
                 // FIX: Explicitly cast 'grad_vizat_id' to string to resolve a type inference issue where it was being treated as 'unknown'.
                 obtainedGradesMap.set(p.grad_vizat_id as string, examDate);
             }

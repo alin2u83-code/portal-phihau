@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { Sportiv, Grupa, Familie, TipAbonament, Club, User } from '../types';
 import { Button, Modal, Input, Select, FormSection, Switch } from './ui';
@@ -219,7 +218,7 @@ export const SportivFormModal: React.FC<{
         
         // Verificare critică Multi-Tenancy
         if (!isSuperAdmin && formData.club_id && formData.club_id !== currentUser?.club_id) {
-            setCriticalPermissionError(`Tentativă de modificare neautorizată! Nu aveți drepturi de administrare pentru clubul selectat.`);
+            setCriticalPermissionError(`Tentativă de modificare neautorizată! Nu aveți drepturi de administrare pentru clubul selectat. Verificați rolul și clubul asociat profilului dumneavoastră.`);
             return;
         }
 
@@ -246,6 +245,7 @@ export const SportivFormModal: React.FC<{
     };
 
     const handleQuickAddGrupa = async (nume: string) => {
+        const isSuperAdmin = currentUser?.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'Admin');
         const { data, error } = await supabase.from('grupe').insert({ 
             denumire: nume, 
             sala: 'N/A', 
@@ -255,13 +255,11 @@ export const SportivFormModal: React.FC<{
         setGrupe(prev => [...prev, { ...data, program: [] }]);
     };
 
-    const isSuperAdmin = currentUser?.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'Admin');
-
     return (
         <>
             <Modal isOpen={isOpen} onClose={onClose} title={sportivToEdit ? "Editează Sportiv" : "Adaugă Sportiv"} persistent>
                 {criticalPermissionError ? (
-                    <div className="p-6 rounded-lg bg-[#112240] border-2 border-red-500 text-center animate-fade-in-down">
+                    <div className="p-6 rounded-lg bg-[var(--bg-card)] border-2 border-red-500 text-center animate-fade-in-down">
                         <ExclamationTriangleIcon className="w-12 h-12 text-red-500 mx-auto mb-4" />
                         <h3 className="text-xl font-bold text-red-400 mb-2">Eroare de Securitate</h3>
                         <p className="text-slate-300 mb-6">{criticalPermissionError}</p>

@@ -95,6 +95,8 @@ ALTER TABLE public.cluburi FORCE ROW LEVEL SECURITY;
 
 CREATE POLICY "Super Admins have full access" ON public.cluburi
     FOR ALL USING (public.is_super_admin()) WITH CHECK (public.is_super_admin());
+CREATE POLICY "Club staff can update their own club" ON public.cluburi
+    FOR UPDATE USING (public.is_club_staff() AND id = public.get_my_club_id());
 CREATE POLICY "Authenticated users can view clubs" ON public.cluburi
     FOR SELECT USING (auth.role() = 'authenticated');
 

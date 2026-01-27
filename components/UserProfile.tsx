@@ -274,7 +274,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
             .sort((a, b) => {
                 const dateA = examDateMap.get(a.sesiune_id) || '9999-12-31';
                 const dateB = examDateMap.get(b.sesiune_id) || '9999-12-31';
-                return new Date(dateA).getTime() - new Date(dateB).getTime();
+                return new Date(dateB).getTime() - new Date(dateA).getTime();
             });
 
         const obtainedGradesMap = new Map<string, string>();

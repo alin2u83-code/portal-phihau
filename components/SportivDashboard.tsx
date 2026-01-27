@@ -217,20 +217,33 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
         return grupe.find(g => g.id === viewedUser.grupa_id)?.denumire || 'Fără grupă';
     }, [viewedUser.grupa_id, grupe]);
 
-    const userParticipari = useMemo(() => {
-        return participari
-            .filter(p => p.sportiv_id === viewedUser.id)
-            .map(p => {
-                const sesiune = examene.find(s => s.id === p.sesiune_id);
-                const grad = grade.find(g => g.id === p.grad_vizat_id);
-                return {
-                    ...p,
-                    data_examen: sesiune?.data || 'N/A',
-                    nume_grad: grad?.nume || 'N/A'
-                };
-            })
-            .sort((a, b) => new Date(b.data_examen).getTime() - new Date(a.data_examen).getTime());
-    }, [viewedUser.id, participari, examene, grade]);
+    const allGradesWithDates = useMemo(() => {
+        const examDateMap = new Map(examene.map(e => [e.id, e.data]));
+        const admittedParticipations = participari
+            .filter(p => p.sportiv_id === viewedUser.id && p.rezultat === 'Admis')
+            .sort((a, b) => {
+                const dateA = examDateMap.get(a.sesiune_id) || '9999-12-31';
+                const dateB = examDateMap.get(b.sesiune_id) || '9999-12-31';
+                // FIX: Explicitly cast date strings to resolve TypeScript inference issue with the 'new Date()' constructor.
+                return new Date(dateB as string).getTime() - new Date(dateA as string).getTime();
+            });
+
+        const obtainedGradesMap = new Map<string, string>();
+        admittedParticipations.forEach(p => {
+            const examDate = examDateMap.get(p.sesiune_id);
+            if (examDate && !obtainedGradesMap.has(p.grad_vizat_id)) {
+                // FIX: Explicitly cast 'grad_vizat_id' to string to resolve a type inference issue where it was being treated as 'unknown'.
+                obtainedGradesMap.set(p.grad_vizat_id as string, examDate);
+            }
+        });
+
+        return [...grade]
+            .sort((a, b) => a.ordine - b.ordine)
+            .map(g => ({
+                ...g,
+                data_obtinere: obtainedGradesMap.get(g.id) || null
+            }));
+    }, [grade, participari, examene, viewedUser.id]);
 
     return (
         <div className="space-y-6">
@@ -291,30 +304,22 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
             </div>
 
             <Card>
-                <h3 className="text-lg font-bold text-white mb-4">Istoric Recent Examene</h3>
-                {userParticipari.length > 0 ? (
-                    <div className="space-y-3">
-                        {userParticipari.slice(0, 3).map(p => (
-                            <div key={p.id} className="bg-slate-800/50 p-3 rounded-md flex justify-between items-center">
-                                <div>
-                                    <p className="font-semibold text-white">{p.nume_grad}</p>
-                                    <p className="text-sm text-slate-400">{new Date(p.data_examen + 'T00:00:00').toLocaleDateString('ro-RO')}</p>
-                                </div>
-                                <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-                                    p.rezultat === 'Admis' ? 'bg-green-600/20 text-green-400' :
-                                    p.rezultat === 'Respins' ? 'bg-red-600/20 text-red-400' :
-                                    'bg-slate-600/20 text-slate-400'
-                                }`}>{p.rezultat || 'N/A'}</span>
+                <h3 className="text-lg font-bold text-white mb-4">Progres Tehnic (Grade Obținute)</h3>
+                {allGradesWithDates.length > 0 ? (
+                    <div className="space-y-2 max-h-72 overflow-y-auto pr-2">
+                        {allGradesWithDates.map(g => (
+                            <div key={g.id} className="flex justify-between items-center bg-slate-800/50 p-2 rounded-md">
+                                <p className={`font-semibold ${g.data_obtinere ? 'text-white' : 'text-slate-500'}`}>{g.nume}</p>
+                                {g.data_obtinere ? (
+                                    <p className="text-sm text-brand-secondary font-bold">{new Date(g.data_obtinere + 'T00:00:00').toLocaleDateString('ro-RO')}</p>
+                                ) : (
+                                    <p className="text-sm text-slate-600 italic">--</p>
+                                )}
                             </div>
                         ))}
-                        {userParticipari.length > 3 && (
-                            <Button onClick={() => onNavigate('istoric-examene')} variant="secondary" className="w-full mt-4">
-                                Vezi tot istoricul
-                            </Button>
-                        )}
                     </div>
                 ) : (
-                    <p className="text-slate-400 italic">Niciun examen susținut.</p>
+                    <p className="text-slate-400 italic">Niciun grad definit în sistem.</p>
                 )}
             </Card>
         </div>

@@ -248,7 +248,8 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                     type: plata.tip,
                     paymentDate: paymentDate
                 };
-            }).sort((a, b) => new Date(b.facturaDate).getTime() - new Date(a.facturaDate).getTime());
+// FIX: Explicitly cast 'facturaDate' to string to resolve TypeScript inference issue with the 'new Date()' constructor.
+            }).sort((a, b) => new Date(b.facturaDate as string).getTime() - new Date(a.facturaDate as string).getTime());
             
             if (financialFilter !== 'Toate') {
                 historyItems = historyItems.filter(item => item.type === financialFilter);
@@ -266,34 +267,31 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
         };
     }, [sportiv, plati, tranzactii, financialFilter, reduceri, familii]);
 
-
-    const trainingHistory = useMemo(() => {
-        const threeMonthsAgo = new Date();
-        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-        threeMonthsAgo.setHours(0,0,0,0);
-
-        return antrenamente
-            .filter(a => {
-                if (!a.data) return false;
-                const trainingDate = new Date(a.data + 'T00:00:00');
-                if (trainingDate < threeMonthsAgo) return false;
-
-                const isForGroup = a.grupa_id && a.grupa_id === sportiv.grupa_id;
-                const isVacationTraining = !a.grupa_id && sportiv.participa_vacanta;
-                
-                return isForGroup || isVacationTraining;
-            })
-            .map(a => ({
-                ...a,
-                status: a.sportivi_prezenti_ids.includes(sportiv.id) ? 'Prezent' : 'Absent',
-                grupaNume: grupe.find(g => g.id === a.grupa_id)?.denumire || 'Vacanță'
-            }))
+    const allGradesWithDates = useMemo(() => {
+        const examDateMap = new Map(examene.map(e => [e.id, e.data]));
+        const admittedParticipations = participari
+            .filter(p => p.sportiv_id === sportiv.id && p.rezultat === 'Admis')
             .sort((a, b) => {
-                const dateA = a.data ? new Date(a.data + 'T00:00:00').getTime() : 0;
-                const dateB = b.data ? new Date(b.data + 'T00:00:00').getTime() : 0;
-                return dateB - dateA;
+                const dateA = examDateMap.get(a.sesiune_id) || '9999-12-31';
+                const dateB = examDateMap.get(b.sesiune_id) || '9999-12-31';
+                return new Date(dateA).getTime() - new Date(dateB).getTime();
             });
-    }, [sportiv, antrenamente, grupe]);
+
+        const obtainedGradesMap = new Map<string, string>();
+        admittedParticipations.forEach(p => {
+            const examDate = examDateMap.get(p.sesiune_id);
+            if (examDate && !obtainedGradesMap.has(p.grad_vizat_id)) {
+                obtainedGradesMap.set(p.grad_vizat_id, examDate);
+            }
+        });
+
+        return [...grade]
+            .sort((a, b) => a.ordine - b.ordine)
+            .map(g => ({
+                ...g,
+                data_obtinere: obtainedGradesMap.get(g.id) || null
+            }));
+    }, [grade, participari, examene, sportiv.id]);
 
     const handleSaveRoles = async () => {
         if (!isAdmin) return;
@@ -443,26 +441,19 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                             </div>
                         </div>
                     </Card>
-                     <Card>
-                        <h3 className="text-lg font-bold text-white mb-4">Istoric Prezențe Recente (Ultimele 3 Luni)</h3>
-                        <div className="max-h-72 overflow-y-auto pr-2 space-y-3">
-                            {trainingHistory.length > 0 ? (
-                                trainingHistory.map(antrenament => (
-                                    <div key={antrenament.id} className="flex justify-between items-center bg-slate-800/50 p-2 rounded-md">
-                                        <div>
-                                            <p className="font-semibold text-white">{new Date(antrenament.data + 'T00:00:00').toLocaleDateString('ro-RO')}</p>
-                                            <p className="text-xs text-slate-400">{antrenament.grupaNume}</p>
-                                        </div>
-                                        <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-                                            antrenament.status === 'Prezent' ? 'bg-green-600/30 text-green-300' : 'bg-red-600/30 text-red-400'
-                                        }`}>
-                                            {antrenament.status}
-                                        </span>
-                                    </div>
-                                ))
-                            ) : (
-                                <p className="text-slate-500 italic text-center py-4">Nicio prezență înregistrată în ultimele 3 luni.</p>
-                            )}
+                    <Card>
+                        <h3 className="text-lg font-bold text-white mb-4">Istoric Grade Obținute</h3>
+                        <div className="max-h-72 overflow-y-auto pr-2 space-y-2">
+                            {allGradesWithDates.map(g => (
+                                <div key={g.id} className="flex justify-between items-center bg-slate-800/50 p-2 rounded-md">
+                                    <p className={`font-semibold ${g.data_obtinere ? 'text-white' : 'text-slate-500'}`}>{g.nume}</p>
+                                    {g.data_obtinere ? (
+                                        <p className="text-sm text-brand-secondary font-bold">{new Date(g.data_obtinere + 'T00:00:00').toLocaleDateString('ro-RO')}</p>
+                                    ) : (
+                                        <p className="text-sm text-slate-600 italic">--</p>
+                                    )}
+                                </div>
+                            ))}
                         </div>
                     </Card>
                 </div>

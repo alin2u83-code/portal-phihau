@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { User, Antrenament, AnuntPrezenta, Sportiv } from '../types';
-import { Card, Button } from './ui';
+import { Card, Button, Select, Input } from './ui';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { CheckIcon } from './icons';
@@ -11,9 +11,10 @@ interface TrainingActionCardProps {
     training: Antrenament;
     anunt: AnuntPrezenta | undefined;
     onStatusChange: (trainingId: string, status: AnuntStatus) => Promise<void>;
+    currentUser: User;
 }
 
-const TrainingActionCard: React.FC<TrainingActionCardProps> = ({ training, anunt, onStatusChange }) => {
+const TrainingActionCard: React.FC<TrainingActionCardProps> = ({ training, anunt, onStatusChange, currentUser }) => {
     const [loading, setLoading] = useState(false);
     const [optimisticStatus, setOptimisticStatus] = useState<AnuntStatus | null>(null);
 
@@ -34,7 +35,7 @@ const TrainingActionCard: React.FC<TrainingActionCardProps> = ({ training, anunt
             setLoading(false);
         }
     };
-
+    
     const getStyling = (status: AnuntStatus) => {
         const baseClasses = ['font-bold', 'gap-2', 'text-base'];
         const currentStatus = optimisticStatus;
@@ -50,12 +51,23 @@ const TrainingActionCard: React.FC<TrainingActionCardProps> = ({ training, anunt
         
         const variant: 'success' | 'warning' | 'danger' = status === 'Confirm' ? 'success' : status === 'Intarziat' ? 'warning' : 'danger';
 
-        return { variant, className: baseClasses.join(' ') };
+        return { variant, className: baseClasses.join(' '), isSelected };
     };
 
-    const confirmStyling = getStyling('Confirm');
-    const intarziatStyling = getStyling('Intarziat');
-    const absentStyling = getStyling('Absent');
+    const ActionButton: React.FC<{ status: AnuntStatus; children: React.ReactNode; }> = ({ status, children }) => {
+        const { variant, className, isSelected } = getStyling(status);
+        return (
+            <Button
+                onClick={() => handleClick(status)}
+                variant={variant}
+                className={className}
+                disabled={loading || !currentUser?.id}
+            >
+                {children}
+                {isSelected && <CheckIcon className="w-5 h-5 ml-2" />}
+            </Button>
+        );
+    };
 
     return (
         <Card className="bg-light-navy border-slate-800">
@@ -63,31 +75,9 @@ const TrainingActionCard: React.FC<TrainingActionCardProps> = ({ training, anunt
                 Antrenamentul de azi: {new Date(training.data + 'T' + training.ora_start).toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' })}
             </h3>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-                <Button 
-                    onClick={() => handleClick('Confirm')} 
-                    variant={confirmStyling.variant}
-                    className={confirmStyling.className}
-                    disabled={loading}
-                >
-                    Participă
-                    <CheckIcon className="w-5 h-5 text-green-200" />
-                </Button>
-                <Button 
-                    onClick={() => handleClick('Intarziat')} 
-                    variant={intarziatStyling.variant} 
-                    className={intarziatStyling.className} 
-                    disabled={loading}
-                >
-                    Întârzii
-                </Button>
-                <Button 
-                    onClick={() => handleClick('Absent')} 
-                    variant={absentStyling.variant} 
-                    className={absentStyling.className} 
-                    disabled={loading}
-                >
-                    Absent
-                </Button>
+                <ActionButton status="Confirm">Participă</ActionButton>
+                <ActionButton status="Intarziat">Întârzii</ActionButton>
+                <ActionButton status="Absent">Absent</ActionButton>
             </div>
         </Card>
     );
@@ -132,7 +122,7 @@ export const AthleteQuickActions: React.FC<AthleteQuickActionsProps> = ({ curren
 
         if (error) {
             showError("Eroare la trimitere", error);
-            throw error; // Throw error to be caught by the optimistic UI handler
+            throw error;
         } else if (data) {
             showSuccess("Status actualizat", `Ai anunțat: ${status}`);
             setAnunturi(prev => {
@@ -146,14 +136,13 @@ export const AthleteQuickActions: React.FC<AthleteQuickActionsProps> = ({ curren
                 }
             });
 
-            // --- NOU: Trimitere notificare către instructori ---
             const antrenament = todaysTrainings.find(t => t.id === trainingId);
             if (!antrenament) return;
 
             const instructors = sportivi.filter(s =>
                 s.club_id === currentUser.club_id &&
                 s.roluri.some(r => r.nume === 'Instructor') &&
-                s.user_id // Asigură-te că instructorul are un cont de login
+                s.user_id
             );
 
             const recipientIds = instructors.map(i => i.user_id).filter(Boolean) as string[];
@@ -163,6 +152,7 @@ export const AthleteQuickActions: React.FC<AthleteQuickActionsProps> = ({ curren
                 
                 const notificationsToInsert = recipientIds.map(userId => ({
                     recipient_user_id: userId,
+                    sent_by: currentUser.user_id,
                     message: message,
                     link_to: `prezenta`, 
                     sender_sportiv_id: currentUser.id
@@ -170,7 +160,7 @@ export const AthleteQuickActions: React.FC<AthleteQuickActionsProps> = ({ curren
                 
                 const { error: notifError } = await supabase.from('notificari').insert(notificationsToInsert);
                 if (notifError) {
-                    console.error("Nu s-a putut crea notificarea:", notifError);
+                    showError("Avertisment Notificare", `Statusul prezenței a fost salvat, dar notificarea către instructori a eșuat: ${notifError.message}`);
                 }
             }
         }
@@ -188,6 +178,7 @@ export const AthleteQuickActions: React.FC<AthleteQuickActionsProps> = ({ curren
                     training={training}
                     anunt={anunturi.find(a => a.antrenament_id === training.id && a.sportiv_id === currentUser.id)}
                     onStatusChange={handleStatusChange}
+                    currentUser={currentUser}
                 />
             ))}
         </div>

@@ -48,7 +48,18 @@ export const FinalUnifiedDashboard: React.FC<FinalUnifiedDashboardProps> = (prop
                     <p className="text-slate-400">Selectează un modul pentru a începe.</p>
                 </header>
                 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* For admins, the athlete dashboard for their own profile is shown first */}
+                 <SportivDashboard 
+                    currentUser={currentUser}
+                    viewedUser={currentUser} 
+                    participari={inscrieriExamene}
+                    examene={sportivDashboardProps.sesiuniExamene}
+                    plati={plati}
+                    onNavigate={onNavigate}
+                    {...sportivDashboardProps}
+                />
+                
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-8 border-t border-slate-700">
                     <div className="lg:col-span-2">
                         <AdminMasterMap 
                             onNavigate={onNavigate}

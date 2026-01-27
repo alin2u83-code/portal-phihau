@@ -1,6 +1,6 @@
 import React from 'react';
 import { View } from '../types';
-import { HomeIcon, UsersIcon, TrophyIcon, ClipboardDocumentListIcon, BanknotesIcon, CalendarDaysIcon, UserCircleIcon, ShieldCheckIcon, ClipboardCheckIcon, ArchiveBoxIcon, CogIcon } from './icons';
+import { HomeIcon, UsersIcon, TrophyIcon, ClipboardDocumentListIcon, BanknotesIcon, CalendarDaysIcon, UserCircleIcon, ShieldCheckIcon, ClipboardCheckIcon, ArchiveBoxIcon, CogIcon, BellIcon } from './icons';
 
 export interface MenuItem {
     label: string;
@@ -51,6 +51,7 @@ export const federationAdminMenu: MenuItem[] = [
             { view: 'financial-dashboard', label: 'Dashboard Financiar' },
             { view: 'plati-scadente', label: 'Listă Facturi' }, 
             { view: 'jurnal-incasari', label: 'Jurnal Încasări' },
+            { view: 'raport-financiar', label: 'Raport Încasări' },
             { view: 'deconturi-federatie', label: 'Deconturi Federație' },
         ] 
     },
@@ -61,6 +62,7 @@ export const federationAdminMenu: MenuItem[] = [
             { label: 'Setări Club', view: 'setari-club' },
             { label: 'Config. Abonamente', view: 'tipuri-abonament' }, 
             { label: 'Config. Taxe Examen', view: 'configurare-preturi' },
+            { label: 'Config. Taxe Anuale', view: 'taxe-anuale' },
             { label: 'Nomenclator Grade', view: 'grade' },
             { label: 'Politici Reducere', view: 'reduceri' },
             { label: 'Categorii Plăți', view: 'nomenclatoare' },
@@ -108,6 +110,7 @@ export const clubAdminMenu: MenuItem[] = [
             { view: 'financial-dashboard', label: 'Dashboard Financiar' },
             { view: 'plati-scadente', label: 'Listă Facturi' }, 
             { view: 'jurnal-incasari', label: 'Jurnal Încasări' },
+            { view: 'raport-financiar', label: 'Raport Încasări' },
             { view: 'deconturi-federatie', label: 'Deconturi Federație' },
         ] 
     },
@@ -118,9 +121,11 @@ export const clubAdminMenu: MenuItem[] = [
             { label: 'Setări Club', view: 'setari-club' },
             { label: 'Config. Abonamente', view: 'tipuri-abonament' }, 
             { label: 'Config. Taxe Examen', view: 'configurare-preturi' },
+            { label: 'Config. Taxe Anuale', view: 'taxe-anuale' },
             { label: 'Nomenclator Grade', view: 'grade' },
             { label: 'Politici Reducere', view: 'reduceri' },
             { label: 'Categorii Plăți', view: 'nomenclatoare' },
+            { label: 'Trimite Notificări', view: 'notificari' },
         ]
     }
 ];
@@ -152,6 +157,13 @@ export const instructorMenu: MenuItem[] = [
              { view: 'examene', label: 'Sesiuni Examene' },
              { view: 'stagii', label: 'Stagii & Competiții' },
              { view: 'rapoarte-examen', label: 'Rapoarte Examen' },
+        ]
+    },
+    {
+        label: 'Comunicare',
+        icon: BellIcon,
+        submenu: [
+             { view: 'notificari', label: 'Trimite Anunțuri' },
         ]
     },
 ];

@@ -74,7 +74,6 @@ export const FinalUnifiedDashboard: React.FC<FinalUnifiedDashboardProps> = (prop
             viewedUser={currentUser} 
             participari={inscrieriExamene}
             examene={sportivDashboardProps.sesiuniExamene}
-            // FIX: Pass the missing `plati` and `onNavigate` props to the SportivDashboard component.
             plati={plati}
             onNavigate={onNavigate}
             {...sportivDashboardProps}

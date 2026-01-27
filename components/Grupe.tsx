@@ -25,13 +25,13 @@ const ProgramEditor: React.FC<{ program: ProgramItem[], setProgram: React.Dispat
     // FIX: Generate a temporary unique ID when adding a new item to the program list.
     const handleAdd = () => { setProgram(p => [...p, { ...newItem, id: `new-${Date.now()}-${Math.random()}`}]); };
     const handleRemove = (itemToRemoveRef: ProgramItem) => {
-        setProgram(p => p.filter(item => item !== itemToRemoveRef));
+        setProgram(p => p.filter(item => item.id !== itemToRemoveRef.id));
     };
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => { setNewItem(prev => ({ ...prev, [e.target.name]: e.target.value as any })) };
     
     const handleToggle = (itemToToggleRef: ProgramItem) => {
         setProgram(p => p.map(item =>
-            item === itemToToggleRef
+            item.id === itemToToggleRef.id
             ? { ...item, is_activ: !(item.is_activ ?? true) }
             : item
         ));
@@ -40,7 +40,7 @@ const ProgramEditor: React.FC<{ program: ProgramItem[], setProgram: React.Dispat
     const sortedProgram = sortProgram(program);
 
     return ( <div className="space-y-4"> <div> <h4 className="text-lg font-semibold mb-2 text-white">Program Curent</h4> {sortedProgram.length > 0 ? ( sortedProgram.map((item, index) => ( 
-    <div key={index} className="flex items-center gap-3 bg-slate-700 p-2 rounded mb-2">
+    <div key={item.id} className="flex items-center gap-3 bg-slate-700 p-2 rounded mb-2">
         <input
             type="checkbox"
             checked={item.is_activ ?? true}
@@ -121,32 +121,43 @@ export const GrupeManagement: React.FC<GrupeManagementProps> = ({ grupe, setGrup
       if (!supabase) return;
       
       const { program, ...grupaInfo } = grupaData;
+      const programToSync = program.map(({ id, ...rest }) => ({
+        ...rest,
+        id: id.startsWith('new-') ? undefined : id, // Ensure new items have no ID for insert
+      }));
 
       if (grupaToEdit) {
           const { data, error } = await supabase.from('grupe').update(grupaInfo).eq('id', grupaToEdit.id).select().single();
           if (error) { showError("Eroare la actualizarea grupei", error); return; }
 
-          const { error: deleteError } = await supabase.from('program_antrenamente').delete().eq('grupa_id', grupaToEdit.id).is('data', null);
+          const { error: deleteError } = await supabase.from('program_antrenamente').delete().eq('grupa_id', grupaToEdit.id);
           if (deleteError) { showError("Eroare la sincronizarea programului (1/2)", deleteError); return; }
 
-          const programToInsert = program.map(p => ({ ...p, grupa_id: grupaToEdit.id }));
+          const programToInsert = programToSync.map(p => ({ ...p, grupa_id: grupaToEdit.id }));
           if (programToInsert.length > 0) {
             const { error: insertError } = await supabase.from('program_antrenamente').insert(programToInsert);
             if (insertError) { showError("Eroare la sincronizarea programului (2/2)", insertError); return; }
           }
-          if (data) setGrupe(prev => prev.map(g => g.id === grupaToEdit.id ? { ...data, program } : g));
+          // Fetch the newly inserted program items to get their real IDs
+          const { data: newProgramItems, error: fetchProgramError } = await supabase.from('program_antrenamente').select('*').eq('grupa_id', grupaToEdit.id);
+          if (fetchProgramError) { console.error("Could not fetch new program items"); }
+
+
+          if (data) setGrupe(prev => prev.map(g => g.id === grupaToEdit.id ? { ...data, program: newProgramItems || [] } : g));
       } else {
           const { id, ...newGrupaData } = grupaInfo;
           const { data, error } = await supabase.from('grupe').insert(newGrupaData).select().single();
           if (error) { showError("Eroare la adăugarea grupei", error); return; }
 
           if (data) {
-              const programToInsert = program.map(p => ({ ...p, grupa_id: data.id }));
+              const programToInsert = programToSync.map(p => ({ ...p, grupa_id: data.id }));
               if (programToInsert.length > 0) {
-                const { error: insertError } = await supabase.from('program_antrenamente').insert(programToInsert);
+                const { data: newProgramItems, error: insertError } = await supabase.from('program_antrenamente').insert(programToInsert).select();
                 if (insertError) { showError("Grupă creată, dar eroare la salvarea programului", insertError); }
+                setGrupe(prev => [...prev, { ...data, program: newProgramItems || [] }]);
+              } else {
+                 setGrupe(prev => [...prev, { ...data, program: [] }]);
               }
-              setGrupe(prev => [...prev, { ...data, program }]);
           }
       }
   };
@@ -199,7 +210,7 @@ export const GrupeManagement: React.FC<GrupeManagementProps> = ({ grupe, setGrup
                 <td className="p-4">{grupa.sala}</td>
                 <td className="p-4">
                     <div className="flex flex-wrap gap-1">
-                        {sortProgram(grupa.program).map((p, i) => <span key={i} className={`text-xs font-semibold px-2 py-1 rounded-full ${p.is_activ ?? true ? 'bg-slate-600 text-slate-200' : 'bg-slate-800 text-slate-500 line-through'}`}>{p.ziua} {p.ora_start}-{p.ora_sfarsit}</span>)}
+                        {sortProgram(grupa.program).map((p, i) => <span key={p.id} className={`text-xs font-semibold px-2 py-1 rounded-full ${p.is_activ ?? true ? 'bg-slate-600 text-slate-200' : 'bg-slate-800 text-slate-500 line-through'}`}>{p.ziua} {p.ora_start}-{p.ora_sfarsit}</span>)}
                     </div>
                 </td>
                 <td className="p-2 text-right w-32">

@@ -33,6 +33,7 @@ class ErrorBoundary extends React.Component<Props, State> {
 
   // FIX: The `handleRedirect` method was not correctly bound to the component's `this` context.
   // It has been converted to an arrow function to automatically bind `this`, fixing errors when accessing `this.setState` and `this.props`.
+  // FIX: Converted to an arrow function to correctly bind `this`.
   handleRedirect = () => {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {

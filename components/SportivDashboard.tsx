@@ -118,33 +118,40 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
     const handleStatusChange = async (trainingId: string, status: AnuntStatus) => {
         if (!supabase) return;
 
-        const existingAnunt = anunturi.find(a => a.antrenament_id === trainingId && a.sportiv_id === currentUser.id);
-        const upsertData = {
-            id: existingAnunt?.id,
-            antrenament_id: trainingId,
-            sportiv_id: currentUser.id,
-            status: status,
-            detalii: null 
-        };
+        // Block 1: Save attendance announcement
+        try {
+            const existingAnunt = anunturi.find(a => a.antrenament_id === trainingId && a.sportiv_id === currentUser.id);
+            const upsertData = {
+                id: existingAnunt?.id,
+                antrenament_id: trainingId,
+                sportiv_id: currentUser.id,
+                status: status,
+                detalii: null 
+            };
+            const { data, error } = await supabase.from('anunturi_prezenta').upsert(upsertData, { onConflict: 'antrenament_id, sportiv_id' }).select().single();
+            
+            if (error) throw error;
 
-        const { data, error } = await supabase.from('anunturi_prezenta').upsert(upsertData, { onConflict: 'antrenament_id, sportiv_id' }).select().single();
-
-        if (error) {
-            showError("Eroare la trimitere", error);
+            if (data) {
+                showSuccess("Status actualizat", `Ai anunțat: ${status}`);
+                setAnunturi(prev => {
+                    const existingIndex = prev.findIndex(a => a.id === data.id || (a.antrenament_id === data.antrenament_id && a.sportiv_id === data.sportiv_id));
+                    if (existingIndex > -1) {
+                        const newAnunturi = [...prev];
+                        newAnunturi[existingIndex] = data;
+                        return newAnunturi;
+                    } else {
+                        return [...prev, data];
+                    }
+                });
+            }
+        } catch (error: any) {
+            showError("Eroare la salvarea prezenței", error);
             throw error;
-        } else if (data) {
-            showSuccess("Status actualizat", `Ai anunțat: ${status}`);
-            setAnunturi(prev => {
-                const existingIndex = prev.findIndex(a => a.id === data.id || (a.antrenament_id === data.antrenament_id && a.sportiv_id === data.sportiv_id));
-                if (existingIndex > -1) {
-                    const newAnunturi = [...prev];
-                    newAnunturi[existingIndex] = data;
-                    return newAnunturi;
-                } else {
-                    return [...prev, data];
-                }
-            });
+        }
 
+        // Block 2: Send notification
+        try {
             const antrenament = todaysTrainings.find(t => t.id === trainingId);
             if (!antrenament) return;
 
@@ -153,22 +160,34 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                 s.roluri.some(r => r.nume === 'Instructor') &&
                 s.user_id
             );
-
+            
             const recipientIds = instructors.map(i => i.user_id).filter(Boolean) as string[];
+            
             if (recipientIds.length > 0) {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) {
+                    console.warn("Utilizatorul nu este autentificat, notificarea nu poate fi trimisă.");
+                    return;
+                }
+                const authUserId = user.id;
+
                 const message = `${currentUser.nume} ${currentUser.prenume} a anunțat: ${status} la antrenamentul de la ${antrenament.ora_start}.`;
                 const notificationsToInsert = recipientIds.map(userId => ({
                     recipient_user_id: userId,
-                    sent_by: currentUser.user_id,
+                    sent_by: authUserId,
                     message: message,
                     link_to: `prezenta`, 
                     sender_sportiv_id: currentUser.id
                 }));
+                
                 const { error: notifError } = await supabase.from('notificari').insert(notificationsToInsert);
+
                 if (notifError) {
-                    showError("Avertisment Notificare", `Statusul prezenței a fost salvat, dar notificarea către instructori a eșuat: ${notifError.message}`);
+                    throw notifError;
                 }
             }
+        } catch (error: any) {
+            console.warn("Notificarea către instructori a eșuat, dar statusul prezenței a fost salvat cu succes.", error);
         }
     };
     // --- End Logic for Quick Actions ---

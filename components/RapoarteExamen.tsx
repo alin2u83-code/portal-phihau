@@ -176,6 +176,7 @@ const DetaliiSesiune: React.FC<{
     preturiConfig: PretConfig[];
     setSesiuni: React.Dispatch<React.SetStateAction<SesiuneExamen[]>>;
     setDeconturiFederatie: React.Dispatch<React.SetStateAction<DecontFederatie[]>>;
+    onViewSportiv: (sportiv: Sportiv) => void;
 }> = (props) => {
     const { showError, showSuccess } = useError();
     const [isFinalizing, setIsFinalizing] = useState(false);
@@ -248,9 +249,10 @@ interface RapoarteExamenProps {
     // FIX: Add missing props.
     deconturiFederatie: DecontFederatie[];
     setDeconturiFederatie: React.Dispatch<React.SetStateAction<DecontFederatie[]>>;
+    onViewSportiv: (sportiv: Sportiv) => void;
 }
 
-export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ currentUser, clubs, onBack, sesiuni, setSesiuni, inscrieri, setInscrieri, sportivi, setSportivi, grade, locatii, setLocatii, plati, setPlati, preturiConfig, deconturiFederatie, setDeconturiFederatie }) => {
+export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ currentUser, clubs, onBack, sesiuni, setSesiuni, inscrieri, setInscrieri, sportivi, setSportivi, grade, locatii, setLocatii, plati, setPlati, preturiConfig, deconturiFederatie, setDeconturiFederatie, onViewSportiv }) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [sesiuneToEdit, setSesiuneToEdit] = useState<SesiuneExamen | null>(null);
   const [sesiuneToDelete, setSesiuneToDelete] = useState<SesiuneExamen | null>(null);
@@ -318,6 +320,7 @@ export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ currentUser, clu
                 // FIX: Pass missing props.
                 setSesiuni={setSesiuni}
                 setDeconturiFederatie={setDeconturiFederatie}
+                onViewSportiv={onViewSportiv}
             />
         </div>
      );

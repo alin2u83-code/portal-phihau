@@ -6,6 +6,7 @@ import { AttendanceTracker } from './AttendanceTracker';
 import { useError } from './ErrorProvider';
 import { supabase } from '../supabaseClient';
 import { CheckIcon } from './icons';
+import { Permissions } from '../hooks/usePermissions';
 
 const getGrad = (gradId: string | null, allGrades: Grad[]) => gradId ? allGrades.find(g => g.id === gradId) : null;
 
@@ -100,9 +101,10 @@ interface SportivDashboardProps {
   anunturi: AnuntPrezenta[];
   setAnunturi: React.Dispatch<React.SetStateAction<AnuntPrezenta[]>>;
   sportivi: Sportiv[];
+  permissions: Permissions;
 }
 
-export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser, viewedUser, participari, examene, grade, grupe, plati, onNavigate, antrenamente, anunturi, setAnunturi, sportivi }) => {
+export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser, viewedUser, participari, examene, grade, grupe, plati, onNavigate, antrenamente, anunturi, setAnunturi, sportivi, permissions }) => {
     
     const { showSuccess, showError } = useError();
     const isViewingOwnProfile = currentUser.id === viewedUser.id;
@@ -241,13 +243,20 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
             }
         });
 
-        return [...grade]
+        const fullGradeList = [...grade]
             .sort((a, b) => a.ordine - b.ordine)
             .map(g => ({
                 ...g,
                 data_obtinere: obtainedGradesMap.get(g.id) || null
             }));
-    }, [grade, participari, examene, viewedUser.id]);
+
+        if (isViewingOwnProfile && !permissions.hasAdminAccess) {
+            const currentGradOrder = currentGrad?.ordine ?? 0;
+            return fullGradeList.filter(g => g.ordine <= currentGradOrder);
+        }
+        
+        return fullGradeList;
+    }, [grade, participari, examene, viewedUser.id, currentGrad, isViewingOwnProfile, permissions]);
 
     return (
         <div className="space-y-6">
@@ -323,7 +332,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                         ))}
                     </div>
                 ) : (
-                    <p className="text-slate-400 italic">Niciun grad definit în sistem.</p>
+                    <p className="text-slate-400 italic">Niciun grad obținut încă.</p>
                 )}
             </Card>
         </div>

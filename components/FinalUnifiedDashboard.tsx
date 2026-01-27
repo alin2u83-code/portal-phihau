@@ -55,6 +55,7 @@ export const FinalUnifiedDashboard: React.FC<FinalUnifiedDashboardProps> = (prop
                     examene={sportivDashboardProps.sesiuniExamene}
                     plati={plati}
                     onNavigate={onNavigate}
+                    permissions={permissions}
                     {...sportivDashboardProps}
                 />
                 
@@ -86,6 +87,7 @@ export const FinalUnifiedDashboard: React.FC<FinalUnifiedDashboardProps> = (prop
             examene={sportivDashboardProps.sesiuniExamene}
             plati={plati}
             onNavigate={onNavigate}
+            permissions={permissions}
             {...sportivDashboardProps}
         />
     );

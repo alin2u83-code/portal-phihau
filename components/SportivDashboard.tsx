@@ -159,7 +159,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                 const message = `${currentUser.nume} ${currentUser.prenume} a anunțat: ${status} la antrenamentul de la ${antrenament.ora_start}.`;
                 const notificationsToInsert = recipientIds.map(userId => ({
                     recipient_user_id: userId,
-                    sent_by: currentUser.id,
+                    sent_by: currentUser.user_id,
                     message: message,
                     link_to: `prezenta`, 
                     sender_sportiv_id: currentUser.id

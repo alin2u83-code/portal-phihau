@@ -53,7 +53,7 @@ export const Notificari: React.FC<NotificariProps> = ({ onBack, currentUser }) =
             .insert({
                 title: title,
                 body: body,
-                sent_by: currentUser.id,
+                sent_by: currentUser.user_id,
                 sender_sportiv_id: currentUser.id,
             })
             .select()

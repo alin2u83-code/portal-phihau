@@ -1,5 +1,5 @@
-import React, { useMemo, useState, useEffect } from 'react';
-import { Antrenament, Sportiv, Grupa, User } from '../types';
+import React, { useState, useEffect } from 'react';
+import { User } from '../types';
 import { Card } from './ui';
 import { UsersIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -39,13 +39,26 @@ export const GeneralAttendanceWidget: React.FC<GeneralAttendanceWidgetProps> = (
             try {
                 const todayString = new Date().toISOString().split('T')[0];
                 
+                // Fetch groups for the club
+                const { data: grupeData, error: grupeError } = await supabase
+                    .from('grupe')
+                    .select('id')
+                    .eq('club_id', currentUser.club_id);
+                if (grupeError) throw grupeError;
+                const grupaIds = grupeData.map(g => g.id);
+                if (grupaIds.length === 0) {
+                    setStats({ present: 0, expected: 0, percentage: 0, trainingsCount: 0 });
+                    setLoading(false);
+                    return;
+                }
+
                 // Fetch trainings for the specific club on the current day
                 const { data: antrenamenteData, error: antrenamenteError } = await supabase
                     .from('program_antrenamente')
                     .select('id, grupa_id, sportivi_prezenti_ids:prezenta_antrenament(sportiv_id)')
                     .eq('data', todayString)
-                    .in('grupa_id', (await supabase.from('grupe').select('id').eq('club_id', currentUser.club_id)).data?.map(g => g.id) || []);
-
+                    .in('grupa_id', grupaIds);
+                
                 if (antrenamenteError) throw antrenamenteError;
 
                 const antrenamente = (antrenamenteData || []).map(a => ({...a, sportivi_prezenti_ids: a.sportivi_prezenti_ids.map((p: any) => p.sportiv_id)}));
@@ -56,7 +69,7 @@ export const GeneralAttendanceWidget: React.FC<GeneralAttendanceWidgetProps> = (
                     return;
                 }
                 
-                const { data: sportivi, error: sportiviError } = await supabase.from('sportivi').select('id, grupa_id, status, participa_vacanta');
+                const { data: sportivi, error: sportiviError } = await supabase.from('sportivi').select('id, grupa_id, status').eq('club_id', currentUser.club_id);
                 if (sportiviError) throw sportiviError;
 
                 const presentIds = new Set<string>();
@@ -90,6 +103,20 @@ export const GeneralAttendanceWidget: React.FC<GeneralAttendanceWidgetProps> = (
         };
 
         fetchTodayStats();
+
+        const channel = supabase.channel('general-attendance-widget-channel')
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'prezenta_antrenament' },
+                () => {
+                    fetchTodayStats();
+                }
+            )
+            .subscribe();
+        
+        return () => {
+            supabase.removeChannel(channel).catch(console.error);
+        };
     }, [currentUser, showError]);
     
     if (permissionError) {

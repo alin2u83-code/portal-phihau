@@ -177,7 +177,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
     }, [sportiv]);
 
     const isAdmin = currentUser.roluri.some(r => r.nume === 'Admin');
-// FIX: Changed 'Super Admin' to 'SUPER_ADMIN_FEDERATIE' to match the Rol type.
+    // FIX: Changed 'Super Admin' to 'SUPER_ADMIN_FEDERATIE' to match the Rol type.
     const isSuperAdmin = currentUser.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'Admin');
 
     const sportivParticipari = useMemo(() => participari.filter(p => p.sportiv_id === sportiv.id), [participari, sportiv.id]);
@@ -280,8 +280,9 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
         const obtainedGradesMap = new Map<string, string>();
         admittedParticipations.forEach(p => {
             const examDate = examDateMap.get(p.sesiune_id);
-            if (examDate && !obtainedGradesMap.has(p.grad_vizat_id)) {
-                obtainedGradesMap.set(p.grad_vizat_id, examDate);
+            // FIX: Explicitly cast 'grad_vizat_id' to string to resolve a type inference issue where it was being treated as 'unknown'.
+            if (examDate && !obtainedGradesMap.has(p.grad_vizat_id as string)) {
+                obtainedGradesMap.set(p.grad_vizat_id as string, examDate);
             }
         });
 

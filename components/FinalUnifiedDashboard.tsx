@@ -48,7 +48,6 @@ export const FinalUnifiedDashboard: React.FC<FinalUnifiedDashboardProps> = (prop
                     <p className="text-slate-400">Selectează un modul pentru a începe.</p>
                 </header>
                 
-                {/* For admins, the athlete dashboard for their own profile is shown first */}
                  <SportivDashboard 
                     currentUser={currentUser}
                     viewedUser={currentUser} 
@@ -69,7 +68,7 @@ export const FinalUnifiedDashboard: React.FC<FinalUnifiedDashboardProps> = (prop
                         />
                     </div>
                     <div className="lg:col-span-1">
-                        {(permissions.isAdminClub || permissions.isInstructor) && (
+                        {(permissions.isAdminClub || permissions.isInstructor || permissions.isFederationAdmin) && (
                             <GeneralAttendanceWidget currentUser={currentUser} />
                         )}
                     </div>

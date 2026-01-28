@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Sportiv, User, Rol, Participare, Examen, Grad, Antrenament, Plata, Familie, TipAbonament, Tranzactie, Reducere, Club, ProgramItem, Grupa } from '../types';
+import { Sportiv, User, Rol, Participare, Examen, Grad, Antrenament, IstoricGrade, Plata, Familie, TipAbonament, Tranzactie, Reducere, Club, ProgramItem, Grupa } from '../types';
 import { Button, Card, Select, Modal, Input } from './ui';
 import { ArrowLeftIcon, EditIcon, WalletIcon, TrashIcon, ShieldCheckIcon, PlusIcon, ChartBarIcon, TransferIcon, CheckCircleIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -9,8 +9,8 @@ import { SportivWallet } from './SportivWallet';
 import { DeleteAuditModal } from './DeleteAuditModal';
 import { SportivFeedbackReport } from './SportivFeedbackReport';
 import { SportivProgressChart } from './SportivProgressChart';
-import { IstoricExameneSportiv } from './IstoricExameneSportiv';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
+import { AddGradeModal } from './AddGradeModal';
 
 const getGrad = (gradId: string | null, allGrades: Grad[]) => gradId ? allGrades.find(g => g.id === gradId) : null;
 const getAge = (dateString: string) => { if (!dateString) return 0; const today = new Date(); const birthDate = new Date(dateString.includes('T') ? dateString : dateString + 'T00:00:00'); if (isNaN(birthDate.getTime())) { return 0; } let age = today.getFullYear() - birthDate.getFullYear(); const m = today.getMonth() - birthDate.getMonth(); if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; } return age; };
@@ -201,6 +201,8 @@ interface UserProfileProps {
     participari: Participare[];
     examene: Examen[];
     grade: Grad[];
+    istoricGrade: IstoricGrade[];
+    setIstoricGrade: React.Dispatch<React.SetStateAction<IstoricGrade[]>>;
     antrenamente: Antrenament[];
     plati: Plata[];
     tranzactii: Tranzactie[];
@@ -216,7 +218,7 @@ interface UserProfileProps {
     clubs: Club[];
 }
 
-export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, participari, examene, grade, antrenamente, plati, tranzactii, reduceri, grupe, familii, tipuriAbonament, allRoles, setSportivi, setPlati, setTranzactii, onBack, clubs }) => {
+export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, participari, examene, grade, istoricGrade, setIstoricGrade, antrenamente, plati, tranzactii, reduceri, grupe, familii, tipuriAbonament, allRoles, setSportivi, setPlati, setTranzactii, onBack, clubs }) => {
     const { showError, showSuccess } = useError();
     
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -224,6 +226,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isReportModalOpen, setIsReportModalOpen] = useState(false);
     const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+    const [isAddGradeModalOpen, setIsAddGradeModalOpen] = useState(false);
 
     const [isEditingRoles, setIsEditingRoles] = useState(false);
     const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>((sportiv.roluri || []).map(r => r.id));
@@ -250,25 +253,52 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
     const isAdmin = currentUser.roluri.some(r => r.nume === 'Admin');
     const isSuperAdmin = currentUser.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'Admin');
 
-    const sportivParticipari = useMemo(() => participari.filter(p => p.sportiv_id === sportiv.id), [participari, sportiv.id]);
-    
-    const sortedSportivParticipariForDisplay = useMemo(() => {
-        return [...sportivParticipari]
-            .map(p => ({...p, examen: examene.find(e => e.id === p.sesiune_id)}))
-            .sort((a, b) => new Date(b.examen?.data || 0).getTime() - new Date(a.examen?.data || 0).getTime());
-    }, [sportivParticipari, examene]);
+    const gradeHistory = useMemo(() => {
+        const examGrades = participari
+            .filter(p => p.sportiv_id === sportiv.id && p.rezultat === 'Admis')
+            .map(p => {
+                const examen = examene.find(e => e.id === p.sesiune_id);
+                const grad = grade.find(g => g.id === p.grad_vizat_id);
+                if (!examen || !grad) return null;
+                return {
+                    source: 'examen',
+                    date: new Date(examen.data).getTime(),
+                    grad_id: grad.id,
+                    gradNume: grad.nume,
+                    rank: grad.ordine
+                };
+            })
+            .filter(Boolean);
 
-    const admittedParticipations = useMemo(() => sortedSportivParticipariForDisplay.filter(p => p.rezultat === 'Admis'), [sortedSportivParticipariForDisplay]);
+        const manualGrades = istoricGrade
+            .filter(ig => ig.sportiv_id === sportiv.id)
+            .map(ig => {
+                const grad = grade.find(g => g.id === ig.grad_id);
+                if (!grad) return null;
+                return {
+                    source: 'manual',
+                    date: new Date(ig.data_obtinere).getTime(),
+                    grad_id: grad.id,
+                    gradNume: grad.nume,
+                    rank: grad.ordine
+                };
+            })
+            .filter(Boolean);
+            
+        return [...examGrades, ...manualGrades].sort((a,b) => b.date - a.date);
+    }, [participari, istoricGrade, examene, grade, sportiv.id]);
     
     const currentGrad = useMemo(() => {
-        const officialGrad = getGrad(sportiv.grad_actual_id, grade);
-        if (officialGrad) {
-            return officialGrad;
+        if (sportiv.grad_actual_id) {
+            const officialGrad = getGrad(sportiv.grad_actual_id, grade);
+            if (officialGrad) return officialGrad;
         }
-        const lastAdmittedGrade = getGrad(admittedParticipations[0]?.grad_vizat_id, grade);
-        return lastAdmittedGrade;
-    }, [admittedParticipations, grade, sportiv.grad_actual_id]);
-    const currentGradParticipationId = admittedParticipations.length > 0 ? admittedParticipations[0].id : null;
+        if (gradeHistory.length > 0) {
+            return getGrad(gradeHistory[0].grad_id, grade);
+        }
+        return null;
+    }, [sportiv.grad_actual_id, gradeHistory, grade]);
+
 
     const eligibility = useMemo(() => {
         const sortedGrades = [...grade].sort((a, b) => a.ordine - b.ordine);
@@ -276,94 +306,34 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
         if (!nextGrad) return { eligible: false, message: "Ați atins gradul maxim.", nextGrad: null };
         const age = getAge(sportiv.data_nasterii);
         if (age < nextGrad.varsta_minima) return { eligible: false, message: `Vârsta minimă: ${nextGrad.varsta_minima} ani (are ${age}).`, nextGrad };
-        const lastExamDateStr = admittedParticipations[0]?.examen ? admittedParticipations[0].examen.data : sportiv.data_inscrierii;
-        const lastExamDate = new Date(lastExamDateStr + 'T00:00:00');
+        
+        const lastPromotionDateMs = gradeHistory.length > 0 ? gradeHistory[0].date : new Date(sportiv.data_inscrierii).getTime();
+        const lastPromotionDate = new Date(lastPromotionDateMs);
+        
         const monthsToWait = parseDurationToMonths(nextGrad.timp_asteptare);
-        const eligibilityDate = new Date(lastExamDate);
+        const eligibilityDate = new Date(lastPromotionDate);
         eligibilityDate.setMonth(eligibilityDate.getMonth() + monthsToWait);
+        
         if (new Date() < eligibilityDate) return { eligible: false, message: `Eligibil după: ${eligibilityDate.toLocaleDateString('ro-RO')}.`, nextGrad };
+        
         return { eligible: true, message: "Eligibil pentru examinare.", nextGrad };
-    }, [currentGrad, grade, sportiv, admittedParticipations]);
+    }, [currentGrad, grade, sportiv, gradeHistory]);
     
-    const { sold, individualHistory, familieHistory } = useMemo(() => {
+    const { sold } = useMemo(() => {
         const allRelevantPlati = plati.filter(p => p.sportiv_id === sportiv.id || (p.familie_id && p.familie_id === sportiv.familie_id));
         const allRelevantTranzactii = tranzactii.filter(t => t.sportiv_id === sportiv.id || (t.familie_id && t.familie_id === sportiv.familie_id));
         const totalDatorii = allRelevantPlati.reduce((sum, p) => sum + p.suma, 0);
         const totalIncasari = allRelevantTranzactii.reduce((sum, t) => sum + t.suma, 0);
-        const currentSold = totalIncasari - totalDatorii;
-        
-        const uniquePlati: Plata[] = Array.from(new Map<string, Plata>(allRelevantPlati.map(p => [p.id, p])).values());
-
-        const processPlati = (platiList: Plata[]) => {
-            let historyItems = platiList.map(plata => {
-                let paymentDate: string | null = null;
-                if (plata.status === 'Achitat' || plata.status === 'Achitat Parțial') {
-                    const payingTransaction = tranzactii.find(t => t.plata_ids?.includes(plata.id));
-                    if (payingTransaction) paymentDate = payingTransaction.data_platii;
-                }
-                const reducereAplicata = plata.reducere_id ? reduceri.find(r => r.id === plata.reducere_id) : null;
-                let discountInfo = null;
-                if (reducereAplicata && plata.suma_initiala) {
-                    const valoareReducere = plata.suma_initiala - plata.suma;
-                    discountInfo = `${valoareReducere.toFixed(2)} lei (${reducereAplicata.nume})`;
-                }
-                return {
-                    id: plata.id,
-                    facturaDate: plata.data,
-                    description: plata.descriere,
-                    amount: plata.suma,
-                    initialAmount: plata.suma_initiala,
-                    discount: discountInfo,
-                    status: plata.status,
-                    type: plata.tip,
-                    paymentDate: paymentDate
-                };
-            }).sort((a, b) => new Date(b.facturaDate).getTime() - new Date(a.facturaDate).getTime());
-            
-            if (financialFilter !== 'Toate') {
-                historyItems = historyItems.filter(item => item.type === financialFilter);
-            }
-            return historyItems;
-        };
-        
-        const individualPlati = uniquePlati.filter(p => p.sportiv_id === sportiv.id && !p.familie_id);
-        const familiePlati = uniquePlati.filter(p => p.familie_id && p.familie_id === sportiv.familie_id);
-
-        return { 
-            sold: currentSold, 
-            individualHistory: processPlati(individualPlati), 
-            familieHistory: processPlati(familiePlati)
-        };
-    }, [sportiv, plati, tranzactii, financialFilter, reduceri]);
-
+        return { sold: totalIncasari - totalDatorii };
+    }, [sportiv, plati, tranzactii]);
+    
     const allGradesWithDates = useMemo(() => {
-        const examDateMap = new Map(examene.map(e => [e.id, e.data]));
-        const admittedParticipations = participari
-            .filter(p => p.sportiv_id === sportiv.id && p.rezultat === 'Admis')
-            .sort((a, b) => {
-                const dateA = examDateMap.get(a.sesiune_id) || '9999-12-31';
-                const dateB = examDateMap.get(b.sesiune_id) || '9999-12-31';
-                // FIX: Cast date strings to 'string' to resolve 'unknown' type error.
-                return new Date(dateB as string).getTime() - new Date(dateA as string).getTime();
-            });
-
-        const obtainedGradesMap = new Map<string, string>();
-        admittedParticipations.forEach(p => {
-            const examDate = examDateMap.get(p.sesiune_id);
-            // FIX: Argument of type 'unknown' is not assignable to parameter of type 'string'.
-            if (examDate && !obtainedGradesMap.has(p.grad_vizat_id as string)) {
-                // FIX: Cast grad_vizat_id to 'string' to resolve 'unknown' type error.
-                obtainedGradesMap.set(p.grad_vizat_id as string, examDate as string);
-            }
-        });
-
-        return [...grade]
-            .sort((a, b) => a.ordine - b.ordine)
-            .map(g => ({
-                ...g,
-                data_obtinere: obtainedGradesMap.get(g.id) || null
-            }));
-    }, [grade, participari, examene, sportiv.id]);
+        return gradeHistory.map(gh => ({
+            id: gh.grad_id,
+            nume: gh.gradNume,
+            data_obtinere: new Date(gh.date).toISOString().split('T')[0]
+        }));
+    }, [gradeHistory]);
 
     const handleSaveRoles = async () => {
         if (!isAdmin) return;
@@ -440,6 +410,37 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
         onBack();
     };
 
+    const handleSaveManualGrade = async (data: { grad_id: string; data_obtinere: string; observatii: string }) => {
+        const { grad_id, data_obtinere, observatii } = data;
+        const newGradeEntry = {
+            sportiv_id: sportiv.id,
+            grad_id,
+            data_obtinere,
+            observatii
+        };
+        const { data: insertedData, error } = await supabase.from('istoric_grade').insert(newGradeEntry).select().single();
+        if (error) {
+            showError("Eroare la adăugarea gradului", error);
+            return;
+        }
+
+        setIstoricGrade(prev => [...prev, insertedData]);
+        
+        // Verificăm dacă gradul adăugat manual este mai mare decât cel curent
+        const newGrade = grade.find(g => g.id === grad_id);
+        if (newGrade && (!currentGrad || newGrade.ordine > currentGrad.ordine)) {
+            const { error: updateError } = await supabase.from('sportivi').update({ grad_actual_id: grad_id }).eq('id', sportiv.id);
+            if(updateError) {
+                showError("Grad adăugat în istoric, dar eroare la actualizarea gradului curent", updateError);
+            } else {
+                 setSportivi(prev => prev.map(s => s.id === sportiv.id ? { ...s, grad_actual_id: grad_id } : s));
+            }
+        }
+        
+        showSuccess("Succes!", "Gradul a fost adăugat manual în istoricul sportivului.");
+        setIsAddGradeModalOpen(false);
+    };
+
     return (
         <div className="space-y-6">
             <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Listă</Button>
@@ -457,6 +458,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                         <Button variant="secondary" onClick={() => setIsReportModalOpen(true)}><ChartBarIcon className="w-4 h-4 mr-2"/> Raport</Button>
                         <Button variant="secondary" onClick={() => setIsEditModalOpen(true)}><EditIcon className="w-4 h-4 mr-2"/> Editează</Button>
                         <Button variant="info" onClick={() => setIsWalletModalOpen(true)}><WalletIcon className="w-4 h-4 mr-2"/> Portofel</Button>
+                        {isAdmin && <Button variant="secondary" onClick={() => setIsAddGradeModalOpen(true)}><PlusIcon className="w-4 h-4 mr-2"/> Adaugă Grad Manual</Button>}
                         <Button variant="danger" onClick={() => setIsDeleteModalOpen(true)}><TrashIcon className="w-4 h-4 mr-2"/> Șterge</Button>
                     </div>
                 </div>
@@ -468,10 +470,9 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                         <h3 className="text-lg font-bold text-white mb-4 animate-fade-in-down">Evoluție & Progres</h3>
                         <SportivProgressChart
                             sportiv={sportiv}
-                            participari={participari}
-                            examene={examene}
-                            grade={grade}
+                            gradeHistory={gradeHistory}
                             antrenamente={antrenamente}
+                            grade={grade}
                         />
                     </Card>
                     <Card>
@@ -506,9 +507,9 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                     </Card>
                      <Card>
                         <h3 className="text-lg font-bold text-white mb-4">Istoric Grade Obținute</h3>
-                        {allGradesWithDates.filter(g => g.data_obtinere).length > 0 ? (
+                        {allGradesWithDates.length > 0 ? (
                             <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
-                                {allGradesWithDates.filter(g => g.data_obtinere).map(g => (
+                                {allGradesWithDates.map(g => (
                                     <div key={g.id} className="flex justify-between items-center bg-slate-800/50 p-2 rounded-md">
                                         <GradBadge grad={g} />
                                         <p className="text-sm font-bold text-slate-300">
@@ -551,7 +552,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                             {!isEditingRoles ? (
                                 <Button variant="secondary" size="sm" onClick={() => setIsEditingRoles(true)}>Modifică</Button>
                             ) : (
-                                <div className="flex gap-2"><Button size="sm" variant="secondary" onClick={() => { setIsEditingRoles(false); setSelectedRoleIds(sportiv.roluri.map(r => r.id)); }}>Anulează</Button><Button size="sm" variant="success" onClick={handleSaveRoles}>Salvează</Button></div>
+                                <div className="flex gap-2"><Button size="sm" variant="secondary" onClick={() => { setIsEditingRoles(false); setSelectedRoleIds((sportiv.roluri || []).map(r => r.id)); }}>Anulează</Button><Button size="sm" variant="success" onClick={handleSaveRoles}>Salvează</Button></div>
                             )}
                         </div>
                         {isEditingRoles ? (
@@ -584,6 +585,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
             {isDeleteModalOpen && <DeleteAuditModal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} sportiv={sportiv} onDeactivate={handleDeactivate} onDelete={handleDelete} />}
             {isReportModalOpen && <SportivFeedbackReport isOpen={isReportModalOpen} onClose={() => setIsReportModalOpen(false)} sportiv={sportiv} antrenamente={antrenamente} grupe={grupe} grade={grade} participari={participari} examene={examene} />}
             {isTransferModalOpen && <TransferModal isOpen={isTransferModalOpen} onClose={() => setIsTransferModalOpen(false)} sportiv={sportiv} clubs={clubs} onTransferComplete={handleTransferComplete} />}
+            {isAddGradeModalOpen && <AddGradeModal isOpen={isAddGradeModalOpen} onClose={() => setIsAddGradeModalOpen(false)} onSave={handleSaveManualGrade} sportiv={sportiv} grades={grade} />}
         </div>
     );
 };

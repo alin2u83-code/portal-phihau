@@ -132,38 +132,30 @@ export const clubAdminMenu: MenuItem[] = [
 
 export const instructorMenu: MenuItem[] = [
     { label: 'Dashboard', icon: HomeIcon, view: 'dashboard' },
-    { 
-        label: 'Gestiune Membri', 
-        icon: UsersIcon,
+    { label: 'Vizualizare Sportivi', icon: UsersIcon, view: 'sportivi' },
+    {
+        label: 'Orar',
+        icon: CalendarDaysIcon,
         submenu: [
-             { label: 'Listă Sportivi', view: 'sportivi' },
-             { label: 'Gestiune Familii', view: 'familii' },
+            { label: 'Gestiune Grupe & Orar', view: 'grupe' },
+            { label: 'Generator Program', view: 'activitati' },
         ]
     },
     {
-        label: 'Activitate Sală',
+        label: 'Prezență',
         icon: ClipboardCheckIcon,
         submenu: [
-            { label: 'Orar & Gestiune Grupe', view: 'grupe' },
-            { label: 'Generator Program', view: 'activitati' },
             { label: 'Înregistrare Prezențe', view: 'prezenta' },
             { label: 'Raport Prezențe', view: 'raport-prezenta' } 
         ]
     },
-    {
+     {
         label: 'Evenimente & Examene',
         icon: TrophyIcon,
         submenu: [
              { view: 'examene', label: 'Sesiuni Examene' },
              { view: 'stagii', label: 'Stagii & Competiții' },
              { view: 'rapoarte-examen', label: 'Rapoarte Examen' },
-        ]
-    },
-    {
-        label: 'Comunicare',
-        icon: BellIcon,
-        submenu: [
-             { view: 'notificari', label: 'Trimite Anunțuri' },
         ]
     },
 ];

@@ -360,25 +360,12 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
         const targetUser = sportivi.find(s => s.id === userId);
         if (!targetUser) { showError("Eroare", "Utilizatorul țintă nu a fost găsit."); return; }
 
-        const currentUserIsAdminClub = currentUser.roluri.some(r => r.nume === 'Admin Club');
-        const currentUserIsFederationAdmin = currentUser.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'Admin');
-        
-        if (currentUserIsAdminClub && !currentUserIsFederationAdmin && targetUser.club_id !== currentUser.club_id) {
-            showError("Acces Interzis", "Administratorii de club pot modifica doar utilizatorii din propriul club.");
-            return;
+        const targetUserMaxWeight = Math.max(0, ...(targetUser.roluri || []).map(r => roleWeights[r.nume] || 0));
+        if (currentUserMaxWeight <= targetUserMaxWeight && currentUser.id !== targetUser.id) {
+             showError("Permisiune Refuzată", "Nu puteți modifica rolurile unui utilizator cu privilegii egale sau mai mari.");
+             return;
         }
-        
-        if (currentUser.id === userId) {
-            const isLosingAdminRole = !newRoleIds.some(roleId => {
-                const role = allRoles.find(r => r.id === roleId);
-                return role && (role.nume === 'SUPER_ADMIN_FEDERATIE' || role.nume === 'Admin');
-            });
-            if (currentUserIsFederationAdmin && isLosingAdminRole) {
-                showError("Acțiune Blocată", "Nu vă puteți elimina propriul rol de administrator de federație.");
-                return;
-            }
-        }
-        
+
         const assignedRolesWeight = newRoleIds.map(roleId => roleWeights[allRoles.find(r => r.id === roleId)?.nume || 'Sportiv'] || 0);
         if (assignedRolesWeight.some(weight => weight > currentUserMaxWeight)) {
             showError("Permisiune Refuzată", "Nu puteți acorda un rol cu privilegii mai mari decât rolul dumneavoastră.");

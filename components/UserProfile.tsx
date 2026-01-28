@@ -246,7 +246,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                     type: plata.tip,
                     paymentDate: paymentDate
                 };
-            // FIX: Explicitly cast 'facturaDate' to string to resolve TypeScript inference issue with the 'new Date()' constructor.
+// FIX: Explicitly cast 'facturaDate' to string to resolve TypeScript inference issue with the 'new Date()' constructor.
             }).sort((a, b) => new Date(b.facturaDate as string).getTime() - new Date(a.facturaDate as string).getTime());
             
             if (financialFilter !== 'Toate') {

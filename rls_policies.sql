@@ -1,6 +1,6 @@
 -- =================================================================
--- Politici de Securitate la Nivel de Rând (RLS) - V7.0
--- Structură refactorizată pentru claritate și acces complet Super Admin
+-- Politici de Securitate la Nivel de Rând (RLS) - V7.1
+-- Structură refactorizată pentru claritate, acces complet Super Admin și corectarea politicilor permisive
 -- =================================================================
 -- Model de politici:
 -- 1. O politică permisivă pentru SUPER_ADMIN_FEDERATIE (acces total).
@@ -110,8 +110,9 @@ CREATE POLICY "Super Admins have full access" ON public.grupe
 CREATE POLICY "Club staff can manage their groups" ON public.grupe
     FOR ALL USING (public.is_club_staff() AND club_id = public.get_my_club_id())
     WITH CHECK (public.is_club_staff() AND club_id = public.get_my_club_id());
-CREATE POLICY "Authenticated users can view groups" ON public.grupe
-    FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "Authenticated users can view relevant groups" ON public.grupe
+    FOR SELECT USING (auth.role() = 'authenticated' AND (club_id = public.get_my_club_id() OR club_id IS NULL));
+
 
 -- == TABELE FINANCIARE: plati & tranzactii ==
 CALL public.reset_policies_for_table('plati');
@@ -215,7 +216,8 @@ CREATE POLICY "Super Admins have full access" ON public.tipuri_abonament FOR ALL
 CREATE POLICY "Club staff can manage their own subscription types" ON public.tipuri_abonament FOR ALL
     USING (public.is_club_staff() AND club_id = public.get_my_club_id())
     WITH CHECK (public.is_club_staff() AND club_id = public.get_my_club_id());
-CREATE POLICY "Authenticated users can view" ON public.tipuri_abonament FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "Authenticated users can view relevant subscription types" ON public.tipuri_abonament
+    FOR SELECT USING (auth.role() = 'authenticated' AND (club_id = public.get_my_club_id() OR club_id IS NULL));
 
 
 -- == ALTE TABELE ==

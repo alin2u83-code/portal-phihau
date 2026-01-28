@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Grupa, ProgramItem, User, Club } from '../types';
 import { Button, Modal, Input, Select } from './ui';
 import { PlusIcon, TrashIcon, EditIcon, ArrowLeftIcon } from './icons';
@@ -19,10 +19,8 @@ const sortProgram = (program: ProgramItem[]): ProgramItem[] => {
 // Componentă pentru editarea programului
 const ProgramEditor: React.FC<{ program: ProgramItem[], setProgram: React.Dispatch<React.SetStateAction<ProgramItem[]>> }> = ({ program, setProgram }) => {
     const zileSaptamana: ProgramItem['ziua'][] = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'];
-    // FIX: The state for a new item should not be a full ProgramItem, as it lacks an ID.
     const [newItem, setNewItem] = useState<Omit<ProgramItem, 'id'>>({ ziua: 'Luni', ora_start: '18:00', ora_sfarsit: '19:30', is_activ: true });
 
-    // FIX: Generate a temporary unique ID when adding a new item to the program list.
     const handleAdd = () => { setProgram(p => [...p, { ...newItem, id: `new-${Date.now()}-${Math.random()}`}]); };
     const handleRemove = (itemToRemoveRef: ProgramItem) => {
         setProgram(p => p.filter(item => item.id !== itemToRemoveRef.id));
@@ -117,6 +115,20 @@ export const GrupeManagement: React.FC<GrupeManagementProps> = ({ grupe, setGrup
   const [isDeleting, setIsDeleting] = useState(false);
   const { showError } = useError();
   
+  useEffect(() => {
+    if (grupe.length === 0) {
+      console.log('[DEBUG] `grupe` array is empty. This might be an RLS issue. Current User Info:', {
+        id: currentUser.id,
+        userId: currentUser.user_id,
+        clubId: currentUser.club_id,
+        roles: currentUser.roluri.map(r => r.nume)
+      });
+      supabase.auth.getUser().then(({ data: { user } }) => {
+          console.log('[DEBUG] supabase.auth.getUser() reports:', user);
+      });
+    }
+  }, [grupe, currentUser]);
+
   const handleSave = async (grupaData: Grupa) => {
       if (!supabase) return;
       

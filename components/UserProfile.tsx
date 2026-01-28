@@ -272,16 +272,14 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
             .sort((a, b) => {
                 const dateA = examDateMap.get(a.sesiune_id) || '9999-12-31';
                 const dateB = examDateMap.get(b.sesiune_id) || '9999-12-31';
-                // FIX: Explicitly cast date strings to resolve TypeScript inference issue.
-                return new Date(dateB as string).getTime() - new Date(dateA as string).getTime();
+                return new Date(dateB).getTime() - new Date(dateA).getTime();
             });
 
         const obtainedGradesMap = new Map<string, string>();
         admittedParticipations.forEach(p => {
             const examDate = examDateMap.get(p.sesiune_id);
-            // FIX: Explicitly cast 'grad_vizat_id' to string to resolve a type inference issue where it was being treated as 'unknown'.
-            if (examDate && !obtainedGradesMap.has(p.grad_vizat_id as string)) {
-                obtainedGradesMap.set(p.grad_vizat_id as string, examDate);
+            if (examDate && !obtainedGradesMap.has(p.grad_vizat_id)) {
+                obtainedGradesMap.set(p.grad_vizat_id, examDate);
             }
         });
 

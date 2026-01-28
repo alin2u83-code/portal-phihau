@@ -113,7 +113,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
     const todayString = useMemo(() => new Date().toISOString().split('T')[0], []);
 
     const todaysTrainings = useMemo(() => {
-        return antrenamente
+        return (antrenamente || [])
             .filter(a => 
                 a.data === todayString &&
                 (a.grupa_id === currentUser.grupa_id || (currentUser.participa_vacanta && a.grupa_id === null))
@@ -125,13 +125,13 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const todayStr = today.toISOString().split('T')[0];
-        const nextSevenDays = new Date();
-        nextSevenDays.setDate(today.getDate() + 7);
-        const nextSevenDaysStr = nextSevenDays.toISOString().split('T')[0];
+        const nextFourDays = new Date();
+        nextFourDays.setDate(today.getDate() + 4);
+        const nextFourDaysStr = nextFourDays.toISOString().split('T')[0];
 
-        return antrenamente
+        return (antrenamente || [])
             .filter(a => {
-                return a.data >= todayStr && a.data < nextSevenDaysStr &&
+                return a.data >= todayStr && a.data < nextFourDaysStr &&
                        (a.grupa_id === currentUser.grupa_id || (currentUser.participa_vacanta && a.grupa_id === null));
             })
             .sort((a, b) => {
@@ -147,7 +147,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
 
         // Block 1: Save attendance announcement
         try {
-            const existingAnunt = anunturi.find(a => a.antrenament_id === trainingId && a.sportiv_id === currentUser.id);
+            const existingAnunt = (anunturi || []).find(a => a.antrenament_id === trainingId && a.sportiv_id === currentUser.id);
             const upsertData = {
                 id: existingAnunt?.id,
                 antrenament_id: trainingId,
@@ -182,7 +182,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
             const antrenament = todaysTrainings.find(t => t.id === trainingId);
             if (!antrenament) return;
 
-            const instructors = sportivi.filter(s =>
+            const instructors = (sportivi || []).filter(s =>
                 s.club_id === currentUser.club_id &&
                 s.roluri.some(r => r.nume === 'Instructor') &&
                 s.user_id
@@ -223,16 +223,16 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
         const officialGrad = getGrad(viewedUser.grad_actual_id, grade);
         if (officialGrad) return officialGrad;
 
-        const admittedParticipations = participari
+        const admittedParticipations = (participari || [])
             .filter(p => p.sportiv_id === viewedUser.id && p.rezultat === 'Admis')
-            .map(p => ({ ...p, examen: examene.find(e => e.id === p.sesiune_id) }))
+            .map(p => ({ ...p, examen: (examene || []).find(e => e.id === p.sesiune_id) }))
             .sort((a, b) => new Date(b.examen?.data || 0).getTime() - new Date(a.examen?.data || 0).getTime());
         
         return getGrad(admittedParticipations[0]?.grad_vizat_id || null, grade);
     }, [participari, viewedUser.grad_actual_id, viewedUser.id, grade, examene]);
     
     const sumaRestanta = useMemo(() => {
-        return plati
+        return (plati || [])
             .filter(p => 
                 (p.sportiv_id === viewedUser.id || (p.familie_id && p.familie_id === viewedUser.familie_id)) &&
                 (p.status === 'Neachitat' || p.status === 'Achitat Parțial')
@@ -241,12 +241,12 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
     }, [viewedUser, plati]);
 
     const grupaCurenta = useMemo(() => {
-        return grupe.find(g => g.id === viewedUser.grupa_id)?.denumire || 'Fără grupă';
+        return (grupe || []).find(g => g.id === viewedUser.grupa_id)?.denumire || 'Fără grupă';
     }, [viewedUser.grupa_id, grupe]);
 
     const allGradesWithDates = useMemo(() => {
-        const examDateMap = new Map(examene.map(e => [e.id, e.data]));
-        const admittedParticipations = participari
+        const examDateMap = new Map((examene || []).map(e => [e.id, e.data]));
+        const admittedParticipations = (participari || [])
             .filter(p => p.sportiv_id === viewedUser.id && p.rezultat === 'Admis')
             .sort((a, b) => {
                 const dateA = examDateMap.get(a.sesiune_id) || '9999-12-31';
@@ -265,7 +265,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
             }
         });
 
-        const fullGradeList = [...grade]
+        const fullGradeList = [...(grade || [])]
             .sort((a, b) => a.ordine - b.ordine)
             .map(g => ({
                 ...g,
@@ -298,7 +298,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                         <TrainingActionCard
                             key={training.id}
                             training={training}
-                            anunt={anunturi.find(a => a.antrenament_id === training.id && a.sportiv_id === currentUser.id)}
+                            anunt={(anunturi || []).find(a => a.antrenament_id === training.id && a.sportiv_id === currentUser.id)}
                             onStatusChange={handleStatusChange}
                             currentUser={currentUser}
                         />
@@ -324,7 +324,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                             ))}
                         </div>
                     ) : (
-                        <p className="text-slate-400 italic">Niciun antrenament programat în următoarele 7 zile.</p>
+                        <p className="text-slate-400 italic">Niciun antrenament programat în următoarele zile.</p>
                     )}
                 </Card>
             )}

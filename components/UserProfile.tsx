@@ -1,5 +1,4 @@
 import React, { useState, useMemo, useEffect } from 'react';
-// FIX: Added 'Grupa' to the import list to resolve 'Cannot find name' error.
 import { Sportiv, User, Rol, Participare, Examen, Grad, Antrenament, Plata, Familie, TipAbonament, Tranzactie, Reducere, Club, ProgramItem, Grupa } from '../types';
 import { Button, Card, Select, Modal, Input } from './ui';
 import { ArrowLeftIcon, EditIcon, WalletIcon, TrashIcon, ShieldCheckIcon, PlusIcon, ChartBarIcon, TransferIcon, CheckCircleIcon } from './icons';
@@ -206,14 +205,12 @@ interface UserProfileProps {
     plati: Plata[];
     tranzactii: Tranzactie[];
     reduceri: Reducere[];
-    // FIX: Changed `grupe` type from `any[]` to `Grupa[]` for type safety.
     grupe: Grupa[];
     familii: Familie[];
     tipuriAbonament: TipAbonament[];
     allRoles: Rol[];
     setSportivi: React.Dispatch<React.SetStateAction<Sportiv[]>>;
     setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
-    // FIX: Corrected the type for `setTranzactii` from `any[]` to `Tranzactie[]`.
     setTranzactii: React.Dispatch<React.SetStateAction<Tranzactie[]>>;
     onBack: () => void;
     clubs: Club[];
@@ -321,8 +318,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                     type: plata.tip,
                     paymentDate: paymentDate
                 };
-            // FIX: Explicitly cast 'facturaDate' to string to resolve TypeScript inference issue with the 'new Date()' constructor.
-            }).sort((a, b) => new Date(b.facturaDate as string).getTime() - new Date(a.facturaDate as string).getTime());
+            }).sort((a, b) => new Date(b.facturaDate).getTime() - new Date(a.facturaDate).getTime());
             
             if (financialFilter !== 'Toate') {
                 historyItems = historyItems.filter(item => item.type === financialFilter);
@@ -347,16 +343,16 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
             .sort((a, b) => {
                 const dateA = examDateMap.get(a.sesiune_id) || '9999-12-31';
                 const dateB = examDateMap.get(b.sesiune_id) || '9999-12-31';
-                // FIX: Cast date strings to string for new Date() constructor
+                // FIX: Cast date strings to 'string' to resolve 'unknown' type error.
                 return new Date(dateB as string).getTime() - new Date(dateA as string).getTime();
             });
 
         const obtainedGradesMap = new Map<string, string>();
         admittedParticipations.forEach(p => {
             const examDate = examDateMap.get(p.sesiune_id);
-            // FIX: Argument of type 'unknown' is not assignable to parameter of type 'string'.
-            // The type of `p.grad_vizat_id` is inferred incorrectly. Casting it to `string` ensures type safety for the `Map` operations.
+            // FIX: Cast grad_vizat_id to 'string' to resolve 'unknown' type error.
             if (examDate && !obtainedGradesMap.has(p.grad_vizat_id as string)) {
+                // FIX: Cast grad_vizat_id to 'string' to resolve 'unknown' type error.
                 obtainedGradesMap.set(p.grad_vizat_id as string, examDate);
             }
         });
@@ -508,42 +504,22 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                             </div>
                         </div>
                     </Card>
-                    <Card>
-                        <h3 className="text-lg font-bold text-white mb-4">Istoric Examinări</h3>
-                        <div className="max-h-72 overflow-y-auto pr-2">
-                            <table className="w-full text-left text-sm">
-                                <thead className="sticky top-0 bg-[var(--bg-card)]">
-                                    <tr className="border-b border-slate-700">
-                                        <th className="p-2 font-semibold text-slate-400">Data</th>
-                                        <th className="p-2 font-semibold text-slate-400">Grad Vizat</th>
-                                        <th className="p-2 font-semibold text-slate-400 text-center">Rezultat</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-700">
-                                    {sortedSportivParticipariForDisplay.length > 0 ? (
-                                        sortedSportivParticipariForDisplay.map(p => (
-                                            <tr key={p.id}>
-                                                <td className="p-2">{p.examen ? new Date(p.examen.data + 'T00:00:00').toLocaleDateString('ro-RO') : 'N/A'}</td>
-                                                <td className="p-2 font-medium text-white">{grade.find(g => g.id === p.grad_vizat_id)?.nume || 'N/A'}</td>
-                                                <td className="p-2 text-center">
-                                                    <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-                                                        p.rezultat === 'Admis' ? 'bg-green-600/30 text-green-300' : 
-                                                        p.rezultat === 'Respins' ? 'bg-red-600/30 text-red-300' : 
-                                                        'bg-slate-600/30 text-slate-400'
-                                                    }`}>
-                                                        {p.rezultat || 'NEPREZENTAT'}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    ) : (
-                                        <tr>
-                                            <td colSpan={3} className="p-4 text-center text-slate-400 italic">Niciun examen susținut.</td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
+                     <Card>
+                        <h3 className="text-lg font-bold text-white mb-4">Istoric Grade Obținute</h3>
+                        {allGradesWithDates.filter(g => g.data_obtinere).length > 0 ? (
+                            <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
+                                {allGradesWithDates.filter(g => g.data_obtinere).map(g => (
+                                    <div key={g.id} className="flex justify-between items-center bg-slate-800/50 p-2 rounded-md">
+                                        <GradBadge grad={g} />
+                                        <p className="text-sm font-bold text-slate-300">
+                                            {new Date(g.data_obtinere + 'T00:00:00').toLocaleDateString('ro-RO')}
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-slate-400 italic">Niciun grad obținut încă.</p>
+                        )}
                     </Card>
                 </div>
 

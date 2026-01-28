@@ -328,6 +328,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
             .sort((a, b) => {
                 const dateA = examDateMap.get(a.sesiune_id) || '9999-12-31';
                 const dateB = examDateMap.get(b.sesiune_id) || '9999-12-31';
+                // FIX: Cast date strings to resolve potential 'unknown' type errors from TypeScript's inference.
                 return new Date(dateB as string).getTime() - new Date(dateA as string).getTime();
             });
 

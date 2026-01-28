@@ -263,7 +263,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
             individualHistory: processPlati(individualPlati), 
             familieHistory: processPlati(familiePlati)
         };
-    }, [sportiv, plati, tranzactii, financialFilter, reduceri, familii]);
+    }, [sportiv, plati, tranzactii, financialFilter, reduceri]);
 
     const allGradesWithDates = useMemo(() => {
         const examDateMap = new Map(examene.map(e => [e.id, e.data]));

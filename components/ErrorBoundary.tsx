@@ -18,7 +18,8 @@ interface State {
  * Inheriting from Component ensures access to setState and lifecycle methods.
  */
 class ErrorBoundary extends React.Component<Props, State> {
-  // FIX: Initialize state as a class property to resolve all 'this' context errors.
+  // FIX: State is initialized as a class property.
+  // This avoids issues with 'this' context in the constructor and correctly defines the component's state.
   state: State = {
     hasError: false,
     error: undefined,
@@ -32,7 +33,8 @@ class ErrorBoundary extends React.Component<Props, State> {
     console.error("Uncaught error:", error, errorInfo);
   }
 
-  // FIX: Use an arrow function to automatically bind 'this'.
+  // FIX: Use an arrow function for the event handler.
+  // This automatically binds `this` to the component instance, so `this.setState` and `this.props` work correctly when called from an event listener like onClick.
   handleRedirect = () => {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {

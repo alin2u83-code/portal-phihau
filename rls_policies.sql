@@ -111,7 +111,7 @@ CREATE POLICY "Club staff can manage their groups" ON public.grupe
     FOR ALL USING (public.is_club_staff() AND club_id = public.get_my_club_id())
     WITH CHECK (public.is_club_staff() AND club_id = public.get_my_club_id());
 CREATE POLICY "Authenticated users can view relevant groups" ON public.grupe
-    FOR SELECT USING (auth.role() = 'authenticated' AND (club_id = public.get_my_club_id() OR club_id IS NULL));
+    FOR SELECT USING (club_id = public.get_my_club_id() OR (club_id IS NULL AND (public.is_club_staff() OR public.is_super_admin())));
 
 
 -- == TABELE FINANCIARE: plati & tranzactii ==
@@ -217,7 +217,7 @@ CREATE POLICY "Club staff can manage their own subscription types" ON public.tip
     USING (public.is_club_staff() AND club_id = public.get_my_club_id())
     WITH CHECK (public.is_club_staff() AND club_id = public.get_my_club_id());
 CREATE POLICY "Authenticated users can view relevant subscription types" ON public.tipuri_abonament
-    FOR SELECT USING (auth.role() = 'authenticated' AND (club_id = public.get_my_club_id() OR club_id IS NULL));
+    FOR SELECT USING (club_id = public.get_my_club_id() OR (club_id IS NULL AND (public.is_club_staff() OR public.is_super_admin())));
 
 
 -- == ALTE TABELE ==

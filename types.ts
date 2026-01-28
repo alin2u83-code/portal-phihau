@@ -116,6 +116,7 @@ export interface Antrenament {
   ora_start: string;
   ora_sfarsit: string | null;
   grupa_id: string | null;
+  grupe?: Grupa | null;
   ziua: ProgramItem['ziua'] | null;
   is_recurent: boolean;
   sportivi_prezenti_ids: string[];

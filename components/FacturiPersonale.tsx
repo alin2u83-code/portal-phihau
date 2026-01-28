@@ -3,14 +3,14 @@ import { User, Plata, Tranzactie } from '../types';
 import { Button, Card } from './ui';
 import { ArrowLeftIcon } from './icons';
 
-interface FacturiPersonaleProps {
+interface IstoricPlatiProps {
     viewedUser: User;
     plati: Plata[];
     tranzactii: Tranzactie[];
     onBack: () => void;
 }
 
-export const FacturiPersonale: React.FC<FacturiPersonaleProps> = ({ viewedUser, plati, tranzactii, onBack }) => {
+export const IstoricPlati: React.FC<IstoricPlatiProps> = ({ viewedUser, plati, tranzactii, onBack }) => {
 
     const userPlati = useMemo(() => {
         return plati
@@ -39,7 +39,7 @@ export const FacturiPersonale: React.FC<FacturiPersonaleProps> = ({ viewedUser, 
             <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Portal</Button>
             
             <header className="text-left">
-                 <h1 className="text-3xl font-bold text-white">Facturile Mele</h1>
+                 <h1 className="text-3xl font-bold text-white">Istoric Plăți</h1>
                  <p className="text-lg text-slate-300">{viewedUser.nume} {viewedUser.prenume}</p>
             </header>
 

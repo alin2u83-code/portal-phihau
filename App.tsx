@@ -33,6 +33,7 @@ import { Notificari } from './components/Notificari';
 import { TaxeAnuale } from './components/TaxeAnuale';
 import { GestionareNomenclatoare } from './components/GestionareNomenclatoare';
 import { FinancialDashboard } from './components/FinancialDashboard';
+import { IstoricPlati } from './components/FacturiPersonale';
 import { CalendarView } from './components/CalendarView';
 import { RapoarteExamen } from './components/RapoarteExamen';
 import { CluburiManagement } from './components/CluburiManagement';
@@ -422,6 +423,9 @@ function App() {
       // Sportiv views (no protection needed as they are the default)
       case 'istoric-prezenta':
         return <MartialAttendance currentUser={currentUser} antrenamente={antrenamente} grupe={grupe} onBack={() => setActiveView('my-portal')} />;
+
+      case 'istoric-plati':
+        return <IstoricPlati viewedUser={currentUser} plati={plati} tranzactii={tranzactii} onBack={() => setActiveView('my-portal')} />;
 
       case 'account-settings':
         return <AccountSettings currentUser={currentUser} onBack={() => setActiveView('my-portal')} />;

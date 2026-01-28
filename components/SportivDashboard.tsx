@@ -352,8 +352,8 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                             {sumaRestanta.toFixed(2)} RON
                         </p>
                      </div>
-                     <Button onClick={() => onNavigate('facturi-personale')} variant="secondary" className="w-full mt-2">
-                        💳 Vezi Facturi
+                     <Button onClick={() => onNavigate('istoric-plati')} variant="secondary" className="w-full mt-2">
+                        💳 Istoric Plăți
                     </Button>
                 </Card>
             </div>

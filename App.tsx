@@ -170,7 +170,7 @@ function App() {
             supabase.from('nom_locatii').select('*'),
             supabase.from('tipuri_plati').select('*'),
             supabase.from('reduceri').select('*'),
-            supabase.from('sportivi').select('*, sportivi_roluri(roluri(id, nume))'),
+            supabase.from('sportivi').select('*, last_sign_in_at, sportivi_roluri(roluri(id, nume))'),
             supabase.from('sesiuni_examene').select('*'),
             supabase.from('inscrieri_examene').select('*, sportivi:sportiv_id(*), grades:grad_vizat_id(*)'),
             supabase.from('program_antrenamente').select('*, grupe(*), prezenta_antrenament!antrenament_id(sportiv_id)'),

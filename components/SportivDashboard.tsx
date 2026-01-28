@@ -339,7 +339,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
             if (examDate && !obtainedGradesMap.has(p.grad_vizat_id as string)) {
                 // FIX: Argument of type 'unknown' is not assignable to parameter of type 'string'.
                 // The type of `p.grad_vizat_id` is inferred incorrectly. Casting it to `string` ensures type safety for the `Map` operations.
-                obtainedGradesMap.set(p.grad_vizat_id as string, examDate);
+                obtainedGradesMap.set(p.grad_vizat_id as string, examDate as string);
             }
         });
 

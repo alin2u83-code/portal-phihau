@@ -353,7 +353,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
             // FIX: Argument of type 'unknown' is not assignable to parameter of type 'string'.
             if (examDate && !obtainedGradesMap.has(p.grad_vizat_id as string)) {
                 // FIX: Cast grad_vizat_id to 'string' to resolve 'unknown' type error.
-                obtainedGradesMap.set(p.grad_vizat_id as string, examDate);
+                obtainedGradesMap.set(p.grad_vizat_id as string, examDate as string);
             }
         });
 

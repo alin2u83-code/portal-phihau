@@ -7,6 +7,7 @@ import { UserProfile } from './components/UserProfile';
 import { GestiuneExamene } from './components/Examene';
 import { GradeManagement } from './components/Grade';
 import { PrezentaManagement } from './components/Prezenta';
+// FIX: Import the 'GrupeManagement' component.
 import { GrupeManagement } from './components/Grupe';
 import { RaportPrezenta } from './components/RaportPrezenta';
 import { StagiiCompetitiiManagement } from './components/StagiiCompetitii';
@@ -89,6 +90,23 @@ function App() {
 
   const permissions = usePermissions(currentUser);
   const { activeClubId, globalClubFilter, setGlobalClubFilter } = useClubFilter(currentUser);
+
+  useEffect(() => {
+    if (currentUser && !permissions.hasAdminAccess) {
+        const adminViews: View[] = [
+            'sportivi', 'examene', 'grade', 'prezenta', 'grupe', 'raport-prezenta',
+            'stagii', 'competitii', 'plati-scadente', 'jurnal-incasari', 'raport-financiar',
+            'configurare-preturi', 'tipuri-abonament', 'familii', 'user-management',
+            'data-maintenance', 'activitati', 'setari-club', 'data-inspector', 'reduceri',
+            'notificari', 'taxe-anuale', 'nomenclatoare', 'financial-dashboard',
+            'finalizare-examen', 'rapoarte-examen', 'cluburi', 'structura-federatie', 'deconturi-federatie',
+            'federation-dashboard'
+        ];
+        if (adminViews.includes(activeView)) {
+            setActiveView('my-portal');
+        }
+    }
+  }, [currentUser, permissions, activeView, setActiveView]);
 
   const initializeAndFetchData = useCallback(async () => {
     if (!supabase) return;
@@ -198,8 +216,12 @@ function App() {
         setDeconturiFederatie(deconturiData || []);
 
     } catch (err: any) {
-        setProfileError(err.message);
-        showError("Eroare la încărcarea datelor aplicației", err);
+        let friendlyMessage = err.message;
+        if (String(err.message).includes('violates row-level security policy') || err.code === '42501') {
+            friendlyMessage = 'Nu aveți permisiuni suficiente pentru a accesa toate datele necesare. Contactați administratorul.';
+        }
+        setProfileError(friendlyMessage);
+        showError("Eroare la încărcarea datelor aplicației", friendlyMessage);
     } finally {
         setLoading(false);
     }
@@ -381,7 +403,7 @@ function App() {
         return renderProtected(<JurnalIncasari currentUser={currentUser} plati={filteredData.plati} setPlati={setPlati} sportivi={filteredData.sportivi} familii={filteredData.familii} preturiConfig={preturiConfig} tipuriAbonament={filteredData.tipuriAbonament} tipuriPlati={tipuriPlati} setTipuriPlati={setTipuriPlati} tranzactii={filteredData.tranzactii} setTranzactii={setTranzactii} platiInitiale={platiPentruIncasare} onIncasareProcesata={handleIncasareProcesata} onBack={handleJurnalBack} reduceri={reduceri} onViewSportiv={onViewSportiv} />, isAtLeastClubAdmin);
 
       case 'raport-financiar':
-        return renderProtected(<RaportFinanciar plati={filteredData.plati} sportivi={filteredData.sportivi} familii={filteredData.familii} tranzactii={filteredData.tranzactii} onBack={() => setActiveView('dashboard')} onViewSportiv={onViewSportiv} />, isAtLeastClubAdmin);
+        return renderProtected(<RaportFinanciar plati={filteredData.plati} sportivi={filteredData.sportivi} familii={filteredData.familii} tranzactii={filteredData.tranzactii} onBack={() => setActiveView('dashboard')} />, isAtLeastClubAdmin);
 
       case 'user-management':
         return renderProtected(<UserManagement sportivi={filteredData.sportivi} setSportivi={setSportivi} currentUser={currentUser} setCurrentUser={setCurrentUser} allRoles={allRoles} setAllRoles={setAllRoles} onBack={() => setActiveView('dashboard')} clubs={clubs} />, isAtLeastClubAdmin);
@@ -414,7 +436,7 @@ function App() {
         return renderProtected(<GestionareNomenclatoare tipuriPlati={tipuriPlati} setTipuriPlati={setTipuriPlati} plati={plati} onBack={() => setActiveView('dashboard')} />, isAtLeastClubAdmin);
 
       case 'familii':
-        return renderProtected(<FamiliiManagement familii={filteredData.familii} setFamilii={setFamilii} sportivi={filteredData.sportivi} setSportivi={setSportivi} onBack={() => setActiveView('dashboard')} tipuriAbonament={filteredData.tipuriAbonament} grupe={filteredData.grupe} currentUser={currentUser} onViewSportiv={onViewSportiv} />, isAtLeastInstructor);
+        return renderProtected(<FamiliiManagement familii={filteredData.familii} setFamilii={setFamilii} sportivi={filteredData.sportivi} setSportivi={setSportivi} onBack={() => setActiveView('dashboard')} tipuriAbonament={filteredData.tipuriAbonament} grupe={filteredData.grupe} currentUser={currentUser} />, isAtLeastInstructor);
         
       case 'notificari':
         return renderProtected(<Notificari onBack={() => setActiveView('dashboard')} currentUser={currentUser}/>, isAtLeastInstructor);

@@ -1,6 +1,8 @@
 
 
 
+
+
 export interface Rol {
   id: string;
   nume: 'Sportiv' | 'Instructor' | 'Admin' | 'SUPER_ADMIN_FEDERATIE' | 'Admin Club';
@@ -101,6 +103,7 @@ export interface IstoricGrade {
     grad_id: string;
     data_obtinere: string;
     sesiune_examen_id?: string;
+    observatii?: string;
 }
 
 export interface ProgramItem {

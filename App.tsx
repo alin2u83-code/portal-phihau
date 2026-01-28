@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from './supabaseClient';
-import { Sportiv, SesiuneExamen, Grad, InscriereExamen, View, Antrenament, Grupa, Plata, Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, Rol, AnuntPrezenta, Reducere, AnuntGeneral, TipPlata, Locatie, Club, DecontFederatie } from './types';
+import { Sportiv, SesiuneExamen, Grad, InscriereExamen, View, Antrenament, Grupa, Plata, Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, Rol, AnuntPrezenta, Reducere, AnuntGeneral, TipPlata, Locatie, Club, DecontFederatie, IstoricGrade } from './types';
 import { FinalUnifiedDashboard } from './components/FinalUnifiedDashboard';
 import { SportiviManagement } from './components/SportiviManagement';
 import { UserProfile } from './components/UserProfile';
@@ -64,6 +64,7 @@ function App() {
   const [sesiuniExamene, setSesiuniExamene] = useState<SesiuneExamen[]>([]);
   const [inscrieriExamene, setInscrieriExamene] = useState<InscriereExamen[]>([]);
   const [grade, setGrade] = useState<Grad[]>([]);
+  const [istoricGrade, setIstoricGrade] = useState<IstoricGrade[]>([]);
   const [antrenamente, setAntrenamente] = useState<Antrenament[]>([]);
   const [grupe, setGrupe] = useState<Grupa[]>([]);
   const [plati, setPlati] = useState<Plata[]>([]);
@@ -158,7 +159,8 @@ function App() {
             { data: reduceriData }, { data: sportiviData }, { data: sessionsData },
             { data: registrationsData }, { data: trainingsData }, { data: platiData },
             { data: tranzactiiData }, { data: eventsData }, { data: resultsData },
-            { data: familiesData }, { data: anunturiData }, { data: pricesData }, { data: deconturiData }
+            { data: familiesData }, { data: anunturiData }, { data: pricesData }, { data: deconturiData },
+            { data: istoricGradeData }
         ] = await Promise.all([
             supabase.from('cluburi').select('*'),
             supabase.from('roluri').select('*'),
@@ -180,6 +182,7 @@ function App() {
             supabase.from('anunturi_prezenta').select('*'),
             supabase.from('preturi_config').select('*'),
             supabase.from('deconturi_federatie').select('*'),
+            supabase.from('istoric_grade').select('*'),
         ]);
         
         console.log('Data antrenamente primită de la Supabase:', trainingsData);
@@ -195,6 +198,7 @@ function App() {
         setSportivi(allSportivi as Sportiv[]);
         setSesiuniExamene(sessionsData || []);
         setInscrieriExamene(registrationsData || []);
+        setIstoricGrade(istoricGradeData || []);
         setAntrenamente(trainingsData?.map(t => ({ ...t, sportivi_prezenti_ids: (t as any).prezenta_antrenament?.map((p: any) => p.sportiv_id) || [] })) || []);
         setPlati(platiData || []);
         setTranzactii(tranzactiiData || []);
@@ -249,7 +253,7 @@ function App() {
         return {
             sportivi, sesiuniExamene, inscrieriExamene, antrenamente, grupe, plati,
             tranzactii, evenimente, rezultate, tipuriAbonament, familii,
-            anunturiPrezenta, reduceri, deconturiFederatie
+            anunturiPrezenta, reduceri, deconturiFederatie, istoricGrade
         };
     }
 
@@ -273,6 +277,7 @@ function App() {
     const fInscrieriExamene = inscrieriExamene.filter(i => sportivIdsInClub.has(i.sportiv_id));
     const fRezultate = rezultate.filter(r => sportivIdsInClub.has(r.sportiv_id));
     const fAnunturiPrezenta = anunturiPrezenta.filter(a => sportivIdsInClub.has(a.sportiv_id));
+    const fIstoricGrade = istoricGrade.filter(ig => sportivIdsInClub.has(ig.sportiv_id));
 
     return {
         sportivi: fSportivi,
@@ -289,11 +294,12 @@ function App() {
         anunturiPrezenta: fAnunturiPrezenta,
         reduceri,
         deconturiFederatie: fDeconturiFederatie,
+        istoricGrade: fIstoricGrade
     };
 }, [
     activeClubId, permissions.isFederationAdmin, sportivi, sesiuniExamene, inscrieriExamene, antrenamente,
     grupe, plati, tranzactii, evenimente, rezultate, tipuriAbonament,
-    familii, anunturiPrezenta, reduceri, deconturiFederatie
+    familii, anunturiPrezenta, reduceri, deconturiFederatie, istoricGrade
 ]);
 
   const handleLogout = async () => {
@@ -356,7 +362,7 @@ function App() {
         return renderProtected(<SportiviManagement onBack={() => setActiveView('dashboard')} sportivi={filteredData.sportivi} setSportivi={setSportivi} grupe={filteredData.grupe} setGrupe={setGrupe} tipuriAbonament={filteredData.tipuriAbonament} familii={filteredData.familii} setFamilii={setFamilii} allRoles={allRoles} setAllRoles={setAllRoles} currentUser={currentUser} plati={filteredData.plati} tranzactii={filteredData.tranzactii} setTranzactii={setTranzactii} onViewSportiv={onViewSportiv} clubs={clubs} grade={grade} />, isAtLeastInstructor);
 
       case 'profil-sportiv':
-        return renderProtected(selectedSportiv ? <UserProfile sportiv={selectedSportiv} currentUser={currentUser} participari={inscrieriExamene} examene={sesiuniExamene} grade={grade} antrenamente={antrenamente} plati={plati} tranzactii={tranzactii} reduceri={reduceri} grupe={grupe} familii={familii} tipuriAbonament={tipuriAbonament} allRoles={allRoles} setSportivi={setSportivi} setPlati={setPlati} setTranzactii={setTranzactii} onBack={() => setActiveView('sportivi')} clubs={clubs} /> : null, isAtLeastInstructor);
+        return renderProtected(selectedSportiv ? <UserProfile sportiv={selectedSportiv} currentUser={currentUser} participari={filteredData.inscrieriExamene} examene={filteredData.sesiuniExamene} grade={grade} istoricGrade={filteredData.istoricGrade} setIstoricGrade={setIstoricGrade} antrenamente={filteredData.antrenamente} plati={filteredData.plati} tranzactii={filteredData.tranzactii} reduceri={filteredData.reduceri} grupe={filteredData.grupe} familii={filteredData.familii} tipuriAbonament={filteredData.tipuriAbonament} allRoles={allRoles} setSportivi={setSportivi} setPlati={setPlati} setTranzactii={setTranzactii} onBack={() => setActiveView('sportivi')} clubs={clubs} /> : null, isAtLeastInstructor);
 
       case 'structura-federatie':
         return renderProtected(<FederationStructure clubs={clubs} sportivi={sportivi} grupe={grupe} onBack={() => setActiveView('dashboard')} onNavigate={setActiveView} />, isFederationAdmin);
@@ -396,7 +402,7 @@ function App() {
         return renderProtected(<PlatiScadente plati={filteredData.plati} setPlati={setPlati} sportivi={filteredData.sportivi} familii={filteredData.familii} tipuriAbonament={filteredData.tipuriAbonament} tranzactii={filteredData.tranzactii} reduceri={reduceri} onIncaseazaMultiple={handleIncaseazaMultiple} onBack={() => setActiveView('dashboard')} onViewSportiv={onViewSportiv} />, canManageFinances);
 
       case 'jurnal-incasari':
-        return renderProtected(<JurnalIncasari currentUser={currentUser} plati={filteredData.plati} setPlati={setPlati} sportivi={filteredData.sportivi} familii={filteredData.familii} preturiConfig={preturiConfig} tipuriAbonament={filteredData.tipuriAbonament} tipuriPlati={tipuriPlati} setTipuriPlati={setTipuriPlati} tranzactii={filteredData.tranzactii} setTranzactii={setTranzactii} platiInitiale={platiPentruIncasare} onIncasareProcesata={handleIncasareProcesata} onBack={handleJurnalBack} reduceri={reduceri} onViewSportiv={onViewSportiv} />, canManageFinances);
+        return renderProtected(<JurnalIncasari currentUser={currentUser} plati={filteredData.plati} setPlati={setPlati} sportivi={filteredData.sportivi} familii={filteredData.familii} preturiConfig={preturiConfig} tipuriAbonament={filteredData.tipuriAbonament} tipuriPlati={tipuriPlati} setTipuriPlati={setTipuriPlati} tranzactii={filteredData.tranzactii} setTranzactii={setTranzactii} platiInitiale={platiPentruIncasare} onIncasareProcesata={handleIncasareProcesata} onBack={handleJurnalBack} reduceri={reduceri} />, canManageFinances);
 
       case 'raport-financiar':
         return renderProtected(<RaportFinanciar plati={filteredData.plati} sportivi={filteredData.sportivi} familii={filteredData.familii} tranzactii={filteredData.tranzactii} onBack={() => setActiveView('dashboard')} />, isAtLeastClubAdmin);

@@ -350,7 +350,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
         const obtainedGradesMap = new Map<string, string>();
         admittedParticipations.forEach(p => {
             const examDate = examDateMap.get(p.sesiune_id);
-            // FIX: Cast grad_vizat_id to 'string' to resolve 'unknown' type error.
+            // FIX: Argument of type 'unknown' is not assignable to parameter of type 'string'.
             if (examDate && !obtainedGradesMap.has(p.grad_vizat_id as string)) {
                 // FIX: Cast grad_vizat_id to 'string' to resolve 'unknown' type error.
                 obtainedGradesMap.set(p.grad_vizat_id as string, examDate);

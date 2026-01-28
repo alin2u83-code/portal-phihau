@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Sportiv, User, Rol, Participare, Examen, Grad, Antrenament, Plata, Familie, TipAbonament, Tranzactie, Reducere, Club } from '../types';
+// FIX: Added 'Grupa' to the import list to resolve 'Cannot find name' error.
+import { Sportiv, User, Rol, Participare, Examen, Grad, Antrenament, Plata, Familie, TipAbonament, Tranzactie, Reducere, Club, ProgramItem, Grupa } from '../types';
 import { Button, Card, Select, Modal, Input } from './ui';
 import { ArrowLeftIcon, EditIcon, WalletIcon, TrashIcon, ShieldCheckIcon, PlusIcon, ChartBarIcon, TransferIcon, CheckCircleIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -15,6 +16,79 @@ import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
 const getGrad = (gradId: string | null, allGrades: Grad[]) => gradId ? allGrades.find(g => g.id === gradId) : null;
 const getAge = (dateString: string) => { if (!dateString) return 0; const today = new Date(); const birthDate = new Date(dateString.includes('T') ? dateString : dateString + 'T00:00:00'); if (isNaN(birthDate.getTime())) { return 0; } let age = today.getFullYear() - birthDate.getFullYear(); const m = today.getMonth() - birthDate.getMonth(); if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; } return age; };
 const parseDurationToMonths = (durationStr: string): number => { const parts = durationStr.split(' '); if (parts.length < 2) return 0; const value = parseInt(parts[0], 10); const unit = parts[1].toLowerCase(); if (unit.startsWith('lun')) return value; if (unit.startsWith('an')) return value * 12; return 0; };
+
+const getGradStyle = (gradName: string): string => {
+    const name = gradName.toLowerCase();
+    if (name.includes('dang')) {
+        if (name.includes('5')) return 'bg-black text-white border-2 border-yellow-400';
+        if (name.includes('6') || name.includes('7')) return 'bg-white text-red-600 border-2 border-red-600';
+        return 'bg-black text-white border-2 border-red-600';
+    }
+    if (name.includes('neagră')) return 'bg-black text-white';
+    if (name.includes('violet')) return 'bg-violet-600 text-white';
+    if (name.includes('roșu')) return 'bg-red-600 text-white';
+    if (name.includes('albastru')) return 'bg-white text-blue-600 border border-blue-600';
+    if (name.includes('galben')) return 'bg-yellow-400 text-black';
+    return 'bg-slate-600 text-white'; // Default
+};
+
+const GradBadge: React.FC<{ grad: Grad | null | undefined }> = ({ grad }) => {
+    if (!grad) return null;
+    return (
+        <span className={`px-3 py-1 text-sm font-bold rounded-full whitespace-nowrap ${getGradStyle(grad.nume)}`}>
+            {grad.nume}
+        </span>
+    );
+};
+
+const ProgramAntrenament: React.FC<{ grupaId: string | null; grupe: Grupa[] }> = ({ grupaId, grupe }) => {
+    const zileSaptamanaOrdonate: Record<ProgramItem['ziua'], number> = { 'Luni': 1, 'Marți': 2, 'Miercuri': 3, 'Joi': 4, 'Vineri': 5, 'Sâmbătă': 6, 'Duminică': 7 };
+
+    const grupaCurenta = useMemo(() => grupe.find(g => g.id === grupaId), [grupaId, grupe]);
+    
+    const programSortat = useMemo(() => {
+        if (!grupaCurenta?.program) return [];
+        return [...grupaCurenta.program]
+            .filter(p => p.is_activ !== false) // Show only active sessions
+            .sort((a, b) => {
+                const ziCompare = zileSaptamanaOrdonate[a.ziua] - zileSaptamanaOrdonate[b.ziua];
+                if (ziCompare !== 0) return ziCompare;
+                return a.ora_start.localeCompare(b.ora_start);
+            });
+    }, [grupaCurenta]);
+
+    return (
+        <Card>
+            <h3 className="text-lg font-bold text-white mb-2 animate-fade-in-down">Programul Meu de Antrenament</h3>
+            {!grupaId || !grupaCurenta ? (
+                <p className="text-sm text-slate-400 italic">Contactați instructorul pentru alocarea la o grupă.</p>
+            ) : programSortat.length > 0 ? (
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm">
+                        <thead className="text-slate-400 text-xs uppercase">
+                            <tr>
+                                <th className="py-2">Ziua</th>
+                                <th className="py-2">Ora Start</th>
+                                <th className="py-2">Ora Sfârșit</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-700">
+                            {programSortat.map((item, index) => (
+                                <tr key={index}>
+                                    <td className="py-2 font-semibold">{item.ziua}</td>
+                                    <td className="py-2">{item.ora_start}</td>
+                                    <td className="py-2">{item.ora_sfarsit}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            ) : (
+                <p className="text-sm text-slate-400 italic">Grupa curentă nu are un program definit.</p>
+            )}
+        </Card>
+    );
+};
 
 interface TransferModalProps {
     isOpen: boolean;
@@ -132,13 +206,15 @@ interface UserProfileProps {
     plati: Plata[];
     tranzactii: Tranzactie[];
     reduceri: Reducere[];
-    grupe: any[];
+    // FIX: Changed `grupe` type from `any[]` to `Grupa[]` for type safety.
+    grupe: Grupa[];
     familii: Familie[];
     tipuriAbonament: TipAbonament[];
     allRoles: Rol[];
     setSportivi: React.Dispatch<React.SetStateAction<Sportiv[]>>;
     setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
-    setTranzactii: React.Dispatch<React.SetStateAction<any[]>>;
+    // FIX: Corrected the type for `setTranzactii` from `any[]` to `Tranzactie[]`.
+    setTranzactii: React.Dispatch<React.SetStateAction<Tranzactie[]>>;
     onBack: () => void;
     clubs: Club[];
 }
@@ -246,7 +322,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                     type: plata.tip,
                     paymentDate: paymentDate
                 };
-// FIX: Explicitly cast 'facturaDate' to string to resolve TypeScript inference issue with the 'new Date()' constructor.
+            // FIX: Explicitly cast 'facturaDate' to string to resolve TypeScript inference issue with the 'new Date()' constructor.
             }).sort((a, b) => new Date(b.facturaDate as string).getTime() - new Date(a.facturaDate as string).getTime());
             
             if (financialFilter !== 'Toate') {
@@ -272,7 +348,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
             .sort((a, b) => {
                 const dateA = examDateMap.get(a.sesiune_id) || '9999-12-31';
                 const dateB = examDateMap.get(b.sesiune_id) || '9999-12-31';
-                return new Date(dateB as string).getTime() - new Date(dateA as string).getTime();
+                return new Date(dateB).getTime() - new Date(dateA).getTime();
             });
 
         const obtainedGradesMap = new Map<string, string>();
@@ -385,7 +461,9 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                 <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                     <div>
                         <h1 className="text-3xl font-bold text-white">{sportiv.nume} {sportiv.prenume}</h1>
-                        <p className="text-slate-400">Profil detaliat și istoric activitate</p>
+                        <div className="mt-2 flex items-center gap-2">
+                            <GradBadge grad={currentGrad} />
+                        </div>
                     </div>
                     <div className="flex gap-2 self-end sm:self-center flex-wrap">
                         {isSuperAdmin && <Button variant="secondary" onClick={() => setIsTransferModalOpen(true)}><TransferIcon className="w-4 h-4 mr-2"/> Transfer</Button>}
@@ -474,6 +552,8 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                             <DataField label="Cont de acces" value={sportiv.user_id ? "Activ" : "Inexistent"}/>
                         </div>
                     </Card>
+                    
+                    <ProgramAntrenament grupaId={sportiv.grupa_id} grupe={grupe} />
 
                     {isAdmin && (
                     <Card>

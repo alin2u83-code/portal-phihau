@@ -259,9 +259,9 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
         admittedParticipations.forEach(p => {
             const examDate = examDateMap.get(p.sesiune_id);
             // FIX: Explicitly cast 'grad_vizat_id' to string to resolve a type inference issue where it was being treated as 'unknown'.
-            if (examDate && !obtainedGradesMap.has(p.grad_vizat_id)) {
+            if (examDate && !obtainedGradesMap.has(p.grad_vizat_id as string)) {
                 // FIX: Explicitly cast 'grad_vizat_id' to string to resolve a type inference issue where it was being treated as 'unknown'.
-                obtainedGradesMap.set(p.grad_vizat_id, examDate);
+                obtainedGradesMap.set(p.grad_vizat_id as string, examDate);
             }
         });
 

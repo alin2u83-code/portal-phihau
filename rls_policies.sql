@@ -1,5 +1,5 @@
 -- =================================================================
--- Politici de Securitate la Nivel de Rând (RLS) - V7.1
+-- Politici de Securitate la Nivel de Rând (RLS) - V7.2
 -- Structură refactorizată pentru claritate, acces complet Super Admin și corectarea politicilor permisive
 -- =================================================================
 -- Model de politici:
@@ -97,8 +97,9 @@ CREATE POLICY "Super Admins have full access" ON public.cluburi
     FOR ALL USING (public.is_super_admin()) WITH CHECK (public.is_super_admin());
 CREATE POLICY "Club staff can update their own club" ON public.cluburi
     FOR UPDATE USING (public.is_club_staff() AND id = public.get_my_club_id());
-CREATE POLICY "Authenticated users can view clubs" ON public.cluburi
-    FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "Authenticated users can view their own club" ON public.cluburi
+    FOR SELECT USING (id = public.get_my_club_id());
+
 
 -- == TABELUL: grupe ==
 CALL public.reset_policies_for_table('grupe');

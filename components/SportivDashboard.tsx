@@ -239,10 +239,10 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
             if (data) {
                 showSuccess("Status actualizat", `Ai anunțat: ${status}`);
                 setAnunturi(prev => {
-                    const existingIndex = prev.findIndex(a => a.id === data.id || (a.antrenament_id === data.antrenament_id && a.sportiv_id === data.sportiv_id));
-                    if (existingIndex > -1) {
+                    const index = prev.findIndex(a => a.id === data.id || (a.antrenament_id === data.antrenament_id && a.sportiv_id === data.sportiv_id));
+                    if (index > -1) {
                         const newAnunturi = [...prev];
-                        newAnunturi[existingIndex] = data;
+                        newAnunturi[index] = data;
                         return newAnunturi;
                     } else {
                         return [...prev, data];
@@ -336,6 +336,8 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
             const examDate = examDateMap.get(p.sesiune_id);
             // FIX: The type of `p.grad_vizat_id` is inferred incorrectly. Casting it to `string` ensures type safety for the `Map` operations.
             if (examDate && !obtainedGradesMap.has(p.grad_vizat_id as string)) {
+                // FIX: Argument of type 'unknown' is not assignable to parameter of type 'string'.
+                // The type of `p.grad_vizat_id` is inferred incorrectly. Casting it to `string` ensures type safety for the `Map` operations.
                 obtainedGradesMap.set(p.grad_vizat_id as string, examDate);
             }
         });

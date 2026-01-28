@@ -10,6 +10,7 @@ interface RaportPrezentaProps {
     sportivi: Sportiv[];
     grupe: Grupa[];
     onBack: () => void;
+    onViewSportiv: (sportiv: Sportiv) => void;
 }
 
 interface RaportFilters {
@@ -31,7 +32,7 @@ const initialFilters: RaportFilters = {
 // Define colors for the chart
 const GROUP_COLORS = ['#4DBCE9', '#3D3D99', '#16a34a', '#f59e0b', '#dc2626', '#8b5cf6', '#ec4899', '#64748b'];
 
-export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ antrenamente, sportivi, grupe, onBack }) => {
+export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ antrenamente, sportivi, grupe, onBack, onViewSportiv }) => {
     const [filters, setFilters] = useLocalStorage('phi-hau-raport-prezenta-filters', initialFilters);
 
     const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -46,20 +47,20 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ antrenamente, sp
         return antrenamente.flatMap(a => 
             a.sportivi_prezenti_ids.map(sportivId => {
                 const sportiv = sportivi.find(s => s.id === sportivId);
-                const grupa = grupe.find(g => g.id === a.grupa_id);
                 const tip = a.grupa_id ? 'Normal' : 'Vacanta';
                 return {
                     id: `${a.id}-${sportivId}`,
                     data: a.data,
                     ora: a.ora_start,
                     tip: tip,
+                    sportiv: sportiv,
                     sportivNume: sportiv ? `${sportiv.nume} ${sportiv.prenume}` : 'N/A',
-                    grupaNume: grupa?.denumire || (tip === 'Vacanta' ? 'Vacanță' : 'N/A'),
+                    grupaNume: a.grupe?.denumire || (tip === 'Vacanta' ? 'Vacanță' : 'N/A'),
                     grupaId: a.grupa_id,
                 };
             })
         ).sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime());
-    }, [antrenamente, sportivi, grupe]);
+    }, [antrenamente, sportivi]);
 
     const filteredRecords = useMemo(() => {
         return allRecords.filter(rec => {
@@ -99,19 +100,18 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ antrenamente, sp
     }, [filteredRecords, monthNames]);
 
     const attendanceSummary = useMemo(() => {
-        const summary: { [sportivNume: string]: { monthly: number[], total: number } } = {};
+        const summary: { [sportivId: string]: { sportiv: Sportiv | undefined, monthly: number[], total: number } } = {};
         filteredRecords.forEach(rec => {
-            if (!summary[rec.sportivNume]) {
-                summary[rec.sportivNume] = { monthly: Array(12).fill(0), total: 0 };
+            if (!rec.sportiv) return;
+            if (!summary[rec.sportiv.id]) {
+                summary[rec.sportiv.id] = { sportiv: rec.sportiv, monthly: Array(12).fill(0), total: 0 };
             }
             const monthIndex = new Date(rec.data).getMonth();
-            summary[rec.sportivNume].monthly[monthIndex]++;
-            summary[rec.sportivNume].total++;
+            summary[rec.sportiv.id].monthly[monthIndex]++;
+            summary[rec.sportiv.id].total++;
         });
 
-        return Object.entries(summary)
-            .map(([sportivNume, data]) => ({ sportivNume, ...data }))
-            .sort((a, b) => a.sportivNume.localeCompare(b.sportivNume));
+        return Object.values(summary).sort((a, b) => (a.sportiv?.nume || '').localeCompare(b.sportiv?.nume || ''));
     }, [filteredRecords]);
 
     return (
@@ -196,8 +196,13 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ antrenamente, sp
                         </thead>
                         <tbody className="divide-y divide-slate-700">
                             {attendanceSummary.map(row => (
-                                <tr key={row.sportivNume} className="hover:bg-slate-700/30">
-                                    <td className="p-3 font-medium text-white sticky left-0 bg-slate-800/90 backdrop-blur-sm border-r border-slate-700">{row.sportivNume}</td>
+                                <tr key={row.sportiv?.id} className="hover:bg-slate-700/30">
+                                    <td 
+                                        className="p-3 font-medium text-white sticky left-0 bg-slate-800/90 backdrop-blur-sm border-r border-slate-700 hover:text-brand-primary hover:underline cursor-pointer"
+                                        onClick={() => row.sportiv && onViewSportiv(row.sportiv)}
+                                    >
+                                        {row.sportiv?.nume} {row.sportiv?.prenume}
+                                    </td>
                                     {row.monthly.map((count, i) => (
                                         <td key={i} className={`p-3 text-center ${count > 0 ? 'text-brand-secondary font-bold' : 'text-slate-600'}`}>
                                             {count || '-'}

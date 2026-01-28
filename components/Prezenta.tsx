@@ -220,7 +220,6 @@ const AttendanceDetail: React.FC<{
         setPresentIds(prev => new Set(prev).add(newSportiv.id));
     };
 
-    const grupaAntrenament = grupe.find(g => g.id === antrenament.grupa_id);
     const sportiviPrezentiExtra = sportivi.filter(s => presentIds.has(s.id) && !sportiviInGrupa.some(sg => sg.id === s.id));
 
     return (
@@ -238,7 +237,7 @@ const AttendanceDetail: React.FC<{
                  <div className="text-sm text-slate-400 grid grid-cols-2 md:grid-cols-3 gap-2">
                     <span>Data: <strong className="text-white">{new Date(antrenament.data).toLocaleDateString('ro-RO')}</strong></span>
                     <span>Ora: <strong className="text-white">{antrenament.ora_start}</strong></span>
-                    <span>Grupa: <strong className="text-white">{grupaAntrenament?.denumire || tip}</strong></span>
+                    <span>Grupa: <strong className="text-white">{antrenament.grupe?.denumire || tip}</strong></span>
                 </div>
                 {anunturiAntrenament.length > 0 && (
                     <div className="mt-3 p-2 bg-amber-900/30 border border-amber-500/30 rounded-md text-amber-300 text-sm font-semibold text-center">
@@ -348,7 +347,8 @@ export const PrezentaManagement: React.FC<{
     setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
     tipuriAbonament: TipAbonament[];
     anunturi: AnuntPrezenta[];
-}> = ({ sportivi, setSportivi, antrenamente, setAntrenamente, grupe, onBack, setPlati, tipuriAbonament, anunturi }) => {
+    onViewSportiv: (sportiv: Sportiv) => void;
+}> = ({ sportivi, setSportivi, antrenamente, setAntrenamente, grupe, onBack, setPlati, tipuriAbonament, anunturi, onViewSportiv }) => {
     
     const [selectedAntrenamentId, setSelectedAntrenamentId] = useLocalStorage<string | null>('phi-hau-selected-antrenament-id', null);
     const selectedAntrenament = useMemo(() => antrenamente.find(p => p.id === selectedAntrenamentId) || null, [antrenamente, selectedAntrenamentId]);
@@ -387,7 +387,7 @@ export const PrezentaManagement: React.FC<{
     const handleSaveAntrenament = async (antrenamentData: Omit<Antrenament, 'id' | 'sportivi_prezenti_ids'>) => {
         if (!supabase) return;
         if (antrenamentToEdit) {
-            const { data, error } = await supabase.from('program_antrenamente').update(antrenamentData).eq('id', antrenamentToEdit.id).select('*, prezenta_antrenament!antrenament_id(sportiv_id)').single();
+            const { data, error } = await supabase.from('program_antrenamente').update(antrenamentData).eq('id', antrenamentToEdit.id).select('*, grupe(*), prezenta_antrenament!antrenament_id(sportiv_id)').single();
             if (error) { showError("Eroare la actualizare", error); } 
             else if (data) { 
                 const formatted: Antrenament = {
@@ -397,7 +397,7 @@ export const PrezentaManagement: React.FC<{
                 setAntrenamente(prev => prev.map(p => p.id === data.id ? formatted : p));
             }
         } else {
-            const { data, error } = await supabase.from('program_antrenamente').insert(antrenamentData).select().single();
+            const { data, error } = await supabase.from('program_antrenamente').insert(antrenamentData).select('*, grupe(*)').single();
             if (error) { showError("Eroare la creare", error); } 
             else if (data) { setAntrenamente(prev => [...prev, { ...data, sportivi_prezenti_ids: [] }]); }
         }
@@ -450,6 +450,7 @@ export const PrezentaManagement: React.FC<{
                         ora_start: p.ora_start,
                         ora_sfarsit: p.ora_sfarsit,
                         grupa_id: g.id,
+                        grupe: g,
                         ziua: p.ziua,
                         sportivi_prezenti_ids: [],
                         is_recurent: true,
@@ -483,6 +484,7 @@ export const PrezentaManagement: React.FC<{
                         ora_start: p.ora_start,
                         ora_sfarsit: p.ora_sfarsit,
                         grupa_id: g.id,
+                        grupe: g,
                         ziua: p.ziua,
                         sportivi_prezenti_ids: [],
                         is_recurent: true,
@@ -595,7 +597,6 @@ export const PrezentaManagement: React.FC<{
                         </thead>
                         <tbody className="divide-y divide-slate-700">
                             {filteredAntrenamente.map(p => {
-                                const grupa = grupe.find(g => g.id === p.grupa_id);
                                 const tip = p.grupa_id ? 'Normal' : 'Vacanta';
                                 const isTemplate = (p as any).isTemplate;
                                 const isRecurent = p.is_recurent && !isTemplate;
@@ -606,7 +607,7 @@ export const PrezentaManagement: React.FC<{
                                         </td>
                                         <td className="p-4">
                                             <div className="flex items-center gap-2">
-                                                <span>{grupa?.denumire || (tip === 'Vacanta' ? 'Antrenament Vacanță' : tip)}</span>
+                                                <span>{p.grupe?.denumire || (tip === 'Vacanta' ? 'Antrenament Vacanță' : tip)}</span>
                                                 {isRecurent ? (
                                                     <span className="px-2 py-0.5 text-[10px] bg-purple-600/30 text-purple-400 border border-purple-600/50 rounded-full font-bold uppercase tracking-wider">Recurent</span>
                                                 ) : isTemplate ? (

@@ -246,8 +246,8 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                     type: plata.tip,
                     paymentDate: paymentDate
                 };
-// FIX: Explicitly cast 'facturaDate' to string to resolve TypeScript inference issue with the 'new Date()' constructor.
-            }).sort((a, b) => new Date(String(b.facturaDate)).getTime() - new Date(String(a.facturaDate)).getTime());
+            // FIX: Explicitly cast 'facturaDate' to string to resolve TypeScript inference issue with the 'new Date()' constructor.
+            }).sort((a, b) => new Date(b.facturaDate as string).getTime() - new Date(a.facturaDate as string).getTime());
             
             if (financialFilter !== 'Toate') {
                 historyItems = historyItems.filter(item => item.type === financialFilter);
@@ -273,16 +273,16 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                 const dateA = examDateMap.get(a.sesiune_id) || '9999-12-31';
                 const dateB = examDateMap.get(b.sesiune_id) || '9999-12-31';
 // FIX: Explicitly cast date strings to resolve TypeScript inference issue with the 'new Date()' constructor.
-                return new Date(String(dateB)).getTime() - new Date(String(dateA)).getTime();
+                return new Date(dateB as string).getTime() - new Date(dateA as string).getTime();
             });
 
         const obtainedGradesMap = new Map<string, string>();
         admittedParticipations.forEach(p => {
             const examDate = examDateMap.get(p.sesiune_id);
 // FIX: Explicitly cast 'grad_vizat_id' to string to resolve a type inference issue where it was being treated as 'unknown'.
-            if (examDate && !obtainedGradesMap.has(String(p.grad_vizat_id))) {
+            if (examDate && !obtainedGradesMap.has(p.grad_vizat_id as string)) {
 // FIX: Explicitly cast 'grad_vizat_id' to string to resolve a type inference issue where it was being treated as 'unknown'.
-                obtainedGradesMap.set(String(p.grad_vizat_id), examDate);
+                obtainedGradesMap.set(p.grad_vizat_id as string, examDate);
             }
         });
 

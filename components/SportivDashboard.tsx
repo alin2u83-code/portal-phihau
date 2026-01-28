@@ -252,16 +252,16 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                 const dateA = examDateMap.get(a.sesiune_id) || '9999-12-31';
                 const dateB = examDateMap.get(b.sesiune_id) || '9999-12-31';
                 // FIX: Explicitly cast date strings to resolve TypeScript inference issue with the 'new Date()' constructor.
-                return new Date(String(dateB)).getTime() - new Date(String(dateA)).getTime();
+                return new Date(dateB as string).getTime() - new Date(dateA as string).getTime();
             });
 
         const obtainedGradesMap = new Map<string, string>();
         admittedParticipations.forEach(p => {
             const examDate = examDateMap.get(p.sesiune_id);
             // FIX: Explicitly cast 'grad_vizat_id' to string to resolve a type inference issue where it was being treated as 'unknown'.
-            if (examDate && !obtainedGradesMap.has(String(p.grad_vizat_id))) {
+            if (examDate && !obtainedGradesMap.has(p.grad_vizat_id as string)) {
                 // FIX: Explicitly cast 'grad_vizat_id' to string to resolve a type inference issue where it was being treated as 'unknown'.
-                obtainedGradesMap.set(String(p.grad_vizat_id), examDate);
+                obtainedGradesMap.set(p.grad_vizat_id as string, examDate);
             }
         });
 
@@ -318,7 +318,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                                         <p className="text-sm text-slate-400">Ora: {training.ora_start}</p>
                                     </div>
                                     <span className="text-xs font-semibold px-2 py-1 rounded-full bg-slate-600 text-slate-200">
-                                        {grupe.find(g => g.id === training.grupa_id)?.denumire || 'Vacanță'}
+                                        {training.grupe?.denumire || 'Vacanță'}
                                     </span>
                                 </div>
                             ))}

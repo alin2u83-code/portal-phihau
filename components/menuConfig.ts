@@ -1,6 +1,6 @@
 import React from 'react';
 import { View } from '../types';
-import { HomeIcon, UsersIcon, TrophyIcon, ClipboardDocumentListIcon, BanknotesIcon, CalendarDaysIcon, UserCircleIcon, ShieldCheckIcon, ClipboardCheckIcon, ArchiveBoxIcon, CogIcon, BellIcon } from './icons';
+import { HomeIcon, UsersIcon, TrophyIcon, ClipboardDocumentListIcon, BanknotesIcon, CalendarDaysIcon, UserCircleIcon, ShieldCheckIcon, ClipboardCheckIcon, ArchiveBoxIcon, CogIcon, BellIcon, WalletIcon } from './icons';
 
 export interface MenuItem {
     label: string;
@@ -170,11 +170,13 @@ export const instructorMenu: MenuItem[] = [
 
 export const sportivMenu: MenuItem[] = [
     { 
-        label: 'Pagina Mea', 
+        label: 'Portalul Meu', 
         icon: UserCircleIcon, 
         submenu: [
             { label: 'Dashboard', view: 'my-portal' },
-            { label: 'Evenimentele Mele', view: 'evenimentele-mele' },
+            { label: 'Istoric Prezență', view: 'istoric-prezenta' },
+            { label: 'Istoric Grade', view: 'istoric-examene' },
+            { label: 'Istoric Financiar', view: 'istoric-plati' },
             { label: 'Setări Cont', view: 'account-settings' },
         ]
     },

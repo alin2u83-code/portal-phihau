@@ -328,14 +328,32 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
     <div>
       <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
       <div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-white">Gestiune Sesiuni Examen</h1><Button onClick={() => { setSesiuneToEdit(null); setIsFormOpen(true); }} variant="info"><PlusIcon className="w-5 h-5 mr-2" />Adaugă Sesiune</Button></div>
-      <div className="bg-slate-800 rounded-lg shadow-lg overflow-hidden">
-        <table className="w-full text-left">
-            <thead className="bg-slate-700"><tr><th className="p-4 font-semibold">Data</th><th className="p-4 font-semibold">Locația</th><th className="p-4 font-semibold">Înscriși</th><th className="p-4 font-semibold text-right">Acțiuni</th></tr></thead>
-            <tbody className="divide-y divide-slate-700">
-                {sortedSesiuni.map(s => ( <tr key={s.id} className="hover:bg-slate-700/50"><td className="p-4 font-medium cursor-pointer" onClick={() => setSelectedSesiuneId(s.id)}>{new Date(s.data+'T00:00:00').toLocaleDateString('ro-RO')}</td><td className="p-4 cursor-pointer" onClick={() => setSelectedSesiuneId(s.id)}>{locatii.find(l => l.id === s.locatie_id)?.nume || 'N/A'}</td><td className="p-4">{inscrieri.filter(p => p.sesiune_id === s.id).length}</td><td className="p-4 w-32"><div className="flex items-center justify-end space-x-2"><Button onClick={() => { setSesiuneToEdit(s); setIsFormOpen(true); }} variant="primary" size="sm"><EditIcon /></Button><Button onClick={() => setSesiuneToDelete(s)} variant="danger" size="sm"><TrashIcon /></Button></div></td></tr> ))}
-                {sortedSesiuni.length === 0 && <tr><td colSpan={4}><p className="p-4 text-center text-slate-400">Nicio sesiune programată.</p></td></tr>}
-            </tbody>
-        </table>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {sortedSesiuni.map(s => ( 
+            <Card key={s.id} className="sesiune-card flex flex-col cursor-pointer group hover:border-brand-secondary/50 transition-all duration-300" onClick={() => setSelectedSesiuneId(s.id)}>
+                <div className="flex-grow">
+                    <div className="flex justify-between items-start">
+                        <span className={`px-2 py-1 text-xs font-bold rounded-full ${s.status === 'Finalizat' ? 'bg-green-600/30 text-green-300' : 'bg-sky-600/30 text-sky-300'}`}>
+                            {s.status || 'Programat'}
+                        </span>
+                        <span className="text-sm font-bold text-slate-300">{new Date(s.data+'T00:00:00').toLocaleDateString('ro-RO')}</span>
+                    </div>
+                    <h3 className="text-lg font-bold text-white mt-3 group-hover:text-brand-secondary transition-colors">{locatii.find(l => l.id === s.locatie_id)?.nume || 'Locație Nespecificată'}</h3>
+                    <p className="text-xs text-slate-400">{s.club_id ? (clubs.find(c => c.id === s.club_id)?.nume || 'Club Necunoscut') : 'Eveniment Federație'}</p>
+                </div>
+                <div className="mt-4 pt-4 border-t border-slate-700 flex justify-between items-center">
+                    <div className="text-sm">
+                        <span className="font-bold text-white">{inscrieri.filter(p => p.sesiune_id === s.id).length}</span>
+                        <span className="text-slate-400"> participanți</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); setSesiuneToEdit(s); setIsFormOpen(true); }}><EditIcon className="w-4 h-4" /></Button>
+                        <Button size="sm" variant="danger" onClick={(e) => { e.stopPropagation(); setSesiuneToDelete(s); }}><TrashIcon className="w-4 h-4" /></Button>
+                    </div>
+                </div>
+            </Card>
+        ))}
+        {sortedSesiuni.length === 0 && <p className="col-span-full p-4 text-center text-slate-400">Nicio sesiune programată.</p>}
       </div>
       <SesiuneForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} onSave={handleSaveSesiune} sesiuneToEdit={sesiuneToEdit} locatii={locatii} setLocatii={setLocatii} clubs={clubs} currentUser={currentUser} />
       <ConfirmDeleteModal isOpen={!!sesiuneToDelete} onClose={() => setSesiuneToDelete(null)} onConfirm={() => { if(sesiuneToDelete) confirmDeleteSesiune(sesiuneToDelete.id) }} tableName="Sesiuni (și toate înscrierile asociate)" isLoading={isDeleting} />

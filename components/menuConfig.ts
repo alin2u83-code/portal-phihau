@@ -160,6 +160,15 @@ export const instructorMenu: MenuItem[] = [
              { view: 'rapoarte-examen', label: 'Rapoarte Examen' },
         ]
     },
+    { 
+        label: 'Financiar', 
+        icon: BanknotesIcon, 
+        submenu: [ 
+            { view: 'gestiune-facturi', label: 'Adaugă Factură Manuală' },
+            { view: 'plati-scadente', label: 'Listă Facturi' }, 
+            { view: 'jurnal-incasari', label: 'Jurnal Încasări' },
+        ] 
+    },
 ];
 
 export const sportivMenu: MenuItem[] = [

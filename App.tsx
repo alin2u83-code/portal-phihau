@@ -245,7 +245,7 @@ function App() {
   }, [initializeAndFetchData]);
 
   const filteredData = useMemo(() => {
-    if (!activeClubId) {
+    if (!permissions.isFederationAdmin || !activeClubId) {
         return {
             sportivi, sesiuniExamene, inscrieriExamene, antrenamente, grupe, plati,
             tranzactii, evenimente, rezultate, tipuriAbonament, familii,
@@ -291,7 +291,7 @@ function App() {
         deconturiFederatie: fDeconturiFederatie,
     };
 }, [
-    activeClubId, sportivi, sesiuniExamene, inscrieriExamene, antrenamente,
+    activeClubId, permissions.isFederationAdmin, sportivi, sesiuniExamene, inscrieriExamene, antrenamente,
     grupe, plati, tranzactii, evenimente, rezultate, tipuriAbonament,
     familii, anunturiPrezenta, reduceri, deconturiFederatie
 ]);
@@ -327,6 +327,7 @@ function App() {
     const isAtLeastInstructor = permissions.hasAdminAccess;
     const isAtLeastClubAdmin = permissions.isAdminClub || permissions.isFederationAdmin;
     const isFederationAdmin = permissions.isFederationAdmin;
+    const canManageFinances = isAtLeastClubAdmin || permissions.isInstructor;
     const onViewSportiv = (s: Sportiv) => { setSelectedSportiv(s); setActiveView('profil-sportiv'); };
 
     switch (activeView) {
@@ -386,16 +387,16 @@ function App() {
         return renderProtected(<FinancialDashboard plati={filteredData.plati} tranzactii={filteredData.tranzactii} sportivi={filteredData.sportivi} familii={filteredData.familii} onBack={() => setActiveView('dashboard')} />, isAtLeastClubAdmin);
 
       case 'gestiune-facturi':
-        return renderProtected(<GestiuneFacturi onBack={() => setActiveView('dashboard')} currentUser={currentUser} sportivi={filteredData.sportivi} plati={filteredData.plati} setPlati={setPlati} tipuriPlati={tipuriPlati} familii={filteredData.familii} />, isAtLeastClubAdmin);
+        return renderProtected(<GestiuneFacturi onBack={() => setActiveView('dashboard')} currentUser={currentUser} sportivi={filteredData.sportivi} plati={filteredData.plati} setPlati={setPlati} tipuriPlati={tipuriPlati} familii={filteredData.familii} />, canManageFinances);
 
       case 'deconturi-federatie':
         return renderProtected(<FederationInvoices deconturi={filteredData.deconturiFederatie} setDeconturi={setDeconturiFederatie} currentUser={currentUser} onBack={() => setActiveView('dashboard')} />, isAtLeastClubAdmin);
 
       case 'plati-scadente':
-        return renderProtected(<PlatiScadente plati={filteredData.plati} setPlati={setPlati} sportivi={filteredData.sportivi} familii={filteredData.familii} tipuriAbonament={filteredData.tipuriAbonament} tranzactii={filteredData.tranzactii} reduceri={reduceri} onIncaseazaMultiple={handleIncaseazaMultiple} onBack={() => setActiveView('dashboard')} onViewSportiv={onViewSportiv} />, isAtLeastClubAdmin);
+        return renderProtected(<PlatiScadente plati={filteredData.plati} setPlati={setPlati} sportivi={filteredData.sportivi} familii={filteredData.familii} tipuriAbonament={filteredData.tipuriAbonament} tranzactii={filteredData.tranzactii} reduceri={reduceri} onIncaseazaMultiple={handleIncaseazaMultiple} onBack={() => setActiveView('dashboard')} onViewSportiv={onViewSportiv} />, canManageFinances);
 
       case 'jurnal-incasari':
-        return renderProtected(<JurnalIncasari currentUser={currentUser} plati={filteredData.plati} setPlati={setPlati} sportivi={filteredData.sportivi} familii={filteredData.familii} preturiConfig={preturiConfig} tipuriAbonament={filteredData.tipuriAbonament} tipuriPlati={tipuriPlati} setTipuriPlati={setTipuriPlati} tranzactii={filteredData.tranzactii} setTranzactii={setTranzactii} platiInitiale={platiPentruIncasare} onIncasareProcesata={handleIncasareProcesata} onBack={handleJurnalBack} reduceri={reduceri} onViewSportiv={onViewSportiv} />, isAtLeastClubAdmin);
+        return renderProtected(<JurnalIncasari currentUser={currentUser} plati={filteredData.plati} setPlati={setPlati} sportivi={filteredData.sportivi} familii={filteredData.familii} preturiConfig={preturiConfig} tipuriAbonament={filteredData.tipuriAbonament} tipuriPlati={tipuriPlati} setTipuriPlati={setTipuriPlati} tranzactii={filteredData.tranzactii} setTranzactii={setTranzactii} platiInitiale={platiPentruIncasare} onIncasareProcesata={handleIncasareProcesata} onBack={handleJurnalBack} reduceri={reduceri} onViewSportiv={onViewSportiv} />, canManageFinances);
 
       case 'raport-financiar':
         return renderProtected(<RaportFinanciar plati={filteredData.plati} sportivi={filteredData.sportivi} familii={filteredData.familii} tranzactii={filteredData.tranzactii} onBack={() => setActiveView('dashboard')} />, isAtLeastClubAdmin);

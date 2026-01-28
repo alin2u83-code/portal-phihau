@@ -18,12 +18,16 @@ interface State {
  * Inheriting from Component ensures access to setState and lifecycle methods.
  */
 class ErrorBoundary extends React.Component<Props, State> {
-  // FIX: State is initialized as a class property.
-  // This avoids issues with 'this' context in the constructor and correctly defines the component's state.
-  state: State = {
-    hasError: false,
-    error: undefined,
-  };
+  constructor(props: Props) {
+    super(props);
+    // FIX: Initialize state in the constructor for broader environment compatibility.
+    this.state = {
+      hasError: false,
+      error: undefined,
+    };
+    // FIX: Bind the event handler to ensure `this` context is correct when called from an event listener.
+    this.handleRedirect = this.handleRedirect.bind(this);
+  }
 
   static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
@@ -32,10 +36,8 @@ class ErrorBoundary extends React.Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("Uncaught error:", error, errorInfo);
   }
-
-  // FIX: Use an arrow function for the event handler.
-  // This automatically binds `this` to the component instance, so `this.setState` and `this.props` work correctly when called from an event listener like onClick.
-  handleRedirect = () => {
+  
+  handleRedirect() {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {
         this.props.onNavigate('dashboard');

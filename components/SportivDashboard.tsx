@@ -109,8 +109,9 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
     const { showSuccess, showError } = useError();
     const isViewingOwnProfile = currentUser.id === viewedUser.id;
 
-    // --- Logic for Quick Actions ---
+    // --- Logic for Quick Actions & Schedules ---
     const todayString = useMemo(() => new Date().toISOString().split('T')[0], []);
+
     const todaysTrainings = useMemo(() => {
         return antrenamente
             .filter(a => 
@@ -119,6 +120,27 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
             )
             .sort((a, b) => a.ora_start.localeCompare(b.ora_start));
     }, [antrenamente, todayString, currentUser]);
+    
+    const upcomingTrainings = useMemo(() => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const todayStr = today.toISOString().split('T')[0];
+        const nextSevenDays = new Date();
+        nextSevenDays.setDate(today.getDate() + 7);
+        const nextSevenDaysStr = nextSevenDays.toISOString().split('T')[0];
+
+        return antrenamente
+            .filter(a => {
+                return a.data >= todayStr && a.data < nextSevenDaysStr &&
+                       (a.grupa_id === currentUser.grupa_id || (currentUser.participa_vacanta && a.grupa_id === null));
+            })
+            .sort((a, b) => {
+                const dateA = new Date(`${a.data}T${a.ora_start}`);
+                const dateB = new Date(`${b.data}T${b.ora_start}`);
+                return dateA.getTime() - dateB.getTime();
+            })
+            .slice(0, 5); // Arată maxim 5 antrenamente viitoare
+    }, [antrenamente, currentUser]);
 
     const handleStatusChange = async (trainingId: string, status: AnuntStatus) => {
         if (!supabase) return;
@@ -195,7 +217,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
             console.warn("Notificarea către instructori a eșuat, dar statusul prezenței a fost salvat cu succes.", error);
         }
     };
-    // --- End Logic for Quick Actions ---
+    // --- End Logic ---
 
     const currentGrad = useMemo(() => {
         const officialGrad = getGrad(viewedUser.grad_actual_id, grade);
@@ -230,16 +252,16 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                 const dateA = examDateMap.get(a.sesiune_id) || '9999-12-31';
                 const dateB = examDateMap.get(b.sesiune_id) || '9999-12-31';
                 // FIX: Explicitly cast date strings to resolve TypeScript inference issue with the 'new Date()' constructor.
-                return new Date(dateB as string).getTime() - new Date(dateA as string).getTime();
+                return new Date(String(dateB)).getTime() - new Date(String(dateA)).getTime();
             });
 
         const obtainedGradesMap = new Map<string, string>();
         admittedParticipations.forEach(p => {
             const examDate = examDateMap.get(p.sesiune_id);
             // FIX: Explicitly cast 'grad_vizat_id' to string to resolve a type inference issue where it was being treated as 'unknown'.
-            if (examDate && !obtainedGradesMap.has(p.grad_vizat_id as string)) {
+            if (examDate && !obtainedGradesMap.has(String(p.grad_vizat_id))) {
                 // FIX: Explicitly cast 'grad_vizat_id' to string to resolve a type inference issue where it was being treated as 'unknown'.
-                obtainedGradesMap.set(p.grad_vizat_id as string, examDate);
+                obtainedGradesMap.set(String(p.grad_vizat_id), examDate);
             }
         });
 
@@ -260,6 +282,16 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
 
     return (
         <div className="space-y-6">
+            <header className="text-center md:text-left border-b border-slate-700/50 pb-4">
+                <h1 className="text-3xl font-bold text-white">{viewedUser.nume} {viewedUser.prenume}</h1>
+                <p className="text-lg text-slate-300">{grupaCurenta}</p>
+                {isViewingOwnProfile && (
+                    <div className="mt-4 max-w-md mx-auto md:mx-0">
+                        <NotificationPermissionWidget />
+                    </div>
+                )}
+            </header>
+
             {isViewingOwnProfile && todaysTrainings.length > 0 && (
                 <div className="space-y-4 animate-fade-in-down">
                     {todaysTrainings.map(training => (
@@ -274,26 +306,36 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                 </div>
             )}
             
-            <header className="text-center md:text-left border-b border-slate-700/50 pb-4">
-                <h1 className="text-3xl font-bold text-white">{viewedUser.nume} {viewedUser.prenume}</h1>
-                <p className="text-lg text-slate-300">{grupaCurenta}</p>
-                {isViewingOwnProfile && (
-                    <div className="mt-4 max-w-md">
-                        <NotificationPermissionWidget />
-                    </div>
-                )}
-            </header>
-
             {isViewingOwnProfile && (
-                <div className="animate-fade-in-down" style={{ animationDelay: '200ms' }}>
-                    <AttendanceTracker currentUser={currentUser} antrenamente={antrenamente} onNavigate={onNavigate} />
-                </div>
+                 <Card className="animate-fade-in-down" style={{ animationDelay: '100ms' }}>
+                    <h3 className="text-lg font-bold text-white mb-4">🗓️ Program Următor</h3>
+                    {upcomingTrainings.length > 0 ? (
+                        <div className="space-y-3">
+                            {upcomingTrainings.map(training => (
+                                <div key={training.id} className="bg-slate-800/50 p-3 rounded-md flex justify-between items-center">
+                                    <div>
+                                        <p className="font-bold text-white">{new Date(training.data + 'T00:00:00').toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+                                        <p className="text-sm text-slate-400">Ora: {training.ora_start}</p>
+                                    </div>
+                                    <span className="text-xs font-semibold px-2 py-1 rounded-full bg-slate-600 text-slate-200">
+                                        {grupe.find(g => g.id === training.grupa_id)?.denumire || 'Vacanță'}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="text-slate-400 italic">Niciun antrenament programat în următoarele 7 zile.</p>
+                    )}
+                </Card>
             )}
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card className="flex flex-col items-center md:items-start text-center md:text-left">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-1 md:col-span-2">
+                    <AttendanceTracker currentUser={currentUser} antrenamente={antrenamente} onNavigate={onNavigate} />
+                </div>
+                <Card className="flex flex-col items-center text-center">
                     <h3 className="text-base font-semibold uppercase tracking-wider text-slate-400">Progres Tehnic</h3>
-                    <div className="my-4 flex-grow">
+                    <div className="my-4 flex-grow flex flex-col justify-center">
                         <p className="text-sm text-slate-500">Grad Actual</p>
                         <p className="text-3xl font-bold text-brand-secondary">{currentGrad?.nume || 'Începător'}</p>
                     </div>
@@ -302,9 +344,9 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                     </Button>
                 </Card>
 
-                <Card className="flex flex-col items-center md:items-start text-center md:text-left">
+                <Card className="flex flex-col items-center text-center">
                      <h3 className="text-base font-semibold uppercase tracking-wider text-slate-400">Situație Financiară</h3>
-                     <div className="my-4 flex-grow">
+                     <div className="my-4 flex-grow flex flex-col justify-center">
                         <p className="text-sm text-slate-500">Sumă Restantă</p>
                         <p className={`text-3xl font-bold ${sumaRestanta > 0 ? 'text-red-400' : 'text-green-400'}`}>
                             {sumaRestanta.toFixed(2)} RON

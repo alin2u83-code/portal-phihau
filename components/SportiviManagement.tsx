@@ -79,8 +79,8 @@ export const SportiviManagement: React.FC<{
             (`${s.nume} ${s.prenume}`.toLowerCase().includes(filters.searchTerm.toLowerCase())) &&
             (filters.statusFilter ? s.status === filters.statusFilter : true) &&
             (filters.grupaFilter ? s.grupa_id === filters.grupaFilter : true) &&
-            (filters.gradFilter ? s.grad_actual_id === filters.gradFilter : true) &&
-            (filters.rolFilter ? s.roluri.some(r => r.id === filters.rolFilter) : true)
+            (filters.rolFilter ? s.roluri.some(r => r.id === filters.rolFilter) : true) &&
+            (filters.gradFilter ? (filters.gradFilter === 'null' ? !s.grad_actual_id : s.grad_actual_id === filters.gradFilter) : true)
         ).sort((a: Sportiv, b: Sportiv) => a.nume.localeCompare(b.nume));
     }, [sportivi, filters]);
     

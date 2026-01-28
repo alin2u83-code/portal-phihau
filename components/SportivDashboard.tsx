@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Sportiv, Participare, Grad, Grupa, Plata, User, View, AnuntPrezenta, SesiuneExamen, Antrenament } from '../types';
+import { Sportiv, Participare, Grad, Grupa, Plata, User, View, AnuntPrezenta, SesiuneExamen, Antrenament, ProgramItem } from '../types';
 import { Card, Button } from './ui';
 import { NotificationPermissionWidget } from './NotificationPermissionWidget';
 import { AttendanceTracker } from './AttendanceTracker';
@@ -9,6 +9,83 @@ import { CheckIcon } from './icons';
 import { Permissions } from '../hooks/usePermissions';
 
 const getGrad = (gradId: string | null, allGrades: Grad[]) => gradId ? allGrades.find(g => g.id === gradId) : null;
+
+// --- Badge pentru Grad ---
+const getGradStyle = (gradName: string): string => {
+    const name = gradName.toLowerCase();
+    if (name.includes('dang')) {
+        if (name.includes('5')) return 'bg-black text-white border-2 border-yellow-400';
+        if (name.includes('6') || name.includes('7')) return 'bg-white text-red-600 border-2 border-red-600';
+        return 'bg-black text-white border-2 border-red-600';
+    }
+    if (name.includes('neagră')) return 'bg-black text-white';
+    if (name.includes('violet')) return 'bg-violet-600 text-white';
+    if (name.includes('roșu')) return 'bg-red-600 text-white';
+    if (name.includes('albastru')) return 'bg-white text-blue-600 border border-blue-600';
+    if (name.includes('galben')) return 'bg-yellow-400 text-black';
+    return 'bg-slate-600 text-white'; // Default
+};
+
+const GradBadge: React.FC<{ grad: Grad | null | undefined }> = ({ grad }) => {
+    if (!grad) return null;
+    return (
+        <span className={`px-3 py-1 text-sm font-bold rounded-full whitespace-nowrap ${getGradStyle(grad.nume)}`}>
+            {grad.nume}
+        </span>
+    );
+};
+
+
+// --- Componenta Program Antrenament ---
+const ProgramAntrenament: React.FC<{ grupaId: string | null; grupe: Grupa[] }> = ({ grupaId, grupe }) => {
+    const zileSaptamanaOrdonate: Record<ProgramItem['ziua'], number> = { 'Luni': 1, 'Marți': 2, 'Miercuri': 3, 'Joi': 4, 'Vineri': 5, 'Sâmbătă': 6, 'Duminică': 7 };
+
+    const grupaCurenta = useMemo(() => grupe.find(g => g.id === grupaId), [grupaId, grupe]);
+    
+    const programSortat = useMemo(() => {
+        if (!grupaCurenta?.program) return [];
+        return [...grupaCurenta.program]
+            .filter(p => p.is_activ !== false) // Show only active sessions
+            .sort((a, b) => {
+                const ziCompare = zileSaptamanaOrdonate[a.ziua] - zileSaptamanaOrdonate[b.ziua];
+                if (ziCompare !== 0) return ziCompare;
+                return a.ora_start.localeCompare(b.ora_start);
+            });
+    }, [grupaCurenta]);
+
+    return (
+        <Card>
+            <h3 className="text-lg font-bold text-white mb-2 animate-fade-in-down">Programul Meu de Antrenament</h3>
+            {!grupaId || !grupaCurenta ? (
+                <p className="text-sm text-slate-400 italic">Contactați instructorul pentru alocarea la o grupă.</p>
+            ) : programSortat.length > 0 ? (
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm">
+                        <thead className="text-slate-400 text-xs uppercase">
+                            <tr>
+                                <th className="py-2">Ziua</th>
+                                <th className="py-2">Ora Start</th>
+                                <th className="py-2">Ora Sfârșit</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-700">
+                            {programSortat.map((item, index) => (
+                                <tr key={index}>
+                                    <td className="py-2 font-semibold">{item.ziua}</td>
+                                    <td className="py-2">{item.ora_start}</td>
+                                    <td className="py-2">{item.ora_sfarsit}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            ) : (
+                <p className="text-sm text-slate-400 italic">Grupa curentă nu are un program definit.</p>
+            )}
+        </Card>
+    );
+};
+
 
 // --- Componente și Logică pentru Acțiuni Rapide (Mutate din AthleteQuickActions.tsx) ---
 type AnuntStatus = 'Confirm' | 'Intarziat' | 'Absent';
@@ -251,20 +328,14 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
             .sort((a, b) => {
                 const dateA = examDateMap.get(a.sesiune_id) || '9999-12-31';
                 const dateB = examDateMap.get(b.sesiune_id) || '9999-12-31';
-                // FIX: Explicitly cast date strings to resolve TypeScript inference issue with the 'new Date()' constructor.
-// Fix for line 264: Argument of type 'unknown' is not assignable to parameter of type 'string'.
-// Explicitly casting date strings to 'string' for the `new Date()` constructor resolves TypeScript's type inference ambiguity.
                 return new Date(dateB as string).getTime() - new Date(dateA as string).getTime();
             });
 
         const obtainedGradesMap = new Map<string, string>();
         admittedParticipations.forEach(p => {
             const examDate = examDateMap.get(p.sesiune_id);
-            // FIX: Explicitly cast 'grad_vizat_id' to string to resolve a type inference issue where it was being treated as 'unknown'.
-// Fix: Explicitly cast 'grad_vizat_id' to string for type safety in Map operations.
+// FIX: The type of `p.grad_vizat_id` is inferred incorrectly. Casting it to `string` ensures type safety for the `Map` operations.
             if (examDate && !obtainedGradesMap.has(p.grad_vizat_id as string)) {
-                // FIX: Explicitly cast 'grad_vizat_id' to string to resolve a type inference issue where it was being treated as 'unknown'.
-// Fix: Explicitly cast 'grad_vizat_id' to string for type safety in Map operations.
                 obtainedGradesMap.set(p.grad_vizat_id as string, examDate);
             }
         });
@@ -289,6 +360,9 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
             <header className="text-center md:text-left border-b border-slate-700/50 pb-4">
                 <h1 className="text-3xl font-bold text-white">{viewedUser.nume} {viewedUser.prenume}</h1>
                 <p className="text-lg text-slate-300">{grupaCurenta}</p>
+                <div className="mt-2 flex items-center gap-2 justify-center md:justify-start">
+                    <GradBadge grad={currentGrad} />
+                </div>
                 {isViewingOwnProfile && (
                     <div className="mt-4 max-w-md mx-auto md:mx-0">
                         <NotificationPermissionWidget />
@@ -333,33 +407,38 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                 </Card>
             )}
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-1 md:col-span-2">
-                    <AttendanceTracker currentUser={currentUser} antrenamente={antrenamente} onNavigate={onNavigate} />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-1">
+                     <AttendanceTracker currentUser={currentUser} antrenamente={antrenamente} onNavigate={onNavigate} />
                 </div>
-                <Card className="flex flex-col items-center text-center">
-                    <h3 className="text-base font-semibold uppercase tracking-wider text-slate-400">Progres Tehnic</h3>
-                    <div className="my-4 flex-grow flex flex-col justify-center">
-                        <p className="text-sm text-slate-500">Grad Actual</p>
-                        <p className="text-3xl font-bold text-brand-secondary">{currentGrad?.nume || 'Începător'}</p>
-                    </div>
-                    <Button onClick={() => onNavigate('istoric-examene')} variant="secondary" className="w-full mt-2">
-                        📜 Istoric Examene
-                    </Button>
-                </Card>
+                <div className="lg:col-span-2 space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                         <Card className="flex flex-col items-center text-center">
+                            <h3 className="text-base font-semibold uppercase tracking-wider text-slate-400">Progres Tehnic</h3>
+                            <div className="my-4 flex-grow flex flex-col justify-center">
+                                <p className="text-sm text-slate-500">Grad Actual</p>
+                                <p className="text-3xl font-bold text-brand-secondary">{currentGrad?.nume || 'Începător'}</p>
+                            </div>
+                            <Button onClick={() => onNavigate('istoric-examene')} variant="secondary" className="w-full mt-2">
+                                📜 Istoric Examene
+                            </Button>
+                        </Card>
 
-                <Card className="flex flex-col items-center text-center">
-                     <h3 className="text-base font-semibold uppercase tracking-wider text-slate-400">Situație Financiară</h3>
-                     <div className="my-4 flex-grow flex flex-col justify-center">
-                        <p className="text-sm text-slate-500">Sumă Restantă</p>
-                        <p className={`text-3xl font-bold ${sumaRestanta > 0 ? 'text-red-400' : 'text-green-400'}`}>
-                            {sumaRestanta.toFixed(2)} RON
-                        </p>
-                     </div>
-                     <Button onClick={() => onNavigate('istoric-plati')} variant="secondary" className="w-full mt-2">
-                        💳 Istoric Plăți
-                    </Button>
-                </Card>
+                        <Card className="flex flex-col items-center text-center">
+                             <h3 className="text-base font-semibold uppercase tracking-wider text-slate-400">Situație Financiară</h3>
+                             <div className="my-4 flex-grow flex flex-col justify-center">
+                                <p className="text-sm text-slate-500">Sumă Restantă</p>
+                                <p className={`text-3xl font-bold ${sumaRestanta > 0 ? 'text-red-400' : 'text-green-400'}`}>
+                                    {sumaRestanta.toFixed(2)} RON
+                                </p>
+                             </div>
+                             <Button onClick={() => onNavigate('istoric-plati')} variant="secondary" className="w-full mt-2">
+                                💳 Istoric Plăți
+                            </Button>
+                        </Card>
+                    </div>
+                    <ProgramAntrenament grupaId={viewedUser.grupa_id} grupe={grupe} />
+                </div>
             </div>
 
             <Card>

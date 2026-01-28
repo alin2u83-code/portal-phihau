@@ -227,7 +227,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isReportModalOpen, setIsReportModalOpen] = useState(false);
     const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
-    const [showHistory, setShowHistory] = useState(false);
 
     const [isEditingRoles, setIsEditingRoles] = useState(false);
     const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>((sportiv.roluri || []).map(r => r.id));
@@ -356,7 +355,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
         const obtainedGradesMap = new Map<string, string>();
         admittedParticipations.forEach(p => {
             const examDate = examDateMap.get(p.sesiune_id);
-// Fix for line 358: Argument of type 'unknown' is not assignable to parameter of type 'string'.
+// Fix for line 361: Argument of type 'unknown' is not assignable to parameter of type 'string'.
 // The type of `p.grad_vizat_id` is inferred incorrectly. Casting it to `string` ensures type safety for the `Map` operations.
             if (examDate && !obtainedGradesMap.has(p.grad_vizat_id as string)) {
                 obtainedGradesMap.set(p.grad_vizat_id as string, examDate);
@@ -446,17 +445,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
         onBack();
     };
 
-    if (showHistory) {
-        return <IstoricExameneSportiv 
-            viewedUser={sportiv}
-            participari={sportivParticipari}
-            sesiuni={examene}
-            grade={grade}
-            onBack={() => setShowHistory(false)}
-        />
-    }
-
-
     return (
         <div className="space-y-6">
             <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Listă</Button>
@@ -522,18 +510,40 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                         </div>
                     </Card>
                     <Card>
-                        <h3 className="text-lg font-bold text-white mb-4">Istoric Grade Obținute</h3>
-                        <div className="max-h-72 overflow-y-auto pr-2 space-y-2">
-                            {allGradesWithDates.map(g => (
-                                <div key={g.id} className="flex justify-between items-center bg-slate-800/50 p-2 rounded-md">
-                                    <p className={`font-semibold ${g.data_obtinere ? 'text-white' : 'text-slate-500'}`}>{g.nume}</p>
-                                    {g.data_obtinere ? (
-                                        <p className="text-sm text-brand-secondary font-bold">{new Date(g.data_obtinere + 'T00:00:00').toLocaleDateString('ro-RO')}</p>
+                        <h3 className="text-lg font-bold text-white mb-4">Istoric Examinări</h3>
+                        <div className="max-h-72 overflow-y-auto pr-2">
+                            <table className="w-full text-left text-sm">
+                                <thead className="sticky top-0 bg-[var(--bg-card)]">
+                                    <tr className="border-b border-slate-700">
+                                        <th className="p-2 font-semibold text-slate-400">Data</th>
+                                        <th className="p-2 font-semibold text-slate-400">Grad Vizat</th>
+                                        <th className="p-2 font-semibold text-slate-400 text-center">Rezultat</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-700">
+                                    {sortedSportivParticipariForDisplay.length > 0 ? (
+                                        sortedSportivParticipariForDisplay.map(p => (
+                                            <tr key={p.id}>
+                                                <td className="p-2">{p.examen ? new Date(p.examen.data + 'T00:00:00').toLocaleDateString('ro-RO') : 'N/A'}</td>
+                                                <td className="p-2 font-medium text-white">{grade.find(g => g.id === p.grad_vizat_id)?.nume || 'N/A'}</td>
+                                                <td className="p-2 text-center">
+                                                    <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                                                        p.rezultat === 'Admis' ? 'bg-green-600/30 text-green-300' : 
+                                                        p.rezultat === 'Respins' ? 'bg-red-600/30 text-red-300' : 
+                                                        'bg-slate-600/30 text-slate-400'
+                                                    }`}>
+                                                        {p.rezultat || 'NEPREZENTAT'}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        ))
                                     ) : (
-                                        <p className="text-sm text-slate-600 italic">--</p>
+                                        <tr>
+                                            <td colSpan={3} className="p-4 text-center text-slate-400 italic">Niciun examen susținut.</td>
+                                        </tr>
                                     )}
-                                </div>
-                            ))}
+                                </tbody>
+                            </table>
                         </div>
                     </Card>
                 </div>
@@ -581,19 +591,11 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                      <Card>
                         <div className="flex justify-between items-start mb-2">
                             <h3 className="text-lg font-bold text-white animate-fade-in-down">Progres Tehnic</h3>
-                            <Button size="sm" variant="secondary" onClick={() => setShowHistory(true)}>Istoric</Button>
                         </div>
                         <div className="space-y-2 text-sm">
                             <DataField 
                                 label="Grad Actual" 
-                                value={
-                                    <span 
-                                        className="text-brand-secondary hover:underline cursor-pointer font-bold"
-                                        onClick={() => setShowHistory(true)}
-                                    >
-                                        {currentGrad?.nume || 'Începător'}
-                                    </span>
-                                } 
+                                value={currentGrad?.nume || 'Începător'} 
                             />
                             <DataField label="Următorul Grad" value={eligibility.nextGrad?.nume || 'Maxim'} />
                             <p className={`text-xs mt-1 ${eligibility.eligible ? 'text-green-400' : 'text-yellow-400'}`}>{eligibility.message}</p>

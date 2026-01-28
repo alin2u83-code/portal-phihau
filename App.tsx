@@ -33,6 +33,7 @@ import { Notificari } from './components/Notificari';
 import { TaxeAnuale } from './components/TaxeAnuale';
 import { GestionareNomenclatoare } from './components/GestionareNomenclatoare';
 import { FinancialDashboard } from './components/FinancialDashboard';
+import { GestiuneFacturi } from './components/GestiuneFacturi';
 import { IstoricPlati } from './components/FacturiPersonale';
 import { CalendarView } from './components/CalendarView';
 import { RapoarteExamen } from './components/RapoarteExamen';
@@ -99,7 +100,7 @@ function App() {
             'data-maintenance', 'activitati', 'setari-club', 'data-inspector', 'reduceri',
             'notificari', 'taxe-anuale', 'nomenclatoare', 'financial-dashboard',
             'finalizare-examen', 'rapoarte-examen', 'cluburi', 'structura-federatie', 'deconturi-federatie',
-            'federation-dashboard'
+            'federation-dashboard', 'gestiune-facturi'
         ];
         if (adminViews.includes(activeView)) {
             setActiveView('my-portal');
@@ -383,6 +384,9 @@ function App() {
 
       case 'financial-dashboard':
         return renderProtected(<FinancialDashboard plati={filteredData.plati} tranzactii={filteredData.tranzactii} sportivi={filteredData.sportivi} familii={filteredData.familii} onBack={() => setActiveView('dashboard')} />, isAtLeastClubAdmin);
+
+      case 'gestiune-facturi':
+        return renderProtected(<GestiuneFacturi onBack={() => setActiveView('dashboard')} currentUser={currentUser} sportivi={filteredData.sportivi} plati={filteredData.plati} setPlati={setPlati} tipuriPlati={tipuriPlati} familii={filteredData.familii} />, isAtLeastClubAdmin);
 
       case 'deconturi-federatie':
         return renderProtected(<FederationInvoices deconturi={filteredData.deconturiFederatie} setDeconturi={setDeconturiFederatie} currentUser={currentUser} onBack={() => setActiveView('dashboard')} />, isAtLeastClubAdmin);

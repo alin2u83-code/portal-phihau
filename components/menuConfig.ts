@@ -49,6 +49,7 @@ export const federationAdminMenu: MenuItem[] = [
         icon: BanknotesIcon, 
         submenu: [ 
             { view: 'financial-dashboard', label: 'Dashboard Financiar' },
+            { view: 'gestiune-facturi', label: 'Adaugă Factură Manuală' },
             { view: 'plati-scadente', label: 'Listă Facturi' }, 
             { view: 'jurnal-incasari', label: 'Jurnal Încasări' },
             { view: 'raport-financiar', label: 'Raport Încasări' },
@@ -108,6 +109,7 @@ export const clubAdminMenu: MenuItem[] = [
         icon: BanknotesIcon, 
         submenu: [ 
             { view: 'financial-dashboard', label: 'Dashboard Financiar' },
+            { view: 'gestiune-facturi', label: 'Adaugă Factură Manuală' },
             { view: 'plati-scadente', label: 'Listă Facturi' }, 
             { view: 'jurnal-incasari', label: 'Jurnal Încasări' },
             { view: 'raport-financiar', label: 'Raport Încasări' },

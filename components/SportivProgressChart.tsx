@@ -1,13 +1,16 @@
 import React, { useMemo } from 'react';
-import { Sportiv, Participare, Examen, Grad, Antrenament } from '../types';
+import { Sportiv, Antrenament, Grad } from '../types';
 import { ResponsiveContainer, ComposedChart, XAxis, YAxis, Tooltip, CartesianGrid, Area, Bar, Legend } from 'recharts';
 
 // Props interface
+interface GradeHistoryEntry {
+    date: number;
+    rank: number;
+    rankName: string;
+}
 interface SportivProgressChartProps {
     sportiv: Sportiv;
-    participari: Participare[];
-    examene: Examen[];
-    grade: Grad[];
+    gradeHistory: GradeHistoryEntry[];
     antrenamente: Antrenament[];
 }
 
@@ -32,24 +35,11 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 
-export const SportivProgressChart: React.FC<SportivProgressChartProps> = ({ sportiv, participari, examene, grade, antrenamente }) => {
+export const SportivProgressChart: React.FC<SportivProgressChartProps> = ({ sportiv, gradeHistory, antrenamente, grade }) => {
     const { chartData, yAxisTicks } = useMemo(() => {
-        // --- Grade Data ---
+        // --- Grade Data is now pre-processed and passed in as gradeHistory ---
         const sortedGrades = [...grade].sort((a, b) => a.ordine - b.ordine);
-        const admittedExams = participari
-            .filter(p => p.sportiv_id === sportiv.id && p.rezultat === 'Admis')
-            .map(p => {
-                const examenInfo = examene.find(e => e.id === p.sesiune_id);
-                const gradInfo = grade.find(g => g.id === p.grad_vizat_id);
-                return {
-                    date: examenInfo ? new Date(examenInfo.data).getTime() : 0,
-                    rank: gradInfo?.ordine ?? 0,
-                    rankName: gradInfo?.nume ?? 'N/A'
-                };
-            })
-            .filter(p => p.date > 0)
-            .sort((a, b) => a.date - b.date);
-
+        
         // --- Attendance Data ---
         const attendanceByMonth: { [key: string]: number } = {};
         antrenamente.forEach(a => {
@@ -74,11 +64,10 @@ export const SportivProgressChart: React.FC<SportivProgressChartProps> = ({ spor
         
         const gradeEvents = [
             { date: new Date(sportiv.data_inscrierii).getTime(), rank: 0, rankName: "Începător" },
-            ...admittedExams
-        ];
+            ...gradeHistory
+        ].sort((a,b) => a.date - b.date);
 
         gradeEvents.forEach(event => {
-            // Use the actual event date for precision, not just the month
             const dateKey = event.date;
             const monthKey = new Date(new Date(dateKey).toISOString().substring(0, 7) + '-01T00:00:00Z').getTime();
 
@@ -103,7 +92,6 @@ export const SportivProgressChart: React.FC<SportivProgressChartProps> = ({ spor
         const today = new Date();
         const todayKey = new Date(today.toISOString().substring(0, 7) + '-01T00:00:00Z').getTime();
         
-        // Ensure the last point extends to today
         if (finalChartData.length > 0) {
             const lastEntry = finalChartData[finalChartData.length - 1];
             if (lastEntry.date < todayKey) {
@@ -111,13 +99,11 @@ export const SportivProgressChart: React.FC<SportivProgressChartProps> = ({ spor
             }
         }
 
-
-        // Y-Axis Ticks for Grades
         const yTicks = [{ ordine: 0, nume: "Începător" }, ...sortedGrades];
 
         return { chartData: finalChartData, yAxisTicks: yTicks };
 
-    }, [sportiv, participari, examene, grade, antrenamente]);
+    }, [sportiv, gradeHistory, antrenamente, grade]);
 
     const gradeTickFormatter = (tickValue: number) => {
         const grade = yAxisTicks.find(g => g.ordine === tickValue);

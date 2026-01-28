@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { Plata, Tranzactie, Sportiv } from '../types';
-import { Card, Button, Select } from './ui';
+import { Plata, Tranzactie, Sportiv, Familie } from '../types';
+import { Card, Button, Select, Input } from './ui';
 import { ArrowLeftIcon, BanknotesIcon, UsersIcon, ExclamationTriangleIcon } from './icons';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
 
@@ -8,6 +8,7 @@ interface FinancialDashboardProps {
     plati: Plata[];
     tranzactii: Tranzactie[];
     sportivi: Sportiv[];
+    familii: Familie[];
     onBack: () => void;
 }
 
@@ -29,7 +30,6 @@ const generatePeriodOptions = () => {
     const currentYear = new Date().getFullYear();
     const currentMonth = new Date().getMonth();
     
-    // Season is from September to August
     const seasonStartYear = currentMonth >= 8 ? currentYear : currentYear - 1;
 
     return [
@@ -40,10 +40,10 @@ const generatePeriodOptions = () => {
     ];
 };
 
-export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ plati, tranzactii, sportivi, onBack }) => {
+export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ plati, tranzactii, sportivi, familii, onBack }) => {
     const [period, setPeriod] = useState(generatePeriodOptions()[0].value);
+    const [showUnpaidOnly, setShowUnpaidOnly] = useState(true);
 
-    // --- KPI Calculations (independent of date filter) ---
     const kpiData = useMemo(() => {
         const now = new Date();
         const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -65,18 +65,17 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ plati, t
         return { totalIncasatLuna, totalRestante, nrSportiviActivi };
     }, [tranzactii, plati, sportivi]);
 
-    // --- Chart Data Calculation (dependent on date filter) ---
     const chartData = useMemo(() => {
         const [type, yearStr] = period.split('_');
         const year = parseInt(yearStr, 10);
         let startDate: Date, endDate: Date;
 
-        if (type === 's') { // Season
-            startDate = new Date(year, 8, 1); // September 1st
-            endDate = new Date(year + 1, 7, 31); // August 31st
-        } else { // Year
-            startDate = new Date(year, 0, 1); // January 1st
-            endDate = new Date(year, 11, 31); // December 31st
+        if (type === 's') {
+            startDate = new Date(year, 8, 1);
+            endDate = new Date(year + 1, 7, 31);
+        } else {
+            startDate = new Date(year, 0, 1);
+            endDate = new Date(year, 11, 31);
         }
 
         const filteredTranzactii = tranzactii.filter(t => {
@@ -89,9 +88,7 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ plati, t
             let tip = 'Avans / Neclasificat';
             if (t.plata_ids.length > 0) {
                 const primaPlata = plati.find(p => p.id === t.plata_ids[0]);
-                if (primaPlata) {
-                    tip = primaPlata.tip;
-                }
+                if (primaPlata) tip = primaPlata.tip;
             }
             revenueByType[tip] = (revenueByType[tip] || 0) + t.suma;
         });
@@ -102,9 +99,20 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ plati, t
 
     }, [period, tranzactii, plati]);
 
+    const filteredPlati = useMemo(() => {
+        if (!showUnpaidOnly) return plati;
+        return plati.filter(p => p.status === 'Neachitat' || p.status === 'Achitat Parțial');
+    }, [plati, showUnpaidOnly]);
+    
+    const getEntityName = (plata: Plata) => {
+        if (plata.familie_id) return `Familia ${familii.find(f => f.id === plata.familie_id)?.nume || 'N/A'}`;
+        if (plata.sportiv_id) { const s = sportivi.find(sp => sp.id === plata.sportiv_id); return s ? `${s.nume} ${s.prenume}` : 'N/A'; }
+        return 'N/A';
+    };
+
     const RADIAN = Math.PI / 180;
     const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
-        if (percent < 0.05) return null; // Don't render label for small slices
+        if (percent < 0.05) return null;
         const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
         const x = cx + radius * Math.cos(-midAngle * RADIAN);
         const y = cy + radius * Math.sin(-midAngle * RADIAN);
@@ -114,6 +122,10 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ plati, t
             </text>
         );
     };
+
+    if (!plati || plati.length === 0) {
+        return <p>Nu există încasări înregistrate pentru acest club.</p>;
+    }
 
     return (
         <div className="space-y-6">
@@ -137,33 +149,51 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ plati, t
                     {chartData.length > 0 ? (
                         <ResponsiveContainer>
                             <PieChart>
-                                <Pie
-                                    data={chartData}
-                                    cx="50%"
-                                    cy="50%"
-                                    labelLine={false}
-                                    label={renderCustomizedLabel}
-                                    outerRadius="80%"
-                                    fill="#8884d8"
-                                    dataKey="value"
-                                    nameKey="name"
-                                >
-                                    {chartData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                    ))}
+                                <Pie data={chartData} cx="50%" cy="50%" labelLine={false} label={renderCustomizedLabel} outerRadius="80%" fill="#8884d8" dataKey="value" nameKey="name">
+                                    {chartData.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
                                 </Pie>
-                                <Tooltip
-                                    contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }}
-                                    formatter={(value: number) => `${value.toFixed(2)} lei`}
-                                />
+                                <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }} formatter={(value: number) => `${value.toFixed(2)} lei`} />
                                 <Legend />
                             </PieChart>
                         </ResponsiveContainer>
-                    ) : (
-                        <div className="flex items-center justify-center h-full text-slate-500 italic">
-                            Nu există date de afișat pentru perioada selectată.
-                        </div>
-                    )}
+                    ) : <div className="flex items-center justify-center h-full text-slate-500 italic">Nu există date de afișat pentru perioada selectată.</div> }
+                </div>
+            </Card>
+
+            <Card>
+                <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-xl font-bold text-white">Jurnal Plăți (Facturi Emise)</h3>
+                    <label className="flex items-center space-x-2 text-sm cursor-pointer">
+                        <input type="checkbox" checked={showUnpaidOnly} onChange={() => setShowUnpaidOnly(!showUnpaidOnly)} className="h-4 w-4 rounded border-slate-500 bg-slate-800 text-brand-secondary focus:ring-brand-secondary"/>
+                        <span className="font-semibold">Vezi doar plățile neachitate</span>
+                    </label>
+                </div>
+                <div className="overflow-x-auto max-h-96">
+                    <table className="w-full text-left text-sm">
+                        <thead className="bg-slate-700/50 sticky top-0">
+                            <tr>
+                                <th className="p-2 font-semibold">Data</th>
+                                <th className="p-2 font-semibold">Sportiv/Familie</th>
+                                <th className="p-2 font-semibold text-right">Sumă</th>
+                                <th className="p-2 font-semibold">Tip Plată</th>
+                                <th className="p-2 font-semibold text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-700">
+                            {filteredPlati.map(p => (
+                                <tr key={p.id}>
+                                    <td className="p-2">{new Date(p.data).toLocaleDateString('ro-RO')}</td>
+                                    <td className="p-2 font-medium">{getEntityName(p)}</td>
+                                    <td className="p-2 text-right font-bold">{p.suma.toFixed(2)} RON</td>
+                                    <td className="p-2">{p.tip}</td>
+                                    <td className="p-2 text-center">
+                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${p.status === 'Achitat' ? 'bg-green-700/50 text-green-300' : 'bg-red-700/50 text-red-300'}`}>{p.status}</span>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                     {filteredPlati.length === 0 && <p className="text-center text-slate-500 p-8 italic">Nicio plată de afișat conform filtrelor.</p>}
                 </div>
             </Card>
         </div>

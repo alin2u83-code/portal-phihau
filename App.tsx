@@ -110,13 +110,11 @@ function App() {
   const initializeAndFetchData = useCallback(async () => {
     if (!supabase) return;
 
-    // Safety check: ensure a session exists before attempting to fetch user-specific data.
-    // This helps prevent errors during logout transitions.
     const { data: { session: currentSession } } = await supabase.auth.getSession();
     if (!currentSession) {
         setCurrentUser(null);
         setSession(null);
-        setLoading(false); // Stop loading screen
+        setLoading(false);
         return;
     }
 
@@ -229,19 +227,13 @@ function App() {
   useEffect(() => {
     if (!supabase) return;
 
-    // Fetch data on initial component mount.
     initializeAndFetchData();
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-        // When the user signs out, `event` is 'SIGNED_OUT' and `session` is null.
-        // We explicitly clear the user and session state to prevent any further
-        // data fetching attempts for a logged-out user, thus avoiding AuthSessionMissingError.
         if (event === 'SIGNED_OUT') {
             setCurrentUser(null);
             setSession(null);
         } 
-        // For all other events (like SIGNED_IN, TOKEN_REFRESHED), `session` will be available.
-        // We can safely update our local session state and trigger a data refresh.
         else if (session) {
             setSession(session);
             initializeAndFetchData();
@@ -390,7 +382,7 @@ function App() {
         return <CalendarView antrenamente={filteredData.antrenamente} sesiuniExamene={filteredData.sesiuniExamene} evenimente={filteredData.evenimente} grupe={filteredData.grupe} locatii={locatii} onBack={() => setActiveView('dashboard')} onNavigate={setActiveView} currentUser={currentUser} sportivi={filteredData.sportivi} rezultate={filteredData.rezultate} setRezultate={setRezultate} plati={filteredData.plati} setPlati={setPlati} preturiConfig={preturiConfig} />;
 
       case 'financial-dashboard':
-        return renderProtected(<FinancialDashboard plati={filteredData.plati} tranzactii={filteredData.tranzactii} sportivi={filteredData.sportivi} onBack={() => setActiveView('dashboard')} />, isAtLeastClubAdmin);
+        return renderProtected(<FinancialDashboard plati={filteredData.plati} tranzactii={filteredData.tranzactii} sportivi={filteredData.sportivi} familii={filteredData.familii} onBack={() => setActiveView('dashboard')} />, isAtLeastClubAdmin);
 
       case 'deconturi-federatie':
         return renderProtected(<FederationInvoices deconturi={filteredData.deconturiFederatie} setDeconturi={setDeconturiFederatie} currentUser={currentUser} onBack={() => setActiveView('dashboard')} />, isAtLeastClubAdmin);
@@ -443,7 +435,6 @@ function App() {
       case 'taxe-anuale':
         return renderProtected(<TaxeAnuale onBack={() => setActiveView('dashboard')} currentUser={currentUser} sportivi={filteredData.sportivi} plati={filteredData.plati} setPlati={setPlati} />, isAtLeastClubAdmin);
 
-      // Sportiv views (no protection needed as they are the default)
       case 'istoric-prezenta':
         return <MartialAttendance currentUser={currentUser} antrenamente={antrenamente} grupe={grupe} onBack={() => setActiveView('my-portal')} />;
 

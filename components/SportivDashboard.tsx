@@ -252,6 +252,8 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                 const dateA = examDateMap.get(a.sesiune_id) || '9999-12-31';
                 const dateB = examDateMap.get(b.sesiune_id) || '9999-12-31';
                 // FIX: Explicitly cast date strings to resolve TypeScript inference issue with the 'new Date()' constructor.
+// Fix for line 264: Argument of type 'unknown' is not assignable to parameter of type 'string'.
+// Explicitly casting date strings to 'string' for the `new Date()` constructor resolves TypeScript's type inference ambiguity.
                 return new Date(dateB as string).getTime() - new Date(dateA as string).getTime();
             });
 
@@ -259,8 +261,10 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
         admittedParticipations.forEach(p => {
             const examDate = examDateMap.get(p.sesiune_id);
             // FIX: Explicitly cast 'grad_vizat_id' to string to resolve a type inference issue where it was being treated as 'unknown'.
+// Fix: Explicitly cast 'grad_vizat_id' to string for type safety in Map operations.
             if (examDate && !obtainedGradesMap.has(p.grad_vizat_id as string)) {
                 // FIX: Explicitly cast 'grad_vizat_id' to string to resolve a type inference issue where it was being treated as 'unknown'.
+// Fix: Explicitly cast 'grad_vizat_id' to string for type safety in Map operations.
                 obtainedGradesMap.set(p.grad_vizat_id as string, examDate);
             }
         });

@@ -43,7 +43,6 @@ export const ExclamationTriangleIcon = AlertTriangle;
 export const SearchIcon = Search;
 export const BellIcon = Bell;
 export const SitemapIcon = Network;
-// FIX: Export UploadCloudIcon, which is used in FederationInvoices.tsx.
 export const UploadCloudIcon = UploadCloud;
 export const MailIcon = Mail;
 export const LockIcon = Lock;

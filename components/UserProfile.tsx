@@ -348,12 +348,16 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
             .sort((a, b) => {
                 const dateA = examDateMap.get(a.sesiune_id) || '9999-12-31';
                 const dateB = examDateMap.get(b.sesiune_id) || '9999-12-31';
-                return new Date(dateB).getTime() - new Date(dateA).getTime();
+// Fix for line 351: No overload matches this call.
+// The type of `dateB` and `dateA` is inferred as `string`, but TypeScript is having trouble with the `new Date()` constructor in this context. Explicitly casting to `string` resolves the ambiguity.
+                return new Date(dateB as string).getTime() - new Date(dateA as string).getTime();
             });
 
         const obtainedGradesMap = new Map<string, string>();
         admittedParticipations.forEach(p => {
             const examDate = examDateMap.get(p.sesiune_id);
+// Fix for line 358: Argument of type 'unknown' is not assignable to parameter of type 'string'.
+// The type of `p.grad_vizat_id` is inferred incorrectly. Casting it to `string` ensures type safety for the `Map` operations.
             if (examDate && !obtainedGradesMap.has(p.grad_vizat_id as string)) {
                 obtainedGradesMap.set(p.grad_vizat_id as string, examDate);
             }

@@ -79,7 +79,7 @@ interface FederationInvoicesProps {
 }
 
 export const FederationInvoices: React.FC<FederationInvoicesProps> = ({ deconturi, setDeconturi, currentUser, onBack }) => {
-    const { isFederationAdmin } = usePermissions(currentUser);
+    const { isFederationAdmin, isAdminClub } = usePermissions(currentUser);
     const { showError, showSuccess } = useError();
     const [selectedDecont, setSelectedDecont] = useState<DecontFederatie | null>(null);
 
@@ -166,12 +166,12 @@ export const FederationInvoices: React.FC<FederationInvoicesProps> = ({ decontur
                                     <td className="p-3 text-center">{d.numar_sportivi}</td>
                                     <td className="p-3 text-right font-bold text-white">{d.suma_totala.toFixed(2)} RON</td>
                                     <td className="p-3 text-center">
-                                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${d.status === 'Platit' ? 'bg-green-600/30 text-green-300' : 'bg-amber-600/30 text-amber-300'}`}>
-                                            {d.status}
+                                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${d.status === 'Platit' ? 'bg-green-600/30 text-green-300' : 'bg-red-600/30 text-red-300'}`}>
+                                            {d.status === 'Platit' ? 'ACHITAT' : 'NEACHITAT'}
                                         </span>
                                     </td>
                                     <td className="p-3 text-right">
-                                        {d.status === 'In asteptare' ? (
+                                        {d.status === 'In asteptare' && isAdminClub ? (
                                             <Button size="sm" variant="success" onClick={() => setSelectedDecont(d)}>Confirmă Plată</Button>
                                         ) : (
                                             <a href={d.chitanta_url || '#'} target="_blank" rel="noopener noreferrer" className={`inline-block px-2 py-0.5 text-xs font-semibold rounded-md ${d.chitanta_url ? 'bg-sky-600/50 text-sky-300 hover:bg-sky-600/70' : 'bg-slate-600 text-slate-400 cursor-not-allowed'}`}>

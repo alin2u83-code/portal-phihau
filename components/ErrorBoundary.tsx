@@ -18,7 +18,6 @@ interface State {
  * Inheriting from Component ensures access to setState and lifecycle methods.
  */
 class ErrorBoundary extends React.Component<Props, State> {
-  // FIX: Switched to constructor-based state initialization and method binding for broader compatibility and to resolve `this` context issues.
   constructor(props: Props) {
     super(props);
     this.state = {
@@ -36,7 +35,6 @@ class ErrorBoundary extends React.Component<Props, State> {
     console.error("Uncaught error:", error, errorInfo);
   }
   
-  // FIX: Defined as a regular method and bound in the constructor to ensure `this` refers to the component instance.
   handleRedirect() {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {

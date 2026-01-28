@@ -334,7 +334,7 @@ function App() {
             sportivi={filteredData.sportivi}
             grade={grade}
             grupe={filteredData.grupe}
-            sesiuniExamene={filteredData.sesiuniExamene}
+            sesiuniExamene={sesiuniExamene}
         />;
 
       case 'sportivi':

@@ -373,13 +373,21 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-[var(--border-color)]">
-                            {filteredPlati.map(p => (
+                            {filteredPlati.map(p => {
+                                const clubId = getPlataClubId(p);
+                                const club = clubs.find(c => c.id === clubId);
+                                return (
                                 <tr key={p.id} className="hover:bg-[var(--bg-table-row-hover)] transition-colors">
                                     <td className="p-2">
                                         <input type="checkbox" checked={selectedIds.has(p.id)} onChange={() => handleToggleSelect(p.id)} className="rounded border-slate-500 bg-[var(--bg-input)] text-[var(--accent)] focus:ring-[var(--accent)]"/>
                                     </td>
                                     <td className="p-2 text-slate-400">{new Date(p.data).toLocaleDateString('ro-RO')}</td>
-                                    <td className="p-2 font-bold text-white">{getEntityName(p)}</td>
+                                    <td className="p-2">
+                                        <div className="font-bold text-white">{getEntityName(p)}</div>
+                                        {permissions.isSuperAdmin && !filter.clubId && club && (
+                                            <div className="text-xs text-slate-400 font-normal">{club.id === FEDERATIE_ID ? FEDERATIE_NAME : club.nume}</div>
+                                        )}
+                                    </td>
                                     <td className="p-2">
                                         <div className="font-semibold">{p.descriere}</div>
                                         {p.observatii && <div className="text-[10px] text-slate-500 italic max-w-xs truncate" title={p.observatii}>{p.observatii}</div>}
@@ -402,7 +410,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
                                         </div>
                                     </td>
                                 </tr>
-                            ))}
+                            )})}
                         </tbody>
                     </table>
                     {filteredPlati.length === 0 && <p className="p-12 text-center text-slate-500 italic">Nu există facturi care să corespundă filtrelor.</p>}

@@ -534,7 +534,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                                 label="Club" 
                                 value={
                                     !sportiv.club_id 
-                                        ? <span className="text-red-400 font-normal text-sm">Profil nealocat unui club. Contactați administratorul Lungu Alin.</span> 
+                                        ? <span className="text-red-400 font-normal text-sm">Contactați instructorul pentru asignarea la club</span> 
                                         : (sportiv.cluburi?.id === FEDERATIE_ID ? FEDERATIE_NAME : sportiv.cluburi?.nume || 'N/A')
                                 } 
                             />

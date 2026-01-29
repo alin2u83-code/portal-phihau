@@ -33,6 +33,7 @@ class ErrorBoundary extends Component<Props, State> {
   }
   
   // FIX: Use arrow function for method to automatically bind 'this'.
+  // This was changed from a regular method to an arrow function to ensure 'this' is correctly bound to the component instance when called from an event handler.
   handleRedirect = () => {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {

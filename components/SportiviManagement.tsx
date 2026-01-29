@@ -44,6 +44,7 @@ export const SportiviManagement: React.FC<{
     const [accountSettingsSportiv, setAccountSettingsSportiv] = useState<Sportiv | null>(null);
     const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
     const [sportivForWallet, setSportivForWallet] = useState<Sportiv | null>(null);
+    const [selectedSportivForHighlight, setSelectedSportivForHighlight] = useState<Sportiv | null>(null);
 
     const { showError } = useError();
     const permissions = usePermissions(currentUser);
@@ -63,6 +64,11 @@ export const SportiviManagement: React.FC<{
     const handleOpenWallet = (sportiv: Sportiv) => {
         setSportivForWallet(sportiv);
         setIsWalletModalOpen(true);
+    };
+
+    const handleRowClick = (sportiv: Sportiv) => {
+        setSelectedSportivForHighlight(sportiv);
+        onViewSportiv(sportiv);
     };
 
     const familyBalances = useMemo(() => {
@@ -230,8 +236,9 @@ export const SportiviManagement: React.FC<{
                     data={filteredSportivi}
                     searchTerm={filters.searchTerm}
                     onSearchChange={(val) => handleFilterChange('searchTerm', val)}
-                    onRowClick={onViewSportiv}
+                    onRowClick={handleRowClick}
                     searchPlaceholder="Caută sportiv după nume..."
+                    selectedRowId={selectedSportivForHighlight?.id}
                 />
             </div>
 

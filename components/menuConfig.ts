@@ -134,6 +134,7 @@ export const clubAdminMenu: MenuItem[] = [
 
 export const instructorMenu: MenuItem[] = [
     { label: 'Dashboard', icon: HomeIcon, view: 'dashboard' },
+    { label: 'Prezență Zilnică', icon: ClipboardCheckIcon, view: 'prezenta-instructor' },
     { label: 'Vizualizare Sportivi', icon: UsersIcon, view: 'sportivi' },
     {
         label: 'Orar',
@@ -144,10 +145,10 @@ export const instructorMenu: MenuItem[] = [
         ]
     },
     {
-        label: 'Prezență',
+        label: 'Prezență (Admin)',
         icon: ClipboardCheckIcon,
         submenu: [
-            { label: 'Înregistrare Prezențe', view: 'prezenta' },
+            { label: 'Înregistrare Avansată', view: 'prezenta' },
             { label: 'Raport Prezențe', view: 'raport-prezenta' } 
         ]
     },

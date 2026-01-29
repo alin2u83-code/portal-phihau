@@ -68,15 +68,21 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
             const initialAttendance = new Map<string, Set<string>>();
 
             (recurringTrainings || []).forEach(grupa => {
-                // FIX: When using `!inner(*)`, Supabase may return a single object instead of an array. Normalize it to always be an array.
-                const programItemsRaw = grupa.program_antrenamente;
+                // FIX: When using `!inner(*)` or `(*)`, Supabase may return a single object instead of an array. Normalize it to always be an array.
+                // The type of `grupa.program_antrenamente` is not correctly inferred by TypeScript. Casting to `any` to allow iteration.
+                const programItemsRaw: any = grupa.program_antrenamente;
                 const programItems = programItemsRaw ? (Array.isArray(programItemsRaw) ? programItemsRaw : [programItemsRaw]) : [];
+                
+                // FIX: `sportivi(*)` can also return a single object. Normalize to array.
+                const sportiviRaw: any = grupa.sportivi;
+                const sportiviList = sportiviRaw ? (Array.isArray(sportiviRaw) ? sportiviRaw : [sportiviRaw]) : [];
+
                 programItems.forEach((programItem: any) => {
                     const antrenamentId = `recurent-${programItem.id}-${todayISO}`;
                     if (!combined.some(t => t.id === programItem.id && t.data === todayISO)) {
                         combined.push({
                             id: antrenamentId, data: todayISO, ora_start: programItem.ora_start, ora_sfarsit: programItem.ora_sfarsit,
-                            grupa_id: grupa.id, grupe: { ...grupa, sportivi: grupa.sportivi || [] }, ziua: programItem.ziua,
+                            grupa_id: grupa.id, grupe: { ...grupa, sportivi: sportiviList }, ziua: programItem.ziua,
                             is_recurent: true, sportivi_prezenti_ids: []
                         });
                     }

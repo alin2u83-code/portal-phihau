@@ -161,7 +161,7 @@ CREATE POLICY "Users can view own club and federation events" ON public.sesiuni_
 CREATE POLICY "Users can view own club and federation competitions" ON public.evenimente FOR SELECT
     USING (auth.role() = 'authenticated' AND (club_id IS NULL OR club_id = public.get_my_club_id()));
 
--- == TABELE INSCRIERI: inscrieri_examene, rezultate ==
+-- == TABELE INSCRIERI: inscrieri_examene, rezultate, istoric_grade ==
 CALL public.reset_policies_for_table('inscrieri_examene');
 ALTER TABLE public.inscrieri_examene ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.inscrieri_examene FORCE ROW LEVEL SECURITY;
@@ -186,6 +186,19 @@ CREATE POLICY "Athletes can manage their own results" ON public.rezultate FOR AL
     USING (sportiv_id = public.get_my_sportiv_id())
     WITH CHECK (sportiv_id = public.get_my_sportiv_id());
 
+CALL public.reset_policies_for_table('istoric_grade');
+ALTER TABLE public.istoric_grade ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.istoric_grade FORCE ROW LEVEL SECURITY;
+
+CREATE POLICY "Super Admins have full access" ON public.istoric_grade
+    FOR ALL USING (public.is_super_admin()) WITH CHECK (public.is_super_admin());
+CREATE POLICY "Club staff can manage grade history for their athletes" ON public.istoric_grade
+    FOR ALL USING (public.is_club_staff() AND EXISTS (SELECT 1 FROM sportivi s WHERE s.id = istoric_grade.sportiv_id AND s.club_id = public.get_my_club_id()))
+    WITH CHECK (public.is_club_staff() AND EXISTS (SELECT 1 FROM sportivi s WHERE s.id = istoric_grade.sportiv_id AND s.club_id = public.get_my_club_id()));
+CREATE POLICY "Athletes can view their own grade history" ON public.istoric_grade
+    FOR SELECT USING (sportiv_id = public.get_my_sportiv_id());
+
+
 -- == NOMENCLATOARE (majoritatea publice pentru citire, management doar de Super Admin) ==
 CREATE OR REPLACE PROCEDURE public.apply_nomenclator_policies(table_name TEXT)
 LANGUAGE plpgsql AS $$
@@ -201,157 +214,3 @@ $$;
 
 CALL public.apply_nomenclator_policies('roluri');
 CALL public.apply_nomenclator_policies('grade');
-CALL public.apply_nomenclator_policies('nom_locatii');
-CALL public.apply_nomenclator_policies('tipuri_plati');
-CALL public.apply_nomenclator_policies('preturi_config');
-CALL public.apply_nomenclator_policies('reduceri');
-CALL public.apply_nomenclator_policies('grade_preturi_config');
-CALL public.apply_nomenclator_policies('taxe_anuale_config');
-
--- == TABELUL: tipuri_abonament (caz special, și Admin Club poate adăuga) ==
-CALL public.reset_policies_for_table('tipuri_abonament');
-ALTER TABLE public.tipuri_abonament ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.tipuri_abonament FORCE ROW LEVEL SECURITY;
-
-CREATE POLICY "Super Admins have full access" ON public.tipuri_abonament FOR ALL USING (public.is_super_admin()) WITH CHECK (public.is_super_admin());
-CREATE POLICY "Club staff can manage their own subscription types" ON public.tipuri_abonament FOR ALL
-    USING (public.is_club_staff() AND club_id = public.get_my_club_id())
-    WITH CHECK (public.is_club_staff() AND club_id = public.get_my_club_id());
-CREATE POLICY "Authenticated users can view relevant subscription types" ON public.tipuri_abonament
-    FOR SELECT USING (club_id = public.get_my_club_id() OR (club_id IS NULL AND (public.is_club_staff() OR public.is_super_admin())));
-
-
--- == ALTE TABELE ==
-
--- TABELUL: deconturi_federatie
-CALL public.reset_policies_for_table('deconturi_federatie');
-ALTER TABLE public.deconturi_federatie ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.deconturi_federatie FORCE ROW LEVEL SECURITY;
-
-CREATE POLICY "Super Admins have full access" ON public.deconturi_federatie FOR ALL USING (public.is_super_admin()) WITH CHECK (public.is_super_admin());
-CREATE POLICY "Club Admins can see their own deconturi" ON public.deconturi_federatie FOR ALL
-    USING (public.is_club_staff() AND club_id = public.get_my_club_id())
-    WITH CHECK (public.is_club_staff() AND club_id = public.get_my_club_id());
-
--- TABELUL: familii
-CALL public.reset_policies_for_table('familii');
-ALTER TABLE public.familii ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.familii FORCE ROW LEVEL SECURITY;
-
-CREATE POLICY "Super Admins have full access" ON public.familii FOR ALL USING (public.is_super_admin()) WITH CHECK (public.is_super_admin());
-CREATE POLICY "Club staff can manage their families" ON public.familii FOR ALL
-    USING (public.is_club_staff() AND EXISTS (SELECT 1 FROM sportivi s WHERE s.familie_id = familii.id AND s.club_id = public.get_my_club_id()))
-    WITH CHECK (public.is_club_staff());
-CREATE POLICY "Users can view their own family" ON public.familii FOR SELECT
-    USING (id = (SELECT s.familie_id FROM sportivi s WHERE s.id = public.get_my_sportiv_id()));
-
--- TABELUL: program_antrenamente & prezenta_antrenament
-CALL public.reset_policies_for_table('program_antrenamente');
-ALTER TABLE public.program_antrenamente ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.program_antrenamente FORCE ROW LEVEL SECURITY;
-CALL public.reset_policies_for_table('prezenta_antrenament');
-ALTER TABLE public.prezenta_antrenament ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.prezenta_antrenament FORCE ROW LEVEL SECURITY;
-
-CREATE POLICY "Super Admins have full access" ON public.program_antrenamente FOR ALL USING (public.is_super_admin()) WITH CHECK (public.is_super_admin());
-CREATE POLICY "Super Admins have full access" ON public.prezenta_antrenament FOR ALL USING (public.is_super_admin()) WITH CHECK (public.is_super_admin());
-
-CREATE POLICY "Club staff can manage schedules and attendance" ON public.program_antrenamente
-    FOR ALL
-    USING (
-        public.is_club_staff() AND (
-            program_antrenamente.grupa_id IS NULL OR -- Allow access to "vacation" trainings
-            EXISTS (
-                SELECT 1 FROM public.grupe g
-                WHERE g.id = program_antrenamente.grupa_id AND g.club_id = public.get_my_club_id()
-            )
-        )
-    )
-    WITH CHECK (
-        public.is_club_staff() AND (
-            program_antrenamente.grupa_id IS NULL OR
-            EXISTS (
-                SELECT 1 FROM public.grupe g
-                WHERE g.id = program_antrenamente.grupa_id AND g.club_id = public.get_my_club_id()
-            )
-        )
-    );
-
-CREATE POLICY "Club staff can manage attendance records" ON public.prezenta_antrenament
-    FOR ALL
-    USING (
-        public.is_club_staff() AND EXISTS (
-            SELECT 1 FROM public.sportivi s WHERE s.id = prezenta_antrenament.sportiv_id AND s.club_id = public.get_my_club_id()
-        )
-    )
-    WITH CHECK (
-        public.is_club_staff() AND
-        -- The user must be able to see the athlete (i.e., athlete is in their club)
-        EXISTS (SELECT 1 FROM public.sportivi s WHERE s.id = prezenta_antrenament.sportiv_id AND s.club_id = public.get_my_club_id()) AND
-        -- The user must be able to see the training
-        EXISTS (
-            SELECT 1
-            FROM public.program_antrenamente pa
-            LEFT JOIN public.grupe g ON pa.grupa_id = g.id
-            WHERE pa.id = prezenta_antrenament.antrenament_id
-            AND (pa.grupa_id IS NULL OR g.club_id = public.get_my_club_id())
-        )
-    );
-    
-CREATE POLICY "Authenticated users can view schedules" ON public.program_antrenamente FOR SELECT USING (auth.role() = 'authenticated');
-CREATE POLICY "Athletes can view their own attendance" ON public.prezenta_antrenament FOR SELECT USING (sportiv_id = public.get_my_sportiv_id());
-
--- TABELUL: anunturi_prezenta
-CALL public.reset_policies_for_table('anunturi_prezenta');
-ALTER TABLE public.anunturi_prezenta ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.anunturi_prezenta FORCE ROW LEVEL SECURITY;
-
-CREATE POLICY "Super Admins have full access" ON public.anunturi_prezenta FOR ALL USING (public.is_super_admin()) WITH CHECK (public.is_super_admin());
-CREATE POLICY "Club staff can view announcements for their club" ON public.anunturi_prezenta FOR SELECT
-    USING (public.is_club_staff() AND EXISTS (SELECT 1 FROM sportivi s WHERE s.id = anunturi_prezenta.sportiv_id AND s.club_id = public.get_my_club_id()));
-CREATE POLICY "Athletes can manage their own announcements" ON public.anunturi_prezenta FOR ALL
-    USING (sportiv_id = public.get_my_sportiv_id())
-    WITH CHECK (sportiv_id = public.get_my_sportiv_id());
-
--- TABELUL: prezenta
-CALL public.reset_policies_for_table('prezenta');
-ALTER TABLE public.prezenta ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.prezenta FORCE ROW LEVEL SECURITY;
-
-CREATE POLICY "Super Admins have full access" ON public.prezenta FOR ALL 
-    USING (public.is_super_admin()) 
-    WITH CHECK (public.is_super_admin());
-
-CREATE POLICY "Club staff can manage attendance for their club" ON public.prezenta FOR ALL 
-    USING (public.is_club_staff() AND club_id = public.get_my_club_id()) 
-    WITH CHECK (public.is_club_staff() AND club_id = public.get_my_club_id());
-
-CREATE POLICY "Athletes can view their own attendance" ON public.prezenta FOR SELECT 
-    USING (sportiv_id = public.get_my_sportiv_id());
-
--- TABELUL: notificari
-CALL public.reset_policies_for_table('notificari');
-ALTER TABLE public.notificari ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.notificari FORCE ROW LEVEL SECURITY;
-
-CREATE POLICY "Super Admins can manage all notifications" ON public.notificari FOR ALL USING (public.is_super_admin()) WITH CHECK (public.is_super_admin());
-CREATE POLICY "Users can manage their own notifications" ON public.notificari FOR ALL
-    USING (recipient_user_id = auth.uid())
-    WITH CHECK (sender_sportiv_id = public.get_my_sportiv_id()); -- Un utilizator poate doar crea notificări în numele său
-CREATE POLICY "Staff can create notifications" ON public.notificari FOR INSERT
-    WITH CHECK (public.is_club_staff() AND sender_sportiv_id = public.get_my_sportiv_id());
-
--- TABELUL: sportivi_roluri
-CALL public.reset_policies_for_table('sportivi_roluri');
-ALTER TABLE public.sportivi_roluri ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.sportivi_roluri FORCE ROW LEVEL SECURITY;
-
-CREATE POLICY "Super Admins have full access" ON public.sportivi_roluri FOR ALL USING (public.is_super_admin()) WITH CHECK (public.is_super_admin());
-CREATE POLICY "Club Admins can assign roles within their club" ON public.sportivi_roluri FOR ALL
-    USING (
-        (SELECT r.nume FROM roluri r WHERE r.id = sportivi_roluri.rol_id) <> 'SUPER_ADMIN_FEDERATIE'
-        AND (SELECT r.nume FROM roluri r WHERE r.id = sportivi_roluri.rol_id) <> 'Admin'
-        AND public.is_club_staff() 
-        AND EXISTS (SELECT 1 FROM sportivi s WHERE s.id = sportivi_roluri.sportiv_id AND s.club_id = public.get_my_club_id())
-    );
-CREATE POLICY "Authenticated users can see their own roles" ON public.sportivi_roluri FOR SELECT USING(sportiv_id = public.get_my_sportiv_id());

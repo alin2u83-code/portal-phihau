@@ -353,7 +353,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
             </Button>
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 focus-mode-grid">
         {sortedSesiuni.map(s => ( 
             <Card key={s.id} className="sesiune-card flex flex-col group hover:border-amber-400/50 hover:shadow-[0_0_15px_2px_rgba(251,146,60,0.4)] hover:-translate-y-1 transition-all duration-300">
                 <div className="flex-grow">

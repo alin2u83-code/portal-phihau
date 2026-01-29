@@ -1,11 +1,13 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { Plata, Sportiv, TipAbonament, Familie, Tranzactie, Reducere, User } from '../types';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { Plata, Sportiv, TipAbonament, Familie, Tranzactie, Reducere, User, Club } from '../types';
 import { Button, Input, Select, Card, Modal } from './ui';
 import { EditIcon, ArrowLeftIcon, TrashIcon, BanknotesIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
+import { usePermissions } from '../hooks/usePermissions';
+import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
 
 interface PlatiScadenteProps { 
     plati: Plata[]; 
@@ -17,12 +19,14 @@ interface PlatiScadenteProps {
     reduceri: Reducere[];
     onIncaseazaMultiple: (plati: Plata[]) => void;
     onBack: () => void;
+    onViewSportiv: (sportiv: Sportiv) => void;
     currentUser: User;
+    clubs: Club[];
 }
 
-const initialFilters = { sportiv: '', tip: '', status: 'Neachitat' };
+const initialFilters = { sportiv: '', tip: '', status: 'Neachitat', clubId: '' };
 
-export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, sportivi, familii, tipuriAbonament, tranzactii, reduceri, onIncaseazaMultiple, onBack, currentUser }) => {
+export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, sportivi, familii, tipuriAbonament, tranzactii, reduceri, onIncaseazaMultiple, onBack, onViewSportiv, currentUser, clubs }) => {
     const [filter, setFilter] = useLocalStorage('phi-hau-plati-scadente-filter', initialFilters);
     const [editingPlata, setEditingPlata] = useState<Plata | null>(null);
     const [plataToDelete, setPlataToDelete] = useState<Plata | null>(null);
@@ -32,6 +36,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
     const [isGenerating, setIsGenerating] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [viewingHistoryFor, setViewingHistoryFor] = useState<Plata | null>(null);
+    const permissions = usePermissions(currentUser);
 
     useEffect(() => {
         if (currentUser) {
@@ -260,15 +265,28 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
         return s ? `${s.nume} ${s.prenume}` : 'N/A';
     };
 
+    const getPlataClubId = useCallback((plata: Plata): string | null => {
+        if (plata.sportiv_id) {
+            const sportiv = sportivi.find(s => s.id === plata.sportiv_id);
+            return sportiv?.club_id || null;
+        }
+        if (plata.familie_id) {
+            const firstMember = sportivi.find(s => s.familie_id === plata.familie_id);
+            return firstMember?.club_id || null;
+        }
+        return null;
+    }, [sportivi]);
+
     const filteredPlati = useMemo(() => {
         return plati.filter(p => {
             const entityName = getEntityName(p);
             const nameMatch = !filter.sportiv || entityName.toLowerCase().includes(filter.sportiv.toLowerCase());
             const typeMatch = !filter.tip || p.tip === filter.tip;
             const statusMatch = !filter.status || p.status === filter.status;
-            return nameMatch && typeMatch && statusMatch;
+            const clubMatch = !permissions.isSuperAdmin || !filter.clubId || getPlataClubId(p) === filter.clubId;
+            return nameMatch && typeMatch && statusMatch && clubMatch;
         }).sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime());
-    }, [plati, sportivi, familii, filter]);
+    }, [plati, sportivi, familii, filter, permissions.isSuperAdmin, getPlataClubId]);
 
     const handleToggleSelect = (id: string) => {
         setSelectedIds(prev => {
@@ -306,7 +324,13 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
                 </Button>
             </div>
 
-            <Card className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className={`grid grid-cols-1 md:grid-cols-2 ${permissions.isSuperAdmin ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-4`}>
+                {permissions.isSuperAdmin && (
+                    <Select label="Filtrează după Club" value={filter.clubId} onChange={e => setFilter({...filter, clubId: e.target.value})}>
+                        <option value="">Toată Federația</option>
+                        {clubs.map(c => <option key={c.id} value={c.id}>{c.id === FEDERATIE_ID ? FEDERATIE_NAME : c.nume}</option>)}
+                    </Select>
+                )}
                 <Input label="Caută Sportiv/Familie" value={filter.sportiv} onChange={e => setFilter({...filter, sportiv: e.target.value})} />
                 <Select label="Categorie" value={filter.tip} onChange={e => setFilter({...filter, tip: e.target.value})}>
                     <option value="">Toate</option>

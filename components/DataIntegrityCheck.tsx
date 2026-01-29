@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { Sportiv, User, Rol } from '../types';
 import { Card, Button } from './ui';
 import { ShieldCheckIcon, EditIcon } from './icons';
@@ -24,23 +24,23 @@ export const DataIntegrityCheck: React.FC<DataIntegrityCheckProps> = ({ sportivi
         setLoading(true);
         const newIssues: Issue[] = [];
 
-        // Check 1: Current user profile validity (Critical)
+        // Check 1: Current user profile validity (Critical for FK errors)
         if (!currentUser.id || !sportivi.some(s => s.id === currentUser.id)) {
             newIssues.push({
                 type: 'critical',
-                message: "EROARE CRITICĂ: Utilizatorul curent nu are un profil valid (în tabela 'sportivi'). Anumite acțiuni, precum salvarea prezenței, vor eșua din cauza erorilor de Foreign Key. Contactați administratorul pentru a crea/asocia profilul.",
+                message: "EROARE CRITICĂ: Utilizatorul curent nu are un profil valid (în tabela 'sportivi'). Anumite acțiuni, precum salvarea prezenței, vor eșua din cauza erorilor de Foreign Key (ex: coloana 'sent_by' din 'notificari'). Contactați administratorul pentru a crea/asocia profilul.",
             });
         } else {
              newIssues.push({
                 type: 'info',
-                message: "Profilul utilizatorului curent este valid și corect asociat.",
+                message: "Profilul utilizatorului curent este valid și corect asociat. Eroarea de FK la 'notificari' nu ar trebui să apară pentru acest cont.",
             });
         }
 
         // Check 2: Staff members without user accounts (Warning)
         const staffRoles: Rol['nume'][] = ['Instructor', 'Admin Club', 'Admin', 'SUPER_ADMIN_FEDERATIE'];
         const staffWithoutAccounts = sportivi.filter(s =>
-            !s.user_id && s.roluri.some(r => staffRoles.includes(r.nume))
+            !s.user_id && (s.roluri || []).some(r => staffRoles.includes(r.nume))
         );
 
         if (staffWithoutAccounts.length > 0) {
@@ -53,7 +53,7 @@ export const DataIntegrityCheck: React.FC<DataIntegrityCheckProps> = ({ sportivi
         }
 
         // Check 3: Athletes with incomplete critical data
-        const incompleteProfiles = sportivi.filter(s => s.status === 'Activ' && (!s.data_nasterii || !s.cnp));
+        const incompleteProfiles = sportivi.filter(s => s.status === 'Activ' && (!s.data_nasterii || s.data_nasterii === '1900-01-01' || !s.cnp));
         if (incompleteProfiles.length > 0) {
             newIssues.push({
                 type: 'warning',
@@ -88,7 +88,7 @@ export const DataIntegrityCheck: React.FC<DataIntegrityCheckProps> = ({ sportivi
                 Verificare Integritate Date
             </h2>
             <p className="text-sm text-slate-400 mb-4">
-                Rulează o serie de verificări pentru a identifica probleme comune de date care pot cauza erori, precum cea legată de salvarea prezenței.
+                Rulează o serie de verificări pentru a identifica probleme comune de date care pot cauza erori, precum cea legată de salvarea prezenței (Foreign Key pe `notificari`).
             </p>
 
             <div className="flex justify-end mb-4">

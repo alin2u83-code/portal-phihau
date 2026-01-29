@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { SesiuneExamen, InscriereExamen, Sportiv, Grad, Locatie, Plata, PretConfig, User, Club, DecontFederatie } from '../types';
+import { SesiuneExamen, InscriereExamen, Sportiv, Grad, Locatie, Plata, PretConfig, User, Club, DecontFederatie, View } from '../types';
 import { Button, Modal, Input, Select, Card } from './ui';
-import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon } from './icons';
+import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon, FileTextIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
@@ -176,6 +176,7 @@ interface DetaliiSesiuneProps {
     setSesiuni: React.Dispatch<React.SetStateAction<SesiuneExamen[]>>;
     setDeconturiFederatie: React.Dispatch<React.SetStateAction<DecontFederatie[]>>;
     onViewSportiv: (sportiv: Sportiv) => void;
+    onEdit: () => void;
 }
 const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
     const { showError, showSuccess } = useError();
@@ -216,10 +217,15 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
                         <span className="px-3 py-1 text-sm font-bold text-sky-300 bg-sky-900/50 border border-sky-700/50 rounded-full">Programat</span>
                     )}
                 </div>
-                {props.sesiune.status !== 'Finalizat' && (
-                    <Button variant="success" onClick={handleFinalizeExam} isLoading={isFinalizing}>
-                        Finalizează & Generează Decont
-                    </Button>
+                 {props.sesiune.status !== 'Finalizat' && (
+                    <div className="flex gap-2">
+                        <Button variant="secondary" onClick={props.onEdit}>
+                            <EditIcon className="w-4 h-4 mr-2" /> Editează
+                        </Button>
+                        <Button variant="success" onClick={handleFinalizeExam} isLoading={isFinalizing}>
+                            Finalizează & Generează Decont
+                        </Button>
+                    </div>
                 )}
             </div>
             
@@ -233,6 +239,7 @@ interface GestiuneExameneProps {
     currentUser: User;
     clubs: Club[];
     onBack: () => void; 
+    onNavigate: (view: View) => void;
     sesiuni: SesiuneExamen[]; 
     setSesiuni: React.Dispatch<React.SetStateAction<SesiuneExamen[]>>; 
     inscrieri: InscriereExamen[]; 
@@ -250,7 +257,7 @@ interface GestiuneExameneProps {
     onViewSportiv: (sportiv: Sportiv) => void;
 }
 
-export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, clubs, onBack, sesiuni, setSesiuni, inscrieri, setInscrieri, sportivi, setSportivi, grade, locatii, setLocatii, plati, setPlati, preturiConfig, deconturiFederatie, setDeconturiFederatie, onViewSportiv }) => {
+export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, clubs, onBack, onNavigate, sesiuni, setSesiuni, inscrieri, setInscrieri, sportivi, setSportivi, grade, locatii, setLocatii, plati, setPlati, preturiConfig, deconturiFederatie, setDeconturiFederatie, onViewSportiv }) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [sesiuneToEdit, setSesiuneToEdit] = useState<SesiuneExamen | null>(null);
   const [sesiuneToDelete, setSesiuneToDelete] = useState<SesiuneExamen | null>(null);
@@ -261,6 +268,13 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
   const selectedSesiune = useMemo(() => selectedSesiuneId ? sesiuni.find(e => e.id === selectedSesiuneId) || null : null, [selectedSesiuneId, sesiuni]);
 
   const handleBackToList = () => setSelectedSesiuneId(null);
+  
+  const handleEditSelected = () => {
+    if (selectedSesiune) {
+        setSesiuneToEdit(selectedSesiune);
+        setIsFormOpen(true);
+    }
+  };
 
   const handleSaveSesiune = async (sesiuneData: Partial<SesiuneExamen>) => {
     const locatieSelectata = locatii.find(l => l.id === sesiuneData.locatie_id);
@@ -318,6 +332,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
                 setSesiuni={setSesiuni}
                 setDeconturiFederatie={setDeconturiFederatie}
                 onViewSportiv={onViewSportiv}
+                onEdit={handleEditSelected}
             />
         </div>
      );
@@ -327,10 +342,20 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
   return ( 
     <div>
       <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
-      <div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-white">Gestiune Sesiuni Examen</h1><Button onClick={() => { setSesiuneToEdit(null); setIsFormOpen(true); }} variant="info"><PlusIcon className="w-5 h-5 mr-2" />Adaugă Sesiune</Button></div>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-white">Gestiune Sesiuni Examen</h1>
+        <div className="flex gap-2">
+            <Button onClick={() => onNavigate('gestiune-facturi')} variant="secondary">
+                <FileTextIcon className="w-4 h-4 mr-2" /> Generează Factură Examen
+            </Button>
+            <Button onClick={() => { setSesiuneToEdit(null); setIsFormOpen(true); }} variant="info">
+                <PlusIcon className="w-5 h-5 mr-2" />Adaugă Sesiune
+            </Button>
+        </div>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {sortedSesiuni.map(s => ( 
-            <Card key={s.id} className="sesiune-card flex flex-col cursor-pointer group hover:border-brand-secondary/50 transition-all duration-300" onClick={() => setSelectedSesiuneId(s.id)}>
+            <Card key={s.id} className="sesiune-card flex flex-col group hover:border-amber-400/50 hover:shadow-[0_0_15px_2px_rgba(251,146,60,0.4)] hover:-translate-y-1 transition-all duration-300">
                 <div className="flex-grow">
                     <div className="flex justify-between items-start">
                         <span className={`px-2 py-1 text-xs font-bold rounded-full ${s.status === 'Finalizat' ? 'bg-green-600/30 text-green-300' : 'bg-sky-600/30 text-sky-300'}`}>
@@ -347,6 +372,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
                         <span className="text-slate-400"> participanți</span>
                     </div>
                     <div className="flex items-center gap-2">
+                        <Button size="sm" variant="info" onClick={() => setSelectedSesiuneId(s.id)}>Vezi Detalii</Button>
                         <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); setSesiuneToEdit(s); setIsFormOpen(true); }}><EditIcon className="w-4 h-4" /></Button>
                         <Button size="sm" variant="danger" onClick={(e) => { e.stopPropagation(); setSesiuneToDelete(s); }}><TrashIcon className="w-4 h-4" /></Button>
                     </div>

@@ -71,66 +71,11 @@ export const DataMaintenancePage: React.FC<DataMaintenanceProps> = ({ onBack, on
     // --- State & Memo pentru Audit ---
     const [editingSportiv, setEditingSportiv] = useState<Sportiv | null>(null);
 
-    const sportiviFaraAbonament = useMemo(() => {
-        return sportivi.filter(s => s.status === 'Activ' && !s.familie_id && !s.tip_abonament_id);
-    }, [sportivi]);
-
-    const facturiExamenLipsa = useMemo(() => {
-        return participari.filter(p => {
-            const examen = examene.find(e => e.id === p.sesiune_id);
-            if (!examen) return false;
-            return !plati.some(pl => pl.sportiv_id === p.sportiv_id && pl.tip === 'Taxa Examen' && pl.data === examen.data);
-        });
-    }, [participari, examene, plati]);
-
     // --- Handlers ---
     const handleQuickSave = async (id: string, updates: Partial<Sportiv>) => {
         const { data, error } = await supabase.from('sportivi').update(updates).eq('id', id).select().single();
         if (error) showError("Eroare la salvare", error);
         else if (data) { setSportivi(p => p.map(s => s.id === id ? { ...s, ...data } : s)); showSuccess("Succes", "Datele au fost actualizate."); }
-    };
-
-    const handleCleanSchema = async () => {
-        if (!window.confirm("Această acțiune este ireversibilă și va încerca să elimine coloane vechi din baza de date. Doriți să continuați?")) return;
-        setLoading(p => ({ ...p, cleaning: true }));
-        const { data, error } = await supabase.rpc('clean_schema_references');
-        if (error) showError("Eroare RPC", error);
-        else showSuccess("Operațiune Finalizată", data);
-        setLoading(p => ({ ...p, cleaning: false }));
-    };
-
-    const handleGenerateInvoices = async () => {
-        if (facturiExamenLipsa.length === 0) { showSuccess("Info", "Nicio factură de generat."); return; }
-        setLoading(p => ({ ...p, invoicing: true }));
-        const newPlatiToInsert: Omit<Plata, 'id'>[] = [];
-        
-        for (const p of facturiExamenLipsa) {
-            const examen = examene.find(e => e.id === p.sesiune_id);
-            const sportiv = sportivi.find(s => s.id === p.sportiv_id);
-            const grad = grade.find(g => g.id === p.grad_vizat_id);
-            if (!examen || !sportiv || !grad) continue;
-            
-            const pretConfig = getPretProdus(preturiConfig, 'Taxa Examen', grad.nume, { dataReferinta: examen.data });
-            if (pretConfig) {
-                newPlatiToInsert.push({
-                    sportiv_id: sportiv.id,
-                    familie_id: sportiv.familie_id,
-                    suma: pretConfig.suma,
-                    data: examen.data,
-                    status: 'Neachitat',
-                    descriere: `Taxa examen grad ${grad.nume}`,
-                    tip: 'Taxa Examen',
-                    observatii: 'Generat automat din modulul de mentenanță.'
-                });
-            }
-        }
-        if (newPlatiToInsert.length === 0) { showSuccess("Info", "Nicio factură nu a putut fi generată (posibil prețuri lipsă)."); setLoading(p => ({ ...p, invoicing: false })); return; }
-        
-        const { data, error } = await supabase.from('plati').insert(newPlatiToInsert).select();
-        if (error) showError("Eroare la generarea facturilor", error);
-        else if(data) { setPlati(prev => [...prev, ...data]); showSuccess("Succes", `${data.length} facturi noi au fost generate.`); }
-        
-        setLoading(p => ({ ...p, invoicing: false }));
     };
 
     // --- Export, Backup & Restore Logic ---
@@ -292,17 +237,6 @@ export const DataMaintenancePage: React.FC<DataMaintenanceProps> = ({ onBack, on
             {feedback && <div className={`p-3 rounded-md text-center font-semibold text-white ${feedback.type === 'success' ? 'bg-green-600/50' : 'bg-red-600/50'}`}>{feedback.message}</div>}
 
             <DataIntegrityCheck sportivi={sportivi} currentUser={currentUser} onEditSportiv={setEditingSportiv} />
-
-            <Card className="border-l-4 border-sky-400">
-                 <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2"><CogIcon className="w-6 h-6 text-sky-400"/>Acțiuni Bază de Date</h2>
-                 <div className="flex justify-between items-center bg-slate-700/50 p-3 rounded">
-                    <div>
-                        <h4 className="font-semibold text-white">Curăță Referințe Vechi</h4>
-                        <p className="text-xs text-slate-400">Elimină coloane învechite (ex: 'contribuție') din schema bazei de date.</p>
-                    </div>
-                    <Button variant="secondary" isLoading={loading['cleaning']} onClick={handleCleanSchema}>Execută</Button>
-                 </div>
-            </Card>
             
             <Card className="border-l-4 border-brand-primary">
                 <h2 className="text-2xl font-bold text-white mb-4">Backup, Export & Restaurare Date</h2>

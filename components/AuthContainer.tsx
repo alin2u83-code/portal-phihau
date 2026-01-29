@@ -74,10 +74,10 @@ export const AuthContainer: React.FC = () => {
 
         setLoading(true);
 
-        // 1. Check if profile already exists
+        // 1. Check if profile already exists by email
         const { data: existingProfile, error: checkError } = await supabase
             .from('sportivi')
-            .select('id')
+            .select('id, user_id')
             .eq('email', form.email)
             .single();
 
@@ -85,12 +85,6 @@ export const AuthContainer: React.FC = () => {
              setMessage({ type: 'error', text: `Eroare la verificare: ${checkError.message}` });
              setLoading(false);
              return;
-        }
-
-        if (existingProfile) {
-            setMessage({ type: 'error', text: 'Un cont cu acest email există deja. Vă rugăm să vă autentificați.' });
-            setLoading(false);
-            return;
         }
 
         // 2. Create auth user
@@ -111,38 +105,56 @@ export const AuthContainer: React.FC = () => {
             return;
         }
 
-        // 3. Create sportiv profile
-        const { data: newProfile, error: profileError } = await supabase
-            .from('sportivi')
-            .insert({
-                user_id: user.id,
-                nume: form.nume,
-                prenume: form.prenume,
-                email: form.email,
-                club_id: PHI_HAU_IASI_CLUB_ID,
-                data_nasterii: '1900-01-01', // Placeholder
-                data_inscrierii: new Date().toISOString().split('T')[0],
-                status: 'Activ',
-            }).select().single();
+        if (existingProfile) {
+            // Profile exists, link it
+            if (existingProfile.user_id) {
+                setMessage({ type: 'error', text: 'Un cont cu acest email există deja și este asociat. Vă rugăm să vă autentificați.' });
+            } else {
+                const { error: linkError } = await supabase
+                    .from('sportivi')
+                    .update({ user_id: user.id })
+                    .eq('id', existingProfile.id);
 
-        if (profileError) {
-             setMessage({ type: 'error', text: `Contul a fost creat, dar profilul nu a putut fi salvat: ${profileError.message}` });
-             setLoading(false);
-             return;
+                if (linkError) {
+                    setMessage({ type: 'error', text: `Contul a fost creat, dar asocierea a eșuat: ${linkError.message}` });
+                } else {
+                    setMessage({ type: 'success', text: 'Cont creat și asociat cu profilul existent! Verificați email-ul pentru a confirma contul.' });
+                }
+            }
+        } else {
+            // Profile does not exist, create it
+            const { data: newProfile, error: profileError } = await supabase
+                .from('sportivi')
+                .insert({
+                    user_id: user.id,
+                    nume: form.nume,
+                    prenume: form.prenume,
+                    email: form.email,
+                    club_id: PHI_HAU_IASI_CLUB_ID,
+                    data_nasterii: '1900-01-01', // Placeholder
+                    data_inscrierii: new Date().toISOString().split('T')[0],
+                    status: 'Activ',
+                }).select().single();
+
+            if (profileError) {
+                 setMessage({ type: 'error', text: `Contul a fost creat, dar profilul nu a putut fi salvat: ${profileError.message}` });
+                 setLoading(false);
+                 return;
+            }
+            
+            const { error: roleError } = await supabase
+                .from('sportivi_roluri')
+                .insert({ sportiv_id: newProfile.id, rol_id: SPORTIV_ROLE_ID });
+            
+            if (roleError) {
+                 setMessage({ type: 'error', text: `Profilul a fost creat, dar rolul nu a putut fi atribuit: ${roleError.message}` });
+                 setLoading(false);
+                 return;
+            }
+            
+            setMessage({ type: 'success', text: 'Cont creat cu succes! Vă rugăm să verificați email-ul pentru a vă confirma contul.' });
         }
         
-        // 4. Link role
-        const { error: roleError } = await supabase
-            .from('sportivi_roluri')
-            .insert({ sportiv_id: newProfile.id, rol_id: SPORTIV_ROLE_ID });
-        
-        if (roleError) {
-             setMessage({ type: 'error', text: `Profilul a fost creat, dar rolul nu a putut fi atribuit: ${roleError.message}` });
-             setLoading(false);
-             return;
-        }
-
-        setMessage({ type: 'success', text: 'Cont creat cu succes! Vă rugăm să verificați email-ul pentru a vă confirma contul.' });
         setLoading(false);
     };
 

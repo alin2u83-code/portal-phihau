@@ -70,6 +70,8 @@ export const DataMaintenancePage: React.FC<DataMaintenanceProps> = ({ onBack, on
     const [editingSportiv, setEditingSportiv] = useState<Sportiv | null>(null);
 
     const sportiviIncompleti = useMemo(() => sportivi.filter(s => s.status === 'Activ' && (!s.data_nasterii || !s.cnp)), [sportivi]);
+    const sportiviFaraCont = useMemo(() => sportivi.filter(s => !s.user_id && s.email && s.status === 'Activ'), [sportivi]);
+    const sportiviFaraGrad = useMemo(() => sportivi.filter(s => !s.grad_actual_id && s.status === 'Activ'), [sportivi]);
     const gradeFaraPret = useMemo(() => grade.filter(g => !preturiConfig.some(p => p.categorie === 'Taxa Examen' && p.denumire_serviciu === g.nume)), [grade, preturiConfig]);
     
     const sportiviFaraAbonament = useMemo(() => {
@@ -85,6 +87,12 @@ export const DataMaintenancePage: React.FC<DataMaintenanceProps> = ({ onBack, on
     }, [participari, examene, plati]);
 
     // --- Handlers ---
+    const handleCopyEmails = (list: Sportiv[]) => {
+        const emails = list.map(s => s.email).filter(Boolean).join(', ');
+        navigator.clipboard.writeText(emails);
+        showSuccess("Copiat!", `${list.length} email-uri au fost copiate în clipboard.`);
+    };
+
     const handleQuickSave = async (id: string, updates: Partial<Sportiv>) => {
         const { data, error } = await supabase.from('sportivi').update(updates).eq('id', id).select().single();
         if (error) showError("Eroare la salvare", error);
@@ -296,6 +304,23 @@ export const DataMaintenancePage: React.FC<DataMaintenanceProps> = ({ onBack, on
                 <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2"><ShieldCheckIcon className="w-6 h-6 text-amber-400"/>Audit Integritate Date</h2>
                 <div className="space-y-6">
                     <div>
+                        <h3 className="font-semibold text-white">Sportivi Fără Cont de Acces ({sportiviFaraCont.length})</h3>
+                        <p className="text-xs text-slate-400 mb-2">Sportivi activi care nu au un cont de utilizator asociat.</p>
+                        {sportiviFaraCont.length > 0 ? (
+                            <div>
+                                <p className="text-sm text-amber-300">{sportiviFaraCont.map(s => `${s.nume} ${s.prenume}`).join(', ')}</p>
+                                <Button size="sm" variant="secondary" className="mt-2" onClick={() => handleCopyEmails(sportiviFaraCont)}>Copiază Email-uri</Button>
+                            </div>
+                        ) : <p className="text-sm text-green-400 font-semibold italic">Toți sportivii activi au conturi!</p>}
+                    </div>
+                    <div>
+                        <h3 className="font-semibold text-white">Sportivi Fără Grad Asignat ({sportiviFaraGrad.length})</h3>
+                        <p className="text-xs text-slate-400 mb-2">Sportivi activi care nu au un grad actual setat în profil.</p>
+                        {sportiviFaraGrad.length > 0 ? (
+                            <p className="text-sm text-amber-300">{sportiviFaraGrad.map(s => `${s.nume} ${s.prenume}`).join(', ')}</p>
+                        ) : <p className="text-sm text-green-400 font-semibold italic">Toți sportivii activi au grad asignat!</p>}
+                    </div>
+                    <div>
                         <h3 className="font-semibold text-white">Profiluri Incomplete ({sportiviIncompleti.length})</h3>
                         <p className="text-xs text-slate-400 mb-2">Sportivi activi fără dată de naștere sau CNP.</p>
                         {sportiviIncompleti.length > 0 ? (
@@ -304,7 +329,6 @@ export const DataMaintenancePage: React.FC<DataMaintenanceProps> = ({ onBack, on
                             </div>
                         ) : <p className="text-sm text-green-400 font-semibold italic">Toate profilurile sunt complete!</p>}
                     </div>
-
                     <div>
                         <h3 className="font-semibold text-white">Sportivi Fără Abonament ({sportiviFaraAbonament.length})</h3>
                         <p className="text-xs text-slate-400 mb-2">Sportivi individuali activi care nu au un tip de abonament asignat.</p>
@@ -315,7 +339,6 @@ export const DataMaintenancePage: React.FC<DataMaintenanceProps> = ({ onBack, on
                             </div>
                         ) : <p className="text-sm text-green-400 font-semibold italic">Toți sportivii individuali activi au abonamente asignate!</p>}
                     </div>
-
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <h3 className="font-semibold text-white">Prețuri Grade Lipsă ({gradeFaraPret.length})</h3>

@@ -52,6 +52,8 @@ import { MartialAttendance } from './components/MartialAttendance';
 import { AccountSettings } from './components/AccountSettings';
 import { GlobalContextSwitcher } from './components/GlobalContextSwitcher';
 import { FederationDashboard } from './components/FederationDashboard';
+import { FisaDigitalaSportiv } from './components/FisaDigitalaSportiv';
+import { FisaCompetitie } from './components/FisaCompetitie';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -119,6 +121,11 @@ function App() {
         setLoading(false);
         return;
     }
+    
+    // DEBUG LOG: Afișează sesiunea și metadatele pentru depanare RLS
+    console.log('[DEBUG] Auth Session for RLS:', currentSession);
+    console.log('[DEBUG] User Metadata (from JWT):', currentSession?.user?.user_metadata);
+
 
     setLoading(true);
     setProfileError(null);
@@ -153,6 +160,10 @@ function App() {
     }
 
     try {
+        // INFO: Pentru a folosi un INNER JOIN în Supabase, adăugați `!inner` după numele tabelului.
+        // Exemplu: .select('*, grades!inner(nume, ordine)')
+        // ATENȚIE: Acest lucru va exclude înregistrările care nu au o potrivire în tabelul 'grades'.
+        // Lăsăm comportamentul curent (LEFT JOIN) pentru a asigura că toate înscrierile sunt afișate.
         const [
             { data: clubsData }, { data: rolesData }, { data: gradesData }, { data: groupsData },
             { data: subscriptionTypesData }, { data: locatiiData }, { data: platiTypesData },
@@ -219,8 +230,13 @@ function App() {
 
     } catch (err: any) {
         let friendlyMessage = err.message;
-        if (String(err.message).includes('violates row-level security policy') || err.code === '42501') {
-            friendlyMessage = 'Nu aveți permisiuni suficiente pentru a accesa datele necesare. Contactați administratorul.';
+        // DEBUG: Interpretare specifică a erorilor RLS
+        if (String(err.code) === 'PGRST116') { // "query returned no rows"
+            friendlyMessage = `Niciun rând găsit. Acest lucru poate fi cauzat de o politică RLS (Row Level Security) care nu returnează date pentru utilizatorul curent. Verificați dacă utilizatorul are club_id corect în metadate. (Cod: ${err.code})`;
+        } else if (String(err.code) === '42501') { // permission denied
+            friendlyMessage = `Încălcare RLS: Permisiune refuzată. Nu aveți drepturile necesare pentru a accesa această resursă. (Cod: ${err.code})`;
+        } else if (String(err.message).includes('violates row-level security policy')) {
+            friendlyMessage = 'Încălcare RLS. Asigurați-vă că rolul dumneavoastră are acces la datele solicitate.';
         }
         setProfileError(friendlyMessage);
         showError("Eroare la încărcarea datelor aplicației", friendlyMessage);
@@ -454,6 +470,12 @@ function App() {
 
       case 'account-settings':
         return <AccountSettings currentUser={currentUser} onBack={() => setActiveView('my-portal')} />;
+      
+      case 'fisa-digitala':
+        return <FisaDigitalaSportiv currentUser={currentUser} grade={grade} participari={inscrieriExamene} examene={sesiuniExamene} plati={plati} onBack={() => setActiveView('my-portal')} />;
+
+      case 'fisa-competitie':
+        return <FisaCompetitie currentUser={currentUser} grade={grade} participari={inscrieriExamene} examene={sesiuniExamene} onBack={() => setActiveView('my-portal')} />;
 
       default:
         return <FinalUnifiedDashboard 

@@ -177,6 +177,8 @@ export const sportivMenu: MenuItem[] = [
         icon: UserCircleIcon, 
         submenu: [
             { label: 'Dashboard', view: 'my-portal' },
+            { label: 'Fișa Digitală', view: 'fisa-digitala' },
+            { label: 'Fișa Competiție', view: 'fisa-competitie' },
             { label: 'Istoric Prezență', view: 'istoric-prezenta' },
             { label: 'Istoric Grade', view: 'istoric-examene' },
             { label: 'Istoric Financiar', view: 'istoric-plati' },

@@ -1,4 +1,4 @@
-import React, { ReactNode, ErrorInfo } from 'react';
+import React, { Component, ReactNode, ErrorInfo } from 'react';
 import { View } from '../types';
 import { Button } from './ui';
 import { ArrowLeftIcon } from './icons';
@@ -17,8 +17,9 @@ interface State {
  * Standard Error Boundary component to catch rendering errors in the UI tree.
  * Inheriting from Component ensures access to setState and lifecycle methods.
  */
-// FIX: Refactored to a more modern class component syntax to resolve 'this' context issues.
-class ErrorBoundary extends React.Component<Props, State> {
+// FIX: Changed from React.Component to Component to ensure proper type resolution.
+class ErrorBoundary extends Component<Props, State> {
+  // FIX: Using class property syntax for state to ensure it's always available on the instance.
   state: State = {
     hasError: false,
     error: undefined,
@@ -32,6 +33,7 @@ class ErrorBoundary extends React.Component<Props, State> {
     console.error("Uncaught error:", error, errorInfo);
   }
   
+  // FIX: Using an arrow function for the handler to automatically bind 'this'.
   handleRedirect = () => {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {

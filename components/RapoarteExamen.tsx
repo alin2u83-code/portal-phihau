@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-// FIX: Add DecontFederatie to the import list.
-import { SesiuneExamen, InscriereExamen, Sportiv, Grad, Locatie, Plata, PretConfig, User, Club, DecontFederatie } from '../types';
+import { SesiuneExamen, InscriereExamen, Sportiv, Grad, Locatie, Plata, PretConfig, User, Club, DecontFederatie, View } from '../types';
 import { Button, Modal, Input, Select, Card } from './ui';
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -229,7 +228,6 @@ const DetaliiSesiune: React.FC<{
 };
 
 // --- COMPONENTA PRINCIPALĂ (REFActorizată) ---
-// FIX: Rename component and props interface to RapoarteExamen to be exported correctly for App.tsx.
 interface RapoarteExamenProps { 
     currentUser: User;
     clubs: Club[];
@@ -246,7 +244,6 @@ interface RapoarteExamenProps {
     plati: Plata[];
     setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
     preturiConfig: PretConfig[];
-    // FIX: Add missing props.
     deconturiFederatie: DecontFederatie[];
     setDeconturiFederatie: React.Dispatch<React.SetStateAction<DecontFederatie[]>>;
     onViewSportiv: (sportiv: Sportiv) => void;
@@ -317,7 +314,6 @@ export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ currentUser, clu
                 plati={plati}
                 setPlati={setPlati}
                 preturiConfig={preturiConfig}
-                // FIX: Pass missing props.
                 setSesiuni={setSesiuni}
                 setDeconturiFederatie={setDeconturiFederatie}
                 onViewSportiv={onViewSportiv}

@@ -17,8 +17,9 @@ interface State {
  * Standard Error Boundary component to catch rendering errors in the UI tree.
  * Inheriting from Component ensures access to setState and lifecycle methods.
  */
-// FIX: Changed from React.Component to Component to ensure proper type resolution.
-class ErrorBoundary extends Component<Props, State> {
+// FIX: The type checker seems to be having trouble resolving the destructured `Component`.
+// Using `React.Component` directly to ensure correct type inheritance.
+class ErrorBoundary extends React.Component<Props, State> {
   // FIX: Using class property syntax for state to ensure it's always available on the instance.
   state: State = {
     hasError: false,

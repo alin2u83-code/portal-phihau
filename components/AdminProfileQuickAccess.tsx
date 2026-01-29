@@ -1,6 +1,7 @@
 import React from 'react';
-import { User, View } from '../types';
+import { User, View, Rol } from '../types';
 import { CogIcon, UserCircleIcon, ArrowRightOnRectangleIcon } from './icons';
+import { IdentitySwitcher } from './IdentitySwitcher';
 
 interface AdminProfileQuickAccessProps {
   user: User;
@@ -8,13 +9,16 @@ interface AdminProfileQuickAccessProps {
   onLogout: () => void;
   isExpanded: boolean;
   isSuperAdmin: boolean;
+  activeRole: Rol['nume'];
+  onSwitchRole: (roleName: Rol['nume']) => void;
+  isSwitchingRole: boolean;
 }
 
-export const AdminProfileQuickAccess: React.FC<AdminProfileQuickAccessProps> = ({ user, onNavigate, onLogout, isExpanded, isSuperAdmin }) => {
+export const AdminProfileQuickAccess: React.FC<AdminProfileQuickAccessProps> = ({ user, onNavigate, onLogout, isExpanded, isSuperAdmin, activeRole, onSwitchRole, isSwitchingRole }) => {
     // Determină poziționarea pe baza modului de afișare (sidebar sau navbar)
     const positionClasses = isExpanded 
-        ? "absolute bottom-full mb-2 w-56 right-0" // Sidebar extins SAU Navbar
-        : "absolute bottom-full mb-2 w-56 left-0"; // Sidebar restrâns
+        ? "absolute bottom-full mb-2 w-64 right-0" // Sidebar extins SAU Navbar
+        : "absolute bottom-full mb-2 w-64 left-0"; // Sidebar restrâns
 
     return (
         <div 
@@ -25,6 +29,16 @@ export const AdminProfileQuickAccess: React.FC<AdminProfileQuickAccessProps> = (
                     <p className="text-sm font-semibold text-white truncate">{user.nume} {user.prenume}</p>
                     <p className="text-xs text-slate-400 truncate">{(user.roluri || []).map(r => r.nume).join(', ')}</p>
                 </div>
+                
+                {user.roluri.length > 1 && (
+                    <IdentitySwitcher 
+                        currentUser={user} 
+                        activeRole={activeRole} 
+                        onSwitch={onSwitchRole} 
+                        loading={isSwitchingRole} 
+                    />
+                )}
+
                 <div className="py-1">
                     {isSuperAdmin && (
                         <button

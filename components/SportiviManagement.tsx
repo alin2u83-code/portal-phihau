@@ -10,7 +10,7 @@ import { SportivAccountSettingsModal } from './SportivAccountSettings';
 import { SportivWallet } from './SportivWallet';
 import { ResponsiveTable, Column } from './ResponsiveTable';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
-import { usePermissions } from '../hooks/usePermissions';
+import { Permissions } from '../hooks/usePermissions';
 
 const getAge = (dateString: string | null | undefined): number => { 
     if (!dateString) return 0; 
@@ -25,7 +25,14 @@ const getAge = (dateString: string | null | undefined): number => {
 
 const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
     // FIX: Corrected key from 'Super Admin' to 'SUPER_ADMIN_FEDERATIE' to match the 'Rol' type definition.
-    const colorClasses: Record<Rol['nume'], string> = { Admin: 'bg-red-600 text-white', 'SUPER_ADMIN_FEDERATIE': 'bg-red-800 text-white', 'Admin Club': 'bg-blue-600 text-white', Instructor: 'bg-sky-600 text-white', Sportiv: 'bg-slate-600 text-slate-200' };
+    // FIX: Completed the color mapping to include all roles.
+    const colorClasses: Record<Rol['nume'], string> = { 
+        Admin: 'bg-red-600 text-white', 
+        'SUPER_ADMIN_FEDERATIE': 'bg-red-800 text-white', 
+        'Admin Club': 'bg-blue-600 text-white', 
+        Instructor: 'bg-sky-600 text-white', 
+        Sportiv: 'bg-slate-600 text-slate-200' 
+    };
     return <span className={`px-2 py-1 text-[10px] font-semibold rounded-full ${colorClasses[role.nume] || 'bg-gray-500 text-white'}`}>{role.nume}</span>;
 };
 
@@ -49,7 +56,8 @@ export const SportiviManagement: React.FC<{
     onViewSportiv: (sportiv: Sportiv) => void;
     clubs: Club[];
     grade: Grad[];
-}> = ({ onBack, sportivi, setSportivi, grupe, setGrupe, tipuriAbonament, familii, setFamilii, allRoles, setAllRoles, currentUser, plati, tranzactii, setTranzactii, onViewSportiv, clubs, grade }) => {
+    permissions: Permissions;
+}> = ({ onBack, sportivi, setSportivi, grupe, setGrupe, tipuriAbonament, familii, setFamilii, allRoles, setAllRoles, currentUser, plati, tranzactii, setTranzactii, onViewSportiv, clubs, grade, permissions }) => {
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
     const [sportivToEdit, setSportivToEdit] = useState<Sportiv | null>(null);
     const [accountSettingsSportiv, setAccountSettingsSportiv] = useState<Sportiv | null>(null);
@@ -58,8 +66,7 @@ export const SportiviManagement: React.FC<{
     const [selectedSportivForHighlight, setSelectedSportivForHighlight] = useState<Sportiv | null>(null);
 
     const { showError } = useError();
-    const permissions = usePermissions(currentUser);
-
+    
     const [filters, setFilters] = useLocalStorage('phi-hau-sportivi-filters', {
         searchTerm: '',
         statusFilter: 'Activ',
@@ -194,7 +201,7 @@ export const SportiviManagement: React.FC<{
                 if (sportivRole) {
                     const { error: roleError } = await supabase.from('sportivi_roluri').insert({ sportiv_id: data.id, rol_id: sportivRole.id });
                     if (roleError) {
-                        showError("Utilizator creat, dar eroare la asignarea rolului", roleError);
+                        showError("Utilizator creat, dar eroare la asignarea rolului", roleError.message);
                     } else {
                         newSportiv.roluri = [sportivRole];
                     }

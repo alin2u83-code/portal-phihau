@@ -4,7 +4,7 @@ import { Button, Input, Card, Select, Modal } from './ui';
 import { ArrowLeftIcon, EditIcon, ShieldCheckIcon, PlusIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
-import { usePermissions } from '../hooks/usePermissions';
+import { Permissions } from '../hooks/usePermissions';
 
 const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
     // FIX: Add missing 'SUPER_ADMIN_FEDERATIE' and 'Admin Club' roles to satisfy the Record type.
@@ -299,16 +299,17 @@ interface UserManagementProps {
     allRoles: Rol[];
     setAllRoles: React.Dispatch<React.SetStateAction<Rol[]>>;
     clubs: Club[];
+    permissions: Permissions;
 }
 
-export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSportivi, onBack, isEmbedded = false, currentUser, setCurrentUser, allRoles, setAllRoles, clubs }) => {
+export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSportivi, onBack, isEmbedded = false, currentUser, setCurrentUser, allRoles, setAllRoles, clubs, permissions }) => {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [newRoleIds, setNewRoleIds] = useState<string[]>([]);
     const [userListFeedback, setUserListFeedback] = useState<{type: 'success' | 'error', message: string} | null>(null);
     const [isCreateStaffModalOpen, setIsCreateStaffModalOpen] = useState(false);
 
     const { showError, showSuccess } = useError();
-    const { isFederationAdmin } = usePermissions(currentUser);
+    const { isFederationAdmin } = permissions;
     
     const [isCreateAccountModalOpen, setIsCreateAccountModalOpen] = useState(false);
     const [selectedUserForAccount, setSelectedUserForAccount] = useState<Sportiv | null>(null);

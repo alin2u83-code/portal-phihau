@@ -6,7 +6,7 @@ import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
-import { usePermissions } from '../hooks/usePermissions';
+import { Permissions } from '../hooks/usePermissions';
 
 interface ClubFormModalProps {
     isOpen: boolean;
@@ -64,16 +64,16 @@ interface CluburiManagementProps {
     setClubs: React.Dispatch<React.SetStateAction<Club[]>>;
     onBack: () => void;
     currentUser: User;
+    permissions: Permissions;
 }
 
-export const CluburiManagement: React.FC<CluburiManagementProps> = ({ clubs, setClubs, onBack, currentUser }) => {
+export const CluburiManagement: React.FC<CluburiManagementProps> = ({ clubs, setClubs, onBack, currentUser, permissions }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [clubToEdit, setClubToEdit] = useState<Club | null>(null);
     const [clubToDelete, setClubToDelete] = useState<Club | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const { showError, showSuccess } = useError();
-    const permissions = usePermissions(currentUser);
-
+    
     const handleSave = async (clubData: Partial<Club>) => {
         if (!supabase) return;
         if (!clubToEdit && !permissions.isSuperAdmin) {
@@ -97,7 +97,7 @@ export const CluburiManagement: React.FC<CluburiManagementProps> = ({ clubs, set
              if (err.message.includes('violates row-level security policy')) {
                 showError("Permisiune Refuzată (RLS)", "Politica de securitate a bazei de date a blocat acțiunea. Asigurați-vă că rolul dumneavoastră ('SUPER_ADMIN_FEDERATIE') este corect configurat.");
             } else {
-                showError("Eroare la Salvare", err);
+                showError("Eroare la Salvare", err.message);
             }
         }
     };
@@ -118,7 +118,7 @@ export const CluburiManagement: React.FC<CluburiManagementProps> = ({ clubs, set
             setClubs(prev => prev.filter(c => c.id !== id));
             showSuccess("Succes", "Clubul a fost șters.");
         } catch (err: any) {
-            showError("Eroare la ștergere", err);
+            showError("Eroare la ștergere", err.message);
         } finally {
             setIsDeleting(false);
             setClubToDelete(null);

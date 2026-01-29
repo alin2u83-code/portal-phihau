@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { User, View, Plata } from '../types';
+import { User, View, Plata, Rol } from '../types';
 import { ChevronDownIcon } from './icons';
 import { AdminProfileQuickAccess } from './AdminProfileQuickAccess';
 import { Permissions } from '../hooks/usePermissions';
@@ -11,9 +11,28 @@ interface AdminHeaderProps {
     onLogout: () => void;
     plati: Plata[];
     permissions: Permissions;
+    activeRole: Rol['nume'];
+    onSwitchRole: (roleName: Rol['nume']) => void;
+    isSwitchingRole: boolean;
 }
 
-export const AdminHeader: React.FC<AdminHeaderProps> = ({ currentUser, onNavigate, onLogout, plati, permissions }) => {
+const getHeaderColorClass = (roleName: Rol['nume'] | null): string => {
+    if (!roleName) return 'border-slate-700';
+    switch (roleName) {
+        case 'SUPER_ADMIN_FEDERATIE':
+        case 'Admin':
+            return 'border-red-500/50';
+        case 'Admin Club':
+        case 'Instructor':
+            return 'border-blue-500/50';
+        case 'Sportiv':
+            return 'border-green-500/50';
+        default:
+            return 'border-slate-700';
+    }
+};
+
+export const AdminHeader: React.FC<AdminHeaderProps> = ({ currentUser, onNavigate, onLogout, plati, permissions, activeRole, onSwitchRole, isSwitchingRole }) => {
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
     
     const hasOverduePayments = useMemo(() => {
@@ -25,13 +44,13 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ currentUser, onNavigat
     const initials = (currentUser.nume?.[0] || '') + (currentUser.prenume?.[0] || '');
 
     return (
-        <header className="sticky top-0 z-20 bg-[var(--bg-card)]/80 backdrop-blur-sm border-b border-[var(--border-color)]">
+        <header className={`sticky top-0 z-20 bg-[var(--bg-card)]/80 backdrop-blur-sm border-b-2 ${getHeaderColorClass(activeRole)} transition-colors duration-300`}>
             <div className="flex items-center justify-end h-16 px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center gap-4">
                     <InAppNotifications currentUser={currentUser} />
                     <div className="relative">
                         <div
-                            className="flex items-center rounded-lg bg-blue-700 border border-dashed border-blue-400 hover:bg-blue-600 transition-colors"
+                            className="flex items-center rounded-lg bg-slate-800/50 border border-slate-700 hover:bg-slate-700/80 transition-colors"
                             title="User profile information"
                         >
                             <div
@@ -42,21 +61,21 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ currentUser, onNavigat
                                 onKeyDown={(e) => e.key === 'Enter' && onNavigate('dashboard')}
                             >
                                 <div className="relative">
-                                     <div className="w-8 h-8 rounded-full bg-brand-secondary flex items-center justify-center text-white font-bold text-sm">
+                                     <div className="w-8 h-8 rounded-full bg-brand-secondary flex items-center justify-center text-slate-900 font-bold text-sm">
                                         {initials}
                                     </div>
                                      {hasOverduePayments && (
-                                        <span className="absolute top-0 right-0 block h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-slate-900"></span>
+                                        <span className="absolute top-0 right-0 block h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-[var(--bg-card)]"></span>
                                      )}
                                 </div>
                                 <div className="hidden sm:block text-left">
                                     <p className="text-sm font-semibold text-white truncate">{currentUser.nume} {currentUser.prenume}</p>
-                                    <p className="text-xs text-slate-400 truncate">{(currentUser.roluri || []).map(r => r.nume).join(', ')}</p>
+                                    <p className="text-xs text-slate-400 truncate">Activ ca: <span className="font-bold">{activeRole.replace(/_/g, ' ')}</span></p>
                                 </div>
                             </div>
                             <button
                                 onClick={() => setIsProfileMenuOpen(p => !p)}
-                                className="ml-2 flex-shrink-0 p-2 border-l border-dashed border-blue-400"
+                                className="ml-2 flex-shrink-0 p-2 border-l border-slate-700"
                                 aria-label="Open user menu"
                             >
                                 <ChevronDownIcon className={`w-5 h-5 text-slate-200 transition-transform ${isProfileMenuOpen ? 'rotate-180' : ''}`} />
@@ -70,6 +89,9 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ currentUser, onNavigat
                                 onLogout={onLogout}
                                 isExpanded={true}
                                 isSuperAdmin={permissions.isSuperAdmin}
+                                activeRole={activeRole}
+                                onSwitchRole={onSwitchRole}
+                                isSwitchingRole={isSwitchingRole}
                             />
                         )}
                     </div>

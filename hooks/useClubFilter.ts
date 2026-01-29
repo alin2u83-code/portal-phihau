@@ -1,12 +1,11 @@
 import { useEffect, useMemo } from 'react';
 import { User } from '../types';
-import { usePermissions } from './usePermissions';
+import { Permissions } from './usePermissions';
 import { useLocalStorage } from './useLocalStorage';
 
-export const useClubFilter = (currentUser: User | null) => {
+export const useClubFilter = (currentUser: User | null, permissions: Permissions) => {
     const [globalClubFilter, setGlobalClubFilter] = useLocalStorage<string | null>('phi-hau-global-club-filter', null);
-    const permissions = usePermissions(currentUser);
-
+    
     const activeClubId = useMemo(() => {
         if (permissions.isFederationAdmin) {
             return globalClubFilter;

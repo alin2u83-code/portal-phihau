@@ -12,6 +12,17 @@ import { ResponsiveTable, Column } from './ResponsiveTable';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
 import { usePermissions } from '../hooks/usePermissions';
 
+const getAge = (dateString: string | null | undefined): number => { 
+    if (!dateString) return 0; 
+    const today = new Date(); 
+    const birthDate = new Date(dateString.includes('T') ? dateString : dateString + 'T00:00:00'); 
+    if (isNaN(birthDate.getTime())) { return 0; } 
+    let age = today.getFullYear() - birthDate.getFullYear(); 
+    const m = today.getMonth() - birthDate.getMonth(); 
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; } 
+    return age; 
+};
+
 const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
     // FIX: Corrected key from 'Super Admin' to 'SUPER_ADMIN_FEDERATIE' to match the 'Rol' type definition.
     const colorClasses: Record<Rol['nume'], string> = { Admin: 'bg-red-600 text-white', 'SUPER_ADMIN_FEDERATIE': 'bg-red-800 text-white', 'Admin Club': 'bg-blue-600 text-white', Instructor: 'bg-sky-600 text-white', Sportiv: 'bg-slate-600 text-slate-200' };
@@ -100,7 +111,7 @@ export const SportiviManagement: React.FC<{
                 const familieBalance = s.familie_id ? familyBalances.get(s.familie_id) : undefined;
                 return (
                     <div>
-                        <div className="font-bold text-white hover:text-brand-primary">{s.nume} {s.prenume}</div>
+                        <div className="font-bold text-white hover:text-brand-primary">{s.nume} {s.prenume} <span className="text-slate-400 font-normal">({getAge(s.data_nasterii)} ani)</span></div>
                         {familie && familieBalance !== undefined && (
                             <div className="text-xs text-slate-300 mt-1">
                                 Familia {familie.nume}
@@ -239,6 +250,7 @@ export const SportiviManagement: React.FC<{
                     onRowClick={handleRowClick}
                     searchPlaceholder="Caută sportiv după nume..."
                     selectedRowId={selectedSportivForHighlight?.id}
+                    rowClassName={(sportiv) => !sportiv.user_id ? 'bg-red-900/20 hover:bg-red-900/40 !border-l-2 !border-red-500' : ''}
                 />
             </div>
 

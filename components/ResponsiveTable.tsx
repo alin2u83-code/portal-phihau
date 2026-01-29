@@ -22,6 +22,7 @@ interface ResponsiveTableProps<T> {
     onRowClick?: (item: T) => void;
     searchPlaceholder?: string;
     selectedRowId?: string | null;
+    rowClassName?: (item: T) => string;
 }
 
 // --- MAIN COMPONENT ---
@@ -34,6 +35,7 @@ export function ResponsiveTable<T extends { id: string }>({
     onRowClick,
     searchPlaceholder = 'Caută...',
     selectedRowId,
+    rowClassName,
 }: ResponsiveTableProps<T>) {
 
     return (
@@ -74,7 +76,7 @@ export function ResponsiveTable<T extends { id: string }>({
                         {data.map(item => (
                             <tr 
                                 key={item.id} 
-                                className={`${onRowClick ? 'cursor-pointer hover:bg-[var(--bg-table-row-hover)]' : ''} ${item.id === selectedRowId ? 'selected-row-highlight' : ''}`}
+                                className={`${onRowClick ? 'cursor-pointer hover:bg-[var(--bg-table-row-hover)]' : ''} ${item.id === selectedRowId ? 'selected-row-highlight' : ''} ${rowClassName ? rowClassName(item) : ''}`}
                                 onClick={() => onRowClick?.(item)}
                             >
                                 {columns.map(col => (

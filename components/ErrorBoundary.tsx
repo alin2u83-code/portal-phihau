@@ -24,8 +24,6 @@ class ErrorBoundary extends Component<Props, State> {
       hasError: false,
       error: undefined,
     };
-    // FIX: Explicitly bind `this` in the constructor to ensure correct context for `this.setState` and `this.props` in the event handler.
-    this.handleRedirect = this.handleRedirect.bind(this);
   }
 
   static getDerivedStateFromError(error: Error): State {
@@ -36,7 +34,7 @@ class ErrorBoundary extends Component<Props, State> {
     console.error("Uncaught error:", error, errorInfo);
   }
   
-  handleRedirect() {
+  handleRedirect = () => {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {
         this.props.onNavigate('dashboard');

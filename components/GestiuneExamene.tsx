@@ -341,7 +341,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {sortedSesiuni.map(s => ( 
-            <Card key={s.id} className="sesiune-card flex flex-col cursor-pointer group hover:border-brand-secondary/50 transition-all duration-300" onClick={() => setSelectedSesiuneId(s.id)}>
+            <Card key={s.id} className="sesiune-card flex flex-col cursor-pointer group hover:border-amber-400/50 hover:shadow-[0_0_15px_2px_rgba(251,146,60,0.4)] transition-all duration-300" onClick={() => setSelectedSesiuneId(s.id)}>
                 <div className="flex-grow">
                     <div className="flex justify-between items-start">
                         <span className={`px-2 py-1 text-xs font-bold rounded-full ${s.status === 'Finalizat' ? 'bg-green-600/30 text-green-300' : 'bg-sky-600/30 text-sky-300'}`}>

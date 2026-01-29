@@ -392,20 +392,24 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                     <h3 className="text-lg font-bold text-white mb-4">🗓️ Program Următor</h3>
                     {upcomingTrainings.length > 0 ? (
                         <div className="space-y-3">
-                            {upcomingTrainings.map(training => (
-                                <div key={training.id} className="bg-slate-800/50 p-3 rounded-md flex justify-between items-center">
-                                    <div>
-                                        <p className="font-bold text-white">{new Date(training.data + 'T00:00:00').toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
-                                        <p className="text-sm text-slate-400">Ora: {training.ora_start}</p>
+                            {upcomingTrainings.map(training => {
+                                const trainingDate = new Date(training.data + 'T00:00:00');
+                                return (
+                                    <div key={training.id} className="flex items-center p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
+                                        <div className="flex flex-col items-center justify-center w-16 h-16 rounded-md bg-slate-700 text-brand-secondary flex-shrink-0">
+                                            <span className="text-2xl font-black">{trainingDate.toLocaleDateString('ro-RO', { day: '2-digit' })}</span>
+                                            <span className="text-xs font-bold uppercase">{trainingDate.toLocaleDateString('ro-RO', { month: 'short' })}</span>
+                                        </div>
+                                        <div className="flex-grow ml-4">
+                                            <p className="font-bold text-white">{trainingDate.toLocaleDateString('ro-RO', { weekday: 'long' })}</p>
+                                            <p className="text-sm text-slate-400">Ora: {training.ora_start}, Grupa: {training.grupe?.denumire || 'Vacanță'}</p>
+                                        </div>
                                     </div>
-                                    <span className="text-xs font-semibold px-2 py-1 rounded-full bg-slate-600 text-slate-200">
-                                        {training.grupe?.denumire || 'Vacanță'}
-                                    </span>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     ) : (
-                        <p className="text-slate-400 italic">Niciun antrenament programat în următoarele zile.</p>
+                        <p className="text-slate-400 italic text-center py-4">Niciun antrenament programat în următoarele zile.</p>
                     )}
                 </Card>
             )}

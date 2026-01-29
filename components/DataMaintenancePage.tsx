@@ -3,7 +3,8 @@ import { Button, Card, Modal, Input } from './ui';
 import { ArrowLeftIcon, ShieldCheckIcon, CogIcon, EditIcon, DocumentArrowDownIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
-import { Sportiv, Grad, PretConfig, Participare, Examen, Plata, View, Familie } from '../types';
+// FIX: Replaced deprecated type 'Participare' with 'InscriereExamen'.
+import { Sportiv, Grad, PretConfig, InscriereExamen, Examen, Plata, View, Familie } from '../types';
 import { BirthDateInput } from './BirthDateInput';
 import { getPretProdus } from '../utils/pricing';
 
@@ -52,7 +53,7 @@ interface DataMaintenanceProps {
     setSportivi: React.Dispatch<React.SetStateAction<Sportiv[]>>;
     grade: Grad[];
     preturiConfig: PretConfig[];
-    participari: Participare[];
+    participari: InscriereExamen[];
     examene: Examen[];
     plati: Plata[];
     setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;

@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Sportiv, User, Rol, Participare, Examen, Grad, Antrenament, IstoricGrade, Plata, Familie, TipAbonament, Tranzactie, Reducere, Club, ProgramItem, Grupa } from '../types';
+// FIX: Replaced deprecated type 'Participare' with 'InscriereExamen'.
+import { Sportiv, User, Rol, InscriereExamen, Examen, Grad, Antrenament, IstoricGrade, Plata, Familie, TipAbonament, Tranzactie, Reducere, Club, ProgramItem, Grupa } from '../types';
 import { Button, Card, Select, Modal, Input } from './ui';
 import { ArrowLeftIcon, EditIcon, WalletIcon, TrashIcon, ShieldCheckIcon, PlusIcon, ChartBarIcon, TransferIcon, CheckCircleIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -198,7 +199,7 @@ const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
 interface UserProfileProps {
     sportiv: Sportiv;
     currentUser: User;
-    participari: Participare[];
+    participari: InscriereExamen[];
     examene: Examen[];
     grade: Grad[];
     istoricGrade: IstoricGrade[];

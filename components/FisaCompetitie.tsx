@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { User, Grad, Participare, Examen } from '../types';
+// FIX: Replaced deprecated type 'Participare' with 'InscriereExamen'.
+import { User, Grad, InscriereExamen, Examen } from '../types';
 import { Button, Card } from './ui';
 import { ArrowLeftIcon, FileTextIcon, DocumentArrowDownIcon } from './icons';
 
@@ -27,7 +28,7 @@ const DataField: React.FC<{ label: string; value: string | number; isPlaceholder
 interface FisaCompetitieProps {
     currentUser: User;
     grade: Grad[];
-    participari: Participare[];
+    participari: InscriereExamen[];
     examene: Examen[];
     onBack: () => void;
 }

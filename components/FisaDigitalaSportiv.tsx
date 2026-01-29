@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { User, Grad, Participare, Examen, Plata, View } from '../types';
+// FIX: Replaced deprecated type 'Participare' with 'InscriereExamen'.
+import { User, Grad, InscriereExamen, Examen, Plata, View } from '../types';
 import { Button, Card } from './ui';
 import { ArrowLeftIcon, ShieldCheckIcon, WalletIcon } from './icons';
 
@@ -7,7 +8,7 @@ import { ArrowLeftIcon, ShieldCheckIcon, WalletIcon } from './icons';
 interface FisaDigitalaSportivProps {
     currentUser: User;
     grade: Grad[];
-    participari: Participare[];
+    participari: InscriereExamen[];
     examene: Examen[];
     plati: Plata[];
     onBack: () => void;

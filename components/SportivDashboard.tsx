@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Sportiv, Participare, Grad, Grupa, Plata, User, View, AnuntPrezenta, SesiuneExamen, Antrenament, ProgramItem } from '../types';
+// FIX: Replaced deprecated type 'Participare' with 'InscriereExamen'.
+import { Sportiv, InscriereExamen, Grad, Grupa, Plata, User, View, AnuntPrezenta, SesiuneExamen, Antrenament, ProgramItem } from '../types';
 import { Card, Button } from './ui';
 import { NotificationPermissionWidget } from './NotificationPermissionWidget';
 import { AttendanceTracker } from './AttendanceTracker';
@@ -168,7 +169,7 @@ const TrainingActionCard: React.FC<TrainingActionCardProps> = ({ training, anunt
 interface SportivDashboardProps {
   currentUser: User;
   viewedUser: User;
-  participari: Participare[];
+  participari: InscriereExamen[];
   examene: SesiuneExamen[];
   grade: Grad[];
   grupe: Grupa[];

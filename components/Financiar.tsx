@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { User, Plata, Tranzactie, Grad, Grupa, Participare, Examen, View } from '../types';
+// FIX: Replaced deprecated type 'Participare' with 'InscriereExamen'.
+import { User, Plata, Tranzactie, Grad, Grupa, InscriereExamen, Examen, View } from '../types';
 import { Button } from './ui';
 import { ArrowLeftIcon } from './icons';
 
@@ -10,7 +11,7 @@ interface ProfilSportivProps {
     tranzactii: Tranzactie[];
     grade: Grad[];
     grupe: Grupa[];
-    participari: Participare[];
+    participari: InscriereExamen[];
     examene: Examen[];
     onBack: () => void;
     onNavigate: (view: View) => void;

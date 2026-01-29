@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { Sportiv, Antrenament, Grupa, Grad, Participare, Examen } from '../types';
+// FIX: Replaced deprecated type 'Participare' with 'InscriereExamen'.
+import { Sportiv, Antrenament, Grupa, Grad, InscriereExamen, Examen } from '../types';
 import { Modal, Button } from './ui';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell } from 'recharts';
 
@@ -45,7 +46,7 @@ interface SportivFeedbackReportProps {
     antrenamente: Antrenament[];
     grupe: Grupa[];
     grade: Grad[];
-    participari: Participare[];
+    participari: InscriereExamen[];
     examene: Examen[];
 }
 

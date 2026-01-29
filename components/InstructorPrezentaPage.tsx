@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../supabaseClient';
-// FIX: Import ProgramItem type
+// FIX: Imported the missing ProgramItem type, which is used by the getTodayRo helper function.
 import { Antrenament, Sportiv, Grupa, ProgramItem } from '../types';
 import { useError } from './ErrorProvider';
 import { Card, Button } from './ui';

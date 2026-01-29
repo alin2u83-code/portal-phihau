@@ -32,7 +32,8 @@ export const federationAdminMenu: MenuItem[] = [
             { label: 'Orar & Gestiune Grupe', view: 'grupe' },
             { label: 'Generator Program', view: 'activitati' },
             { label: 'Înregistrare Prezențe', view: 'prezenta' },
-            { label: 'Raport Prezențe', view: 'raport-prezenta' } 
+            { label: 'Raport Prezențe', view: 'raport-prezenta' },
+            { label: 'Raport Activitate', view: 'raport-activitate' }
         ]
     },
     {
@@ -92,7 +93,8 @@ export const clubAdminMenu: MenuItem[] = [
             { label: 'Orar & Gestiune Grupe', view: 'grupe' },
             { label: 'Generator Program', view: 'activitati' },
             { label: 'Înregistrare Prezențe', view: 'prezenta' },
-            { label: 'Raport Prezențe', view: 'raport-prezenta' } 
+            { label: 'Raport Prezențe', view: 'raport-prezenta' },
+            { label: 'Raport Activitate', view: 'raport-activitate' }
         ]
     },
     {
@@ -149,7 +151,8 @@ export const instructorMenu: MenuItem[] = [
         icon: ClipboardCheckIcon,
         submenu: [
             { label: 'Înregistrare Avansată', view: 'prezenta' },
-            { label: 'Raport Prezențe', view: 'raport-prezenta' } 
+            { label: 'Raport Prezențe', view: 'raport-prezenta' },
+            { label: 'Raport Activitate', view: 'raport-activitate' }
         ]
     },
      {

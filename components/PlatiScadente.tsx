@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { Plata, Sportiv, TipAbonament, Familie, Tranzactie, Reducere } from '../types';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Plata, Sportiv, TipAbonament, Familie, Tranzactie, Reducere, User } from '../types';
 import { Button, Input, Select, Card, Modal } from './ui';
 import { EditIcon, ArrowLeftIcon, TrashIcon, BanknotesIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -17,11 +17,12 @@ interface PlatiScadenteProps {
     reduceri: Reducere[];
     onIncaseazaMultiple: (plati: Plata[]) => void;
     onBack: () => void;
+    currentUser: User;
 }
 
 const initialFilters = { sportiv: '', tip: '', status: 'Neachitat' };
 
-export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, sportivi, familii, tipuriAbonament, tranzactii, reduceri, onIncaseazaMultiple, onBack }) => {
+export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, sportivi, familii, tipuriAbonament, tranzactii, reduceri, onIncaseazaMultiple, onBack, currentUser }) => {
     const [filter, setFilter] = useLocalStorage('phi-hau-plati-scadente-filter', initialFilters);
     const [editingPlata, setEditingPlata] = useState<Plata | null>(null);
     const [plataToDelete, setPlataToDelete] = useState<Plata | null>(null);
@@ -31,6 +32,20 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
     const [isGenerating, setIsGenerating] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [viewingHistoryFor, setViewingHistoryFor] = useState<Plata | null>(null);
+
+    useEffect(() => {
+        if (currentUser) {
+            console.log("[DEBUG] Verificare roluri utilizator în Plăți Scadente:", {
+                roluri: currentUser.roluri.map(r => r.nume)
+            });
+            
+            const hasAdminAccess = currentUser.roluri.some(r => r.nume === 'Admin Club' || r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'Admin');
+            
+            if (!hasAdminAccess) {
+                console.warn(`[DEBUG] Utilizatorul nu are un rol de admin necesar. Datele afișate pot fi incomplete din cauza politicilor RLS. Se recomandă re-autentificarea pentru a reîmprospăta sesiunea dacă rolurile sunt incorecte.`);
+            }
+        }
+    }, [currentUser]);
 
     // Calculăm soldul curent pentru fiecare familie și sportiv individual
     const balances = useMemo(() => {

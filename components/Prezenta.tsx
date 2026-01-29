@@ -197,7 +197,7 @@ const AttendanceDetail: React.FC<{
                             </Button>
                         )}
                     </div>
-                )) : <p className="text-slate-400 italic text-center py-8">Nu există sportivi în această grupă.</p>}
+                )) : <p className="text-slate-400 italic text-center py-8">Niciun sportiv înscris în această grupă.</p>}
             </div>
         </Card>
     );

@@ -1,4 +1,4 @@
-import React, { Component, ReactNode, ErrorInfo } from 'react';
+import React, { ReactNode, ErrorInfo, Component } from 'react';
 import { View } from '../types';
 import { Button } from './ui';
 import { ArrowLeftIcon } from './icons';
@@ -17,9 +17,8 @@ interface State {
  * Standard Error Boundary component to catch rendering errors in the UI tree.
  * Inheriting from Component ensures access to setState and lifecycle methods.
  */
-// FIX: The type checker seems to be having trouble resolving the destructured `Component`.
-// Using `React.Component` directly to ensure correct type inheritance.
-class ErrorBoundary extends React.Component<Props, State> {
+// FIX: Changed to extend `Component` directly to resolve typing issues.
+class ErrorBoundary extends Component<Props, State> {
   // FIX: Using class property syntax for state to ensure it's always available on the instance.
   state: State = {
     hasError: false,

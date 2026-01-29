@@ -99,13 +99,14 @@ export const InstructorPrezentaPage: React.FC<{ onBack: () => void, onNavigate: 
         fetchTodaysTrainings();
     }, [showError, todayRo]);
 
-    // FIX: Refactored function to be more explicit with Set creation and cloning,
-    // resolving a TypeScript error where the type of the Set was not correctly inferred as iterable.
     const handleToggle = (antrenamentId: string, sportivId: string) => {
         setAttendance(prev => {
             const next = new Map(prev);
             const currentSetForAntrenament = next.get(antrenamentId) || new Set<string>();
-            const newSet = new Set(currentSetForAntrenament); // Always clone
+            // FIX: Explicitly create an array from the Set before creating a new Set.
+            // This can resolve type inference issues in some TypeScript configurations where the
+            // Set is not correctly identified as an iterable, causing the 'unknown' type error.
+            const newSet = new Set([...currentSetForAntrenament]);
 
             if (newSet.has(sportivId)) {
                 newSet.delete(sportivId);

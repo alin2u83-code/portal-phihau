@@ -1,0 +1,109 @@
+import React, { useState, useMemo } from 'react';
+import { Sportiv, User, Rol } from '../types';
+import { Card, Button } from './ui';
+import { ShieldCheckIcon, EditIcon } from './icons';
+
+interface DataIntegrityCheckProps {
+    sportivi: Sportiv[];
+    currentUser: User;
+    onEditSportiv: (sportiv: Sportiv) => void;
+}
+
+interface Issue {
+    type: 'critical' | 'warning' | 'info';
+    message: string;
+    action?: () => void;
+    actionLabel?: string;
+}
+
+export const DataIntegrityCheck: React.FC<DataIntegrityCheckProps> = ({ sportivi, currentUser, onEditSportiv }) => {
+    const [issues, setIssues] = useState<Issue[]>([]);
+    const [loading, setLoading] = useState(false);
+
+    const runChecks = () => {
+        setLoading(true);
+        const newIssues: Issue[] = [];
+
+        // Check 1: Current user profile validity (Critical)
+        if (!currentUser.id || !sportivi.some(s => s.id === currentUser.id)) {
+            newIssues.push({
+                type: 'critical',
+                message: "EROARE CRITICĂ: Utilizatorul curent nu are un profil valid (în tabela 'sportivi'). Anumite acțiuni, precum salvarea prezenței, vor eșua din cauza erorilor de Foreign Key. Contactați administratorul pentru a crea/asocia profilul.",
+            });
+        } else {
+             newIssues.push({
+                type: 'info',
+                message: "Profilul utilizatorului curent este valid și corect asociat.",
+            });
+        }
+
+        // Check 2: Staff members without user accounts (Warning)
+        const staffRoles: Rol['nume'][] = ['Instructor', 'Admin Club', 'Admin', 'SUPER_ADMIN_FEDERATIE'];
+        const staffWithoutAccounts = sportivi.filter(s =>
+            !s.user_id && s.roluri.some(r => staffRoles.includes(r.nume))
+        );
+
+        if (staffWithoutAccounts.length > 0) {
+            newIssues.push({
+                type: 'warning',
+                message: `Au fost găsiți ${staffWithoutAccounts.length} membri staff (Instructori/Admini) care nu au un cont de utilizator creat. Aceștia nu se pot autentifica.`,
+                action: () => alert(`Staff fără cont: ${staffWithoutAccounts.map(s => `${s.nume} ${s.prenume}`).join(', ')}`),
+                actionLabel: "Vezi Lista"
+            });
+        }
+
+        // Check 3: Athletes with incomplete critical data
+        const incompleteProfiles = sportivi.filter(s => s.status === 'Activ' && (!s.data_nasterii || !s.cnp));
+        if (incompleteProfiles.length > 0) {
+            newIssues.push({
+                type: 'warning',
+                message: `Există ${incompleteProfiles.length} sportivi activi cu date esențiale lipsă (CNP sau data nașterii).`,
+            });
+        }
+
+        setIssues(newIssues);
+        setLoading(false);
+    };
+
+    const IssueItem: React.FC<{ issue: Issue }> = ({ issue }) => {
+        const colorClasses = {
+            critical: 'border-red-500 bg-red-900/30 text-red-300',
+            warning: 'border-amber-500 bg-amber-900/30 text-amber-300',
+            info: 'border-sky-500 bg-sky-900/30 text-sky-300',
+        };
+        return (
+            <div className={`p-3 rounded-md border ${colorClasses[issue.type]}`}>
+                <p className="text-sm">{issue.message}</p>
+                {issue.action && issue.actionLabel && (
+                    <Button size="sm" variant="secondary" onClick={issue.action} className="mt-2">{issue.actionLabel}</Button>
+                )}
+            </div>
+        );
+    };
+
+    return (
+        <Card className="border-l-4 border-amber-400">
+            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <ShieldCheckIcon className="w-6 h-6 text-amber-400" />
+                Verificare Integritate Date
+            </h2>
+            <p className="text-sm text-slate-400 mb-4">
+                Rulează o serie de verificări pentru a identifica probleme comune de date care pot cauza erori, precum cea legată de salvarea prezenței.
+            </p>
+
+            <div className="flex justify-end mb-4">
+                <Button onClick={runChecks} isLoading={loading} variant="primary">
+                    Pornește Verificarea
+                </Button>
+            </div>
+            
+            {issues.length > 0 && (
+                <div className="space-y-3">
+                    {issues.map((issue, index) => (
+                        <IssueItem key={index} issue={issue} />
+                    ))}
+                </div>
+            )}
+        </Card>
+    );
+};

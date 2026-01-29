@@ -18,7 +18,7 @@ interface State {
  * Inheriting from Component ensures access to setState and lifecycle methods.
  */
 class ErrorBoundary extends Component<Props, State> {
-  // FIX: Use class property for state to avoid potential 'this' context issues in constructor.
+  // Use class property for state to avoid potential 'this' context issues in constructor.
   state: State = {
     hasError: false,
     error: undefined,
@@ -32,9 +32,10 @@ class ErrorBoundary extends Component<Props, State> {
     console.error("Uncaught error:", error, errorInfo);
   }
   
-  // FIX: Use arrow function for method to automatically bind 'this'.
-  // This was changed from a regular method to an arrow function to ensure 'this' is correctly bound to the component instance when called from an event handler.
-  handleRedirect = () => {
+  // FIX: Converted from an arrow function to a regular method and bound in the constructor.
+  // This resolves the type errors where `this.setState` and `this.props` were not found on the component instance,
+  // likely due to a build tooling issue with class property syntax.
+  handleRedirect() {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {
         this.props.onNavigate('dashboard');
@@ -48,7 +49,7 @@ class ErrorBoundary extends Component<Props, State> {
           <h1 className="text-2xl font-bold">A apărut o eroare neașteptată.</h1>
           <p className="mt-2">Ceva nu a funcționat corect în această secțiune. Încercați să reîncărcați pagina sau să reveniți la panoul principal.</p>
           {this.props.onNavigate && (
-              <Button onClick={this.handleRedirect} variant="secondary" className="mt-6">
+              <Button onClick={() => this.handleRedirect()} variant="secondary" className="mt-6">
                   <ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la pagina principală
               </Button>
           )}

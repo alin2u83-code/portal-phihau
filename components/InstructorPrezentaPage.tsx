@@ -102,14 +102,16 @@ export const InstructorPrezentaPage: React.FC<{ onBack: () => void, onNavigate: 
     const handleToggle = (antrenamentId: string, sportivId: string) => {
         setAttendance(prev => {
             const next = new Map(prev);
-            // FIX: Initialize with an empty array if the key doesn't exist to prevent an error from `new Set(undefined)`.
-            const presentSet = new Set(next.get(antrenamentId));
-            if (presentSet.has(sportivId)) {
-                presentSet.delete(sportivId);
+            // FIX: Refactored to explicitly handle Set creation and manipulation to avoid TypeScript type inference issues.
+            const currentSet = next.get(antrenamentId);
+            const newSet = currentSet ? new Set(currentSet) : new Set<string>();
+
+            if (newSet.has(sportivId)) {
+                newSet.delete(sportivId);
             } else {
-                presentSet.add(sportivId);
+                newSet.add(sportivId);
             }
-            next.set(antrenamentId, presentSet);
+            next.set(antrenamentId, newSet);
             return next;
         });
     };

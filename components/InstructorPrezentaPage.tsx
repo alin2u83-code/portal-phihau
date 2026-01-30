@@ -61,16 +61,16 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
 
             const initialAttendance = new Map<string, Set<string>>();
             const processedTrainings = (trainingsData || []).map((training: any) => {
-                // FIX: Supabase can return a single object for a to-one or a one-item to-many relation. Normalize to array before use.
+                // Supabase may return a single object instead of an array for a relationship. This normalizes it to always be an array.
                 if (training.grupe && training.grupe.sportivi) {
                     const sportiviRaw = training.grupe.sportivi;
                     training.grupe.sportivi = sportiviRaw ? (Array.isArray(sportiviRaw) ? sportiviRaw : [sportiviRaw]) : [];
                 }
-                // FIX: Supabase can return a single object for a to-one or a one-item to-many relation. Normalize to array before use.
+                // Supabase may return a single object instead of an array. Normalize to array before use.
                 const prezentaRaw = training.prezenta_antrenament;
-                // FIX: No overload matches this call. Add explicit type to prezentaArray to fix type inference.
+                // Add explicit type to prezentaArray to fix type inference issues.
                 const prezentaArray: { sportiv_id: string }[] = prezentaRaw ? (Array.isArray(prezentaRaw) ? prezentaRaw : [prezentaRaw]) : [];
-                // FIX: Typed the parameter `p` to ensure correct type inference for `prezentaIds`.
+                // Typed the parameter `p` to ensure correct type inference for `prezentaIds`.
                 const prezentaIds = prezentaArray.map((p: { sportiv_id: string }) => p.sportiv_id);
                 
                 initialAttendance.set(training.id, new Set(prezentaIds));
@@ -102,7 +102,7 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
         if (!sportivId) return;
         setExtraAthletes(prev => {
             const next = new Map(prev);
-            // FIX: Explicitly type `current` as `string[]` to resolve incorrect type inference.
+            // Explicitly type `current` as `string[]` to resolve incorrect type inference.
             const current: string[] = next.get(antrenamentId) ?? [];
             if (!current.includes(sportivId)) next.set(antrenamentId, [...current, sportivId]);
             return next;
@@ -113,7 +113,7 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
     const handleRemoveExternal = (antrenamentId: string, sportivId: string) => {
         setExtraAthletes(prev => {
             const next = new Map(prev);
-            // FIX: Explicitly type `current` as `string[]` to resolve incorrect type inference.
+            // Explicitly type `current` as `string[]` to resolve incorrect type inference.
             const current: string[] = next.get(antrenamentId) ?? [];
             next.set(antrenamentId, current.filter(id => id !== sportivId));
             return next;

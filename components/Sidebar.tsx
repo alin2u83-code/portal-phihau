@@ -13,6 +13,8 @@ const NavItem: React.FC<{
     onNavigate: (view: View) => void;
     activeView: View;
 }> = ({ item, isExpanded, isActive, onNavigate, activeView }) => {
+    if (!item) return null; // Safety check to prevent crash on undefined item
+
     const [isSubmenuOpen, setIsSubmenuOpen] = useState(false);
 
     useEffect(() => {
@@ -85,7 +87,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
     const menuToDisplay = useMemo(() => {
         if (isEmergencyAdmin) return federationAdminMenu;
         if (permissions.isFederationAdmin) return federationAdminMenu;
-        if (permissions.isAdminClub) return clubAdminMenu;
+        if (permissions.isAdminClub) return federationAdminMenu; // Ensure Admin Club gets full menu
         if (permissions.isInstructor) return instructorMenu;
         return sportivMenu;
     }, [permissions, isEmergencyAdmin]);

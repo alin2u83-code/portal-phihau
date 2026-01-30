@@ -27,7 +27,7 @@ export const GeneralAttendanceWidget: React.FC<GeneralAttendanceWidgetProps> = (
     const { showError } = useError();
 
     useEffect(() => {
-        if (!currentUser?.club_id || !supabase) {
+        if (!supabase) {
             setLoading(false);
             return;
         }
@@ -39,25 +39,11 @@ export const GeneralAttendanceWidget: React.FC<GeneralAttendanceWidgetProps> = (
             try {
                 const todayString = new Date().toISOString().split('T')[0];
                 
-                // Fetch groups for the club
-                const { data: grupeData, error: grupeError } = await supabase
-                    .from('grupe')
-                    .select('id')
-                    .eq('club_id', currentUser.club_id);
-                if (grupeError) throw grupeError;
-                const grupaIds = grupeData.map(g => g.id);
-                if (grupaIds.length === 0) {
-                    setStats({ present: 0, expected: 0, percentage: 0, trainingsCount: 0 });
-                    setLoading(false);
-                    return;
-                }
-
-                // Fetch trainings for the specific club on the current day
+                // RLS va filtra automat antrenamentele pentru clubul curent.
                 const { data: antrenamenteData, error: antrenamenteError } = await supabase
                     .from('program_antrenamente')
                     .select('id, grupa_id, sportivi_prezenti_ids:prezenta_antrenament(sportiv_id)')
-                    .eq('data', todayString)
-                    .in('grupa_id', grupaIds);
+                    .eq('data', todayString);
                 
                 if (antrenamenteError) throw antrenamenteError;
 
@@ -69,7 +55,8 @@ export const GeneralAttendanceWidget: React.FC<GeneralAttendanceWidgetProps> = (
                     return;
                 }
                 
-                const { data: sportivi, error: sportiviError } = await supabase.from('sportivi').select('id, grupa_id, status').eq('club_id', currentUser.club_id);
+                // RLS va filtra automat sportivii pentru clubul curent.
+                const { data: sportivi, error: sportiviError } = await supabase.from('sportivi').select('id, grupa_id, status');
                 if (sportiviError) throw sportiviError;
 
                 const presentIds = new Set<string>();
@@ -77,7 +64,7 @@ export const GeneralAttendanceWidget: React.FC<GeneralAttendanceWidgetProps> = (
 
                 const expectedIds = new Set<string>();
                 antrenamente.forEach(t => {
-                    sportivi.forEach(s => {
+                    (sportivi || []).forEach(s => {
                         if (s.grupa_id === t.grupa_id && s.status === 'Activ') {
                             expectedIds.add(s.id);
                         }

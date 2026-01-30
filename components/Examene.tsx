@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { SesiuneExamen, InscriereExamen, Sportiv, Grad, Locatie, Plata, PretConfig, User, Club, DecontFederatie, View } from '../types';
+import { SesiuneExamen, InscriereExamen, Sportiv, Grad, Locatie, Plata, PretConfig, User, Club, DecontFederatie, View, IstoricGrade } from '../types';
 import { Button, Modal, Input, Select, Card } from './ui';
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon, FileTextIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -18,21 +18,21 @@ const ComisieEditor: React.FC<{
 
     const handleAdd = () => {
         const trimmed = newMembru.trim();
-        if (trimmed && !membri.includes(trimmed)) {
-            setMembri([...membri, trimmed]);
+        if (trimmed && !(membri || []).includes(trimmed)) {
+            setMembri([...(membri || []), trimmed]);
             setNewMembru('');
         }
     };
 
     const handleRemove = (membruToRemove: string) => {
-        setMembri(membri.filter(m => m !== membruToRemove));
+        setMembri((membri || []).filter(m => m !== membruToRemove));
     };
 
     return (
         <div>
             <label className="block text-[11px] uppercase font-bold text-slate-400 mb-2 ml-1">Membri Comisie</label>
             <div className="space-y-2 mb-3">
-                {membri.map(membru => (
+                {(membri || []).map(membru => (
                     <div key={membru} className="bg-slate-700/50 p-2 rounded-md flex justify-between items-center text-sm">
                         <span className="font-medium text-white">{membru}</span>
                         <Button type="button" size="sm" variant="danger" onClick={() => handleRemove(membru)} className="!p-1.5 h-auto" title={`Elimină pe ${membru}`}>
@@ -40,7 +40,7 @@ const ComisieEditor: React.FC<{
                         </Button>
                     </div>
                 ))}
-                {membri.length === 0 && <p className="text-xs text-slate-500 italic text-center py-2">Niciun membru adăugat.</p>}
+                {(membri || []).length === 0 && <p className="text-xs text-slate-500 italic text-center py-2">Niciun membru adăugat.</p>}
             </div>
             <div className="flex items-end gap-2">
                 <div className="flex-grow">
@@ -140,14 +140,14 @@ const SesiuneForm: React.FC<SesiuneFormProps> = ({ isOpen, onClose, onSave, sesi
         {isSuperAdmin && (
             <Select label="Club Organizator" name="club_id" value={formState.club_id || ''} onChange={handleChange}>
                 <option value="">Federație (eveniment central)</option>
-                {clubs.map(c => <option key={c.id} value={c.id}>{c.nume}</option>)}
+                {(clubs || []).map(c => <option key={c.id} value={c.id}>{c.nume}</option>)}
             </Select>
         )}
         <div className="flex items-end gap-2">
             <div className="flex-grow">
                  <Select label="Locația" name="locatie_id" value={formState.locatie_id || ''} onChange={handleChange} required>
                     <option value="">Selectează locația...</option>
-                    {locatii.map(l => <option key={l.id} value={l.id}>{l.nume}</option>)}
+                    {(locatii || []).map(l => <option key={l.id} value={l.id}>{l.nume}</option>)}
                 </Select>
             </div>
             <Button type="button" variant="secondary" onClick={() => setIsLocatieModalOpen(true)} className="h-[38px] aspect-square p-0" title="Adaugă locație nouă"><PlusIcon className="w-5 h-5"/></Button>
@@ -168,6 +168,7 @@ interface DetaliiSesiuneProps {
     sportivi: Sportiv[];
     setSportivi: React.Dispatch<React.SetStateAction<Sportiv[]>>;
     grade: Grad[];
+    istoricGrade: IstoricGrade[];
     allInscrieri: InscriereExamen[];
     locatii: Locatie[];
     plati: Plata[];
@@ -209,7 +210,7 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
         <Card>
             <div className="flex justify-between items-start mb-6">
                 <div>
-                    <h3 className="text-2xl font-bold text-white">{props.locatii.find(l => l.id === props.sesiune.locatie_id)?.nume} - {new Date(props.sesiune.data + 'T00:00:00').toLocaleDateString('ro-RO')}</h3>
+                    <h3 className="text-2xl font-bold text-white">{(props.locatii || []).find(l => l.id === props.sesiune.locatie_id)?.nume} - {new Date(props.sesiune.data + 'T00:00:00').toLocaleDateString('ro-RO')}</h3>
                     <p className="text-slate-400 mb-2">Comisia: {Array.isArray(props.sesiune.comisia) ? props.sesiune.comisia.join(', ') : props.sesiune.comisia}</p>
                      {props.sesiune.status === 'Finalizat' ? (
                         <span className="px-3 py-1 text-sm font-bold text-green-300 bg-green-900/50 border border-green-700/50 rounded-full">Finalizat</span>
@@ -247,6 +248,7 @@ interface GestiuneExameneProps {
     sportivi: Sportiv[]; 
     setSportivi: React.Dispatch<React.SetStateAction<Sportiv[]>>; 
     grade: Grad[]; 
+    istoricGrade: IstoricGrade[];
     locatii: Locatie[]; 
     setLocatii: React.Dispatch<React.SetStateAction<Locatie[]>>; 
     plati: Plata[];
@@ -257,7 +259,7 @@ interface GestiuneExameneProps {
     onViewSportiv: (sportiv: Sportiv) => void;
 }
 
-export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, clubs, onBack, onNavigate, sesiuni, setSesiuni, inscrieri, setInscrieri, sportivi, setSportivi, grade, locatii, setLocatii, plati, setPlati, preturiConfig, deconturiFederatie, setDeconturiFederatie, onViewSportiv }) => {
+export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, clubs, onBack, onNavigate, sesiuni, setSesiuni, inscrieri, setInscrieri, sportivi, setSportivi, grade, istoricGrade, locatii, setLocatii, plati, setPlati, preturiConfig, deconturiFederatie, setDeconturiFederatie, onViewSportiv }) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [sesiuneToEdit, setSesiuneToEdit] = useState<SesiuneExamen | null>(null);
   const [sesiuneToDelete, setSesiuneToDelete] = useState<SesiuneExamen | null>(null);
@@ -265,7 +267,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
   const [selectedSesiuneId, setSelectedSesiuneId] = useLocalStorage<string | null>('phi-hau-selected-sesiune-id', null);
   const { showError, showSuccess } = useError();
   
-  const selectedSesiune = useMemo(() => selectedSesiuneId ? sesiuni.find(e => e.id === selectedSesiuneId) || null : null, [selectedSesiuneId, sesiuni]);
+  const selectedSesiune = useMemo(() => selectedSesiuneId ? (sesiuni || []).find(e => e.id === selectedSesiuneId) || null : null, [selectedSesiuneId, sesiuni]);
 
   const handleBackToList = () => setSelectedSesiuneId(null);
   
@@ -277,7 +279,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
   };
 
   const handleSaveSesiune = async (sesiuneData: Partial<SesiuneExamen>) => {
-    const locatieSelectata = locatii.find(l => l.id === sesiuneData.locatie_id);
+    const locatieSelectata = (locatii || []).find(l => l.id === sesiuneData.locatie_id);
     const dataToSave: Partial<SesiuneExamen> = {
         ...sesiuneData,
         localitate: locatieSelectata ? locatieSelectata.nume : 'Necunoscută',
@@ -319,11 +321,12 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
             <Button onClick={handleBackToList} className="mb-4" variant="secondary"><ArrowLeftIcon /> Înapoi la listă</Button>
             <DetaliiSesiune 
                 sesiune={selectedSesiune} 
-                inscrieri={inscrieri.filter(p => p.sesiune_id === selectedSesiune.id)} 
+                inscrieri={(inscrieri || []).filter(p => p.sesiune_id === selectedSesiune.id)} 
                 setInscrieri={setInscrieri} 
                 sportivi={sportivi} 
                 setSportivi={setSportivi}
                 grade={grade} 
+                istoricGrade={istoricGrade}
                 allInscrieri={inscrieri}
                 locatii={locatii}
                 plati={plati}
@@ -338,7 +341,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
      );
   }
 
-  const sortedSesiuni = [...sesiuni].sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+  const sortedSesiuni = [...(sesiuni || [])].sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime());
   return ( 
     <div>
       <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
@@ -355,7 +358,11 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {sortedSesiuni.map(s => ( 
-            <Card key={s.id} className="sesiune-card flex flex-col group hover:border-amber-400/50 hover:shadow-[0_0_15px_2px_rgba(251,146,60,0.4)] hover:-translate-y-1 transition-all duration-300">
+            <Card 
+                key={s.id} 
+                className="sesiune-card flex flex-col group hover:border-amber-400/50 hover:shadow-[0_0_15px_2px_rgba(251,146,60,0.4)] hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+                onClick={() => setSelectedSesiuneId(s.id)}
+            >
                 <div className="flex-grow">
                     <div className="flex justify-between items-start">
                         <span className={`px-2 py-1 text-xs font-bold rounded-full ${s.status === 'Finalizat' ? 'bg-green-600/30 text-green-300' : 'bg-sky-600/30 text-sky-300'}`}>
@@ -363,16 +370,15 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
                         </span>
                         <span className="text-sm font-bold text-slate-300">{new Date(s.data+'T00:00:00').toLocaleDateString('ro-RO')}</span>
                     </div>
-                    <h3 className="text-lg font-bold text-white mt-3 group-hover:text-brand-secondary transition-colors">{locatii.find(l => l.id === s.locatie_id)?.nume || 'Locație Nespecificată'}</h3>
-                    <p className="text-xs text-slate-400">{s.club_id ? (clubs.find(c => c.id === s.club_id)?.nume || 'Club Necunoscut') : 'Eveniment Federație'}</p>
+                    <h3 className="text-lg font-bold text-white mt-3 group-hover:text-brand-secondary transition-colors">{(locatii || []).find(l => l.id === s.locatie_id)?.nume || 'Locație Nespecificată'}</h3>
+                    <p className="text-xs text-slate-400">{s.club_id ? ((clubs || []).find(c => c.id === s.club_id)?.nume || 'Club Necunoscut') : 'Eveniment Federație'}</p>
                 </div>
                 <div className="mt-4 pt-4 border-t border-slate-700 flex justify-between items-center">
                     <div className="text-sm">
-                        <span className="font-bold text-white">{inscrieri.filter(p => p.sesiune_id === s.id).length}</span>
+                        <span className="font-bold text-white">{(inscrieri || []).filter(p => p.sesiune_id === s.id).length}</span>
                         <span className="text-slate-400"> participanți</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button size="sm" variant="info" onClick={() => setSelectedSesiuneId(s.id)}>Vezi Detalii</Button>
                         <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); setSesiuneToEdit(s); setIsFormOpen(true); }}><EditIcon className="w-4 h-4" /></Button>
                         <Button size="sm" variant="danger" onClick={(e) => { e.stopPropagation(); setSesiuneToDelete(s); }}><TrashIcon className="w-4 h-4" /></Button>
                     </div>

@@ -69,13 +69,13 @@ export const Button: React.FC<ButtonProps & { as?: 'label', htmlFor?: string }> 
   );
 };
 
-interface CardProps {
+interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
   className?: string;
 }
 
-export const Card: React.FC<CardProps> = ({ children, className }) => (
-  <div className={`bg-[var(--bg-card)] p-4 rounded-lg border border-[var(--border-color)] shadow-lg shadow-black/20 ${className}`}>
+export const Card: React.FC<CardProps> = ({ children, className, ...props }) => (
+  <div className={`bg-[var(--bg-card)] p-4 rounded-lg border border-[var(--border-color)] shadow-lg shadow-black/20 ${className}`} {...props}>
     {children}
   </div>
 );

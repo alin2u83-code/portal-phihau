@@ -1,6 +1,6 @@
 -- Funcția 1: Raport detaliat de prezență
 -- Returnează un tabel cu statistici de prezență pentru fiecare sportiv dintr-un club.
-CREATE OR REPLACE FUNCTION get_raport_prezenta_detaliat(p_club_id uuid)
+CREATE OR REPLACE FUNCTION get_raport_prezenta_detaliat()
 RETURNS TABLE (
     sportiv_id uuid,
     nume_complet text,
@@ -12,6 +12,8 @@ RETURNS TABLE (
 )
 LANGUAGE plpgsql
 AS $$
+DECLARE
+    v_club_id uuid := (auth.jwt() ->> 'club_id')::uuid;
 BEGIN
     RETURN QUERY
     WITH sportivi_club AS (
@@ -22,7 +24,7 @@ BEGIN
             s.grupa_id
         FROM public.sportivi s
         LEFT JOIN public.grade g ON s.grad_actual_id = g.id
-        WHERE s.club_id = p_club_id AND s.status = 'Activ'
+        WHERE s.club_id = v_club_id AND s.status = 'Activ'
     ),
     antrenamente_per_grupa AS (
         SELECT
@@ -63,7 +65,7 @@ $$;
 
 -- Funcția 2: Statistici rapide pentru Dashboard-ul de Club
 -- Returnează numărul de sportivi activi, grupe și totalul datoriilor.
-CREATE OR REPLACE FUNCTION get_club_dashboard_stats(p_club_id uuid)
+CREATE OR REPLACE FUNCTION get_club_dashboard_stats()
 RETURNS TABLE (
     sportivi_activi bigint,
     grupe_active bigint,
@@ -71,18 +73,20 @@ RETURNS TABLE (
 )
 LANGUAGE plpgsql
 AS $$
+DECLARE
+    v_club_id uuid := (auth.jwt() ->> 'club_id')::uuid;
 BEGIN
     RETURN QUERY
     SELECT
-        (SELECT COUNT(*) FROM public.sportivi WHERE club_id = p_club_id AND status = 'Activ') as sportivi_activi,
-        (SELECT COUNT(*) FROM public.grupe WHERE club_id = p_club_id) as grupe_active,
+        (SELECT COUNT(*) FROM public.sportivi WHERE club_id = v_club_id AND status = 'Activ') as sportivi_activi,
+        (SELECT COUNT(*) FROM public.grupe WHERE club_id = v_club_id) as grupe_active,
         (SELECT COALESCE(SUM(p.suma), 0)
          FROM public.plati p
          WHERE (p.status = 'Neachitat' OR p.status = 'Achitat Parțial')
          AND (
-            (p.sportiv_id IS NOT NULL AND EXISTS (SELECT 1 FROM public.sportivi s WHERE s.id = p.sportiv_id AND s.club_id = p_club_id))
+            (p.sportiv_id IS NOT NULL AND EXISTS (SELECT 1 FROM public.sportivi s WHERE s.id = p.sportiv_id AND s.club_id = v_club_id))
             OR
-            (p.familie_id IS NOT NULL AND EXISTS (SELECT 1 FROM public.sportivi s WHERE s.familie_id = p.familie_id AND s.club_id = p_club_id))
+            (p.familie_id IS NOT NULL AND EXISTS (SELECT 1 FROM public.sportivi s WHERE s.familie_id = p.familie_id AND s.club_id = v_club_id))
          )) as total_datorii;
 END;
 $$;

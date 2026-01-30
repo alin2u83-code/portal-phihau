@@ -31,18 +31,8 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
             setLoading(true);
             const todayISO = new Date().toISOString().split('T')[0];
 
-            if (!supabase || !currentUser.club_id) {
-                showError("Eroare Configurare", "Clubul utilizatorului nu a fost găsit.");
-                setLoading(false);
-                return;
-            }
-            
-            const { data: grupeDataRaw, error: grupeError } = await supabase.from('grupe').select('id').eq('club_id', currentUser.club_id);
-            if(grupeError) { showError("Eroare", grupeError); setLoading(false); return; }
-            const grupaIds = (grupeDataRaw || []).map(g => g.id);
-
-            if (grupaIds.length === 0) {
-                setTrainings([]);
+            if (!supabase) {
+                showError("Eroare Configurare", "Clientul Supabase nu a fost găsit.");
                 setLoading(false);
                 return;
             }
@@ -50,8 +40,7 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
             const { data: trainingsData, error: trainingsError } = await supabase
                 .from('program_antrenamente')
                 .select('*, grupe(*, sportivi(id, nume, prenume, status)), prezenta_antrenament(sportiv_id)')
-                .eq('data', todayISO)
-                .in('grupa_id', grupaIds);
+                .eq('data', todayISO);
 
             if (trainingsError) {
                 showError("Eroare la încărcarea antrenamentelor", trainingsError);
@@ -59,7 +48,6 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
                 return;
             }
 
-            // FIX: The line was incomplete. Completed Map initialization and logic to populate it from fetched data.
             const initialAttendance = new Map<string, Set<string>>();
             (trainingsData || []).forEach(training => {
                 const presentIds = new Set((training.prezenta_antrenament as {sportiv_id: string}[]).map(p => p.sportiv_id));
@@ -82,7 +70,7 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
             setLoading(false);
         };
         fetchTodaysTrainings();
-    }, [currentUser.club_id, showError]);
+    }, [currentUser.id, showError]);
 
     // NOTE: The rest of this component was missing from the provided file and could not be reconstructed.
     // This fix makes the existing code syntactically correct, but the component will not render anything useful.

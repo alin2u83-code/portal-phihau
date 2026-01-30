@@ -17,28 +17,23 @@ export const RaportActivitate: React.FC<{ onBack: () => void, currentUser: User 
 
     useEffect(() => {
         const fetchData = async () => {
-            if (!currentUser.club_id) {
-                showError("Eroare", "Clubul utilizatorului nu este setat.");
-                setLoading(false);
-                return;
-            }
             if (!supabase) {
                  showError("Eroare", "Client Supabase neconfigurat.");
                  setLoading(false);
                  return;
             }
             setLoading(true);
-            const { data: rpcData, error } = await supabase.rpc('get_raport_prezenta_detaliat', { p_club_id: currentUser.club_id });
+            const { data: rpcData, error } = await supabase.rpc('get_raport_prezenta_detaliat');
             
             if (error) {
-                showError("Eroare la încărcare raport", `Asigurați-vă că funcția RPC 'get_raport_prezenta_detaliat' există în baza de date. Detalii: ${error.message}`);
+                showError("Eroare la încărcare raport", `Asigurați-vă că funcția RPC 'get_raport_prezenta_detaliat' există în baza de date și nu necesită parametri. Detalii: ${error.message}`);
             } else {
                 setData(rpcData as RaportActivitateRecord[]);
             }
             setLoading(false);
         };
         fetchData();
-    }, [currentUser.club_id, showError]);
+    }, [currentUser.id, showError]);
 
     const sortedAndFilteredData = useMemo(() => {
         let sortableData = [...data];

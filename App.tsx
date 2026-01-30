@@ -25,7 +25,6 @@ import { BackupManager } from './components/BackupManager';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { ProgramareActivitati } from './components/Activitati';
 import { ClubSettings } from './components/ClubSettings';
-import { AdminHeader } from './components/AdminHeader';
 import { DataInspector } from './components/DataInspector';
 import { ReduceriManagement } from './components/Reduceri';
 import { Notificari } from './components/Notificari';
@@ -395,6 +394,8 @@ function App() {
             grade={grade}
             grupe={filteredData.grupe}
             sesiuniExamene={sesiuniExamene}
+            onSwitchRole={handleSwitchRole}
+            isSwitchingRole={isSwitchingRole}
         />;
 
       case 'sportivi':
@@ -543,6 +544,8 @@ function App() {
             grade={grade}
             grupe={grupe}
             sesiuniExamene={sesiuniExamene}
+            onSwitchRole={handleSwitchRole}
+            isSwitchingRole={isSwitchingRole}
         />;
     }
   };
@@ -558,23 +561,12 @@ function App() {
             activeView={activeView} 
             isExpanded={isSidebarExpanded} 
             setIsExpanded={setIsSidebarExpanded} 
-            plati={filteredData.plati}
             clubs={clubs}
             globalClubFilter={globalClubFilter}
             setGlobalClubFilter={setGlobalClubFilter}
             permissions={permissions}
           />
           <main className={`flex-1 transition-all duration-300 ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'}`}>
-            <AdminHeader 
-                currentUser={currentUser!} 
-                onNavigate={setActiveView} 
-                onLogout={handleLogout} 
-                plati={filteredData.plati} 
-                permissions={permissions}
-                activeRole={activeRole}
-                onSwitchRole={handleSwitchRole}
-                isSwitchingRole={isSwitchingRole}
-            />
             <div className="p-4 md:p-8 max-w-7xl mx-auto">
               {permissions.isSuperAdmin && activeView === 'dashboard' && <GlobalContextSwitcher activeContext={adminContext} onContextChange={setAdminContext} />}
               <ErrorBoundary onNavigate={setActiveView}>

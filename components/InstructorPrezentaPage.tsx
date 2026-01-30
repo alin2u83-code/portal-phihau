@@ -36,6 +36,8 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
             setLoading(true);
             const todayISO = new Date().toISOString().split('T')[0];
 
+            if (!supabase) return;
+
             const { data: userProfile, error: profileError } = await supabase.from('sportivi').select('club_id').eq('user_id', currentUser.user_id).single();
             if (profileError || !userProfile?.club_id) {
                 showError("Eroare Profil", "Nu s-a putut determina clubul instructorului. Verificați dacă profilul este corect configurat.");
@@ -44,7 +46,7 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
             }
             const clubId = userProfile.club_id;
             
-            // FIX: Normalize `grupeData` to prevent crash if Supabase returns a single object or null.
+            // FIX: Cast Supabase results to any[] to fix iteration errors on 'unknown' types.
             const { data: grupeDataRaw, error: grupeError } = await supabase.from('grupe').select('id').eq('club_id', clubId);
             if(grupeError) { showError("Eroare", grupeError); setLoading(false); return; }
             const grupeData: any[] = grupeDataRaw ? (Array.isArray(grupeDataRaw) ? grupeDataRaw : [grupeDataRaw]) : [];
@@ -71,7 +73,7 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
             
             if (recurringError) { showError("Eroare la încărcarea programului recurent", recurringError); setLoading(false); return; }
 
-            // FIX: Explicitly type `singleTrainingsRaw` as `any[]` to prevent iterator errors.
+            // FIX: Cast singleTrainingsRaw to any[] for safe mapping.
             const singleTrainingsRaw: any[] = Array.isArray(singleTrainingsData) ? singleTrainingsData : (singleTrainingsData ? [singleTrainingsData] : []);
             const singleTrainings = singleTrainingsRaw.map((training: any) => {
                 if (training.grupe && training.grupe.sportivi) {
@@ -81,18 +83,17 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
                 return training;
             });
 
-            const combined: TrainingWithGroupAndAthletes[] = [...(singleTrainings || []) as TrainingWithGroupAndAthletes[]];
+            // FIX: Ensure singleTrainings is recognized as an array before spreading.
+            const combined: TrainingWithGroupAndAthletes[] = [...(singleTrainings as any[])];
             const initialAttendance = new Map<string, Set<string>>();
 
-            // FIX: Normalize recurringTrainingsRaw to an array to prevent iteration errors when Supabase returns a single object.
-            const recurringTrainings: any[] = recurringTrainingsRaw ? (Array.isArray(recurringTrainingsRaw) ? recurringTrainingsRaw : [recurringTrainingsRaw]) : [];
+            // FIX: Normalize and cast recurringTrainingsRaw to any[] to resolve iterator errors.
+            const recurringTrainings: any[] = recurringTrainingsRaw ? (Array.isArray(recurringTrainingsRaw) ? (recurringTrainingsRaw as any[]) : [recurringTrainingsRaw]) : [];
 
             recurringTrainings.forEach(grupa => {
-                // FIX: When using `!inner(*)` or `(*)`, Supabase may return a single object instead of an array. This normalizes it to always be an array to prevent iteration errors.
                 const programItemsRaw: any = grupa.program_antrenamente;
                 const programItems: any[] = programItemsRaw ? (Array.isArray(programItemsRaw) ? programItemsRaw : [programItemsRaw]) : [];
                                 
-                // FIX: `sportivi(*)` can also return a single object. This normalizes it to an array.
                 const sportiviRaw: any = grupa.sportivi;
                 const sportiviList: any[] = sportiviRaw ? (Array.isArray(sportiviRaw) ? sportiviRaw : [sportiviRaw]) : [];
 
@@ -111,7 +112,6 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
             const trainingIds = combined.map(t => t.id).filter(id => !id.startsWith('recurent-'));
             if (trainingIds.length > 0) {
                  const { data: prezentaDataRaw } = await supabase.from('prezenta_antrenament').select('*').in('antrenament_id', trainingIds);
-                // FIX: Ensure `prezentaData` is an array before iterating to prevent runtime errors when Supabase returns a single object.
                 if (prezentaDataRaw) {
                     const prezentaData: any[] = Array.isArray(prezentaDataRaw) ? prezentaDataRaw : [prezentaDataRaw];
                     prezentaData.forEach((p: any) => {
@@ -132,7 +132,8 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
     const handleToggle = (antrenamentId: string, sportivId: string) => {
         setAttendance(prev => {
             const next = new Map(prev);
-            const currentSet = next.get(antrenamentId) || new Set<string>();
+            // FIX: Explicitly cast return of next.get to resolve 'unknown' iterator error in Set spread.
+            const currentSet = (next.get(antrenamentId) || new Set<string>()) as Set<string>;
             const newSet = new Set([...currentSet]);
             if (newSet.has(sportivId)) {
                 newSet.delete(sportivId);
@@ -149,7 +150,8 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
         if (!sportivId) return;
         setExtraAthletes(prev => {
             const next = new Map(prev);
-            const current = next.get(antrenamentId) || [];
+            // FIX: Explicitly cast return of next.get to string[] to resolve 'unknown' property includes error.
+            const current = (next.get(antrenamentId) || []) as string[];
             if (!current.includes(sportivId)) {
                 next.set(antrenamentId, [...current, sportivId]);
             }
@@ -161,13 +163,15 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
     const handleRemoveExternal = (antrenamentId: string, sportivId: string) => {
         setExtraAthletes(prev => {
             const next = new Map(prev);
-            const current = next.get(antrenamentId) || [];
+            // FIX: Explicitly cast return of next.get to string[] to resolve 'unknown' property filter error.
+            const current = (next.get(antrenamentId) || []) as string[];
             next.set(antrenamentId, current.filter(id => id !== sportivId));
             return next;
         });
     };
 
     const handleSave = async (antrenament: TrainingWithGroupAndAthletes) => {
+        if (!supabase) return;
         setSavingStates(prev => ({ ...prev, [antrenament.id]: true }));
         try {
             let antrenamentId = antrenament.id;

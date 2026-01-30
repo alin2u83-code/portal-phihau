@@ -5,7 +5,7 @@ import { useError } from './ErrorProvider';
 import { Button } from './ui';
 import { ShieldCheckIcon } from './icons';
 
-const DEV_EMAIL = 'admin@phihau.ro';
+const AUTHORIZED_EMAILS = ['admin@phihau.ro', 'alin2u83@gmail.com'];
 
 interface AdminDebugFloatingPanelProps {
     currentUser: User | null;
@@ -16,7 +16,7 @@ export const AdminDebugFloatingPanel: React.FC<AdminDebugFloatingPanelProps> = (
     const [loadingRole, setLoadingRole] = useState<Rol['nume'] | null>(null);
     const { showError, showSuccess } = useError();
 
-    if (!currentUser || currentUser.email !== DEV_EMAIL) {
+    if (!currentUser || !AUTHORIZED_EMAILS.includes(currentUser.email || '')) {
         return null;
     }
 

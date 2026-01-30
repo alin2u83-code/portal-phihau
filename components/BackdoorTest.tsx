@@ -11,7 +11,8 @@ interface BackdoorTestProps {
     activeRole: Rol['nume'];
 }
 
-const DEV_EMAIL = 'admin@phihau.ro';
+// Actualizat pentru a permite accesul administratorului clubului Phi Hau
+const AUTHORIZED_EMAILS = ['admin@phihau.ro', 'alin2u83@gmail.com'];
 
 export const BackdoorTest: React.FC<BackdoorTestProps> = ({ currentUser, onBack, activeRole }) => {
     const { showError, showSuccess } = useError();
@@ -46,10 +47,11 @@ export const BackdoorTest: React.FC<BackdoorTestProps> = ({ currentUser, onBack,
         }
     };
 
-    if (currentUser.email !== DEV_EMAIL) {
+    if (!AUTHORIZED_EMAILS.includes(currentUser.email || '')) {
         return (
             <Card className="text-center p-8">
                 <p className="text-red-400 font-bold">Acces restricționat.</p>
+                <p className="text-sm text-slate-400 mt-2">Acest modul este rezervat dezvoltatorilor și administratorilor de sistem.</p>
                 <Button onClick={onBack} className="mt-4">Înapoi</Button>
             </Card>
         );

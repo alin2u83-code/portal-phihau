@@ -10,7 +10,7 @@ interface BackdoorCheckProps {
     onBack: () => void;
 }
 
-const DEV_EMAIL = 'admin@phihau.ro';
+const AUTHORIZED_EMAILS = ['admin@phihau.ro', 'alin2u83@gmail.com'];
 
 export const BackdoorCheck: React.FC<BackdoorCheckProps> = ({ currentUser, onBack }) => {
     const [liveData, setLiveData] = useState<{ clubs: number, sportivi: number } | null>(null);
@@ -45,7 +45,7 @@ export const BackdoorCheck: React.FC<BackdoorCheckProps> = ({ currentUser, onBac
     const isSuperAdminContext = activeRole === 'SUPER_ADMIN_FEDERATIE';
     const isSuccess = isSuperAdminContext && liveData && liveData.clubs > 1;
 
-    if (currentUser.email !== DEV_EMAIL) {
+    if (!AUTHORIZED_EMAILS.includes(currentUser.email || '')) {
         return (
             <Card className="text-center p-8">
                 <p className="text-red-400 font-bold">Acces restricționat.</p>

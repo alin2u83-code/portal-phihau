@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../supabaseClient';
-import { Antrenament, Sportiv, Grupa, ProgramItem, User } from '../types';
+import { Antrenament, Sportiv, Grupa, User } from '../types';
 import { useError } from './ErrorProvider';
 import { Card, Button, Select } from './ui';
 import { ArrowLeftIcon, ArchiveBoxIcon, UserPlusIcon, XIcon } from './icons';
@@ -31,17 +31,13 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
             setLoading(true);
             const todayISO = new Date().toISOString().split('T')[0];
 
-            if (!supabase) return;
-
-            const { data: userProfile, error: profileError } = await supabase.from('sportivi').select('club_id').eq('user_id', currentUser.user_id).single();
-            if (profileError || !userProfile?.club_id) {
-                showError("Eroare Profil", "Nu s-a putut determina clubul instructorului. Verificați dacă profilul este corect configurat.");
+            if (!supabase || !currentUser.club_id) {
+                showError("Eroare Configurare", "Clubul utilizatorului nu a fost găsit.");
                 setLoading(false);
                 return;
             }
-            const clubId = userProfile.club_id;
             
-            const { data: grupeDataRaw, error: grupeError } = await supabase.from('grupe').select('id').eq('club_id', clubId);
+            const { data: grupeDataRaw, error: grupeError } = await supabase.from('grupe').select('id').eq('club_id', currentUser.club_id);
             if(grupeError) { showError("Eroare", grupeError); setLoading(false); return; }
             const grupaIds = (grupeDataRaw || []).map(g => g.id);
 
@@ -51,11 +47,9 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
                 return;
             }
             
-            // SIMPLIFIED: Fetch all trainings with today's date for the instructor's club.
-            // This query fetches the training, its group, the athletes in that group, and the attendance for that training.
             const { data: trainingsData, error: trainingsError } = await supabase
                 .from('program_antrenamente')
-                .select('*, grupe(*, sportivi(*)), prezenta_antrenament(sportiv_id)')
+                .select('*, grupe(*, sportivi(id, nume, prenume, status)), prezenta_antrenament(sportiv_id)')
                 .eq('data', todayISO)
                 .in('grupa_id', grupaIds);
 
@@ -67,20 +61,19 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
 
             const initialAttendance = new Map<string, Set<string>>();
             const processedTrainings = (trainingsData || []).map((training: any) => {
-                // Normalize nested arrays from Supabase which might be objects if only one result is returned.
+                // FIX: Supabase can return a single object for a to-one or a one-item to-many relation. Normalize to array before use.
                 if (training.grupe && training.grupe.sportivi) {
                     const sportiviRaw = training.grupe.sportivi;
                     training.grupe.sportivi = sportiviRaw ? (Array.isArray(sportiviRaw) ? sportiviRaw : [sportiviRaw]) : [];
                 }
+                // FIX: Supabase can return a single object for a to-one or a one-item to-many relation. Normalize to array before use.
                 const prezentaRaw = training.prezenta_antrenament;
-                const prezentaIds = prezentaRaw ? (Array.isArray(prezentaRaw) ? prezentaRaw : [prezentaRaw]).map((p: any) => p.sportiv_id) : [];
+                const prezentaArray = prezentaRaw ? (Array.isArray(prezentaRaw) ? prezentaRaw : [prezentaRaw]) : [];
+                const prezentaIds = prezentaArray.map((p: any) => p.sportiv_id);
                 
                 initialAttendance.set(training.id, new Set(prezentaIds));
                 
-                return {
-                    ...training,
-                    sportivi_prezenti_ids: prezentaIds,
-                };
+                return { ...training, sportivi_prezenti_ids: prezentaIds };
             });
             
             setTrainings(processedTrainings.sort((a, b) => a.ora_start.localeCompare(b.ora_start)));
@@ -89,19 +82,14 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
         };
 
         fetchTodaysTrainings();
-    }, [showError, currentUser.user_id]);
+    }, [showError, currentUser.club_id, currentUser.user_id]);
 
     const handleToggle = (antrenamentId: string, sportivId: string) => {
         setAttendance(prev => {
             const next = new Map(prev);
-            // FIX: Explicitly cast return of next.get to resolve 'unknown' iterator error in Set spread.
-            const currentSet = (next.get(antrenamentId) || new Set<string>()) as Set<string>;
-            const newSet = new Set([...currentSet]);
-            if (newSet.has(sportivId)) {
-                newSet.delete(sportivId);
-            } else {
-                newSet.add(sportivId);
-            }
+            const currentSet = next.get(antrenamentId) || new Set<string>();
+            const newSet = new Set(currentSet);
+            if (newSet.has(sportivId)) newSet.delete(sportivId); else newSet.add(sportivId);
             next.set(antrenamentId, newSet);
             return next;
         });
@@ -112,11 +100,8 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
         if (!sportivId) return;
         setExtraAthletes(prev => {
             const next = new Map(prev);
-            // FIX: Explicitly cast return of next.get to string[] to resolve 'unknown' property includes error.
-            const current = (next.get(antrenamentId) || []) as string[];
-            if (!current.includes(sportivId)) {
-                next.set(antrenamentId, [...current, sportivId]);
-            }
+            const current = next.get(antrenamentId) || [];
+            if (!current.includes(sportivId)) next.set(antrenamentId, [...current, sportivId]);
             return next;
         });
         setSelectedExternalSportiv(prev => ({ ...prev, [antrenamentId]: '' }));
@@ -125,8 +110,7 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
     const handleRemoveExternal = (antrenamentId: string, sportivId: string) => {
         setExtraAthletes(prev => {
             const next = new Map(prev);
-            // FIX: Explicitly cast return of next.get to string[] to resolve 'unknown' property filter error.
-            const current = (next.get(antrenamentId) || []) as string[];
+            const current = next.get(antrenamentId) || [];
             next.set(antrenamentId, current.filter(id => id !== sportivId));
             return next;
         });
@@ -136,17 +120,8 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
         if (!supabase) return;
         setSavingStates(prev => ({ ...prev, [antrenament.id]: true }));
         try {
-            let antrenamentId = antrenament.id;
-            if (antrenament.is_recurent && antrenament.id.startsWith('recurent-')) {
-                const { data, error } = await supabase.from('program_antrenamente').insert({
-                    data: antrenament.data, ora_start: antrenament.ora_start, ora_sfarsit: antrenament.ora_sfarsit,
-                    grupa_id: antrenament.grupa_id, is_recurent: false,
-                }).select('id').single();
-                if (error) throw error;
-                antrenamentId = data.id;
-            }
-
-            const presentSportivIds = Array.from(attendance.get(antrenament.id) || []);
+            const antrenamentId = antrenament.id;
+            const presentSportivIds = Array.from(attendance.get(antrenamentId) || []);
             
             const { error: deleteError } = await supabase.from('prezenta_antrenament').delete().eq('antrenament_id', antrenamentId);
             if (deleteError) throw deleteError;

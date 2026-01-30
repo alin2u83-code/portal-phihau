@@ -57,6 +57,7 @@ import { RaportActivitate } from './components/RaportActivitate';
 import { BackdoorCheck } from './components/BackdoorCheck';
 import { BackdoorTest } from './components/BackdoorTest';
 import { AdminConsole } from './components/AdminConsole';
+import { ArhivaPrezente } from './components/ArhivaPrezente';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -429,6 +430,9 @@ function App() {
       case 'prezenta-instructor':
         return renderProtected(<InstructorPrezentaPage onBack={() => setActiveView('dashboard')} onNavigate={setActiveView} allClubSportivi={filteredData.sportivi} currentUser={currentUser} />, permissions.isInstructor);
       
+      case 'arhiva-prezente':
+        return renderProtected(<ArhivaPrezente onBack={() => setActiveView('prezenta-instructor')} />, permissions.isInstructor);
+        
       case 'raport-activitate':
         return renderProtected(<RaportActivitate onBack={() => setActiveView('dashboard')} currentUser={currentUser} />, permissions.isInstructor);
 

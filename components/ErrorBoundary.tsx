@@ -14,14 +14,13 @@ interface State {
 }
 
 class ErrorBoundary extends Component<Props, State> {
-  // FIX: All errors stemmed from state not being initialized.
-  // Initializing state in the constructor resolves issues with 'this' context and ensures 'this.state' is available.
   constructor(props: Props) {
     super(props);
     this.state = {
       hasError: false,
       error: undefined,
     };
+    this.handleRedirect = this.handleRedirect.bind(this);
   }
 
   static getDerivedStateFromError(error: Error): State {
@@ -32,7 +31,7 @@ class ErrorBoundary extends Component<Props, State> {
     console.error("Uncaught error:", error, errorInfo);
   }
 
-  handleRedirect = () => {
+  handleRedirect() {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {
         this.props.onNavigate('dashboard');

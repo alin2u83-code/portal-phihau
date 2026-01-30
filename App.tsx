@@ -95,13 +95,11 @@ function App() {
   const [isSwitchingRole, setIsSwitchingRole] = useState(false);
 
   const activeRole = useMemo((): Rol['nume'] => {
+    // Logic updated to be exclusively based on rol_activ_context as requested.
     if (currentUser?.rol_activ_context && currentUser.roluri.some(r => r.nume === currentUser.rol_activ_context)) {
         return currentUser.rol_activ_context;
     }
-    if (currentUser?.roluri && currentUser.roluri.length > 0) {
-      const roleWeights: Record<Rol['nume'], number> = { 'SUPER_ADMIN_FEDERATIE': 5, 'Admin': 4, 'Admin Club': 3, 'Instructor': 2, 'Sportiv': 1 };
-      return [...currentUser.roluri].sort((a, b) => (roleWeights[b.nume] || 0) - (roleWeights[a.nume] || 0))[0]?.nume || 'Sportiv';
-    }
+    // If no valid context is set, ALWAYS default to 'Sportiv'.
     return 'Sportiv';
   }, [currentUser]);
 

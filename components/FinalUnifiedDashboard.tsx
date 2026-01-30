@@ -47,13 +47,13 @@ export const FinalUnifiedDashboard: React.FC<FinalUnifiedDashboardProps> = (prop
                 <h3 className="text-lg font-bold text-amber-400 mb-3">Control Context (DEV)</h3>
                 <div className="flex flex-wrap gap-2">
                     <Button variant="secondary" onClick={() => onSwitchRole('Sportiv')} isLoading={isSwitchingRole} disabled={isSwitchingRole}>
-                        Mod Sportiv
+                        👤 Mod Sportiv
                     </Button>
                     <Button variant="secondary" onClick={() => onSwitchRole('Admin Club')} isLoading={isSwitchingRole} disabled={isSwitchingRole}>
-                        Mod Admin Club
+                        🥋 Mod Admin Club
                     </Button>
                     <Button variant="secondary" onClick={() => onSwitchRole('SUPER_ADMIN_FEDERATIE')} isLoading={isSwitchingRole} disabled={isSwitchingRole}>
-                        Mod Federație
+                        🛡️ Mod Federație
                     </Button>
                 </div>
             </Card>

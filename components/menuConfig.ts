@@ -107,7 +107,7 @@ export const clubAdminMenu: MenuItem[] = [
         ]
     },
     { 
-        label: 'Financiar Club', 
+        label: 'Financiar', 
         icon: BanknotesIcon, 
         submenu: [ 
             { view: 'financial-dashboard', label: 'Dashboard Financiar' },
@@ -119,7 +119,7 @@ export const clubAdminMenu: MenuItem[] = [
         ] 
     },
     {
-        label: 'Setări Club',
+        label: 'Setări & Nomenclatoare',
         icon: CogIcon,
         submenu: [
             { label: 'Setări Club', view: 'setari-club' },
@@ -129,7 +129,9 @@ export const clubAdminMenu: MenuItem[] = [
             { label: 'Nomenclator Grade', view: 'grade' },
             { label: 'Politici Reducere', view: 'reduceri' },
             { label: 'Categorii Plăți', view: 'nomenclatoare' },
+            { label: 'Management Cluburi', view: 'cluburi' },
             { label: 'Trimite Notificări', view: 'notificari' },
+            { label: 'Mentenanță Date', view: 'data-maintenance' },
         ]
     }
 ];

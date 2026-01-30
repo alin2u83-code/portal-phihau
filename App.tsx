@@ -124,7 +124,7 @@ function App() {
             'data-maintenance', 'activitati', 'setari-club', 'data-inspector', 'reduceri',
             'notificari', 'taxe-anuale', 'nomenclatoare', 'financial-dashboard',
             'finalizare-examen', 'rapoarte-examen', 'cluburi', 'structura-federatie', 'deconturi-federatie',
-            'federation-dashboard', 'gestiune-facturi', 'prezenta-instructor', 'raport-activitate'
+            'federation-dashboard', 'gestiune-facturi', 'prezenta-instructor', 'raport-activitate', 'admin-console'
         ];
         if (adminViews.includes(activeView)) {
             setActiveView('my-portal');

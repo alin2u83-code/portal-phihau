@@ -124,6 +124,42 @@ function App() {
 
   const permissions = usePermissions(currentUser, activeRole);
   const { activeClubId, globalClubFilter, setGlobalClubFilter } = useClubFilter(currentUser, permissions);
+  
+  const handleSwitchRole = useCallback(async (roleName: Rol['nume']) => {
+      if (!supabase || !currentUser?.id) return;
+      setIsSwitchingRole(true);
+      
+      const { error } = await supabase
+        .from('sportivi')
+        .update({ rol_activ_context: roleName })
+        .eq('id', currentUser.id);
+
+      if (error) {
+          showError("Eroare la comutarea rolului", error.message);
+          setIsSwitchingRole(false);
+      } else {
+          if (roleName === 'Sportiv') {
+              localStorage.setItem('phi-hau-redirect-after-role-switch', 'my-portal');
+          } else {
+              localStorage.removeItem('phi-hau-redirect-after-role-switch');
+          }
+          window.location.reload();
+      }
+  }, [currentUser, showError]);
+  
+  useEffect(() => {
+    // This effect fulfills the user request to switch to ADMIN_CLUB context and reload.
+    // It uses sessionStorage to ensure it only runs once per session to avoid a reload loop.
+    const hasAutoSwitched = sessionStorage.getItem('phi-hau-role-autoswitch');
+    // Only switch if the user has the role and hasn't been switched this session.
+    if (!hasAutoSwitched && currentUser?.roluri.some(r => r.nume === 'Admin Club')) {
+        // Check if we are not already in the desired context
+        if (currentUser.rol_activ_context !== 'Admin Club') {
+            sessionStorage.setItem('phi-hau-role-autoswitch', 'true');
+            handleSwitchRole('Admin Club');
+        }
+    }
+  }, [currentUser, handleSwitchRole]);
 
   useEffect(() => {
     const redirectView = localStorage.getItem('phi-hau-redirect-after-role-switch');
@@ -405,28 +441,6 @@ function App() {
   const handleIncasareProcesata = () => {
     setPlatiPentruIncasare([]);
     initializeAndFetchData();
-  };
-
-  const handleSwitchRole = async (roleName: Rol['nume']) => {
-      if (!supabase || !currentUser?.id) return;
-      setIsSwitchingRole(true);
-      
-      const { error } = await supabase
-        .from('sportivi')
-        .update({ rol_activ_context: roleName })
-        .eq('id', currentUser.id);
-
-      if (error) {
-          showError("Eroare la comutarea rolului", error.message);
-          setIsSwitchingRole(false);
-      } else {
-          if (roleName === 'Sportiv') {
-              localStorage.setItem('phi-hau-redirect-after-role-switch', 'my-portal');
-          } else {
-              localStorage.removeItem('phi-hau-redirect-after-role-switch');
-          }
-          window.location.reload();
-      }
   };
 
   const renderContent = () => {

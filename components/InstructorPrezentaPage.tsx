@@ -48,7 +48,7 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
             if(grupeError) { showError("Eroare", grupeError); setLoading(false); return; }
             const grupaIds = (grupeInClub || []).map(g => g.id);
 
-            const { data: singleTrainings, error: singleError } = await supabase
+            const { data: singleTrainingsData, error: singleError } = await supabase
                 .from('program_antrenamente')
                 .select('*, grupe(*, sportivi(*))')
                 .eq('data', todayISO)
@@ -64,6 +64,8 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
             
             if (recurringError) { showError("Eroare la încărcarea programului recurent", recurringError); setLoading(false); return; }
 
+            // FIX: Ensure singleTrainings is always an array to prevent iteration errors when Supabase returns a single object.
+            const singleTrainings = Array.isArray(singleTrainingsData) ? singleTrainingsData : (singleTrainingsData ? [singleTrainingsData] : []);
             const combined: TrainingWithGroupAndAthletes[] = [...(singleTrainings || []) as TrainingWithGroupAndAthletes[]];
             const initialAttendance = new Map<string, Set<string>>();
 

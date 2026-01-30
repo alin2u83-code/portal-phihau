@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { User, View, Plata, Club } from '../types';
 import { federationAdminMenu, clubAdminMenu, instructorMenu, sportivMenu, MenuItem } from './menuConfig';
-import { ArrowRightOnRectangleIcon, Bars3Icon, ChevronDownIcon, UserCircleIcon } from './icons';
+import { ArrowRightOnRectangleIcon, Bars3Icon, ChevronDownIcon, UserCircleIcon, ShieldCheckIcon } from './icons';
 import { AdminProfileQuickAccess } from './AdminProfileQuickAccess';
 import { Select } from './ui';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
@@ -128,6 +128,22 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
                      const isActive = item.view === activeView || (item.submenu?.some(s => s.view === activeView) ?? false);
                      return <NavItem key={item.label} item={item} isExpanded={isExpanded} isActive={isActive} onNavigate={handleNavigate} activeView={activeView} />
                 })}
+
+                {currentUser.email === 'alin2u83@yahoo.com' && (
+                    <div className="pt-4 mt-4 border-t border-amber-500/30">
+                        <NavItem
+                            item={{
+                                label: 'Backdoor Test',
+                                icon: ShieldCheckIcon,
+                                view: 'backdoor-test',
+                            }}
+                            isExpanded={isExpanded}
+                            isActive={activeView === 'backdoor-test'}
+                            onNavigate={handleNavigate}
+                            activeView={activeView}
+                        />
+                    </div>
+                )}
             </nav>
 
              <div className="p-3 border-t border-white/10">

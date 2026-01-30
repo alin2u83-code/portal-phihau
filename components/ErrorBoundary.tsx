@@ -14,12 +14,7 @@ interface State {
 }
 
 class ErrorBoundary extends Component<Props, State> {
-  // FIX: The errors about 'state', 'props', and 'setState' not existing on the component
-  // type suggest an issue with the build configuration's support for class field syntax.
-  // Reverting to a standard constructor for state initialization and method binding
-  // resolves these TypeScript errors and ensures broader compatibility.
-
-  // FIX: Reverted to a standard constructor for state initialization and method binding to resolve compilation errors caused by class field syntax.
+  // FIX: Replaced class field syntax with a standard constructor for state initialization and method binding. This resolves compilation errors where `this.state` and `this.props` were not found, which can occur in build environments that do not support class fields.
   constructor(props: Props) {
     super(props);
     this.state = {

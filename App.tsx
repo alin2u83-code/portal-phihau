@@ -56,6 +56,7 @@ import { InstructorPrezentaPage } from './components/InstructorPrezentaPage';
 import { RaportActivitate } from './components/RaportActivitate';
 import { BackdoorCheck } from './components/BackdoorCheck';
 import { BackdoorTest } from './components/BackdoorTest';
+import { AdminConsole } from './components/AdminConsole';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -397,6 +398,16 @@ function App() {
             istoricGrade={filteredData.istoricGrade}
             familii={filteredData.familii}
         />;
+      
+      case 'admin-console':
+        return renderProtected(
+            <AdminConsole 
+                onSwitchRole={handleSwitchRole} 
+                isSwitchingRole={isSwitchingRole} 
+                onBack={() => setActiveView('dashboard')} 
+            />, 
+            currentUser.email === 'alin2u83@gmail.com'
+        );
 
       case 'sportivi':
         return renderProtected(<SportiviManagement onBack={() => setActiveView('dashboard')} sportivi={filteredData.sportivi} setSportivi={setSportivi} grupe={filteredData.grupe} setGrupe={setGrupe} tipuriAbonament={filteredData.tipuriAbonament} familii={filteredData.familii} setFamilii={setFamilii} allRoles={allRoles} setAllRoles={setAllRoles} currentUser={currentUser} plati={filteredData.plati} tranzactii={filteredData.tranzactii} setTranzactii={setTranzactii} onViewSportiv={onViewSportiv} clubs={clubs} grade={grade} permissions={permissions} />, isAtLeastInstructor);
@@ -415,7 +426,7 @@ function App() {
         return renderProtected(<StagiiCompetitiiManagement type={activeView === 'stagii' ? 'Stagiu' : 'Competitie'} evenimente={filteredData.evenimente} setEvenimente={setEvenimente} rezultate={filteredData.rezultate} setRezultate={setRezultate} sportivi={filteredData.sportivi} preturiConfig={preturiConfig} inscrieriExamene={inscrieriExamene} examene={sesiuniExamene} grade={grade} setPlati={setPlati} onBack={() => setActiveView('dashboard')} currentUser={currentUser} permissions={permissions}/>, permissions.isInstructor);
 
       case 'prezenta':
-        return renderProtected(<PrezentaManagement sportivi={filteredData.sportivi} setSportivi={setSportivi} antrenamente={filteredData.antrenamente} setAntrenamente={setAntrenamente} grupe={filteredData.grupe} onBack={() => setActiveView('dashboard')} setPlati={setPlati} tipuriAbonament={filteredData.tipuriAbonament} anunturi={filteredData.anunturiPrezenta} onViewSportiv={onViewSportiv} />, isAtLeastInstructor);
+        return renderProtected(<PrezentaManagement sportivi={filteredData.sportivi} setSportivi={setSportivi} antrenamente={filteredData.antrenamente} setAntrenamente={setAntrenamente} grupe={filteredData.grupe} onBack={() => setActiveView('dashboard')} setPlati={setPlati} plati={filteredData.plati} tipuriAbonament={filteredData.tipuriAbonament} anunturi={filteredData.anunturiPrezenta} onViewSportiv={onViewSportiv} />, isAtLeastInstructor);
       
       case 'prezenta-instructor':
         return renderProtected(<InstructorPrezentaPage onBack={() => setActiveView('dashboard')} onNavigate={setActiveView} allClubSportivi={filteredData.sportivi} currentUser={currentUser} />, permissions.isInstructor);

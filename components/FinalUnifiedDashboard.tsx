@@ -63,25 +63,6 @@ export const FinalUnifiedDashboard: React.FC<FinalUnifiedDashboardProps> = (prop
         );
     }
     
-    const DevContextSwitcher = () => (
-        currentUser.email === 'alin2u83@gmail.com' && (
-            <Card className="border-l-4 border-amber-500">
-                <h3 className="text-lg font-bold text-amber-400 mb-3">Control Context (DEV)</h3>
-                <div className="flex flex-wrap gap-2">
-                    <Button variant="secondary" onClick={() => onSwitchRole('Sportiv')} isLoading={isSwitchingRole} disabled={isSwitchingRole}>
-                        👤 Mod Sportiv
-                    </Button>
-                    <Button variant="secondary" onClick={() => onSwitchRole('Admin Club')} isLoading={isSwitchingRole} disabled={isSwitchingRole}>
-                        🥋 Mod Admin Club
-                    </Button>
-                    <Button variant="secondary" onClick={() => onSwitchRole('SUPER_ADMIN_FEDERATIE')} isLoading={isSwitchingRole} disabled={isSwitchingRole}>
-                        🛡️ Mod Federație
-                    </Button>
-                </div>
-            </Card>
-        )
-    );
-
     // NEW Admin Club Dashboard
     if (permissions.isAdminClub) {
         const stats = useMemo(() => {
@@ -141,7 +122,6 @@ export const FinalUnifiedDashboard: React.FC<FinalUnifiedDashboardProps> = (prop
 
         return (
              <div className="space-y-8">
-                <DevContextSwitcher />
                 <header>
                     <h1 className="text-3xl font-bold text-white">Panou de Control Club</h1>
                     <p className="text-slate-400">Bine ai venit, {currentUser.prenume}!</p>
@@ -159,7 +139,7 @@ export const FinalUnifiedDashboard: React.FC<FinalUnifiedDashboardProps> = (prop
                          <Card>
                             <h3 className="text-lg font-bold text-white mb-3">Ultimii 5 Sportivi Înscriși</h3>
                             <div className="space-y-2">
-                                {last5Registered.map(s => (
+                                {(last5Registered || []).map(s => (
                                     <div key={s.id} className="flex justify-between items-center bg-slate-800/50 p-2 rounded-md">
                                         <p className="font-semibold text-white">{s.nume} {s.prenume}</p>
                                         <p className="text-xs text-slate-400">{new Date(s.data_inscrierii).toLocaleDateString('ro-RO')}</p>
@@ -170,7 +150,7 @@ export const FinalUnifiedDashboard: React.FC<FinalUnifiedDashboardProps> = (prop
                          <Card>
                             <h3 className="text-lg font-bold text-white mb-3">Top 5 Datornici</h3>
                             <div className="space-y-2">
-                                {top5Debtors.map(d => (
+                                {(top5Debtors || []).map(d => (
                                     <div key={d.name} className="flex justify-between items-center bg-red-900/20 p-2 rounded-md">
                                         <p className="font-semibold text-white">{d.name}</p>
                                         <p className="font-bold text-red-500">{d.debt.toFixed(2)} RON</p>
@@ -198,7 +178,6 @@ export const FinalUnifiedDashboard: React.FC<FinalUnifiedDashboardProps> = (prop
     if (permissions.hasAdminAccess) {
         return (
             <div className="space-y-8 animate-fade-in-down">
-                <DevContextSwitcher />
                 <header>
                     <h1 className="text-3xl font-bold text-white">Panou de Control Principal</h1>
                     <p className="text-slate-400">Selectează un modul pentru a începe.</p>
@@ -237,7 +216,6 @@ export const FinalUnifiedDashboard: React.FC<FinalUnifiedDashboardProps> = (prop
     // Sportiv View
     return (
          <div className="space-y-8">
-            <DevContextSwitcher />
             <SportivDashboard 
                 currentUser={currentUser}
                 viewedUser={currentUser} 

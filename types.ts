@@ -12,6 +12,7 @@
 
 
 
+
 export interface Rol {
   id: string;
   nume: 'Sportiv' | 'Instructor' | 'Admin' | 'SUPER_ADMIN_FEDERATIE' | 'Admin Club';
@@ -61,7 +62,6 @@ export interface Sportiv {
   puncte_slabe?: string | null;
   obiective?: string | null;
   trebuie_schimbata_parola?: boolean;
-  last_sign_in_at?: string | null;
   [key: string]: any; 
 }
 

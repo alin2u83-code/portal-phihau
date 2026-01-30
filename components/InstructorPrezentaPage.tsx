@@ -68,9 +68,9 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
                 }
                 // FIX: Supabase can return a single object for a to-one or a one-item to-many relation. Normalize to array before use.
                 const prezentaRaw = training.prezenta_antrenament;
-                // FIX: Explicitly type prezentaArray to prevent prezentaIds from being typed as 'unknown[]', which would cause `new Set()` to fail.
+                // FIX: No overload matches this call. Add explicit type to prezentaArray to fix type inference.
                 const prezentaArray: { sportiv_id: string }[] = prezentaRaw ? (Array.isArray(prezentaRaw) ? prezentaRaw : [prezentaRaw]) : [];
-                const prezentaIds = prezentaArray.map((p: { sportiv_id: string }) => p.sportiv_id);
+                const prezentaIds = prezentaArray.map((p: any) => p.sportiv_id);
                 
                 initialAttendance.set(training.id, new Set(prezentaIds));
                 
@@ -101,8 +101,8 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
         if (!sportivId) return;
         setExtraAthletes(prev => {
             const next = new Map(prev);
-            // FIX: Explicitly type 'current' to ensure 'includes' method is available and avoid 'unknown' type error.
-            const current: string[] = next.get(antrenamentId) || [];
+            // FIX: Type '{}' is missing the following properties from type 'string[]'. Use nullish coalescing to ensure 'current' is always an array.
+            const current = next.get(antrenamentId) ?? [];
             if (!current.includes(sportivId)) next.set(antrenamentId, [...current, sportivId]);
             return next;
         });
@@ -112,8 +112,8 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
     const handleRemoveExternal = (antrenamentId: string, sportivId: string) => {
         setExtraAthletes(prev => {
             const next = new Map(prev);
-            // FIX: Explicitly type 'current' to ensure 'filter' method is available and avoid 'unknown' type error.
-            const current: string[] = next.get(antrenamentId) || [];
+            // FIX: Type 'unknown' is not assignable to type 'string[]'. Use nullish coalescing to ensure 'current' is an array.
+            const current = next.get(antrenamentId) ?? [];
             next.set(antrenamentId, current.filter(id => id !== sportivId));
             return next;
         });

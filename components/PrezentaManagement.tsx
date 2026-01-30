@@ -26,7 +26,6 @@ const AntrenamentForm: React.FC<{
     
     const [formState, setFormState] = useState(getInitialState());
     const [loading, setLoading] = useState(false);
-    const { showError } = useError();
 
     useEffect(() => {
         if (isOpen) {
@@ -234,7 +233,6 @@ export const PrezentaManagement: React.FC<{
 
     const initialFilters = { tip: '', data: new Date().toISOString().split('T')[0], grupa: '', ziua: '' };
     const [filters, setFilters] = useLocalStorage('phi-hau-prezenta-filters', initialFilters);
-    const zileSaptamana: ProgramItem['ziua'][] = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'];
 
     const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;

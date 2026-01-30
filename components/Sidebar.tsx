@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { User, View, Club, Permissions, Rol } from '../types';
-import { instructorMenu, sportivMenu, MenuItem } from './menuConfig';
+import { instructorMenu, sportivMenu, clubAdminMenu, federationAdminMenu, MenuItem } from './menuConfig';
 import { ArrowRightOnRectangleIcon, Bars3Icon, ChevronDownIcon, ShieldCheckIcon } from './icons';
 import { Select } from './ui';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
 
-// Sub-component for instructor/sportiv navigation items
+// Sub-component for navigation items
 const NavItem: React.FC<{
     item: MenuItem;
     isExpanded: boolean;
@@ -45,32 +45,6 @@ const NavItem: React.FC<{
     );
 };
 
-// Grouped menu for Admins
-const adminMenuGroups: { group: string; items: { id: View; label: string; icon: string }[] }[] = [
-  {
-    group: 'Management',
-    items: [
-      { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-      { id: 'sportivi', label: 'Sportivi', icon: '🥋' },
-      { id: 'prezenta', label: 'Prezențe', icon: '📝' },
-      { id: 'examene', label: 'Examene & Grade', icon: '📜' },
-    ]
-  },
-  {
-    group: 'Financiar',
-    items: [
-      { id: 'gestiune-facturi', label: 'Facturi & Încasări', icon: '💰' },
-      { id: 'plati-scadente', label: 'Listă Facturi', icon: '💳' },
-    ]
-  },
-  {
-    group: 'Administrativ',
-    items: [
-      { id: 'grupe', label: 'Configurare Grupe', icon: '📅' },
-      { id: 'cluburi', label: 'Cluburi Federale', icon: '🏛️' },
-    ]
-  }
-];
 
 // Main Sidebar Component
 interface SidebarProps {
@@ -106,6 +80,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
         }
         return currentUser.cluburi?.nume || 'Club Nesetat';
     }, [permissions, currentUser, globalClubFilter, clubs]);
+    
+    const menuToDisplay = useMemo(() => {
+        if (permissions.isFederationAdmin) return federationAdminMenu;
+        if (permissions.isAdminClub) return clubAdminMenu;
+        if (permissions.isInstructor) return instructorMenu;
+        return sportivMenu;
+    }, [permissions]);
 
     // Main content of the sidebar
     const sidebarContent = (
@@ -135,27 +116,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
             )}
 
             <nav className="flex-1 px-2 py-4 space-y-1.5 overflow-y-auto">
-                {isAdmin ? (
-                    <>
-                        <button onClick={() => handleNavigate('admin-console')} className={`flex items-center w-full px-2 py-3 mb-2 text-amber-400 border-b border-amber-500/20 hover:bg-amber-500/10 transition-all rounded-md ${activeView === 'admin-console' ? 'bg-amber-500/20' : ''}`} title="Consolă Switch">
-                            <span className={`text-xl ${!isExpanded ? 'mx-auto' : ''}`}>🛡️</span>
-                            {isExpanded && <span className="ml-3 font-bold uppercase text-[10px] tracking-widest">Consolă Switch</span>}
-                        </button>
-                        
-                        {adminMenuGroups.map((group) => (
-                            <div key={group.group} className="mb-2">
-                                {isExpanded && <p className="px-2 text-[9px] uppercase text-gray-500 font-bold mb-1">{group.group}</p>}
-                                {group.items.map((item) => (
-                                <button key={item.id} onClick={() => handleNavigate(item.id as View)} className={`flex items-center w-full px-2 py-2.5 transition-colors rounded-md ${activeView === item.id ? 'bg-blue-600/30 text-blue-300' : 'text-gray-300 hover:bg-gray-800'}`} title={!isExpanded ? item.label : ''}>
-                                    <span className={`text-lg ${!isExpanded ? 'mx-auto' : ''}`}>{item.icon}</span>
-                                    {isExpanded && <span className="ml-3 text-sm font-semibold">{item.label}</span>}
-                                </button>
-                                ))}
-                                {!isExpanded && <div className="h-px bg-slate-700/50 my-2"></div>}
-                            </div>
-                        ))}
-                    </>
-                ) : (permissions.isInstructor ? instructorMenu : sportivMenu).map(item => {
+                {isAdmin && (
+                     <button onClick={() => handleNavigate('admin-console')} className={`flex items-center w-full p-2.5 mb-2 text-amber-400 border-b border-amber-500/20 hover:bg-amber-500/10 transition-all rounded-md ${activeView === 'admin-console' ? 'bg-amber-500/20' : ''}`} title="Consolă Switch">
+                        <ShieldCheckIcon className={`h-6 w-6 shrink-0 ${isExpanded ? 'mr-3' : 'mx-auto'}`} />
+                        {isExpanded && <span className="ml-0 font-bold uppercase text-sm tracking-widest">Consolă Switch</span>}
+                    </button>
+                )}
+                
+                {menuToDisplay.map(item => {
                      const isActive = item.view === activeView || (item.submenu?.some(s => s.view === activeView) ?? false);
                      return <NavItem key={item.label} item={item} isExpanded={isExpanded} isActive={isActive} onNavigate={handleNavigate} activeView={activeView} />
                 })}

@@ -394,6 +394,8 @@ function App() {
             sesiuniExamene={sesiuniExamene}
             onSwitchRole={handleSwitchRole}
             isSwitchingRole={isSwitchingRole}
+            istoricGrade={filteredData.istoricGrade}
+            familii={filteredData.familii}
         />;
 
       case 'sportivi':
@@ -544,6 +546,8 @@ function App() {
             sesiuniExamene={sesiuniExamene}
             onSwitchRole={handleSwitchRole}
             isSwitchingRole={isSwitchingRole}
+            istoricGrade={istoricGrade}
+            familii={familii}
         />;
     }
   };

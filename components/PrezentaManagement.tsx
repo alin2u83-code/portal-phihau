@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Antrenament, Sportiv, Grupa, Plata, TipAbonament, AnuntPrezenta, ProgramItem } from '../types';
 import { Button, Card, Input, Select, Modal } from './ui';
 import { PlusIcon, ArrowLeftIcon, TrashIcon, EditIcon, XIcon, CheckIcon, ExclamationTriangleIcon } from './icons';
@@ -261,9 +261,10 @@ export const PrezentaManagement: React.FC<{
             const { data, error } = await supabase.from('program_antrenamente').update(antrenamentData).eq('id', antrenamentToEdit.id).select('*, grupe(*), prezenta_antrenament!antrenament_id(sportiv_id)').single();
             if (error) { showError("Eroare la actualizare", error); } 
             else if (data) { 
-                // FIX: Normalize `prezenta_antrenament` to an array before using .map() to avoid errors when Supabase returns a single object.
                 const prezentaRaw = (data as any).prezenta_antrenament;
-                const prezentaArray = prezentaRaw ? (Array.isArray(prezentaRaw) ? prezentaRaw : [prezentaRaw]) : [];
+                // FIX: Normalize the response from Supabase, which can be an object or an array for a relationship.
+                // FIX: Added explicit type to prezentaArray to avoid type errors with .map()
+                const prezentaArray: { sportiv_id: string }[] = prezentaRaw ? (Array.isArray(prezentaRaw) ? prezentaRaw : [prezentaRaw]) : [];
                 const formatted: Antrenament = { ...data, sportivi_prezenti_ids: prezentaArray.map((ps: any) => ps.sportiv_id) };
                 setAntrenamente(prev => prev.map(p => p.id === data.id ? formatted : p));
             }

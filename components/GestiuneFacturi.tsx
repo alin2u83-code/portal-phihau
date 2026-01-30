@@ -37,10 +37,35 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
     const [isDeleting, setIsDeleting] = useState(false);
 
     const clubSportivi = useMemo(() => sportivi.filter(s => s.club_id === currentUser.club_id).sort((a, b) => a.nume.localeCompare(b.nume)), [sportivi, currentUser.club_id]);
+    
     const clubPlati = useMemo(() => {
         const clubSportiviIds = new Set(clubSportivi.map(s => s.id));
-        return plati.filter(p => p.sportiv_id && clubSportiviIds.has(p.sportiv_id)).sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+        const clubFamiliiIds = new Set(clubSportivi.map(s => s.familie_id).filter(Boolean));
+        
+        return plati
+            .filter(p => {
+                if (p.sportiv_id && clubSportiviIds.has(p.sportiv_id)) {
+                    return true;
+                }
+                if (p.familie_id && clubFamiliiIds.has(p.familie_id)) {
+                    return true;
+                }
+                return false;
+            })
+            .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
     }, [plati, clubSportivi]);
+
+    const getEntityName = (plata: Plata) => {
+        if (plata.familie_id) {
+            const familie = (familii || []).find(f => f.id === plata.familie_id);
+            return `Familia ${familie?.nume || 'N/A'}`;
+        }
+        if (plata.sportiv_id) {
+            const s = sportivi.find(sp => sp.id === plata.sportiv_id);
+            return s ? `${s.nume} ${s.prenume}` : 'Sportiv Șters';
+        }
+        return 'N/A';
+    };
 
     const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setFormState(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -153,7 +178,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
                         <thead className="bg-slate-800 text-slate-400 sticky top-0">
                             <tr>
                                 <th className="p-3">Data</th>
-                                <th className="p-3">Sportiv</th>
+                                <th className="p-3">Sportiv/Familie</th>
                                 <th className="p-3">Descriere</th>
                                 <th className="p-3 text-right">Sumă</th>
                                 <th className="p-3 text-center">Status</th>
@@ -164,11 +189,17 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
                             {clubPlati.map(p => (
                                 <tr key={p.id}>
                                     <td className="p-3">{new Date(p.data).toLocaleDateString('ro-RO')}</td>
-                                    <td className="p-3 font-medium text-white">{sportivi.find(s => s.id === p.sportiv_id)?.nume} {sportivi.find(s => s.id === p.sportiv_id)?.prenume}</td>
+                                    <td className="p-3 font-medium text-white">{getEntityName(p)}</td>
                                     <td className="p-3">{p.descriere}</td>
                                     <td className="p-3 text-right font-bold text-white">{p.suma.toFixed(2)} lei</td>
                                     <td className="p-3 text-center">
-                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${p.status === 'Achitat' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{p.status}</span>
+                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                                            p.status === 'Achitat' ? 'bg-green-600/20 text-green-400 border-green-600/50' : 
+                                            p.status === 'Achitat Parțial' ? 'bg-amber-600/20 text-amber-400 border-amber-600/50' : 
+                                            'bg-red-600/20 text-red-400 border-red-600/50'
+                                        }`}>
+                                            {p.status}
+                                        </span>
                                     </td>
                                     <td className="p-3 text-right">
                                         <div className="flex justify-end gap-2">

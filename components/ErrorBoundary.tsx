@@ -1,4 +1,4 @@
-import React, { ReactNode, ErrorInfo, Component } from 'react';
+import React, { ReactNode, ErrorInfo } from 'react';
 import { View } from '../types';
 import { Button } from './ui';
 import { ArrowLeftIcon } from './icons';
@@ -13,7 +13,7 @@ interface State {
   error?: Error;
 }
 
-class ErrorBoundary extends Component<Props, State> {
+class ErrorBoundary extends React.Component<Props, State> {
   public state: State = {
     hasError: false,
     error: undefined,

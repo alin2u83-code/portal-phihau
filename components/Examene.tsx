@@ -184,6 +184,18 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
     const [isFinalizing, setIsFinalizing] = useState(false);
 
     const handleFinalizeExam = async () => {
+        const hasResults = props.inscrieri.some(
+            inscriere => inscriere.rezultat === 'Admis' || inscriere.rezultat === 'Respins'
+        );
+
+        if (!hasResults) {
+            showError(
+                "Finalizare Blocată", 
+                "Nu se poate finaliza examenul deoarece niciun sportiv nu are un rezultat ('Admis' sau 'Respins') înregistrat. Vă rugăm să evaluați candidații mai întâi."
+            );
+            return;
+        }
+
         if (!window.confirm("Această acțiune este ireversibilă. Se va marca examenul ca finalizat și se va genera decontul pentru federație. Doriți să continuați?")) {
             return;
         }

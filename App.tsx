@@ -96,16 +96,15 @@ function App() {
   const [isSwitchingRole, setIsSwitchingRole] = useState(false);
 
   const activeRole = useMemo((): Rol['nume'] => {
-    const roleFromMeta = session?.user?.user_metadata?.active_role as Rol['nume'];
-    if (roleFromMeta && currentUser?.roluri.some(r => r.nume === roleFromMeta)) {
-      return roleFromMeta;
+    if (currentUser?.rol_activ_context && currentUser.roluri.some(r => r.nume === currentUser.rol_activ_context)) {
+        return currentUser.rol_activ_context;
     }
     if (currentUser?.roluri && currentUser.roluri.length > 0) {
       const roleWeights: Record<Rol['nume'], number> = { 'SUPER_ADMIN_FEDERATIE': 5, 'Admin': 4, 'Admin Club': 3, 'Instructor': 2, 'Sportiv': 1 };
       return [...currentUser.roluri].sort((a, b) => (roleWeights[b.nume] || 0) - (roleWeights[a.nume] || 0))[0]?.nume || 'Sportiv';
     }
     return 'Sportiv';
-  }, [session, currentUser]);
+  }, [currentUser]);
 
   const permissions = usePermissions(currentUser, activeRole);
   const { activeClubId, globalClubFilter, setGlobalClubFilter } = useClubFilter(currentUser, permissions);
@@ -341,9 +340,14 @@ function App() {
   };
 
   const handleSwitchRole = async (roleName: Rol['nume']) => {
-      if (!supabase) return;
+      if (!supabase || !currentUser?.id) return;
       setIsSwitchingRole(true);
-      const { error } = await supabase.auth.updateUser({ data: { active_role: roleName } });
+      
+      const { error } = await supabase
+        .from('sportivi')
+        .update({ rol_activ_context: roleName })
+        .eq('id', currentUser.id);
+
       if (error) {
           showError("Eroare la comutarea rolului", error.message);
           setIsSwitchingRole(false);

@@ -40,6 +40,7 @@ export interface Sportiv {
   parola?: string; // Only for creating new users
   rol?: 'ADMIN_CLUB' | string | null; // Sistem de roluri simplu
   roluri: Rol[];
+  rol_activ_context?: Rol['nume'] | null;
   data_nasterii: string;
   cnp: string | null;
   inaltime?: number; // în cm, pentru calcul preț echipament

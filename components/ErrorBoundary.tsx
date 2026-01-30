@@ -14,11 +14,19 @@ interface State {
 }
 
 class ErrorBoundary extends Component<Props, State> {
-  // Fix: Refactored to use modern class property syntax for state to avoid constructor issues.
-  state: State = {
-    hasError: false,
-    error: undefined,
-  };
+  // FIX: Reverted from class properties to a constructor for state and method binding.
+  // The errors "Property 'setState' does not exist" and "Property 'props' does not exist"
+  // suggest that the 'this' context is being lost, which can happen with certain build
+  // configurations that don't fully support class field syntax. The constructor
+  // pattern is more robust and guarantees 'this' is correctly bound.
+  constructor(props: Props) {
+    super(props);
+    this.state = {
+      hasError: false,
+      error: undefined,
+    };
+    this.handleRedirect = this.handleRedirect.bind(this);
+  }
 
   static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
@@ -27,9 +35,8 @@ class ErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("Uncaught error:", error, errorInfo);
   }
-  
-  // Fix: Refactored to an arrow function to automatically bind 'this'.
-  handleRedirect = () => {
+
+  handleRedirect() {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {
         this.props.onNavigate('dashboard');

@@ -6,6 +6,8 @@
 
 
 
+
+
 export interface Rol {
   id: string;
   nume: 'Sportiv' | 'Instructor' | 'Admin' | 'SUPER_ADMIN_FEDERATIE' | 'Admin Club';
@@ -275,4 +277,18 @@ export interface ClubDashboardStats {
     sportivi_activi: number;
     grupe_active: number;
     total_datorii: number;
+}
+
+export interface Permissions {
+    isSuperAdmin: boolean;
+    isAdmin: boolean;
+    isFederationAdmin: boolean;
+    isAdminClub: boolean;
+    isInstructor: boolean;
+    isSportiv: boolean;
+    hasAdminAccess: boolean;
+    isFederationLevel: boolean;
+    canManageFinances: boolean;
+    canGradeStudents: boolean;
+    visibleClubIds: 'all' | string[];
 }

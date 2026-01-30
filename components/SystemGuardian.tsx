@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User } from '../types';
-import { Permissions } from '../hooks/usePermissions';
+import { User, Permissions } from '../types';
 import { clubTheme, federationTheme, applyTheme, Theme } from '../themes';
 import { FEDERATIE_ID } from '../constants';
 

@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { Club, User } from '../types';
+import { Club, User, Permissions } from '../types';
 import { Button, Modal, Input, Card } from './ui';
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
-import { Permissions } from '../hooks/usePermissions';
 
 interface ClubFormModalProps {
     isOpen: boolean;

@@ -1,10 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { Sportiv, User, Rol, Club } from '../types';
+import { Sportiv, User, Rol, Club, Permissions } from '../types';
 import { Button, Input, Card, Select, Modal } from './ui';
 import { ArrowLeftIcon, EditIcon, ShieldCheckIcon, PlusIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
-import { Permissions } from '../hooks/usePermissions';
 
 const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
     // FIX: Add missing 'SUPER_ADMIN_FEDERATIE' and 'Admin Club' roles to satisfy the Record type.

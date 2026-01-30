@@ -1,15 +1,5 @@
 import { useMemo } from 'react';
-import { User, Rol } from '../types';
-
-export interface Permissions {
-    isSuperAdmin: boolean;
-    isAdmin: boolean;
-    isFederationAdmin: boolean; // Super Admin or regular Admin
-    isAdminClub: boolean;
-    isInstructor: boolean;
-    isSportiv: boolean;
-    hasAdminAccess: boolean; // Helper for general admin panel access
-}
+import { User, Rol, Permissions } from '../types';
 
 const initialPermissions: Permissions = {
     isSuperAdmin: false,
@@ -19,6 +9,10 @@ const initialPermissions: Permissions = {
     isInstructor: false,
     isSportiv: false,
     hasAdminAccess: false,
+    isFederationLevel: false,
+    canManageFinances: false,
+    canGradeStudents: false,
+    visibleClubIds: [],
 };
 
 export const usePermissions = (user: User | null, activeRole: Rol['nume'] | null): Permissions => {
@@ -27,6 +21,7 @@ export const usePermissions = (user: User | null, activeRole: Rol['nume'] | null
             return initialPermissions;
         }
 
+        // Base role flags
         const isSuperAdmin = activeRole === 'SUPER_ADMIN_FEDERATIE';
         const isAdmin = activeRole === 'Admin';
         const isFederationAdmin = isSuperAdmin || isAdmin;
@@ -35,7 +30,15 @@ export const usePermissions = (user: User | null, activeRole: Rol['nume'] | null
         const isInstructor = activeRole === 'Instructor';
         const isSportiv = activeRole === 'Sportiv';
         
-        const hasAdminAccess = isSuperAdmin || isAdmin || isAdminClub || isInstructor;
+        const hasAdminAccess = isFederationAdmin || isAdminClub || isInstructor;
+        
+        // New business logic flags
+        const isFederationLevel = isFederationAdmin;
+        const canManageFinances = hasAdminAccess;
+        const canGradeStudents = hasAdminAccess;
+
+        // Visible clubs logic
+        const visibleClubIds: 'all' | string[] = isFederationLevel ? 'all' : (user.club_id ? [user.club_id] : []);
         
         return {
             isSuperAdmin,
@@ -45,6 +48,11 @@ export const usePermissions = (user: User | null, activeRole: Rol['nume'] | null
             isInstructor,
             isSportiv,
             hasAdminAccess,
+            
+            isFederationLevel,
+            canManageFinances,
+            canGradeStudents,
+            visibleClubIds,
         };
     }, [user, activeRole]);
 

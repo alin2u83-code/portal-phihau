@@ -1,6 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import { User } from '../types';
-import { Permissions } from './usePermissions';
+import { User, Permissions } from '../types';
 import { useLocalStorage } from './useLocalStorage';
 
 export const useClubFilter = (currentUser: User | null, permissions: Permissions) => {

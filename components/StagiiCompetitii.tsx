@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Eveniment, Rezultat, Sportiv, Plata, PretConfig, InscriereExamen, Examen, Grad, User } from '../types';
+import { Eveniment, Rezultat, Sportiv, Plata, PretConfig, InscriereExamen, Examen, Grad, User, Permissions } from '../types';
 import { Button, Modal, Input, Select, Card, Switch } from './ui';
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon } from './icons';
 import { getPretValabil } from '../utils/pricing';
@@ -7,7 +7,7 @@ import { supabase } from '../supabaseClient';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useError } from './ErrorProvider';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
-import { Permissions, usePermissions } from '../hooks/usePermissions';
+import { usePermissions } from '../hooks/usePermissions';
 
 const formatDateRange = (start: string) => {
     return new Date(start).toLocaleDateString('ro-RO');

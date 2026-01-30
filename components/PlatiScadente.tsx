@@ -1,12 +1,11 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { Plata, Sportiv, TipAbonament, Familie, Tranzactie, Reducere, User, Club } from '../types';
+import { Plata, Sportiv, TipAbonament, Familie, Tranzactie, Reducere, User, Club, Permissions } from '../types';
 import { Button, Input, Select, Card, Modal } from './ui';
 import { EditIcon, ArrowLeftIcon, TrashIcon, BanknotesIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
-import { Permissions } from '../hooks/usePermissions';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
 
 interface PlatiScadenteProps { 

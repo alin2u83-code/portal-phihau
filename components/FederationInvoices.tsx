@@ -1,8 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { DecontFederatie, User, Rol } from '../types';
+import { DecontFederatie, User, Rol, Permissions } from '../types';
 import { Card, Button, Modal, Input } from './ui';
 import { ArrowLeftIcon, BanknotesIcon, UploadCloudIcon } from './icons';
-import { Permissions } from '../hooks/usePermissions';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 

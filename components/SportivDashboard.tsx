@@ -1,12 +1,11 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Sportiv, InscriereExamen, Grad, Grupa, Plata, User, View, AnuntPrezenta, SesiuneExamen, ProgramItem, Antrenament } from '../types';
+import { Sportiv, InscriereExamen, Grad, Grupa, Plata, User, View, AnuntPrezenta, SesiuneExamen, ProgramItem, Antrenament, Permissions } from '../types';
 import { Card, Button } from './ui';
 import { NotificationPermissionWidget } from './NotificationPermissionWidget';
 import { AttendanceTracker } from './AttendanceTracker';
 import { useError } from './ErrorProvider';
 import { supabase } from '../supabaseClient';
 import { CheckIcon } from './icons';
-import { Permissions } from '../hooks/usePermissions';
 
 const getGrad = (gradId: string | null, allGrades: Grad[]) => gradId ? allGrades.find(g => g.id === gradId) : null;
 

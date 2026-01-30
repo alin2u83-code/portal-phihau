@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from './supabaseClient';
-import { Sportiv, SesiuneExamen, Grad, InscriereExamen, View, Antrenament, Grupa, Plata, Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, Rol, AnuntPrezenta, Reducere, AnuntGeneral, TipPlata, Locatie, Club, DecontFederatie, IstoricGrade } from './types';
+import { Sportiv, SesiuneExamen, Grad, InscriereExamen, View, Antrenament, Grupa, Plata, Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, Rol, AnuntPrezenta, Reducere, AnuntGeneral, TipPlata, Locatie, Club, DecontFederatie, IstoricGrade, Permissions } from './types';
 import { FinalUnifiedDashboard } from './components/FinalUnifiedDashboard';
 import { SportiviManagement } from './components/SportiviManagement';
 import { UserProfile } from './components/UserProfile';
@@ -38,7 +38,7 @@ import { CalendarView } from './components/CalendarView';
 import { RapoarteExamen } from './components/RapoarteExamen';
 import { CluburiManagement } from './components/CluburiManagement';
 import { FederationStructure } from './components/FederationStructure';
-import { usePermissions, Permissions } from './hooks/usePermissions';
+import { usePermissions } from './hooks/usePermissions';
 import AccessDenied from './components/AccessDenied';
 import { useClubFilter } from './hooks/useClubFilter';
 import { MandatoryPasswordChange } from './components/MandatoryPasswordChange';

@@ -1,6 +1,5 @@
 import React from 'react';
-import { User, View, DecontFederatie, Antrenament, Sportiv, Grupa, InscriereExamen, Plata, AnuntPrezenta, SesiuneExamen, Grad } from '../types';
-import { Permissions } from '../hooks/usePermissions';
+import { User, View, DecontFederatie, Antrenament, Sportiv, Grupa, InscriereExamen, Plata, AnuntPrezenta, SesiuneExamen, Grad, Permissions } from '../types';
 import { GeneralAttendanceWidget } from './GeneralAttendanceWidget';
 import { AdminMasterMap } from './AdminMasterMap';
 import { SportivDashboard } from './SportivDashboard';

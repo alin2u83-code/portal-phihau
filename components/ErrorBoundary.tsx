@@ -13,16 +13,12 @@ interface State {
   error?: Error;
 }
 
-// FIX: Inherit correctly from React.Component and remove redundant state declaration to fix 'setState', 'props', and 'state' not existing errors.
 class ErrorBoundary extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = {
-      hasError: false,
-      error: undefined,
-    };
-    this.handleRedirect = this.handleRedirect.bind(this);
-  }
+  // Fix: Refactored to use modern class property syntax for state to avoid constructor issues.
+  state: State = {
+    hasError: false,
+    error: undefined,
+  };
 
   static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
@@ -32,8 +28,8 @@ class ErrorBoundary extends Component<Props, State> {
     console.error("Uncaught error:", error, errorInfo);
   }
   
-  handleRedirect() {
-    // FIX: Usage of this.setState, this.props, and this.state now works correctly as inheritance is properly handled.
+  // Fix: Refactored to an arrow function to automatically bind 'this'.
+  handleRedirect = () => {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {
         this.props.onNavigate('dashboard');

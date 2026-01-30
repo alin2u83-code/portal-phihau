@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad } from '../types';
+import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions } from '../types';
 import { Button, Modal, Input, Select, Card } from './ui';
 import { PlusIcon, ArrowLeftIcon, ShieldCheckIcon, WalletIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -10,7 +10,6 @@ import { SportivAccountSettingsModal } from './SportivAccountSettings';
 import { SportivWallet } from './SportivWallet';
 import { ResponsiveTable, Column } from './ResponsiveTable';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
-import { Permissions } from '../hooks/usePermissions';
 
 const getAge = (dateString: string | null | undefined): number => { 
     if (!dateString) return 0; 

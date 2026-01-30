@@ -1,8 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { User, View, Plata, Rol } from '../types';
+import { User, View, Plata, Rol, Permissions } from '../types';
 import { ChevronDownIcon } from './icons';
 import { AdminProfileQuickAccess } from './AdminProfileQuickAccess';
-import { Permissions } from '../hooks/usePermissions';
 import { InAppNotifications } from './InAppNotifications';
 
 interface AdminHeaderProps {

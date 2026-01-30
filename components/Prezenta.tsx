@@ -1,7 +1,7 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Antrenament, Sportiv, Grupa, Plata, TipAbonament, AnuntPrezenta, ProgramItem } from '../types';
 import { Button, Card, Input, Select, Modal } from './ui';
-import { PlusIcon, ArrowLeftIcon, TrashIcon, EditIcon, XIcon, CheckIcon } from './icons';
+import { PlusIcon, ArrowLeftIcon, TrashIcon, EditIcon, XIcon, CheckIcon, ExclamationTriangleIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
@@ -26,7 +26,6 @@ const AntrenamentForm: React.FC<{
     
     const [formState, setFormState] = useState(getInitialState());
     const [loading, setLoading] = useState(false);
-    const { showError } = useError();
 
     useEffect(() => {
         if (isOpen) {
@@ -76,129 +75,144 @@ const AntrenamentForm: React.FC<{
     );
 };
 
-// Componentă simplificată pentru gestionarea prezenței, conform solicitării.
-const AttendanceDetail: React.FC<{
+interface AttendanceDetailProps {
     antrenament: Antrenament;
     onBack: () => void;
     setAntrenamente: React.Dispatch<React.SetStateAction<Antrenament[]>>;
-}> = ({ antrenament, onBack, setAntrenamente }) => {
-    // State inițializat cu un array gol pentru a preveni erorile de tip
+    allSportivi: Sportiv[];
+    allPlati: Plata[];
+}
+
+const AttendanceDetail: React.FC<AttendanceDetailProps> = ({ antrenament, onBack, setAntrenamente, allSportivi, allPlati }) => {
     const [groupAthletes, setGroupAthletes] = useState<Sportiv[]>([]);
     const [presentIds, setPresentIds] = useState<Set<string>>(new Set());
     const [loading, setLoading] = useState(true);
-    const [markingAttendanceId, setMarkingAttendanceId] = useState<string | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
+    const [reportData, setReportData] = useState<string | null>(null);
     const { showError, showSuccess } = useError();
 
-    // Încarcă sportivii și prezența existentă la montarea componentei sau la schimbarea antrenamentului
+    const hasValidMedicalCheck = useCallback((sportivId: string, plati: Plata[]): boolean => {
+        const today = new Date();
+        const currentMonth = today.getMonth();
+        const currentYear = today.getFullYear();
+        const seasonStartYear = currentMonth >= 8 ? currentYear : currentYear - 1;
+        const seasonStartDate = new Date(seasonStartYear, 8, 1);
+        return plati.some(p => p.sportiv_id === sportivId && p.tip === 'Taxa Anuala' && p.status === 'Achitat' && new Date(p.data) >= seasonStartDate);
+    }, []);
+    
+    const isSubscriptionExpired = useCallback((sportiv: Sportiv, plati: Plata[]): boolean => {
+        const today = new Date();
+        const currentMonth = today.getMonth();
+        const currentYear = today.getFullYear();
+        const relevantEntityId = sportiv.familie_id || sportiv.id;
+        const isFamily = !!sportiv.familie_id;
+    
+        return !plati.some(p => 
+            ((isFamily && p.familie_id === relevantEntityId) || (!isFamily && p.sportiv_id === relevantEntityId)) &&
+            p.tip === 'Abonament' &&
+            new Date(p.data).getMonth() === currentMonth &&
+            new Date(p.data).getFullYear() === currentYear &&
+            p.status === 'Achitat'
+        );
+    }, []);
+
     useEffect(() => {
         const fetchData = async () => {
             if (!antrenament.grupa_id) {
-                showError("Antrenament fără grupă", "Acest antrenament nu este asociat cu nicio grupă. Nu se pot încărca sportivii.");
                 setGroupAthletes([]);
                 setLoading(false);
                 return;
             }
-
             setLoading(true);
-
-            // 1. Încarcă sportivii care au același grupa_id ca antrenamentul
-            const { data: athletesData, error: athletesError } = await supabase
-                .from('sportivi')
-                .select('*')
-                .eq('grupa_id', antrenament.grupa_id)
-                .order('nume', { ascending: true });
-
-            if (athletesError) {
-                showError("Eroare la încărcarea sportivilor", athletesError);
-                setLoading(false);
-                return;
-            }
+            const { data: athletesData, error: athletesError } = await supabase.from('sportivi').select('*').eq('grupa_id', antrenament.grupa_id).order('nume', { ascending: true });
+            if (athletesError) { showError("Eroare sportivi", athletesError); setLoading(false); return; }
             setGroupAthletes(athletesData || []);
-
-            // 2. Încarcă prezența deja înregistrată pentru acest antrenament
-            const { data: attendanceData, error: attendanceError } = await supabase
-                .from('prezenta_antrenament')
-                .select('sportiv_id')
-                .eq('antrenament_id', antrenament.id);
-            
-            if (attendanceError) {
-                showError("Eroare la încărcarea prezenței", attendanceError);
-            } else if (attendanceData) {
-                setPresentIds(new Set(attendanceData.map(p => p.sportiv_id)));
-            }
-
+            setPresentIds(new Set(antrenament.sportivi_prezenti_ids));
             setLoading(false);
         };
-
         fetchData();
     }, [antrenament, showError]);
-
-    // Funcția care face insert în `prezenta_antrenament`
-    const handleMarkPresent = async (sportivId: string) => {
-        if (presentIds.has(sportivId)) return; // Deja marcat, nu se face nimic
-
-        setMarkingAttendanceId(sportivId);
-
-        const { error } = await supabase
-            .from('prezenta_antrenament')
-            .insert({
-                antrenament_id: antrenament.id,
-                sportiv_id: sportivId
-            });
-
-        setMarkingAttendanceId(null);
-
-        if (error) {
-            showError("Eroare la salvarea prezenței", error);
-        } else {
-            const newPresentIds = new Set(presentIds).add(sportivId);
-            setPresentIds(newPresentIds);
-            
-            // Actualizează starea globală a antrenamentelor pentru consistență în UI
-            setAntrenamente(prev => prev.map(a => 
-                a.id === antrenament.id 
-                    ? { ...a, sportivi_prezenti_ids: Array.from(newPresentIds) } 
-                    : a
-            ));
-            showSuccess("Prezență înregistrată");
-        }
+    
+    const handleToggle = (sportivId: string) => {
+        setPresentIds(prev => {
+            const next = new Set(prev);
+            if (next.has(sportivId)) next.delete(sportivId); else next.add(sportivId);
+            return next;
+        });
     };
 
-    if (loading) {
-        return <div className="text-center p-8">Se încarcă lista de sportivi...</div>;
-    }
+    const handleMarkAll = (present: boolean) => {
+        if (present) setPresentIds(new Set(groupAthletes.map(s => s.id)));
+        else setPresentIds(new Set());
+    };
+
+    const handleSave = async () => {
+        setIsSaving(true);
+        try {
+            const { error: deleteError } = await supabase.from('prezenta_antrenament').delete().eq('antrenament_id', antrenament.id);
+            if (deleteError) throw deleteError;
+
+            if (presentIds.size > 0) {
+                const newPresenceData = Array.from(presentIds).map(sportiv_id => ({ antrenament_id: antrenament.id, sportiv_id }));
+                const { error: insertError } = await supabase.from('prezenta_antrenament').insert(newPresenceData);
+                if (insertError) throw insertError;
+            }
+
+            setAntrenamente(prev => prev.map(a => a.id === antrenament.id ? { ...a, sportivi_prezenti_ids: Array.from(presentIds) } : a));
+            showSuccess("Prezență salvată!", `Au fost înregistrați ${presentIds.size} sportivi.`);
+
+            const presentAthletes = groupAthletes.filter(s => presentIds.has(s.id));
+            const athletesWithExpiredSubs = presentAthletes.filter(s => isSubscriptionExpired(s, allPlati)).map(s => `${s.nume} ${s.prenume}`);
+            const report = { ID_Antrenament: antrenament.id, Numar_Prezenti: presentIds.size, AbonamentExpirat: athletesWithExpiredSubs };
+            setReportData(JSON.stringify(report, null, 2));
+        } catch (err: any) {
+            showError("Eroare la salvare", err);
+        } finally {
+            setIsSaving(false);
+        }
+    };
     
-    const grupa = antrenament.grupe ? antrenament.grupe.denumire : 'N/A';
+    if (loading) return <div className="text-center p-8">Se încarcă lista de sportivi...</div>;
 
     return (
         <Card>
             <Button onClick={onBack} variant="secondary" className="mb-4"><ArrowLeftIcon /> Înapoi la Listă</Button>
-            <h2 className="text-2xl font-bold text-white mb-1">Înregistrare Prezență</h2>
-            <p className="text-slate-400 mb-4">
-                Antrenament {grupa} - {new Date(antrenament.data + 'T00:00:00').toLocaleDateString('ro-RO')} ora {antrenament.ora_start}
-            </p>
+            <div className="flex justify-between items-start mb-4">
+                <div>
+                    <h2 className="text-2xl font-bold text-white mb-1">Înregistrare Prezență</h2>
+                    <p className="text-slate-400">Antrenament {antrenament.grupe?.denumire || 'N/A'} - {new Date(antrenament.data + 'T00:00:00').toLocaleDateString('ro-RO')} ora {antrenament.ora_start}</p>
+                </div>
+                <Button onClick={handleSave} variant="success" size="md" isLoading={isSaving}>Salvează Lista</Button>
+            </div>
+
+            <div className="flex gap-2 mb-4">
+                <Button onClick={() => handleMarkAll(true)} variant="secondary" size="sm">Marchează Toți Prezenți</Button>
+                <Button onClick={() => handleMarkAll(false)} variant="secondary" size="sm">Marchează Toți Absenți</Button>
+            </div>
 
             <div className="space-y-2">
-                {groupAthletes.length > 0 ? groupAthletes.map(sportiv => (
-                    <div key={sportiv.id} className="flex justify-between items-center bg-slate-800/50 p-3 rounded-lg border border-slate-700">
-                        <span className="font-medium text-white">{sportiv.nume} {sportiv.prenume}</span>
-                        {presentIds.has(sportiv.id) ? (
-                            <Button variant="success" disabled className="!cursor-default w-36">
-                                <CheckIcon className="w-4 h-4 mr-2" /> Prezent
-                            </Button>
-                        ) : (
-                            <Button 
-                                variant="primary" 
-                                onClick={() => handleMarkPresent(sportiv.id)}
-                                isLoading={markingAttendanceId === sportiv.id}
-                                className="w-36"
-                            >
-                                Marchează Prezent
-                            </Button>
-                        )}
-                    </div>
-                )) : <p className="text-slate-400 italic text-center py-8">Niciun sportiv înscris în această grupă.</p>}
+                {groupAthletes.length > 0 ? groupAthletes.map(sportiv => {
+                    const isPresent = presentIds.has(sportiv.id);
+                    const hasViza = hasValidMedicalCheck(sportiv.id, allPlati);
+                    return (
+                        <label key={sportiv.id} htmlFor={`att-${sportiv.id}`} className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${isPresent ? 'bg-green-900/30 border-green-700/50' : 'bg-slate-800/50 border-slate-700 hover:bg-slate-800'}`}>
+                            <input id={`att-${sportiv.id}`} type="checkbox" className="h-6 w-6 shrink-0 rounded border-slate-500 bg-slate-900 text-brand-secondary focus:ring-brand-secondary focus:ring-offset-slate-800" checked={isPresent} onChange={() => handleToggle(sportiv.id)} />
+                            <span className={`font-medium flex-grow flex items-center gap-2 ${hasViza ? 'text-white' : 'text-red-400'}`}>
+                                {!hasViza && <ExclamationTriangleIcon className="w-4 h-4" title="Viză medicală expirată!" />}
+                                {sportiv.nume} {sportiv.prenume}
+                            </span>
+                            <span className={`font-bold text-sm px-2 py-1 rounded-md ${isPresent ? 'text-green-300' : 'text-slate-500'}`}>{isPresent ? 'Prezent' : 'Absent'}</span>
+                        </label>
+                    );
+                }) : <p className="text-slate-400 italic text-center py-8">Niciun sportiv înscris în această grupă.</p>}
             </div>
+            
+            <Modal isOpen={!!reportData} onClose={() => setReportData(null)} title="Raport Post-Antrenament">
+                <pre className="bg-slate-900 p-4 rounded-md text-sm text-white overflow-auto">{reportData}</pre>
+                <div className="flex justify-end mt-4">
+                    <Button variant="secondary" onClick={() => setReportData(null)}>Închide</Button>
+                </div>
+            </Modal>
         </Card>
     );
 };
@@ -214,10 +228,11 @@ export const PrezentaManagement: React.FC<{
     grupe: Grupa[];
     onBack: () => void;
     setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
+    plati: Plata[];
     tipuriAbonament: TipAbonament[];
     anunturi: AnuntPrezenta[];
     onViewSportiv: (sportiv: Sportiv) => void;
-}> = ({ sportivi, setSportivi, antrenamente, setAntrenamente, grupe, onBack, setPlati, tipuriAbonament, anunturi, onViewSportiv }) => {
+}> = ({ sportivi, setSportivi, antrenamente, setAntrenamente, grupe, onBack, plati, setPlati, tipuriAbonament, anunturi, onViewSportiv }) => {
     
     const [selectedAntrenamentId, setSelectedAntrenamentId] = useLocalStorage<string | null>('phi-hau-selected-antrenament-id', null);
     const selectedAntrenament = useMemo(() => (antrenamente || []).find(p => p.id === selectedAntrenamentId) || null, [antrenamente, selectedAntrenamentId]);
@@ -234,7 +249,6 @@ export const PrezentaManagement: React.FC<{
 
     const initialFilters = { tip: '', data: new Date().toISOString().split('T')[0], grupa: '', ziua: '' };
     const [filters, setFilters] = useLocalStorage('phi-hau-prezenta-filters', initialFilters);
-    const zileSaptamana: ProgramItem['ziua'][] = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'];
 
     const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -247,7 +261,6 @@ export const PrezentaManagement: React.FC<{
             const { data, error } = await supabase.from('program_antrenamente').update(antrenamentData).eq('id', antrenamentToEdit.id).select('*, grupe(*), prezenta_antrenament!antrenament_id(sportiv_id)').single();
             if (error) { showError("Eroare la actualizare", error); } 
             else if (data) { 
-                // FIX: Normalize `prezenta_antrenament` to an array before using .map() to avoid errors when Supabase returns a single object.
                 const prezentaRaw = (data as any).prezenta_antrenament;
                 const prezentaArray = prezentaRaw ? (Array.isArray(prezentaRaw) ? prezentaRaw : [prezentaRaw]) : [];
                 const formatted: Antrenament = { ...data, sportivi_prezenti_ids: prezentaArray.map((ps: any) => ps.sportiv_id) };
@@ -292,6 +305,8 @@ export const PrezentaManagement: React.FC<{
             antrenament={selectedAntrenament} 
             onBack={() => setSelectedAntrenamentId(null)} 
             setAntrenamente={setAntrenamente} 
+            allSportivi={sportivi}
+            allPlati={plati}
         />;
     }
 

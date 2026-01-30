@@ -67,17 +67,17 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
             const combined: TrainingWithGroupAndAthletes[] = [...(singleTrainings || []) as TrainingWithGroupAndAthletes[]];
             const initialAttendance = new Map<string, Set<string>>();
 
-// FIX: Normalize recurringTrainingsRaw to an array to prevent iteration errors when Supabase returns a single object.
-const recurringTrainings = recurringTrainingsRaw ? (Array.isArray(recurringTrainingsRaw) ? recurringTrainingsRaw : [recurringTrainingsRaw]) : [];
+            // FIX: Normalize recurringTrainingsRaw to an array to prevent iteration errors when Supabase returns a single object.
+            const recurringTrainings = recurringTrainingsRaw ? (Array.isArray(recurringTrainingsRaw) ? recurringTrainingsRaw : [recurringTrainingsRaw]) : [];
 
             recurringTrainings.forEach(grupa => {
-// FIX: When using `!inner(*)` or `(*)`, Supabase may return a single object instead of an array. This normalizes it to always be an array to prevent iteration errors.
-const programItemsRaw: any = grupa.program_antrenamente;
-const programItems = programItemsRaw ? (Array.isArray(programItemsRaw) ? programItemsRaw : [programItemsRaw]) : [];
-                
-// FIX: `sportivi(*)` can also return a single object. This normalizes it to an array.
-const sportiviRaw: any = grupa.sportivi;
-const sportiviList = sportiviRaw ? (Array.isArray(sportiviRaw) ? sportiviRaw : [sportiviRaw]) : [];
+                // FIX: When using `!inner(*)` or `(*)`, Supabase may return a single object instead of an array. This normalizes it to always be an array to prevent iteration errors.
+                const programItemsRaw: any = grupa.program_antrenamente;
+                const programItems = programItemsRaw ? (Array.isArray(programItemsRaw) ? programItemsRaw : [programItemsRaw]) : [];
+                                
+                // FIX: `sportivi(*)` can also return a single object. This normalizes it to an array.
+                const sportiviRaw: any = grupa.sportivi;
+                const sportiviList = sportiviRaw ? (Array.isArray(sportiviRaw) ? sportiviRaw : [sportiviRaw]) : [];
 
                 programItems.forEach((programItem: any) => {
                     const antrenamentId = `recurent-${programItem.id}-${todayISO}`;
@@ -94,7 +94,7 @@ const sportiviList = sportiviRaw ? (Array.isArray(sportiviRaw) ? sportiviRaw : [
             const trainingIds = combined.map(t => t.id).filter(id => !id.startsWith('recurent-'));
             if (trainingIds.length > 0) {
                  const { data: prezentaDataRaw } = await supabase.from('prezenta_antrenament').select('*').in('antrenament_id', trainingIds);
-// FIX: Ensure `prezentaData` is an array before iterating to prevent runtime errors when Supabase returns a single object.
+                // FIX: Ensure `prezentaData` is an array before iterating to prevent runtime errors when Supabase returns a single object.
                 if (prezentaDataRaw) {
                     const prezentaData = Array.isArray(prezentaDataRaw) ? prezentaDataRaw : [prezentaDataRaw];
                     prezentaData.forEach((p: any) => {

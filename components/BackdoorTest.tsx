@@ -86,7 +86,6 @@ export const BackdoorTest: React.FC<BackdoorTestProps> = ({ currentUser, onBack,
     const RoleButton: React.FC<{ role: Rol['nume'], label: string }> = ({ role, label }) => (
         <Button 
             variant={activeRole === role ? 'primary' : 'secondary'} 
-// FIX: Corrected typo from `handleSwitch` to `handleSwitchRole`.
             onClick={() => handleSwitchRole(role)} 
             isLoading={loadingRole === role} 
             disabled={!!loadingRole}

@@ -247,10 +247,10 @@ export const PrezentaManagement: React.FC<{
             const { data, error } = await supabase.from('program_antrenamente').update(antrenamentData).eq('id', antrenamentToEdit.id).select('*, grupe(*), prezenta_antrenament!antrenament_id(sportiv_id)').single();
             if (error) { showError("Eroare la actualizare", error); } 
             else if (data) { 
-// FIX: Normalize `prezenta_antrenament` to an array before using .map() to avoid errors when Supabase returns a single object.
-const prezentaRaw = (data as any).prezenta_antrenament;
-const prezentaArray = prezentaRaw ? (Array.isArray(prezentaRaw) ? prezentaRaw : [prezentaRaw]) : [];
-const formatted: Antrenament = { ...data, sportivi_prezenti_ids: prezentaArray.map((ps: any) => ps.sportiv_id) };
+                // FIX: Normalize `prezenta_antrenament` to an array before using .map() to avoid errors when Supabase returns a single object.
+                const prezentaRaw = (data as any).prezenta_antrenament;
+                const prezentaArray = prezentaRaw ? (Array.isArray(prezentaRaw) ? prezentaRaw : [prezentaRaw]) : [];
+                const formatted: Antrenament = { ...data, sportivi_prezenti_ids: prezentaArray.map((ps: any) => ps.sportiv_id) };
                 setAntrenamente(prev => prev.map(p => p.id === data.id ? formatted : p));
             }
         } else {

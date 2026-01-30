@@ -264,7 +264,7 @@ export const PrezentaManagement: React.FC<{
                 const prezentaRaw = (data as any).prezenta_antrenament;
                 // FIX: In `handleSaveAntrenament`, Supabase's response for a one-to-many relationship (`prezenta_antrenament`) can be a single object if there's only one related row. This was causing a `.map()` error on a non-array. The code now correctly normalizes `prezentaRaw` into an array, ensuring type safety and preventing runtime errors.
                 const prezentaArray: { sportiv_id: string }[] = prezentaRaw ? (Array.isArray(prezentaRaw) ? prezentaRaw : [prezentaRaw]) : [];
-                const formatted: Antrenament = { ...data, sportivi_prezenti_ids: prezentaArray.map((ps: any) => ps.sportiv_id) };
+                const formatted: Antrenament = { ...data, sportivi_prezenti_ids: prezentaArray.map((ps) => ps.sportiv_id) };
                 setAntrenamente(prev => prev.map(p => p.id === data.id ? formatted : p));
             }
         } else {

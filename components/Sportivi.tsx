@@ -132,6 +132,13 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
 
         updatedData[name as keyof Sportiv] = finalValue;
         
+        if (name === 'club_id') {
+            const currentGroup = grupe.find(g => g.id === updatedData.grupa_id);
+            if (currentGroup && currentGroup.club_id !== finalValue) {
+                updatedData.grupa_id = null;
+            }
+        }
+        
         setFormData(updatedData);
         const newErrors = validate(updatedData);
         setErrors(newErrors);

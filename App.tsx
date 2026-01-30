@@ -97,11 +97,14 @@ function App() {
   const [isSwitchingRole, setIsSwitchingRole] = useState(false);
 
   const activeRole = useMemo((): Rol['nume'] => {
-    // Logic updated to be exclusively based on rol_activ_context as requested.
     if (currentUser?.rol_activ_context && currentUser.roluri.some(r => r.nume === currentUser.rol_activ_context)) {
         return currentUser.rol_activ_context;
     }
-    // If no valid context is set, ALWAYS default to 'Sportiv'.
+    // Hardcoded emergency fallback for specific user when context is not set
+    if (currentUser?.email === 'alin2u83@gmail.com' && !currentUser?.rol_activ_context) {
+        return 'SUPER_ADMIN_FEDERATIE';
+    }
+    // Default for everyone else
     return 'Sportiv';
   }, [currentUser]);
 
@@ -373,8 +376,19 @@ function App() {
     const isFederationAdmin = permissions.isFederationAdmin;
     const canManageFinances = isAtLeastClubAdmin || permissions.isInstructor;
     const onViewSportiv = (s: Sportiv) => { setSelectedSportiv(s); setActiveView('profil-sportiv'); };
+    const isEmergencyAdmin = currentUser.email === 'alin2u83@gmail.com';
 
     switch (activeView) {
+      case 'admin-console':
+        return renderProtected(
+            <AdminConsole 
+                onSwitchRole={handleSwitchRole} 
+                isSwitchingRole={isSwitchingRole} 
+                onBack={() => setActiveView('dashboard')} 
+            />, 
+            permissions.hasAdminAccess || isEmergencyAdmin
+        );
+
       case 'dashboard':
       case 'my-portal':
         if (permissions.isSuperAdmin && adminContext === 'federation') {
@@ -398,16 +412,6 @@ function App() {
             isSwitchingRole={isSwitchingRole}
         />;
       
-      case 'admin-console':
-        return renderProtected(
-            <AdminConsole 
-                onSwitchRole={handleSwitchRole} 
-                isSwitchingRole={isSwitchingRole} 
-                onBack={() => setActiveView('dashboard')} 
-            />, 
-            permissions.hasAdminAccess
-        );
-
       case 'sportivi':
         return renderProtected(<SportiviManagement onBack={() => setActiveView('dashboard')} sportivi={filteredData.sportivi} setSportivi={setSportivi} grupe={filteredData.grupe} setGrupe={setGrupe} tipuriAbonament={filteredData.tipuriAbonament} familii={filteredData.familii} setFamilii={setFamilii} allRoles={allRoles} setAllRoles={setAllRoles} currentUser={currentUser} plati={filteredData.plati} tranzactii={filteredData.tranzactii} setTranzactii={setTranzactii} onViewSportiv={onViewSportiv} clubs={clubs} grade={grade} permissions={permissions} />, isAtLeastInstructor);
 

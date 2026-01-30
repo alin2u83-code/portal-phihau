@@ -129,11 +129,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
                      return <NavItem key={item.label} item={item} isExpanded={isExpanded} isActive={isActive} onNavigate={handleNavigate} activeView={activeView} />
                 })}
 
-                {currentUser.email === 'alin2u83@yahoo.com' && (
+                {currentUser.email === 'alin2u83@gmail.com' && (
                     <div className="pt-4 mt-4 border-t border-amber-500/30">
                         <NavItem
                             item={{
-                                label: 'Backdoor Test',
+                                label: 'Backdoor',
                                 icon: ShieldCheckIcon,
                                 view: 'backdoor-test',
                             }}

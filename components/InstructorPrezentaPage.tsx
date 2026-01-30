@@ -44,9 +44,16 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
             }
             const clubId = userProfile.club_id;
             
-            const { data: grupeInClub, error: grupeError } = await supabase.from('grupe').select('id').eq('club_id', clubId);
+            // FIX: Normalize `grupeData` to prevent crash if Supabase returns a single object or null.
+            const { data: grupeDataRaw, error: grupeError } = await supabase.from('grupe').select('id').eq('club_id', clubId);
             if(grupeError) { showError("Eroare", grupeError); setLoading(false); return; }
-            const grupaIds = (grupeInClub || []).map(g => g.id);
+            const grupeData: any[] = grupeDataRaw ? (Array.isArray(grupeDataRaw) ? grupeDataRaw : [grupeDataRaw]) : [];
+            const grupaIds = grupeData.map(g => g.id);
+            if (grupaIds.length === 0) {
+                setTrainings([]);
+                setLoading(false);
+                return;
+            }
 
             const { data: singleTrainingsData, error: singleError } = await supabase
                 .from('program_antrenamente')
@@ -64,8 +71,16 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
             
             if (recurringError) { showError("Eroare la încărcarea programului recurent", recurringError); setLoading(false); return; }
 
-            // FIX: Ensure singleTrainings is always an array to prevent iteration errors when Supabase returns a single object.
-            const singleTrainings = Array.isArray(singleTrainingsData) ? singleTrainingsData : (singleTrainingsData ? [singleTrainingsData] : []);
+            // FIX: Explicitly type `singleTrainingsRaw` as `any[]` to prevent iterator errors.
+            const singleTrainingsRaw: any[] = Array.isArray(singleTrainingsData) ? singleTrainingsData : (singleTrainingsData ? [singleTrainingsData] : []);
+            const singleTrainings = singleTrainingsRaw.map((training: any) => {
+                if (training.grupe && training.grupe.sportivi) {
+                    const sportiviRaw = training.grupe.sportivi;
+                    training.grupe.sportivi = sportiviRaw ? (Array.isArray(sportiviRaw) ? sportiviRaw : [sportiviRaw]) : [];
+                }
+                return training;
+            });
+
             const combined: TrainingWithGroupAndAthletes[] = [...(singleTrainings || []) as TrainingWithGroupAndAthletes[]];
             const initialAttendance = new Map<string, Set<string>>();
 

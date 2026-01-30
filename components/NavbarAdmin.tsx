@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { User, View, Plata } from '../types';
+import { User, View, Plata, Rol } from '../types';
 import { ChevronDownIcon } from './icons';
 import { AdminProfileQuickAccess } from './AdminProfileQuickAccess';
 import { usePermissions } from '../hooks/usePermissions';
@@ -13,7 +13,15 @@ interface NavbarAdminProps {
 
 export const NavbarAdmin: React.FC<NavbarAdminProps> = ({ currentUser, onNavigate, onLogout, plati }) => {
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-    const permissions = usePermissions(currentUser);
+    // FIX: `usePermissions` expects a user and an active role. The active role is derived from the user's roles.
+    const activeRole = useMemo((): Rol['nume'] => {
+        if (currentUser?.roluri && currentUser.roluri.length > 0) {
+            const roleWeights: Record<Rol['nume'], number> = { 'SUPER_ADMIN_FEDERATIE': 5, 'Admin': 4, 'Admin Club': 3, 'Instructor': 2, 'Sportiv': 1 };
+            return [...currentUser.roluri].sort((a, b) => (roleWeights[b.nume] || 0) - (roleWeights[a.nume] || 0))[0]?.nume || 'Sportiv';
+        }
+        return 'Sportiv';
+    }, [currentUser]);
+    const permissions = usePermissions(currentUser, activeRole);
     
     const hasOverduePayments = useMemo(() => {
         const today = new Date();
@@ -52,6 +60,9 @@ export const NavbarAdmin: React.FC<NavbarAdminProps> = ({ currentUser, onNavigat
                             onLogout={onLogout}
                             isExpanded={true} // Simulează meniul extins
                             isSuperAdmin={permissions.isSuperAdmin}
+                            activeRole={activeRole}
+                            onSwitchRole={() => {}}
+                            isSwitchingRole={false}
                         />
                     )}
                  </div>

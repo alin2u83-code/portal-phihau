@@ -6,7 +6,7 @@ import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
-import { usePermissions } from '../hooks/usePermissions';
+import { Permissions } from '../hooks/usePermissions';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
 
 interface PlatiScadenteProps { 
@@ -22,11 +22,12 @@ interface PlatiScadenteProps {
     onViewSportiv: (sportiv: Sportiv) => void;
     currentUser: User;
     clubs: Club[];
+    permissions: Permissions;
 }
 
 const initialFilters = { sportiv: '', tip: '', status: 'Neachitat', clubId: '' };
 
-export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, sportivi, familii, tipuriAbonament, tranzactii, reduceri, onIncaseazaMultiple, onBack, onViewSportiv, currentUser, clubs }) => {
+export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, sportivi, familii, tipuriAbonament, tranzactii, reduceri, onIncaseazaMultiple, onBack, onViewSportiv, currentUser, clubs, permissions }) => {
     const [filter, setFilter] = useLocalStorage('phi-hau-plati-scadente-filter', initialFilters);
     const [editingPlata, setEditingPlata] = useState<Plata | null>(null);
     const [plataToDelete, setPlataToDelete] = useState<Plata | null>(null);
@@ -36,7 +37,6 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
     const [isGenerating, setIsGenerating] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [viewingHistoryFor, setViewingHistoryFor] = useState<Plata | null>(null);
-    const permissions = usePermissions(currentUser);
 
     useEffect(() => {
         if (currentUser) {
@@ -133,17 +133,14 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
                 const creditFamilie = balances.famBalances.get(familie.id) || 0;
                 let sumaDeFacturat = abonamentConfig.pret;
                 let status: Plata['status'] = 'Neachitat';
-                let observatii = `Abonament pt: ${membriActiviInFamilie.map(m => m.prenume).join(', ')}`;
-
-                if (creditFamilie > 0) {
-                    if (creditFamilie >= sumaDeFacturat) {
-                        status = 'Achitat';
-                        observatii += ` | Achitat automat din credit (${creditFamilie.toFixed(2)} lei).`;
-                    } else {
-                        sumaDeFacturat -= creditFamilie;
-                        status = 'Achitat Parțial';
-                        observatii += ` | Redus cu credit (${creditFamilie.toFixed(2)} lei).`;
-                    }
+                let observatii = `Abonament pt: ${membriActiviInFamilie.map(m => m.prenume).join(', ')}.`;
+                
+                if (creditFamilie >= sumaDeFacturat) {
+                    status = 'Achitat';
+                    observatii += ` Stins automat din creditul familiei.`;
+                } else if (creditFamilie > 0) {
+                    sumaDeFacturat -= creditFamilie;
+                    observatii += ` Parțial stins din creditul familiei.`;
                 }
 
                 platiToInsert.push({
@@ -152,47 +149,41 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
                     suma: sumaDeFacturat,
                     data: dataCurenta,
                     status: status,
-                    descriere: `Abonament ${abonamentConfig.denumire} - ${lunaText}`,
+                    descriere: `Abonament Familie ${lunaText}`,
                     tip: 'Abonament',
-                    observatii: observatii
+                    observatii: observatii,
                 });
                 
                 membriActiviInFamilie.forEach(m => sportiviProcesati.add(m.id));
             }
         });
 
-        // 2. Procesăm sportivii individuali
-        const sportiviIndividuali = sportiviActivi.filter(s => !sportiviProcesati.has(s.id));
-        
-        sportiviIndividuali.forEach(sportiv => {
-            if (!sportiv.tip_abonament_id) return;
-
+        // 2. Procesăm sportivii individuali rămași
+        sportiviActivi.forEach(sportiv => {
+            if (sportiviProcesati.has(sportiv.id) || sportiv.familie_id) return;
+            
             const exists = plati.some(p => 
                 p.sportiv_id === sportiv.id && 
                 p.tip === 'Abonament' && 
                 new Date(p.data).getMonth() === lunaCurentaIdx && 
                 new Date(p.data).getFullYear() === anulCurent
             );
-
             if (exists) return;
 
-            const abonamentConfig = tipuriAbonament.find(ab => ab.id === sportiv.tip_abonament_id);
+            const abonamentConfig = tipuriAbonament.find(ab => ab.id === sportiv.tip_abonament_id) || tipuriAbonament.find(ab => ab.numar_membri === 1);
             if (abonamentConfig) {
-                const creditSportiv = balances.indivBalances.get(sportiv.id) || 0;
-                let sumaDeFacturat = abonamentConfig.pret;
-                let status: Plata['status'] = 'Neachitat';
-                let observatii = '';
+                 const creditSportiv = balances.indivBalances.get(sportiv.id) || 0;
+                 let sumaDeFacturat = abonamentConfig.pret;
+                 let status: Plata['status'] = 'Neachitat';
+                 let observatii = 'Generat automat.';
 
-                if (creditSportiv > 0) {
-                    if (creditSportiv >= sumaDeFacturat) {
-                        status = 'Achitat';
-                        observatii = `Achitat automat din credit (${creditSportiv.toFixed(2)} lei).`;
-                    } else {
-                        sumaDeFacturat -= creditSportiv;
-                        status = 'Achitat Parțial';
-                        observatii = `Redus cu credit (${creditSportiv.toFixed(2)} lei).`;
-                    }
-                }
+                 if (creditSportiv >= sumaDeFacturat) {
+                     status = 'Achitat';
+                     observatii += ' Stins automat din credit.';
+                 } else if (creditSportiv > 0) {
+                     sumaDeFacturat -= creditSportiv;
+                     observatii += ' Parțial stins din credit.';
+                 }
 
                 platiToInsert.push({
                     sportiv_id: sportiv.id,
@@ -200,290 +191,147 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
                     suma: sumaDeFacturat,
                     data: dataCurenta,
                     status: status,
-                    descriere: `Abonament ${abonamentConfig.denumire} - ${lunaText}`,
+                    descriere: `Abonament ${lunaText}`,
                     tip: 'Abonament',
-                    observatii: observatii
+                    observatii: observatii,
                 });
             }
         });
-        
-        if (platiToInsert.length > 0) { 
-             const { data, error } = await supabase.from('plati').insert(platiToInsert).select();
-             if (error) {
-                 showError("Eroare la generare", error);
-             } else if (data) {
-                 setPlati(prev => [...prev, ...data as Plata[]]);
-                 showSuccess('Succes', `S-au generat ${data.length} facturi noi pentru ${lunaText}.`);
-             }
+
+        // 3. Salvăm în baza de date
+        if (platiToInsert.length > 0) {
+            const { data, error } = await supabase.from('plati').insert(platiToInsert).select();
+            if (error) {
+                showError("Eroare la generare", `A apărut o eroare la salvarea facturilor: ${error.message}`);
+            } else if (data) {
+                setPlati(prev => [...prev, ...data]);
+                showSuccess("Generare Finalizată", `${data.length} facturi noi au fost generate cu succes.`);
+            }
         } else {
-            showSuccess('Info', "Nu există abonamente noi de generat pentru luna curentă.");
+            showSuccess("Info", "Nicio factură nouă de generat pentru luna curentă.");
         }
         setIsGenerating(false);
     };
 
-    const handleSaveEdit = async (plataId: string) => {
-        if(!editingPlata || !supabase) return;
+    const handleSaveEdit = async () => {
+        if (!editingPlata || !supabase) return;
         setIsSaving(true);
         const { id, ...updates } = editingPlata;
-        try {
-            const { data, error } = await supabase.from('plati').update(updates).eq('id', plataId).select().single();
-            if (error) throw error;
-            if (data) { 
-                setPlati(prev => prev.map(p => p.id === plataId ? data as Plata : p)); 
-                setEditingPlata(null); 
-                showSuccess("Succes", "Modificările au fost salvate.");
+        const { error } = await supabase.from('plati').update(updates).eq('id', id);
+        setIsSaving(false);
+        if(error) { showError("Eroare la Salvare", error.message); }
+        else { setPlati(prev => prev.map(p => p.id === id ? editingPlata : p)); setEditingPlata(null); }
+    };
+    
+    const confirmDelete = async (id: string) => {
+        if(!supabase) return;
+        setIsDeleting(true);
+        const { error } = await supabase.from('plati').delete().eq('id', id);
+        setIsDeleting(false);
+        if(error) { showError("Eroare la Ștergere", error.message); }
+        else { setPlati(prev => prev.filter(p => p.id !== id)); }
+        setPlataToDelete(null);
+    };
+    
+    const filteredPlati = useMemo(() => {
+        return plati.filter(p => {
+            const sportivPlata = p.sportiv_id ? sportivi.find(s => s.id === p.sportiv_id) : null;
+            const familiePlata = p.familie_id ? familii.find(f => f.id === p.familie_id) : null;
+            let clubId = sportivPlata?.club_id;
+            if (!clubId && familiePlata) {
+                const firstMember = sportivi.find(s => s.familie_id === familiePlata.id);
+                clubId = firstMember?.club_id;
             }
-        } catch(err) {
-            showError("Eroare la salvare", err);
-        } finally {
-            setIsSaving(false);
+
+            if (filter.clubId && clubId !== filter.clubId) return false;
+            if (filter.status && p.status !== filter.status) return false;
+            if (filter.tip && p.tip !== filter.tip) return false;
+            if (filter.sportiv && p.sportiv_id !== filter.sportiv) return false;
+            return true;
+        }).sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+    }, [plati, sportivi, familii, filter]);
+
+    const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.checked) {
+            setSelectedIds(new Set(filteredPlati.map(p => p.id)));
+        } else {
+            setSelectedIds(new Set());
         }
     };
 
-    const confirmDeletePlata = async (id: string) => {
-        if(!supabase) return;
-        setIsDeleting(true);
-        try {
-            const { error } = await supabase.from('plati').delete().eq('id', id);
-            if (error) throw error;
-            setPlati(prev => prev.filter(p => p.id !== id));
-            showSuccess("Succes", "Factura a fost ștearsă.");
-        } catch (err: any) {
-             showError("Eroare la ștergere", err);
-        } finally {
-            setIsDeleting(false);
-            setPlataToDelete(null);
+    const handleSelectRow = (id: string) => {
+        const newSelection = new Set(selectedIds);
+        if (newSelection.has(id)) {
+            newSelection.delete(id);
+        } else {
+            newSelection.add(id);
         }
+        setSelectedIds(newSelection);
+    };
+
+    const handleIncasareClick = () => {
+        const selected = filteredPlati.filter(p => selectedIds.has(p.id));
+        onIncaseazaMultiple(selected);
     };
 
     const getEntityName = (plata: Plata) => {
         if (plata.familie_id) {
-            const f = familii.find(fam => fam.id === plata.familie_id);
-            return f ? `Familia ${f.nume}` : 'Familie N/A';
+            const familie = familii.find(f => f.id === plata.familie_id);
+            return `Familia ${familie?.nume || 'N/A'}`;
         }
-        const s = sportivi.find(sp => sp.id === plata.sportiv_id);
-        return s ? `${s.nume} ${s.prenume}` : 'N/A';
-    };
-
-    const getPlataClubId = useCallback((plata: Plata): string | null => {
         if (plata.sportiv_id) {
-            const sportiv = sportivi.find(s => s.id === plata.sportiv_id);
-            return sportiv?.club_id || null;
+            const s = sportivi.find(sp => sp.id === plata.sportiv_id);
+            return s ? `${s.nume} ${s.prenume}` : 'Sportiv Șters';
         }
-        if (plata.familie_id) {
-            const firstMember = sportivi.find(s => s.familie_id === plata.familie_id);
-            return firstMember?.club_id || null;
-        }
-        return null;
-    }, [sportivi]);
-
-    const filteredPlati = useMemo(() => {
-        return plati.filter(p => {
-            const entityName = getEntityName(p);
-            const nameMatch = !filter.sportiv || entityName.toLowerCase().includes(filter.sportiv.toLowerCase());
-            const typeMatch = !filter.tip || p.tip === filter.tip;
-            const statusMatch = !filter.status || p.status === filter.status;
-            const clubMatch = !permissions.isSuperAdmin || !filter.clubId || getPlataClubId(p) === filter.clubId;
-            return nameMatch && typeMatch && statusMatch && clubMatch;
-        }).sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime());
-    }, [plati, sportivi, familii, filter, permissions.isSuperAdmin, getPlataClubId]);
-
-    const handleToggleSelect = (id: string) => {
-        setSelectedIds(prev => {
-            const next = new Set(prev);
-            if (next.has(id)) next.delete(id);
-            else next.add(id);
-            return next;
-        });
-    };
-
-    const handleSelectAllVisible = () => {
-        if (selectedIds.size === filteredPlati.length) setSelectedIds(new Set());
-        else setSelectedIds(new Set(filteredPlati.map(p => p.id)));
+        return 'N/A';
     };
     
-    const tranzactiiPentruPlata = useMemo(() => {
-        if (!viewingHistoryFor) return [];
-        return tranzactii.filter(t => t.plata_ids?.includes(viewingHistoryFor.id));
-    }, [viewingHistoryFor, tranzactii]);
-
     return (
         <div className="space-y-6">
-            <Button onClick={onBack} variant="secondary" className="mb-2"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi</Button>
-            
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <h1 className="text-3xl font-bold text-white">Facturi & Datorii</h1>
-                <Button 
-                    variant="info" 
-                    onClick={handleGenerateSubscriptions} 
-                    isLoading={isGenerating}
-                    className="shadow-lg shadow-sky-900/20"
-                >
-                    <BanknotesIcon className="w-5 h-5 mr-2" />
-                    Generare Abonamente Lună Curentă
-                </Button>
-            </div>
+            <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
+            <h1 className="text-2xl font-bold text-white uppercase tracking-tight">Management Facturi & Plăți</h1>
 
-            <Card className={`grid grid-cols-1 md:grid-cols-2 ${permissions.isSuperAdmin ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-4`}>
+             <Card className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {permissions.isSuperAdmin && (
-                    <Select label="Filtrează după Club" value={filter.clubId} onChange={e => setFilter({...filter, clubId: e.target.value})}>
-                        <option value="">Toată Federația</option>
+                    <Select label="Filtrează Club" name="clubId" value={filter.clubId} onChange={e => setFilter(p => ({...p, clubId: e.target.value}))}>
+                        <option value="">Toate Cluburile</option>
                         {clubs.map(c => <option key={c.id} value={c.id}>{c.id === FEDERATIE_ID ? FEDERATIE_NAME : c.nume}</option>)}
                     </Select>
                 )}
-                <Input label="Caută Sportiv/Familie" value={filter.sportiv} onChange={e => setFilter({...filter, sportiv: e.target.value})} />
-                <Select label="Categorie" value={filter.tip} onChange={e => setFilter({...filter, tip: e.target.value})}>
+                 <Select label="Status" name="status" value={filter.status} onChange={e => setFilter(p => ({...p, status: e.target.value}))}>
                     <option value="">Toate</option>
-                    <option value="Abonament">Abonament</option>
-                    <option value="Taxa Examen">Taxa Examen</option>
-                    <option value="Taxa Stagiu">Taxa Stagiu</option>
-                    <option value="Taxa Competitie">Taxa Competiție</option>
-                    <option value="Echipament">Echipament</option>
-                    <option value="Taxa Anuala">Taxa Anuală</option>
+                    <option value="Neachitat">Neachitat</option>
+                    <option value="Achitat Parțial">Achitat Parțial</option>
+                    <option value="Achitat">Achitat</option>
                 </Select>
-                <Select label="Status" value={filter.status} onChange={e => setFilter({...filter, status: e.target.value})}>
-                    <option value="">Toate</option>
-                    <option value="Neachitat">Neachitate</option>
-                    <option value="Achitat">Achitate</option>
-                    <option value="Achitat Parțial">Achitate Parțial</option>
+                <Select label="Tip Plată" name="tip" value={filter.tip} onChange={e => setFilter(p => ({...p, tip: e.target.value}))}>
+                     <option value="">Toate Tipurile</option>
+                     {[...new Set(plati.map(p=>p.tip))].sort().map(tip => <option key={tip} value={tip}>{tip}</option>)}
+                </Select>
+                <Select label="Sportiv" name="sportiv" value={filter.sportiv} onChange={e => setFilter(p => ({...p, sportiv: e.target.value}))}>
+                    <option value="">Toți Sportivii</option>
+                    {sportivi.sort((a,b)=>a.nume.localeCompare(b.nume)).map(s => <option key={s.id} value={s.id}>{s.nume} {s.prenume}</option>)}
                 </Select>
             </Card>
 
-            {selectedIds.size > 0 && (
-                <div className="bg-brand-secondary/20 p-4 rounded-lg flex justify-between items-center animate-fade-in-down">
-                    <p className="font-bold text-brand-secondary">{selectedIds.size} facturi selectate (Total: {filteredPlati.filter(p => selectedIds.has(p.id)).reduce((s,p)=>s+p.suma, 0).toFixed(2)} lei)</p>
-                    <Button variant="success" onClick={() => onIncaseazaMultiple(plati.filter(p => selectedIds.has(p.id)))}>Încasează Selecție</Button>
-                </div>
-            )}
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                 <Button onClick={handleGenerateSubscriptions} variant="info" isLoading={isGenerating}>Generează Abonamente Luna Curentă</Button>
+                {selectedIds.size > 0 && (
+                    <Button onClick={handleIncasareClick} variant="success">
+                        <BanknotesIcon className="w-5 h-5 mr-2"/>
+                        Încasează {selectedIds.size} facturi selectate
+                    </Button>
+                )}
+            </div>
 
-            <Card className="p-0 overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm">
-                        <thead className="bg-[var(--bg-table-header)]">
-                            <tr>
-                                <th className="p-2 w-10">
-                                    <input type="checkbox" checked={selectedIds.size > 0 && selectedIds.size === filteredPlati.length} onChange={handleSelectAllVisible} className="rounded border-slate-500 bg-[var(--bg-input)] text-[var(--accent)] focus:ring-[var(--accent)]"/>
-                                </th>
-                                <th className="p-2 font-semibold">Data Scadență</th>
-                                <th className="p-2 font-semibold">Destinatar</th>
-                                <th className="p-2 font-semibold">Descriere</th>
-                                <th className="p-2 font-semibold text-right">Sumă</th>
-                                <th className="p-2 font-semibold text-center">Status</th>
-                                <th className="p-2 font-semibold text-right">Acțiuni</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-[var(--border-color)]">
-                            {filteredPlati.map(p => {
-                                const clubId = getPlataClubId(p);
-                                const club = clubs.find(c => c.id === clubId);
-                                return (
-                                <tr key={p.id} className="hover:bg-[var(--bg-table-row-hover)] transition-colors">
-                                    <td className="p-2">
-                                        <input type="checkbox" checked={selectedIds.has(p.id)} onChange={() => handleToggleSelect(p.id)} className="rounded border-slate-500 bg-[var(--bg-input)] text-[var(--accent)] focus:ring-[var(--accent)]"/>
-                                    </td>
-                                    <td className="p-2 text-slate-400">{new Date(p.data).toLocaleDateString('ro-RO')}</td>
-                                    <td className="p-2">
-                                        <div className="font-bold text-white">{getEntityName(p)}</div>
-                                        {permissions.isSuperAdmin && !filter.clubId && club && (
-                                            <div className="text-xs text-slate-400 font-normal">{club.id === FEDERATIE_ID ? FEDERATIE_NAME : club.nume}</div>
-                                        )}
-                                    </td>
-                                    <td className="p-2">
-                                        <div className="font-semibold">{p.descriere}</div>
-                                        {p.observatii && <div className="text-[10px] text-slate-500 italic max-w-xs truncate" title={p.observatii}>{p.observatii}</div>}
-                                    </td>
-                                    <td className="p-2 text-right font-bold text-white">{p.suma.toFixed(2)} lei</td>
-                                    <td className="p-2 text-center">
-                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
-                                            p.status === 'Achitat' ? 'border-green-700 text-green-400' : 
-                                            p.status === 'Achitat Parțial' ? 'border-amber-500 text-amber-400' : 
-                                            'border-red-800 text-red-400'
-                                        }`}>
-                                            {p.status}
-                                        </span>
-                                    </td>
-                                    <td className="p-2 text-right">
-                                        <div className="flex justify-end gap-2">
-                                            <Button size="sm" variant="info" onClick={() => setViewingHistoryFor(p)} title="Istoric Încasări"><BanknotesIcon className="w-4 h-4"/></Button>
-                                            <Button size="sm" variant="secondary" onClick={() => setEditingPlata(p)} title="Editează detalii"><EditIcon className="w-4 h-4"/></Button>
-                                            <Button size="sm" variant="danger" onClick={() => setPlataToDelete(p)} title="Șterge factură"><TrashIcon className="w-4 h-4"/></Button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            )})}
-                        </tbody>
-                    </table>
-                    {filteredPlati.length === 0 && <p className="p-12 text-center text-slate-500 italic">Nu există facturi care să corespundă filtrelor.</p>}
-                </div>
-            </Card>
-
-            <ConfirmDeleteModal 
-                isOpen={!!plataToDelete} 
-                onClose={() => setPlataToDelete(null)} 
-                onConfirm={() => plataToDelete && confirmDeletePlata(plataToDelete.id)} 
-                tableName="Factură" 
-                isLoading={isDeleting} 
-            />
+            {/* Aici începe tabelul */}
             
             {editingPlata && (
-                <Modal 
-                    isOpen={!!editingPlata} 
-                    onClose={() => setEditingPlata(null)} 
-                    title="Editează Factură"
-                >
-                    <div className="mt-4 space-y-4 text-left">
-                        <Input label="Descriere" value={editingPlata.descriere} onChange={e => setEditingPlata({...editingPlata, descriere: e.target.value})} />
-                        <Input label="Sumă" type="number" value={editingPlata.suma} onChange={e => setEditingPlata({...editingPlata, suma: parseFloat(e.target.value) || 0})} />
-                        <Select label="Status" value={editingPlata.status} onChange={e => setEditingPlata({...editingPlata, status: e.target.value as any})}>
-                            <option value="Neachitat">Neachitat</option>
-                            <option value="Achitat Parțial">Achitat Parțial</option>
-                            <option value="Achitat">Achitat</option>
-                        </Select>
-                        <Input label="Observații" value={editingPlata.observatii || ''} onChange={e => setEditingPlata({...editingPlata, observatii: e.target.value})} />
-                    </div>
-                     <div className="mt-6 flex justify-end gap-3">
-                        <Button variant="secondary" onClick={() => setEditingPlata(null)} disabled={isSaving}>
-                          Anulează
-                        </Button>
-                        <Button variant="success" onClick={() => handleSaveEdit(editingPlata.id)} isLoading={isSaving}>
-                          Salvează
-                        </Button>
-                    </div>
+                <Modal isOpen={!!editingPlata} onClose={() => setEditingPlata(null)} title="Editează Plată">
+                    <div className="space-y-4"><Input label="Descriere" value={editingPlata.descriere} onChange={e => setEditingPlata({...editingPlata, descriere: e.target.value})} /><Input label="Sumă" type="number" value={editingPlata.suma} onChange={e => setEditingPlata({...editingPlata, suma: parseFloat(e.target.value) || 0})} /><div className="flex justify-end gap-2"><Button variant="secondary" onClick={() => setEditingPlata(null)}>Anulează</Button><Button variant="success" onClick={handleSaveEdit} isLoading={isSaving}>Salvează</Button></div></div>
                 </Modal>
             )}
-            
-            {viewingHistoryFor && (
-                <Modal
-                    isOpen={!!viewingHistoryFor}
-                    onClose={() => setViewingHistoryFor(null)}
-                    title={`Istoric Încasări pentru: ${viewingHistoryFor.descriere}`}
-                >
-                    {tranzactiiPentruPlata.length > 0 ? (
-                        <table className="w-full text-left text-sm">
-                            <thead className="bg-slate-700">
-                                <tr>
-                                    <th className="p-2">Data Plății</th>
-                                    <th className="p-2">Suma</th>
-                                    <th className="p-2">Metoda</th>
-                                    <th className="p-2">Descriere</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-700">
-                                {tranzactiiPentruPlata.map(t => (
-                                    <tr key={t.id}>
-                                        <td className="p-2">{new Date(t.data_platii).toLocaleDateString('ro-RO')}</td>
-                                        <td className="p-2 font-bold">{t.suma.toFixed(2)} RON</td>
-                                        <td className="p-2">{t.metoda_plata}</td>
-                                        <td className="p-2 text-slate-400">{t.descriere}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    ) : (
-                        <p className="text-center text-slate-400 p-8">Nicio încasare înregistrată pentru această factură.</p>
-                    )}
-                </Modal>
-            )}
+            <ConfirmDeleteModal isOpen={!!plataToDelete} onClose={() => setPlataToDelete(null)} onConfirm={() => { if(plataToDelete) confirmDelete(plataToDelete.id) }} tableName="Plată" isLoading={isDeleting} />
         </div>
     );
 };

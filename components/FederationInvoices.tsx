@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { DecontFederatie, User } from '../types';
+import { DecontFederatie, User, Rol } from '../types';
 import { Card, Button, Modal, Input } from './ui';
 import { ArrowLeftIcon, BanknotesIcon, UploadCloudIcon } from './icons';
 import { usePermissions } from '../hooks/usePermissions';
@@ -79,7 +79,15 @@ interface FederationInvoicesProps {
 }
 
 export const FederationInvoices: React.FC<FederationInvoicesProps> = ({ deconturi, setDeconturi, currentUser, onBack }) => {
-    const { isFederationAdmin, isAdminClub } = usePermissions(currentUser);
+    // FIX: `usePermissions` expects a user and an active role. The active role is derived from the user's roles.
+    const activeRole = useMemo((): Rol['nume'] => {
+        if (currentUser?.roluri && currentUser.roluri.length > 0) {
+            const roleWeights: Record<Rol['nume'], number> = { 'SUPER_ADMIN_FEDERATIE': 5, 'Admin': 4, 'Admin Club': 3, 'Instructor': 2, 'Sportiv': 1 };
+            return [...currentUser.roluri].sort((a, b) => (roleWeights[b.nume] || 0) - (roleWeights[a.nume] || 0))[0]?.nume || 'Sportiv';
+        }
+        return 'Sportiv';
+    }, [currentUser]);
+    const { isFederationAdmin, isAdminClub } = usePermissions(currentUser, activeRole);
     const { showError, showSuccess } = useError();
     const [selectedDecont, setSelectedDecont] = useState<DecontFederatie | null>(null);
 

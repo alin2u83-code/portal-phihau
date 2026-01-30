@@ -31,8 +31,7 @@ class ErrorBoundary extends Component<Props, State> {
     console.error("Uncaught error:", error, errorInfo);
   }
   
-  // FIX: Converted to a regular method to be called via an arrow function in render, which robustly handles `this` context.
-  // FIX: Converted back to an arrow function to correctly bind `this`.
+  // FIX: Converted to an arrow function property to ensure `this` is correctly bound.
   handleRedirect = () => {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {

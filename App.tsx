@@ -45,7 +45,7 @@ import { useClubFilter } from './hooks/useClubFilter';
 import { MandatoryPasswordChange } from './components/MandatoryPasswordChange';
 import ErrorBoundary from './components/ErrorBoundary';
 import { SystemGuardian } from './components/SystemGuardian';
-import { RoleSwitcher } from './components/RoleSwitcher';
+import { AdminDebugFloatingPanel } from './components/AdminDebugFloatingPanel';
 import { getAuthenticatedUser } from './utils/auth';
 import { FederationInvoices } from './components/FederationInvoices';
 import { MartialAttendance } from './components/MartialAttendance';
@@ -221,7 +221,12 @@ function App() {
         setSesiuniExamene(sessionsData || []);
         setInscrieriExamene(registrationsData || []);
         setIstoricGrade(istoricGradeData || []);
-        setAntrenamente(trainingsData?.map(t => ({ ...t, sportivi_prezenti_ids: (t as any).prezenta_antrenament?.map((p: any) => p.sportiv_id) || [] })) || []);
+// FIX: Normalize `prezenta_antrenament` to an array before mapping to prevent errors when Supabase returns a single object for a to-one relationship.
+setAntrenamente(trainingsData?.map(t => {
+    const prezentaData = (t as any).prezenta_antrenament;
+    const prezentaArray = prezentaData ? (Array.isArray(prezentaData) ? prezentaData : [prezentaData]) : [];
+    return { ...t, sportivi_prezenti_ids: prezentaArray.map((p: any) => p.sportiv_id) };
+}) || []);
         setPlati(platiData || []);
         setTranzactii(tranzactiiData || []);
         setEvenimente(eventsData || []);
@@ -556,10 +561,8 @@ function App() {
             </div>
           </main>
           {(import.meta as any).env.DEV && currentUser && (
-            <RoleSwitcher 
-                currentUser={currentUser} 
-                onNavigate={setActiveView}
-                activeView={activeView}
+            <AdminDebugFloatingPanel 
+                currentUser={currentUser}
             />
           )}
         </div>

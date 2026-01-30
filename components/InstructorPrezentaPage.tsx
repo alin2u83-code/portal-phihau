@@ -9,11 +9,6 @@ interface TrainingWithGroupAndAthletes extends Omit<Antrenament, 'grupe'> {
     grupe: (Grupa & { sportivi: Sportiv[] }) | null;
 }
 
-const getTodayRo = (): ProgramItem['ziua'] => {
-    const day = new Date().toLocaleDateString('ro-RO', { weekday: 'long' });
-    return (day.charAt(0).toUpperCase() + day.slice(1)) as ProgramItem['ziua'];
-};
-
 interface InstructorPrezentaPageProps {
     onBack: () => void;
     onNavigate: (view: any) => void;
@@ -29,7 +24,7 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
     const [loading, setLoading] = useState(true);
     const [savingStates, setSavingStates] = useState<Record<string, boolean>>({});
     const { showError, showSuccess } = useError();
-    const todayRo = useMemo(() => getTodayRo(), []);
+    const todayRo = useMemo(() => new Date().toLocaleDateString('ro-RO', { weekday: 'long' }).replace(/^\w/, c => c.toUpperCase()), []);
 
     useEffect(() => {
         const fetchTodaysTrainings = async () => {
@@ -46,88 +41,55 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
             }
             const clubId = userProfile.club_id;
             
-            // FIX: Cast Supabase results to any[] to fix iteration errors on 'unknown' types.
             const { data: grupeDataRaw, error: grupeError } = await supabase.from('grupe').select('id').eq('club_id', clubId);
             if(grupeError) { showError("Eroare", grupeError); setLoading(false); return; }
-            const grupeData: any[] = grupeDataRaw ? (Array.isArray(grupeDataRaw) ? grupeDataRaw : [grupeDataRaw]) : [];
-            const grupaIds = grupeData.map(g => g.id);
+            const grupaIds = (grupeDataRaw || []).map(g => g.id);
+
             if (grupaIds.length === 0) {
                 setTrainings([]);
                 setLoading(false);
                 return;
             }
-
-            const { data: singleTrainingsData, error: singleError } = await supabase
+            
+            // SIMPLIFIED: Fetch all trainings with today's date for the instructor's club.
+            // This query fetches the training, its group, the athletes in that group, and the attendance for that training.
+            const { data: trainingsData, error: trainingsError } = await supabase
                 .from('program_antrenamente')
-                .select('*, grupe(*, sportivi(*))')
+                .select('*, grupe(*, sportivi(*)), prezenta_antrenament(sportiv_id)')
                 .eq('data', todayISO)
                 .in('grupa_id', grupaIds);
-            
-            if (singleError) { showError("Eroare la încărcarea antrenamentelor", singleError); setLoading(false); return; }
 
-            const { data: recurringTrainingsRaw, error: recurringError } = await supabase
-                .from('grupe')
-                .select('*, program_antrenamente!inner(*), sportivi(*)')
-                .eq('program_antrenamente.ziua', todayRo)
-                .in('id', grupaIds);
-            
-            if (recurringError) { showError("Eroare la încărcarea programului recurent", recurringError); setLoading(false); return; }
+            if (trainingsError) {
+                showError("Eroare la încărcarea antrenamentelor", trainingsError);
+                setLoading(false);
+                return;
+            }
 
-            // FIX: Cast singleTrainingsRaw to any[] for safe mapping.
-            const singleTrainingsRaw: any[] = Array.isArray(singleTrainingsData) ? singleTrainingsData : (singleTrainingsData ? [singleTrainingsData] : []);
-            const singleTrainings = singleTrainingsRaw.map((training: any) => {
+            const initialAttendance = new Map<string, Set<string>>();
+            const processedTrainings = (trainingsData || []).map((training: any) => {
+                // Normalize nested arrays from Supabase which might be objects if only one result is returned.
                 if (training.grupe && training.grupe.sportivi) {
                     const sportiviRaw = training.grupe.sportivi;
                     training.grupe.sportivi = sportiviRaw ? (Array.isArray(sportiviRaw) ? sportiviRaw : [sportiviRaw]) : [];
                 }
-                return training;
+                const prezentaRaw = training.prezenta_antrenament;
+                const prezentaIds = prezentaRaw ? (Array.isArray(prezentaRaw) ? prezentaRaw : [prezentaRaw]).map((p: any) => p.sportiv_id) : [];
+                
+                initialAttendance.set(training.id, new Set(prezentaIds));
+                
+                return {
+                    ...training,
+                    sportivi_prezenti_ids: prezentaIds,
+                };
             });
-
-            // FIX: Ensure singleTrainings is recognized as an array before spreading.
-            const combined: TrainingWithGroupAndAthletes[] = [...(singleTrainings as any[])];
-            const initialAttendance = new Map<string, Set<string>>();
-
-            // FIX: Normalize and cast recurringTrainingsRaw to any[] to resolve iterator errors.
-            const recurringTrainings: any[] = recurringTrainingsRaw ? (Array.isArray(recurringTrainingsRaw) ? (recurringTrainingsRaw as any[]) : [recurringTrainingsRaw]) : [];
-
-            recurringTrainings.forEach(grupa => {
-                const programItemsRaw: any = grupa.program_antrenamente;
-                const programItems: any[] = programItemsRaw ? (Array.isArray(programItemsRaw) ? programItemsRaw : [programItemsRaw]) : [];
-                                
-                const sportiviRaw: any = grupa.sportivi;
-                const sportiviList: any[] = sportiviRaw ? (Array.isArray(sportiviRaw) ? sportiviRaw : [sportiviRaw]) : [];
-
-                programItems.forEach((programItem: any) => {
-                    const antrenamentId = `recurent-${programItem.id}-${todayISO}`;
-                    if (!combined.some(t => t.id === programItem.id && t.data === todayISO)) {
-                        combined.push({
-                            id: antrenamentId, data: todayISO, ora_start: programItem.ora_start, ora_sfarsit: programItem.ora_sfarsit,
-                            grupa_id: grupa.id, grupe: { ...grupa, sportivi: sportiviList }, ziua: programItem.ziua,
-                            is_recurent: true, sportivi_prezenti_ids: []
-                        });
-                    }
-                });
-            });
-
-            const trainingIds = combined.map(t => t.id).filter(id => !id.startsWith('recurent-'));
-            if (trainingIds.length > 0) {
-                 const { data: prezentaDataRaw } = await supabase.from('prezenta_antrenament').select('*').in('antrenament_id', trainingIds);
-                if (prezentaDataRaw) {
-                    const prezentaData: any[] = Array.isArray(prezentaDataRaw) ? prezentaDataRaw : [prezentaDataRaw];
-                    prezentaData.forEach((p: any) => {
-                        const set = initialAttendance.get(p.antrenament_id) || new Set();
-                        set.add(p.sportiv_id);
-                        initialAttendance.set(p.antrenament_id, set);
-                    });
-                }
-            }
             
-            setTrainings(combined.sort((a, b) => a.ora_start.localeCompare(b.ora_start)));
+            setTrainings(processedTrainings.sort((a, b) => a.ora_start.localeCompare(b.ora_start)));
             setAttendance(initialAttendance);
             setLoading(false);
         };
+
         fetchTodaysTrainings();
-    }, [showError, todayRo, currentUser.user_id]);
+    }, [showError, currentUser.user_id]);
 
     const handleToggle = (antrenamentId: string, sportivId: string) => {
         setAttendance(prev => {
@@ -175,7 +137,7 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
         setSavingStates(prev => ({ ...prev, [antrenament.id]: true }));
         try {
             let antrenamentId = antrenament.id;
-            if (antrenament.id.startsWith('recurent-')) {
+            if (antrenament.is_recurent && antrenament.id.startsWith('recurent-')) {
                 const { data, error } = await supabase.from('program_antrenamente').insert({
                     data: antrenament.data, ora_start: antrenament.ora_start, ora_sfarsit: antrenament.ora_sfarsit,
                     grupa_id: antrenament.grupa_id, is_recurent: false,

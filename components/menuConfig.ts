@@ -1,6 +1,6 @@
 import React from 'react';
 import { View } from '../types';
-import { HomeIcon, UsersIcon, TrophyIcon, ClipboardDocumentListIcon, BanknotesIcon, CalendarDaysIcon, UserCircleIcon, ShieldCheckIcon, ClipboardCheckIcon, ArchiveBoxIcon, CogIcon, BellIcon, WalletIcon } from './icons';
+import { HomeIcon, UsersIcon, TrophyIcon, ClipboardDocumentListIcon, BanknotesIcon, CalendarDaysIcon, UserCircleIcon, ShieldCheckIcon, ClipboardCheckIcon, ArchiveBoxIcon, CogIcon, BellIcon, WalletIcon, UserPlusIcon, BookOpenIcon, ChartBarIcon, BookMarkedIcon, FileTextIcon } from './icons';
 
 export interface MenuItem {
     label: string;
@@ -133,4 +133,52 @@ export const sportivMenu: MenuItem[] = [
             { label: 'Setări Cont', view: 'account-settings' },
         ]
     },
+];
+
+export const masterAdminMenu: MenuItem[] = [
+    { label: 'Dashboard', icon: HomeIcon, view: 'dashboard' },
+    { 
+        label: 'Management & Tehnic', 
+        icon: UsersIcon,
+        submenu: [
+             { label: 'Listă Sportivi', view: 'sportivi' },
+             { label: 'Gestiune Familii', view: 'familii' },
+             { label: 'Orar & Gestiune Grupe', view: 'grupe' },
+             { label: 'Generator Program', view: 'activitati' },
+             { label: 'Înregistrare Prezențe', view: 'prezenta' },
+             { label: 'Raport Prezențe', view: 'raport-prezenta' },
+             { label: 'Raport Activitate', view: 'raport-activitate' }
+        ]
+    },
+    { 
+        label: 'Financiar', 
+        icon: BanknotesIcon, 
+        submenu: [ 
+            { view: 'financial-dashboard', label: 'Dashboard Financiar' },
+            { view: 'gestiune-facturi', label: 'Adaugă Factură Manuală' },
+            { view: 'plati-scadente', label: 'Listă Facturi' }, 
+            { view: 'jurnal-incasari', label: 'Jurnal Încasări' },
+            { view: 'raport-financiar', label: 'Raport Încasări' },
+            { view: 'deconturi-federatie', label: 'Deconturi Federație' },
+        ] 
+    },
+    {
+        label: 'Administrativ',
+        icon: CogIcon,
+        submenu: [
+            { label: 'Sesiuni Examene', view: 'examene' },
+            { label: 'Stagii & Competiții', view: 'stagii' },
+            { label: 'Rapoarte Examen', view: 'rapoarte-examen' },
+            { label: 'Administrare Staff', view: 'user-management' },
+            { label: 'Management Cluburi', view: 'cluburi' },
+            { label: 'Setări Generale', view: 'setari-club' },
+            { label: 'Config. Abonamente', view: 'tipuri-abonament' },
+            { label: 'Config. Taxe Examen', view: 'configurare-preturi' },
+            { label: 'Config. Taxe Anuale', view: 'taxe-anuale' },
+            { label: 'Nomenclator Grade', view: 'grade' },
+            { label: 'Politici Reducere', view: 'reduceri' },
+            { label: 'Categorii Plăți', view: 'nomenclatoare' },
+            { label: 'Mentenanță Date', view: 'data-maintenance' },
+        ]
+    }
 ];

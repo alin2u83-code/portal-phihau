@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { User, View, Club, Permissions, Rol } from '../types';
-import { instructorMenu, sportivMenu, clubAdminMenu, federationAdminMenu, MenuItem } from './menuConfig';
+import { instructorMenu, sportivMenu, clubAdminMenu, federationAdminMenu, masterAdminMenu, MenuItem } from './menuConfig';
 import { ArrowRightOnRectangleIcon, Bars3Icon, ChevronDownIcon, ShieldCheckIcon } from './icons';
 import { Select } from './ui';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
@@ -65,8 +65,7 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLogout, activeView, isExpanded, setIsExpanded, clubs, globalClubFilter, setGlobalClubFilter, permissions, activeRole }) => {
     const [isMobileOpen, setIsMobileOpen] = useState(false);
-    const isEmergencyAdmin = currentUser.email === 'alin2u83@gmail.com';
-    const isAdmin = permissions.isFederationAdmin || permissions.isAdminClub || isEmergencyAdmin;
+    const isMasterAdmin = currentUser.email === 'alin2u83@gmail.com';
 
     const handleNavigate = (view: View) => {
         onNavigate(view);
@@ -85,12 +84,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
     }, [permissions, currentUser, globalClubFilter, clubs]);
     
     const menuToDisplay = useMemo(() => {
-        if (isEmergencyAdmin) return federationAdminMenu;
+        if (isMasterAdmin) return masterAdminMenu;
         if (permissions.isFederationAdmin) return federationAdminMenu;
         if (permissions.isAdminClub) return federationAdminMenu; // Ensure Admin Club gets full menu
         if (permissions.isInstructor) return instructorMenu;
         return sportivMenu;
-    }, [permissions, isEmergencyAdmin]);
+    }, [permissions, isMasterAdmin]);
 
     // Main content of the sidebar
     const sidebarContent = (
@@ -120,7 +119,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
             )}
 
             <nav className="flex-1 px-2 py-4 space-y-1.5 overflow-y-auto">
-                {isAdmin && (
+                {isMasterAdmin && (
                      <button onClick={() => handleNavigate('admin-console')} className={`flex items-center w-full p-2.5 mb-2 text-amber-400 border-b border-amber-500/20 hover:bg-amber-500/10 transition-all rounded-md ${activeView === 'admin-console' ? 'bg-amber-500/20' : ''}`} title="Consolă Switch">
                         <ShieldCheckIcon className={`h-6 w-6 shrink-0 ${isExpanded ? 'mr-3' : 'mx-auto'}`} />
                         {isExpanded && <span className="ml-0 font-bold uppercase text-sm tracking-widest">Consolă Switch</span>}

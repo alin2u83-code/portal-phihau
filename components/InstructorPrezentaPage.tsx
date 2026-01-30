@@ -66,12 +66,11 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
                     const sportiviRaw = training.grupe.sportivi;
                     training.grupe.sportivi = sportiviRaw ? (Array.isArray(sportiviRaw) ? sportiviRaw : [sportiviRaw]) : [];
                 }
-// FIX: The type checker doesn't know about the Deno global. Access it via globalThis to avoid compile-time errors in environments without Deno types.
-                // Supabase may return a single object instead of an array. Normalize to array before use.
+                // FIX: Supabase may return a single object instead of an array. Normalize to array before use.
                 const prezentaRaw = training.prezenta_antrenament;
-                // Add explicit type to prezentaArray to fix type inference issues.
+                // FIX: Add explicit type to prezentaArray to fix type inference issues.
                 const prezentaArray: { sportiv_id: string }[] = prezentaRaw ? (Array.isArray(prezentaRaw) ? prezentaRaw : [prezentaRaw]) : [];
-                // Typed the parameter `p` to ensure correct type inference for `prezentaIds`.
+                // FIX: Typed the parameter `p` to ensure correct type inference for `prezentaIds`.
                 const prezentaIds = prezentaArray.map((p: { sportiv_id: string }) => p.sportiv_id);
                 
                 initialAttendance.set(training.id, new Set(prezentaIds));

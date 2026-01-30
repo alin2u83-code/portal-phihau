@@ -103,7 +103,8 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
         setExtraAthletes(prev => {
             const next = new Map(prev);
             // FIX: Explicitly type `current` as `string[]` to resolve incorrect type inference.
-            const current: string[] = next.get(antrenamentId) ?? [];
+            const currentList = next.get(antrenamentId);
+            const current: string[] = Array.isArray(currentList) ? currentList : [];
             if (!current.includes(sportivId)) next.set(antrenamentId, [...current, sportivId]);
             return next;
         });
@@ -114,7 +115,8 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
         setExtraAthletes(prev => {
             const next = new Map(prev);
             // FIX: Explicitly type `current` as `string[]` to resolve incorrect type inference.
-            const current: string[] = next.get(antrenamentId) ?? [];
+            const currentList = next.get(antrenamentId);
+            const current: string[] = Array.isArray(currentList) ? currentList : [];
             next.set(antrenamentId, current.filter(id => id !== sportivId));
             return next;
         });

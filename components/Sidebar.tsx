@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { User, View, Plata, Club, Permissions } from '../types';
-import { federationAdminMenu, clubAdminMenu, instructorMenu, sportivMenu, MenuItem } from './menuConfig';
+import { User, View, Club, Permissions } from '../types';
+import { instructorMenu, sportivMenu, MenuItem } from './menuConfig';
 import { ArrowRightOnRectangleIcon, Bars3Icon, ChevronDownIcon, ShieldCheckIcon } from './icons';
 import { Select } from './ui';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
 
-// Sub-component for individual navigation items
+// Sub-component for instructor/sportiv navigation items
 const NavItem: React.FC<{
     item: MenuItem;
     isExpanded: boolean;
@@ -16,46 +16,26 @@ const NavItem: React.FC<{
     const [isSubmenuOpen, setIsSubmenuOpen] = useState(false);
 
     useEffect(() => {
-        // Automatically open submenu if one of its items is active
-        if (isActive) {
-            setIsSubmenuOpen(true);
-        }
+        if (isActive) setIsSubmenuOpen(true);
     }, [isActive]);
 
     const hasSubmenu = item.submenu && item.submenu.length > 0;
-
     const handleClick = () => {
-        if (hasSubmenu) {
-            setIsSubmenuOpen(!isSubmenuOpen);
-        } else if (item.view) {
-            onNavigate(item.view);
-        }
+        if (hasSubmenu) setIsSubmenuOpen(!isSubmenuOpen);
+        else if (item.view) onNavigate(item.view);
     };
-
-    const baseClasses = "flex items-center p-2.5 text-white rounded-md cursor-pointer transition-colors duration-200 w-full";
-    const activeClasses = isActive ? "bg-[var(--accent)] text-white shadow-lg" : "hover:bg-white/10";
 
     return (
         <div>
-            <div
-                onClick={handleClick}
-                className={`${baseClasses} ${activeClasses}`}
-                title={!isExpanded ? item.label : ''}
-            >
+            <div onClick={handleClick} className={`flex items-center p-2.5 text-white rounded-md cursor-pointer transition-colors w-full ${isActive ? "bg-[var(--accent)] text-white shadow-lg" : "hover:bg-white/10"}`} title={!isExpanded ? item.label : ''}>
                 <item.icon className={`h-6 w-6 shrink-0 ${isExpanded ? 'mr-3' : 'mx-auto'}`} />
                 {isExpanded && <span className="flex-1 font-semibold text-sm">{item.label}</span>}
-                {isExpanded && hasSubmenu && (
-                    <ChevronDownIcon className={`w-5 h-5 transition-transform ${isSubmenuOpen ? 'rotate-180' : ''}`} />
-                )}
+                {isExpanded && hasSubmenu && <ChevronDownIcon className={`w-5 h-5 transition-transform ${isSubmenuOpen ? 'rotate-180' : ''}`} />}
             </div>
             {isExpanded && hasSubmenu && isSubmenuOpen && (
                 <div className="pl-6 mt-1 space-y-1">
                     {item.submenu?.map(subItem => (
-                        <div
-                            key={subItem.view}
-                            onClick={() => onNavigate(subItem.view)}
-                            className={`block p-2 text-sm rounded-md cursor-pointer transition-colors ${subItem.view === activeView ? 'bg-[var(--accent)]/50 font-bold text-white' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
-                        >
+                        <div key={subItem.view} onClick={() => onNavigate(subItem.view)} className={`block p-2 text-sm rounded-md cursor-pointer ${subItem.view === activeView ? 'bg-[var(--accent)]/50 font-bold text-white' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}>
                             {subItem.label}
                         </div>
                     ))}
@@ -64,6 +44,33 @@ const NavItem: React.FC<{
         </div>
     );
 };
+
+// Grouped menu for Admins
+const adminMenuGroups: { group: string; items: { id: View; label: string; icon: string }[] }[] = [
+  {
+    group: 'Management',
+    items: [
+      { id: 'dashboard', label: 'Dashboard', icon: '📊' },
+      { id: 'sportivi', label: 'Sportivi', icon: '🥋' },
+      { id: 'prezenta', label: 'Prezențe', icon: '📝' },
+      { id: 'examene', label: 'Examene & Grade', icon: '📜' },
+    ]
+  },
+  {
+    group: 'Financiar',
+    items: [
+      { id: 'gestiune-facturi', label: 'Facturi & Încasări', icon: '💰' },
+      { id: 'plati-scadente', label: 'Listă Facturi', icon: '💳' },
+    ]
+  },
+  {
+    group: 'Administrativ',
+    items: [
+      { id: 'grupe', label: 'Configurare Grupe', icon: '📅' },
+      { id: 'cluburi', label: 'Cluburi Federale', icon: '🏛️' },
+    ]
+  }
+];
 
 // Main Sidebar Component
 interface SidebarProps {
@@ -81,14 +88,7 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLogout, activeView, isExpanded, setIsExpanded, clubs, globalClubFilter, setGlobalClubFilter, permissions }) => {
     const [isMobileOpen, setIsMobileOpen] = useState(false);
-    
-    // Select the correct menu based on user permissions
-    const menu = useMemo(() => {
-        if (permissions.isFederationAdmin) return federationAdminMenu;
-        if (permissions.isAdminClub) return clubAdminMenu;
-        if (permissions.isInstructor) return instructorMenu;
-        return sportivMenu;
-    }, [permissions]);
+    const isAdmin = permissions.isFederationAdmin || permissions.isAdminClub;
 
     const handleNavigate = (view: View) => {
         onNavigate(view);
@@ -133,22 +133,31 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
                 </div>
             )}
 
-            <nav className="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto">
-                {menu.map(item => {
+            <nav className="flex-1 px-2 py-4 space-y-1.5 overflow-y-auto">
+                {isAdmin ? (
+                    <>
+                        <button onClick={() => handleNavigate('admin-console')} className={`flex items-center w-full px-2 py-3 mb-2 text-amber-400 border-b border-amber-500/20 hover:bg-amber-500/10 transition-all rounded-md ${activeView === 'admin-console' ? 'bg-amber-500/20' : ''}`} title="Consolă Switch">
+                            <span className={`text-xl ${!isExpanded ? 'mx-auto' : ''}`}>🛡️</span>
+                            {isExpanded && <span className="ml-3 font-bold uppercase text-[10px] tracking-widest">Consolă Switch</span>}
+                        </button>
+                        
+                        {adminMenuGroups.map((group) => (
+                            <div key={group.group} className="mb-2">
+                                {isExpanded && <p className="px-2 text-[9px] uppercase text-gray-500 font-bold mb-1">{group.group}</p>}
+                                {group.items.map((item) => (
+                                <button key={item.id} onClick={() => handleNavigate(item.id as View)} className={`flex items-center w-full px-2 py-2.5 transition-colors rounded-md ${activeView === item.id ? 'bg-blue-600/30 text-blue-300' : 'text-gray-300 hover:bg-gray-800'}`} title={!isExpanded ? item.label : ''}>
+                                    <span className={`text-lg ${!isExpanded ? 'mx-auto' : ''}`}>{item.icon}</span>
+                                    {isExpanded && <span className="ml-3 text-sm font-semibold">{item.label}</span>}
+                                </button>
+                                ))}
+                                {!isExpanded && <div className="h-px bg-slate-700/50 my-2"></div>}
+                            </div>
+                        ))}
+                    </>
+                ) : (permissions.isInstructor ? instructorMenu : sportivMenu).map(item => {
                      const isActive = item.view === activeView || (item.submenu?.some(s => s.view === activeView) ?? false);
                      return <NavItem key={item.label} item={item} isExpanded={isExpanded} isActive={isActive} onNavigate={handleNavigate} activeView={activeView} />
                 })}
-                 {permissions.hasAdminAccess && (
-                    <div className="pt-2 mt-2 border-t border-amber-500/30">
-                        <NavItem
-                            item={{ label: 'Consolă Switch', icon: ShieldCheckIcon, view: 'admin-console' }}
-                            isExpanded={isExpanded}
-                            isActive={activeView === 'admin-console'}
-                            onNavigate={handleNavigate}
-                            activeView={activeView}
-                        />
-                    </div>
-                )}
             </nav>
 
              <div className="p-3 border-t border-white/10">

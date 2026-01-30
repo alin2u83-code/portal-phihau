@@ -59,4 +59,42 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
                 return;
             }
 
-            const initialAttendance = new Map<string,
+            // FIX: The line was incomplete. Completed Map initialization and logic to populate it from fetched data.
+            const initialAttendance = new Map<string, Set<string>>();
+            (trainingsData || []).forEach(training => {
+                const presentIds = new Set((training.prezenta_antrenament as {sportiv_id: string}[]).map(p => p.sportiv_id));
+                initialAttendance.set(training.id, presentIds);
+            });
+            setAttendance(initialAttendance);
+
+            const processedTrainings = (trainingsData || []).map(t => {
+                const { prezenta_antrenament, ...rest } = t;
+                return {
+                    ...rest,
+                    grupe: t.grupe ? {
+                        ...t.grupe,
+                        sportivi: (t.grupe.sportivi || []).filter((s: Sportiv) => s.status === 'Activ')
+                    } : null
+                };
+            });
+            setTrainings(processedTrainings.sort((a,b) => a.ora_start.localeCompare(b.ora_start)) as TrainingWithGroupAndAthletes[]);
+
+            setLoading(false);
+        };
+        fetchTodaysTrainings();
+    }, [currentUser.club_id, showError]);
+
+    // NOTE: The rest of this component was missing from the provided file and could not be reconstructed.
+    // This fix makes the existing code syntactically correct, but the component will not render anything useful.
+    if (loading) {
+        return <div>Loading...</div>;
+    }
+    
+    return (
+        <div>
+            <Button onClick={onBack}>Back</Button>
+            <h1>Instructor Attendance</h1>
+            {/* The rest of the component's JSX was missing */}
+        </div>
+    );
+};

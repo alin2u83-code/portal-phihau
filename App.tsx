@@ -98,14 +98,27 @@ function App() {
   const [isSwitchingRole, setIsSwitchingRole] = useState(false);
 
   const activeRole = useMemo((): Rol['nume'] => {
+    // 1. Respectă contextul ales explicit de utilizator, dacă este valid.
     if (currentUser?.rol_activ_context && currentUser.roluri.some(r => r.nume === currentUser.rol_activ_context)) {
         return currentUser.rol_activ_context;
     }
-    // Hardcoded emergency fallback for specific user when context is not set
-    if (currentUser?.email === 'alin2u83@gmail.com' && !currentUser?.rol_activ_context) {
-        return 'SUPER_ADMIN_FEDERATIE';
+
+    // 2. Dacă nu există un context setat, alege automat rolul cu cele mai înalte privilegii.
+    if (currentUser?.roluri && currentUser.roluri.length > 0) {
+        const roleWeights: Record<Rol['nume'], number> = {
+            'SUPER_ADMIN_FEDERATIE': 5,
+            'Admin': 4,
+            'Admin Club': 3,
+            'Instructor': 2,
+            'Sportiv': 1,
+        };
+
+        const highestRole = [...currentUser.roluri].sort((a, b) => (roleWeights[b.nume] || 0) - (roleWeights[a.nume] || 0))[0];
+        
+        return highestRole?.nume || 'Sportiv';
     }
-    // Default for everyone else
+
+    // 3. Fallback pentru utilizatori fără roluri (caz excepțional).
     return 'Sportiv';
   }, [currentUser]);
 

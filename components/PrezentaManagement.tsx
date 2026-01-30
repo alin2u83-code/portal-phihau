@@ -238,16 +238,7 @@ export const PrezentaManagement: React.FC<{
 
     const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
-        setFilters(prev => {
-            const next = { ...prev, [name]: value };
-            // Make date and day of week filters mutually exclusive
-            if (name === 'data' && value) {
-                next.ziua = '';
-            } else if (name === 'ziua' && value) {
-                next.data = '';
-            }
-            return next;
-        });
+        setFilters(prev => ({ ...prev, [name]: value }));
     };
 
     const handleSaveAntrenament = async (antrenamentData: Omit<Antrenament, 'id' | 'sportivi_prezenti_ids'>) => {
@@ -256,7 +247,10 @@ export const PrezentaManagement: React.FC<{
             const { data, error } = await supabase.from('program_antrenamente').update(antrenamentData).eq('id', antrenamentToEdit.id).select('*, grupe(*), prezenta_antrenament!antrenament_id(sportiv_id)').single();
             if (error) { showError("Eroare la actualizare", error); } 
             else if (data) { 
-                const formatted: Antrenament = { ...data, sportivi_prezenti_ids: data.prezenta_antrenament ? data.prezenta_antrenament.map((ps: any) => ps.sportiv_id) : [] };
+                // FIX: Normalize `prezenta_antrenament` to an array before using .map() to avoid errors when Supabase returns a single object.
+                const prezentaRaw = (data as any).prezenta_antrenament;
+                const prezentaArray = prezentaRaw ? (Array.isArray(prezentaRaw) ? prezentaRaw : [prezentaRaw]) : [];
+                const formatted: Antrenament = { ...data, sportivi_prezenti_ids: prezentaArray.map((ps: any) => ps.sportiv_id) };
                 setAntrenamente(prev => prev.map(p => p.id === data.id ? formatted : p));
             }
         } else {
@@ -284,14 +278,11 @@ export const PrezentaManagement: React.FC<{
 
     const handleOpenAdd = () => { setAntrenamentToEdit(null); setIsFormOpen(true); };
     
-    const ZILE_SAPTAMANA: Record<string, number> = { 'Duminică': 0, 'Luni': 1, 'Marți': 2, 'Miercuri': 3, 'Joi': 4, 'Vineri': 5, 'Sâmbătă': 6 };
-    
     const filteredAntrenamente = useMemo(() => {
         return (antrenamente || [])
             .filter(a =>
                 (!filters.data || a.data === filters.data) &&
-                (!filters.grupa || a.grupa_id === filters.grupa) &&
-                (!filters.ziua || new Date(a.data + 'T00:00:00').getUTCDay() === ZILE_SAPTAMANA[filters.ziua])
+                (!filters.grupa || a.grupa_id === filters.grupa)
             )
             .sort((a, b) => (a.ora_start || '').localeCompare(b.ora_start || ''));
     }, [antrenamente, filters]);
@@ -312,12 +303,8 @@ export const PrezentaManagement: React.FC<{
                 <Button onClick={handleOpenAdd} variant="info"><PlusIcon className="w-5 h-5 mr-2" /> Antrenament Nou</Button>
             </div>
 
-            <Card className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Input label="Filtrează după Dată" name="data" type="date" value={filters.data} onChange={handleFilterChange} disabled={!!filters.ziua} />
-                <Select label="Filtrează după Ziua Săptămânii" name="ziua" value={filters.ziua} onChange={handleFilterChange} disabled={!!filters.data}>
-                    <option value="">Toate Zilele</option>
-                    {zileSaptamana.map(z => <option key={z} value={z}>{z}</option>)}
-                </Select>
+            <Card className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Input label="Filtrează după Dată" name="data" type="date" value={filters.data} onChange={handleFilterChange} />
                 <Select label="Filtrează după Grupă" name="grupa" value={filters.grupa} onChange={handleFilterChange}>
                     <option value="">Toate Grupele</option>
                     {(grupe || []).map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}

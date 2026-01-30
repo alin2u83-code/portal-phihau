@@ -13,11 +13,6 @@ interface State {
   error?: Error;
 }
 
-/**
- * Standard Error Boundary component to catch rendering errors in the UI tree.
- * Inheriting from Component ensures access to setState and lifecycle methods.
- */
-// FIX: Converted the component to a class component, as Error Boundaries require lifecycle methods not available in functional components.
 class ErrorBoundary extends Component<Props, State> {
   public state: State = {
     hasError: false,
@@ -32,10 +27,7 @@ class ErrorBoundary extends Component<Props, State> {
     console.error("Uncaught error:", error, errorInfo);
   }
   
-  // FIX: Converted to an arrow function property to ensure `this` is correctly bound.
   handleRedirect = () => {
-    // FIX: Properties 'setState', 'props' do not exist on type 'ErrorBoundary'.
-    // Converted the component to a class component, so `this` is now valid.
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {
         this.props.onNavigate('dashboard');

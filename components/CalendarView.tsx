@@ -2,7 +2,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { Antrenament, SesiuneExamen, Grupa, Locatie, Eveniment, View, User, Sportiv, Rezultat, Plata, PretConfig, Rol } from '../types';
 import { Button, Modal, Input, Select } from './ui';
 import { ArrowLeftIcon, ChevronLeftIcon, ChevronRightIcon, PlusIcon } from './icons';
-import { usePermissions, Permissions } from '../hooks/usePermissions';
+import { Permissions } from '../hooks/usePermissions';
 import { useError } from './ErrorProvider';
 import { getPretValabil } from '../utils/pricing';
 import { supabase } from '../supabaseClient';

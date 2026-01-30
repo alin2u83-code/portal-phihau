@@ -222,12 +222,7 @@ function App() {
         setSesiuniExamene(sessionsData || []);
         setInscrieriExamene(registrationsData || []);
         setIstoricGrade(istoricGradeData || []);
-// FIX: Normalize `prezenta_antrenament` to an array before mapping to prevent errors when Supabase returns a single object for a to-one relationship.
-setAntrenamente(trainingsData?.map(t => {
-    const prezentaData = (t as any).prezenta_antrenament;
-    const prezentaArray = prezentaData ? (Array.isArray(prezentaData) ? prezentaData : [prezentaData]) : [];
-    return { ...t, sportivi_prezenti_ids: prezentaArray.map((p: any) => p.sportiv_id) };
-}) || []);
+        setAntrenamente(trainingsData?.map(t => ({...t, sportivi_prezenti_ids: (t as any).prezenta_antrenament ? (Array.isArray((t as any).prezenta_antrenament) ? (t as any).prezenta_antrenament.map((p: any) => p.sportiv_id) : [(t as any).prezenta_antrenament.sportiv_id]) : [] })) || []);
         setPlati(platiData || []);
         setTranzactii(tranzactiiData || []);
         setEvenimente(eventsData || []);
@@ -458,7 +453,7 @@ setAntrenamente(trainingsData?.map(t => {
         return renderProtected(<GestiuneFacturi onBack={() => setActiveView('dashboard')} currentUser={currentUser} sportivi={filteredData.sportivi} plati={filteredData.plati} setPlati={setPlati} tipuriPlati={tipuriPlati} familii={filteredData.familii} />, canManageFinances);
 
       case 'deconturi-federatie':
-        return renderProtected(<FederationInvoices deconturi={filteredData.deconturiFederatie} setDeconturi={setDeconturiFederatie} currentUser={currentUser} onBack={() => setActiveView('dashboard')} />, isAtLeastClubAdmin);
+        return renderProtected(<FederationInvoices deconturi={filteredData.deconturiFederatie} setDeconturi={setDeconturiFederatie} currentUser={currentUser} onBack={() => setActiveView('dashboard')} permissions={permissions} />, isAtLeastClubAdmin);
 
       case 'plati-scadente':
         return renderProtected(<PlatiScadente plati={filteredData.plati} setPlati={setPlati} sportivi={filteredData.sportivi} familii={filteredData.familii} tipuriAbonament={filteredData.tipuriAbonament} tranzactii={tranzactii} reduceri={reduceri} onIncaseazaMultiple={handleIncaseazaMultiple} onBack={() => setActiveView('dashboard')} onViewSportiv={onViewSportiv} currentUser={currentUser} clubs={clubs} permissions={permissions} />, canManageFinances);

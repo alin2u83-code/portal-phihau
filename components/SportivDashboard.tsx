@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Sportiv, InscriereExamen, Grad, Grupa, Plata, User, View, AnuntPrezenta, SesiuneExamen, ProgramItem, Antrenament, Permissions } from '../types';
+import { Sportiv, InscriereExamen, Grad, Grupa, Plata, User, View, AnuntPrezenta, SesiuneExamen, ProgramItem, Antrenament, Permissions, Rol } from '../types';
 import { Card, Button } from './ui';
 import { NotificationPermissionWidget } from './NotificationPermissionWidget';
 import { AttendanceTracker } from './AttendanceTracker';
@@ -178,9 +178,13 @@ interface SportivDashboardProps {
   setAnunturi: React.Dispatch<React.SetStateAction<AnuntPrezenta[]>>;
   sportivi: Sportiv[];
   permissions: Permissions;
+  canSwitchRoles: boolean;
+  activeRole: Rol['nume'];
+  onSwitchRole: (roleName: Rol['nume']) => void;
+  isSwitchingRole: boolean;
 }
 
-export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser, viewedUser, participari, examene, grade, grupe, plati, onNavigate, antrenamente, anunturi, setAnunturi, sportivi, permissions }) => {
+export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser, viewedUser, participari, examene, grade, grupe, plati, onNavigate, antrenamente, anunturi, setAnunturi, sportivi, permissions, canSwitchRoles, activeRole, onSwitchRole, isSwitchingRole }) => {
     
     const { showSuccess, showError } = useError();
     const isViewingOwnProfile = currentUser.id === viewedUser.id;
@@ -462,6 +466,24 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                     <p className="text-slate-400 italic">Niciun grad obținut încă.</p>
                 )}
             </Card>
+
+            {canSwitchRoles && (
+                <Card className="animate-fade-in-down" style={{ animationDelay: '300ms' }}>
+                    <h3 className="text-lg font-bold text-white mb-4">Comută Rol Activ</h3>
+                    <div className="flex flex-wrap gap-2">
+                        {currentUser.roluri.map(rol => (
+                            <Button 
+                                key={rol.id}
+                                variant={activeRole === rol.nume ? 'primary' : 'secondary'}
+                                onClick={() => onSwitchRole(rol.nume)}
+                                disabled={isSwitchingRole}
+                            >
+                                {rol.nume}
+                            </Button>
+                        ))}
+                    </div>
+                </Card>
+            )}
         </div>
     );
 };

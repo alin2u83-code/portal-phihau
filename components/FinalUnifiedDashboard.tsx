@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { User, View, DecontFederatie, Antrenament, Sportiv, Grupa, InscriereExamen, Plata, AnuntPrezenta, SesiuneExamen, Grad, Permissions, Rol } from '../types';
 import { SportivDashboard } from './SportivDashboard';
 import { GeneralAttendanceWidget } from './GeneralAttendanceWidget';
 import { AdminMasterMap } from './AdminMasterMap';
-import { Card } from './ui';
+import { Card, Button } from './ui';
 
 // Props
 interface FinalUnifiedDashboardProps {
@@ -22,11 +22,18 @@ interface FinalUnifiedDashboardProps {
     sesiuniExamene: SesiuneExamen[];
     onSwitchRole: (roleName: Rol['nume']) => void;
     isSwitchingRole: boolean;
+    activeRole: Rol['nume'];
 }
 
 // Main Component
 export const FinalUnifiedDashboard: React.FC<FinalUnifiedDashboardProps> = (props) => {
-    const { currentUser, onNavigate, deconturiFederatie, permissions, inscrieriExamene, plati, sportivi } = props;
+    const { currentUser, onNavigate, deconturiFederatie, permissions, inscrieriExamene, plati, sportivi, onSwitchRole, isSwitchingRole, activeRole } = props;
+
+    const canSwitchRoles = useMemo(() => {
+        if (!currentUser || !currentUser.roluri || currentUser.roluri.length <= 1) return false;
+        const adminRoles: Rol['nume'][] = ['SUPER_ADMIN_FEDERATIE', 'Admin', 'Admin Club', 'Instructor'];
+        return currentUser.roluri.some(r => adminRoles.includes(r.nume));
+    }, [currentUser]);
 
     if (!currentUser) {
         return (
@@ -77,6 +84,24 @@ export const FinalUnifiedDashboard: React.FC<FinalUnifiedDashboardProps> = (prop
                         )}
                     </div>
                 </div>
+
+                {canSwitchRoles && (
+                    <Card className="mt-8 animate-fade-in-down" style={{animationDelay: '300ms'}}>
+                        <h3 className="text-lg font-bold text-white mb-4">Comută Rol Activ</h3>
+                        <div className="flex flex-wrap gap-2">
+                            {currentUser.roluri.map(rol => (
+                                <Button 
+                                    key={rol.id}
+                                    variant={activeRole === rol.nume ? 'primary' : 'secondary'}
+                                    onClick={() => onSwitchRole(rol.nume)}
+                                    disabled={isSwitchingRole}
+                                >
+                                    {rol.nume}
+                                </Button>
+                            ))}
+                        </div>
+                    </Card>
+                )}
             </div>
         );
     }
@@ -84,19 +109,10 @@ export const FinalUnifiedDashboard: React.FC<FinalUnifiedDashboardProps> = (prop
     // Sportiv View
     return (
         <SportivDashboard
-            currentUser={currentUser}
+            {...props}
             viewedUser={currentUser}
-            participari={props.inscrieriExamene || []}
-            examene={props.sesiuniExamene || []}
-            grade={props.grade || []}
-            grupe={props.grupe || []}
-            plati={props.plati || []}
-            onNavigate={onNavigate}
-            antrenamente={props.antrenamente || []}
-            anunturi={props.anunturi || []}
-            setAnunturi={props.setAnunturi}
-            sportivi={props.sportivi || []}
-            permissions={permissions}
+            canSwitchRoles={canSwitchRoles}
+            activeRole={activeRole}
         />
     );
 };

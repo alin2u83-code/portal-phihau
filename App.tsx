@@ -463,6 +463,7 @@ function App() {
             sesiuniExamene={sesiuniExamene}
             onSwitchRole={handleSwitchRole}
             isSwitchingRole={isSwitchingRole}
+            activeRole={activeRole}
         />;
       
       case 'sportivi':
@@ -616,6 +617,7 @@ function App() {
             sesiuniExamene={sesiuniExamene}
             onSwitchRole={handleSwitchRole}
             isSwitchingRole={isSwitchingRole}
+            activeRole={activeRole}
         />;
     }
   };

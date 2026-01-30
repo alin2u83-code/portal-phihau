@@ -18,10 +18,16 @@ class ErrorBoundary extends Component<Props, State> {
   // type suggest an issue with the build configuration's support for class field syntax.
   // Reverting to a standard constructor for state initialization and method binding
   // resolves these TypeScript errors and ensures broader compatibility.
-  state: State = {
-    hasError: false,
-    error: undefined,
-  };
+
+  // FIX: Reverted to a standard constructor for state initialization and method binding to resolve compilation errors caused by class field syntax.
+  constructor(props: Props) {
+    super(props);
+    this.state = {
+      hasError: false,
+      error: undefined,
+    };
+    this.handleRedirect = this.handleRedirect.bind(this);
+  }
 
   static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
@@ -31,7 +37,7 @@ class ErrorBoundary extends Component<Props, State> {
     console.error("Uncaught error:", error, errorInfo);
   }
 
-  handleRedirect = () => {
+  handleRedirect() {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {
         this.props.onNavigate('dashboard');

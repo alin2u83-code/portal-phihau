@@ -52,9 +52,9 @@ export const FinalUnifiedDashboard: React.FC<FinalUnifiedDashboardProps> = (prop
                     <div className="lg:col-span-2">
                         <AdminMasterMap 
                             onNavigate={onNavigate}
-                            deconturiFederatie={deconturiFederatie}
-                            inscrieriExamene={inscrieriExamene}
-                            plati={plati}
+                            deconturiFederatie={deconturiFederatie || []}
+                            inscrieriExamene={inscrieriExamene || []}
+                            plati={plati || []}
                         />
                     </div>
                     <div className="lg:col-span-1">
@@ -72,16 +72,16 @@ export const FinalUnifiedDashboard: React.FC<FinalUnifiedDashboardProps> = (prop
         <SportivDashboard
             currentUser={currentUser}
             viewedUser={currentUser}
-            participari={props.inscrieriExamene}
-            examene={props.sesiuniExamene}
-            grade={props.grade}
-            grupe={props.grupe}
-            plati={props.plati}
+            participari={props.inscrieriExamene || []}
+            examene={props.sesiuniExamene || []}
+            grade={props.grade || []}
+            grupe={props.grupe || []}
+            plati={props.plati || []}
             onNavigate={onNavigate}
-            antrenamente={props.antrenamente}
-            anunturi={props.anunturi}
+            antrenamente={props.antrenamente || []}
+            anunturi={props.anunturi || []}
             setAnunturi={props.setAnunturi}
-            sportivi={props.sportivi}
+            sportivi={props.sportivi || []}
             permissions={permissions}
         />
     );

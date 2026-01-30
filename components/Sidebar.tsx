@@ -138,10 +138,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
                      const isActive = item.view === activeView || (item.submenu?.some(s => s.view === activeView) ?? false);
                      return <NavItem key={item.label} item={item} isExpanded={isExpanded} isActive={isActive} onNavigate={handleNavigate} activeView={activeView} />
                 })}
-                 {permissions.isAdmin && (
+                 {permissions.hasAdminAccess && (
                     <div className="pt-2 mt-2 border-t border-amber-500/30">
                         <NavItem
-                            item={{ label: 'CONSOLA ADMIN', icon: ShieldCheckIcon, view: 'admin-console' }}
+                            item={{ label: 'Consolă Switch', icon: ShieldCheckIcon, view: 'admin-console' }}
                             isExpanded={isExpanded}
                             isActive={activeView === 'admin-console'}
                             onNavigate={handleNavigate}

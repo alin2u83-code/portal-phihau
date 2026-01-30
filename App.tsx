@@ -17,7 +17,6 @@ import { ConfigurarePreturi } from './components/ConfigurarePreturi';
 import { RaportFinanciar } from './components/RaportFinanciar';
 import { FamiliiManagement } from './components/Familii';
 import { AuthContainer } from './components/AuthContainer';
-import { SportivDashboard } from './components/SportivDashboard';
 import { UserManagement } from './components/UserManagement';
 import { Session } from '@supabase/supabase-js';
 import { Sidebar } from './components/Sidebar';
@@ -434,7 +433,23 @@ setAntrenamente(trainingsData?.map(t => {
         return renderProtected(<RaportPrezenta antrenamente={filteredData.antrenamente} sportivi={filteredData.sportivi} grupe={filteredData.grupe} onBack={() => setActiveView('dashboard')} onViewSportiv={onViewSportiv} />, isAtLeastInstructor);
 
       case 'calendar':
-        return <CalendarView antrenamente={filteredData.antrenamente} sesiuniExamene={filteredData.sesiuniExamene} evenimente={filteredData.evenimente} grupe={filteredData.grupe} locatii={locatii} onBack={() => setActiveView('dashboard')} onNavigate={setActiveView} currentUser={currentUser} sportivi={filteredData.sportivi} rezultate={filteredData.rezultate} setRezultate={setRezultate} plati={filteredData.plati} setPlati={setPlati} preturiConfig={preturiConfig} />;
+        return <CalendarView 
+            antrenamente={filteredData.antrenamente} 
+            sesiuniExamene={filteredData.sesiuniExamene} 
+            evenimente={filteredData.evenimente} 
+            grupe={filteredData.grupe} 
+            locatii={locatii} 
+            onBack={() => setActiveView('dashboard')} 
+            onNavigate={setActiveView} 
+            currentUser={currentUser} 
+            sportivi={filteredData.sportivi} 
+            rezultate={filteredData.rezultate} 
+            setRezultate={setRezultate} 
+            plati={filteredData.plati} 
+            setPlati={setPlati} 
+            preturiConfig={preturiConfig}
+            permissions={permissions}
+        />;
 
       case 'financial-dashboard':
         return renderProtected(<FinancialDashboard plati={filteredData.plati} tranzactii={filteredData.tranzactii} sportivi={filteredData.sportivi} familii={filteredData.familii} onBack={() => setActiveView('dashboard')} />, isAtLeastClubAdmin);

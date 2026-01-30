@@ -17,6 +17,7 @@ interface State {
  * Standard Error Boundary component to catch rendering errors in the UI tree.
  * Inheriting from Component ensures access to setState and lifecycle methods.
  */
+// FIX: Converted the component to a class component, as Error Boundaries require lifecycle methods not available in functional components.
 class ErrorBoundary extends Component<Props, State> {
   public state: State = {
     hasError: false,

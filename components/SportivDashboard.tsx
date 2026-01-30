@@ -1,5 +1,4 @@
 import React, { useState, useMemo, useEffect } from 'react';
-// FIX: Replaced deprecated type 'Participare' with 'InscriereExamen'.
 import { Sportiv, InscriereExamen, Grad, Grupa, Plata, User, View, AnuntPrezenta, SesiuneExamen, ProgramItem, Antrenament } from '../types';
 import { Card, Button } from './ui';
 import { NotificationPermissionWidget } from './NotificationPermissionWidget';
@@ -329,17 +328,13 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
             .sort((a, b) => {
                 const dateA = examDateMap.get(a.sesiune_id) || '9999-12-31';
                 const dateB = examDateMap.get(b.sesiune_id) || '9999-12-31';
-                // FIX: Cast date strings to resolve potential 'unknown' type errors from TypeScript's inference.
                 return new Date(dateB as string).getTime() - new Date(dateA as string).getTime();
             });
 
         const obtainedGradesMap = new Map<string, string>();
         admittedParticipations.forEach(p => {
             const examDate = examDateMap.get(p.sesiune_id);
-            // FIX: The type of `p.grad_vizat_id` is inferred incorrectly. Casting it to `string` ensures type safety for the `Map` operations.
             if (examDate && !obtainedGradesMap.has(p.grad_vizat_id as string)) {
-                // FIX: Argument of type 'unknown' is not assignable to parameter of type 'string'.
-                // The type of `p.grad_vizat_id` is inferred incorrectly. Casting it to `string` ensures type safety for the `Map` operations.
                 obtainedGradesMap.set(p.grad_vizat_id as string, examDate as string);
             }
         });

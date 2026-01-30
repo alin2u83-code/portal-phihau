@@ -2,7 +2,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { Antrenament, SesiuneExamen, Grupa, Locatie, Eveniment, View, User, Sportiv, Rezultat, Plata, PretConfig, Rol } from '../types';
 import { Button, Modal, Input, Select } from './ui';
 import { ArrowLeftIcon, ChevronLeftIcon, ChevronRightIcon, PlusIcon } from './icons';
-import { usePermissions } from '../hooks/usePermissions';
+import { usePermissions, Permissions } from '../hooks/usePermissions';
 import { useError } from './ErrorProvider';
 import { getPretValabil } from '../utils/pricing';
 import { supabase } from '../supabaseClient';
@@ -88,18 +88,10 @@ interface EventActionsProps {
     clubSportivi: Sportiv[];
     onSingleRegister: (event: Eveniment) => Promise<void>;
     onBulkRegister: (event: Eveniment) => void;
+    permissions: Permissions;
 }
 
-const EventActions: React.FC<EventActionsProps> = ({ event, currentUser, rezultate, clubSportivi, onSingleRegister, onBulkRegister }) => {
-    // FIX: `usePermissions` expects a user and an active role. The active role is derived from the user's roles.
-    const activeRole = useMemo((): Rol['nume'] => {
-        if (currentUser?.roluri && currentUser.roluri.length > 0) {
-            const roleWeights: Record<Rol['nume'], number> = { 'SUPER_ADMIN_FEDERATIE': 5, 'Admin': 4, 'Admin Club': 3, 'Instructor': 2, 'Sportiv': 1 };
-            return [...currentUser.roluri].sort((a, b) => (roleWeights[b.nume] || 0) - (roleWeights[a.nume] || 0))[0]?.nume || 'Sportiv';
-        }
-        return 'Sportiv';
-    }, [currentUser]);
-    const permissions = usePermissions(currentUser, activeRole);
+const EventActions: React.FC<EventActionsProps> = ({ event, currentUser, rezultate, clubSportivi, onSingleRegister, onBulkRegister, permissions }) => {
     const [loading, setLoading] = useState(false);
 
     const registrationStatus = useMemo(() => {
@@ -156,19 +148,11 @@ interface CalendarViewProps {
     plati: Plata[];
     setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
     preturiConfig: PretConfig[];
+    permissions: Permissions;
 }
 
-export const CalendarView: React.FC<CalendarViewProps> = ({ antrenamente, sesiuniExamene, evenimente, grupe, locatii, onBack, onNavigate, currentUser, sportivi, rezultate, setRezultate, plati, setPlati, preturiConfig }) => {
+export const CalendarView: React.FC<CalendarViewProps> = ({ antrenamente, sesiuniExamene, evenimente, grupe, locatii, onBack, onNavigate, currentUser, sportivi, rezultate, setRezultate, plati, setPlati, preturiConfig, permissions }) => {
     const [currentDate, setCurrentDate] = useState(new Date());
-    // FIX: `usePermissions` expects a user and an active role. The active role is derived from the user's roles.
-    const activeRole = useMemo((): Rol['nume'] => {
-        if (currentUser?.roluri && currentUser.roluri.length > 0) {
-            const roleWeights: Record<Rol['nume'], number> = { 'SUPER_ADMIN_FEDERATIE': 5, 'Admin': 4, 'Admin Club': 3, 'Instructor': 2, 'Sportiv': 1 };
-            return [...currentUser.roluri].sort((a, b) => (roleWeights[b.nume] || 0) - (roleWeights[a.nume] || 0))[0]?.nume || 'Sportiv';
-        }
-        return 'Sportiv';
-    }, [currentUser]);
-    const permissions = usePermissions(currentUser, activeRole);
     const { showError, showSuccess } = useError();
     const [modalEvent, setModalEvent] = useState<Eveniment | null>(null);
 
@@ -358,7 +342,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ antrenamente, sesiun
                                                     {event.time && <span className="font-mono mr-1">{event.time}</span>}
                                                     {event.title}
                                                 </div>
-                                                <EventActions event={event} currentUser={currentUser} rezultate={rezultate} clubSportivi={sportivi} onSingleRegister={handleSingleRegistration} onBulkRegister={setModalEvent} />
+                                                <EventActions event={event} currentUser={currentUser} rezultate={rezultate} clubSportivi={sportivi} onSingleRegister={handleSingleRegistration} onBulkRegister={setModalEvent} permissions={permissions} />
                                             </div>
                                         ))}
                                     </div>
@@ -382,7 +366,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ antrenamente, sesiun
                                                 {event.time && <p className="text-xs font-mono">{event.time}</p>}
                                             </div>
                                             <div className="mt-2">
-                                                 <EventActions event={event} currentUser={currentUser} rezultate={rezultate} clubSportivi={sportivi} onSingleRegister={handleSingleRegistration} onBulkRegister={setModalEvent} />
+                                                 <EventActions event={event} currentUser={currentUser} rezultate={rezultate} clubSportivi={sportivi} onSingleRegister={handleSingleRegistration} onBulkRegister={setModalEvent} permissions={permissions} />
                                             </div>
                                         </div>
                                     ))}

@@ -1,8 +1,8 @@
 import React from 'react';
 import { User, View, DecontFederatie, Antrenament, Sportiv, Grupa, InscriereExamen, Plata, AnuntPrezenta, SesiuneExamen, Grad, Permissions, Rol, IstoricGrade, Familie, TipAbonament, Tranzactie } from '../types';
+import { SportivDashboard } from './SportivDashboard';
 import { GeneralAttendanceWidget } from './GeneralAttendanceWidget';
 import { AdminMasterMap } from './AdminMasterMap';
-import { AdminClubDashboard } from './AdminClubDashboard';
 
 // Props
 interface FinalUnifiedDashboardProps {
@@ -12,7 +12,6 @@ interface FinalUnifiedDashboardProps {
     permissions: Permissions;
     inscrieriExamene: InscriereExamen[];
     plati: Plata[];
-    setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
     antrenamente: Antrenament[];
     anunturi: AnuntPrezenta[];
     setAnunturi: React.Dispatch<React.SetStateAction<AnuntPrezenta[]>>;
@@ -22,10 +21,6 @@ interface FinalUnifiedDashboardProps {
     sesiuniExamene: SesiuneExamen[];
     onSwitchRole: (roleName: Rol['nume']) => void;
     isSwitchingRole: boolean;
-    istoricGrade: IstoricGrade[];
-    familii: Familie[];
-    tipuriAbonament: TipAbonament[];
-    tranzactii: Tranzactie[];
 }
 
 // Main Component
@@ -43,13 +38,8 @@ export const FinalUnifiedDashboard: React.FC<FinalUnifiedDashboardProps> = (prop
             </div>
         );
     }
-    
-    // Admin Club View
-    if (permissions.isAdminClub) {
-        return <AdminClubDashboard {...props} />;
-    }
 
-    // Other Admin Views (Federation, Instructor)
+    // Admin Views (Federation, Club, Instructor)
     if (permissions.hasAdminAccess) {
         return (
             <div className="space-y-8 animate-fade-in-down">
@@ -79,9 +69,20 @@ export const FinalUnifiedDashboard: React.FC<FinalUnifiedDashboardProps> = (prop
 
     // Sportiv View
     return (
-        <div className="space-y-8 text-center py-16">
-            <h1 className="text-4xl font-bold text-white">Bun venit la antrenament!</h1>
-            <p className="text-slate-400">Folosește meniul pentru a-ți accesa portalul personal.</p>
-        </div>
+        <SportivDashboard
+            currentUser={currentUser}
+            viewedUser={currentUser}
+            participari={props.inscrieriExamene}
+            examene={props.sesiuniExamene}
+            grade={props.grade}
+            grupe={props.grupe}
+            plati={props.plati}
+            onNavigate={onNavigate}
+            antrenamente={props.antrenamente}
+            anunturi={props.anunturi}
+            setAnunturi={props.setAnunturi}
+            sportivi={props.sportivi}
+            permissions={permissions}
+        />
     );
 };

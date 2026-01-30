@@ -466,7 +466,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
         }
         await supabase.auth.signOut();
         if (adminSession) {
-            await supabase.auth.setSession({ access_token: adminSession!.access_token, refresh_token: adminSession!.refresh_token });
+            await supabase.auth.setSession({ access_token: adminSession.access_token, refresh_token: adminSession.refresh_token });
         }
         setCreateAccountLoading(false);
     };

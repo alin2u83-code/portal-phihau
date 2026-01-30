@@ -56,6 +56,7 @@ import { FisaDigitalaSportiv } from './components/FisaDigitalaSportiv';
 import { FisaCompetitie } from './components/FisaCompetitie';
 import { InstructorPrezentaPage } from './components/InstructorPrezentaPage';
 import { RaportActivitate } from './components/RaportActivitate';
+import { BackdoorCheck } from './components/BackdoorCheck';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -411,7 +412,7 @@ setAntrenamente(trainingsData?.map(t => {
         
       case 'stagii':
       case 'competitii':
-        return renderProtected(<StagiiCompetitiiManagement type={activeView === 'stagii' ? 'Stagiu' : 'Competitie'} evenimente={filteredData.evenimente} setEvenimente={setEvenimente} rezultate={filteredData.rezultate} setRezultate={setRezultate} sportivi={filteredData.sportivi} preturiConfig={preturiConfig} participari={inscrieriExamene} examene={sesiuniExamene} grade={grade} setPlati={setPlati} onBack={() => setActiveView('dashboard')} currentUser={currentUser} permissions={permissions}/>, permissions.isInstructor);
+        return renderProtected(<StagiiCompetitiiManagement type={activeView === 'stagii' ? 'Stagiu' : 'Competitie'} evenimente={filteredData.evenimente} setEvenimente={setEvenimente} rezultate={filteredData.rezultate} setRezultate={setRezultate} sportivi={filteredData.sportivi} preturiConfig={preturiConfig} inscrieriExamene={inscrieriExamene} examene={sesiuniExamene} grade={grade} setPlati={setPlati} onBack={() => setActiveView('dashboard')} currentUser={currentUser} permissions={permissions}/>, permissions.isInstructor);
 
       case 'prezenta':
         return renderProtected(<PrezentaManagement sportivi={filteredData.sportivi} setSportivi={setSportivi} antrenamente={filteredData.antrenamente} setAntrenamente={setAntrenamente} grupe={filteredData.grupe} onBack={() => setActiveView('dashboard')} setPlati={setPlati} tipuriAbonament={filteredData.tipuriAbonament} anunturi={filteredData.anunturiPrezenta} onViewSportiv={onViewSportiv} />, isAtLeastInstructor);
@@ -444,7 +445,7 @@ setAntrenamente(trainingsData?.map(t => {
         return renderProtected(<FederationInvoices deconturi={filteredData.deconturiFederatie} setDeconturi={setDeconturiFederatie} currentUser={currentUser} onBack={() => setActiveView('dashboard')} />, isAtLeastClubAdmin);
 
       case 'plati-scadente':
-        return renderProtected(<PlatiScadente plati={filteredData.plati} setPlati={setPlati} sportivi={filteredData.sportivi} familii={filteredData.familii} tipuriAbonament={filteredData.tipuriAbonament} tranzactii={filteredData.tranzactii} reduceri={reduceri} onIncaseazaMultiple={handleIncaseazaMultiple} onBack={() => setActiveView('dashboard')} onViewSportiv={onViewSportiv} currentUser={currentUser} clubs={clubs} permissions={permissions} />, canManageFinances);
+        return renderProtected(<PlatiScadente plati={filteredData.plati} setPlati={setPlati} sportivi={filteredData.sportivi} familii={filteredData.familii} tipuriAbonament={filteredData.tipuriAbonament} tranzactii={tranzactii} reduceri={reduceri} onIncaseazaMultiple={handleIncaseazaMultiple} onBack={() => setActiveView('dashboard')} onViewSportiv={onViewSportiv} currentUser={currentUser} clubs={clubs} permissions={permissions} />, canManageFinances);
 
       case 'jurnal-incasari':
         return renderProtected(<JurnalIncasari currentUser={currentUser} plati={filteredData.plati} setPlati={setPlati} sportivi={filteredData.sportivi} familii={filteredData.familii} preturiConfig={preturiConfig} tipuriAbonament={filteredData.tipuriAbonament} tipuriPlati={tipuriPlati} setTipuriPlati={setTipuriPlati} tranzactii={filteredData.tranzactii} setTranzactii={setTranzactii} platiInitiale={platiPentruIncasare} onIncasareProcesata={handleIncasareProcesata} onBack={handleJurnalBack} reduceri={reduceri} />, canManageFinances);
@@ -506,6 +507,9 @@ setAntrenamente(trainingsData?.map(t => {
       case 'fisa-competitie':
         return <FisaCompetitie currentUser={currentUser} grade={grade} participari={inscrieriExamene} examene={sesiuniExamene} onBack={() => setActiveView('my-portal')} />;
 
+      case 'backdoor-check':
+        return <BackdoorCheck currentUser={currentUser} onBack={() => setActiveView('dashboard')} />;
+
       default:
         return <FinalUnifiedDashboard 
             currentUser={currentUser} 
@@ -563,6 +567,7 @@ setAntrenamente(trainingsData?.map(t => {
           {(import.meta as any).env.DEV && currentUser && (
             <AdminDebugFloatingPanel 
                 currentUser={currentUser}
+                onNavigate={setActiveView}
             />
           )}
         </div>

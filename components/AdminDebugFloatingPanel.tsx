@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Rol } from '../types';
+import { User, Rol, View } from '../types';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { Button } from './ui';
@@ -9,9 +9,10 @@ const DEV_EMAIL = 'admin@phihau.ro';
 
 interface AdminDebugFloatingPanelProps {
     currentUser: User | null;
+    onNavigate: (view: View) => void;
 }
 
-export const AdminDebugFloatingPanel: React.FC<AdminDebugFloatingPanelProps> = ({ currentUser }) => {
+export const AdminDebugFloatingPanel: React.FC<AdminDebugFloatingPanelProps> = ({ currentUser, onNavigate }) => {
     const [loadingRole, setLoadingRole] = useState<Rol['nume'] | null>(null);
     const { showError, showSuccess } = useError();
 
@@ -73,6 +74,14 @@ export const AdminDebugFloatingPanel: React.FC<AdminDebugFloatingPanelProps> = (
                     disabled={!!loadingRole}
                 >
                     Set: Sportiv
+                </Button>
+                 <Button
+                    size="sm"
+                    variant="warning"
+                    onClick={() => onNavigate('backdoor-check')}
+                    disabled={!!loadingRole}
+                >
+                    RLS Check
                 </Button>
             </div>
         </div>

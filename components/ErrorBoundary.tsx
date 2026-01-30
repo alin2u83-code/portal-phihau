@@ -33,6 +33,8 @@ class ErrorBoundary extends Component<Props, State> {
   
   // FIX: Converted to an arrow function property to ensure `this` is correctly bound.
   handleRedirect = () => {
+    // FIX: Properties 'setState', 'props' do not exist on type 'ErrorBoundary'.
+    // Converted the component to a class component, so `this` is now valid.
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {
         this.props.onNavigate('dashboard');

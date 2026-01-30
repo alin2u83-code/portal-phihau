@@ -578,6 +578,7 @@ function App() {
             globalClubFilter={globalClubFilter}
             setGlobalClubFilter={setGlobalClubFilter}
             permissions={permissions}
+            activeRole={activeRole}
           />
           <main className={`flex-1 transition-all duration-300 ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'}`}>
             <div className="p-4 md:p-8 max-w-7xl mx-auto">

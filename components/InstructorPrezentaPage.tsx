@@ -70,7 +70,7 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
                 const prezentaRaw = training.prezenta_antrenament;
                 // FIX: Explicitly type prezentaArray to prevent prezentaIds from being typed as 'unknown[]', which would cause `new Set()` to fail.
                 const prezentaArray: { sportiv_id: string }[] = prezentaRaw ? (Array.isArray(prezentaRaw) ? prezentaRaw : [prezentaRaw]) : [];
-                const prezentaIds = prezentaArray.map((p: any) => p.sportiv_id);
+                const prezentaIds = prezentaArray.map((p: { sportiv_id: string }) => p.sportiv_id);
                 
                 initialAttendance.set(training.id, new Set(prezentaIds));
                 

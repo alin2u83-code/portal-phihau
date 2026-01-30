@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { User, View, Club, Permissions } from '../types';
+import { User, View, Club, Permissions, Rol } from '../types';
 import { instructorMenu, sportivMenu, MenuItem } from './menuConfig';
 import { ArrowRightOnRectangleIcon, Bars3Icon, ChevronDownIcon, ShieldCheckIcon } from './icons';
 import { Select } from './ui';
@@ -84,9 +84,10 @@ interface SidebarProps {
     globalClubFilter: string | null;
     setGlobalClubFilter: React.Dispatch<React.SetStateAction<string | null>>;
     permissions: Permissions;
+    activeRole: Rol['nume'];
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLogout, activeView, isExpanded, setIsExpanded, clubs, globalClubFilter, setGlobalClubFilter, permissions }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLogout, activeView, isExpanded, setIsExpanded, clubs, globalClubFilter, setGlobalClubFilter, permissions, activeRole }) => {
     const [isMobileOpen, setIsMobileOpen] = useState(false);
     const isAdmin = permissions.isFederationAdmin || permissions.isAdminClub;
 
@@ -173,7 +174,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
         </div>
     );
 
-    const borderClass = permissions.isFederationAdmin ? 'border-amber-400' : 'border-blue-500';
+    const roleColorMap: Record<Rol['nume'], string> = {
+        'SUPER_ADMIN_FEDERATIE': 'border-red-500',
+        'Admin': 'border-red-500',
+        'Admin Club': 'border-blue-500',
+        'Instructor': 'border-sky-500',
+        'Sportiv': 'border-green-500',
+    };
+    const borderClass = roleColorMap[activeRole] || 'border-slate-500';
 
     return (
         <>

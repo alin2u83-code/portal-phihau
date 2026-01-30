@@ -57,6 +57,7 @@ import { FisaCompetitie } from './components/FisaCompetitie';
 import { InstructorPrezentaPage } from './components/InstructorPrezentaPage';
 import { RaportActivitate } from './components/RaportActivitate';
 import { BackdoorCheck } from './components/BackdoorCheck';
+import { BackdoorTest } from './components/BackdoorTest';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -509,6 +510,9 @@ setAntrenamente(trainingsData?.map(t => {
 
       case 'backdoor-check':
         return <BackdoorCheck currentUser={currentUser} onBack={() => setActiveView('dashboard')} />;
+        
+      case 'backdoor-test':
+        return <BackdoorTest currentUser={currentUser} onBack={() => setActiveView('dashboard')} plati={plati} sportivi={sportivi} familii={familii} clubs={clubs} />;
 
       default:
         return <FinalUnifiedDashboard 

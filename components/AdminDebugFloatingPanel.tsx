@@ -83,6 +83,14 @@ export const AdminDebugFloatingPanel: React.FC<AdminDebugFloatingPanelProps> = (
                 >
                     RLS Check
                 </Button>
+                 <Button
+                    size="sm"
+                    variant="warning"
+                    onClick={() => onNavigate('backdoor-test')}
+                    disabled={!!loadingRole}
+                >
+                    RLS Test
+                </Button>
             </div>
         </div>
     );

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { SesiuneExamen, Sportiv, InscriereExamen, Grad, Plata, PretConfig } from '../types';
+import { SesiuneExamen, Sportiv, InscriereExamen, Grad, Plata, PretConfig, IstoricGrade } from '../types';
 import { Button, Input, Modal, Select, Card } from './ui';
 import { TrashIcon, PlusIcon, EditIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -34,23 +34,39 @@ interface BulkAddSportiviModalProps {
     onSave: (selections: { sportiv_id: string; grad_vizat_id: string }[]) => Promise<void>;
     sportivi: Sportiv[];
     grade: Grad[];
+    istoricGrade: IstoricGrade[];
     inscrisiIds: Set<string>;
 }
 
-const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps> = ({ isOpen, onClose, onSave, sportivi, grade, inscrisiIds }) => {
+const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps> = ({ isOpen, onClose, onSave, sportivi, grade, istoricGrade, inscrisiIds }) => {
     const [selections, setSelections] = useState<Map<string, string>>(new Map());
     const [filterTerm, setFilterTerm] = useState('');
     const [loading, setLoading] = useState(false);
 
     const availableSportivi = useMemo(() => {
-        return sportivi
+        return (sportivi || [])
             .filter(s => s.status === 'Activ' && !inscrisiIds.has(s.id))
-            .map(s => ({
-                ...s,
-                defaultNextGradeId: getDefaultNextGradeId(s, grade)
-            }))
+            .map(s => {
+                // Eligibility check logic
+                const sixMonthsAgo = new Date();
+                sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+                const lastPromotion = (istoricGrade || [])
+                    .filter(ig => ig.sportiv_id === s.id)
+                    .sort((a, b) => new Date(b.data_obtinere).getTime() - new Date(a.data_obtinere).getTime())[0];
+
+                const lastPromotionDate = lastPromotion ? new Date(lastPromotion.data_obtinere) : new Date(s.data_inscrierii);
+                const isEligible = lastPromotionDate <= sixMonthsAgo;
+
+                return {
+                    ...s,
+                    defaultNextGradeId: getDefaultNextGradeId(s, grade),
+                    isEligible: isEligible,
+                    lastPromotionDate: lastPromotionDate.toLocaleDateString('ro-RO')
+                };
+            })
             .sort((a, b) => a.nume.localeCompare(b.nume));
-    }, [sportivi, grade, inscrisiIds]);
+    }, [sportivi, grade, inscrisiIds, istoricGrade]);
     
     const filteredSportivi = useMemo(() => {
         if (!filterTerm) return availableSportivi;
@@ -101,31 +117,37 @@ const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps> = ({ isOpen, onC
                     onChange={e => setFilterTerm(e.target.value)}
                 />
                 <div className="max-h-96 overflow-y-auto space-y-2 p-2 bg-slate-900/50 rounded-lg border border-slate-700">
-                   {filteredSportivi.map(s => {
+                   {(filteredSportivi || []).map(s => {
                        const isSelected = selections.has(s.id);
+                       const { isEligible, lastPromotionDate } = s;
                        return (
-                           <div key={s.id} className={`p-2 rounded-md transition-colors ${isSelected ? 'bg-brand-secondary/20' : 'bg-slate-700/50'}`}>
+                           <div key={s.id} className={`p-2 rounded-md transition-colors ${isSelected ? 'bg-brand-secondary/20' : (isEligible ? 'bg-slate-700/50' : 'bg-red-900/20 opacity-70')}`}>
                                <div className="flex items-center gap-3">
                                    <input
                                        type="checkbox"
                                        checked={isSelected}
                                        onChange={(e) => handleSelect(s.id, selections.get(s.id) || s.defaultNextGradeId, e.target.checked)}
                                        className="h-5 w-5 rounded border-slate-500 bg-slate-900 text-brand-secondary focus:ring-brand-secondary"
+                                       disabled={!isEligible}
                                    />
                                    <div className="flex-grow">
-                                       <p className="font-medium">{s.nume} {s.prenume}</p>
-                                       <p className="text-xs text-slate-400">Grad actual: {grade.find(g=>g.id === s.grad_actual_id)?.nume || 'Începător'}</p>
+                                       <p className={`font-medium ${!isEligible ? 'text-slate-400' : 'text-white'}`}>{s.nume} {s.prenume}</p>
+                                       {!isEligible ? (
+                                            <p className="text-xs text-red-400">Ineligibil (Ultima promovare: {lastPromotionDate})</p>
+                                       ) : (
+                                            <p className="text-xs text-slate-400">Grad actual: {(grade || []).find(g=>g.id === s.grad_actual_id)?.nume || 'Începător'}</p>
+                                       )}
                                    </div>
                                    <div className="w-48">
                                        <Select
                                            label=""
                                            value={selections.get(s.id) || s.defaultNextGradeId}
                                            onChange={(e) => handleGradeChange(s.id, e.target.value)}
-                                           disabled={!isSelected}
+                                           disabled={!isSelected || !isEligible}
                                            className="!py-1 text-xs"
                                        >
                                            <option value="">Alege grad...</option>
-                                           {grade.map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}
+                                           {(grade || []).map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}
                                        </Select>
                                    </div>
                                </div>
@@ -151,6 +173,7 @@ interface ManagementInscrieriProps {
     setSportivi: React.Dispatch<React.SetStateAction<Sportiv[]>>;
     allInscrieri: InscriereExamen[];
     grade: Grad[];
+    istoricGrade: IstoricGrade[];
     setInscrieri: React.Dispatch<React.SetStateAction<InscriereExamen[]>>;
     plati: Plata[];
     setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
@@ -158,7 +181,7 @@ interface ManagementInscrieriProps {
     onViewSportiv: (sportiv: Sportiv) => void;
 }
 
-export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiune, sportivi, setSportivi, allInscrieri, grade, setInscrieri, plati, setPlati, preturiConfig, onViewSportiv }) => {
+export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiune, sportivi, setSportivi, allInscrieri, grade, istoricGrade, setInscrieri, plati, setPlati, preturiConfig, onViewSportiv }) => {
     const { showError, showSuccess } = useError();
     const [isBulkAddModalOpen, setIsBulkAddModalOpen] = useState(false);
 
@@ -178,11 +201,11 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
     const [isSavingResults, setIsSavingResults] = useState(false);
     
     const inscrisiInSesiuneIds = useMemo(() => {
-        return new Set(allInscrieri.filter(i => i.sesiune_id === sesiune.id).map(i => i.sportiv_id));
+        return new Set((allInscrieri || []).filter(i => i.sesiune_id === sesiune.id).map(i => i.sportiv_id));
     }, [allInscrieri, sesiune.id]);
     
     const participantiInscrisi = useMemo(() => {
-        return allInscrieri
+        return (allInscrieri || [])
             .filter(i => i.sesiune_id === sesiune.id)
             .sort((a, b) => {
                 const gradesOrderDiff = (b.grades?.ordine ?? 0) - (a.grades?.ordine ?? 0);
@@ -203,7 +226,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         setRezultateLocale(initialRezultate);
     }, [initialRezultate]);
 
-    const sortedGrades = useMemo(() => [...grade].sort((a,b) => a.ordine - b.ordine), [grade]);
+    const sortedGrades = useMemo(() => [...(grade || [])].sort((a,b) => a.ordine - b.ordine), [grade]);
 
     const handleOpenEditModal = (inscriere: InscriereExamen) => {
         setInscriereToEdit(inscriere);
@@ -225,8 +248,8 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
     
         for (const selection of selections) {
             const { sportiv_id, grad_vizat_id } = selection;
-            const sportiv = sportivi.find(s => s.id === sportiv_id);
-            const grad = grade.find(g => g.id === grad_vizat_id);
+            const sportiv = (sportivi || []).find(s => s.id === sportiv_id);
+            const grad = (grade || []).find(g => g.id === grad_vizat_id);
     
             if (!sportiv || !grad) {
                 errorCount++;
@@ -255,7 +278,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                     varsta_la_examen: varstaLaExamen, rezultat: 'Neprezentat' as const
                 };
                 
-                const { data: iData, error: iError } = await supabase.from('inscrieri_examene').insert(inscriereData).select('*, sportivi:sportiv_id(*), grade:grad_vizat_id(*)').single();
+                const { data: iData, error: iError } = await supabase.from('inscrieri_examene').insert(inscriereData).select('*, sportivi:sportiv_id(*), grades:grad_vizat_id(*)').single();
                 if (iError) throw iError;
     
                 newInscrieri.push(iData as InscriereExamen);
@@ -294,7 +317,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         try {
             if (gradSustinutId === inscriereToEdit.grad_vizat_id) { showSuccess("Info", "Nicio modificare detectată."); handleCloseEditModal(); return; }
 
-            const plataAsociata = plati.find(p => p.id === inscriereToEdit.plata_id);
+            const plataAsociata = (plati || []).find(p => p.id === inscriereToEdit.plata_id);
 
             if (plataAsociata && plataAsociata.status !== 'Neachitat') {
                 throw new Error("Nu se poate modifica gradul deoarece factura asociată a fost deja achitată. Retrageți înscrierea și adăugați-o din nou.");
@@ -304,7 +327,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             let facturaMessage = '';
             let plataResult: { action: 'add' | 'update' | 'delete', data: Plata } | null = null;
 
-            const gradSustinut = grade.find(g => g.id === gradSustinutId);
+            const gradSustinut = (grade || []).find(g => g.id === gradSustinutId);
             const taxaConfig = getPretProdus(preturiConfig, 'Taxa Examen', gradSustinut?.nume || '', { dataReferinta: sesiune.data });
 
             if (taxaConfig) {
@@ -337,7 +360,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 }
             }
 
-            const { data: updatedInscriere, error: updateError } = await supabase.from('inscrieri_examene').update({ grad_vizat_id: gradSustinutId, plata_id: newPlataId }).eq('id', inscriereToEdit.id).select('*, sportivi:sportiv_id(*), grade:grad_vizat_id(*)').single();
+            const { data: updatedInscriere, error: updateError } = await supabase.from('inscrieri_examene').update({ grad_vizat_id: gradSustinutId, plata_id: newPlataId }).eq('id', inscriereToEdit.id).select('*, sportivi:sportiv_id(*), grades:grad_vizat_id(*)').single();
             if (updateError) throw updateError;
             
             if (updatedInscriere) {
@@ -574,6 +597,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 onSave={handleBulkSave}
                 sportivi={sportivi}
                 grade={grade}
+                istoricGrade={istoricGrade}
                 inscrisiIds={inscrisiInSesiuneIds}
             />
         </div>

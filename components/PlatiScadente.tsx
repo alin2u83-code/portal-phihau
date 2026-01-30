@@ -56,11 +56,11 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
         const famBalances = new Map<string, number>();
         const indivBalances = new Map<string, number>();
 
-        familii.forEach(f => famBalances.set(f.id, 0));
-        sportivi.forEach(s => indivBalances.set(s.id, 0));
+        (familii || []).forEach(f => famBalances.set(f.id, 0));
+        (sportivi || []).forEach(s => indivBalances.set(s.id, 0));
 
         // Adunăm încasările
-        tranzactii.forEach(t => {
+        (tranzactii || []).forEach(t => {
             if (t.familie_id) {
                 famBalances.set(t.familie_id, (famBalances.get(t.familie_id) || 0) + t.suma);
             } else if (t.sportiv_id) {
@@ -69,7 +69,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
         });
 
         // Scădem datoriile existente
-        plati.forEach(p => {
+        (plati || []).forEach(p => {
             if (p.familie_id) {
                 famBalances.set(p.familie_id, (famBalances.get(p.familie_id) || 0) - p.suma);
             } else if (p.sportiv_id) {
@@ -90,17 +90,17 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
         const lunaCurentaIdx = today.getMonth();
         const anulCurent = today.getFullYear();
         
-        const sportiviActivi = sportivi.filter(s => s.status === 'Activ');
+        const sportiviActivi = (sportivi || []).filter(s => s.status === 'Activ');
         const platiToInsert: Omit<Plata, 'id'>[] = [];
         const sportiviProcesati = new Set<string>();
 
         // 1. Procesăm familiile
-        familii.forEach(familie => {
+        (familii || []).forEach(familie => {
             const membriActiviInFamilie = sportiviActivi.filter(s => s.familie_id === familie.id);
             if (membriActiviInFamilie.length === 0) return;
 
             // Verificăm dacă există deja factură de abonament pe luna curentă pentru această familie
-            const exists = plati.some(p => 
+            const exists = (plati || []).some(p => 
                 p.familie_id === familie.id && 
                 p.tip === 'Abonament' && 
                 new Date(p.data).getMonth() === lunaCurentaIdx && 
@@ -116,13 +116,13 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
             let abonamentConfig;
             
             if (familie.tip_abonament_id) {
-                abonamentConfig = tipuriAbonament.find(ab => ab.id === familie.tip_abonament_id);
+                abonamentConfig = (tipuriAbonament || []).find(ab => ab.id === familie.tip_abonament_id);
             } else {
-                abonamentConfig = tipuriAbonament.find(ab => ab.numar_membri === nrMembri);
+                abonamentConfig = (tipuriAbonament || []).find(ab => ab.numar_membri === nrMembri);
                 
                 // Fallback pentru familii numeroase
                 if (!abonamentConfig && nrMembri > 1) {
-                    abonamentConfig = [...tipuriAbonament]
+                    abonamentConfig = [...(tipuriAbonament || [])]
                         .filter(ab => ab.numar_membri > 1)
                         .sort((a, b) => b.numar_membri - a.numar_membri)[0];
                 }
@@ -161,7 +161,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
         sportiviActivi.forEach(sportiv => {
             if (sportiviProcesati.has(sportiv.id) || sportiv.familie_id) return;
             
-            const exists = plati.some(p => 
+            const exists = (plati || []).some(p => 
                 p.sportiv_id === sportiv.id && 
                 p.tip === 'Abonament' && 
                 new Date(p.data).getMonth() === lunaCurentaIdx && 
@@ -169,7 +169,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
             );
             if (exists) return;
 
-            const abonamentConfig = tipuriAbonament.find(ab => ab.id === sportiv.tip_abonament_id) || tipuriAbonament.find(ab => ab.numar_membri === 1);
+            const abonamentConfig = (tipuriAbonament || []).find(ab => ab.id === sportiv.tip_abonament_id) || (tipuriAbonament || []).find(ab => ab.numar_membri === 1);
             if (abonamentConfig) {
                  const creditSportiv = balances.indivBalances.get(sportiv.id) || 0;
                  let sumaDeFacturat = abonamentConfig.pret;
@@ -233,12 +233,12 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
     };
     
     const filteredPlati = useMemo(() => {
-        return plati.filter(p => {
-            const sportivPlata = p.sportiv_id ? sportivi.find(s => s.id === p.sportiv_id) : null;
-            const familiePlata = p.familie_id ? familii.find(f => f.id === p.familie_id) : null;
+        return (plati || []).filter(p => {
+            const sportivPlata = p.sportiv_id ? (sportivi || []).find(s => s.id === p.sportiv_id) : null;
+            const familiePlata = p.familie_id ? (familii || []).find(f => f.id === p.familie_id) : null;
             let clubId = sportivPlata?.club_id;
             if (!clubId && familiePlata) {
-                const firstMember = sportivi.find(s => s.familie_id === familiePlata.id);
+                const firstMember = (sportivi || []).find(s => s.familie_id === familiePlata.id);
                 clubId = firstMember?.club_id;
             }
 
@@ -275,11 +275,11 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
 
     const getEntityName = (plata: Plata) => {
         if (plata.familie_id) {
-            const familie = familii.find(f => f.id === plata.familie_id);
+            const familie = (familii || []).find(f => f.id === plata.familie_id);
             return `Familia ${familie?.nume || 'N/A'}`;
         }
         if (plata.sportiv_id) {
-            const s = sportivi.find(sp => sp.id === plata.sportiv_id);
+            const s = (sportivi || []).find(sp => sp.id === plata.sportiv_id);
             return s ? `${s.nume} ${s.prenume}` : 'Sportiv Șters';
         }
         return 'N/A';
@@ -294,7 +294,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
                 {permissions.isSuperAdmin && (
                     <Select label="Filtrează Club" name="clubId" value={filter.clubId} onChange={e => setFilter(p => ({...p, clubId: e.target.value}))}>
                         <option value="">Toate Cluburile</option>
-                        {clubs.map(c => <option key={c.id} value={c.id}>{c.id === FEDERATIE_ID ? FEDERATIE_NAME : c.nume}</option>)}
+                        {(clubs || []).map(c => <option key={c.id} value={c.id}>{c.id === FEDERATIE_ID ? FEDERATIE_NAME : c.nume}</option>)}
                     </Select>
                 )}
                  <Select label="Status" name="status" value={filter.status} onChange={e => setFilter(p => ({...p, status: e.target.value}))}>
@@ -305,11 +305,11 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
                 </Select>
                 <Select label="Tip Plată" name="tip" value={filter.tip} onChange={e => setFilter(p => ({...p, tip: e.target.value}))}>
                      <option value="">Toate Tipurile</option>
-                     {[...new Set(plati.map(p=>p.tip))].sort().map(tip => <option key={tip} value={tip}>{tip}</option>)}
+                     {[...new Set((plati || []).map(p=>p.tip))].sort().map(tip => <option key={tip} value={tip}>{tip}</option>)}
                 </Select>
                 <Select label="Sportiv" name="sportiv" value={filter.sportiv} onChange={e => setFilter(p => ({...p, sportiv: e.target.value}))}>
                     <option value="">Toți Sportivii</option>
-                    {sportivi.sort((a,b)=>a.nume.localeCompare(b.nume)).map(s => <option key={s.id} value={s.id}>{s.nume} {s.prenume}</option>)}
+                    {(sportivi || []).sort((a,b)=>a.nume.localeCompare(b.nume)).map(s => <option key={s.id} value={s.id}>{s.nume} {s.prenume}</option>)}
                 </Select>
             </Card>
 

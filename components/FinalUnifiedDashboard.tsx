@@ -1,8 +1,9 @@
 import React from 'react';
-import { User, View, DecontFederatie, Antrenament, Sportiv, Grupa, InscriereExamen, Plata, AnuntPrezenta, SesiuneExamen, Grad, Permissions, Rol, IstoricGrade, Familie, TipAbonament, Tranzactie } from '../types';
+import { User, View, DecontFederatie, Antrenament, Sportiv, Grupa, InscriereExamen, Plata, AnuntPrezenta, SesiuneExamen, Grad, Permissions, Rol } from '../types';
 import { SportivDashboard } from './SportivDashboard';
 import { GeneralAttendanceWidget } from './GeneralAttendanceWidget';
 import { AdminMasterMap } from './AdminMasterMap';
+import { Card } from './ui';
 
 // Props
 interface FinalUnifiedDashboardProps {
@@ -25,7 +26,7 @@ interface FinalUnifiedDashboardProps {
 
 // Main Component
 export const FinalUnifiedDashboard: React.FC<FinalUnifiedDashboardProps> = (props) => {
-    const { currentUser, onNavigate, deconturiFederatie, permissions, inscrieriExamene, plati } = props;
+    const { currentUser, onNavigate, deconturiFederatie, permissions, inscrieriExamene, plati, sportivi } = props;
 
     if (!currentUser) {
         return (
@@ -41,6 +42,19 @@ export const FinalUnifiedDashboard: React.FC<FinalUnifiedDashboardProps> = (prop
 
     // Admin Views (Federation, Club, Instructor)
     if (permissions.hasAdminAccess) {
+         if (sportivi.length === 0) {
+            return (
+                <div className="space-y-8 animate-fade-in-down">
+                    <header>
+                        <h1 className="text-3xl font-bold text-white">Panou de Control Principal</h1>
+                        <p className="text-slate-400">Selectează un modul pentru a începe.</p>
+                    </header>
+                    <Card className="text-center p-8">
+                        <p className="text-slate-400 italic">Așteptare autorizare date sau nu există date pentru contextul selectat...</p>
+                    </Card>
+                </div>
+            )
+        }
         return (
             <div className="space-y-8 animate-fade-in-down">
                 <header>

@@ -102,7 +102,7 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
         if (!sportivId) return;
         setExtraAthletes(prev => {
             const next = new Map(prev);
-            // Explicitly type `current` as `string[]` to resolve incorrect type inference.
+            // FIX: Explicitly type `current` as `string[]` to resolve incorrect type inference.
             const current: string[] = next.get(antrenamentId) ?? [];
             if (!current.includes(sportivId)) next.set(antrenamentId, [...current, sportivId]);
             return next;
@@ -113,7 +113,7 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
     const handleRemoveExternal = (antrenamentId: string, sportivId: string) => {
         setExtraAthletes(prev => {
             const next = new Map(prev);
-            // Explicitly type `current` as `string[]` to resolve incorrect type inference.
+            // FIX: Explicitly type `current` as `string[]` to resolve incorrect type inference.
             const current: string[] = next.get(antrenamentId) ?? [];
             next.set(antrenamentId, current.filter(id => id !== sportivId));
             return next;

@@ -177,15 +177,7 @@ function App() {
     }
 
     try {
-        const [
-            { data: clubsData }, { data: rolesData }, { data: gradesData }, { data: groupsData },
-            { data: subscriptionTypesData }, { data: locatiiData }, { data: platiTypesData },
-            { data: reduceriData }, { data: sportiviData }, { data: sessionsData },
-            { data: registrationsData }, { data: trainingsData }, { data: platiData },
-            { data: tranzactiiData }, { data: eventsData }, { data: resultsData },
-            { data: familiesData }, { data: anunturiData }, { data: pricesData }, { data: deconturiData },
-            { data: istoricGradeData }
-        ] = await Promise.all([
+        const queries = [
             supabase.from('cluburi').select('*'),
             supabase.from('roluri').select('*'),
             supabase.from('grade').select('*'),
@@ -207,7 +199,40 @@ function App() {
             supabase.from('preturi_config').select('*'),
             supabase.from('deconturi_federatie').select('*'),
             supabase.from('istoric_grade').select('*'),
-        ]);
+        ];
+        
+        const settledResults = await Promise.allSettled(queries);
+        
+        const processedResults = settledResults.map((result, index) => {
+            if (result.status === 'fulfilled') {
+                const { data, error } = result.value;
+                if (error && (error.code === '42501' || String(error.code) === '403' || error.message.includes('permission denied'))) {
+                    console.warn(`RLS a blocat accesul la tabelul ${index}. Se returnează un array gol.`, error.message);
+                    return { data: [], error: null };
+                }
+                if (error) {
+                    throw error;
+                }
+                return { data, error };
+            } else {
+                 const error = result.reason;
+                 if (error.code === '42501' || String(error.code) === '403' || error.message.includes('permission denied')) {
+                     console.warn(`RLS a blocat accesul la tabelul ${index}. Se returnează un array gol.`, error.message);
+                    return { data: [], error: null };
+                 }
+                throw error;
+            }
+        });
+
+        const [
+            { data: clubsData }, { data: rolesData }, { data: gradesData }, { data: groupsData },
+            { data: subscriptionTypesData }, { data: locatiiData }, { data: platiTypesData },
+            { data: reduceriData }, { data: sportiviData }, { data: sessionsData },
+            { data: registrationsData }, { data: trainingsData }, { data: platiData },
+            { data: tranzactiiData }, { data: eventsData }, { data: resultsData },
+            { data: familiesData }, { data: anunturiData }, { data: pricesData }, { data: deconturiData },
+            { data: istoricGradeData }
+        ] = processedResults;
         
         const clubsMap = new Map((clubsData || []).map(c => [c.id, c]));
 

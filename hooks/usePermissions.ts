@@ -20,6 +20,23 @@ export const usePermissions = (user: User | null, activeRole: Rol['nume'] | null
         if (!user || !activeRole) {
             return initialPermissions;
         }
+        
+        // MASTER ACCESS OVERRIDE
+        if (user.email === 'alin2u83@gmail.com') {
+            return {
+                isSuperAdmin: true,
+                isAdmin: true,
+                isFederationAdmin: true,
+                isAdminClub: true,
+                isInstructor: true,
+                isSportiv: false, // Master admin is not a regular sportiv in terms of UI
+                hasAdminAccess: true,
+                isFederationLevel: true,
+                canManageFinances: true,
+                canGradeStudents: true,
+                visibleClubIds: 'all',
+            };
+        }
 
         // Base role flags
         const isSuperAdmin = activeRole === 'SUPER_ADMIN_FEDERATIE';

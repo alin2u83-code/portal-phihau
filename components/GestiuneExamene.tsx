@@ -18,14 +18,14 @@ const ComisieEditor: React.FC<{
 
     const handleAdd = () => {
         const trimmed = newMembru.trim();
-        if (trimmed && !membri.includes(trimmed)) {
-            setMembri([...membri, trimmed]);
+        if (trimmed && !(membri || []).includes(trimmed)) {
+            setMembri([...(membri || []), trimmed]);
             setNewMembru('');
         }
     };
 
     const handleRemove = (membruToRemove: string) => {
-        setMembri(membri.filter(m => m !== membruToRemove));
+        setMembri((membri || []).filter(m => m !== membruToRemove));
     };
 
     return (

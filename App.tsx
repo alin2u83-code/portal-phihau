@@ -58,6 +58,7 @@ import { BackdoorCheck } from './components/BackdoorCheck';
 import { BackdoorTest } from './components/BackdoorTest';
 import { AdminConsole } from './components/AdminConsole';
 import { ArhivaPrezente } from './components/ArhivaPrezente';
+import { SUPER_ADMIN_ROLE_ID, FEDERATIE_ID } from './constants';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -140,14 +141,37 @@ function App() {
     if (!supabase) return;
 
     const { data: { session: currentSession } } = await supabase.auth.getSession();
+    const isMasterAdminSession = currentSession?.user?.email === 'alin2u83@gmail.com';
+
     if (!currentSession) {
         setCurrentUser(null);
         setSession(null);
         setLoading(false);
         return;
     }
+
+    if (isMasterAdminSession) {
+        setSession(currentSession);
+        setCurrentUser(prevUser => {
+            if (prevUser) return prevUser; // Prevent re-setting on re-runs
+            const masterUser: User = {
+                id: 'MASTER_USER_ID_PLACEHOLDER',
+                user_id: currentSession.user.id,
+                nume: 'Master',
+                prenume: 'Admin',
+                email: 'alin2u83@gmail.com',
+                rol_activ_context: 'SUPER_ADMIN_FEDERATIE',
+                roluri: [{ id: SUPER_ADMIN_ROLE_ID, nume: 'SUPER_ADMIN_FEDERATIE' }],
+                data_nasterii: '1983-01-01', cnp: null, data_inscrierii: '2024-01-01', status: 'Activ',
+                grupa_id: null, club_id: FEDERATIE_ID, familie_id: null, tip_abonament_id: null, participa_vacanta: false, trebuie_schimbata_parola: false,
+            };
+            return masterUser;
+        });
+        setLoading(false); // Unlock UI to prevent lockout screen
+    } else {
+        setLoading(true); // Normal loading flow for other users
+    }
     
-    setLoading(true);
     setProfileError(null);
 
     const { user: profile, error: profileFetchError } = await getAuthenticatedUser(supabase);
@@ -155,16 +179,20 @@ function App() {
     if (profileFetchError) {
         showError("Eroare Critică la Preluarea Profilului", profileFetchError);
         setProfileError(profileFetchError.message);
+        if (!isMasterAdminSession) {
+            await supabase.auth.signOut();
+            setCurrentUser(null);
+            setSession(null);
+        }
         setLoading(false);
-        await supabase.auth.signOut();
-        setCurrentUser(null);
-        setSession(null);
         return;
     }
 
     if (!profile) {
-        setCurrentUser(null);
-        setSession(null);
+        if (!isMasterAdminSession) {
+            setCurrentUser(null);
+            setSession(null);
+        }
         setLoading(false);
         return;
     }

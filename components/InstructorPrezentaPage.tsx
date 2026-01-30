@@ -71,7 +71,7 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
                 // FIX: Add explicit type to prezentaArray to fix type inference issues.
                 const prezentaArray: { sportiv_id: string }[] = prezentaRaw ? (Array.isArray(prezentaRaw) ? prezentaRaw : [prezentaRaw]) : [];
                 // FIX: Typed the parameter `p` to ensure correct type inference for `prezentaIds`.
-                const prezentaIds = prezentaArray.map((p: { sportiv_id: string }) => p.sportiv_id);
+                const prezentaIds = prezentaArray.map((p: { sportiv_id: string }) => p.sportiv_id).filter(Boolean);
                 
                 initialAttendance.set(training.id, new Set(prezentaIds));
                 
@@ -103,7 +103,7 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
         setExtraAthletes(prev => {
             const next = new Map(prev);
             // FIX: Explicitly type `current` as `string[]` to resolve incorrect type inference.
-            const current: string[] = next.get(antrenamentId) ?? [];
+            const current = next.get(antrenamentId) ?? [];
             if (!current.includes(sportivId)) next.set(antrenamentId, [...current, sportivId]);
             return next;
         });
@@ -114,7 +114,7 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
         setExtraAthletes(prev => {
             const next = new Map(prev);
             // FIX: Explicitly type `current` as `string[]` to resolve incorrect type inference.
-            const current: string[] = next.get(antrenamentId) ?? [];
+            const current = next.get(antrenamentId) ?? [];
             next.set(antrenamentId, current.filter(id => id !== sportivId));
             return next;
         });

@@ -262,6 +262,7 @@ export const PrezentaManagement: React.FC<{
             if (error) { showError("Eroare la actualizare", error); } 
             else if (data) { 
                 const prezentaRaw = (data as any).prezenta_antrenament;
+                // FIX: Normalize the response from Supabase, which can be an object or an array for a relationship.
                 const prezentaArray = prezentaRaw ? (Array.isArray(prezentaRaw) ? prezentaRaw : [prezentaRaw]) : [];
                 const formatted: Antrenament = { ...data, sportivi_prezenti_ids: prezentaArray.map((ps: any) => ps.sportiv_id) };
                 setAntrenamente(prev => prev.map(p => p.id === data.id ? formatted : p));

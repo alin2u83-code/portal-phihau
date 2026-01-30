@@ -1,8 +1,9 @@
 import React from 'react';
-import { User, View, DecontFederatie, Antrenament, Sportiv, Grupa, InscriereExamen, Plata, AnuntPrezenta, SesiuneExamen, Grad, Permissions } from '../types';
+import { User, View, DecontFederatie, Antrenament, Sportiv, Grupa, InscriereExamen, Plata, AnuntPrezenta, SesiuneExamen, Grad, Permissions, Rol } from '../types';
 import { GeneralAttendanceWidget } from './GeneralAttendanceWidget';
 import { AdminMasterMap } from './AdminMasterMap';
 import { SportivDashboard } from './SportivDashboard';
+import { Card, Button } from './ui';
 
 // Props
 interface FinalUnifiedDashboardProps {
@@ -19,12 +20,14 @@ interface FinalUnifiedDashboardProps {
     grade: Grad[];
     grupe: Grupa[];
     sesiuniExamene: SesiuneExamen[];
+    onSwitchRole: (roleName: Rol['nume']) => void;
+    isSwitchingRole: boolean;
 }
 
 
 // Main Component
 export const FinalUnifiedDashboard: React.FC<FinalUnifiedDashboardProps> = (props) => {
-    const { currentUser, onNavigate, deconturiFederatie, permissions, inscrieriExamene, plati, ...sportivDashboardProps } = props;
+    const { currentUser, onNavigate, deconturiFederatie, permissions, inscrieriExamene, plati, onSwitchRole, isSwitchingRole, ...sportivDashboardProps } = props;
 
     if (!currentUser) {
         return (
@@ -38,10 +41,30 @@ export const FinalUnifiedDashboard: React.FC<FinalUnifiedDashboardProps> = (prop
         );
     }
     
+    const DevContextSwitcher = () => (
+        currentUser.email === 'alin2u83@gmail.com' && (
+            <Card className="border-l-4 border-amber-500">
+                <h3 className="text-lg font-bold text-amber-400 mb-3">Control Context (DEV)</h3>
+                <div className="flex flex-wrap gap-2">
+                    <Button variant="secondary" onClick={() => onSwitchRole('Sportiv')} isLoading={isSwitchingRole} disabled={isSwitchingRole}>
+                        Mod Sportiv
+                    </Button>
+                    <Button variant="secondary" onClick={() => onSwitchRole('Admin Club')} isLoading={isSwitchingRole} disabled={isSwitchingRole}>
+                        Mod Admin Club
+                    </Button>
+                    <Button variant="secondary" onClick={() => onSwitchRole('SUPER_ADMIN_FEDERATIE')} isLoading={isSwitchingRole} disabled={isSwitchingRole}>
+                        Mod Federație
+                    </Button>
+                </div>
+            </Card>
+        )
+    );
+
     // Admin View
     if (permissions.hasAdminAccess) {
         return (
             <div className="space-y-8 animate-fade-in-down">
+                <DevContextSwitcher />
                 <header>
                     <h1 className="text-3xl font-bold text-white">Panou de Control Principal</h1>
                     <p className="text-slate-400">Selectează un modul pentru a începe.</p>
@@ -79,15 +102,18 @@ export const FinalUnifiedDashboard: React.FC<FinalUnifiedDashboardProps> = (prop
 
     // Sportiv View
     return (
-        <SportivDashboard 
-            currentUser={currentUser}
-            viewedUser={currentUser} 
-            participari={inscrieriExamene}
-            examene={sportivDashboardProps.sesiuniExamene}
-            plati={plati}
-            onNavigate={onNavigate}
-            permissions={permissions}
-            {...sportivDashboardProps}
-        />
+         <div className="space-y-8">
+            <DevContextSwitcher />
+            <SportivDashboard 
+                currentUser={currentUser}
+                viewedUser={currentUser} 
+                participari={inscrieriExamene}
+                examene={sportivDashboardProps.sesiuniExamene}
+                plati={plati}
+                onNavigate={onNavigate}
+                permissions={permissions}
+                {...sportivDashboardProps}
+            />
+        </div>
     );
 };

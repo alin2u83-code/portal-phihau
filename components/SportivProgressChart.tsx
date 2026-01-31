@@ -12,6 +12,7 @@ interface SportivProgressChartProps {
     sportiv: Sportiv;
     gradeHistory: GradeHistoryEntry[];
     antrenamente: Antrenament[];
+    grade: Grad[];
 }
 
 // Custom Tooltip Component
@@ -43,7 +44,7 @@ export const SportivProgressChart: React.FC<SportivProgressChartProps> = ({ spor
         // --- Attendance Data ---
         const attendanceByMonth: { [key: string]: number } = {};
         antrenamente.forEach(a => {
-            if (a.sportivi_prezenti_ids.includes(sportiv.id)) {
+            if (a.prezenta.some(p => p.sportiv_id === sportiv.id)) {
                 const monthKey = a.data.substring(0, 7); // YYYY-MM
                 attendanceByMonth[monthKey] = (attendanceByMonth[monthKey] || 0) + 1;
             }

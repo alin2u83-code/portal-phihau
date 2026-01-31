@@ -62,11 +62,11 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ antrenamente, sp
         
         // Data for charts (only presences)
         const presenceRecords = filteredTrainings.flatMap(a => 
-            (a.sportivi_prezenti_ids || []).map(sportivId => {
-                const sportiv = sportivi.find(s => s.id === sportivId);
+            (a.prezenta || []).map(p => {
+                const sportiv = sportivi.find(s => s.id === p.sportiv_id);
                 const tip = a.grupa_id ? 'Normal' : 'Vacanta';
                 return {
-                    id: `${a.id}-${sportivId}`, data: a.data, ora: a.ora_start, tip: tip,
+                    id: `${a.id}-${p.sportiv_id}`, data: a.data, ora: a.ora_start, tip: tip,
                     sportiv: sportiv, sportivNume: sportiv ? `${sportiv.nume} ${sportiv.prenume}` : 'N/A',
                     grupaNume: a.grupe?.denumire || (tip === 'Vacanta' ? 'Vacanță' : 'N/A'), grupaId: a.grupa_id,
                 };
@@ -83,7 +83,7 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ antrenamente, sp
                 id: `${a.id}-${sportiv.id}`, data: a.data, sportiv: sportiv,
                 sportivNume: `${sportiv.nume} ${sportiv.prenume}`,
                 grupaNume: a.grupe?.denumire || 'Vacanță',
-                status: (a.sportivi_prezenti_ids || []).includes(sportiv.id) ? 'Prezent' : 'Absent'
+                status: (a.prezenta || []).some(p => p.sportiv_id === sportiv.id) ? 'Prezent' : 'Absent'
             }));
         });
 

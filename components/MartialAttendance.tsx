@@ -87,7 +87,7 @@ export const MartialAttendance: React.FC<MartialAttendanceProps> = ({ currentUse
                 date: new Date(a.data + "T00:00:00"),
                 time: a.ora_start,
                 groupName: grupe.find(g => g.id === a.grupa_id)?.denumire || 'Antrenament Liber',
-                status: a.sportivi_prezenti_ids.includes(currentUser.id) ? 'Prezent' : 'Absent'
+                status: a.prezenta.some(p => p.sportiv_id === currentUser.id) ? 'Prezent' : 'Absent'
             }))
             .sort((a, b) => b.date.getTime() - a.date.getTime());
 

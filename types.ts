@@ -13,6 +13,8 @@
 
 
 
+
+
 export interface Rol {
   id: string;
   nume: 'Sportiv' | 'Instructor' | 'Admin' | 'SUPER_ADMIN_FEDERATIE' | 'Admin Club';
@@ -134,7 +136,7 @@ export interface Antrenament {
   grupe?: Grupa | null;
   ziua: ProgramItem['ziua'] | null;
   is_recurent: boolean;
-  sportivi_prezenti_ids: string[];
+  prezenta: { sportiv_id: string; status: string | null }[];
 }
 
 export interface AnuntPrezenta {

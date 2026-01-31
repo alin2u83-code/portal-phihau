@@ -266,7 +266,7 @@ function App() {
             supabase.from('sportivi').select('*, sportivi_roluri(roluri(id, nume))'),
             supabase.from('sesiuni_examene').select('*'),
             supabase.from('inscrieri_examene').select('*, sportivi:sportiv_id(*), grades:grad_vizat_id(*)'),
-            supabase.from('program_antrenamente').select('*, grupe(*), prezenta_antrenament!antrenament_id(sportiv_id)'),
+            supabase.from('program_antrenamente').select('*, grupe(*), prezenta:prezenta_antrenament!antrenament_id(sportiv_id, status)'),
             supabase.from('plati').select('*'),
             supabase.from('tranzactii').select('*'),
             supabase.from('evenimente').select('*'),
@@ -325,7 +325,11 @@ function App() {
         setSesiuniExamene(sessionsData || []);
         setInscrieriExamene(registrationsData || []);
         setIstoricGrade(istoricGradeData || []);
-        setAntrenamente(trainingsData?.map(t => ({...t, sportivi_prezenti_ids: (t as any).prezenta_antrenament ? (Array.isArray((t as any).prezenta_antrenament) ? (t as any).prezenta_antrenament.map((p: any) => p.sportiv_id) : [(t as any).prezenta_antrenament.sportiv_id]) : [] })) || []);
+        setAntrenamente(trainingsData?.map(t => {
+            const prezentaRaw = (t as any).prezenta;
+            const prezentaArray = prezentaRaw ? (Array.isArray(prezentaRaw) ? prezentaRaw : [prezentaRaw]) : [];
+            return { ...t, prezenta: prezentaArray };
+        }) || []);
         setPlati(platiData || []);
         setTranzactii(tranzactiiData || []);
         setEvenimente(eventsData || []);

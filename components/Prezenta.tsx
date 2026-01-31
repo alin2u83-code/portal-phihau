@@ -12,7 +12,7 @@ import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 const AntrenamentForm: React.FC<{
     isOpen: boolean;
     onClose: () => void;
-    onSave: (data: Omit<Antrenament, 'id' | 'sportivi_prezenti_ids'>) => Promise<void>;
+    onSave: (data: Omit<Antrenament, 'id' | 'prezenta'>) => Promise<void>;
     antrenamentToEdit: Antrenament | null;
     grupe: Grupa[];
 }> = ({ isOpen, onClose, onSave, antrenamentToEdit, grupe }) => {
@@ -127,7 +127,7 @@ const AttendanceDetail: React.FC<AttendanceDetailProps> = ({ antrenament, onBack
             const { data: athletesData, error: athletesError } = await supabase.from('sportivi').select('*').eq('grupa_id', antrenament.grupa_id).order('nume', { ascending: true });
             if (athletesError) { showError("Eroare sportivi", athletesError); setLoading(false); return; }
             setGroupAthletes(athletesData || []);
-            setPresentIds(new Set(antrenament.sportivi_prezenti_ids));
+            setPresentIds(new Set(antrenament.prezenta.map(p => p.sportiv_id)));
             setLoading(false);
         };
         fetchData();
@@ -158,7 +158,7 @@ const AttendanceDetail: React.FC<AttendanceDetailProps> = ({ antrenament, onBack
                 if (insertError) throw insertError;
             }
 
-            setAntrenamente(prev => prev.map(a => a.id === antrenament.id ? { ...a, sportivi_prezenti_ids: Array.from(presentIds) } : a));
+            setAntrenamente(prev => prev.map(a => a.id === antrenament.id ? { ...a, prezenta: Array.from(presentIds).map(id => ({ sportiv_id: id, status: 'prezent' })) } : a));
             showSuccess("Prezență salvată!", `Au fost înregistrați ${presentIds.size} sportivi.`);
 
             const presentAthletes = groupAthletes.filter(s => presentIds.has(s.id));
@@ -255,22 +255,21 @@ export const PrezentaManagement: React.FC<{
         setFilters(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleSaveAntrenament = async (antrenamentData: Omit<Antrenament, 'id' | 'sportivi_prezenti_ids'>) => {
+    const handleSaveAntrenament = async (antrenamentData: Omit<Antrenament, 'id' | 'prezenta'>) => {
         if (!supabase) return;
         if (antrenamentToEdit) {
-            const { data, error } = await supabase.from('program_antrenamente').update(antrenamentData).eq('id', antrenamentToEdit.id).select('*, grupe(*), prezenta_antrenament!antrenament_id(sportiv_id)').single();
+            const { data, error } = await supabase.from('program_antrenamente').update(antrenamentData).eq('id', antrenamentToEdit.id).select('*, grupe(*), prezenta:prezenta_antrenament!antrenament_id(sportiv_id, status)').single();
             if (error) { showError("Eroare la actualizare", error); } 
             else if (data) { 
-                const prezentaRaw = (data as any).prezenta_antrenament;
-                // FIX: In `handleSaveAntrenament`, Supabase's response for a one-to-many relationship (`prezenta_antrenament`) can be a single object if there's only one related row. This was causing a `.map()` error on a non-array. The code now correctly normalizes `prezentaRaw` into an array, ensuring type safety and preventing runtime errors.
-                const prezentaArray: { sportiv_id: string }[] = prezentaRaw ? (Array.isArray(prezentaRaw) ? prezentaRaw : [prezentaRaw]) : [];
-                const formatted: Antrenament = { ...data, sportivi_prezenti_ids: prezentaArray.map((ps) => ps.sportiv_id) };
+                const prezentaRaw = (data as any).prezenta;
+                const prezentaArray = prezentaRaw ? (Array.isArray(prezentaRaw) ? prezentaRaw : [prezentaRaw]) : [];
+                const formatted: Antrenament = { ...data, prezenta: prezentaArray };
                 setAntrenamente(prev => prev.map(p => p.id === data.id ? formatted : p));
             }
         } else {
             const { data, error } = await supabase.from('program_antrenamente').insert(antrenamentData).select('*, grupe(*)').single();
             if (error) { showError("Eroare la creare", error); } 
-            else if (data) { setAntrenamente(prev => [...prev, { ...data, sportivi_prezenti_ids: [] }]); }
+            else if (data) { setAntrenamente(prev => [...prev, { ...data, prezenta: [] }]); }
         }
     };
 
@@ -343,7 +342,7 @@ export const PrezentaManagement: React.FC<{
                                 <tr key={p.id} className="hover:bg-slate-700/50">
                                     <td className="p-4 font-medium text-white">{p.ora_start}</td>
                                     <td className="p-4 text-slate-300">{p.grupe?.denumire || 'Antrenament Liber'}</td>
-                                    <td className="p-4 text-center font-bold text-brand-secondary">{p.sportivi_prezenti_ids.length}</td>
+                                    <td className="p-4 text-center font-bold text-brand-secondary">{p.prezenta.length}</td>
                                     <td className="p-4 text-right">
                                         <Button onClick={() => handleSetSelectedAntrenament(p as Antrenament)} variant="primary" size="sm">
                                             Gestionează Prezența

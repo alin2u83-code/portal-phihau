@@ -1,5 +1,5 @@
-import { SupabaseClient } from '@supabase/supabase-js';
-import { User, Club } from '../types';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { User, Club, Rol } from '../types';
 
 const fallbackUser = (email: string): User => ({
     id: 'GUEST_USER_ID',
@@ -42,7 +42,7 @@ export const getAuthenticatedUser = async (supabase: SupabaseClient): Promise<{ 
 
         const { data: userProfileData, error: profileError } = await supabase
             .from('sportivi')
-            .select('*, cluburi(*), sportivi_roluri(roluri(id, nume))')
+            .select('*, cluburi(*)')
             .eq('user_id', authUser.id)
             .single();
 
@@ -66,11 +66,33 @@ export const getAuthenticatedUser = async (supabase: SupabaseClient): Promise<{ 
             return { user: fallbackUser(authUser.email || 'unknown@user.com'), error: null };
         }
         
+        // Fetch roles from the new multi-account role table
+        const { data: rolesData, error: rolesError } = await supabase
+            .from('utilizator_roluri_multicont')
+            .select('rol_denumire')
+            .eq('user_id', authUser.id);
+        
+        if (rolesError) {
+            console.error("Eroare la preluarea rolurilor din utilizator_roluri_multicont:", rolesError.message);
+            // Continue with an empty roles array
+        }
+
+        const { data: allRolesNomenclator, error: allRolesError } = await supabase.from('roluri').select('id, nume');
+
+        if(allRolesError) {
+            console.error("Eroare la preluarea nomenclatorului de roluri:", allRolesError.message);
+        }
+
+        const mappedRoles = (rolesData || []).map(mcr => {
+            const roleFromNomenclator = (allRolesNomenclator || []).find(r => r.nume === mcr.rol_denumire);
+            return roleFromNomenclator ? { id: roleFromNomenclator.id, nume: roleFromNomenclator.nume as Rol['nume'] } : null;
+        }).filter((r): r is Rol => r !== null);
+
+
         const formattedProfile = {
             ...userProfileData,
-            roluri: (userProfileData.sportivi_roluri || []).map((item: any) => item.roluri).filter(Boolean)
+            roluri: mappedRoles,
         };
-        delete formattedProfile.sportivi_roluri;
         
         return { user: formattedProfile as User, error: null };
 

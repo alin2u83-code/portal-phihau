@@ -26,8 +26,7 @@ export const AuthContainer: React.FC = () => {
     // Hardcoded IDs as RLS prevents anonymous users from fetching them.
     // In a real scenario, RLS for 'roluri' and 'cluburi' should be relaxed for SELECT for 'anon' role,
     // or a dedicated public RPC function should be created.
-    const PHI_HAU_IASI_CLUB_ID = '3e5513f1-2c78-4363-8a9a-7dc60634f198';
-    const SPORTIV_ROLE_ID = 'd2fb91a3-2270-466d-926d-36a563f68d71';
+    const PHI_HAU_IASI_CLUB_ID = 'cbb0b228-b3e0-4735-9658-70999eb256c6';
     
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -67,7 +66,7 @@ export const AuthContainer: React.FC = () => {
             setMessage({ type: 'error', text: 'Parolele nu se potrivesc.' });
             return;
         }
-        if (!PHI_HAU_IASI_CLUB_ID || !SPORTIV_ROLE_ID) {
+        if (!PHI_HAU_IASI_CLUB_ID) {
             setMessage({ type: 'error', text: 'Eroare de configurare a sistemului. Vă rugăm contactați administratorul.' });
             return;
         }
@@ -142,9 +141,13 @@ export const AuthContainer: React.FC = () => {
                  return;
             }
             
-            const { error: roleError } = await supabase
-                .from('sportivi_roluri')
-                .insert({ sportiv_id: newProfile.id, rol_id: SPORTIV_ROLE_ID });
+            const { error: roleError } = await supabase.from('utilizator_roluri_multicont').insert({
+                user_id: user.id,
+                rol_denumire: 'Sportiv',
+                club_id: PHI_HAU_IASI_CLUB_ID,
+                sportiv_id: newProfile.id,
+                is_primary: true
+            });
             
             if (roleError) {
                  setMessage({ type: 'error', text: `Profilul a fost creat, dar rolul nu a putut fi atribuit: ${roleError.message}` });

@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Sportiv, User, Rol, Club, Permissions } from '../types';
 import { Button, Input, Card, Select, Modal } from './ui';
-import { ArrowLeftIcon, EditIcon, ShieldCheckIcon, PlusIcon } from './icons';
+import { ArrowLeftIcon, EditIcon, ShieldCheckIcon, PlusIcon, LockIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 
@@ -592,11 +592,14 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                     <div className="flex justify-between items-center gap-2 mb-4">
                         <div className="flex items-center gap-2">
                             <ShieldCheckIcon className="w-8 h-8 text-amber-400"/>
-                            <h2 className="text-2xl font-bold text-white">Administrare Staff & Roluri</h2>
+                            <h2 className="text-2xl font-bold text-white">Administrare Staff & Permisiuni</h2>
                         </div>
                          <Button variant="info" onClick={() => setIsCreateStaffModalOpen(true)}>
                             <PlusIcon className="w-5 h-5 mr-2" /> Adaugă Membru Staff
                         </Button>
+                    </div>
+                     <div className="p-3 mb-4 text-sm rounded-md bg-sky-900/50 text-sky-300 border border-sky-500/30">
+                        <strong>Notă:</strong> La salvarea rolurilor, permisiunile de acces sunt actualizate automat. Un trigger SQL va sincroniza metadatele pentru a activa accesul multi-cont, dacă este cazul.
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full text-left min-w-[800px]">
@@ -609,60 +612,71 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                                 </tr>
                             </thead>
                             <tbody>
-                                {usersToDisplay.map(user => (
-                                    <tr key={user.id} className="border-b border-slate-700">
-                                        <td className="p-4 font-medium">{user.nume} {user.prenume}</td>
-                                        <td className="p-4">{user.email}</td>
-                                        {editingId === user.id ? (
-                                            <>
-                                                <td className="p-2">
-                                                    <div className="flex flex-wrap gap-x-4 gap-y-1">
-                                                        {availableRolesForAssignment.map(role => (
-                                                            <label key={role.id} className="flex items-center space-x-2 text-sm cursor-pointer">
-                                                                <input
-                                                                    type="checkbox"
-                                                                    className="h-4 w-4 rounded border-slate-500 bg-slate-800 text-primary-600 focus:ring-primary-500"
-                                                                    checked={newRoleIds.includes(role.id)}
-                                                                    onChange={(e) => handleRoleChange(role.id, e.target.checked)}
-                                                                />
-                                                                <span>{role.nume}</span>
-                                                            </label>
-                                                        ))}
-                                                    </div>
-                                                </td>
-                                                <td className="p-2 text-right w-32">
-                                                    <div className="flex justify-end gap-2">
-                                                        <Button size="sm" variant="success" onClick={() => handleSaveRole(user.id)}>Salvează</Button>
-                                                        <Button size="sm" variant="secondary" onClick={handleCancel}>Anulează</Button>
-                                                    </div>
-                                                </td>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <td className="p-4">
-                                                    {user.user_id ? (
-                                                        <div className="flex flex-wrap gap-1">
-                                                            {(user.roluri || []).map(role => <RoleBadge key={role.id} role={role} />)}
+                                {usersToDisplay.map(user => {
+                                    const targetUserMaxWeight = Math.max(0, ...(user.roluri || []).map(r => roleWeights[r.nume] || 0));
+                                    const canEditUser = currentUser.id === user.id || currentUserMaxWeight > targetUserMaxWeight;
+
+                                    return (
+                                        <tr key={user.id} className="border-b border-slate-700">
+                                            <td className="p-4 font-medium">{user.nume} {user.prenume}</td>
+                                            <td className="p-4">{user.email}</td>
+                                            {editingId === user.id ? (
+                                                <>
+                                                    <td className="p-2">
+                                                        <div className="flex flex-wrap gap-x-4 gap-y-1">
+                                                            {availableRolesForAssignment.map(role => (
+                                                                <label key={role.id} className="flex items-center space-x-2 text-sm cursor-pointer">
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        className="h-4 w-4 rounded border-slate-500 bg-slate-800 text-primary-600 focus:ring-primary-500"
+                                                                        checked={newRoleIds.includes(role.id)}
+                                                                        onChange={(e) => handleRoleChange(role.id, e.target.checked)}
+                                                                    />
+                                                                    <span>{role.nume}</span>
+                                                                </label>
+                                                            ))}
                                                         </div>
-                                                    ) : (
-                                                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-slate-500 text-white">
-                                                            Fără Cont
-                                                        </span>
-                                                    )}
-                                                </td>
-                                                <td className="p-4 text-right w-32">
-                                                    <div className="flex items-center justify-end gap-2">
+                                                    </td>
+                                                    <td className="p-2 text-right w-32">
+                                                        <div className="flex justify-end gap-2">
+                                                            <Button size="sm" variant="success" onClick={() => handleSaveRole(user.id)}>Salvează</Button>
+                                                            <Button size="sm" variant="secondary" onClick={handleCancel}>Anulează</Button>
+                                                        </div>
+                                                    </td>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <td className="p-4">
                                                         {user.user_id ? (
-                                                            <Button onClick={() => handleEdit(user)} variant="primary" size="sm">Gestionează Roluri</Button>
+                                                            <div className="flex flex-wrap gap-1">
+                                                                {(user.roluri || []).map(role => <RoleBadge key={role.id} role={role} />)}
+                                                            </div>
                                                         ) : (
-                                                            <Button onClick={() => handleOpenCreateAccountModal(user)} variant="info" size="sm">Creează Cont</Button>
+                                                            <span className="px-2 py-1 text-xs font-semibold rounded-full bg-slate-500 text-white">
+                                                                Fără Cont
+                                                            </span>
                                                         )}
-                                                    </div>
-                                                </td>
-                                            </>
-                                        )}
-                                    </tr>
-                                ))}
+                                                    </td>
+                                                    <td className="p-4 text-right w-32">
+                                                        <div className="flex items-center justify-end gap-2">
+                                                            {user.user_id ? (
+                                                                canEditUser ? (
+                                                                    <Button onClick={() => handleEdit(user)} variant="primary" size="sm">Gestionează Roluri</Button>
+                                                                ) : (
+                                                                    <Button variant="secondary" size="sm" disabled title="Nu aveți permisiunea de a modifica acest utilizator">
+                                                                        <LockIcon className="w-4 h-4" />
+                                                                    </Button>
+                                                                )
+                                                            ) : (
+                                                                <Button onClick={() => handleOpenCreateAccountModal(user)} variant="info" size="sm">Creează Cont</Button>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                </>
+                                            )}
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>

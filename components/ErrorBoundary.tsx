@@ -27,8 +27,8 @@ class ErrorBoundary extends React.Component<Props, State> {
     console.error("Uncaught error:", error, errorInfo);
   }
 
-  // FIX: Converted from a class field arrow function to a regular method. The 'this' context is now correctly handled by using an arrow function wrapper in the onClick handler. This resolves errors where `this.setState` and `this.props` were reported as not existing on the component type.
-  public handleRedirect() {
+  // FIX: Converted `handleRedirect` to a class property arrow function to lexically bind `this`. This ensures `this.setState` and `this.props` are available when `handleRedirect` is called as a callback, resolving errors where these properties were reported as not existing on the component type.
+  public handleRedirect = () => {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {
         this.props.onNavigate('dashboard');
@@ -42,8 +42,8 @@ class ErrorBoundary extends React.Component<Props, State> {
           <h1 className="text-2xl font-bold">A apărut o eroare neașteptată.</h1>
           <p className="mt-2">Ceva nu a funcționat corect în această secțiune. Încercați să reîncărcați pagina sau să reveniți la panoul principal.</p>
           {this.props.onNavigate && (
-              // FIX: The original code passed `this.handleRedirect` as a callback, losing the `this` context. By wrapping the call in an arrow function, we ensure `this` is correctly bound to the component instance.
-              <Button onClick={() => this.handleRedirect()} variant="secondary" className="mt-6">
+              // FIX: With `handleRedirect` as an arrow function, it can be passed directly as a callback without losing context.
+              <Button onClick={this.handleRedirect} variant="secondary" className="mt-6">
                   <ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la pagina principală
               </Button>
           )}

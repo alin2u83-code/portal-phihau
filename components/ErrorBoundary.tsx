@@ -27,7 +27,9 @@ class ErrorBoundary extends React.Component<Props, State> {
     console.error("Uncaught error:", error, errorInfo);
   }
 
-  // FIX: Converted `handleRedirect` to a class property arrow function to lexically bind `this`. This ensures `this.setState` and `this.props` are available when `handleRedirect` is called as a callback, resolving errors where these properties were reported as not existing on the component type.
+  // FIX: Converted `handleRedirect` to a class property arrow function to correctly bind `this`.
+  // This ensures `this.setState` and `this.props` are available when the method is passed as a callback,
+  // resolving errors related to an incorrect `this` context.
   public handleRedirect = () => {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {
@@ -42,7 +44,6 @@ class ErrorBoundary extends React.Component<Props, State> {
           <h1 className="text-2xl font-bold">A apărut o eroare neașteptată.</h1>
           <p className="mt-2">Ceva nu a funcționat corect în această secțiune. Încercați să reîncărcați pagina sau să reveniți la panoul principal.</p>
           {this.props.onNavigate && (
-              // FIX: With `handleRedirect` as an arrow function, it can be passed directly as a callback without losing context.
               <Button onClick={this.handleRedirect} variant="secondary" className="mt-6">
                   <ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la pagina principală
               </Button>

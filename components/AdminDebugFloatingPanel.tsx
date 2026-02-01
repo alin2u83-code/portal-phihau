@@ -28,6 +28,7 @@ export const AdminDebugFloatingPanel: React.FC<AdminDebugFloatingPanelProps> = (
 
         setLoadingRole(roleName);
 
+        // This updates the user's metadata directly. This will be reflected in the JWT on the next refresh.
         const { error } = await supabase.auth.updateUser({ data: { active_role: roleName } });
 
         if (error) {

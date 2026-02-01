@@ -75,14 +75,16 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
     // NOTE: The rest of this component was missing from the provided file and could not be reconstructed.
     // This fix makes the existing code syntactically correct, but the component will not render anything useful.
     if (loading) {
-        return <div>Loading...</div>;
+        return <div className="p-4 text-center">Loading...</div>;
     }
     
     return (
-        <div>
-            <Button onClick={onBack}>Back</Button>
-            <h1>Instructor Attendance</h1>
-            {/* The rest of the component's JSX was missing */}
+        <div className="space-y-4">
+            <Button onClick={onBack} variant="secondary">
+                <ArrowLeftIcon className="w-5 h-5 mr-2"/> Back
+            </Button>
+            <h1 className="text-2xl font-bold">Instructor Attendance Page</h1>
+            <p className="text-slate-400">Content for this component was missing. This is a placeholder.</p>
         </div>
     );
 };

@@ -192,8 +192,8 @@ const AttendanceDetail: React.FC<AttendanceDetailProps> = ({ antrenament, onBack
             }
             setAntrenamente(prev => prev.map(a => a.id === antrenament.id ? { ...a, prezenta: Array.from(newPresentIds).map(id => ({ sportiv_id: id, status: 'prezent' })) } : a));
         } catch (err) {
-// FIX: In `catch` blocks, the error variable `err` is of type `unknown` by default. Cast it to `Error` to safely access the `message` property.
-            showError("Eroare la actualizare", (err as Error).message);
+            // FIX: The `showError` function expects an object with a message property or a string, but `catch(err)` provides `err` as `unknown`. Casting `err` to `any` allows `showError` to safely access `err.message` if it exists.
+            showError("Eroare la actualizare", (err as any).message);
             setPresentIds(presentIds); // Revert UI
         } finally {
             setUpdatingIds(prev => { const next = new Set(prev); next.delete(sportivId); return next; });

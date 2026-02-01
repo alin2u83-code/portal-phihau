@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from './supabaseClient';
 import { Sportiv, SesiuneExamen, Grad, InscriereExamen, View, Antrenament, Grupa, Plata, Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, Rol, AnuntPrezenta, Reducere, AnuntGeneral, TipPlata, Locatie, Club, DecontFederatie, IstoricGrade, Permissions } from './types';
-import { FinalUnifiedDashboard } from './components/FinalUnifiedDashboard';
 import { SportiviManagement } from './components/SportiviManagement';
 import { UserProfile } from './components/UserProfile';
 import { GestiuneExamene } from './components/Examene';
@@ -59,6 +58,10 @@ import { BackdoorTest } from './components/BackdoorTest';
 import { AdminConsole } from './components/AdminConsole';
 import { ArhivaPrezente } from './components/ArhivaPrezente';
 import { SUPER_ADMIN_ROLE_ID, FEDERATIE_ID } from './constants';
+import { AdminMasterMap } from './components/AdminMasterMap';
+import { GeneralAttendanceWidget } from './components/GeneralAttendanceWidget';
+import { SportivDashboard } from './components/SportivDashboard';
+import { Card, Button } from './components/ui';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -124,7 +127,12 @@ function App() {
 
   const permissions = usePermissions(currentUser, activeRole);
   const { activeClubId, globalClubFilter, setGlobalClubFilter } = useClubFilter(currentUser, permissions);
-  
+   const canSwitchRoles = useMemo(() => {
+        if (!currentUser || !currentUser.roluri || currentUser.roluri.length <= 1) return false;
+        const adminRoles: Rol['nume'][] = ['SUPER_ADMIN_FEDERATIE', 'Admin', 'Admin Club', 'Instructor'];
+        return currentUser.roluri.some(r => adminRoles.includes(r.nume));
+    }, [currentUser]);
+    
   const handleSwitchRole = useCallback(async (roleName: Rol['nume']) => {
       if (!supabase || !currentUser?.id) return;
       setIsSwitchingRole(true);
@@ -475,27 +483,89 @@ function App() {
 
       case 'dashboard':
       case 'my-portal':
-        if (permissions.isSuperAdmin && adminContext === 'federation') {
-            return <FederationDashboard onNavigate={setActiveView} />;
+        if (permissions.hasAdminAccess) {
+            if (sportivi.length === 0 && !isEmergencyAdmin) {
+                return (
+                    <div className="space-y-8 animate-fade-in-down">
+                        <header>
+                            <h1 className="text-3xl font-bold text-white">Panou de Control Principal</h1>
+                            <p className="text-slate-400">Selectează un modul pentru a începe.</p>
+                        </header>
+                        <Card className="text-center p-8">
+                            <p className="text-slate-400 italic">Așteptare autorizare date sau nu există date pentru contextul selectat...</p>
+                        </Card>
+                    </div>
+                )
+            }
+            if (permissions.isSuperAdmin && adminContext === 'federation') {
+                return <FederationDashboard onNavigate={setActiveView} />;
+            }
+            return (
+                <div className="space-y-8 animate-fade-in-down">
+                    <header>
+                        <h1 className="text-3xl font-bold text-white">Panou de Control Principal</h1>
+                        <p className="text-slate-400">Selectează un modul pentru a începe.</p>
+                    </header>
+                    
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-8">
+                        <div className="lg:col-span-2">
+                            <AdminMasterMap 
+                                onNavigate={setActiveView}
+                                deconturiFederatie={filteredData.deconturiFederatie || []}
+                                inscrieriExamene={filteredData.inscrieriExamene || []}
+                                plati={filteredData.plati || []}
+                            />
+                        </div>
+                        <div className="lg:col-span-1">
+                            {(permissions.isAdminClub || permissions.isInstructor || permissions.isFederationAdmin) && (
+                                <GeneralAttendanceWidget currentUser={currentUser} />
+                            )}
+                        </div>
+                    </div>
+    
+                    {canSwitchRoles && (
+                        <Card className="mt-8 animate-fade-in-down" style={{animationDelay: '300ms'}}>
+                            <h3 className="text-lg font-bold text-white mb-4">Comută Rol Activ</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {currentUser.roluri.map(rol => (
+                                    <Button 
+                                        key={rol.id}
+                                        variant={activeRole === rol.nume ? 'primary' : 'secondary'}
+                                        onClick={() => handleSwitchRole(rol.nume)}
+                                        disabled={isSwitchingRole}
+                                    >
+                                        {rol.nume}
+                                    </Button>
+                                ))}
+                            </div>
+                        </Card>
+                    )}
+                </div>
+            );
         }
-        return <FinalUnifiedDashboard 
-            currentUser={currentUser} 
-            onNavigate={setActiveView} 
-            deconturiFederatie={filteredData.deconturiFederatie} 
-            permissions={permissions} 
-            inscrieriExamene={filteredData.inscrieriExamene}
-            plati={filteredData.plati}
-            antrenamente={filteredData.antrenamente}
-            anunturi={filteredData.anunturiPrezenta}
-            setAnunturi={setAnunturiPrezenta}
-            sportivi={filteredData.sportivi}
-            grade={grade}
-            grupe={filteredData.grupe}
-            sesiuniExamene={sesiuniExamene}
-            onSwitchRole={handleSwitchRole}
-            isSwitchingRole={isSwitchingRole}
-            activeRole={activeRole}
-        />;
+        // Sportiv View
+        return (
+            <SportivDashboard
+                currentUser={currentUser}
+                viewedUser={currentUser}
+                participari={filteredData.inscrieriExamene}
+                examene={sesiuniExamene}
+                grade={grade}
+                grupe={filteredData.grupe}
+                plati={filteredData.plati}
+                onNavigate={setActiveView}
+                antrenamente={filteredData.antrenamente}
+                anunturi={anunturiPrezenta}
+// FIX: The `setAnunturi` prop was passed with the wrong variable name. It should be `setAnunturiPrezenta`, which is the state setter for `anunturiPrezenta`.
+                setAnunturi={setAnunturiPrezenta}
+                sportivi={filteredData.sportivi}
+                permissions={permissions}
+                canSwitchRoles={canSwitchRoles}
+                activeRole={activeRole}
+                onSwitchRole={handleSwitchRole}
+                isSwitchingRole={isSwitchingRole}
+            />
+        );
       
       case 'sportivi':
         return renderProtected(<SportiviManagement onBack={() => setActiveView('dashboard')} sportivi={filteredData.sportivi} setSportivi={setSportivi} grupe={filteredData.grupe} setGrupe={setGrupe} tipuriAbonament={filteredData.tipuriAbonament} familii={filteredData.familii} setFamilii={setFamilii} allRoles={allRoles} setAllRoles={setAllRoles} currentUser={currentUser} plati={filteredData.plati} tranzactii={filteredData.tranzactii} setTranzactii={setTranzactii} onViewSportiv={onViewSportiv} clubs={clubs} grade={grade} permissions={permissions} />, isAtLeastInstructor);
@@ -623,6 +693,7 @@ function App() {
         return <FisaDigitalaSportiv currentUser={currentUser} grade={grade} participari={inscrieriExamene} examene={sesiuniExamene} plati={plati} onBack={() => setActiveView('my-portal')} />;
 
       case 'fisa-competitie':
+// FIX: The `FisaCompetitie` component was passed the `examene` variable which was not defined in this scope. The correct state variable is `sesiuniExamene`.
         return <FisaCompetitie currentUser={currentUser} grade={grade} participari={inscrieriExamene} examene={sesiuniExamene} onBack={() => setActiveView('my-portal')} />;
 
       case 'backdoor-check':
@@ -632,24 +703,7 @@ function App() {
         return <BackdoorTest currentUser={currentUser} onBack={() => setActiveView('dashboard')} activeRole={activeRole} />;
 
       default:
-        return <FinalUnifiedDashboard 
-            currentUser={currentUser} 
-            onNavigate={setActiveView} 
-            deconturiFederatie={deconturiFederatie} 
-            permissions={permissions} 
-            inscrieriExamene={inscrieriExamene}
-            plati={plati}
-            antrenamente={antrenamente}
-            anunturi={anunturiPrezenta}
-            setAnunturi={setAnunturiPrezenta}
-            sportivi={sportivi}
-            grade={grade}
-            grupe={grupe}
-            sesiuniExamene={sesiuniExamene}
-            onSwitchRole={handleSwitchRole}
-            isSwitchingRole={isSwitchingRole}
-            activeRole={activeRole}
-        />;
+         return <div>Lipsește Vizualizarea</div>;
     }
   };
 

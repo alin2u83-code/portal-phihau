@@ -258,7 +258,8 @@ function App() {
             supabase.from('nom_locatii').select('*'),
             supabase.from('tipuri_plati').select('*'),
             supabase.from('reduceri').select('*'),
-            supabase.from('sportivi').select('*'), // Am eliminat vechiul join 'sportivi_roluri'
+            // FIX: Retrieve roles directly via a join, as requested.
+            supabase.from('sportivi').select('*, roles:utilizator_roluri_multicont(rol_denumire, is_primary)'),
             supabase.from('sesiuni_examene').select('*'),
             supabase.from('inscrieri_examene').select('*, sportivi:sportiv_id(*), grades:grad_vizat_id(*)'),
             supabase.from('program_antrenamente').select('*, grupe(*), prezenta:prezenta_antrenament!antrenament_id(sportiv_id, status)'),
@@ -271,7 +272,6 @@ function App() {
             supabase.from('preturi_config').select('*'),
             supabase.from('deconturi_federatie').select('*'),
             supabase.from('istoric_grade').select('*'),
-            supabase.from('utilizator_roluri_multicont').select('*'), // Sursa nouă pentru roluri
         ];
         
         const settledResults = await Promise.allSettled(queries);
@@ -304,24 +304,25 @@ function App() {
             { data: registrationsData }, { data: trainingsData }, { data: platiData },
             { data: tranzactiiData }, { data: eventsData }, { data: resultsData },
             { data: familiesData }, { data: anunturiData }, { data: pricesData }, { data: deconturiData },
-            { data: istoricGradeData },
-            { data: multiContRolesData }
+            { data: istoricGradeData }
         ] = processedResults;
         
         const clubsMap = new Map((clubsData || []).map(c => [c.id, c]));
         const allNomenclatorRoles = rolesData || [];
 
+        // FIX: Map roles using the joined 'roles' data from the sportivi query.
         const allSportivi = sportiviData?.map(s => {
-            const userRolesFromMultiCont = (multiContRolesData || [])
-                .filter(mcr => mcr.user_id === s.user_id)
-                .map(mcr => {
+            const joinedRoles = (s as any).roles || [];
+            
+            const userRolesFromJoin = joinedRoles
+                .map((mcr: any) => {
                     const roleInfo = allNomenclatorRoles.find(r => r.nume === mcr.rol_denumire);
                     return roleInfo ? { ...roleInfo, is_primary: mcr.is_primary } : null;
                 })
                 .filter((r): r is Rol & { is_primary: boolean } => r !== null);
             
-            userRolesFromMultiCont.sort((a, b) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0));
-            const finalRoles: Rol[] = userRolesFromMultiCont.map(({ is_primary, ...rest }) => rest);
+            userRolesFromJoin.sort((a, b) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0));
+            const finalRoles: Rol[] = userRolesFromJoin.map(({ is_primary, ...rest }) => rest);
 
             return {
                 ...s,
@@ -511,7 +512,8 @@ function App() {
 
       case 'dashboard':
       case 'my-portal':
-        if (permissions.hasAdminAccess) {
+        // FIX: Allow admins to view the sportiv dashboard if their active role is 'Sportiv'
+        if (permissions.hasAdminAccess && activeRole !== 'Sportiv') {
             if (sportivi.length === 0 && !isEmergencyAdmin && !loading) {
                 return (
                     <div className="space-y-8 animate-fade-in-down">

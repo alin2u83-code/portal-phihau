@@ -29,7 +29,7 @@ export const usePermissions = (user: User | null, activeRole: Rol['nume'] | null
                 isFederationAdmin: true,
                 isAdminClub: true,
                 isInstructor: true,
-                isSportiv: false, // Master admin is not a regular sportiv in terms of UI
+                isSportiv: true, // Master admin is also a sportiv
                 hasAdminAccess: true,
                 isFederationLevel: true,
                 canManageFinances: true,
@@ -38,14 +38,16 @@ export const usePermissions = (user: User | null, activeRole: Rol['nume'] | null
             };
         }
 
-        // Base role flags
-        const isSuperAdmin = activeRole === 'SUPER_ADMIN_FEDERATIE';
-        const isAdmin = activeRole === 'Admin';
+        // Base role flags are now based on *all* roles, not just the active one.
+        const allUserRoles = new Set((user.roluri || []).map(r => r.nume));
+
+        const isSuperAdmin = allUserRoles.has('SUPER_ADMIN_FEDERATIE');
+        const isAdmin = allUserRoles.has('Admin');
         const isFederationAdmin = isSuperAdmin || isAdmin;
 
-        const isAdminClub = activeRole === 'Admin Club' && !isFederationAdmin;
-        const isInstructor = activeRole === 'Instructor';
-        const isSportiv = activeRole === 'Sportiv';
+        const isAdminClub = allUserRoles.has('Admin Club');
+        const isInstructor = allUserRoles.has('Instructor');
+        const isSportiv = allUserRoles.has('Sportiv');
         
         const hasAdminAccess = isFederationAdmin || isAdminClub || isInstructor;
         

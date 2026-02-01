@@ -23,7 +23,6 @@ serve(async (req) => {
     }
 
     // Crearea unui client Supabase cu rol de administrator (folosind cheia de serviciu)
-    // FIX: The type checker doesn't know about the Deno global. Access it via globalThis to avoid compile-time errors in environments without Deno types.
     const supabaseAdmin = createClient(
       (globalThis as any).Deno.env.get('SUPABASE_URL') ?? '',
       (globalThis as any).Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',

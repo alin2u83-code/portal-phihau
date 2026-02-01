@@ -1,5 +1,4 @@
 import React, { useMemo } from 'react';
-// FIX: Replaced deprecated type 'Participare' with 'InscriereExamen'.
 import { Sportiv, Antrenament, Grupa, Grad, InscriereExamen, Examen } from '../types';
 import { Modal, Button } from './ui';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell } from 'recharts';
@@ -63,7 +62,7 @@ export const SportivFeedbackReport: React.FC<SportivFeedbackReportProps> = ({ is
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         const lastMonthTrainings = relevantTrainings.filter(a => new Date(a.data) >= thirtyDaysAgo);
-        const attendedLastMonth = lastMonthTrainings.filter(a => a.sportivi_prezenti_ids.includes(sportiv.id)).length;
+        const attendedLastMonth = lastMonthTrainings.filter(a => a.prezenta.some(p => p.sportiv_id === sportiv.id)).length;
         const attendanceRate = lastMonthTrainings.length > 0 ? Math.round((attendedLastMonth / lastMonthTrainings.length) * 100) : 0;
 
         // 2. Consistency Sparkline (last 8 weeks)
@@ -76,7 +75,7 @@ export const SportivFeedbackReport: React.FC<SportivFeedbackReportProps> = ({ is
             
             const count = relevantTrainings.filter(a => {
                 const trainDate = new Date(a.data);
-                return trainDate >= weekStart && trainDate < weekEnd && a.sportivi_prezenti_ids.includes(sportiv.id);
+                return trainDate >= weekStart && trainDate < weekEnd && a.prezenta.some(p => p.sportiv_id === sportiv.id);
             }).length;
             return { name: `S${i+1}`, prezente: count };
         });
@@ -85,7 +84,7 @@ export const SportivFeedbackReport: React.FC<SportivFeedbackReportProps> = ({ is
         const now = new Date();
         const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         const trainingsThisMonth = antrenamente.filter(a => a.grupa_id === sportiv.grupa_id && new Date(a.data) >= firstDayOfMonth);
-        const attendedThisMonth = trainingsThisMonth.filter(a => a.sportivi_prezenti_ids.includes(sportiv.id)).length;
+        const attendedThisMonth = trainingsThisMonth.filter(a => a.prezenta.some(p => p.sportiv_id === sportiv.id)).length;
         const dragonPerseverent = trainingsThisMonth.length > 0 && attendedThisMonth === trainingsThisMonth.length;
         
         const weeklyPresenceFlags = weeklyAttendance.map(w => w.prezente > 0);

@@ -6,7 +6,6 @@ import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 
 const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
-    // FIX: Add missing 'SUPER_ADMIN_FEDERATIE' and 'Admin Club' roles to satisfy the Record type.
     const colorClasses: Record<Rol['nume'], string> = {
         'Admin': 'bg-red-600 text-white',
         'SUPER_ADMIN_FEDERATIE': 'bg-red-800 text-white',

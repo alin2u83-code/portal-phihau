@@ -1,5 +1,4 @@
 import React, { useMemo } from 'react';
-// FIX: Replaced deprecated type 'Participare' with 'InscriereExamen'.
 import { User, Plata, Tranzactie, Grad, Grupa, InscriereExamen, Examen, View } from '../types';
 import { Button } from './ui';
 import { ArrowLeftIcon } from './icons';

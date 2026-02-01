@@ -11,6 +11,7 @@ import { SportivFeedbackReport } from './SportivFeedbackReport';
 import { SportivProgressChart } from './SportivProgressChart';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
 import { AddGradeModal } from './AddGradeModal';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 const getGrad = (gradId: string | null, allGrades: Grad[]) => gradId ? allGrades.find(g => g.id === gradId) : null;
 const getAge = (dateString: string) => { if (!dateString) return 0; const today = new Date(); const birthDate = new Date(dateString.includes('T') ? dateString : dateString + 'T00:00:00'); if (isNaN(birthDate.getTime())) { return 0; } let age = today.getFullYear() - birthDate.getFullYear(); const m = today.getMonth() - birthDate.getMonth(); if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; } return age; };
@@ -210,6 +211,52 @@ const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose, sportiv,
     );
 };
 
+interface PlataEditModalProps {
+    plata: Plata | null;
+    onClose: () => void;
+    onSave: (plata: Plata) => Promise<void>;
+    isLoading: boolean;
+}
+
+const PlataEditModal: React.FC<PlataEditModalProps> = ({ plata, onClose, onSave, isLoading }) => {
+    const [formData, setFormData] = useState<Plata | null>(plata);
+
+    useEffect(() => {
+        setFormData(plata);
+    }, [plata]);
+
+    if (!formData) return null;
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        setFormData(prev => prev ? { ...prev, [name]: name === 'suma' ? parseFloat(value) || 0 : value } : null);
+    };
+
+    const handleSaveClick = async () => {
+        if (formData) {
+            await onSave(formData);
+        }
+    };
+
+    return (
+        <Modal isOpen={!!plata} onClose={onClose} title="Editează Factură">
+            <div className="space-y-4">
+                <Input label="Descriere" name="descriere" value={formData.descriere} onChange={handleChange} />
+                <Input label="Sumă (RON)" name="suma" type="number" step="0.01" value={formData.suma} onChange={handleChange} />
+                <Select label="Status" name="status" value={formData.status} onChange={handleChange}>
+                    <option value="Neachitat">Neachitat</option>
+                    <option value="Achitat Parțial">Achitat Parțial</option>
+                    <option value="Achitat">Achitat</option>
+                </Select>
+                <div className="flex justify-end pt-4 gap-2 border-t border-slate-700">
+                    <Button variant="secondary" onClick={onClose} disabled={isLoading}>Anulează</Button>
+                    <Button variant="success" onClick={handleSaveClick} isLoading={isLoading}>Salvează</Button>
+                </div>
+            </div>
+        </Modal>
+    );
+}
+
 
 const DataField: React.FC<{label: string, value: React.ReactNode}> = ({label, value}) => (
     <div>
@@ -267,7 +314,10 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
     });
     const [isSavingFeedback, setIsSavingFeedback] = useState(false);
     
-    const [financialFilter, setFinancialFilter] = useState<'Toate' | 'Abonament' | 'Taxa Examen' | 'Echipament'>('Toate');
+    const [plataToEdit, setPlataToEdit] = useState<Plata | null>(null);
+    const [plataToDelete, setPlataToDelete] = useState<Plata | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
         setSelectedRoleIds((sportiv.roluri || []).map(r => r.id));
@@ -321,6 +371,14 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
         const lastGradeEvent = [...gradeHistory].sort((a,b) => b.date - a.date)[0];
         return lastGradeEvent ? grade.find(g => g.id === lastGradeEvent.grad_id) : null;
     }, [gradeHistory, grade]);
+
+    const { totalRestante, ultimaTranzactie, sportivPlati } = useMemo(() => {
+        const platiRelevante = plati.filter(p => p.sportiv_id === sportiv.id || (p.familie_id && p.familie_id === sportiv.familie_id));
+        const restante = platiRelevante.filter(p => p.status === 'Neachitat' || p.status === 'Achitat Parțial').reduce((sum, p) => sum + p.suma, 0);
+        const tranzactiiRelevante = tranzactii.filter(t => t.sportiv_id === sportiv.id || (t.familie_id && t.familie_id === sportiv.familie_id)).sort((a, b) => new Date(b.data_platii).getTime() - new Date(a.data_platii).getTime());
+        return { totalRestante: restante, ultimaTranzactie: tranzactiiRelevante[0], sportivPlati: platiRelevante.sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime()) };
+    }, [sportiv, plati, tranzactii]);
+
 
     const lastThreeAttendances = useMemo(() => {
         const now = new Date();
@@ -406,6 +464,41 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
         }
     };
 
+    const handleSavePlataEdit = async (editedPlata: Plata) => {
+        setIsSaving(true);
+        const { id, ...updates } = editedPlata;
+        const { error } = await supabase.from('plati').update(updates).eq('id', id);
+        setIsSaving(false);
+        if (error) {
+            showError("Eroare la Salvare", error);
+        } else {
+            setPlati(prev => prev.map(p => p.id === id ? editedPlata : p));
+            setPlataToEdit(null);
+            showSuccess("Succes", "Factura a fost actualizată.");
+        }
+    };
+
+    const confirmDeletePlata = async (id: string) => {
+        setIsDeleting(true);
+        const { data: tranzactiiData, error: tranzactiiError } = await supabase.from('tranzactii').select('id, plata_ids').contains('plata_ids', [id]);
+        if (tranzactiiError) { showError("Eroare la Verificare", tranzactiiError); setIsDeleting(false); return; }
+        if (tranzactiiData && tranzactiiData.length > 0) {
+            showError("Ștergere Blocată", "Această factură este parte dintr-o tranzacție și nu poate fi ștearsă. Anulați întâi tranzacția din Jurnalul de Încasări.");
+            setIsDeleting(false);
+            setPlataToDelete(null);
+            return;
+        }
+        const { error } = await supabase.from('plati').delete().eq('id', id);
+        setIsDeleting(false);
+        if (error) {
+            showError("Eroare la Ștergere", error);
+        } else {
+            setPlati(prev => prev.filter(p => p.id !== id));
+            showSuccess("Succes", "Factura a fost ștearsă.");
+        }
+        setPlataToDelete(null);
+    };
+
     const unassignedRoles = allRoles.filter(r => !selectedRoleIds.includes(r.id));
 
     return (
@@ -423,6 +516,32 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                 <div className="lg:col-span-1 space-y-6">
                     <Card><h3 className="text-lg font-bold text-white mb-3">Date Personale</h3><dl className="space-y-3"><DataField label="Vârstă" value={`${getAge(sportiv.data_nasterii)} ani`} /><DataField label="Data Înscrierii" value={new Date(sportiv.data_inscrierii).toLocaleDateString('ro-RO')} /><DataField label="Status" value={<span className={`px-2 py-0.5 text-xs rounded-full ${sportiv.status === 'Activ' ? 'bg-green-600/30 text-green-400' : 'bg-red-600/30 text-red-400'}`}>{sportiv.status}</span>} /><DataField label="Club" value={sportiv.cluburi?.id === FEDERATIE_ID ? FEDERATIE_NAME : sportiv.cluburi?.nume} /></dl>
                         {isSuperAdmin && <Button onClick={() => setIsTransferModalOpen(true)} variant="secondary" className="w-full mt-4"><TransferIcon className="w-4 h-4 mr-2"/> Transferă Sportiv</Button>}
+                    </Card>
+                    <Card>
+                        <h3 className="text-lg font-bold text-white mb-3">Situație Financiară</h3>
+                        <div className="flex justify-between items-center mb-4">
+                            <span className="text-sm font-semibold text-slate-400">Total Restant:</span>
+                            <span className={`text-2xl font-bold ${totalRestante > 0 ? 'text-red-400' : 'text-green-400'}`}>{totalRestante.toFixed(2)} RON</span>
+                        </div>
+                        <div className="mt-4 pt-4 border-t border-slate-700">
+                            <h4 className="text-md font-bold text-slate-300 mb-2">Istoric Facturi</h4>
+                            <div className="max-h-60 overflow-y-auto space-y-2 pr-2">
+                                {sportivPlati.map(plata => (
+                                    <div key={plata.id} className="text-xs bg-slate-800/50 p-2 rounded-md">
+                                        <div className="flex justify-between items-start">
+                                            <div className="flex-grow">
+                                                <p className="font-bold text-white">{plata.descriere}</p>
+                                                <p className="text-slate-400">{new Date(plata.data).toLocaleDateString('ro-RO')} - {plata.suma.toFixed(2)} RON</p>
+                                            </div>
+                                            <div className="flex items-center gap-2 ml-2 flex-shrink-0">
+                                                <Button size="sm" variant="secondary" className="!p-1.5 h-auto" onClick={() => setPlataToEdit(plata)}><EditIcon className="w-3 h-3"/></Button>
+                                                <Button size="sm" variant="danger" className="!p-1.5 h-auto" onClick={() => setPlataToDelete(plata)}><TrashIcon className="w-3 h-3"/></Button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                     </Card>
                     <Card><h3 className="text-lg font-bold text-white mb-3">Roluri & Permisiuni</h3>
                         <div className="flex flex-wrap gap-2">{sportiv.roluri.map(r => <RoleBadge key={r.id} role={r}/>)}</div>
@@ -450,6 +569,9 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
             {isReportModalOpen && <SportivFeedbackReport isOpen={isReportModalOpen} onClose={() => setIsReportModalOpen(false)} sportiv={sportiv} antrenamente={antrenamente} grupe={grupe} grade={grade} participari={participari} examene={examene} />}
             {isTransferModalOpen && <TransferModal isOpen={isTransferModalOpen} onClose={() => setIsTransferModalOpen(false)} sportiv={sportiv} clubs={clubs} onTransferComplete={(updatedSportiv) => { setSportivi(p => p.map(s => s.id === updatedSportiv.id ? updatedSportiv : s)); setIsTransferModalOpen(false); }} />}
             {isAddGradeModalOpen && <AddGradeModal isOpen={isAddGradeModalOpen} onClose={() => setIsAddGradeModalOpen(false)} onSave={handleAddGrade} sportiv={sportiv} grades={grade} />}
+        
+            <PlataEditModal plata={plataToEdit} onClose={() => setPlataToEdit(null)} onSave={handleSavePlataEdit} isLoading={isSaving} />
+            <ConfirmDeleteModal isOpen={!!plataToDelete} onClose={() => setPlataToDelete(null)} onConfirm={() => { if(plataToDelete) confirmDeletePlata(plataToDelete.id) }} tableName="Factură" isLoading={isDeleting} />
         </div>
     );
 };

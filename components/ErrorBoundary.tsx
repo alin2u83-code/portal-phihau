@@ -1,4 +1,4 @@
-import React, { ReactNode, ErrorInfo, Component } from 'react';
+import React, { ReactNode, ErrorInfo } from 'react';
 import { View } from '../types';
 import { Button } from './ui';
 import { ArrowLeftIcon } from './icons';
@@ -13,7 +13,8 @@ interface State {
   error?: Error;
 }
 
-class ErrorBoundary extends Component<Props, State> {
+// FIX: Extended React.Component directly to avoid potential naming conflicts with the 'Component' import.
+class ErrorBoundary extends React.Component<Props, State> {
   // FIX: Use class properties to initialize state, avoiding constructor issues.
   public state: State = {
     hasError: false,

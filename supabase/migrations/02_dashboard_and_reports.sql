@@ -1,5 +1,10 @@
+-- =================================================================
+-- Funcții Optimizate pentru Dashboard și Rapoarte (v2.0)
+-- Utilizează noile funcții helper bazate pe JWT pentru consistență.
+-- =================================================================
+
 -- Funcția 1: Raport detaliat de prezență
--- Returnează un tabel cu statistici de prezență pentru fiecare sportiv dintr-un club.
+-- Returnează un tabel cu statistici de prezență pentru fiecare sportiv din clubul activ.
 CREATE OR REPLACE FUNCTION get_raport_prezenta_detaliat()
 RETURNS TABLE (
     sportiv_id uuid,
@@ -13,7 +18,8 @@ RETURNS TABLE (
 LANGUAGE plpgsql
 AS $$
 DECLARE
-    v_club_id uuid := (auth.jwt() ->> 'club_id')::uuid;
+    -- Utilizează noua funcție helper pentru a obține ID-ul clubului din JWT
+    v_club_id uuid := public.get_active_club_id();
 BEGIN
     RETURN QUERY
     WITH sportivi_club AS (
@@ -64,7 +70,7 @@ END;
 $$;
 
 -- Funcția 2: Statistici rapide pentru Dashboard-ul de Club
--- Returnează numărul de sportivi activi, grupe și totalul datoriilor.
+-- Returnează numărul de sportivi activi, grupe și totalul datoriilor pentru clubul activ.
 CREATE OR REPLACE FUNCTION get_club_dashboard_stats()
 RETURNS TABLE (
     sportivi_activi bigint,
@@ -74,7 +80,8 @@ RETURNS TABLE (
 LANGUAGE plpgsql
 AS $$
 DECLARE
-    v_club_id uuid := (auth.jwt() ->> 'club_id')::uuid;
+    -- Utilizează noua funcție helper pentru a obține ID-ul clubului din JWT
+    v_club_id uuid := public.get_active_club_id();
 BEGIN
     RETURN QUERY
     SELECT

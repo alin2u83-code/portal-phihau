@@ -166,8 +166,8 @@ const AttendanceDetail: React.FC<AttendanceDetailProps> = ({ antrenament, onBack
             const report = { ID_Antrenament: antrenament.id, Numar_Prezenti: presentIds.size, AbonamentExpirat: athletesWithExpiredSubs };
             setReportData(JSON.stringify(report, null, 2));
         } catch (err: unknown) {
-            // FIX: The `showError` function is designed to handle the error object directly to extract the message.
-            showError("Eroare la salvare", err);
+            // FIX: The `showError` function is designed to handle the error object directly to extract the message. Cast unknown to Error.
+            showError("Eroare la salvare", (err as Error)?.message || String(err));
         } finally {
             setIsSaving(false);
         }

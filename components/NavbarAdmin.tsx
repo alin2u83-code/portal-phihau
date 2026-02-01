@@ -13,7 +13,7 @@ interface NavbarAdminProps {
 
 export const NavbarAdmin: React.FC<NavbarAdminProps> = ({ currentUser, onNavigate, onLogout, plati }) => {
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-    // FIX: `usePermissions` expects a user and an active role. The active role is derived from the user's roles.
+    
     const activeRole = useMemo((): Rol['nume'] => {
         if (currentUser?.roluri && currentUser.roluri.length > 0) {
             const roleWeights: Record<Rol['nume'], number> = { 'SUPER_ADMIN_FEDERATIE': 5, 'Admin': 4, 'Admin Club': 3, 'Instructor': 2, 'Sportiv': 1 };

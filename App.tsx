@@ -122,10 +122,7 @@ function App() {
       if (!supabase || !currentUser?.user_id) return;
       setIsSwitchingRole(true);
       
-      const { error } = await supabase
-        .from('sportivi')
-        .update({ rol_activ_context: roleName })
-        .eq('user_id', currentUser.user_id);
+      const { error } = await supabase.rpc('set_active_role', { p_role_name: roleName });
 
       if (error) {
           showError("Eroare la comutarea rolului", error.message);
@@ -403,20 +400,19 @@ function App() {
   };
 
   const handleSelectRole = async (role: any) => {
-    if (!supabase) return;
+    if (!supabase || !currentUser?.user_id) return;
     setIsSelectingRole(true);
-    try {
-        const { error: rpcError } = await supabase.rpc('set_active_role', {
-            p_role_name: role.rol_denumire
-        });
-        if (rpcError) throw rpcError;
-        
-        setActiveRoleContext(role);
-        setCurrentUser(prev => prev ? { ...prev, rol_activ_context: role.rol_denumire } : null);
-    } catch (err: any) {
-        showError("Eroare la selectarea rolului", err.message);
-    } finally {
+    
+    // Using the SECURITY DEFINER RPC function is the correct, robust way to bypass RLS for this specific update.
+    const { error } = await supabase.rpc('set_active_role', { p_role_name: role.rol_denumire });
+
+    if (error) {
+        showError("Eroare la selectarea rolului", error.message);
         setIsSelectingRole(false);
+    } else {
+        // Reloading the page is the safest way to get the new JWT
+        // with the updated metadata and refetch all data with the new permissions.
+        window.location.reload();
     }
   };
   

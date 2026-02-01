@@ -98,10 +98,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ currentUser, userRol
         if (!supabase || !currentUser?.user_id) return;
         setIsSwitchingRole(true);
 
-        const { error } = await supabase
-            .from('sportivi')
-            .update({ rol_activ_context: roleContext.rol_denumire })
-            .eq('user_id', currentUser.user_id);
+        const { error } = await supabase.rpc('set_active_role', { p_role_name: roleContext.rol_denumire });
 
         if (error) {
             showError("Eroare la comutarea rolului", error.message);

@@ -1,34 +1,64 @@
-import React, { useState, useMemo } from 'react';
-import { User, Rol, Club, Permissions } from '../types';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Rol, Club, Permissions, User } from '../types';
 import { Card, Select, Button } from './ui';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { ShieldCheckIcon } from './icons';
 
+interface ManagedUser {
+    user_id: string;
+    sportiv_id: string;
+    club_id: string | null;
+    displayName: string;
+}
+
 interface UserRoleManagerProps {
-    users: User[];
     roles: Rol[];
     clubs: Club[];
     currentUser: User;
     permissions: Permissions;
 }
 
-export const UserRoleManager: React.FC<UserRoleManagerProps> = ({ users, roles, clubs, currentUser, permissions }) => {
+export const UserRoleManager: React.FC<UserRoleManagerProps> = ({ roles, clubs, currentUser, permissions }) => {
     const { showError, showSuccess } = useError();
     const [loading, setLoading] = useState(false);
-
-    // FIX: S-a trecut de la useRef la useState pentru a controla input-urile,
-    // rezolvând eroarea în care referințele erau null la submit.
+    const [managedUsers, setManagedUsers] = useState<ManagedUser[]>([]);
+    
     const [selectedUserId, setSelectedUserId] = useState('');
     const [selectedRoleName, setSelectedRoleName] = useState('');
+
+    useEffect(() => {
+        async function loadUsers() {
+            if (!supabase) return;
+            // Get all unique user contexts
+            const { data, error } = await supabase.from('utilizator_roluri_multicont').select('user_id, club_id, sportiv_id');
+            if (error) { showError("Eroare la preluarea utilizatorilor din roluri", error.message); return; }
+
+            // Group by sportiv_id to get a unique list for the dropdown
+            const userMap = new Map<string, ManagedUser>();
+            for (const item of data) {
+                if (!userMap.has(item.sportiv_id)) {
+                    userMap.set(item.sportiv_id, {
+                        user_id: item.user_id,
+                        sportiv_id: item.sportiv_id,
+                        club_id: item.club_id,
+                        displayName: item.user_id, // Afișăm user_id ca fallback
+                    });
+                }
+            }
+            setManagedUsers(Array.from(userMap.values()));
+        }
+        loadUsers();
+    }, [showError]);
+
 
     const availableUsers = useMemo(() => {
         // Un Admin Club poate gestiona doar utilizatorii din clubul său.
         if (permissions.isFederationAdmin) {
-            return users;
+            return managedUsers;
         }
-        return users.filter(u => u.club_id === currentUser.club_id);
-    }, [users, currentUser.club_id, permissions.isFederationAdmin]);
+        return managedUsers.filter(u => u.club_id === currentUser.club_id);
+    }, [managedUsers, currentUser.club_id, permissions.isFederationAdmin]);
 
     const availableRoles = useMemo(() => {
         // Un Admin Club nu poate acorda roluri mai mari decât al său.
@@ -49,7 +79,8 @@ export const UserRoleManager: React.FC<UserRoleManagerProps> = ({ users, roles, 
             return;
         }
 
-        const targetUser = users.find(u => u.id === selectedUserId);
+        // selectedUserId este acum sportiv_id
+        const targetUser = managedUsers.find(u => u.sportiv_id === selectedUserId);
         if (!targetUser) {
             showError("Eroare", "Utilizatorul selectat nu a fost găsit.");
             return;
@@ -68,7 +99,7 @@ export const UserRoleManager: React.FC<UserRoleManagerProps> = ({ users, roles, 
 
             if (rpcError) throw rpcError;
 
-            showSuccess("Context Actualizat", `Contextul pentru ${targetUser.nume} ${targetUser.prenume} a fost setat la ${selectedRoleName}.`);
+            showSuccess("Context Actualizat", `Contextul pentru utilizatorul selectat a fost setat la ${selectedRoleName}.`);
 
         } catch (err: any) {
             showError("Eroare la actualizare", err.message);
@@ -90,14 +121,14 @@ export const UserRoleManager: React.FC<UserRoleManagerProps> = ({ users, roles, 
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Select
-                        label="Selectează Utilizator"
+                        label="Selectează Utilizator (după ID)"
                         value={selectedUserId}
                         onChange={(e) => setSelectedUserId(e.target.value)}
                     >
                         <option value="" disabled>Alege un utilizator...</option>
                         {availableUsers.map(user => (
-                            <option key={user.id} value={user.id}>
-                                {user.nume} {user.prenume}
+                            <option key={user.sportiv_id} value={user.sportiv_id}>
+                                {user.displayName.substring(0,8)}...
                             </option>
                         ))}
                     </Select>

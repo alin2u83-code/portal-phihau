@@ -131,7 +131,6 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ currentUser, userRol
             />
 
             <UserRoleManager
-                users={sportivi}
                 roles={allRoles}
                 clubs={clubs}
                 currentUser={currentUser}

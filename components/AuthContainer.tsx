@@ -12,56 +12,6 @@ const QwanKiDoLogo: React.FC = () => (
     </div>
 );
 
-// --- Componenta pentru selecția rolului ---
-const RoleSelector: React.FC<{
-    roles: any[];
-    onSelect: (role: any) => void;
-    loading: boolean;
-}> = ({ roles, onSelect, loading }) => {
-
-    const getRoleDisplayName = (role: any) => {
-        switch(role.rol_denumire) {
-            case 'SUPER_ADMIN_FEDERATIE':
-                return 'Super Admin Federație';
-            case 'Admin':
-                return 'Admin General';
-            case 'Admin Club':
-                return `Admin - ${role.club?.nume || 'Club Nedefinit'}`;
-            case 'Instructor':
-                return `Instructor - ${role.club?.nume || 'Club Nedefinit'}`;
-            case 'Sportiv':
-                return `Sportiv - ${role.sportiv?.nume || ''} ${role.sportiv?.prenume || ''}`;
-            default:
-                return role.rol_denumire;
-        }
-    };
-
-    return (
-        <Card className="border-t-4 border-amber-400 animate-fade-in-down">
-            <QwanKiDoLogo />
-            <div className="text-center mb-6">
-                <h1 className="text-2xl font-bold text-white">Selectează un Rol</h1>
-                <p className="text-slate-400 mt-1">Contul tău are mai multe roluri. Alege contextul în care vrei să continui.</p>
-            </div>
-
-            <div className="space-y-3">
-                {roles.map((role, index) => (
-                    <button
-                        key={index}
-                        onClick={() => onSelect(role)}
-                        disabled={loading}
-                        className="w-full text-left p-4 rounded-lg bg-slate-700 hover:bg-slate-600 transition-colors disabled:opacity-50 border border-slate-600 focus:outline-none focus:ring-2 focus:ring-brand-secondary"
-                    >
-                        <p className="font-bold text-white">{getRoleDisplayName(role)}</p>
-                    </button>
-                ))}
-            </div>
-            {loading && <div className="text-center mt-4 text-slate-400 animate-pulse">Se configurează sesiunea...</div>}
-        </Card>
-    );
-};
-
-
 export const AuthContainer: React.FC = () => {
     const [view, setView] = useState<'login' | 'signup'>('login');
     const [form, setForm] = useState({
@@ -73,80 +23,11 @@ export const AuthContainer: React.FC = () => {
     });
     const [message, setMessage] = useState<{ type: 'error' | 'success', text: string } | null>(null);
     const [loading, setLoading] = useState(false);
-    const [roleSelection, setRoleSelection] = useState<any[] | null>(null);
-    const [authUser, setAuthUser] = useState<any | null>(null);
 
     const PHI_HAU_IASI_CLUB_ID = 'cbb0b228-b3e0-4735-9658-70999eb256c6';
     
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
-    };
-
-    const handleRoleSelect = async (role: any) => {
-        if (!supabase || !authUser) return;
-        setLoading(true);
-
-        const { data: primaryProfile, error: profileError } = await supabase
-            .from('sportivi')
-            .select('id')
-            .eq('user_id', authUser.id)
-            .single();
-
-        if (profileError || !primaryProfile) {
-            setMessage({ type: 'error', text: `Nu s-a găsit profilul principal pentru a seta contextul. Eroare: ${profileError?.message}` });
-            setLoading(false);
-            return;
-        }
-
-        const { error } = await supabase
-            .from('sportivi')
-            .update({ rol_activ_context: role.rol_denumire })
-            .eq('id', primaryProfile.id);
-
-        if (error) {
-            setMessage({ type: 'error', text: `Eroare la setarea rolului activ: ${error.message}` });
-            setLoading(false);
-        } else {
-            window.location.reload();
-        }
-    };
-
-    const processUserRoles = async (user: any) => {
-        if (!supabase) return;
-
-        const { data: roles, error: rolesError } = await supabase
-            .from('utilizator_roluri_multicont')
-            .select(`
-                rol_denumire,
-                sportiv_id,
-                club_id,
-                club:cluburi(nume),
-                sportiv:sportivi(nume, prenume)
-            `)
-            .eq('user_id', user.id);
-        
-        if (rolesError) {
-            setMessage({ type: 'error', text: `Eroare la preluarea rolurilor: ${rolesError.message}` });
-            setLoading(false);
-            await supabase.auth.signOut();
-            return;
-        }
-
-        if (roles.length === 0) {
-            setMessage({ type: 'error', text: 'Contul nu are niciun rol asignat. Contactați administratorul.' });
-            setLoading(false);
-            await supabase.auth.signOut();
-            return;
-        }
-
-        if (roles.length === 1) {
-            setAuthUser(user);
-            await handleRoleSelect(roles[0]);
-        } else {
-            setRoleSelection(roles);
-            setAuthUser(user);
-            setLoading(false);
-        }
     };
 
     const handleLogin = async (e: React.FormEvent) => {
@@ -160,7 +41,7 @@ export const AuthContainer: React.FC = () => {
             return;
         }
 
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const { error } = await supabase.auth.signInWithPassword({
             email: form.email,
             password: form.parola,
         });
@@ -168,12 +49,9 @@ export const AuthContainer: React.FC = () => {
         if (error) {
             setMessage({ type: 'error', text: 'Date de autentificare invalide. Verificați email/utilizator și parola.' });
             setLoading(false);
-        } else if (data.user) {
-            await processUserRoles(data.user);
-        } else {
-             setMessage({ type: 'error', text: 'Autentificare eșuată. Utilizator negăsit.' });
-             setLoading(false);
         }
+        // La succes, listener-ul onAuthStateChange din App.tsx va prelua controlul.
+        // Nu este nevoie de cod suplimentar aici.
     };
 
     const handleSignUp = async (e: React.FormEvent) => {
@@ -256,16 +134,6 @@ export const AuthContainer: React.FC = () => {
         setMessage(null);
         setForm({ nume: '', prenume: '', email: '', parola: '', confirmParola: '' });
     };
-
-    if (roleSelection) {
-        return (
-            <div className="min-h-screen flex items-center justify-center p-4 bg-[var(--bg-main)]">
-                <div className="w-full max-w-md">
-                    <RoleSelector roles={roleSelection} onSelect={handleRoleSelect} loading={loading} />
-                </div>
-            </div>
-        );
-    }
 
     return (
         <div className="min-h-screen flex items-center justify-center p-4 bg-[var(--bg-main)]">

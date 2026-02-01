@@ -126,7 +126,8 @@ function App() {
   }, [currentUser]);
 
   const permissions = usePermissions(currentUser, activeRole);
-  const { activeClubId, globalClubFilter, setGlobalClubFilter } = useClubFilter(currentUser, permissions);
+  // FIX: Added `currentUser` as the third argument to `useClubFilter` to provide the active role context, resolving a "missing argument" error.
+  const { activeClubId, globalClubFilter, setGlobalClubFilter } = useClubFilter(currentUser, permissions, currentUser);
    const canSwitchRoles = useMemo(() => {
         if (!currentUser || !currentUser.roluri || currentUser.roluri.length <= 1) return false;
         const adminRoles: Rol['nume'][] = ['SUPER_ADMIN_FEDERATIE', 'Admin', 'Admin Club', 'Instructor'];

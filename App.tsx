@@ -258,7 +258,7 @@ function App() {
             supabase.from('nom_locatii').select('*'),
             supabase.from('tipuri_plati').select('*'),
             supabase.from('reduceri').select('*'),
-            supabase.from('sportivi').select('*, sportivi_roluri(roluri(id, nume))'),
+            supabase.from('sportivi').select('*'), // Am eliminat vechiul join 'sportivi_roluri'
             supabase.from('sesiuni_examene').select('*'),
             supabase.from('inscrieri_examene').select('*, sportivi:sportiv_id(*), grades:grad_vizat_id(*)'),
             supabase.from('program_antrenamente').select('*, grupe(*), prezenta:prezenta_antrenament!antrenament_id(sportiv_id, status)'),
@@ -271,6 +271,7 @@ function App() {
             supabase.from('preturi_config').select('*'),
             supabase.from('deconturi_federatie').select('*'),
             supabase.from('istoric_grade').select('*'),
+            supabase.from('utilizator_roluri_multicont').select('*'), // Sursa nouă pentru roluri
         ];
         
         const settledResults = await Promise.allSettled(queries);
@@ -303,16 +304,31 @@ function App() {
             { data: registrationsData }, { data: trainingsData }, { data: platiData },
             { data: tranzactiiData }, { data: eventsData }, { data: resultsData },
             { data: familiesData }, { data: anunturiData }, { data: pricesData }, { data: deconturiData },
-            { data: istoricGradeData }
+            { data: istoricGradeData },
+            { data: multiContRolesData }
         ] = processedResults;
         
         const clubsMap = new Map((clubsData || []).map(c => [c.id, c]));
+        const allNomenclatorRoles = rolesData || [];
 
-        const allSportivi = sportiviData?.map(s => ({
-            ...s,
-            roluri: (((s as any).sportivi_roluri?.map((sr: any) => sr.roluri)) || []).filter(Boolean),
-            cluburi: s.club_id ? (clubsMap.get(s.club_id) || { id: s.club_id, nume: 'Club Indisponibil' }) : null
-        })) || [];
+        const allSportivi = sportiviData?.map(s => {
+            const userRolesFromMultiCont = (multiContRolesData || [])
+                .filter(mcr => mcr.user_id === s.user_id)
+                .map(mcr => {
+                    const roleInfo = allNomenclatorRoles.find(r => r.nume === mcr.rol_denumire);
+                    return roleInfo ? { ...roleInfo, is_primary: mcr.is_primary } : null;
+                })
+                .filter((r): r is Rol & { is_primary: boolean } => r !== null);
+            
+            userRolesFromMultiCont.sort((a, b) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0));
+            const finalRoles: Rol[] = userRolesFromMultiCont.map(({ is_primary, ...rest }) => rest);
+
+            return {
+                ...s,
+                roluri: finalRoles,
+                cluburi: s.club_id ? (clubsMap.get(s.club_id) || { id: s.club_id, nume: 'Club Indisponibil' }) : null
+            };
+        }) || [];
         
         const allGrupe = groupsData?.map(g => ({ ...g, program: g.program_antrenamente })) || [];
 

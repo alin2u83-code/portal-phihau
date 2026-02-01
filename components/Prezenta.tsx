@@ -192,9 +192,8 @@ const AttendanceDetail: React.FC<AttendanceDetailProps> = ({ antrenament, onBack
                 if (error) throw error;
             }
             setAntrenamente(prev => prev.map(a => a.id === antrenament.id ? { ...a, prezenta: Array.from(newPresentIds).map(id => ({ sportiv_id: id, status: 'prezent' })) } : a));
+// Fix: In `handleToggle`, cast the `unknown` error type to `Error` and access its `message` property before passing it to `showError` to fix the TypeScript error.
         } catch (err: unknown) {
-            // FIX: Pass the raw error object to showError for proper handling.
-            // Fix: In `handleToggle`, cast the `unknown` error type to `Error` and access its `message` property before passing it to `showError` to fix the TypeScript error.
             showError("Eroare la actualizare", (err as Error)?.message || String(err));
             setPresentIds(presentIds); // Revert UI
         } finally {

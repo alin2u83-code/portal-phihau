@@ -3,9 +3,10 @@ import { Grad } from '../types';
 
 const normalizeGradName = (gradName: string): string => {
     if (!gradName) return '';
-    // Normalizează pentru a gestiona diacriticele (ex: 'â' vs 'a') și pentru a fi case-insensitive
+    // Normalizează pentru a gestiona diacriticele (ex: 'â' vs 'a'), punctele și pentru a fi case-insensitive
     return gradName
         .toLowerCase()
+        .replace(/\./g, '') // Elimină punctele pentru a trata "C.V." ca "cv"
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "");
 };
@@ -18,8 +19,8 @@ export const getGradStyle = (gradName: string): string => {
     if (!gradName) return 'bg-slate-600 text-white';
     const name = normalizeGradName(gradName);
     
-    // Regulă specifică pentru 'Cap Alb' / 'Câp Alb'
-    if (name.includes('cap alb') || name.includes('violet')) {
+    // Regulă specifică pentru 'Cap Alb' / 'Câp Alb' / 'C.V.'
+    if (name.includes('cap alb') || name.includes('violet') || name.includes('cv')) {
         return 'bg-violet-500 text-white'; // #8B5CF6 este violet-500
     }
     
@@ -56,7 +57,7 @@ export const getGradBorderColor = (gradName: string): string => {
     if (!gradName) return 'border-slate-700';
     const name = normalizeGradName(gradName);
     
-    if (name.includes('cap alb') || name.includes('violet')) {
+    if (name.includes('cap alb') || name.includes('violet') || name.includes('cv')) {
         return 'border-violet-500';
     }
     if (name.includes('albastru')) return 'border-blue-500';
@@ -77,9 +78,10 @@ export const GradBadge: React.FC<{ grad: Grad | null | undefined; isLarge?: bool
     const gradName = grad ? grad.nume : 'Începător';
     
     const sizeClasses = isLarge 
-        ? 'px-6 py-2 text-3xl font-black'
+        ? 'px-6 py-2 text-3xl font-black' 
         : 'px-3 py-1 text-sm font-bold';
 
+    // FIX: Replaced JSX with React.createElement to fix syntax errors in a .ts file.
     return React.createElement(
         'span',
         {

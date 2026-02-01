@@ -1,65 +1,172 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Sportiv, InscriereExamen, Grad, Grupa, Plata, User, View, AnuntPrezenta, SesiuneExamen, ProgramItem, Antrenament, Permissions, Rol } from '../types';
+import { Sportiv, InscriereExamen, Grad, Grupa, Plata, User, View, AnuntPrezenta, SesiuneExamen, ProgramItem, Antrenament, Permissions, Rol, IstoricGrade } from '../types';
 import { Card, Button } from './ui';
 import { NotificationPermissionWidget } from './NotificationPermissionWidget';
 import { AttendanceTracker } from './AttendanceTracker';
 import { useError } from './ErrorProvider';
 import { supabase } from '../supabaseClient';
-import { CheckIcon } from './icons';
+import { CheckIcon, ExclamationTriangleIcon } from './icons';
 import { GradBadge } from '../utils/grades';
 
 const getGrad = (gradId: string | null, allGrades: Grad[]) => gradId ? allGrades.find(g => g.id === gradId) : null;
 
-// --- Componenta Program Antrenament ---
-const ProgramAntrenament: React.FC<{ grupaId: string | null; grupe: Grupa[] }> = ({ grupaId, grupe }) => {
-    const zileSaptamanaOrdonate: Record<ProgramItem['ziua'], number> = { 'Luni': 1, 'Marți': 2, 'Miercuri': 3, 'Joi': 4, 'Vineri': 5, 'Sâmbătă': 6, 'Duminică': 7 };
+// --- Componenta Viza Medicala ---
+const VizaMedicalaCard: React.FC<{ plati: Plata[]; sportivId: string }> = ({ plati, sportivId }) => {
+    const vizaInfo = useMemo(() => {
+        const today = new Date();
+        const currentMonth = today.getMonth();
+        const currentYear = today.getFullYear();
+        // Sezonul este Septembrie - August
+        const seasonStartYear = currentMonth >= 8 ? currentYear : currentYear - 1;
+        const seasonStartDate = new Date(seasonStartYear, 8, 1);
+        
+        const vizaPlata = plati.find(p => 
+            p.sportiv_id === sportivId && 
+            p.tip === 'Taxa Anuala' && 
+            p.status === 'Achitat' && 
+            new Date(p.data) >= seasonStartDate
+        );
 
-    const grupaCurenta = useMemo(() => grupe.find(g => g.id === grupaId), [grupaId, grupe]);
-    
-    const programSortat = useMemo(() => {
-        if (!grupaCurenta?.program) return [];
-        return [...grupaCurenta.program]
-            .filter(p => p.is_activ !== false) // Show only active sessions
-            .sort((a, b) => {
-                const ziCompare = zileSaptamanaOrdonate[a.ziua] - zileSaptamanaOrdonate[b.ziua];
-                if (ziCompare !== 0) return ziCompare;
-                return a.ora_start.localeCompare(b.ora_start);
-            });
-    }, [grupaCurenta]);
+        const isValid = !!vizaPlata;
+        return {
+            isValid,
+            season: `${seasonStartYear}-${seasonStartYear + 1}`,
+            paymentDate: vizaPlata ? new Date(vizaPlata.data).toLocaleDateString('ro-RO') : null,
+        };
+    }, [plati, sportivId]);
 
     return (
         <Card>
-            <h3 className="text-lg font-bold text-white mb-2 animate-fade-in-down">Programul Meu de Antrenament</h3>
-            {!grupaId || !grupaCurenta ? (
-                <p className="text-sm text-slate-400 italic">Contactați instructorul pentru alocarea la o grupă.</p>
+            <h3 className="text-lg font-bold text-white mb-3">Viză Medicală Anuală</h3>
+            <div className={`p-4 rounded-lg border text-center ${vizaInfo.isValid ? 'bg-green-900/30 border-green-700/50' : 'bg-red-900/30 border-red-700/50'}`}>
+                <div className="flex justify-center items-center gap-2">
+                    {!vizaInfo.isValid && <ExclamationTriangleIcon className="w-6 h-6 text-red-300"/>}
+                    <p className={`text-xl font-black ${vizaInfo.isValid ? 'text-green-300' : 'text-red-300'}`}>
+                        {vizaInfo.isValid ? 'VALIDĂ' : 'EXPIRATĂ / NEÎNREGISTRATĂ'}
+                    </p>
+                </div>
+                <p className="text-sm text-slate-400 mt-1">
+                    {vizaInfo.isValid ? `Achitată la ${vizaInfo.paymentDate} pentru sezonul ${vizaInfo.season}.` : `Este necesară taxa anuală pentru sezonul ${vizaInfo.season}.`}
+                </p>
+            </div>
+        </Card>
+    );
+};
+
+// --- Componenta Istoric Grade ---
+const IstoricGradeCard: React.FC<{ 
+    participari: InscriereExamen[];
+    examene: SesiuneExamen[];
+    grade: Grad[];
+    istoricGrade: IstoricGrade[];
+    sportivId: string;
+}> = ({ participari, examene, grade, istoricGrade, sportivId }) => {
+    
+    const gradeHistory = useMemo(() => {
+        const examGrades = participari
+            .filter(p => p.sportiv_id === sportivId && p.rezultat === 'Admis')
+            .map(p => {
+                const examen = examene.find(e => e.id === p.sesiune_id);
+                const grad = grade.find(g => g.id === p.grad_vizat_id);
+                return { date: examen?.data, gradNume: grad?.nume, source: 'Examen' };
+            });
+
+        const manualGrades = istoricGrade
+            .filter(hg => hg.sportiv_id === sportivId)
+            .map(hg => {
+                const grad = grade.find(g => g.id === hg.grad_id);
+                return { date: hg.data_obtinere, gradNume: grad?.nume, source: hg.sesiune_examen_id ? 'Examen (Corecție)' : 'Manual' };
+            });
+
+        return [...examGrades, ...manualGrades]
+            .filter((g): g is { date: string; gradNume: string; source: string } => !!(g.date && g.gradNume))
+            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    }, [participari, examene, grade, istoricGrade, sportivId]);
+
+    return (
+        <Card>
+            <h3 className="text-lg font-bold text-white mb-2">Istoric Grade</h3>
+            <div className="max-h-48 overflow-y-auto pr-2">
+                 <table className="w-full text-left text-sm">
+                    <thead className="text-slate-400 text-xs uppercase sticky top-0 bg-[var(--bg-card)]">
+                        <tr>
+                            <th className="py-2">Grad</th>
+                            <th className="py-2 text-right">Data Obținerii</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-700">
+                        {gradeHistory.map((item, index) => (
+                            <tr key={index}>
+                                <td className="py-2 font-semibold">{item.gradNume}</td>
+                                <td className="py-2 text-right">{new Date(item.date).toLocaleDateString('ro-RO')}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+                {gradeHistory.length === 0 && <p className="text-sm text-slate-400 italic text-center py-4">Niciun grad obținut.</p>}
+            </div>
+        </Card>
+    );
+};
+
+// --- Componenta Program Antrenament ---
+const ProgramAntrenament: React.FC<{ grupaId: string | null; grupe: Grupa[]; clubId: string | null }> = ({ grupaId, grupe, clubId }) => {
+    const zileSaptamanaOrdonate: Record<ProgramItem['ziua'], number> = { 'Luni': 1, 'Marți': 2, 'Miercuri': 3, 'Joi': 4, 'Vineri': 5, 'Sâmbătă': 6, 'Duminică': 7 };
+    
+    const grupeDeAfisat = useMemo(() => {
+        const sortedGroups = [...grupe].sort((a,b) => a.denumire.localeCompare(b.denumire));
+        if (grupaId) {
+            return sortedGroups.filter(g => g.id === grupaId);
+        }
+        if (clubId) {
+            return sortedGroups.filter(g => g.club_id === clubId);
+        }
+        return [];
+    }, [grupaId, grupe, clubId]);
+
+    return (
+        <Card>
+            <h3 className="text-lg font-bold text-white mb-2 animate-fade-in-down">Program Antrenament</h3>
+            {grupeDeAfisat.length === 0 ? (
+                <p className="text-sm text-slate-400 italic">Niciun program de antrenament disponibil.</p>
             ) : (
-                 <>
-                    <div className="text-sm text-slate-400 mb-4">{grupaCurenta.denumire} - Sala: {grupaCurenta.sala || 'Nespecificată'}</div>
-                    {programSortat.length > 0 ? (
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left text-sm">
-                                <thead className="text-slate-400 text-xs uppercase">
-                                    <tr>
-                                        <th className="py-2">Ziua</th>
-                                        <th className="py-2">Ora Start</th>
-                                        <th className="py-2">Ora Sfârșit</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-700">
-                                    {programSortat.map((item, index) => (
-                                        <tr key={index}>
-                                            <td className="py-2 font-semibold">{item.ziua}</td>
-                                            <td className="py-2">{item.ora_start}</td>
-                                            <td className="py-2">{item.ora_sfarsit}</td>
+                 grupeDeAfisat.map((grupa, index) => {
+                    const programSortat = (grupa.program || [])
+                        .filter(p => p.is_activ !== false)
+                        .sort((a, b) => {
+                            const ziCompare = zileSaptamanaOrdonate[a.ziua] - zileSaptamanaOrdonate[b.ziua];
+                            if (ziCompare !== 0) return ziCompare;
+                            return a.ora_start.localeCompare(b.ora_start);
+                        });
+                    
+                    if (programSortat.length === 0) return null;
+
+                    return (
+                        <div key={grupa.id} className={index > 0 ? 'mt-4 pt-4 border-t border-slate-700' : ''}>
+                            <div className="text-sm text-slate-400 mb-3 font-bold">{grupa.denumire} - Sala: {grupa.sala || 'Nespecificată'}</div>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left text-sm">
+                                    <thead className="text-slate-400 text-xs uppercase">
+                                        <tr>
+                                            <th className="py-2">Ziua</th>
+                                            <th className="py-2">Ora Start</th>
+                                            <th className="py-2">Ora Sfârșit</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-700">
+                                        {programSortat.map((item, pIndex) => (
+                                            <tr key={pIndex}>
+                                                <td className="py-2 font-semibold">{item.ziua}</td>
+                                                <td className="py-2">{item.ora_start}</td>
+                                                <td className="py-2">{item.ora_sfarsit}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
-                    ) : (
-                        <p className="text-sm text-slate-400 italic">Grupa curentă nu are un program definit.</p>
-                    )}
-                </>
+                    );
+                 })
             )}
         </Card>
     );
@@ -150,6 +257,7 @@ interface SportivDashboardProps {
   participari: InscriereExamen[];
   examene: SesiuneExamen[];
   grade: Grad[];
+  istoricGrade: IstoricGrade[];
   grupe: Grupa[];
   plati: Plata[];
   onNavigate: (view: View) => void;
@@ -164,7 +272,7 @@ interface SportivDashboardProps {
   isSwitchingRole: boolean;
 }
 
-export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser, viewedUser, participari, examene, grade, grupe, plati, onNavigate, antrenamente, anunturi, setAnunturi, sportivi, permissions, canSwitchRoles, activeRole, onSwitchRole, isSwitchingRole }) => {
+export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser, viewedUser, participari, examene, grade, istoricGrade, grupe, plati, onNavigate, antrenamente, anunturi, setAnunturi, sportivi, permissions, canSwitchRoles, activeRole, onSwitchRole, isSwitchingRole }) => {
     
     const { showSuccess, showError } = useError();
     const isViewingOwnProfile = currentUser.id === viewedUser.id;
@@ -304,7 +412,9 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                      <AttendanceTracker currentUser={currentUser} antrenamente={antrenamente} onNavigate={onNavigate} />
                 </div>
                 <div className="lg:col-span-2 space-y-6">
-                    <ProgramAntrenament grupaId={viewedUser.grupa_id} grupe={grupe} />
+                    <ProgramAntrenament grupaId={viewedUser.grupa_id} grupe={grupe} clubId={viewedUser.club_id} />
+                    <VizaMedicalaCard plati={plati} sportivId={viewedUser.id} />
+                    <IstoricGradeCard participari={participari} examene={examene} grade={grade} istoricGrade={istoricGrade} sportivId={viewedUser.id} />
                 </div>
             </div>
 

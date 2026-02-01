@@ -138,7 +138,7 @@ function App() {
               localStorage.removeItem('phi-hau-redirect-after-role-switch');
           }
           // The page will reload, so no need to reset state here
-          setTimeout(() => window.location.reload(), 1500);
+          setTimeout(() => window.location.reload(), 1200);
       }
   }, [currentUser, showError]);
 
@@ -545,6 +545,7 @@ function App() {
                 participari={filteredData.inscrieriExamene}
                 examene={sesiuniExamene}
                 grade={grade}
+                istoricGrade={filteredData.istoricGrade}
                 grupe={filteredData.grupe}
                 plati={filteredData.plati}
                 onNavigate={setActiveView}

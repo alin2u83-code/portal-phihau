@@ -43,11 +43,13 @@ const ProgressRing: React.FC<ProgressRingProps> = ({ percentage, totalAttended }
                     className="transition-all duration-1000 ease-in-out"
                 />
             </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                 <span className="text-6xl font-black text-white tracking-tighter" style={{ textShadow: '0 0 10px rgba(255,255,255,0.3)' }}>
-                    {totalAttended}
-                </span>
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Prezențe</span>
+            <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-32 h-32 rounded-full bg-lime-400 flex flex-col items-center justify-center shadow-[0_0_20px_5px_rgba(192,250,50,0.7)]">
+                    <span className="text-5xl font-black text-black tracking-tighter">
+                        {totalAttended}
+                    </span>
+                    <span className="text-[10px] font-bold text-slate-900 uppercase tracking-widest -mt-1">Prezențe</span>
+                </div>
             </div>
         </div>
     );
@@ -84,7 +86,7 @@ export const AttendanceTracker: React.FC<AttendanceTrackerProps> = ({ currentUse
             <h3 className="text-xl font-bold text-white mb-4">Oglinda Perseverenței</h3>
             <ProgressRing percentage={attendancePercentage} totalAttended={totalAttended} />
             <p className="mt-4 text-lg text-center font-bold text-slate-300">
-                Frecvență de <span className="text-green-400">{attendancePercentage}%</span> în ultimele 60 de zile.
+                Frecvență de <span className="text-lime-400">{attendancePercentage}%</span> în ultimele 60 de zile.
             </p>
             <div className="mt-6 pt-4 border-t border-green-400/20 w-full">
                 <Button onClick={() => onNavigate('istoric-prezenta')} variant="secondary" className="w-full">

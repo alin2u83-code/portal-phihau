@@ -11,24 +11,44 @@ const getGrad = (gradId: string | null, allGrades: Grad[]) => gradId ? allGrades
 
 // --- Badge pentru Grad ---
 const getGradStyle = (gradName: string): string => {
+    if (!gradName) return 'bg-slate-600 text-white';
     const name = gradName.toLowerCase();
-    if (name.includes('dang')) {
-        if (name.includes('5')) return 'bg-black text-white border-2 border-yellow-400';
-        if (name.includes('6') || name.includes('7')) return 'bg-white text-red-600 border-2 border-red-600';
-        return 'bg-black text-white border-2 border-red-600';
+    
+    if (name.includes('6 dang') || name.includes('7 dang') || name.includes('8 dang')) {
+        return 'bg-white text-red-600 border-2 border-red-600';
     }
-    if (name.includes('neagră')) return 'bg-black text-white';
-    if (name.includes('violet')) return 'bg-violet-600 text-white';
-    if (name.includes('roșu')) return 'bg-red-600 text-white';
-    if (name.includes('albastru')) return 'bg-white text-blue-600 border border-blue-600';
-    if (name.includes('galben')) return 'bg-yellow-400 text-black';
-    return 'bg-slate-600 text-white'; // Default
+    if (name.includes('5 dang')) {
+        return 'bg-black text-yellow-400 border-2 border-yellow-400';
+    }
+    if (name.includes('dang')) { // This will catch 1-4 Dang
+        return 'bg-black text-red-600 border-2 border-red-600';
+    }
+    if (name.includes('neagră')) {
+        return 'bg-black text-white';
+    }
+    if (name.includes('violet') || name.includes('cap alb')) {
+        return 'bg-violet-600 text-white';
+    }
+    if (name.includes('roșu')) {
+        return 'bg-red-600 text-white';
+    }
+    if (name.includes('albastru')) {
+        return 'bg-white text-blue-600 border border-blue-600';
+    }
+    if (name.includes('galben')) {
+        return 'bg-yellow-400 text-black';
+    }
+    
+    return 'bg-slate-600 text-white';
 };
 
-const GradBadge: React.FC<{ grad: Grad | null | undefined }> = ({ grad }) => {
+const GradBadge: React.FC<{ grad: Grad | null | undefined; isLarge?: boolean }> = ({ grad, isLarge }) => {
     if (!grad) return null;
+    
+    const sizeClasses = isLarge ? 'px-6 py-2 text-2xl font-black' : 'px-3 py-1 text-sm font-bold';
+
     return (
-        <span className={`px-3 py-1 text-sm font-bold rounded-full whitespace-nowrap ${getGradStyle(grad.nume)}`}>
+        <span className={`inline-block rounded-full whitespace-nowrap ${sizeClasses} ${getGradStyle(grad.nume)}`}>
             {grad.nume}
         </span>
     );
@@ -366,14 +386,9 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
         <div className="space-y-6">
             <header className="text-center md:text-left border-b border-slate-700/50 pb-4">
                 <h1 className="text-3xl font-bold text-white">{viewedUser.nume} {viewedUser.prenume}</h1>
-                {currentGrad && (
-                    <p className={`text-4xl font-black mt-2 ${
-                        currentGrad.nume.includes('C.V.') || currentGrad.nume.includes('Cap Alb') ? 'text-violet-500' : 'text-white'
-                    }`}>
-                        {currentGrad.nume}
-                    </p>
-                )}
-                <p className="text-lg text-slate-300 mt-1">{grupaCurenta}</p>
+                <div className="mt-2">
+                   <GradBadge grad={currentGrad || {nume: 'Începător', ordine: 0} as Grad} isLarge />
+                </div>
                 
                 {isViewingOwnProfile && (
                     <div className="mt-4 max-w-md mx-auto md:mx-0">
@@ -396,86 +411,14 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                 </div>
             )}
             
-            {isViewingOwnProfile && (
-                 <Card className="animate-fade-in-down" style={{ animationDelay: '100ms' }}>
-                    <h3 className="text-lg font-bold text-white mb-4">🗓️ Program Următor</h3>
-                    {upcomingTrainings.length > 0 ? (
-                        <div className="space-y-3">
-                            {upcomingTrainings.map(training => {
-                                const trainingDate = new Date(training.data + 'T00:00:00');
-                                return (
-                                    <div key={training.id} className="flex items-center p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
-                                        <div className="flex flex-col items-center justify-center w-16 h-16 rounded-md bg-slate-700 text-brand-secondary flex-shrink-0">
-                                            <span className="text-2xl font-black">{trainingDate.toLocaleDateString('ro-RO', { day: '2-digit' })}</span>
-                                            <span className="text-xs font-bold uppercase">{trainingDate.toLocaleDateString('ro-RO', { month: 'short' })}</span>
-                                        </div>
-                                        <div className="flex-grow ml-4">
-                                            <p className="font-bold text-white">{trainingDate.toLocaleDateString('ro-RO', { weekday: 'long' })}</p>
-                                            <p className="text-sm text-slate-400">Ora: {training.ora_start}, Grupa: {training.grupe?.denumire || 'Vacanță'}</p>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    ) : (
-                        <p className="text-slate-400 italic text-center py-4">Niciun antrenament programat în următoarele zile.</p>
-                    )}
-                </Card>
-            )}
-            
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-1">
                      <AttendanceTracker currentUser={currentUser} antrenamente={antrenamente} onNavigate={onNavigate} />
                 </div>
                 <div className="lg:col-span-2 space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                         <Card className="flex flex-col items-center text-center">
-                            <h3 className="text-base font-semibold uppercase tracking-wider text-slate-400">Progres Tehnic</h3>
-                            <div className="my-4 flex-grow flex flex-col justify-center">
-                                <p className="text-sm text-slate-500">Grad Actual</p>
-                                <p className="text-3xl font-bold text-brand-secondary">{currentGrad?.nume || 'Începător'}</p>
-                            </div>
-                            <Button onClick={() => onNavigate('istoric-examene')} variant="secondary" className="w-full mt-2">
-                                📜 Istoric Examene
-                            </Button>
-                        </Card>
-
-                        <Card className="flex flex-col items-center text-center">
-                             <h3 className="text-base font-semibold uppercase tracking-wider text-slate-400">Situație Financiară</h3>
-                             <div className="my-4 flex-grow flex flex-col justify-center">
-                                <p className="text-sm text-slate-500">Sumă Restantă</p>
-                                <p className={`text-3xl font-bold ${sumaRestanta > 0 ? 'text-red-400' : 'text-green-400'}`}>
-                                    {sumaRestanta.toFixed(2)} RON
-                                </p>
-                             </div>
-                             <Button onClick={() => onNavigate('istoric-plati')} variant="secondary" className="w-full mt-2">
-                                💳 Istoric Plăți
-                            </Button>
-                        </Card>
-                    </div>
                     <ProgramAntrenament grupaId={viewedUser.grupa_id} grupe={grupe} />
                 </div>
             </div>
-
-            <Card>
-                <h3 className="text-lg font-bold text-white mb-4">Progres Tehnic (Grade Obținute)</h3>
-                {allGradesWithDates.length > 0 ? (
-                    <div className="space-y-2 max-h-72 overflow-y-auto pr-2">
-                        {allGradesWithDates.map(g => (
-                            <div key={g.id} className="flex justify-between items-center bg-slate-800/50 p-2 rounded-md">
-                                <p className={`font-semibold ${g.data_obtinere ? 'text-white' : 'text-slate-500'}`}>{g.nume}</p>
-                                {g.data_obtinere ? (
-                                    <p className="text-sm text-brand-secondary font-bold">{new Date(g.data_obtinere + 'T00:00:00').toLocaleDateString('ro-RO')}</p>
-                                ) : (
-                                    <p className="text-sm text-slate-600 italic">--</p>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <p className="text-slate-400 italic">Niciun grad obținut încă.</p>
-                )}
-            </Card>
 
             {canSwitchRoles && (
                 <Card className="animate-fade-in-down" style={{ animationDelay: '300ms' }}>

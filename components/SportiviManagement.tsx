@@ -23,18 +23,35 @@ const getAge = (dateString: string | null | undefined): number => {
 };
 
 const getGradStyle = (gradName: string): string => {
+    if (!gradName) return 'bg-slate-600 text-white';
     const name = gradName.toLowerCase();
-    if (name.includes('dang')) {
-        if (name.includes('5')) return 'bg-black text-white border-2 border-yellow-400';
-        if (name.includes('6') || name.includes('7')) return 'bg-white text-red-600 border-2 border-red-600';
-        return 'bg-black text-white border-2 border-red-600';
+    
+    if (name.includes('6 dang') || name.includes('7 dang') || name.includes('8 dang')) {
+        return 'bg-white text-red-600 border-2 border-red-600';
     }
-    if (name.includes('neagră')) return 'bg-black text-white';
-    if (name.includes('violet')) return 'bg-violet-600 text-white';
-    if (name.includes('roșu')) return 'bg-red-600 text-white';
-    if (name.includes('albastru')) return 'bg-white text-blue-600 border border-blue-600';
-    if (name.includes('galben')) return 'bg-yellow-400 text-black';
-    return 'bg-slate-600 text-white'; // Default
+    if (name.includes('5 dang')) {
+        return 'bg-black text-yellow-400 border-2 border-yellow-400';
+    }
+    if (name.includes('dang')) { // This will catch 1-4 Dang
+        return 'bg-black text-red-600 border-2 border-red-600';
+    }
+    if (name.includes('neagră')) {
+        return 'bg-black text-white';
+    }
+    if (name.includes('violet') || name.includes('cap alb')) {
+        return 'bg-violet-600 text-white';
+    }
+    if (name.includes('roșu')) {
+        return 'bg-red-600 text-white';
+    }
+    if (name.includes('albastru')) {
+        return 'bg-white text-blue-600 border border-blue-600';
+    }
+    if (name.includes('galben')) {
+        return 'bg-yellow-400 text-black';
+    }
+    
+    return 'bg-slate-600 text-white';
 };
 
 const GradBadge: React.FC<{ grad: Grad | null | undefined }> = ({ grad }) => {
@@ -176,6 +193,32 @@ const DeactivationModal: React.FC<{
             <div className="text-sm text-slate-300 mb-6">{content}</div>
             <div className="flex justify-end gap-2">{actions}</div>
         </Modal>
+    );
+};
+
+const GradLegend: React.FC = () => {
+    const mockGrades: { name: string, description: string }[] = [
+        { name: 'Cap Alb', description: 'Violet / Cap Alb' },
+        { name: '1 Cap Albastru', description: 'Cap Albastru' },
+        { name: '1 Cap Rosu', description: 'Cap Roșu' },
+        { name: 'Centura Neagra', description: 'Centura Neagră' },
+        { name: '1 Dang', description: '1-4 Dang' },
+        { name: '5 Dang', description: '5 Dang' },
+        { name: '6 Dang', description: '6-8 Dang' },
+    ];
+
+    return (
+        <Card className="mt-8">
+            <h3 className="text-xl font-bold text-white mb-4">Legendă Culori Grade</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4">
+                {mockGrades.map(g => (
+                    <div key={g.name} className="flex flex-col items-center gap-2 text-center">
+                        <GradBadge grad={{ nume: g.name, ordine: 0 } as Grad} />
+                        <span className="text-xs text-slate-400">{g.description}</span>
+                    </div>
+                ))}
+            </div>
+        </Card>
     );
 };
 
@@ -513,6 +556,8 @@ export const SportiviManagement: React.FC<{
                     rowClassName={(sportiv) => !sportiv.user_id ? 'bg-red-900/20 hover:bg-red-900/40 !border-l-2 !border-red-500' : ''}
                 />
             </div>
+
+            <GradLegend />
 
             {isFormModalOpen && (
                  <SportivFormModal 

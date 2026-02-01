@@ -119,37 +119,38 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
     label: string;
     error?: string;
 }
-  
-export const Input: React.FC<InputProps> = ({ label, id, error, ...props }) => {
+
+export const Input = React.forwardRef<HTMLInputElement, InputProps>(({ label, id, error, ...props }, ref) => {
     const errorClasses = error ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-[var(--border-color)] focus:ring-[var(--accent)] focus:border-[var(--accent)]';
     const themeClasses = 'bg-[var(--bg-input)] text-[var(--text-primary)] placeholder-[var(--text-secondary)]';
 
     return (
         <div className="w-full">
             {label && <label htmlFor={id} className={`block text-[11px] uppercase font-bold text-[var(--text-secondary)] mb-1 ml-1`}>{label}</label>}
-            <input 
-                id={id} 
-                {...props} 
-                className={`w-full border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 transition-all ${errorClasses} ${themeClasses} ${props.className}`} 
+            <input
+                id={id}
+                ref={ref}
+                {...props}
+                className={`w-full border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 transition-all ${errorClasses} ${themeClasses} ${props.className}`}
             />
             {error && <p className="text-red-400 text-xs mt-1 ml-1">{error}</p>}
         </div>
     );
-};
+});
 
 
 interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
     label: string;
 }
 
-export const Select: React.FC<SelectProps> = ({ label, id, children, ...props }) => (
+export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(({ label, id, children, ...props }, ref) => (
     <div className="w-full">
         {label && <label htmlFor={id} className="block text-[11px] uppercase font-bold text-[var(--text-secondary)] mb-1 ml-1">{label}</label>}
-        <select id={id} {...props} className={`w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded px-2 py-1 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)] focus:border-[var(--accent)] transition-all appearance-none ${props.className}`}>
+        <select id={id} ref={ref} {...props} className={`w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded px-2 py-1 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)] focus:border-[var(--accent)] transition-all appearance-none ${props.className}`}>
             {children}
         </select>
     </div>
-);
+));
 
 export const FormSection: React.FC<{ title: string, children: React.ReactNode }> = ({ title, children }) => (
     <div>

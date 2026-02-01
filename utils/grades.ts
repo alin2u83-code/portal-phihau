@@ -81,7 +81,6 @@ export const GradBadge: React.FC<{ grad: Grad | null | undefined; isLarge?: bool
         ? 'px-6 py-2 text-3xl font-black' 
         : 'px-3 py-1 text-sm font-bold';
 
-    // FIX: Replaced JSX with React.createElement to fix syntax errors in a .ts file.
     return React.createElement(
         'span',
         {

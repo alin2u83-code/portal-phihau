@@ -193,8 +193,8 @@ const AttendanceDetail: React.FC<AttendanceDetailProps> = ({ antrenament, onBack
             }
             setAntrenamente(prev => prev.map(a => a.id === antrenament.id ? { ...a, prezenta: Array.from(newPresentIds).map(id => ({ sportiv_id: id, status: 'prezent' })) } : a));
         } catch (err: unknown) {
-            // FIX: Argument of type 'unknown' is not assignable to parameter of type 'string'. Cast the error and pass the message.
-            showError("Eroare la actualizare", (err as Error)?.message || String(err));
+            // FIX: Pass the raw error object to showError for proper handling.
+            showError("Eroare la actualizare", err);
             setPresentIds(presentIds); // Revert UI
         } finally {
             setUpdatingIds(prev => { const next = new Set(prev); next.delete(sportivId); return next; });
@@ -348,7 +348,6 @@ export const PrezentaManagement: React.FC<{
             setAntrenamente(prev => prev.filter(p => p.id !== id));
             showSuccess("Succes", "Antrenamentul a fost șters.");
         } catch (err: unknown) {
-            // FIX: In `confirmDeleteAntrenament`, cast the `unknown` error type to `Error` and access its `message` property before passing it to `showError` to fix the TypeScript error.
             showError("Eroare la ștergere", (err as Error)?.message || String(err));
         } finally {
             setIsDeleting(false);

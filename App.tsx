@@ -5,7 +5,8 @@ import { SportiviManagement } from './components/SportiviManagement';
 import { UserProfile } from './components/UserProfile';
 import { GestiuneExamene } from './components/Examene';
 import { GradeManagement } from './components/Grade';
-import { PrezentaManagement } from './components/Prezenta';
+// FIX: Corrected import path to resolve module not found error.
+import { PrezentaManagement } from './components/PrezentaManagement';
 import { GrupeManagement } from './components/Grupe';
 import { RaportPrezenta } from './components/RaportPrezenta';
 import { StagiiCompetitiiManagement } from './components/StagiiCompetitii';

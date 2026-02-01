@@ -13,6 +13,8 @@ interface State {
   error?: Error;
 }
 
+// FIX: ErrorBoundary must be a class component to use getDerivedStateFromError and componentDidCatch lifecycle methods.
+// The errors regarding missing `setState` and `props` indicate the component was likely a functional component, which cannot function as an error boundary.
 class ErrorBoundary extends React.Component<Props, State> {
   public state: State = {
     hasError: false,
@@ -27,7 +29,6 @@ class ErrorBoundary extends React.Component<Props, State> {
     console.error("Uncaught error:", error, errorInfo);
   }
 
-  // FIX: Converted to an arrow function to correctly bind `this` and resolve context errors.
   public handleRedirect = () => {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {

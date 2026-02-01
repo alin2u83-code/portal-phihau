@@ -15,6 +15,8 @@
 
 
 
+
+
 export interface Rol {
   id: string;
   nume: 'Sportiv' | 'Instructor' | 'Admin' | 'SUPER_ADMIN_FEDERATIE' | 'Admin Club';
@@ -152,7 +154,7 @@ export interface Grupa {
     id: string;
     denumire: string;
     program: ProgramItem[];
-    sala: string;
+    sala: string | null;
     club_id?: string | null;
 }
 

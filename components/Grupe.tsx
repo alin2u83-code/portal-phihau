@@ -97,7 +97,7 @@ const GrupaFormModal: React.FC<{ isOpen: boolean; onClose: () => void; onSave: (
             {clubs.map(c => <option key={c.id} value={c.id}>{c.nume}</option>)}
         </Select>
     )}
-    <Input label="Sala" name="sala" value={formState.sala} onChange={handleChange} /> <ProgramEditor program={program} setProgram={setProgram} /> <div className="flex justify-end pt-4 space-x-2"><Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button><Button variant="success" type="submit" disabled={loading}>{loading ? 'Se salvează...' : 'Salvează'}</Button></div> </form> </Modal> );
+    <Input label="Sala" name="sala" value={formState.sala || ''} onChange={handleChange} /> <ProgramEditor program={program} setProgram={setProgram} /> <div className="flex justify-end pt-4 space-x-2"><Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button><Button variant="success" type="submit" disabled={loading}>{loading ? 'Se salvează...' : 'Salvează'}</Button></div> </form> </Modal> );
 };
 
 
@@ -130,49 +130,54 @@ export const GrupeManagement: React.FC<GrupeManagementProps> = ({ grupe, setGrup
   }, [grupe, currentUser]);
 
   const handleSave = async (grupaData: Grupa) => {
-      if (!supabase) return;
-      
-      const { program, ...grupaInfo } = grupaData;
-      const programToSync = program.map(({ id, ...rest }) => ({
+    if (!supabase) return;
+
+    // 1. Separă datele pentru fiecare tabel
+    const { program, ...grupaInfo } = grupaData;
+    const { id: grupaId, ...grupaDbPayload } = grupaInfo;
+    grupaDbPayload.sala = grupaDbPayload.sala || null; // Convertește string gol în null pentru BD
+
+    const programToSync = program.map(({ id, ...rest }) => ({
         ...rest,
-        id: id.startsWith('new-') ? undefined : id, // Ensure new items have no ID for insert
-      }));
+        id: id.startsWith('new-') ? undefined : id,
+    }));
 
-      if (grupaToEdit) {
-          const { data, error } = await supabase.from('grupe').update(grupaInfo).eq('id', grupaToEdit.id).select().single();
-          if (error) { showError("Eroare la actualizarea grupei", error); return; }
+    if (grupaToEdit) { // --- CALEA DE UPDATE ---
+        // Actualizează tabelul 'grupe'
+        const { data: updatedGrupa, error: grupaError } = await supabase.from('grupe').update(grupaDbPayload).eq('id', grupaToEdit.id).select().single();
+        if (grupaError) { showError("Eroare la actualizarea grupei", grupaError); return; }
 
-          const { error: deleteError } = await supabase.from('program_antrenamente').delete().eq('grupa_id', grupaToEdit.id);
-          if (deleteError) { showError("Eroare la sincronizarea programului (1/2)", deleteError); return; }
+        // Sincronizează 'program_antrenamente' (Delete then Insert)
+        const { error: deleteError } = await supabase.from('program_antrenamente').delete().eq('grupa_id', grupaToEdit.id);
+        if (deleteError) { showError("Eroare la sincronizarea programului (1/2)", deleteError); return; }
 
-          const programToInsert = programToSync.map(p => ({ ...p, grupa_id: grupaToEdit.id }));
-          if (programToInsert.length > 0) {
+        if (programToSync.length > 0) {
+            const programToInsert = programToSync.map(p => ({ ...p, grupa_id: grupaToEdit.id }));
             const { error: insertError } = await supabase.from('program_antrenamente').insert(programToInsert);
             if (insertError) { showError("Eroare la sincronizarea programului (2/2)", insertError); return; }
-          }
-          // Fetch the newly inserted program items to get their real IDs
-          const { data: newProgramItems, error: fetchProgramError } = await supabase.from('program_antrenamente').select('*').eq('grupa_id', grupaToEdit.id);
-          if (fetchProgramError) { console.error("Could not fetch new program items"); }
+        }
 
+        const { data: newProgramItems } = await supabase.from('program_antrenamente').select('*').eq('grupa_id', grupaToEdit.id);
+        if (updatedGrupa) setGrupe(prev => prev.map(g => g.id === grupaToEdit.id ? { ...updatedGrupa, program: newProgramItems || [] } : g));
 
-          if (data) setGrupe(prev => prev.map(g => g.id === grupaToEdit.id ? { ...data, program: newProgramItems || [] } : g));
-      } else {
-          const { id, ...newGrupaData } = grupaInfo;
-          const { data, error } = await supabase.from('grupe').insert(newGrupaData).select().single();
-          if (error) { showError("Eroare la adăugarea grupei", error); return; }
+    } else { // --- CALEA DE CREARE ---
+        // Inserează în tabelul 'grupe'
+        const { data: newGrupa, error: grupaError } = await supabase.from('grupe').insert(grupaDbPayload).select().single();
+        if (grupaError) { showError("Eroare la adăugarea grupei", grupaError); return; }
 
-          if (data) {
-              const programToInsert = programToSync.map(p => ({ ...p, grupa_id: data.id }));
-              if (programToInsert.length > 0) {
+        if (newGrupa) {
+            if (programToSync.length > 0) {
+                const programToInsert = programToSync.map(p => ({ ...p, grupa_id: newGrupa.id }));
                 const { data: newProgramItems, error: insertError } = await supabase.from('program_antrenamente').insert(programToInsert).select();
                 if (insertError) { showError("Grupă creată, dar eroare la salvarea programului", insertError); }
-                setGrupe(prev => [...prev, { ...data, program: newProgramItems || [] }]);
-              } else {
-                 setGrupe(prev => [...prev, { ...data, program: [] }]);
-              }
-          }
-      }
-  };
+                setGrupe(prev => [...prev, { ...newGrupa, program: newProgramItems || [] }]);
+            } else {
+                setGrupe(prev => [...prev, { ...newGrupa, program: [] }]);
+            }
+        }
+    }
+};
+
   
   const handleOpenAdd = () => { setGrupaToEdit(null); setIsModalOpen(true); };
   const handleOpenEdit = (grupa: Grupa) => { setGrupaToEdit(grupa); setIsModalOpen(true); };

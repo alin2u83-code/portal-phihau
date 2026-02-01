@@ -47,8 +47,6 @@ const GradBadge: React.FC<{ grad: Grad | null | undefined }> = ({ grad }) => {
 };
 
 const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
-    // FIX: Corrected key from 'Super Admin' to 'SUPER_ADMIN_FEDERATIE' to match the 'Rol' type definition.
-    // FIX: Completed the color mapping to include all roles.
     const colorClasses: Record<Rol['nume'], string> = { 
         Admin: 'bg-red-600 text-white', 
         'SUPER_ADMIN_FEDERATIE': 'bg-red-800 text-white', 
@@ -57,6 +55,126 @@ const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
         Sportiv: 'bg-slate-600 text-slate-200' 
     };
     return <span className={`px-2 py-1 text-[10px] font-semibold rounded-full ${colorClasses[role.nume] || 'bg-gray-500 text-white'}`}>{role.nume}</span>;
+};
+
+const DeactivationModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    sportiv: Sportiv | null;
+    sportivi: Sportiv[];
+    plati: Plata[];
+    tipuriAbonament: TipAbonament[];
+    onConfirm: (action: 'none' | 'cancel' | 'update', invoiceToUpdate?: Plata, newPrice?: number) => void;
+}> = ({ isOpen, onClose, sportiv, sportivi, plati, tipuriAbonament, onConfirm }) => {
+    const [loading, setLoading] = useState(false);
+
+    const deactivationInfo = useMemo(() => {
+        if (!sportiv) return null;
+
+        const today = new Date();
+        const currentMonth = today.getMonth();
+        const currentYear = today.getFullYear();
+
+        const findRelevantInvoice = (entityId: string, isFamily: boolean) => {
+            return plati.find(p => 
+                (isFamily ? p.familie_id === entityId : p.sportiv_id === entityId) &&
+                p.tip === 'Abonament' &&
+                (p.status === 'Neachitat' || p.status === 'Achitat Parțial') &&
+                new Date(p.data).getMonth() === currentMonth &&
+                new Date(p.data).getFullYear() === currentYear
+            );
+        };
+
+        if (sportiv.familie_id) {
+            const familyInvoice = findRelevantInvoice(sportiv.familie_id, true);
+            if (!familyInvoice) return { scenario: 'no_invoice' as const };
+            
+            const familyMembers = sportivi.filter(s => s.familie_id === sportiv.familie_id && s.status === 'Activ');
+            const newMemberCount = familyMembers.length - 1;
+
+            if (newMemberCount <= 0) {
+                return { scenario: 'cancel_family' as const, invoice: familyInvoice };
+            }
+
+            let newSubscription = tipuriAbonament.find(t => t.numar_membri === newMemberCount);
+            if (!newSubscription) {
+                 newSubscription = tipuriAbonament.find(t => t.numar_membri === 1);
+            }
+            if (newSubscription && newSubscription.pret !== familyInvoice.suma) {
+                return { scenario: 'update_family' as const, invoice: familyInvoice, newPrice: newSubscription.pret, newCount: newMemberCount };
+            } else {
+                return { scenario: 'no_invoice' as const }; // Price is the same, no action needed
+            }
+        } else {
+            const individualInvoice = findRelevantInvoice(sportiv.id, false);
+            if (individualInvoice) {
+                return { scenario: 'cancel_individual' as const, invoice: individualInvoice };
+            }
+        }
+        return { scenario: 'no_invoice' as const };
+    }, [sportiv, plati, sportivi, tipuriAbonament]);
+
+    const handleConfirm = async (action: 'none' | 'cancel' | 'update') => {
+        setLoading(true);
+        await onConfirm(action, deactivationInfo?.invoice, deactivationInfo?.scenario === 'update_family' ? deactivationInfo.newPrice : undefined);
+        setLoading(false);
+    };
+    
+    if (!isOpen || !sportiv || !deactivationInfo) return null;
+    
+    let title = "Confirmare Dezactivare";
+    let content = <p>Sunteți sigur că doriți să dezactivați sportivul <strong>{sportiv.nume} {sportiv.prenume}</strong>?</p>;
+    let actions = (
+        <>
+            <Button variant="secondary" onClick={onClose}>Anulează</Button>
+            <Button variant="warning" onClick={() => handleConfirm('none')} isLoading={loading}>Dezactivează</Button>
+        </>
+    );
+
+    switch(deactivationInfo.scenario) {
+        case 'cancel_individual':
+            title = "Abonament Individual Neachitat";
+            content = (
+                <div className="space-y-2">
+                    <p>Sportivul <strong>{sportiv.nume} {sportiv.prenume}</strong> are un abonament individual de <strong>{deactivationInfo.invoice?.suma} RON</strong> neachitat pentru luna curentă.</p>
+                    <p>Doriți să anulați această factură odată cu dezactivarea?</p>
+                </div>
+            );
+            actions = (
+                <>
+                    <Button variant="secondary" onClick={() => handleConfirm('none')} isLoading={loading}>Păstrează Factura</Button>
+                    <Button variant="danger" onClick={() => handleConfirm('cancel')} isLoading={loading}>Anulează Factura și Dezactivează</Button>
+                </>
+            );
+            break;
+        case 'cancel_family':
+             title = "Ultimul Membru al Familiei";
+            content = <p>Acesta este ultimul membru activ al familiei. Prin dezactivare, factura de familie de <strong>{deactivationInfo.invoice?.suma} RON</strong> va fi anulată automat.</p>;
+            actions = <Button variant="danger" onClick={() => handleConfirm('cancel')} isLoading={loading}>Anulează Factura și Dezactivează</Button>;
+            break;
+        case 'update_family':
+            title = "Abonament de Familie Neachitat";
+            content = (
+                 <div className="space-y-2">
+                    <p>Sportivul face parte dintr-o familie. Prin dezactivare, numărul de membri activi se reduce la <strong>{deactivationInfo.newCount}</strong>.</p>
+                    <p>Prețul abonamentului ar trebui ajustat de la <strong>{deactivationInfo.invoice?.suma} RON</strong> la <strong>{deactivationInfo.newPrice} RON</strong>. Doriți să actualizați factura?</p>
+                </div>
+            );
+            actions = (
+                <>
+                    <Button variant="secondary" onClick={() => handleConfirm('none')} isLoading={loading}>Păstrează Factura Actuală</Button>
+                    <Button variant="primary" onClick={() => handleConfirm('update')} isLoading={loading}>Actualizează Factura și Dezactivează</Button>
+                </>
+            );
+            break;
+    }
+
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title={title}>
+            <div className="text-sm text-slate-300 mb-6">{content}</div>
+            <div className="flex justify-end gap-2">{actions}</div>
+        </Modal>
+    );
 };
 
 
@@ -74,13 +192,14 @@ export const SportiviManagement: React.FC<{
     setAllRoles: React.Dispatch<React.SetStateAction<Rol[]>>;
     currentUser: User;
     plati: Plata[];
+    setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
     tranzactii: Tranzactie[];
     setTranzactii: React.Dispatch<React.SetStateAction<Tranzactie[]>>;
     onViewSportiv: (sportiv: Sportiv) => void;
     clubs: Club[];
     grade: Grad[];
     permissions: Permissions;
-}> = ({ onBack, sportivi, setSportivi, grupe, setGrupe, tipuriAbonament, familii, setFamilii, allRoles, setAllRoles, currentUser, plati, tranzactii, setTranzactii, onViewSportiv, clubs, grade, permissions }) => {
+}> = ({ onBack, sportivi, setSportivi, grupe, setGrupe, tipuriAbonament, familii, setFamilii, allRoles, setAllRoles, currentUser, plati, setPlati, tranzactii, setTranzactii, onViewSportiv, clubs, grade, permissions }) => {
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
     const [sportivToEdit, setSportivToEdit] = useState<Sportiv | null>(null);
     const [accountSettingsSportiv, setAccountSettingsSportiv] = useState<Sportiv | null>(null);
@@ -88,6 +207,7 @@ export const SportiviManagement: React.FC<{
     const [sportivForWallet, setSportivForWallet] = useState<Sportiv | null>(null);
     const [selectedSportivForHighlight, setSelectedSportivForHighlight] = useState<Sportiv | null>(null);
     const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
+    const [sportivToDeactivate, setSportivToDeactivate] = useState<Sportiv | null>(null);
 
     const { showError, showSuccess } = useError();
     
@@ -115,43 +235,63 @@ export const SportiviManagement: React.FC<{
     };
 
     const handleToggleStatus = useCallback(async (sportiv: Sportiv) => {
-        if (!supabase) {
-            showError("Eroare", "Clientul Supabase nu este configurat.");
-            return;
-        }
-    
         const newStatus = sportiv.status === 'Activ' ? 'Inactiv' : 'Activ';
         
-        setLoadingStates(prev => ({ ...prev, [sportiv.id]: true }));
-    
-        try {
-            const { data, error } = await supabase
-                .from('sportivi')
-                .update({ status: newStatus })
-                .eq('id', sportiv.id)
-                .select('*, cluburi(*), sportivi_roluri(roluri(id, nume))')
-                .single();
-            
-            if (error) {
-                throw error;
-            }
-            
-            if (data) {
-                const updatedSportiv = {
-                    ...data,
-                    roluri: (((data as any).sportivi_roluri?.map((sr: any) => sr.roluri)) || []).filter(Boolean),
-                };
+        if (newStatus === 'Inactiv') {
+            setSportivToDeactivate(sportiv);
+        } else { // Activating
+            setLoadingStates(prev => ({ ...prev, [sportiv.id]: true }));
+            try {
+                if (!supabase) throw new Error("Client Supabase neconfigurat.");
+                const { data, error } = await supabase.from('sportivi').update({ status: 'Activ' }).eq('id', sportiv.id).select('*, cluburi(*), sportivi_roluri(roluri(id, nume))').single();
+                if (error) throw error;
+                const updatedSportiv = { ...data, roluri: (((data as any).sportivi_roluri?.map((sr: any) => sr.roluri)) || []).filter(Boolean) };
                 delete (updatedSportiv as any).sportivi_roluri;
-                
                 setSportivi(prev => prev.map(s => s.id === sportiv.id ? updatedSportiv as Sportiv : s));
-                showSuccess("Succes!", `Statusul pentru ${sportiv.nume} ${sportiv.prenume} a fost schimbat în '${newStatus}'.`);
+                showSuccess("Succes!", `Statusul a fost schimbat în 'Activ'.`);
+            } catch(err: any) {
+                showError("Eroare la activare", err.message);
+            } finally {
+                setLoadingStates(prev => ({ ...prev, [sportiv.id]: false }));
             }
-        } catch(err: any) {
-            showError("Eroare la actualizarea statusului", err.message);
-        } finally {
-            setLoadingStates(prev => ({ ...prev, [sportiv.id]: false }));
         }
     }, [setSportivi, showError, showSuccess]);
+
+    const handleConfirmDeactivation = async (
+        action: 'none' | 'cancel' | 'update', 
+        invoiceToUpdate?: Plata, 
+        newPrice?: number
+    ) => {
+        if (!sportivToDeactivate || !supabase) return;
+        setLoadingStates(prev => ({ ...prev, [sportivToDeactivate.id]: true }));
+
+        try {
+            if (action === 'cancel' && invoiceToUpdate) {
+                const { error } = await supabase.from('plati').delete().eq('id', invoiceToUpdate.id);
+                if (error) throw new Error(`Eroare la anularea facturii: ${error.message}`);
+                setPlati(prev => prev.filter(p => p.id !== invoiceToUpdate.id));
+            } else if (action === 'update' && invoiceToUpdate && newPrice !== undefined) {
+                const { data, error } = await supabase.from('plati').update({ suma: newPrice }).eq('id', invoiceToUpdate.id).select().single();
+                if (error) throw new Error(`Eroare la actualizarea facturii: ${error.message}`);
+                setPlati(prev => prev.map(p => p.id === invoiceToUpdate.id ? data as Plata : p));
+            }
+
+            const { data, error } = await supabase.from('sportivi').update({ status: 'Inactiv' }).eq('id', sportivToDeactivate.id).select('*, cluburi(*), sportivi_roluri(roluri(id, nume))').single();
+            if (error) throw error;
+            
+            const updatedSportiv = { ...data, roluri: (((data as any).sportivi_roluri?.map((sr: any) => sr.roluri)) || []).filter(Boolean) };
+            delete (updatedSportiv as any).sportivi_roluri;
+            setSportivi(prev => prev.map(s => s.id === sportivToDeactivate.id ? updatedSportiv as Sportiv : s));
+            
+            showSuccess("Succes", `${sportivToDeactivate.nume} a fost dezactivat.`);
+        } catch(err: any) {
+            showError("Eroare la dezactivare", err.message);
+        } finally {
+            setLoadingStates(prev => ({ ...prev, [sportivToDeactivate.id]: false }));
+            setSportivToDeactivate(null);
+        }
+    };
+
 
     const familyBalances = useMemo(() => {
         const balances = new Map<string, number>();
@@ -163,11 +303,9 @@ export const SportiviManagement: React.FC<{
     }, [familii, plati, tranzactii]);
 
     const filteredSportivi = useMemo(() => {
-        // Logic for expired medical visa
         const today = new Date();
-        const currentMonth = today.getMonth(); // 0-11
+        const currentMonth = today.getMonth();
         const currentYear = today.getFullYear();
-        // Season starts in September (month 8)
         const seasonStartYear = currentMonth >= 8 ? currentYear : currentYear - 1;
 
         const sportiviCuVizaValida = new Set(
@@ -388,6 +526,16 @@ export const SportiviManagement: React.FC<{
                     currentUser={currentUser}
                 />
             )}
+            
+            <DeactivationModal
+                isOpen={!!sportivToDeactivate}
+                onClose={() => setSportivToDeactivate(null)}
+                sportiv={sportivToDeactivate}
+                sportivi={sportivi}
+                plati={plati}
+                tipuriAbonament={tipuriAbonament}
+                onConfirm={handleConfirmDeactivation}
+            />
 
             <SportivAccountSettingsModal
                 isOpen={!!accountSettingsSportiv}

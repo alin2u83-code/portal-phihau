@@ -52,7 +52,7 @@ export const SimpleAttendance: React.FC<SimpleAttendanceProps> = ({ currentUser,
                 date: new Date(a.data + "T00:00:00"),
                 time: a.ora_start,
                 dayOfWeek: weekDaysRo[new Date(a.data + "T00:00:00").getDay()],
-                status: a.sportivi_prezenti_ids.includes(currentUser.id) ? 'Prezent' : 'Absent'
+                status: a.prezenta.some(p => p.sportiv_id === currentUser.id) ? 'Prezent' : 'Absent'
             }))
             .sort((a, b) => b.date.getTime() - a.date.getTime());
     }, [antrenamente, currentUser, period]);

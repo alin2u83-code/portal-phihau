@@ -72,7 +72,7 @@ export const AttendanceTracker: React.FC<AttendanceTrackerProps> = ({ currentUse
             return (a.grupa_id === currentUser.grupa_id || (currentUser.participa_vacanta && a.grupa_id === null)) && trainingDate <= now && trainingDate >= sixtyDaysAgo;
         });
 
-        const attended = relevantTrainings.filter(a => a.sportivi_prezenti_ids.includes(currentUser.id)).length;
+        const attended = relevantTrainings.filter(a => a.prezenta.some(p => p.sportiv_id === currentUser.id)).length;
         const percentage = relevantTrainings.length > 0 ? Math.round((attended / relevantTrainings.length) * 100) : 0;
 
         return { attendancePercentage: percentage, totalAttended: attended };

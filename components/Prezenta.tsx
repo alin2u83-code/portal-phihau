@@ -192,9 +192,7 @@ const AttendanceDetail: React.FC<AttendanceDetailProps> = ({ antrenament, onBack
             }
             setAntrenamente(prev => prev.map(a => a.id === antrenament.id ? { ...a, prezenta: Array.from(newPresentIds).map(id => ({ sportiv_id: id, status: 'prezent' })) } : a));
         } catch (err: any) {
-            // FIX: Explicitly convert the error object to a string message.
-            // This resolves the TypeScript error where 'unknown' from the catch block
-            // was not assignable to the expected type.
+            // FIX: The `err` variable in a catch block is of type 'unknown'. It must be converted to a string before being passed to `showError`.
             showError("Eroare la actualizare", (err as Error)?.message || String(err));
             setPresentIds(presentIds); // Revert UI
         } finally {

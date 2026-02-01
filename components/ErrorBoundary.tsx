@@ -13,10 +13,11 @@ interface State {
   error?: Error;
 }
 
+// FIX: This class component was refactored to correctly handle state and properties.
+// - A constructor was added to properly initialize `this.state`. Using class fields for state is not always supported and can lead to `this.state` being undefined.
+// - The `handleRedirect` method was converted to an arrow function to ensure `this` is correctly bound, allowing access to `this.setState` and `this.props`.
 class ErrorBoundary extends React.Component<Props, State> {
-  // FIX: Moved state initialization into the constructor to ensure `this.state` is correctly bound.
-  // This is a more standard approach for React class components and avoids potential issues with
-  // build tool configurations for class fields.
+// FIX: A constructor was added to properly initialize `this.state`.
   constructor(props: Props) {
     super(props);
     this.state = {
@@ -33,6 +34,7 @@ class ErrorBoundary extends React.Component<Props, State> {
     console.error("Uncaught error:", error, errorInfo);
   }
 
+// FIX: The `handleRedirect` method was converted to an arrow function to ensure `this` is correctly bound.
   public handleRedirect = () => {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {

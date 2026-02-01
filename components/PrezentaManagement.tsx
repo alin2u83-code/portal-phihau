@@ -165,8 +165,9 @@ const AttendanceDetail: React.FC<AttendanceDetailProps> = ({ antrenament, onBack
             const athletesWithExpiredSubs = presentAthletes.filter(s => isSubscriptionExpired(s, allPlati)).map(s => `${s.nume} ${s.prenume}`);
             const report = { ID_Antrenament: antrenament.id, Numar_Prezenti: presentIds.size, AbonamentExpirat: athletesWithExpiredSubs };
             setReportData(JSON.stringify(report, null, 2));
+// FIX: The `err` variable in a catch block is of type 'unknown' or 'any'. It must be converted to a string before being passed to `showError` to avoid type errors.
         } catch (err: any) {
-            showError("Eroare la salvare", err);
+            showError("Eroare la salvare", (err as Error)?.message || String(err));
         } finally {
             setIsSaving(false);
         }

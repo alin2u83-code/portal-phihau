@@ -22,6 +22,30 @@ const getAge = (dateString: string | null | undefined): number => {
     return age; 
 };
 
+const getGradStyle = (gradName: string): string => {
+    const name = gradName.toLowerCase();
+    if (name.includes('dang')) {
+        if (name.includes('5')) return 'bg-black text-white border-2 border-yellow-400';
+        if (name.includes('6') || name.includes('7')) return 'bg-white text-red-600 border-2 border-red-600';
+        return 'bg-black text-white border-2 border-red-600';
+    }
+    if (name.includes('neagră')) return 'bg-black text-white';
+    if (name.includes('violet')) return 'bg-violet-600 text-white';
+    if (name.includes('roșu')) return 'bg-red-600 text-white';
+    if (name.includes('albastru')) return 'bg-white text-blue-600 border border-blue-600';
+    if (name.includes('galben')) return 'bg-yellow-400 text-black';
+    return 'bg-slate-600 text-white'; // Default
+};
+
+const GradBadge: React.FC<{ grad: Grad | null | undefined }> = ({ grad }) => {
+    if (!grad) return <span className="px-2 py-1 text-[10px] font-semibold rounded-full bg-slate-600 text-white">Începător</span>;
+    return (
+        <span className={`px-2 py-1 text-[10px] font-bold rounded-full whitespace-nowrap ${getGradStyle(grad.nume)}`}>
+            {grad.nume}
+        </span>
+    );
+};
+
 const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
     // FIX: Corrected key from 'Super Admin' to 'SUPER_ADMIN_FEDERATIE' to match the 'Rol' type definition.
     // FIX: Completed the color mapping to include all roles.
@@ -152,6 +176,16 @@ export const SportiviManagement: React.FC<{
                     </div>
                 );
             },
+        },
+        {
+            key: 'grad_actual_id',
+            label: 'Grad Actual',
+            tooltip: "Gradul actual al sportivului.",
+            render: (s) => {
+                const currentGrade = (grade || []).find(g => g.id === s.grad_actual_id);
+                return <GradBadge grad={currentGrade} />;
+            },
+            className: 'hidden md:table-cell'
         },
         { key: 'club_id', label: 'Club', tooltip: "Clubul de care aparține sportivul.", render: (s) => s.cluburi?.id === FEDERATIE_ID ? FEDERATIE_NAME : s.cluburi?.nume || '-', className: 'hidden md:table-cell' },
         { 

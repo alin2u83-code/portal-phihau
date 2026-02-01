@@ -89,6 +89,34 @@ const ProgramAntrenament: React.FC<{ grupaId: string | null; grupe: Grupa[] }> =
     );
 };
 
+const AttendanceIndicator: React.FC<{ attendances: {date: string; present: boolean}[] }> = ({ attendances }) => {
+    const indicators = [...attendances].reverse(); // Afișează cel mai vechi primul
+
+    // Umple array-ul pentru a afișa întotdeauna 3 indicatori
+    const displayItems = Array.from({ length: 3 }, (_, i) => {
+        if (i < indicators.length) {
+            return { ...indicators[i], isPlaceholder: false };
+        }
+        return { date: 'N/A', present: false, isPlaceholder: true };
+    });
+
+    return (
+        <div>
+            <h3 className="text-lg font-bold text-white mb-3">Prezență Recente</h3>
+            <div className="flex justify-center md:justify-start gap-2">
+                {displayItems.map((att, index) => (
+                    <div 
+                        key={index} 
+                        title={att.isPlaceholder ? 'Antrenament neînregistrat' : `${new Date(att.date + 'T00:00:00').toLocaleDateString('ro-RO')}: ${att.present ? 'Prezent' : 'Absent'}`}
+                        className={`w-8 h-12 rounded-md transition-all duration-300 ${att.isPlaceholder ? 'bg-slate-700' : att.present ? 'bg-green-500' : 'bg-red-500'}`}
+                    >
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
 interface TransferModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -294,6 +322,27 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
         return lastGradeEvent ? grade.find(g => g.id === lastGradeEvent.grad_id) : null;
     }, [gradeHistory, grade]);
 
+    const lastThreeAttendances = useMemo(() => {
+        const now = new Date();
+        const relevantTrainings = (antrenamente || [])
+            .filter(a => {
+                const trainingDate = new Date(`${a.data}T${a.ora_start || '00:00'}`);
+                if (trainingDate > now) return false;
+                
+                const isInGroup = a.grupa_id === sportiv.grupa_id;
+                const isVacationTraining = sportiv.participa_vacanta && a.grupa_id === null;
+                
+                return isInGroup || isVacationTraining;
+            })
+            .sort((a, b) => new Date(`${b.data}T${b.ora_start || '00:00'}`).getTime() - new Date(`${a.data}T${a.ora_start || '00:00'}`).getTime())
+            .slice(0, 3);
+        
+        return relevantTrainings.map(a => ({
+            date: a.data,
+            present: a.prezenta.some(p => p.sportiv_id === sportiv.id)
+        }));
+    }, [antrenamente, sportiv]);
+
     const handleSaveFeedback = async () => {
         setIsSavingFeedback(true);
         const { error } = await supabase.from('sportivi').update(feedbackData).eq('id', sportiv.id);
@@ -378,6 +427,9 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                     <Card><h3 className="text-lg font-bold text-white mb-3">Roluri & Permisiuni</h3>
                         <div className="flex flex-wrap gap-2">{sportiv.roluri.map(r => <RoleBadge key={r.id} role={r}/>)}</div>
                         {isAdmin && (isEditingRoles ? <div className="mt-4 space-y-2"><div className="flex items-end gap-2"><Select label="Adaugă Rol" value="" onChange={e => { if (e.target.value) setSelectedRoleIds(p => [...new Set([...p, e.target.value])]); }}><option value="">Selectează...</option>{unassignedRoles.map(r => <option key={r.id} value={r.id}>{r.nume}</option>)}</Select></div><div className="flex justify-end gap-2"><Button size="sm" variant="secondary" onClick={() => setIsEditingRoles(false)}>Anulează</Button><Button size="sm" variant="success" onClick={handleSaveRoles}>Salvează</Button></div></div> : <Button size="sm" variant="secondary" className="w-full mt-3" onClick={() => setIsEditingRoles(true)}><EditIcon className="w-4 h-4 mr-1"/> Modifică Roluri</Button>)}
+                    </Card>
+                    <Card>
+                        <AttendanceIndicator attendances={lastThreeAttendances} />
                     </Card>
                     <Card><h3 className="text-lg font-bold text-white mb-3">Feedback Instructor</h3>
                         {isEditingFeedback ? <div className="space-y-3"><Input label="Puncte Forte" name="puncte_forte" value={feedbackData.puncte_forte} onChange={(e) => setFeedbackData(p=>({...p, puncte_forte: e.target.value}))}/><Input label="Puncte Slabe" name="puncte_slabe" value={feedbackData.puncte_slabe} onChange={(e) => setFeedbackData(p=>({...p, puncte_slabe: e.target.value}))}/><Input label="Obiective" name="obiective" value={feedbackData.obiective} onChange={(e) => setFeedbackData(p=>({...p, obiective: e.target.value}))}/><div className="flex justify-end gap-2"><Button size="sm" variant="secondary" onClick={()=>setIsEditingFeedback(false)}>Anulează</Button><Button size="sm" variant="success" onClick={handleSaveFeedback} isLoading={isSavingFeedback}>Salvează</Button></div></div>

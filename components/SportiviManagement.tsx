@@ -10,6 +10,7 @@ import { SportivAccountSettingsModal } from './SportivAccountSettings';
 import { SportivWallet } from './SportivWallet';
 import { ResponsiveTable, Column } from './ResponsiveTable';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
+import { GradBadge } from '../utils/grades';
 
 const getAge = (dateString: string | null | undefined): number => { 
     if (!dateString) return 0; 
@@ -20,47 +21,6 @@ const getAge = (dateString: string | null | undefined): number => {
     const m = today.getMonth() - birthDate.getMonth(); 
     if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; } 
     return age; 
-};
-
-const getGradStyle = (gradName: string): string => {
-    if (!gradName) return 'bg-slate-600 text-white';
-    const name = gradName.toLowerCase();
-    
-    if (name.includes('6 dang') || name.includes('7 dang') || name.includes('8 dang')) {
-        return 'bg-white text-red-600 border-2 border-red-600';
-    }
-    if (name.includes('5 dang')) {
-        return 'bg-black text-yellow-400 border-2 border-yellow-400';
-    }
-    if (name.includes('dang')) { // This will catch 1-4 Dang
-        return 'bg-black text-red-600 border-2 border-red-600';
-    }
-    if (name.includes('neagră')) {
-        return 'bg-black text-white';
-    }
-    if (name.includes('violet') || name.includes('cap alb')) {
-        return 'bg-violet-600 text-white';
-    }
-    if (name.includes('roșu')) {
-        return 'bg-red-600 text-white';
-    }
-    if (name.includes('albastru')) {
-        return 'bg-white text-blue-600 border border-blue-600';
-    }
-    if (name.includes('galben')) {
-        return 'bg-yellow-400 text-black';
-    }
-    
-    return 'bg-slate-600 text-white';
-};
-
-const GradBadge: React.FC<{ grad: Grad | null | undefined }> = ({ grad }) => {
-    if (!grad) return <span className="px-2 py-1 text-[10px] font-semibold rounded-full bg-slate-600 text-white">Începător</span>;
-    return (
-        <span className={`px-2 py-1 text-[10px] font-bold rounded-full whitespace-nowrap ${getGradStyle(grad.nume)}`}>
-            {grad.nume}
-        </span>
-    );
 };
 
 const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
@@ -213,7 +173,7 @@ const GradLegend: React.FC = () => {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4">
                 {mockGrades.map(g => (
                     <div key={g.name} className="flex flex-col items-center gap-2 text-center">
-                        <GradBadge grad={{ nume: g.name, ordine: 0 } as Grad} />
+                        <GradBadge grad={{ nume: g.name, ordine: 0 } as Grad} className="text-[10px]" />
                         <span className="text-xs text-slate-400">{g.description}</span>
                     </div>
                 ))}
@@ -407,7 +367,7 @@ export const SportiviManagement: React.FC<{
             tooltip: "Gradul actual al sportivului.",
             render: (s) => {
                 const currentGrade = (grade || []).find(g => g.id === s.grad_actual_id);
-                return <GradBadge grad={currentGrade} />;
+                return <GradBadge grad={currentGrade} className="text-[10px]" />;
             },
             className: 'hidden md:table-cell'
         },

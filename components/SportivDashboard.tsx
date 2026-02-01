@@ -6,54 +6,9 @@ import { AttendanceTracker } from './AttendanceTracker';
 import { useError } from './ErrorProvider';
 import { supabase } from '../supabaseClient';
 import { CheckIcon } from './icons';
+import { GradBadge } from '../utils/grades';
 
 const getGrad = (gradId: string | null, allGrades: Grad[]) => gradId ? allGrades.find(g => g.id === gradId) : null;
-
-// --- Badge pentru Grad ---
-const getGradStyle = (gradName: string): string => {
-    if (!gradName) return 'bg-slate-600 text-white';
-    const name = gradName.toLowerCase();
-    
-    if (name.includes('6 dang') || name.includes('7 dang') || name.includes('8 dang')) {
-        return 'bg-white text-red-600 border-2 border-red-600';
-    }
-    if (name.includes('5 dang')) {
-        return 'bg-black text-yellow-400 border-2 border-yellow-400';
-    }
-    if (name.includes('dang')) { // This will catch 1-4 Dang
-        return 'bg-black text-red-600 border-2 border-red-600';
-    }
-    if (name.includes('neagră')) {
-        return 'bg-black text-white';
-    }
-    if (name.includes('violet') || name.includes('cap alb')) {
-        return 'bg-violet-600 text-white';
-    }
-    if (name.includes('roșu')) {
-        return 'bg-red-600 text-white';
-    }
-    if (name.includes('albastru')) {
-        return 'bg-white text-blue-600 border border-blue-600';
-    }
-    if (name.includes('galben')) {
-        return 'bg-yellow-400 text-black';
-    }
-    
-    return 'bg-slate-600 text-white';
-};
-
-const GradBadge: React.FC<{ grad: Grad | null | undefined; isLarge?: boolean }> = ({ grad, isLarge }) => {
-    if (!grad) return null;
-    
-    const sizeClasses = isLarge ? 'px-6 py-2 text-2xl font-black' : 'px-3 py-1 text-sm font-bold';
-
-    return (
-        <span className={`inline-block rounded-full whitespace-nowrap ${sizeClasses} ${getGradStyle(grad.nume)}`}>
-            {grad.nume}
-        </span>
-    );
-};
-
 
 // --- Componenta Program Antrenament ---
 const ProgramAntrenament: React.FC<{ grupaId: string | null; grupe: Grupa[] }> = ({ grupaId, grupe }) => {
@@ -226,27 +181,6 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
             .sort((a, b) => a.ora_start.localeCompare(b.ora_start));
     }, [antrenamente, todayString, currentUser]);
     
-    const upcomingTrainings = useMemo(() => {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const todayStr = today.toISOString().split('T')[0];
-        const nextFourDays = new Date();
-        nextFourDays.setDate(today.getDate() + 4);
-        const nextFourDaysStr = nextFourDays.toISOString().split('T')[0];
-
-        return (antrenamente || [])
-            .filter(a => {
-                return a.data >= todayStr && a.data < nextFourDaysStr &&
-                       (a.grupa_id === currentUser.grupa_id || (currentUser.participa_vacanta && a.grupa_id === null));
-            })
-            .sort((a, b) => {
-                const dateA = new Date(`${a.data}T${a.ora_start}`);
-                const dateB = new Date(`${b.data}T${b.ora_start}`);
-                return dateA.getTime() - dateB.getTime();
-            })
-            .slice(0, 5); // Arată maxim 5 antrenamente viitoare
-    }, [antrenamente, currentUser]);
-
     const handleStatusChange = async (trainingId: string, status: AnuntStatus) => {
         if (!supabase) return;
 
@@ -335,52 +269,6 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
         
         return getGrad(admittedParticipations[0]?.grad_vizat_id || null, grade);
     }, [participari, viewedUser.grad_actual_id, viewedUser.id, grade, examene]);
-    
-    const sumaRestanta = useMemo(() => {
-        return (plati || [])
-            .filter(p => 
-                (p.sportiv_id === viewedUser.id || (p.familie_id && p.familie_id === viewedUser.familie_id)) &&
-                (p.status === 'Neachitat' || p.status === 'Achitat Parțial')
-            )
-            .reduce((sum, p) => sum + p.suma, 0);
-    }, [viewedUser, plati]);
-
-    const grupaCurenta = useMemo(() => {
-        return (grupe || []).find(g => g.id === viewedUser.grupa_id)?.denumire || 'Fără grupă';
-    }, [viewedUser.grupa_id, grupe]);
-
-    const allGradesWithDates = useMemo(() => {
-        const examDateMap = new Map((examene || []).map(e => [e.id, e.data]));
-        const admittedParticipations = (participari || [])
-            .filter(p => p.sportiv_id === viewedUser.id && p.rezultat === 'Admis')
-            .sort((a, b) => {
-                const dateA = examDateMap.get(a.sesiune_id) || '9999-12-31';
-                const dateB = examDateMap.get(b.sesiune_id) || '9999-12-31';
-                return new Date(dateB as string).getTime() - new Date(dateA as string).getTime();
-            });
-
-        const obtainedGradesMap = new Map<string, string>();
-        admittedParticipations.forEach(p => {
-            const examDate = examDateMap.get(p.sesiune_id);
-            if (examDate && !obtainedGradesMap.has(p.grad_vizat_id as string)) {
-                obtainedGradesMap.set(p.grad_vizat_id as string, examDate as string);
-            }
-        });
-
-        const fullGradeList = [...(grade || [])]
-            .sort((a, b) => a.ordine - b.ordine)
-            .map(g => ({
-                ...g,
-                data_obtinere: obtainedGradesMap.get(g.id) || null
-            }));
-
-        if (isViewingOwnProfile && !permissions.hasAdminAccess) {
-            const currentGradOrder = currentGrad?.ordine ?? 0;
-            return fullGradeList.filter(g => g.ordine <= currentGradOrder);
-        }
-        
-        return fullGradeList;
-    }, [grade, participari, examene, viewedUser.id, currentGrad, isViewingOwnProfile, permissions]);
 
     return (
         <div className="space-y-6">

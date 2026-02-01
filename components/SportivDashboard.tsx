@@ -6,7 +6,7 @@ import { AttendanceTracker } from './AttendanceTracker';
 import { useError } from './ErrorProvider';
 import { supabase } from '../supabaseClient';
 import { CheckIcon, ExclamationTriangleIcon } from './icons';
-import { GradBadge } from '../utils/grades';
+import { GradBadge, getGradStyle } from '../utils/grades';
 
 const getGrad = (gradId: string | null, allGrades: Grad[]) => gradId ? allGrades.find(g => g.id === gradId) : null;
 
@@ -97,7 +97,11 @@ const IstoricGradeCard: React.FC<{
                     <tbody className="divide-y divide-slate-700">
                         {gradeHistory.map((item, index) => (
                             <tr key={index}>
-                                <td className="py-2 font-semibold">{item.gradNume}</td>
+                                <td className="py-2 font-semibold">
+                                     <span className={`inline-block rounded-full whitespace-nowrap text-center px-3 py-1 text-sm font-bold ${getGradStyle(item.gradNume)}`}>
+                                        {item.gradNume}
+                                    </span>
+                                </td>
                                 <td className="py-2 text-right">{new Date(item.date).toLocaleDateString('ro-RO')}</td>
                             </tr>
                         ))}
@@ -114,14 +118,13 @@ const ProgramAntrenament: React.FC<{ grupaId: string | null; grupe: Grupa[]; clu
     const zileSaptamanaOrdonate: Record<ProgramItem['ziua'], number> = { 'Luni': 1, 'Marți': 2, 'Miercuri': 3, 'Joi': 4, 'Vineri': 5, 'Sâmbătă': 6, 'Duminică': 7 };
     
     const grupeDeAfisat = useMemo(() => {
-        const sortedGroups = [...grupe].sort((a,b) => a.denumire.localeCompare(b.denumire));
+        const allClubGroups = (grupe || []).filter(g => g.club_id === 'cbb0b228-b3e0-4735-9658-70999eb256c6');
+        const sortedGroups = [...allClubGroups].sort((a,b) => a.denumire.localeCompare(b.denumire));
         if (grupaId) {
-            return sortedGroups.filter(g => g.id === grupaId);
+            const userGroup = sortedGroups.find(g => g.id === grupaId);
+            return userGroup ? [userGroup] : sortedGroups;
         }
-        if (clubId) {
-            return sortedGroups.filter(g => g.club_id === clubId);
-        }
-        return [];
+        return sortedGroups;
     }, [grupaId, grupe, clubId]);
 
     return (
@@ -417,24 +420,6 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                     <IstoricGradeCard participari={participari} examene={examene} grade={grade} istoricGrade={istoricGrade} sportivId={viewedUser.id} />
                 </div>
             </div>
-
-            {canSwitchRoles && (
-                <Card className="animate-fade-in-down" style={{ animationDelay: '300ms' }}>
-                    <h3 className="text-lg font-bold text-white mb-4">Comută Rol Activ</h3>
-                    <div className="flex flex-wrap gap-2">
-                        {currentUser.roluri.map(rol => (
-                            <Button 
-                                key={rol.id}
-                                variant={activeRole === rol.nume ? 'primary' : 'secondary'}
-                                onClick={() => onSwitchRole(rol.nume)}
-                                disabled={isSwitchingRole}
-                            >
-                                {rol.nume}
-                            </Button>
-                        ))}
-                    </div>
-                </Card>
-            )}
         </div>
     );
 };

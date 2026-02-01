@@ -2,60 +2,6 @@ import React, { useMemo } from 'react';
 import { User, Antrenament, View } from '../types';
 import { Card, Button } from './ui';
 
-interface ProgressRingProps {
-    percentage: number;
-    totalAttended: number;
-}
-
-const ProgressRing: React.FC<ProgressRingProps> = ({ percentage, totalAttended }) => {
-    const radius = 80;
-    const stroke = 12;
-    const normalizedRadius = radius - stroke * 2;
-    const circumference = normalizedRadius * 2 * Math.PI;
-    const strokeDashoffset = circumference - (percentage / 100) * circumference;
-
-    return (
-        <div className="relative w-52 h-52">
-            <svg
-                height={radius * 2}
-                width={radius * 2}
-                className="transform -rotate-90"
-                style={{ filter: 'drop-shadow(0 0 10px rgba(74, 222, 128, 0.4))' }}
-            >
-                <circle
-                    stroke="#374155"
-                    fill="transparent"
-                    strokeWidth={stroke}
-                    r={normalizedRadius}
-                    cx={radius}
-                    cy={radius}
-                />
-                <circle
-                    stroke="#4ade80"
-                    fill="transparent"
-                    strokeWidth={stroke}
-                    strokeDasharray={circumference + ' ' + circumference}
-                    style={{ strokeDashoffset }}
-                    strokeLinecap="round"
-                    r={normalizedRadius}
-                    cx={radius}
-                    cy={radius}
-                    className="transition-all duration-1000 ease-in-out"
-                />
-            </svg>
-            <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-32 h-32 rounded-full bg-lime-400 flex flex-col items-center justify-center shadow-[0_0_20px_5px_rgba(192,250,50,0.7)]">
-                    <span className="text-5xl font-black text-black tracking-tighter">
-                        {totalAttended}
-                    </span>
-                    <span className="text-[10px] font-bold text-slate-900 uppercase tracking-widest -mt-1">Prezențe</span>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-
 interface AttendanceTrackerProps {
     currentUser: User;
     antrenamente: Antrenament[];
@@ -64,31 +10,43 @@ interface AttendanceTrackerProps {
 
 export const AttendanceTracker: React.FC<AttendanceTrackerProps> = ({ currentUser, antrenamente, onNavigate }) => {
     
-    const { attendancePercentage, totalAttended } = useMemo(() => {
-        const now = new Date();
-        const sixtyDaysAgo = new Date();
-        sixtyDaysAgo.setDate(now.getDate() - 60);
+    const totalAttended = useMemo(() => {
+        return (antrenamente || []).filter(a => a.prezenta.some(p => p.sportiv_id === currentUser.id)).length;
+    }, [antrenamente, currentUser.id]);
 
-        const relevantTrainings = antrenamente.filter(a => {
-            const trainingDate = new Date(a.data + "T00:00:00");
-            return (a.grupa_id === currentUser.grupa_id || (currentUser.participa_vacanta && a.grupa_id === null)) && trainingDate <= now && trainingDate >= sixtyDaysAgo;
-        });
-
-        const attended = relevantTrainings.filter(a => a.prezenta.some(p => p.sportiv_id === currentUser.id)).length;
-        const percentage = relevantTrainings.length > 0 ? Math.round((attended / relevantTrainings.length) * 100) : 0;
-
-        return { attendancePercentage: percentage, totalAttended: attended };
-    }, [antrenamente, currentUser]);
-
+    const examThreshold = 40;
+    const isEligible = totalAttended >= examThreshold;
+    const progressPercentage = Math.min(100, (totalAttended / examThreshold) * 100);
 
     return (
-        <Card className="bg-slate-800/50 backdrop-blur-sm border border-green-400/20 p-6 flex flex-col items-center">
-            <h3 className="text-xl font-bold text-white mb-4">Oglinda Perseverenței</h3>
-            <ProgressRing percentage={attendancePercentage} totalAttended={totalAttended} />
-            <p className="mt-4 text-lg text-center font-bold text-slate-300">
-                Frecvență de <span className="text-lime-400">{attendancePercentage}%</span> în ultimele 60 de zile.
+        <Card className="bg-black border border-slate-800 p-6 flex flex-col items-center text-center">
+            <h3 className="text-xl font-bold text-white mb-2">Progres Examen</h3>
+            
+            <p className="font-black text-8xl" style={{ color: '#ADFF2F', textShadow: '0 0 10px rgba(173, 255, 47, 0.5)' }}>
+                {totalAttended}
             </p>
-            <div className="mt-6 pt-4 border-t border-green-400/20 w-full">
+            <p className="text-sm font-bold uppercase tracking-widest text-slate-400 -mt-2">Prezențe Totale</p>
+            
+            <div className="w-full mt-6">
+                <div className="h-3 w-full bg-gray-700 rounded-full">
+                    <div 
+                        className={`h-3 rounded-full transition-all duration-500 ${isEligible ? 'bg-yellow-500' : 'bg-green-500'}`}
+                        style={{ width: `${progressPercentage}%`, boxShadow: `0 0 8px ${isEligible ? '#f59e0b' : '#22c55e'}` }}
+                    ></div>
+                </div>
+                <div className="flex justify-between text-xs font-bold text-slate-500 mt-1">
+                    <span>0</span>
+                    <span>{examThreshold}</span>
+                </div>
+            </div>
+
+            {isEligible && (
+                <div className="mt-4 p-2 bg-yellow-500/10 border border-yellow-500/30 rounded-lg animate-fade-in-down">
+                    <p className="font-bold text-yellow-400 text-center text-lg">ELIGIBIL PENTRU EXAMEN!</p>
+                </div>
+            )}
+            
+            <div className="mt-6 pt-4 border-t border-slate-700 w-full">
                 <Button onClick={() => onNavigate('istoric-prezenta')} variant="secondary" className="w-full">
                     Vezi Istoric Detaliat
                 </Button>

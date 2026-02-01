@@ -5,7 +5,6 @@ import { SportiviManagement } from './components/SportiviManagement';
 import { UserProfile } from './components/UserProfile';
 import { GestiuneExamene } from './components/Examene';
 import { GradeManagement } from './components/Grade';
-// FIX: Corrected import path to resolve module not found error.
 import { PrezentaManagement } from './components/PrezentaManagement';
 import { GrupeManagement } from './components/Grupe';
 import { RaportPrezenta } from './components/RaportPrezenta';
@@ -735,6 +734,10 @@ function App() {
                 setGlobalClubFilter={setGlobalClubFilter}
                 permissions={permissions}
                 activeRole={activeRole!}
+                canSwitchRoles={canSwitchRoles}
+                onSwitchRole={handleSwitchRole}
+                isSwitchingRole={isSwitchingRole}
+                grade={grade}
               />
               <main className={`flex-1 transition-all duration-300 ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'}`}>
                 <div className="absolute top-4 right-8 z-30">

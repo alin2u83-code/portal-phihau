@@ -148,8 +148,7 @@ const AttendanceDetail: React.FC<AttendanceDetailProps> = ({ antrenament, onBack
             }
             
             const { data: athletesData, error: athletesError } = await supabase.from('sportivi').select('*').eq('grupa_id', antrenament.grupa_id).order('nume', { ascending: true });
-            // FIX: Pass the error message string to showError.
-            if (athletesError) { showError("Eroare sportivi", athletesError.message); setLoading(false); return; }
+            if (athletesError) { showError("Eroare sportivi", athletesError); setLoading(false); return; }
             
             const fetchedGroupAthletes = athletesData || [];
             setGroupAthletes(fetchedGroupAthletes);
@@ -193,7 +192,7 @@ const AttendanceDetail: React.FC<AttendanceDetailProps> = ({ antrenament, onBack
                 if (error) throw error;
             }
             setAntrenamente(prev => prev.map(a => a.id === antrenament.id ? { ...a, prezenta: Array.from(newPresentIds).map(id => ({ sportiv_id: id, status: 'prezent' })) } : a));
-        } catch (err) {
+        } catch (err: unknown) {
             // FIX: Argument of type 'unknown' is not assignable to parameter of type 'string'.
             // Pass the error message string to showError instead of the whole error object.
             showError("Eroare la actualizare", (err as Error)?.message || String(err));

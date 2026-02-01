@@ -210,14 +210,35 @@ function App() {
     setUserRoles(roles || []);
     setSession(currentSession);
     
-    if (roles && roles.length === 1) {
-        setActiveRoleContext(roles[0]);
-    } else if (roles && roles.length > 1 && profile.rol_activ_context) {
-        const preferredRole = roles.find(r => r.rol_denumire === profile.rol_activ_context);
-        if (preferredRole) {
-            setActiveRoleContext(preferredRole);
+    if (roles && roles.length > 0) {
+        if (roles.length === 1) {
+            setActiveRoleContext(roles[0]);
+        } else {
+            const preferredRole = profile.rol_activ_context
+                ? roles.find(r => r.rol_denumire === profile.rol_activ_context)
+                : null;
+            
+            if (preferredRole) {
+                setActiveRoleContext(preferredRole);
+            } else {
+                // FALLBACK: No active role set in DB, or the one set is invalid.
+                // Automatically select the first role to unblock the user from the role selection page.
+                const defaultRole = roles[0];
+                setActiveRoleContext(defaultRole);
+                
+                // Asynchronously update the DB with this default choice for the next session.
+                supabase.rpc('set_active_role', { p_role_name: defaultRole.rol_denumire })
+                    .then(({ error: rpcError }) => {
+                        if (rpcError) {
+                            console.warn("Could not set default active role in DB:", rpcError.message);
+                        }
+                    });
+            }
         }
+    } else if (profile) {
+        setProfileError("Contul dumneavoastră nu este asociat cu niciun rol. Vă rugăm contactați un administrator.");
     }
+
 
     if (profile.trebuie_schimbata_parola) {
         showError( "Securitate Cont", "Este necesar să vă schimbați parola. Aceasta este temporară sau a expirat.");
@@ -682,7 +703,7 @@ function App() {
             <RoleSelectionPage
                 roles={userRoles}
                 onSelect={handleSelectRole}
-                loading={isSelectingRole}
+                loading={isSwitchingRole}
                 onLogout={handleLogout}
             />
         ) : currentUser ? (
@@ -700,6 +721,7 @@ function App() {
                 permissions={permissions}
                 activeRole={activeRole!}
               />
+              {/* FIX: Corrected variable name from `isExpanded` to `isSidebarExpanded` */}
               <main className={`flex-1 transition-all duration-300 ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'}`}>
                 <div className="absolute top-4 right-8 z-30">
                   {currentUser && permissions.hasAdminAccess && <InAppNotifications currentUser={currentUser} />}

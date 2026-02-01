@@ -198,7 +198,7 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
             setTrainings(prev => prev.map(t => t.id === antrenamentId ? { ...t, prezenta: Array.from(uiPresentIds).map(sportiv_id => ({ sportiv_id }))} : t));
             showSuccess("Succes", "Prezența a fost salvată!");
 
-        } catch (err) {
+        } catch (err: unknown) {
             // FIX: Argument of type 'unknown' is not assignable to parameter of type 'string'.
             // Safely handle the error object by casting it to Error and providing a fallback.
             showError("Eroare la salvarea prezenței", (err as Error)?.message || String(err));

@@ -105,6 +105,7 @@ function App() {
   const [isSidebarExpanded, setIsSidebarExpanded] = useLocalStorage('phi-hau-sidebar-expanded', true);
   const [adminContext, setAdminContext] = useLocalStorage<'club' | 'federation'>('phi-hau-admin-context', 'club');
   const [isSwitchingRole, setIsSwitchingRole] = useState(false);
+  const [switchingToRole, setSwitchingToRole] = useState<string | null>(null);
 
   const activeRole = useMemo((): Rol['nume'] | null => {
     return activeRoleContext?.rol_denumire || null;
@@ -122,19 +123,22 @@ function App() {
   const handleSwitchRole = useCallback(async (roleName: Rol['nume']) => {
       if (!supabase || !currentUser?.user_id) return;
       setIsSwitchingRole(true);
+      setSwitchingToRole(roleName);
       
       const { error } = await supabase.rpc('set_active_role', { p_role_name: roleName });
 
       if (error) {
           showError("Eroare la comutarea rolului", error.message);
           setIsSwitchingRole(false);
+          setSwitchingToRole(null);
       } else {
           if (roleName === 'Sportiv') {
               localStorage.setItem('phi-hau-redirect-after-role-switch', 'my-portal');
           } else {
               localStorage.removeItem('phi-hau-redirect-after-role-switch');
           }
-          window.location.reload();
+          // The page will reload, so no need to reset state here
+          setTimeout(() => window.location.reload(), 1500);
       }
   }, [currentUser, showError]);
 
@@ -576,7 +580,7 @@ function App() {
         return renderProtected(<PrezentaManagement sportivi={filteredData.sportivi} setSportivi={setSportivi} antrenamente={filteredData.antrenamente} setAntrenamente={setAntrenamente} grupe={filteredData.grupe} onBack={() => setActiveView('dashboard')} setPlati={setPlati} plati={filteredData.plati} tipuriAbonament={filteredData.tipuriAbonament} anunturi={filteredData.anunturiPrezenta} onViewSportiv={onViewSportiv} />, isAtLeastInstructor);
       
       case 'prezenta-instructor':
-        return renderProtected(<InstructorPrezentaPage onBack={() => setActiveView('dashboard')} onNavigate={setActiveView} allClubSportivi={filteredData.sportivi} currentUser={currentUser!} />, permissions.isInstructor);
+        return renderProtected(<InstructorPrezentaPage onBack={() => setActiveView('dashboard')} onNavigate={setActiveView} allClubSportivi={filteredData.sportivi} currentUser={currentUser!} grade={grade} />, permissions.isInstructor);
       
       case 'arhiva-prezente':
         return renderProtected(<ArhivaPrezente onBack={() => setActiveView('prezenta-instructor')} />, permissions.isInstructor);
@@ -699,11 +703,11 @@ function App() {
     <SystemGuardian isLoading={loading} currentUser={currentUser} permissions={permissions} error={profileError}>
       {isSwitchingRole && (
         <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[10000] flex flex-col items-center justify-center animate-fade-in-down">
-            <svg className="animate-spin h-10 w-10 text-brand-secondary mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <svg className="animate-spin h-10 w-10 text-violet-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            <p className="text-white text-lg font-bold">Se verifică gradul și permisiunile...</p>
+            <p className="text-white text-lg font-bold">Se verifică gradul și permisiunile în contextul {switchingToRole}...</p>
         </div>
       )}
       {!session ? (

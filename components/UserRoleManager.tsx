@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { User, Rol, Club, Permissions } from '../types';
 import { Card, Select, Button } from './ui';
 import { supabase } from '../supabaseClient';
@@ -17,12 +17,10 @@ export const UserRoleManager: React.FC<UserRoleManagerProps> = ({ users, roles, 
     const { showError, showSuccess } = useError();
     const [loading, setLoading] = useState(false);
 
-    // Folosim useRef pentru a accesa direct elementele DOM, conform solicitării.
-    // Într-o aplicație complexă, pentru formulare controlate, `useState` este adesea preferat
-    // pentru a lega valoarea la starea componentei și a reacționa la schimbări.
-    // Aici, îl folosim pentru a demonstra citirea directă la submit.
-    const userSelectRef = useRef<HTMLSelectElement>(null);
-    const roleSelectRef = useRef<HTMLSelectElement>(null);
+    // FIX: S-a trecut de la useRef la useState pentru a controla input-urile,
+    // rezolvând eroarea în care referințele erau null la submit.
+    const [selectedUserId, setSelectedUserId] = useState('');
+    const [selectedRoleName, setSelectedRoleName] = useState('');
 
     const availableUsers = useMemo(() => {
         // Un Admin Club poate gestiona doar utilizatorii din clubul său.
@@ -40,19 +38,11 @@ export const UserRoleManager: React.FC<UserRoleManagerProps> = ({ users, roles, 
     }, [roles, currentUser.roluri]);
     
     /**
-     * Funcția `updateContext` citește valorile selectate folosind `useRef`
+     * Funcția `updateContext` citește valorile selectate din starea componentei
      * și apelează o funcție RPC din Supabase pentru a actualiza contextul utilizatorului.
      */
     const updateContext = async (e: React.FormEvent) => {
         e.preventDefault();
-
-        if (!userSelectRef.current || !roleSelectRef.current) {
-            showError("Eroare componentă", "Referințele către elementele formularului nu sunt disponibile.");
-            return;
-        }
-
-        const selectedUserId = userSelectRef.current.value;
-        const selectedRoleName = roleSelectRef.current.value;
 
         if (!selectedUserId || !selectedRoleName) {
             showError("Date lipsă", "Vă rugăm selectați un utilizator și un rol.");
@@ -99,7 +89,11 @@ export const UserRoleManager: React.FC<UserRoleManagerProps> = ({ users, roles, 
                     Funcționalitatea reală depinde de implementarea RPC-ului `update_user_context` în baza de date.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Select label="Selectează Utilizator" ref={userSelectRef} defaultValue="">
+                    <Select
+                        label="Selectează Utilizator"
+                        value={selectedUserId}
+                        onChange={(e) => setSelectedUserId(e.target.value)}
+                    >
                         <option value="" disabled>Alege un utilizator...</option>
                         {availableUsers.map(user => (
                             <option key={user.id} value={user.id}>
@@ -107,7 +101,11 @@ export const UserRoleManager: React.FC<UserRoleManagerProps> = ({ users, roles, 
                             </option>
                         ))}
                     </Select>
-                    <Select label="Atribuie Rol" ref={roleSelectRef} defaultValue="">
+                    <Select
+                        label="Atribuie Rol"
+                        value={selectedRoleName}
+                        onChange={(e) => setSelectedRoleName(e.target.value)}
+                    >
                         <option value="" disabled>Alege un rol...</option>
                         {availableRoles.map(role => (
                             <option key={role.id} value={role.nume}>

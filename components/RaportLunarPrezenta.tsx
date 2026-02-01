@@ -3,7 +3,44 @@ import { Sportiv, Grupa, Antrenament, Grad } from '../types';
 import { Card, Select, Button } from './ui';
 import { ArrowLeftIcon, DocumentArrowDownIcon } from './icons';
 import { useLocalStorage } from '../hooks/useLocalStorage';
-import { exportToCsv } from '../utils/csv';
+
+// Functie helper pentru export CSV, inclusa local pentru a evita crearea de fisiere noi
+const exportToCsv = (filename: string, rows: object[]) => {
+    if (!rows || rows.length === 0) {
+        alert("Nu există date de exportat.");
+        return;
+    }
+    const separator = ',';
+    const keys = Object.keys(rows[0]);
+    const csvContent =
+        '\uFEFF' + // BOM for UTF-8
+        keys.join(separator) +
+        '\n' +
+        rows.map(row => {
+            return keys.map(k => {
+                let cell = (row as any)[k] === null || (row as any)[k] === undefined ? '' : String((row as any)[k]);
+                cell = cell.replace(/"/g, '""');
+                if (cell.search(/("|,|\n)/g) >= 0) {
+                    cell = `"${cell}"`;
+                }
+                return cell;
+            }).join(separator);
+        }).join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    if (link.download !== undefined) {
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', filename);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
+};
+
 
 interface ReportRow {
     sportivId: string;
@@ -31,7 +68,7 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ sporti
 
     const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const { name, value } = e.target;
-        setFilters(prev => ({ ...prev, [name]: parseInt(value, 10) }));
+        setFilters(prev => ({ ...prev, [name]: name === 'grupaId' ? value : parseInt(value, 10) }));
     };
 
     const reportData = useMemo((): ReportRow[] => {
@@ -96,7 +133,7 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ sporti
                 <Select label="Lună" name="month" value={String(filters.month)} onChange={handleFilterChange}>
                     {months.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
                 </Select>
-                <Select label="Grupă" name="grupaId" value={filters.grupaId} onChange={e => setFilters(p => ({...p, grupaId: e.target.value}))}>
+                <Select label="Grupă" name="grupaId" value={filters.grupaId} onChange={handleFilterChange}>
                     <option value="">Toate Grupele</option>
                     {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
                 </Select>

@@ -348,8 +348,8 @@ export const PrezentaManagement: React.FC<{
             await supabase.from('program_antrenamente').delete().eq('id', id);
             setAntrenamente(prev => prev.filter(p => p.id !== id));
             showSuccess("Succes", "Antrenamentul a fost șters.");
+// Fix: Cast the `unknown` error type to `Error` and access its `message` property before passing it to `showError` to fix the TypeScript error.
         } catch (err: unknown) {
-            // FIX: Cast unknown error to Error type to access message property for showError.
             showError("Eroare la ștergere", (err as Error)?.message || String(err));
         } finally {
             setIsDeleting(false);

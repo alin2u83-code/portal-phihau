@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { User, View, Club, Permissions, Rol } from '../types';
-import { instructorMenu, sportivMenu, sidebarClubAdminMenu, sidebarFederationAdminMenu, MenuItem } from './menuConfig';
+import { instructorMenu, sportivMenu, clubAdminMenu, federationAdminMenu, MenuItem } from './menuConfig';
 import { ArrowRightOnRectangleIcon, Bars3Icon, ChevronDownIcon, ShieldCheckIcon } from './icons';
 import { Select } from './ui';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
@@ -79,12 +79,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
         switch (activeRole) {
             case 'SUPER_ADMIN_FEDERATIE':
             case 'Admin':
-                menu = sidebarFederationAdminMenu;
+                menu = federationAdminMenu;
                 name = 'Federație';
                 border = 'border-amber-400';
                 break;
             case 'Admin Club':
-                menu = sidebarClubAdminMenu;
+                menu = clubAdminMenu;
                 name = currentUser.cluburi?.nume || 'Club Nesetat';
                 border = 'border-blue-500';
                 break;

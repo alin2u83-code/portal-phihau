@@ -50,6 +50,7 @@ export const federationAdminMenu: MenuItem[] = [
             { label: 'Generator Program', view: 'activitati' },
             { label: 'Înregistrare Prezențe', view: 'prezenta' },
             { label: 'Raport Prezențe', view: 'raport-prezenta' },
+            { label: 'Raport Lunar Prezențe', view: 'raport-lunar-prezenta' },
             { label: 'Raport Activitate', view: 'raport-activitate' }
         ]
     },
@@ -113,6 +114,7 @@ export const instructorMenu: MenuItem[] = [
         submenu: [
             { label: 'Înregistrare Avansată', view: 'prezenta' },
             { label: 'Raport Prezențe', view: 'raport-prezenta' },
+            { label: 'Raport Lunar Prezențe', view: 'raport-lunar-prezenta' },
             { label: 'Raport Activitate', view: 'raport-activitate' }
         ]
     },

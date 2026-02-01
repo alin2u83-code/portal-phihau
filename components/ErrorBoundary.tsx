@@ -13,7 +13,6 @@ interface State {
   error?: Error;
 }
 
-// FIX: Converted to a proper class component to correctly implement error boundary logic, which allows the use of getDerivedStateFromError and componentDidCatch lifecycle methods.
 class ErrorBoundary extends React.Component<Props, State> {
   public state: State = {
     hasError: false,

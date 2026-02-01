@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { Antrenament, Sportiv, Grupa, Plata, TipAbonament, AnuntPrezenta, ProgramItem } from '../types';
+import { Antrenament, Sportiv, Grupa, Plata, TipAbonament, AnuntPrezenta, ProgramItem, View } from '../types';
 import { Button, Card, Input, Select, Modal } from './ui';
-import { PlusIcon, ArrowLeftIcon, TrashIcon, EditIcon, XIcon, CheckIcon, ExclamationTriangleIcon } from './icons';
+import { PlusIcon, ArrowLeftIcon, TrashIcon, EditIcon, XIcon, CheckIcon, ExclamationTriangleIcon, CalendarDaysIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
@@ -298,7 +298,8 @@ export const PrezentaManagement: React.FC<{
     tipuriAbonament: TipAbonament[];
     anunturi: AnuntPrezenta[];
     onViewSportiv: (sportiv: Sportiv) => void;
-}> = ({ sportivi, setSportivi, antrenamente, setAntrenamente, grupe, onBack, plati, setPlati, tipuriAbonament, anunturi, onViewSportiv }) => {
+    onNavigate: (view: View) => void;
+}> = ({ sportivi, setSportivi, antrenamente, setAntrenamente, grupe, onBack, plati, setPlati, tipuriAbonament, anunturi, onViewSportiv, onNavigate }) => {
     
     const [selectedAntrenamentId, setSelectedAntrenamentId] = useLocalStorage<string | null>('phi-hau-selected-antrenament-id', null);
     const selectedAntrenament = useMemo(() => (antrenamente || []).find(p => p.id === selectedAntrenamentId) || null, [antrenamente, selectedAntrenamentId]);
@@ -348,7 +349,7 @@ export const PrezentaManagement: React.FC<{
             setAntrenamente(prev => prev.filter(p => p.id !== id));
             showSuccess("Succes", "Antrenamentul a fost șters.");
         } catch (err: unknown) {
-// FIX: In `confirmDeleteAntrenament`, cast the `unknown` error type to `Error` and access its `message` property before passing it to `showError` to fix the TypeScript error.
+            // FIX: Cast unknown error to Error type to access message property for showError.
             showError("Eroare la ștergere", (err as Error)?.message || String(err));
         } finally {
             setIsDeleting(false);
@@ -385,12 +386,18 @@ export const PrezentaManagement: React.FC<{
                 <Button onClick={handleOpenAdd} variant="info"><PlusIcon className="w-5 h-5 mr-2" /> Antrenament Nou</Button>
             </div>
 
-            <Card className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input label="Filtrează după Dată" name="data" type="date" value={filters.data} onChange={handleFilterChange} />
-                <Select label="Filtrează după Grupă" name="grupa" value={filters.grupa} onChange={handleFilterChange}>
-                    <option value="">Toate Grupele</option>
-                    {(grupe || []).map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
-                </Select>
+            <Card className="mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
+                    <Input label="Filtrează după Dată" name="data" type="date" value={filters.data} onChange={handleFilterChange} />
+                    <Select label="Filtrează după Grupă" name="grupa" value={filters.grupa} onChange={handleFilterChange}>
+                        <option value="">Toate Grupele</option>
+                        {(grupe || []).map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
+                    </Select>
+                    <Button onClick={() => onNavigate('activitati')} variant="secondary" className="w-full lg:w-auto justify-self-end">
+                        <CalendarDaysIcon className="w-5 h-5 mr-2" />
+                        Generează Antrenamente Recurente
+                    </Button>
+                </div>
             </Card>
 
             <Card className="p-0 overflow-hidden">
@@ -405,18 +412,29 @@ export const PrezentaManagement: React.FC<{
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-700">
-                            {filteredAntrenamente.map(p => (
-                                <tr key={p.id} className="hover:bg-slate-700/50">
+                            {filteredAntrenamente.map(p => {
+                                const now = new Date();
+                                let isPast = false;
+                                if (p.data && p.ora_start) {
+                                    const trainingDateTime = new Date(`${p.data}T${p.ora_start}`);
+                                    isPast = trainingDateTime < now;
+                                }
+
+                                return (
+                                <tr key={p.id} className={`transition-all ${isPast ? 'opacity-60 bg-slate-800/30' : ''} hover:bg-slate-700/50 hover:opacity-100`}>
                                     <td className="p-4 font-medium text-white">{p.ora_start}</td>
                                     <td className="p-4 text-slate-300">{p.grupe?.denumire || 'Antrenament Liber'}</td>
-                                    <td className="p-4 text-center font-bold text-brand-secondary">{p.prezenta.length}</td>
+                                    <td className="p-4 text-center">
+                                         <span className={`inline-block font-bold text-sm px-3 py-1 rounded-full ${isPast ? 'bg-slate-600 text-slate-300' : 'bg-sky-900/50 text-sky-300'}`}>{p.prezenta.length}</span>
+                                    </td>
                                     <td className="p-4 text-right">
-                                        <Button onClick={() => handleSetSelectedAntrenament(p as Antrenament)} variant="primary" size="sm">
+                                        <Button onClick={() => handleSetSelectedAntrenament(p as Antrenament)} variant={isPast ? "secondary" : "primary"} size="sm">
                                             Gestionează Prezența
                                         </Button>
                                     </td>
                                 </tr>
-                            ))}
+                            );
+                            })}
                         </tbody>
                     </table>
                     {filteredAntrenamente.length === 0 && <p className="p-4 text-center text-slate-400">Niciun antrenament înregistrat conform filtrelor.</p>}

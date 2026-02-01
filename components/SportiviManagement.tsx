@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions } from '../types';
 import { Button, Modal, Input, Select, Card, Switch } from './ui';
-import { PlusIcon, ArrowLeftIcon, ShieldCheckIcon, WalletIcon } from './icons';
+import { PlusIcon, ArrowLeftIcon, ShieldCheckIcon, WalletIcon, UserXIcon, UserCheckIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
@@ -87,8 +87,9 @@ export const SportiviManagement: React.FC<{
     const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
     const [sportivForWallet, setSportivForWallet] = useState<Sportiv | null>(null);
     const [selectedSportivForHighlight, setSelectedSportivForHighlight] = useState<Sportiv | null>(null);
+    const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
 
-    const { showError } = useError();
+    const { showError, showSuccess } = useError();
     
     const [filters, setFilters] = useLocalStorage('phi-hau-sportivi-filters', {
         searchTerm: '',
@@ -112,6 +113,45 @@ export const SportiviManagement: React.FC<{
         setSelectedSportivForHighlight(sportiv);
         onViewSportiv(sportiv);
     };
+
+    const handleToggleStatus = useCallback(async (sportiv: Sportiv) => {
+        if (!supabase) {
+            showError("Eroare", "Clientul Supabase nu este configurat.");
+            return;
+        }
+    
+        const newStatus = sportiv.status === 'Activ' ? 'Inactiv' : 'Activ';
+        
+        setLoadingStates(prev => ({ ...prev, [sportiv.id]: true }));
+    
+        try {
+            const { data, error } = await supabase
+                .from('sportivi')
+                .update({ status: newStatus })
+                .eq('id', sportiv.id)
+                .select('*, cluburi(*), sportivi_roluri(roluri(id, nume))')
+                .single();
+            
+            if (error) {
+                throw error;
+            }
+            
+            if (data) {
+                const updatedSportiv = {
+                    ...data,
+                    roluri: (((data as any).sportivi_roluri?.map((sr: any) => sr.roluri)) || []).filter(Boolean),
+                };
+                delete (updatedSportiv as any).sportivi_roluri;
+                
+                setSportivi(prev => prev.map(s => s.id === sportiv.id ? updatedSportiv as Sportiv : s));
+                showSuccess("Succes!", `Statusul pentru ${sportiv.nume} ${sportiv.prenume} a fost schimbat în '${newStatus}'.`);
+            }
+        } catch(err: any) {
+            showError("Eroare la actualizarea statusului", err.message);
+        } finally {
+            setLoadingStates(prev => ({ ...prev, [sportiv.id]: false }));
+        }
+    }, [setSportivi, showError, showSuccess]);
 
     const familyBalances = useMemo(() => {
         const balances = new Map<string, number>();
@@ -218,11 +258,21 @@ export const SportiviManagement: React.FC<{
             headerClassName: 'text-right',
             cellClassName: 'text-right',
             render: (s) => (
-                <div className="flex justify-end items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                    <Button size="sm" variant="info" onClick={() => handleOpenWallet(s)} title="Portofel Sportiv" className="!p-2">
+                <div className="flex justify-end items-center gap-2">
+                    <Button size="sm" variant="info" onClick={(e) => { e.stopPropagation(); handleOpenWallet(s); }} title="Portofel Sportiv" className="!p-2">
                         <WalletIcon className="w-4 h-4" />
                     </Button>
-                    <Button size="sm" variant="secondary" onClick={() => setAccountSettingsSportiv(s)} title="Setări Cont de Acces" className="!p-2">
+                    <Button
+                        size="sm"
+                        variant={s.status === 'Activ' ? 'warning' : 'success'}
+                        onClick={(e) => { e.stopPropagation(); handleToggleStatus(s); }}
+                        title={s.status === 'Activ' ? 'Dezactivează sportiv' : 'Activează sportiv'}
+                        className="!p-2"
+                        isLoading={loadingStates[s.id]}
+                    >
+                        {s.status === 'Activ' ? <UserXIcon className="w-4 h-4" /> : <UserCheckIcon className="w-4 h-4" />}
+                    </Button>
+                    <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); setAccountSettingsSportiv(s); }} title="Setări Cont de Acces" className="!p-2">
                         <ShieldCheckIcon className="w-4 h-4" />
                     </Button>
                 </div>
@@ -352,7 +402,7 @@ export const SportiviManagement: React.FC<{
             {isWalletModalOpen && sportivForWallet && (
                 <SportivWallet
                     sportiv={sportivForWallet}
-                    familie={(familii || []).find(f => f.id === sportivForWallet.familie_id)}
+                    familie={familii.find(f => f.id === sportivForWallet.familie_id)}
                     allPlati={plati}
                     allTranzactii={tranzactii}
                     setTranzactii={setTranzactii}

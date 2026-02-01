@@ -165,7 +165,7 @@ const AttendanceDetail: React.FC<AttendanceDetailProps> = ({ antrenament, onBack
             const athletesWithExpiredSubs = presentAthletes.filter(s => isSubscriptionExpired(s, allPlati)).map(s => `${s.nume} ${s.prenume}`);
             const report = { ID_Antrenament: antrenament.id, Numar_Prezenti: presentIds.size, AbonamentExpirat: athletesWithExpiredSubs };
             setReportData(JSON.stringify(report, null, 2));
-// FIX: The `err` variable in a catch block is of type 'unknown' or 'any'. It must be converted to a string before being passed to `showError` to avoid type errors.
+// FIX: The `err` variable in a catch block is of type 'unknown'. It must be converted to a string before being passed to `showError` to avoid type errors.
         } catch (err: any) {
             showError("Eroare la salvare", (err as Error)?.message || String(err));
         } finally {
@@ -263,7 +263,6 @@ export const PrezentaManagement: React.FC<{
             if (error) { showError("Eroare la actualizare", error); } 
             else if (data) { 
                 const prezentaRaw = (data as any).prezenta_antrenament;
-                // FIX: In `handleSaveAntrenament`, Supabase's response for a one-to-many relationship (`prezenta_antrenament`) can be a single object if there's only one related row. This was causing a `.map()` error on a non-array. The code now correctly normalizes `prezentaRaw` into an array, ensuring type safety and preventing runtime errors.
                 const prezentaArray: { sportiv_id: string }[] = prezentaRaw ? (Array.isArray(prezentaRaw) ? prezentaRaw : [prezentaRaw]) : [];
                 const formatted: Antrenament = { ...data, sportivi_prezenti_ids: prezentaArray.map((ps: any) => ps.sportiv_id) };
                 setAntrenamente(prev => prev.map(p => p.id === data.id ? formatted : p));

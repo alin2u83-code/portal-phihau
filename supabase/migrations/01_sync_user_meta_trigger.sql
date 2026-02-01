@@ -1,9 +1,9 @@
 -- ====================================================================
 -- Sincronizare Metadate Utilizator pentru Optimizare RLS
--- v2.0 - Include `rol_activ_context`
+-- v2.0 - Include `rol_activ_context` și folosește `utilizator_roluri_multicont`
 -- ====================================================================
 -- Scop: La fiecare modificare a clubului, rolurilor sau rolului activ
--- al unui sportiv, se copiază aceste date critice în `raw_user_meta_data`
+-- al unui utilizator, se copiază aceste date critice în `raw_user_meta_data`
 -- din `auth.users`. Acest lucru permite politicilor RLS să citească
 -- datele direct din JWT (via `auth.jwt()`) fără a interoga tabelele
 -- publice, evitând astfel eroarea de 'infinite recursion'.
@@ -12,29 +12,29 @@
 CREATE OR REPLACE FUNCTION public.sync_user_metadata_from_profile()
 RETURNS TRIGGER AS $$
 DECLARE
-  target_sportiv_id uuid;
   target_user_id uuid;
+  target_sportiv_id uuid;
   target_club_id uuid;
   target_rol_activ text;
   roles_array text[];
 BEGIN
-  -- Determină ID-ul sportivului afectat de operațiune
-  IF TG_TABLE_NAME = 'sportivi' THEN
-    target_sportiv_id := COALESCE(NEW.id, OLD.id);
-  ELSE
-    target_sportiv_id := COALESCE(NEW.sportiv_id, OLD.sportiv_id);
+  -- Determină ID-ul utilizatorului afectat de operațiune
+  IF TG_TABLE_NAME = 'utilizator_roluri_multicont' THEN
+    target_user_id := COALESCE(NEW.user_id, OLD.user_id);
+  ELSE -- Presupunem că este tabela 'sportivi'
+    target_user_id := COALESCE(NEW.user_id, OLD.user_id);
   END IF;
 
-  -- Obține datele relevante din profilul sportivului
-  SELECT user_id, club_id, rol_activ_context INTO target_user_id, target_club_id, target_rol_activ
-  FROM public.sportivi
-  WHERE id = target_sportiv_id;
-  
-  -- Dacă nu există un cont de autentificare asociat, ieșim
   IF target_user_id IS NULL THEN
     RETURN NULL;
   END IF;
 
+  -- Obține datele relevante din profilul primar al sportivului (primul găsit)
+  SELECT id, club_id, rol_activ_context INTO target_sportiv_id, target_club_id, target_rol_activ
+  FROM public.sportivi
+  WHERE user_id = target_user_id
+  LIMIT 1;
+  
   -- Colectează toate rolurile din noua tabelă multi-cont
   SELECT array_agg(rol_denumire)
   INTO roles_array

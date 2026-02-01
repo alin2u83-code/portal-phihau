@@ -2,10 +2,11 @@
 -- Script Complet pentru Revizuirea Securității RLS
 -- v8.1 - Bazat pe Contextul de Rol din JWT
 -- =================================================================
--- Acest script execută 3 pași critici:
+-- Acest script execută 2 pași critici:
 -- 1. Curăță politicile vechi și funcțiile helper problematice.
--- 2. Modifică trigger-ul de sincronizare a metadatelor pentru a include `rol_activ_context` în JWT.
--- 3. Implementează un set nou de politici RLS, securizate și bazate pe contextul din JWT.
+-- 2. Implementează un set nou de politici RLS, securizate,
+--    folosind `SECURITY DEFINER` pentru a rupe recursivitatea și
+--    funcții bazate pe JWT pentru performanță.
 -- =================================================================
 
 -- =================================================================
@@ -41,57 +42,8 @@ BEGIN
 END;
 $$;
 
-
 -- =================================================================
--- PASUL 2: Actualizarea Sincronizării Metadatelor pentru JWT
--- =================================================================
-
--- Funcția de trigger este deja în `01_sync_user_meta_trigger.sql`, dar o asigurăm aici
--- MODIFICARE: Se adaugă `rol_activ_context` pentru a fi inclus în JWT
-CREATE OR REPLACE FUNCTION public.sync_user_metadata_from_profile()
-RETURNS TRIGGER AS $$
-DECLARE
-  target_sportiv_id uuid;
-  target_user_id uuid;
-  target_club_id uuid;
-  target_rol_activ text;
-  roles_array text[];
-BEGIN
-  IF TG_TABLE_NAME = 'sportivi' THEN
-    target_sportiv_id := COALESCE(NEW.id, OLD.id);
-  ELSE
-    target_sportiv_id := COALESCE(NEW.sportiv_id, OLD.sportiv_id);
-  END IF;
-
-  SELECT user_id, club_id, rol_activ_context INTO target_user_id, target_club_id, target_rol_activ
-  FROM public.sportivi
-  WHERE id = target_sportiv_id;
-  
-  IF target_user_id IS NULL THEN
-    RETURN NULL;
-  END IF;
-
-  -- Folosim noua structură de roluri multi-cont
-  SELECT array_agg(rol_denumire)
-  INTO roles_array
-  FROM public.utilizator_roluri_multicont
-  WHERE user_id = target_user_id;
-
-  UPDATE auth.users
-  SET raw_user_meta_data = raw_user_meta_data || jsonb_build_object(
-    'club_id', target_club_id,
-    'rol_activ_context', target_rol_activ,
-    'roles', COALESCE(roles_array, '{}')
-  )
-  WHERE id = target_user_id;
-
-  RETURN NULL;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-
--- =================================================================
--- PASUL 3: Funcții Helper și Politici RLS Noi, bazate pe JWT
+-- PASUL 2: Funcții Helper și Politici RLS Noi, bazate pe JWT
 -- =================================================================
 
 -- Funcții helper care citesc din JWT (performant și sigur)
@@ -103,7 +55,7 @@ CREATE OR REPLACE FUNCTION public.get_active_club_id() RETURNS uuid AS $$
 BEGIN RETURN (auth.jwt() -> 'user_metadata' ->> 'club_id')::uuid; END;
 $$ LANGUAGE plpgsql STABLE;
 
--- Funcție `SECURITY DEFINER` solicitată, pentru verificare SUPER ADMIN
+-- Funcție `SECURITY DEFINER` solicitată, pentru verificare ADMIN
 -- Aceasta ocolește RLS pentru a verifica rolurile, rupând recursivitatea.
 CREATE OR REPLACE FUNCTION public.check_is_admin()
 RETURNS boolean AS $$
@@ -162,7 +114,7 @@ CREATE POLICY "Staff-ul clubului gestionează plățile clubului" ON public.plat
     FOR ALL USING ((get_active_role() = 'Admin Club' OR get_active_role() = 'Instructor')
         AND EXISTS (
             SELECT 1 FROM public.sportivi s
-            WHERE (s.id = plati.sportiv_id OR s.familie_id = plati.familie_id)
+            WHERE (s.id = plati.sportiv_id OR (s.familie_id IS NOT NULL AND s.familie_id = plati.familie_id))
             AND s.club_id = get_active_club_id()
         )
     );

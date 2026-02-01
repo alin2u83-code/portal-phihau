@@ -83,39 +83,40 @@ interface AttendanceDetailProps {
     allPlati: Plata[];
 }
 
-const AthleteRow: React.FC<{
-    sportiv: Sportiv;
-    isPresent: boolean;
-    isUpdating: boolean;
-    hasViza: boolean;
-    onToggle: (id: string) => void;
-    onRemove?: (id: string) => void;
-}> = ({ sportiv, isPresent, isUpdating, hasViza, onToggle, onRemove }) => (
-    <div className="flex items-center gap-2">
-        <label htmlFor={`att-${sportiv.id}`} className={`flex-grow flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${isPresent ? 'bg-green-900/30 border-green-700/50 opacity-100' : 'bg-slate-800/50 border-slate-700 hover:bg-slate-800 opacity-60 hover:opacity-100'}`}>
-            <input 
-                id={`att-${sportiv.id}`} 
-                type="checkbox" 
-                className="h-6 w-6 shrink-0 rounded border-slate-500 bg-slate-900 text-brand-secondary focus:ring-brand-secondary focus:ring-offset-slate-800 disabled:opacity-50" 
-                checked={isPresent} 
-                onChange={() => onToggle(sportiv.id)} 
-                disabled={isUpdating}
-            />
-            <span className={`font-medium flex-grow flex items-center gap-2 ${hasViza ? 'text-white' : 'text-red-400'}`}>
-                {!hasViza && <ExclamationTriangleIcon className="w-4 h-4" title="Viză medicală expirată!" />}
-                {sportiv.nume} {sportiv.prenume}
-            </span>
-            <span className={`font-bold text-sm px-2 py-1 rounded-md ${isPresent ? 'text-green-300' : 'text-slate-500'}`}>{isPresent ? 'Prezent' : 'Absent'}</span>
-        </label>
-        {onRemove && (
-            <Button size="sm" variant="danger" onClick={() => onRemove(sportiv.id)} className="!p-2 shrink-0" title="Elimină de la antrenament">
-                <TrashIcon className="w-4 h-4" />
-            </Button>
-        )}
-    </div>
-);
-
 const AttendanceDetail: React.FC<AttendanceDetailProps> = ({ antrenament, onBack, setAntrenamente, allSportivi, allPlati }) => {
+    // FIX: Moved AthleteRow inside AttendanceDetail to ensure it is always in scope.
+    const AthleteRow: React.FC<{
+        sportiv: Sportiv;
+        isPresent: boolean;
+        isUpdating: boolean;
+        hasViza: boolean;
+        onToggle: (id: string) => void;
+        onRemove?: (id: string) => void;
+    }> = ({ sportiv, isPresent, isUpdating, hasViza, onToggle, onRemove }) => (
+        <div className="flex items-center gap-2">
+            <label htmlFor={`att-${sportiv.id}`} className={`flex-grow flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${isPresent ? 'bg-green-900/30 border-green-700/50 opacity-100' : 'bg-slate-800/50 border-slate-700 hover:bg-slate-800 opacity-60 hover:opacity-100'}`}>
+                <input 
+                    id={`att-${sportiv.id}`} 
+                    type="checkbox" 
+                    className="h-6 w-6 shrink-0 rounded border-slate-500 bg-slate-900 text-brand-secondary focus:ring-brand-secondary focus:ring-offset-slate-800 disabled:opacity-50" 
+                    checked={isPresent} 
+                    onChange={() => onToggle(sportiv.id)} 
+                    disabled={isUpdating}
+                />
+                <span className={`font-medium flex-grow flex items-center gap-2 ${hasViza ? 'text-white' : 'text-red-400'}`}>
+                    {!hasViza && <ExclamationTriangleIcon className="w-4 h-4" title="Viză medicală expirată!" />}
+                    {sportiv.nume} {sportiv.prenume}
+                </span>
+                <span className={`font-bold text-sm px-2 py-1 rounded-md ${isPresent ? 'text-green-300' : 'text-slate-500'}`}>{isPresent ? 'Prezent' : 'Absent'}</span>
+            </label>
+            {onRemove && (
+                <Button size="sm" variant="danger" onClick={() => onRemove(sportiv.id)} className="!p-2 shrink-0" title="Elimină de la antrenament">
+                    <TrashIcon className="w-4 h-4" />
+                </Button>
+            )}
+        </div>
+    );
+
     const [groupAthletes, setGroupAthletes] = useState<Sportiv[]>([]);
     const [presentIds, setPresentIds] = useState<Set<string>>(new Set());
     const [loading, setLoading] = useState(true);
@@ -147,7 +148,8 @@ const AttendanceDetail: React.FC<AttendanceDetailProps> = ({ antrenament, onBack
             }
             
             const { data: athletesData, error: athletesError } = await supabase.from('sportivi').select('*').eq('grupa_id', antrenament.grupa_id).order('nume', { ascending: true });
-            if (athletesError) { showError("Eroare sportivi", athletesError); setLoading(false); return; }
+            // FIX: Pass the error message string to showError.
+            if (athletesError) { showError("Eroare sportivi", athletesError.message); setLoading(false); return; }
             
             const fetchedGroupAthletes = athletesData || [];
             setGroupAthletes(fetchedGroupAthletes);
@@ -192,6 +194,7 @@ const AttendanceDetail: React.FC<AttendanceDetailProps> = ({ antrenament, onBack
             }
             setAntrenamente(prev => prev.map(a => a.id === antrenament.id ? { ...a, prezenta: Array.from(newPresentIds).map(id => ({ sportiv_id: id, status: 'prezent' })) } : a));
         } catch (err) {
+            // FIX: Pass the error message string to showError instead of the whole error object.
             showError("Eroare la actualizare", (err as Error)?.message || String(err));
             setPresentIds(presentIds); // Revert UI
         } finally {

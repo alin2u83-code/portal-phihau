@@ -21,12 +21,12 @@ export const getGradStyle = (gradName: string): string => {
     
     // Prioritizează 'albastru' pentru a evita conflictul cu 'cap alb'
     if (name.includes('albastru')) {
-        return 'bg-white text-blue-600 border-2 border-blue-600';
+        return 'bg-white text-blue-700 border border-blue-700';
     }
     
     // Regulă specifică pentru 'Cap Alb' / 'Câp Alb' / 'C.V.'
     if (name.includes('cap alb') || name.includes('violet') || name.includes('cv')) {
-        return 'bg-violet-500 text-white'; // #8B5CF6 este violet-500
+        return 'bg-violet-600 text-white';
     }
     
     if (name.includes('6 dang') || name.includes('7 dang') || name.includes('8 dang')) {

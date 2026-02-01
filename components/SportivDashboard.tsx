@@ -55,33 +55,26 @@ const VizaMedicalaCard: React.FC<{ plati: Plata[]; sportivId: string }> = ({ pla
 
 // --- Componenta Istoric Grade ---
 const IstoricGradeCard: React.FC<{ 
-    participari: InscriereExamen[];
-    examene: SesiuneExamen[];
     grade: Grad[];
     istoricGrade: IstoricGrade[];
     sportivId: string;
-}> = ({ participari, examene, grade, istoricGrade, sportivId }) => {
+}> = ({ grade, istoricGrade, sportivId }) => {
     
     const gradeHistory = useMemo(() => {
-        const examGrades = participari
-            .filter(p => p.sportiv_id === sportivId && p.rezultat === 'Admis')
-            .map(p => {
-                const examen = examene.find(e => e.id === p.sesiune_id);
-                const grad = grade.find(g => g.id === p.grad_vizat_id);
-                return { date: examen?.data, gradNume: grad?.nume, source: 'Examen' };
-            });
-
-        const manualGrades = istoricGrade
+        return istoricGrade
             .filter(hg => hg.sportiv_id === sportivId)
             .map(hg => {
                 const grad = grade.find(g => g.id === hg.grad_id);
-                return { date: hg.data_obtinere, gradNume: grad?.nume, source: hg.sesiune_examen_id ? 'Examen (Corecție)' : 'Manual' };
-            });
-
-        return [...examGrades, ...manualGrades]
-            .filter((g): g is { date: string; gradNume: string; source: string } => !!(g.date && g.gradNume))
+                if (!grad) return null;
+                return {
+                    date: hg.data_obtinere,
+                    gradNume: grad.nume,
+                    source: hg.sesiune_examen_id ? 'Examen' : 'Manual'
+                };
+            })
+            .filter((g): g is { date: string; gradNume: string; source: string } => g !== null)
             .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    }, [participari, examene, grade, istoricGrade, sportivId]);
+    }, [grade, istoricGrade, sportivId]);
 
     return (
         <Card>
@@ -417,9 +410,27 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                 <div className="lg:col-span-2 space-y-6">
                     <ProgramAntrenament grupaId={viewedUser.grupa_id} grupe={grupe} clubId={viewedUser.club_id} />
                     <VizaMedicalaCard plati={plati} sportivId={viewedUser.id} />
-                    <IstoricGradeCard participari={participari} examene={examene} grade={grade} istoricGrade={istoricGrade} sportivId={viewedUser.id} />
+                    <IstoricGradeCard grade={grade} istoricGrade={istoricGrade} sportivId={viewedUser.id} />
                 </div>
             </div>
+
+            {canSwitchRoles && (
+                <Card className="animate-fade-in-down" style={{ animationDelay: '300ms' }}>
+                    <h3 className="text-lg font-bold text-white mb-4">Comută Rol Activ</h3>
+                    <div className="flex flex-wrap gap-2">
+                        {currentUser.roluri.map(rol => (
+                            <Button 
+                                key={rol.id}
+                                variant={activeRole === rol.nume ? 'primary' : 'secondary'}
+                                onClick={() => onSwitchRole(rol.nume)}
+                                disabled={isSwitchingRole}
+                            >
+                                {rol.nume}
+                            </Button>
+                        ))}
+                    </div>
+                </Card>
+            )}
         </div>
     );
 };

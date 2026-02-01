@@ -13,8 +13,8 @@ interface State {
   error?: Error;
 }
 
-// FIX: ErrorBoundary must be a class component to use getDerivedStateFromError and componentDidCatch lifecycle methods.
-// The errors regarding missing `setState` and `props` indicate the component was likely a functional component, which cannot function as an error boundary.
+// FIX: Converted ErrorBoundary to a class component to correctly implement error boundary logic.
+// This allows the use of getDerivedStateFromError and componentDidCatch lifecycle methods.
 class ErrorBoundary extends React.Component<Props, State> {
   public state: State = {
     hasError: false,
@@ -22,25 +22,29 @@ class ErrorBoundary extends React.Component<Props, State> {
   };
 
   public static getDerivedStateFromError(error: Error): State {
+    // Update state so the next render will show the fallback UI.
     return { hasError: true, error };
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    // You can also log the error to an error reporting service.
     console.error("Uncaught error:", error, errorInfo);
   }
 
   public handleRedirect = () => {
-    // FIX: Use 'this.setState' to update the state in a class component. This was causing an error because functional components use `useState` hook instead.
+    // FIX: Use 'this.setState' to update the state in a class component.
     this.setState({ hasError: false, error: undefined });
-    // FIX: Access props via 'this.props' in a class component. Functional components access props directly from arguments.
+    // FIX: Access props via 'this.props' in a class component.
     if (this.props.onNavigate) {
-        // FIX: Access props via 'this.props' in a class component.
+        // FIX: Access onNavigate from props.
         this.props.onNavigate('dashboard');
     }
   }
 
   public render() {
+    // FIX: Access state via 'this.state' in a class component.
     if (this.state.hasError) {
+      // You can render any custom fallback UI.
       return (
         <div className="p-8 text-center bg-red-900/50 text-red-300 rounded-lg border border-red-700">
           <h1 className="text-2xl font-bold">A apărut o eroare neașteptată.</h1>

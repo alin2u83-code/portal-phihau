@@ -329,7 +329,6 @@ interface UserManagementProps {
 export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSportivi, onBack, isEmbedded = false, currentUser, setCurrentUser, allRoles, setAllRoles, clubs, permissions }) => {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [newRoleIds, setNewRoleIds] = useState<string[]>([]);
-    const [userListFeedback, setUserListFeedback] = useState<{type: 'success' | 'error', message: string} | null>(null);
     const [isCreateStaffModalOpen, setIsCreateStaffModalOpen] = useState(false);
 
     const { showError, showSuccess } = useError();
@@ -408,16 +407,15 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
         }
         
         try {
-            // Delete existing roles
+            // Delete existing roles for this specific sportiv_id context
             const { error: deleteError } = await supabase
                 .from('utilizator_roluri_multicont')
                 .delete()
-                .eq('user_id', targetUser.user_id)
                 .eq('sportiv_id', targetUser.id);
 
             if (deleteError) throw deleteError;
             
-            // Prepare new roles to insert
+            // Prepare new roles to insert for this specific context
             const rolesToInsert = finalRoleIds.map(roleId => {
                 const role = allRoles.find(r => r.id === roleId);
                 if (!role) return null;
@@ -445,7 +443,6 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
 
         } catch (error: any) {
             showError("Eroare la schimbarea rolului", error.message);
-            return;
         }
     };
 
@@ -512,8 +509,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                     setSportivi(prev => prev.map(s => s.id === selectedUserForAccount.id ? updatedUser as Sportiv : s));
                     
                     setIsCreateAccountModalOpen(false);
-                    setUserListFeedback({ type: 'success', message: `Sportivul a fost asociat cu succes contului existent!` });
-                    setTimeout(() => setUserListFeedback(null), 4000);
+                    showSuccess("Asociere Reușită", `Sportivul a fost asociat cu succes contului existent!`);
                 }
             }
         }
@@ -580,8 +576,6 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                 
                 setIsCreateAccountModalOpen(false);
                 showSuccess("Cont Creat", `Contul pentru ${selectedUserForAccount.nume} a fost creat. Utilizatorul va trebui să confirme adresa de email.`);
-                setUserListFeedback({ type: 'success', message: `Cont creat pentru ${selectedUserForAccount.nume}. Este necesară confirmarea adresei de email.` });
-                setTimeout(() => setUserListFeedback(null), 5000);
             }
         } else {
             if(adminSession) {
@@ -621,12 +615,6 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
         <div>
             {!isEmbedded && onBack && (
                 <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
-            )}
-
-            {userListFeedback && (
-                <div className={`p-3 rounded-md mb-4 text-center font-semibold text-white ${userListFeedback.type === 'success' ? 'bg-green-600/50' : 'bg-red-600/50'}`}>
-                    {userListFeedback.message}
-                </div>
             )}
             
             <MyProfile user={currentUser} setSportivi={setSportivi} setCurrentUser={setCurrentUser} />

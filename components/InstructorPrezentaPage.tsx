@@ -199,7 +199,8 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
             showSuccess("Succes", "Prezența a fost salvată!");
 
         } catch (err) {
-            // FIX: Safely handle the error object by casting it to Error and providing a fallback.
+            // FIX: Argument of type 'unknown' is not assignable to parameter of type 'string'.
+            // Safely handle the error object by casting it to Error and providing a fallback.
             showError("Eroare la salvarea prezenței", (err as Error)?.message || String(err));
         }
     };

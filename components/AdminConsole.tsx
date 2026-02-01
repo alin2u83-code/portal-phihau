@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Rol, View } from '../types';
+import { Rol, View, User, Club, Permissions } from '../types';
 import { Button, Card } from './ui';
 import { ArrowLeftIcon } from './icons';
 import { IdentitySwitcher } from './IdentitySwitcher';
 import { useError } from './ErrorProvider';
 import { supabase } from '../supabaseClient';
+import { UserRoleManager } from './UserRoleManager';
 
 const AddBogdanButton = () => {
     const { showError, showSuccess } = useError();
@@ -79,12 +80,37 @@ const AddBogdanButton = () => {
 };
 
 interface AdminConsoleProps {
-    onSwitchRole: (roleName: Rol['nume']) => void;
-    isSwitchingRole: boolean;
+    currentUser: User;
+    userRoles: any[];
+    activeRoleContext: any;
     onBack: () => void;
+    sportivi: User[];
+    allRoles: Rol[];
+    clubs: Club[];
+    permissions: Permissions;
 }
 
-export const AdminConsole: React.FC<AdminConsoleProps> = ({ onSwitchRole, isSwitchingRole, onBack }) => {
+export const AdminConsole: React.FC<AdminConsoleProps> = ({ currentUser, userRoles, activeRoleContext, onBack, sportivi, allRoles, clubs, permissions }) => {
+    const [isSwitchingRole, setIsSwitchingRole] = useState(false);
+    const { showError } = useError();
+    
+    const handleSwitchRole = async (roleContext: any) => {
+        if (!supabase) return;
+        setIsSwitchingRole(true);
+
+        const { error: rpcError } = await supabase.rpc('set_active_role', {
+            p_role_name: roleContext.rol_denumire
+        });
+
+        if (rpcError) {
+            showError("Eroare la comutarea rolului", rpcError.message);
+            setIsSwitchingRole(false);
+        } else {
+            // Reîmprospătarea paginii va prelua noul token JWT cu metadatele actualizate
+            window.location.reload();
+        }
+    };
+    
     return (
         <div className="space-y-8 animate-fade-in-down">
             <Button onClick={onBack} variant="secondary">
@@ -93,10 +119,23 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onSwitchRole, isSwit
             
             <header className="text-center">
                 <h1 className="text-4xl font-black text-white">Consola de Administrare</h1>
-                <p className="text-slate-400 mt-2">Comută rapid între contexte de rol pentru testare și execută acțiuni de development.</p>
+                <p className="text-slate-400 mt-2">Comută rapid între contextele de rol disponibile pentru contul tău.</p>
             </header>
 
-            <IdentitySwitcher onSwitchRole={onSwitchRole} isSwitchingRole={isSwitchingRole} />
+            <IdentitySwitcher 
+                userRoles={userRoles}
+                activeRoleContext={activeRoleContext}
+                onSwitchRole={handleSwitchRole}
+                isSwitchingRole={isSwitchingRole} 
+            />
+
+            <UserRoleManager
+                users={sportivi}
+                roles={allRoles}
+                clubs={clubs}
+                currentUser={currentUser}
+                permissions={permissions}
+            />
 
             <Card>
                  <h3 className="text-lg font-bold text-white mb-4">Acțiuni Specifice</h3>

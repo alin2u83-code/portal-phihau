@@ -231,16 +231,42 @@ const CreateStaffModal: React.FC<{
                 throw new Error(`Contul de autentificare a fost creat, dar profilul nu. Ștergeți manual utilizatorul cu email-ul ${formData.email} din panoul Supabase. Eroare: ${sportivError.message}`);
             }
 
-            const { error: roleError } = await supabase
-                .from('sportivi_roluri')
-                .insert({ sportiv_id: sportivData.id, rol_id: formData.rol_id });
+            const rolAtribuit = allRoles.find(r => r.id === formData.rol_id);
+            if (!rolAtribuit) throw new Error("Rolul selectat nu a fost găsit.");
 
+            const rolesToInsert = [
+                {
+                    user_id: newAuthUser.id,
+                    rol_denumire: rolAtribuit.nume,
+                    club_id: formData.club_id,
+                    sportiv_id: sportivData.id,
+                    is_primary: false,
+                }
+            ];
+            
+            // Every staff member is also a "Sportiv" contextually
+            const sportivRole = allRoles.find(r => r.nume === 'Sportiv');
+            if (sportivRole) {
+                rolesToInsert.push({
+                    user_id: newAuthUser.id,
+                    rol_denumire: 'Sportiv',
+                    club_id: formData.club_id,
+                    sportiv_id: sportivData.id,
+                    is_primary: true
+                });
+            }
+
+            const { error: roleError } = await supabase.from('utilizator_roluri_multicont').insert(rolesToInsert);
             if (roleError) {
-                throw new Error(`Profilul a fost creat, dar rolul nu a putut fi atribuit. Atribuiți-l manual din pagina de Management Utilizatori. Eroare: ${roleError.message}`);
+                throw new Error(`Profilul a fost creat, dar rolurile nu au putut fi atribuite. Eroare: ${roleError.message}`);
             }
             
-            const rolAtribuit = allRoles.find(r => r.id === formData.rol_id);
-            const finalSportivObject: Sportiv = { ...sportivData, roluri: rolAtribuit ? [rolAtribuit] : [] };
+            const finalRoles = [rolAtribuit];
+            if(sportivRole && rolAtribuit.nume !== 'Sportiv') {
+                finalRoles.push(sportivRole);
+            }
+            
+            const finalSportivObject: Sportiv = { ...sportivData, roluri: finalRoles };
 
             setSportivi(prev => [...prev, finalSportivObject]);
             showSuccess("Operațiune finalizată!", `${formData.nume} ${formData.prenume} a fost adăugat ca ${rolAtribuit?.nume}. Utilizatorul va trebui să-și schimbe parola la prima autentificare.`);
@@ -358,6 +384,10 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
         
         const targetUser = sportivi.find(s => s.id === userId);
         if (!targetUser) { showError("Eroare", "Utilizatorul țintă nu a fost găsit."); return; }
+        if (!targetUser.user_id) {
+            showError("Eroare", "Acest sportiv nu are un cont de utilizator asociat. Nu se pot asigna roluri.");
+            return;
+        }
 
         const targetUserMaxWeight = Math.max(0, ...(targetUser.roluri || []).map(r => roleWeights[r.nume] || 0));
         if (currentUserMaxWeight <= targetUserMaxWeight && currentUser.id !== targetUser.id) {
@@ -377,21 +407,46 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
             if (sportivRole) finalRoleIds.push(sportivRole.id);
         }
         
-        const { error: rpcError } = await supabase.rpc('schimba_rol_utilizator', {
-            p_user_id: userId,
-            p_role_ids: finalRoleIds
-        });
+        try {
+            // Delete existing roles
+            const { error: deleteError } = await supabase
+                .from('utilizator_roluri_multicont')
+                .delete()
+                .eq('user_id', targetUser.user_id)
+                .eq('sportiv_id', targetUser.id);
 
-        if (rpcError) {
-            showError("Eroare la schimbarea rolului", rpcError.message);
+            if (deleteError) throw deleteError;
+            
+            // Prepare new roles to insert
+            const rolesToInsert = finalRoleIds.map(roleId => {
+                const role = allRoles.find(r => r.id === roleId);
+                if (!role) return null;
+                return {
+                    user_id: targetUser.user_id,
+                    rol_denumire: role.nume,
+                    club_id: targetUser.club_id,
+                    sportiv_id: targetUser.id,
+                };
+            }).filter(Boolean);
+            
+            if (rolesToInsert.length > 0) {
+                const { error: insertError } = await supabase
+                    .from('utilizator_roluri_multicont')
+                    .insert(rolesToInsert as any[]);
+                
+                if (insertError) throw insertError;
+            }
+
+            const updatedRoles = allRoles.filter(r => finalRoleIds.includes(r.id));
+            setSportivi(prev => prev.map(s => s.id === userId ? { ...s, roluri: updatedRoles } : s));
+            
+            showSuccess("Succes", `Rolurile pentru ${targetUser.nume} au fost salvate!`);
+            setEditingId(null);
+
+        } catch (error: any) {
+            showError("Eroare la schimbarea rolului", error.message);
             return;
         }
-        
-        const updatedRoles = allRoles.filter(r => finalRoleIds.includes(r.id));
-        setSportivi(prev => prev.map(s => s.id === userId ? { ...s, roluri: updatedRoles } : s));
-        
-        showSuccess("Succes", `Rolurile pentru ${targetUser.nume} au fost salvate!`);
-        setEditingId(null);
     };
 
 

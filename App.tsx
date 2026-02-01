@@ -721,7 +721,6 @@ function App() {
                 permissions={permissions}
                 activeRole={activeRole!}
               />
-              {/* FIX: Corrected variable name from `isExpanded` to `isSidebarExpanded` */}
               <main className={`flex-1 transition-all duration-300 ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'}`}>
                 <div className="absolute top-4 right-8 z-30">
                   {currentUser && permissions.hasAdminAccess && <InAppNotifications currentUser={currentUser} />}

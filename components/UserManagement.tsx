@@ -546,6 +546,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
         if (signUpError) {
             if (signUpError.message.includes("User already exists")) {
                 setCreateAccountError(`Un cont cu email-ul "${createAccountForm.email}" există deja. Confirmați parola pentru a-l asocia.`);
+// FIX: Corrected typo from `setCreationStep` to `setAccountCreationStep`.
                 setAccountCreationStep('confirm_link');
             } else {
                 setCreateAccountError(`Eroare la crearea contului: ${signUpError.message}`);

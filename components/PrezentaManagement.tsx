@@ -347,6 +347,7 @@ export const PrezentaManagement: React.FC<{
             setAntrenamente(prev => prev.filter(p => p.id !== id));
             showSuccess("Succes", "Antrenamentul a fost șters.");
         } catch (err: unknown) {
+// FIX: In `confirmDeleteAntrenament`, cast the `unknown` error type to `Error` and access its `message` property before passing it to `showError` to fix the TypeScript error.
             showError("Eroare la ștergere", (err as Error)?.message || String(err));
         } finally {
             setIsDeleting(false);

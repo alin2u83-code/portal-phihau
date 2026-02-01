@@ -107,62 +107,55 @@ const IstoricGradeCard: React.FC<{
 };
 
 // --- Componenta Program Antrenament ---
-const ProgramAntrenament: React.FC<{ grupaId: string | null; grupe: Grupa[]; clubId: string | null }> = ({ grupaId, grupe, clubId }) => {
+const ProgramAntrenament: React.FC<{ grupaId: string | null; grupe: Grupa[] }> = ({ grupaId, grupe }) => {
     const zileSaptamanaOrdonate: Record<ProgramItem['ziua'], number> = { 'Luni': 1, 'Marți': 2, 'Miercuri': 3, 'Joi': 4, 'Vineri': 5, 'Sâmbătă': 6, 'Duminică': 7 };
+
+    const grupaCurenta = useMemo(() => grupe.find(g => g.id === grupaId), [grupaId, grupe]);
     
-    const grupeDeAfisat = useMemo(() => {
-        const allClubGroups = (grupe || []).filter(g => g.club_id === 'cbb0b228-b3e0-4735-9658-70999eb256c6');
-        const sortedGroups = [...allClubGroups].sort((a,b) => a.denumire.localeCompare(b.denumire));
-        if (grupaId) {
-            const userGroup = sortedGroups.find(g => g.id === grupaId);
-            return userGroup ? [userGroup] : sortedGroups;
-        }
-        return sortedGroups;
-    }, [grupaId, grupe, clubId]);
+    const programSortat = useMemo(() => {
+        if (!grupaCurenta?.program) return [];
+        return [...grupaCurenta.program]
+            .filter(p => p.is_activ !== false) // Show only active sessions
+            .sort((a, b) => {
+                const ziCompare = zileSaptamanaOrdonate[a.ziua] - zileSaptamanaOrdonate[b.ziua];
+                if (ziCompare !== 0) return ziCompare;
+                return a.ora_start.localeCompare(b.ora_start);
+            });
+    }, [grupaCurenta]);
 
     return (
         <Card>
-            <h3 className="text-lg font-bold text-white mb-2 animate-fade-in-down">Program Antrenament</h3>
-            {grupeDeAfisat.length === 0 ? (
-                <p className="text-sm text-slate-400 italic">Niciun program de antrenament disponibil.</p>
+            <h3 className="text-lg font-bold text-white mb-2 animate-fade-in-down">Programul Meu de Antrenament</h3>
+            {!grupaId || !grupaCurenta ? (
+                <p className="text-sm text-slate-400 italic">Contactați instructorul pentru alocarea la o grupă.</p>
             ) : (
-                 grupeDeAfisat.map((grupa, index) => {
-                    const programSortat = (grupa.program || [])
-                        .filter(p => p.is_activ !== false)
-                        .sort((a, b) => {
-                            const ziCompare = zileSaptamanaOrdonate[a.ziua] - zileSaptamanaOrdonate[b.ziua];
-                            if (ziCompare !== 0) return ziCompare;
-                            return a.ora_start.localeCompare(b.ora_start);
-                        });
-                    
-                    if (programSortat.length === 0) return null;
-
-                    return (
-                        <div key={grupa.id} className={index > 0 ? 'mt-4 pt-4 border-t border-slate-700' : ''}>
-                            <div className="text-sm text-slate-400 mb-3 font-bold">{grupa.denumire} - Sala: {grupa.sala || 'Nespecificată'}</div>
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-left text-sm">
-                                    <thead className="text-slate-400 text-xs uppercase">
-                                        <tr>
-                                            <th className="py-2">Ziua</th>
-                                            <th className="py-2">Ora Start</th>
-                                            <th className="py-2">Ora Sfârșit</th>
+                 <>
+                    <div className="text-sm text-slate-400 mb-4">{grupaCurenta.denumire} - Sala: {grupaCurenta.sala || 'Nespecificată'}</div>
+                    {programSortat.length > 0 ? (
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left text-sm">
+                                <thead className="text-slate-400 text-xs uppercase">
+                                    <tr>
+                                        <th className="py-2">Ziua</th>
+                                        <th className="py-2">Ora Start</th>
+                                        <th className="py-2">Ora Sfârșit</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-700">
+                                    {programSortat.map((item, index) => (
+                                        <tr key={index}>
+                                            <td className="py-2 font-semibold">{item.ziua}</td>
+                                            <td className="py-2">{item.ora_start}</td>
+                                            <td className="py-2">{item.ora_sfarsit}</td>
                                         </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-700">
-                                        {programSortat.map((item, pIndex) => (
-                                            <tr key={pIndex}>
-                                                <td className="py-2 font-semibold">{item.ziua}</td>
-                                                <td className="py-2">{item.ora_start}</td>
-                                                <td className="py-2">{item.ora_sfarsit}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
-                    );
-                 })
+                    ) : (
+                        <p className="text-sm text-slate-400 italic">Grupa curentă nu are un program definit.</p>
+                    )}
+                </>
             )}
         </Card>
     );
@@ -408,7 +401,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                      <AttendanceTracker currentUser={currentUser} antrenamente={antrenamente} onNavigate={onNavigate} />
                 </div>
                 <div className="lg:col-span-2 space-y-6">
-                    <ProgramAntrenament grupaId={viewedUser.grupa_id} grupe={grupe} clubId={viewedUser.club_id} />
+                    <ProgramAntrenament grupaId={viewedUser.grupa_id} grupe={grupe} />
                     <VizaMedicalaCard plati={plati} sportivId={viewedUser.id} />
                     <IstoricGradeCard grade={grade} istoricGrade={istoricGrade} sportivId={viewedUser.id} />
                 </div>

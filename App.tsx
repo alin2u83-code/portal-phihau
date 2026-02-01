@@ -608,7 +608,7 @@ function App() {
         return renderProtected(<RaportActivitate onBack={() => setActiveView('dashboard')} currentUser={currentUser!} />, permissions.isInstructor);
 
       case 'grupe':
-        return renderProtected(<GrupeManagement grupe={filteredData.grupe} setGrupe={setGrupe} onBack={() => setActiveView('dashboard')} currentUser={currentUser!} clubs={clubs} />, isAtLeastInstructor);
+        return renderProtected(<GrupeManagement grupe={filteredData.grupe} setGrupe={setGrupe} onBack={() => setActiveView('dashboard')} currentUser={currentUser!} clubs={clubs} sportivi={filteredData.sportivi} />, isAtLeastInstructor);
 
       case 'activitati':
         return renderProtected(<ProgramareActivitati antrenamente={filteredData.antrenamente} setAntrenamente={setAntrenamente} grupe={filteredData.grupe} onBack={() => setActiveView('dashboard')} />, isAtLeastInstructor);

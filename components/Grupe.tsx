@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Grupa, ProgramItem, User, Club } from '../types';
+import { Grupa, ProgramItem, User, Club, Sportiv } from '../types';
 import { Button, Modal, Input, Select } from './ui';
 import { PlusIcon, TrashIcon, EditIcon, ArrowLeftIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -107,8 +107,9 @@ interface GrupeManagementProps {
     onBack: () => void; 
     currentUser: User;
     clubs: Club[];
+    sportivi: Sportiv[];
 }
-export const GrupeManagement: React.FC<GrupeManagementProps> = ({ grupe, setGrupe, onBack, currentUser, clubs }) => {
+export const GrupeManagement: React.FC<GrupeManagementProps> = ({ grupe, setGrupe, onBack, currentUser, clubs, sportivi }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [grupaToEdit, setGrupaToEdit] = useState<Grupa | null>(null);
   const [grupaToDelete, setGrupaToDelete] = useState<Grupa | null>(null);
@@ -219,25 +220,29 @@ export const GrupeManagement: React.FC<GrupeManagementProps> = ({ grupe, setGrup
       </div>
       <div className="bg-slate-800 rounded-lg shadow-lg overflow-x-auto">
         <table className="w-full text-left min-w-[600px]">
-          <thead className="bg-slate-700"><tr><th className="p-4 font-semibold">Denumire</th><th className="p-4 font-semibold">Sală</th><th className="p-4 font-semibold">Program</th><th className="p-4 font-semibold text-right">Acțiuni</th></tr></thead>
+          <thead className="bg-slate-700"><tr><th className="p-4 font-semibold">Denumire</th><th className="p-4 font-semibold">Sală</th><th className="p-4 font-semibold text-center">Membri Activi</th><th className="p-4 font-semibold">Program</th><th className="p-4 font-semibold text-right">Acțiuni</th></tr></thead>
           <tbody className="divide-y divide-slate-700">
-            {grupe.map(grupa => (
-              <tr key={grupa.id}>
-                <td className="p-4 font-medium">{grupa.denumire}</td>
-                <td className="p-4">{grupa.sala}</td>
-                <td className="p-4">
-                    <div className="flex flex-wrap gap-1">
-                        {sortProgram(grupa.program).map((p, i) => <span key={p.id} className={`text-xs font-semibold px-2 py-1 rounded-full ${p.is_activ ?? true ? 'bg-slate-600 text-slate-200' : 'bg-slate-800 text-slate-500 line-through'}`}>{p.ziua} {p.ora_start}-{p.ora_sfarsit}</span>)}
-                    </div>
-                </td>
-                <td className="p-2 text-right w-32">
-                    <div className="flex justify-end gap-2">
-                        <Button onClick={() => handleOpenEdit(grupa)} variant="primary" size="sm"><EditIcon /></Button>
-                        <Button onClick={() => setGrupaToDelete(grupa)} variant="danger" size="sm"><TrashIcon /></Button>
-                    </div>
-                </td>
-              </tr>
-            ))}
+            {grupe.map(grupa => {
+                const membriCount = sportivi.filter(s => s.grupa_id === grupa.id && s.status === 'Activ').length;
+                return (
+                  <tr key={grupa.id}>
+                    <td className="p-4 font-medium">{grupa.denumire}</td>
+                    <td className="p-4">{grupa.sala}</td>
+                    <td className="p-4 font-bold text-white text-center">{membriCount}</td>
+                    <td className="p-4">
+                        <div className="flex flex-wrap gap-1">
+                            {sortProgram(grupa.program).map((p, i) => <span key={p.id} className={`text-xs font-semibold px-2 py-1 rounded-full ${p.is_activ ?? true ? 'bg-slate-600 text-slate-200' : 'bg-slate-800 text-slate-500 line-through'}`}>{p.ziua} {p.ora_start}-{p.ora_sfarsit}</span>)}
+                        </div>
+                    </td>
+                    <td className="p-2 text-right w-32">
+                        <div className="flex justify-end gap-2">
+                            <Button onClick={() => handleOpenEdit(grupa)} variant="primary" size="sm"><EditIcon /></Button>
+                            <Button onClick={() => setGrupaToDelete(grupa)} variant="danger" size="sm"><TrashIcon /></Button>
+                        </div>
+                    </td>
+                  </tr>
+                )
+            })}
           </tbody>
         </table>
         {grupe.length === 0 && <p className="p-4 text-center text-slate-400">Nicio grupă definită.</p>}

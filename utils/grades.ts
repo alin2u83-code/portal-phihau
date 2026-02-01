@@ -19,6 +19,11 @@ export const getGradStyle = (gradName: string): string => {
     if (!gradName) return 'bg-slate-600 text-white';
     const name = normalizeGradName(gradName);
     
+    // Prioritizează 'albastru' pentru a evita conflictul cu 'cap alb'
+    if (name.includes('albastru')) {
+        return 'bg-white text-blue-600 border-2 border-blue-600';
+    }
+    
     // Regulă specifică pentru 'Cap Alb' / 'Câp Alb' / 'C.V.'
     if (name.includes('cap alb') || name.includes('violet') || name.includes('cv')) {
         return 'bg-violet-500 text-white'; // #8B5CF6 este violet-500
@@ -38,9 +43,6 @@ export const getGradStyle = (gradName: string): string => {
     }
     if (name.includes('rosu')) { // 'roșu'
         return 'bg-red-600 text-white';
-    }
-    if (name.includes('albastru')) {
-        return 'bg-white text-blue-600 border border-blue-600';
     }
     if (name.includes('galben')) {
         return 'bg-yellow-400 text-black';

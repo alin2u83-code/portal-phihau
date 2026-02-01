@@ -95,15 +95,16 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ currentUser, userRol
     const { showError } = useError();
     
     const handleSwitchRole = async (roleContext: any) => {
-        if (!supabase) return;
+        if (!supabase || !currentUser?.user_id) return;
         setIsSwitchingRole(true);
 
-        const { error: rpcError } = await supabase.rpc('set_active_role', {
-            p_role_name: roleContext.rol_denumire
-        });
+        const { error } = await supabase
+            .from('sportivi')
+            .update({ rol_activ_context: roleContext.rol_denumire })
+            .eq('user_id', currentUser.user_id);
 
-        if (rpcError) {
-            showError("Eroare la comutarea rolului", rpcError.message);
+        if (error) {
+            showError("Eroare la comutarea rolului", error.message);
             setIsSwitchingRole(false);
         } else {
             // Reîmprospătarea paginii va prelua noul token JWT cu metadatele actualizate

@@ -119,10 +119,13 @@ function App() {
     }, [currentUser, userRoles]);
     
   const handleSwitchRole = useCallback(async (roleName: Rol['nume']) => {
-      if (!supabase || !currentUser?.id) return;
+      if (!supabase || !currentUser?.user_id) return;
       setIsSwitchingRole(true);
       
-      const { error } = await supabase.rpc('set_active_role', { p_role_name: roleName });
+      const { error } = await supabase
+        .from('sportivi')
+        .update({ rol_activ_context: roleName })
+        .eq('user_id', currentUser.user_id);
 
       if (error) {
           showError("Eroare la comutarea rolului", error.message);

@@ -20,7 +20,7 @@ const ProgressRing: React.FC<ProgressRingProps> = ({ percentage, totalAttended }
                 height={radius * 2}
                 width={radius * 2}
                 className="transform -rotate-90"
-                style={{ filter: 'drop-shadow(0 0 10px rgba(212, 175, 55, 0.4))' }}
+                style={{ filter: 'drop-shadow(0 0 10px rgba(74, 222, 128, 0.4))' }}
             >
                 <circle
                     stroke="#374155"
@@ -31,7 +31,7 @@ const ProgressRing: React.FC<ProgressRingProps> = ({ percentage, totalAttended }
                     cy={radius}
                 />
                 <circle
-                    stroke="#d4af37"
+                    stroke="#4ade80"
                     fill="transparent"
                     strokeWidth={stroke}
                     strokeDasharray={circumference + ' ' + circumference}
@@ -80,13 +80,13 @@ export const AttendanceTracker: React.FC<AttendanceTrackerProps> = ({ currentUse
 
 
     return (
-        <Card className="bg-slate-800/50 backdrop-blur-sm border border-amber-300/20 p-6 flex flex-col items-center">
+        <Card className="bg-slate-800/50 backdrop-blur-sm border border-green-400/20 p-6 flex flex-col items-center">
             <h3 className="text-xl font-bold text-white mb-4">Oglinda Perseverenței</h3>
             <ProgressRing percentage={attendancePercentage} totalAttended={totalAttended} />
             <p className="mt-4 text-lg text-center font-bold text-slate-300">
-                Frecvență de <span className="text-amber-300">{attendancePercentage}%</span> în ultimele 60 de zile.
+                Frecvență de <span className="text-green-400">{attendancePercentage}%</span> în ultimele 60 de zile.
             </p>
-            <div className="mt-6 pt-4 border-t border-amber-300/20 w-full">
+            <div className="mt-6 pt-4 border-t border-green-400/20 w-full">
                 <Button onClick={() => onNavigate('istoric-prezenta')} variant="secondary" className="w-full">
                     Vezi Istoric Detaliat
                 </Button>

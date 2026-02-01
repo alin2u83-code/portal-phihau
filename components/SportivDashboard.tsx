@@ -57,29 +57,34 @@ const ProgramAntrenament: React.FC<{ grupaId: string | null; grupe: Grupa[] }> =
             <h3 className="text-lg font-bold text-white mb-2 animate-fade-in-down">Programul Meu de Antrenament</h3>
             {!grupaId || !grupaCurenta ? (
                 <p className="text-sm text-slate-400 italic">Contactați instructorul pentru alocarea la o grupă.</p>
-            ) : programSortat.length > 0 ? (
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm">
-                        <thead className="text-slate-400 text-xs uppercase">
-                            <tr>
-                                <th className="py-2">Ziua</th>
-                                <th className="py-2">Ora Start</th>
-                                <th className="py-2">Ora Sfârșit</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-700">
-                            {programSortat.map((item, index) => (
-                                <tr key={index}>
-                                    <td className="py-2 font-semibold">{item.ziua}</td>
-                                    <td className="py-2">{item.ora_start}</td>
-                                    <td className="py-2">{item.ora_sfarsit}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
             ) : (
-                <p className="text-sm text-slate-400 italic">Grupa curentă nu are un program definit.</p>
+                 <>
+                    <div className="text-sm text-slate-400 mb-4">{grupaCurenta.denumire} - Sala: {grupaCurenta.sala || 'Nespecificată'}</div>
+                    {programSortat.length > 0 ? (
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left text-sm">
+                                <thead className="text-slate-400 text-xs uppercase">
+                                    <tr>
+                                        <th className="py-2">Ziua</th>
+                                        <th className="py-2">Ora Start</th>
+                                        <th className="py-2">Ora Sfârșit</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-700">
+                                    {programSortat.map((item, index) => (
+                                        <tr key={index}>
+                                            <td className="py-2 font-semibold">{item.ziua}</td>
+                                            <td className="py-2">{item.ora_start}</td>
+                                            <td className="py-2">{item.ora_sfarsit}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                        <p className="text-sm text-slate-400 italic">Grupa curentă nu are un program definit.</p>
+                    )}
+                </>
             )}
         </Card>
     );
@@ -361,10 +366,15 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
         <div className="space-y-6">
             <header className="text-center md:text-left border-b border-slate-700/50 pb-4">
                 <h1 className="text-3xl font-bold text-white">{viewedUser.nume} {viewedUser.prenume}</h1>
-                <p className="text-lg text-slate-300">{grupaCurenta}</p>
-                <div className="mt-2 flex items-center gap-2 justify-center md:justify-start">
-                    <GradBadge grad={currentGrad} />
-                </div>
+                {currentGrad && (
+                    <p className={`text-4xl font-black mt-2 ${
+                        currentGrad.nume.includes('C.V.') || currentGrad.nume.includes('Cap Alb') ? 'text-violet-500' : 'text-white'
+                    }`}>
+                        {currentGrad.nume}
+                    </p>
+                )}
+                <p className="text-lg text-slate-300 mt-1">{grupaCurenta}</p>
+                
                 {isViewingOwnProfile && (
                     <div className="mt-4 max-w-md mx-auto md:mx-0">
                         <NotificationPermissionWidget />

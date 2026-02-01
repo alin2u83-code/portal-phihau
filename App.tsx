@@ -63,6 +63,7 @@ import { GeneralAttendanceWidget } from './components/GeneralAttendanceWidget';
 import { SportivDashboard } from './components/SportivDashboard';
 import { Card, Button } from './components/ui';
 import { RoleSelectionPage } from './components/RoleSelectionPage';
+import { InAppNotifications } from './components/InAppNotifications';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -700,6 +701,9 @@ function App() {
                 activeRole={activeRole!}
               />
               <main className={`flex-1 transition-all duration-300 ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'}`}>
+                <div className="absolute top-4 right-8 z-30">
+                  {currentUser && permissions.hasAdminAccess && <InAppNotifications currentUser={currentUser} />}
+                </div>
                 <div className="p-4 md:p-8 max-w-7xl mx-auto">
                   {permissions.isSuperAdmin && activeView === 'dashboard' && <GlobalContextSwitcher activeContext={adminContext} onContextChange={setAdminContext} />}
                   <ErrorBoundary onNavigate={setActiveView}>

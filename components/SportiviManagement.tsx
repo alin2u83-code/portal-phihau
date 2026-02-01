@@ -47,6 +47,7 @@ const GradBadge: React.FC<{ grad: Grad | null | undefined }> = ({ grad }) => {
 };
 
 const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
+    // FIX: Completed the color mapping to include all roles defined in the `Rol['nume']` type.
     const colorClasses: Record<Rol['nume'], string> = {
         'Admin': 'bg-red-600 text-white',
         'SUPER_ADMIN_FEDERATIE': 'bg-red-800 text-white',

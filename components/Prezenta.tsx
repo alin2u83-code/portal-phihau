@@ -191,8 +191,7 @@ const AttendanceDetail: React.FC<AttendanceDetailProps> = ({ antrenament, onBack
                 if (error) throw error;
             }
             setAntrenamente(prev => prev.map(a => a.id === antrenament.id ? { ...a, prezenta: Array.from(newPresentIds).map(id => ({ sportiv_id: id, status: 'prezent' })) } : a));
-// FIX: The `err` variable in a catch block is of type 'unknown' in strict mode. Explicitly typing it as 'any' allows it to be passed to functions expecting 'any' or allows for property access after casting.
-        } catch (err: any) {
+        } catch (err) {
             showError("Eroare la actualizare", (err as Error)?.message || String(err));
             setPresentIds(presentIds); // Revert UI
         } finally {
@@ -346,7 +345,7 @@ export const PrezentaManagement: React.FC<{
             await supabase.from('program_antrenamente').delete().eq('id', id);
             setAntrenamente(prev => prev.filter(p => p.id !== id));
             showSuccess("Succes", "Antrenamentul a fost șters.");
-        } catch (err) {
+        } catch (err: unknown) {
             showError("Eroare la ștergere", (err as Error)?.message || String(err));
         } finally {
             setIsDeleting(false);

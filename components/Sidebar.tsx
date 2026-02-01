@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { User, View, Club, Permissions, Rol } from '../types';
-import { instructorMenu, sportivMenu, clubAdminMenu, federationAdminMenu, masterAdminMenu, MenuItem } from './menuConfig';
+import { instructorMenu, sportivMenu, sidebarClubAdminMenu, sidebarFederationAdminMenu, MenuItem } from './menuConfig';
 import { ArrowRightOnRectangleIcon, Bars3Icon, ChevronDownIcon, ShieldCheckIcon } from './icons';
 import { Select } from './ui';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
@@ -13,7 +13,7 @@ const NavItem: React.FC<{
     onNavigate: (view: View) => void;
     activeView: View;
 }> = ({ item, isExpanded, isActive, onNavigate, activeView }) => {
-    if (!item) return null; // Safety check to prevent crash on undefined item
+    if (!item) return null; // Safety check
 
     const [isSubmenuOpen, setIsSubmenuOpen] = useState(false);
 
@@ -65,37 +65,49 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLogout, activeView, isExpanded, setIsExpanded, clubs, globalClubFilter, setGlobalClubFilter, permissions, activeRole }) => {
     const [isMobileOpen, setIsMobileOpen] = useState(false);
-    const isMasterAdmin = currentUser.email === 'alin2u83@gmail.com';
 
     const handleNavigate = (view: View) => {
         onNavigate(view);
         setIsMobileOpen(false);
     };
     
-    const contextName = useMemo(() => {
-        if (permissions.isFederationAdmin) {
-            if (globalClubFilter) {
-                const club = clubs.find(c => c.id === globalClubFilter);
-                return club ? club.nume : 'Federație';
-            }
-            return 'Federație';
+    const { menuToDisplay, contextName, borderClass } = useMemo(() => {
+        let menu: MenuItem[];
+        let name: string;
+        let border: string;
+
+        switch (activeRole) {
+            case 'SUPER_ADMIN_FEDERATIE':
+            case 'Admin':
+                menu = sidebarFederationAdminMenu;
+                name = 'Federație';
+                border = 'border-amber-400';
+                break;
+            case 'Admin Club':
+                menu = sidebarClubAdminMenu;
+                name = currentUser.cluburi?.nume || 'Club Nesetat';
+                border = 'border-blue-500';
+                break;
+            case 'Instructor':
+                menu = instructorMenu;
+                name = currentUser.cluburi?.nume || 'Club Nesetat';
+                border = 'border-sky-500';
+                break;
+            default: // Sportiv
+                menu = sportivMenu;
+                name = 'Portal Sportiv';
+                border = 'border-green-500';
+                break;
         }
-        return currentUser.cluburi?.nume || 'Club Nesetat';
-    }, [permissions, currentUser, globalClubFilter, clubs]);
-    
-    const menuToDisplay = useMemo(() => {
-        if (isMasterAdmin) return masterAdminMenu;
-        if (permissions.isFederationAdmin) return federationAdminMenu;
-        if (permissions.isAdminClub) return federationAdminMenu; // Ensure Admin Club gets full menu
-        if (permissions.isInstructor) return instructorMenu;
-        return sportivMenu;
-    }, [permissions, isMasterAdmin]);
+        return { menuToDisplay: menu, contextName: name, borderClass: border };
+    }, [activeRole, currentUser.cluburi?.nume]);
+
 
     // Main content of the sidebar
     const sidebarContent = (
         <div className="flex flex-col h-full bg-[var(--bg-card)] text-white shadow-xl">
             <div className={`h-20 flex flex-col items-center justify-center p-2 border-b border-white/10 text-center ${isExpanded ? 'px-4' : 'px-1'}`}>
-                <ShieldCheckIcon className={`w-8 h-8 shrink-0 ${permissions.isFederationAdmin ? 'text-amber-400' : 'text-blue-400'}`} />
+                <ShieldCheckIcon className={`w-8 h-8 shrink-0 ${activeRole === 'SUPER_ADMIN_FEDERATIE' || activeRole === 'Admin' ? 'text-amber-400' : 'text-blue-400'}`} />
                 {isExpanded && (
                     <>
                         <h2 className="text-xs font-bold text-slate-400 mt-1 uppercase">Mod Lucru</h2>
@@ -119,13 +131,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
             )}
 
             <nav className="flex-1 px-2 py-4 space-y-1.5 overflow-y-auto">
-                {isMasterAdmin && (
-                     <button onClick={() => handleNavigate('admin-console')} className={`flex items-center w-full p-2.5 mb-2 text-amber-400 border-b border-amber-500/20 hover:bg-amber-500/10 transition-all rounded-md ${activeView === 'admin-console' ? 'bg-amber-500/20' : ''}`} title="Consolă Switch">
-                        <ShieldCheckIcon className={`h-6 w-6 shrink-0 ${isExpanded ? 'mr-3' : 'mx-auto'}`} />
-                        {isExpanded && <span className="ml-0 font-bold uppercase text-sm tracking-widest">Consolă Switch</span>}
-                    </button>
-                )}
-                
                 {menuToDisplay.map(item => {
                      const isActive = item.view === activeView || (item.submenu?.some(s => s.view === activeView) ?? false);
                      return <NavItem key={item.label} item={item} isExpanded={isExpanded} isActive={isActive} onNavigate={handleNavigate} activeView={activeView} />
@@ -144,15 +149,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
             </div>
         </div>
     );
-
-    const roleColorMap: Record<Rol['nume'], string> = {
-        'SUPER_ADMIN_FEDERATIE': 'border-red-500',
-        'Admin': 'border-red-500',
-        'Admin Club': 'border-blue-500',
-        'Instructor': 'border-sky-500',
-        'Sportiv': 'border-green-500',
-    };
-    const borderClass = roleColorMap[activeRole] || 'border-slate-500';
 
     return (
         <>

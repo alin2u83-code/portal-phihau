@@ -1,6 +1,6 @@
 import React from 'react';
 import { View } from '../types';
-import { HomeIcon, UsersIcon, TrophyIcon, ClipboardDocumentListIcon, BanknotesIcon, CalendarDaysIcon, UserCircleIcon, ShieldCheckIcon, ClipboardCheckIcon, ArchiveBoxIcon, CogIcon, BellIcon, WalletIcon, UserPlusIcon, BookOpenIcon, ChartBarIcon, BookMarkedIcon, FileTextIcon } from './icons';
+import { HomeIcon, UsersIcon, TrophyIcon, ClipboardDocumentListIcon, BanknotesIcon, CalendarDaysIcon, UserCircleIcon, ShieldCheckIcon, ClipboardCheckIcon, ArchiveBoxIcon, CogIcon, BellIcon, WalletIcon, UserPlusIcon, BookOpenIcon, ChartBarIcon, BookMarkedIcon, FileTextIcon, SitemapIcon } from './icons';
 
 export interface MenuItem {
     label: string;
@@ -13,6 +13,23 @@ export interface SubMenuItem {
     label: string;
     view: View;
 }
+
+// Meniu nou, simplificat pentru Admin Club
+export const sidebarClubAdminMenu: MenuItem[] = [
+    { label: 'Sportivi', icon: UsersIcon, view: 'sportivi' },
+    { label: 'Antrenamente', icon: ClipboardCheckIcon, view: 'prezenta' },
+    { label: 'Examene', icon: TrophyIcon, view: 'examene' },
+    { label: 'Facturi', icon: BanknotesIcon, view: 'plati-scadente' },
+];
+
+// Meniu nou, extins pentru Super Admin Federație
+export const sidebarFederationAdminMenu: MenuItem[] = [
+    ...sidebarClubAdminMenu,
+    { label: 'Gestiune Cluburi', icon: CogIcon, view: 'cluburi' },
+    { label: 'Structură Națională', icon: SitemapIcon, view: 'structura-federatie' },
+    { label: 'Deconturi Globale', icon: WalletIcon, view: 'deconturi-federatie' },
+];
+
 
 export const federationAdminMenu: MenuItem[] = [
     { label: 'Dashboard', icon: HomeIcon, view: 'dashboard' },

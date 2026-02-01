@@ -184,18 +184,6 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
     const [isFinalizing, setIsFinalizing] = useState(false);
 
     const handleFinalizeExam = async () => {
-        const hasResults = props.inscrieri.some(
-            inscriere => inscriere.rezultat === 'Admis' || inscriere.rezultat === 'Respins'
-        );
-
-        if (!hasResults) {
-            showError(
-                "Finalizare Blocată", 
-                "Nu se poate finaliza examenul deoarece niciun sportiv nu are un rezultat ('Admis' sau 'Respins') înregistrat. Vă rugăm să evaluați candidații mai întâi."
-            );
-            return;
-        }
-
         if (!window.confirm("Această acțiune este ireversibilă. Se va marca examenul ca finalizat și se va genera decontul pentru federație. Doriți să continuați?")) {
             return;
         }
@@ -376,12 +364,11 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
             </Button>
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 focus-mode-grid">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {sortedSesiuni.map(s => ( 
             <Card 
                 key={s.id} 
-                className="sesiune-card flex flex-col group transition-all duration-300 cursor-pointer"
-                onClick={() => setSelectedSesiuneId(s.id)}
+                className="sesiune-card flex flex-col group hover:border-amber-400/50 hover:shadow-[0_0_15px_2px_rgba(251,146,60,0.4)] hover:-translate-y-1 transition-all duration-300"
             >
                 <div className="flex-grow">
                     <div className="flex justify-between items-start">
@@ -399,8 +386,9 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
                         <span className="text-slate-400"> participanți</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); setSesiuneToEdit(s); setIsFormOpen(true); }}><EditIcon className="w-4 h-4" /></Button>
-                        <Button size="sm" variant="danger" onClick={(e) => { e.stopPropagation(); setSesiuneToDelete(s); }}><TrashIcon className="w-4 h-4" /></Button>
+                        <Button size="sm" variant="info" onClick={() => setSelectedSesiuneId(s.id)}>Vezi Detalii</Button>
+                        <Button size="sm" variant="secondary" onClick={() => { setSesiuneToEdit(s); setIsFormOpen(true); }}><EditIcon className="w-4 h-4" /></Button>
+                        <Button size="sm" variant="danger" onClick={() => setSesiuneToDelete(s)}><TrashIcon className="w-4 h-4" /></Button>
                     </div>
                 </div>
             </Card>

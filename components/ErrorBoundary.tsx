@@ -14,7 +14,7 @@ interface State {
 }
 
 class ErrorBoundary extends Component<Props, State> {
-  // FIX: Initialize state as a class property to simplify the constructor.
+  // FIX: Use class properties to initialize state, avoiding constructor issues.
   public state: State = {
     hasError: false,
     error: undefined,
@@ -28,7 +28,7 @@ class ErrorBoundary extends Component<Props, State> {
     console.error("Uncaught error:", error, errorInfo);
   }
 
-  // FIX: Use an arrow function for handleRedirect to automatically bind 'this', removing the need for binding in the constructor.
+  // FIX: Use an arrow function to automatically bind `this`.
   public handleRedirect = () => {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {

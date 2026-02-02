@@ -346,7 +346,7 @@ function App() {
         }) || []);
         setPlati(platiData || []);
         setTranzactii(tranzactiiData || []);
-// FIX: Corrected a typo in the variable name from `evenimenteData` to `eventsData` to match the destructured variable from the API response.
+        // FIX: Corrected a typo in the variable name from `evenimenteData` to `eventsData` to match the destructured variable from the API response.
         setEvenimente(eventsData || []);
         setRezultate(resultsData || []);
         setFamilii(familiesData || []);

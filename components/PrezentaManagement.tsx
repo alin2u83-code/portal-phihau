@@ -192,7 +192,6 @@ const AttendanceDetail: React.FC<AttendanceDetailProps> = ({ antrenament, onBack
                 if (error) throw error;
             }
             setAntrenamente(prev => prev.map(a => a.id === antrenament.id ? { ...a, prezenta: Array.from(newPresentIds).map(id => ({ sportiv_id: id, status: 'prezent' })) } : a));
-// FIX: In `handleToggle`, cast the `unknown` error type to `Error` and access its `message` property before passing it to `showError` to fix the TypeScript error.
         } catch (err: unknown) {
             showError("Eroare la actualizare", (err as Error)?.message || String(err));
             setPresentIds(presentIds); // Revert UI
@@ -348,7 +347,6 @@ export const PrezentaManagement: React.FC<{
             await supabase.from('program_antrenamente').delete().eq('id', id);
             setAntrenamente(prev => prev.filter(p => p.id !== id));
             showSuccess("Succes", "Antrenamentul a fost șters.");
-// FIX: In `confirmDeleteAntrenament`, cast the `unknown` error type to `Error` and access its `message` property before passing it to `showError` to fix the TypeScript error.
         } catch (err: unknown) {
             showError("Eroare la ștergere", (err as Error)?.message || String(err));
         } finally {

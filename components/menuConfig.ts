@@ -38,6 +38,7 @@ export const federationAdminMenu: MenuItem[] = [
         icon: UsersIcon,
         submenu: [
              { label: 'Listă Sportivi', view: 'sportivi' },
+             { label: 'Portal Sportiv (Admin)', view: 'portal-sportiv-admin' },
              { label: 'Gestiune Familii', view: 'familii' },
              { label: 'Administrare Staff', view: 'user-management' }
         ]

@@ -64,7 +64,7 @@ const AntrenamentForm: React.FC<{
                 </div>
                  <Select label="Grupa" name="grupa_id" value={formState.grupa_id || ''} onChange={handleChange}>
                     <option value="">Antrenament Liber (Vacanță)</option>
-                    {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
+                    {(grupe || []).map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
                 </Select>
                 <div className="flex justify-end pt-4 space-x-2 border-t border-slate-700 mt-6">
                     <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button>
@@ -131,7 +131,7 @@ const AttendanceDetail: React.FC<AttendanceDetailProps> = ({ antrenament, onBack
         const currentYear = today.getFullYear();
         const seasonStartYear = currentMonth >= 8 ? currentYear : currentYear - 1;
         const seasonStartDate = new Date(seasonStartYear, 8, 1);
-        return plati.some(p => p.sportiv_id === sportivId && p.tip === 'Taxa Anuala' && p.status === 'Achitat' && new Date(p.data) >= seasonStartDate);
+        return (plati || []).some(p => p.sportiv_id === sportivId && p.tip === 'Taxa Anuala' && p.status === 'Achitat' && new Date(p.data) >= seasonStartDate);
     }, []);
     
     useEffect(() => {
@@ -193,6 +193,7 @@ const AttendanceDetail: React.FC<AttendanceDetailProps> = ({ antrenament, onBack
             }
             setAntrenamente(prev => prev.map(a => a.id === antrenament.id ? { ...a, prezenta: Array.from(newPresentIds).map(id => ({ sportiv_id: id, status: 'prezent' })) } : a));
         } catch (err: unknown) {
+            // FIX: In `handleToggle`, cast the `unknown` error type to `Error` and access its `message` property before passing it to `showError` to fix the TypeScript error.
             showError("Eroare la actualizare", (err as Error)?.message || String(err));
             setPresentIds(presentIds); // Revert UI
         } finally {
@@ -233,7 +234,7 @@ const AttendanceDetail: React.FC<AttendanceDetailProps> = ({ antrenament, onBack
             </div>
 
             <div className="space-y-2">
-                {groupAthletes.length > 0 ? groupAthletes.map(sportiv => (
+                {(groupAthletes || []).length > 0 ? (groupAthletes || []).map(sportiv => (
                      <AthleteRow 
                         key={sportiv.id} 
                         sportiv={sportiv} 
@@ -245,11 +246,11 @@ const AttendanceDetail: React.FC<AttendanceDetailProps> = ({ antrenament, onBack
                 )) : <p className="text-slate-400 italic text-center py-4">Niciun sportiv înscris în această grupă.</p>}
             </div>
 
-             {extraAthletesToDisplay.length > 0 && (
+             {(extraAthletesToDisplay || []).length > 0 && (
                 <div className="mt-6 pt-4 border-t border-slate-700">
                     <h3 className="text-lg font-bold text-white mb-2">Participanți Externi</h3>
                     <div className="space-y-2">
-                        {extraAthletesToDisplay.map(sportiv => (
+                        {(extraAthletesToDisplay || []).map(sportiv => (
                             <AthleteRow
                                 key={sportiv.id}
                                 sportiv={sportiv}
@@ -270,7 +271,7 @@ const AttendanceDetail: React.FC<AttendanceDetailProps> = ({ antrenament, onBack
                     <div className="flex-grow">
                         <Select label="Selectează Sportiv" value={selectedExternalId} onChange={e => setSelectedExternalId(e.target.value)}>
                             <option value="">Alege...</option>
-                            {externalAthletesForSelect.map(s => <option key={s.id} value={s.id}>{s.nume} {s.prenume}</option>)}
+                            {(externalAthletesForSelect || []).map(s => <option key={s.id} value={s.id}>{s.nume} {s.prenume}</option>)}
                         </Select>
                     </div>
                     <Button onClick={handleAddExternal} disabled={!selectedExternalId} variant="info">
@@ -348,6 +349,7 @@ export const PrezentaManagement: React.FC<{
             setAntrenamente(prev => prev.filter(p => p.id !== id));
             showSuccess("Succes", "Antrenamentul a fost șters.");
         } catch (err: unknown) {
+            // FIX: In `confirmDeleteAntrenament`, cast the `unknown` error type to `Error` and access its `message` property before passing it to `showError` to fix the TypeScript error.
             showError("Eroare la ștergere", (err as Error)?.message || String(err));
         } finally {
             setIsDeleting(false);
@@ -410,7 +412,7 @@ export const PrezentaManagement: React.FC<{
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-700">
-                            {filteredAntrenamente.map(p => {
+                            {(filteredAntrenamente || []).map(p => {
                                 const now = new Date();
                                 let isPast = false;
                                 if (p.data && p.ora_start) {
@@ -435,7 +437,7 @@ export const PrezentaManagement: React.FC<{
                             })}
                         </tbody>
                     </table>
-                    {filteredAntrenamente.length === 0 && <p className="p-4 text-center text-slate-400">Niciun antrenament înregistrat conform filtrelor.</p>}
+                    {(filteredAntrenamente || []).length === 0 && <p className="p-4 text-center text-slate-400">Niciun antrenament înregistrat conform filtrelor.</p>}
                 </div>
             </Card>
             <AntrenamentForm 

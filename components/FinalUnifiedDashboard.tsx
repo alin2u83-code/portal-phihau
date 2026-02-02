@@ -59,7 +59,6 @@ export const FinalUnifiedDashboard: React.FC<FinalUnifiedDashboardProps> = ({
             <SportivDashboard
                 currentUser={currentUser}
                 viewedUser={currentUser}
-                // FIX: Add fallback to empty array to prevent TypeError on .filter() or .map()
                 participari={inscrieriExamene || []}
                 examene={sesiuniExamene || []}
                 grade={grade || []}
@@ -105,7 +104,6 @@ export const FinalUnifiedDashboard: React.FC<FinalUnifiedDashboardProps> = ({
                 <div className="lg:col-span-2">
                     <AdminMasterMap 
                         onNavigate={onNavigate}
-                        // FIX: Add fallback to empty array to prevent TypeError on .filter() or .map()
                         deconturiFederatie={deconturiFederatie || []}
                         inscrieriExamene={inscrieriExamene || []}
                         plati={plati || []}

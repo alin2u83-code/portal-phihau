@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Papa from 'papaparse';
 import { supabase } from '../supabaseClient';
 import { Grad } from '../types';
@@ -41,7 +41,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
     useEffect(() => {
         const fetchGrades = async () => {
             if (isOpen && supabase) {
-                const { data, error } = await supabase.from('grade').select('*');
+                const { data, error } = await supabase.from('grade').select('*').order('ordine');
                 if (error) {
                     showError("Eroare la preluare grade", error.message);
                 } else {
@@ -51,6 +51,27 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
         };
         fetchGrades();
     }, [isOpen, showError]);
+
+    const downloadGradeLegend = () => {
+        if (grades.length === 0) {
+            showError("Date lipsă", "Nomenclatorul de grade nu a putut fi încărcat.");
+            return;
+        }
+        const legenda = grades.map(g => ({
+            "Cod Grad (De pus in CSV)": g.ordine,
+            "Denumire Grad Qwan Ki Do": g.nume
+        }));
+        const csv = Papa.unparse(legenda);
+        const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", "Legenda_Grade_PhiHau.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    };
 
     const downloadTemplate = () => {
         const csvData = Papa.unparse([
@@ -65,9 +86,9 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
             }
         ]);
         const blob = new Blob([`\uFEFF${csvData}`], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
         const url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
+        const link = document.createElement("a");
+        link.href = url;
         link.setAttribute("download", "model_import_examen_phihau.csv");
         link.style.visibility = 'hidden';
         document.body.appendChild(link);
@@ -111,7 +132,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
 
             const newGrad = grades.find(g => String(g.ordine) === String(row.Grad_Nou_Ordine).trim());
             if (!newGrad) {
-                return { ...row, sportivId: sportiv.id, status: 'error', message: `Gradul cu ordinul ${row.Grad_Nou_Ordine} nu există.` };
+                return { ...row, sportivId: sportiv.id, status: 'error', message: `Cod grad invalid: ${row.Grad_Nou_Ordine}` };
             }
             
             const { data: hasGrad } = await supabase
@@ -138,9 +159,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
         let errorCount = 0;
 
         for (const row of toImport) {
-            if (!row.sportivId || !row.newGradId) {
-                continue;
-            }
+            if (!row.sportivId || !row.newGradId) continue;
             
             try {
                 // Creează Plata
@@ -150,7 +169,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                         sportiv_id: row.sportivId,
                         suma: parseFloat(row.Contributie) || 0,
                         status: 'Achitat',
-                        tip: 'EXAMEN',
+                        tip: 'Taxa Examen',
                         descriere: `Taxa examen ${row.newGradName}`,
                         data: row.Data_Examen
                     })
@@ -165,7 +184,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                         plata_ids: [plata.id],
                         sportiv_id: row.sportivId,
                         suma: parseFloat(row.Contributie) || 0,
-                        metoda_plata: 'Cash', // Presupunem Cash pentru import
+                        metoda_plata: 'CSV Import',
                         data_platii: row.Data_Examen
                     });
                 if (tranzactieError) throw tranzactieError;
@@ -198,63 +217,93 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
         }
         
         setIsProcessing(false);
-        showSuccess('Import Finalizat', `${successCount} înregistrări "Admis" procesate cu succes. ${errorCount} erori întâmpinate.`);
+        showSuccess('Import Finalizat', `${successCount} înregistrări "Admis" procesate. ${errorCount} erori.`);
         onImportComplete();
         onClose();
     };
 
     const validRowsCount = previewData.filter(r => r.status === 'valid' && r.Rezultat === 'Admis').length;
 
+    const quickLegendGrades = useMemo(() => {
+        return grades.slice(0, 10);
+    }, [grades]);
+    
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Import Rezultate Examen din CSV">
-            <div className="space-y-6">
-                <div className="flex justify-between items-center">
-                    <h2 className="text-xl font-bold">Import Rezultate</h2>
-                    <Button onClick={downloadTemplate} variant="secondary" size="sm">
-                        <DocumentArrowDownIcon size={18} className="mr-2"/> Model CSV
-                    </Button>
-                </div>
-
-                <Input type="file" onChange={handleFileUpload} accept=".csv" label="Încarcă fișier CSV" />
-
-                {isProcessing && <p className="text-center text-slate-400">Se validează datele...</p>}
-
-                {previewData.length > 0 && (
-                    <div className="space-y-4">
-                        <div className="max-h-80 overflow-y-auto border border-slate-700 rounded-lg">
-                            <table className="w-full text-left text-sm">
-                                <thead className="bg-slate-800 sticky top-0">
-                                    <tr>
-                                        <th className="p-2 w-8"></th>
-                                        <th className="p-2">Sportiv</th>
-                                        <th className="p-2">Grad Nou</th>
-                                        <th className="p-2">Mesaj</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-800">
-                                    {previewData.map((row, idx) => (
-                                        <tr key={idx} className={`${row.status === 'error' ? 'bg-red-900/30 text-red-400' : row.status === 'warning' ? 'bg-yellow-900/30 text-yellow-400' : 'text-slate-300'}`}>
-                                            <td className="p-2 text-center">
-                                                {row.status === 'valid' && <CheckCircleIcon className="w-5 h-5 text-green-500" />}
-                                                {row.status === 'error' && <XCircleIcon className="w-5 h-5 text-red-500" />}
-                                                {row.status === 'warning' && <ExclamationTriangleIcon className="w-5 h-5 text-yellow-500" />}
-                                            </td>
-                                            <td className="p-2">{row.Nume} {row.Prenume}</td>
-                                            <td className="p-2">{row.newGradName || `Ordine Invalidă: ${row.Grad_Nou_Ordine}`}</td>
-                                            <td className="p-2">{row.message}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                        <div className="flex justify-end pt-4 border-t border-slate-700">
-                            <Button variant="primary" onClick={confirmImport} isLoading={isProcessing} disabled={isProcessing || validRowsCount === 0}>
-                                Confirmă și Importă {validRowsCount > 0 ? `${validRowsCount} Admiși` : ''}
+            <div className="flex flex-col md:flex-row gap-6">
+                
+                {/* Main Interaction Area */}
+                <div className="flex-grow space-y-6">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <h2 className="text-xl font-bold">Pasul 1: Pregătește fișierul</h2>
+                        <div className="flex gap-2 flex-shrink-0">
+                            <Button onClick={downloadTemplate} variant="secondary" size="sm">
+                                <DocumentArrowDownIcon size={18} className="mr-2"/> Model CSV
+                            </Button>
+                            <Button onClick={downloadGradeLegend} variant="secondary" size="sm">
+                                <DocumentArrowDownIcon size={18} className="mr-2"/> Coduri Grade
                             </Button>
                         </div>
                     </div>
-                )}
+
+                    <Input type="file" onChange={handleFileUpload} accept=".csv" label="Pasul 2: Încarcă fișierul CSV" />
+
+                    {isProcessing && <p className="text-center text-slate-400">Se validează datele...</p>}
+
+                    {previewData.length > 0 && (
+                        <div className="space-y-4 animate-fade-in-down">
+                            <h2 className="text-xl font-bold">Pasul 3: Previzualizare și Confirmare</h2>
+                            <div className="max-h-60 overflow-y-auto border border-slate-700 rounded-lg">
+                                <table className="w-full text-left text-sm">
+                                    <thead className="bg-slate-800 sticky top-0">
+                                        <tr>
+                                            <th className="p-2 w-8"></th>
+                                            <th className="p-2">Sportiv</th>
+                                            <th className="p-2">Grad Nou</th>
+                                            <th className="p-2">Mesaj</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-800">
+                                        {previewData.map((row, idx) => (
+                                            <tr key={idx} className={`${row.status === 'error' ? 'bg-red-900/30 text-red-400' : row.status === 'warning' ? 'bg-yellow-900/30 text-yellow-400' : 'text-slate-300'}`}>
+                                                <td className="p-2 text-center">
+                                                    {row.status === 'valid' && <CheckCircleIcon className="w-5 h-5 text-green-500" />}
+                                                    {row.status === 'error' && <XCircleIcon className="w-5 h-5 text-red-500" />}
+                                                    {row.status === 'warning' && <ExclamationTriangleIcon className="w-5 h-5 text-yellow-500" />}
+                                                </td>
+                                                <td className="p-2">{row.Nume} {row.Prenume}</td>
+                                                <td className="p-2">{row.newGradName || `Ordine Invalidă: ${row.Grad_Nou_Ordine}`}</td>
+                                                <td className="p-2">{row.message}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+                </div>
+                
+                {/* Legend Area */}
+                <div className="w-full md:w-64 flex-shrink-0 p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+                    <h3 className="font-bold text-white mb-2">Legendă rapidă coduri</h3>
+                    <ul className="text-xs space-y-1 text-slate-300 max-h-60 overflow-y-auto pr-2">
+                        {quickLegendGrades.map(g => (
+                            <li key={g.id}>
+                                <strong>Cod {g.ordine}:</strong> {g.nume}
+                            </li>
+                        ))}
+                         {grades.length > 10 && <li className="italic text-slate-500">... și altele</li>}
+                    </ul>
+                </div>
             </div>
+
+            {previewData.length > 0 && (
+                <div className="flex justify-end pt-4 border-t border-slate-700 mt-6">
+                    <Button variant="primary" onClick={confirmImport} isLoading={isProcessing} disabled={isProcessing || validRowsCount === 0}>
+                        Confirmă și Importă {validRowsCount > 0 ? `${validRowsCount} Admiși` : ''}
+                    </Button>
+                </div>
+            )}
         </Modal>
     );
 };

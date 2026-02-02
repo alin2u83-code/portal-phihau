@@ -1,12 +1,13 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { SesiuneExamen, InscriereExamen, Sportiv, Grad, Locatie, Plata, PretConfig, User, Club, DecontFederatie, View, IstoricGrade } from '../types';
 import { Button, Modal, Input, Select, Card } from './ui';
-import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon, FileTextIcon } from './icons';
+import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon, FileTextIcon, UploadCloudIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { ManagementInscrieri } from './ManagementInscrieri';
+import { ImportExamenModal } from './ImportExamenModal';
 
 // --- SUB-COMPONENTE PENTRU MANAGEMENTUL SESIUNILOR (PĂSTRATE) ---
 
@@ -182,6 +183,7 @@ interface DetaliiSesiuneProps {
 const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
     const { showError, showSuccess } = useError();
     const [isFinalizing, setIsFinalizing] = useState(false);
+    const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
     const handleFinalizeExam = async () => {
         if (!window.confirm("Această acțiune este ireversibilă. Se va marca examenul ca finalizat și se va genera decontul pentru federație. Doriți să continuați?")) {
@@ -205,6 +207,13 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
             setIsFinalizing(false);
         }
     };
+
+    const handleImportComplete = () => {
+        showSuccess("Import Finalizat", "Datele au fost procesate. Pagina se va reîmprospăta pentru a reflecta toate modificările.");
+        setTimeout(() => {
+            window.location.reload();
+        }, 2000);
+    };
     
     return (
         <Card>
@@ -219,7 +228,10 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
                     )}
                 </div>
                  {props.sesiune.status !== 'Finalizat' && (
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
+                        <Button variant="info" onClick={() => setIsImportModalOpen(true)}>
+                            <UploadCloudIcon className="w-4 h-4 mr-2" /> Import Rezultate CSV
+                        </Button>
                         <Button variant="secondary" onClick={props.onEdit}>
                             <EditIcon className="w-4 h-4 mr-2" /> Editează
                         </Button>
@@ -231,6 +243,12 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
             </div>
             
             <ManagementInscrieri {...props} />
+            <ImportExamenModal 
+                isOpen={isImportModalOpen}
+                onClose={() => setIsImportModalOpen(false)}
+                sesiune={props.sesiune}
+                onImportComplete={handleImportComplete}
+            />
         </Card>
     );
 };

@@ -514,8 +514,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                     <Card><h3 className="text-lg font-bold text-white mb-3">Date Personale</h3><dl className="space-y-3"><DataField label="Vârstă" value={`${getAge(sportiv.data_nasterii)} ani`} /><DataField label="Data Înscrierii" value={new Date(sportiv.data_inscrierii).toLocaleDateString('ro-RO')} /><DataField label="Status" value={<span className={`px-2 py-0.5 text-xs rounded-full ${sportiv.status === 'Activ' ? 'bg-green-600/30 text-green-400' : 'bg-red-600/30 text-red-400'}`}>{sportiv.status}</span>} /><DataField label="Club" value={sportiv.cluburi?.id === FEDERATIE_ID ? FEDERATIE_NAME : sportiv.cluburi?.nume} /></dl>
                         {isSuperAdmin && <Button onClick={() => setIsTransferModalOpen(true)} variant="secondary" className="w-full mt-4"><TransferIcon className="w-4 h-4 mr-2"/> Transferă Sportiv</Button>}
                     </Card>
-                    <Card>
-                        <h3 className="text-lg font-bold text-white mb-3">Situație Financiară</h3>
+                    <Card><h3 className="text-lg font-bold text-white mb-3">Situație Financiară</h3>
                         <div className="flex justify-between items-center mb-4">
                             <span className="text-sm font-semibold text-slate-400">Total Restant:</span>
                             <span className={`text-2xl font-bold ${totalRestante > 0 ? 'text-red-400' : 'text-green-400'}`}>{totalRestante.toFixed(2)} RON</span>
@@ -570,7 +569,26 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                 <div className="lg:col-span-2 space-y-6">
                     <Card><h3 className="text-lg font-bold text-white mb-3">Progres Tehnic</h3><SportivProgressChart sportiv={sportiv} gradeHistory={gradeHistory} antrenamente={antrenamente} grade={grade} /></Card>
                     <Card><div className="flex justify-between items-center"><h3 className="text-lg font-bold text-white">Istoric Grade</h3><Button size="sm" variant="secondary" onClick={() => setIsAddGradeModalOpen(true)}><PlusIcon className="w-4 h-4 mr-1"/> Adaugă Manual</Button></div>
-                        <div className="mt-3 max-h-60 overflow-y-auto pr-2">{[...gradeHistory].reverse().map(h => <div key={`${h.date}-${h.rank}`} className="flex justify-between p-2 border-b border-slate-700 last:border-0"><span className="font-semibold text-white">{h.gradNume}</span><span className="text-sm text-slate-400">{new Date(h.date).toLocaleDateString('ro-RO')} ({h.source})</span></div>)}</div>
+                        <div className="mt-3 max-h-60 overflow-y-auto pr-2">
+                             <table className="w-full text-left text-sm">
+                                <thead className="text-slate-400 text-xs uppercase sticky top-0 bg-[var(--bg-card)]">
+                                    <tr>
+                                        <th className="py-2">Grad</th>
+                                        <th className="py-2">Data</th>
+                                        <th className="py-2 text-right">Sursă</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-700">
+                                    {[...gradeHistory].reverse().map(h => (
+                                        <tr key={`${h.date}-${h.rank}`}>
+                                            <td className="py-2 font-semibold text-white">{h.gradNume}</td>
+                                            <td className="py-2">{new Date(h.date).toLocaleDateString('ro-RO')}</td>
+                                            <td className="py-2 text-right capitalize">{h.source}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </Card>
                 </div>
             </div>

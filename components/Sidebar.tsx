@@ -166,6 +166,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
                 )}
             </nav>
 
+            {canSwitchRoles && permissions.hasAdminAccess && (
+                <div className="px-3 py-2 border-t border-white/10">
+                    <button
+                        onClick={() => handleNavigate('admin-console')}
+                        title={!isExpanded ? "Schimbă Context de Lucru" : ""}
+                        className={`w-full flex items-center p-2.5 rounded-md transition-colors text-left bg-slate-700 hover:bg-slate-600 text-white`}
+                    >
+                        <ShieldCheckIcon className={`h-6 w-6 shrink-0 ${isExpanded ? 'mr-3' : 'mx-auto'}`} />
+                        {isExpanded && <span className="text-sm font-semibold truncate">Schimbă Context</span>}
+                    </button>
+                </div>
+            )}
+
              <div className="p-3 border-t border-white/10">
                 <button
                     onClick={onLogout}

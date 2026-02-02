@@ -13,8 +13,8 @@ interface State {
   error?: Error;
 }
 
-// FIX: Extended React.Component to give the class access to state, props, and lifecycle methods.
 class ErrorBoundary extends React.Component<Props, State> {
+  // Fix: Initialize state as a class property to avoid potential issues with `this` in constructor.
   state: State = {
     hasError: false,
     error: undefined,
@@ -30,6 +30,7 @@ class ErrorBoundary extends React.Component<Props, State> {
     console.error("Uncaught error:", error, errorInfo);
   }
 
+  // Fix: Use an arrow function to automatically bind `this`.
   handleRedirect = () => {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {

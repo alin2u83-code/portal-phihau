@@ -193,8 +193,8 @@ const AttendanceDetail: React.FC<AttendanceDetailProps> = ({ antrenament, onBack
             }
             setAntrenamente(prev => prev.map(a => a.id === antrenament.id ? { ...a, prezenta: Array.from(newPresentIds).map(id => ({ sportiv_id: id, status: 'prezent' })) } : a));
         } catch (err: unknown) {
-            // FIX: Cast unknown error to Error type to safely access the message property.
-            showError("Eroare la actualizare", (err as Error)?.message || String(err));
+            // Fix: Cast the unknown error type to Error and access its message property before passing it to showError.
+            showError("Eroare la actualizare", err instanceof Error ? err.message : String(err));
             setPresentIds(presentIds); // Revert UI
         } finally {
             setUpdatingIds(prev => { const next = new Set(prev); next.delete(sportivId); return next; });

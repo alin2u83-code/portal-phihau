@@ -246,7 +246,7 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
             <ImportExamenModal 
                 isOpen={isImportModalOpen}
                 onClose={() => setIsImportModalOpen(false)}
-                sesiune={props.sesiune}
+                sesiuneId={props.sesiune.id}
                 onImportComplete={handleImportComplete}
             />
         </Card>

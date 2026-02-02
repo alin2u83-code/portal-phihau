@@ -11,16 +11,18 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.43.4",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.400.0",
+    "papaparse": "^5.4.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "lucide-react": "^0.400.0",
-    "clsx": "^2.1.1",
-    "tailwind-merge": "^2.3.0",
+    "react-router-dom": "^6.23.1",
     "recharts": "^2.12.7",
-    "react-router-dom": "^6.23.1"
+    "tailwind-merge": "^2.3.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
+    "@types/papaparse": "^5.3.14",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",

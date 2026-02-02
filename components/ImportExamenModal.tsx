@@ -1,224 +1,251 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import Papa from 'papaparse';
-import { SesiuneExamen } from '../types';
-import { Modal, Button } from './ui';
-import { UploadCloudIcon, CheckCircleIcon, XCircleIcon, ExclamationTriangleIcon } from './icons';
 import { supabase } from '../supabaseClient';
+import { Grad, SesiuneExamen } from '../types';
+import { ExclamationTriangleIcon, CheckCircleIcon, DocumentArrowDownIcon, XCircleIcon } from './icons';
 import { useError } from './ErrorProvider';
-
-interface CsvRow {
-  cnp: string;
-  ordine_grad: string;
-  rezultat: 'Admis' | 'Respins' | 'Neprezentat';
-  contributie: string;
-  data_examen?: string;
-}
-
-interface ProcessResult {
-  status: 'Succes' | 'Eroare' | 'Avertisment';
-  message: string;
-  rowData: CsvRow;
-}
+// FIX: Add 'Input' to the import from './ui' to resolve the 'Cannot find name' error.
+import { Modal, Button, Input } from './ui';
 
 interface ImportExamenModalProps {
     isOpen: boolean;
     onClose: () => void;
-    sesiune: SesiuneExamen;
+    sesiuneId: string;
     onImportComplete: () => void;
 }
 
-export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, onClose, sesiune, onImportComplete }) => {
-    const [file, setFile] = useState<File | null>(null);
-    const [parsedData, setParsedData] = useState<CsvRow[]>([]);
-    const [step, setStep] = useState<'upload' | 'preview' | 'importing' | 'results'>('upload');
-    const [importResults, setImportResults] = useState<ProcessResult[]>([]);
-    const [isDragging, setIsDragging] = useState(false);
-    const { showError } = useError();
-    
-    const REQUIRED_HEADERS = ['cnp', 'ordine_grad', 'rezultat', 'contributie'];
+interface CsvRow {
+    Nume: string;
+    Prenume: string;
+    CNP: string;
+    Grad_Nou_Ordine: string;
+    Contributie: string;
+    Data_Examen: string;
+}
 
-    const resetState = useCallback(() => {
-        setFile(null);
-        setParsedData([]);
-        setStep('upload');
-        setImportResults([]);
-    }, []);
+interface PreviewRow extends CsvRow {
+    sportivId?: string;
+    gradActualId?: string | null;
+    newGradId?: string;
+    newGradName?: string;
+    status: 'valid' | 'error' | 'warning';
+    message: string;
+}
 
-    const handleClose = useCallback(() => {
-        resetState();
-        onClose();
-    }, [resetState, onClose]);
+export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, onClose, sesiuneId, onImportComplete }) => {
+    const [previewData, setPreviewData] = useState<PreviewRow[]>([]);
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [grades, setGrades] = useState<Grad[]>([]);
+    const { showError, showSuccess } = useError();
 
-    const handleFileParse = (fileToParse: File) => {
-        setFile(fileToParse);
-        setStep('preview');
-        Papa.parse<CsvRow>(fileToParse, {
-            header: true,
-            skipEmptyLines: true,
-            complete: (results) => {
-                const headers = results.meta.fields || [];
-                const missingHeaders = REQUIRED_HEADERS.filter(h => !headers.map(h => h.toLowerCase()).includes(h));
-                if (missingHeaders.length > 0) {
-                    showError("Format CSV Invalid", `Coloanele următoare lipsesc: ${missingHeaders.join(', ')}`);
-                    resetState();
-                    return;
+    useEffect(() => {
+        const fetchGrades = async () => {
+            if (isOpen && supabase) {
+                const { data, error } = await supabase.from('grade').select('*');
+                if (error) {
+                    showError("Eroare la preluare grade", error.message);
+                } else {
+                    setGrades(data || []);
                 }
-                setParsedData(results.data);
-            },
-            error: (error) => {
-                showError("Eroare la Parsare CSV", error.message);
-                resetState();
             }
-        });
-    };
-
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            handleFileParse(e.target.files[0]);
-        }
-    };
-    
-    const handleDragEvents = (e: React.DragEvent<HTMLDivElement>, isEntering: boolean) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsDragging(isEntering);
-    };
-    
-    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-        handleDragEvents(e, false);
-        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-            handleFileParse(e.dataTransfer.files[0]);
-        }
-    };
-
-    const handleImport = async () => {
-        if (!supabase) { showError("Eroare Configurare", "Client Supabase neinițializat."); return; }
-        
-        setStep('importing');
-        const results: ProcessResult[] = [];
-
-        for (const row of parsedData) {
-            try {
-                if (!row.cnp || !row.ordine_grad || !row.rezultat) {
-                    throw new Error('Rând invalid. Asigurați-vă că `cnp`, `ordine_grad` și `rezultat` sunt completate.');
-                }
-                
-                // Pentru a asigura integritatea datelor și securitatea, toată logica de procesare
-                // este încapsulată în funcția `process_exam_row` din baza de date (PostgreSQL).
-                // Aceasta este cea mai bună practică din următoarele motive:
-                // 1. Atomicitate: Toți pașii (găsire sportiv, verificare duplicate, update grad, creare plată)
-                //    se execută într-o singură tranzacție. Dacă un pas eșuează, totul este anulat automat.
-                // 2. Performanță: O singură cerere RPC este mult mai rapidă decât multiple interogări separate.
-                // 3. Securitate: Logica rulează cu privilegii controlate pe server, nu pe client.
-                //
-                // Funcția RPC gestionează deja următoarele validări solicitate:
-                // - Validare CNP: Aruncă o eroare dacă CNP-ul nu este găsit în `public.sportivi`.
-                // - Prevenire Duplicate: Verifică `istoric_grade` și returnează un avertisment dacă gradul există deja.
-                // - Automatizare Plăți: Creează o factură 'Achitat' și o tranzacție pentru fiecare rezultat 'Admis'.
-                // - Tratare Erori: Orice eroare de validare din RPC este prinsă în blocul `catch` de mai jos și afișată în lista finală.
-                const { data: rpcResult, error: rpcError } = await supabase.rpc('process_exam_row', {
-                    p_cnp: String(row.cnp).trim(),
-                    p_ordine_grad: Number(row.ordine_grad),
-                    p_rezultat: row.rezultat,
-                    p_contributie: Number(row.contributie) || 0,
-                    p_data_examen: row.data_examen || sesiune.data,
-                    p_sesiune_id: sesiune.id,
-                });
-
-                if (rpcError) throw rpcError;
-                
-                const status = typeof rpcResult === 'string' && rpcResult.startsWith('DUPLICATE_IGNORED:') ? 'Avertisment' : 'Succes';
-                results.push({ status, message: rpcResult, rowData: row });
-
-            } catch (error: any) {
-                results.push({ status: 'Eroare', message: error.message.replace(/error: /g, '').replace(/hint: .*/, '').trim(), rowData: row });
-            }
-            setImportResults([...results]);
-        }
-
-        setStep('results');
-    };
-
-    const importSummary = useMemo(() => {
-        return {
-            succes: importResults.filter(r => r.status === 'Succes').length,
-            avertismente: importResults.filter(r => r.status === 'Avertisment').length,
-            erori: importResults.filter(r => r.status === 'Eroare').length,
-            total: importResults.length
         };
-    }, [importResults]);
-    
-    const renderContent = () => {
-        switch (step) {
-            case 'upload': return (
-                <div 
-                    onDragEnter={(e) => handleDragEvents(e, true)}
-                    onDragLeave={(e) => handleDragEvents(e, false)}
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={handleDrop}
-                    className={`p-12 border-2 border-dashed rounded-lg text-center transition-colors ${isDragging ? 'border-brand-secondary bg-brand-primary/10' : 'border-slate-600'}`}
-                >
-                    <UploadCloudIcon className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-                    <label htmlFor="csv-upload" className="font-semibold text-brand-secondary cursor-pointer hover:underline">Alege un fișier</label>
-                    <p className="text-sm text-slate-500 mt-1">sau trage-l aici</p>
-                    <input id="csv-upload" type="file" className="hidden" accept=".csv" onChange={handleFileChange} />
-                </div>
-            );
-            case 'preview': return (
-                <div className="space-y-4">
-                    <p>Au fost detectate <strong>{parsedData.length}</strong> înregistrări în fișierul <strong>{file?.name}</strong>. Apasă "Start Import" pentru a le procesa.</p>
-                    <div className="max-h-60 overflow-y-auto bg-slate-900/50 p-2 rounded-md border border-slate-700">
-                        <table className="w-full text-left text-xs">
-                            <thead className="text-slate-400"><tr>{REQUIRED_HEADERS.map(h => <th key={h} className="p-2">{h}</th>)}</tr></thead>
-                            <tbody className="divide-y divide-slate-700">
-                                {parsedData.slice(0,5).map((row, i) => (
-                                    <tr key={i}>{REQUIRED_HEADERS.map(h => <td key={h} className="p-2 truncate max-w-xs">{String(row[h as keyof CsvRow] || '')}</td>)}</tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                    <div className="flex justify-end gap-2 pt-4 border-t border-slate-700">
-                        <Button variant="secondary" onClick={resetState}>Anulează</Button>
-                        <Button variant="primary" onClick={handleImport}>Start Import</Button>
-                    </div>
-                </div>
-            );
-            case 'importing': return (
-                <div className="text-center p-8 space-y-4">
-                    <svg className="animate-spin h-10 w-10 text-brand-secondary mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25"></circle><path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" className="opacity-75"></path></svg>
-                    <h3 className="text-lg font-bold text-white">Se importă datele...</h3>
-                    <p className="text-sm text-slate-400">S-au procesat {importResults.length} / {parsedData.length} înregistrări.</p>
-                </div>
-            );
-            case 'results': return (
-                <div className="space-y-4">
-                    <h3 className="text-lg font-bold text-white">Rezultate Import</h3>
-                    <div className="grid grid-cols-3 gap-2 text-center">
-                        <div className="p-2 bg-green-900/50 rounded"><p className="text-xl font-bold text-green-400">{importSummary.succes}</p><p className="text-xs text-slate-400">Succes</p></div>
-                        <div className="p-2 bg-amber-900/50 rounded"><p className="text-xl font-bold text-amber-400">{importSummary.avertismente}</p><p className="text-xs text-slate-400">Avertismente</p></div>
-                        <div className="p-2 bg-red-900/50 rounded"><p className="text-xl font-bold text-red-400">{importSummary.erori}</p><p className="text-xs text-slate-400">Erori</p></div>
-                    </div>
-                    <div className="max-h-60 overflow-y-auto space-y-2 p-2 bg-slate-900/50 rounded-md border border-slate-700">
-                        {importResults.map((res, i) => (
-                             <div key={i} className={`p-2 rounded text-xs flex gap-2 items-start ${res.status === 'Succes' ? 'bg-green-900/20' : res.status === 'Avertisment' ? 'bg-amber-900/20' : 'bg-red-900/20'}`}>
-                                {res.status === 'Succes' && <CheckCircleIcon className="w-4 h-4 text-green-500 shrink-0" />}
-                                {res.status === 'Avertisment' && <ExclamationTriangleIcon className="w-4 h-4 text-amber-500 shrink-0" />}
-                                {res.status === 'Eroare' && <XCircleIcon className="w-4 h-4 text-red-500 shrink-0" />}
-                                <p><strong className="text-white">{res.rowData.cnp}:</strong> <span className="text-slate-300">{res.message}</span></p>
-                            </div>
-                        ))}
-                    </div>
-                    <div className="flex justify-end pt-4 border-t border-slate-700">
-                         <Button variant="primary" onClick={() => { handleClose(); onImportComplete(); }}>Finalizează</Button>
-                    </div>
-                </div>
-            );
+        fetchGrades();
+    }, [isOpen, showError]);
+
+    const downloadModel = () => {
+        const csvData = "Nume,Prenume,CNP,Grad_Nou_Ordine,Contributie,Data_Examen\nPopescu,Ion,1991231123456,2,100,2024-08-15";
+        const blob = new Blob([`\uFEFF${csvData}`], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", "model_import_examen.csv");
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    };
+
+    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file && grades.length > 0) {
+            setIsProcessing(true);
+            Papa.parse<CsvRow>(file, {
+                header: true,
+                skipEmptyLines: true,
+                complete: async (results) => {
+                    const processed = await validateData(results.data);
+                    setPreviewData(processed);
+                    setIsProcessing(false);
+                }
+            });
         }
     };
+
+    const validateData = async (data: CsvRow[]): Promise<PreviewRow[]> => {
+        const validationPromises = data.map(async (row): Promise<PreviewRow> => {
+            if (!row.CNP || !row.Grad_Nou_Ordine) {
+                return { ...row, status: 'error', message: 'Rând incomplet (CNP, Grad Lipsă)' };
+            }
+
+            const { data: sportiv } = await supabase
+                .from('sportivi')
+                .select('id, nume, prenume, grad_actual_id')
+                .eq('cnp', row.CNP.trim())
+                .single();
+
+            if (!sportiv) {
+                return { ...row, status: 'error', message: 'Sportiv negăsit (CNP eronat)' };
+            }
+
+            const newGrad = grades.find(g => String(g.ordine) === row.Grad_Nou_Ordine.trim());
+            if (!newGrad) {
+                return { ...row, sportivId: sportiv.id, status: 'error', message: `Gradul cu ordinul ${row.Grad_Nou_Ordine} nu există.` };
+            }
+            
+            const { data: hasGrad } = await supabase
+                .from('istoric_grade')
+                .select('id')
+                .eq('sportiv_id', sportiv.id)
+                .eq('grad_id', newGrad.id)
+                .maybeSingle();
+
+            if (hasGrad) {
+                return { ...row, sportivId: sportiv.id, newGradId: newGrad.id, newGradName: newGrad.nume, status: 'warning', message: 'Sportivul are deja acest grad.' };
+            }
+
+            return { ...row, sportivId: sportiv.id, gradActualId: sportiv.grad_actual_id, newGradId: newGrad.id, newGradName: newGrad.nume, status: 'valid', message: 'Gata pentru import' };
+        });
+
+        return Promise.all(validationPromises);
+    };
     
+    const confirmImport = async () => {
+        setIsProcessing(true);
+        const toImport = previewData.filter(r => r.status !== 'error');
+        let successCount = 0;
+        let errorCount = 0;
+
+        for (const row of toImport) {
+            if (row.status === 'warning' || !row.sportivId || !row.newGradId) {
+                continue; // Skip warnings and invalid rows
+            }
+            
+            try {
+                // 1. Create Payment
+                const { data: plata, error: plataError } = await supabase
+                    .from('plati')
+                    .insert({
+                        sportiv_id: row.sportivId,
+                        suma: parseFloat(row.Contributie) || 0,
+                        status: 'Achitat',
+                        tip: 'EXAMEN',
+                        descriere: `Taxa examen ${row.newGradName}`,
+                        data: row.Data_Examen
+                    })
+                    .select()
+                    .single();
+                if (plataError) throw plataError;
+
+                // 2. Create Transaction
+                const { error: tranzactieError } = await supabase
+                    .from('tranzactii')
+                    .insert({
+                        plata_ids: [plata.id],
+                        sportiv_id: row.sportivId,
+                        suma: parseFloat(row.Contributie) || 0,
+                        metoda_plata: 'Cash', // Assume Cash for bulk import
+                        data_platii: row.Data_Examen
+                    });
+                if (tranzactieError) throw tranzactieError;
+                
+                // 3. Insert into Grade History
+                const { error: istoricError } = await supabase
+                    .from('istoric_grade')
+                    .insert({
+                        sportiv_id: row.sportivId,
+                        grad_id: row.newGradId,
+                        data_obtinere: row.Data_Examen,
+                        sesiune_examen_id: sesiuneId
+                    });
+                if (istoricError) throw istoricError;
+
+                // 4. Update Athlete's Current Grade
+                const { error: sportivUpdateError } = await supabase
+                    .from('sportivi')
+                    .update({ grad_actual_id: row.newGradId })
+                    .eq('id', row.sportivId);
+                if (sportivUpdateError) throw sportivUpdateError;
+                
+                successCount++;
+
+            } catch (err: any) {
+                errorCount++;
+                console.error(`Eroare la import pentru CNP ${row.CNP}:`, err);
+                if (err.code === '23505') { // unique_violation for istoric_grade
+                     showError(`Eroare de Duplicat (${row.CNP})`, "Sportivul are deja acest grad în istoric.");
+                } else {
+                     showError(`Eroare la import (${row.CNP})`, err.message);
+                }
+            }
+        }
+        
+        setIsProcessing(false);
+        showSuccess('Import Finalizat', `${successCount} înregistrări importate cu succes. ${errorCount} erori întâmpinate.`);
+        onImportComplete();
+        onClose();
+    };
+
     return (
-        <Modal isOpen={isOpen} onClose={handleClose} title="Import Rezultate Examen din CSV">
-            {renderContent()}
+        <Modal isOpen={isOpen} onClose={onClose} title="Import Rezultate Examen din CSV">
+            <div className="space-y-6">
+                <div className="flex justify-between items-center">
+                    <h2 className="text-xl font-bold">Import Rezultate Examene</h2>
+                    <Button onClick={downloadModel} variant="secondary" size="sm">
+                        <DocumentArrowDownIcon size={18} className="mr-2"/> Model CSV
+                    </Button>
+                </div>
+
+                <Input type="file" onChange={handleFileUpload} accept=".csv" label="Încarcă fișier CSV" />
+
+                {isProcessing && <p className="text-center text-slate-400">Se validează datele...</p>}
+
+                {previewData.length > 0 && (
+                    <div className="space-y-4">
+                        <div className="max-h-80 overflow-y-auto border border-slate-700 rounded-lg">
+                            <table className="w-full text-left text-sm">
+                                <thead className="bg-slate-800 sticky top-0">
+                                    <tr>
+                                        <th className="p-2 w-8"></th>
+                                        <th className="p-2">Sportiv</th>
+                                        <th className="p-2">Grad Nou</th>
+                                        <th className="p-2">Mesaj</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-800">
+                                    {previewData.map((row, idx) => (
+                                        <tr key={idx} className={`${row.status === 'error' ? 'bg-red-900/30' : row.status === 'warning' ? 'bg-yellow-900/30' : ''}`}>
+                                            <td className="p-2 text-center">
+                                                {row.status === 'valid' && <CheckCircleIcon className="w-5 h-5 text-green-500" />}
+                                                {row.status === 'error' && <XCircleIcon className="w-5 h-5 text-red-500" />}
+                                                {row.status === 'warning' && <ExclamationTriangleIcon className="w-5 h-5 text-yellow-500" />}
+                                            </td>
+                                            <td className="p-2">{row.Nume} {row.Prenume}</td>
+                                            <td className="p-2">{grades.find(g => String(g.ordine) === row.Grad_Nou_Ordine)?.nume || `Ordine Invalidă: ${row.Grad_Nou_Ordine}`}</td>
+                                            <td className="p-2 text-slate-400">{row.message}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div className="flex justify-end pt-4 border-t border-slate-700">
+                            <Button variant="primary" onClick={confirmImport} isLoading={isProcessing} disabled={isProcessing || previewData.every(r => r.status === 'error')}>
+                                Confirmă și Importă {previewData.filter(r => r.status !== 'error').length} Înregistrări
+                            </Button>
+                        </div>
+                    </div>
+                )}
+            </div>
         </Modal>
     );
 };

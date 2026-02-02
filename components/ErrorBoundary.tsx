@@ -13,6 +13,7 @@ interface State {
   error?: Error;
 }
 
+// FIX: Extended React.Component to give the class access to state, props, and lifecycle methods.
 class ErrorBoundary extends React.Component<Props, State> {
   state: State = {
     hasError: false,
@@ -30,11 +31,8 @@ class ErrorBoundary extends React.Component<Props, State> {
   }
 
   handleRedirect = () => {
-    // FIX: Property 'setState' does not exist on type 'ErrorBoundary'. Did you mean 'this.setState'?
     this.setState({ hasError: false, error: undefined });
-    // FIX: Property 'props' does not exist on type 'ErrorBoundary'. Did you mean 'this.props'?
     if (this.props.onNavigate) {
-        // FIX: Property 'props' does not exist on type 'ErrorBoundary'. Did you mean 'this.props'?
         this.props.onNavigate('dashboard');
     }
   }
@@ -46,7 +44,6 @@ class ErrorBoundary extends React.Component<Props, State> {
         <div className="p-8 text-center bg-red-900/50 text-red-300 rounded-lg border border-red-700">
           <h1 className="text-2xl font-bold">A apărut o eroare neașteptată.</h1>
           <p className="mt-2">Ceva nu a funcționat corect în această secțiune. Încercați să reîncărcați pagina sau să reveniți la panoul principal.</p>
-          {/* FIX: Property 'props' does not exist on type 'ErrorBoundary'. Did you mean 'this.props'? */}
           {this.props.onNavigate && (
               <Button onClick={this.handleRedirect} variant="secondary" className="mt-6">
                   <ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la pagina principală
@@ -61,7 +58,6 @@ class ErrorBoundary extends React.Component<Props, State> {
       );
     }
 
-    // FIX: Property 'props' does not exist on type 'ErrorBoundary'. Did you mean 'this.props'?
     return this.props.children;
   }
 }

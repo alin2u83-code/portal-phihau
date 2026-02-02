@@ -197,7 +197,6 @@ export const SportiviManagement: React.FC<{
     setAllRoles: React.Dispatch<React.SetStateAction<Rol[]>>;
     currentUser: User;
     plati: Plata[];
-    // FIX: Add missing setPlati prop
     setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
     tranzactii: Tranzactie[];
     setTranzactii: React.Dispatch<React.SetStateAction<Tranzactie[]>>;

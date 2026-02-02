@@ -234,8 +234,13 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
                 if (reducere) {
                     const valoareReducere = plata.suma_initiala - plata.suma;
                     reducereDetalii = {
-                        nume: reducere.nume,
+                        nume: plata.reducere_detalii || reducere.nume,
                         valoare: valoareReducere,
+                    };
+                } else if (plata.reducere_detalii) {
+                     reducereDetalii = {
+                        nume: plata.reducere_detalii,
+                        valoare: plata.suma_initiala - plata.suma,
                     };
                 }
             }

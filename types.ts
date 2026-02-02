@@ -221,6 +221,7 @@ export interface Plata {
     familie_id: string | null; 
     suma_initiala?: number | null;
     reducere_id?: string | null;
+    reducere_detalii?: string | null;
     suma: number;
     data: string;
     status: 'Achitat' | 'Neachitat' | 'Achitat Parțial';

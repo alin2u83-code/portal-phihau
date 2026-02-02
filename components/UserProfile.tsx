@@ -32,13 +32,10 @@ const getGradStyle = (gradName: string): string => {
     return 'bg-slate-600 text-white'; // Default
 };
 
-const GradBadge: React.FC<{ grad: Grad | null | undefined }> = ({ grad }) => {
+const GradBadge: React.FC<{ grad: Grad | null | undefined; isLarge?: boolean }> = ({ grad, isLarge }) => {
     if (!grad) return null;
-    return (
-        <span className={`px-3 py-1 text-sm font-bold rounded-full whitespace-nowrap ${getGradStyle(grad.nume)}`}>
-            {grad.nume}
-        </span>
-    );
+    const sizeClasses = isLarge ? 'px-6 py-2 text-3xl font-black' : 'px-3 py-1 text-sm font-bold';
+    return <span className={`inline-block rounded-full whitespace-nowrap text-center ${sizeClasses} ${getGradStyle(grad.nume)}`}>{grad.nume}</span>;
 };
 
 const ProgramAntrenament: React.FC<{ grupaId: string | null; grupe: Grupa[] }> = ({ grupaId, grupe }) => {
@@ -505,7 +502,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
         <div className="space-y-6">
             <div className="flex justify-between items-center"><Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi</Button><Button variant="info" onClick={() => setIsEditModalOpen(true)}><EditIcon className="w-4 h-4 mr-2"/> Editează Profil</Button></div>
             <header className="bg-[var(--bg-card)] p-6 rounded-xl shadow-lg border border-[var(--border-color)] flex flex-col md:flex-row items-center gap-6">
-                <div><GradBadge grad={currentGrad} /></div>
+                <div><GradBadge grad={currentGrad} isLarge /></div>
                 <div className="text-center md:text-left flex-grow">
                     <h1 className="text-3xl font-bold text-white">{sportiv.nume} {sportiv.prenume}</h1>
                     <p className="text-lg text-slate-300">{grupe.find(g => g.id === sportiv.grupa_id)?.denumire || 'Fără grupă'}</p>
@@ -531,7 +528,21 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                                         <div className="flex justify-between items-start">
                                             <div className="flex-grow">
                                                 <p className="font-bold text-white">{plata.descriere}</p>
-                                                <p className="text-slate-400">{new Date(plata.data).toLocaleDateString('ro-RO')} - {plata.suma.toFixed(2)} RON</p>
+                                                {plata.reducere_detalii && (
+                                                    <p className="text-xs text-amber-400">Reducere: {plata.reducere_detalii}</p>
+                                                )}
+                                                <div className="flex items-baseline gap-2 text-slate-400">
+                                                    <span>{new Date(plata.data).toLocaleDateString('ro-RO')}</span>
+                                                    <span>-</span>
+                                                    {plata.suma_initiala && plata.suma_initiala > plata.suma ? (
+                                                        <>
+                                                            <span className="line-through">{plata.suma_initiala.toFixed(2)}</span>
+                                                            <span className="font-bold text-white text-sm">{plata.suma.toFixed(2)} RON</span>
+                                                        </>
+                                                    ) : (
+                                                        <span className="font-bold text-white text-sm">{plata.suma.toFixed(2)} RON</span>
+                                                    )}
+                                                </div>
                                             </div>
                                             <div className="flex items-center gap-2 ml-2 flex-shrink-0">
                                                 <Button size="sm" variant="secondary" className="!p-1.5 h-auto" onClick={() => setPlataToEdit(plata)}><EditIcon className="w-3 h-3"/></Button>

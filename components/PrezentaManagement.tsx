@@ -193,7 +193,7 @@ const AttendanceDetail: React.FC<AttendanceDetailProps> = ({ antrenament, onBack
             }
             setAntrenamente(prev => prev.map(a => a.id === antrenament.id ? { ...a, prezenta: Array.from(newPresentIds).map(id => ({ sportiv_id: id, status: 'prezent' })) } : a));
         } catch (err: unknown) {
-            // FIX: Cast unknown error to Error type to safely access the message property.
+            // FIX: Argument of type 'unknown' is not assignable to parameter of type 'string'.
             showError("Eroare la actualizare", (err as Error)?.message || String(err));
             setPresentIds(presentIds); // Revert UI
         } finally {
@@ -360,11 +360,16 @@ export const PrezentaManagement: React.FC<{
     const handleOpenAdd = () => { setAntrenamentToEdit(null); setIsFormOpen(true); };
     
     const filteredAntrenamente = useMemo(() => {
+        const zileSaptamanaJS = ['Duminică', 'Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă'];
         return (antrenamente || [])
-            .filter(a =>
-                (!filters.data || a.data === filters.data) &&
-                (!filters.grupa || a.grupa_id === filters.grupa)
-            )
+            .filter(a => {
+                const trainingDayName = a.data ? zileSaptamanaJS[new Date(a.data + 'T00:00:00').getDay()] : null;
+                return (
+                    (!filters.data || a.data === filters.data) &&
+                    (!filters.grupa || a.grupa_id === filters.grupa) &&
+                    (!filters.ziua || trainingDayName === filters.ziua)
+                )
+            })
             .sort((a, b) => (a.ora_start || '').localeCompare(b.ora_start || ''));
     }, [antrenamente, filters]);
 
@@ -387,11 +392,20 @@ export const PrezentaManagement: React.FC<{
             </div>
 
             <Card className="mb-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
-                    <Input label="Filtrează după Dată" name="data" type="date" value={filters.data} onChange={handleFilterChange} />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+                    <div className="flex items-end gap-1">
+                        <Input label="Filtrează după Dată" name="data" type="date" value={filters.data} onChange={handleFilterChange} className="flex-grow"/>
+                        <Button variant="secondary" size="sm" onClick={() => setFilters(prev => ({...prev, data: ''}))} className="h-[38px] !px-3" title="Șterge filtrul de dată">
+                            <XIcon className="w-4 h-4"/>
+                        </Button>
+                    </div>
                     <Select label="Filtrează după Grupă" name="grupa" value={filters.grupa} onChange={handleFilterChange}>
                         <option value="">Toate Grupele</option>
                         {(grupe || []).map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
+                    </Select>
+                     <Select label="Filtrează după Zi" name="ziua" value={filters.ziua} onChange={handleFilterChange}>
+                        <option value="">Toate Zilele</option>
+                        {['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'].map(zi => <option key={zi} value={zi}>{zi}</option>)}
                     </Select>
                     <Button onClick={() => onNavigate('activitati')} variant="secondary" className="w-full lg:w-auto justify-self-end">
                         <CalendarDaysIcon className="w-5 h-5 mr-2" />

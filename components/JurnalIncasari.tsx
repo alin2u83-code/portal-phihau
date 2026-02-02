@@ -342,7 +342,19 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
 
             } else {
                 const sportiv = sportivi.find(s => s.id === formState.sportiv_id);
-                const { data: newPlata, error: plataError } = await supabase.from('plati').insert({ sportiv_id: formState.sportiv_id, familie_id: sportiv?.familie_id, suma: formState.suma, suma_initiala: formState.suma_initiala > 0 ? formState.suma_initiala : null, reducere_id: formState.reducere_id, data: formState.data_platii!, status: 'Achitat', descriere: formState.descriere, tip: formState.tip, observatii: formState.observatii }).select().single();
+                const { data: newPlata, error: plataError } = await supabase.from('plati').insert({ 
+                    sportiv_id: formState.sportiv_id, 
+                    familie_id: sportiv?.familie_id, 
+                    suma: formState.suma, 
+                    suma_initiala: formState.suma_initiala > 0 ? formState.suma_initiala : null, 
+                    reducere_id: formState.reducere_id,
+                    reducere_detalii: reducereAplicata?.nume || null,
+                    data: formState.data_platii!, 
+                    status: 'Achitat', 
+                    descriere: formState.descriere, 
+                    tip: formState.tip, 
+                    observatii: formState.observatii 
+                }).select().single();
                 if (plataError) throw plataError;
                 newPlataId = (newPlata as Plata).id;
                 const { data: tx, error: txError } = await supabase.from('tranzactii').insert({ plata_ids: [newPlataId], sportiv_id: formState.sportiv_id, familie_id: sportiv?.familie_id, suma: formState.suma, data_platii: formState.data_platii!, metoda_plata: formState.metoda_plata! }).select().single();

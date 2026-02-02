@@ -359,7 +359,7 @@ export const SportiviManagement: React.FC<{
         { key: 'actions', label: 'Acțiuni', tooltip: "Acțiuni rapide: gestionează portofelul sau setările contului.", headerClassName: 'text-right', cellClassName: 'text-right', render: (s) => (<div className="flex justify-end items-center gap-2"><Button size="sm" variant="info" onClick={(e) => { e.stopPropagation(); handleOpenWallet(s); }} title="Portofel Sportiv" className="!p-2"><WalletIcon className="w-4 h-4" /></Button><Button size="sm" variant={s.status === 'Activ' ? 'warning' : 'success'} onClick={(e) => { e.stopPropagation(); handleToggleStatus(s); }} title={s.status === 'Activ' ? 'Dezactivează sportiv' : 'Activează sportiv'} className="!p-2" isLoading={loadingStates[s.id]}>{s.status === 'Activ' ? <UserXIcon className="w-4 h-4" /> : <UserCheckIcon className="w-4 h-4" />}</Button><Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); setAccountSettingsSportiv(s); }} title="Setări Cont de Acces" className="!p-2"><ShieldCheckIcon className="w-4 h-4" /></Button></div>) }
     ];
 
-    const handleSave = async (formData: Partial<Sportiv>) => {
+    const handleSave = async (formData: Partial<Sportiv>): Promise<{ success: boolean; error?: any; data?: Sportiv; }> => {
         const { roluri, ...sportivData } = formData;
         try {
             if (sportivToEdit) {
@@ -367,6 +367,7 @@ export const SportiviManagement: React.FC<{
                 if (error) throw error;
                 const updatedSportiv = { ...data, roluri: data.roluri || [] };
                 setSportivi(prev => prev.map(s => s.id === sportivToEdit.id ? updatedSportiv : s));
+                return { success: true, data: updatedSportiv };
             } else {
                 const dataToSave = { ...sportivData };
                 if (!dataToSave.familie_id) {
@@ -383,8 +384,8 @@ export const SportiviManagement: React.FC<{
                     else newSportiv.roluri = [sportivRole];
                 }
                 setSportivi(prev => [...prev, newSportiv]);
+                return { success: true, data: newSportiv };
             }
-            return { success: true };
         } catch (err: any) {
             return { success: false, error: err };
         }
@@ -393,10 +394,12 @@ export const SportiviManagement: React.FC<{
     return (
         <div className="space-y-6">
             <Button onClick={onBack} variant="secondary" className="mb-2"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
+            
             <div className="flex justify-between items-center gap-4">
                 <h1 className="text-2xl font-bold text-white uppercase tracking-tight">Management Sportivi</h1>
                 {permissions.hasAdminAccess && (<Button variant="primary" onClick={() => { setSportivToEdit(null); setIsFormModalOpen(true); }}><PlusIcon className="w-5 h-5 mr-1"/> Adaugă Sportiv</Button>)}
             </div>
+
             <Card className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-center">
                 <Select label="Status" value={filters.statusFilter} onChange={e => handleFilterChange('statusFilter', e.target.value)}><option value="Activ">Activi</option><option value="Inactiv">Inactivi</option><option value="">Toți</option></Select>
                 <Select label="Grupă" value={filters.grupaFilter} onChange={e => handleFilterChange('grupaFilter', e.target.value)}><option value="">Toate grupele</option>{(grupe || []).map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}</Select>
@@ -409,7 +412,24 @@ export const SportiviManagement: React.FC<{
                 <ResponsiveTable data={sortedAndFilteredSportivi} columns={columns} searchTerm={filters.searchTerm} onSearchChange={(val) => handleFilterChange('searchTerm', val)} onRowClick={handleRowClick} searchPlaceholder="Caută sportiv după nume..." selectedRowId={selectedSportivForHighlight?.id} rowClassName={(sportiv) => !sportiv.user_id ? 'bg-red-900/20 hover:bg-red-900/40 !border-l-2 !border-red-500' : ''} onSort={requestSort} sortConfig={sortConfig} />
             </div>
             <GradLegend />
-            {isFormModalOpen && (<SportivFormModal isOpen={isFormModalOpen} onClose={() => setIsFormModalOpen(false)} onSave={handleSave} sportivToEdit={sportivToEdit} grupe={grupe} setGrupe={setGrupe} familii={familii} setFamilii={setFamilii} tipuriAbonament={tipuriAbonament} clubs={clubs} currentUser={currentUser} />)}
+            {isFormModalOpen && (<SportivFormModal 
+                isOpen={isFormModalOpen} 
+                onClose={(savedSportiv?: Sportiv) => {
+                    setIsFormModalOpen(false);
+                    if (savedSportiv && !sportivToEdit) {
+                        onViewSportiv(savedSportiv);
+                    }
+                }} 
+                onSave={handleSave} 
+                sportivToEdit={sportivToEdit} 
+                grupe={grupe} 
+                setGrupe={setGrupe} 
+                familii={familii} 
+                setFamilii={setFamilii} 
+                tipuriAbonament={tipuriAbonament} 
+                clubs={clubs} 
+                currentUser={currentUser} 
+            />)}
             <DeactivationModal isOpen={!!sportivToDeactivate} onClose={() => setSportivToDeactivate(null)} sportiv={sportivToDeactivate} sportivi={sportivi} plati={plati} tipuriAbonament={tipuriAbonament} onConfirm={handleConfirmDeactivation} />
             <SportivAccountSettingsModal isOpen={!!accountSettingsSportiv} onClose={() => setAccountSettingsSportiv(null)} sportiv={accountSettingsSportiv} setSportivi={setSportivi} allRoles={allRoles} setAllRoles={setAllRoles} currentUser={currentUser} />
             {isWalletModalOpen && sportivForWallet && (<SportivWallet sportiv={sportivForWallet} familie={familii.find(f => f.id === sportivForWallet.familie_id)} allPlati={plati} allTranzactii={tranzactii} setTranzactii={setTranzactii} onClose={() => { setIsWalletModalOpen(false); setSportivForWallet(null); }} />)}

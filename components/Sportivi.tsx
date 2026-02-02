@@ -184,8 +184,8 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
 
 export const SportivFormModal: React.FC<{
     isOpen: boolean;
-    onClose: () => void;
-    onSave: (formData: Partial<Sportiv>) => Promise<{ success: boolean, error?: any }>;
+    onClose: (savedSportiv?: Sportiv) => void;
+    onSave: (formData: Partial<Sportiv>) => Promise<{ success: boolean; error?: any; data?: Sportiv }>;
     sportivToEdit: Partial<Sportiv> | null;
     grupe: Grupa[];
     setGrupe: React.Dispatch<React.SetStateAction<Grupa[]>>;
@@ -240,7 +240,7 @@ export const SportivFormModal: React.FC<{
             const result = await onSave(cleanData);
             if (result.success) {
                 showSuccess('Succes', sportivToEdit ? 'Sportiv actualizat!' : 'Sportiv adăugat!');
-                onClose();
+                onClose(result.data);
             } else {
                 showError("Eroare Salvare", result.error);
             }
@@ -264,7 +264,7 @@ export const SportivFormModal: React.FC<{
 
     return (
         <>
-            <Modal isOpen={isOpen} onClose={onClose} title={sportivToEdit ? "Editează Sportiv" : "Adaugă Sportiv"} persistent>
+            <Modal isOpen={isOpen} onClose={() => onClose()} title={sportivToEdit ? "Editează Sportiv" : "Adaugă Sportiv"} persistent>
                 {criticalPermissionError ? (
                     <div className="p-6 rounded-lg bg-[var(--bg-card)] border-2 border-red-500 text-center animate-fade-in-down">
                         <ExclamationTriangleIcon className="w-12 h-12 text-red-500 mx-auto mb-4" />
@@ -289,7 +289,7 @@ export const SportivFormModal: React.FC<{
                             onQuickAddFamilie={() => setIsFamilieModalOpen(true)}
                         />
                         <div className="flex justify-end pt-4 mt-4 gap-2 border-t border-slate-700">
-                            <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Închide</Button>
+                            <Button type="button" variant="secondary" onClick={() => onClose()} disabled={loading}>Închide</Button>
                             <Button type="submit" variant="primary" isLoading={loading} disabled={!isFormValid || loading}>Salvează</Button>
                         </div>
                     </form>

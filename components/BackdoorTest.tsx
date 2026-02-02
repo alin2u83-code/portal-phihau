@@ -26,21 +26,17 @@ export const BackdoorTest: React.FC<BackdoorTestProps> = ({ currentUser, onBack,
 
         setLoadingRole(roleName);
 
-        // This updates the user's metadata to set an 'active_role'.
-        // RLS policies can then read this from the JWT to change the security context.
         const roleToSet: Rol['nume'] = roleName === 'ADMIN_CLUB' ? 'Admin Club' : roleName === 'SPORTIV' ? 'Sportiv' : 'SUPER_ADMIN_FEDERATIE';
 
-        const { error } = await supabase.auth.updateUser({
-            data: { active_role: roleToSet }
-        });
+        // Correct way: Call the RPC function to update the `sportivi` table,
+        // which then triggers the sync to auth.users metadata.
+        const { error } = await supabase.rpc('set_active_role', { p_role_name: roleToSet });
         
         if (error) {
             showError("Eroare la comutarea rolului", error.message);
             setLoadingRole(null);
         } else {
-            // Display confirmation message
             showSuccess("Context Schimbat", `Rolul a fost setat la ${roleName}. Pagina se va reîncărca...`);
-            // Reload the page to apply new RLS policies
             setTimeout(() => {
                 window.location.reload();
             }, 1500);

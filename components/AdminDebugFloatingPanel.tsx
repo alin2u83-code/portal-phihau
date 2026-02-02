@@ -28,8 +28,9 @@ export const AdminDebugFloatingPanel: React.FC<AdminDebugFloatingPanelProps> = (
 
         setLoadingRole(roleName);
 
-        // This updates the user's metadata directly. This will be reflected in the JWT on the next refresh.
-        const { error } = await supabase.auth.updateUser({ data: { active_role: roleName } });
+        // Correct way: Call the RPC function to update the `sportivi` table.
+        // This will trigger the sync to auth.users metadata.
+        const { error } = await supabase.rpc('set_active_role', { p_role_name: roleName });
 
         if (error) {
             showError("Eroare la comutarea rolului", error.message);

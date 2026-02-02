@@ -57,7 +57,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
             skipEmptyLines: true,
             complete: (results) => {
                 const headers = results.meta.fields || [];
-                const missingHeaders = REQUIRED_HEADERS.filter(h => !headers.includes(h));
+                const missingHeaders = REQUIRED_HEADERS.filter(h => !headers.map(h => h.toLowerCase()).includes(h));
                 if (missingHeaders.length > 0) {
                     showError("Format CSV Invalid", `Coloanele următoare lipsesc: ${missingHeaders.join(', ')}`);
                     resetState();
@@ -103,6 +103,19 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                     throw new Error('Rând invalid. Asigurați-vă că `cnp`, `ordine_grad` și `rezultat` sunt completate.');
                 }
                 
+                // Pentru a asigura integritatea datelor și securitatea, toată logica de procesare
+                // este încapsulată în funcția `process_exam_row` din baza de date (PostgreSQL).
+                // Aceasta este cea mai bună practică din următoarele motive:
+                // 1. Atomicitate: Toți pașii (găsire sportiv, verificare duplicate, update grad, creare plată)
+                //    se execută într-o singură tranzacție. Dacă un pas eșuează, totul este anulat automat.
+                // 2. Performanță: O singură cerere RPC este mult mai rapidă decât multiple interogări separate.
+                // 3. Securitate: Logica rulează cu privilegii controlate pe server, nu pe client.
+                //
+                // Funcția RPC gestionează deja următoarele validări solicitate:
+                // - Validare CNP: Aruncă o eroare dacă CNP-ul nu este găsit în `public.sportivi`.
+                // - Prevenire Duplicate: Verifică `istoric_grade` și returnează un avertisment dacă gradul există deja.
+                // - Automatizare Plăți: Creează o factură 'Achitat' și o tranzacție pentru fiecare rezultat 'Admis'.
+                // - Tratare Erori: Orice eroare de validare din RPC este prinsă în blocul `catch` de mai jos și afișată în lista finală.
                 const { data: rpcResult, error: rpcError } = await supabase.rpc('process_exam_row', {
                     p_cnp: String(row.cnp).trim(),
                     p_ordine_grad: Number(row.ordine_grad),
@@ -118,7 +131,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                 results.push({ status, message: rpcResult, rowData: row });
 
             } catch (error: any) {
-                results.push({ status: 'Eroare', message: error.message, rowData: row });
+                results.push({ status: 'Eroare', message: error.message.replace(/error: /g, '').replace(/hint: .*/, '').trim(), rowData: row });
             }
             setImportResults([...results]);
         }
@@ -159,7 +172,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                             <thead className="text-slate-400"><tr>{REQUIRED_HEADERS.map(h => <th key={h} className="p-2">{h}</th>)}</tr></thead>
                             <tbody className="divide-y divide-slate-700">
                                 {parsedData.slice(0,5).map((row, i) => (
-                                    <tr key={i}>{REQUIRED_HEADERS.map(h => <td key={h} className="p-2 truncate max-w-xs">{row[h as keyof CsvRow]}</td>)}</tr>
+                                    <tr key={i}>{REQUIRED_HEADERS.map(h => <td key={h} className="p-2 truncate max-w-xs">{String(row[h as keyof CsvRow] || '')}</td>)}</tr>
                                 ))}
                             </tbody>
                         </table>

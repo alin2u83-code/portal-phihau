@@ -387,8 +387,8 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
                     </div>
                     <div className="flex items-center gap-2">
                         <Button size="sm" variant="info" onClick={() => setSelectedSesiuneId(s.id)}>Vezi Detalii</Button>
-                        <Button size="sm" variant="secondary" onClick={() => { setSesiuneToEdit(s); setIsFormOpen(true); }}><EditIcon className="w-4 h-4" /></Button>
-                        <Button size="sm" variant="danger" onClick={() => setSesiuneToDelete(s)}><TrashIcon className="w-4 h-4" /></Button>
+                        <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); setSesiuneToEdit(s); setIsFormOpen(true); }}><EditIcon className="w-4 h-4" /></Button>
+                        <Button size="sm" variant="danger" onClick={(e) => { e.stopPropagation(); setSesiuneToDelete(s); }}><TrashIcon className="w-4 h-4" /></Button>
                     </div>
                 </div>
             </Card>

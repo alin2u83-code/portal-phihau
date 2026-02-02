@@ -29,7 +29,7 @@ class ErrorBoundary extends React.Component<Props, State> {
     console.error("Uncaught error:", error, errorInfo);
   }
 
-  // Fix: Converted to an arrow function to automatically bind `this`. This resolves errors related to `this.setState` and `this.props` not being found.
+  // FIX: Converted to an arrow function to automatically bind `this`. This resolves errors related to `this.setState` and `this.props` not being found.
   handleRedirect = () => {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {

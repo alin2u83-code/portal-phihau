@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { User, View, Club, Permissions, Rol } from '../types';
 import { instructorMenu, sportivMenu, clubAdminMenu, federationAdminMenu, MenuItem } from './menuConfig';
-import { ArrowRightOnRectangleIcon, Bars3Icon, ChevronDownIcon, ShieldCheckIcon } from './icons';
+import { ArrowRightOnRectangleIcon, Bars3Icon, ChevronDownIcon, ShieldCheckIcon, UserCircleIcon } from './icons';
 import { Select } from './ui';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
 
@@ -61,9 +61,13 @@ interface SidebarProps {
     setGlobalClubFilter: React.Dispatch<React.SetStateAction<string | null>>;
     permissions: Permissions;
     activeRole: Rol['nume'];
+    canSwitchRoles: boolean;
+    onSwitchRole: (roleName: Rol['nume']) => void;
+    isSwitchingRole: boolean;
+    grade: any[]; // Assuming grade structure is not needed here
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLogout, activeView, isExpanded, setIsExpanded, clubs, globalClubFilter, setGlobalClubFilter, permissions, activeRole }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLogout, activeView, isExpanded, setIsExpanded, clubs, globalClubFilter, setGlobalClubFilter, permissions, activeRole, canSwitchRoles, onSwitchRole, isSwitchingRole }) => {
     const [isMobileOpen, setIsMobileOpen] = useState(false);
 
     const handleNavigate = (view: View) => {
@@ -102,6 +106,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
         return { menuToDisplay: menu, contextName: name, borderClass: border };
     }, [activeRole, currentUser.cluburi?.nume]);
 
+    const adminRoleToSwitchTo = useMemo(() => {
+        if (!currentUser || !permissions.hasAdminAccess) return null;
+        const allUserRoles = currentUser.roluri || [];
+        const roleOrder: Rol['nume'][] = ['SUPER_ADMIN_FEDERATIE', 'Admin', 'Admin Club', 'Instructor'];
+        for (const roleName of roleOrder) {
+            if (allUserRoles.some(r => r.nume === roleName)) {
+                return roleName;
+            }
+        }
+        return 'Admin Club';
+    }, [currentUser, permissions]);
 
     // Main content of the sidebar
     const sidebarContent = (
@@ -131,10 +146,24 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
             )}
 
             <nav className="flex-1 px-2 py-4 space-y-1.5 overflow-y-auto">
+                {permissions.hasAdminAccess && activeRole === 'Sportiv' && adminRoleToSwitchTo && (
+                    <div onClick={() => onSwitchRole(adminRoleToSwitchTo)} className="flex items-center p-2.5 text-white rounded-md cursor-pointer bg-amber-600/20 hover:bg-amber-600/40 border border-amber-500/50 mb-4 transition-colors" title={!isExpanded ? "Comută la Panoul Administrativ" : ''}>
+                        <ShieldCheckIcon className={`h-6 w-6 shrink-0 text-amber-300 ${isExpanded ? 'mr-3' : 'mx-auto'}`} />
+                        {isExpanded && <span className="flex-1 font-semibold text-sm">Panou Administrativ</span>}
+                    </div>
+                )}
+                
                 {menuToDisplay.map(item => {
                      const isActive = item.view === activeView || (item.submenu?.some(s => s.view === activeView) ?? false);
                      return <NavItem key={item.label} item={item} isExpanded={isExpanded} isActive={isActive} onNavigate={handleNavigate} activeView={activeView} />
                 })}
+
+                {permissions.isSportiv && permissions.hasAdminAccess && activeRole !== 'Sportiv' && (
+                    <div onClick={() => onSwitchRole('Sportiv')} className="flex items-center p-2.5 text-white rounded-md cursor-pointer bg-green-600/20 hover:bg-green-600/40 border border-green-500/50 mt-4 transition-colors" title={!isExpanded ? "Comută la Portalul de Sportiv" : ''}>
+                        <UserCircleIcon className={`h-6 w-6 shrink-0 text-green-300 ${isExpanded ? 'mr-3' : 'mx-auto'}`} />
+                        {isExpanded && <span className="flex-1 font-semibold text-sm">Portal Sportiv</span>}
+                    </div>
+                )}
             </nav>
 
              <div className="p-3 border-t border-white/10">

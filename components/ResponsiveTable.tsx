@@ -23,6 +23,8 @@ interface ResponsiveTableProps<T> {
     searchPlaceholder?: string;
     selectedRowId?: string | null;
     rowClassName?: (item: T) => string;
+    onSort?: (key: string) => void;
+    sortConfig?: { key: string; direction: 'asc' | 'desc' };
 }
 
 // --- MAIN COMPONENT ---
@@ -36,6 +38,8 @@ export function ResponsiveTable<T extends { id: string }>({
     searchPlaceholder = 'Caută...',
     selectedRowId,
     rowClassName,
+    onSort,
+    sortConfig,
 }: ResponsiveTableProps<T>) {
 
     return (
@@ -64,10 +68,11 @@ export function ResponsiveTable<T extends { id: string }>({
                                 <th 
                                     key={String(col.key)} 
                                     scope="col" 
-                                    className={`p-3 font-semibold ${col.headerClassName || ''} ${col.className || ''}`}
+                                    className={`p-3 font-semibold ${col.headerClassName || ''} ${col.className || ''} ${onSort ? 'cursor-pointer' : ''}`}
                                     title={col.tooltip}
+                                    onClick={() => onSort?.(String(col.key))}
                                 >
-                                    {col.label}
+                                    {col.label} {sortConfig && sortConfig.key === String(col.key) ? (sortConfig.direction === 'asc' ? '▲' : '▼') : ''}
                                 </th>
                             ))}
                         </tr>

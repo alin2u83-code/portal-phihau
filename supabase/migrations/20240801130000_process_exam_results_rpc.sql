@@ -1,6 +1,6 @@
 -- =================================================================
 -- Funcție RPC pentru Procesarea Atomică a Rezultatelor de Examen
--- v2.0 - Adăugare logică "Upsert" pentru sportivi
+-- v2.1 - Corectare metodă de plată
 -- =================================================================
 -- Scop: Procesează un singur rând din importul CSV. Acum, dacă un
 -- sportiv nu este găsit după CNP, îl va crea automat. Toate
@@ -99,7 +99,7 @@ BEGIN
 
             -- Creează tranzacția asociată
             INSERT INTO public.tranzactii(plata_ids, sportiv_id, familie_id, suma, metoda_plata, data_platii, descriere)
-            VALUES (ARRAY[v_plata_id], v_sportiv.id, v_sportiv.familie_id, p_contributie, 'CSV Import', p_data_examen, 'Încasare taxă examen via import CSV');
+            VALUES (ARRAY[v_plata_id], v_sportiv.id, v_sportiv.familie_id, p_contributie, 'Cash', p_data_examen, 'Încasare taxă examen via import CSV');
         END IF;
     END IF;
 

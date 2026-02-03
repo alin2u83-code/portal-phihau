@@ -137,7 +137,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                 return { ...row, status: 'create', message: 'Sportiv nou - Va fi creat' };
             }
 
-// FIX: Corrected destructuring for count query. The `count` property is top-level, not inside `data`.
+            // FIX: Corrected destructuring for count query. The `count` property is top-level, not inside `data`.
             const { count, error: countError } = await supabase.from('istoric_grade').select('id', { count: 'exact', head: true }).eq('sportiv_id', sportiv.id).eq('grad_id', newGrad.id);
             if (countError) {
                 return { ...row, status: 'error', message: 'Eroare la validare istoric' };

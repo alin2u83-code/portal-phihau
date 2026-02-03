@@ -6,11 +6,12 @@
 -- Scop: Generează un cod unic și incremental pentru un sportiv nou,
 -- într-un mod atomic pentru a preveni race conditions.
 -- Format: YYYYPH[Inițiale][NumărSecvențial]
+-- v1.1 - Reordonare parametri pentru a remedia eroarea de cache RPC
 -- =================================================================
 CREATE OR REPLACE FUNCTION public.generate_sportiv_code(
+    p_an INT,
     p_nume TEXT,
-    p_prenume TEXT,
-    p_an INT
+    p_prenume TEXT
 )
 RETURNS TEXT
 LANGUAGE plpgsql
@@ -88,8 +89,8 @@ BEGIN
     IF p_existing_sportiv_id IS NOT NULL THEN
         v_sportiv_id := p_existing_sportiv_id;
     ELSE
-        INSERT INTO public.sportivi(nume, prenume, cod_sportiv, data_inscrierii, club_id, status, data_nasterii)
-        VALUES (p_nume, p_prenume, p_cod_sportiv, p_data_examen, p_club_id, 'Activ', '1900-01-01')
+        INSERT INTO public.sportivi(nume, prenume, cod_sportiv, data_inscrierii, club_id, status, data_nasterii, rol_activ_context)
+        VALUES (p_nume, p_prenume, p_cod_sportiv, p_data_examen, p_club_id, 'Activ', '1900-01-01', 'Sportiv')
         ON CONFLICT (cod_sportiv) DO NOTHING -- Ignoră dacă un cod duplicat este trimis accidental
         RETURNING id INTO v_sportiv_id;
 

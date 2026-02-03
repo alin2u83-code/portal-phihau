@@ -29,7 +29,6 @@ interface PotentialMatch extends Sportiv {
 
 interface PreviewRow extends CsvRow {
     originalIndex: number;
-    // FIX: Add 'error' and 'resolved' to the status type to match component logic.
     status: 'pending' | 'valid' | 'conflict' | 'create' | 'error' | 'resolved';
     message: string;
     existingSportiv?: Sportiv; // For 'valid'
@@ -125,7 +124,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                 return { ...baseRow, status: 'create', message: 'Va fi creat (cod duplicat în CSV)', generatedCode: generatedCodesThisBatch.get(fullNameKey) };
             } else {
                 const anExamen = new Date(row.Data_Examen).getFullYear();
-                const { data: newCode, error: codeError } = await supabase.rpc('generate_sportiv_code', { p_nume: row.Nume, p_prenume: row.Prenume, p_an: anExamen });
+                const { data: newCode, error: codeError } = await supabase.rpc('generate_sportiv_code', { p_an: anExamen, p_nume: row.Nume, p_prenume: row.Prenume });
                 if (codeError) return { ...baseRow, status: 'error', message: `Eroare generare cod: ${codeError.message}` };
                 generatedCodesThisBatch.set(fullNameKey, newCode);
                 return { ...baseRow, status: 'create', message: `Cod nou: ${newCode}`, generatedCode: newCode };

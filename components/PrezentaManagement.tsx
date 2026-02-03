@@ -84,7 +84,6 @@ interface AttendanceDetailProps {
 }
 
 const AttendanceDetail: React.FC<AttendanceDetailProps> = ({ antrenament, onBack, setAntrenamente, allSportivi, allPlati }) => {
-    // FIX: Moved AthleteRow inside AttendanceDetail to ensure it is always in scope.
     const AthleteRow: React.FC<{
         sportiv: Sportiv;
         isPresent: boolean;
@@ -110,7 +109,7 @@ const AttendanceDetail: React.FC<AttendanceDetailProps> = ({ antrenament, onBack
                 <span className={`font-bold text-sm px-2 py-1 rounded-md ${isPresent ? 'text-green-300' : 'text-slate-500'}`}>{isPresent ? 'Prezent' : 'Absent'}</span>
             </label>
             {onRemove && (
-                <Button size="sm" variant="danger" onClick={() => onRemove(sportiv.id)} className="!p-2 shrink-0" title="Elimină de la antrenament">
+                <Button size="sm" variant="danger" onClick={() => onRemove(sportiv.id)} className="!p-2 shrink-0" title="Elimină de la antrenament" disabled={isUpdating}>
                     <TrashIcon className="w-4 h-4" />
                 </Button>
             )}
@@ -119,11 +118,12 @@ const AttendanceDetail: React.FC<AttendanceDetailProps> = ({ antrenament, onBack
 
     const [groupAthletes, setGroupAthletes] = useState<Sportiv[]>([]);
     const [presentIds, setPresentIds] = useState<Set<string>>(new Set());
+    const [initialPresentIds, setInitialPresentIds] = useState<Set<string>>(new Set());
     const [loading, setLoading] = useState(true);
-    const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
+    const [isSaving, setIsSaving] = useState(false);
     const [extraAthleteIds, setExtraAthleteIds] = useState<Set<string>>(new Set());
     const [selectedExternalId, setSelectedExternalId] = useState('');
-    const { showError } = useError();
+    const { showError, showSuccess } = useError();
 
     const hasValidMedicalCheck = useCallback((sportivId: string, plati: Plata[]): boolean => {
         const today = new Date();
@@ -137,12 +137,13 @@ const AttendanceDetail: React.FC<AttendanceDetailProps> = ({ antrenament, onBack
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
-            const initialPresentIds = new Set(antrenament.prezenta.map(p => p.sportiv_id));
-            setPresentIds(initialPresentIds);
+            const initialIds = new Set(antrenament.prezenta.map(p => p.sportiv_id));
+            setPresentIds(initialIds);
+            setInitialPresentIds(initialIds);
             
             if (!antrenament.grupa_id) {
                 setGroupAthletes([]);
-                setExtraAthleteIds(initialPresentIds); // All present are external if no group
+                setExtraAthleteIds(initialIds);
                 setLoading(false);
                 return;
             }
@@ -155,7 +156,7 @@ const AttendanceDetail: React.FC<AttendanceDetailProps> = ({ antrenament, onBack
 
             const groupAthleteIds = new Set(fetchedGroupAthletes.map(s => s.id));
             const initialExtraIds = new Set<string>();
-            initialPresentIds.forEach(id => {
+            initialIds.forEach(id => {
                 if (!groupAthleteIds.has(id)) { initialExtraIds.add(id); }
             });
             setExtraAthleteIds(initialExtraIds);
@@ -176,36 +177,30 @@ const AttendanceDetail: React.FC<AttendanceDetailProps> = ({ antrenament, onBack
             .filter((s): s is Sportiv => s !== undefined);
     }, [allSportivi, extraAthleteIds]);
 
-    const handleToggle = async (sportivId: string) => {
-        setUpdatingIds(prev => new Set(prev).add(sportivId));
-        const isCurrentlyPresent = presentIds.has(sportivId);
-        const newPresentIds = new Set(presentIds);
-        if (isCurrentlyPresent) newPresentIds.delete(sportivId); else newPresentIds.add(sportivId);
-        setPresentIds(newPresentIds);
-
-        try {
-            if (!isCurrentlyPresent) {
-                const { error } = await supabase.from('prezenta_antrenament').upsert({ antrenament_id: antrenament.id, sportiv_id: sportivId }, { onConflict: 'antrenament_id, sportiv_id' });
-                if (error) throw error;
-            } else {
-                const { error } = await supabase.from('prezenta_antrenament').delete().match({ antrenament_id: antrenament.id, sportiv_id: sportivId });
-                if (error) throw error;
-            }
-            setAntrenamente(prev => prev.map(a => a.id === antrenament.id ? { ...a, prezenta: Array.from(newPresentIds).map(id => ({ sportiv_id: id, status: 'prezent' })) } : a));
-        } catch (err: unknown) {
-            showError("Eroare la actualizare", err instanceof Error ? err.message : String(err));
-            setPresentIds(presentIds); // Revert UI
-        } finally {
-            setUpdatingIds(prev => { const next = new Set(prev); next.delete(sportivId); return next; });
+    const hasChanges = useMemo(() => {
+        if (initialPresentIds.size !== presentIds.size) return true;
+        for (const id of initialPresentIds) {
+            if (!presentIds.has(id)) return true;
         }
+        return false;
+    }, [initialPresentIds, presentIds]);
+
+    const handleToggle = (sportivId: string) => {
+        setPresentIds(prev => {
+            const next = new Set(prev);
+            if (next.has(sportivId)) {
+                next.delete(sportivId);
+            } else {
+                next.add(sportivId);
+            }
+            return next;
+        });
     };
     
     const handleAddExternal = () => {
-        if (!selectedExternalId || presentIds.has(selectedExternalId)) return;
+        if (!selectedExternalId) return;
         setExtraAthleteIds(prev => new Set(prev).add(selectedExternalId));
-        if (!presentIds.has(selectedExternalId)) {
-            handleToggle(selectedExternalId); 
-        }
+        setPresentIds(prev => new Set(prev).add(selectedExternalId));
         setSelectedExternalId('');
     };
 
@@ -220,10 +215,50 @@ const AttendanceDetail: React.FC<AttendanceDetailProps> = ({ antrenament, onBack
         }
     };
 
+    const handleSave = async () => {
+        setIsSaving(true);
+        try {
+            const idsToAdd = Array.from(presentIds).filter(id => !initialPresentIds.has(id));
+            const idsToRemove = Array.from(initialPresentIds).filter(id => !presentIds.has(id));
+    
+            const promises = [];
+    
+            if (idsToAdd.length > 0) {
+                const recordsToInsert = idsToAdd.map(sportivId => ({
+                    antrenament_id: antrenament.id,
+                    sportiv_id: sportivId
+                }));
+                promises.push(supabase.from('prezenta_antrenament').upsert(recordsToInsert));
+            }
+    
+            if (idsToRemove.length > 0) {
+                promises.push(
+                    supabase.from('prezenta_antrenament')
+                        .delete()
+                        .eq('antrenament_id', antrenament.id)
+                        .in('sportiv_id', idsToRemove)
+                );
+            }
+            
+            const results = await Promise.all(promises);
+            const anyError = results.find(res => res.error);
+            if (anyError) throw anyError.error;
+    
+            setAntrenamente(prev => prev.map(a => a.id === antrenament.id ? { ...a, prezenta: Array.from(presentIds).map(id => ({ sportiv_id: id, status: 'prezent' })) } : a));
+            setInitialPresentIds(new Set(presentIds));
+            showSuccess("Succes", "Prezența a fost salvată.");
+    
+        } catch (err: any) {
+            showError("Eroare la salvarea prezenței", err.message || String(err));
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
     if (loading) return <div className="text-center p-8">Se încarcă lista de sportivi...</div>;
 
     return (
-        <Card>
+        <Card className="overflow-visible relative">
             <Button onClick={onBack} variant="secondary" className="mb-4"><ArrowLeftIcon /> Înapoi la Listă</Button>
             <div className="flex justify-between items-start mb-4">
                 <div>
@@ -238,7 +273,7 @@ const AttendanceDetail: React.FC<AttendanceDetailProps> = ({ antrenament, onBack
                         key={sportiv.id} 
                         sportiv={sportiv} 
                         isPresent={presentIds.has(sportiv.id)} 
-                        isUpdating={updatingIds.has(sportiv.id)} 
+                        isUpdating={isSaving}
                         hasViza={hasValidMedicalCheck(sportiv.id, allPlati)} 
                         onToggle={handleToggle}
                     />
@@ -254,7 +289,7 @@ const AttendanceDetail: React.FC<AttendanceDetailProps> = ({ antrenament, onBack
                                 key={sportiv.id}
                                 sportiv={sportiv}
                                 isPresent={presentIds.has(sportiv.id)}
-                                isUpdating={updatingIds.has(sportiv.id)}
+                                isUpdating={isSaving}
                                 hasViza={hasValidMedicalCheck(sportiv.id, allPlati)}
                                 onToggle={handleToggle}
                                 onRemove={handleRemoveExternal}
@@ -268,16 +303,26 @@ const AttendanceDetail: React.FC<AttendanceDetailProps> = ({ antrenament, onBack
                 <h3 className="text-lg font-bold text-white mb-2">Adaugă Sportiv din Afara Grupei</h3>
                 <div className="flex items-end gap-2">
                     <div className="flex-grow">
-                        <Select label="Selectează Sportiv" value={selectedExternalId} onChange={e => setSelectedExternalId(e.target.value)}>
+                        <Select label="Selectează Sportiv" value={selectedExternalId} onChange={e => setSelectedExternalId(e.target.value)} disabled={isSaving}>
                             <option value="">Alege...</option>
                             {(externalAthletesForSelect || []).map(s => <option key={s.id} value={s.id}>{s.nume} {s.prenume}</option>)}
                         </Select>
                     </div>
-                    <Button onClick={handleAddExternal} disabled={!selectedExternalId} variant="info">
+                    <Button onClick={handleAddExternal} disabled={!selectedExternalId || isSaving} variant="info">
                         <PlusIcon className="w-5 h-5 mr-2" /> Adaugă
                     </Button>
                 </div>
             </div>
+            
+            {hasChanges && (
+                <div className="sticky bottom-0 -mx-4 -mb-4 mt-8 p-3 bg-slate-900/80 backdrop-blur-sm border-t border-slate-700 animate-fade-in-down">
+                    <div className="flex justify-end items-center gap-4 max-w-4xl mx-auto px-4">
+                        <p className="text-sm text-amber-300 font-semibold">Ai modificări nesalvate.</p>
+                        <Button variant="secondary" onClick={() => setPresentIds(initialPresentIds)} disabled={isSaving}>Resetează</Button>
+                        <Button variant="success" onClick={handleSave} isLoading={isSaving}>Salvează Prezența</Button>
+                    </div>
+                </div>
+            )}
         </Card>
     );
 };
@@ -347,8 +392,8 @@ export const PrezentaManagement: React.FC<{
             await supabase.from('program_antrenamente').delete().eq('id', id);
             setAntrenamente(prev => prev.filter(p => p.id !== id));
             showSuccess("Succes", "Antrenamentul a fost șters.");
+// FIX: Cast the `unknown` error type to `Error` and access its `message` property before passing it to `showError` to fix the TypeScript error.
         } catch (err: unknown) {
-// FIX: Cast unknown error to string for showError
             showError("Eroare la ștergere", err instanceof Error ? err.message : String(err));
         } finally {
             setIsDeleting(false);

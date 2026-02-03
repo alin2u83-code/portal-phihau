@@ -207,8 +207,8 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
             setTrainings(prev => prev.map(t => t.id === antrenamentId ? { ...t, prezenta: Array.from(uiPresentIds).map(sportiv_id => ({ sportiv_id }))} : t));
             showSuccess("Succes", "Prezența a fost salvată!");
 
-        } catch (err: unknown) {
 // FIX: In `handleSave`, cast the `unknown` error type to `Error` and access its `message` property before passing it to `showError` to fix the TypeScript error.
+        } catch (err: unknown) {
             showError("Eroare la salvarea prezenței", err instanceof Error ? err.message : String(err));
         }
     };

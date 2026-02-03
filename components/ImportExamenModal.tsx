@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Papa from 'papaparse';
 import { supabase } from '../supabaseClient';
-import { Grad } from '../types';
-import { ExclamationTriangleIcon, CheckCircleIcon, DocumentArrowDownIcon, XCircleIcon } from './icons';
+import { Grad, User } from '../types';
+import { ExclamationTriangleIcon, CheckCircleIcon, DocumentArrowDownIcon, XCircleIcon, UserPlusIcon } from './icons';
 import { useError } from './ErrorProvider';
 import { Modal, Button, Input } from './ui';
 
@@ -11,6 +11,7 @@ interface ImportExamenModalProps {
     onClose: () => void;
     sesiuneId: string;
     onImportComplete: () => void;
+    currentUser: User;
 }
 
 interface CsvRow {
@@ -24,15 +25,11 @@ interface CsvRow {
 }
 
 interface PreviewRow extends CsvRow {
-    sportivId?: string;
-    gradActualId?: string | null;
-    newGradId?: string;
-    newGradName?: string;
-    status: 'valid' | 'error' | 'warning';
+    status: 'valid' | 'error' | 'warning' | 'create';
     message: string;
 }
 
-export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, onClose, sesiuneId, onImportComplete }) => {
+export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, onClose, sesiuneId, onImportComplete, currentUser }) => {
     const [previewData, setPreviewData] = useState<PreviewRow[]>([]);
     const [isProcessing, setIsProcessing] = useState(false);
     const [grades, setGrades] = useState<Grad[]>([]);
@@ -115,38 +112,41 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
     };
 
     const validateData = async (data: CsvRow[]): Promise<PreviewRow[]> => {
+        const cnps = data.map(row => String(row.CNP).trim());
+        const { data: sportiviData, error } = await supabase.from('sportivi').select('id, cnp, grad_actual_id').in('cnp', cnps);
+        if (error) {
+            showError("Eroare la validare", error.message);
+            return data.map(row => ({ ...row, status: 'error', message: 'Eroare la validarea sportivilor' }));
+        }
+
+        const sportiviMap = new Map(sportiviData.map(s => [s.cnp, s]));
+
         const validationPromises = data.map(async (row): Promise<PreviewRow> => {
-            if (!row.CNP || !row.Grad_Nou_Ordine) {
+            const cleanCNP = String(row.CNP).trim();
+            if (!cleanCNP || !row.Grad_Nou_Ordine) {
                 return { ...row, status: 'error', message: 'Rând incomplet (CNP, Grad Lipsă)' };
-            }
-
-            const { data: sportiv } = await supabase
-                .from('sportivi')
-                .select('id, nume, prenume, grad_actual_id')
-                .eq('cnp', String(row.CNP).trim())
-                .single();
-
-            if (!sportiv) {
-                return { ...row, status: 'error', message: 'Sportiv negăsit (CNP eronat)' };
             }
 
             const newGrad = grades.find(g => String(g.ordine) === String(row.Grad_Nou_Ordine).trim());
             if (!newGrad) {
-                return { ...row, sportivId: sportiv.id, status: 'error', message: `Cod grad invalid: ${row.Grad_Nou_Ordine}` };
-            }
-            
-            const { data: hasGrad } = await supabase
-                .from('istoric_grade')
-                .select('id')
-                .eq('sportiv_id', sportiv.id)
-                .eq('grad_id', newGrad.id)
-                .maybeSingle();
-
-            if (hasGrad) {
-                return { ...row, sportivId: sportiv.id, newGradId: newGrad.id, newGradName: newGrad.nume, status: 'warning', message: 'Sportivul are deja acest grad.' };
+                return { ...row, status: 'error', message: `Cod grad invalid: ${row.Grad_Nou_Ordine}` };
             }
 
-            return { ...row, sportivId: sportiv.id, gradActualId: sportiv.grad_actual_id, newGradId: newGrad.id, newGradName: newGrad.nume, status: 'valid', message: 'Gata pentru import' };
+            const sportiv = sportiviMap.get(cleanCNP);
+            if (!sportiv) {
+                return { ...row, status: 'create', message: 'Sportiv nou - Va fi creat' };
+            }
+
+// FIX: Corrected destructuring for count query. The `count` property is top-level, not inside `data`.
+            const { count, error: countError } = await supabase.from('istoric_grade').select('id', { count: 'exact', head: true }).eq('sportiv_id', sportiv.id).eq('grad_id', newGrad.id);
+            if (countError) {
+                return { ...row, status: 'error', message: 'Eroare la validare istoric' };
+            }
+            if (count && count > 0) {
+                return { ...row, status: 'warning', message: 'Sportivul are deja acest grad.' };
+            }
+
+            return { ...row, status: 'valid', message: 'Gata pentru import' };
         });
 
         return Promise.all(validationPromises);
@@ -154,126 +154,84 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
     
     const confirmImport = async () => {
         setIsProcessing(true);
-        const toImport = previewData.filter(r => r.status === 'valid' && r.Rezultat === 'Admis');
         let successCount = 0;
         let errorCount = 0;
+        let warningCount = 0;
+        const errorDetails: string[] = [];
 
-        for (const row of toImport) {
-            if (!row.sportivId || !row.newGradId) continue;
-            
+        for (const row of previewData.filter(r => r.status !== 'error')) {
             try {
-                // Creează Plata
-                const { data: plata, error: plataError } = await supabase
-                    .from('plati')
-                    .insert({
-                        sportiv_id: row.sportivId,
-                        suma: parseFloat(row.Contributie) || 0,
-                        status: 'Achitat',
-                        tip: 'Taxa Examen',
-                        descriere: `Taxa examen ${row.newGradName}`,
-                        data: row.Data_Examen
-                    })
-                    .select()
-                    .single();
-                if (plataError) throw plataError;
+                const { data: rpcResult, error: rpcError } = await supabase.rpc('process_exam_row_with_upsert', {
+                    p_cnp: row.CNP.toString().trim(),
+                    p_nume: row.Nume,
+                    p_prenume: row.Prenume,
+                    p_club_id: 'cbb0b228-b3e0-4735-9658-70999eb256c6', // Phi Hau ID
+                    p_ordine_grad: parseInt(row.Grad_Nou_Ordine),
+                    p_rezultat: row.Rezultat,
+                    p_contributie: parseFloat(row.Contributie) || 0,
+                    p_data_examen: row.Data_Examen,
+                    p_sesiune_id: sesiuneId
+                });
 
-                // Creează Tranzacția
-                const { error: tranzactieError } = await supabase
-                    .from('tranzactii')
-                    .insert({
-                        plata_ids: [plata.id],
-                        sportiv_id: row.sportivId,
-                        suma: parseFloat(row.Contributie) || 0,
-                        metoda_plata: 'CSV Import',
-                        data_platii: row.Data_Examen
-                    });
-                if (tranzactieError) throw tranzactieError;
+                if (rpcError) throw new Error(rpcError.message);
                 
-                // Inserează în Istoric Grade
-                const { error: istoricError } = await supabase
-                    .from('istoric_grade')
-                    .insert({
-                        sportiv_id: row.sportivId,
-                        grad_id: row.newGradId,
-                        data_obtinere: row.Data_Examen,
-                        sesiune_examen_id: sesiuneId
-                    });
-                if (istoricError) throw istoricError;
-
-                // Actualizează Gradul Curent al Sportivului
-                const { error: sportivUpdateError } = await supabase
-                    .from('sportivi')
-                    .update({ grad_actual_id: row.newGradId })
-                    .eq('id', row.sportivId);
-                if (sportivUpdateError) throw sportivUpdateError;
-                
-                successCount++;
+                if (typeof rpcResult === 'string' && rpcResult.startsWith('DUPLICATE_IGNORED')) {
+                    warningCount++;
+                } else {
+                    successCount++;
+                }
 
             } catch (err: any) {
                 errorCount++;
-                console.error(`Eroare la import pentru CNP ${row.CNP}:`, err);
-                showError(`Eroare la import (${row.CNP})`, err.message);
+                errorDetails.push(`CNP ${row.CNP}: ${err.message}`);
             }
         }
         
         setIsProcessing(false);
-        showSuccess('Import Finalizat', `${successCount} înregistrări "Admis" procesate. ${errorCount} erori.`);
+        let finalMessage = `${successCount} înregistrări procesate cu succes`;
+        if (warningCount > 0) finalMessage += `, ${warningCount} avertismente (grade duplicate ignorate)`;
+
+        if (errorCount > 0) {
+            showError(`Import finalizat cu ${errorCount} erori`, `${finalMessage}. Detalii: ${errorDetails.join('; ')}`);
+        } else {
+            showSuccess('Import Finalizat', finalMessage);
+        }
         onImportComplete();
         onClose();
     };
 
-    const validRowsCount = previewData.filter(r => r.status === 'valid' && r.Rezultat === 'Admis').length;
+    const importableRowsCount = previewData.filter(r => r.status === 'valid' || r.status === 'create').length;
 
-    const quickLegendGrades = useMemo(() => {
-        return grades.slice(0, 10);
-    }, [grades]);
+    const quickLegendGrades = useMemo(() => grades.slice(0, 10), [grades]);
     
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Import Rezultate Examen din CSV">
             <div className="flex flex-col md:flex-row gap-6">
-                
-                {/* Main Interaction Area */}
                 <div className="flex-grow space-y-6">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                         <h2 className="text-xl font-bold">Pasul 1: Pregătește fișierul</h2>
                         <div className="flex gap-2 flex-shrink-0">
-                            <Button onClick={downloadTemplate} variant="secondary" size="sm">
-                                <DocumentArrowDownIcon size={18} className="mr-2"/> Model CSV
-                            </Button>
-                            <Button onClick={downloadGradeLegend} variant="secondary" size="sm">
-                                <DocumentArrowDownIcon size={18} className="mr-2"/> Coduri Grade
-                            </Button>
+                            <Button onClick={downloadTemplate} variant="secondary" size="sm"><DocumentArrowDownIcon size={18} className="mr-2"/> Model CSV</Button>
+                            <Button onClick={downloadGradeLegend} variant="secondary" size="sm"><DocumentArrowDownIcon size={18} className="mr-2"/> Coduri Grade</Button>
                         </div>
                     </div>
-
                     <Input type="file" onChange={handleFileUpload} accept=".csv" label="Pasul 2: Încarcă fișierul CSV" />
-
                     {isProcessing && <p className="text-center text-slate-400">Se validează datele...</p>}
-
                     {previewData.length > 0 && (
                         <div className="space-y-4 animate-fade-in-down">
                             <h2 className="text-xl font-bold">Pasul 3: Previzualizare și Confirmare</h2>
                             <div className="max-h-60 overflow-y-auto border border-slate-700 rounded-lg">
                                 <table className="w-full text-left text-sm">
-                                    <thead className="bg-slate-800 sticky top-0">
-                                        <tr>
-                                            <th className="p-2 w-8"></th>
-                                            <th className="p-2">Sportiv</th>
-                                            <th className="p-2">Grad Nou</th>
-                                            <th className="p-2">Mesaj</th>
-                                        </tr>
-                                    </thead>
+                                    <thead className="bg-slate-800 sticky top-0"><tr><th className="p-2 w-8"></th><th className="p-2">Sportiv</th><th className="p-2">Mesaj</th></tr></thead>
                                     <tbody className="divide-y divide-slate-800">
                                         {previewData.map((row, idx) => (
                                             <tr key={idx} className={`${row.status === 'error' ? 'bg-red-900/30 text-red-400' : row.status === 'warning' ? 'bg-yellow-900/30 text-yellow-400' : 'text-slate-300'}`}>
                                                 <td className="p-2 text-center">
                                                     {row.status === 'valid' && <CheckCircleIcon className="w-5 h-5 text-green-500" />}
+                                                    {row.status === 'create' && <UserPlusIcon className="w-5 h-5 text-sky-400" />}
                                                     {row.status === 'error' && <XCircleIcon className="w-5 h-5 text-red-500" />}
                                                     {row.status === 'warning' && <ExclamationTriangleIcon className="w-5 h-5 text-yellow-500" />}
-                                                </td>
-                                                <td className="p-2">{row.Nume} {row.Prenume}</td>
-                                                <td className="p-2">{row.newGradName || `Ordine Invalidă: ${row.Grad_Nou_Ordine}`}</td>
-                                                <td className="p-2">{row.message}</td>
+                                                </td><td className="p-2">{row.Nume} {row.Prenume}</td><td className="p-2">{row.message}</td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -282,25 +240,18 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                         </div>
                     )}
                 </div>
-                
-                {/* Legend Area */}
                 <div className="w-full md:w-64 flex-shrink-0 p-4 bg-slate-800/50 rounded-lg border border-slate-700">
                     <h3 className="font-bold text-white mb-2">Legendă rapidă coduri</h3>
                     <ul className="text-xs space-y-1 text-slate-300 max-h-60 overflow-y-auto pr-2">
-                        {quickLegendGrades.map(g => (
-                            <li key={g.id}>
-                                <strong>Cod {g.ordine}:</strong> {g.nume}
-                            </li>
-                        ))}
-                         {grades.length > 10 && <li className="italic text-slate-500">... și altele</li>}
+                        {quickLegendGrades.map(g => <li key={g.id}><strong>Cod {g.ordine}:</strong> {g.nume}</li>)}
+                        {grades.length > 10 && <li className="italic text-slate-500">... și altele</li>}
                     </ul>
                 </div>
             </div>
-
             {previewData.length > 0 && (
                 <div className="flex justify-end pt-4 border-t border-slate-700 mt-6">
-                    <Button variant="primary" onClick={confirmImport} isLoading={isProcessing} disabled={isProcessing || validRowsCount === 0}>
-                        Confirmă și Importă {validRowsCount > 0 ? `${validRowsCount} Admiși` : ''}
+                    <Button variant="primary" onClick={confirmImport} isLoading={isProcessing} disabled={isProcessing || importableRowsCount === 0}>
+                        Confirmă și Importă {importableRowsCount > 0 ? `${importableRowsCount} Înregistrări` : ''}
                     </Button>
                 </div>
             )}

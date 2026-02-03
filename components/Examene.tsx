@@ -386,7 +386,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
         {sortedSesiuni.map(s => ( 
             <Card 
                 key={s.id} 
-                className="sesiune-card flex flex-col group hover:border-amber-400/50 hover:shadow-[0_0_15px_2px_rgba(251,146,0.4)] hover:-translate-y-1 transition-all duration-300"
+                className="sesiune-card flex flex-col group transition-all duration-300"
             >
                 <div className="flex-grow">
                     <div className="flex justify-between items-start">

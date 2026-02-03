@@ -376,7 +376,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
             setLoading(false);
         }
     };
-
+    
     const handleDeleteTranzactie = async () => {
         if (!tranzactieToDelete || !supabase) return;
         setLoading(true);

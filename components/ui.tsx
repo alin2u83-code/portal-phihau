@@ -1,5 +1,6 @@
 import React, { ReactNode } from 'react';
 import { XIcon } from './icons';
+import { Rol } from '../types';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger' | 'success' | 'info' | 'warning';
@@ -185,5 +186,20 @@ export const Stepper: React.FC<{ value: number; onChange: (newValue: number) => 
             <span className="font-bold text-lg w-10 text-center">{value.toFixed(1)}</span>
             <Button size="sm" variant="secondary" className="!p-1 h-7 w-7" onClick={() => step(1)}>+</Button>
         </div>
+    );
+};
+
+export const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
+    const colorClasses: Record<Rol['nume'], string> = {
+        'Admin': 'bg-red-600 text-white',
+        'SUPER_ADMIN_FEDERATIE': 'bg-red-800 text-white',
+        'Admin Club': 'bg-blue-600 text-white',
+        'Instructor': 'bg-sky-600 text-white',
+        'Sportiv': 'bg-slate-600 text-slate-200',
+    };
+    return (
+        <span className={`px-2 py-1 text-[10px] font-semibold rounded-full ${colorClasses[role.nume] || 'bg-gray-500 text-white'}`}>
+            {role.nume}
+        </span>
     );
 };

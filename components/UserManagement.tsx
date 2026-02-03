@@ -1,24 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { Sportiv, User, Rol, Club, Permissions } from '../types';
-import { Button, Input, Card, Select, Modal } from './ui';
+import { Button, Input, Card, Select, Modal, RoleBadge } from './ui';
 import { ArrowLeftIcon, EditIcon, ShieldCheckIcon, PlusIcon, LockIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
-
-const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
-    const colorClasses: Record<Rol['nume'], string> = {
-        'Admin': 'bg-red-600 text-white',
-        'SUPER_ADMIN_FEDERATIE': 'bg-red-800 text-white',
-        'Admin Club': 'bg-blue-600 text-white',
-        'Instructor': 'bg-sky-600 text-white',
-        'Sportiv': 'bg-slate-600 text-slate-200',
-    };
-    return (
-        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${colorClasses[role.nume] || 'bg-gray-500 text-white'}`}>
-            {role.nume}
-        </span>
-    );
-};
 
 // Componenta pentru editarea profilului personal
 const MyProfile: React.FC<{ user: User; setSportivi: React.Dispatch<React.SetStateAction<Sportiv[]>>; setCurrentUser: React.Dispatch<React.SetStateAction<User | null>> }> = ({ user, setSportivi, setCurrentUser }) => {

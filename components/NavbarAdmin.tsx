@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { User, View, Plata, Rol } from '../types';
 import { ChevronDownIcon } from './icons';
-import { AdminProfileQuickAccess } from './AdminProfileQuickAccess';
+// import { AdminProfileQuickAccess } from './AdminProfileQuickAccess';
 import { usePermissions } from '../hooks/usePermissions';
 
 interface NavbarAdminProps {
@@ -54,7 +54,7 @@ export const NavbarAdmin: React.FC<NavbarAdminProps> = ({ currentUser, onNavigat
                         <ChevronDownIcon className={`hidden sm:block w-5 h-5 text-slate-400 transition-transform ${isProfileMenuOpen ? 'rotate-180' : ''}`} />
                     </button>
                      {isProfileMenuOpen && (
-                        <AdminProfileQuickAccess 
+                        {/* <AdminProfileQuickAccess 
                             user={currentUser} 
                             onNavigate={(view) => { onNavigate(view); setIsProfileMenuOpen(false); }}
                             onLogout={onLogout}
@@ -63,7 +63,7 @@ export const NavbarAdmin: React.FC<NavbarAdminProps> = ({ currentUser, onNavigat
                             activeRole={activeRole}
                             onSwitchRole={() => {}}
                             isSwitchingRole={false}
-                        />
+                        /> */}
                     )}
                  </div>
             </div>

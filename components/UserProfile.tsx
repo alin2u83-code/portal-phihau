@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Sportiv, User, Rol, InscriereExamen, Examen, Grad, Antrenament, IstoricGrade, Plata, Familie, TipAbonament, Tranzactie, Reducere, Club, ProgramItem, Grupa } from '../types';
-import { Button, Card, Select, Modal, Input } from './ui';
+import { Button, Card, Select, Modal, Input, RoleBadge } from './ui';
 import { ArrowLeftIcon, EditIcon, WalletIcon, TrashIcon, ShieldCheckIcon, PlusIcon, ChartBarIcon, TransferIcon, CheckCircleIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
@@ -261,11 +261,6 @@ const DataField: React.FC<{label: string, value: React.ReactNode}> = ({label, va
         <dd className="mt-1 text-md text-slate-200 font-semibold">{value || 'N/A'}</dd>
     </div>
 );
-
-const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
-    const colorClasses: Record<Rol['nume'], string> = { Admin: 'bg-red-600 text-white', 'SUPER_ADMIN_FEDERATIE': 'bg-red-800 text-white', 'Admin Club': 'bg-blue-600 text-white', Instructor: 'bg-sky-600 text-white', Sportiv: 'bg-slate-600 text-white' };
-    return <span className={`px-2 py-1 text-xs font-semibold rounded-full ${colorClasses[role.nume] || 'bg-gray-500 text-white'}`}>{role.nume}</span>;
-};
 
 interface UserProfileProps {
     sportiv: Sportiv;

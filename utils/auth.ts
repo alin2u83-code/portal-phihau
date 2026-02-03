@@ -62,6 +62,7 @@ export const getAuthenticatedUserWithRoles = async (supabase: SupabaseClient): P
                 rol_denumire,
                 sportiv_id,
                 club_id,
+                is_primary,
                 club:cluburi(nume),
                 sportiv:sportivi(nume, prenume)
             `)

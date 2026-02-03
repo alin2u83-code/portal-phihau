@@ -122,11 +122,31 @@ function App() {
     }, [currentUser, userRoles]);
     
   const handleSwitchRole = useCallback(async (roleName: Rol['nume']) => {
-      if (!supabase || !currentUser?.user_id) return;
+      if (!supabase || !currentUser?.user_id || !userRoles) return;
+      
+      let targetRoleContext: any = null;
+
+      if (roleName === 'Sportiv') {
+          // Găsește contextul primar de sportiv, dacă există, altfel primul găsit.
+          targetRoleContext = userRoles.find(r => r.rol_denumire === 'Sportiv' && r.is_primary) || userRoles.find(r => r.rol_denumire === 'Sportiv');
+      } else {
+          // Pentru rolurile de admin, găsește primul context care se potrivește.
+          // Utilizatorul poate alege un context specific din Consola de Administrare.
+          targetRoleContext = userRoles.find(r => r.rol_denumire === roleName);
+      }
+
+      if (!targetRoleContext) {
+          showError("Eroare la comutare", `Nu s-a găsit un context valid pentru rolul "${roleName}".`);
+          return;
+      }
+      
       setIsSwitchingRole(true);
       setSwitchingToRole(roleName);
       
-      const { error } = await supabase.rpc('set_active_role', { p_role_name: roleName });
+      const { error } = await supabase.rpc('set_active_context', {
+          p_sportiv_id: targetRoleContext.sportiv_id,
+          p_rol_denumire: targetRoleContext.rol_denumire
+      });
 
       if (error) {
           showError("Eroare la comutarea rolului", error.message);
@@ -138,10 +158,10 @@ function App() {
           } else {
               localStorage.removeItem('phi-hau-redirect-after-role-switch');
           }
-          // The page will reload, so no need to reset state here
+          // Pagina se va reîncărca pentru a prelua noul token JWT.
           setTimeout(() => window.location.reload(), 1200);
       }
-  }, [currentUser, showError]);
+  }, [currentUser, userRoles, showError]);
 
   useEffect(() => {
     const redirectView = localStorage.getItem('phi-hau-redirect-after-role-switch');
@@ -233,7 +253,7 @@ function App() {
                 setActiveRoleContext(defaultRole);
                 
                 // Asynchronously update the DB with this default choice for the next session.
-                supabase.rpc('set_active_role', { p_role_name: defaultRole.rol_denumire })
+                supabase.rpc('set_active_context', { p_sportiv_id: defaultRole.sportiv_id, p_rol_denumire: defaultRole.rol_denumire })
                     .then(({ error: rpcError }) => {
                         if (rpcError) {
                             console.warn("Could not set default active role in DB:", rpcError.message);
@@ -449,7 +469,7 @@ function App() {
     setIsSelectingRole(true);
     
     // Using the SECURITY DEFINER RPC function is the correct, robust way to bypass RLS for this specific update.
-    const { error } = await supabase.rpc('set_active_role', { p_role_name: role.rol_denumire });
+    const { error } = await supabase.rpc('set_active_context', { p_sportiv_id: role.sportiv_id, p_rol_denumire: role.rol_denumire });
 
     if (error) {
         showError("Eroare la selectarea rolului", error.message);
@@ -668,7 +688,7 @@ function App() {
         return renderProtected(<BackupManager onBack={() => setActiveView('dashboard')} onDataRestored={() => window.location.reload()} sportivi={sportivi} setSportivi={setSportivi} grade={grade} preturiConfig={preturiConfig} participari={inscrieriExamene} examene={sesiuniExamene} plati={plati} setPlati={setPlati} familii={familii} onNavigate={setActiveView} currentUser={currentUser!} />, isFederationAdmin);
       
       case 'rapoarte-examen':
-        return renderProtected(<RapoarteExamen currentUser={currentUser!} clubs={clubs} onBack={() => setActiveView('dashboard')} sesiuni={filteredData.sesiuniExamene || []} setSesiuni={setSesiuniExamene} inscrieri={filteredData.inscrieriExamene || []} setInscrieri={setInscrieriExamene} sportivi={filteredData.sportivi || []} setSportivi={setSportivi} grade={grade} istoricGrade={istoricGrade} locatii={locatii} setLocatii={setLocatii} plati={filteredData.plati || []} setPlati={setPlati} preturiConfig={preturiConfig} deconturiFederatie={filteredData.deconturiFederatie || []} setDeconturiFederatie={setDeconturiFederatie} onViewSportiv={onViewSportiv} />, permissions.isInstructor);
+        return renderProtected(<RapoarteExamen currentUser={currentUser!} clubs={clubs} onBack={() => setActiveView('dashboard')} sesiuni={filteredData.sesiuniExamene || []} setSesiuni={setSesiuniExamene} inscrieri={filteredData.inscrieriExamene || []} setInscrieri={setInscrieriExamene} sportivi={filteredData.sportivi || []} setSportivi={setSportivi} grade={grade} locatii={locatii} setLocatii={setLocatii} plati={filteredData.plati || []} setPlati={setPlati} preturiConfig={preturiConfig} deconturiFederatie={filteredData.deconturiFederatie || []} setDeconturiFederatie={setDeconturiFederatie} onViewSportiv={onViewSportiv} />, permissions.isInstructor);
       
       case 'setari-club':
         return renderProtected(<ClubSettings onBack={() => setActiveView('dashboard')} />, isAtLeastClubAdmin);

@@ -24,8 +24,8 @@ const getAge = (dateString: string | null | undefined): number => {
 };
 
 const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
-    // FIX: Corrected key from 'Super Admin' to 'SUPER_ADMIN_FEDERATIE' to match the 'Rol' type definition.
-    // FIX: Completed the color mapping to include all roles.
+// FIX: Corrected key from 'Super Admin' to 'SUPER_ADMIN_FEDERATIE' to match the 'Rol' type definition.
+// FIX: Completed the color mapping to include all roles.
     const colorClasses: Record<Rol['nume'], string> = {
         'Admin': 'bg-red-600 text-white',
         'SUPER_ADMIN_FEDERATIE': 'bg-red-800 text-white',

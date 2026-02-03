@@ -179,6 +179,7 @@ interface DetaliiSesiuneProps {
     setDeconturiFederatie: React.Dispatch<React.SetStateAction<DecontFederatie[]>>;
     onViewSportiv: (sportiv: Sportiv) => void;
     onEdit: () => void;
+    currentUser: User;
 }
 const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
     const { showError, showSuccess } = useError();
@@ -248,6 +249,7 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
                 onClose={() => setIsImportModalOpen(false)}
                 sesiuneId={props.sesiune.id}
                 onImportComplete={handleImportComplete}
+                currentUser={props.currentUser}
             />
         </Card>
     );
@@ -360,6 +362,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
                 setDeconturiFederatie={setDeconturiFederatie}
                 onViewSportiv={onViewSportiv}
                 onEdit={handleEditSelected}
+                currentUser={currentUser}
             />
         </div>
      );

@@ -6,10 +6,14 @@
 -- Aceasta este utilă pentru a diagnostica rapid dacă un utilizator
 -- vede setul de date corect.
 --
--- Notă: `SECURITY INVOKER` asigură că funcția rulează cu permisiunile
--- utilizatorului care o apelează, făcând astfel ca `count(*)` să
--- respecte politicile RLS. `SECURITY DEFINER` a fost specificat, dar
--- ar rula ca proprietar și ar ignora RLS, contrazicând scopul funcției.
+-- Notă: Această funcție este definită cu `SECURITY INVOKER` (implicit).
+-- Acest lucru este INTENȚIONAT și CORECT pentru scopul de diagnosticare.
+-- O funcție `SECURITY INVOKER` rulează cu permisiunile utilizatorului care o APELEAZĂ,
+-- permițându-ne să vedem exact câte înregistrări poate accesa un anumit rol, conform politicilor RLS.
+--
+-- O funcție `SECURITY DEFINER`, pe de altă parte, ar rula cu permisiunile DEFINITORULUI
+-- (de obicei, un super-administrator), ar ignora politicile RLS ale apelantului și ar returna
+-- numărul total de înregistrări din tabel, făcând-o inutilă pentru depanarea problemelor de permisiuni.
 -- ====================================================================
 
 CREATE OR REPLACE FUNCTION public.check_access_summary()

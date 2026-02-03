@@ -348,7 +348,7 @@ export const PrezentaManagement: React.FC<{
             setAntrenamente(prev => prev.filter(p => p.id !== id));
             showSuccess("Succes", "Antrenamentul a fost șters.");
         } catch (err: unknown) {
-            // FIX: Cast the unknown error from the catch block to an Error object to safely access its message property.
+            // FIX: Argument of type 'unknown' is not assignable to parameter of type 'string'.
             showError("Eroare la ștergere", err instanceof Error ? err.message : String(err));
         } finally {
             setIsDeleting(false);

@@ -30,13 +30,13 @@ export const getGradStyle = (gradName: string): string => {
     }
     
     if (name.includes('6 dang') || name.includes('7 dang') || name.includes('8 dang')) {
-        return 'bg-white text-red-600 border border-red-600';
+        return 'bg-white text-red-600 border-2 border-red-600';
     }
     if (name.includes('5 dang')) {
-        return 'bg-black text-yellow-400 border-[4px] border-yellow-400';
+        return 'bg-black text-yellow-400 border-2 border-yellow-400';
     }
     if (name.includes('dang')) {
-        return 'bg-black text-red-600 border-[4px] border-red-600';
+        return 'bg-black text-red-600 border-2 border-red-600';
     }
     if (name.includes('neagra')) { // 'neagră'
         return 'bg-black text-white';

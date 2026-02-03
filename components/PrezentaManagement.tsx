@@ -349,7 +349,7 @@ export const PrezentaManagement: React.FC<{
             showSuccess("Succes", "Antrenamentul a fost șters.");
         } catch (err: unknown) {
             // FIX: Argument of type 'unknown' is not assignable to parameter of type 'string'.
-            // FIX: Cast the `unknown` error type to `Error` and access its `message` property before passing it to `showError`.
+            // Cast the `unknown` error type to `Error` and access its `message` property before passing it to `showError`.
             showError("Eroare la ștergere", err instanceof Error ? err.message : String(err));
         } finally {
             setIsDeleting(false);

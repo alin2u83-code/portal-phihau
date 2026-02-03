@@ -184,7 +184,6 @@ interface DetaliiSesiuneProps {
 const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
     const { showError, showSuccess } = useError();
     const [isFinalizing, setIsFinalizing] = useState(false);
-    const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
     const handleFinalizeExam = async () => {
         if (!window.confirm("Această acțiune este ireversibilă. Se va marca examenul ca finalizat și se va genera decontul pentru federație. Doriți să continuați?")) {
@@ -208,13 +207,6 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
             setIsFinalizing(false);
         }
     };
-
-    const handleImportComplete = () => {
-        showSuccess("Import Finalizat", "Datele au fost procesate. Pagina se va reîmprospăta pentru a reflecta toate modificările.");
-        setTimeout(() => {
-            window.location.reload();
-        }, 2000);
-    };
     
     return (
         <Card>
@@ -230,9 +222,6 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
                 </div>
                  {props.sesiune.status !== 'Finalizat' && (
                     <div className="flex flex-col sm:flex-row gap-2">
-                        <Button variant="info" onClick={() => setIsImportModalOpen(true)}>
-                            <UploadCloudIcon className="w-4 h-4 mr-2" /> Import Rezultate CSV
-                        </Button>
                         <Button variant="secondary" onClick={props.onEdit}>
                             <EditIcon className="w-4 h-4 mr-2" /> Editează
                         </Button>
@@ -244,13 +233,6 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
             </div>
             
             <ManagementInscrieri {...props} />
-            <ImportExamenModal 
-                isOpen={isImportModalOpen}
-                onClose={() => setIsImportModalOpen(false)}
-                sesiuneId={props.sesiune.id}
-                onImportComplete={handleImportComplete}
-                currentUser={props.currentUser}
-            />
         </Card>
     );
 };
@@ -281,6 +263,7 @@ interface GestiuneExameneProps {
 
 export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, clubs, onBack, onNavigate, sesiuni, setSesiuni, inscrieri, setInscrieri, sportivi, setSportivi, grade, istoricGrade, locatii, setLocatii, plati, setPlati, preturiConfig, deconturiFederatie, setDeconturiFederatie, onViewSportiv }) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isBulkImportModalOpen, setIsBulkImportModalOpen] = useState(false);
   const [sesiuneToEdit, setSesiuneToEdit] = useState<SesiuneExamen | null>(null);
   const [sesiuneToDelete, setSesiuneToDelete] = useState<SesiuneExamen | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -341,6 +324,13 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
     }
   };
 
+    const handleImportComplete = () => {
+        showSuccess("Import Finalizat", "Datele au fost procesate. Pagina se va reîmprospăta pentru a reflecta toate modificările.");
+        setTimeout(() => {
+            window.location.reload();
+        }, 2000);
+    };
+
   if (selectedSesiune) {
      return (
         <div>
@@ -380,7 +370,10 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
                     <FileTextIcon className="w-4 h-4 mr-2" /> Generează Factură Examen
                 </Button>
             )}
-            <Button onClick={() => { setSesiuneToEdit(null); setIsFormOpen(true); }} variant="info">
+             <Button onClick={() => setIsBulkImportModalOpen(true)} variant="info">
+                <UploadCloudIcon className="w-5 h-5 mr-2" /> Import Bulk Examen
+            </Button>
+            <Button onClick={() => { setSesiuneToEdit(null); setIsFormOpen(true); }} variant="primary">
                 <PlusIcon className="w-5 h-5 mr-2" />Adaugă Sesiune
             </Button>
         </div>
@@ -423,6 +416,16 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
       </div>
       <SesiuneForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} onSave={handleSaveSesiune} sesiuneToEdit={sesiuneToEdit} locatii={locatii} setLocatii={setLocatii} clubs={clubs} currentUser={currentUser} />
       <ConfirmDeleteModal isOpen={!!sesiuneToDelete} onClose={() => setSesiuneToDelete(null)} onConfirm={() => { if(sesiuneToDelete) confirmDeleteSesiune(sesiuneToDelete.id) }} tableName="Sesiuni (și toate înscrierile asociate)" isLoading={isDeleting} />
+       <ImportExamenModal 
+            isOpen={isBulkImportModalOpen}
+            onClose={() => setIsBulkImportModalOpen(false)}
+            onImportComplete={handleImportComplete}
+            currentUser={currentUser}
+            locatii={locatii}
+            setLocatii={setLocatii}
+            sesiuni={sesiuni}
+            setSesiuni={setSesiuni}
+       />
     </div> 
   );
 };

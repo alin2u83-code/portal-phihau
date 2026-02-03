@@ -148,7 +148,7 @@ const AttendanceDetail: React.FC<AttendanceDetailProps> = ({ antrenament, onBack
             }
             
             const { data: athletesData, error: athletesError } = await supabase.from('sportivi').select('*').eq('grupa_id', antrenament.grupa_id).order('nume', { ascending: true });
-            if (athletesError) { showError("Eroare sportivi", athletesError); setLoading(false); return; }
+            if (athletesError) { showError("Eroare sportivi", athletesError.message); setLoading(false); return; }
             
             const fetchedGroupAthletes = athletesData || [];
             setGroupAthletes(fetchedGroupAthletes);
@@ -325,7 +325,7 @@ export const PrezentaManagement: React.FC<{
         if (!supabase) return;
         if (antrenamentToEdit) {
             const { data, error } = await supabase.from('program_antrenamente').update(antrenamentData).eq('id', antrenamentToEdit.id).select('*, grupe(*), prezenta:prezenta_antrenament!antrenament_id(sportiv_id, status)').single();
-            if (error) { showError("Eroare la actualizare", error); } 
+            if (error) { showError("Eroare la actualizare", error.message); } 
             else if (data) { 
                 const prezentaRaw = (data as any).prezenta;
                 const prezentaArray = prezentaRaw ? (Array.isArray(prezentaRaw) ? prezentaRaw : [prezentaRaw]) : [];
@@ -334,7 +334,7 @@ export const PrezentaManagement: React.FC<{
             }
         } else {
             const { data, error } = await supabase.from('program_antrenamente').insert(antrenamentData).select('*, grupe(*)').single();
-            if (error) { showError("Eroare la creare", error); } 
+            if (error) { showError("Eroare la creare", error.message); } 
             else if (data) { setAntrenamente(prev => [...prev, { ...data, prezenta: [] }]); }
         }
     };
@@ -348,7 +348,7 @@ export const PrezentaManagement: React.FC<{
             setAntrenamente(prev => prev.filter(p => p.id !== id));
             showSuccess("Succes", "Antrenamentul a fost șters.");
         } catch (err: unknown) {
-            // FIX: Cast unknown error to string for showError
+// FIX: Cast unknown error to string for showError
             showError("Eroare la ștergere", err instanceof Error ? err.message : String(err));
         } finally {
             setIsDeleting(false);

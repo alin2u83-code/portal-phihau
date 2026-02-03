@@ -20,6 +20,7 @@ interface ImportExamenModalProps {
 interface CsvRow {
     Nume: string;
     Prenume: string;
+    CNP: string;
     Grad_Nou_Ordine: string;
     Rezultat: 'Admis' | 'Respins' | 'Neprezentat';
     Contributie: string;
@@ -50,23 +51,6 @@ interface PreviewRow extends CsvRow {
     };
 }
 
-// Simple Levenshtein-based similarity score (0 to 1)
-function calculateSimilarity(a: string, b: string): number {
-    if (!a || !b) return 0;
-    a = a.toLowerCase().trim();
-    b = b.toLowerCase().trim();
-    const matrix = Array(b.length + 1).fill(null).map(() => Array(a.length + 1).fill(null));
-    for (let i = 0; i <= a.length; i += 1) { matrix[0][i] = i; }
-    for (let j = 0; j <= b.length; j += 1) { matrix[j][0] = j; }
-    for (let j = 1; j <= b.length; j += 1) {
-        for (let i = 1; i <= a.length; i += 1) {
-            const indicator = a[i - 1] === b[j - 1] ? 0 : 1;
-            matrix[j][i] = Math.min(matrix[j][i - 1] + 1, matrix[j - 1][i] + 1, matrix[j - 1][i - 1] + indicator);
-        }
-    }
-    const distance = matrix[b.length][a.length];
-    return 1.0 - (distance / Math.max(a.length, b.length));
-}
 
 export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, onClose, onImportComplete, currentUser, locatii: initialLocatii, setLocatii, sesiuni: initialSesiuni, setSesiuni }) => {
     const [previewData, setPreviewData] = useState<PreviewRow[]>([]);
@@ -90,7 +74,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
     }, [isOpen, showError]);
 
     const downloadTemplate = () => {
-        const csvData = Papa.unparse([{ Nume: "Popescu", Prenume: "Ion", Grad_Nou_Ordine: "2", Rezultat: "Admis", Contributie: "100", Data_Examen: new Date().toISOString().split('T')[0], Sesiune_Denumire: "Examen Iarna", Localitate: "Iasi" }]);
+        const csvData = Papa.unparse([{ Nume: "Popescu", Prenume: "Ion", CNP: "1800101123456", Grad_Nou_Ordine: "2", Rezultat: "Admis", Contributie: "100", Data_Examen: new Date().toISOString().split('T')[0], Sesiune_Denumire: "Examen Iarna", Localitate: "Iasi" }]);
         const blob = new Blob([`\uFEFF${csvData}`], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
@@ -119,45 +103,35 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
         const { data: allSportivi, error } = await supabase.from('sportivi').select('*');
         if (error) { showError("Eroare la validare", error.message); return []; }
 
-        const generatedCodesThisBatch = new Map<string, string>();
-
         const validationPromises = data.map(async (row, index): Promise<PreviewRow> => {
-            const sessionKey = `${row.Sesiune_Denumire?.trim()}-${row.Data_Examen?.trim()}`;
             const baseRow: Omit<PreviewRow, 'sessionInfo' | 'status' | 'message'> = { ...row, originalIndex: index };
             
-            if (!row.Nume || !row.Prenume || !row.Grad_Nou_Ordine || !row.Sesiune_Denumire || !row.Data_Examen || !row.Localitate) {
-                return { ...baseRow, status: 'error', message: 'Rând incomplet. Toate coloanele sunt obligatorii.', sessionInfo: {} as any };
-            }
-
-            const existingSession = initialSesiuni.find(s => s.denumire === row.Sesiune_Denumire.trim() && s.data === row.Data_Examen.trim());
+            const existingSession = (initialSesiuni || []).find(s => s.denumire === row.Sesiune_Denumire?.trim() && s.data === row.Data_Examen?.trim());
             const sessionInfo = {
-                key: sessionKey,
+                key: `${row.Sesiune_Denumire?.trim()}-${row.Data_Examen?.trim()}`,
                 isNew: !existingSession,
-                sesiuneDenumire: row.Sesiune_Denumire.trim(),
-                dataExamen: row.Data_Examen.trim(),
-                localitate: row.Localitate.trim(),
+                sesiuneDenumire: row.Sesiune_Denumire?.trim(),
+                dataExamen: row.Data_Examen?.trim(),
+                localitate: row.Localitate?.trim(),
                 existingSessionId: existingSession?.id
             };
 
-            if (!grades.some(g => String(g.ordine) === String(row.Grad_Nou_Ordine).trim())) {
-                return { ...baseRow, status: 'error', message: `Cod grad invalid: ${row.Grad_Nou_Ordine}`, sessionInfo };
+            if (!row.Nume || !row.Prenume || !row.CNP || !row.Grad_Nou_Ordine || !row.Sesiune_Denumire || !row.Data_Examen || !row.Localitate) {
+                return { ...baseRow, status: 'error', message: 'Rând incomplet. Toate coloanele sunt obligatorii (inclusiv CNP).', sessionInfo };
             }
 
-            const fullNameKey = `${row.Nume.trim()} ${row.Prenume.trim()}`.toLowerCase();
-            const exactMatch = allSportivi.find(s => `${s.nume} ${s.prenume}`.toLowerCase() === fullNameKey);
-            if (exactMatch) return { ...baseRow, status: 'valid', message: `ID: ${exactMatch.id.substring(0,8)}...`, existingSportiv: exactMatch, sessionInfo };
-            
-            const potentialMatches = allSportivi.map(s => ({ ...s, similarity: calculateSimilarity(fullNameKey, `${s.nume} ${s.prenume}`) })).filter(s => s.similarity > 0.8).sort((a, b) => b.similarity - a.similarity);
-            if (potentialMatches.length > 0) return { ...baseRow, status: 'conflict', message: `${potentialMatches.length} potriviri găsite`, conflicts: potentialMatches, sessionInfo };
-            
-            if (generatedCodesThisBatch.has(fullNameKey)) {
-                return { ...baseRow, status: 'create', message: 'Va fi creat (cod duplicat în CSV)', generatedCode: generatedCodesThisBatch.get(fullNameKey), sessionInfo };
+            if (!grades.some(g => String(g.ordine) === String(row.Grad_Nou_Ordine).trim())) {
+                return { ...baseRow, status: 'error', message: `Cod Grad invalid: ${row.Grad_Nou_Ordine}`, sessionInfo };
             }
+
+            const providedCnp = String(row.CNP).trim();
+            const cnpMatch = (allSportivi || []).find(s => s.cnp && String(s.cnp).trim() === providedCnp);
             
-            const { data: newCode, error: codeError } = await supabase.rpc('generate_sportiv_code', { p_an: new Date(row.Data_Examen).getFullYear(), p_nume: row.Nume, p_prenume: row.Prenume });
-            if (codeError) return { ...baseRow, status: 'error', message: `Eroare generare cod: ${codeError.message}`, sessionInfo };
-            generatedCodesThisBatch.set(fullNameKey, newCode);
-            return { ...baseRow, status: 'create', message: `Cod nou: ${newCode}`, generatedCode: newCode, sessionInfo };
+            if (cnpMatch) {
+                return { ...baseRow, status: 'valid', message: `Găsit: ${cnpMatch.nume} ${cnpMatch.prenume}`, existingSportiv: cnpMatch, sessionInfo };
+            } else {
+                return { ...baseRow, status: 'error', message: 'Sportiv negăsit (CNP eronat)', sessionInfo };
+            }
         });
 
         return Promise.all(validationPromises);
@@ -227,7 +201,6 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
         }
     };
 
-    // FIX: Defined the missing `handleResolution` function.
     const handleResolution = (originalIndex: number, resolution: { action: 'create' } | { action: 'use_existing', sportivId: string }) => {
         setPreviewData(prev => prev.map(row => {
             if (row.originalIndex === originalIndex) {
@@ -254,13 +227,13 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                         <h2 className="text-xl font-bold">Pasul 3: Previzualizare și Confirmare</h2>
                         <div className="max-h-[45vh] overflow-y-auto border border-slate-700 rounded-lg">
                             <table className="w-full text-left text-sm">
-                                <thead className="bg-slate-800 sticky top-0 z-10"><tr><th className="p-2 w-8"></th><th className="p-2">Sportiv</th><th className="p-2">Sesiune</th><th className="p-2">Acțiune</th></tr></thead>
+                                <thead className="bg-slate-800 sticky top-0 z-10"><tr><th className="p-2 w-8"></th><th className="p-2">Sportiv</th><th className="p-2">Sesiune</th><th className="p-2">Acțiune/Status</th></tr></thead>
                                 <tbody className="divide-y divide-slate-800">{previewData.map(row => (
-                                    <tr key={row.originalIndex} className={`${row.status === 'error' ? 'bg-red-900/30' : row.status === 'conflict' ? 'bg-yellow-900/30' : ''}`}>
-                                        <td className="p-2 text-center">{['valid', 'resolved'].includes(row.status) ? <CheckCircleIcon className="w-5 h-5 text-green-500"/> : row.status === 'create' ? <UserPlusIcon className="w-5 h-5 text-sky-400"/> : row.status === 'error' ? <XCircleIcon className="w-5 h-5 text-red-500"/> : <ExclamationTriangleIcon className="w-5 h-5 text-yellow-500"/>}</td>
+                                    <tr key={row.originalIndex} className={`${row.status === 'error' ? 'bg-red-900/30' : ''}`}>
+                                        <td className="p-2 text-center">{row.status === 'valid' ? <CheckCircleIcon className="w-5 h-5 text-green-500"/> : <XCircleIcon className="w-5 h-5 text-red-500"/>}</td>
                                         <td className="p-2">{row.Nume} {row.Prenume}</td>
                                         <td className="p-2 text-xs text-slate-400">{row.Sesiune_Denumire}</td>
-                                        <td className="p-2">{row.status === 'conflict' ? ( <div className="flex gap-2 items-center"><Select label="" value="" onChange={e => handleResolution(row.originalIndex, { action: 'use_existing', sportivId: e.target.value })} className="!py-1 text-xs flex-grow"><option value="" disabled>Alege sportiv...</option>{(row.conflicts || []).map(c => <option key={c.id} value={c.id}>{c.nume} {c.prenume} (Cod: {c.cod_sportiv || 'N/A'})</option>)}</Select><Button size="sm" variant="secondary" onClick={() => handleResolution(row.originalIndex, { action: 'create' })}>Creează Nou</Button></div> ) : <span className="text-slate-400">{row.message}</span>}</td>
+                                        <td className="p-2"><span className={`${row.status === 'error' ? 'text-red-400' : 'text-slate-400'}`}>{row.message}</span></td>
                                     </tr>))}
                                 </tbody>
                             </table>

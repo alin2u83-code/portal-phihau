@@ -393,7 +393,7 @@ export const PrezentaManagement: React.FC<{
             setAntrenamente(prev => prev.filter(p => p.id !== id));
             showSuccess("Succes", "Antrenamentul a fost șters.");
         } catch (err) {
-            // Fix: Safely handle the 'unknown' error type before passing to showError.
+            // FIX: Safely handle the 'unknown' error type before passing to showError.
             showError("Eroare la ștergere", err instanceof Error ? err.message : String(err));
         } finally {
             setIsDeleting(false);

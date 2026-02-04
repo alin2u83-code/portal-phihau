@@ -157,7 +157,7 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
                 .eq('data', selectedDateString);
 
             if (error) {
-                showError("Eroare la încărcarea antrenamentelor", error);
+                showError("Eroare la încărcarea antrenamentelor", error.message);
                 setLoading(false);
                 return;
             }
@@ -209,7 +209,7 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
 
         } catch (err: unknown) {
             // FIX: In `handleSave`, cast the `unknown` error type to `Error` and access its `message` property before passing it to `showError` to fix the TypeScript error.
-            showError("Eroare la salvarea prezenței", (err as Error)?.message || String(err));
+            showError("Eroare la salvarea prezenței", err instanceof Error ? err.message : String(err));
         }
     };
 

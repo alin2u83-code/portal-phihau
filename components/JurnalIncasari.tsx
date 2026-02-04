@@ -66,7 +66,7 @@ interface JurnalIncasariProps {
 const emptyIncasareState = {
     sportiv_id: '',
     familie_id: null,
-    suma: 0,
+    suma: '' as number | string,
     suma_initiala: 0,
     reducere_id: null as string | null,
     metoda_plata: 'Cash' as 'Cash' | 'Transfer Bancar',
@@ -219,7 +219,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
         if (platiInitiale.length > 0) return; 
 
         const sportiv = sportivi.find(s => s.id === formState.sportiv_id);
-        if (!sportiv) { setFormState(prev => ({...prev, suma: 0, suma_initiala: 0, reducere_id: null, descriere: ''})); return; }
+        if (!sportiv) { setFormState(prev => ({...prev, suma: '', suma_initiala: 0, reducere_id: null, descriere: ''})); return; }
         
         const lunaText = new Date(formState.data_platii || new Date()).toLocaleString('ro-RO', { month: 'long', year: 'numeric'});
         const systemTypesForAutoCalc: PretConfig['categorie'][] = ['Taxa Examen', 'Taxa Stagiu', 'Taxa Competitie', 'Echipament'];
@@ -248,16 +248,15 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
             description = config?.denumire_serviciu || '';
         }
         
-        // --- NOU: Calcul Reducere ---
         let appliedDiscount: Reducere | null = null;
         let finalPrice = calculatedPrice;
 
         const activeDiscounts = reduceri.filter(r => r.este_activa && (r.categorie_aplicabila === formState.tip || r.categorie_aplicabila === 'Toate'));
         if (activeDiscounts.length > 0) {
-            appliedDiscount = activeDiscounts[0]; // Simplificare: luăm prima reducere aplicabilă
+            appliedDiscount = activeDiscounts[0]; 
             if (appliedDiscount.tip === 'procent') {
                 finalPrice = calculatedPrice * (1 - appliedDiscount.valoare / 100);
-            } else { // suma_fixa
+            } else { 
                 finalPrice = Math.max(0, calculatedPrice - appliedDiscount.valoare);
             }
         }
@@ -276,6 +275,12 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
         e.preventDefault();
         if (!supabase) return;
 
+        const sumaNum = parseFloat(String(formState.suma));
+        if (isNaN(sumaNum) || sumaNum <= 0) {
+            showError("Sumă Invalidă", "Suma încasată trebuie să fie un număr pozitiv.");
+            return;
+        }
+
         if (!formState.data_platii) {
             showError("Dată lipsă", "Vă rugăm selectați o dată validă pentru încasare.");
             return;
@@ -287,7 +292,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
 
         try {
             if (platiInitiale.length > 0) {
-                 if (formState.suma > formState.suma_initiala + 0.01) {
+                 if (sumaNum > formState.suma_initiala + 0.01) {
                     showError("Sumă Excesivă", "Suma încasată nu poate depăși totalul datorat. Pentru plăți în avans, folosiți modulul dedicat.");
                     setLoading(false);
                     return;
@@ -303,11 +308,11 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
                     throw new Error(`Plată Blocată: Factura "${alreadyPaid[0].descriere}" este deja achitată.`);
                 }
                 
-                const { data: tx, error: txError } = await supabase.from('tranzactii').insert({ plata_ids: idsToUpdate, sportiv_id: formState.sportiv_id || platiInitiale[0]?.sportiv_id, familie_id: formState.familie_id || platiInitiale[0]?.familie_id, suma: formState.suma, data_platii: formState.data_platii!, metoda_plata: formState.metoda_plata! }).select().single();
+                const { data: tx, error: txError } = await supabase.from('tranzactii').insert({ plata_ids: idsToUpdate, sportiv_id: formState.sportiv_id || platiInitiale[0]?.sportiv_id, familie_id: formState.familie_id || platiInitiale[0]?.familie_id, suma: sumaNum, data_platii: formState.data_platii!, metoda_plata: formState.metoda_plata! }).select().single();
                 if (txError) throw txError;
                 tranzactieId = (tx as Tranzactie).id;
 
-                let amountToDistribute = formState.suma;
+                let amountToDistribute = sumaNum;
                 const platiUpdates: Partial<Plata>[] = [];
                 const sortedPlati = [...platiInitiale].sort((a,b) => new Date(a.data).getTime() - new Date(b.data).getTime());
     
@@ -338,14 +343,14 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
                 }
 
                 setTranzactii(prev => [...prev, tx as Tranzactie]);
-                showSuccess('Succes', `Încasare de ${formState.suma.toFixed(2)} RON confirmată!`);
+                showSuccess('Succes', `Încasare de ${sumaNum.toFixed(2)} RON confirmată!`);
 
             } else {
                 const sportiv = sportivi.find(s => s.id === formState.sportiv_id);
                 const { data: newPlata, error: plataError } = await supabase.from('plati').insert({ 
                     sportiv_id: formState.sportiv_id, 
                     familie_id: sportiv?.familie_id, 
-                    suma: formState.suma, 
+                    suma: sumaNum, 
                     suma_initiala: formState.suma_initiala > 0 ? formState.suma_initiala : null, 
                     reducere_id: formState.reducere_id,
                     reducere_detalii: reducereAplicata?.nume || null,
@@ -357,12 +362,12 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
                 }).select().single();
                 if (plataError) throw plataError;
                 newPlataId = (newPlata as Plata).id;
-                const { data: tx, error: txError } = await supabase.from('tranzactii').insert({ plata_ids: [newPlataId], sportiv_id: formState.sportiv_id, familie_id: sportiv?.familie_id, suma: formState.suma, data_platii: formState.data_platii!, metoda_plata: formState.metoda_plata! }).select().single();
+                const { data: tx, error: txError } = await supabase.from('tranzactii').insert({ plata_ids: [newPlataId], sportiv_id: formState.sportiv_id, familie_id: sportiv?.familie_id, suma: sumaNum, data_platii: formState.data_platii!, metoda_plata: formState.metoda_plata! }).select().single();
                 if (txError) throw txError;
                 tranzactieId = (tx as Tranzactie).id;
                 setPlati(prev => [...prev, newPlata as Plata]);
                 setTranzactii(prev => [...prev, tx as Tranzactie]);
-                showSuccess('Succes', `Încasare directă de ${formState.suma.toFixed(2)} RON înregistrată.`);
+                showSuccess('Succes', `Încasare directă de ${sumaNum.toFixed(2)} RON înregistrată.`);
             }
             onIncasareProcesata();
             setTimeout(() => onBack(), 1500);
@@ -454,7 +459,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
                     {!isMultiple && reducereAplicata && (
                         <div className="p-3 bg-green-900/40 rounded-lg text-center border border-green-700/50 animate-fade-in-down">
                             <p className="text-sm text-green-300">Reducere aplicată: <strong>{reducereAplicata.nume}</strong></p>
-                            <p className="text-sm text-orange-300">(-{(formState.suma_initiala - formState.suma).toFixed(2)} RON)</p>
+                            <p className="text-sm text-orange-300">(-{(formState.suma_initiala - Number(formState.suma)).toFixed(2)} RON)</p>
                             <p className="text-xs text-slate-400">Sumă inițială: <span className="line-through">{formState.suma_initiala.toFixed(2)} RON</span></p>
                         </div>
                     )}
@@ -498,7 +503,16 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
                     )}
 
 
-                    <div className="flex justify-end pt-4"><Button type="submit" variant="success" className="px-10" disabled={loading}>{loading ? 'Se procesează...' : 'Finalizează Încasarea'}</Button></div>
+                    <div className="flex justify-end pt-4">
+                        <Button 
+                            type="submit" 
+                            variant="success" 
+                            className="px-10" 
+                            disabled={loading || !formState.suma || parseFloat(String(formState.suma)) <= 0}
+                        >
+                            {loading ? 'Se procesează...' : 'Finalizează Încasarea'}
+                        </Button>
+                    </div>
                 </form>
             </Card>
             <Card className="p-0 overflow-hidden">

@@ -279,9 +279,14 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
     }, [antrenamente, todayString, currentUser]);
     
     const handleStatusChange = async (trainingId: string, status: AnuntStatus) => {
-        if (!supabase) return;
+        if (!supabase) {
+            showError("Eroare", "Client Supabase neconfigurat.");
+            return;
+        }
 
-        // Block 1: Save attendance announcement
+        // Salvează statusul prezenței. Un trigger în baza de date
+        // (`on_anunt_prezenta_change_notify_staff`) se va ocupa de crearea
+        // sau actualizarea notificării pentru instructori.
         try {
             const existingAnunt = (anunturi || []).find(a => a.antrenament_id === trainingId && a.sportiv_id === currentUser.id);
             const upsertData = {
@@ -291,12 +296,18 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                 status: status,
                 detalii: null 
             };
-            const { data, error } = await supabase.from('anunturi_prezenta').upsert(upsertData, { onConflict: 'antrenament_id, sportiv_id' }).select().single();
+            
+            const { data, error } = await supabase
+                .from('anunturi_prezenta')
+                .upsert(upsertData, { onConflict: 'antrenament_id, sportiv_id' })
+                .select()
+                .single();
             
             if (error) throw error;
 
             if (data) {
                 showSuccess("Status actualizat", `Ai anunțat: ${status}`);
+                // Actualizează starea locală pentru a reflecta schimbarea imediat în UI
                 setAnunturi(prev => {
                     const index = prev.findIndex(a => a.id === data.id || (a.antrenament_id === data.antrenament_id && a.sportiv_id === data.sportiv_id));
                     if (index > -1) {
@@ -309,51 +320,8 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                 });
             }
         } catch (error: any) {
-            showError("Eroare la salvarea prezenței", error);
-            throw error;
-        }
-
-        // Block 2: Send notification
-        try {
-            const antrenament = todaysTrainings.find(t => t.id === trainingId);
-            if (!antrenament) return;
-
-            const instructors = (sportivi || []).filter(s =>
-                s.club_id === currentUser.club_id &&
-                s.roluri.some(r => r.nume === 'Instructor') &&
-                s.user_id
-            );
-            
-            const recipientIds = instructors.map(i => i.user_id).filter(Boolean) as string[];
-            
-            if (recipientIds.length > 0) {
-                const { data: { user } } = await supabase.auth.getUser();
-                if (!user) {
-                    console.warn("Utilizatorul nu este autentificat, notificarea nu poate fi trimisă.");
-                    return;
-                }
-                const authUserId = user.id;
-
-                const title = `Anunț Prezență: ${currentUser.nume} ${currentUser.prenume}`;
-                const body = `Status: ${status} la antrenamentul de la ${antrenament.ora_start}.`;
-                
-                const notificationsToInsert = recipientIds.map(userId => ({
-                    recipient_user_id: userId,
-                    sent_by: authUserId,
-                    title: title,
-                    body: body,
-                    link_to: `prezenta`, 
-                    sender_sportiv_id: currentUser.id
-                }));
-                
-                const { error: notifError } = await supabase.from('notificari').insert(notificationsToInsert);
-
-                if (notifError) {
-                    throw notifError;
-                }
-            }
-        } catch (error: any) {
-            console.warn("Notificarea către instructori a eșuat, dar statusul prezenței a fost salvat cu succes.", error);
+            showError("Eroare la salvarea statusului", error.message);
+            throw error; // Aruncă eroarea pentru a fi prinsă de componentă (ex: pentru a reseta UI-ul optimist)
         }
     };
     // --- End Logic ---

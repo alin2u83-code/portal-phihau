@@ -73,6 +73,7 @@ BEGIN
         ON CONFLICT (source_antrenament_id, sender_sportiv_id, recipient_user_id)
         DO UPDATE SET
             body = EXCLUDED.body,
+            title = EXCLUDED.title,
             created_at = NOW(),
             is_read = FALSE;
     END LOOP;

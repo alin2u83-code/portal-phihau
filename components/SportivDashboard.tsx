@@ -285,7 +285,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
         }
 
         // Salvează statusul prezenței. Un trigger în baza de date
-        // (`on_anunt_prezenta_change_notify_staff`) se va ocupa de crearea
+        // (`creeaza_sau_actualizeaza_notificare_prezenta`) se va ocupa de crearea
         // sau actualizarea notificării pentru instructori.
         try {
             const existingAnunt = (anunturi || []).find(a => a.antrenament_id === trainingId && a.sportiv_id === currentUser.id);

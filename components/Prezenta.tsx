@@ -9,7 +9,8 @@ import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 // --- Sub-componente ---
 
-const AntrenamentForm: React.FC<{
+// FIX: Export the AntrenamentForm component so it can be imported and used in PrezentaManagement.tsx.
+export const AntrenamentForm: React.FC<{
     isOpen: boolean;
     onClose: () => void;
     onSave: (data: Omit<Antrenament, 'id' | 'prezenta'>) => Promise<void>;

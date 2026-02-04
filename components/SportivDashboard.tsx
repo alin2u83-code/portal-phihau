@@ -5,7 +5,7 @@ import { NotificationPermissionWidget } from './NotificationPermissionWidget';
 import { AttendanceTracker } from './AttendanceTracker';
 import { useError } from './ErrorProvider';
 import { supabase } from '../supabaseClient';
-import { CheckIcon, ExclamationTriangleIcon } from './icons';
+import { CheckIcon, ExclamationTriangleIcon, ArrowLeftIcon } from './icons';
 import { GradBadge, getGradStyle } from '../utils/grades';
 import { AntrenamenteViitoare } from './AntrenamenteViitoare';
 
@@ -107,16 +107,14 @@ const IstoricGradeCard: React.FC<{
     );
 };
 
-// --- Componenta Program Antrenament ---
-const ProgramAntrenament: React.FC<{ grupaId: string | null; grupe: Grupa[] }> = ({ grupaId, grupe }) => {
+// --- Pagina Program Saptamanal (noua componenta refactorizata) ---
+const ProgramSaptamanalPage: React.FC<{ grupaId: string | null; grupe: Grupa[]; onBack: () => void; }> = ({ grupaId, grupe, onBack }) => {
     const zileSaptamanaOrdonate: Record<ProgramItem['ziua'], number> = { 'Luni': 1, 'Marți': 2, 'Miercuri': 3, 'Joi': 4, 'Vineri': 5, 'Sâmbătă': 6, 'Duminică': 7 };
-
     const grupaCurenta = useMemo(() => grupe.find(g => g.id === grupaId), [grupaId, grupe]);
-    
     const programSortat = useMemo(() => {
         if (!grupaCurenta?.program) return [];
         return [...grupaCurenta.program]
-            .filter(p => p.is_activ !== false) // Show only active sessions
+            .filter(p => p.is_activ !== false)
             .sort((a, b) => {
                 const ziCompare = zileSaptamanaOrdonate[a.ziua] - zileSaptamanaOrdonate[b.ziua];
                 if (ziCompare !== 0) return ziCompare;
@@ -125,40 +123,43 @@ const ProgramAntrenament: React.FC<{ grupaId: string | null; grupe: Grupa[] }> =
     }, [grupaCurenta]);
 
     return (
-        <Card>
-            <h3 className="text-lg font-bold text-white mb-2 animate-fade-in-down">Program Săptămânal</h3>
-            {!grupaId || !grupaCurenta ? (
-                <p className="text-sm text-slate-400 italic">Contactați instructorul pentru alocarea la o grupă.</p>
-            ) : (
-                 <>
-                    <div className="text-sm text-slate-400 mb-4">{grupaCurenta.denumire} - Sala: {grupaCurenta.sala || 'Nespecificată'}</div>
-                    {programSortat.length > 0 ? (
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left text-sm">
-                                <thead className="text-slate-400 text-xs uppercase">
-                                    <tr>
-                                        <th className="py-2">Ziua</th>
-                                        <th className="py-2">Ora Start</th>
-                                        <th className="py-2">Ora Sfârșit</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-700">
-                                    {programSortat.map((item, index) => (
-                                        <tr key={index}>
-                                            <td className="py-2 font-semibold">{item.ziua}</td>
-                                            <td className="py-2">{item.ora_start}</td>
-                                            <td className="py-2">{item.ora_sfarsit}</td>
+        <div className="animate-fade-in-down">
+            <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Dashboard</Button>
+            <Card>
+                <h1 className="text-2xl font-bold text-white mb-2">Program Săptămânal</h1>
+                {!grupaId || !grupaCurenta ? (
+                    <p className="text-slate-400 italic py-8 text-center">Momentan nu ești alocat unei grupe. Contactează instructorul Phi Hau.</p>
+                ) : (
+                    <>
+                        <div className="text-slate-300 mb-4">{grupaCurenta.denumire} - Sala: {grupaCurenta.sala || 'Nespecificată'}</div>
+                        {programSortat.length > 0 ? (
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left text-sm">
+                                    <thead className="text-slate-400 text-xs uppercase">
+                                        <tr>
+                                            <th className="py-2">Ziua</th>
+                                            <th className="py-2">Ora Start</th>
+                                            <th className="py-2">Ora Sfârșit</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    ) : (
-                        <p className="text-sm text-slate-400 italic">Grupa curentă nu are un program definit.</p>
-                    )}
-                </>
-            )}
-        </Card>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-700">
+                                        {programSortat.map((item, index) => (
+                                            <tr key={index}>
+                                                <td className="py-2 font-semibold">{item.ziua}</td>
+                                                <td className="py-2">{item.ora_start}</td>
+                                                <td className="py-2">{item.ora_sfarsit}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        ) : (
+                            <p className="text-sm text-slate-400 italic text-center py-4">Grupa curentă nu are un program săptămânal definit.</p>
+                        )}
+                    </>
+                )}
+            </Card>
+        </div>
     );
 };
 
@@ -264,6 +265,7 @@ interface SportivDashboardProps {
 
 export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser, viewedUser, participari, examene, grade, istoricGrade, grupe, plati, onNavigate, antrenamente, anunturi, setAnunturi, sportivi, permissions, canSwitchRoles, activeRole, onSwitchRole, isSwitchingRole }) => {
     
+    const [isViewingProgram, setIsViewingProgram] = useState(false);
     const { showSuccess, showError } = useError();
     const isViewingOwnProfile = currentUser.id === viewedUser.id;
 
@@ -285,9 +287,6 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
             return;
         }
 
-        // Salvează statusul prezenței. Un trigger în baza de date
-        // (`creeaza_sau_actualizeaza_notificare_prezenta`) se va ocupa de crearea
-        // sau actualizarea notificării pentru instructori.
         try {
             const existingAnunt = (anunturi || []).find(a => a.antrenament_id === trainingId && a.sportiv_id === currentUser.id);
             const upsertData = {
@@ -308,7 +307,6 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
 
             if (data) {
                 showSuccess("Status actualizat", `Ai anunțat: ${status}`);
-                // Actualizează starea locală pentru a reflecta schimbarea imediat în UI
                 setAnunturi(prev => {
                     const index = prev.findIndex(a => a.id === data.id || (a.antrenament_id === data.antrenament_id && a.sportiv_id === data.sportiv_id));
                     if (index > -1) {
@@ -322,7 +320,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
             }
         } catch (error: any) {
             showError("Eroare la salvarea statusului", error.message);
-            throw error; // Aruncă eroarea pentru a fi prinsă de componentă (ex: pentru a reseta UI-ul optimist)
+            throw error;
         }
     };
     // --- End Logic ---
@@ -338,6 +336,10 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
         
         return getGrad(admittedParticipations[0]?.grad_vizat_id || null, grade);
     }, [participari, viewedUser.grad_actual_id, viewedUser.id, grade, examene]);
+
+    if (isViewingProgram) {
+        return <ProgramSaptamanalPage grupaId={viewedUser.grupa_id} grupe={grupe} onBack={() => setIsViewingProgram(false)} />;
+    }
 
     return (
         <div className="space-y-6">
@@ -374,7 +376,11 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                 </div>
                 <div className="lg:col-span-2 space-y-6">
                     <AntrenamenteViitoare currentUser={currentUser} antrenamente={antrenamente} grupe={grupe} />
-                    <ProgramAntrenament grupaId={viewedUser.grupa_id} grupe={grupe} />
+                    <Card>
+                        <h3 className="text-lg font-bold text-white mb-2">Program Săptămânal</h3>
+                        <p className="text-sm text-slate-400">Vezi orarul complet de antrenamente pentru grupa ta.</p>
+                        <Button onClick={() => setIsViewingProgram(true)} variant="primary" className="w-full mt-4">Vezi Orarul Complet</Button>
+                    </Card>
                     <VizaMedicalaCard plati={plati} sportivId={viewedUser.id} />
                     <IstoricGradeCard grade={grade} istoricGrade={istoricGrade} sportivId={viewedUser.id} />
                 </div>

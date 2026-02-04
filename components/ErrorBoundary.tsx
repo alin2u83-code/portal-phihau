@@ -13,8 +13,8 @@ interface State {
   error?: Error;
 }
 
-// FIX: Refactored the ErrorBoundary class component to use modern syntax (class properties for state and arrow function for methods) to avoid potential 'this' context issues and fix TypeScript errors related to missing properties like 'state' and 'props'.
 class ErrorBoundary extends React.Component<Props, State> {
+  // FIX: Initialized state as a class property for modern syntax and to ensure `this.state` is available throughout the component.
   public state: State = {
     hasError: false,
     error: undefined,
@@ -30,7 +30,7 @@ class ErrorBoundary extends React.Component<Props, State> {
     console.error("Uncaught error:", error, errorInfo);
   }
 
-  // FIX: Converted to an arrow function to correctly bind `this`. This resolves errors where `this.setState` and `this.props` were reported as non-existent because the method was called from an event handler, losing its original context.
+  // FIX: Converted `handleRedirect` to an arrow function to correctly bind `this`. This resolves errors where `this.setState` and `this.props` were reported as non-existent because the method was called from an event handler, losing its original context.
   private handleRedirect = () => {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {

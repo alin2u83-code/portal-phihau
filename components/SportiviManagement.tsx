@@ -439,7 +439,9 @@ export const SportiviManagement: React.FC<{
                 setFamilii={setFamilii} 
                 tipuriAbonament={tipuriAbonament} 
                 clubs={clubs} 
-                currentUser={currentUser} 
+                currentUser={currentUser}
+                grade={grade}
+                allRoles={allRoles}
             />)}
             <DeactivationModal isOpen={!!sportivToDeactivate} onClose={() => setSportivToDeactivate(null)} sportiv={sportivToDeactivate} sportivi={sportivi} plati={plati} tipuriAbonament={tipuriAbonament} onConfirm={handleConfirmDeactivation} />
             <SportivAccountSettingsModal isOpen={!!accountSettingsSportiv} onClose={() => setAccountSettingsSportiv(null)} sportiv={accountSettingsSportiv} setSportivi={setSportivi} allRoles={allRoles} setAllRoles={setAllRoles} currentUser={currentUser} />

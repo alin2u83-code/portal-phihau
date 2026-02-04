@@ -161,7 +161,7 @@ export const GrupeManagement: React.FC<GrupeManagementProps> = ({ onBack, curren
             setLoading(true);
             const { data, error } = await supabase
                 .from('grupe')
-                .select('*, sportivi(count), program:program_antrenamente!grupa_id(*)');
+                .select('*, sportivi(count), program:orar_saptamanal!grupa_id(*)');
 
             if (error) {
                 showError("Eroare la încărcarea grupelor", error.message);
@@ -180,13 +180,13 @@ export const GrupeManagement: React.FC<GrupeManagementProps> = ({ onBack, curren
         if (grupaToEdit) { // UPDATE
             const { data: updatedGrupa, error: grupaError } = await supabase.from('grupe').update(grupaDbPayload).eq('id', grupaToEdit.id).select().single();
             if (grupaError) { showError("Eroare la actualizarea grupei", grupaError); return; }
-            await supabase.from('program_antrenamente').delete().eq('grupa_id', grupaToEdit.id);
+            await supabase.from('orar_saptamanal').delete().eq('grupa_id', grupaToEdit.id);
             if (program.length > 0) {
                 const programToInsert = program.map(({ id, ...rest }) => ({ ...rest, grupa_id: grupaToEdit.id }));
-                const { error: insertError } = await supabase.from('program_antrenamente').insert(programToInsert);
+                const { error: insertError } = await supabase.from('orar_saptamanal').insert(programToInsert);
                 if (insertError) { showError("Eroare la sincronizarea programului", insertError); return; }
             }
-            const { data: newProgramItems } = await supabase.from('program_antrenamente').select('*').eq('grupa_id', grupaToEdit.id);
+            const { data: newProgramItems } = await supabase.from('orar_saptamanal').select('*').eq('grupa_id', grupaToEdit.id);
             if (updatedGrupa) setGrupe(prev => prev.map(g => g.id === grupaToEdit.id ? { ...g, ...updatedGrupa, program: newProgramItems || [] } : g));
             showSuccess("Succes", "Grupa a fost actualizată.");
         } else { // CREATE
@@ -194,10 +194,10 @@ export const GrupeManagement: React.FC<GrupeManagementProps> = ({ onBack, curren
             if (grupaError) { showError("Eroare la adăugarea grupei", grupaError); return; }
             if (newGrupa && program.length > 0) {
                 const programToInsert = program.map(({id, ...rest}) => ({ ...rest, grupa_id: newGrupa.id }));
-                await supabase.from('program_antrenamente').insert(programToInsert);
+                await supabase.from('orar_saptamanal').insert(programToInsert);
             }
             if (newGrupa) {
-                const { data: finalGrupa } = await supabase.from('grupe').select('*, sportivi(count), program:program_antrenamente!grupa_id(*)').eq('id', newGrupa.id).single();
+                const { data: finalGrupa } = await supabase.from('grupe').select('*, sportivi(count), program:orar_saptamanal!grupa_id(*)').eq('id', newGrupa.id).single();
                 setGrupe(prev => [...prev, finalGrupa as GrupaWithDetails]);
                 showSuccess("Succes", "Grupa a fost creată.");
             }
@@ -215,7 +215,7 @@ export const GrupeManagement: React.FC<GrupeManagementProps> = ({ onBack, curren
             return;
         }
         setIsDeleting(true);
-        await supabase.from('program_antrenamente').delete().eq('grupa_id', grupaId);
+        await supabase.from('orar_saptamanal').delete().eq('grupa_id', grupaId);
         const { error: grupaError } = await supabase.from('grupe').delete().eq('id', grupaId);
         if (grupaError) { showError("Eroare la ștergerea grupei", grupaError); }
         else { setGrupe(prev => prev.filter(g => g.id !== grupaId)); showSuccess("Succes", "Grupa a fost ștearsă."); }

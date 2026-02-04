@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
-import { Antrenament, Sportiv, Grupa, User, View, Grad } from '../types';
+import { Antrenament, Sportiv, Grupa, User, View, Grad, SportivProgramPersonalizat } from '../types';
 import { useError } from './ErrorProvider';
 import { Card, Button, Select } from './ui';
 import { ArrowLeftIcon, UserPlusIcon, XIcon } from './icons';
@@ -166,9 +166,10 @@ interface InstructorPrezentaPageProps {
     allClubSportivi: Sportiv[];
     currentUser: User;
     grade: Grad[];
+    sportiviProgramPersonalizat: SportivProgramPersonalizat[];
 }
 
-export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ onBack, onNavigate, allClubSportivi, currentUser, grade }) => {
+export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ onBack, onNavigate, allClubSportivi, currentUser, grade, sportiviProgramPersonalizat }) => {
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [trainings, setTrainings] = useState<TrainingWithGroupAndAthletes[]>([]);
     const [loading, setLoading] = useState(true);
@@ -188,7 +189,7 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
             setLoading(true);
             const { data, error } = await supabase
                 .from('program_antrenamente')
-                .select('*, grupe(*, sportivi(id, nume, prenume, status, grad_actual_id)), prezenta:prezenta_antrenament(sportiv_id, status)')
+                .select('*, orar_id, grupe(*, sportivi(id, nume, prenume, status, grad_actual_id)), prezenta:prezenta_antrenament(sportiv_id, status)')
                 .eq('data', selectedDateString);
 
             if (error) {
@@ -197,19 +198,27 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
                 return;
             }
 
-            const processedTrainings = (data || []).map(t => ({
-                ...t,
-                prezenta: t.prezenta as { sportiv_id: string, status: string | null }[],
-                grupe: t.grupe ? {
-                    ...t.grupe,
-                    sportivi: (t.grupe.sportivi || []).filter((s: Sportiv) => s.status === 'Activ').sort((a: Sportiv, b: Sportiv) => a.nume.localeCompare(b.nume))
-                } : null
-            }));
+            const processedTrainings = (data || []).map(t => {
+                const disabledSportivIds = new Set(
+                    (sportiviProgramPersonalizat || [])
+                        .filter(p => p.orar_id === t.orar_id && p.este_activ === false)
+                        .map(p => p.sportiv_id)
+                );
+
+                return {
+                    ...t,
+                    prezenta: t.prezenta as { sportiv_id: string, status: string | null }[],
+                    grupe: t.grupe ? {
+                        ...t.grupe,
+                        sportivi: (t.grupe.sportivi || []).filter((s: Sportiv) => s.status === 'Activ' && !disabledSportivIds.has(s.id)).sort((a: Sportiv, b: Sportiv) => a.nume.localeCompare(b.nume))
+                    } : null
+                };
+            });
             setTrainings(processedTrainings.sort((a, b) => a.ora_start.localeCompare(b.ora_start)) as TrainingWithGroupAndAthletes[]);
             setLoading(false);
         };
         fetchTodaysTrainings();
-    }, [selectedDateString, showError]);
+    }, [selectedDateString, showError, sportiviProgramPersonalizat]);
     
     const handleSave = async (antrenamentId: string, uiPresentIds: Set<string>) => {
         if (!supabase) return;
@@ -218,12 +227,14 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
             const training = trainings.find(t => t.id === antrenamentId);
             if (!training) throw new Error("Antrenament negăsit.");
 
-            const { data: dbPresence, error: fetchError } = await supabase.from('prezenta_antrenament').select('sportiv_id').eq('antrenament_id', antrenamentId);
+            const { data: dbPresence, error: fetchError } = await supabase.from('prezenta_antrenament').select('sportiv_id, status').eq('antrenament_id', antrenamentId);
             if (fetchError) throw fetchError;
             
-            const groupAthletes = training.grupe?.sportivi || [];
-            const allInvolvedIds = new Set([...groupAthletes.map(s => s.id), ...dbPresence.map(p => p.sportiv_id)]);
-
+            const allInvolvedIds = new Set([
+                ...(training.grupe?.sportivi.map(s => s.id) || []),
+                ...dbPresence.map(p => p.sportiv_id)
+            ]);
+            
             const recordsToUpsert = Array.from(allInvolvedIds).map(sportivId => ({
                 antrenament_id: antrenamentId,
                 sportiv_id: sportivId,
@@ -243,6 +254,7 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
 
         } catch (err: unknown) {
             // In `handleSave`, cast the `unknown` error type to `Error` and access its `message` property before passing it to `showError` to fix the TypeScript error.
+// FIX: The `err` variable in a catch block is of type `unknown`. We must check if it's an instance of `Error` to access its `message` property safely. This prevents a TypeScript compilation error.
             showError("Eroare la salvarea prezenței", err instanceof Error ? err.message : String(err));
         }
     };

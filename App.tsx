@@ -280,7 +280,6 @@ function App() {
             supabase.from('nom_locatii').select('*'),
             supabase.from('tipuri_plati').select('*'),
             supabase.from('reduceri').select('*'),
-            // FIX: Retrieve roles directly via a join, as requested.
             supabase.from('sportivi').select('*, roles:utilizator_roluri_multicont(rol_denumire, is_primary)'),
             supabase.from('sesiuni_examene').select('*'),
             supabase.from('inscrieri_examene').select('*, sportivi:sportiv_id(*), grades:grad_vizat_id(*)'),
@@ -332,7 +331,6 @@ function App() {
         const clubsMap = new Map((clubsData || []).map(c => [c.id, c]));
         const allNomenclatorRoles = rolesData || [];
 
-        // FIX: Map roles using the joined 'roles' data from the sportivi query.
         const allSportivi = sportiviData?.map(s => {
             const joinedRoles = (s as any).roles || [];
             
@@ -534,7 +532,6 @@ function App() {
 
       case 'dashboard':
       case 'my-portal':
-        // FIX: Allow admins to view the sportiv dashboard if their active role is 'Sportiv'
         if (permissions.hasAdminAccess && activeRole !== 'Sportiv') {
             if ((sportivi || []).length === 0 && !isEmergencyAdmin && !loading) {
                 return (

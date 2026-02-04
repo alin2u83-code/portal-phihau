@@ -392,8 +392,8 @@ export const PrezentaManagement: React.FC<{
             await supabase.from('program_antrenamente').delete().eq('id', id);
             setAntrenamente(prev => prev.filter(p => p.id !== id));
             showSuccess("Succes", "Antrenamentul a fost șters.");
-        } catch (err: unknown) {
-// FIX: Argument of type 'unknown' is not assignable to parameter of type 'string'.
+        } catch (err) {
+            // Fix: Safely handle the 'unknown' error type before passing to showError.
             showError("Eroare la ștergere", err instanceof Error ? err.message : String(err));
         } finally {
             setIsDeleting(false);

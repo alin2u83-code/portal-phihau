@@ -249,7 +249,7 @@ const AttendanceDetail: React.FC<AttendanceDetailProps> = ({ antrenament, onBack
             showSuccess("Succes", "Prezența a fost salvată.");
     
         } catch (err: unknown) {
-            // FIX: Safely handle the unknown error type by checking if it's an instance of Error.
+            // FIX: Safely handle the unknown error type by checking if it's an instance of Error before passing its message to showError.
             showError("Eroare la salvarea prezenței", err instanceof Error ? err.message : String(err));
         } finally {
             setIsSaving(false);

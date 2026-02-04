@@ -208,7 +208,7 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
             showSuccess("Succes", "Prezența a fost salvată!");
 
         } catch (err: unknown) {
-            // FIX: In `handleSave`, cast the `unknown` error type to `Error` and access its `message` property before passing it to `showError` to fix the TypeScript error.
+            // FIX: Safely handle the unknown error type by checking if it's an instance of Error before passing its message to showError.
             showError("Eroare la salvarea prezenței", err instanceof Error ? err.message : String(err));
         }
     };

@@ -248,8 +248,9 @@ const AttendanceDetail: React.FC<AttendanceDetailProps> = ({ antrenament, onBack
             setInitialPresentIds(new Set(presentIds));
             showSuccess("Succes", "Prezența a fost salvată.");
     
-        } catch (err: any) {
-            showError("Eroare la salvarea prezenței", err.message || String(err));
+        } catch (err: unknown) {
+            // FIX: Safely handle the unknown error type by checking if it's an instance of Error.
+            showError("Eroare la salvarea prezenței", err instanceof Error ? err.message : String(err));
         } finally {
             setIsSaving(false);
         }

@@ -45,15 +45,22 @@ export const Notificari: React.FC<NotificariProps> = ({ onBack, currentUser }) =
             showError("Date Incomplete", "Titlul și mesajul sunt obligatorii.");
             return;
         }
+        
+        // Verifică dacă utilizatorul curent are un user_id valid (UUID) înainte de a trimite.
+        // Aceasta este cheia pentru a respecta constrângerea de cheie străină `sent_by`.
+        if (!currentUser?.user_id) {
+            showError("Eroare de Autentificare", "ID-ul de utilizator nu a fost găsit în sesiune. Notificarea nu poate fi trimisă.");
+            return;
+        }
 
         setLoading(true);
 
         const { data, error } = await supabase
             .from('notificari')
             .insert({
-                title: title,
-                body: body,
-                sent_by: currentUser.user_id,
+                title: title, // Coloana 'title' este folosită corect
+                body: body,   // Coloana 'body' (înlocuitor pentru 'mesaj') este folosită corect
+                sent_by: currentUser.user_id, // Se folosește user_id-ul valid
                 sender_sportiv_id: currentUser.id,
             })
             .select()

@@ -5,7 +5,8 @@ import { SportiviManagement } from './components/SportiviManagement';
 import { UserProfile } from './components/UserProfile';
 import { GestiuneExamene } from './components/Examene';
 import { GradeManagement } from './components/Grade';
-import { PrezentaManagement } from './components/PrezentaManagement';
+// FIX: The component is exported as 'Prezenta' from the module, aliasing to 'PrezentaManagement' for consistency.
+import { Prezenta as PrezentaManagement } from './components/PrezentaManagement';
 import { GrupeManagement } from './components/Grupe';
 import { RaportPrezenta } from './components/RaportPrezenta';
 import { StagiiCompetitiiManagement } from './components/StagiiCompetitii';

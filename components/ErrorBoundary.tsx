@@ -29,7 +29,7 @@ class ErrorBoundary extends React.Component<Props, State> {
     console.error("Uncaught error:", error, errorInfo);
   }
 
-  // Fix: The method was defined as a regular function, which can cause 'this' to be undefined when used as a callback.
+  // FIX: The method was defined as a regular function, which can cause 'this' to be undefined when used as a callback.
   // Converting it to an arrow function ensures 'this' is correctly bound to the component instance.
   private handleRedirect = () => {
     this.setState({ hasError: false, error: undefined });
@@ -46,8 +46,8 @@ class ErrorBoundary extends React.Component<Props, State> {
           <h1 className="text-2xl font-bold">A apărut o eroare neașteptată.</h1>
           <p className="mt-2">Ceva nu a funcționat corect în această secțiune. Încercați să reîncărcați pagina sau să reveniți la panoul principal.</p>
           {this.props.onNavigate && (
-              // Fix: Used an arrow function in onClick to ensure 'this' is correctly bound.
-              <Button onClick={() => this.handleRedirect()} variant="secondary" className="mt-6">
+              // FIX: Used an arrow function in onClick to ensure 'this' is correctly bound.
+              <Button onClick={this.handleRedirect} variant="secondary" className="mt-6">
                   <ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la pagina principală
               </Button>
           )}

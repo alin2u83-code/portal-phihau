@@ -1,11 +1,12 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { Antrenament, Sportiv, Grupa, Plata, TipAbonament, AnuntPrezenta, ProgramItem, View } from '../types';
+import { Antrenament, Sportiv, Grupa, Plata, TipAbonament, AnuntPrezenta, ProgramItem, View, Grad } from '../types';
 import { Button, Card, Input, Select, Modal } from './ui';
 import { PlusIcon, ArrowLeftIcon, TrashIcon, EditIcon, XIcon, CheckIcon, ExclamationTriangleIcon, CalendarDaysIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
+import { ListaPrezentaAntrenament } from './ListaPrezentaAntrenament';
 
 // --- Sub-componente ---
 
@@ -336,6 +337,7 @@ export const PrezentaManagement: React.FC<{
     antrenamente: Antrenament[];
     setAntrenamente: React.Dispatch<React.SetStateAction<Antrenament[]>>;
     grupe: Grupa[];
+    grade: Grad[];
     onBack: () => void;
     setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
     plati: Plata[];
@@ -343,10 +345,12 @@ export const PrezentaManagement: React.FC<{
     anunturi: AnuntPrezenta[];
     onViewSportiv: (sportiv: Sportiv) => void;
     onNavigate: (view: View) => void;
-}> = ({ sportivi, setSportivi, antrenamente, setAntrenamente, grupe, onBack, plati, setPlati, tipuriAbonament, anunturi, onViewSportiv, onNavigate }) => {
+}> = ({ sportivi, setSportivi, antrenamente, setAntrenamente, grupe, grade, onBack, plati, setPlati, tipuriAbonament, anunturi, onViewSportiv, onNavigate }) => {
     
     const [selectedAntrenamentId, setSelectedAntrenamentId] = useLocalStorage<string | null>('phi-hau-selected-antrenament-id', null);
     const selectedAntrenament = useMemo(() => (antrenamente || []).find(p => p.id === selectedAntrenamentId) || null, [antrenamente, selectedAntrenamentId]);
+
+    const [viewingAnunturiFor, setViewingAnunturiFor] = useState<Antrenament | null>(null);
 
     const handleSetSelectedAntrenament = (antrenament: Antrenament) => {
         setSelectedAntrenamentId(antrenament ? antrenament.id : null);
@@ -417,6 +421,16 @@ export const PrezentaManagement: React.FC<{
             .sort((a, b) => (a.ora_start || '').localeCompare(b.ora_start || ''));
     }, [antrenamente, filters]);
 
+    if (viewingAnunturiFor) {
+        return <ListaPrezentaAntrenament 
+            antrenament={viewingAnunturiFor}
+            onBack={() => setViewingAnunturiFor(null)}
+            allAnunturi={anunturi}
+            allSportivi={sportivi}
+            grade={grade}
+        />;
+    }
+    
     if (selectedAntrenament) {
         return <AttendanceDetail 
             antrenament={selectedAntrenament} 
@@ -486,9 +500,14 @@ export const PrezentaManagement: React.FC<{
                                          <span className={`inline-block font-bold text-sm px-3 py-1 rounded-full ${isPast ? 'bg-slate-600 text-slate-300' : 'bg-sky-900/50 text-sky-300'}`}>{p.prezenta.length}</span>
                                     </td>
                                     <td className="p-4 text-right">
-                                        <Button onClick={() => handleSetSelectedAntrenament(p as Antrenament)} variant={isPast ? "secondary" : "primary"} size="sm">
-                                            Gestionează Prezența
-                                        </Button>
+                                        <div className="flex justify-end items-center gap-2">
+                                            <Button onClick={() => setViewingAnunturiFor(p as Antrenament)} variant="secondary" size="sm">
+                                                Vezi Anunțuri
+                                            </Button>
+                                            <Button onClick={() => handleSetSelectedAntrenament(p as Antrenament)} variant={isPast ? "secondary" : "primary"} size="sm">
+                                                Gestionează Prezența
+                                            </Button>
+                                        </div>
                                     </td>
                                 </tr>
                             );

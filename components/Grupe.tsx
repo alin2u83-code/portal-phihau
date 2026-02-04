@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Grupa as GrupaType, ProgramItem, User, Club } from '../types';
+import { Grupa as GrupaType, ProgramItem, User, Club, Sportiv } from '../types';
 import { Button, Modal, Input, Select, Card } from './ui';
 import { PlusIcon, TrashIcon, EditIcon, ArrowLeftIcon, UsersIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -137,6 +137,10 @@ interface GrupeManagementProps {
     onBack: () => void; 
     currentUser: User;
     clubs: Club[];
+    // Următoarele props sunt menținute pentru compatibilitate cu App.tsx, dar nu sunt utilizate activ.
+    grupe: GrupaType[];
+    setGrupe: React.Dispatch<React.SetStateAction<GrupaType[]>>;
+    sportivi: Sportiv[];
 }
 export const GrupeManagement: React.FC<GrupeManagementProps> = ({ onBack, currentUser, clubs }) => {
     const [grupe, setGrupe] = useState<GrupaWithDetails[]>([]);

@@ -197,6 +197,20 @@ const AttendanceDetail: React.FC<AttendanceDetailProps> = ({ antrenament, onBack
             return next;
         });
     };
+
+    const handleSelectAll = useCallback(() => {
+        const groupAthleteIds = groupAthletes.map(s => s.id);
+        setPresentIds(prev => new Set([...prev, ...groupAthleteIds]));
+    }, [groupAthletes]);
+
+    const handleDeselectAll = useCallback(() => {
+        const groupAthleteIds = new Set(groupAthletes.map(s => s.id));
+        setPresentIds(prev => {
+            const next = new Set(prev);
+            groupAthleteIds.forEach(id => next.delete(id));
+            return next;
+        });
+    }, [groupAthletes]);
     
     const handleAddExternal = () => {
         if (!selectedExternalId) return;
@@ -267,6 +281,18 @@ const AttendanceDetail: React.FC<AttendanceDetailProps> = ({ antrenament, onBack
                     <p className="text-slate-400">Antrenament {antrenament.grupe?.denumire || 'Liber'} - {new Date(antrenament.data + 'T00:00:00').toLocaleDateString('ro-RO')} ora {antrenament.ora_start}</p>
                 </div>
             </div>
+
+            {groupAthletes.length > 0 && (
+                <div className="flex items-center gap-3 mb-4 p-3 bg-slate-900/50 rounded-lg border border-slate-700">
+                    <p className="text-sm font-bold text-slate-300 mr-auto">Prezență Rapidă:</p>
+                    <Button variant="info" size="sm" onClick={handleSelectAll}>
+                        <CheckIcon className="w-4 h-4 mr-2" /> Marchează Toți Prezenți
+                    </Button>
+                    <Button variant="secondary" size="sm" onClick={handleDeselectAll}>
+                        <XIcon className="w-4 h-4 mr-2" /> Marchează Toți Absenți
+                    </Button>
+                </div>
+            )}
 
             <div className="space-y-2">
                 {(groupAthletes || []).length > 0 ? (groupAthletes || []).map(sportiv => (

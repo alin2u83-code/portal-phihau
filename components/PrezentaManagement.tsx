@@ -248,9 +248,8 @@ const AttendanceDetail: React.FC<AttendanceDetailProps> = ({ antrenament, onBack
             setInitialPresentIds(new Set(presentIds));
             showSuccess("Succes", "Prezența a fost salvată.");
     
-        } catch (err: unknown) {
-            // FIX: Ensure the caught error is properly typed before accessing its message property.
-            showError("Eroare la salvarea prezenței", (err as Error).message || String(err));
+        } catch (err: any) {
+            showError("Eroare la salvarea prezenței", err.message || String(err));
         } finally {
             setIsSaving(false);
         }
@@ -325,5 +324,194 @@ const AttendanceDetail: React.FC<AttendanceDetailProps> = ({ antrenament, onBack
                 </div>
             )}
         </Card>
+    );
+};
+
+
+// --- Componenta Principală ---
+
+export const PrezentaManagement: React.FC<{
+    sportivi: Sportiv[];
+    setSportivi: React.Dispatch<React.SetStateAction<Sportiv[]>>;
+    antrenamente: Antrenament[];
+    setAntrenamente: React.Dispatch<React.SetStateAction<Antrenament[]>>;
+    grupe: Grupa[];
+    onBack: () => void;
+    setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
+    plati: Plata[];
+    tipuriAbonament: TipAbonament[];
+    anunturi: AnuntPrezenta[];
+    onViewSportiv: (sportiv: Sportiv) => void;
+    onNavigate: (view: View) => void;
+}> = ({ sportivi, setSportivi, antrenamente, setAntrenamente, grupe, onBack, plati, setPlati, tipuriAbonament, anunturi, onViewSportiv, onNavigate }) => {
+    
+    const [selectedAntrenamentId, setSelectedAntrenamentId] = useLocalStorage<string | null>('phi-hau-selected-antrenament-id', null);
+    const selectedAntrenament = useMemo(() => (antrenamente || []).find(p => p.id === selectedAntrenamentId) || null, [antrenamente, selectedAntrenamentId]);
+
+    const handleSetSelectedAntrenament = (antrenament: Antrenament) => {
+        setSelectedAntrenamentId(antrenament ? antrenament.id : null);
+    };
+
+    const [antrenamentToEdit, setAntrenamentToEdit] = useState<Antrenament | null>(null);
+    const [isFormOpen, setIsFormOpen] = useState(false);
+    const [antrenamentToDelete, setAntrenamentToDelete] = useState<Antrenament | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const { showError, showSuccess } = useError();
+
+    const initialFilters = { tip: '', data: new Date().toISOString().split('T')[0], grupa: '', ziua: '' };
+    const [filters, setFilters] = useLocalStorage('phi-hau-prezenta-filters', initialFilters);
+
+    const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        setFilters(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSaveAntrenament = async (antrenamentData: Omit<Antrenament, 'id' | 'prezenta'>) => {
+        if (!supabase) return;
+        if (antrenamentToEdit) {
+            const { data, error } = await supabase.from('program_antrenamente').update(antrenamentData).eq('id', antrenamentToEdit.id).select('*, grupe(*), prezenta:prezenta_antrenament!antrenament_id(sportiv_id, status)').single();
+            if (error) { showError("Eroare la actualizare", error.message); } 
+            else if (data) { 
+                const prezentaRaw = (data as any).prezenta;
+                const prezentaArray = prezentaRaw ? (Array.isArray(prezentaRaw) ? prezentaRaw : [prezentaRaw]) : [];
+                const formatted: Antrenament = { ...data, prezenta: prezentaArray };
+                setAntrenamente(prev => prev.map(p => p.id === data.id ? formatted : p));
+            }
+        } else {
+            const { data, error } = await supabase.from('program_antrenamente').insert(antrenamentData).select('*, grupe(*)').single();
+            if (error) { showError("Eroare la creare", error.message); } 
+            else if (data) { setAntrenamente(prev => [...prev, { ...data, prezenta: [] }]); }
+        }
+    };
+
+    const confirmDeleteAntrenament = async (id: string) => {
+        if (!supabase) return;
+        setIsDeleting(true);
+        try {
+            await supabase.from('prezenta_antrenament').delete().eq('antrenament_id', id);
+            await supabase.from('program_antrenamente').delete().eq('id', id);
+            setAntrenamente(prev => prev.filter(p => p.id !== id));
+            showSuccess("Succes", "Antrenamentul a fost șters.");
+        } catch (err) {
+            // Fix: Safely handle the 'unknown' error type before passing to showError.
+            showError("Eroare la ștergere", err instanceof Error ? err.message : String(err));
+        } finally {
+            setIsDeleting(false);
+            setAntrenamentToDelete(null);
+        }
+    };
+
+    const handleOpenAdd = () => { setAntrenamentToEdit(null); setIsFormOpen(true); };
+    
+    const filteredAntrenamente = useMemo(() => {
+        const zileSaptamanaJS = ['Duminică', 'Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă'];
+        return (antrenamente || [])
+            .filter(a => {
+                const trainingDayName = a.data ? zileSaptamanaJS[new Date(a.data + 'T00:00:00').getDay()] : null;
+                return (
+                    (!filters.data || a.data === filters.data) &&
+                    (!filters.grupa || a.grupa_id === filters.grupa) &&
+                    (!filters.ziua || trainingDayName === filters.ziua)
+                )
+            })
+            .sort((a, b) => (a.ora_start || '').localeCompare(b.ora_start || ''));
+    }, [antrenamente, filters]);
+
+    if (selectedAntrenament) {
+        return <AttendanceDetail 
+            antrenament={selectedAntrenament} 
+            onBack={() => setSelectedAntrenamentId(null)} 
+            setAntrenamente={setAntrenamente} 
+            allSportivi={sportivi}
+            allPlati={plati}
+        />;
+    }
+
+    return (
+        <div>
+            <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
+            <div className="flex justify-between items-center mb-6">
+                 <h1 className="text-3xl font-bold text-white">Înregistrare Prezențe</h1>
+                <Button onClick={handleOpenAdd} variant="info"><PlusIcon className="w-5 h-5 mr-2" /> Antrenament Nou</Button>
+            </div>
+
+            <Card className="mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+                    <div className="flex items-end gap-1">
+                        <Input label="Filtrează după Dată" name="data" type="date" value={filters.data} onChange={handleFilterChange} className="flex-grow"/>
+                        <Button variant="secondary" size="sm" onClick={() => setFilters(prev => ({...prev, data: ''}))} className="h-[38px] !px-3" title="Șterge filtrul de dată">
+                            <XIcon className="w-4 h-4"/>
+                        </Button>
+                    </div>
+                    <Select label="Filtrează după Grupă" name="grupa" value={filters.grupa} onChange={handleFilterChange}>
+                        <option value="">Toate Grupele</option>
+                        {(grupe || []).map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
+                    </Select>
+                     <Select label="Filtrează după Zi" name="ziua" value={filters.ziua} onChange={handleFilterChange}>
+                        <option value="">Toate Zilele</option>
+                        {['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'].map(zi => <option key={zi} value={zi}>{zi}</option>)}
+                    </Select>
+                    <Button onClick={() => onNavigate('activitati')} variant="secondary" className="w-full lg:w-auto justify-self-end">
+                        <CalendarDaysIcon className="w-5 h-5 mr-2" />
+                        Generează Antrenamente Recurente
+                    </Button>
+                </div>
+            </Card>
+
+            <Card className="p-0 overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left min-w-[600px]">
+                        <thead className="bg-slate-700/50 text-sky-300 text-xs uppercase">
+                            <tr>
+                                <th className="p-4 font-semibold">Ora</th>
+                                <th className="p-4 font-semibold">Grupa / Tip</th>
+                                <th className="p-4 font-semibold text-center">Prezenți</th>
+                                <th className="p-4 font-semibold text-right">Acțiuni</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-700">
+                            {(filteredAntrenamente || []).map(p => {
+                                const now = new Date();
+                                let isPast = false;
+                                if (p.data && p.ora_start) {
+                                    const trainingDateTime = new Date(`${p.data}T${p.ora_start}`);
+                                    isPast = trainingDateTime < now;
+                                }
+
+                                return (
+                                <tr key={p.id} className={`transition-all ${isPast ? 'opacity-60 bg-slate-800/30' : ''} hover:bg-slate-700/50 hover:opacity-100`}>
+                                    <td className="p-4 font-medium text-white">{p.ora_start}</td>
+                                    <td className="p-4 text-slate-300">{p.grupe?.denumire || 'Antrenament Liber'}</td>
+                                    <td className="p-4 text-center">
+                                         <span className={`inline-block font-bold text-sm px-3 py-1 rounded-full ${isPast ? 'bg-slate-600 text-slate-300' : 'bg-sky-900/50 text-sky-300'}`}>{p.prezenta.length}</span>
+                                    </td>
+                                    <td className="p-4 text-right">
+                                        <Button onClick={() => handleSetSelectedAntrenament(p as Antrenament)} variant={isPast ? "secondary" : "primary"} size="sm">
+                                            Gestionează Prezența
+                                        </Button>
+                                    </td>
+                                </tr>
+                            );
+                            })}
+                        </tbody>
+                    </table>
+                    {(filteredAntrenamente || []).length === 0 && <p className="p-4 text-center text-slate-400">Niciun antrenament înregistrat conform filtrelor.</p>}
+                </div>
+            </Card>
+            <AntrenamentForm 
+                isOpen={isFormOpen} 
+                onClose={() => setIsFormOpen(false)} 
+                onSave={handleSaveAntrenament} 
+                antrenamentToEdit={antrenamentToEdit}
+                grupe={grupe}
+            />
+            <ConfirmDeleteModal 
+                isOpen={!!antrenamentToDelete} 
+                onClose={() => setAntrenamentToDelete(null)} 
+                onConfirm={() => { if(antrenamentToDelete) confirmDeleteAntrenament(antrenamentToDelete.id) }} 
+                tableName="Antrenament" 
+                isLoading={isDeleting} 
+            />
+        </div>
     );
 };

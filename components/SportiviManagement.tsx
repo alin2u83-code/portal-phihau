@@ -356,30 +356,6 @@ export const SportiviManagement: React.FC<{
                 setSportivi(prev => prev.map(s => s.id === sportivToEdit.id ? updatedSportiv : s));
                 return { success: true, data: updatedSportiv };
             } else {
-                 // --- VERIFICARE DUPLICATE ---
-                const { nume, prenume, data_nasterii, club_id } = sportivData;
-                if (nume && prenume && data_nasterii) {
-                    let query = supabase.from('sportivi').select('id', { count: 'exact', head: true })
-                        .eq('nume', nume.trim())
-                        .eq('prenume', prenume.trim())
-                        .eq('data_nasterii', data_nasterii);
-
-                    if (!permissions.isFederationAdmin) {
-                        query = query.eq('club_id', currentUser.club_id);
-                    } else if (club_id) {
-                         query = query.eq('club_id', club_id);
-                    }
-
-                    const { error: checkError, count } = await query;
-                    
-                    if (checkError) {
-                        return { success: false, error: `Eroare la verificarea duplicatelor: ${checkError.message}` };
-                    }
-                    if (count && count > 0) {
-                        return { success: false, error: `Un sportiv cu același nume, prenume și dată de naștere există deja.` };
-                    }
-                }
-                // --- SFÂRȘIT VERIFICARE ---
                 const dataToSave = { ...sportivData };
                 if (!dataToSave.familie_id) {
                     const individualSubscription = (tipuriAbonament || []).find(ab => ab.numar_membri === 1);

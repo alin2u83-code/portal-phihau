@@ -7,6 +7,7 @@ import { useError } from './ErrorProvider';
 import { supabase } from '../supabaseClient';
 import { CheckIcon, ExclamationTriangleIcon } from './icons';
 import { GradBadge, getGradStyle } from '../utils/grades';
+import { AntrenamenteViitoare } from './AntrenamenteViitoare';
 
 const getGrad = (gradId: string | null, allGrades: Grad[]) => gradId ? allGrades.find(g => g.id === gradId) : null;
 
@@ -125,7 +126,7 @@ const ProgramAntrenament: React.FC<{ grupaId: string | null; grupe: Grupa[] }> =
 
     return (
         <Card>
-            <h3 className="text-lg font-bold text-white mb-2 animate-fade-in-down">Programul Meu de Antrenament</h3>
+            <h3 className="text-lg font-bold text-white mb-2 animate-fade-in-down">Program Săptămânal</h3>
             {!grupaId || !grupaCurenta ? (
                 <p className="text-sm text-slate-400 italic">Contactați instructorul pentru alocarea la o grupă.</p>
             ) : (
@@ -372,6 +373,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                      <AttendanceTracker currentUser={currentUser} antrenamente={antrenamente} onNavigate={onNavigate} />
                 </div>
                 <div className="lg:col-span-2 space-y-6">
+                    <AntrenamenteViitoare currentUser={currentUser} antrenamente={antrenamente} grupe={grupe} />
                     <ProgramAntrenament grupaId={viewedUser.grupa_id} grupe={grupe} />
                     <VizaMedicalaCard plati={plati} sportivId={viewedUser.id} />
                     <IstoricGradeCard grade={grade} istoricGrade={istoricGrade} sportivId={viewedUser.id} />

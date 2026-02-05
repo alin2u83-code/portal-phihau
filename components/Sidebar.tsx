@@ -3,7 +3,7 @@ import { User, View, Club, Permissions, Rol } from '../types';
 import { instructorMenu, sportivMenu, clubAdminMenu, federationAdminMenu, MenuItem } from './menuConfig';
 import { ArrowRightOnRectangleIcon, Bars3Icon, ChevronDownIcon, ShieldCheckIcon, UserCircleIcon } from './icons';
 import { Select } from './ui';
-import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
+import { FEDERATIE_ID, FEDERATIE_NAME, ROLES } from '../constants';
 
 // Sub-component for navigation items
 const NavItem: React.FC<{
@@ -80,37 +80,33 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
         let name: string;
         let border: string;
 
-        // Safety mechanism: If role is not set but user has admin access, show a default admin menu.
         if (!activeRole && permissions.hasAdminAccess) {
             menu = clubAdminMenu;
             name = 'Context Invalid';
-            border = 'border-red-500'; // Highlight the error state
+            border = 'border-red-500';
             return { menuToDisplay: menu, contextName: name, borderClass: border };
         }
 
-        // Normalize to uppercase and replace spaces with underscores for robust matching.
-        const normalizedRole = (activeRole?.toUpperCase() || 'SPORTIV').replace(/ /g, '_');
-        console.log('Rol detectat:', activeRole, '-> Normalizat:', normalizedRole);
-
+        const normalizedRole = (activeRole?.toUpperCase() || ROLES.SPORTIV).replace(/ /g, '_');
 
         switch (normalizedRole) {
-            case 'SUPER_ADMIN_FEDERATIE':
-            case 'ADMIN':
+            case ROLES.SUPER_ADMIN_FEDERATIE:
+            case ROLES.ADMIN:
                 menu = federationAdminMenu;
                 name = 'Federație';
                 border = 'border-red-500';
                 break;
-            case 'ADMIN_CLUB':
+            case ROLES.ADMIN_CLUB:
                 menu = clubAdminMenu;
                 name = currentUser.cluburi?.nume || 'Club Nesetat';
                 border = 'border-blue-500';
                 break;
-            case 'INSTRUCTOR':
+            case ROLES.INSTRUCTOR:
                 menu = instructorMenu;
                 name = currentUser.cluburi?.nume || 'Club Nesetat';
                 border = 'border-sky-500';
                 break;
-            case 'SPORTIV':
+            case ROLES.SPORTIV:
             default:
                 menu = sportivMenu;
                 name = 'Portal Sportiv';

@@ -14,30 +14,30 @@ interface State {
 }
 
 class ErrorBoundary extends React.Component<Props, State> {
-  public state: State = {
+  state: State = {
     hasError: false,
     error: undefined,
   };
 
-  public static getDerivedStateFromError(error: Error): State {
+  static getDerivedStateFromError(error: Error): State {
     // Update state so the next render will show the fallback UI.
     return { hasError: true, error };
   }
 
-  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // You can also log the error to an error reporting service.
     console.error("Uncaught error:", error, errorInfo);
   }
 
   // FIX: Converted to an arrow function to ensure `this` is correctly bound.
-  private handleRedirect = () => {
+  handleRedirect = () => {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {
         this.props.onNavigate('dashboard');
     }
   }
 
-  public render() {
+  render() {
     if (this.state.hasError) {
       // You can render any custom fallback UI.
       return (

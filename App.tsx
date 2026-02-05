@@ -112,7 +112,7 @@ function App() {
     return activeRoleContext?.rol_denumire || null;
   }, [activeRoleContext]);
 
-  const permissions = usePermissions(currentUser, activeRole);
+  const permissions = usePermissions(currentUser, activeRoleContext);
   const { activeClubId, globalClubFilter, setGlobalClubFilter } = useClubFilter(currentUser, permissions, activeRoleContext);
 
    const canSwitchRoles = useMemo(() => {
@@ -121,24 +121,11 @@ function App() {
         return true;
     }, [currentUser, userRoles]);
     
-  const handleSwitchRole = useCallback(async (roleName: Rol['nume']) => {
-      if (!supabase || !currentUser?.user_id || !userRoles) return;
-      
-      let targetRoleContext: any = null;
-
-      if (roleName === 'Sportiv') {
-          targetRoleContext = userRoles.find(r => r.rol_denumire === 'Sportiv' && r.is_primary) || userRoles.find(r => r.rol_denumire === 'Sportiv');
-      } else {
-          targetRoleContext = userRoles.find(r => r.rol_denumire === roleName);
-      }
-
-      if (!targetRoleContext) {
-          showError("Eroare la comutare", `Nu s-a găsit un context valid pentru rolul "${roleName}".`);
-          return;
-      }
+  const handleSwitchRole = useCallback(async (targetRoleContext: any) => {
+      if (!supabase || !currentUser?.user_id || !targetRoleContext) return;
       
       setIsSwitchingRole(true);
-      setSwitchingToRole(roleName);
+      setSwitchingToRole(targetRoleContext.rol_denumire);
       
       const { error } = await supabase.rpc('set_primary_context', {
           p_sportiv_id: targetRoleContext.sportiv_id,
@@ -150,14 +137,14 @@ function App() {
           setIsSwitchingRole(false);
           setSwitchingToRole(null);
       } else {
-          if (roleName === 'Sportiv') {
+          if (targetRoleContext.rol_denumire === 'Sportiv') {
               localStorage.setItem('phi-hau-redirect-after-role-switch', 'my-portal');
           } else {
               localStorage.removeItem('phi-hau-redirect-after-role-switch');
           }
           setTimeout(() => window.location.reload(), 1200);
       }
-  }, [currentUser, userRoles, showError]);
+  }, [currentUser, showError]);
 
   useEffect(() => {
     const redirectView = localStorage.getItem('phi-hau-redirect-after-role-switch');
@@ -758,6 +745,8 @@ function App() {
                 onSwitchRole={handleSwitchRole}
                 isSwitchingRole={isSwitchingRole}
                 grade={grade}
+                userRoles={userRoles}
+                activeRoleContext={activeRoleContext}
               />
               <main className={`flex-1 transition-all duration-300 ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'}`}>
                 <div className="absolute top-4 right-8 z-30">

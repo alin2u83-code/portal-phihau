@@ -5,6 +5,13 @@ import { useLocalStorage } from './useLocalStorage';
 export const useClubFilter = (currentUser: User | null, permissions: Permissions, activeRoleContext: any | null) => {
     const [globalClubFilter, setGlobalClubFilter] = useLocalStorage<string | null>('phi-hau-global-club-filter', null);
     
+    // Set a default filter for federation admins on first load if none is set
+    useEffect(() => {
+        if (permissions.isFederationAdmin && globalClubFilter === null && currentUser?.club_id) {
+            setGlobalClubFilter(currentUser.club_id);
+        }
+    }, [permissions.isFederationAdmin, globalClubFilter, currentUser?.club_id, setGlobalClubFilter]);
+
     const activeClubId = useMemo(() => {
         if (permissions.isFederationAdmin) {
             return globalClubFilter;

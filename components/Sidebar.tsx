@@ -62,12 +62,14 @@ interface SidebarProps {
     permissions: Permissions;
     activeRole: Rol['nume'];
     canSwitchRoles: boolean;
-    onSwitchRole: (roleName: Rol['nume']) => void;
+    onSwitchRole: (roleContext: any) => void;
     isSwitchingRole: boolean;
-    grade: any[]; // Assuming grade structure is not needed here
+    grade: any[];
+    userRoles: any[];
+    activeRoleContext: any;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLogout, activeView, isExpanded, setIsExpanded, clubs, globalClubFilter, setGlobalClubFilter, permissions, activeRole, canSwitchRoles, onSwitchRole, isSwitchingRole }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLogout, activeView, isExpanded, setIsExpanded, clubs, globalClubFilter, setGlobalClubFilter, permissions, activeRole, canSwitchRoles, onSwitchRole, isSwitchingRole, grade, userRoles, activeRoleContext }) => {
     const [isMobileOpen, setIsMobileOpen] = useState(false);
 
     const handleNavigate = (view: View) => {
@@ -93,12 +95,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
 
         switch (normalizedRole) {
             case ROLES.SUPER_ADMIN_FEDERATIE:
-            case ROLES.ADMIN: // For backward compatibility
                 menu = federationAdminMenu;
                 name = 'Federație';
                 border = 'border-red-500';
                 break;
             case ROLES.ADMIN_CLUB:
+            case ROLES.ADMIN: // For backward compatibility as a club admin
                 menu = clubAdminMenu;
                 name = currentUser.cluburi?.nume || 'Club Nesetat';
                 border = 'border-blue-500';
@@ -119,16 +121,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
     }, [activeRole, currentUser.cluburi?.nume, permissions.hasAdminAccess]);
 
     const adminRoleToSwitchTo = useMemo(() => {
-        if (!currentUser || !permissions.hasAdminAccess) return null;
-        const allUserRoles = currentUser.roluri || [];
+        if (!currentUser || !permissions.hasAdminAccess || !userRoles) return null;
+        
+        const allUserContexts = userRoles || [];
         const roleOrder: Rol['nume'][] = ['SUPER_ADMIN_FEDERATIE', 'Admin', 'Admin Club', 'Instructor'];
+
         for (const roleName of roleOrder) {
-            if (allUserRoles.some(r => r.nume === roleName)) {
-                return roleName;
-            }
+            const context = allUserContexts.find(r => r.rol_denumire === roleName);
+            if (context) return context; // Return the whole context object
         }
-        return 'Admin Club';
-    }, [currentUser, permissions]);
+        
+        return allUserContexts.find(r => r.rol_denumire === 'Admin Club') || null;
+    }, [currentUser, permissions, userRoles]);
 
     // Main content of the sidebar
     const sidebarContent = (
@@ -178,7 +182,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
                 )}
 
                 {permissions.isSportiv && permissions.hasAdminAccess && activeRole !== 'Sportiv' && (
-                    <div onClick={() => onSwitchRole('Sportiv')} className="flex items-center p-2.5 text-white rounded-md cursor-pointer bg-green-600/20 hover:bg-green-600/40 border border-green-500/50 mt-4 transition-colors" title={!isExpanded ? "Comută la Portalul de Sportiv" : ''}>
+                    <div onClick={() => {
+                        const sportivContext = userRoles.find(r => r.rol_denumire === 'Sportiv' && r.is_primary) || userRoles.find(r => r.rol_denumire === 'Sportiv');
+                        if (sportivContext) onSwitchRole(sportivContext);
+                    }} className="flex items-center p-2.5 text-white rounded-md cursor-pointer bg-green-600/20 hover:bg-green-600/40 border border-green-500/50 mt-4 transition-colors" title={!isExpanded ? "Comută la Portalul de Sportiv" : ''}>
                         <UserCircleIcon className={`h-6 w-6 shrink-0 text-green-300 ${isExpanded ? 'mr-3' : 'mx-auto'}`} />
                         {isExpanded && <span className="flex-1 font-semibold text-sm">Portal Sportiv</span>}
                     </div>
@@ -187,14 +194,48 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
 
             {canSwitchRoles && permissions.hasAdminAccess && (
                 <div className="px-3 py-2 border-t border-white/10">
-                    <button
-                        onClick={() => handleNavigate('admin-console')}
-                        title={!isExpanded ? "Schimbă Context de Lucru" : ""}
-                        className={`w-full flex items-center p-2.5 rounded-md transition-colors text-left bg-slate-700 hover:bg-slate-600 text-white`}
-                    >
-                        <ShieldCheckIcon className={`h-6 w-6 shrink-0 ${isExpanded ? 'mr-3' : 'mx-auto'}`} />
-                        {isExpanded && <span className="text-sm font-semibold truncate">Schimbă Context</span>}
-                    </button>
+                    {isExpanded ? (
+                        <Select
+                            label="Schimbă Context"
+                            value={activeRoleContext ? `${activeRoleContext.sportiv_id}|${activeRoleContext.rol_denumire}` : ''}
+                            onChange={(e) => {
+                                const selectedIdentifier = e.target.value;
+                                if (!selectedIdentifier) return;
+                                const [sportivId, roleDenumire] = selectedIdentifier.split('|');
+                                const selectedContext = userRoles.find(r => r.sportiv_id === sportivId && r.rol_denumire === roleDenumire);
+                                if (selectedContext) {
+                                    onSwitchRole(selectedContext);
+                                }
+                            }}
+                            disabled={isSwitchingRole}
+                            className="w-full"
+                        >
+                            {userRoles.map(role => {
+                                const identifier = `${role.sportiv_id}|${role.rol_denumire}`;
+                                let displayName = '';
+                                if (role.rol_denumire === 'Sportiv') {
+                                    displayName = `${role.nume} ${role.prenume}`;
+                                } else if (role.rol_denumire === 'SUPER_ADMIN_FEDERATIE' || role.rol_denumire === 'Admin') {
+                                    displayName = `Federație (${role.rol_denumire})`;
+                                } else {
+                                    displayName = `${role.club_nume} (${role.rol_denumire})`;
+                                }
+                                return (
+                                    <option key={identifier} value={identifier}>
+                                        {displayName}
+                                    </option>
+                                );
+                            })}
+                        </Select>
+                    ) : (
+                        <button
+                            onClick={() => handleNavigate('admin-console')}
+                            title="Schimbă Context de Lucru"
+                            className="w-full flex items-center p-2.5 rounded-md transition-colors text-left bg-slate-700 hover:bg-slate-600 text-white"
+                        >
+                            <ShieldCheckIcon className="h-6 w-6 shrink-0 mx-auto" />
+                        </button>
+                    )}
                 </div>
             )}
 

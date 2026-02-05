@@ -22,72 +22,90 @@ const fallbackUser = (email: string): User => ({
 });
 
 /**
- * Fetches the complete user profile, including all role contexts, in a single query.
+ * Fetches the complete user profile using the `auth_profile_view`.
+ * Includes a safety net for admin users without a `sportivi` record.
  * @param supabase The Supabase client instance.
  * @returns An object containing the user profile, an array of role contexts, or an error.
  */
 export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promise<{ user: User | null; roles: any[] | null; error: any | null }> => {
     try {
         const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
-
-        if (authError) {
-            console.error("Supabase auth error:", authError.message);
+        if (authError || !authUser) {
             return { user: null, roles: null, error: authError };
         }
+
+        // Using 'auth_profile_view' as the single source of truth, per user request.
+        const { data: contexts, error: viewError } = await supabase
+            .from('auth_profile_view')
+            .select('*')
+            .eq('auth_user_id', authUser.id);
         
-        if (!authUser) {
-            return { user: null, roles: null, error: null };
+        if (viewError) {
+            return { user: null, roles: null, error: { message: `Eroare la interogarea 'auth_profile_view': ${viewError.message}. Asigurați-vă că vederea există și este accesibilă.` } };
         }
 
-        const { data: userProfileData, error: profileError } = await supabase
-            .from('sportivi')
-            .select(`
-                *,
-                cluburi(*),
-                contexts:utilizator_roluri_multicont (
-                    rol_denumire,
-                    sportiv_id,
-                    club_id,
-                    is_primary,
-                    club:cluburi(nume),
-                    sportiv:sportivi!inner(nume, prenume)
-                )
-            `)
-            .eq('user_id', authUser.id)
-            .single();
-        
-        if (profileError) {
-            if (profileError.code === 'PGRST116') {
-                return { user: fallbackUser(authUser.email || 'unknown@user.com'), roles: [], error: null };
-            }
-            return { user: null, roles: null, error: profileError };
-        }
-        
-        if (!userProfileData) {
-            return { user: fallbackUser(authUser.email || 'unknown@user.com'), roles: [], error: null };
+        const roles = contexts || [];
+        if (roles.length === 0) {
+            return { user: null, roles: [], error: { message: "Contul dumneavoastră nu este asociat cu niciun profil sau rol. Vă rugăm contactați un administrator." } };
         }
 
-        const { contexts, ...profile } = userProfileData;
-        const roleContexts = contexts || [];
-
-        const { data: allRolesNomenclator, error: allRolesError } = await supabase.from('roluri').select('id, nume');
-        if(allRolesError) {
-            console.warn("Eroare la preluarea nomenclatorului de roluri:", allRolesError.message);
+        const primaryContext = roles.find(r => r.is_primary) || roles[0];
+        
+        let profile: User;
+        
+        // Case 1: The user has a full profile in the 'sportivi' table, linked by sportiv_id.
+        if (primaryContext.sportiv_id && primaryContext.nume) {
+            profile = {
+                id: primaryContext.sportiv_id,
+                user_id: primaryContext.auth_user_id,
+                nume: primaryContext.nume,
+                prenume: primaryContext.prenume,
+                email: primaryContext.email,
+                username: primaryContext.username,
+                data_nasterii: primaryContext.data_nasterii,
+                cnp: primaryContext.cnp,
+                inaltime: primaryContext.inaltime,
+                data_inscrierii: primaryContext.data_inscrierii,
+                status: primaryContext.status,
+                grupa_id: primaryContext.grupa_id,
+                club_id: primaryContext.club_id,
+                grad_actual_id: primaryContext.grad_actual_id,
+                familie_id: primaryContext.familie_id,
+                tip_abonament_id: primaryContext.tip_abonament_id,
+                participa_vacanta: primaryContext.participa_vacanta,
+                puncte_forte: primaryContext.puncte_forte,
+                puncte_slabe: primaryContext.puncte_slabe,
+                obiective: primaryContext.obiective,
+                trebuie_schimbata_parola: primaryContext.trebuie_schimbata_parola,
+                cluburi: { id: primaryContext.club_id, nume: primaryContext.club_nume },
+                roluri: [], // Will be populated next
+            };
+        } 
+        // Case 2 (Safety Net): User has admin roles but no 'sportivi' record.
+        else if (roles.some(r => r.rol_denumire !== 'Sportiv')) {
+            profile = {
+                id: authUser.id, // Fallback to auth user id for uniqueness
+                user_id: authUser.id,
+                nume: authUser.email?.split('@')[0] || 'Admin',
+                prenume: 'Utilizator',
+                email: authUser.email,
+                roluri: [],
+                club_id: primaryContext.club_id,
+                cluburi: { id: primaryContext.club_id, nume: primaryContext.club_nume },
+                // Fill other required Sportiv fields with defaults
+                data_nasterii: '1900-01-01', status: 'Activ', cnp: null, data_inscrierii: new Date().toISOString().split('T')[0], grupa_id: null, familie_id: null, tip_abonament_id: null, participa_vacanta: false, trebuie_schimbata_parola: false,
+            };
+        } else {
+            return { user: null, roles: [], error: { message: "Profil de sportiv negăsit. Vă rugăm contactați un administrator." } };
         }
 
-        const mappedRoles = (roleContexts || []).map((mcr: any) => {
-            const roleFromNomenclator = (allRolesNomenclator || []).find(r => r.nume === mcr.rol_denumire);
-            return roleFromNomenclator ? { id: roleFromNomenclator.id, nume: roleFromNomenclator.nume as Rol['nume'] } : null;
-        }).filter((r): r is Rol => r !== null);
+        // Populate `roluri` from all contexts. Assumes view has `rol_id` and `rol_denumire`.
+        // FIX: Cast the result of the map/reduce operation to Rol[] to satisfy TypeScript's type checker.
+        // The type inference was failing, resulting in `unknown[]` which is not assignable to `profile.roluri`.
+        const uniqueRoles = [...new Map(roles.map(item => [item.rol_denumire, { id: item.rol_id, nume: item.rol_denumire }])).values()] as Rol[];
+        profile.roluri = uniqueRoles;
 
-        const uniqueRoles = Array.from(new Map(mappedRoles.map(item => [item.id, item])).values());
-
-        const formattedProfile = {
-            ...profile,
-            roluri: uniqueRoles,
-        };
-        
-        return { user: formattedProfile as User, roles: roleContexts, error: null };
+        return { user: profile, roles: roles, error: null };
 
     } catch (err: any) {
         console.error("A apărut o eroare neașteptată în fetchUserWithPermissions:", err.message);

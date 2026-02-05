@@ -614,7 +614,7 @@ function App() {
         return renderProtected(<PrezentaManagement onBack={() => setActiveView('dashboard')} currentUser={currentUser!} />, isAtLeastInstructor);
       
       case 'prezenta-instructor':
-        return renderProtected(<InstructorPrezentaPage onBack={() => setActiveView('dashboard')} onNavigate={setActiveView} allClubSportivi={filteredData.sportivi || []} currentUser={currentUser!} grade={grade} />, permissions.isInstructor);
+        return renderProtected(<InstructorPrezentaPage onBack={() => setActiveView('dashboard')} onNavigate={setActiveView} allClubSportivi={filteredData.sportivi || []} currentUser={currentUser!} grade={grade} sportiviProgramPersonalizat={[]} />, permissions.isInstructor);
       
       case 'arhiva-prezente':
         return renderProtected(<ArhivaPrezente onBack={() => setActiveView('prezenta-instructor')} />, permissions.isInstructor);

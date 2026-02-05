@@ -166,10 +166,9 @@ interface InstructorPrezentaPageProps {
     allClubSportivi: Sportiv[];
     currentUser: User;
     grade: Grad[];
-    sportiviProgramPersonalizat: SportivProgramPersonalizat[];
 }
 
-export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ onBack, onNavigate, allClubSportivi, currentUser, grade, sportiviProgramPersonalizat }) => {
+export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ onBack, onNavigate, allClubSportivi, currentUser, grade }) => {
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [trainings, setTrainings] = useState<TrainingWithGroupAndAthletes[]>([]);
     const [loading, setLoading] = useState(true);
@@ -189,7 +188,7 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
             setLoading(true);
             const { data, error } = await supabase
                 .from('program_antrenamente')
-                .select('*, orar_id, grupe(*, sportivi(id, nume, prenume, status, grad_actual_id)), prezenta:prezenta_antrenament(sportiv_id, status)')
+                .select('*, grupe(*, sportivi(id, nume, prenume, status, grad_actual_id)), prezenta:prezenta_antrenament(sportiv_id, status)')
                 .eq('data', selectedDateString);
 
             if (error) {
@@ -198,27 +197,19 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
                 return;
             }
 
-            const processedTrainings = (data || []).map(t => {
-                const disabledSportivIds = new Set(
-                    (sportiviProgramPersonalizat || [])
-                        .filter(p => p.orar_id === t.orar_id && p.este_activ === false)
-                        .map(p => p.sportiv_id)
-                );
-
-                return {
-                    ...t,
-                    prezenta: t.prezenta as { sportiv_id: string, status: string | null }[],
-                    grupe: t.grupe ? {
-                        ...t.grupe,
-                        sportivi: (t.grupe.sportivi || []).filter((s: Sportiv) => s.status === 'Activ' && !disabledSportivIds.has(s.id)).sort((a: Sportiv, b: Sportiv) => a.nume.localeCompare(b.nume))
-                    } : null
-                };
-            });
+            const processedTrainings = (data || []).map(t => ({
+                ...t,
+                prezenta: t.prezenta as { sportiv_id: string, status: string | null }[],
+                grupe: t.grupe ? {
+                    ...t.grupe,
+                    sportivi: (t.grupe.sportivi || []).filter((s: Sportiv) => s.status === 'Activ').sort((a: Sportiv, b: Sportiv) => a.nume.localeCompare(b.nume))
+                } : null
+            }));
             setTrainings(processedTrainings.sort((a, b) => a.ora_start.localeCompare(b.ora_start)) as TrainingWithGroupAndAthletes[]);
             setLoading(false);
         };
         fetchTodaysTrainings();
-    }, [selectedDateString, showError, sportiviProgramPersonalizat]);
+    }, [selectedDateString, showError]);
     
     const handleSave = async (antrenamentId: string, uiPresentIds: Set<string>) => {
         if (!supabase) return;
@@ -253,8 +244,6 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
             showSuccess("Succes", "Prezența a fost salvată!");
 
         } catch (err: unknown) {
-            // In `handleSave`, cast the `unknown` error type to `Error` and access its `message` property before passing it to `showError` to fix the TypeScript error.
-// FIX: The `err` variable in a catch block is of type `unknown`. We must check if it's an instance of `Error` to access its `message` property safely. This prevents a TypeScript compilation error.
             showError("Eroare la salvarea prezenței", err instanceof Error ? err.message : String(err));
         }
     };

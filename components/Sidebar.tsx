@@ -98,7 +98,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
             case 'ADMIN':
                 menu = federationAdminMenu;
                 name = 'Federație';
-                border = 'border-amber-400';
+                border = 'border-red-500';
                 break;
             case 'ADMIN_CLUB':
                 menu = clubAdminMenu;
@@ -136,7 +136,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
     const sidebarContent = (
         <div className="flex flex-col h-full bg-[var(--bg-card)] text-white shadow-xl">
             <div className={`h-20 flex flex-col items-center justify-center p-2 border-b border-white/10 text-center ${isExpanded ? 'px-4' : 'px-1'}`}>
-                <ShieldCheckIcon className={`w-8 h-8 shrink-0 ${activeRole === 'SUPER_ADMIN_FEDERATIE' || activeRole === 'Admin' ? 'text-amber-400' : 'text-blue-400'}`} />
+                <ShieldCheckIcon className={`w-8 h-8 shrink-0 ${activeRole === 'SUPER_ADMIN_FEDERATIE' || activeRole === 'Admin' ? 'text-red-400' : 'text-blue-400'}`} />
                 {isExpanded && (
                     <>
                         <h2 className="text-xs font-bold text-slate-400 mt-1 uppercase">Mod Lucru</h2>

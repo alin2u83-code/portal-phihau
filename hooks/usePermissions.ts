@@ -17,12 +17,14 @@ const initialPermissions: Permissions = {
 
 export const usePermissions = (user: User | null, activeRole: Rol['nume'] | null): Permissions => {
     const permissions = useMemo((): Permissions => {
-        if (!user || !activeRole) {
+        if (!user) {
             return initialPermissions;
         }
+        
+        // Normalize the active role for context-dependent checks to handle variations like "Admin Club" vs "ADMIN_CLUB"
+        const normalizedActiveRole = activeRole?.toUpperCase().replace(/ /g, '_');
 
         // Base role flags are determined by *all* roles the user possesses.
-        // This is useful for knowing the user's total capabilities.
         const allUserRoles = new Set((user.roluri || []).map(r => r.nume));
 
         const isSuperAdmin = allUserRoles.has('SUPER_ADMIN_FEDERATIE');
@@ -32,15 +34,13 @@ export const usePermissions = (user: User | null, activeRole: Rol['nume'] | null
         const isInstructor = allUserRoles.has('Instructor');
         const isSportiv = allUserRoles.has('Sportiv');
         
-        // hasAdminAccess is now determined by the user's total capabilities,
-        // not just their active context. This allows the UI to show relevant
-        // admin/switching options even when in a non-admin context.
+        // hasAdminAccess is determined by the user's total capabilities.
         const hasAdminAccess = isSuperAdmin || isAdmin || isAdminClub || isInstructor;
         
-        // Business logic flags are derived from the active session's context for security.
-        const isFederationLevel = activeRole === 'SUPER_ADMIN_FEDERATIE' || activeRole === 'Admin';
-        const canManageFinances = activeRole === 'SUPER_ADMIN_FEDERATIE' || activeRole === 'Admin' || activeRole === 'Admin Club';
-        const canGradeStudents = hasAdminAccess; // Grading might be allowed for all admin types
+        // Business logic flags are derived from the NORMALIZED active session's context.
+        const isFederationLevel = normalizedActiveRole === 'SUPER_ADMIN_FEDERATIE' || normalizedActiveRole === 'ADMIN';
+        const canManageFinances = normalizedActiveRole === 'SUPER_ADMIN_FEDERATIE' || normalizedActiveRole === 'ADMIN' || normalizedActiveRole === 'ADMIN_CLUB';
+        const canGradeStudents = hasAdminAccess;
 
         // Visible clubs logic also depends on the active context.
         const visibleClubIds: 'all' | string[] = isFederationLevel ? 'all' : (user.club_id ? [user.club_id] : []);

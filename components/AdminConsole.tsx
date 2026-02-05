@@ -1,83 +1,64 @@
 import React, { useState } from 'react';
-import { Rol, View, User, Club, Permissions } from '../types';
+import { Rol, User, Club, Permissions } from '../types';
 import { Button, Card } from './ui';
-import { ArrowLeftIcon } from './icons';
+import { ArrowLeftIcon, ShieldCheckIcon } from './icons';
 import { IdentitySwitcher } from './IdentitySwitcher';
 import { useError } from './ErrorProvider';
 import { supabase } from '../supabaseClient';
-import { UserRoleManager } from './UserRoleManager';
 
-const AddBogdanButton = () => {
+const DevRoleImpersonation: React.FC = () => {
+    const [loadingRole, setLoadingRole] = useState<Rol['nume'] | null>(null);
     const { showError, showSuccess } = useError();
-    const [loading, setLoading] = useState(false);
 
-    const handleAddBogdan = async () => {
-        setLoading(true);
-        try {
-            if (!supabase) throw new Error("Clientul Supabase nu este disponibil.");
+    const handleImpersonate = async (roleName: Rol['nume']) => {
+        if (!supabase) {
+            showError("Eroare", "Clientul Supabase nu a putut fi stabilit.");
+            return;
+        }
+        setLoadingRole(roleName);
+        
+        const { error } = await supabase.rpc('set_active_role', { p_role_name: roleName });
 
-            const sportivId = '1e258577-ebfb-48a7-b669-ded2d4875825';
-            const clubId = 'cbb0b228-b3e0-4735-9658-70999eb256c6'; // Asumat din datele despre grupe
-
-            // Upsert the sportiv profile
-            const { error: sportivError } = await supabase.from('sportivi').upsert({
-                id: sportivId,
-                user_id: 'e6f3bcfe-437d-4d84-95c5-22e1140b1878',
-                nume: 'Vargolici',
-                prenume: 'Bogdan',
-                email: 'vargolici.bogdan@phihau.ro',
-                data_nasterii: '1983-11-09',
-                data_inscrierii: '2026-01-20',
-                status: 'Activ',
-                familie_id: '11a591d9-5042-44dd-8d80-ec282ba6897b',
-                participa_vacanta: true,
-                username: 'vargolici.bogdan',
-                grad_actual_id: '99aaa7ed-e6bb-4ef4-b678-f96eccc31b54',
-                rol_activ_context: 'Sportiv',
-                club_id: clubId,
-                cnp: null,
-                grupa_id: null,
-                tip_abonament_id: null,
-            }, { onConflict: 'id' });
-
-            if (sportivError) throw sportivError;
-
-            // Fetch role IDs
-            let { data: rolesData, error: rolesError } = await supabase.from('roluri').select('id, nume').in('nume', ['Sportiv', 'Admin Club']);
-            if (rolesError) throw rolesError;
-            
-            if (!rolesData || rolesData.length < 2) {
-                showError("Roluri Lipsă", "Rolurile 'Sportiv' și/sau 'Admin Club' nu există. Contactați administratorul.");
-                setLoading(false);
-                return;
-            }
-
-            // Clear existing roles for this user and add new ones
-            await supabase.from('sportivi_roluri').delete().eq('sportiv_id', sportivId);
-            
-            const rolesToInsert = rolesData.map(role => ({
-                sportiv_id: sportivId,
-                rol_id: role.id
-            }));
-
-            const { error: roleInsertError } = await supabase.from('sportivi_roluri').insert(rolesToInsert);
-            if (roleInsertError) throw roleInsertError;
-
-            showSuccess("Operațiune finalizată", "Utilizatorul Vargolici Bogdan a fost adăugat/actualizat cu rolurile 'Sportiv' și 'Admin Club'.");
-
-        } catch (err: any) {
-            showError("Eroare la adăugarea utilizatorului", err.message);
-        } finally {
-            setLoading(false);
+        if (error) {
+            showError("Eroare la comutarea rolului", error.message);
+            setLoadingRole(null);
+        } else {
+            showSuccess("Context Schimbat", `Perspectiva a fost setată la ${roleName}. Pagina se va reîncărca...`);
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
         }
     };
 
+    const rolesToImpersonate: Rol['nume'][] = ['SUPER_ADMIN_FEDERATIE', 'Admin Club', 'Sportiv'];
+
     return (
-        <Button onClick={handleAddBogdan} isLoading={loading} variant="warning">
-            Adaugă/Actualizează Utilizator Bogdan Vargolici (Dev)
-        </Button>
+        <Card>
+            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                <ShieldCheckIcon className="w-6 h-6 text-amber-400" />
+                Panou DEV: Impersonare Rol
+            </h3>
+            <p className="text-sm text-slate-300 mb-4">
+                Alege o perspectivă pentru a testa politicile RLS. Acțiunea va seta forțat contextul activ și va reîncărca aplicația.
+            </p>
+            <div className="flex flex-col md:flex-row gap-4">
+                {rolesToImpersonate.map(roleName => (
+                    <Button
+                        key={roleName}
+                        onClick={() => handleImpersonate(roleName)}
+                        isLoading={loadingRole === roleName}
+                        disabled={!!loadingRole}
+                        className="text-lg py-6 flex-1"
+                        variant={roleName === 'SUPER_ADMIN_FEDERATIE' ? 'danger' : roleName === 'Admin Club' ? 'primary' : 'secondary'}
+                    >
+                        {roleName}
+                    </Button>
+                ))}
+            </div>
+        </Card>
     );
 };
+
 
 interface AdminConsoleProps {
     currentUser: User;
@@ -90,15 +71,15 @@ interface AdminConsoleProps {
     permissions: Permissions;
 }
 
-export const AdminConsole: React.FC<AdminConsoleProps> = ({ currentUser, userRoles, activeRoleContext, onBack, sportivi, allRoles, clubs, permissions }) => {
+export const AdminConsole: React.FC<AdminConsoleProps> = ({ currentUser, userRoles, activeRoleContext, onBack }) => {
     const [isSwitchingRole, setIsSwitchingRole] = useState(false);
     const { showError } = useError();
-    
+
     const handleSwitchRole = async (roleContext: any) => {
         if (!supabase || !currentUser?.user_id) return;
         setIsSwitchingRole(true);
 
-        const { error } = await supabase.rpc('set_active_context', {
+        const { error } = await supabase.rpc('set_primary_context', {
             p_sportiv_id: roleContext.sportiv_id,
             p_rol_denumire: roleContext.rol_denumire
         });
@@ -107,11 +88,10 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ currentUser, userRol
             showError("Eroare la comutarea rolului", error.message);
             setIsSwitchingRole(false);
         } else {
-            // Reîmprospătarea paginii va prelua noul token JWT cu metadatele actualizate
             window.location.reload();
         }
     };
-    
+
     return (
         <div className="space-y-8 animate-fade-in-down">
             <Button onClick={onBack} variant="secondary">
@@ -123,26 +103,16 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ currentUser, userRol
                 <p className="text-slate-400 mt-2">Comută rapid între contextele de rol disponibile pentru contul tău.</p>
             </header>
 
+            {currentUser.email === 'alin2u83@gmail.com' && (
+                <DevRoleImpersonation />
+            )}
+
             <IdentitySwitcher 
                 userRoles={userRoles}
                 activeRoleContext={activeRoleContext}
                 onSwitchRole={handleSwitchRole}
                 isSwitchingRole={isSwitchingRole} 
             />
-
-            <UserRoleManager
-                roles={allRoles}
-                clubs={clubs}
-                currentUser={currentUser}
-                permissions={permissions}
-            />
-
-            <Card>
-                 <h3 className="text-lg font-bold text-white mb-4">Acțiuni Specifice</h3>
-                 <div className="text-center">
-                    <AddBogdanButton />
-                 </div>
-            </Card>
         </div>
     );
 };

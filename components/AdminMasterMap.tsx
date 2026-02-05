@@ -48,13 +48,13 @@ interface AdminMasterMapProps {
 export const AdminMasterMap: React.FC<AdminMasterMapProps> = ({ onNavigate, deconturiFederatie, inscrieriExamene, plati }) => {
 
     const pendingDeconturi = React.useMemo(() => 
-        deconturiFederatie.filter(d => d.status === 'In asteptare').length, 
+        (deconturiFederatie || []).filter(d => d.status === 'In asteptare').length, 
     [deconturiFederatie]);
 
     const pendingExamPayments = React.useMemo(() => 
-        inscrieriExamene.filter(i => {
+        (inscrieriExamene || []).filter(i => {
             if (!i.plata_id) return false;
-            const p = plati.find(pl => pl.id === i.plata_id);
+            const p = (plati || []).find(pl => pl.id === i.plata_id);
             return p && p.status !== 'Achitat';
         }).length,
     [inscrieriExamene, plati]);

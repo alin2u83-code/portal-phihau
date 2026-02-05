@@ -158,6 +158,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
                      return <NavItem key={item.label} item={item} isExpanded={isExpanded} isActive={isActive} onNavigate={handleNavigate} activeView={activeView} />
                 })}
 
+                {currentUser?.email === 'alin2u83@gmail.com' && (
+                    <div onClick={() => handleNavigate('admin-console')} className={`flex items-center p-2.5 text-white rounded-md cursor-pointer bg-amber-600/20 hover:bg-amber-600/40 border border-amber-500/50 mt-4 transition-colors`} title={!isExpanded ? "Admin Console" : ''}>
+                        <ShieldCheckIcon className={`h-6 w-6 shrink-0 text-amber-300 ${isExpanded ? 'mr-3' : 'mx-auto'}`} />
+                        {isExpanded && <span className="flex-1 font-semibold text-sm">Admin Console</span>}
+                    </div>
+                )}
+
                 {permissions.isSportiv && permissions.hasAdminAccess && activeRole !== 'Sportiv' && (
                     <div onClick={() => onSwitchRole('Sportiv')} className="flex items-center p-2.5 text-white rounded-md cursor-pointer bg-green-600/20 hover:bg-green-600/40 border border-green-500/50 mt-4 transition-colors" title={!isExpanded ? "Comută la Portalul de Sportiv" : ''}>
                         <UserCircleIcon className={`h-6 w-6 shrink-0 text-green-300 ${isExpanded ? 'mr-3' : 'mx-auto'}`} />

@@ -14,7 +14,6 @@ interface State {
 }
 
 class ErrorBoundary extends React.Component<Props, State> {
-  // FIX: Initialized state as a class property for modern syntax and to ensure `this.state` is available throughout the component.
   public state: State = {
     hasError: false,
     error: undefined,

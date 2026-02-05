@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { User, View, Club, Permissions, Rol } from '../types';
-import { instructorMenu, sportivMenu, clubAdminMenu, federationAdminMenu, MenuItem } from './menuConfig';
+import { instructorMenu, sportivMenu, sidebarClubAdminMenu, sidebarFederationAdminMenu, MenuItem } from './menuConfig';
 import { ArrowRightOnRectangleIcon, Bars3Icon, ChevronDownIcon, ShieldCheckIcon, UserCircleIcon } from './icons';
-import { Select } from './ui';
+// FIX: Import 'Button' component from './ui' to resolve 'Cannot find name 'Button'' error.
+import { Select, Button } from './ui';
 import { FEDERATIE_ID, FEDERATIE_NAME, ROLES } from '../constants';
 
 // Sub-component for navigation items
@@ -82,26 +83,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
         let name: string;
         let border: string;
 
-        // Fallback: If the user has admin rights but the role is invalid, show a default admin menu.
-        if (!activeRole && permissions.hasAdminAccess) {
-            menu = clubAdminMenu;
-            name = 'Context Invalid';
-            border = 'border-red-500';
-            return { menuToDisplay: menu, contextName: name, borderClass: border };
-        }
-
-        // Normalize the role name to handle variations like "Admin Club" vs "ADMIN_CLUB"
-        const normalizedRole = (activeRole?.toUpperCase() || ROLES.SPORTIV).replace(/ /g, '_');
+        // Normalize role name to handle variations like "Admin Club" vs "ADMIN_CLUB"
+        const normalizedRole = (activeRole?.toUpperCase() || 'SPORTIV').replace(/ /g, '_');
 
         switch (normalizedRole) {
             case ROLES.SUPER_ADMIN_FEDERATIE:
-                menu = federationAdminMenu;
+            case ROLES.ADMIN:
+                menu = sidebarFederationAdminMenu;
                 name = 'Federație';
-                border = 'border-red-500';
+                border = 'border-amber-400'; // Gold/Amber border
                 break;
             case ROLES.ADMIN_CLUB:
-            case ROLES.ADMIN: // For backward compatibility as a club admin
-                menu = clubAdminMenu;
+                menu = sidebarClubAdminMenu;
                 name = currentUser.cluburi?.nume || 'Club Nesetat';
                 border = 'border-blue-500';
                 break;
@@ -118,7 +111,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
                 break;
         }
         return { menuToDisplay: menu, contextName: name, borderClass: border };
-    }, [activeRole, currentUser.cluburi?.nume, permissions.hasAdminAccess]);
+    }, [activeRole, currentUser.cluburi?.nume]);
 
     const adminRoleToSwitchTo = useMemo(() => {
         if (!currentUser || !permissions.hasAdminAccess || !userRoles) return null;
@@ -138,7 +131,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
     const sidebarContent = (
         <div className="flex flex-col h-full bg-[var(--bg-card)] text-white shadow-xl">
             <div className={`h-20 flex flex-col items-center justify-center p-2 border-b border-white/10 text-center ${isExpanded ? 'px-4' : 'px-1'}`}>
-                <ShieldCheckIcon className={`w-8 h-8 shrink-0 ${activeRole === 'SUPER_ADMIN_FEDERATIE' || activeRole === 'Admin' ? 'text-red-400' : 'text-blue-400'}`} />
+                <ShieldCheckIcon className={`w-8 h-8 shrink-0 ${activeRole === 'SUPER_ADMIN_FEDERATIE' || activeRole === 'Admin' ? 'text-amber-400' : 'text-blue-400'}`} />
                 {isExpanded && (
                     <>
                         <h2 className="text-xs font-bold text-slate-400 mt-1 uppercase">Mod Lucru</h2>
@@ -183,7 +176,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
 
                 {permissions.isSportiv && permissions.hasAdminAccess && activeRole !== 'Sportiv' && (
                     <div onClick={() => {
-                        const sportivContext = userRoles.find(r => r.rol_denumire === 'Sportiv' && r.is_primary) || userRoles.find(r => r.rol_denumire === 'Sportiv');
+                        const sportivContext = userRoles.find(r => r.rol_denumire === 'Sportiv');
                         if (sportivContext) onSwitchRole(sportivContext);
                     }} className="flex items-center p-2.5 text-white rounded-md cursor-pointer bg-green-600/20 hover:bg-green-600/40 border border-green-500/50 mt-4 transition-colors" title={!isExpanded ? "Comută la Portalul de Sportiv" : ''}>
                         <UserCircleIcon className={`h-6 w-6 shrink-0 text-green-300 ${isExpanded ? 'mr-3' : 'mx-auto'}`} />
@@ -192,50 +185,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
                 )}
             </nav>
 
-            {canSwitchRoles && permissions.hasAdminAccess && (
+            {canSwitchRoles && permissions.hasAdminAccess && isExpanded && (
                 <div className="px-3 py-2 border-t border-white/10">
-                    {isExpanded ? (
-                        <Select
-                            label="Schimbă Context"
-                            value={activeRoleContext ? `${activeRoleContext.sportiv_id}|${activeRoleContext.rol_denumire}` : ''}
-                            onChange={(e) => {
-                                const selectedIdentifier = e.target.value;
-                                if (!selectedIdentifier) return;
-                                const [sportivId, roleDenumire] = selectedIdentifier.split('|');
-                                const selectedContext = userRoles.find(r => r.sportiv_id === sportivId && r.rol_denumire === roleDenumire);
-                                if (selectedContext) {
-                                    onSwitchRole(selectedContext);
-                                }
-                            }}
-                            disabled={isSwitchingRole}
-                            className="w-full"
-                        >
-                            {userRoles.map(role => {
-                                const identifier = `${role.sportiv_id}|${role.rol_denumire}`;
-                                let displayName = '';
-                                if (role.rol_denumire === 'Sportiv') {
-                                    displayName = `${role.nume} ${role.prenume}`;
-                                } else if (role.rol_denumire === 'SUPER_ADMIN_FEDERATIE' || role.rol_denumire === 'Admin') {
-                                    displayName = `Federație (${role.rol_denumire})`;
-                                } else {
-                                    displayName = `${role.club_nume} (${role.rol_denumire})`;
-                                }
-                                return (
-                                    <option key={identifier} value={identifier}>
-                                        {displayName}
-                                    </option>
-                                );
-                            })}
-                        </Select>
-                    ) : (
-                        <button
-                            onClick={() => handleNavigate('admin-console')}
-                            title="Schimbă Context de Lucru"
-                            className="w-full flex items-center p-2.5 rounded-md transition-colors text-left bg-slate-700 hover:bg-slate-600 text-white"
-                        >
-                            <ShieldCheckIcon className="h-6 w-6 shrink-0 mx-auto" />
-                        </button>
-                    )}
+                    <Button onClick={() => onNavigate('admin-console')} variant="secondary" className="w-full">
+                        Schimbă Context
+                    </Button>
                 </div>
             )}
 

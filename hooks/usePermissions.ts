@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { User, Rol, Permissions } from '../types';
+import { ROLES } from '../constants';
 
 const initialPermissions: Permissions = {
     isSuperAdmin: false,
@@ -21,10 +22,12 @@ export const usePermissions = (user: User | null): Permissions => {
             return initialPermissions;
         }
         
+        // Contextul activ curent, derivat din JWT/baza de date
         const activeRole = user.rol_activ_context;
         const normalizedActiveRole = activeRole?.toUpperCase().replace(/ /g, '_');
 
-        // Base role flags are determined by *all* roles the user possesses.
+        // Flag-urile de bază sunt determinate de TOATE rolurile pe care le deține utilizatorul,
+        // permițând verificări de capacitate generală (ex: "este acest utilizator un instructor undeva?")
         const allUserRoles = new Set((user.roluri || []).map(r => r.nume));
 
         const isSuperAdmin = allUserRoles.has('SUPER_ADMIN_FEDERATIE');
@@ -34,14 +37,15 @@ export const usePermissions = (user: User | null): Permissions => {
         const isInstructor = allUserRoles.has('Instructor');
         const isSportiv = allUserRoles.has('Sportiv');
         
+        // Un flag general pentru a determina dacă utilizatorul are orice fel de acces administrativ
         const hasAdminAccess = isSuperAdmin || isAdmin || isAdminClub || isInstructor;
         
-        // Business logic flags are derived from the NORMALIZED active session's context.
-        const isFederationLevel = normalizedActiveRole === 'SUPER_ADMIN_FEDERATIE' || normalizedActiveRole === 'ADMIN';
-        const canManageFinances = normalizedActiveRole === 'SUPER_ADMIN_FEDERATIE' || normalizedActiveRole === 'ADMIN' || normalizedActiveRole === 'ADMIN_CLUB';
-        const canGradeStudents = hasAdminAccess;
+        // Flag-urile de business logic sunt derivate din contextul ACTIV al sesiunii
+        const isFederationLevel = normalizedActiveRole === ROLES.SUPER_ADMIN_FEDERATIE || normalizedActiveRole === ROLES.ADMIN;
+        const canManageFinances = isFederationLevel || normalizedActiveRole === ROLES.ADMIN_CLUB;
+        const canGradeStudents = hasAdminAccess; // Oricine cu acces admin poate gestiona examene
 
-        // Visible clubs logic now depends on the active context.
+        // Determină ce cluburi sunt vizibile în contextul curent
         const visibleClubIds: 'all' | string[] = isFederationLevel ? 'all' : (user.club_id ? [user.club_id] : []);
         
         return {

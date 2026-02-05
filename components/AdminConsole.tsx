@@ -6,7 +6,7 @@ import { IdentitySwitcher } from './IdentitySwitcher';
 import { useError } from './ErrorProvider';
 import { supabase } from '../supabaseClient';
 
-const DevRoleImpersonation: React.FC = () => {
+const DevRoleImpersonation: React.FC<{ userRoles: any[] }> = ({ userRoles }) => {
     const [loadingRole, setLoadingRole] = useState<Rol['nume'] | null>(null);
     const { showError, showSuccess } = useError();
 
@@ -17,7 +17,18 @@ const DevRoleImpersonation: React.FC = () => {
         }
         setLoadingRole(roleName);
         
-        const { error } = await supabase.rpc('set_active_role', { p_role_name: roleName });
+        // Găsește un context care corespunde numelui rolului
+        const targetContext = userRoles.find(r => r.rol_denumire === roleName);
+        if (!targetContext) {
+            showError("Impersonare Eșuată", `Nu aveți un context de rol "${roleName}" pentru a comuta. Adăugați rolul în User Management.`);
+            setLoadingRole(null);
+            return;
+        }
+        
+        const { error } = await supabase.rpc('set_primary_context', {
+            p_sportiv_id: targetContext.sportiv_id,
+            p_rol_denumire: targetContext.rol_denumire
+        });
 
         if (error) {
             showError("Eroare la comutarea rolului", error.message);
@@ -104,7 +115,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ currentUser, userRol
             </header>
 
             {currentUser.email === 'alin2u83@gmail.com' && (
-                <DevRoleImpersonation />
+                <DevRoleImpersonation userRoles={userRoles} />
             )}
 
             <IdentitySwitcher 

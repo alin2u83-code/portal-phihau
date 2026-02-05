@@ -80,6 +80,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
         let name: string;
         let border: string;
 
+        // Fallback: If the user has admin rights but the role is invalid, show a default admin menu.
         if (!activeRole && permissions.hasAdminAccess) {
             menu = clubAdminMenu;
             name = 'Context Invalid';
@@ -87,11 +88,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
             return { menuToDisplay: menu, contextName: name, borderClass: border };
         }
 
+        // Normalize the role name to handle variations like "Admin Club" vs "ADMIN_CLUB"
         const normalizedRole = (activeRole?.toUpperCase() || ROLES.SPORTIV).replace(/ /g, '_');
 
         switch (normalizedRole) {
             case ROLES.SUPER_ADMIN_FEDERATIE:
-            case ROLES.ADMIN:
+            case ROLES.ADMIN: // For backward compatibility
                 menu = federationAdminMenu;
                 name = 'Federație';
                 border = 'border-red-500';

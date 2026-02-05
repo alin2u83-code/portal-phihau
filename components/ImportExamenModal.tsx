@@ -204,7 +204,18 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                 if (!sessionId) throw new Error(`ID-ul sesiunii pentru ${row.Nume} ${row.Prenume} nu a putut fi determinat.`);
 
                 try {
-                    const { error: rpcError } = await supabase.rpc('process_exam_row_v2', { p_nume: row.Nume, p_prenume: row.Prenume, p_cod_sportiv: action === 'create' ? row.generatedCode : null, p_existing_sportiv_id: sportivId, p_club_id: currentUser.club_id, p_ordine_grad: parseInt(row.Grad_Nou_Ordine), p_rezultat: row.Rezultat, p_contributie: parseFloat(row.Contributie) || 0, p_data_examen: row.Data_Examen, p_sesiune_id: sessionId });
+                    const { error: rpcError } = await supabase.rpc('process_exam_row_v2', {
+                        p_nume: row.Nume,
+                        p_prenume: row.Prenume,
+                        p_cnp: String(row.CNP || '').trim(), // Trimite CNP-ul la RPC
+                        p_cod_sportiv: action === 'create' ? row.generatedCode : null,
+                        p_existing_sportiv_id: sportivId,
+                        p_ordine_grad: parseInt(row.Grad_Nou_Ordine),
+                        p_rezultat: row.Rezultat,
+                        p_contributie: parseFloat(row.Contributie) || 0,
+                        p_data_examen: row.Data_Examen,
+                        p_sesiune_id: sessionId
+                    });
                     if (rpcError) throw rpcError;
                     successCount++;
                 } catch (err: any) {

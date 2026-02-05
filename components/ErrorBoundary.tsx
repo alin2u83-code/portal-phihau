@@ -14,6 +14,7 @@ interface State {
 }
 
 class ErrorBoundary extends React.Component<Props, State> {
+  // FIX: Initialize state as a class property. This is modern syntax and avoids constructor-related 'this' issues.
   state: State = {
     hasError: false,
     error: undefined,
@@ -29,7 +30,7 @@ class ErrorBoundary extends React.Component<Props, State> {
     console.error("Uncaught error:", error, errorInfo);
   }
 
-  // FIX: Converted to an arrow function to ensure `this` is correctly bound when called from an event handler.
+  // FIX: Use an arrow function to automatically bind 'this', ensuring 'this.props' and 'this.setState' are available.
   handleRedirect = () => {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {

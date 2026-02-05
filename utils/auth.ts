@@ -22,7 +22,35 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
             .eq('auth_user_id', authUser.id);
         
         if (viewError) {
-            return { user: null, roles: null, error: { message: `Eroare la interogarea 'auth_profile_view': ${viewError.message}. Asigurați-vă că vederea există și este accesibilă.` } };
+            console.warn("DEBUG [auth.ts]: A apărut o eroare la interogarea 'auth_profile_view', posibil din cauza RLS/recursivitate. Se construiește un profil de fallback.", viewError.message);
+            
+            // Create a minimal fallback profile to prevent app crash
+            const fallbackProfile: User = {
+                id: authUser.id,
+                user_id: authUser.id,
+                nume: authUser.email?.split('@')[0] || 'Utilizator',
+                prenume: 'Eroare',
+                email: authUser.email,
+                rol_activ_context: 'Sportiv', // Safest default
+                roluri: [{ id: 'fallback-role-id', nume: 'Sportiv' }],
+                club_id: null,
+                cluburi: null,
+                data_nasterii: '1900-01-01',
+                status: 'Activ',
+                cnp: null,
+                data_inscrierii: new Date().toISOString().split('T')[0],
+                grupa_id: null,
+                familie_id: null,
+                tip_abonament_id: null,
+                participa_vacanta: false,
+                trebuie_schimbata_parola: false,
+            };
+
+            return { 
+                user: fallbackProfile, 
+                roles: [], // No contexts available
+                error: { message: "Nu am putut încărca complet profilul. Unele funcționalități pot fi limitate." } 
+            };
         }
 
         const roles = contexts || [];

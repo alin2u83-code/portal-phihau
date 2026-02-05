@@ -135,26 +135,26 @@ const ProgramSaptamanalPage: React.FC<{ grupaId: string | null; grupe: Grupa[]; 
                         {programSortat.length > 0 ? (
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left text-sm">
-                                    <thead className="text-slate-400 text-xs uppercase">
+                                    <thead className="bg-[var(--bg-table-header)] text-xs text-[var(--brand-secondary)] uppercase">
                                         <tr>
-                                            <th className="py-2">Ziua</th>
-                                            <th className="py-2">Ora Start</th>
-                                            <th className="py-2">Ora Sfârșit</th>
+                                            <th className="p-3 font-semibold">Ziua</th>
+                                            <th className="p-3 font-semibold">Ora Start</th>
+                                            <th className="p-3 font-semibold">Ora Sfârșit</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-slate-700">
+                                    <tbody className="divide-y divide-[var(--border-color)]">
                                         {programSortat.map((item, index) => (
-                                            <tr key={index}>
-                                                <td className="py-2 font-semibold">{item.ziua}</td>
-                                                <td className="py-2">{item.ora_start}</td>
-                                                <td className="py-2">{item.ora_sfarsit}</td>
+                                            <tr key={index} className="hover:bg-[var(--bg-table-row-hover)] text-white">
+                                                <td className="p-3 font-medium">{item.ziua}</td>
+                                                <td className="p-3">{item.ora_start}</td>
+                                                <td className="p-3">{item.ora_sfarsit}</td>
                                             </tr>
                                         ))}
                                     </tbody>
                                 </table>
                             </div>
                         ) : (
-                            <p className="text-sm text-slate-400 italic text-center py-4">Grupa curentă nu are un program săptămânal definit.</p>
+                            <p className="text-sm text-slate-400 italic py-8 text-center">Grupa curentă nu are un program definit.</p>
                         )}
                     </>
                 )}
@@ -162,7 +162,6 @@ const ProgramSaptamanalPage: React.FC<{ grupaId: string | null; grupe: Grupa[]; 
         </div>
     );
 };
-
 
 // --- Componente și Logică pentru Acțiuni Rapide (Mutate din AthleteQuickActions.tsx) ---
 type AnuntStatus = 'Confirm' | 'Intarziat' | 'Absent';
@@ -259,13 +258,12 @@ interface SportivDashboardProps {
   permissions: Permissions;
   canSwitchRoles: boolean;
   activeRole: Rol['nume'];
-  onSwitchRole: (roleName: Rol['nume']) => void;
+  onSwitchRole: (roleContext: any) => void;
   isSwitchingRole: boolean;
 }
 
 export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser, viewedUser, participari, examene, grade, istoricGrade, grupe, plati, onNavigate, antrenamente, anunturi, setAnunturi, sportivi, permissions, canSwitchRoles, activeRole, onSwitchRole, isSwitchingRole }) => {
     
-    const [isViewingProgram, setIsViewingProgram] = useState(false);
     const { showSuccess, showError } = useError();
     const isViewingOwnProfile = currentUser.id === viewedUser.id;
 
@@ -282,11 +280,9 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
     }, [antrenamente, todayString, currentUser]);
     
     const handleStatusChange = async (trainingId: string, status: AnuntStatus) => {
-        if (!supabase) {
-            showError("Eroare", "Client Supabase neconfigurat.");
-            return;
-        }
+        if (!supabase) return;
 
+        // Block 1: Save attendance announcement
         try {
             const existingAnunt = (anunturi || []).find(a => a.antrenament_id === trainingId && a.sportiv_id === currentUser.id);
             const upsertData = {
@@ -296,12 +292,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                 status: status,
                 detalii: null 
             };
-            
-            const { data, error } = await supabase
-                .from('anunturi_prezenta')
-                .upsert(upsertData, { onConflict: 'antrenament_id, sportiv_id' })
-                .select()
-                .single();
+            const { data, error } = await supabase.from('anunturi_prezenta').upsert(upsertData, { onConflict: 'antrenament_id, sportiv_id' }).select().single();
             
             if (error) throw error;
 
@@ -319,8 +310,48 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                 });
             }
         } catch (error: any) {
-            showError("Eroare la salvarea statusului", error.message);
+            showError("Eroare la salvarea prezenței", error);
             throw error;
+        }
+
+        // Block 2: Send notification
+        try {
+            const antrenament = todaysTrainings.find(t => t.id === trainingId);
+            if (!antrenament) return;
+
+            const instructors = (sportivi || []).filter(s =>
+                s.club_id === currentUser.club_id &&
+                s.roluri.some(r => r.nume === 'Instructor') &&
+                s.user_id
+            );
+            
+            const recipientIds = instructors.map(i => i.user_id).filter(Boolean) as string[];
+            
+            if (recipientIds.length > 0) {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) {
+                    console.warn("Utilizatorul nu este autentificat, notificarea nu poate fi trimisă.");
+                    return;
+                }
+                const authUserId = user.id;
+
+                const message = `${currentUser.nume} ${currentUser.prenume} a anunțat: ${status} la antrenamentul de la ${antrenament.ora_start}.`;
+                const notificationsToInsert = recipientIds.map(userId => ({
+                    recipient_user_id: userId,
+                    sent_by: authUserId,
+                    message: message,
+                    link_to: `prezenta`, 
+                    sender_sportiv_id: currentUser.id
+                }));
+                
+                const { error: notifError } = await supabase.from('notificari').insert(notificationsToInsert);
+
+                if (notifError) {
+                    throw notifError;
+                }
+            }
+        } catch (error: any) {
+            console.warn("Notificarea către instructori a eșuat, dar statusul prezenței a fost salvat cu succes.", error);
         }
     };
     // --- End Logic ---
@@ -336,9 +367,17 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
         
         return getGrad(admittedParticipations[0]?.grad_vizat_id || null, grade);
     }, [participari, viewedUser.grad_actual_id, viewedUser.id, grade, examene]);
+    
+    const [sportivView, setSportivView] = useState<'main' | 'program'>('main');
 
-    if (isViewingProgram) {
-        return <ProgramSaptamanalPage grupaId={viewedUser.grupa_id} grupe={grupe} onBack={() => setIsViewingProgram(false)} />;
+    if (sportivView === 'program') {
+        return (
+            <ProgramSaptamanalPage
+                grupaId={viewedUser.grupa_id}
+                grupe={grupe}
+                onBack={() => setSportivView('main')}
+            />
+        );
     }
 
     return (
@@ -371,30 +410,29 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
             )}
             
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-1">
+                <div className="lg:col-span-1 space-y-6">
                      <AttendanceTracker currentUser={currentUser} antrenamente={antrenamente} onNavigate={onNavigate} />
+                     <VizaMedicalaCard plati={plati} sportivId={viewedUser.id} />
                 </div>
                 <div className="lg:col-span-2 space-y-6">
-                    <AntrenamenteViitoare currentUser={currentUser} antrenamente={antrenamente} grupe={grupe} />
-                    <Card>
-                        <h3 className="text-lg font-bold text-white mb-2">Program Săptămânal</h3>
-                        <p className="text-sm text-slate-400">Vezi orarul complet de antrenamente pentru grupa ta.</p>
-                        <Button onClick={() => setIsViewingProgram(true)} variant="primary" className="w-full mt-4">Vezi Orarul Complet</Button>
+                    <Card onClick={() => setSportivView('program')} className="group cursor-pointer bg-slate-800/50 hover:bg-slate-700/50 transition-colors border border-slate-700 hover:border-brand-secondary">
+                        <h3 className="text-lg font-bold text-white group-hover:text-brand-secondary transition-colors">Program Săptămânal</h3>
+                        <p className="text-sm text-slate-400 mt-1">Vezi orarul complet al grupei tale.</p>
                     </Card>
-                    <VizaMedicalaCard plati={plati} sportivId={viewedUser.id} />
+                    <AntrenamenteViitoare currentUser={currentUser} antrenamente={antrenamente} grupe={grupe} />
                     <IstoricGradeCard grade={grade} istoricGrade={istoricGrade} sportivId={viewedUser.id} />
                 </div>
             </div>
 
-            {canSwitchRoles && (
+            {isViewingOwnProfile && canSwitchRoles && (
                 <Card className="animate-fade-in-down" style={{ animationDelay: '300ms' }}>
-                    <h3 className="text-lg font-bold text-white mb-4">Comută Rol Activ</h3>
+                    <h3 className="text-lg font-bold text-white mb-4">Comută Context</h3>
                     <div className="flex flex-wrap gap-2">
                         {currentUser.roluri.map(rol => (
                             <Button 
                                 key={rol.id}
                                 variant={activeRole === rol.nume ? 'primary' : 'secondary'}
-                                onClick={() => onSwitchRole(rol.nume)}
+                                onClick={() => onSwitchRole(rol as any)}
                                 disabled={isSwitchingRole}
                             >
                                 {rol.nume}

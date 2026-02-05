@@ -15,13 +15,13 @@ const initialPermissions: Permissions = {
     visibleClubIds: [],
 };
 
-export const usePermissions = (user: User | null, activeRoleContext: any | null): Permissions => {
+export const usePermissions = (user: User | null): Permissions => {
     const permissions = useMemo((): Permissions => {
         if (!user) {
             return initialPermissions;
         }
         
-        const activeRole = activeRoleContext?.rol_denumire;
+        const activeRole = user.rol_activ_context;
         const normalizedActiveRole = activeRole?.toUpperCase().replace(/ /g, '_');
 
         // Base role flags are determined by *all* roles the user possesses.
@@ -42,7 +42,7 @@ export const usePermissions = (user: User | null, activeRoleContext: any | null)
         const canGradeStudents = hasAdminAccess;
 
         // Visible clubs logic now depends on the active context.
-        const visibleClubIds: 'all' | string[] = isFederationLevel ? 'all' : (activeRoleContext?.club_id ? [activeRoleContext.club_id] : []);
+        const visibleClubIds: 'all' | string[] = isFederationLevel ? 'all' : (user.club_id ? [user.club_id] : []);
         
         return {
             isSuperAdmin,
@@ -57,7 +57,7 @@ export const usePermissions = (user: User | null, activeRoleContext: any | null)
             canGradeStudents,
             visibleClubIds,
         };
-    }, [user, activeRoleContext]);
+    }, [user]);
 
     return permissions;
 };

@@ -2,7 +2,7 @@ import { useEffect, useMemo } from 'react';
 import { User, Permissions } from '../types';
 import { useLocalStorage } from './useLocalStorage';
 
-export const useClubFilter = (currentUser: User | null, permissions: Permissions, activeRoleContext: any | null) => {
+export const useClubFilter = (currentUser: User | null, permissions: Permissions) => {
     const [globalClubFilter, setGlobalClubFilter] = useLocalStorage<string | null>('phi-hau-global-club-filter', null);
     
     // Set a default filter for federation admins on first load if none is set
@@ -16,9 +16,9 @@ export const useClubFilter = (currentUser: User | null, permissions: Permissions
         if (permissions.isFederationAdmin) {
             return globalClubFilter;
         }
-        // Use the club_id from the selected context!
-        return activeRoleContext?.club_id || null;
-    }, [permissions.isFederationAdmin, globalClubFilter, activeRoleContext]);
+        // Use the club_id from the user object directly!
+        return currentUser?.club_id || null;
+    }, [permissions.isFederationAdmin, globalClubFilter, currentUser]);
     
     useEffect(() => {
         // If user is not a federation admin, clear the global filter

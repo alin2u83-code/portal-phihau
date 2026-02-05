@@ -65,6 +65,85 @@ import { Card, Button } from './components/ui';
 import { RoleSelectionPage } from './components/RoleSelectionPage';
 import { NotificationBell } from './components/NotificationBell';
 import { RaportLunarPrezenta } from './components/RaportLunarPrezenta';
+import { ShieldCheckIcon } from './components/icons';
+
+const DevRoleSwitcher: React.FC<{ currentUser: User, userRoles: any[] }> = ({ currentUser, userRoles }) => {
+    const { showError, showSuccess } = useError();
+    const [loadingRole, setLoadingRole] = useState<Rol['nume'] | null>(null);
+
+    if (currentUser.email !== 'alin2u83@gmail.com') {
+        return null;
+    }
+
+    const handleSwitch = async (roleName: Rol['nume']) => {
+        if (!supabase) {
+            showError("Eroare", "Clientul Supabase nu a putut fi stabilit.");
+            return;
+        }
+
+        setLoadingRole(roleName);
+
+        const targetContext = userRoles.find(r => r.rol_denumire === roleName);
+        if (!targetContext) {
+            showError("Impersonare Eșuată", `Nu aveți un context de rol "${roleName}" pentru a comuta. Adăugați rolul în User Management.`);
+            setLoadingRole(null);
+            return;
+        }
+
+        const { error } = await supabase.rpc('set_primary_context', {
+            p_sportiv_id: targetContext.sportiv_id,
+            p_rol_denumire: targetContext.rol_denumire
+        });
+
+        if (error) {
+            showError("Eroare la comutarea rolului", error.message);
+            setLoadingRole(null);
+        } else {
+            showSuccess("Context Schimbat", `Trecere la modul ${roleName}. Pagina se va reîncărca...`);
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        }
+    };
+
+    return (
+        <Card className="mb-6 border-l-4 border-amber-400 bg-slate-800/50">
+            <div className="flex items-center gap-4">
+                <ShieldCheckIcon className="w-6 h-6 text-amber-400" />
+                <h3 className="text-lg font-bold text-white">Panou de Comutare Rol (DEV)</h3>
+                <div className="flex-grow flex justify-end gap-2">
+                    <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => handleSwitch('SUPER_ADMIN_FEDERATIE')}
+                        isLoading={loadingRole === 'SUPER_ADMIN_FEDERATIE'}
+                        disabled={!!loadingRole}
+                    >
+                        🛡️ Mod Federație
+                    </Button>
+                    <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => handleSwitch('Admin Club')}
+                        isLoading={loadingRole === 'Admin Club'}
+                        disabled={!!loadingRole}
+                    >
+                        🥋 Mod Admin Club
+                    </Button>
+                    <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => handleSwitch('Sportiv')}
+                        isLoading={loadingRole === 'Sportiv'}
+                        disabled={!!loadingRole}
+                    >
+                        👤 Mod Sportiv
+                    </Button>
+                </div>
+            </div>
+        </Card>
+    );
+};
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -109,11 +188,11 @@ function App() {
   const [switchingToRole, setSwitchingToRole] = useState<string | null>(null);
 
   const activeRole = useMemo((): Rol['nume'] | null => {
-    return activeRoleContext?.rol_denumire || null;
-  }, [activeRoleContext]);
+    return currentUser?.rol_activ_context || null;
+  }, [currentUser]);
 
-  const permissions = usePermissions(currentUser, activeRoleContext);
-  const { activeClubId, globalClubFilter, setGlobalClubFilter } = useClubFilter(currentUser, permissions, activeRoleContext);
+  const permissions = usePermissions(currentUser);
+  const { activeClubId, globalClubFilter, setGlobalClubFilter } = useClubFilter(currentUser, permissions);
 
    const canSwitchRoles = useMemo(() => {
         if (!currentUser || !userRoles || userRoles.length <= 1) return false;
@@ -500,69 +579,64 @@ function App() {
 
       case 'dashboard':
       case 'my-portal':
-        if (permissions.hasAdminAccess && activeRole !== 'Sportiv') {
-            if ((sportivi || []).length === 0 && !isEmergencyAdmin && !loading) {
-                return (
-                    <div className="space-y-8 animate-fade-in-down">
-                        <header>
-                            <h1 className="text-3xl font-bold text-white">Panou de Control Principal</h1>
-                            <p className="text-slate-400">Selectează un modul pentru a începe.</p>
-                        </header>
-                        <Card className="text-center p-8">
-                            <p className="text-slate-400 italic">Așteptare autorizare date sau nu există date pentru contextul selectat...</p>
-                        </Card>
-                    </div>
-                )
-            }
-            if (permissions.isSuperAdmin && adminContext === 'federation') {
-                return <FederationDashboard onNavigate={setActiveView} />;
-            }
-            return (
-                <div className="space-y-8 animate-fade-in-down">
-                    <header>
-                        <h1 className="text-3xl font-bold text-white">Panou de Control Principal</h1>
-                        <p className="text-slate-400">Selectează un modul pentru a începe.</p>
-                    </header>
-                    
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-8">
-                        <div className="lg:col-span-2">
-                            <AdminMasterMap 
-                                onNavigate={setActiveView}
-                                deconturiFederatie={filteredData.deconturiFederatie || []}
-                                inscrieriExamene={filteredData.inscrieriExamene || []}
-                                plati={filteredData.plati || []}
-                            />
-                        </div>
-                        <div className="lg:col-span-1">
-                            {(permissions.isAdminClub || permissions.isInstructor || permissions.isFederationAdmin) && (
-                                <GeneralAttendanceWidget currentUser={currentUser!} />
-                            )}
-                        </div>
-                    </div>
-                </div>
-            );
-        }
         return (
-            <SportivDashboard
-                currentUser={currentUser!}
-                viewedUser={currentUser!}
-                participari={filteredData.inscrieriExamene || []}
-                examene={sesiuniExamene}
-                grade={grade}
-                istoricGrade={filteredData.istoricGrade || []}
-                grupe={filteredData.grupe || []}
-                plati={filteredData.plati || []}
-                onNavigate={setActiveView}
-                antrenamente={filteredData.antrenamente || []}
-                anunturi={anunturiPrezenta}
-                setAnunturi={setAnunturiPrezenta}
-                sportivi={filteredData.sportivi || []}
-                permissions={permissions}
-                canSwitchRoles={canSwitchRoles}
-                activeRole={activeRole!}
-                onSwitchRole={handleSwitchRole}
-                isSwitchingRole={isSwitchingRole}
-            />
+            <div className="space-y-8 animate-fade-in-down">
+                 {currentUser && <DevRoleSwitcher currentUser={currentUser} userRoles={userRoles} />}
+                 { permissions.hasAdminAccess && activeRole !== 'Sportiv' ? (
+                    <>
+                        { (sportivi || []).length === 0 && !isEmergencyAdmin && !loading ? (
+                            <Card className="text-center p-8">
+                                <p className="text-slate-400 italic">Așteptare autorizare date sau nu există date pentru contextul selectat...</p>
+                            </Card>
+                        ) : permissions.isSuperAdmin && adminContext === 'federation' ? (
+                            <FederationDashboard onNavigate={setActiveView} />
+                        ) : (
+                            <>
+                                <header>
+                                    <h1 className="text-3xl font-bold text-white">Panou de Control Principal</h1>
+                                    <p className="text-slate-400">Selectează un modul pentru a începe.</p>
+                                </header>
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-8">
+                                    <div className="lg:col-span-2">
+                                        <AdminMasterMap 
+                                            onNavigate={setActiveView}
+                                            deconturiFederatie={filteredData.deconturiFederatie || []}
+                                            inscrieriExamene={filteredData.inscrieriExamene || []}
+                                            plati={filteredData.plati || []}
+                                        />
+                                    </div>
+                                    <div className="lg:col-span-1">
+                                        {(permissions.isAdminClub || permissions.isInstructor || permissions.isFederationAdmin) && (
+                                            <GeneralAttendanceWidget currentUser={currentUser!} />
+                                        )}
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </>
+                 ) : (
+                    <SportivDashboard
+                        currentUser={currentUser!}
+                        viewedUser={currentUser!}
+                        participari={filteredData.inscrieriExamene || []}
+                        examene={sesiuniExamene}
+                        grade={grade}
+                        istoricGrade={filteredData.istoricGrade || []}
+                        grupe={filteredData.grupe || []}
+                        plati={filteredData.plati || []}
+                        onNavigate={setActiveView}
+                        antrenamente={filteredData.antrenamente || []}
+                        anunturi={anunturiPrezenta}
+                        setAnunturi={setAnunturiPrezenta}
+                        sportivi={filteredData.sportivi || []}
+                        permissions={permissions}
+                        canSwitchRoles={canSwitchRoles}
+                        activeRole={activeRole!}
+                        onSwitchRole={handleSwitchRole}
+                        isSwitchingRole={isSwitchingRole}
+                    />
+                 )}
+            </div>
         );
       
       case 'sportivi':

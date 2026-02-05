@@ -1,51 +1,57 @@
 -- ====================================================================
 -- Sincronizare Metadate Utilizator pentru Optimizare RLS
--- v2.0 - Include `rol_activ_context` și folosește `utilizator_roluri_multicont`
+-- v3.0 - Bazat pe `is_primary` ca sursă de adevăr
 -- ====================================================================
--- Scop: La fiecare modificare a clubului, rolurilor sau rolului activ
--- al unui utilizator, se copiază aceste date critice în `raw_user_meta_data`
--- din `auth.users`. Acest lucru permite politicilor RLS să citească
--- datele direct din JWT (via `auth.jwt()`) fără a interoga tabelele
--- publice, evitând astfel eroarea de 'infinite recursion'.
+-- Scop: La fiecare modificare în `utilizator_roluri_multicont`, acest trigger
+-- identifică contextul marcat ca `is_primary = true`, extrage `club_id`
+-- și `rol_denumire` din acel rând și le sincronizează în `raw_user_meta_data`.
+-- Acest mecanism asigură că JWT-ul conține întotdeauna contextul activ corect
+-- pentru politicile RLS, eliminând necesitatea coloanei `rol_activ_context`
+-- de pe tabela `sportivi` ca sursă de adevăr.
 -- ====================================================================
 
 CREATE OR REPLACE FUNCTION public.sync_user_metadata_from_profile()
 RETURNS TRIGGER AS $$
 DECLARE
   target_user_id uuid;
-  target_sportiv_id uuid;
-  target_club_id uuid;
-  target_rol_activ text;
+  primary_context RECORD;
   roles_array text[];
 BEGIN
   -- Determină ID-ul utilizatorului afectat de operațiune
-  IF TG_TABLE_NAME = 'utilizator_roluri_multicont' THEN
-    target_user_id := COALESCE(NEW.user_id, OLD.user_id);
-  ELSE -- Presupunem că este tabela 'sportivi'
-    target_user_id := COALESCE(NEW.user_id, OLD.user_id);
+  IF TG_OP = 'DELETE' THEN
+    target_user_id := OLD.user_id;
+  ELSE
+    target_user_id := NEW.user_id;
   END IF;
 
   IF target_user_id IS NULL THEN
     RETURN NULL;
   END IF;
 
-  -- Obține datele relevante din profilul primar al sportivului (primul găsit)
-  SELECT id, club_id, rol_activ_context INTO target_sportiv_id, target_club_id, target_rol_activ
-  FROM public.sportivi
-  WHERE user_id = target_user_id
+  -- Găsește contextul primar pentru utilizator (cel marcat cu is_primary = true)
+  SELECT rol_denumire, club_id INTO primary_context
+  FROM public.utilizator_roluri_multicont
+  WHERE user_id = target_user_id AND is_primary = true
   LIMIT 1;
   
-  -- Colectează toate rolurile din noua tabelă multi-cont
-  SELECT array_agg(rol_denumire)
-  INTO roles_array
+  -- Fallback: Dacă niciun context nu este primar, alege primul disponibil
+  IF NOT FOUND THEN
+    SELECT rol_denumire, club_id INTO primary_context
+    FROM public.utilizator_roluri_multicont
+    WHERE user_id = target_user_id
+    LIMIT 1;
+  END IF;
+
+  -- Colectează toate rolurile disponibile pentru utilizator
+  SELECT array_agg(DISTINCT rol_denumire) INTO roles_array
   FROM public.utilizator_roluri_multicont
   WHERE user_id = target_user_id;
 
   -- Actualizează metadatele în `auth.users`
   UPDATE auth.users
   SET raw_user_meta_data = raw_user_meta_data || jsonb_build_object(
-    'club_id', target_club_id,
-    'rol_activ_context', target_rol_activ, -- Câmpul adăugat pentru context
+    'club_id', primary_context.club_id,
+    'rol_activ_context', primary_context.rol_denumire,
     'roles', COALESCE(roles_array, '{}')
   )
   WHERE id = target_user_id;
@@ -56,20 +62,13 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 
 -- Șterge triggerele vechi pentru a asigura o reinstalare curată
-DROP TRIGGER IF EXISTS on_sportivi_club_change_sync_user_meta ON public.sportivi;
-DROP TRIGGER IF EXISTS on_sportivi_roluri_change_sync_user_meta ON public.sportivi_roluri;
+DROP TRIGGER IF EXISTS on_sportivi_profile_change_sync_user_meta ON public.sportivi;
 DROP TRIGGER IF EXISTS on_multicont_roles_change_sync_user_meta ON public.utilizator_roluri_multicont;
 
 
--- Trigger 1: Se declanșează la schimbarea clubului SAU a rolului activ pe profilul sportivului.
-CREATE TRIGGER on_sportivi_profile_change_sync_user_meta
-  AFTER INSERT OR UPDATE OF club_id, rol_activ_context ON public.sportivi
-  FOR EACH ROW
-  WHEN (NEW.user_id IS NOT NULL)
-  EXECUTE FUNCTION public.sync_user_metadata_from_profile();
-
--- Trigger 2: Se declanșează la orice modificare în tabela de roluri multi-cont.
-CREATE TRIGGER on_multicont_roles_change_sync_user_meta
+-- Creează un singur trigger robust pe sursa de adevăr: `utilizator_roluri_multicont`
+-- Se declanșează la orice operațiune care ar putea afecta rolul activ sau lista de roluri.
+CREATE TRIGGER on_user_roles_change_sync_user_meta
   AFTER INSERT OR UPDATE OR DELETE ON public.utilizator_roluri_multicont
   FOR EACH ROW
   EXECUTE FUNCTION public.sync_user_metadata_from_profile();

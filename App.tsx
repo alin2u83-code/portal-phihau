@@ -123,24 +123,12 @@ function App() {
     
   const handleSwitchRole = useCallback(async (roleName: Rol['nume']) => {
       if (!supabase || !currentUser?.user_id || !userRoles) return;
-
-      const adminRoles: Rol['nume'][] = ['SUPER_ADMIN_FEDERATIE', 'Admin', 'Admin Club', 'Instructor'];
-      if (adminRoles.includes(roleName)) {
-          const { data: canAccess, error: rpcError } = await supabase.rpc('check_is_admin');
-          if (rpcError || !canAccess) {
-              showError("Validare Eșuată", "Nu aveți permisiunile necesare pentru a comuta la un rol administrativ. Contactați administratorul.");
-              return;
-          }
-      }
       
       let targetRoleContext: any = null;
 
       if (roleName === 'Sportiv') {
-          // Găsește contextul primar de sportiv, dacă există, altfel primul găsit.
           targetRoleContext = userRoles.find(r => r.rol_denumire === 'Sportiv' && r.is_primary) || userRoles.find(r => r.rol_denumire === 'Sportiv');
       } else {
-          // Pentru rolurile de admin, găsește primul context care se potrivește.
-          // Utilizatorul poate alege un context specific din Consola de Administrare.
           targetRoleContext = userRoles.find(r => r.rol_denumire === roleName);
       }
 
@@ -152,7 +140,7 @@ function App() {
       setIsSwitchingRole(true);
       setSwitchingToRole(roleName);
       
-      const { error } = await supabase.rpc('set_active_context', {
+      const { error } = await supabase.rpc('set_primary_context', {
           p_sportiv_id: targetRoleContext.sportiv_id,
           p_rol_denumire: targetRoleContext.rol_denumire
       });
@@ -167,7 +155,6 @@ function App() {
           } else {
               localStorage.removeItem('phi-hau-redirect-after-role-switch');
           }
-          // Pagina se va reîncărca pentru a prelua noul token JWT.
           setTimeout(() => window.location.reload(), 1200);
       }
   }, [currentUser, userRoles, showError]);
@@ -247,25 +234,26 @@ function App() {
     
     if (roles && roles.length > 0) {
         if (roles.length === 1) {
-            setActiveRoleContext(roles[0]);
+            const singleRole = roles[0];
+            setActiveRoleContext(singleRole);
+            if (!singleRole.is_primary) {
+                supabase.rpc('set_primary_context', { p_sportiv_id: singleRole.sportiv_id, p_rol_denumire: singleRole.rol_denumire });
+            }
         } else {
-            const preferredRole = profile.rol_activ_context
-                ? roles.find(r => r.rol_denumire === profile.rol_activ_context)
-                : null;
+            const primaryRole = roles.find(r => r.is_primary);
             
-            if (preferredRole) {
-                setActiveRoleContext(preferredRole);
+            if (primaryRole) {
+                setActiveRoleContext(primaryRole);
             } else {
-                // FALLBACK: No active role set in DB, or the one set is invalid.
-                // Automatically select the first role to unblock the user from the role selection page.
+                // FALLBACK: Niciun rol nu este marcat ca primar. Se alege primul din listă.
                 const defaultRole = roles[0];
                 setActiveRoleContext(defaultRole);
                 
-                // Asynchronously update the DB with this default choice for the next session.
-                supabase.rpc('set_active_context', { p_sportiv_id: defaultRole.sportiv_id, p_rol_denumire: defaultRole.rol_denumire })
+                // Se actualizează baza de date pentru a face această alegere persistentă.
+                supabase.rpc('set_primary_context', { p_sportiv_id: defaultRole.sportiv_id, p_rol_denumire: defaultRole.rol_denumire })
                     .then(({ error: rpcError }) => {
                         if (rpcError) {
-                            console.warn("Could not set default active role in DB:", rpcError.message);
+                            console.warn("Nu s-a putut seta rolul primar implicit în DB:", rpcError.message);
                         }
                     });
             }
@@ -475,15 +463,12 @@ function App() {
     if (!supabase || !currentUser?.user_id) return;
     setIsSelectingRole(true);
     
-    // Using the SECURITY DEFINER RPC function is the correct, robust way to bypass RLS for this specific update.
-    const { error } = await supabase.rpc('set_active_context', { p_sportiv_id: role.sportiv_id, p_rol_denumire: role.rol_denumire });
+    const { error } = await supabase.rpc('set_primary_context', { p_sportiv_id: role.sportiv_id, p_rol_denumire: role.rol_denumire });
 
     if (error) {
         showError("Eroare la selectarea rolului", error.message);
         setIsSelectingRole(false);
     } else {
-        // Reloading the page is the safest way to get the new JWT
-        // with the updated metadata and refetch all data with the new permissions.
         window.location.reload();
     }
   };

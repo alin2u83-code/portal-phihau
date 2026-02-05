@@ -22,11 +22,11 @@ const fallbackUser = (email: string): User => ({
 });
 
 /**
- * Gets the authenticated user, their profile, and all their available roles/contexts from Supabase.
+ * Fetches the complete user profile, including all role contexts, in a single query.
  * @param supabase The Supabase client instance.
  * @returns An object containing the user profile, an array of role contexts, or an error.
  */
-export const getAuthenticatedUserWithRoles = async (supabase: SupabaseClient): Promise<{ user: User | null; roles: any[] | null; error: any | null }> => {
+export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promise<{ user: User | null; roles: any[] | null; error: any | null }> => {
     try {
         const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
 
@@ -41,10 +41,21 @@ export const getAuthenticatedUserWithRoles = async (supabase: SupabaseClient): P
 
         const { data: userProfileData, error: profileError } = await supabase
             .from('sportivi')
-            .select('*, cluburi(*)')
+            .select(`
+                *,
+                cluburi(*),
+                contexts:utilizator_roluri_multicont (
+                    rol_denumire,
+                    sportiv_id,
+                    club_id,
+                    is_primary,
+                    club:cluburi(nume),
+                    sportiv:sportivi!inner(nume, prenume)
+                )
+            `)
             .eq('user_id', authUser.id)
             .single();
-
+        
         if (profileError) {
             if (profileError.code === 'PGRST116') {
                 return { user: fallbackUser(authUser.email || 'unknown@user.com'), roles: [], error: null };
@@ -55,46 +66,33 @@ export const getAuthenticatedUserWithRoles = async (supabase: SupabaseClient): P
         if (!userProfileData) {
             return { user: fallbackUser(authUser.email || 'unknown@user.com'), roles: [], error: null };
         }
-        
-        const { data: rolesData, error: rolesError } = await supabase
-            .from('utilizator_roluri_multicont')
-            .select(`
-                rol_denumire,
-                sportiv_id,
-                club_id,
-                is_primary,
-                club:cluburi(nume),
-                sportiv:sportivi(nume, prenume)
-            `)
-            .eq('user_id', authUser.id);
-        
-        if (rolesError) {
-            console.error("Eroare la preluarea rolurilor din utilizator_roluri_multicont:", rolesError.message);
-            return { user: userProfileData as User, roles: [], error: rolesError };
-        }
+
+        const { contexts, ...profile } = userProfileData;
+        const roleContexts = contexts || [];
 
         const { data: allRolesNomenclator, error: allRolesError } = await supabase.from('roluri').select('id, nume');
         if(allRolesError) {
-            console.error("Eroare la preluarea nomenclatorului de roluri:", allRolesError.message);
+            console.warn("Eroare la preluarea nomenclatorului de roluri:", allRolesError.message);
         }
 
-        const mappedRoles = (rolesData || []).map(mcr => {
+        const mappedRoles = (roleContexts || []).map((mcr: any) => {
             const roleFromNomenclator = (allRolesNomenclator || []).find(r => r.nume === mcr.rol_denumire);
             return roleFromNomenclator ? { id: roleFromNomenclator.id, nume: roleFromNomenclator.nume as Rol['nume'] } : null;
         }).filter((r): r is Rol => r !== null);
 
+        const uniqueRoles = Array.from(new Map(mappedRoles.map(item => [item.id, item])).values());
 
         const formattedProfile = {
-            ...userProfileData,
-            roluri: mappedRoles,
+            ...profile,
+            roluri: uniqueRoles,
         };
         
-        return { user: formattedProfile as User, roles: rolesData || [], error: null };
+        return { user: formattedProfile as User, roles: roleContexts, error: null };
 
     } catch (err: any) {
-        console.error("A apărut o eroare neașteptată în getAuthenticatedUserWithRoles:", err.message);
+        console.error("A apărut o eroare neașteptată în fetchUserWithPermissions:", err.message);
         return { user: null, roles: null, error: err };
     }
 };
 
-export const getAuthenticatedUser = getAuthenticatedUserWithRoles;
+export const getAuthenticatedUser = fetchUserWithPermissions;

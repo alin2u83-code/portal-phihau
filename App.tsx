@@ -123,6 +123,15 @@ function App() {
     
   const handleSwitchRole = useCallback(async (roleName: Rol['nume']) => {
       if (!supabase || !currentUser?.user_id || !userRoles) return;
+
+      const adminRoles: Rol['nume'][] = ['SUPER_ADMIN_FEDERATIE', 'Admin', 'Admin Club', 'Instructor'];
+      if (adminRoles.includes(roleName)) {
+          const { data: canAccess, error: rpcError } = await supabase.rpc('check_is_admin');
+          if (rpcError || !canAccess) {
+              showError("Validare Eșuată", "Nu aveți permisiunile necesare pentru a comuta la un rol administrativ. Contactați administratorul.");
+              return;
+          }
+      }
       
       let targetRoleContext: any = null;
 

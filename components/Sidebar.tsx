@@ -88,17 +88,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
             return { menuToDisplay: menu, contextName: name, borderClass: border };
         }
 
-        // Normalize to uppercase for robust matching
-        const upperCaseRole = activeRole?.toUpperCase() || 'SPORTIV';
+        // Normalize to uppercase and replace spaces with underscores for robust matching.
+        const normalizedRole = (activeRole?.toUpperCase() || 'SPORTIV').replace(/ /g, '_');
+        console.log('Rol detectat:', activeRole, '-> Normalizat:', normalizedRole);
 
-        switch (upperCaseRole) {
+
+        switch (normalizedRole) {
             case 'SUPER_ADMIN_FEDERATIE':
             case 'ADMIN':
                 menu = federationAdminMenu;
                 name = 'Federație';
                 border = 'border-amber-400';
                 break;
-            case 'ADMIN CLUB': // 'Admin Club'.toUpperCase() -> 'ADMIN CLUB'
+            case 'ADMIN_CLUB':
                 menu = clubAdminMenu;
                 name = currentUser.cluburi?.nume || 'Club Nesetat';
                 border = 'border-blue-500';

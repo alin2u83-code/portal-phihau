@@ -80,31 +80,43 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
         let name: string;
         let border: string;
 
-        switch (activeRole) {
+        // Safety mechanism: If role is not set but user has admin access, show a default admin menu.
+        if (!activeRole && permissions.hasAdminAccess) {
+            menu = clubAdminMenu;
+            name = 'Context Invalid';
+            border = 'border-red-500'; // Highlight the error state
+            return { menuToDisplay: menu, contextName: name, borderClass: border };
+        }
+
+        // Normalize to uppercase for robust matching
+        const upperCaseRole = activeRole?.toUpperCase() || 'SPORTIV';
+
+        switch (upperCaseRole) {
             case 'SUPER_ADMIN_FEDERATIE':
-            case 'Admin':
+            case 'ADMIN':
                 menu = federationAdminMenu;
                 name = 'Federație';
                 border = 'border-amber-400';
                 break;
-            case 'Admin Club':
+            case 'ADMIN CLUB': // 'Admin Club'.toUpperCase() -> 'ADMIN CLUB'
                 menu = clubAdminMenu;
                 name = currentUser.cluburi?.nume || 'Club Nesetat';
                 border = 'border-blue-500';
                 break;
-            case 'Instructor':
+            case 'INSTRUCTOR':
                 menu = instructorMenu;
                 name = currentUser.cluburi?.nume || 'Club Nesetat';
                 border = 'border-sky-500';
                 break;
-            default: // Sportiv
+            case 'SPORTIV':
+            default:
                 menu = sportivMenu;
                 name = 'Portal Sportiv';
                 border = 'border-green-500';
                 break;
         }
         return { menuToDisplay: menu, contextName: name, borderClass: border };
-    }, [activeRole, currentUser.cluburi?.nume]);
+    }, [activeRole, currentUser.cluburi?.nume, permissions.hasAdminAccess]);
 
     const adminRoleToSwitchTo = useMemo(() => {
         if (!currentUser || !permissions.hasAdminAccess) return null;

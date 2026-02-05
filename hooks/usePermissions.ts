@@ -20,43 +20,28 @@ export const usePermissions = (user: User | null, activeRole: Rol['nume'] | null
         if (!user || !activeRole) {
             return initialPermissions;
         }
-        
-        // MASTER ACCESS OVERRIDE
-        if (user.email === 'alin2u83@gmail.com') {
-            return {
-                isSuperAdmin: true,
-                isAdmin: true,
-                isFederationAdmin: true,
-                isAdminClub: true,
-                isInstructor: true,
-                isSportiv: true, // Master admin is also a sportiv
-                hasAdminAccess: true,
-                isFederationLevel: true,
-                canManageFinances: true,
-                canGradeStudents: true,
-                visibleClubIds: 'all',
-            };
-        }
 
-        // Base role flags are now based on *all* roles, not just the active one.
+        // Base role flags are determined by *all* roles the user possesses.
+        // This is useful for knowing the user's total capabilities.
         const allUserRoles = new Set((user.roluri || []).map(r => r.nume));
 
         const isSuperAdmin = allUserRoles.has('SUPER_ADMIN_FEDERATIE');
-        const isAdmin = allUserRoles.has('Admin');
+        const isAdmin = allUserRoles.has('Admin'); // 'Admin' can be a fallback super admin role
         const isFederationAdmin = isSuperAdmin || isAdmin;
-
         const isAdminClub = allUserRoles.has('Admin Club');
         const isInstructor = allUserRoles.has('Instructor');
         const isSportiv = allUserRoles.has('Sportiv');
         
-        const hasAdminAccess = isFederationAdmin || isAdminClub || isInstructor;
+        // Access rights for the current session are determined by the *active* role context.
+        // This ensures client-side logic matches server-side RLS policies.
+        const hasAdminAccess = activeRole === 'SUPER_ADMIN_FEDERATIE' || activeRole === 'Admin' || activeRole === 'Admin Club' || activeRole === 'Instructor';
         
-        // New business logic flags
-        const isFederationLevel = isFederationAdmin;
+        // Business logic flags are derived from the active session's access rights.
+        const isFederationLevel = activeRole === 'SUPER_ADMIN_FEDERATIE' || activeRole === 'Admin';
         const canManageFinances = hasAdminAccess;
         const canGradeStudents = hasAdminAccess;
 
-        // Visible clubs logic
+        // Visible clubs logic also depends on the active context.
         const visibleClubIds: 'all' | string[] = isFederationLevel ? 'all' : (user.club_id ? [user.club_id] : []);
         
         return {
@@ -67,7 +52,6 @@ export const usePermissions = (user: User | null, activeRole: Rol['nume'] | null
             isInstructor,
             isSportiv,
             hasAdminAccess,
-            
             isFederationLevel,
             canManageFinances,
             canGradeStudents,

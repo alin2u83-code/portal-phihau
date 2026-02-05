@@ -1,31 +1,12 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { User, Club, Rol } from '../types';
 
-const fallbackUser = (email: string): User => ({
-    id: 'GUEST_USER_ID',
-    user_id: 'GUEST_AUTH_ID',
-    nume: 'Profil',
-    prenume: 'Incomplet',
-    email: email,
-    roluri: [],
-    cluburi: { id: '00000000-0000-0000-0000-000000000000', nume: 'Nesetat' } as Club,
-    data_nasterii: '1900-01-01',
-    cnp: null,
-    data_inscrierii: new Date().toISOString().split('T')[0],
-    status: 'Inactiv',
-    grupa_id: null,
-    club_id: null,
-    familie_id: null,
-    tip_abonament_id: null,
-    participa_vacanta: false,
-    trebuie_schimbata_parola: false,
-});
-
 /**
  * Fetches the complete user profile using the `auth_profile_view`.
- * Includes a safety net for admin users without a `sportivi` record.
+ * This view should be the single source of truth for all user contexts.
+ * The function also constructs a comprehensive User profile object based on the primary context.
  * @param supabase The Supabase client instance.
- * @returns An object containing the user profile, an array of role contexts, or an error.
+ * @returns An object containing the user profile, an array of all role contexts, or an error.
  */
 export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promise<{ user: User | null; roles: any[] | null; error: any | null }> => {
     try {
@@ -34,7 +15,7 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
             return { user: null, roles: null, error: authError };
         }
 
-        // Using 'auth_profile_view' as the single source of truth, per user request.
+        // Use 'auth_profile_view' as the single source of truth.
         const { data: contexts, error: viewError } = await supabase
             .from('auth_profile_view')
             .select('*')
@@ -99,11 +80,17 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
             return { user: null, roles: [], error: { message: "Profil de sportiv negăsit. Vă rugăm contactați un administrator." } };
         }
 
-        // Populate `roluri` from all contexts. Assumes view has `rol_id` and `rol_denumire`.
-        // FIX: Cast the result of the map/reduce operation to Rol[] to satisfy TypeScript's type checker.
-        // The type inference was failing, resulting in `unknown[]` which is not assignable to `profile.roluri`.
-        const uniqueRoles = [...new Map(roles.map(item => [item.rol_denumire, { id: item.rol_id, nume: item.rol_denumire }])).values()] as Rol[];
-        profile.roluri = uniqueRoles;
+        // Populate `roluri` from all contexts in a type-safe way.
+        const validRoleNames: Array<Rol['nume']> = ['Sportiv', 'Instructor', 'Admin', 'SUPER_ADMIN_FEDERATIE', 'Admin Club'];
+        const uniqueRolesMap = new Map<Rol['nume'], Rol>();
+        
+        roles.forEach(item => {
+            if (validRoleNames.includes(item.rol_denumire) && !uniqueRolesMap.has(item.rol_denumire)) {
+                uniqueRolesMap.set(item.rol_denumire, { id: item.rol_id, nume: item.rol_denumire });
+            }
+        });
+
+        profile.roluri = Array.from(uniqueRolesMap.values());
 
         return { user: profile, roles: roles, error: null };
 

@@ -305,6 +305,7 @@ function App() {
 
     setCurrentUser(profile);
     setUserRoles(roles || []);
+    console.log("DEBUG [App.tsx]: Roluri utilizator încărcate din DB:", roles);
     setSession(currentSession);
     
     if (roles && roles.length > 0) {

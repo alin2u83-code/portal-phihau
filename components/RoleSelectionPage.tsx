@@ -45,7 +45,9 @@ export const RoleSelectionPage: React.FC<RoleSelectionPageProps> = ({ roles, onS
                                         className="w-full text-left p-4 rounded-lg bg-slate-700 hover:bg-slate-600 transition-all duration-300 disabled:opacity-50 border border-slate-600 focus:outline-none focus:ring-2 focus:ring-brand-secondary transform hover:scale-105"
                                     >
                                         <p className="font-bold text-lg text-white">
-                                            {role.rol_denumire === 'SUPER_ADMIN_FEDERATIE' ? 'Administrator Federație' : role.rol_denumire}
+                                            {role.rol_denumire === 'SUPER_ADMIN_FEDERATIE' ? 'Admin Federație'
+                                                : role.rol_denumire === 'ADMIN_CLUB' ? 'Admin Club'
+                                                : role.rol_denumire}
                                         </p>
                                         {isClubRole && role.club_nume && (
                                             <p className="text-md font-semibold text-slate-300 -mt-1">{role.club_nume}</p>

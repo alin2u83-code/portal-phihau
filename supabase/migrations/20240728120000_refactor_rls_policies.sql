@@ -107,7 +107,7 @@ DECLARE
     policy_record RECORD;
 BEGIN
     FOR policy_record IN SELECT policyname FROM pg_policies WHERE tablename = p_table_name AND schemaname = 'public' LOOP
-        EXECUTE format('DROP POLICY %I ON public.%I;', policy_record.policyname, p_table_name);
+        EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I;', policy_record.policyname, p_table_name);
     END LOOP;
 END;
 $$;
@@ -149,7 +149,7 @@ CREATE POLICY "Staff-ul clubului gestionează plățile clubului" ON public.plat
     FOR ALL USING ((get_active_role() = 'Admin Club' OR get_active_role() = 'Instructor')
         AND EXISTS (
             SELECT 1 FROM public.sportivi s
-            WHERE (s.id = plati.sportiv_id OR s.familie_id = plati.familie_id)
+            WHERE (s.id = plati.sportiv_id OR (s.familie_id IS NOT NULL AND s.familie_id = plati.familie_id))
             AND s.club_id = get_active_club_id()
         )
     );
@@ -159,5 +159,5 @@ CREATE POLICY "Utilizatorii își văd propriile plăți" ON public.plati
     FOR SELECT USING (EXISTS (
         SELECT 1 FROM public.sportivi s
         WHERE s.user_id = auth.uid()
-        AND (s.id = plati.sportiv_id OR s.familie_id = plati.familie_id)
+        AND (s.id = plati.sportiv_id OR (s.familie_id IS NOT NULL AND s.familie_id = plati.familie_id))
     ));

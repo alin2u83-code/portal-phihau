@@ -90,6 +90,15 @@
         background-color: rgba(100, 255, 218, 0.1);
       }
 
+      .sesiune-card {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .sesiune-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 0 15px 2px rgba(251, 146, 60, 0.4); /* amber-400 glow */
+        border-color: rgba(251, 146, 60, 0.5); /* amber-400 with 50% opacity */
+      }
+
       @media print {
         body * {
           visibility: hidden;

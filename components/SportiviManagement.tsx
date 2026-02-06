@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions } from '../types';
 import { Button, Modal, Input, Select, Card, Switch, RoleBadge } from './ui';
-import { PlusIcon, ArrowLeftIcon, ShieldCheckIcon, WalletIcon, UserXIcon, UserCheckIcon } from './icons';
+import { PlusIcon, ArrowLeftIcon, ShieldCheckIcon, WalletIcon, UserXIcon, UserCheckIcon, EditIcon, TrashIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
@@ -11,6 +11,7 @@ import { SportivWallet } from './SportivWallet';
 import { ResponsiveTable, Column } from './ResponsiveTable';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
 import { GradBadge } from '../utils/grades';
+import { DeleteAuditModal } from './DeleteAuditModal';
 
 const getAge = (dateString: string | null | undefined): number => { 
     if (!dateString) return 0; 
@@ -200,6 +201,7 @@ export const SportiviManagement: React.FC<{
     const [selectedSportivForHighlight, setSelectedSportivForHighlight] = useState<Sportiv | null>(null);
     const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
     const [sportivToDeactivate, setSportivToDeactivate] = useState<Sportiv | null>(null);
+    const [sportivForAudit, setSportivForAudit] = useState<Sportiv | null>(null);
     const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }>({ key: 'nume', direction: 'asc' });
 
     const { showError, showSuccess } = useError();
@@ -234,6 +236,26 @@ export const SportiviManagement: React.FC<{
     const handleRowClick = (sportiv: Sportiv) => {
         setSelectedSportivForHighlight(sportiv);
         onViewSportiv(sportiv);
+    };
+
+    const handleDeactivate = async () => {
+        if (!sportivForAudit) return;
+        setLoadingStates(prev => ({...prev, [sportivForAudit.id]: true}));
+        const { error } = await supabase.from('sportivi').update({ status: 'Inactiv' }).eq('id', sportivForAudit.id);
+        if(error) showError("Eroare", error.message);
+        else { setSportivi(prev => prev.map(s => s.id === sportivForAudit!.id ? { ...s, status: 'Inactiv'} : s)); showSuccess("Succes", "Sportivul a fost marcat ca inactiv."); }
+        setLoadingStates(prev => ({...prev, [sportivForAudit.id]: false}));
+        setSportivForAudit(null);
+    };
+
+    const handleDelete = async () => {
+        if (!sportivForAudit) return;
+        setLoadingStates(prev => ({...prev, [sportivForAudit.id]: true}));
+        const { error } = await supabase.from('sportivi').delete().eq('id', sportivForAudit.id);
+        if(error) showError("Eroare", error.message);
+        else { setSportivi(prev => prev.filter(s => s.id !== sportivForAudit!.id)); showSuccess("Succes", "Sportivul a fost șters definitiv."); }
+        setLoadingStates(prev => ({...prev, [sportivForAudit.id]: false}));
+        setSportivForAudit(null);
     };
 
     const handleToggleStatus = useCallback(async (sportiv: Sportiv) => {
@@ -305,6 +327,10 @@ export const SportiviManagement: React.FC<{
     }, [familii, plati, tranzactii]);
 
     const sortedAndFilteredSportivi = useMemo(() => {
+        if (!permissions.hasAdminAccess) {
+            return sportivi.filter(s => s.id === currentUser.id);
+        }
+        
         const today = new Date();
         const currentMonth = today.getMonth();
         const currentYear = today.getFullYear();
@@ -334,18 +360,29 @@ export const SportiviManagement: React.FC<{
         });
 
         return sortableItems;
-    }, [sportivi, filters, plati, grade, grupe, sortConfig]);
+    }, [sportivi, filters, plati, grade, grupe, sortConfig, permissions, currentUser.id]);
     
-     const columns: Column<Sportiv>[] = [
-        { key: 'nume', label: 'Nume Complet', tooltip: "Numele complet al sportivului.", render: (s) => { const familie = s.familie_id ? (familii || []).find(f => f.id === s.familie_id) : null; const familieBalance = s.familie_id ? familyBalances.get(s.familie_id) : undefined; return (<div><div className="font-bold text-white hover:text-brand-primary">{s.nume} {s.prenume} <span className="text-slate-400 font-normal">({getAge(s.data_nasterii)} ani)</span></div>{familie && familieBalance !== undefined && (<div className="text-xs text-slate-300 mt-1">Familia {familie.nume}<span className={`ml-2 font-bold ${familieBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>Sold: {familieBalance >= 0 ? '+' : ''}{familieBalance.toFixed(2)} lei</span></div>)}</div>); }, },
-        { key: 'grad_actual_id', label: 'Grad Actual', tooltip: "Gradul actual al sportivului.", render: (s) => <GradBadge grad={(grade || []).find(g => g.id === s.grad_actual_id)} className="text-[10px]" />, className: 'hidden md:table-cell' },
-        { key: 'club_id', label: 'Club', tooltip: "Clubul de care aparține sportivul.", render: (s) => s.cluburi?.id === FEDERATIE_ID ? FEDERATIE_NAME : s.cluburi?.nume || '-', className: 'hidden md:table-cell' },
-        { key: 'roluri', label: 'Roluri', tooltip: "Rolurile de acces ale utilizatorului în aplicație.", render: (s) => (<div className="flex flex-wrap gap-1">{(s.roluri || []).length > 0 ? s.roluri.map(r => <RoleBadge key={r.id} role={r}/>) : <span className="text-slate-500 italic">N/A</span>}</div>) },
-        { key: 'status', label: 'Status', tooltip: "Indică dacă sportivul este activ sau inactiv.", className: 'hidden md:table-cell', render: (s) => (<span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${s.status === 'Activ' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{s.status}</span>) },
-        { key: 'grupa_id', label: 'Grupă', tooltip: "Grupa de antrenament în care este încadrat sportivul.", render: (s) => (grupe || []).find(g => g.id === s.grupa_id)?.denumire || '-', className: 'hidden md:table-cell' },
-        { key: 'actions', label: 'Acțiuni', tooltip: "Acțiuni rapide: gestionează portofelul sau setările contului.", headerClassName: 'text-right', cellClassName: 'text-right', render: (s) => (<div className="flex justify-end items-center gap-2"><Button size="sm" variant="info" onClick={(e) => { e.stopPropagation(); handleOpenWallet(s); }} title="Portofel Sportiv" className="!p-2"><WalletIcon className="w-4 h-4" /></Button><Button size="sm" variant={s.status === 'Activ' ? 'warning' : 'success'} onClick={(e) => { e.stopPropagation(); handleToggleStatus(s); }} title={s.status === 'Activ' ? 'Dezactivează sportiv' : 'Activează sportiv'} className="!p-2" isLoading={loadingStates[s.id]}>{s.status === 'Activ' ? <UserXIcon className="w-4 h-4" /> : <UserCheckIcon className="w-4 h-4" />}</Button><Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); setAccountSettingsSportiv(s); }} title="Setări Cont de Acces" className="!p-2"><ShieldCheckIcon className="w-4 h-4" /></Button></div>) }
-    ];
+     const columns: Column<Sportiv>[] = useMemo(() => {
+        const baseColumns: Column<Sportiv>[] = [
+            { key: 'nume', label: 'Nume Complet', tooltip: "Numele complet al sportivului.", render: (s) => { const familie = s.familie_id ? (familii || []).find(f => f.id === s.familie_id) : null; const familieBalance = s.familie_id ? familyBalances.get(s.familie_id) : undefined; return (<div><div className="font-bold text-white hover:text-brand-primary">{s.nume} {s.prenume} <span className="text-slate-400 font-normal">({getAge(s.data_nasterii)} ani)</span></div>{familie && familieBalance !== undefined && (<div className="text-xs text-slate-300 mt-1">Familia {familie.nume}<span className={`ml-2 font-bold ${familieBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>Sold: {familieBalance >= 0 ? '+' : ''}{familieBalance.toFixed(2)} lei</span></div>)}</div>); }, },
+            { key: 'grad_actual_id', label: 'Grad Actual', tooltip: "Gradul actual al sportivului.", render: (s) => <GradBadge grad={(grade || []).find(g => g.id === s.grad_actual_id)} className="text-[10px]" />, className: 'hidden md:table-cell' },
+            { key: 'club_id', label: 'Club', tooltip: "Clubul de care aparține sportivul.", render: (s) => s.cluburi?.id === FEDERATIE_ID ? FEDERATIE_NAME : s.cluburi?.nume || '-', className: 'hidden md:table-cell' },
+            { key: 'roluri', label: 'Roluri', tooltip: "Rolurile de acces ale utilizatorului în aplicație.", render: (s) => (<div className="flex flex-wrap gap-1">{(s.roluri || []).length > 0 ? s.roluri.map(r => <RoleBadge key={r.id} role={r}/>) : <span className="text-slate-500 italic">N/A</span>}</div>) },
+            { key: 'status', label: 'Status', tooltip: "Indică dacă sportivul este activ sau inactiv.", className: 'hidden md:table-cell', render: (s) => (<span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${s.status === 'Activ' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{s.status}</span>) },
+            { key: 'grupa_id', label: 'Grupă', tooltip: "Grupa de antrenament în care este încadrat sportivul.", render: (s) => (grupe || []).find(g => g.id === s.grupa_id)?.denumire || '-', className: 'hidden md:table-cell' },
+        ];
 
+        if (permissions.hasAdminAccess) {
+            return [
+                ...baseColumns,
+                { key: 'cnp', label: 'CNP', tooltip: "Cod Numeric Personal.", render: (s) => s.cnp || '-', className: 'hidden lg:table-cell' },
+                { key: 'actions', label: 'Acțiuni', tooltip: "Acțiuni rapide: gestionează portofelul sau setările contului.", headerClassName: 'text-right', cellClassName: 'text-right', render: (s) => (<div className="flex justify-end items-center gap-2"><Button size="sm" variant="primary" onClick={(e) => { e.stopPropagation(); setSportivToEdit(s); setIsFormModalOpen(true); }} title="Editează Profil" className="!p-2"><EditIcon className="w-4 h-4" /></Button><Button size="sm" variant="danger" onClick={(e) => { e.stopPropagation(); setSportivForAudit(s); }} title="Dezactivează sau Șterge" className="!p-2"><TrashIcon className="w-4 h-4" /></Button><Button size="sm" variant="info" onClick={(e) => { e.stopPropagation(); handleOpenWallet(s); }} title="Portofel Sportiv" className="!p-2"><WalletIcon className="w-4 h-4" /></Button><Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); setAccountSettingsSportiv(s); }} title="Setări Cont de Acces" className="!p-2"><ShieldCheckIcon className="w-4 h-4" /></Button></div>) }
+            ];
+        }
+
+        return baseColumns;
+     }, [permissions.hasAdminAccess, familii, familyBalances, grade, grupe, clubs, loadingStates, handleToggleStatus, handleOpenWallet]);
+    
     const handleSave = async (formData: Partial<Sportiv>): Promise<{ success: boolean; error?: any; data?: Sportiv; }> => {
         const { roluri, ...sportivData } = formData;
         try {
@@ -411,40 +448,28 @@ export const SportiviManagement: React.FC<{
                 {permissions.hasAdminAccess && (<Button variant="primary" onClick={() => { setSportivToEdit(null); setIsFormModalOpen(true); }}><PlusIcon className="w-5 h-5 mr-1"/> Adaugă Sportiv</Button>)}
             </div>
 
-            <Card className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-center">
-                <Select label="Status" value={filters.statusFilter} onChange={e => handleFilterChange('statusFilter', e.target.value)}><option value="Activ">Activi</option><option value="Inactiv">Inactivi</option><option value="">Toți</option></Select>
-                <Select label="Grupă" value={filters.grupaFilter} onChange={e => handleFilterChange('grupaFilter', e.target.value)}><option value="">Toate grupele</option>{(grupe || []).map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}</Select>
-                <Select label="Grad" value={filters.gradFilter} onChange={e => handleFilterChange('gradFilter', e.target.value)}><option value="">Toate gradele</option><option value="null">Începător (fără grad)</option>{(grade || []).sort((a,b) => a.ordine - b.ordine).map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}</Select>
-                <Select label="Rol" value={filters.rolFilter} onChange={e => handleFilterChange('rolFilter', e.target.value)}><option value="">Toate rolurile</option>{(allRoles || []).map(r => <option key={r.id} value={r.id}>{r.nume}</option>)}</Select>
-                <div className="pt-5"><Switch label="Doar cu viza medicală expirată" name="showExpiredVizaOnly" checked={filters.showExpiredVizaOnly} onChange={(e) => handleFilterChange('showExpiredVizaOnly', e.target.checked)}/></div>
-            </Card>
+            {permissions.hasAdminAccess && (
+                <Card className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-center">
+                    <Select label="Status" value={filters.statusFilter} onChange={e => handleFilterChange('statusFilter', e.target.value)}><option value="Activ">Activi</option><option value="Inactiv">Inactivi</option><option value="">Toți</option></Select>
+                    <Select label="Grupă" value={filters.grupaFilter} onChange={e => handleFilterChange('grupaFilter', e.target.value)}><option value="">Toate grupele</option>{(grupe || []).map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}</Select>
+                    <Select label="Grad" value={filters.gradFilter} onChange={e => handleFilterChange('gradFilter', e.target.value)}><option value="">Toate gradele</option><option value="null">Începător (fără grad)</option>{(grade || []).sort((a,b) => a.ordine - b.ordine).map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}</Select>
+                    <Select label="Rol" value={filters.rolFilter} onChange={e => handleFilterChange('rolFilter', e.target.value)}><option value="">Toate rolurile</option>{(allRoles || []).map(r => <option key={r.id} value={r.id}>{r.nume}</option>)}</Select>
+                    <div className="pt-5"><Switch label="Doar cu viza medicală expirată" name="showExpiredVizaOnly" checked={filters.showExpiredVizaOnly} onChange={(e) => handleFilterChange('showExpiredVizaOnly', e.target.checked)}/></div>
+                </Card>
+            )}
 
             <div className="text-slate-900">
                 <ResponsiveTable data={sortedAndFilteredSportivi} columns={columns} searchTerm={filters.searchTerm} onSearchChange={(val) => handleFilterChange('searchTerm', val)} onRowClick={handleRowClick} searchPlaceholder="Caută sportiv după nume..." selectedRowId={selectedSportivForHighlight?.id} rowClassName={(sportiv) => !sportiv.user_id ? 'bg-red-900/20 hover:bg-red-900/40 !border-l-2 !border-red-500' : ''} onSort={requestSort} sortConfig={sortConfig} />
             </div>
-            <GradLegend />
-            {isFormModalOpen && (<SportivFormModal 
-                isOpen={isFormModalOpen} 
-                onClose={(savedSportiv?: Sportiv) => {
-                    setIsFormModalOpen(false);
-                    if (savedSportiv && !sportivToEdit) {
-                        onViewSportiv(savedSportiv);
-                    }
-                }} 
-                onSave={handleSave} 
-                sportivToEdit={sportivToEdit} 
-                grupe={grupe} 
-                setGrupe={setGrupe} 
-                familii={familii} 
-                setFamilii={setFamilii} 
-                tipuriAbonament={tipuriAbonament} 
-                clubs={clubs} 
-                currentUser={currentUser}
-                grade={grade}
-                allRoles={allRoles}
-            />)}
-            <DeactivationModal isOpen={!!sportivToDeactivate} onClose={() => setSportivToDeactivate(null)} sportiv={sportivToDeactivate} sportivi={sportivi} plati={plati} tipuriAbonament={tipuriAbonament} onConfirm={handleConfirmDeactivation} />
+            
+            {permissions.hasAdminAccess && <GradLegend />}
+
+            {isFormModalOpen && (<SportivFormModal isOpen={isFormModalOpen} onClose={(savedSportiv?: Sportiv) => { setIsFormModalOpen(false); if (savedSportiv && !sportivToEdit) { onViewSportiv(savedSportiv); } }} onSave={handleSave} sportivToEdit={sportivToEdit} grupe={grupe} setGrupe={setGrupe} familii={familii} setFamilii={setFamilii} tipuriAbonament={tipuriAbonament} clubs={clubs} currentUser={currentUser} />)}
+            
+            {sportivForAudit && <DeleteAuditModal isOpen={!!sportivForAudit} onClose={() => setSportivForAudit(null)} sportiv={sportivForAudit} onDeactivate={handleDeactivate} onDelete={handleDelete} />}
+
             <SportivAccountSettingsModal isOpen={!!accountSettingsSportiv} onClose={() => setAccountSettingsSportiv(null)} sportiv={accountSettingsSportiv} setSportivi={setSportivi} allRoles={allRoles} setAllRoles={setAllRoles} currentUser={currentUser} />
+            
             {isWalletModalOpen && sportivForWallet && (<SportivWallet sportiv={sportivForWallet} familie={familii.find(f => f.id === sportivForWallet.familie_id)} allPlati={plati} allTranzactii={tranzactii} setTranzactii={setTranzactii} onClose={() => { setIsWalletModalOpen(false); setSportivForWallet(null); }} />)}
         </div>
     );

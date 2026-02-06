@@ -71,14 +71,20 @@ export const useAuthStore = create<AuthState>()(
             return;
         }
 
+        console.log("Context încărcat:", userContext);
+
         const userProfile: User = {
             ...userContext,
             cluburi: userContext.club_id ? { id: userContext.club_id, nume: userContext.club_nume } : null,
             roluri: (userContext.roles_list || []).map((r_name: string) => ({ id: '', nume: r_name as any })),
         };
-        // Clean up properties that are not part of the User/Sportiv type
-        delete (userProfile as any).club_nume;
-        delete (userProfile as any).roles_list;
+        
+        // Explicitly check userContext before deleting properties
+        if (userContext) {
+            // Clean up properties that are not part of the User/Sportiv type
+            delete (userProfile as any).club_nume;
+            delete (userProfile as any).roles_list;
+        }
 
         const roles = userContext.roles_list || [];
         const isAdmin = roles.some((role: string) => ADMIN_ROLES.includes(role));

@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import { useAuthStore } from '../store/authStore';
 import { useAppStore } from '../store/appStore';
-import { View, Permissions } from '../types';
+import { View, Permissions, Sportiv } from '../types';
 import { Sidebar } from './Sidebar';
 import ErrorBoundary from './ErrorBoundary';
 import { useError } from './ErrorProvider';
@@ -16,9 +16,8 @@ import AdminDashboard from './AdminDashboard';
 import { SportivDashboard } from './SportivDashboard';
 import { SportiviManagement } from './SportiviManagement';
 import { GestiuneExamene } from './Examene';
-// Import other page components as needed...
+import { UserProfile } from './UserProfile';
 
-// A simple loading screen for data fetching
 const DataLoadingScreen: React.FC = () => (
     <div className="min-h-screen flex items-center justify-center bg-[var(--bg-main)]">
         <p>Se încarcă datele aplicației...</p>
@@ -35,14 +34,14 @@ const DataErrorScreen: React.FC<{ error: string; onRetry: () => void }> = ({ err
     </div>
 );
 
-
 export const LayoutAdmin: React.FC = () => {
     const { isAdmin, userDetails, roles } = useAuthStore();
     const { showError } = useError();
     const [isDataLoading, setIsDataLoading] = useState(true);
     const [fetchError, setFetchError] = useState<string | null>(null);
+    const [viewingSportiv, setViewingSportiv] = useState<Sportiv | null>(null);
+    const navigate = useNavigate();
 
-    // Get data and setters from the global Zustand store
     const appData = useAppStore();
     const { setData } = useAppStore.getState();
 
@@ -90,7 +89,6 @@ export const LayoutAdmin: React.FC = () => {
                 setIsDataLoading(false);
             }
         } else {
-            // For non-admins, no global data is needed, just finish loading.
             setIsDataLoading(false);
         }
     }, [showError, isAdmin, setData]);
@@ -98,6 +96,11 @@ export const LayoutAdmin: React.FC = () => {
     useEffect(() => {
         fetchData();
     }, [fetchData]);
+    
+    const handleViewSportiv = (sportiv: Sportiv) => {
+        setViewingSportiv(sportiv);
+        navigate('/profil-sportiv');
+    };
 
     const [isExpanded] = useLocalStorage('phi-hau-sidebar-expanded', true);
 
@@ -105,7 +108,6 @@ export const LayoutAdmin: React.FC = () => {
         return <DataLoadingScreen />;
     }
     
-    // Unified layout structure
     return (
         <div className="flex min-h-screen bg-[var(--bg-main)]">
             <Sidebar 
@@ -132,24 +134,20 @@ export const LayoutAdmin: React.FC = () => {
                             <p><strong>Atenție:</strong> Unele date nu au putut fi încărcate ({fetchError}). Anumite secțiuni pot fi indisponibile sau pot afișa informații incomplete.</p>
                         </Card>
                     )}
-                    <ErrorBoundary>
+                    <ErrorBoundary onNavigate={(view) => navigate(`/${view}`)}>
                         <Routes>
-                            {/* Admin Routes */}
-                            <Route path="/sportivi" element={<ProtectedRoute><SportiviManagement onBack={() => {}} sportivi={appData.sportivi} setSportivi={(d) => setData({sportivi: d})} grupe={appData.grupe} setGrupe={(d) => setData({grupe: d})} tipuriAbonament={appData.tipuriAbonament} familii={appData.familii} setFamilii={(d) => setData({familii: d})} allRoles={appData.allRoles} setAllRoles={(d) => setData({allRoles: d})} currentUser={userDetails} plati={appData.plati} setPlati={(d) => setData({plati: d})} tranzactii={appData.tranzactii} setTranzactii={(d) => setData({tranzactii: d})} onViewSportiv={() => {}} clubs={appData.clubs} grade={appData.grade} permissions={permissions} /></ProtectedRoute>} />
-                            <Route path="/examene" element={<ProtectedRoute><GestiuneExamene currentUser={userDetails} clubs={appData.clubs} onBack={() => {}} onNavigate={() => {}} sesiuni={appData.sesiuniExamene} setSesiuni={(d) => setData({sesiuni_examene: d})} inscrieri={appData.inscrieriExamene} setInscrieri={(d) => setData({inscrieri_examene: d})} sportivi={appData.sportivi} setSportivi={(d) => setData({sportivi: d})} grade={appData.grade} istoricGrade={appData.istoricGrade} locatii={appData.locatii} setLocatii={(d) => setData({locatii: d})} plati={appData.plati} setPlati={(d) => setData({plati: d})} preturiConfig={appData.preturiConfig} deconturiFederatie={appData.deconturiFederatie} setDeconturiFederatie={(d) => setData({deconturi_federatie: d})} onViewSportiv={()=>{}} /></ProtectedRoute>} />
-                            {/* ... Add other admin routes here, wrapped in ProtectedRoute */}
+                            <Route path="/sportivi" element={<ProtectedRoute><SportiviManagement onBack={() => navigate('/')} onViewSportiv={handleViewSportiv} {...appData} setSportivi={(d) => setData({sportivi: d})} setGrupe={(d) => setData({grupe: d})} setFamilii={(d) => setData({familii: d})} setAllRoles={(d) => setData({allRoles: d})} setPlati={(d) => setData({plati: d})} setTranzactii={(d) => setData({tranzactii: d})} currentUser={userDetails} permissions={permissions} grade={appData.grade} /></ProtectedRoute>} />
+                            <Route path="/examene" element={<ProtectedRoute><GestiuneExamene onBack={() => navigate('/')} onNavigate={(v) => navigate(`/${v}`)} onViewSportiv={handleViewSportiv} {...appData} setSesiuni={(d) => setData({sesiuni_examene: d})} setInscrieri={(d) => setData({inscrieri_examene: d})} setSportivi={(d) => setData({sportivi: d})} setLocatii={(d) => setData({locatii: d})} setPlati={(d) => setData({plati: d})} setDeconturiFederatie={(d) => setData({deconturi_federatie: d})} currentUser={userDetails} /></ProtectedRoute>} />
+                             <Route path="/profil-sportiv" element={<ProtectedRoute>{viewingSportiv ? <UserProfile sportiv={viewingSportiv} onBack={() => navigate(-1)} currentUser={userDetails} {...appData} setIstoricGrade={(d) => setData({istoric_grade: d})} setSportivi={(d) => setData({sportivi: d})} setPlati={(d) => setData({plati: d})} setTranzactii={(d) => setData({tranzactii: d})} /> : <Navigate to="/sportivi" />}</ProtectedRoute>} />
 
-                            {/* Sportiv Routes */}
-                            <Route path="/dashboard-sportiv" element={<SportivDashboard grade={appData.grade} grupe={appData.grupe} onNavigate={(v: View) => {}} antrenamente={appData.antrenamente} anunturi={appData.anunturiPrezenta} setAnunturi={(d) => setData({anunturi_prezenta: d})} sportivi={appData.sportivi} permissions={permissions} canSwitchRoles={false} activeRole={userDetails.rol || ''} onSwitchRole={() => {}} isSwitchingRole={false} appDataError={fetchError} />} />
+                            <Route path="/dashboard-sportiv" element={<SportivDashboard grade={appData.grade} grupe={appData.grupe} onNavigate={(v: View) => navigate(`/${v}`)} antrenamente={appData.antrenamente} anunturi={appData.anunturiPrezenta} setAnunturi={(d) => setData({anunturi_prezenta: d})} sportivi={appData.sportivi} permissions={permissions} canSwitchRoles={false} activeRole={userDetails.rol || ''} onSwitchRole={() => {}} isSwitchingRole={false} appDataError={fetchError} currentUser={userDetails} />} />
                             
-                            {/* Default Route */}
                             <Route path="/" element={
                                 isAdmin 
-                                ? <ProtectedRoute><AdminDashboard currentUser={userDetails} /></ProtectedRoute>
+                                ? <ProtectedRoute><AdminDashboard currentUser={userDetails} sportivi={appData.sportivi} plati={appData.plati} grade={appData.grade} onViewSportiv={handleViewSportiv} /></ProtectedRoute>
                                 : <Navigate to="/dashboard-sportiv" replace />
                             }/>
 
-                            {/* Fallback */}
                             <Route path="*" element={<Navigate to="/" replace />} />
                         </Routes>
                     </ErrorBoundary>

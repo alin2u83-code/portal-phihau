@@ -33,6 +33,7 @@ class ErrorBoundary extends React.Component<Props, State> {
   // Use an arrow function to automatically bind 'this'.
   handleRedirect = () => {
     // FIX: 'setState' is a method on the class instance and must be called with 'this.setState'.
+    // FIX: Property 'setState' does not exist on type 'ErrorBoundary'.
     this.setState({ hasError: false, error: undefined });
     // FIX: 'props' are a property on the class instance and must be accessed with 'this.props'.
     if (this.props.onNavigate) {

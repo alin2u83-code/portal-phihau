@@ -105,33 +105,6 @@ export const LayoutAdmin: React.FC = () => {
         return <DataLoadingScreen />;
     }
     
-    // For admins, a data fetch error is critical and blocks the app.
-    if (fetchError && isAdmin) {
-        return (
-            <div className="flex min-h-screen bg-[var(--bg-main)]">
-                <Sidebar 
-                    currentUser={userDetails} 
-                    permissions={permissions} 
-                    clubs={appData.clubs} 
-                    globalClubFilter={null} 
-                    setGlobalClubFilter={() => {}} 
-                    activeRole={roles[0]} 
-                    canSwitchRoles={false} 
-                    onSwitchRole={() => {}} 
-                    isSwitchingRole={false}
-                    grade={appData.grade}
-                    userRoles={[]}
-                    activeRoleContext={null}
-                />
-                <main className={`flex-1 transition-all duration-300 ${permissions.hasAdminAccess && isExpanded ? 'lg:ml-64' : (permissions.hasAdminAccess ? 'lg:ml-20' : 'lg:ml-0')}`}>
-                    <div className="p-4 md:p-8">
-                         <DataErrorScreen error={fetchError} onRetry={fetchData} />
-                    </div>
-                </main>
-            </div>
-        );
-    }
-    
     // Unified layout structure
     return (
         <div className="flex min-h-screen bg-[var(--bg-main)]">
@@ -152,6 +125,11 @@ export const LayoutAdmin: React.FC = () => {
 
             <main className={`flex-1 transition-all duration-300 ${permissions.hasAdminAccess && isExpanded ? 'lg:ml-64' : (permissions.hasAdminAccess ? 'lg:ml-20' : 'lg:ml-0')}`}>
                  <div className="p-4 md:p-8">
+                    {fetchError && (
+                        <Card className="mb-6 bg-amber-900/30 border-amber-500 text-amber-300">
+                            <p><strong>Atenție:</strong> Unele date nu au putut fi încărcate ({fetchError}). Anumite secțiuni pot fi indisponibile sau pot afișa informații incomplete.</p>
+                        </Card>
+                    )}
                     <ErrorBoundary>
                         <Routes>
                             {/* Admin Routes */}

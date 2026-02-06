@@ -315,6 +315,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
     const [editingId, setEditingId] = useState<string | null>(null);
     const [newRoleIds, setNewRoleIds] = useState<string[]>([]);
     const [isCreateStaffModalOpen, setIsCreateStaffModalOpen] = useState(false);
+    const [roleFilter, setRoleFilter] = useState('');
 
     const { showError, showSuccess } = useError();
     
@@ -347,8 +348,12 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
     );
 
     const usersToDisplay = useMemo(() => {
-        return sportivi;
-    }, [sportivi]);
+        let users = sportivi;
+        if (roleFilter) {
+            users = users.filter(user => (user.roluri || []).some(role => role.id === roleFilter));
+        }
+        return users;
+    }, [sportivi, roleFilter]);
 
 
     const handleEdit = (user: User) => {
@@ -613,14 +618,28 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                 </Card>
 
                 <Card>
-                    <div className="flex justify-between items-center gap-2 mb-4">
-                        <div className="flex items-center gap-2">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+                        <div className="flex items-center gap-3">
                             <ShieldCheckIcon className="w-8 h-8 text-amber-400"/>
                             <h2 className="text-2xl font-bold text-white">Administrare Staff & Permisiuni</h2>
                         </div>
-                         <Button variant="info" onClick={() => setIsCreateStaffModalOpen(true)}>
-                            <PlusIcon className="w-5 h-5 mr-2" /> Adaugă Membru Staff
-                        </Button>
+                        <div className="flex items-center gap-4 w-full md:w-auto">
+                            <div className="flex-grow">
+                                <Select
+                                    label="Filtrează Rol"
+                                    id="role-filter"
+                                    value={roleFilter}
+                                    onChange={(e) => setRoleFilter(e.target.value)}
+                                    className="!py-1.5"
+                                >
+                                    <option value="">Toate Rolurile</option>
+                                    {availableRolesForAssignment.map(r => <option key={r.id} value={r.id}>{r.nume}</option>)}
+                                </Select>
+                            </div>
+                            <Button variant="info" onClick={() => setIsCreateStaffModalOpen(true)} className="flex-shrink-0">
+                                <PlusIcon className="w-5 h-5 mr-2" /> Adaugă Staff
+                            </Button>
+                        </div>
                     </div>
                      <div className="p-3 mb-4 text-sm rounded-md bg-sky-900/50 text-sky-300 border border-sky-500/30">
                         <strong>Notă:</strong> La salvarea rolurilor, permisiunile de acces sunt actualizate automat. Un trigger SQL va sincroniza metadatele pentru a activa accesul multi-cont, dacă este cazul.

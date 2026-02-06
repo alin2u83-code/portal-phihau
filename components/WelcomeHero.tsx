@@ -1,5 +1,5 @@
 import React from 'react';
-import { User } from '../types';
+import { User, Rol } from '../types';
 import { 
     UsersIcon, 
     BanknotesIcon, 
@@ -27,8 +27,21 @@ const MenuCard: React.FC<{ title: string; icon: React.ElementType }> = ({ title,
 export const WelcomeHero: React.FC<WelcomeHeroProps> = ({ profile }) => {
     // Determine user role and corresponding style
     const { role, roleStyle } = React.useMemo(() => {
-        // Prioritize the simple 'rol' field if it exists, otherwise derive from the complex 'roluri' array.
-        const userRole = profile.rol || (profile.roluri && profile.roluri.length > 0 ? profile.roluri[0].nume : 'SPORTIV');
+        const roleWeights: Record<string, number> = {
+            'SUPER_ADMIN_FEDERATIE': 5,
+            'Admin': 4,
+            'Admin Club': 3,
+            'Instructor': 2,
+            'Sportiv': 1,
+        };
+
+        const userRoles = profile.roluri || [];
+        
+        const highestRole = userRoles.length > 0
+            ? [...userRoles].sort((a, b) => (roleWeights[b.nume] || 0) - (roleWeights[a.nume] || 0))[0]
+            : null;
+
+        const userRole = profile.rol || highestRole?.nume || 'SPORTIV';
         
         let style = 'bg-green-600 text-white'; // Default for SPORTIV
         

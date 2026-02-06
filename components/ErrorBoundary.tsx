@@ -20,6 +20,15 @@ class ErrorBoundary extends React.Component<Props, State> {
     error: undefined,
   };
 
+  // FIX: Refactored to use constructor-based method binding for 'this' context.
+  // This ensures 'this' is correctly bound in handler methods across different
+  // JavaScript environments, resolving errors where properties like `setState`
+  // and `props` might be incorrectly reported as non-existent.
+  constructor(props: Props) {
+    super(props);
+    this.handleRedirect = this.handleRedirect.bind(this);
+  }
+
   static getDerivedStateFromError(error: Error): State {
     // Update state so the next render will show the fallback UI.
     return { hasError: true, error };
@@ -30,13 +39,9 @@ class ErrorBoundary extends React.Component<Props, State> {
     console.error("Uncaught error:", error, errorInfo);
   }
 
-  // Use an arrow function to automatically bind 'this'.
-  handleRedirect = () => {
-    // FIX: Property 'setState' does not exist on type 'ErrorBoundary'. It should be called on the class instance.
+  handleRedirect() {
     this.setState({ hasError: false, error: undefined });
-    // FIX: Property 'props' does not exist on type 'ErrorBoundary'. It should be accessed on the class instance.
     if (this.props.onNavigate) {
-        // FIX: Property 'props' does not exist on type 'ErrorBoundary'. It should be accessed on the class instance.
         this.props.onNavigate('dashboard');
     }
   }
@@ -48,7 +53,6 @@ class ErrorBoundary extends React.Component<Props, State> {
         <div className="p-8 text-center bg-red-900/50 text-red-300 rounded-lg border border-red-700">
           <h1 className="text-2xl font-bold">A apărut o eroare neașteptată.</h1>
           <p className="mt-2">Ceva nu a funcționat corect în această secțiune. Încercați să reîncărcați pagina sau să reveniți la panoul principal.</p>
-          {/* FIX: Property 'props' does not exist on type 'ErrorBoundary'. It should be accessed on the class instance. */}
           {this.props.onNavigate && (
               <Button onClick={this.handleRedirect} variant="secondary" className="mt-6">
                   <ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la pagina principală
@@ -63,7 +67,6 @@ class ErrorBoundary extends React.Component<Props, State> {
       );
     }
 
-    // FIX: Property 'props' does not exist on type 'ErrorBoundary'. It should be accessed on the class instance.
     return this.props.children;
   }
 }

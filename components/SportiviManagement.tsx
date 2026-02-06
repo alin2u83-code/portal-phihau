@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions } from '../types';
-import { Button, Modal, Input, Select, Card, Switch, RoleBadge } from './ui';
+import { Button, Modal, Input, Select, Card, Switch } from './ui';
 import { PlusIcon, ArrowLeftIcon, ShieldCheckIcon, WalletIcon, UserXIcon, UserCheckIcon, EditIcon, TrashIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
@@ -22,6 +22,19 @@ const getAge = (dateString: string | null | undefined): number => {
     const m = today.getMonth() - birthDate.getMonth(); 
     if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; } 
     return age; 
+};
+
+const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
+    // FIX: Corrected key from 'Super Admin' to 'SUPER_ADMIN_FEDERATIE' to match the 'Rol' type definition.
+    // FIX: Completed the color mapping to include all roles.
+    const colorClasses: Record<Rol['nume'], string> = {
+        'Admin': 'bg-red-600 text-white',
+        'SUPER_ADMIN_FEDERATIE': 'bg-red-800 text-white',
+        'Admin Club': 'bg-blue-600 text-white',
+        'Instructor': 'bg-sky-600 text-white',
+        'Sportiv': 'bg-slate-600 text-slate-200'
+    };
+    return <span className={`px-2 py-1 text-[10px] font-semibold rounded-full ${colorClasses[role.nume] || 'bg-gray-500 text-white'}`}>{role.nume}</span>;
 };
 
 const DeactivationModal: React.FC<{
@@ -376,7 +389,7 @@ export const SportiviManagement: React.FC<{
             return [
                 ...baseColumns,
                 { key: 'cnp', label: 'CNP', tooltip: "Cod Numeric Personal.", render: (s) => s.cnp || '-', className: 'hidden lg:table-cell' },
-                { key: 'actions', label: 'Acțiuni', tooltip: "Acțiuni rapide: gestionează portofelul sau setările contului.", headerClassName: 'text-right', cellClassName: 'text-right', render: (s) => (<div className="flex justify-end items-center gap-2"><Button size="sm" variant="primary" onClick={(e) => { e.stopPropagation(); setSportivToEdit(s); setIsFormModalOpen(true); }} title="Editează Profil" className="!p-2"><EditIcon className="w-4 h-4" /></Button><Button size="sm" variant="danger" onClick={(e) => { e.stopPropagation(); setSportivForAudit(s); }} title="Dezactivează sau Șterge" className="!p-2"><TrashIcon className="w-4 h-4" /></Button><Button size="sm" variant="info" onClick={(e) => { e.stopPropagation(); handleOpenWallet(s); }} title="Portofel Sportiv" className="!p-2"><WalletIcon className="w-4 h-4" /></Button><Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); setAccountSettingsSportiv(s); }} title="Setări Cont de Acces" className="!p-2"><ShieldCheckIcon className="w-4 h-4" /></Button></div>) }
+                { key: 'actions', label: 'Acțiuni', tooltip: "Acțiuni rapide: gestionează portofelul sau setările contului.", headerClassName: 'text-right', cellClassName: 'text-right', render: (s) => (<div className="flex justify-end items-center gap-2"><Button size="sm" variant="info" onClick={(e) => { e.stopPropagation(); handleOpenWallet(s); }} title="Portofel Sportiv" className="!p-2"><WalletIcon className="w-4 h-4" /></Button><Button size="sm" variant={s.status === 'Activ' ? 'warning' : 'success'} onClick={(e) => { e.stopPropagation(); handleToggleStatus(s); }} title={s.status === 'Activ' ? 'Dezactivează sportiv' : 'Activează sportiv'} className="!p-2" isLoading={loadingStates[s.id]}>{s.status === 'Activ' ? <UserXIcon className="w-4 h-4" /> : <UserCheckIcon className="w-4 h-4" />}</Button><Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); setAccountSettingsSportiv(s); }} title="Setări Cont de Acces" className="!p-2"><ShieldCheckIcon className="w-4 h-4" /></Button></div>) }
             ];
         }
 
@@ -470,6 +483,16 @@ export const SportiviManagement: React.FC<{
 
             <SportivAccountSettingsModal isOpen={!!accountSettingsSportiv} onClose={() => setAccountSettingsSportiv(null)} sportiv={accountSettingsSportiv} setSportivi={setSportivi} allRoles={allRoles} setAllRoles={setAllRoles} currentUser={currentUser} />
             
+            <DeactivationModal
+                isOpen={!!sportivToDeactivate}
+                onClose={() => setSportivToDeactivate(null)}
+                sportiv={sportivToDeactivate}
+                sportivi={sportivi}
+                plati={plati}
+                tipuriAbonament={tipuriAbonament}
+                onConfirm={handleConfirmDeactivation}
+            />
+
             {isWalletModalOpen && sportivForWallet && (<SportivWallet sportiv={sportivForWallet} familie={familii.find(f => f.id === sportivForWallet.familie_id)} allPlati={plati} allTranzactii={tranzactii} setTranzactii={setTranzactii} onClose={() => { setIsWalletModalOpen(false); setSportivForWallet(null); }} />)}
         </div>
     );

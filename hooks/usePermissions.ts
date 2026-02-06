@@ -1,57 +1,42 @@
 import { useMemo } from 'react';
-import { User, Rol, Permissions } from '../types';
-import { ROLES } from '../constants';
-
-const initialPermissions: Permissions = {
-    isSuperAdmin: false,
-    isAdmin: false,
-    isFederationAdmin: false,
-    isAdminClub: false,
-    isInstructor: false,
-    isSportiv: false,
-    hasAdminAccess: false,
-    isFederationLevel: false,
-    canManageFinances: false,
-    canGradeStudents: false,
-    visibleClubIds: [],
-};
+import { User, Permissions, Rol } from '../types';
 
 export const usePermissions = (user: User | null): Permissions => {
-    const permissions = useMemo((): Permissions => {
-        if (!user || !user.roluri) {
-            return initialPermissions;
+    return useMemo(() => {
+        if (!user) {
+            // Default permissions for a non-logged-in user or when user is null
+            return {
+                isSuperAdmin: false,
+                isAdmin: false,
+                isFederationAdmin: false,
+                isAdminClub: false,
+                isInstructor: false,
+                isSportiv: true, // Default to most restrictive
+                hasAdminAccess: false,
+                isFederationLevel: false,
+                canManageFinances: false,
+                canGradeStudents: false,
+                visibleClubIds: [],
+            };
         }
-        
-        const userRoles = user.roluri || [];
 
-        // Corect: Se verifică întregul array de roluri folosind .some()
-        const isSuperAdmin = userRoles.some(r => r.nume === ROLES.SUPER_ADMIN_FEDERATIE);
-        const isAdmin = userRoles.some(r => r.nume === ROLES.ADMIN);
+        const roles = new Set(user.roluri.map(r => r.nume));
+
+        const isSuperAdmin = roles.has('SUPER_ADMIN_FEDERATIE');
+        const isAdmin = roles.has('Admin');
         const isFederationAdmin = isSuperAdmin || isAdmin;
-        const isAdminClub = userRoles.some(r => r.nume === ROLES.ADMIN_CLUB);
-        const isInstructor = userRoles.some(r => r.nume === ROLES.INSTRUCTOR);
-        const isSportiv = userRoles.some(r => r.nume === ROLES.SPORTIV);
-        
-        // Un flag general pentru a determina dacă utilizatorul are orice fel de acces administrativ
+        const isAdminClub = roles.has('Admin Club');
+        const isInstructor = roles.has('Instructor');
+        const isSportiv = roles.has('Sportiv');
+
         const hasAdminAccess = isFederationAdmin || isAdminClub || isInstructor;
+        const isFederationLevel = isFederationAdmin;
 
-        // Log de diagnosticare pentru accesul administrativ
-        if (hasAdminAccess) {
-            const roleNames = userRoles.map(r => r.nume).join(', ');
-            console.log(`[Authorization] Acces permis pentru rolurile: ${roleNames}`);
-        }
+        const canManageFinances = isFederationAdmin || isAdminClub;
+        const canGradeStudents = isFederationAdmin || isAdminClub || isInstructor;
         
-        // Flag-urile de business logic sunt derivate din contextul ACTIV al sesiunii
-        const activeRole = user.rol_activ_context;
-        const normalizedActiveRole = activeRole?.toUpperCase().replace(/ /g, '_');
+        const visibleClubIds: 'all' | string[] = isFederationAdmin ? 'all' : (user.club_id ? [user.club_id] : []);
 
-        const isFederationLevel = normalizedActiveRole === ROLES.SUPER_ADMIN_FEDERATIE || normalizedActiveRole === ROLES.ADMIN;
-        const canManageFinances = isFederationLevel || normalizedActiveRole === ROLES.ADMIN_CLUB;
-        const canGradeStudents = hasAdminAccess; // Oricine cu acces admin poate gestiona examene
-
-        // Determină ce cluburi sunt vizibile în contextul curent
-        const visibleClubIds: 'all' | string[] = isFederationLevel ? 'all' : (user.club_id ? [user.club_id] : []);
-        
         return {
             isSuperAdmin,
             isAdmin,
@@ -66,6 +51,4 @@ export const usePermissions = (user: User | null): Permissions => {
             visibleClubIds,
         };
     }, [user]);
-
-    return permissions;
 };

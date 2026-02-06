@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../supabaseClient';
-import { useError } from './ErrorProvider';
 import { Card } from './ui';
 
 interface ProtectedGateProps {
     children: React.ReactNode;
     onRedirect: () => void;
     fallback?: React.ReactNode;
+    isAuthorized: boolean | null;
 }
 
 const DefaultFallback: React.FC = () => (
@@ -22,37 +21,7 @@ const DefaultFallback: React.FC = () => (
     </Card>
 );
 
-export const ProtectedGate: React.FC<ProtectedGateProps> = ({ children, onRedirect, fallback = <DefaultFallback /> }) => {
-    const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
-    const { showError } = useError();
-
-    useEffect(() => {
-        let isMounted = true;
-        const checkAdminStatus = async () => {
-            if (!supabase) {
-                showError("Eroare Configurare", "Client Supabase neconfigurat.");
-                if (isMounted) setIsAuthorized(false);
-                return;
-            }
-
-            const { data, error } = await supabase.rpc('check_is_admin');
-
-            if (!isMounted) return;
-
-            if (error) {
-                showError("Eroare Permisiuni", `Nu s-a putut verifica statusul de administrator: ${error.message}`);
-                console.error("RPC 'check_is_admin' error:", error);
-                setIsAuthorized(false);
-            } else {
-                setIsAuthorized(data);
-            }
-        };
-
-        checkAdminStatus();
-
-        return () => { isMounted = false; };
-    }, [showError]);
-
+export const ProtectedGate: React.FC<ProtectedGateProps> = ({ children, onRedirect, fallback = <DefaultFallback />, isAuthorized }) => {
     useEffect(() => {
         if (isAuthorized === false) {
             setTimeout(onRedirect, 0);

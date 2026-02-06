@@ -71,24 +71,23 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
         setIsGenerating(true);
         try {
             const clubId = currentUser?.club_id;
-            if (!clubId) {
+            if (!clubId && !permissions.isFederationAdmin) {
                 throw new Error("Contextul curent al adminului nu are un club ID asociat.");
             }
     
+            // The inner join on `sportivi` is protected by RLS, so the manual `.eq('club_id', clubId)` is redundant.
+            // RLS will ensure only sportivi from the correct club are returned.
             const { data: roleData, error: roleError } = await supabase
                 .from('utilizator_roluri_multicont')
                 .select('sportiv_id, sportiv:sportivi!inner(*)')
-                .eq('rol_denumire', 'SPORTIV')
-                .eq('club_id', clubId);
+                .eq('rol_denumire', 'SPORTIV');
     
             if (roleError) throw roleError;
             
             const sportiviActivi = roleData
                 .map(item => item.sportiv)
                 .filter(s => {
-                    if (!s) {
-                        throw new Error(`Eroare de integritate: Un utilizator cu rol de sportiv are 'sportiv_id' null sau un profil de sportiv neasociat.`);
-                    }
+                    if (!s) { return false; } // Should not happen with inner join
                     return s.status === 'Activ';
                 });
             

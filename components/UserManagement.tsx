@@ -317,7 +317,6 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
     const [isCreateStaffModalOpen, setIsCreateStaffModalOpen] = useState(false);
 
     const { showError, showSuccess } = useError();
-    const { isFederationAdmin } = permissions;
     
     const [isCreateAccountModalOpen, setIsCreateAccountModalOpen] = useState(false);
     const [selectedUserForAccount, setSelectedUserForAccount] = useState<Sportiv | null>(null);
@@ -348,10 +347,8 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
     );
 
     const usersToDisplay = useMemo(() => {
-        return isFederationAdmin
-            ? sportivi
-            : sportivi.filter(s => s.club_id === currentUser.club_id);
-    }, [sportivi, currentUser, isFederationAdmin]);
+        return sportivi;
+    }, [sportivi]);
 
 
     const handleEdit = (user: User) => {

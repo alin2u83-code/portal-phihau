@@ -32,8 +32,11 @@ class ErrorBoundary extends React.Component<Props, State> {
 
   // Use an arrow function to automatically bind 'this'.
   handleRedirect = () => {
+    // FIX: 'setState' is a method on the class instance and must be called with 'this.setState'.
     this.setState({ hasError: false, error: undefined });
+    // FIX: 'props' are a property on the class instance and must be accessed with 'this.props'.
     if (this.props.onNavigate) {
+        // FIX: 'props' are a property on the class instance and must be accessed with 'this.props'.
         this.props.onNavigate('dashboard');
     }
   }
@@ -45,6 +48,7 @@ class ErrorBoundary extends React.Component<Props, State> {
         <div className="p-8 text-center bg-red-900/50 text-red-300 rounded-lg border border-red-700">
           <h1 className="text-2xl font-bold">A apărut o eroare neașteptată.</h1>
           <p className="mt-2">Ceva nu a funcționat corect în această secțiune. Încercați să reîncărcați pagina sau să reveniți la panoul principal.</p>
+          {/* FIX: 'props' are a property on the class instance and must be accessed with 'this.props'. */}
           {this.props.onNavigate && (
               <Button onClick={this.handleRedirect} variant="secondary" className="mt-6">
                   <ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la pagina principală
@@ -59,6 +63,7 @@ class ErrorBoundary extends React.Component<Props, State> {
       );
     }
 
+    // FIX: 'props' are a property on the class instance and must be accessed with 'this.props'.
     return this.props.children;
   }
 }

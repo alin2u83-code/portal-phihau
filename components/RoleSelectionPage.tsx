@@ -3,24 +3,13 @@ import { Card, Button } from './ui';
 import { ShieldCheckIcon } from './icons';
 
 // --- Helper Functions ---
-const getRoleDisplayName = (role: any) => {
-    switch(role.rol_denumire) {
-        case 'SUPER_ADMIN_FEDERATIE': return 'Super Admin Federație';
-        case 'Admin': return 'Admin General';
-        case 'Admin Club': return `Admin - ${role.club?.nume || 'Club Nedefinit'}`;
-        case 'Instructor': return `Instructor - ${role.club?.nume || 'Club Nedefinit'}`;
-        case 'Sportiv': return `Sportiv - ${role.sportiv?.nume || ''} ${role.sportiv?.prenume || ''}`;
-        default: return role.rol_denumire;
-    }
-};
-
 const getRoleDescription = (role: any) => {
     switch(role.rol_denumire) {
         case 'SUPER_ADMIN_FEDERATIE': return 'Acces total la nivel de federație.';
         case 'Admin': return 'Acces administrativ general.';
-        case 'Admin Club': return `Management complet pentru ${role.club?.nume || 'club'}.`;
-        case 'Instructor': return `Management sportivi și prezențe la ${role.club?.nume || 'club'}.`;
-        case 'Sportiv': return 'Accesează portalul personal de sportiv.';
+        case 'Admin Club': return 'Management complet pentru clubul asociat.';
+        case 'Instructor': return 'Management sportivi și prezențe la clubul asociat.';
+        case 'Sportiv': return `Accesează portalul personal ca ${role.nume || ''} ${role.prenume || ''}.`;
         default: return 'Selectează acest profil pentru a continua.';
     }
 }
@@ -45,17 +34,27 @@ export const RoleSelectionPage: React.FC<RoleSelectionPageProps> = ({ roles, onS
                     </div>
 
                     <div className="space-y-4">
-                        {roles.map((role, index) => (
-                            <button
-                                key={index}
-                                onClick={() => onSelect(role)}
-                                disabled={loading}
-                                className="w-full text-left p-4 rounded-lg bg-slate-700 hover:bg-slate-600 transition-all duration-300 disabled:opacity-50 border border-slate-600 focus:outline-none focus:ring-2 focus:ring-brand-secondary transform hover:scale-105"
-                            >
-                                <p className="font-bold text-lg text-white">{getRoleDisplayName(role)}</p>
-                                <p className="text-sm text-slate-400">{getRoleDescription(role)}</p>
-                            </button>
-                        ))}
+                        {roles && roles.length > 0 ? (
+                            roles.map((role, index) => {
+                                const isClubRole = role.rol_denumire === 'Admin Club' || role.rol_denumire === 'Instructor';
+                                return (
+                                    <button
+                                        key={index}
+                                        onClick={() => onSelect(role)}
+                                        disabled={loading}
+                                        className="w-full text-left p-4 rounded-lg bg-slate-700 hover:bg-slate-600 transition-all duration-300 disabled:opacity-50 border border-slate-600 focus:outline-none focus:ring-2 focus:ring-brand-secondary transform hover:scale-105"
+                                    >
+                                        <p className="font-bold text-lg text-white">{role.rol_denumire}</p>
+                                        {isClubRole && role.club_nume && (
+                                            <p className="text-md font-semibold text-slate-300 -mt-1">{role.club_nume}</p>
+                                        )}
+                                        <p className="text-sm text-slate-400 mt-1">{getRoleDescription(role)}</p>
+                                    </button>
+                                );
+                            })
+                        ) : (
+                            <p className="text-center text-red-400 py-4">Nu s-au găsit roluri alocate pentru acest cont.</p>
+                        )}
                     </div>
 
                     {loading && <div className="text-center mt-6 text-slate-400 animate-pulse">Se configurează sesiunea...</div>}

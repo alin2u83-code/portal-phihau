@@ -24,11 +24,12 @@ interface PlatiScadenteProps {
     permissions: Permissions;
     inscrieriExamene: InscriereExamen[];
     grade: Grad[];
+    activeClubId: string | null;
 }
 
 const initialFilters = { sportiv: '', tip: '', status: 'scadent', clubId: '' };
 
-export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, sportivi, familii, tipuriAbonament, tranzactii, reduceri, onIncaseazaMultiple, onBack, onViewSportiv, currentUser, clubs, permissions, inscrieriExamene, grade }) => {
+export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, sportivi, familii, tipuriAbonament, tranzactii, reduceri, onIncaseazaMultiple, onBack, onViewSportiv, currentUser, clubs, permissions, inscrieriExamene, grade, activeClubId }) => {
     const [filter, setFilter] = useLocalStorage('phi-hau-plati-scadente-filter', initialFilters);
     const [editingPlata, setEditingPlata] = useState<Plata | null>(null);
     const [plataToDelete, setPlataToDelete] = useState<Plata | null>(null);
@@ -70,17 +71,15 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
         
         setIsGenerating(true);
         try {
-            const clubId = currentUser?.club_id;
-            if (!clubId && !permissions.isFederationAdmin) {
-                throw new Error("Contextul curent al adminului nu are un club ID asociat.");
+            if (!activeClubId) {
+                throw new Error("Contextul clubului nu este setat. Nu se pot genera abonamente.");
             }
     
-            // The inner join on `sportivi` is protected by RLS, so the manual `.eq('club_id', clubId)` is redundant.
-            // RLS will ensure only sportivi from the correct club are returned.
             const { data: roleData, error: roleError } = await supabase
                 .from('utilizator_roluri_multicont')
                 .select('sportiv_id, sportiv:sportivi!inner(*)')
-                .eq('rol_denumire', 'SPORTIV');
+                .eq('rol_denumire', 'SPORTIV')
+                .eq('sportiv.club_id', activeClubId);
     
             if (roleError) throw roleError;
             

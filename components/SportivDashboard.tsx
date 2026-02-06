@@ -256,13 +256,14 @@ interface SportivDashboardProps {
   setAnunturi: React.Dispatch<React.SetStateAction<AnuntPrezenta[]>>;
   sportivi: Sportiv[];
   permissions: Permissions;
+  userRoles: any[];
   canSwitchRoles: boolean;
   activeRole: Rol['nume'];
   onSwitchRole: (roleContext: any) => void;
   isSwitchingRole: boolean;
 }
 
-export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser, viewedUser, participari, examene, grade, istoricGrade, grupe, plati, onNavigate, antrenamente, anunturi, setAnunturi, sportivi, permissions, canSwitchRoles, activeRole, onSwitchRole, isSwitchingRole }) => {
+export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser, viewedUser, participari, examene, grade, istoricGrade, grupe, plati, onNavigate, antrenamente, anunturi, setAnunturi, sportivi, permissions, userRoles, canSwitchRoles, activeRole, onSwitchRole, isSwitchingRole }) => {
     
     const { showSuccess, showError } = useError();
     const isViewingOwnProfile = currentUser.id === viewedUser.id;
@@ -428,16 +429,25 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                 <Card className="animate-fade-in-down" style={{ animationDelay: '300ms' }}>
                     <h3 className="text-lg font-bold text-white mb-4">Comută Context</h3>
                     <div className="flex flex-wrap gap-2">
-                        {currentUser.roluri.map(rol => (
-                            <Button 
-                                key={rol.id}
-                                variant={activeRole === rol.nume ? 'primary' : 'secondary'}
-                                onClick={() => onSwitchRole(rol as any)}
-                                disabled={isSwitchingRole}
-                            >
-                                {rol.nume}
-                            </Button>
-                        ))}
+                        {currentUser.roluri.map(rol => {
+                            const targetContext = userRoles.find(ctx => ctx.rol_denumire === rol.nume);
+                            return (
+                                <Button 
+                                    key={rol.id}
+                                    variant={activeRole === rol.nume ? 'primary' : 'secondary'}
+                                    onClick={() => {
+                                        if (targetContext) {
+                                            onSwitchRole(targetContext);
+                                        } else {
+                                            showError("Eroare Comutare", `Nu s-a putut găsi contextul pentru rolul '${rol.nume}'.`);
+                                        }
+                                    }}
+                                    disabled={isSwitchingRole}
+                                >
+                                    {rol.nume}
+                                </Button>
+                            );
+                        })}
                     </div>
                 </Card>
             )}

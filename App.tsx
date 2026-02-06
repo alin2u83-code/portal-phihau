@@ -630,6 +630,7 @@ function App() {
                         setAnunturi={setAnunturiPrezenta}
                         sportivi={filteredData.sportivi || []}
                         permissions={permissions}
+                        userRoles={userRoles}
                         canSwitchRoles={canSwitchRoles}
                         activeRole={activeRole!}
                         onSwitchRole={handleSwitchRole}

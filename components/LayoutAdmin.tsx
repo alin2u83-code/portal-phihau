@@ -4,7 +4,6 @@ import { supabase } from '../supabaseClient';
 import { useAuthStore } from '../store/authStore';
 import { Sportiv, SesiuneExamen, Grad, InscriereExamen, View, Antrenament, Grupa, Plata, Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, Rol, AnuntPrezenta, Reducere, AnuntGeneral, TipPlata, Locatie, Club, DecontFederatie, IstoricGrade, Permissions } from '../types';
 import { Sidebar } from './Sidebar';
-// FIX: Changed import to default import to match export from ErrorBoundary.tsx
 import ErrorBoundary from './ErrorBoundary';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
@@ -21,20 +20,19 @@ import { GrupeManagement } from './Grupe';
 
 // A simple loading screen for data fetching
 const DataLoadingScreen: React.FC = () => (
-    <div className="flex items-center justify-center h-full min-h-screen">
+    <div className="min-h-screen flex items-center justify-center bg-[var(--bg-main)]">
         <p>Se încarcă datele aplicației...</p>
     </div>
 );
 
 
 export const LayoutAdmin: React.FC = () => {
-    const { authContext, userProfile, logout } = useAuthStore();
+    const { isAdmin, user, roles } = useAuthStore();
     const { showError } = useError();
     const [isDataLoading, setIsDataLoading] = useState(true);
 
-    // All data state from old App.tsx
+    // All application data states
     const [sportivi, setSportivi] = useState<Sportiv[]>([]);
-    // ... Paste all other useState declarations here ...
     const [sesiuniExamene, setSesiuniExamene] = useState<SesiuneExamen[]>([]);
     const [inscrieriExamene, setInscrieriExamene] = useState<InscriereExamen[]>([]);
     const [grade, setGrade] = useState<Grad[]>([]);
@@ -56,16 +54,41 @@ export const LayoutAdmin: React.FC = () => {
     const [clubs, setClubs] = useState<Club[]>([]);
     const [deconturiFederatie, setDeconturiFederatie] = useState<DecontFederatie[]>([]);
 
+    // Permissions object derived from the new auth store state
+    const permissions = useMemo((): Permissions => {
+        if (!user) return { isSuperAdmin: false, isAdmin: false, isFederationAdmin: false, isAdminClub: false, isInstructor: false, isSportiv: true, hasAdminAccess: false, isFederationLevel: false, canManageFinances: false, canGradeStudents: false, visibleClubIds: [], };
+        
+        const roleSet = new Set(roles);
+        const isSuperAdmin = roleSet.has('SUPER_ADMIN_FEDERATIE');
+        const isAdminRole = roleSet.has('Admin');
+        const isFederationAdmin = isSuperAdmin || isAdminRole;
+        const isAdminClub = roleSet.has('Admin Club');
+        const isInstructor = roleSet.has('INSTRUCTOR');
+
+        return {
+            isSuperAdmin,
+            isAdmin: isAdminRole,
+            isFederationAdmin,
+            isAdminClub,
+            isInstructor,
+            isSportiv: roleSet.has('SPORTIV'),
+            hasAdminAccess: isAdmin,
+            isFederationLevel: isFederationAdmin,
+            canManageFinances: isFederationAdmin || isAdminClub,
+            canGradeStudents: isFederationAdmin || isAdminClub || isInstructor,
+            visibleClubIds: isFederationAdmin ? 'all' : (user.club_id ? [user.club_id] : []),
+        };
+    }, [user, roles, isAdmin]);
+
     const fetchData = useCallback(async () => {
+        if (!supabase) return;
         setIsDataLoading(true);
         try {
-            // This is a simplified version of the old data fetching logic
             const { data, error } = await supabase.rpc('get_all_app_data');
             if (error) throw error;
-
+            
             setSportivi(data.sportivi || []);
             setSesiuniExamene(data.sesiuni_examene || []);
-            // ... set all other states
             setInscrieriExamene(data.inscrieri_examene || []);
             setGrade(data.grade || []);
             setIstoricGrade(data.istoric_grade || []);
@@ -87,38 +110,33 @@ export const LayoutAdmin: React.FC = () => {
             setDeconturiFederatie(data.deconturi_federatie || []);
 
         } catch (err: any) {
-            showError("Eroare la încărcarea datelor", err.message);
+            showError("Eroare la încărcarea datelor aplicației", err.message);
         } finally {
             setIsDataLoading(false);
         }
     }, [showError]);
 
     useEffect(() => {
-        // You might need a more sophisticated RPC or multiple calls here.
-        // For simplicity, let's assume one big RPC for now.
-        // fetchData();
-        // The old fetching logic is very complex with Promise.allSettled. I will keep it.
-        // The user has this code, I'll move it here.
+        fetchData();
     }, [fetchData]);
 
-    if (isDataLoading || !authContext || !userProfile) {
+    if (isDataLoading || !user) {
         return <DataLoadingScreen />;
     }
     
-    // The user has admin access, show the full admin layout
-    if (authContext.is_admin) {
+    // Main authorization check
+    if (isAdmin) {
         return (
             <div className="flex min-h-screen bg-[var(--bg-main)]">
-                {/* Sidebar here */}
-                <main className="flex-1">
-                     <div className="p-4 md:p-8 max-w-7xl mx-auto">
+                {/* Admin Sidebar would go here */}
+                <main className="flex-1 lg:ml-64">
+                     <div className="p-4 md:p-8">
                         <ErrorBoundary>
-                            {/* All Admin routes will be rendered here */}
                             <Routes>
-                                <Route path="/" element={<AdminDashboard currentUser={userProfile} />} />
-                                <Route path="/sportivi" element={<SportiviManagement onBack={() => {}} sportivi={sportivi} setSportivi={setSportivi} grupe={grupe} setGrupe={setGrupe} tipuriAbonament={tipuriAbonament} familii={familii} setFamilii={setFamilii} allRoles={allRoles} setAllRoles={setAllRoles} currentUser={userProfile} plati={plati} setPlati={setPlati} tranzactii={tranzactii} setTranzactii={setTranzactii} onViewSportiv={() => {}} clubs={clubs} grade={grade} permissions={authContext as any} />} />
-                                <Route path="/examene" element={<GestiuneExamene currentUser={userProfile} clubs={clubs} onBack={() => {}} onNavigate={() => {}} sesiuni={sesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={sportivi} setSportivi={setSportivi} grade={grade} istoricGrade={istoricGrade} locatii={locatii} setLocatii={setLocatii} plati={plati} setPlati={setPlati} preturiConfig={preturiConfig} deconturiFederatie={deconturiFederatie} setDeconturiFederatie={setDeconturiFederatie} onViewSportiv={()=>{}} />} />
-                                {/* Add all other routes from the old switch statement */}
+                                <Route path="/" element={<AdminDashboard currentUser={user} />} />
+                                <Route path="/sportivi" element={<SportiviManagement onBack={() => {}} sportivi={sportivi} setSportivi={setSportivi} grupe={grupe} setGrupe={setGrupe} tipuriAbonament={tipuriAbonament} familii={familii} setFamilii={setFamilii} allRoles={allRoles} setAllRoles={setAllRoles} currentUser={user} plati={plati} setPlati={setPlati} tranzactii={tranzactii} setTranzactii={setTranzactii} onViewSportiv={() => {}} clubs={clubs} grade={grade} permissions={permissions} />} />
+                                <Route path="/examene" element={<GestiuneExamene currentUser={user} clubs={clubs} onBack={() => {}} onNavigate={() => {}} sesiuni={sesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={sportivi} setSportivi={setSportivi} grade={grade} istoricGrade={istoricGrade} locatii={locatii} setLocatii={setLocatii} plati={plati} setPlati={setPlati} preturiConfig={preturiConfig} deconturiFederatie={deconturiFederatie} setDeconturiFederatie={setDeconturiFederatie} onViewSportiv={()=>{}} />} />
+                                {/* Add all other admin routes here */}
                                 <Route path="*" element={<Navigate to="/" replace />} />
                             </Routes>
                         </ErrorBoundary>
@@ -128,15 +146,15 @@ export const LayoutAdmin: React.FC = () => {
         );
     }
 
-    // User is not an admin, show the limited Sportiv portal
+    // Render Sportiv portal if not an admin
     return (
         <div className="flex min-h-screen bg-[var(--bg-main)]">
-            {/* Sidebar with limited menu */}
+            {/* A simplified sidebar for Sportiv could go here */}
              <main className="flex-1">
-                 <div className="p-4 md:p-8 max-w-7xl mx-auto">
+                 <div className="p-4 md:p-8 max-w-4xl mx-auto">
                     <Routes>
-                         <Route path="/" element={<SportivDashboard currentUser={userProfile} viewedUser={userProfile} participari={inscrieriExamene} examene={sesiuniExamene} grade={grade} istoricGrade={istoricGrade} grupe={grupe} plati={plati} onNavigate={() => {}} antrenamente={antrenamente} anunturi={anunturiPrezenta} setAnunturi={setAnunturiPrezenta} sportivi={sportivi} permissions={authContext as any} userRoles={[]} canSwitchRoles={false} activeRole={userProfile.rol || ''} onSwitchRole={() => {}} isSwitchingRole={false} />} />
-                         {/* Add other specific sportiv routes if needed */}
+                         <Route path="/" element={<SportivDashboard currentUser={user} viewedUser={user} participari={inscrieriExamene} examene={sesiuniExamene} grade={grade} istoricGrade={istoricGrade} grupe={grupe} plati={plati} onNavigate={() => {}} antrenamente={antrenamente} anunturi={anunturiPrezenta} setAnunturi={setAnunturiPrezenta} sportivi={sportivi} permissions={permissions} userRoles={[]} canSwitchRoles={false} activeRole={user.rol || ''} onSwitchRole={() => {}} isSwitchingRole={false} />} />
+                         {/* Other sportiv-specific routes */}
                          <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>
                  </div>

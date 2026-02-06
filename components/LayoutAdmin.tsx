@@ -24,6 +24,16 @@ const DataLoadingScreen: React.FC = () => (
     </div>
 );
 
+const DataErrorScreen: React.FC<{ error: string; onRetry: () => void }> = ({ error, onRetry }) => (
+    <div className="min-h-[80vh] flex items-center justify-center bg-[var(--bg-main)] p-4">
+        <Card className="text-center p-8 border-red-500 border-2 bg-red-900/30">
+            <h1 className="text-2xl font-bold text-red-300">Eroare la încărcarea datelor</h1>
+            <p className="mt-2 text-red-200">{error}</p>
+            <Button onClick={onRetry} className="mt-6" variant="secondary">Reîncearcă</Button>
+        </Card>
+    </div>
+);
+
 
 export const LayoutAdmin: React.FC = () => {
     const { isAdmin, userDetails, roles } = useAuthStore();
@@ -128,15 +138,29 @@ export const LayoutAdmin: React.FC = () => {
     if (isDataLoading || !userDetails) {
         return <DataLoadingScreen />;
     }
-
-    if (fetchError) {
+    
+    if (fetchError && isAdmin) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-[var(--bg-main)] p-4">
-                <Card className="text-center p-8 border-red-500 border-2 bg-red-900/30">
-                    <h1 className="text-2xl font-bold text-red-300">Eroare la încărcarea datelor</h1>
-                    <p className="mt-2 text-red-200">{fetchError}</p>
-                    <Button onClick={fetchData} className="mt-6" variant="secondary">Reîncearcă</Button>
-                </Card>
+            <div className="flex min-h-screen bg-[var(--bg-main)]">
+                <Sidebar 
+                    currentUser={userDetails} 
+                    permissions={permissions} 
+                    clubs={clubs} 
+                    globalClubFilter={null} 
+                    setGlobalClubFilter={() => {}} 
+                    activeRole={roles[0]} 
+                    canSwitchRoles={false} 
+                    onSwitchRole={() => {}} 
+                    isSwitchingRole={false}
+                    grade={grade}
+                    userRoles={[]}
+                    activeRoleContext={null}
+                />
+                <main className={`flex-1 transition-all duration-300 ${permissions.hasAdminAccess && isExpanded ? 'lg:ml-64' : (permissions.hasAdminAccess ? 'lg:ml-20' : 'lg:ml-0')}`}>
+                    <div className="p-4 md:p-8">
+                         <DataErrorScreen error={fetchError} onRetry={fetchData} />
+                    </div>
+                </main>
             </div>
         );
     }
@@ -169,7 +193,7 @@ export const LayoutAdmin: React.FC = () => {
                             {/* ... Add other admin routes here, wrapped in ProtectedRoute */}
 
                             {/* Sportiv Routes */}
-                            <Route path="/dashboard-sportiv" element={<SportivDashboard currentUser={userDetails} viewedUser={userDetails} participari={inscrieriExamene} examene={sesiuniExamene} grade={grade} istoricGrade={istoricGrade} grupe={grupe} plati={plati} onNavigate={() => {}} antrenamente={antrenamente} anunturi={anunturiPrezenta} setAnunturi={setAnunturiPrezenta} sportivi={sportivi} permissions={permissions} canSwitchRoles={false} activeRole={userDetails.rol || ''} onSwitchRole={() => {}} isSwitchingRole={false} />} />
+                            <Route path="/dashboard-sportiv" element={<SportivDashboard grade={grade} grupe={grupe} onNavigate={() => {}} antrenamente={antrenamente} anunturi={anunturiPrezenta} setAnunturi={setAnunturiPrezenta} sportivi={sportivi} permissions={permissions} canSwitchRoles={false} activeRole={userDetails.rol || ''} onSwitchRole={() => {}} isSwitchingRole={false} appDataError={fetchError} />} />
                             
                             {/* Default Route */}
                             <Route path="/" element={

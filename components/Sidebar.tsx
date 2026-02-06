@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { User, View, Club, Permissions, Rol } from '../types';
-import { instructorMenu, sportivMenu, sidebarClubAdminMenu, sidebarFederationAdminMenu, MenuItem } from './menuConfig';
+import { sportivMenu, adminMenu, MenuItem, SubMenuItem } from './menuConfig';
 import { ArrowRightOnRectangleIcon, Bars3Icon, ChevronDownIcon, ShieldCheckIcon, UserCircleIcon } from './icons';
-// FIX: Import 'Button' component from './ui' to resolve 'Cannot find name 'Button'' error.
 import { Select, Button } from './ui';
 import { FEDERATIE_ID, FEDERATIE_NAME, ROLES } from '../constants';
 
@@ -19,12 +18,16 @@ const NavItem: React.FC<{
     const [isSubmenuOpen, setIsSubmenuOpen] = useState(false);
 
     useEffect(() => {
-        if (isActive) setIsSubmenuOpen(true);
-    }, [isActive]);
+        // Automatically open submenu if one of its items is active
+        const hasActiveSubItem = item.submenu?.some(sub => sub.view === activeView) ?? false;
+        if (hasActiveSubItem) {
+            setIsSubmenuOpen(true);
+        }
+    }, [activeView, item.submenu]);
 
     const hasSubmenu = item.submenu && item.submenu.length > 0;
     const handleClick = () => {
-        if (hasSubmenu) setIsSubmenuOpen(!isSubmenuOpen);
+        if (hasSubmenu) setIsSubmenuOpen(prev => !prev);
         else if (item.view) onNavigate(item.view);
     };
 
@@ -85,32 +88,59 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
 
         const normalizedRole = activeRole?.toUpperCase() || 'SPORTIV';
 
-        switch (normalizedRole) {
-            case ROLES.SUPER_ADMIN_FEDERATIE:
-            case ROLES.ADMIN:
-                menu = sidebarFederationAdminMenu;
-                name = 'Federație';
-                border = 'border-amber-400'; // Gold/Amber border
-                break;
-            case ROLES.ADMIN_CLUB:
-                menu = sidebarClubAdminMenu;
-                name = currentUser.cluburi?.nume || 'Club Nesetat';
-                border = 'border-blue-500';
-                break;
-            case ROLES.INSTRUCTOR:
-                menu = instructorMenu;
-                name = currentUser.cluburi?.nume || 'Club Nesetat';
-                border = 'border-sky-500';
-                break;
-            case ROLES.SPORTIV:
-            default:
-                menu = sportivMenu;
-                name = 'Portal Sportiv';
-                border = 'border-green-500';
-                break;
+        // Filter function for recursive filtering based on permissions
+        const filterMenuItems = (items: (MenuItem | SubMenuItem)[]): any[] => {
+            return items
+                .map(item => {
+                    // If item has a permission function, check it. If not, it's visible.
+                    if (item.permission && !item.permission(permissions)) {
+                        return null;
+                    }
+                    // If it's a parent menu, filter its children
+                    if ('submenu' in item && item.submenu) {
+                        const filteredSubmenu = filterMenuItems(item.submenu);
+                        // Only include the parent menu if it still has visible children
+                        if (filteredSubmenu.length > 0) {
+                            return { ...item, submenu: filteredSubmenu };
+                        }
+                        // If all children are filtered out, remove the parent too
+                        return null;
+                    }
+                    return item;
+                })
+                .filter(Boolean); // Removes null entries from the array
+        };
+
+        if (permissions.hasAdminAccess) {
+            menu = filterMenuItems(adminMenu);
+            switch (normalizedRole) {
+                case ROLES.SUPER_ADMIN_FEDERATIE:
+                case ROLES.ADMIN:
+                    name = 'Federație';
+                    border = 'border-amber-400';
+                    break;
+                case ROLES.ADMIN_CLUB:
+                    name = currentUser.cluburi?.nume || 'Club Nesetat';
+                    border = 'border-blue-500';
+                    break;
+                case ROLES.INSTRUCTOR:
+                    name = currentUser.cluburi?.nume || 'Club Nesetat';
+                    border = 'border-sky-500';
+                    break;
+                default:
+                    name = 'Admin';
+                    border = 'border-slate-500';
+                    break;
+            }
+        } else {
+            menu = sportivMenu;
+            name = 'Portal Sportiv';
+            border = 'border-green-500';
         }
+        
         return { menuToDisplay: menu, contextName: name, borderClass: border };
-    }, [activeRole, currentUser.cluburi?.nume]);
+    }, [activeRole, currentUser.cluburi?.nume, permissions]);
+
 
     const adminRoleToSwitchTo = useMemo(() => {
         if (!currentUser || !permissions.hasAdminAccess || !userRoles) return null;

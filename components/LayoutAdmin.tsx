@@ -7,16 +7,14 @@ import { Sidebar } from './Sidebar';
 import ErrorBoundary from './ErrorBoundary';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { ProtectedRoute } from './ProtectedRoute';
 
-// Import all page components
+// Import page components
 import AdminDashboard from './AdminDashboard';
 import { SportivDashboard } from './SportivDashboard';
 import { SportiviManagement } from './SportiviManagement';
-import { UserProfile } from './UserProfile';
 import { GestiuneExamene } from './Examene';
-import { GradeManagement } from './Grade';
-import { GrupeManagement } from './Grupe';
-// ... import other page components as needed
+// Import other page components as needed...
 
 // A simple loading screen for data fetching
 const DataLoadingScreen: React.FC = () => (
@@ -120,43 +118,53 @@ export const LayoutAdmin: React.FC = () => {
         fetchData();
     }, [fetchData]);
 
+    const [isExpanded] = useLocalStorage('phi-hau-sidebar-expanded', true);
+
     if (isDataLoading || !user) {
         return <DataLoadingScreen />;
     }
     
-    // Main authorization check
-    if (isAdmin) {
-        return (
-            <div className="flex min-h-screen bg-[var(--bg-main)]">
-                {/* Admin Sidebar would go here */}
-                <main className="flex-1 lg:ml-64">
-                     <div className="p-4 md:p-8">
-                        <ErrorBoundary>
-                            <Routes>
-                                <Route path="/" element={<AdminDashboard currentUser={user} />} />
-                                <Route path="/sportivi" element={<SportiviManagement onBack={() => {}} sportivi={sportivi} setSportivi={setSportivi} grupe={grupe} setGrupe={setGrupe} tipuriAbonament={tipuriAbonament} familii={familii} setFamilii={setFamilii} allRoles={allRoles} setAllRoles={setAllRoles} currentUser={user} plati={plati} setPlati={setPlati} tranzactii={tranzactii} setTranzactii={setTranzactii} onViewSportiv={() => {}} clubs={clubs} grade={grade} permissions={permissions} />} />
-                                <Route path="/examene" element={<GestiuneExamene currentUser={user} clubs={clubs} onBack={() => {}} onNavigate={() => {}} sesiuni={sesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={sportivi} setSportivi={setSportivi} grade={grade} istoricGrade={istoricGrade} locatii={locatii} setLocatii={setLocatii} plati={plati} setPlati={setPlati} preturiConfig={preturiConfig} deconturiFederatie={deconturiFederatie} setDeconturiFederatie={setDeconturiFederatie} onViewSportiv={()=>{}} />} />
-                                {/* Add all other admin routes here */}
-                                <Route path="*" element={<Navigate to="/" replace />} />
-                            </Routes>
-                        </ErrorBoundary>
-                     </div>
-                </main>
-            </div>
-        );
-    }
-
-    // Render Sportiv portal if not an admin
+    // Unified layout structure
     return (
         <div className="flex min-h-screen bg-[var(--bg-main)]">
-            {/* A simplified sidebar for Sportiv could go here */}
-             <main className="flex-1">
-                 <div className="p-4 md:p-8 max-w-4xl mx-auto">
-                    <Routes>
-                         <Route path="/" element={<SportivDashboard currentUser={user} viewedUser={user} participari={inscrieriExamene} examene={sesiuniExamene} grade={grade} istoricGrade={istoricGrade} grupe={grupe} plati={plati} onNavigate={() => {}} antrenamente={antrenamente} anunturi={anunturiPrezenta} setAnunturi={setAnunturiPrezenta} sportivi={sportivi} permissions={permissions} userRoles={[]} canSwitchRoles={false} activeRole={user.rol || ''} onSwitchRole={() => {}} isSwitchingRole={false} />} />
-                         {/* Other sportiv-specific routes */}
-                         <Route path="*" element={<Navigate to="/" replace />} />
-                    </Routes>
+            <Sidebar 
+                currentUser={user} 
+                permissions={permissions} 
+                clubs={clubs} 
+                globalClubFilter={null} 
+                setGlobalClubFilter={() => {}} 
+                activeRole={roles[0]} 
+                canSwitchRoles={false} 
+                onSwitchRole={() => {}} 
+                isSwitchingRole={false}
+                grade={grade}
+                userRoles={[]}
+                activeRoleContext={null}
+            />
+
+            <main className={`flex-1 transition-all duration-300 ${permissions.hasAdminAccess && isExpanded ? 'lg:ml-64' : (permissions.hasAdminAccess ? 'lg:ml-20' : 'lg:ml-0')}`}>
+                 <div className="p-4 md:p-8">
+                    <ErrorBoundary>
+                        <Routes>
+                            {/* Admin Routes */}
+                            <Route path="/sportivi" element={<ProtectedRoute><SportiviManagement onBack={() => {}} sportivi={sportivi} setSportivi={setSportivi} grupe={grupe} setGrupe={setGrupe} tipuriAbonament={tipuriAbonament} familii={familii} setFamilii={setFamilii} allRoles={allRoles} setAllRoles={setAllRoles} currentUser={user} plati={plati} setPlati={setPlati} tranzactii={tranzactii} setTranzactii={setTranzactii} onViewSportiv={() => {}} clubs={clubs} grade={grade} permissions={permissions} /></ProtectedRoute>} />
+                            <Route path="/examene" element={<ProtectedRoute><GestiuneExamene currentUser={user} clubs={clubs} onBack={() => {}} onNavigate={() => {}} sesiuni={sesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={sportivi} setSportivi={setSportivi} grade={grade} istoricGrade={istoricGrade} locatii={locatii} setLocatii={setLocatii} plati={plati} setPlati={setPlati} preturiConfig={preturiConfig} deconturiFederatie={deconturiFederatie} setDeconturiFederatie={setDeconturiFederatie} onViewSportiv={()=>{}} /></ProtectedRoute>} />
+                            {/* ... Add other admin routes here, wrapped in ProtectedRoute */}
+
+                            {/* Sportiv Routes */}
+                            <Route path="/dashboard-sportiv" element={<SportivDashboard currentUser={user} viewedUser={user} participari={inscrieriExamene} examene={sesiuniExamene} grade={grade} istoricGrade={istoricGrade} grupe={grupe} plati={plati} onNavigate={() => {}} antrenamente={antrenamente} anunturi={anunturiPrezenta} setAnunturi={setAnunturiPrezenta} sportivi={sportivi} permissions={permissions} canSwitchRoles={false} activeRole={user.rol || ''} onSwitchRole={() => {}} isSwitchingRole={false} />} />
+                            
+                            {/* Default Route */}
+                            <Route path="/" element={
+                                isAdmin 
+                                ? <ProtectedRoute><AdminDashboard currentUser={user} /></ProtectedRoute>
+                                : <Navigate to="/dashboard-sportiv" replace />
+                            }/>
+
+                            {/* Fallback */}
+                            <Route path="*" element={<Navigate to="/" replace />} />
+                        </Routes>
+                    </ErrorBoundary>
                  </div>
             </main>
         </div>

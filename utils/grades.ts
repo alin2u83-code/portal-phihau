@@ -77,7 +77,7 @@ export const getGradBorderColor = (gradName: string): string => {
  * cu suport pentru dimensiuni diferite și stilizare conform ierarhiei.
  */
 export const GradBadge: React.FC<{ grad: Grad | null | undefined; isLarge?: boolean; className?: string }> = ({ grad, isLarge, className }) => {
-    const gradName = grad ? grad.nume : 'Fără Grad';
+    const gradName = grad ? grad.nume : 'Debutant';
     
     const sizeClasses = isLarge 
         ? 'px-6 py-2 text-3xl font-black' 

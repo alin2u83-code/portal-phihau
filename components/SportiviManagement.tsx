@@ -480,7 +480,7 @@ export const SportiviManagement: React.FC<{
                 </Select>
                 <Select label="Grad" value={filters.gradFilter} onChange={e => handleFilterChange('gradFilter', e.target.value)}>
                     <option value="">Toate gradele</option>
-                    <option value="null">Începător (fără grad)</option>
+                    <option value="null">Debutant (fără grad)</option>
                     {(grade || []).sort((a,b) => a.ordine - b.ordine).map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}
                 </Select>
                 <Select label="Rol" value={filters.rolFilter} onChange={e => handleFilterChange('rolFilter', e.target.value)}>

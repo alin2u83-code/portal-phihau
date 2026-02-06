@@ -71,7 +71,7 @@ const CompleteProfileForm: React.FC<{
                 </div>
                 <BirthDateInput label="Data Nașterii" value={formData.data_nasterii} onChange={handleDateChange} required />
                 <Select label="Grad Actual (Dacă este cazul)" name="grad_actual_id" value={formData.grad_actual_id || ''} onChange={handleChange}>
-                    <option value="">Începător / Fără Grad</option>
+                    <option value="">Debutant / Fără Grad</option>
                     {(grades || []).sort((a,b)=>a.ordine-b.ordine).map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}
                 </Select>
                 <Button type="submit" isLoading={loading} className="w-full !mt-6">Salvează Profilul</Button>
@@ -256,7 +256,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = (props) => {
             
             <header className="text-center md:text-left border-b border-slate-700/50 pb-4">
                 <h1 className="text-3xl font-bold text-white">{userDetails.nume} {userDetails.prenume}</h1>
-                <div className="mt-2"><GradBadge grad={currentGrad || {nume: 'Începător', ordine: 0} as Grad} isLarge /></div>
+                <div className="mt-2"><GradBadge grad={currentGrad || {nume: 'Debutant', ordine: 0} as Grad} isLarge /></div>
                 <div className="mt-4 max-w-md mx-auto md:mx-0"><NotificationPermissionWidget /></div>
             </header>
 

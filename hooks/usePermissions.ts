@@ -24,6 +24,7 @@ export const usePermissions = (user: User | null): Permissions => {
         
         const userRoles = user.roluri || [];
 
+        // Corect: Se verifică întregul array de roluri folosind .some()
         const isSuperAdmin = userRoles.some(r => r.nume === ROLES.SUPER_ADMIN_FEDERATIE);
         const isAdmin = userRoles.some(r => r.nume === ROLES.ADMIN);
         const isFederationAdmin = isSuperAdmin || isAdmin;
@@ -33,6 +34,12 @@ export const usePermissions = (user: User | null): Permissions => {
         
         // Un flag general pentru a determina dacă utilizatorul are orice fel de acces administrativ
         const hasAdminAccess = isFederationAdmin || isAdminClub || isInstructor;
+
+        // Log de diagnosticare pentru accesul administrativ
+        if (hasAdminAccess) {
+            const roleNames = userRoles.map(r => r.nume).join(', ');
+            console.log(`[Authorization] Acces permis pentru rolurile: ${roleNames}`);
+        }
         
         // Flag-urile de business logic sunt derivate din contextul ACTIV al sesiunii
         const activeRole = user.rol_activ_context;

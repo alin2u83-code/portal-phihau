@@ -13,9 +13,6 @@ interface State {
   error?: Error;
 }
 
-// FIX: Refactored the class component to use class properties for state and an arrow function
-// for the event handler. This is a more modern and robust way to handle `this` context in React
-// class components, resolving the errors related to accessing `this.state`, `this.props`, and `this.setState`.
 class ErrorBoundary extends React.Component<Props, State> {
   state: State = {
     hasError: false,
@@ -34,7 +31,7 @@ class ErrorBoundary extends React.Component<Props, State> {
 
   // FIX: Converted `handleRedirect` to an arrow function to correctly bind `this`.
   // This ensures `this.setState` and `this.props` refer to the component instance
-  // when the method is called from an event handler like `onClick`.
+  // when the method is called from an event handler, resolving the errors.
   private handleRedirect = () => {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {

@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import { useAuthStore } from '../store/authStore';
-import { Sportiv, SesiuneExamen, Grad, InscriereExamen, View, Antrenament, Grupa, Plata, Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, Rol, AnuntPrezenta, Reducere, AnuntGeneral, TipPlata, Locatie, Club, DecontFederatie, IstoricGrade, Permissions } from '../types';
+import { useAppStore } from '../store/appStore';
+import { View, Permissions } from '../types';
 import { Sidebar } from './Sidebar';
 import ErrorBoundary from './ErrorBoundary';
 import { useError } from './ErrorProvider';
@@ -41,30 +42,10 @@ export const LayoutAdmin: React.FC = () => {
     const [isDataLoading, setIsDataLoading] = useState(true);
     const [fetchError, setFetchError] = useState<string | null>(null);
 
-    // All application data states
-    const [sportivi, setSportivi] = useState<Sportiv[]>([]);
-    const [sesiuniExamene, setSesiuniExamene] = useState<SesiuneExamen[]>([]);
-    const [inscrieriExamene, setInscrieriExamene] = useState<InscriereExamen[]>([]);
-    const [grade, setGrade] = useState<Grad[]>([]);
-    const [istoricGrade, setIstoricGrade] = useState<IstoricGrade[]>([]);
-    const [antrenamente, setAntrenamente] = useState<Antrenament[]>([]);
-    const [grupe, setGrupe] = useState<Grupa[]>([]);
-    const [plati, setPlati] = useState<Plata[]>([]);
-    const [tranzactii, setTranzactii] = useState<Tranzactie[]>([]);
-    const [evenimente, setEvenimente] = useState<Eveniment[]>([]);
-    const [rezultate, setRezultate] = useState<Rezultat[]>([]);
-    const [preturiConfig, setPreturiConfig] = useState<PretConfig[]>([]);
-    const [tipuriAbonament, setTipuriAbonament] = useState<TipAbonament[]>([]);
-    const [familii, setFamilii] = useState<Familie[]>([]);
-    const [allRoles, setAllRoles] = useState<Rol[]>([]);
-    const [anunturiPrezenta, setAnunturiPrezenta] = useState<AnuntPrezenta[]>([]);
-    const [reduceri, setReduceri] = useState<Reducere[]>([]);
-    const [tipuriPlati, setTipuriPlati] = useState<TipPlata[]>([]);
-    const [locatii, setLocatii] = useState<Locatie[]>([]);
-    const [clubs, setClubs] = useState<Club[]>([]);
-    const [deconturiFederatie, setDeconturiFederatie] = useState<DecontFederatie[]>([]);
+    // Get data and setters from the global Zustand store
+    const appData = useAppStore();
+    const { setData } = useAppStore.getState();
 
-    // Permissions object derived from the new auth store state
     const permissions = useMemo((): Permissions => {
         if (!userDetails) return { isSuperAdmin: false, isAdmin: false, isFederationAdmin: false, isAdminClub: false, isInstructor: false, isSportiv: true, hasAdminAccess: false, isFederationLevel: false, canManageFinances: false, canGradeStudents: false, visibleClubIds: [], };
         
@@ -92,42 +73,27 @@ export const LayoutAdmin: React.FC = () => {
 
     const fetchData = useCallback(async () => {
         if (!supabase) return;
+
         setIsDataLoading(true);
         setFetchError(null);
-        try {
-            const { data, error } = await supabase.rpc('get_all_app_data');
-            if (error) throw error;
-            
-            setSportivi(data.sportivi || []);
-            setSesiuniExamene(data.sesiuni_examene || []);
-            setInscrieriExamene(data.inscrieri_examene || []);
-            setGrade(data.grade || []);
-            setIstoricGrade(data.istoric_grade || []);
-            setAntrenamente(data.antrenamente || []);
-            setGrupe(data.grupe || []);
-            setPlati(data.plati || []);
-            setTranzactii(data.tranzactii || []);
-            setEvenimente(data.evenimente || []);
-            setRezultate(data.rezultate || []);
-            setPreturiConfig(data.preturi_config || []);
-            setTipuriAbonament(data.tipuri_abonament || []);
-            setFamilii(data.familii || []);
-            setAllRoles(data.all_roles || []);
-            setAnunturiPrezenta(data.anunturi_prezenta || []);
-            setReduceri(data.reduceri || []);
-            setTipuriPlati(data.tipuri_plati || []);
-            setLocatii(data.locatii || []);
-            setClubs(data.clubs || []);
-            setDeconturiFederatie(data.deconturi_federatie || []);
-
-        } catch (err: any) {
-            const errorMessage = err.message || 'A apărut o eroare necunoscută.';
-            setFetchError(errorMessage);
-            showError("Eroare la încărcarea datelor aplicației", errorMessage);
-        } finally {
+        
+        if (isAdmin) {
+            try {
+                const { data, error } = await supabase.rpc('get_all_app_data');
+                if (error) throw error;
+                setData(data);
+            } catch (err: any) {
+                const errorMessage = err.message || 'A apărut o eroare necunoscută.';
+                setFetchError(errorMessage);
+                showError("Eroare la încărcarea datelor aplicației", errorMessage);
+            } finally {
+                setIsDataLoading(false);
+            }
+        } else {
+            // For non-admins, no global data is needed, just finish loading.
             setIsDataLoading(false);
         }
-    }, [showError]);
+    }, [showError, isAdmin, setData]);
 
     useEffect(() => {
         fetchData();
@@ -139,20 +105,21 @@ export const LayoutAdmin: React.FC = () => {
         return <DataLoadingScreen />;
     }
     
+    // For admins, a data fetch error is critical and blocks the app.
     if (fetchError && isAdmin) {
         return (
             <div className="flex min-h-screen bg-[var(--bg-main)]">
                 <Sidebar 
                     currentUser={userDetails} 
                     permissions={permissions} 
-                    clubs={clubs} 
+                    clubs={appData.clubs} 
                     globalClubFilter={null} 
                     setGlobalClubFilter={() => {}} 
                     activeRole={roles[0]} 
                     canSwitchRoles={false} 
                     onSwitchRole={() => {}} 
                     isSwitchingRole={false}
-                    grade={grade}
+                    grade={appData.grade}
                     userRoles={[]}
                     activeRoleContext={null}
                 />
@@ -171,14 +138,14 @@ export const LayoutAdmin: React.FC = () => {
             <Sidebar 
                 currentUser={userDetails} 
                 permissions={permissions} 
-                clubs={clubs} 
+                clubs={appData.clubs} 
                 globalClubFilter={null} 
                 setGlobalClubFilter={() => {}} 
                 activeRole={roles[0]} 
                 canSwitchRoles={false} 
                 onSwitchRole={() => {}} 
                 isSwitchingRole={false}
-                grade={grade}
+                grade={appData.grade}
                 userRoles={[]}
                 activeRoleContext={null}
             />
@@ -188,12 +155,12 @@ export const LayoutAdmin: React.FC = () => {
                     <ErrorBoundary>
                         <Routes>
                             {/* Admin Routes */}
-                            <Route path="/sportivi" element={<ProtectedRoute><SportiviManagement onBack={() => {}} sportivi={sportivi} setSportivi={setSportivi} grupe={grupe} setGrupe={setGrupe} tipuriAbonament={tipuriAbonament} familii={familii} setFamilii={setFamilii} allRoles={allRoles} setAllRoles={setAllRoles} currentUser={userDetails} plati={plati} setPlati={setPlati} tranzactii={tranzactii} setTranzactii={setTranzactii} onViewSportiv={() => {}} clubs={clubs} grade={grade} permissions={permissions} /></ProtectedRoute>} />
-                            <Route path="/examene" element={<ProtectedRoute><GestiuneExamene currentUser={userDetails} clubs={clubs} onBack={() => {}} onNavigate={() => {}} sesiuni={sesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={sportivi} setSportivi={setSportivi} grade={grade} istoricGrade={istoricGrade} locatii={locatii} setLocatii={setLocatii} plati={plati} setPlati={setPlati} preturiConfig={preturiConfig} deconturiFederatie={deconturiFederatie} setDeconturiFederatie={setDeconturiFederatie} onViewSportiv={()=>{}} /></ProtectedRoute>} />
+                            <Route path="/sportivi" element={<ProtectedRoute><SportiviManagement onBack={() => {}} sportivi={appData.sportivi} setSportivi={(d) => setData({sportivi: d})} grupe={appData.grupe} setGrupe={(d) => setData({grupe: d})} tipuriAbonament={appData.tipuriAbonament} familii={appData.familii} setFamilii={(d) => setData({familii: d})} allRoles={appData.allRoles} setAllRoles={(d) => setData({allRoles: d})} currentUser={userDetails} plati={appData.plati} setPlati={(d) => setData({plati: d})} tranzactii={appData.tranzactii} setTranzactii={(d) => setData({tranzactii: d})} onViewSportiv={() => {}} clubs={appData.clubs} grade={appData.grade} permissions={permissions} /></ProtectedRoute>} />
+                            <Route path="/examene" element={<ProtectedRoute><GestiuneExamene currentUser={userDetails} clubs={appData.clubs} onBack={() => {}} onNavigate={() => {}} sesiuni={appData.sesiuniExamene} setSesiuni={(d) => setData({sesiuni_examene: d})} inscrieri={appData.inscrieriExamene} setInscrieri={(d) => setData({inscrieri_examene: d})} sportivi={appData.sportivi} setSportivi={(d) => setData({sportivi: d})} grade={appData.grade} istoricGrade={appData.istoricGrade} locatii={appData.locatii} setLocatii={(d) => setData({locatii: d})} plati={appData.plati} setPlati={(d) => setData({plati: d})} preturiConfig={appData.preturiConfig} deconturiFederatie={appData.deconturiFederatie} setDeconturiFederatie={(d) => setData({deconturi_federatie: d})} onViewSportiv={()=>{}} /></ProtectedRoute>} />
                             {/* ... Add other admin routes here, wrapped in ProtectedRoute */}
 
                             {/* Sportiv Routes */}
-                            <Route path="/dashboard-sportiv" element={<SportivDashboard grade={grade} grupe={grupe} onNavigate={() => {}} antrenamente={antrenamente} anunturi={anunturiPrezenta} setAnunturi={setAnunturiPrezenta} sportivi={sportivi} permissions={permissions} canSwitchRoles={false} activeRole={userDetails.rol || ''} onSwitchRole={() => {}} isSwitchingRole={false} appDataError={fetchError} />} />
+                            <Route path="/dashboard-sportiv" element={<SportivDashboard grade={appData.grade} grupe={appData.grupe} onNavigate={(v: View) => {}} antrenamente={appData.antrenamente} anunturi={appData.anunturiPrezenta} setAnunturi={(d) => setData({anunturi_prezenta: d})} sportivi={appData.sportivi} permissions={permissions} canSwitchRoles={false} activeRole={userDetails.rol || ''} onSwitchRole={() => {}} isSwitchingRole={false} appDataError={fetchError} />} />
                             
                             {/* Default Route */}
                             <Route path="/" element={

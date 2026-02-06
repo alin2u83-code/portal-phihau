@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { useAuthStore } from '../store/authStore';
 import { useError } from './ErrorProvider';
-import { Sportiv, Grad, User, View, AnuntPrezenta, ProgramItem, Antrenament, Permissions, Rol, Grupa } from '../types';
+import { Sportiv, Grad, User, View, AnuntPrezenta, ProgramItem, Antrenament, Permissions, Rol, Grupa, Club } from '../types';
 import { Card, Button, Input, Select } from './ui';
 import { NotificationPermissionWidget } from './NotificationPermissionWidget';
 import { AttendanceTracker } from './AttendanceTracker';
@@ -82,7 +82,7 @@ const CompleteProfileForm: React.FC<{
 
 const ProgramAntrenament: React.FC<{ grupaId: string | null; grupe: Grupa[] }> = ({ grupaId, grupe }) => {
     const zileSaptamanaOrdonate: Record<ProgramItem['ziua'], number> = { 'Luni': 1, 'Marți': 2, 'Miercuri': 3, 'Joi': 4, 'Vineri': 5, 'Sâmbătă': 6, 'Duminică': 7 };
-    const grupaCurenta = useMemo(() => grupe.find(g => g.id === grupaId), [grupaId, grupe]);
+    const grupaCurenta = useMemo(() => (grupe || []).find(g => g.id === grupaId), [grupaId, grupe]);
     
     const programSortat = useMemo(() => {
         if (!grupaCurenta?.program) return [];
@@ -175,10 +175,43 @@ interface SportivDashboardProps {
 
 export const SportivDashboard: React.FC<SportivDashboardProps> = (props) => {
     const { grade, grupe, antrenamente, anunturi, setAnunturi, sportivi, appDataError, onNavigate, permissions, canSwitchRoles, activeRole, onSwitchRole, isSwitchingRole } = props;
-    const { userDetails } = useAuthStore();
+    const { userDetails, initialize } = useAuthStore();
     const { showSuccess, showError } = useError();
+    const [localClubs, setLocalClubs] = useState<Club[]>([]);
+    const [isEnrolling, setIsEnrolling] = useState(false);
 
     const needsProfileCompletion = useMemo(() => !userDetails || !userDetails.nume || !userDetails.prenume || !userDetails.data_nasterii || userDetails.data_nasterii === '1900-01-01', [userDetails]);
+    const needsClubEnrollment = useMemo(() => userDetails && !userDetails.club_id, [userDetails]);
+    
+    useEffect(() => {
+        if (needsClubEnrollment && supabase) {
+            supabase.from('cluburi').select('*').then(({ data, error }) => {
+                if (error) showError("Eroare", "Nu am putut încărca lista de cluburi.");
+                else setLocalClubs(data || []);
+            });
+        }
+    }, [needsClubEnrollment, showError]);
+
+    const handleEnroll = async () => {
+        if (!userDetails) return;
+        setIsEnrolling(true);
+        const phiHauClub = localClubs.find(c => c.nume.toUpperCase().includes('PHI HAU'));
+        if (!phiHauClub) {
+            showError("Eroare de configurare", "Clubul 'Phi Hau Iași' nu a fost găsit în sistem.");
+            setIsEnrolling(false);
+            return;
+        }
+
+        const { error } = await supabase.from('sportivi').update({ club_id: phiHauClub.id }).eq('id', userDetails.id);
+
+        if (error) {
+            showError("Eroare la înrolare", error.message);
+        } else {
+            showSuccess("Înrolare reușită!", "Profilul tău a fost actualizat. Bine ai venit!");
+            await initialize(); // Re-fetch user context to get the new club_id
+        }
+        setIsEnrolling(false);
+    };
 
     const todayString = useMemo(() => new Date().toISOString().split('T')[0], []);
     const todaysTrainings = useMemo(() => {
@@ -204,6 +237,18 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = (props) => {
 
     if (!userDetails) { return <p className="text-center">Se încarcă profilul utilizatorului...</p>; }
     if (needsProfileCompletion) { return <CompleteProfileForm user={userDetails} grades={grade} />; }
+    
+    if (needsClubEnrollment) {
+        return (
+            <Card className="text-center p-8 max-w-lg mx-auto animate-fade-in-down">
+                <h2 className="text-2xl font-bold text-white">Finalizează Înregistrarea</h2>
+                <p className="text-slate-300 mt-2 mb-6">Pentru a-ți accesa portalul, te rugăm să te alături clubului tău.</p>
+                <Button size="md" variant="primary" onClick={handleEnroll} isLoading={isEnrolling || localClubs.length === 0}>
+                    Alege Clubul Phi Hau Iași
+                </Button>
+            </Card>
+        );
+    }
 
     return (
         <div className="space-y-6">
@@ -218,8 +263,8 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = (props) => {
             {!appDataError && todaysTrainings.length > 0 && (<div className="space-y-4 animate-fade-in-down">{todaysTrainings.map(training => (<TrainingActionCard key={training.id} training={training} anunt={(anunturi || []).find(a => a.antrenament_id === training.id && a.sportiv_id === userDetails.id)} onStatusChange={handleStatusChange} currentUser={userDetails} />))}</div>)}
             
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {!appDataError && antrenamente && (<div className="lg:col-span-1"><AttendanceTracker currentUser={userDetails} antrenamente={antrenamente} onNavigate={onNavigate} /></div>)}
-                {!appDataError && grupe && (<div className="lg:col-span-2 space-y-6"><ProgramAntrenament grupaId={userDetails.grupa_id} grupe={grupe} /></div>)}
+                <div className="lg:col-span-1"><AttendanceTracker currentUser={userDetails} antrenamente={antrenamente} onNavigate={onNavigate} /></div>
+                <div className="lg:col-span-2 space-y-6"><ProgramAntrenament grupaId={userDetails.grupa_id} grupe={grupe || []} /></div>
             </div>
         </div>
     );

@@ -25,7 +25,7 @@ const DataLoadingScreen: React.FC = () => (
 
 
 export const LayoutAdmin: React.FC = () => {
-    const { isAdmin, user, roles } = useAuthStore();
+    const { isAdmin, userDetails, roles } = useAuthStore();
     const { showError } = useError();
     const [isDataLoading, setIsDataLoading] = useState(true);
 
@@ -54,7 +54,7 @@ export const LayoutAdmin: React.FC = () => {
 
     // Permissions object derived from the new auth store state
     const permissions = useMemo((): Permissions => {
-        if (!user) return { isSuperAdmin: false, isAdmin: false, isFederationAdmin: false, isAdminClub: false, isInstructor: false, isSportiv: true, hasAdminAccess: false, isFederationLevel: false, canManageFinances: false, canGradeStudents: false, visibleClubIds: [], };
+        if (!userDetails) return { isSuperAdmin: false, isAdmin: false, isFederationAdmin: false, isAdminClub: false, isInstructor: false, isSportiv: true, hasAdminAccess: false, isFederationLevel: false, canManageFinances: false, canGradeStudents: false, visibleClubIds: [], };
         
         const roleSet = new Set(roles);
         const isSuperAdmin = roleSet.has('SUPER_ADMIN_FEDERATIE');
@@ -74,9 +74,9 @@ export const LayoutAdmin: React.FC = () => {
             isFederationLevel: isFederationAdmin,
             canManageFinances: isFederationAdmin || isAdminClub,
             canGradeStudents: isFederationAdmin || isAdminClub || isInstructor,
-            visibleClubIds: isFederationAdmin ? 'all' : (user.club_id ? [user.club_id] : []),
+            visibleClubIds: isFederationAdmin ? 'all' : (userDetails.club_id ? [userDetails.club_id] : []),
         };
-    }, [user, roles, isAdmin]);
+    }, [userDetails, roles, isAdmin]);
 
     const fetchData = useCallback(async () => {
         if (!supabase) return;
@@ -120,7 +120,7 @@ export const LayoutAdmin: React.FC = () => {
 
     const [isExpanded] = useLocalStorage('phi-hau-sidebar-expanded', true);
 
-    if (isDataLoading || !user) {
+    if (isDataLoading || !userDetails) {
         return <DataLoadingScreen />;
     }
     
@@ -128,7 +128,7 @@ export const LayoutAdmin: React.FC = () => {
     return (
         <div className="flex min-h-screen bg-[var(--bg-main)]">
             <Sidebar 
-                currentUser={user} 
+                currentUser={userDetails} 
                 permissions={permissions} 
                 clubs={clubs} 
                 globalClubFilter={null} 
@@ -147,17 +147,17 @@ export const LayoutAdmin: React.FC = () => {
                     <ErrorBoundary>
                         <Routes>
                             {/* Admin Routes */}
-                            <Route path="/sportivi" element={<ProtectedRoute><SportiviManagement onBack={() => {}} sportivi={sportivi} setSportivi={setSportivi} grupe={grupe} setGrupe={setGrupe} tipuriAbonament={tipuriAbonament} familii={familii} setFamilii={setFamilii} allRoles={allRoles} setAllRoles={setAllRoles} currentUser={user} plati={plati} setPlati={setPlati} tranzactii={tranzactii} setTranzactii={setTranzactii} onViewSportiv={() => {}} clubs={clubs} grade={grade} permissions={permissions} /></ProtectedRoute>} />
-                            <Route path="/examene" element={<ProtectedRoute><GestiuneExamene currentUser={user} clubs={clubs} onBack={() => {}} onNavigate={() => {}} sesiuni={sesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={sportivi} setSportivi={setSportivi} grade={grade} istoricGrade={istoricGrade} locatii={locatii} setLocatii={setLocatii} plati={plati} setPlati={setPlati} preturiConfig={preturiConfig} deconturiFederatie={deconturiFederatie} setDeconturiFederatie={setDeconturiFederatie} onViewSportiv={()=>{}} /></ProtectedRoute>} />
+                            <Route path="/sportivi" element={<ProtectedRoute><SportiviManagement onBack={() => {}} sportivi={sportivi} setSportivi={setSportivi} grupe={grupe} setGrupe={setGrupe} tipuriAbonament={tipuriAbonament} familii={familii} setFamilii={setFamilii} allRoles={allRoles} setAllRoles={setAllRoles} currentUser={userDetails} plati={plati} setPlati={setPlati} tranzactii={tranzactii} setTranzactii={setTranzactii} onViewSportiv={() => {}} clubs={clubs} grade={grade} permissions={permissions} /></ProtectedRoute>} />
+                            <Route path="/examene" element={<ProtectedRoute><GestiuneExamene currentUser={userDetails} clubs={clubs} onBack={() => {}} onNavigate={() => {}} sesiuni={sesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={sportivi} setSportivi={setSportivi} grade={grade} istoricGrade={istoricGrade} locatii={locatii} setLocatii={setLocatii} plati={plati} setPlati={setPlati} preturiConfig={preturiConfig} deconturiFederatie={deconturiFederatie} setDeconturiFederatie={setDeconturiFederatie} onViewSportiv={()=>{}} /></ProtectedRoute>} />
                             {/* ... Add other admin routes here, wrapped in ProtectedRoute */}
 
                             {/* Sportiv Routes */}
-                            <Route path="/dashboard-sportiv" element={<SportivDashboard currentUser={user} viewedUser={user} participari={inscrieriExamene} examene={sesiuniExamene} grade={grade} istoricGrade={istoricGrade} grupe={grupe} plati={plati} onNavigate={() => {}} antrenamente={antrenamente} anunturi={anunturiPrezenta} setAnunturi={setAnunturiPrezenta} sportivi={sportivi} permissions={permissions} canSwitchRoles={false} activeRole={user.rol || ''} onSwitchRole={() => {}} isSwitchingRole={false} />} />
+                            <Route path="/dashboard-sportiv" element={<SportivDashboard currentUser={userDetails} viewedUser={userDetails} participari={inscrieriExamene} examene={sesiuniExamene} grade={grade} istoricGrade={istoricGrade} grupe={grupe} plati={plati} onNavigate={() => {}} antrenamente={antrenamente} anunturi={anunturiPrezenta} setAnunturi={setAnunturiPrezenta} sportivi={sportivi} permissions={permissions} canSwitchRoles={false} activeRole={userDetails.rol || ''} onSwitchRole={() => {}} isSwitchingRole={false} />} />
                             
                             {/* Default Route */}
                             <Route path="/" element={
                                 isAdmin 
-                                ? <ProtectedRoute><AdminDashboard currentUser={user} /></ProtectedRoute>
+                                ? <ProtectedRoute><AdminDashboard currentUser={userDetails} /></ProtectedRoute>
                                 : <Navigate to="/dashboard-sportiv" replace />
                             }/>
 

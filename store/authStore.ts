@@ -3,22 +3,22 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { supabase } from '../supabaseClient';
 import { User } from '../types';
 
-// Define the administrative roles
-const ADMIN_ROLES = ['SUPER_ADMIN_FEDERATIE', 'Admin', 'Admin Club', 'INSTRUCTOR'];
+// Define the administrative roles as per the new requirement
+const ADMIN_ROLES = ['SUPER_ADMIN_FEDERATIE', 'ADMIN_CLUB'];
 
 interface AuthState {
-  user: User | null;
+  userDetails: User | null;
   roles: string[];
   isAdmin: boolean;
   isLoading: boolean;
   login: (email: string, pass: string) => Promise<void>;
-  checkSession: () => Promise<void>;
+  initialize: () => Promise<void>;
   logout: () => Promise<void>;
 }
 
 // Initial state for logout/reset
 const initialState = {
-    user: null,
+    userDetails: null,
     roles: [],
     isAdmin: false,
     isLoading: true,
@@ -33,17 +33,23 @@ export const useAuthStore = create<AuthState>()(
         if (!supabase) throw new Error("Client Supabase neconfigurat.");
         set({ isLoading: true });
         
-        const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+        // Handle login with either email or username
+        const loginIdentifier = email.includes('@') ? { email } : { data: { user_name: email } };
+
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          ...loginIdentifier,
+          password,
+        });
+        
         if (signInError) {
           set({ ...initialState, isLoading: false });
           throw signInError;
         }
         
-        // After sign-in, onAuthStateChange will trigger, which calls checkSession.
-        // checkSession will fetch context and set the final state.
+        // After sign-in, onAuthStateChange will trigger, which calls initialize.
       },
 
-      checkSession: async () => {
+      initialize: async () => {
         if (!supabase) {
             set({ ...initialState, isLoading: false });
             return;
@@ -55,43 +61,42 @@ export const useAuthStore = create<AuthState>()(
           set({ ...initialState, isLoading: false });
           return;
         }
+        
+        // Call the 'get_user_context' RPC function as requested.
+        const { data: userContext, error: rpcError } = await supabase.rpc('get_user_context');
 
-        const { data: accessData, error: accessError } = await supabase
-            .from('v_user_access')
-            .select('*')
-            .single();
-
-        if (accessError || !accessData) {
-            set({ ...initialState, isLoading: false });
+        if (rpcError || !userContext) {
+            console.error("Error fetching user context:", rpcError?.message);
+            await get().logout(); 
             return;
         }
 
         const userProfile: User = {
-            ...accessData,
-            cluburi: accessData.club_id ? { id: accessData.club_id, nume: accessData.club_nume } : null,
-            roluri: (accessData.roles_list || []).map((r_name: string) => ({ id: '', nume: r_name as any })),
+            ...userContext,
+            cluburi: userContext.club_id ? { id: userContext.club_id, nume: userContext.club_nume } : null,
+            roluri: (userContext.roles_list || []).map((r_name: string) => ({ id: '', nume: r_name as any })),
         };
+        // Clean up properties that are not part of the User/Sportiv type
         delete (userProfile as any).club_nume;
         delete (userProfile as any).roles_list;
 
-        const roles = accessData.roles_list || [];
+        const roles = userContext.roles_list || [];
         const isAdmin = roles.some((role: string) => ADMIN_ROLES.includes(role));
-        set({ user: userProfile, roles, isAdmin, isLoading: false });
+        
+        set({ userDetails: userProfile, roles, isAdmin, isLoading: false });
       },
       
       logout: async () => {
         if (supabase) {
             await supabase.auth.signOut();
         }
-        // Explicitly clear all storage for a clean slate
         localStorage.clear();
         sessionStorage.clear(); 
-        // Reset state to initial values
         set({ ...initialState, isLoading: false });
       },
     }),
     {
-      name: 'phihau-auth-storage', // name of the item in the storage (must be unique)
+      name: 'phihau-auth-storage',
       storage: createJSONStorage(() => localStorage), 
     }
   )

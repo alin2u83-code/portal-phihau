@@ -26,13 +26,13 @@ const LoadingScreen: React.FC = () => (
 );
 
 export const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { isAdmin, isLoading, user } = useAuthStore();
+    const { isAdmin, isLoading, userDetails } = useAuthStore();
 
     if (isLoading) {
         return <LoadingScreen />;
     }
 
-    if (!user) {
+    if (!userDetails) {
         return <Navigate to="/login" replace />;
     }
 

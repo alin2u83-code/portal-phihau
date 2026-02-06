@@ -19,17 +19,16 @@ const LoadingScreen: React.FC = () => (
 );
 
 function App() {
-    const { user, isLoading, checkSession } = useAuthStore();
+    const { userDetails, isLoading, initialize } = useAuthStore();
 
     useEffect(() => {
         if (!supabase) return;
-        checkSession();
+        initialize();
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, _session) => {
-            // Re-check user context on any auth event for simplicity and robustness
-            checkSession();
+            initialize();
         });
         return () => subscription.unsubscribe();
-    }, [checkSession]);
+    }, [initialize]);
 
     if (isLoading) {
         return <LoadingScreen />;
@@ -37,8 +36,8 @@ function App() {
 
     return (
         <Routes>
-            <Route path="/login" element={user ? <Navigate to="/" replace /> : <AuthContainer />} />
-            <Route path="/*" element={user ? <LayoutAdmin /> : <Navigate to="/login" replace />} />
+            <Route path="/login" element={userDetails ? <Navigate to="/" replace /> : <AuthContainer />} />
+            <Route path="/*" element={userDetails ? <LayoutAdmin /> : <Navigate to="/login" replace />} />
         </Routes>
     );
 }

@@ -105,7 +105,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, clubs, globalClub
         let name: string;
         let border: string;
 
-        const normalizedRole = activeRole?.toUpperCase() || 'SPORTIV';
+        // FIX: Removed .toUpperCase() to match the updated case-sensitive ROLES constants.
+        const normalizedRole = activeRole || 'Sportiv';
 
         const filterMenuItems = (items: (MenuItem | SubMenuItem)[]): any[] => {
             return items.map(item => {

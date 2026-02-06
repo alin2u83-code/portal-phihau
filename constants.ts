@@ -6,10 +6,11 @@ export const SUPER_ADMIN_ROLE_ID = '379f605c-dd61-4f6f-9d9a-c7001c830474';
 export const ADMIN_CLUB_ROLE_ID = '18f77e02-f38e-4bb9-99e4-f508aebfd10e';
 
 // Standardized normalized role names
+// FIX: Changed role names to match the `Rol['nume']` type from `types.ts`.
 export const ROLES = {
-  ADMIN_CLUB: 'ADMIN_CLUB',
-  INSTRUCTOR: 'INSTRUCTOR',
+  ADMIN_CLUB: 'Admin Club',
+  INSTRUCTOR: 'Instructor',
   SUPER_ADMIN_FEDERATIE: 'SUPER_ADMIN_FEDERATIE',
-  ADMIN: 'ADMIN',
-  SPORTIV: 'SPORTIV',
+  ADMIN: 'Admin',
+  SPORTIV: 'Sportiv',
 };

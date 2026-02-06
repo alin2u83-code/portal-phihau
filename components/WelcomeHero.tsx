@@ -41,13 +41,13 @@ export const WelcomeHero: React.FC<WelcomeHeroProps> = ({ profile }) => {
             ? [...userRoles].sort((a, b) => (roleWeights[b.nume] || 0) - (roleWeights[a.nume] || 0))[0]
             : null;
 
-        const userRole = profile.rol || highestRole?.nume || 'SPORTIV';
+        const userRole = highestRole?.nume || 'SPORTIV';
         
         let style = 'bg-green-600 text-white'; // Default for SPORTIV
         
-        if (['ADMIN_CLUB', 'Admin', 'SUPER_ADMIN_FEDERATIE'].includes(userRole)) {
+        if (['Admin Club', 'Admin', 'SUPER_ADMIN_FEDERATIE'].includes(userRole)) {
             style = 'bg-red-600 text-white';
-        } else if (userRole === 'INSTRUCTOR') {
+        } else if (userRole === 'Instructor') {
             style = 'bg-blue-600 text-white';
         }
         
@@ -57,7 +57,7 @@ export const WelcomeHero: React.FC<WelcomeHeroProps> = ({ profile }) => {
     // Determine menu items based on role
     const menuItems = React.useMemo(() => {
         switch (role) {
-            case 'ADMIN_CLUB':
+            case 'Admin Club':
             case 'Admin':
             case 'SUPER_ADMIN_FEDERATIE':
                 return [
@@ -66,13 +66,13 @@ export const WelcomeHero: React.FC<WelcomeHeroProps> = ({ profile }) => {
                     { title: 'Evenimente', icon: TrophyIcon },
                     { title: 'Setări Club', icon: CogIcon },
                 ];
-            case 'INSTRUCTOR':
+            case 'Instructor':
                  return [
                     { title: 'Prezență', icon: ClipboardCheckIcon },
                     { title: 'Grade', icon: TrophyIcon },
                     { title: 'Thao Quyen', icon: ClipboardListIcon },
                 ];
-            case 'SPORTIV':
+            case 'Sportiv':
             default:
                 return [
                     { title: 'Profilul Meu', icon: UserCircleIcon },

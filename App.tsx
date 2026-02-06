@@ -182,7 +182,7 @@ function App() {
   
   const [platiPentruIncasare, setPlatiPentruIncasare] = useState<Plata[]>([]);
 
-  const [activeView, setActiveView] = useLocalStorage<View>('phi-hau-active-view', 'dashboard');
+  const [activeView, setActiveView] = useLocalStorage<View>('phi-hau-active-view', 'data-maintenance');
   const [selectedSportiv, setSelectedSportiv] = useState<Sportiv | null>(null);
   const [isSidebarExpanded, setIsSidebarExpanded] = useLocalStorage('phi-hau-sidebar-expanded', true);
   const [adminContext, setAdminContext] = useLocalStorage<'club' | 'federation'>('phi-hau-admin-context', 'club');

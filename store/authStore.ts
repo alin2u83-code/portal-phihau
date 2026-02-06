@@ -4,7 +4,7 @@ import { supabase } from '../supabaseClient';
 import { User } from '../types';
 
 // Define the administrative roles as per the new requirement
-const ADMIN_ROLES = ['SUPER_ADMIN_FEDERATIE', 'ADMIN_CLUB'];
+const ADMIN_ROLES = ['SUPER_ADMIN_FEDERATIE', 'Admin', 'Admin Club', 'Instructor'];
 
 interface AuthState {
   userDetails: User | null;

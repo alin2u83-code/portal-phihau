@@ -121,6 +121,8 @@ export const LayoutAdmin: React.FC = () => {
                 grade={appData.grade}
                 userRoles={[]}
                 activeRoleContext={null}
+                onSyncData={fetchData}
+                isDataLoading={isDataLoading}
             />
 
             <main className={`flex-1 transition-all duration-300 ${permissions.hasAdminAccess && isExpanded ? 'lg:ml-64' : (permissions.hasAdminAccess ? 'lg:ml-20' : 'lg:ml-0')}`}>

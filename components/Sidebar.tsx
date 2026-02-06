@@ -93,9 +93,11 @@ interface SidebarProps {
     grade: any[];
     userRoles: any[];
     activeRoleContext: any;
+    onSyncData: () => void;
+    isDataLoading: boolean;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ currentUser, clubs, globalClubFilter, setGlobalClubFilter, permissions, activeRole, canSwitchRoles, onSwitchRole, isSwitchingRole, grade, userRoles, activeRoleContext }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ currentUser, clubs, globalClubFilter, setGlobalClubFilter, permissions, activeRole, canSwitchRoles, onSwitchRole, isSwitchingRole, grade, userRoles, activeRoleContext, onSyncData, isDataLoading }) => {
     const { logout } = useAuthStore();
     const [isExpanded, setIsExpanded] = useLocalStorage('phi-hau-sidebar-expanded', true);
     const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -169,7 +171,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, clubs, globalClub
                 {currentUser?.email === 'alin2u83@gmail.com' && <NavItem item={{ label: 'Admin Console', view: 'admin-console', icon: ShieldCheckIcon }} isExpanded={isExpanded} />}
             </nav>
 
-             <div className="p-3 border-t border-white/10">
+             <div className="p-3 mt-auto border-t border-white/10 space-y-2">
+                {permissions.hasAdminAccess && isExpanded && (
+                    <Button onClick={onSyncData} isLoading={isDataLoading} variant="secondary" className="w-full !text-xs !py-1.5 h-auto">
+                        {isDataLoading ? 'Sincronizare...' : 'Sincronizare Date'}
+                    </Button>
+                )}
                 <button onClick={logout} title={!isExpanded ? "Deconectare" : ""} className={`w-full flex items-center p-2.5 rounded-md transition-colors text-left text-red-400 hover:bg-red-600/20 hover:text-red-300`}>
                     <ArrowRightOnRectangleIcon className={`h-6 w-6 shrink-0 ${isExpanded ? 'mr-3' : 'mx-auto'}`} />
                     {isExpanded && <span className="text-sm font-semibold truncate">Deconectare</span>}

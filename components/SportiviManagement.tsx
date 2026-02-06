@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions } from '../types';
 import { Button, Modal, Input, Select, Card, Switch } from './ui';
-import { PlusIcon, ArrowLeftIcon, ShieldCheckIcon, WalletIcon, UserXIcon, UserCheckIcon } from './icons';
+import { PlusIcon, ArrowLeftIcon, ShieldCheckIcon, WalletIcon, UserXIcon, UserCheckIcon, UsersIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
@@ -26,12 +26,12 @@ const getAge = (dateString: string | null | undefined): number => {
 const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
 // FIX: Corrected key from 'Super Admin' to 'SUPER_ADMIN_FEDERATIE' to match the 'Rol' type definition.
 // FIX: Completed the color mapping to include all roles.
-    const colorClasses: Record<Rol['nume'], string> = { 
-        Admin: 'bg-red-600 text-white', 
-        'SUPER_ADMIN_FEDERATIE': 'bg-red-800 text-white', 
-        'Admin Club': 'bg-blue-600 text-white', 
-        Instructor: 'bg-sky-600 text-white', 
-        Sportiv: 'bg-slate-600 text-slate-200' 
+    const colorClasses: Record<Rol['nume'], string> = {
+        'Admin': 'bg-red-600 text-white',
+        'SUPER_ADMIN_FEDERATIE': 'bg-red-800 text-white',
+        'Admin Club': 'bg-blue-600 text-white',
+        'Instructor': 'bg-sky-600 text-white',
+        'Sportiv': 'bg-slate-600 text-slate-200',
     };
     return <span className={`px-2 py-1 text-[10px] font-semibold rounded-full ${colorClasses[role.nume] || 'bg-gray-500 text-white'}`}>{role.nume}</span>;
 };
@@ -156,6 +156,33 @@ const DeactivationModal: React.FC<{
     );
 };
 
+const GradLegend: React.FC = () => {
+    const mockGrades: { name: string, description: string }[] = [
+        { name: 'Cap Alb', description: 'Violet / Cap Alb' },
+        { name: '1 Cap Albastru', description: 'Cap Albastru' },
+        { name: '1 Cap Rosu', description: 'Cap Roșu' },
+        { name: 'Centura Neagra', description: 'Centura Neagră' },
+        { name: '1 Dang', description: '1-4 Dang' },
+        { name: '5 Dang', description: '5 Dang' },
+        { name: '6 Dang', description: '6-8 Dang' },
+    ];
+
+    return (
+        <Card className="mt-8">
+            <h3 className="text-xl font-bold text-white mb-4">Legendă Culori Grade</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4">
+                {mockGrades.map(g => (
+                    <div key={g.name} className="flex flex-col items-center gap-2 text-center">
+                        <GradBadge grad={{ nume: g.name, ordine: 0 } as Grad} className="text-[10px]" />
+                        <span className="text-xs text-slate-400">{g.description}</span>
+                    </div>
+                ))}
+            </div>
+        </Card>
+    );
+};
+
+
 // --- Componenta Management Principală ---
 export const SportiviManagement: React.FC<{
     onBack: () => void;
@@ -195,9 +222,10 @@ export const SportiviManagement: React.FC<{
         grupaFilter: '',
         rolFilter: '',
         gradFilter: '',
+        showExpiredVizaOnly: false,
     });
     
-    const handleFilterChange = (name: keyof typeof filters, value: string) => {
+    const handleFilterChange = (name: keyof typeof filters, value: string | boolean) => {
         setFilters(prev => ({ ...prev, [name]: value }));
     };
     
@@ -280,26 +308,13 @@ export const SportiviManagement: React.FC<{
     }, [familii, plati, tranzactii]);
 
     const filteredSportivi = useMemo(() => {
-        return (sportivi || []).filter((s: Sportiv) =>
-            (`${s.nume} ${s.prenume}`.toLowerCase().includes(filters.searchTerm.toLowerCase())) &&
-            (filters.statusFilter ? s.status === filters.statusFilter : true) &&
-            (filters.grupaFilter ? s.grupa_id === filters.grupaFilter : true) &&
-            (filters.rolFilter ? (s.roluri || []).some(r => r.id === filters.rolFilter) : true) &&
-            (filters.gradFilter ? (filters.gradFilter === 'null' ? !s.grad_actual_id : s.grad_actual_id === filters.gradFilter) : true)
-        ).sort((a: Sportiv, b: Sportiv) => a.nume.localeCompare(b.nume));
-    }, [sportivi, filters]);
-
-    const vizaStatusMap = useMemo(() => {
-        const statusMap = new Map<string, 'Validă' | 'Expirată'>();
-        if (!plati) return statusMap;
-
         const today = new Date();
         const currentMonth = today.getMonth();
         const currentYear = today.getFullYear();
         const seasonStartYear = currentMonth >= 8 ? currentYear : currentYear - 1;
 
-        const validPayments = new Set(
-            plati
+        const sportiviCuVizaValida = new Set(
+            (plati || [])
                 .filter(p => {
                     if (p.tip !== 'Taxa Anuala' || p.status !== 'Achitat') return false;
                     const paymentDate = new Date(p.data);
@@ -308,43 +323,105 @@ export const SportiviManagement: React.FC<{
                 .map(p => p.sportiv_id)
         );
 
-        (sportivi || []).forEach(s => {
-            statusMap.set(s.id, validPayments.has(s.id) ? 'Validă' : 'Expirată');
-        });
-        return statusMap;
-    }, [plati, sportivi]);
-
-    const columns: Column<Sportiv>[] = useMemo(() => [
+        return (sportivi || []).filter((s: Sportiv) => {
+            if (filters.showExpiredVizaOnly && (s.status !== 'Activ' || sportiviCuVizaValida.has(s.id))) {
+                return false;
+            }
+            return (
+                (`${s.nume} ${s.prenume}`.toLowerCase().includes(filters.searchTerm.toLowerCase())) &&
+                (filters.statusFilter ? s.status === filters.statusFilter : true) &&
+                (filters.grupaFilter ? s.grupa_id === filters.grupaFilter : true) &&
+                (filters.rolFilter ? s.roluri.some(r => r.id === filters.rolFilter) : true) &&
+                (filters.gradFilter ? (filters.gradFilter === 'null' ? !s.grad_actual_id : s.grad_actual_id === filters.gradFilter) : true)
+            );
+        }).sort((a: Sportiv, b: Sportiv) => a.nume.localeCompare(b.nume));
+    }, [sportivi, filters, plati]);
+    
+     const columns: Column<Sportiv>[] = [
         {
-            key: 'nume', label: 'Nume & Vârstă',
-            render: (s) => (
-                <div>
-                    <div className="font-bold text-white hover:text-brand-primary">{s.nume} {s.prenume}</div>
-                    <div className="text-xs text-slate-400">{getAge(s.data_nasterii)} ani</div>
-                </div>
-            ),
-        },
-        { key: 'club_id', label: 'Club', render: (s) => clubs.find(c => c.id === s.club_id)?.nume || '-', className: 'hidden md:table-cell' },
-        { key: 'grad_actual_id', label: 'Grad', render: (s) => <GradBadge grad={grade.find(g => g.id === s.grad_actual_id)} />, className: 'hidden md:table-cell' },
-        { 
-            key: 'viza_medicala' as any, label: 'Viză Medicală', 
+            key: 'nume',
+            label: 'Nume Complet',
+            tooltip: "Numele complet al sportivului. Dacă face parte dintr-o familie, este afișat și soldul familiei.",
             render: (s) => {
-                const status = vizaStatusMap.get(s.id);
-                const colorClass = status === 'Validă' ? 'text-green-400' : 'text-red-400';
-                return <span className={`font-bold ${colorClass}`}>{status}</span>
+                const familie = s.familie_id ? (familii || []).find(f => f.id === s.familie_id) : null;
+                const familieBalance = s.familie_id ? familyBalances.get(s.familie_id) : undefined;
+                return (
+                    <div>
+                        <div className="font-bold text-white hover:text-brand-primary">{s.nume} {s.prenume} <span className="text-slate-400 font-normal">({getAge(s.data_nasterii)} ani)</span></div>
+                        {familie && familieBalance !== undefined && (
+                            <div className="text-xs text-slate-300 mt-1">
+                                Familia {familie.nume}
+                                <span className={`ml-2 font-bold ${familieBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                    Sold: {familieBalance >= 0 ? '+' : ''}{familieBalance.toFixed(2)} lei
+                                </span>
+                            </div>
+                        )}
+                    </div>
+                );
+            },
+        },
+        {
+            key: 'grad_actual_id',
+            label: 'Grad Actual',
+            tooltip: "Gradul actual al sportivului.",
+            render: (s) => {
+                const currentGrade = (grade || []).find(g => g.id === s.grad_actual_id);
+                return <GradBadge grad={currentGrade} className="text-[10px]" />;
             },
             className: 'hidden md:table-cell'
         },
-        { key: 'actions', label: 'Acțiuni', headerClassName: 'text-right', cellClassName: 'text-right',
+        { key: 'club_id', label: 'Club', tooltip: "Clubul de care aparține sportivul.", render: (s) => s.cluburi?.id === FEDERATIE_ID ? FEDERATIE_NAME : s.cluburi?.nume || '-', className: 'hidden md:table-cell' },
+        { 
+            key: 'roluri', 
+            label: 'Roluri', 
+            tooltip: "Rolurile de acces ale utilizatorului în aplicație.",
+            render: (s) => (
+                <div className="flex flex-wrap gap-1">
+                    {(s.roluri || []).length > 0 
+                        ? s.roluri.map(r => <RoleBadge key={r.id} role={r}/>)
+                        : <span className="text-slate-500 italic">N/A</span>
+                    }
+                </div>
+            )
+        },
+        { 
+            key: 'status', 
+            label: 'Status',
+            tooltip: "Indică dacă sportivul este activ sau inactiv.",
+            className: 'hidden md:table-cell',
+            render: (s) => (
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${s.status === 'Activ' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{s.status}</span>
+            )
+        },
+        { key: 'grupa_id', label: 'Grupă', tooltip: "Grupa de antrenament în care este încadrat sportivul.", render: (s) => (grupe || []).find(g => g.id === s.grupa_id)?.denumire || '-', className: 'hidden md:table-cell' },
+        {
+            key: 'actions',
+            label: 'Acțiuni',
+            tooltip: "Acțiuni rapide: gestionează portofelul sau setările contului.",
+            headerClassName: 'text-right',
+            cellClassName: 'text-right',
             render: (s) => (
                 <div className="flex justify-end items-center gap-2">
-                    <Button size="sm" variant="info" onClick={(e) => { e.stopPropagation(); handleOpenWallet(s); }} title="Portofel Sportiv" className="!p-2"><WalletIcon className="w-4 h-4" /></Button>
-                    <Button size="sm" variant={s.status === 'Activ' ? 'warning' : 'success'} onClick={(e) => { e.stopPropagation(); handleToggleStatus(s); }} title={s.status === 'Activ' ? 'Dezactivează' : 'Activează'} className="!p-2" isLoading={loadingStates[s.id]}>{s.status === 'Activ' ? <UserXIcon className="w-4 h-4" /> : <UserCheckIcon className="w-4 h-4" />}</Button>
-                    <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); setAccountSettingsSportiv(s); }} title="Setări Cont" className="!p-2"><ShieldCheckIcon className="w-4 h-4" /></Button>
+                    <Button size="sm" variant="info" onClick={(e) => { e.stopPropagation(); handleOpenWallet(s); }} title="Portofel Sportiv" className="!p-2">
+                        <WalletIcon className="w-4 h-4" />
+                    </Button>
+                    <Button
+                        size="sm"
+                        variant={s.status === 'Activ' ? 'warning' : 'success'}
+                        onClick={(e) => { e.stopPropagation(); handleToggleStatus(s); }}
+                        title={s.status === 'Activ' ? 'Dezactivează sportiv' : 'Activează sportiv'}
+                        className="!p-2"
+                        isLoading={loadingStates[s.id]}
+                    >
+                        {s.status === 'Activ' ? <UserXIcon className="w-4 h-4" /> : <UserCheckIcon className="w-4 h-4" />}
+                    </Button>
+                    <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); setAccountSettingsSportiv(s); }} title="Setări Cont de Acces" className="!p-2">
+                        <ShieldCheckIcon className="w-4 h-4" />
+                    </Button>
                 </div>
             )
         }
-    ], [clubs, grade, vizaStatusMap, loadingStates, handleToggleStatus]);
+    ];
 
     const handleSave = async (formData: Partial<Sportiv>): Promise<{ success: boolean; error?: any; data?: Sportiv; }> => {
         const { roluri, ...sportivData } = formData;
@@ -391,7 +468,7 @@ export const SportiviManagement: React.FC<{
                 )}
             </div>
 
-            <Card className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-center">
                 <Select label="Status" value={filters.statusFilter} onChange={e => handleFilterChange('statusFilter', e.target.value)}>
                     <option value="Activ">Activi</option>
                     <option value="Inactiv">Inactivi</option>
@@ -410,20 +487,41 @@ export const SportiviManagement: React.FC<{
                     <option value="">Toate rolurile</option>
                     {(allRoles || []).map(r => <option key={r.id} value={r.id}>{r.nume}</option>)}
                 </Select>
+                <div className="pt-5">
+                    <Switch 
+                        label="Doar cu viza medicală expirată" 
+                        name="showExpiredVizaOnly"
+                        checked={filters.showExpiredVizaOnly}
+                        onChange={(e) => handleFilterChange('showExpiredVizaOnly', e.target.checked)}
+                    />
+                </div>
             </Card>
 
             <div className="text-slate-900">
-                <ResponsiveTable
-                    columns={columns}
-                    data={filteredSportivi}
-                    searchTerm={filters.searchTerm}
-                    onSearchChange={(val) => handleFilterChange('searchTerm', val)}
-                    onRowClick={handleRowClick}
-                    searchPlaceholder="Caută sportiv după nume..."
-                    selectedRowId={selectedSportivForHighlight?.id}
-                    rowClassName={(sportiv) => !sportiv.user_id ? 'bg-red-900/20 hover:bg-red-900/40 !border-l-2 !border-red-500' : ''}
-                />
+                {(sportivi || []).length > 0 ? (
+                    <ResponsiveTable
+                        columns={columns}
+                        data={filteredSportivi}
+                        searchTerm={filters.searchTerm}
+                        onSearchChange={(val) => handleFilterChange('searchTerm', val)}
+                        onRowClick={handleRowClick}
+                        searchPlaceholder="Caută sportiv după nume..."
+                        selectedRowId={selectedSportivForHighlight?.id}
+                        rowClassName={(sportiv) => !sportiv.user_id ? 'bg-red-900/20 hover:bg-red-900/40 !border-l-2 !border-red-500' : ''}
+                    />
+                ) : (
+                    <Card className="text-center p-12">
+                        <UsersIcon className="mx-auto h-12 w-12 text-slate-500" />
+                        <h3 className="mt-4 text-xl font-bold text-white">Niciun sportiv înregistrat</h3>
+                        <p className="mt-1 text-sm text-slate-400">Niciun sportiv înregistrat în C.S. Phi Hau. Adaugă primul sportiv.</p>
+                        <Button variant="primary" onClick={() => { setSportivToEdit(null); setIsFormModalOpen(true); }} className="mt-6">
+                            <PlusIcon className="w-5 h-5 mr-2"/> Adaugă Primul Sportiv
+                        </Button>
+                    </Card>
+                )}
             </div>
+
+            <GradLegend />
 
             {isFormModalOpen && (
                  <SportivFormModal 

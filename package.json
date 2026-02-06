@@ -1,5 +1,5 @@
 {
-  "name": "qwan-ki-do-club-management",
+  "name": "portal-phihau",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -19,7 +19,7 @@
     "react-router-dom": "^6.23.1",
     "recharts": "^2.12.7",
     "tailwind-merge": "^2.3.0",
-    "zustand": "^5.0.11"
+    "zustand": "^4.5.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

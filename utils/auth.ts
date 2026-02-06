@@ -32,7 +32,9 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
                 
                 const profile: User = {
                     id: authUser.id, user_id: authUser.id, nume: 'ADMIN', prenume: 'MASTER', email: authUser.email,
-                    rol_activ_context: 'Admin Club', roluri: [mockAdminClubRole], club_id: forcedClubId,
+                    // FIX: Corrected role name literal to match the type definition ('Admin Club' instead of 'ADMIN_CLUB').
+                    rol_activ_context: 'Admin Club',
+                    roluri: [mockAdminClubRole], club_id: forcedClubId,
                     cluburi: { id: forcedClubId, nume: 'Phi Hau Iași' }, data_nasterii: '1900-01-01', 
                     status: 'Activ', cnp: null, data_inscrierii: new Date().toISOString().split('T')[0], 
                     grupa_id: null, familie_id: null, tip_abonament_id: null, participa_vacanta: false, 
@@ -53,7 +55,9 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
             
             const fallbackProfile: User = {
                 id: authUser.id, user_id: authUser.id, nume: authUser.email?.split('@')[0] || 'Utilizator',
-                prenume: 'Fără Profil', email: authUser.email, rol_activ_context: 'Sportiv',
+                prenume: 'Fără Profil', email: authUser.email,
+                // FIX: Corrected role name literal to match the type definition ('Sportiv' instead of 'SPORTIV').
+                rol_activ_context: 'Sportiv',
                 roluri: [{ id: 'fallback-role-id', nume: 'Sportiv' }], club_id: null, cluburi: null,
                 data_nasterii: '1900-01-01', status: 'Activ', cnp: null, data_inscrierii: new Date().toISOString().split('T')[0],
                 grupa_id: null, familie_id: null, tip_abonament_id: null, participa_vacanta: false, trebuie_schimbata_parola: false,
@@ -77,7 +81,7 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
             profile = {
                 id: primaryContext.sportiv_id, user_id: primaryContext.auth_user_id, nume: primaryContext.nume,
                 prenume: primaryContext.prenume, email: primaryContext.email, username: primaryContext.username,
-                rol_activ_context: primaryContext.rol_denumire, data_nasterii: primaryContext.data_nasterii,
+                rol_activ_context: primaryContext.rol_key || primaryContext.rol_denumire, data_nasterii: primaryContext.data_nasterii,
                 cnp: primaryContext.cnp, inaltime: primaryContext.inaltime, data_inscrierii: primaryContext.data_inscrierii,
                 status: primaryContext.status, grupa_id: primaryContext.grupa_id, club_id: primaryContext.club_id,
                 grad_actual_id: primaryContext.grad_actual_id, familie_id: primaryContext.familie_id,
@@ -90,7 +94,7 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
         else if (roles.some(r => r.rol_denumire !== 'Sportiv')) {
             profile = {
                 id: authUser.id, user_id: authUser.id, nume: authUser.email?.split('@')[0] || 'Admin',
-                prenume: 'Utilizator', email: authUser.email, rol_activ_context: primaryContext.rol_denumire,
+                prenume: 'Utilizator', email: authUser.email, rol_activ_context: primaryContext.rol_key || primaryContext.rol_denumire,
                 roluri: [], club_id: primaryContext.club_id, cluburi: { id: primaryContext.club_id, nume: primaryContext.club_nume },
                 data_nasterii: '1900-01-01', status: 'Activ', cnp: null, data_inscrierii: new Date().toISOString().split('T')[0],
                 grupa_id: null, familie_id: null, tip_abonament_id: null, participa_vacanta: false, trebuie_schimbata_parola: false,

@@ -258,7 +258,7 @@ interface SportivDashboardProps {
   permissions: Permissions;
   userRoles: any[];
   canSwitchRoles: boolean;
-  activeRole: Rol['nume'];
+  activeRole: string;
   onSwitchRole: (roleContext: any) => void;
   isSwitchingRole: boolean;
 }
@@ -429,25 +429,16 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                 <Card className="animate-fade-in-down" style={{ animationDelay: '300ms' }}>
                     <h3 className="text-lg font-bold text-white mb-4">Comută Context</h3>
                     <div className="flex flex-wrap gap-2">
-                        {currentUser.roluri.map(rol => {
-                            const targetContext = userRoles.find(ctx => ctx.rol_denumire === rol.nume);
-                            return (
-                                <Button 
-                                    key={rol.id}
-                                    variant={activeRole === rol.nume ? 'primary' : 'secondary'}
-                                    onClick={() => {
-                                        if (targetContext) {
-                                            onSwitchRole(targetContext);
-                                        } else {
-                                            showError("Eroare Comutare", `Nu s-a putut găsi contextul pentru rolul '${rol.nume}'.`);
-                                        }
-                                    }}
-                                    disabled={isSwitchingRole}
-                                >
-                                    {rol.nume}
-                                </Button>
-                            );
-                        })}
+                        {userRoles.map(roleContext => (
+                            <Button 
+                                key={`${roleContext.sportiv_id}-${roleContext.rol_denumire}`}
+                                variant={activeRole === roleContext.rol_key ? 'primary' : 'secondary'}
+                                onClick={() => onSwitchRole(roleContext)}
+                                disabled={isSwitchingRole}
+                            >
+                                {roleContext.rol_denumire}
+                            </Button>
+                        ))}
                     </div>
                 </Card>
             )}

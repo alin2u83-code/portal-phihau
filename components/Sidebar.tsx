@@ -61,7 +61,7 @@ interface SidebarProps {
     globalClubFilter: string | null;
     setGlobalClubFilter: React.Dispatch<React.SetStateAction<string | null>>;
     permissions: Permissions;
-    activeRole: Rol['nume'];
+    activeRole: string;
     canSwitchRoles: boolean;
     onSwitchRole: (roleContext: any) => void;
     isSwitchingRole: boolean;
@@ -83,8 +83,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
         let name: string;
         let border: string;
 
-        // Normalize role name to handle variations like "Admin Club" vs "ADMIN_CLUB"
-        const normalizedRole = (activeRole?.toUpperCase() || 'SPORTIV').replace(/ /g, '_');
+        const normalizedRole = activeRole?.toUpperCase() || 'SPORTIV';
 
         switch (normalizedRole) {
             case ROLES.SUPER_ADMIN_FEDERATIE:
@@ -117,14 +116,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
         if (!currentUser || !permissions.hasAdminAccess || !userRoles) return null;
         
         const allUserContexts = userRoles || [];
-        const roleOrder: Rol['nume'][] = ['SUPER_ADMIN_FEDERATIE', 'Admin', 'Admin Club', 'Instructor'];
+        const roleOrder: string[] = ['SUPER_ADMIN_FEDERATIE', 'ADMIN', 'ADMIN_CLUB', 'INSTRUCTOR'];
 
         for (const roleName of roleOrder) {
-            const context = allUserContexts.find(r => r.rol_denumire === roleName);
-            if (context) return context; // Return the whole context object
+            const context = allUserContexts.find(r => (r.rol_key || '').toUpperCase() === roleName);
+            if (context) return context;
         }
         
-        return allUserContexts.find(r => r.rol_denumire === 'Admin Club') || null;
+        return allUserContexts.find(r => r.rol_key === 'ADMIN_CLUB') || null;
     }, [currentUser, permissions, userRoles]);
 
     // Main content of the sidebar
@@ -155,7 +154,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
             )}
 
             <nav className="flex-1 px-2 py-4 space-y-1.5 overflow-y-auto">
-                {permissions.hasAdminAccess && activeRole === 'Sportiv' && adminRoleToSwitchTo && (
+                {permissions.hasAdminAccess && activeRole === 'SPORTIV' && adminRoleToSwitchTo && (
                     <div onClick={() => onSwitchRole(adminRoleToSwitchTo)} className="flex items-center p-2.5 text-white rounded-md cursor-pointer bg-amber-600/20 hover:bg-amber-600/40 border border-amber-500/50 mb-4 transition-colors" title={!isExpanded ? "Comută la Panoul Administrativ" : ''}>
                         <ShieldCheckIcon className={`h-6 w-6 shrink-0 text-amber-300 ${isExpanded ? 'mr-3' : 'mx-auto'}`} />
                         {isExpanded && <span className="flex-1 font-semibold text-sm">Panou Administrativ</span>}
@@ -174,9 +173,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
                     </div>
                 )}
 
-                {permissions.isSportiv && permissions.hasAdminAccess && activeRole !== 'Sportiv' && (
+                {permissions.isSportiv && permissions.hasAdminAccess && activeRole !== 'SPORTIV' && (
                     <div onClick={() => {
-                        const sportivContext = userRoles.find(r => r.rol_denumire === 'Sportiv');
+                        const sportivContext = userRoles.find(r => r.rol_key === 'SPORTIV');
                         if (sportivContext) onSwitchRole(sportivContext);
                     }} className="flex items-center p-2.5 text-white rounded-md cursor-pointer bg-green-600/20 hover:bg-green-600/40 border border-green-500/50 mt-4 transition-colors" title={!isExpanded ? "Comută la Portalul de Sportiv" : ''}>
                         <UserCircleIcon className={`h-6 w-6 shrink-0 text-green-300 ${isExpanded ? 'mr-3' : 'mx-auto'}`} />

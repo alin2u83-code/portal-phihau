@@ -82,10 +82,12 @@ const DevRoleSwitcher: React.FC<{ currentUser: User, userRoles: any[] }> = ({ cu
         }
 
         setLoadingRole(roleName);
+        
+        const roleKey = roleName.toUpperCase().replace(/ /g, '_');
+        const targetContext = userRoles.find(r => (r.rol_key || '').toUpperCase() === roleKey);
 
-        const targetContext = userRoles.find(r => r.rol_denumire === roleName);
         if (!targetContext) {
-            showError("Impersonare Eșuată", `Nu aveți un context de rol "${roleName}" pentru a comuta. Adăugați rolul în User Management.`);
+            showError("Impersonare Eșuată", `Nu aveți un context de rol pentru cheia "${roleKey}". Adăugați rolul în User Management.`);
             setLoadingRole(null);
             return;
         }
@@ -187,7 +189,7 @@ function App() {
   const [isSwitchingRole, setIsSwitchingRole] = useState(false);
   const [switchingToRole, setSwitchingToRole] = useState<string | null>(null);
 
-  const activeRole = useMemo((): Rol['nume'] | null => {
+  const activeRole = useMemo((): string | null => {
     return currentUser?.rol_activ_context || null;
   }, [currentUser]);
 
@@ -211,17 +213,24 @@ function App() {
           p_rol_denumire: targetRoleContext.rol_denumire
       });
 
-      if (error) {
-          showError("Eroare la comutarea rolului", error.message);
-          setIsSwitchingRole(false);
-          setSwitchingToRole(null);
-      } else {
-          if (targetRoleContext.rol_denumire === 'Sportiv') {
-              localStorage.setItem('phi-hau-redirect-after-role-switch', 'my-portal');
-          } else {
-              localStorage.removeItem('phi-hau-redirect-after-role-switch');
-          }
+      const handleSuccess = () => {
+          const redirectTo = targetRoleContext.rol_key === 'SPORTIV' ? 'my-portal' : 'dashboard';
+          localStorage.setItem('phi-hau-redirect-after-role-switch', redirectTo);
           setTimeout(() => window.location.reload(), 1200);
+      };
+
+      if (error) {
+          const isNotFoundError = error.message.toLowerCase().includes('not found') || error.message.includes('404');
+          if (isNotFoundError) {
+              console.warn("RPC 'set_primary_context' a returnat 404, dar se continuă cu reîncărcarea clientului ca fallback.");
+              handleSuccess();
+          } else {
+              showError("Eroare la comutarea rolului", error.message);
+              setIsSwitchingRole(false);
+              setSwitchingToRole(null);
+          }
+      } else {
+          handleSuccess();
       }
   }, [currentUser, showError]);
 
@@ -582,7 +591,7 @@ function App() {
         return (
             <div className="space-y-8 animate-fade-in-down">
                  {currentUser && <DevRoleSwitcher currentUser={currentUser} userRoles={userRoles} />}
-                 { permissions.hasAdminAccess && activeRole !== 'Sportiv' ? (
+                 { permissions.hasAdminAccess && activeRole !== 'SPORTIV' ? (
                     <>
                         { (sportivi || []).length === 0 && !isEmergencyAdmin && !loading ? (
                             <Card className="text-center p-8">

@@ -8,6 +8,7 @@ import ErrorBoundary from './ErrorBoundary';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { ProtectedRoute } from './ProtectedRoute';
+import { Card, Button } from './ui';
 
 // Import page components
 import AdminDashboard from './AdminDashboard';
@@ -28,6 +29,7 @@ export const LayoutAdmin: React.FC = () => {
     const { isAdmin, userDetails, roles } = useAuthStore();
     const { showError } = useError();
     const [isDataLoading, setIsDataLoading] = useState(true);
+    const [fetchError, setFetchError] = useState<string | null>(null);
 
     // All application data states
     const [sportivi, setSportivi] = useState<Sportiv[]>([]);
@@ -81,6 +83,7 @@ export const LayoutAdmin: React.FC = () => {
     const fetchData = useCallback(async () => {
         if (!supabase) return;
         setIsDataLoading(true);
+        setFetchError(null);
         try {
             const { data, error } = await supabase.rpc('get_all_app_data');
             if (error) throw error;
@@ -108,7 +111,9 @@ export const LayoutAdmin: React.FC = () => {
             setDeconturiFederatie(data.deconturi_federatie || []);
 
         } catch (err: any) {
-            showError("Eroare la încărcarea datelor aplicației", err.message);
+            const errorMessage = err.message || 'A apărut o eroare necunoscută.';
+            setFetchError(errorMessage);
+            showError("Eroare la încărcarea datelor aplicației", errorMessage);
         } finally {
             setIsDataLoading(false);
         }
@@ -122,6 +127,18 @@ export const LayoutAdmin: React.FC = () => {
 
     if (isDataLoading || !userDetails) {
         return <DataLoadingScreen />;
+    }
+
+    if (fetchError) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-[var(--bg-main)] p-4">
+                <Card className="text-center p-8 border-red-500 border-2 bg-red-900/30">
+                    <h1 className="text-2xl font-bold text-red-300">Eroare la încărcarea datelor</h1>
+                    <p className="mt-2 text-red-200">{fetchError}</p>
+                    <Button onClick={fetchData} className="mt-6" variant="secondary">Reîncearcă</Button>
+                </Card>
+            </div>
+        );
     }
     
     // Unified layout structure

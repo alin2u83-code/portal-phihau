@@ -1,14 +1,14 @@
 import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Sportiv, Plata, Grad, Grupa, View } from '../types';
-import { Button, Card } from './ui';
+import { Card } from './ui';
 import { WelcomeHero } from './WelcomeHero';
 import { GradBadge } from '../utils/grades';
-import { Users, CreditCard, Trophy, ShieldCheck, PlusIcon } from 'lucide-react';
+import { Users, CreditCard, Trophy } from 'lucide-react';
 import { ResponsiveTable, Column } from './ResponsiveTable';
 
-const StatCard: React.FC<{ title: string; description: string; icon: React.ElementType; view: View; onNavigate: (v: View) => void; }> = ({ title, description, icon: Icon, view, onNavigate }) => (
-    <Card onClick={() => onNavigate(view)} className="group cursor-pointer hover:-translate-y-1 transition-transform duration-300">
+const StatCard: React.FC<{ title: string; description: string; icon: React.ElementType; view: View; onNavigate: (v: string) => void; }> = ({ title, description, icon: Icon, view, onNavigate }) => (
+    <Card onClick={() => onNavigate(`/${view}`)} className="group cursor-pointer hover:-translate-y-1 transition-transform duration-300 glass-card">
         <div className="flex justify-between items-start">
             <h3 className="font-bold text-lg text-white">{title}</h3>
             <Icon className="w-8 h-8 text-slate-500 group-hover:text-amber-400 transition-colors" />
@@ -62,7 +62,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser, sportivi, 
 
     return (
         <div className="space-y-8">
-            <WelcomeHero profile={currentUser} />
+            {currentUser && <WelcomeHero profile={currentUser} />}
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <StatCard title="Gestiune Membri" description="Adaugă, editează și vizualizează sportivi și familii." icon={Users} view="sportivi" onNavigate={navigate} />
@@ -78,6 +78,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser, sportivi, 
                     searchTerm=""
                     onSearchChange={() => {}}
                     onRowClick={onViewSportiv}
+                    searchPlaceholder='Caută în sportivii recenți...'
                 />
             </div>
         </div>

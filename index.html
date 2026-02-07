@@ -8,50 +8,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/index.css">
     <style>
-      * {
-        color-scheme: dark;
-      }
-      :root {
-        --bg-main: #0f172a; /* slate-900 */
-        --bg-card: #1e293b; /* slate-800 */
-        --bg-card-hover: #334155; /* slate-700 */
-        --bg-input: #0f172a; /* slate-900 */
-        --bg-table-header: #334155; /* slate-700 */
-        --bg-table-row-hover: #334155; /* slate-700 */
-        --accent: #1d4ed8;
-        --accent-hover: #1e40af;
-        --text-primary: #ffffff;
-        --text-secondary: #94a3b8;
-        --border-color: #334155; /* slate-700 */
-        --brand-primary: #1d4ed8;
-        --brand-secondary: #64ffda;
-      }
-      body {
-        background-color: var(--bg-main);
-        color: var(--text-primary);
-        font-family: 'Inter', sans-serif;
-        letter-spacing: 0.02em;
-      }
-      h1, h2 {
-        color: white;
-      }
-      .selected-row-highlight {
-        outline: 2px solid var(--brand-secondary);
-        outline-offset: -2px;
-        background-color: rgba(100, 255, 218, 0.1);
-      }
-
-      .sesiune-card {
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-      .sesiune-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 0 15px 2px rgba(251, 146, 60, 0.4); /* amber-400 glow */
-        border-color: rgba(251, 146, 60, 0.5); /* amber-400 with 50% opacity */
-      }
-
-      @media print {
+       /* Print styles remain for specific printing logic */
+       @media print {
         body * {
           visibility: hidden;
         }
@@ -89,11 +49,7 @@
         #lista-prezenta-print-area h1, #lista-prezenta-print-area h2, #lista-prezenta-print-area h3, #lista-prezenta-print-area p {
             color: black !important;
         }
-
-        /* Stiluri specifice pentru lista de prezență */
-        #lista-prezenta-print-area {
-            padding: 2rem;
-        }
+        #lista-prezenta-print-area { padding: 2rem; }
         #lista-prezenta-print-area h1 { font-size: 20pt; font-weight: bold; text-align: center; margin-bottom: 0.5rem; }
         #lista-prezenta-print-area .details { text-align: center; margin-bottom: 2rem; font-size: 12pt; }
         #lista-prezenta-print-area .group-header td { background-color: #e0e0e0 !important; font-weight: bold; text-align: center; }
@@ -105,7 +61,7 @@
 {
   "imports": {
     "react": "https://esm.sh/react@^18.3.1",
-    "react-dom/": "https://esm.sh/react-dom@^18.3.1/",
+    "react-dom/client": "https://esm.sh/react-dom@^18.3.1/client",
     "react/": "https://esm.sh/react@^18.3.1/",
     "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@^2.43.4",
     "recharts": "https://esm.sh/recharts@^2.12.7",
@@ -114,7 +70,8 @@
     "react-router-dom": "https://esm.sh/react-router-dom@6.23.1",
     "papaparse": "https://esm.sh/papaparse@5.4.1",
     "zustand": "https://esm.sh/zustand@^4.5.0",
-    "zustand/": "https://esm.sh/zustand@^4.5.0/"
+    "zustand/": "https://esm.sh/zustand@^4.5.0/",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/"
   }
 }
 </script>

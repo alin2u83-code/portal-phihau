@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Permissions } from '../types';
-import { HomeIcon, UsersIcon, TrophyIcon, ClipboardDocumentListIcon, BanknotesIcon, CalendarDaysIcon, UserCircleIcon, ShieldCheckIcon, ClipboardCheckIcon, ArchiveBoxIcon, CogIcon, BellIcon, WalletIcon, UserPlusIcon, BookOpenIcon, ChartBarIcon, BookMarkedIcon, FileTextIcon, SitemapIcon } from './icons';
+import { Home, Users, Trophy, CreditCard, Calendar, Settings } from 'lucide-react';
 
 export interface SubMenuItem {
     label: string;
@@ -17,84 +17,58 @@ export interface MenuItem {
 }
 
 export const adminMenu: MenuItem[] = [
-    { label: 'Dashboard', icon: HomeIcon, view: 'dashboard', permission: (p) => p.hasAdminAccess },
+    { label: 'Dashboard', icon: Home, view: 'dashboard', permission: (p) => p.hasAdminAccess },
     { 
-        label: 'Gestiune Membri', 
-        icon: UsersIcon,
+        label: 'Membri', 
+        icon: Users,
+        view: 'sportivi',
         permission: (p) => p.hasAdminAccess,
         submenu: [
              { label: 'Listă Sportivi', view: 'sportivi', permission: (p) => p.hasAdminAccess },
-             { label: 'Gestiune Familii', view: 'familii', permission: (p) => p.hasAdminAccess },
-             { label: 'Administrare Staff', view: 'user-management', permission: (p) => p.isAdminClub || p.isFederationAdmin }
+             { label: 'Management Familii', view: 'familii', permission: (p) => p.isAdminClub || p.isFederationAdmin },
+             { label: 'Gestiune Staff', view: 'user-management', permission: (p) => p.isAdminClub || p.isFederationAdmin }
         ]
     },
     {
-        label: 'Activitate Sală',
-        icon: ClipboardCheckIcon,
+        label: 'Evenimente',
+        icon: Trophy,
+        view: 'examene',
         permission: (p) => p.hasAdminAccess,
         submenu: [
-            { label: 'Orar & Gestiune Grupe', view: 'grupe', permission: (p) => p.hasAdminAccess },
-            { label: 'Generator Program', view: 'activitati', permission: (p) => p.hasAdminAccess },
-            { label: 'Prezență Instructor', view: 'prezenta-instructor', permission: (p) => p.hasAdminAccess },
-            { label: 'Raport Prezențe', view: 'raport-prezenta', permission: (p) => p.hasAdminAccess },
-            { label: 'Raport Lunar Prezențe', view: 'raport-lunar-prezenta', permission: (p) => p.hasAdminAccess },
-            { label: 'Raport Activitate', view: 'raport-activitate', permission: (p) => p.hasAdminAccess }
-        ]
-    },
-    {
-        label: 'Evenimente & Examene',
-        icon: TrophyIcon,
-        permission: (p) => p.hasAdminAccess,
-        submenu: [
-             { view: 'examene', label: 'Sesiuni Examene', permission: (p) => p.hasAdminAccess },
-             { view: 'stagii', label: 'Stagii & Competiții', permission: (p) => p.hasAdminAccess },
-             { view: 'rapoarte-examen', label: 'Rapoarte Examen', permission: (p) => p.hasAdminAccess },
+             { view: 'examene', label: 'Sesiuni Examen' },
+             { view: 'stagii', label: 'Stagii & Competiții' },
+             { view: 'rapoarte-examen', label: 'Rapoarte' },
         ]
     },
     { 
         label: 'Financiar', 
-        icon: BanknotesIcon,
+        icon: CreditCard,
+        view: 'plati-scadente',
         permission: (p) => p.canManageFinances,
         submenu: [ 
-            { view: 'financial-dashboard', label: 'Dashboard Financiar', permission: (p) => p.isAdminClub || p.isFederationAdmin },
-            { view: 'gestiune-facturi', label: 'Adaugă Factură Manuală', permission: (p) => p.canManageFinances },
-            { view: 'plati-scadente', label: 'Listă Facturi', permission: (p) => p.canManageFinances }, 
-            { view: 'jurnal-incasari', label: 'Jurnal Încasări', permission: (p) => p.canManageFinances },
-            { view: 'raport-financiar', label: 'Raport Încasări', permission: (p) => p.isAdminClub || p.isFederationAdmin },
-            { view: 'deconturi-federatie', label: 'Deconturi Federație', permission: (p) => p.isAdminClub || p.isFederationAdmin },
+            { view: 'plati-scadente', label: 'Listă Facturi' }, 
+            { view: 'jurnal-incasari', label: 'Jurnal Încasări' },
+            { view: 'raport-financiar', label: 'Raport Încasări' },
         ] 
     },
     {
-        label: 'Setări & Nomenclatoare',
-        icon: CogIcon,
+        label: 'Calendar',
+        icon: Calendar,
+        view: 'calendar',
+        permission: (p) => p.hasAdminAccess,
+    },
+    {
+        label: 'Setări',
+        icon: Settings,
         permission: (p) => p.isAdminClub || p.isFederationAdmin,
         submenu: [
-            { label: 'Setări Club', view: 'setari-club', permission: (p) => p.isAdminClub || p.isFederationAdmin },
-            { label: 'Config. Abonamente', view: 'tipuri-abonament', permission: (p) => p.isAdminClub || p.isFederationAdmin }, 
-            { label: 'Config. Taxe Examen', view: 'configurare-preturi', permission: (p) => p.isAdminClub || p.isFederationAdmin },
-            { label: 'Config. Taxe Anuale', view: 'taxe-anuale', permission: (p) => p.isAdminClub || p.isFederationAdmin },
-            { label: 'Nomenclator Grade', view: 'grade', permission: (p) => p.isAdminClub || p.isFederationAdmin },
-            { label: 'Politici Reducere', view: 'reduceri', permission: (p) => p.isAdminClub || p.isFederationAdmin },
-            { label: 'Categorii Plăți', view: 'nomenclatoare', permission: (p) => p.isAdminClub || p.isFederationAdmin },
-            { label: 'Gestiune Cluburi', view: 'cluburi', permission: (p) => p.isSuperAdmin },
-            { label: 'Structură Națională', view: 'structura-federatie', permission: (p) => p.isFederationAdmin },
-            { label: 'Trimite Notificări', view: 'notificari', permission: (p) => p.hasAdminAccess },
-            { label: 'Mentenanță Date', view: 'data-maintenance', permission: (p) => p.isFederationAdmin },
+            { label: 'Config. Abonamente', view: 'tipuri-abonament' }, 
+            { label: 'Config. Taxe', view: 'configurare-preturi' },
+            { label: 'Nomenclator Grade', view: 'grade' },
         ]
     }
 ];
 
 export const sportivMenu: MenuItem[] = [
-    { 
-        label: 'Portalul Meu', 
-        icon: UserCircleIcon, 
-        submenu: [
-            { label: 'Dashboard', view: 'my-portal' },
-            { label: 'Fișa Digitală', view: 'fisa-digitala' },
-            { label: 'Fișa Competiție', view: 'fisa-competitie' },
-            { label: 'Istoric Prezență', view: 'istoric-prezenta' },
-            { label: 'Istoric Plăți', view: 'istoric-plati' },
-            { label: 'Setări Cont', view: 'account-settings' },
-        ]
-    },
+    // This menu is not currently used as SportivDashboard has its own navigation
 ];

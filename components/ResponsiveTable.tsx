@@ -34,7 +34,7 @@ export function ResponsiveTable<T extends { id: string }>({
 }: ResponsiveTableProps<T>) {
 
     return (
-        <div className="bg-[#1e293b] rounded-2xl shadow-md overflow-hidden border border-slate-700">
+        <div className="bg-brand-card rounded-2xl shadow-md overflow-hidden border border-slate-700">
             <div className="p-4 border-b border-slate-700">
                 <div className="relative w-full md:w-72">
                     <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
@@ -63,7 +63,7 @@ export function ResponsiveTable<T extends { id: string }>({
                     </thead>
                     <tbody className="divide-y divide-slate-700/50">
                         {data.map(item => (
-                            <tr key={item.id} className={`${onRowClick ? 'cursor-pointer hover:bg-slate-800/40' : ''} ${item.id === selectedRowId ? 'bg-blue-500/10' : ''} ${rowClassName ? rowClassName(item) : ''}`} onClick={() => onRowClick?.(item)}>
+                            <tr key={item.id} className={`${onRowClick ? 'cursor-pointer hover:bg-slate-800/40' : ''} ${item.id === selectedRowId ? 'bg-brand-primary/10' : ''} ${rowClassName ? rowClassName(item) : ''}`} onClick={() => onRowClick?.(item)}>
                                 {columns.map(col => (
                                     <td key={`${item.id}-${String(col.key)}`} className={`px-6 py-4 align-middle ${col.cellClassName || ''}`}>
                                         {col.render ? col.render(item) : (item[col.key as keyof T] as React.ReactNode) || '-'}
@@ -78,11 +78,11 @@ export function ResponsiveTable<T extends { id: string }>({
             {/* Mobile/Tablet Card List */}
             <div className="lg:hidden p-4 space-y-4">
                 {data.map(item => (
-                    <div key={item.id} onClick={() => onRowClick?.(item)} className={`bg-slate-800/50 p-4 rounded-xl border border-slate-700 ${onRowClick ? 'cursor-pointer' : ''} ${item.id === selectedRowId ? 'ring-2 ring-blue-500' : ''} ${rowClassName ? rowClassName(item) : ''}`}>
+                    <div key={item.id} onClick={() => onRowClick?.(item)} className={`bg-slate-800/50 p-4 rounded-xl border border-slate-700 ${onRowClick ? 'cursor-pointer' : ''} ${item.id === selectedRowId ? 'ring-2 ring-brand-primary' : ''} ${rowClassName ? rowClassName(item) : ''}`}>
                         {columns.map(col => (
-                            <div key={String(col.key)} className="flex justify-between items-start gap-4 py-2 border-b border-slate-700/50 last:border-none">
+                             <div key={String(col.key)} className="flex justify-between items-start gap-4 py-2 border-b border-slate-700/50 last:border-none">
                                 <span className="text-xs font-bold text-slate-400 uppercase">{col.label}</span>
-                                <div className="text-right">
+                                <div className="text-right text-sm">
                                     {col.render ? col.render(item) : <span className="text-white font-medium">{(item[col.key as keyof T] as React.ReactNode) || '-'}</span>}
                                 </div>
                             </div>

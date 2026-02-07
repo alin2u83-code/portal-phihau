@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'r
 import { supabase } from './supabaseClient';
 import { useAuthStore } from './store/authStore';
 import { useAppStore } from './store/appStore';
-import { View, Sportiv } from './types';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 import Login from './pages/Login';
 import AdminDashboard from './components/AdminDashboard';
@@ -12,7 +11,8 @@ import { UserProfile } from './components/UserProfile';
 import { SportivDashboard } from './components/SportivDashboard';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { MandatoryPasswordChange } from './components/MandatoryPasswordChange';
-import { RoleSelectionPage } from './components/RoleSelectionPage';
+import { GestiuneExamene } from './components/Examene';
+import { usePermissions } from './hooks/usePermissions';
 
 const LoadingScreen: React.FC = () => (
     <div className="h-screen w-screen bg-[#0f172a] flex items-center justify-center">
@@ -22,64 +22,80 @@ const LoadingScreen: React.FC = () => (
 
 const AuthenticatedApp: React.FC = () => {
     const { userDetails, initialize, isLoading } = useAuthStore();
+    const appData = useAppStore();
+    const permissions = usePermissions(userDetails);
     const navigate = useNavigate();
 
-    // The logic for handling multi-role selection and mandatory password change
-    // has been moved here to control the top-level routing for authenticated users.
-
+    useEffect(() => {
+        // Fetch all initial data needed for the app
+        const fetchData = async () => {
+            if (!supabase || !userDetails) return;
+            // In a real app, you would fetch all necessary data here and populate the appStore
+        };
+        fetchData();
+    }, [userDetails]);
+    
     if (isLoading) {
         return <LoadingScreen />;
     }
 
-    // Force password change if required
     if (userDetails?.trebuie_schimbata_parola) {
         return <MandatoryPasswordChange currentUser={userDetails} onPasswordChanged={initialize} />;
-    }
-
-    // Handle users with multiple roles but no primary one selected
-    if (userDetails && userDetails.roles.length > 1 && !userDetails.rol_activ_context) {
-        // This is a placeholder for a multi-role selection component
-        // For now, we'll just log it and proceed.
-        console.warn("User has multiple roles but no active context. Defaulting...");
-        // In a real scenario, you would render a RoleSelectionPage here.
     }
     
     return (
         <DashboardLayout>
             <Routes>
                 <Route path="/" element={
-                    <ProtectedRoute>
+                    permissions.hasAdminAccess ? (
                         <AdminDashboard 
                             currentUser={userDetails}
-                            sportivi={useAppStore.getState().sportivi}
-                            plati={useAppStore.getState().plati}
-                            grade={useAppStore.getState().grade}
-                            grupe={useAppStore.getState().grupe}
+                            sportivi={appData.sportivi}
                             onViewSportiv={(sportiv) => navigate(`/sportivi/${sportiv.id}`)}
+                            {...appData}
                         />
-                    </ProtectedRoute>
+                    ) : (
+                        <SportivDashboard 
+                            currentUser={userDetails!} 
+                            {...appData}
+                            viewedUser={userDetails!}
+                            isViewingOwnProfile={true}
+                            onNavigate={(view) => navigate(`/${view}`)}
+                            permissions={permissions}
+                        />
+                    )
                 }/>
                 <Route path="/sportivi" element={
-                    <ProtectedRoute>
+                    <ProtectedRoute permissions={permissions}>
                         <SportiviManagement 
                            onBack={() => navigate('/')} 
                            onViewSportiv={(sportiv) => navigate(`/sportivi/${sportiv.id}`)}
-                           {...useAppStore.getState()}
                            currentUser={userDetails!}
+                           permissions={permissions}
+                           {...appData}
                         />
                     </ProtectedRoute>
                 }/>
                 <Route path="/sportivi/:id" element={
-                    <ProtectedRoute>
+                    <ProtectedRoute permissions={permissions}>
                         <UserProfile 
                             onBack={() => navigate('/sportivi')}
                             currentUser={userDetails!}
-                            {...useAppStore.getState()}
+                            {...appData}
                         />
                     </ProtectedRoute>
                 }/>
-                 <Route path="/dashboard-sportiv" element={<SportivDashboard currentUser={userDetails!} grade={useAppStore.getState().grade} grupe={useAppStore.getState().grupe} antrenamente={useAppStore.getState().antrenamente} anunturi={useAppStore.getState().anunturiPrezenta} setAnunturi={() => {}} sportivi={useAppStore.getState().sportivi} onNavigate={(view) => navigate(`/${view}`)} />} />
-
+                <Route path="/examene" element={
+                    <ProtectedRoute permissions={permissions}>
+                        <GestiuneExamene
+                            onBack={() => navigate('/')}
+                            onViewSportiv={(s) => navigate(`/sportivi/${s.id}`)}
+                            onNavigate={(v) => navigate(`/${v}`)}
+                            currentUser={userDetails!}
+                            {...appData}
+                        />
+                    </ProtectedRoute>
+                }/>
                 {/* Add other protected routes here */}
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

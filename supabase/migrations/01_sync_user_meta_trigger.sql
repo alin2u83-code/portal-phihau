@@ -29,16 +29,17 @@ BEGIN
   END IF;
 
   -- Găsește contextul primar pentru utilizator (cel marcat cu is_primary = true)
-  SELECT rol_denumire, club_id INTO primary_context
+  SELECT rol_denumire, club_id, sportiv_id INTO primary_context
   FROM public.utilizator_roluri_multicont
   WHERE user_id = target_user_id AND is_primary = true
   LIMIT 1;
   
-  -- Fallback: Dacă niciun context nu este primar, alege primul disponibil
+  -- Fallback: Dacă niciun context nu este primar, alege cel mai vechi rol creat
   IF NOT FOUND THEN
-    SELECT rol_denumire, club_id INTO primary_context
+    SELECT rol_denumire, club_id, sportiv_id INTO primary_context
     FROM public.utilizator_roluri_multicont
     WHERE user_id = target_user_id
+    ORDER BY created_at ASC
     LIMIT 1;
   END IF;
 
@@ -51,6 +52,7 @@ BEGIN
   UPDATE auth.users
   SET raw_user_meta_data = raw_user_meta_data || jsonb_build_object(
     'club_id', primary_context.club_id,
+    'sportiv_id', primary_context.sportiv_id,
     'rol_activ_context', primary_context.rol_denumire,
     'roles', COALESCE(roles_array, '{}')
   )
@@ -64,6 +66,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- Șterge triggerele vechi pentru a asigura o reinstalare curată
 DROP TRIGGER IF EXISTS on_sportivi_profile_change_sync_user_meta ON public.sportivi;
 DROP TRIGGER IF EXISTS on_multicont_roles_change_sync_user_meta ON public.utilizator_roluri_multicont;
+DROP TRIGGER IF EXISTS on_user_roles_change_sync_user_meta ON public.utilizator_roluri_multicont;
 
 
 -- Creează un singur trigger robust pe sursa de adevăr: `utilizator_roluri_multicont`

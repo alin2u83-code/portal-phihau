@@ -71,7 +71,6 @@ function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userRoles, setUserRoles] = useState<any[]>([]);
   const [activeRoleContext, setActiveRoleContext] = useState<any | null>(null);
-  const [isSelectingRole, setIsSelectingRole] = useState(false);
   
   const [loading, setLoading] = useState(true);
   const [profileError, setProfileError] = useState<string | null>(null);
@@ -461,13 +460,13 @@ function App() {
 
   const handleSelectRole = async (role: any) => {
     if (!supabase || !currentUser?.user_id) return;
-    setIsSelectingRole(true);
+    setIsSwitchingRole(true);
     
     const { error } = await supabase.rpc('set_primary_context', { p_sportiv_id: role.sportiv_id, p_rol_denumire: role.rol_denumire });
 
     if (error) {
         showError("Eroare la selectarea rolului", error.message);
-        setIsSelectingRole(false);
+        setIsSwitchingRole(false);
     } else {
         window.location.reload();
     }

@@ -1,10 +1,96 @@
 import React, { useState } from 'react';
 import { Rol, User, Club, Permissions } from '../types';
 import { Button, Card } from './ui';
-import { ArrowLeftIcon, ShieldCheckIcon } from './icons';
-import { IdentitySwitcher } from './IdentitySwitcher';
+// FIX: Added CheckCircleIcon, UsersIcon, UserCircleIcon and removed obsolete IdentitySwitcher import.
+import { ArrowLeftIcon, ShieldCheckIcon, CheckCircleIcon, UsersIcon, UserCircleIcon } from './icons';
 import { useError } from './ErrorProvider';
 import { supabase } from '../supabaseClient';
+
+// FIX: Re-implemented the deleted IdentitySwitcher component and its helpers locally.
+// --- Helper Functions from RoleSelectionPage ---
+const getRoleDisplayName = (role: any) => {
+    switch(role.rol_denumire) {
+        case 'SUPER_ADMIN_FEDERATIE': return 'Super Admin Federație';
+        case 'Admin': return 'Admin General';
+        case 'Admin Club': return `Admin - ${role.club?.nume || 'Club Nedefinit'}`;
+        case 'Instructor': return `Instructor - ${role.club?.nume || 'Club Nedefinit'}`;
+        case 'Sportiv': return `Sportiv - ${role.sportiv?.nume || ''} ${role.sportiv?.prenume || ''}`;
+        default: return role.rol_denumire;
+    }
+};
+
+const getRoleDescription = (role: any) => {
+    switch(role.rol_denumire) {
+        case 'SUPER_ADMIN_FEDERATIE': return 'Acces total la nivel de federație.';
+        case 'Admin': return 'Acces administrativ general.';
+        case 'Admin Club': return `Management complet pentru ${role.club?.nume || 'club'}.`;
+        case 'Instructor': return `Management sportivi și prezențe la ${role.club?.nume || 'club'}.`;
+        case 'Sportiv': return 'Accesează portalul personal de sportiv.';
+        default: return 'Selectează acest profil pentru a continua.';
+    }
+}
+
+const getRoleIcon = (roleName: Rol['nume']) => {
+    switch(roleName) {
+        case 'SUPER_ADMIN_FEDERATIE':
+        case 'Admin':
+            return ShieldCheckIcon;
+        case 'Admin Club':
+        case 'Instructor':
+            return UsersIcon;
+        case 'Sportiv':
+            return UserCircleIcon;
+        default:
+            return UsersIcon;
+    }
+};
+
+// --- Re-implemented IdentitySwitcher component ---
+const IdentitySwitcher: React.FC<{
+    userRoles: any[];
+    activeRoleContext: any;
+    onSwitchRole: (roleContext: any) => void;
+    isSwitchingRole: boolean;
+}> = ({ userRoles, activeRoleContext, onSwitchRole, isSwitchingRole }) => {
+    return (
+        <Card>
+            <h3 className="text-lg font-bold text-white mb-4">Schimbă Contextul Curent</h3>
+            <div className="space-y-4">
+                {userRoles.map((role, index) => {
+                    const Icon = getRoleIcon(role.rol_denumire);
+                    const isActive = activeRoleContext?.rol_denumire === role.rol_denumire && activeRoleContext?.sportiv_id === role.sportiv_id;
+                    return (
+                        <button
+                            key={index}
+                            onClick={() => onSwitchRole(role)}
+                            disabled={isSwitchingRole || isActive}
+                            className={`relative w-full text-left p-6 rounded-lg transition-all duration-300 disabled:opacity-50 border-2 ${
+                                isActive 
+                                ? 'bg-brand-secondary/20 border-brand-secondary shadow-glow-secondary cursor-default' 
+                                : 'bg-slate-800 border-slate-700 hover:border-slate-500 cursor-pointer transform hover:scale-[1.03]'
+                            }`}
+                        >
+                            {isActive && (
+                                <div className="absolute top-3 right-3 flex items-center gap-1 text-xs font-bold text-brand-secondary bg-green-900/50 px-2 py-1 rounded-full">
+                                    <CheckCircleIcon className="w-4 h-4" />
+                                    Activ
+                                </div>
+                            )}
+                            <div className="flex items-start gap-4">
+                                <Icon className={`w-10 h-10 shrink-0 mt-1 ${isActive ? 'text-brand-secondary' : 'text-slate-400'}`} />
+                                <div>
+                                    <p className="font-bold text-lg text-white">{getRoleDisplayName(role)}</p>
+                                    <p className="text-sm text-slate-400">{getRoleDescription(role)}</p>
+                                </div>
+                            </div>
+                        </button>
+                    )
+                })}
+            </div>
+        </Card>
+    );
+};
+
 
 const DevRoleImpersonation: React.FC<{ userRoles: any[] }> = ({ userRoles }) => {
     const [loadingRole, setLoadingRole] = useState<Rol['nume'] | null>(null);

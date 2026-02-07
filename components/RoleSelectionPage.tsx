@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, Button } from './ui';
-import { ShieldCheckIcon } from './icons';
+import { ShieldCheckIcon, UsersIcon, UserCircleIcon, CheckCircleIcon } from './icons';
+import { Rol } from '../types';
 
 // --- Helper Functions ---
 const getRoleDisplayName = (role: any) => {
@@ -25,6 +26,22 @@ const getRoleDescription = (role: any) => {
     }
 }
 
+const getRoleIcon = (roleName: Rol['nume']) => {
+    switch(roleName) {
+        case 'SUPER_ADMIN_FEDERATIE':
+        case 'Admin':
+            return ShieldCheckIcon;
+        case 'Admin Club':
+        case 'Instructor':
+            return UsersIcon;
+        case 'Sportiv':
+            return UserCircleIcon;
+        default:
+            return UsersIcon;
+    }
+};
+
+
 // --- Main Component ---
 interface RoleSelectionPageProps {
     roles: any[];
@@ -45,17 +62,36 @@ export const RoleSelectionPage: React.FC<RoleSelectionPageProps> = ({ roles, onS
                     </div>
 
                     <div className="space-y-4">
-                        {roles.map((role, index) => (
-                            <button
-                                key={index}
-                                onClick={() => onSelect(role)}
-                                disabled={loading}
-                                className="w-full text-left p-4 rounded-lg bg-slate-700 hover:bg-slate-600 transition-all duration-300 disabled:opacity-50 border border-slate-600 focus:outline-none focus:ring-2 focus:ring-brand-secondary transform hover:scale-105"
-                            >
-                                <p className="font-bold text-lg text-white">{getRoleDisplayName(role)}</p>
-                                <p className="text-sm text-slate-400">{getRoleDescription(role)}</p>
-                            </button>
-                        ))}
+                        {roles.map((role, index) => {
+                            const Icon = getRoleIcon(role.rol_denumire);
+                            const isActive = role.is_primary;
+                            return (
+                                <button
+                                    key={index}
+                                    onClick={() => onSelect(role)}
+                                    disabled={loading || isActive}
+                                    className={`relative w-full text-left p-6 rounded-lg transition-all duration-300 disabled:opacity-50 border-2 ${
+                                        isActive 
+                                        ? 'bg-brand-secondary/20 border-brand-secondary shadow-glow-secondary cursor-default' 
+                                        : 'bg-slate-800 border-slate-700 hover:border-slate-500 cursor-pointer transform hover:scale-[1.03]'
+                                    }`}
+                                >
+                                    {isActive && (
+                                        <div className="absolute top-3 right-3 flex items-center gap-1 text-xs font-bold text-brand-secondary bg-green-900/50 px-2 py-1 rounded-full">
+                                            <CheckCircleIcon className="w-4 h-4" />
+                                            Activ
+                                        </div>
+                                    )}
+                                    <div className="flex items-start gap-4">
+                                        <Icon className={`w-10 h-10 shrink-0 mt-1 ${isActive ? 'text-brand-secondary' : 'text-slate-400'}`} />
+                                        <div>
+                                            <p className="font-bold text-lg text-white">{getRoleDisplayName(role)}</p>
+                                            <p className="text-sm text-slate-400">{getRoleDescription(role)}</p>
+                                        </div>
+                                    </div>
+                                </button>
+                            )
+                        })}
                     </div>
 
                     {loading && <div className="text-center mt-6 text-slate-400 animate-pulse">Se configurează sesiunea...</div>}

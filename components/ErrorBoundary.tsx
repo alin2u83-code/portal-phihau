@@ -1,11 +1,11 @@
-// FIX: Changed React import to be more explicit with named imports, and refactored component to use modern class syntax.
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+// FIX: Reverted to default React import and `React.Component` to fix type resolution issues.
+import React from 'react';
 import { View } from '../types';
 import { Button } from './ui';
 import { ArrowLeftIcon } from './icons';
 
 interface Props {
-  children?: ReactNode;
+  children?: React.ReactNode;
   onNavigate?: (view: View) => void;
 }
 
@@ -14,9 +14,7 @@ interface State {
   error?: Error;
 }
 
-// FIX: Changed from extends React.Component to extends Component
-class ErrorBoundary extends Component<Props, State> {
-  // FIX: Using class field for state initialization to avoid constructor and binding issues.
+class ErrorBoundary extends React.Component<Props, State> {
   state: State = {
     hasError: false,
     error: undefined,
@@ -27,12 +25,11 @@ class ErrorBoundary extends Component<Props, State> {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     // You can also log the error to an error reporting service.
     console.error("Uncaught error:", error, errorInfo);
   }
 
-  // FIX: Using arrow function for method to automatically bind 'this'.
   handleRedirect = () => {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {

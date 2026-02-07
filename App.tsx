@@ -241,18 +241,34 @@ function App() {
     setUserRoles(roles || []);
     setSession(currentSession);
     
+    // --- NOUA LOGICĂ DE SELECȚIE A ROLULUI ACTIV ---
     if (roles && roles.length > 0) {
-        const primaryRole = roles.find(r => r.is_primary);
-        if (primaryRole) {
-            setActiveRoleContext(primaryRole);
-        } else if (roles.length === 1) {
-            // Dacă există un singur rol, îl setăm ca primar automat
-            const singleRole = roles[0];
-            setActiveRoleContext(singleRole);
-            supabase.rpc('set_primary_context', { p_sportiv_id: singleRole.sportiv_id, p_rol_denumire: singleRole.rol_denumire });
+        let selectedRoleContext: any | null = null;
+        
+        // Prioritatea 1: Respectă alegerea explicită a utilizatorului (marcată în DB)
+        const primaryRoleFromDB = roles.find(r => r.is_primary);
+        
+        if (primaryRoleFromDB) {
+            selectedRoleContext = primaryRoleFromDB;
+        } else {
+            // Prioritatea 2: Selectează automat cel mai înalt rol administrativ
+            const rolePriority: Rol['nume'][] = ['SUPER_ADMIN_FEDERATIE', 'Admin', 'Admin Club', 'Instructor', 'Sportiv'];
+            for (const roleName of rolePriority) {
+                const foundRole = roles.find(r => r.rol_denumire === roleName);
+                if (foundRole) {
+                    selectedRoleContext = foundRole;
+                    break;
+                }
+            }
         }
-        // Dacă sunt mai multe roluri și niciunul nu e primar, `activeRoleContext` rămâne null,
-        // ceea ce va declanșa afișarea paginii de selecție a rolului.
+        
+        // Fallback: Dacă logica eșuează, alege primul rol din listă
+        if (!selectedRoleContext) {
+            selectedRoleContext = roles[0];
+        }
+        
+        setActiveRoleContext(selectedRoleContext);
+
     } else if (profile) {
         setProfileError("Contul dumneavoastră nu este asociat cu niciun rol. Vă rugăm contactați un administrator.");
     }

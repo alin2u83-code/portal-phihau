@@ -287,4 +287,7 @@ export interface Permissions {
     canManageFinances: boolean;
     canGradeStudents: boolean;
     visibleClubIds: 'all' | string[];
+    canBeClubAdmin: boolean;
+    canBeFederationAdmin: boolean;
+    isMultiContextAdmin: boolean;
 }

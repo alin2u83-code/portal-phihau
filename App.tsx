@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from './supabaseClient';
-import { Sportiv, SesiuneExamen, Grad, InscriereExamen, View, Antrenament, Grupa, Plata, Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, Rol, AnuntPrezenta, Reducere, AnuntGeneral, TipPlata, Locatie, Club, DecontFederatie, IstoricGrade, Permissions } from './types';
+import { Sportiv, SesiuneExamen, Grad, InscriereExamen, View, Antrenament, Grupa, Plata, Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, Rol, AnuntPrezenta, Reducere, TipPlata, Locatie, Club, DecontFederatie, IstoricGrade, Permissions } from './types';
 import { SportiviManagement } from './components/SportiviManagement';
 import { UserProfile } from './components/UserProfile';
 import { GestiuneExamene } from './components/Examene';
@@ -65,6 +65,7 @@ import { Card, Button } from './components/ui';
 import { RoleSelectionPage } from './components/RoleSelectionPage';
 import { NotificationBell } from './components/NotificationBell';
 import { RaportLunarPrezenta } from './components/RaportLunarPrezenta';
+import { NavbarAdmin } from './components/NavbarAdmin';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -538,7 +539,7 @@ function App() {
                     </div>
                 )
             }
-            if (permissions.isSuperAdmin && adminContext === 'federation') {
+            if (permissions.isFederationLevel && adminContext === 'federation') {
                 return <FederationDashboard onNavigate={setActiveView} />;
             }
             return (
@@ -771,11 +772,19 @@ function App() {
                 grade={grade}
               />
               <main className={`flex-1 transition-all duration-300 ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'}`}>
-                <div className="absolute top-4 right-8 z-30">
+                <div className="absolute top-4 right-8 z-30 flex items-center gap-4">
                   {currentUser && permissions.hasAdminAccess && <NotificationBell currentUser={currentUser} />}
+                  {currentUser && permissions.hasAdminAccess && (
+                    <NavbarAdmin 
+                        currentUser={currentUser}
+                        permissions={permissions}
+                        onNavigate={setActiveView}
+                        onLogout={handleLogout}
+                    />
+                  )}
                 </div>
                 <div className="p-4 md:p-8 max-w-7xl mx-auto">
-                  {permissions.isSuperAdmin && activeView === 'dashboard' && <GlobalContextSwitcher activeContext={adminContext} onContextChange={setAdminContext} />}
+                  {permissions.isMultiContextAdmin && permissions.hasAdminAccess && <GlobalContextSwitcher activeContext={adminContext} onContextChange={setAdminContext} />}
                   <ErrorBoundary onNavigate={setActiveView}>
                     {renderContent()}
                   </ErrorBoundary>

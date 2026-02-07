@@ -713,7 +713,7 @@ function App() {
         return <BackdoorCheck currentUser={currentUser!} onBack={() => setActiveView('dashboard')} />;
         
       case 'backdoor-test':
-        return <BackdoorTest currentUser={currentUser!} onBack={() => setActiveView('dashboard')} activeRole={activeRole!} />;
+        return <BackdoorTest currentUser={currentUser!} onBack={() => setActiveView('dashboard')} activeRole={activeRole!} userRoles={userRoles} />;
 
       default:
          return <div>Lipsește Vizualizarea</div>;
@@ -773,6 +773,7 @@ function App() {
               {(import.meta as any).env.DEV && currentUser && (
                 <AdminDebugFloatingPanel 
                     currentUser={currentUser}
+                    userRoles={userRoles}
                     onNavigate={setActiveView}
                 />
               )}

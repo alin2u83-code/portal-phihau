@@ -9,10 +9,11 @@ const AUTHORIZED_EMAILS = ['admin@phihau.ro', 'alin2u83@gmail.com'];
 
 interface AdminDebugFloatingPanelProps {
     currentUser: User | null;
+    userRoles: any[];
     onNavigate: (view: View) => void;
 }
 
-export const AdminDebugFloatingPanel: React.FC<AdminDebugFloatingPanelProps> = ({ currentUser, onNavigate }) => {
+export const AdminDebugFloatingPanel: React.FC<AdminDebugFloatingPanelProps> = ({ currentUser, userRoles, onNavigate }) => {
     const [loadingRole, setLoadingRole] = useState<Rol['nume'] | null>(null);
     const { showError, showSuccess } = useError();
 
@@ -28,9 +29,17 @@ export const AdminDebugFloatingPanel: React.FC<AdminDebugFloatingPanelProps> = (
 
         setLoadingRole(roleName);
 
-        // Correct way: Call the RPC function to update the `sportivi` table.
-        // This will trigger the sync to auth.users metadata.
-        const { error } = await supabase.rpc('set_active_role', { p_role_name: roleName });
+        const targetContext = userRoles.find(r => r.rol_denumire === roleName);
+        if (!targetContext) {
+            showError("Impersonare Eșuată", `Nu aveți un context de rol "${roleName}" pentru a comuta.`);
+            setLoadingRole(null);
+            return;
+        }
+
+        const { error } = await supabase.rpc('set_primary_context', {
+            p_sportiv_id: targetContext.sportiv_id,
+            p_rol_denumire: targetContext.rol_denumire
+        });
 
         if (error) {
             showError("Eroare la comutarea rolului", error.message);

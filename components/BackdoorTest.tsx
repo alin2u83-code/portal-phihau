@@ -7,6 +7,7 @@ import { ArrowLeftIcon } from './icons';
 
 interface BackdoorTestProps {
     currentUser: User;
+    userRoles: any[];
     onBack: () => void;
     activeRole: Rol['nume'];
 }
@@ -14,11 +15,11 @@ interface BackdoorTestProps {
 // Actualizat pentru a permite accesul administratorului clubului Phi Hau
 const AUTHORIZED_EMAILS = ['admin@phihau.ro', 'alin2u83@gmail.com'];
 
-export const BackdoorTest: React.FC<BackdoorTestProps> = ({ currentUser, onBack, activeRole }) => {
+export const BackdoorTest: React.FC<BackdoorTestProps> = ({ currentUser, userRoles, onBack, activeRole }) => {
     const { showError, showSuccess } = useError();
     const [loadingRole, setLoadingRole] = useState<string | null>(null);
 
-    const handleSwitchRole = async (roleName: 'SUPER_ADMIN_FEDERATIE' | 'ADMIN_CLUB' | 'SPORTIV') => {
+    const handleSwitchRole = async (roleName: 'SUPER_ADMIN_FEDERATIE' | 'Admin Club' | 'Sportiv') => {
         if (!supabase) {
             showError("Eroare Configurare", "Clientul Supabase nu este inițializat.");
             return;
@@ -26,11 +27,17 @@ export const BackdoorTest: React.FC<BackdoorTestProps> = ({ currentUser, onBack,
 
         setLoadingRole(roleName);
 
-        const roleToSet: Rol['nume'] = roleName === 'ADMIN_CLUB' ? 'Admin Club' : roleName === 'SPORTIV' ? 'Sportiv' : 'SUPER_ADMIN_FEDERATIE';
+        const targetContext = userRoles.find(r => r.rol_denumire === roleName);
+        if (!targetContext) {
+            showError("Impersonare Eșuată", `Nu aveți un context de rol "${roleName}" pentru a comuta.`);
+            setLoadingRole(null);
+            return;
+        }
 
-        // Correct way: Call the RPC function to update the `sportivi` table,
-        // which then triggers the sync to auth.users metadata.
-        const { error } = await supabase.rpc('set_active_role', { p_role_name: roleToSet });
+        const { error } = await supabase.rpc('set_primary_context', {
+            p_sportiv_id: targetContext.sportiv_id,
+            p_rol_denumire: targetContext.rol_denumire,
+        });
         
         if (error) {
             showError("Eroare la comutarea rolului", error.message);
@@ -72,16 +79,16 @@ export const BackdoorTest: React.FC<BackdoorTestProps> = ({ currentUser, onBack,
                         SUPER_ADMIN_FEDERATIE
                     </Button>
                     <Button 
-                        onClick={() => handleSwitchRole('ADMIN_CLUB')} 
-                        isLoading={loadingRole === 'ADMIN_CLUB'} 
+                        onClick={() => handleSwitchRole('Admin Club')} 
+                        isLoading={loadingRole === 'Admin Club'} 
                         disabled={!!loadingRole}
                         className="text-lg py-6 flex-1"
                     >
                         ADMIN_CLUB
                     </Button>
                      <Button 
-                        onClick={() => handleSwitchRole('SPORTIV')} 
-                        isLoading={loadingRole === 'SPORTIV'} 
+                        onClick={() => handleSwitchRole('Sportiv')} 
+                        isLoading={loadingRole === 'Sportiv'} 
                         disabled={!!loadingRole}
                         className="text-lg py-6 flex-1"
                     >

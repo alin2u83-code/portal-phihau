@@ -1,5 +1,4 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Session } from '@supabase/supabase-js';
 import { User, View, DecontFederatie } from '../types';
 import { Card } from './ui';
@@ -8,7 +7,7 @@ import { UsersIcon, TrophyIcon, BanknotesIcon, WalletIcon, ClipboardCheckIcon, A
 interface UnifiedDashboardProps {
     session: Session | null;
     currentUser: User | null;
-    onNavigate: (view: View) => void; // This will now be handled by useNavigate
+    onNavigate: (view: View) => void;
     deconturiFederatie: DecontFederatie[];
 }
 
@@ -30,7 +29,7 @@ const NavCard: React.FC<{ title: string; description: string; icon: React.Elemen
 
 const AdminFederationCard: React.FC<{ deconturi: DecontFederatie[] }> = ({ deconturi }) => {
     const { total, count } = React.useMemo(() => {
-        const pending = (deconturi || []).filter(d => d.status === 'In asteptare');
+        const pending = deconturi.filter(d => d.status === 'In asteptare');
         return {
             total: pending.reduce((sum, d) => sum + d.suma_totala, 0),
             count: pending.reduce((sum, d) => sum + d.numar_sportivi, 0),
@@ -46,38 +45,32 @@ const AdminFederationCard: React.FC<{ deconturi: DecontFederatie[] }> = ({ decon
     );
 };
 
-const InstructorCards: React.FC<{ onNavigate: (view: View) => void }> = ({ onNavigate }) => {
-    const navigate = useNavigate();
-    return (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <NavCard
-                title="Prezență la Antrenament"
-                description="Înregistrează rapid prezența sportivilor la antrenamentele de astăzi."
-                icon={ClipboardCheckIcon}
-                onClick={() => navigate('/prezenta-instructor')}
-                color="text-sky-400"
-            />
-            <NavCard
-                title="Pregătire Examen"
-                description="Gestionează înscrierile și notele pentru următoarea sesiune de examinare."
-                icon={TrophyIcon}
-                onClick={() => navigate('/examene')}
-                color="text-green-400"
-            />
-        </div>
-    );
-}
+const InstructorCards: React.FC<{ onNavigate: (view: View) => void }> = ({ onNavigate }) => (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <NavCard
+            title="Prezență la Antrenament"
+            description="Înregistrează rapid prezența sportivilor la antrenamentele de astăzi."
+            icon={ClipboardCheckIcon}
+            onClick={() => onNavigate('prezenta')}
+            color="text-sky-400"
+        />
+        <NavCard
+            title="Pregătire Examen"
+            description="Gestionează înscrierile și notele pentru următoarea sesiune de examinare."
+            icon={TrophyIcon}
+            onClick={() => onNavigate('examene')}
+            color="text-green-400"
+        />
+    </div>
+);
+
 
 // Main Component Logic
-export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({ session, currentUser, deconturiFederatie }) => {
-    const navigate = useNavigate();
-
-    if (!currentUser) {
+export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({ session, currentUser, onNavigate, deconturiFederatie }) => {
+    if (!session || !currentUser) {
+        // FIX: Removed usage of AuthContainer as it comes from an obsolete, empty file.
+        // Routing should handle unauthenticated users, so returning null is a safe fallback.
         return null;
-    }
-    
-    const handleNavigate = (view: View) => {
-        navigate(`/${view}`);
     }
 
     const navItems = [
@@ -87,11 +80,11 @@ export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({ session, cur
         { title: 'Dashboard Financiar', description: 'Vizualizează rapoarte și statistici financiare.', icon: BanknotesIcon, view: 'financial-dashboard' as View, category: 'Financiar', roles: ['Admin', 'Admin Club', 'SUPER_ADMIN_FEDERATIE'] },
         { title: 'Facturi & Plăți', description: 'Generează facturi și înregistrează încasări.', icon: WalletIcon, view: 'plati-scadente' as View, category: 'Financiar', roles: ['Admin', 'Admin Club', 'SUPER_ADMIN_FEDERATIE'] },
         { title: 'Deconturi Federație', description: 'Vezi și achită datoriile către federație.', icon: BanknotesIcon, view: 'deconturi-federatie' as View, category: 'Financiar', roles: ['Admin', 'Admin Club', 'SUPER_ADMIN_FEDERATIE'] },
-        { title: 'Prezență', description: 'Înregistrează prezența la antrenamente.', icon: ClipboardCheckIcon, view: 'prezenta-instructor' as View, category: 'Tehnic', roles: ['Admin', 'Admin Club', 'Instructor', 'SUPER_ADMIN_FEDERATIE'] },
+        { title: 'Prezență', description: 'Înregistrează prezența la antrenamente.', icon: ClipboardCheckIcon, view: 'prezenta' as View, category: 'Tehnic', roles: ['Admin', 'Admin Club', 'Instructor', 'SUPER_ADMIN_FEDERATIE'] },
         { title: 'Orar & Grupe', description: 'Definește programul de antrenament și grupele.', icon: ArchiveBoxIcon, view: 'grupe' as View, category: 'Tehnic', roles: ['Admin', 'Admin Club', 'Instructor', 'SUPER_ADMIN_FEDERATIE'] },
     ];
     
-    const userRole = currentUser.rol_activ_context || (currentUser.roluri && currentUser.roluri.length > 0 ? currentUser.roluri[0].nume : 'SPORTIV');
+    const userRole = currentUser.rol || (currentUser.roluri && currentUser.roluri.length > 0 ? currentUser.roluri[0].nume : 'SPORTIV');
 
     const availableNavItems = navItems.filter(item =>
         item.roles.some(role => userRole.includes(role))
@@ -106,8 +99,8 @@ export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({ session, cur
     return (
         <div className="space-y-12 animate-fade-in-down">
             <div>
-                {['Admin', 'Admin Club', 'SUPER_ADMIN_FEDERATIE'].some(role => userRole.includes(role)) && <AdminFederationCard deconturi={deconturiFederatie} />}
-                {userRole.includes('Instructor') && <InstructorCards onNavigate={handleNavigate} />}
+                {['Admin', 'ADMIN_CLUB', 'SUPER_ADMIN_FEDERATIE'].some(role => userRole.includes(role)) && <AdminFederationCard deconturi={deconturiFederatie} />}
+                {userRole.includes('INSTRUCTOR') && <InstructorCards onNavigate={onNavigate} />}
             </div>
 
             {Object.entries(groupedNavItems).map(([category, items]) => (
@@ -121,7 +114,7 @@ export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({ session, cur
                                     title={item.title}
                                     description={item.description}
                                     icon={item.icon}
-                                    onClick={() => handleNavigate(item.view)}
+                                    onClick={() => onNavigate(item.view)}
                                 />
                             ))}
                         </div>

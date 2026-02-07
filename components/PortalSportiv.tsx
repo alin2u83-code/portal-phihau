@@ -1,1 +1,1 @@
-// This file is obsolete and has been cleaned up.
+// This file is obsolete. Functionality merged into SportivDashboard.tsx.

@@ -189,7 +189,7 @@ export const Stepper: React.FC<{ value: number; onChange: (newValue: number) => 
     );
 };
 
-export const RoleBadge: React.FC<{ role: Rol; onRemove?: () => void; isRemovable?: boolean }> = ({ role, onRemove, isRemovable }) => {
+export const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
     const colorClasses: Record<Rol['nume'], string> = {
         'Admin': 'bg-red-600 text-white',
         'SUPER_ADMIN_FEDERATIE': 'bg-red-800 text-white',
@@ -197,21 +197,9 @@ export const RoleBadge: React.FC<{ role: Rol; onRemove?: () => void; isRemovable
         'Instructor': 'bg-sky-600 text-white',
         'Sportiv': 'bg-slate-600 text-slate-200',
     };
-    const color = colorClasses[role.nume] || 'bg-gray-500 text-white';
-
     return (
-        <span className={`inline-flex items-center gap-1.5 px-2 py-1 text-[10px] font-semibold rounded-full ${color}`}>
+        <span className={`px-2 py-1 text-[10px] font-semibold rounded-full ${colorClasses[role.nume] || 'bg-gray-500 text-white'}`}>
             {role.nume}
-            {isRemovable && onRemove && (
-                <button
-                    type="button"
-                    onClick={onRemove}
-                    className="-mr-0.5 text-white/70 hover:text-white font-bold leading-none focus:outline-none"
-                    aria-label={`Elimină rolul ${role.nume}`}
-                >
-                    &times;
-                </button>
-            )}
         </span>
     );
 };

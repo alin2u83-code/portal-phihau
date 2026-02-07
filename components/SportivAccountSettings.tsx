@@ -1,9 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import { Sportiv, Rol, User } from '../types';
-import { Button, Card, Input, Select, Modal, RoleBadge } from './ui';
+import { Button, Card, Input, Select, Modal } from './ui';
 import { ShieldCheckIcon, PlusIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
+
+const RoleBadge: React.FC<{ role: Rol, onRemove?: () => void, isRemovable?: boolean }> = ({ role, onRemove, isRemovable }) => {
+    const colorClasses: Record<string, string> = {
+        Admin: 'bg-red-600 text-white',
+        Instructor: 'bg-sky-600 text-white',
+        Sportiv: 'bg-slate-600 text-slate-200',
+    };
+    const color = colorClasses[role.nume] || 'bg-gray-500 text-white';
+
+    return (
+        <span className={`flex items-center gap-2 px-2 py-1 text-xs font-semibold rounded-full ${color}`}>
+            {role.nume}
+            {isRemovable && (
+                <button
+                    type="button"
+                    onClick={onRemove}
+                    className="ml-1 text-white/70 hover:text-white font-bold leading-none"
+                    aria-label={`Elimină rolul ${role.nume}`}
+                >
+                    &times;
+                </button>
+            )}
+        </span>
+    );
+};
 
 interface SportivAccountSettingsModalProps {
     isOpen: boolean;
@@ -78,6 +103,7 @@ export const SportivAccountSettingsModal: React.FC<SportivAccountSettingsModalPr
                     if (sportivRole) finalRoleIds.push(sportivRole.id);
                 }
                 
+                // --- Start Migration ---
                 await supabase.from('utilizator_roluri_multicont').delete().eq('user_id', sportiv.user_id);
                 
                 const rolesToInsert = finalRoleIds.map(roleId => {
@@ -96,6 +122,7 @@ export const SportivAccountSettingsModal: React.FC<SportivAccountSettingsModalPr
                     const { error: insErr } = await supabase.from('utilizator_roluri_multicont').insert(rolesToInsert as any);
                     if (insErr) throw insErr;
                 }
+                // --- End Migration ---
             }
             
             const cleanedUsername = (editForm.username || '').toLowerCase().replace(/\s/g, '');
@@ -109,6 +136,7 @@ export const SportivAccountSettingsModal: React.FC<SportivAccountSettingsModalPr
             const { data, error } = await supabase.from('sportivi').update(updates).eq('id', sportiv.id).select().single();
             if (error) throw error;
             
+            // Re-fetch roles from the new table to update local state accurately
             const { data: rolesData, error: rolesError } = await supabase.from('utilizator_roluri_multicont').select('*').eq('user_id', sportiv.user_id);
             if (rolesError) throw rolesError;
             
@@ -130,63 +158,152 @@ export const SportivAccountSettingsModal: React.FC<SportivAccountSettingsModalPr
             setLoading(false);
         }
     };
+    
+    const restoreAdminSession = async (adminSession: any) => {
+        if (adminSession) {
+            const { error } = await supabase.auth.setSession({ access_token: adminSession.access_token, refresh_token: adminSession.refresh_token });
+            if (error) showError("Eroare Critică", "Sesiunea de admin nu a putut fi restaurată. Reîncărcați pagina.");
+        } else {
+             showError("Eroare Sesiune", "Sesiunea de administrator a expirat. Vă rugăm să vă autentificați din nou.");
+        }
+    };
+
+    const handleCreateOrLinkAccount = async (e: React.FormEvent, isLinkAttempt: boolean = false) => {
+        e.preventDefault();
+        if (!supabase || !sportiv) return;
+        if (!createForm.email || !createForm.parola) { showError("Validare Eșuată", "Email-ul și parola sunt obligatorii."); return; }
+        
+        setLoading(true);
+        const { data: { session: adminSession } } = await supabase.auth.getSession();
+
+        try {
+            let authUserId: string;
+            
+            if (isLinkAttempt) { // Linking existing account
+                const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ email: createForm.email, password: createForm.parola });
+                if (signInError) throw new Error("Parola este incorectă pentru contul existent. Asocierea a eșuat.");
+                authUserId = signInData.user!.id;
+                
+                const { data: linkedProfile, error: checkError } = await supabase.from('sportivi').select('id, nume, prenume').eq('user_id', authUserId).not('id', 'eq', sportiv.id).maybeSingle();
+                if (checkError) throw checkError;
+                if (linkedProfile) throw new Error(`Contul este deja asociat cu sportivul ${linkedProfile.nume} ${linkedProfile.prenume}.`);
+
+            } else { // Creating new account
+                const { data: authData, error: authError } = await supabase.auth.signUp({ email: createForm.email, password: createForm.parola });
+                if (authError) {
+                    if (authError.message.includes("User already registered")) {
+                        setCreationStep('confirm_link');
+                        throw new Error(`Un cont cu email-ul "${createForm.email}" există deja. Confirmați parola pentru a-l asocia.`);
+                    }
+                    throw authError;
+                }
+                authUserId = authData.user!.id;
+            }
+
+            // --- Start Migration ---
+            const sportivRole = allRoles.find(r => r.nume === 'Sportiv');
+            if (sportivRole) {
+                const { error: roleError } = await supabase.from('utilizator_roluri_multicont').insert({
+                    user_id: authUserId,
+                    rol_denumire: 'Sportiv',
+                    club_id: sportiv.club_id,
+                    sportiv_id: sportiv.id,
+                    is_primary: true
+                });
+                if (roleError) throw new Error(`Rolul nu a putut fi asignat: ${roleError.message}`);
+            }
+            // --- End Migration ---
+
+            const { data, error } = await supabase.from('sportivi').update({ user_id: authUserId, email: createForm.email, username: createForm.username }).eq('id', sportiv.id).select().single();
+            if (error) throw error;
+            
+            const updatedUser = { ...data, roluri: sportivRole ? [sportivRole] : [] } as Sportiv;
+            setSportivi(prev => prev.map(s => s.id === sportiv.id ? updatedUser : s));
+            showSuccess("Succes!", `Contul a fost ${isLinkAttempt ? 'asociat' : 'creat'} cu succes!`);
+            onClose();
+
+        } catch (err: any) {
+            showError("Eroare", err);
+        } finally {
+            await supabase.auth.signOut().catch(()=>{}); // Ignore signout error
+            await restoreAdminSession(adminSession);
+            setLoading(false);
+        }
+    };
+    
+    const handleAddNewRole = async () => {
+        if (!supabase) return;
+        const trimmedName = newRoleName.trim();
+        if (!trimmedName || allRoles.some(r => r.nume.toLowerCase() === trimmedName.toLowerCase())) {
+            showError("Eroare", "Numele rolului este invalid sau duplicat.");
+            return;
+        }
+        const { data, error } = await supabase.from('roluri').insert({ nume: trimmedName }).select().single();
+        if (error) showError("Eroare la creare rol", error);
+        else if (data) { setAllRoles(prev => [...prev, data as Rol]); setNewRoleName(''); showSuccess("Succes", "Rol adăugat!"); }
+    };
+
+    if (!isOpen || !sportiv) return null;
+
+    const unassignedRoles = allRoles.filter(r => !selectedRoleIds.includes(r.id));
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title={`Setări Cont: ${sportiv?.nume} ${sportiv?.prenume}`}>
+        <Modal isOpen={isOpen} onClose={onClose} title={hasAccount ? `Setări Cont: ${sportiv.nume}` : `Creează Cont: ${sportiv.nume}`}>
             {hasAccount ? (
+                // --- EDIT ACCOUNT FORM ---
                 <form onSubmit={handleSaveEdit} className="space-y-6">
-                    <Card>
-                        <h3 className="text-lg font-bold text-white mb-4">Informații Autentificare</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <Input label="Email (Login)" name="email" type="email" value={editForm.email} onChange={handleEditFormChange} required />
-                            <Input label="Nume Utilizator" name="username" value={editForm.username} onChange={handleEditFormChange} />
-                        </div>
-                    </Card>
-                    <Card>
-                        <h3 className="text-lg font-bold text-white mb-4">Resetare Parolă</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <Input label="Parolă Nouă (lasă gol pentru a o păstra)" name="parola" type="password" value={editForm.parola} onChange={handleEditFormChange} />
-                            <Input label="Confirmă Parola" name="confirmParola" type="password" value={editForm.confirmParola} onChange={handleEditFormChange} />
-                        </div>
-                    </Card>
-                    {canEditRoles && (
-                        <Card>
-                            <h3 className="text-lg font-bold text-white mb-4">Management Roluri</h3>
-                            <div className="flex flex-wrap gap-2 mb-4">
-                                {selectedRoleIds.map(roleId => {
-                                    const role = allRoles.find(r => r.id === roleId);
-                                    if (!role) return null;
-                                    return (
-                                        <RoleBadge
-                                            key={role.id}
-                                            role={role}
-                                            isRemovable={role.nume !== 'Sportiv'}
-                                            onRemove={() => handleRoleRemove(role.id)}
-                                        />
-                                    );
-                                })}
+                     {canEditRoles && (
+                        <div>
+                            <h3 className="text-lg font-semibold text-white mb-2">Roluri Asignate</h3>
+                            <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700 space-y-4">
+                                <div className="flex flex-wrap gap-2 min-h-[2.5rem] items-center">
+                                    {selectedRoleIds.map(roleId => { const role = allRoles.find(r => r.id === roleId); if (!role) return null; const isRemovable = !(sportiv.id === currentUser.id && (role.nume === 'Admin' || role.nume === 'SUPER_ADMIN_FEDERATIE')); return <RoleBadge key={role.id} role={role} onRemove={() => handleRoleRemove(role.id)} isRemovable={isRemovable} />; })}
+                                    {selectedRoleIds.length === 0 && <p className="text-sm text-slate-400 italic">Niciun rol. Va fi asignat 'Sportiv' la salvare.</p>}
+                                </div>
+                                {unassignedRoles.length > 0 && (
+                                    <div className="flex items-end gap-2 pt-4 border-t border-slate-700">
+                                        <div className="flex-grow"><Select label="Adaugă rol" value={roleToAdd} onChange={(e) => setRoleToAdd(e.target.value)}><option value="">Selectează...</option>{unassignedRoles.map(role => <option key={role.id} value={role.id}>{role.nume}</option>)}</Select></div>
+                                        <Button type="button" variant="info" onClick={handleRoleAdd} disabled={!roleToAdd}><PlusIcon className="w-5 h-5" /></Button>
+                                    </div>
+                                )}
                             </div>
-                            <div className="flex items-end gap-2">
-                                <Select label="Adaugă Rol Nou" value={roleToAdd} onChange={e => setRoleToAdd(e.target.value)}>
-                                    <option value="">Selectează...</option>
-                                    {allRoles.filter(r => !selectedRoleIds.includes(r.id)).map(r => (
-                                        <option key={r.id} value={r.id}>{r.nume}</option>
-                                    ))}
-                                </Select>
-                                <Button type="button" onClick={handleRoleAdd} variant="secondary" className="h-9"><PlusIcon className="w-4 h-4" /></Button>
-                            </div>
-                        </Card>
+                        </div>
                     )}
-                    <div className="flex justify-end pt-4 gap-2 border-t border-slate-700">
-                        <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button>
-                        <Button type="submit" variant="success" isLoading={loading}>Salvează Modificările</Button>
+                    <div>
+                        <h3 className="text-lg font-semibold text-white mb-2">Date de Autentificare</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+                            <Input label="Nume Utilizator (Username)" name="username" type="text" value={editForm.username} onChange={handleEditFormChange} placeholder="ion.popescu" />
+                            <Input label="Adresă Email" name="email" type="email" value={editForm.email} onChange={handleEditFormChange} required />
+                            <Input label="Parolă Nouă (lasă gol pentru a o păstra)" name="parola" type="password" value={editForm.parola} onChange={handleEditFormChange} />
+                             <Input label="Confirmă Parola Nouă" name="confirmParola" type="password" value={editForm.confirmParola} onChange={handleEditFormChange} />
+                        </div>
                     </div>
+                    <div className="flex justify-end pt-4"><Button type="submit" variant="success" size="md" className="px-10" isLoading={loading}>Salvează Setările</Button></div>
                 </form>
             ) : (
-                <div className="text-center p-4">
-                    <h3 className="text-lg font-bold text-white mb-2">Acest sportiv nu are un cont de acces.</h3>
-                    <p className="text-sm text-slate-400">Puteți crea un cont de acces din panoul de User Management.</p>
-                    <Button variant="secondary" onClick={onClose} className="mt-6">Închide</Button>
+                // --- CREATE ACCOUNT FORM ---
+                creationStep === 'initial' ? (
+                     <form onSubmit={handleCreateOrLinkAccount} className="space-y-4">
+                        <Input label="Email (Login)" name="email" type="email" value={createForm.email} onChange={handleCreateFormChange} required />
+                        <Input label="Nume Utilizator" name="username" type="text" value={createForm.username} onChange={handleCreateFormChange} placeholder="Opțional. Ex: ion.popescu"/>
+                        <Input label="Parolă Inițială" name="parola" type="password" value={createForm.parola} onChange={handleCreateFormChange} required />
+                        <div className="flex justify-end pt-4 space-x-2"><Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button><Button type="submit" variant="success" isLoading={loading}>Creează Cont</Button></div>
+                    </form>
+                ) : (
+                     <form onSubmit={(e) => handleCreateOrLinkAccount(e, true)} className="space-y-4">
+                        <p className="text-amber-300 text-sm text-center bg-amber-900/50 p-3 rounded-md">Un cont cu acest email există. Confirmați parola pentru a asocia sportivul.</p>
+                        <Input label="Confirmă Parola Contului Existent" name="parola" type="password" value={createForm.parola} onChange={handleCreateFormChange} required />
+                        <div className="flex justify-end pt-4 space-x-2"><Button type="button" variant="secondary" onClick={() => setCreationStep('initial')} disabled={loading}>Înapoi</Button><Button type="submit" variant="success" isLoading={loading}>Asociază Contul</Button></div>
+                    </form>
+                )
+            )}
+             {canEditRoles && (
+                <div className="mt-6 pt-6 border-t border-slate-600">
+                     <h3 className="text-lg font-semibold text-white mb-2">Management Global Roluri</h3>
+                     <div className="flex items-end gap-2">
+                        <Input label="Adaugă un rol nou în sistem" value={newRoleName} onChange={e => setNewRoleName(e.target.value)} placeholder="ex: Contabil"/>
+                        <Button onClick={handleAddNewRole} variant="secondary"><PlusIcon className="w-5 h-5"/></Button>
+                     </div>
                 </div>
             )}
         </Modal>

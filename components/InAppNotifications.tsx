@@ -1,1 +1,1 @@
-// This file is obsolete and has been renamed to NotificationBell.tsx
+// This file is obsolete. See NotificationBell.tsx

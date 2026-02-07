@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions } from '../types';
-import { Button, Modal, Input, Select, Card, Switch, RoleBadge } from './ui';
+import { Button, Modal, Input, Select, Card, Switch } from './ui';
 import { PlusIcon, ArrowLeftIcon, ShieldCheckIcon, WalletIcon, UserXIcon, UserCheckIcon, UsersIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
@@ -21,6 +21,19 @@ const getAge = (dateString: string | null | undefined): number => {
     const m = today.getMonth() - birthDate.getMonth(); 
     if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; } 
     return age; 
+};
+
+const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
+// FIX: Corrected key from 'Super Admin' to 'SUPER_ADMIN_FEDERATIE' to match the 'Rol' type definition.
+// FIX: Completed the color mapping to include all roles.
+    const colorClasses: Record<Rol['nume'], string> = {
+        'Admin': 'bg-red-600 text-white',
+        'SUPER_ADMIN_FEDERATIE': 'bg-red-800 text-white',
+        'Admin Club': 'bg-blue-600 text-white',
+        'Instructor': 'bg-sky-600 text-white',
+        'Sportiv': 'bg-slate-600 text-slate-200',
+    };
+    return <span className={`px-2 py-1 text-[10px] font-semibold rounded-full ${colorClasses[role.nume] || 'bg-gray-500 text-white'}`}>{role.nume}</span>;
 };
 
 const DeactivationModal: React.FC<{
@@ -355,9 +368,11 @@ export const SportiviManagement: React.FC<{
                 const currentGrade = (grade || []).find(g => g.id === s.grad_actual_id);
                 return <GradBadge grad={currentGrade} className="text-[10px]" />;
             },
-            className: 'hidden md:table-cell'
+// FIX: Changed `className` to `cellClassName` to match the `Column` type definition.
+            cellClassName: 'hidden md:table-cell'
         },
-        { key: 'club_id', label: 'Club', tooltip: "Clubul de care aparține sportivul.", render: (s) => s.cluburi?.id === FEDERATIE_ID ? FEDERATIE_NAME : s.cluburi?.nume || '-', className: 'hidden md:table-cell' },
+// FIX: Changed `className` to `cellClassName` to match the `Column` type definition.
+        { key: 'club_id', label: 'Club', tooltip: "Clubul de care aparține sportivul.", render: (s) => s.cluburi?.id === FEDERATIE_ID ? FEDERATIE_NAME : s.cluburi?.nume || '-', cellClassName: 'hidden md:table-cell' },
         { 
             key: 'roluri', 
             label: 'Roluri', 
@@ -375,12 +390,14 @@ export const SportiviManagement: React.FC<{
             key: 'status', 
             label: 'Status',
             tooltip: "Indică dacă sportivul este activ sau inactiv.",
-            className: 'hidden md:table-cell',
+// FIX: Changed `className` to `cellClassName` to match the `Column` type definition.
+            cellClassName: 'hidden md:table-cell',
             render: (s) => (
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${s.status === 'Activ' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{s.status}</span>
             )
         },
-        { key: 'grupa_id', label: 'Grupă', tooltip: "Grupa de antrenament în care este încadrat sportivul.", render: (s) => (grupe || []).find(g => g.id === s.grupa_id)?.denumire || '-', className: 'hidden md:table-cell' },
+// FIX: Changed `className` to `cellClassName` to match the `Column` type definition.
+        { key: 'grupa_id', label: 'Grupă', tooltip: "Grupa de antrenament în care este încadrat sportivul.", render: (s) => (grupe || []).find(g => g.id === s.grupa_id)?.denumire || '-', cellClassName: 'hidden md:table-cell' },
         {
             key: 'actions',
             label: 'Acțiuni',

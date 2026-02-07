@@ -1,10 +1,11 @@
-import React, { ReactNode, ErrorInfo } from 'react';
+// FIX: Using namespace import for React to ensure correct type resolution for class components in all environments.
+import * as React from 'react';
 import { View } from '../types';
 import { Button } from './ui';
 import { ArrowLeftIcon } from './icons';
 
 interface Props {
-  children?: ReactNode;
+  children?: React.ReactNode;
   onNavigate?: (view: View) => void;
 }
 
@@ -14,7 +15,6 @@ interface State {
 }
 
 class ErrorBoundary extends React.Component<Props, State> {
-  // FIX: Refactored to use class properties for state and an arrow function for the method to resolve 'this' context errors and fix properties not existing on type.
   state: State = {
     hasError: false,
     error: undefined,
@@ -25,12 +25,11 @@ class ErrorBoundary extends React.Component<Props, State> {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     // You can also log the error to an error reporting service.
     console.error("Uncaught error:", error, errorInfo);
   }
 
-  // FIX: Changed to an arrow function to correctly bind `this`.
   handleRedirect = () => {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {

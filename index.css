@@ -1,0 +1,83 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-main: #0a192f;
+    --bg-card: #112240;
+    --bg-card-hover: #1d2f50;
+    --bg-input: #1e293b;
+    --bg-table-header: #1e293b;
+    --bg-table-row-hover: #172a46;
+    --accent: #1d4ed8;
+    --accent-hover: #1e40af;
+    --text-primary: #ffffff;
+    --text-secondary: #94a3b8;
+    --border-color: #334155;
+    --brand-primary: #1d4ed8;
+    --brand-secondary: #64ffda;
+  }
+  body {
+    @apply bg-deep-navy text-slate-200 antialiased font-sans selection:bg-blue-500/30;
+    color-scheme: dark;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-2xl shadow-xl;
+  }
+  .selected-row-highlight {
+    outline: 2px solid var(--brand-secondary);
+    outline-offset: -2px;
+    background-color: rgba(100, 255, 218, 0.1);
+  }
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #printable-area, #printable-area *, #lista-prezenta-print-area, #lista-prezenta-print-area * {
+    visibility: visible;
+  }
+  #printable-area, #lista-prezenta-print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: auto;
+    padding: 1rem;
+    color: black !important;
+    background-color: white !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  #printable-area table, #lista-prezenta-print-area table {
+    width: 100%;
+    border-collapse: collapse;
+    -webkit-print-color-adjust: exact; 
+    print-color-adjust: exact;
+  }
+  #printable-area th, #printable-area td, #lista-prezenta-print-area th, #lista-prezenta-print-area td {
+    border: 1px solid #333;
+    padding: 8px;
+    font-size: 10pt;
+  }
+  #printable-area th, #lista-prezenta-print-area th {
+    background-color: #f2f2f2 !important;
+  }
+  #printable-area h1, #printable-area h2, #printable-area h3, #printable-area p,
+  #lista-prezenta-print-area h1, #lista-prezenta-print-area h2, #lista-prezenta-print-area h3, #lista-prezenta-print-area p {
+      color: black !important;
+  }
+  #lista-prezenta-print-area { padding: 2rem; }
+  #lista-prezenta-print-area h1 { font-size: 20pt; font-weight: bold; text-align: center; margin-bottom: 0.5rem; }
+  #lista-prezenta-print-area .details { text-align: center; margin-bottom: 2rem; font-size: 12pt; }
+  #lista-prezenta-print-area .group-header td { background-color: #e0e0e0 !important; font-weight: bold; text-align: center; }
+  #lista-prezenta-print-area .signature-col { width: 30%; }
+  #lista-prezenta-print-area .signature-area { margin-top: 4rem; padding-top: 1rem; border-top: 1px solid #ccc; display: flex; justify-content: space-between; font-size: 11pt; }
+}

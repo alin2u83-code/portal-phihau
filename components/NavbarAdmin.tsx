@@ -21,7 +21,8 @@ export const NavbarAdmin: React.FC<NavbarAdminProps> = ({ currentUser, onNavigat
         }
         return 'Sportiv';
     }, [currentUser]);
-    const permissions = usePermissions(currentUser, activeRole);
+    // FIX: The usePermissions hook only takes currentUser as an argument.
+    const permissions = usePermissions(currentUser);
     
     const hasOverduePayments = useMemo(() => {
         const today = new Date();

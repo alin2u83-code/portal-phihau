@@ -242,31 +242,17 @@ function App() {
     setSession(currentSession);
     
     if (roles && roles.length > 0) {
-        if (roles.length === 1) {
+        const primaryRole = roles.find(r => r.is_primary);
+        if (primaryRole) {
+            setActiveRoleContext(primaryRole);
+        } else if (roles.length === 1) {
+            // Dacă există un singur rol, îl setăm ca primar automat
             const singleRole = roles[0];
             setActiveRoleContext(singleRole);
-            if (!singleRole.is_primary) {
-                supabase.rpc('set_primary_context', { p_sportiv_id: singleRole.sportiv_id, p_rol_denumire: singleRole.rol_denumire });
-            }
-        } else {
-            const primaryRole = roles.find(r => r.is_primary);
-            
-            if (primaryRole) {
-                setActiveRoleContext(primaryRole);
-            } else {
-                // FALLBACK: Niciun rol nu este marcat ca primar. Se alege primul din listă.
-                const defaultRole = roles[0];
-                setActiveRoleContext(defaultRole);
-                
-                // Se actualizează baza de date pentru a face această alegere persistentă.
-                supabase.rpc('set_primary_context', { p_sportiv_id: defaultRole.sportiv_id, p_rol_denumire: defaultRole.rol_denumire })
-                    .then(({ error: rpcError }) => {
-                        if (rpcError) {
-                            console.warn("Nu s-a putut seta rolul primar implicit în DB:", rpcError.message);
-                        }
-                    });
-            }
+            supabase.rpc('set_primary_context', { p_sportiv_id: singleRole.sportiv_id, p_rol_denumire: singleRole.rol_denumire });
         }
+        // Dacă sunt mai multe roluri și niciunul nu e primar, `activeRoleContext` rămâne null,
+        // ceea ce va declanșa afișarea paginii de selecție a rolului.
     } else if (profile) {
         setProfileError("Contul dumneavoastră nu este asociat cu niciun rol. Vă rugăm contactați un administrator.");
     }

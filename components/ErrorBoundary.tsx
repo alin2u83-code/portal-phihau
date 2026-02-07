@@ -1,11 +1,11 @@
-// FIX: Changed React import from namespace import to default import to resolve type errors with class components.
-import React from 'react';
+// FIX: Changed React import to be more explicit with named imports, and refactored component to use modern class syntax.
+import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { View } from '../types';
 import { Button } from './ui';
 import { ArrowLeftIcon } from './icons';
 
 interface Props {
-  children?: React.ReactNode;
+  children?: ReactNode;
   onNavigate?: (view: View) => void;
 }
 
@@ -14,30 +14,26 @@ interface State {
   error?: Error;
 }
 
-class ErrorBoundary extends React.Component<Props, State> {
-  // FIX: To resolve issues with `this` context, state is initialized in the constructor.
-  constructor(props: Props) {
-    super(props);
-    this.state = {
-      hasError: false,
-      error: undefined,
-    };
-    // FIX: Bind 'this' for the handler method to ensure correct context.
-    this.handleRedirect = this.handleRedirect.bind(this);
-  }
+// FIX: Changed from extends React.Component to extends Component
+class ErrorBoundary extends Component<Props, State> {
+  // FIX: Using class field for state initialization to avoid constructor and binding issues.
+  state: State = {
+    hasError: false,
+    error: undefined,
+  };
 
   static getDerivedStateFromError(error: Error): State {
     // Update state so the next render will show the fallback UI.
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // You can also log the error to an error reporting service.
     console.error("Uncaught error:", error, errorInfo);
   }
 
-  // FIX: Converted from an arrow function property to a regular class method.
-  handleRedirect() {
+  // FIX: Using arrow function for method to automatically bind 'this'.
+  handleRedirect = () => {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {
         this.props.onNavigate('dashboard');

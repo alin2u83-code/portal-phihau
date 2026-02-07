@@ -700,7 +700,7 @@ function App() {
         return <IstoricPlati viewedUser={currentUser!} plati={plati} tranzactii={tranzactii} onBack={() => setActiveView('my-portal')} />;
 
       case 'account-settings':
-        return <AccountSettings currentUser={currentUser!} onBack={() => setActiveView('my-portal')} />;
+        return <AccountSettings currentUser={currentUser!} onBack={() => setActiveView('my-portal')} userRoles={userRoles} />;
       
       case 'fisa-digitala':
         return <FisaDigitalaSportiv currentUser={currentUser!} grade={grade} participari={inscrieriExamene} examene={sesiuniExamene} plati={plati} onBack={() => setActiveView('my-portal')} />;

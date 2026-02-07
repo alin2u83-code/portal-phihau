@@ -1,5 +1,5 @@
-// FIX: Using namespace import for React to ensure correct type resolution for class components in all environments.
-import * as React from 'react';
+// FIX: Changed React import from namespace import to default import to resolve type errors with class components.
+import React from 'react';
 import { View } from '../types';
 import { Button } from './ui';
 import { ArrowLeftIcon } from './icons';

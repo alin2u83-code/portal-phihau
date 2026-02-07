@@ -227,6 +227,16 @@ function App() {
         return;
     }
 
+    // --- GATEKEEPER ---
+    // Verifică dacă utilizatorul are roluri. Dacă nu, îl deconectează forțat.
+    if (profile && (!roles || roles.length === 0)) {
+        console.error(`[Security Gatekeeper] User ${profile.email} has a valid session but no roles. Forcing sign out.`);
+        await supabase.auth.signOut();
+        // Redirectare către pagina de login cu un mesaj de eroare specific
+        window.location.href = '/?error=no-roles';
+        return; // Oprește execuția ulterioară
+    }
+
     setCurrentUser(profile);
     setUserRoles(roles || []);
     setSession(currentSession);

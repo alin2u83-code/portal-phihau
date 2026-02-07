@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { Button, Card, Input } from './ui';
 import { User } from '../types';
+import { useSearchParams } from 'react-router-dom';
 
 const QwanKiDoLogo: React.FC = () => (
     <div className="mx-auto mb-6 h-20 w-20 flex items-center justify-center rounded-full bg-slate-700 border-2 border-slate-600">
@@ -23,6 +24,17 @@ export const AuthContainer: React.FC = () => {
     });
     const [message, setMessage] = useState<{ type: 'error' | 'success', text: string } | null>(null);
     const [loading, setLoading] = useState(false);
+    const [searchParams] = useSearchParams();
+
+    useEffect(() => {
+        const error = searchParams.get('error');
+        if (error === 'no-roles') {
+            setMessage({
+                type: 'error',
+                text: 'Contul dumneavoastră a fost autentificat, dar nu are niciun rol asignat. Accesul a fost revocat. Vă rugăm contactați un administrator.'
+            });
+        }
+    }, [searchParams]);
 
     const PHI_HAU_IASI_CLUB_ID = 'cbb0b228-b3e0-4735-9658-70999eb256c6';
     

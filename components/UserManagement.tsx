@@ -80,7 +80,7 @@ const MyProfile: React.FC<{ user: User; setSportivi: React.Dispatch<React.SetSta
             email: formData.email,
             username: formData.username,
         };
-        const { data, error } = await supabase.from('sportivi').update(profileUpdates).eq('user_id', user.user_id).select('*, sportivi_roluri(roluri(id, nume))').single();
+        const { data, error } = await supabase.from('sportivi').update(profileUpdates).eq('user_id', user.user_id).select('*, cluburi(*)').single();
 
         if (error) {
             setErrorMessage(`Eroare la actualizarea profilului: ${error.message}`);
@@ -90,10 +90,7 @@ const MyProfile: React.FC<{ user: User; setSportivi: React.Dispatch<React.SetSta
 
         // 3. Actualizează starea locală
         if(data) {
-            const updatedUser = data as any;
-            updatedUser.roluri = (updatedUser.sportivi_roluri || []).map((item: any) => item.roluri).filter(Boolean);
-            delete updatedUser.sportivi_roluri;
-
+             const updatedUser = { ...data, roluri: user.roluri } as Sportiv; // Păstrăm rolurile existente
             setSportivi(prev => prev.map(s => s.id === user.id ? updatedUser : s));
             setCurrentUser(updatedUser);
         }
@@ -478,12 +475,12 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                 setCreateAccountError(`Contul este deja asociat cu sportivul ${linkedProfile.nume} ${linkedProfile.prenume}.`);
             } else {
                 const profileUpdates = { user_id: existingUserId, email: createAccountForm.email, username: createAccountForm.username };
-                const { data: updateData, error: updateError } = await supabase.from('sportivi').update(profileUpdates).eq('id', selectedUserForAccount.id).select('*, sportivi_roluri(roluri(id, nume))').single();
+                const { data: updateData, error: updateError } = await supabase.from('sportivi').update(profileUpdates).eq('id', selectedUserForAccount.id).select('*, cluburi(*)').single();
 
                 if (updateError) {
                     setCreateAccountError(`Asociere eșuată la actualizarea profilului: ${updateError.message}`);
                 } else if (updateData) {
-                    const updatedUser = { ...updateData, roluri: (updateData.sportivi_roluri || []).map((item: any) => item.roluri).filter(Boolean) };
+                    const updatedUser = { ...updateData, roluri: selectedUserForAccount.roluri };
                     setSportivi(prev => prev.map(s => s.id === selectedUserForAccount.id ? updatedUser as Sportiv : s));
                     
                     setIsCreateAccountModalOpen(false);
@@ -539,7 +536,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
     
         if (authUser) {
             const profileUpdates = { user_id: authUser.id, email: createAccountForm.email, username: createAccountForm.username };
-            const { data, error } = await supabase.from('sportivi').update(profileUpdates).eq('id', selectedUserForAccount.id).select('*, sportivi_roluri(roluri(id, nume))').single();
+            const { data, error } = await supabase.from('sportivi').update(profileUpdates).eq('id', selectedUserForAccount.id).select('*, cluburi(*)').single();
     
             await supabase.auth.signOut().catch(()=>{});
             if (adminSession) {
@@ -549,7 +546,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
             if (error) {
                 setCreateAccountError(`Cont Auth creat (ID: ${authUser.id}), dar eroare la legarea profilului: ${error.message}. Încercați să asociați contul manual.`);
             } else if (data) {
-                const updatedUser = { ...data, roluri: (data.sportivi_roluri || []).map((item: any) => item.roluri).filter(Boolean) };
+                const updatedUser = { ...data, roluri: selectedUserForAccount.roluri };
                 setSportivi(prev => prev.map(s => s.id === selectedUserForAccount.id ? updatedUser as Sportiv : s));
                 
                 setIsCreateAccountModalOpen(false);

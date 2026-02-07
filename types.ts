@@ -1,28 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 export interface Rol {
   id: string;
   nume: 'Sportiv' | 'Instructor' | 'Admin' | 'SUPER_ADMIN_FEDERATIE' | 'Admin Club';
@@ -53,9 +28,7 @@ export interface Sportiv {
   email: string | null;
   username?: string; // Nume de utilizator unic pentru login
   parola?: string; // Only for creating new users
-  rol?: 'ADMIN_CLUB' | string | null; // Sistem de roluri simplu
   roluri: Rol[];
-  rol_activ_context?: Rol['nume'] | null;
   data_nasterii: string;
   cnp: string | null;
   inaltime?: number; // în cm, pentru calcul preț echipament

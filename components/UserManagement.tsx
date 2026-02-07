@@ -392,15 +392,12 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
         }
         
         try {
-            // Delete existing roles for this specific sportiv_id context
             const { error: deleteError } = await supabase
                 .from('utilizator_roluri_multicont')
                 .delete()
                 .eq('sportiv_id', targetUser.id);
-
             if (deleteError) throw deleteError;
-            
-            // Prepare new roles to insert for this specific context
+
             const rolesToInsert = finalRoleIds.map(roleId => {
                 const role = allRoles.find(r => r.id === roleId);
                 if (!role) return null;
@@ -413,10 +410,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
             }).filter(Boolean);
             
             if (rolesToInsert.length > 0) {
-                const { error: insertError } = await supabase
-                    .from('utilizator_roluri_multicont')
-                    .insert(rolesToInsert as any[]);
-                
+                const { error: insertError } = await supabase.from('utilizator_roluri_multicont').insert(rolesToInsert as any[]);
                 if (insertError) throw insertError;
             }
 
@@ -425,7 +419,6 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
             
             showSuccess("Succes", `Rolurile pentru ${targetUser.nume} au fost salvate!`);
             setEditingId(null);
-
         } catch (error: any) {
             showError("Eroare la schimbarea rolului", error.message);
         }

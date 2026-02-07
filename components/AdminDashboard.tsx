@@ -1,33 +1,21 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Sportiv, Plata, Grad } from '../types';
-import { Card, Input, Button } from './ui';
-import { UsersIcon, ExclamationTriangleIcon, SearchIcon, BanknotesIcon } from './icons';
+import { User, Sportiv, Plata, Grad, Grupa } from '../types';
+import { Input, Button } from './ui';
 import { WelcomeHero } from './WelcomeHero';
 import { GradBadge } from '../utils/grades';
-
-const StatCard: React.FC<{ title: string; value: string | number; icon: React.ElementType; color: string; }> = ({ title, value, icon: Icon, color }) => (
-    <div className={`bg-slate-800/50 p-6 rounded-lg border border-slate-700`}>
-        <div className="flex items-start justify-between">
-            <div>
-                <p className="text-sm font-bold uppercase text-slate-400">{title}</p>
-                <p className={`text-4xl font-black mt-2 ${color}`}>{value}</p>
-            </div>
-            <Icon className="w-8 h-8 text-slate-500" />
-        </div>
-    </div>
-);
+import { Users, CreditCard, ShieldCheck } from 'lucide-react';
 
 interface AdminDashboardProps {
   currentUser: User | null;
   sportivi: Sportiv[];
   plati: Plata[];
   grade: Grad[];
+  grupe: Grupa[];
   onViewSportiv: (sportiv: Sportiv) => void;
 }
 
-const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser, sportivi, plati, grade, onViewSportiv }) => {
-    const [searchTerm, setSearchTerm] = useState('');
+const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser, sportivi, plati, grade, grupe, onViewSportiv }) => {
     const navigate = useNavigate();
 
     const stats = useMemo(() => {
@@ -66,72 +54,87 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser, sportivi, 
     const filteredSportivi = useMemo(() => {
         if (!sportivi || !currentUser?.club_id) return [];
         return sportivi
-            .filter(s => 
-                s.club_id === currentUser.club_id &&
-                `${s.nume} ${s.prenume}`.toLowerCase().includes(searchTerm.toLowerCase())
-            )
-            .sort((a,b) => a.nume.localeCompare(b.nume));
-    }, [sportivi, searchTerm, currentUser]);
+            .filter(s => s.club_id === currentUser.club_id && s.status === 'Activ')
+            .sort((a,b) => a.nume.localeCompare(b.nume))
+            .slice(0, 10); // Afișează primii 10 pentru un dashboard curat
+    }, [sportivi, currentUser]);
 
     if (!currentUser) {
         return <div className="text-center p-8">Se încarcă datele utilizatorului...</div>;
     }
 
+    const statCards = [
+      { label: 'Membri Activi', value: stats.totalSportivi, icon: Users, color: 'text-blue-400', bg: 'bg-blue-500/10' },
+      { label: 'Total Datorii', value: `${stats.totalDatorii.toFixed(2)} lei`, icon: CreditCard, color: 'text-rose-400', bg: 'bg-rose-500/10' },
+      { label: 'Vize Medicale Expirate', value: stats.vizeExpirate, icon: ShieldCheck, color: 'text-amber-400', bg: 'bg-amber-500/10' },
+    ];
+
     return (
         <div className="space-y-8">
             <WelcomeHero profile={currentUser} />
 
-            <h2 className="text-2xl font-bold text-white border-b-2 border-brand-secondary/50 pb-2">Sumar Administrativ</h2>
+            {/* STATS GRID */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <StatCard title="Membri Activi" value={stats.totalSportivi} icon={UsersIcon} color="text-green-400" />
-                <StatCard title="Total Datorii Club" value={`${stats.totalDatorii.toFixed(2)} lei`} icon={BanknotesIcon} color={stats.totalDatorii > 0 ? "text-red-400" : "text-green-400"} />
-                <StatCard title="Vize Medicale Expirate" value={stats.vizeExpirate} icon={ExclamationTriangleIcon} color={stats.vizeExpirate > 0 ? 'text-amber-400' : 'text-green-400'} />
-            </div>
-
-            <h2 className="text-2xl font-bold text-white border-b-2 border-brand-secondary/50 pb-2">Management Sportivi</h2>
-            <Card>
-                <div className="flex justify-end mb-4">
-                    <div className="relative w-full md:w-72">
-                        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                        <Input label="" placeholder="Caută membru..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="!pl-10" />
+                {statCards.map((stat, i) => (
+                <div key={i} className={`${stat.bg} p-6 rounded-2xl border border-slate-700/50 hover:border-slate-600 transition-all shadow-sm`}>
+                    <div className="flex justify-between items-start">
+                    <div>
+                        <p className="text-slate-400 text-sm font-medium">{stat.label}</p>
+                        <h3 className={`text-3xl font-bold mt-1 ${stat.color}`}>{stat.value}</h3>
+                    </div>
+                    <stat.icon className={`w-8 h-8 ${stat.color} opacity-80`} />
                     </div>
                 </div>
-                <div className="max-h-[600px] overflow-y-auto">
-                    <table className="w-full text-left text-sm">
-                        <thead className="text-xs text-slate-400 uppercase bg-slate-800 sticky top-0">
-                            <tr>
-                                <th className="p-3">Nume Prenume</th>
-                                <th className="p-3">Grad</th>
-                                <th className="p-3 text-center">Status</th>
-                                <th className="p-3 text-right">Acțiuni</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-700">
-                            {filteredSportivi.map(s => {
-                                const currentGrade = grade.find(g => g.id === s.grad_actual_id);
-                                return (
-                                    <tr key={s.id} className="hover:bg-slate-700/50">
-                                        <td className="p-3 font-medium">{s.nume} {s.prenume}</td>
-                                        <td className="p-3"><GradBadge grad={currentGrade} className="text-[10px]" /></td>
-                                        <td className="p-3 text-center">
-                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${s.status === 'Activ' ? 'bg-green-600/30 text-green-400' : 'bg-red-600/30 text-red-400'}`}>{s.status}</span>
-                                        </td>
-                                        <td className="p-3 text-right">
-                                            <Button size="sm" variant="secondary" onClick={() => onViewSportiv(s)}>Vezi Profil</Button>
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
-                    {filteredSportivi.length === 0 && <p className="text-center p-8 text-slate-500">Niciun sportiv găsit.</p>}
+                ))}
+            </div>
+
+            {/* DATA TABLE SECTION */}
+            <div className="bg-[#1e293b] rounded-2xl border border-slate-700 shadow-xl overflow-hidden">
+                <div className="p-6 border-b border-slate-700 flex justify-between items-center">
+                    <h3 className="font-bold text-lg text-white">Sportivi Recenți / Activi</h3>
+                    <Button onClick={() => navigate('/sportivi')} variant="secondary" size="sm">Vezi Toți Sportivii</Button>
                 </div>
-            </Card>
-            
-            <h2 className="text-2xl font-bold text-white border-b-2 border-brand-secondary/50 pb-2">Evenimente</h2>
-            <Card>
-                <p className="text-slate-400 text-center p-8">Modul pentru gestionarea stagiilor și competițiilor este în curs de dezvoltare.</p>
-            </Card>
+                <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                    <thead className="bg-slate-800/50 text-slate-400 text-xs uppercase tracking-wider sticky top-0">
+                    <tr>
+                        <th className="px-6 py-4 font-semibold">Nume Sportiv</th>
+                        <th className="px-6 py-4 font-semibold">Grad Actual</th>
+                        <th className="px-6 py-4 font-semibold">Status</th>
+                        <th className="px-6 py-4 font-semibold text-right">Acțiuni</th>
+                    </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-700">
+                    {filteredSportivi.length > 0 ? (
+                        filteredSportivi.map((s, index) => {
+                            const currentGrade = grade.find(g => g.id === s.grad_actual_id);
+                            return (
+                                <tr key={s.id} className={`${index % 2 !== 0 ? 'bg-slate-800/20' : ''} hover:bg-slate-800/40 transition-colors`}>
+                                    <td className="px-6 py-4 font-semibold text-white">{s.nume} {s.prenume}</td>
+                                    <td className="px-6 py-4"><GradBadge grad={currentGrade} /></td>
+                                    <td className="px-6 py-4">
+                                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${s.status === 'Activ' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>{s.status}</span>
+                                    </td>
+                                    <td className="px-6 py-4 text-right">
+                                        <Button size="sm" variant="secondary" onClick={() => onViewSportiv(s)}>Detalii</Button>
+                                    </td>
+                                </tr>
+                            );
+                        })
+                    ) : (
+                        <tr className="hover:bg-slate-800/40 transition-colors">
+                            <td colSpan={4} className="px-6 py-12 text-center text-slate-500">
+                            <div className="flex flex-col items-center gap-2">
+                                <Users className="w-12 h-12 opacity-20" />
+                                <p>Niciun sportiv înregistrat în C.S. Phi Hau</p>
+                            </div>
+                            </td>
+                        </tr>
+                    )}
+                    </tbody>
+                </table>
+                </div>
+            </div>
         </div>
     );
 };

@@ -1,7 +1,7 @@
-
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { User, View, Plata, Rol } from '../types';
 import { ChevronDownIcon } from './icons';
+// import { AdminProfileQuickAccess } from './AdminProfileQuickAccess';
 import { usePermissions } from '../hooks/usePermissions';
 
 interface NavbarAdminProps {
@@ -13,7 +13,6 @@ interface NavbarAdminProps {
 
 export const NavbarAdmin: React.FC<NavbarAdminProps> = ({ currentUser, onNavigate, onLogout, plati }) => {
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-    const dropdownRef = useRef<HTMLDivElement>(null);
     
     const activeRole = useMemo((): Rol['nume'] => {
         if (currentUser?.roluri && currentUser.roluri.length > 0) {
@@ -22,8 +21,7 @@ export const NavbarAdmin: React.FC<NavbarAdminProps> = ({ currentUser, onNavigat
         }
         return 'Sportiv';
     }, [currentUser]);
-    // FIX: The usePermissions hook expects only one argument (the user object).
-    const permissions = usePermissions(currentUser);
+    const permissions = usePermissions(currentUser, activeRole);
     
     const hasOverduePayments = useMemo(() => {
         const today = new Date();
@@ -33,20 +31,10 @@ export const NavbarAdmin: React.FC<NavbarAdminProps> = ({ currentUser, onNavigat
 
     const initials = (currentUser.nume?.[0] || '') + (currentUser.prenume?.[0] || '');
 
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                setIsProfileMenuOpen(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
     return (
         <header className="sticky top-0 z-20 bg-slate-900/80 backdrop-blur-sm border-b border-slate-700">
             <div className="flex items-center justify-end h-16 px-4 sm:px-6 lg:px-8">
-                 <div className="relative" ref={dropdownRef}>
+                 <div className="relative">
                     <button
                         onClick={() => setIsProfileMenuOpen(p => !p)}
                         className="flex items-center gap-2 p-2 rounded-lg hover:bg-slate-700/50"
@@ -66,29 +54,17 @@ export const NavbarAdmin: React.FC<NavbarAdminProps> = ({ currentUser, onNavigat
                         <ChevronDownIcon className={`hidden sm:block w-5 h-5 text-slate-400 transition-transform ${isProfileMenuOpen ? 'rotate-180' : ''}`} />
                     </button>
                      {isProfileMenuOpen && (
-                        <div className="absolute right-0 mt-2 w-56 origin-top-right rounded-md bg-[var(--bg-card)] shadow-lg ring-1 ring-black ring-opacity-5 border border-[var(--border-color)] focus:outline-none z-30 animate-fade-in-down">
-                            <div className="py-1">
-                                <button
-                                    onClick={() => {
-                                        onNavigate('account-settings');
-                                        setIsProfileMenuOpen(false);
-                                    }}
-                                    className="block w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white"
-                                >
-                                    Setări Cont
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        onLogout();
-                                        setIsProfileMenuOpen(false);
-                                    }}
-                                    className="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-600/20 hover:text-red-300"
-                                >
-                                    Deconectare
-                                </button>
-                            </div>
-                        </div>
-                     )}
+                        {/* <AdminProfileQuickAccess 
+                            user={currentUser} 
+                            onNavigate={(view) => { onNavigate(view); setIsProfileMenuOpen(false); }}
+                            onLogout={onLogout}
+                            isExpanded={true} // Simulează meniul extins
+                            isSuperAdmin={permissions.isSuperAdmin}
+                            activeRole={activeRole}
+                            onSwitchRole={() => {}}
+                            isSwitchingRole={false}
+                        /> */}
+                    )}
                  </div>
             </div>
         </header>

@@ -14,27 +14,24 @@ interface State {
 }
 
 class ErrorBoundary extends React.Component<Props, State> {
-  // FIX: Switched to using a constructor for state initialization and method binding.
-  // This classic approach is more robust against tooling/compiler issues that were
-  // causing `this.props` and `this.setState` to be unrecognized with the class field syntax.
-  constructor(props: Props) {
-    super(props);
-    this.state = {
-      hasError: false,
-      error: undefined,
-    };
-    this.handleRedirect = this.handleRedirect.bind(this);
-  }
+  // FIX: Initialize state as a class property. This is modern syntax and avoids constructor-related 'this' issues.
+  state: State = {
+    hasError: false,
+    error: undefined,
+  };
 
   static getDerivedStateFromError(error: Error): State {
+    // Update state so the next render will show the fallback UI.
     return { hasError: true, error };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    // You can also log the error to an error reporting service.
     console.error("Uncaught error:", error, errorInfo);
   }
 
-  handleRedirect() {
+  // FIX: Use an arrow function to automatically bind 'this', ensuring 'this.props' and 'this.setState' are available.
+  handleRedirect = () => {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {
         this.props.onNavigate('dashboard');
@@ -43,6 +40,7 @@ class ErrorBoundary extends React.Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
+      // You can render any custom fallback UI.
       return (
         <div className="p-8 text-center bg-red-900/50 text-red-300 rounded-lg border border-red-700">
           <h1 className="text-2xl font-bold">A apărut o eroare neașteptată.</h1>

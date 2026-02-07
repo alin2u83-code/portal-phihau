@@ -1,37 +1,50 @@
 import { useMemo } from 'react';
-import { User, Permissions, Rol } from '../types';
-import { ROLES } from '../constants';
+import { User, Rol, Permissions } from '../types';
 
-export const usePermissions = (user: User | null): Permissions => {
-    return useMemo(() => {
+const initialPermissions: Permissions = {
+    isSuperAdmin: false,
+    isAdmin: false,
+    isFederationAdmin: false,
+    isAdminClub: false,
+    isInstructor: false,
+    isSportiv: false,
+    hasAdminAccess: false,
+    isFederationLevel: false,
+    canManageFinances: false,
+    canGradeStudents: false,
+    visibleClubIds: [],
+};
+
+export const usePermissions = (user: User | null, activeRole: Rol['nume'] | null): Permissions => {
+    const permissions = useMemo((): Permissions => {
         if (!user) {
-            return {
-                isSuperAdmin: false,
-                isAdmin: false,
-                isFederationAdmin: false,
-                isAdminClub: false,
-                isInstructor: false,
-                isSportiv: false,
-                hasAdminAccess: false,
-                isFederationLevel: false,
-                canManageFinances: false,
-                canGradeStudents: false,
-                visibleClubIds: [],
-            };
+            return initialPermissions;
         }
+        
+        // Normalize the active role for context-dependent checks to handle variations like "Admin Club" vs "ADMIN_CLUB"
+        const normalizedActiveRole = activeRole?.toUpperCase().replace(/ /g, '_');
 
-        const roles = user?.roluri || [];
-        const roleNames = new Set(roles.map(r => r.nume));
+        // Base role flags are determined by *all* roles the user possesses.
+        const allUserRoles = new Set((user.roluri || []).map(r => r.nume));
 
-        const isSuperAdmin = roleNames.has(ROLES.SUPER_ADMIN_FEDERATIE);
-        const isAdmin = roleNames.has(ROLES.ADMIN);
+        const isSuperAdmin = allUserRoles.has('SUPER_ADMIN_FEDERATIE');
+        const isAdmin = allUserRoles.has('Admin'); // 'Admin' can be a fallback super admin role
         const isFederationAdmin = isSuperAdmin || isAdmin;
-        const isAdminClub = roleNames.has(ROLES.ADMIN_CLUB);
-        const isInstructor = roleNames.has(ROLES.INSTRUCTOR);
-        const isSportiv = roleNames.has(ROLES.SPORTIV);
+        const isAdminClub = allUserRoles.has('Admin Club');
+        const isInstructor = allUserRoles.has('Instructor');
+        const isSportiv = allUserRoles.has('Sportiv');
+        
+        // hasAdminAccess is determined by the user's total capabilities.
+        const hasAdminAccess = isSuperAdmin || isAdmin || isAdminClub || isInstructor;
+        
+        // Business logic flags are derived from the NORMALIZED active session's context.
+        const isFederationLevel = normalizedActiveRole === 'SUPER_ADMIN_FEDERATIE' || normalizedActiveRole === 'ADMIN';
+        const canManageFinances = normalizedActiveRole === 'SUPER_ADMIN_FEDERATIE' || normalizedActiveRole === 'ADMIN' || normalizedActiveRole === 'ADMIN_CLUB';
+        const canGradeStudents = hasAdminAccess;
 
-        const hasAdminAccess = isFederationAdmin || isAdminClub || isInstructor;
-
+        // Visible clubs logic also depends on the active context.
+        const visibleClubIds: 'all' | string[] = isFederationLevel ? 'all' : (user.club_id ? [user.club_id] : []);
+        
         return {
             isSuperAdmin,
             isAdmin,
@@ -40,10 +53,12 @@ export const usePermissions = (user: User | null): Permissions => {
             isInstructor,
             isSportiv,
             hasAdminAccess,
-            isFederationLevel: isFederationAdmin,
-            canManageFinances: isFederationAdmin || isAdminClub,
-            canGradeStudents: isFederationAdmin || isAdminClub || isInstructor,
-            visibleClubIds: isFederationAdmin ? 'all' : (user?.club_id ? [user.club_id] : []),
+            isFederationLevel,
+            canManageFinances,
+            canGradeStudents,
+            visibleClubIds,
         };
-    }, [user]);
+    }, [user, activeRole]);
+
+    return permissions;
 };

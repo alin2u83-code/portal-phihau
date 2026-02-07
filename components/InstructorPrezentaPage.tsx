@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
-import { Antrenament, Sportiv, Grupa, User, View, Grad } from '../types';
+import { Antrenament, Sportiv, Grupa, User, View, Grad, SportivProgramPersonalizat } from '../types';
 import { useError } from './ErrorProvider';
 import { Card, Button, Select } from './ui';
 import { ArrowLeftIcon, UserPlusIcon, XIcon } from './icons';

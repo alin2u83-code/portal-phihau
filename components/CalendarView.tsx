@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Antrenament, SesiuneExamen, Grupa, Locatie, Eveniment, View, User, Sportiv, Rezultat, Plata, PretConfig, Rol, Permissions } from '../types';
 import { Button, Modal, Input, Select } from './ui';
-import { ArrowLeftIcon, ChevronLeftIcon, ChevronRightIcon, PlusIcon, ClipboardCheckIcon, TrophyIcon, BookOpenIcon, ShieldCheckIcon, CalendarDaysIcon } from './icons';
+import { ArrowLeftIcon, ChevronLeftIcon, ChevronRightIcon, PlusIcon } from './icons';
 import { useError } from './ErrorProvider';
 import { getPretValabil } from '../utils/pricing';
 import { supabase } from '../supabaseClient';
@@ -17,37 +17,6 @@ interface CalendarEvent {
   type: 'Antrenament' | 'Examen' | 'Stagiu' | 'Competitie';
   originalEvent: Eveniment;
 }
-
-const eventVisuals = {
-    Antrenament: {
-        icon: ClipboardCheckIcon,
-        style: 'bg-sky-900/70 text-sky-200 border-l-4 border-sky-600',
-    },
-    Examen: {
-        icon: TrophyIcon,
-        style: 'bg-purple-900/70 text-purple-200 border-l-4 border-purple-600',
-    },
-    Stagiu: {
-        icon: BookOpenIcon,
-        style: 'bg-indigo-900/70 text-indigo-200 border-l-4 border-indigo-600',
-    },
-    Competitie: {
-        icon: TrophyIcon,
-        style: 'bg-amber-900/70 text-amber-200 border-l-4 border-amber-600',
-    },
-    federation: {
-        icon: ShieldCheckIcon,
-        style: 'bg-slate-800 text-white border-l-4 border-brand-secondary shadow-glow-blue'
-    }
-};
-
-const getEventVisuals = (event: CalendarEvent) => {
-    if (event.scope === 'federatie') {
-        return eventVisuals.federation;
-    }
-    return eventVisuals[event.type] || { icon: CalendarDaysIcon, style: 'bg-slate-700 text-slate-200' };
-};
-
 
 interface BulkRegistrationModalProps {
     isOpen: boolean;
@@ -316,7 +285,19 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ antrenamente, sesiun
 
     const today = useMemo(() => { const d = new Date(); d.setHours(0,0,0,0); return d; }, []);
     const weekdays = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'];
+    const eventStyles = {
+        antrenament: 'bg-slate-700 text-slate-200 border border-slate-600',
+        clubDefault: 'bg-slate-700 text-slate-200 border-l-4 border-slate-700',
+        federatie: 'bg-slate-800 text-white border-l-4 border-brand-secondary shadow-glow-blue'
+    };
     
+    const getEventStyleClass = (event: CalendarEvent) => {
+        if (event.scope === 'federatie') return eventStyles.federatie;
+        if (event.type === 'Antrenament') return eventStyles.antrenament;
+        return eventStyles.clubDefault;
+    };
+
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -350,25 +331,19 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ antrenamente, sesiun
                             const dateString = day.toISOString().split('T')[0];
                             const dayEvents = eventsByDate.get(dateString) || [];
                             const isCurrentDay = day.getTime() === today.getTime();
-                            const isPast = day < today && !isCurrentDay;
                             return (
-                                <div key={dateString} className={`border-r border-b border-slate-700 p-2 flex flex-col relative min-h-[120px] transition-colors ${isPast ? 'bg-slate-800/40 opacity-70' : 'bg-light-navy/50 hover:bg-light-navy/70'}`}>
-                                    <span className={`font-bold text-sm ${isCurrentDay ? 'bg-brand-secondary text-black rounded-full h-7 w-7 flex items-center justify-center' : 'text-slate-300'}`}>{day.getDate()}</span>
+                                <div key={dateString} className="border-r border-b border-slate-700 p-2 flex flex-col relative min-h-[120px] bg-light-navy/50 transition-colors hover:bg-light-navy/70">
+                                    <span className={`font-bold text-sm ${isCurrentDay ? 'bg-brand-primary text-white rounded-full h-6 w-6 flex items-center justify-center' : 'text-slate-300'}`}>{day.getDate()}</span>
                                     <div className="mt-2 space-y-2 overflow-y-auto">
-                                        {dayEvents.map(event => {
-                                            const visuals = getEventVisuals(event);
-                                            const Icon = visuals.icon;
-                                            return (
-                                                <div key={event.id} className="space-y-1">
-                                                    <div title={event.title} className={`p-1 rounded-md text-[10px] font-bold truncate flex items-center gap-1.5 ${visuals.style}`}>
-                                                        <Icon className="w-3 h-3 shrink-0" />
-                                                        {event.time && <span className="font-mono">{event.time}</span>}
-                                                        <span className="truncate">{event.title}</span>
-                                                    </div>
-                                                    <EventActions event={event} currentUser={currentUser} rezultate={rezultate} clubSportivi={sportivi} onSingleRegister={handleSingleRegistration} onBulkRegister={setModalEvent} permissions={permissions} />
+                                        {dayEvents.map(event => (
+                                            <div key={event.id} className="space-y-1">
+                                                <div title={event.title} className={`p-1 rounded-md text-[10px] font-bold truncate ${getEventStyleClass(event)}`}>
+                                                    {event.time && <span className="font-mono mr-1">{event.time}</span>}
+                                                    {event.title}
                                                 </div>
-                                            );
-                                        })}
+                                                <EventActions event={event} currentUser={currentUser} rezultate={rezultate} clubSportivi={sportivi} onSingleRegister={handleSingleRegistration} onBulkRegister={setModalEvent} permissions={permissions} />
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
                             );
@@ -379,35 +354,24 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ antrenamente, sesiun
                 {/* Mobile: Agenda View */}
                 <div className="md:hidden">
                     {agendaDays.length > 0 ? (
-                        agendaDays.map(({ day, events }) => {
-                            const isCurrentDay = day.getTime() === today.getTime();
-                            const isPast = day < today && !isCurrentDay;
-                            return (
-                                <div key={day.toISOString()} className={`p-4 border-b border-slate-700 ${isPast ? 'opacity-60' : ''}`}>
-                                    <h3 className={`font-bold ${isCurrentDay ? 'text-brand-secondary' : 'text-white'}`}>{day.toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric' })}</h3>
-                                    <div className="mt-2 space-y-4">
-                                        {events.map(event => {
-                                            const visuals = getEventVisuals(event);
-                                            const Icon = visuals.icon;
-                                            return (
-                                                <div key={event.id}>
-                                                    <div className={`p-2 rounded-md flex items-center gap-3 ${visuals.style}`}>
-                                                        <Icon className="w-5 h-5 shrink-0" />
-                                                        <div>
-                                                            <p className="font-bold">{event.title}</p>
-                                                            {event.time && <p className="text-xs font-mono">{event.time}</p>}
-                                                        </div>
-                                                    </div>
-                                                    <div className="mt-2">
-                                                         <EventActions event={event} currentUser={currentUser} rezultate={rezultate} clubSportivi={sportivi} onSingleRegister={handleSingleRegistration} onBulkRegister={setModalEvent} permissions={permissions} />
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
+                        agendaDays.map(({ day, events }) => (
+                            <div key={day.toISOString()} className="p-4 border-b border-slate-700">
+                                <h3 className="font-bold text-brand-secondary">{day.toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric' })}</h3>
+                                <div className="mt-2 space-y-4">
+                                    {events.map(event => (
+                                        <div key={event.id}>
+                                            <div className={`p-2 rounded-md ${getEventStyleClass(event)}`}>
+                                                <p className="font-bold">{event.title}</p>
+                                                {event.time && <p className="text-xs font-mono">{event.time}</p>}
+                                            </div>
+                                            <div className="mt-2">
+                                                 <EventActions event={event} currentUser={currentUser} rezultate={rezultate} clubSportivi={sportivi} onSingleRegister={handleSingleRegistration} onBulkRegister={setModalEvent} permissions={permissions} />
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
-                            );
-                        })
+                            </div>
+                        ))
                     ) : (
                         <p className="p-8 text-center text-slate-500 italic">Niciun eveniment programat în această lună.</p>
                     )}

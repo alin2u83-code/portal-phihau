@@ -87,25 +87,22 @@ export const AntrenamenteViitoare: React.FC<AntrenamenteViitoareProps> = ({ curr
                     const dateString = day.toISOString().split('T')[0];
                     const trainingsOnDay = upcomingTrainingsByDate.get(dateString);
                     const isToday = dateString === todayString;
-                    const hasTrainings = !!trainingsOnDay;
 
                     return (
                         <div key={dateString} className="relative group flex items-center justify-center">
-                            <div className={`w-10 h-10 flex items-center justify-center rounded-full font-semibold transition-colors 
-                                ${isToday ? 'bg-brand-secondary text-black ring-2 ring-white/50' : 
-                                hasTrainings ? 'bg-sky-900/50 text-sky-300' : 'text-white'}`}>
+                            <div className={`w-10 h-10 flex items-center justify-center rounded-full font-semibold transition-colors ${isToday ? 'bg-brand-secondary text-black ring-2 ring-white' : 'text-white'}`}>
                                 {day.getDate()}
                             </div>
-                            {hasTrainings && !isToday && (
-                                <div className={`absolute bottom-1 w-1.5 h-1.5 rounded-full bg-brand-secondary`} style={{ boxShadow: `0 0 5px var(--brand-secondary)` }}></div>
-                            )}
                             {trainingsOnDay && (
-                                <div className="absolute bottom-full mb-2 w-max max-w-xs p-2 bg-slate-900 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 border border-slate-700">
-                                    {trainingsOnDay.map((t, i) => (
-                                        <div key={i}>{t.groupName}: {t.time}</div>
-                                    ))}
-                                    <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-slate-900"></div>
-                                </div>
+                                <>
+                                    <div className={`absolute bottom-1 w-1.5 h-1.5 rounded-full ${isToday ? 'bg-black' : 'bg-brand-secondary'}`} style={{ boxShadow: `0 0 5px var(--brand-secondary)` }}></div>
+                                    <div className="absolute bottom-full mb-2 w-max max-w-xs p-2 bg-slate-900 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 border border-slate-700">
+                                        {trainingsOnDay.map((t, i) => (
+                                            <div key={i}>{t.groupName}: {t.time}</div>
+                                        ))}
+                                        <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-slate-900"></div>
+                                    </div>
+                                </>
                             )}
                         </div>
                     );

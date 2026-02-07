@@ -62,7 +62,7 @@ export const FisaCompetitie: React.FC<FisaCompetitieProps> = ({ currentUser, gra
             prenume: currentUser.prenume.toUpperCase(),
             varsta_exacta: age,
             categorie_concurs: category,
-            grad: currentGrad?.nume || 'Debutant',
+            grad: currentGrad?.nume || 'Începător',
             data_ultima_promovare: lastExam?.data || currentUser.data_inscrierii,
         };
     }, [currentUser, grade, participari, examene]);

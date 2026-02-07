@@ -24,12 +24,11 @@ interface PlatiScadenteProps {
     permissions: Permissions;
     inscrieriExamene: InscriereExamen[];
     grade: Grad[];
-    activeClubId: string | null;
 }
 
 const initialFilters = { sportiv: '', tip: '', status: 'scadent', clubId: '' };
 
-export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, sportivi, familii, tipuriAbonament, tranzactii, reduceri, onIncaseazaMultiple, onBack, onViewSportiv, currentUser, clubs, permissions, inscrieriExamene, grade, activeClubId }) => {
+export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, sportivi, familii, tipuriAbonament, tranzactii, reduceri, onIncaseazaMultiple, onBack, onViewSportiv, currentUser, clubs, permissions, inscrieriExamene, grade }) => {
     const [filter, setFilter] = useLocalStorage('phi-hau-plati-scadente-filter', initialFilters);
     const [editingPlata, setEditingPlata] = useState<Plata | null>(null);
     const [plataToDelete, setPlataToDelete] = useState<Plata | null>(null);
@@ -71,22 +70,25 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
         
         setIsGenerating(true);
         try {
-            if (!activeClubId) {
-                throw new Error("Contextul clubului nu este setat. Nu se pot genera abonamente.");
+            const clubId = currentUser?.club_id;
+            if (!clubId) {
+                throw new Error("Contextul curent al adminului nu are un club ID asociat.");
             }
     
             const { data: roleData, error: roleError } = await supabase
                 .from('utilizator_roluri_multicont')
                 .select('sportiv_id, sportiv:sportivi!inner(*)')
                 .eq('rol_denumire', 'SPORTIV')
-                .eq('sportiv.club_id', activeClubId);
+                .eq('club_id', clubId);
     
             if (roleError) throw roleError;
             
             const sportiviActivi = roleData
                 .map(item => item.sportiv)
                 .filter(s => {
-                    if (!s) { return false; } // Should not happen with inner join
+                    if (!s) {
+                        throw new Error(`Eroare de integritate: Un utilizator cu rol de sportiv are 'sportiv_id' null sau un profil de sportiv neasociat.`);
+                    }
                     return s.status === 'Activ';
                 });
             

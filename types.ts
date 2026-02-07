@@ -23,8 +23,6 @@
 
 
 
-
-
 export interface Rol {
   id: string;
   nume: 'Sportiv' | 'Instructor' | 'Admin' | 'SUPER_ADMIN_FEDERATIE' | 'Admin Club';
@@ -315,6 +313,5 @@ export interface Permissions {
     isFederationLevel: boolean;
     canManageFinances: boolean;
     canGradeStudents: boolean;
-    canManageClubs: boolean;
     visibleClubIds: 'all' | string[];
 }

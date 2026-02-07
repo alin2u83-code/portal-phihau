@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { User, Rol, Permissions } from '../types';
+import { ROLES } from '../constants';
 
 const initialPermissions: Permissions = {
     isSuperAdmin: false,
@@ -48,8 +49,8 @@ export const usePermissions = (user: User | null, activeRole: Rol['nume'] | null
         // --- SFÂRȘIT LOGICĂ NOUĂ ---
 
         // Flag-urile de business logic sunt derivate din contextul de sesiune activ NORMALIZAT.
-        const isFederationLevel = normalizedActiveRole === 'SUPER_ADMIN_FEDERATIE' || normalizedActiveRole === 'ADMIN';
-        const canManageFinances = isFederationLevel || normalizedActiveRole === 'ADMIN_CLUB';
+        const isFederationLevel = normalizedActiveRole === ROLES.SUPER_ADMIN_FEDERATIE || normalizedActiveRole === ROLES.ADMIN;
+        const canManageFinances = isFederationLevel || normalizedActiveRole === ROLES.ADMIN_CLUB;
         const canGradeStudents = hasAdminAccess;
 
         // Logica pentru cluburile vizibile depinde, de asemenea, de contextul activ.

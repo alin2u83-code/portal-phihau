@@ -1,4 +1,3 @@
-// FIX: Reverted to default React import and `React.Component` to fix type resolution issues.
 import React from 'react';
 import { View } from '../types';
 import { Button } from './ui';
@@ -15,10 +14,15 @@ interface State {
 }
 
 class ErrorBoundary extends React.Component<Props, State> {
-  state: State = {
-    hasError: false,
-    error: undefined,
-  };
+  // FIX: Refactored to use a constructor for state initialization and method binding. This is a more robust way to handle 'this' context in class components and resolves errors where properties like 'props' or methods like 'setState' were not found on the class instance.
+  constructor(props: Props) {
+    super(props);
+    this.state = {
+      hasError: false,
+      error: undefined,
+    };
+    this.handleRedirect = this.handleRedirect.bind(this);
+  }
 
   static getDerivedStateFromError(error: Error): State {
     // Update state so the next render will show the fallback UI.
@@ -30,7 +34,7 @@ class ErrorBoundary extends React.Component<Props, State> {
     console.error("Uncaught error:", error, errorInfo);
   }
 
-  handleRedirect = () => {
+  handleRedirect() {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {
         this.props.onNavigate('dashboard');

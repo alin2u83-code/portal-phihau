@@ -4,18 +4,29 @@ import { User, Sportiv, Plata, Grad, Grupa, View } from '../types';
 import { Card } from './ui';
 import { WelcomeHero } from './WelcomeHero';
 import { GradBadge } from '../utils/grades';
-import { Users, CreditCard, Trophy } from 'lucide-react';
+import { Users, Wallet, Trophy, ArrowRight } from 'lucide-react';
 import { ResponsiveTable, Column } from './ResponsiveTable';
 
-const StatCard: React.FC<{ title: string; description: string; icon: React.ElementType; view: View; onNavigate: (v: string) => void; }> = ({ title, description, icon: Icon, view, onNavigate }) => (
-    <Card onClick={() => onNavigate(`/${view}`)} className="group cursor-pointer hover:-translate-y-1 transition-transform duration-300 glass-card">
-        <div className="flex justify-between items-start">
-            <h3 className="font-bold text-lg text-white">{title}</h3>
-            <Icon className="w-8 h-8 text-slate-500 group-hover:text-amber-400 transition-colors" />
-        </div>
-        <p className="text-sm text-slate-400 mt-2">{description}</p>
-    </Card>
-);
+const StatCard: React.FC<{ title: string; subtitle: string; icon: React.ElementType; view: string; color: string }> = ({ title, subtitle, icon: Icon, view, color }) => {
+    const navigate = useNavigate();
+    return (
+        <Card onClick={() => navigate(`/${view}`)} className="group cursor-pointer hover:-translate-y-1 transition-all duration-300 glass-card p-6 overflow-hidden relative">
+            <div className={`absolute -right-4 -top-4 p-8 rounded-full opacity-10 ${color}`}>
+                <Icon size={80} />
+            </div>
+            <div className="flex flex-col gap-1 relative z-10">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${color.replace('bg-', 'bg-opacity-20 bg-')}`}>
+                    <Icon className={color.replace('bg-', 'text-')} size={24} />
+                </div>
+                <h3 className="font-black text-2xl text-white tracking-tight">{title}</h3>
+                <p className="text-sm font-bold text-slate-400 uppercase tracking-wider">{subtitle}</p>
+                <div className="mt-4 flex items-center gap-2 text-xs font-bold text-blue-400 group-hover:gap-3 transition-all">
+                    GESTIONEAZĂ MODUL <ArrowRight size={14} />
+                </div>
+            </div>
+        </Card>
+    );
+};
 
 interface AdminDashboardProps {
   currentUser: User | null;
@@ -27,8 +38,6 @@ interface AdminDashboardProps {
 }
 
 const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser, sportivi, plati, grade, grupe, onViewSportiv }) => {
-    const navigate = useNavigate();
-    
     const recentSportivi = useMemo(() => {
         if (!sportivi) return [];
         return [...sportivi]
@@ -36,15 +45,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser, sportivi, 
             .slice(0, 5);
     }, [sportivi]);
 
-    if (!currentUser) {
-        return <div className="text-center p-8">Se încarcă...</div>;
-    }
+    if (!currentUser) return null;
 
     const columns: Column<Sportiv>[] = [
         { 
             key: 'nume', 
             label: 'Nume Sportiv',
-            render: (s) => <span className="font-semibold text-white">{s.nume} {s.prenume}</span>
+            render: (s) => <span className="font-bold text-white uppercase tracking-tight">{s.nume} {s.prenume}</span>
         },
         { 
             key: 'grad_actual_id', 
@@ -55,30 +62,58 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser, sportivi, 
             key: 'status',
             label: 'Status',
             render: (s) => (
-                <span className={`px-2 py-1 rounded-full text-xs font-bold ${s.status === 'Activ' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>{s.status}</span>
+                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${s.status === 'Activ' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/20 text-rose-400 border border-rose-500/20'}`}>
+                    {s.status}
+                </span>
             )
         }
     ];
 
-    return (
-        <div className="space-y-8">
-            {currentUser && <WelcomeHero profile={currentUser} />}
+    const stats = useMemo(() => ({
+        totalMembri: sportivi.filter(s => s.status === 'Activ').length,
+        totalDatorii: plati.filter(p => p.status !== 'Achitat').reduce((acc, p) => acc + p.suma, 0),
+        exameneInAsteptare: 0 // Mock pentru acum
+    }), [sportivi, plati]);
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <StatCard title="Gestiune Membri" description="Adaugă, editează și vizualizează sportivi și familii." icon={Users} view="sportivi" onNavigate={navigate} />
-                <StatCard title="Situație Financiară" description="Urmărește plățile, datoriile și generează rapoarte." icon={CreditCard} view="plati-scadente" onNavigate={navigate}/>
-                <StatCard title="Examene & Evenimente" description="Organizează sesiuni de examen, stagii și competiții." icon={Trophy} view="examene" onNavigate={navigate} />
+    return (
+        <div className="space-y-8 animate-fade-in-down">
+            <WelcomeHero profile={currentUser} />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <StatCard 
+                    title={`${stats.totalMembri} Sportivi`} 
+                    subtitle="Membri Activi" 
+                    icon={Users} 
+                    view="sportivi" 
+                    color="bg-blue-500" 
+                />
+                <StatCard 
+                    title={`${stats.totalDatorii.toFixed(0)} RON`} 
+                    subtitle="Situație Plăți" 
+                    icon={Wallet} 
+                    view="plati-scadente" 
+                    color="bg-emerald-500" 
+                />
+                <StatCard 
+                    title="Examen Câp" 
+                    subtitle="Sesiuni Viitoare" 
+                    icon={Trophy} 
+                    view="examene" 
+                    color="bg-amber-500" 
+                />
             </div>
 
-            <div>
-                <h2 className="text-2xl font-bold text-white mb-4">Sportivi Adăugați Recent</h2>
+            <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                    <h2 className="text-2xl font-black text-white uppercase tracking-tighter italic">Noutăți Lot Sportiv</h2>
+                </div>
                 <ResponsiveTable
                     columns={columns}
                     data={recentSportivi}
                     searchTerm=""
                     onSearchChange={() => {}}
                     onRowClick={onViewSportiv}
-                    searchPlaceholder='Caută în sportivii recenți...'
+                    searchPlaceholder='Caută în membrii recenți...'
                 />
             </div>
         </div>

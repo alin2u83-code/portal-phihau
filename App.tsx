@@ -1,22 +1,27 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 import { useAuthStore } from './store/authStore';
 import { useAppStore } from './store/appStore';
 import { DashboardLayout } from './components/layout/DashboardLayout';
-import Login from './pages/Login';
-import AdminDashboard from './components/AdminDashboard';
-import { SportiviManagement } from './components/SportiviManagement';
-import { UserProfile } from './components/UserProfile';
-import { SportivDashboard } from './components/SportivDashboard';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { MandatoryPasswordChange } from './components/MandatoryPasswordChange';
-import { GestiuneExamene } from './components/Examene';
 import { usePermissions } from './hooks/usePermissions';
+import Login from './pages/Login';
+
+// Lazy loading components to reduce initial chunk size
+const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
+const SportiviManagement = lazy(() => import('./components/SportiviManagement').then(m => ({ default: m.SportiviManagement })));
+const UserProfile = lazy(() => import('./components/UserProfile').then(m => ({ default: m.UserProfile })));
+const SportivDashboard = lazy(() => import('./components/SportivDashboard').then(m => ({ default: m.SportivDashboard })));
+const GestiuneExamene = lazy(() => import('./components/Examene').then(m => ({ default: m.GestiuneExamene })));
 
 const LoadingScreen: React.FC = () => (
     <div className="h-screen w-screen bg-[#0f172a] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-primary"></div>
+        <div className="flex flex-col items-center gap-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+            <p className="text-slate-400 font-black text-xs uppercase tracking-widest animate-pulse">Phi Hau Iași</p>
+        </div>
     </div>
 );
 
@@ -26,18 +31,7 @@ const AuthenticatedApp: React.FC = () => {
     const permissions = usePermissions(userDetails);
     const navigate = useNavigate();
 
-    useEffect(() => {
-        // Fetch all initial data needed for the app
-        const fetchData = async () => {
-            if (!supabase || !userDetails) return;
-            // In a real app, you would fetch all necessary data here and populate the appStore
-        };
-        fetchData();
-    }, [userDetails]);
-    
-    if (isLoading) {
-        return <LoadingScreen />;
-    }
+    if (isLoading) return <LoadingScreen />;
 
     if (userDetails?.trebuie_schimbata_parola) {
         return <MandatoryPasswordChange currentUser={userDetails} onPasswordChanged={initialize} />;
@@ -45,60 +39,61 @@ const AuthenticatedApp: React.FC = () => {
     
     return (
         <DashboardLayout>
-            <Routes>
-                <Route path="/" element={
-                    permissions.hasAdminAccess ? (
-                        <AdminDashboard 
-                            currentUser={userDetails}
-                            sportivi={appData.sportivi}
+            <Suspense fallback={<div className="h-full flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-blue-500"></div></div>}>
+                <Routes>
+                    <Route path="/" element={
+                        permissions.hasAdminAccess ? (
+                            <AdminDashboard 
+                                currentUser={userDetails}
+                                sportivi={appData.sportivi}
+                                onViewSportiv={(sportiv) => navigate(`/sportivi/${sportiv.id}`)}
+                                {...appData}
+                            />
+                        ) : (
+                            <SportivDashboard 
+                                currentUser={userDetails!} 
+                                {...appData}
+                                viewedUser={userDetails!}
+                                isViewingOwnProfile={true}
+                                onNavigate={(view) => navigate(`/${view}`)}
+                                permissions={permissions}
+                            />
+                        )
+                    }/>
+                    <Route path="/sportivi" element={
+                        <ProtectedRoute permissions={permissions}>
+                            <SportiviManagement 
+                            onBack={() => navigate('/')} 
                             onViewSportiv={(sportiv) => navigate(`/sportivi/${sportiv.id}`)}
-                            {...appData}
-                        />
-                    ) : (
-                        <SportivDashboard 
-                            currentUser={userDetails!} 
-                            {...appData}
-                            viewedUser={userDetails!}
-                            isViewingOwnProfile={true}
-                            onNavigate={(view) => navigate(`/${view}`)}
+                            currentUser={userDetails!}
                             permissions={permissions}
-                        />
-                    )
-                }/>
-                <Route path="/sportivi" element={
-                    <ProtectedRoute permissions={permissions}>
-                        <SportiviManagement 
-                           onBack={() => navigate('/')} 
-                           onViewSportiv={(sportiv) => navigate(`/sportivi/${sportiv.id}`)}
-                           currentUser={userDetails!}
-                           permissions={permissions}
-                           {...appData}
-                        />
-                    </ProtectedRoute>
-                }/>
-                <Route path="/sportivi/:id" element={
-                    <ProtectedRoute permissions={permissions}>
-                        <UserProfile 
-                            onBack={() => navigate('/sportivi')}
-                            currentUser={userDetails!}
                             {...appData}
-                        />
-                    </ProtectedRoute>
-                }/>
-                <Route path="/examene" element={
-                    <ProtectedRoute permissions={permissions}>
-                        <GestiuneExamene
-                            onBack={() => navigate('/')}
-                            onViewSportiv={(s) => navigate(`/sportivi/${s.id}`)}
-                            onNavigate={(v) => navigate(`/${v}`)}
-                            currentUser={userDetails!}
-                            {...appData}
-                        />
-                    </ProtectedRoute>
-                }/>
-                {/* Add other protected routes here */}
-                <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
+                            />
+                        </ProtectedRoute>
+                    }/>
+                    <Route path="/sportivi/:id" element={
+                        <ProtectedRoute permissions={permissions}>
+                            <UserProfile 
+                                onBack={() => navigate('/sportivi')}
+                                currentUser={userDetails!}
+                                {...appData}
+                            />
+                        </ProtectedRoute>
+                    }/>
+                    <Route path="/examene" element={
+                        <ProtectedRoute permissions={permissions}>
+                            <GestiuneExamene
+                                onBack={() => navigate('/')}
+                                onViewSportiv={(s) => navigate(`/sportivi/${s.id}`)}
+                                onNavigate={(v) => navigate(`/${v}`)}
+                                currentUser={userDetails!}
+                                {...appData}
+                            />
+                        </ProtectedRoute>
+                    }/>
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+            </Suspense>
         </DashboardLayout>
     );
 };
@@ -115,9 +110,7 @@ const App: React.FC = () => {
         return () => subscription.unsubscribe();
     }, [initialize]);
 
-    if (isLoading) {
-        return <LoadingScreen />;
-    }
+    if (isLoading) return <LoadingScreen />;
 
     return (
         <Router>

@@ -1,7 +1,9 @@
-import React, { useState, useMemo } from 'react';
+
+import React, { useState, useMemo, useCallback } from 'react';
 import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions } from '../types';
-import { Button, Modal, Input, Select, Card } from './ui';
-import { PlusIcon, ArrowLeftIcon, ShieldCheckIcon, WalletIcon } from './icons';
+import { Button, Modal, Input, Select, Card, Switch } from './ui';
+// FIX: Imported ArrowLeftIcon to resolve 'Cannot find name' error.
+import { PlusIcon, ShieldCheckIcon, WalletIcon, UserXIcon, UserCheckIcon, UsersIcon, ArrowLeftIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
@@ -10,6 +12,7 @@ import { SportivAccountSettingsModal } from './SportivAccountSettings';
 import { SportivWallet } from './SportivWallet';
 import { ResponsiveTable, Column } from './ResponsiveTable';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
+import { GradBadge } from '../utils/grades';
 
 const getAge = (dateString: string | null | undefined): number => { 
     if (!dateString) return 0; 
@@ -23,8 +26,6 @@ const getAge = (dateString: string | null | undefined): number => {
 };
 
 const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
-    // FIX: Corrected key from 'Super Admin' to 'SUPER_ADMIN_FEDERATIE' to match the 'Rol' type definition.
-    // FIX: Completed the color mapping to include all roles.
     const colorClasses: Record<Rol['nume'], string> = { 
         Admin: 'bg-red-600 text-white', 
         'SUPER_ADMIN_FEDERATIE': 'bg-red-800 text-white', 
@@ -130,7 +131,6 @@ export const SportiviManagement: React.FC<{
                 );
             },
         },
-        // FIX: Replaced `className` with `cellClassName` to match the Column type definition.
         { key: 'club_id', label: 'Club', tooltip: "Clubul de care aparține sportivul.", render: (s) => s.cluburi?.id === FEDERATIE_ID ? FEDERATIE_NAME : s.cluburi?.nume || '-', cellClassName: 'hidden md:table-cell' },
         { 
             key: 'roluri', 
@@ -149,7 +149,6 @@ export const SportiviManagement: React.FC<{
             key: 'status', 
             label: 'Status',
             tooltip: "Indică dacă sportivul este activ sau inactiv.",
-            // FIX: Replaced `className` with `cellClassName` to match the Column type definition.
             cellClassName: 'hidden md:table-cell',
             render: (s) => (
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${s.status === 'Activ' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
@@ -157,7 +156,6 @@ export const SportiviManagement: React.FC<{
                 </span>
             )
         },
-        // FIX: Replaced `className` with `cellClassName` to match the Column type definition.
         { key: 'grupa_id', label: 'Grupă', tooltip: "Grupa de antrenament în care este încadrat sportivul.", render: (s) => grupe.find(g => g.id === s.grupa_id)?.denumire || '-', cellClassName: 'hidden md:table-cell' },
         {
             key: 'actions',

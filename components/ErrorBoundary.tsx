@@ -1,3 +1,5 @@
+
+
 import React, { ReactNode, ErrorInfo } from 'react';
 import { View } from '../types';
 import { Button } from './ui';
@@ -13,6 +15,8 @@ interface State {
   error?: Error;
 }
 
+// FIX: Changed 'Component' to 'React.Component' to avoid potential naming conflicts
+// that would cause 'this.props' and 'this.setState' to be undefined.
 class ErrorBoundary extends React.Component<Props, State> {
   state: State = {
     hasError: false,
@@ -20,17 +24,13 @@ class ErrorBoundary extends React.Component<Props, State> {
   };
 
   public static getDerivedStateFromError(error: Error): State {
-    // Update state so the next render will show the fallback UI.
     return { hasError: true, error };
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    // You can also log the error to an error reporting service.
     console.error("Uncaught error:", error, errorInfo);
   }
 
-  // FIX: Converted to a class field arrow function to ensure `this` is correctly bound.
-  // This resolves the errors where `this.setState` and `this.props` were not found.
   public handleRedirect = () => {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {
@@ -40,7 +40,6 @@ class ErrorBoundary extends React.Component<Props, State> {
 
   public render() {
     if (this.state.hasError) {
-      // You can render any custom fallback UI.
       return (
         <div className="p-8 text-center bg-red-900/50 text-red-300 rounded-lg border border-red-700">
           <h1 className="text-2xl font-bold">A apărut o eroare neașteptată.</h1>

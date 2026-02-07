@@ -19,6 +19,11 @@ class ErrorBoundary extends React.Component<Props, State> {
     error: undefined,
   };
 
+  constructor(props: Props) {
+    super(props);
+    this.handleRedirect = this.handleRedirect.bind(this);
+  }
+
   public static getDerivedStateFromError(error: Error): State {
     // Update state so the next render will show the fallback UI.
     return { hasError: true, error };
@@ -29,8 +34,9 @@ class ErrorBoundary extends React.Component<Props, State> {
     console.error("Uncaught error:", error, errorInfo);
   }
 
-  // FIX: Changed to an arrow function to correctly bind `this`. This resolves errors where `this.setState` and `this.props` were not found on the component instance.
-  handleRedirect = () => {
+  // FIX: Converted from a class field arrow function to a standard method and bound in the constructor.
+  // This is a more traditional and robust way to handle `this` context in class components and resolves the reported errors.
+  public handleRedirect() {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {
         this.props.onNavigate('dashboard');
@@ -45,7 +51,7 @@ class ErrorBoundary extends React.Component<Props, State> {
           <h1 className="text-2xl font-bold">A apărut o eroare neașteptată.</h1>
           <p className="mt-2">Ceva nu a funcționat corect în această secțiune. Încercați să reîncărcați pagina sau să reveniți la panoul principal.</p>
           {this.props.onNavigate && (
-              <Button onClick={() => this.handleRedirect()} variant="secondary" className="mt-6">
+              <Button onClick={this.handleRedirect} variant="secondary" className="mt-6">
                   <ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la pagina principală
               </Button>
           )}

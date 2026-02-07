@@ -4,7 +4,7 @@ import { User, Sportiv, Plata, Grad, Grupa } from '../types';
 import { Input, Button } from './ui';
 import { WelcomeHero } from './WelcomeHero';
 import { GradBadge } from '../utils/grades';
-import { Users, CreditCard, ShieldCheck } from 'lucide-react';
+import { Users, CreditCard, ShieldCheck, PlusIcon } from 'lucide-react';
 
 interface AdminDashboardProps {
   currentUser: User | null;
@@ -56,7 +56,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser, sportivi, 
         return sportivi
             .filter(s => s.club_id === currentUser.club_id && s.status === 'Activ')
             .sort((a,b) => a.nume.localeCompare(b.nume))
-            .slice(0, 10); // Afișează primii 10 pentru un dashboard curat
+            .slice(0, 10);
     }, [sportivi, currentUser]);
 
     if (!currentUser) {
@@ -66,75 +66,102 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser, sportivi, 
     const statCards = [
       { label: 'Membri Activi', value: stats.totalSportivi, icon: Users, color: 'text-blue-400', bg: 'bg-blue-500/10' },
       { label: 'Total Datorii', value: `${stats.totalDatorii.toFixed(2)} lei`, icon: CreditCard, color: 'text-rose-400', bg: 'bg-rose-500/10' },
-      { label: 'Vize Medicale Expirate', value: stats.vizeExpirate, icon: ShieldCheck, color: 'text-amber-400', bg: 'bg-amber-500/10' },
+      { label: 'Vize Expirate', value: stats.vizeExpirate, icon: ShieldCheck, color: 'text-amber-400', bg: 'bg-amber-500/10' },
     ];
 
     return (
         <div className="space-y-8">
             <WelcomeHero profile={currentUser} />
 
-            {/* STATS GRID */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {statCards.map((stat, i) => (
-                <div key={i} className={`${stat.bg} p-6 rounded-2xl border border-slate-700/50 hover:border-slate-600 transition-all shadow-sm`}>
+                <div key={i} className={`${stat.bg} p-6 rounded-2xl border border-slate-700 hover:border-slate-600 transition-all`}>
                     <div className="flex justify-between items-start">
-                    <div>
-                        <p className="text-slate-400 text-sm font-medium">{stat.label}</p>
-                        <h3 className={`text-3xl font-bold mt-1 ${stat.color}`}>{stat.value}</h3>
-                    </div>
-                    <stat.icon className={`w-8 h-8 ${stat.color} opacity-80`} />
+                        <div>
+                            <p className="text-slate-400 text-sm font-medium">{stat.label}</p>
+                            <h3 className={`text-3xl font-bold mt-1 ${stat.color}`}>{stat.value}</h3>
+                        </div>
+                        <stat.icon className={`w-8 h-8 ${stat.color} opacity-80`} />
                     </div>
                 </div>
                 ))}
             </div>
 
-            {/* DATA TABLE SECTION */}
-            <div className="bg-[#1e293b] rounded-2xl border border-slate-700 shadow-xl overflow-hidden">
+            <div className="bg-[#1e293b] rounded-2xl border border-slate-700 overflow-hidden">
                 <div className="p-6 border-b border-slate-700 flex justify-between items-center">
-                    <h3 className="font-bold text-lg text-white">Sportivi Recenți / Activi</h3>
-                    <Button onClick={() => navigate('/sportivi')} variant="secondary" size="sm">Vezi Toți Sportivii</Button>
+                    <h3 className="font-bold text-lg text-white">Management Sportivi</h3>
+                    <Button onClick={() => navigate('/sportivi')} variant="primary" className="hidden lg:flex">
+                        + Adaugă Sportiv
+                    </Button>
                 </div>
-                <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                    <thead className="bg-slate-800/50 text-slate-400 text-xs uppercase tracking-wider sticky top-0">
-                    <tr>
-                        <th className="px-6 py-4 font-semibold">Nume Sportiv</th>
-                        <th className="px-6 py-4 font-semibold">Grad Actual</th>
-                        <th className="px-6 py-4 font-semibold">Status</th>
-                        <th className="px-6 py-4 font-semibold text-right">Acțiuni</th>
-                    </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-700">
+
+                {/* Desktop Table */}
+                <div className="hidden lg:block overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                        <thead className="bg-slate-800/50 text-slate-400 text-xs uppercase tracking-wider">
+                            <tr>
+                                <th className="px-6 py-4 font-semibold">Nume Sportiv</th>
+                                <th className="px-6 py-4 font-semibold">Grad Actual</th>
+                                <th className="px-6 py-4 font-semibold">Status</th>
+                                <th className="px-6 py-4 font-semibold text-right">Acțiuni</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-700">
+                        {filteredSportivi.length > 0 ? (
+                            filteredSportivi.map((s, index) => {
+                                const currentGrade = grade.find(g => g.id === s.grad_actual_id);
+                                return (
+                                    <tr key={s.id} className="hover:bg-slate-800/40 transition-colors">
+                                        <td className="px-6 py-4 font-semibold text-white">{s.nume} {s.prenume}</td>
+                                        <td className="px-6 py-4"><GradBadge grad={currentGrade} /></td>
+                                        <td className="px-6 py-4">
+                                            <span className={`px-2 py-1 rounded-full text-xs font-bold ${s.status === 'Activ' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>{s.status}</span>
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
+                                            <Button size="sm" variant="secondary" onClick={() => onViewSportiv(s)}>Detalii</Button>
+                                        </td>
+                                    </tr>
+                                );
+                            })
+                        ) : (
+                            <tr><td colSpan={4} className="px-6 py-12 text-center text-slate-500"><div className="flex flex-col items-center gap-2"><Users className="w-12 h-12 opacity-20" /><p>Niciun sportiv înregistrat.</p></div></td></tr>
+                        )}
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* Mobile Card List */}
+                <div className="lg:hidden p-4 space-y-3">
                     {filteredSportivi.length > 0 ? (
-                        filteredSportivi.map((s, index) => {
+                        filteredSportivi.map(s => {
                             const currentGrade = grade.find(g => g.id === s.grad_actual_id);
                             return (
-                                <tr key={s.id} className={`${index % 2 !== 0 ? 'bg-slate-800/20' : ''} hover:bg-slate-800/40 transition-colors`}>
-                                    <td className="px-6 py-4 font-semibold text-white">{s.nume} {s.prenume}</td>
-                                    <td className="px-6 py-4"><GradBadge grad={currentGrade} /></td>
-                                    <td className="px-6 py-4">
-                                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${s.status === 'Activ' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>{s.status}</span>
-                                    </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <Button size="sm" variant="secondary" onClick={() => onViewSportiv(s)}>Detalii</Button>
-                                    </td>
-                                </tr>
+                                <div key={s.id} className="bg-slate-800/50 p-4 rounded-xl border border-slate-700 flex items-center justify-between gap-4">
+                                    <div>
+                                        <p className="font-bold text-white">{s.nume} {s.prenume}</p>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <GradBadge grad={currentGrade} className="text-[10px]" />
+                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${s.status === 'Activ' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>{s.status}</span>
+                                        </div>
+                                    </div>
+                                    <Button size="sm" variant="secondary" onClick={() => onViewSportiv(s)}>Detalii</Button>
+                                </div>
                             );
                         })
                     ) : (
-                        <tr className="hover:bg-slate-800/40 transition-colors">
-                            <td colSpan={4} className="px-6 py-12 text-center text-slate-500">
-                            <div className="flex flex-col items-center gap-2">
-                                <Users className="w-12 h-12 opacity-20" />
-                                <p>Niciun sportiv înregistrat în C.S. Phi Hau</p>
-                            </div>
-                            </td>
-                        </tr>
+                        <div className="px-6 py-12 text-center text-slate-500"><div className="flex flex-col items-center gap-2"><Users className="w-12 h-12 opacity-20" /><p>Niciun sportiv înregistrat.</p></div></div>
                     )}
-                    </tbody>
-                </table>
                 </div>
             </div>
+
+            {/* Quick Actions FAB for Mobile */}
+            <button
+                onClick={() => navigate('/sportivi')}
+                className="lg:hidden fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg transition-transform hover:scale-110 active:scale-100 z-30"
+                aria-label="Adaugă Sportiv"
+            >
+                <PlusIcon className="w-6 h-6" />
+            </button>
         </div>
     );
 };

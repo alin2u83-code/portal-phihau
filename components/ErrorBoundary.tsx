@@ -19,11 +19,6 @@ class ErrorBoundary extends React.Component<Props, State> {
     error: undefined,
   };
 
-  constructor(props: Props) {
-    super(props);
-    this.handleRedirect = this.handleRedirect.bind(this);
-  }
-
   public static getDerivedStateFromError(error: Error): State {
     // Update state so the next render will show the fallback UI.
     return { hasError: true, error };
@@ -34,9 +29,9 @@ class ErrorBoundary extends React.Component<Props, State> {
     console.error("Uncaught error:", error, errorInfo);
   }
 
-  // FIX: Converted from a class field arrow function to a standard method and bound in the constructor.
-  // This is a more traditional and robust way to handle `this` context in class components and resolves the reported errors.
-  public handleRedirect() {
+  // FIX: Converted to a class property arrow function to lexically bind `this`.
+  // This is a more modern and robust way to handle `this` context in class components and resolves the reported errors.
+  public handleRedirect = () => {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {
         this.props.onNavigate('dashboard');

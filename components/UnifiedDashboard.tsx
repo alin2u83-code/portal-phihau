@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Session } from '@supabase/supabase-js';
 import { User, View, DecontFederatie } from '../types';

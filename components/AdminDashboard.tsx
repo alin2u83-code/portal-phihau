@@ -1,7 +1,7 @@
+
 import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Sportiv, Plata, Grad, Grupa, View } from '../types';
-import { Card } from './ui';
+import { User, Sportiv, Plata, Grad, Grupa } from '../types';
 import { WelcomeHero } from './WelcomeHero';
 import { GradBadge } from '../utils/grades';
 import { Users, Wallet, Trophy, ArrowRight } from 'lucide-react';
@@ -10,7 +10,7 @@ import { ResponsiveTable, Column } from './ResponsiveTable';
 const StatCard: React.FC<{ title: string; subtitle: string; icon: React.ElementType; view: string; color: string }> = ({ title, subtitle, icon: Icon, view, color }) => {
     const navigate = useNavigate();
     return (
-        <Card onClick={() => navigate(`/${view}`)} className="group cursor-pointer hover:-translate-y-1 transition-all duration-300 glass-card p-6 overflow-hidden relative">
+        <div onClick={() => navigate(`/${view}`)} className="group cursor-pointer hover:-translate-y-1 transition-all duration-300 glass-card p-6 overflow-hidden relative">
             <div className={`absolute -right-4 -top-4 p-8 rounded-full opacity-10 ${color}`}>
                 <Icon size={80} />
             </div>
@@ -18,13 +18,13 @@ const StatCard: React.FC<{ title: string; subtitle: string; icon: React.ElementT
                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${color.replace('bg-', 'bg-opacity-20 bg-')}`}>
                     <Icon className={color.replace('bg-', 'text-')} size={24} />
                 </div>
-                <h3 className="font-black text-2xl text-white tracking-tight">{title}</h3>
+                <h3 className="font-black text-3xl text-white tracking-tight">{title}</h3>
                 <p className="text-sm font-bold text-slate-400 uppercase tracking-wider">{subtitle}</p>
                 <div className="mt-4 flex items-center gap-2 text-xs font-bold text-blue-400 group-hover:gap-3 transition-all">
                     GESTIONEAZĂ MODUL <ArrowRight size={14} />
                 </div>
             </div>
-        </Card>
+        </div>
     );
 };
 
@@ -33,11 +33,10 @@ interface AdminDashboardProps {
   sportivi: Sportiv[];
   plati: Plata[];
   grade: Grad[];
-  grupe: Grupa[];
   onViewSportiv: (sportiv: Sportiv) => void;
 }
 
-const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser, sportivi, plati, grade, grupe, onViewSportiv }) => {
+const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser, sportivi, plati, grade, onViewSportiv }) => {
     const recentSportivi = useMemo(() => {
         if (!sportivi) return [];
         return [...sportivi]
@@ -62,7 +61,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser, sportivi, 
             key: 'status',
             label: 'Status',
             render: (s) => (
-                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${s.status === 'Activ' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/20 text-rose-400 border border-rose-500/20'}`}>
+                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${s.status === 'Activ' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}`}>
                     {s.status}
                 </span>
             )
@@ -72,7 +71,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser, sportivi, 
     const stats = useMemo(() => ({
         totalMembri: sportivi.filter(s => s.status === 'Activ').length,
         totalDatorii: plati.filter(p => p.status !== 'Achitat').reduce((acc, p) => acc + p.suma, 0),
-        exameneInAsteptare: 0 // Mock pentru acum
     }), [sportivi, plati]);
 
     return (
@@ -104,9 +102,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser, sportivi, 
             </div>
 
             <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                    <h2 className="text-2xl font-black text-white uppercase tracking-tighter italic">Noutăți Lot Sportiv</h2>
-                </div>
+                <h2 className="text-2xl font-black text-white uppercase tracking-tighter italic">Noutăți Lot Sportiv</h2>
                 <ResponsiveTable
                     columns={columns}
                     data={recentSportivi}

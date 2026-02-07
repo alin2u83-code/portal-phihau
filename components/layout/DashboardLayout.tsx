@@ -1,4 +1,5 @@
-import React, { useState, useMemo, Suspense } from 'react';
+
+import React, { useState, useMemo } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { usePermissions } from '../../hooks/usePermissions';
@@ -84,10 +85,10 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
     }, [permissions]);
 
     const SidebarContent: React.FC<{isExpanded: boolean, onNavClick?: () => void}> = ({ isExpanded, onNavClick }) => (
-        <div className="flex flex-col h-full bg-brand-card border-r border-slate-800">
+        <div className="flex flex-col h-full bg-light-navy border-r border-slate-800">
             <div className="p-6 border-b border-slate-800 h-20 flex items-center gap-3">
                 <div className="bg-blue-600 p-2.5 rounded-xl shadow-lg shadow-blue-600/30 cursor-pointer" onClick={() => navigate('/')}>
-                    <svg viewBox="0 0 100 100" className="w-6 h-6 text-amber-400"><path d="M50 10 L90 50 L50 90 L10 50 Z" stroke="currentColor" strokeWidth="8" fill="none" /><circle cx="50" cy="50" r="15" fill="currentColor" /></svg>
+                    <svg viewBox="0 0 100 100" className="w-6 h-6 text-brand-secondary"><path d="M50 10 L90 50 L50 90 L10 50 Z" stroke="currentColor" strokeWidth="8" fill="none" /><circle cx="50" cy="50" r="15" fill="currentColor" /></svg>
                 </div>
                 {isExpanded && <span className="font-black text-xl tracking-tight text-white uppercase italic">Phi Hau</span>}
             </div>
@@ -123,13 +124,11 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
     );
     
     return (
-        <div className="flex h-screen bg-brand-dark text-slate-200 overflow-hidden font-sans">
-            {/* Desktop Sidebar */}
+        <div className="flex h-screen bg-deep-navy text-slate-200 overflow-hidden font-sans">
             <aside className={`hidden lg:flex flex-col transition-all duration-300 ${isSidebarExpanded ? 'w-72' : 'w-24'}`}>
                 <SidebarContent isExpanded={isSidebarExpanded} />
             </aside>
 
-            {/* Mobile Sidebar (Drawer) */}
             <div 
                 className={`fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm lg:hidden transition-opacity duration-300 ${isMobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} 
                 onClick={() => setIsMobileMenuOpen(false)} 
@@ -139,7 +138,7 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
             </aside>
 
             <div className="flex-1 flex flex-col overflow-hidden">
-                <header className="h-20 bg-brand-card/30 backdrop-blur-xl border-b border-slate-800 flex items-center justify-between px-6 z-50">
+                <header className="h-20 bg-light-navy/30 backdrop-blur-xl border-b border-slate-800 flex items-center justify-between px-6 z-50">
                     <div className="flex items-center gap-4">
                         <button 
                             onClick={() => setIsSidebarExpanded(!isSidebarExpanded)} 
@@ -153,7 +152,6 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
                         >
                             <Menu className="w-5 h-5" />
                         </button>
-                        <div className="lg:hidden font-black text-xl text-white italic uppercase tracking-tighter">Phi Hau</div>
                     </div>
 
                     <div className="flex items-center gap-4">
@@ -168,13 +166,7 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
                 </header>
 
                 <main className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
-                    <Suspense fallback={
-                        <div className="h-full flex items-center justify-center">
-                            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-                        </div>
-                    }>
-                        {children}
-                    </Suspense>
+                    {children}
                 </main>
             </div>
         </div>

@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
-import { Antrenament, Sportiv, Grupa, User, View, Grad, SportivProgramPersonalizat } from '../types';
+import { Antrenament, Sportiv, Grupa, User, View, Grad } from '../types';
 import { useError } from './ErrorProvider';
 import { Card, Button, Select } from './ui';
 import { ArrowLeftIcon, UserPlusIcon, XIcon } from './icons';
@@ -244,7 +245,7 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
             showSuccess("Succes", "Prezența a fost salvată!");
 
         } catch (err: unknown) {
-            // In `handleSave`, cast the `unknown` error type to `Error` and access its `message` property before passing it to `showError` to fix the TypeScript error.
+            // FIX: In `handleSave`, cast the `unknown` error type to `Error` and access its `message` property before passing it to `showError` to fix the TypeScript error.
             showError("Eroare la salvarea prezenței", err instanceof Error ? err.message : String(err));
         }
     };

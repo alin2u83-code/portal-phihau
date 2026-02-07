@@ -1,5 +1,5 @@
+
 import React from 'react';
-import { Input } from './ui';
 import { Search } from 'lucide-react';
 
 export interface Column<T> {
@@ -34,7 +34,7 @@ export function ResponsiveTable<T extends { id: string }>({
 }: ResponsiveTableProps<T>) {
 
     return (
-        <div className="glass-card rounded-2xl shadow-xl overflow-hidden border border-slate-800">
+        <div className="glass-card overflow-hidden">
             <div className="p-5 border-b border-slate-800 bg-slate-900/40">
                 <div className="relative w-full md:w-80">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 pointer-events-none" />
@@ -48,13 +48,12 @@ export function ResponsiveTable<T extends { id: string }>({
                 </div>
             </div>
 
-            {/* Desktop Table */}
             <div className="hidden lg:block overflow-x-auto">
                 <table className="w-full text-sm text-left text-slate-300">
                     <thead className="bg-slate-900/60 text-slate-500 text-[10px] font-black uppercase tracking-widest">
                         <tr>
                             {columns.map(col => (
-                                <th key={String(col.key)} scope="col" className={`px-6 py-4 border-b border-slate-800 ${col.headerClassName || ''}`} title={col.tooltip}>
+                                <th key={String(col.key)} scope="col" className={`px-6 py-4 ${col.headerClassName || ''}`} title={col.tooltip}>
                                     {col.label}
                                 </th>
                             ))}
@@ -64,7 +63,7 @@ export function ResponsiveTable<T extends { id: string }>({
                         {data.map(item => (
                             <tr 
                                 key={item.id} 
-                                className={`transition-colors group ${onRowClick ? 'cursor-pointer hover:bg-blue-600/5' : ''} ${item.id === selectedRowId ? 'bg-blue-600/10' : ''} ${rowClassName ? rowClassName(item) : ''}`} 
+                                className={`transition-colors group ${onRowClick ? 'cursor-pointer hover:bg-blue-600/10' : ''} ${item.id === selectedRowId ? 'bg-blue-600/20' : ''} ${rowClassName ? rowClassName(item) : ''}`} 
                                 onClick={() => onRowClick?.(item)}
                             >
                                 {columns.map(col => (
@@ -78,7 +77,6 @@ export function ResponsiveTable<T extends { id: string }>({
                 </table>
             </div>
 
-            {/* Mobile/Tablet Card List */}
             <div className="lg:hidden p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                 {data.map(item => (
                     <div 

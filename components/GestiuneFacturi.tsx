@@ -36,24 +36,11 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
     const [plataToDelete, setPlataToDelete] = useState<Plata | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
 
-    const clubSportivi = useMemo(() => sportivi.filter(s => s.club_id === currentUser.club_id).sort((a, b) => a.nume.localeCompare(b.nume)), [sportivi, currentUser.club_id]);
+    const clubSportivi = useMemo(() => [...sportivi].sort((a, b) => a.nume.localeCompare(b.nume)), [sportivi]);
     
     const clubPlati = useMemo(() => {
-        const clubSportiviIds = new Set(clubSportivi.map(s => s.id));
-        const clubFamiliiIds = new Set(clubSportivi.map(s => s.familie_id).filter(Boolean));
-        
-        return plati
-            .filter(p => {
-                if (p.sportiv_id && clubSportiviIds.has(p.sportiv_id)) {
-                    return true;
-                }
-                if (p.familie_id && clubFamiliiIds.has(p.familie_id)) {
-                    return true;
-                }
-                return false;
-            })
-            .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
-    }, [plati, clubSportivi]);
+        return [...plati].sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+    }, [plati]);
 
     const getEntityName = (plata: Plata) => {
         if (plata.familie_id) {

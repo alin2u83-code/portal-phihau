@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Sportiv, InscriereExamen, Grad, Grupa, Plata, User, View, AnuntPrezenta, SesiuneExamen, ProgramItem, Antrenament, Permissions, Rol, IstoricGrade, AnuntStatus } from '../types';
+import { Sportiv, InscriereExamen, Grad, Grupa, Plata, User, View, AnuntPrezenta, SesiuneExamen, ProgramItem, Antrenament, Permissions, Rol, IstoricGrade } from '../types';
 import { Card, Button } from './ui';
 import { NotificationPermissionWidget } from './NotificationPermissionWidget';
 import { AttendanceTracker } from './AttendanceTracker';
@@ -165,6 +165,8 @@ const ProgramSaptamanalPage: React.FC<{ grupaId: string | null; grupe: Grupa[]; 
 
 
 // --- Componente și Logică pentru Acțiuni Rapide (Mutate din AthleteQuickActions.tsx) ---
+type AnuntStatus = 'Confirm' | 'Intarziat' | 'Absent';
+
 interface TrainingActionCardProps {
     training: Antrenament;
     anunt: AnuntPrezenta | undefined;
@@ -373,12 +375,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                      <AttendanceTracker currentUser={currentUser} antrenamente={antrenamente} onNavigate={onNavigate} />
                 </div>
                 <div className="lg:col-span-2 space-y-6">
-                    <AntrenamenteViitoare 
-                        currentUser={currentUser} 
-                        antrenamente={antrenamente} 
-                        grupe={grupe} 
-                        anunturi={anunturi}
-                    />
+                    <AntrenamenteViitoare currentUser={currentUser} antrenamente={antrenamente} grupe={grupe} />
                     <Card>
                         <h3 className="text-lg font-bold text-white mb-2">Program Săptămânal</h3>
                         <p className="text-sm text-slate-400">Vezi orarul complet de antrenamente pentru grupa ta.</p>

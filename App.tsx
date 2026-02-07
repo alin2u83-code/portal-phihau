@@ -113,7 +113,7 @@ function App() {
   }, [activeRoleContext]);
 
   const permissions = usePermissions(currentUser, activeRole);
-  const { activeClubId, globalClubFilter, setGlobalClubFilter, loading: clubContextLoading } = useClubFilter(currentUser, permissions);
+  const { activeClubId, globalClubFilter, setGlobalClubFilter } = useClubFilter(currentUser, permissions, activeRoleContext);
 
    const canSwitchRoles = useMemo(() => {
         if (!currentUser || !userRoles || userRoles.length <= 1) return false;
@@ -733,7 +733,7 @@ function App() {
   };
 
   return (
-    <SystemGuardian isLoading={loading || clubContextLoading} currentUser={currentUser} permissions={permissions} error={profileError}>
+    <SystemGuardian isLoading={loading} currentUser={currentUser} permissions={permissions} error={profileError}>
       {isSwitchingRole && (
         <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[10000] flex flex-col items-center justify-center animate-fade-in-down">
             <svg className="animate-spin h-10 w-10 text-violet-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

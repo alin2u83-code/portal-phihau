@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { User, Antrenament, AnuntPrezenta, AnuntStatus } from '../types';
+import { User, Antrenament, AnuntPrezenta } from '../types';
 import { Card, Button, Select, Input } from './ui';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
@@ -23,7 +23,7 @@ const SingleTrainingAnunt: React.FC<SingleTrainingAnuntProps> = ({ training, cur
         return anunturi.find(a => a.antrenament_id === training.id && a.sportiv_id === currentUser.id);
     }, [anunturi, training.id, currentUser.id]);
 
-    const handleSendAnunt = async (status: AnuntStatus, detalii: string | null) => {
+    const handleSendAnunt = async (status: 'Confirm' | 'Intarziat' | 'Absent', detalii: string | null) => {
         if (!supabase) return;
         setLoading(true);
 

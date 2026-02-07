@@ -344,11 +344,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
         [allRoles, currentUserMaxWeight, roleWeights]
     );
 
-    const usersToDisplay = useMemo(() => {
-        return isFederationAdmin
-            ? sportivi
-            : sportivi.filter(s => s.club_id === currentUser.club_id);
-    }, [sportivi, currentUser, isFederationAdmin]);
+    const usersToDisplay = useMemo(() => sportivi, [sportivi]);
 
 
     const handleEdit = (user: User) => {

@@ -2,20 +2,18 @@ import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Sportiv, Plata, Grad } from '../types';
 import { Card, Input, Button } from './ui';
-import { UsersIcon, ExclamationTriangleIcon, SearchIcon } from './icons';
+import { UsersIcon, ExclamationTriangleIcon, SearchIcon, BanknotesIcon } from './icons';
+import { WelcomeHero } from './WelcomeHero';
 import { GradBadge } from '../utils/grades';
 
-const KpiCard: React.FC<{ title: string; value: string | number; icon: React.ElementType; color: string; onClick: () => void; }> = ({ title, value, icon: Icon, color, onClick }) => (
-    <div onClick={onClick} className="group relative bg-[var(--bg-card)] p-6 rounded-lg border border-[var(--border-color)] cursor-pointer hover:border-brand-primary/50 transition-all">
+const StatCard: React.FC<{ title: string; value: string | number; icon: React.ElementType; color: string; }> = ({ title, value, icon: Icon, color }) => (
+    <div className={`bg-slate-800/50 p-6 rounded-lg border border-slate-700`}>
         <div className="flex items-start justify-between">
             <div>
                 <p className="text-sm font-bold uppercase text-slate-400">{title}</p>
-                <p className={`text-5xl font-black mt-2 ${color}`}>{value}</p>
+                <p className={`text-4xl font-black mt-2 ${color}`}>{value}</p>
             </div>
-            <Icon className="w-10 h-10 text-slate-600" />
-        </div>
-        <div className="absolute bottom-4 right-4 text-xs font-bold text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity">
-            Vezi detalii &rarr;
+            <Icon className="w-8 h-8 text-slate-500" />
         </div>
     </div>
 );
@@ -33,80 +31,92 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser, sportivi, 
     const navigate = useNavigate();
 
     const stats = useMemo(() => {
-        const sportiviActivi = (sportivi || []).filter(s => s.status === 'Activ');
+        if (!sportivi || !plati || !currentUser) {
+            return { totalSportivi: 0, totalDatorii: 0, vizeExpirate: 0 };
+        }
+        
+        const sportiviInClub = sportivi.filter(s => s.club_id === currentUser.club_id);
+        const sportiviActivi = sportiviInClub.filter(s => s.status === 'Activ');
+        const sportiviClubIds = new Set(sportiviInClub.map(s => s.id));
+        const familiiClubIds = new Set(sportiviInClub.filter(s => s.familie_id).map(s => s.familie_id!));
+        
+        const totalDatorii = (plati || []).filter(p =>
+            p.status !== 'Achitat' &&
+            (sportiviClubIds.has(p.sportiv_id!) || (p.familie_id && familiiClubIds.has(p.familie_id)))
+        ).reduce((sum, p) => sum + p.suma, 0);
 
         const today = new Date();
-        const currentMonth = today.getMonth();
-        const currentYear = today.getFullYear();
-        // Sezonul începe în septembrie (luna 8, index 0)
-        const seasonStartYear = currentMonth >= 8 ? currentYear : currentYear - 1;
+        const seasonStartYear = today.getMonth() >= 8 ? today.getFullYear() : today.getFullYear() - 1;
         
         const sportiviCuVizaValida = new Set(
-            (plati || [])
-                .filter(p => {
-                    if (p.tip !== 'Taxa Anuala' || p.status !== 'Achitat' || !p.sportiv_id) return false;
-                    const paymentDate = new Date(p.data);
-                    // Verifică dacă plata este în sezonul curent
-                    return paymentDate.getFullYear() > seasonStartYear || 
-                           (paymentDate.getFullYear() === seasonStartYear && paymentDate.getMonth() >= 8);
-                })
-                .map(p => p.sportiv_id)
+            (plati || []).filter(p =>
+                p.tip === 'Taxa Anuala' && p.status === 'Achitat' && sportiviClubIds.has(p.sportiv_id!) &&
+                (new Date(p.data).getFullYear() > seasonStartYear || (new Date(p.data).getFullYear() === seasonStartYear && new Date(p.data).getMonth() >= 8))
+            ).map(p => p.sportiv_id)
         );
-
-        const vizeExpirate = sportiviActivi.filter(s => !sportiviCuVizaValida.has(s.id)).length;
+        const vizeExpirate = sportiviActivi.filter(s => !sportiviCuVizaValida.has(s.id!)).length;
 
         return {
             totalSportivi: sportiviActivi.length,
+            totalDatorii,
             vizeExpirate,
         };
-    }, [sportivi, plati]);
+    }, [sportivi, plati, currentUser]);
 
     const filteredSportivi = useMemo(() => {
-        if (!sportivi) return [];
+        if (!sportivi || !currentUser?.club_id) return [];
         return sportivi
-            .filter(s => s.status === 'Activ' && `${s.nume} ${s.prenume}`.toLowerCase().includes(searchTerm.toLowerCase()))
-            .sort((a,b) => a.nume.localeCompare(b.nume))
-            .slice(0, 10); // Afișează doar primele 10 rezultate pe dashboard
-    }, [sportivi, searchTerm]);
+            .filter(s => 
+                s.club_id === currentUser.club_id &&
+                `${s.nume} ${s.prenume}`.toLowerCase().includes(searchTerm.toLowerCase())
+            )
+            .sort((a,b) => a.nume.localeCompare(b.nume));
+    }, [sportivi, searchTerm, currentUser]);
 
     if (!currentUser) {
         return <div className="text-center p-8">Se încarcă datele utilizatorului...</div>;
     }
 
     return (
-        <div className="space-y-6 animate-fade-in-down">
-            <h1 className="text-3xl font-bold text-white">Dashboard Club: <span className="text-brand-secondary">{currentUser.cluburi?.nume || 'Phi Hau Iași'}</span></h1>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <KpiCard title="Sportivi Activi" value={stats.totalSportivi} icon={UsersIcon} color="text-green-400" onClick={() => navigate('/sportivi')} />
-                <KpiCard title="Vize Expirate" value={stats.vizeExpirate} icon={ExclamationTriangleIcon} color={stats.vizeExpirate > 0 ? 'text-red-400' : 'text-green-400'} onClick={() => navigate('/taxe-anuale')} />
+        <div className="space-y-8">
+            <WelcomeHero profile={currentUser} />
+
+            <h2 className="text-2xl font-bold text-white border-b-2 border-brand-secondary/50 pb-2">Sumar Administrativ</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <StatCard title="Membri Activi" value={stats.totalSportivi} icon={UsersIcon} color="text-green-400" />
+                <StatCard title="Total Datorii Club" value={`${stats.totalDatorii.toFixed(2)} lei`} icon={BanknotesIcon} color={stats.totalDatorii > 0 ? "text-red-400" : "text-green-400"} />
+                <StatCard title="Vize Medicale Expirate" value={stats.vizeExpirate} icon={ExclamationTriangleIcon} color={stats.vizeExpirate > 0 ? 'text-amber-400' : 'text-green-400'} />
             </div>
 
+            <h2 className="text-2xl font-bold text-white border-b-2 border-brand-secondary/50 pb-2">Management Sportivi</h2>
             <Card>
-                <div className="flex flex-col md:flex-row justify-between md:items-center mb-4 gap-4">
-                    <h2 className="text-xl font-bold text-white">Membri Club (Recent Activi)</h2>
-                    <div className="relative w-full md:w-64">
-                         <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                         <Input label="" placeholder="Caută sportiv..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="!pl-10" />
+                <div className="flex justify-end mb-4">
+                    <div className="relative w-full md:w-72">
+                        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                        <Input label="" placeholder="Caută membru..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="!pl-10" />
                     </div>
                 </div>
-                <div className="max-h-96 overflow-y-auto">
+                <div className="max-h-[600px] overflow-y-auto">
                     <table className="w-full text-left text-sm">
-                        <thead className="text-xs text-slate-400 uppercase">
+                        <thead className="text-xs text-slate-400 uppercase bg-slate-800 sticky top-0">
                             <tr>
-                                <th className="p-2">Nume Complet</th>
-                                <th className="p-2">Grad</th>
-                                <th className="p-2 text-right">Acțiuni</th>
+                                <th className="p-3">Nume Prenume</th>
+                                <th className="p-3">Grad</th>
+                                <th className="p-3 text-center">Status</th>
+                                <th className="p-3 text-right">Acțiuni</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-700">
                             {filteredSportivi.map(s => {
-                                const currentGrade = (grade || []).find(g => g.id === s.grad_actual_id);
+                                const currentGrade = grade.find(g => g.id === s.grad_actual_id);
                                 return (
                                     <tr key={s.id} className="hover:bg-slate-700/50">
-                                        <td className="p-2 font-medium">{s.nume} {s.prenume}</td>
-                                        <td className="p-2"><GradBadge grad={currentGrade} className="text-[10px]" /></td>
-                                        <td className="p-2 text-right">
+                                        <td className="p-3 font-medium">{s.nume} {s.prenume}</td>
+                                        <td className="p-3"><GradBadge grad={currentGrade} className="text-[10px]" /></td>
+                                        <td className="p-3 text-center">
+                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${s.status === 'Activ' ? 'bg-green-600/30 text-green-400' : 'bg-red-600/30 text-red-400'}`}>{s.status}</span>
+                                        </td>
+                                        <td className="p-3 text-right">
                                             <Button size="sm" variant="secondary" onClick={() => onViewSportiv(s)}>Vezi Profil</Button>
                                         </td>
                                     </tr>
@@ -116,9 +126,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser, sportivi, 
                     </table>
                     {filteredSportivi.length === 0 && <p className="text-center p-8 text-slate-500">Niciun sportiv găsit.</p>}
                 </div>
-                 <div className="mt-4 text-center">
-                    <Button onClick={() => navigate('/sportivi')} variant="primary">Vezi toți sportivii</Button>
-                 </div>
+            </Card>
+            
+            <h2 className="text-2xl font-bold text-white border-b-2 border-brand-secondary/50 pb-2">Evenimente</h2>
+            <Card>
+                <p className="text-slate-400 text-center p-8">Modul pentru gestionarea stagiilor și competițiilor este în curs de dezvoltare.</p>
             </Card>
         </div>
     );

@@ -39,54 +39,78 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
             return { user: null, roles: null, error: null };
         }
 
-        const { data: userProfileData, error: profileError } = await supabase
-            .from('sportivi')
+        // Step 1: Fetch all role contexts for the authenticated user
+        const { data: roleContexts, error: contextsError } = await supabase
+            .from('utilizator_roluri_multicont')
             .select(`
-                *,
-                cluburi(*),
-                contexts:utilizator_roluri_multicont (
-                    rol_denumire,
-                    sportiv_id,
-                    club_id,
-                    is_primary,
-                    club:cluburi(nume),
-                    sportiv:sportivi!inner(nume, prenume)
-                )
+                rol_denumire,
+                sportiv_id,
+                club_id,
+                is_primary,
+                club:cluburi(nume),
+                sportiv:sportivi!inner(nume, prenume)
             `)
-            .eq('user_id', authUser.id)
-            .single();
+            .eq('user_id', authUser.id);
         
-        if (profileError) {
-            if (profileError.code === 'PGRST116') {
-                return { user: fallbackUser(authUser.email || 'unknown@user.com'), roles: [], error: null };
-            }
-            return { user: null, roles: null, error: profileError };
+        if (contextsError) {
+            return { user: null, roles: null, error: contextsError };
         }
-        
-        if (!userProfileData) {
+
+        if (!roleContexts || roleContexts.length === 0) {
+            const { data: bareProfile, error: bareProfileError } = await supabase.from('sportivi').select('*, cluburi(*)').eq('user_id', authUser.id).maybeSingle();
+            if (bareProfile && !bareProfileError) {
+                // User has a profile but no roles assigned in the multi-context table.
+                return { user: { ...bareProfile, roluri: [] } as User, roles: [], error: null };
+            }
+            // If no profile at all, return a fallback to avoid crashing, error will be handled upstream.
             return { user: fallbackUser(authUser.email || 'unknown@user.com'), roles: [], error: null };
         }
 
-        const { contexts, ...profile } = userProfileData;
-        const roleContexts = contexts || [];
-
-        const { data: allRolesNomenclator, error: allRolesError } = await supabase.from('roluri').select('id, nume');
-        if(allRolesError) {
-            console.warn("Eroare la preluarea nomenclatorului de roluri:", allRolesError.message);
+        // Step 2: Determine the primary context and its sportiv_id
+        let primaryContext = roleContexts.find(r => r.is_primary);
+        if (!primaryContext) {
+            const roleOrder: Rol['nume'][] = ['SUPER_ADMIN_FEDERATIE', 'Admin', 'Admin Club', 'Instructor', 'Sportiv'];
+            roleContexts.sort((a, b) => roleOrder.indexOf(a.rol_denumire) - roleOrder.indexOf(b.rol_denumire));
+            primaryContext = roleContexts[0];
         }
+        
+        let primarySportivId = primaryContext?.sportiv_id;
+        let userProfileData: any;
+
+        if (!primarySportivId) {
+            // FALLBACK: Role context exists but has a null sportiv_id. Try to find profile by user_id.
+            const { data: fallbackProfile, error: fallbackError } = await supabase.from('sportivi').select('*, cluburi(*)').eq('user_id', authUser.id).maybeSingle();
+            if (fallbackError || !fallbackProfile) {
+                 return { user: null, roles: null, error: new Error("Contul are roluri definite, dar niciun profil de sportiv asociat. Contactați administratorul.") };
+            }
+            userProfileData = fallbackProfile;
+        } else {
+            // STANDARD PATH: Fetch the full primary profile using sportiv_id from the primary context
+            const { data, error: profileError } = await supabase
+                .from('sportivi')
+                .select('*, cluburi(*)')
+                .eq('id', primarySportivId)
+                .single();
+            if (profileError) { return { user: null, roles: null, error: profileError }; }
+            userProfileData = data;
+        }
+        
+        // Step 3: Combine data. Get all unique roles from all contexts.
+        const { data: allRolesNomenclator, error: allRolesError } = await supabase.from('roluri').select('id, nume');
+        if(allRolesError) { console.warn("Eroare la preluarea nomenclatorului de roluri:", allRolesError.message); }
 
         const mappedRoles = (roleContexts || []).map((mcr: any) => {
             const roleFromNomenclator = (allRolesNomenclator || []).find(r => r.nume === mcr.rol_denumire);
             return roleFromNomenclator ? { id: roleFromNomenclator.id, nume: roleFromNomenclator.nume as Rol['nume'] } : null;
         }).filter((r): r is Rol => r !== null);
-
+        
         const uniqueRoles = Array.from(new Map(mappedRoles.map(item => [item.id, item])).values());
-
+        
         const formattedProfile = {
-            ...profile,
+            ...userProfileData,
             roluri: uniqueRoles,
         };
-        
+
         return { user: formattedProfile as User, roles: roleContexts, error: null };
 
     } catch (err: any) {

@@ -28,25 +28,22 @@ export const usePermissions = (user: User | null, activeRole: Rol['nume'] | null
         // Normalizează rolul activ pentru verificări dependente de context
         const normalizedActiveRole = activeRole?.toUpperCase().replace(/ /g, '_');
 
-        // Flag-urile de bază se determină pe baza TUTUROR rolurilor pe care le deține utilizatorul.
-        const allUserRoles = new Set((user.roluri || []).map(r => r.nume));
+        // Flag-urile de bază se determină pe baza TUTUROR rolurilor pe care le deține utilizatorul, acum normalizate.
+        const allUserRoles = new Set((user.roluri || []).map(r => r.nume.toUpperCase().replace(/ /g, '_')));
 
-        const isSuperAdmin = allUserRoles.has('SUPER_ADMIN_FEDERATIE');
-        const isAdmin = allUserRoles.has('Admin'); // 'Admin' poate fi un rol de super admin de rezervă
+        const isSuperAdmin = allUserRoles.has(ROLES.SUPER_ADMIN_FEDERATIE);
+        const isAdmin = allUserRoles.has(ROLES.ADMIN);
         const isFederationAdmin = isSuperAdmin || isAdmin;
-        const isAdminClub = allUserRoles.has('Admin Club');
-        const isInstructor = allUserRoles.has('Instructor');
-        const isSportiv = allUserRoles.has('Sportiv');
+        const isAdminClub = allUserRoles.has(ROLES.ADMIN_CLUB);
+        const isInstructor = allUserRoles.has(ROLES.INSTRUCTOR);
+        const isSportiv = allUserRoles.has(ROLES.SPORTIV);
         
         // hasAdminAccess este determinat de capacitățile totale ale utilizatorului.
         const hasAdminAccess = isFederationAdmin || isAdminClub || isInstructor;
         
-        // --- LOGICĂ NOUĂ ---
-        // Capabilități bazate pe TOATE rolurile, nu doar pe contextul activ
         const canBeClubAdmin = isAdminClub;
         const canBeFederationAdmin = isFederationAdmin;
         const isMultiContextAdmin = canBeClubAdmin && canBeFederationAdmin;
-        // --- SFÂRȘIT LOGICĂ NOUĂ ---
 
         // Flag-urile de business logic sunt derivate din contextul de sesiune activ NORMALIZAT.
         const isFederationLevel = normalizedActiveRole === ROLES.SUPER_ADMIN_FEDERATIE || normalizedActiveRole === ROLES.ADMIN;

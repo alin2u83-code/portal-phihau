@@ -93,7 +93,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
 
         switch (normalizedRole) {
             case ROLES.SUPER_ADMIN_FEDERATIE:
-            case ROLES.ADMIN: // For backward compatibility
+            case ROLES.ADMIN:
                 menu = federationAdminMenu;
                 name = 'Federație';
                 border = 'border-red-500';

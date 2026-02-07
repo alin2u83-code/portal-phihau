@@ -9,6 +9,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { MandatoryPasswordChange } from './components/MandatoryPasswordChange';
 import { usePermissions } from './hooks/usePermissions';
 import Login from './pages/Login';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
 const SportiviManagement = lazy(() => import('./components/SportiviManagement').then(m => ({ default: m.SportiviManagement })));
@@ -39,59 +40,61 @@ const AuthenticatedApp: React.FC = () => {
     
     return (
         <DashboardLayout>
-            <Routes>
-                <Route path="/" element={
-                    permissions.hasAdminAccess ? (
-                        <AdminDashboard 
-                            currentUser={userDetails}
-                            sportivi={appData.sportivi}
+            <ErrorBoundary onNavigate={() => navigate('/')}>
+                <Routes>
+                    <Route path="/" element={
+                        permissions.hasAdminAccess ? (
+                            <AdminDashboard 
+                                currentUser={userDetails}
+                                sportivi={appData.sportivi}
+                                onViewSportiv={(sportiv) => navigate(`/sportivi/${sportiv.id}`)}
+                                {...appData}
+                            />
+                        ) : (
+                            <SportivDashboard 
+                                currentUser={userDetails!} 
+                                {...appData}
+                                viewedUser={userDetails!}
+                                isViewingOwnProfile={true}
+                                onNavigate={(view) => navigate(`/${view}`)}
+                                permissions={permissions}
+                            />
+                        )
+                    }/>
+                    <Route path="/sportivi" element={
+                        <ProtectedRoute permissions={permissions}>
+                            <SportiviManagement 
+                            onBack={() => navigate('/')} 
                             onViewSportiv={(sportiv) => navigate(`/sportivi/${sportiv.id}`)}
-                            {...appData}
-                        />
-                    ) : (
-                        <SportivDashboard 
-                            currentUser={userDetails!} 
-                            {...appData}
-                            viewedUser={userDetails!}
-                            isViewingOwnProfile={true}
-                            onNavigate={(view) => navigate(`/${view}`)}
+                            currentUser={userDetails!}
                             permissions={permissions}
-                        />
-                    )
-                }/>
-                <Route path="/sportivi" element={
-                    <ProtectedRoute permissions={permissions}>
-                        <SportiviManagement 
-                        onBack={() => navigate('/')} 
-                        onViewSportiv={(sportiv) => navigate(`/sportivi/${sportiv.id}`)}
-                        currentUser={userDetails!}
-                        permissions={permissions}
-                        {...appData}
-                        />
-                    </ProtectedRoute>
-                }/>
-                <Route path="/sportivi/:id" element={
-                    <ProtectedRoute permissions={permissions}>
-                        <UserProfile 
-                            onBack={() => navigate('/sportivi')}
-                            currentUser={userDetails!}
                             {...appData}
-                        />
-                    </ProtectedRoute>
-                }/>
-                <Route path="/examene" element={
-                    <ProtectedRoute permissions={permissions}>
-                        <GestiuneExamene
-                            onBack={() => navigate('/')}
-                            onViewSportiv={(s) => navigate(`/sportivi/${s.id}`)}
-                            onNavigate={(v) => navigate(`/${v}`)}
-                            currentUser={userDetails!}
-                            {...appData}
-                        />
-                    </ProtectedRoute>
-                }/>
-                <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
+                            />
+                        </ProtectedRoute>
+                    }/>
+                    <Route path="/sportivi/:id" element={
+                        <ProtectedRoute permissions={permissions}>
+                            <UserProfile 
+                                onBack={() => navigate('/sportivi')}
+                                currentUser={userDetails!}
+                                {...appData}
+                            />
+                        </ProtectedRoute>
+                    }/>
+                    <Route path="/examene" element={
+                        <ProtectedRoute permissions={permissions}>
+                            <GestiuneExamene
+                                onBack={() => navigate('/')}
+                                onViewSportiv={(s) => navigate(`/sportivi/${s.id}`)}
+                                onNavigate={(v) => navigate(`/${v}`)}
+                                currentUser={userDetails!}
+                                {...appData}
+                            />
+                        </ProtectedRoute>
+                    }/>
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+            </ErrorBoundary>
         </DashboardLayout>
     );
 };

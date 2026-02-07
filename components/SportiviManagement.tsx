@@ -1,9 +1,8 @@
 
-
 import React, { useState, useMemo, useCallback } from 'react';
 import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions } from '../types';
-import { Button, Modal, Input, Select, Card, Switch } from './ui';
-import { PlusIcon, ShieldCheckIcon, WalletIcon, UserXIcon, UserCheckIcon, UsersIcon } from './icons';
+import { Button, Modal, Input, Select, Card } from './ui';
+import { PlusIcon, ShieldCheckIcon, WalletIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
@@ -25,34 +24,6 @@ const getAge = (dateString: string | null | undefined): number => {
     return age; 
 };
 
-const GradLegend: React.FC = () => {
-    const gradesSample: { name: string, description: string }[] = [
-        { name: 'Cap Alb', description: 'Cap Alb/Violet' },
-        { name: '1 Cap Albastru', description: 'Cap Albastru' },
-        { name: '1 Cap Rosu', description: 'Cap Roșu' },
-        { name: 'Centura Neagra', description: 'Centura Neagră' },
-        { name: '1 Dang', description: '1-4 Dang' },
-        { name: '5 Dang', description: '5 Dang (Expert)' },
-        { name: '6 Dang', description: '6-8 Dang (Maestru)' },
-    ];
-
-    return (
-        <Card>
-            <h3 className="text-lg font-bold text-white mb-4">Legendă Grade (Cap/Dang)</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4">
-                {gradesSample.map(g => (
-                    <div key={g.name} className="flex flex-col items-center gap-2 text-center">
-                        <GradBadge grad={{ nume: g.name } as Grad} />
-                        <span className="text-xs text-slate-400">{g.description}</span>
-                    </div>
-                ))}
-            </div>
-        </Card>
-    );
-};
-
-
-// --- Componenta Management Principală ---
 export const SportiviManagement: React.FC<{
     onBack: () => void;
     sportivi: Sportiv[];
@@ -80,61 +51,17 @@ export const SportiviManagement: React.FC<{
     const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
     const [sportivForWallet, setSportivForWallet] = useState<Sportiv | null>(null);
     const [selectedSportivForHighlight, setSelectedSportivForHighlight] = useState<string | null>(null);
-    const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
-
-    const { showError, showSuccess } = useError();
     
     const [filters, setFilters] = useLocalStorage('phi-hau-sportivi-filters', {
         searchTerm: '',
         statusFilter: 'Activ',
         grupaFilter: '',
-        rolFilter: '',
-        gradFilter: '',
     });
     
     const handleFilterChange = (name: keyof typeof filters, value: string) => {
         setFilters(prev => ({ ...prev, [name]: value }));
     };
     
-    const handleOpenWallet = (sportiv: Sportiv) => {
-        setSportivForWallet(sportiv);
-        setIsWalletModalOpen(true);
-    };
-
-    const handleRowClick = (sportiv: Sportiv) => {
-        setSelectedSportivForHighlight(sportiv.id);
-        onViewSportiv(sportiv);
-    };
-
-    const handleToggleStatus = useCallback(async (sportiv: Sportiv) => {
-        // Deactivation logic will be handled in a dedicated modal or component later
-        // For now, we only handle activation
-        if (sportiv.status === 'Inactiv') {
-            setLoadingStates(prev => ({ ...prev, [sportiv.id]: true }));
-            try {
-                if (!supabase) throw new Error("Client Supabase neconfigurat.");
-                const { data, error } = await supabase.from('sportivi').update({ status: 'Activ' }).eq('id', sportiv.id).select().single();
-                if (error) throw error;
-                setSportivi(prev => prev.map(s => s.id === sportiv.id ? { ...s, status: 'Activ' } : s));
-                showSuccess("Succes!", `Statusul a fost schimbat în 'Activ'.`);
-            } catch(err: any) {
-                showError("Eroare la activare", err.message);
-            } finally {
-                setLoadingStates(prev => ({ ...prev, [sportiv.id]: false }));
-            }
-        } else {
-            // Placeholder for deactivation logic
-            alert("Dezactivarea necesită o logică suplimentară pentru abonamente și va fi implementată.");
-        }
-    }, [setSportivi, showError, showSuccess]);
-
-
-    const familyBalances = useMemo(() => {
-        const balances = new Map<string, number>();
-        // Logic to calculate family balances
-        return balances;
-    }, [familii, plati, tranzactii]);
-
     const filteredSportivi = useMemo(() => {
         return (sportivi || []).filter((s: Sportiv) =>
             (`${s.nume} ${s.prenume}`.toLowerCase().includes(filters.searchTerm.toLowerCase())) &&
@@ -159,18 +86,15 @@ export const SportiviManagement: React.FC<{
             label: 'Grad',
             render: (s) => <GradBadge grad={grade.find(g => g.id === s.grad_actual_id)} />
         },
-        // FIX: Replaced 'className' with 'cellClassName' to ensure compatibility with ResponsiveTable columns.
         { key: 'club_id', label: 'Club', render: (s) => clubs.find(c => c.id === s.club_id)?.nume || '-', cellClassName: 'hidden lg:table-cell' },
         { 
             key: 'status', 
             label: 'Status',
-            // FIX: Replaced 'className' with 'cellClassName' to ensure compatibility with ResponsiveTable columns.
             cellClassName: 'hidden md:table-cell',
             render: (s) => (
                 <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${s.status === 'Activ' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}`}>{s.status}</span>
             )
         },
-        // FIX: Replaced 'className' with 'cellClassName' to ensure compatibility with ResponsiveTable columns.
         { key: 'grupa_id', label: 'Grupă', render: (s) => grupe.find(g => g.id === s.grupa_id)?.denumire || '-', cellClassName: 'hidden md:table-cell' },
         {
             key: 'actions',

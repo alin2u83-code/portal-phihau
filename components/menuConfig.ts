@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { View, Permissions } from '../types';
 import { Home, Users, Trophy, CreditCard, Calendar, Settings } from 'lucide-react';
@@ -67,8 +68,4 @@ export const adminMenu: MenuItem[] = [
             { label: 'Nomenclator Grade', view: 'grade' },
         ]
     }
-];
-
-export const sportivMenu: MenuItem[] = [
-    // This menu is not currently used as SportivDashboard has its own navigation
 ];

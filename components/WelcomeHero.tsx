@@ -6,7 +6,8 @@ export const WelcomeHero: React.FC<{ profile: User }> = ({ profile }) => {
     
     const { roleName, roleStyle } = React.useMemo(() => {
         const userRoles = profile.roluri || [];
-        const highestRole = userRoles.length > 0 ? userRoles[0] : null; // Assuming roles are sorted by importance
+        // Assuming roles are sorted by importance, take the first one.
+        const highestRole = userRoles.length > 0 ? userRoles[0] : null; 
         const name = highestRole?.nume || 'Sportiv';
         
         let style = 'bg-emerald-500/20 text-emerald-300';

@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Antrenament, Sportiv, Grupa, ProgramItem, User } from '../types';
 import { Button, Card, Input, Select, Modal } from './ui';
@@ -9,7 +10,6 @@ type View = 'grupe' | 'orar' | 'calendar' | 'prezenta';
 interface ViewState { view: View; id: string | null; }
 
 // --- Formular Antrenament Personalizat (Reutilizat) ---
-// FIX: Exported AntrenamentForm to be used in other components, resolving the "not exported" error.
 export const AntrenamentForm: React.FC<{
     isOpen: boolean; onClose: () => void; onSave: (data: Partial<Antrenament>) => Promise<void>;
     grupaId: string | null; grupe: Grupa[];

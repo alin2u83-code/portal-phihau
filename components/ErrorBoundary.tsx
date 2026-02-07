@@ -1,5 +1,3 @@
-
-
 import React, { ReactNode, ErrorInfo } from 'react';
 import { View } from '../types';
 import { Button } from './ui';
@@ -16,15 +14,13 @@ interface State {
 }
 
 class ErrorBoundary extends React.Component<Props, State> {
-  // FIX: Converted to use a constructor for broader compatibility and to fix 'this' context issues.
-  constructor(props: Props) {
-    super(props);
-    this.state = {
-      hasError: false,
-      error: undefined,
-    };
-    this.handleRedirect = this.handleRedirect.bind(this);
-  }
+  // FIX: Refactored the class component to use modern syntax.
+  // Using a class property for state initialization and an arrow function for the method
+  // avoids potential 'this' context issues that were causing TypeScript errors.
+  state: State = {
+    hasError: false,
+    error: undefined,
+  };
 
   static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
@@ -34,7 +30,7 @@ class ErrorBoundary extends React.Component<Props, State> {
     console.error("Uncaught error:", error, errorInfo);
   }
 
-  handleRedirect() {
+  handleRedirect = () => {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {
         this.props.onNavigate('dashboard');

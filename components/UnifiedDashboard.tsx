@@ -69,7 +69,6 @@ const InstructorCards: React.FC<{ onNavigate: (view: View) => void }> = ({ onNav
 // Main Component Logic
 export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({ session, currentUser, onNavigate, deconturiFederatie }) => {
     if (!session || !currentUser) {
-        // FIX: Removed usage of AuthContainer as it comes from an obsolete, empty file.
         // Routing should handle unauthenticated users, so returning null is a safe fallback.
         return null;
     }

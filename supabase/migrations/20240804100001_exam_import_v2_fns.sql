@@ -63,8 +63,9 @@ DROP FUNCTION IF EXISTS public.process_exam_row_with_upsert(text,text,text,uuid,
 CREATE OR REPLACE FUNCTION public.process_exam_row_v2(
     p_nume TEXT,
     p_prenume TEXT,
-    p_cod_sportiv TEXT, -- Codul pre-generat pentru sportivii noi
-    p_existing_sportiv_id UUID, -- ID-ul dacă sportivul a fost deja identificat
+    p_cnp TEXT,
+    p_cod_sportiv TEXT,
+    p_existing_sportiv_id UUID,
     p_club_id UUID,
     p_ordine_grad INT,
     p_rezultat TEXT,
@@ -89,9 +90,9 @@ BEGIN
     IF p_existing_sportiv_id IS NOT NULL THEN
         v_sportiv_id := p_existing_sportiv_id;
     ELSE
-        INSERT INTO public.sportivi(nume, prenume, cod_sportiv, data_inscrierii, club_id, status, data_nasterii, rol_activ_context)
-        VALUES (p_nume, p_prenume, p_cod_sportiv, p_data_examen, p_club_id, 'Activ', '1900-01-01', 'Sportiv')
-        ON CONFLICT (cod_sportiv) DO NOTHING -- Ignoră dacă un cod duplicat este trimis accidental
+        INSERT INTO public.sportivi(nume, prenume, cnp, cod_sportiv, data_inscrierii, club_id, status, data_nasterii, rol_activ_context)
+        VALUES (p_nume, p_prenume, p_cnp, p_cod_sportiv, p_data_examen, p_club_id, 'Activ', '1900-01-01', 'Sportiv')
+        ON CONFLICT (cod_sportiv) DO NOTHING
         RETURNING id INTO v_sportiv_id;
 
         IF v_sportiv_id IS NULL THEN
@@ -132,14 +133,19 @@ BEGIN
         VALUES (v_sportiv.id, v_grad.id, p_data_examen, p_sesiune_id);
 
         IF p_contributie > 0 THEN
-            INSERT INTO public.plati(sportiv_id, familie_id, suma, status, tip, descriere, data)
-            VALUES (v_sportiv.id, v_sportiv.familie_id, p_contributie, 'Achitat', 'Taxa Examen', 'Taxa examen ' || v_grad.nume, p_data_examen)
-            RETURNING id INTO v_plata_id;
-            
-            UPDATE public.inscrieri_examene SET plata_id = v_plata_id WHERE id = v_inscriere_id;
+            BEGIN
+                INSERT INTO public.plati(sportiv_id, familie_id, suma, status, tip, descriere, data)
+                VALUES (v_sportiv.id, v_sportiv.familie_id, p_contributie, 'Achitat', 'Taxa Examen', 'Taxa examen ' || v_grad.nume, p_data_examen)
+                RETURNING id INTO v_plata_id;
+                
+                UPDATE public.inscrieri_examene SET plata_id = v_plata_id WHERE id = v_inscriere_id;
 
-            INSERT INTO public.tranzactii(plata_ids, sportiv_id, familie_id, suma, metoda_plata, data_platii, descriere)
-            VALUES (ARRAY[v_plata_id], v_sportiv.id, v_sportiv.familie_id, p_contributie, 'Cash', p_data_examen, 'Încasare taxă examen via import CSV');
+                INSERT INTO public.tranzactii(plata_ids, sportiv_id, familie_id, suma, metoda_plata, data_platii, descriere)
+                VALUES (ARRAY[v_plata_id], v_sportiv.id, v_sportiv.familie_id, p_contributie, 'Cash', p_data_examen, 'Încasare taxă examen via import CSV');
+            EXCEPTION
+                WHEN OTHERS THEN
+                    RAISE EXCEPTION 'FINANCE_ERROR: A eșuat crearea facturii sau încasării pentru sportivul cu ID %: %', v_sportiv_id, SQLERRM;
+            END;
         END IF;
     END IF;
 

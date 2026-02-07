@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { User, Antrenament, Grupa } from '../types';
+import { User, Antrenament, Grupa, AnuntStatus, AnuntPrezenta } from '../types';
 import { Card, Button } from './ui';
 import { ChevronLeftIcon, ChevronRightIcon } from './icons';
 
@@ -7,10 +7,21 @@ interface AntrenamenteViitoareProps {
     currentUser: User;
     antrenamente: Antrenament[];
     grupe: Grupa[];
+    anunturi: AnuntPrezenta[];
 }
 
-export const AntrenamenteViitoare: React.FC<AntrenamenteViitoareProps> = ({ currentUser, antrenamente, grupe }) => {
+const getDotColor = (status: AnuntStatus | null): string => {
+    switch (status) {
+        case 'Confirm': return 'bg-green-500';
+        case 'Intarziat': return 'bg-yellow-500';
+        case 'Absent': return 'bg-red-500';
+        default: return 'bg-brand-secondary';
+    }
+};
+
+export const AntrenamenteViitoare: React.FC<AntrenamenteViitoareProps> = ({ currentUser, antrenamente, grupe, anunturi }) => {
     const [currentDate, setCurrentDate] = useState(new Date());
+    const today = useMemo(() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; }, []);
 
     const changeMonth = (delta: number) => {
         setCurrentDate(prev => {
@@ -22,30 +33,29 @@ export const AntrenamenteViitoare: React.FC<AntrenamenteViitoareProps> = ({ curr
     };
 
     const upcomingTrainingsByDate = useMemo(() => {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        const events = new Map<string, { time: string; groupName: string }[]>();
+        const events = new Map<string, { time: string; groupName: string; status: AnuntStatus | null }[]>();
         
         antrenamente
             .filter(a => {
-                const trainingDate = new Date(a.data);
-                if (trainingDate < today) return false;
-                
                 const isInGroup = a.grupa_id === currentUser.grupa_id;
                 const isVacationTraining = currentUser.participa_vacanta && a.grupa_id === null;
-                
                 return isInGroup || isVacationTraining;
             })
             .forEach(a => {
                 const dateKey = a.data;
                 const existing = events.get(dateKey) || [];
                 const groupName = a.grupa_id ? (grupe.find(g => g.id === a.grupa_id)?.denumire || 'Grupă') : 'Liber';
-                events.set(dateKey, [...existing, { time: `${a.ora_start} - ${a.ora_sfarsit}`, groupName }]);
+                const anunt = anunturi.find(an => an.antrenament_id === a.id && an.sportiv_id === currentUser.id);
+
+                events.set(dateKey, [...existing, {
+                    time: `${a.ora_start} - ${a.ora_sfarsit}`,
+                    groupName,
+                    status: anunt?.status || null
+                }]);
             });
             
         return events;
-    }, [antrenamente, currentUser, grupe]);
+    }, [antrenamente, currentUser, grupe, anunturi]);
 
     const { days, monthName, yearName } = useMemo(() => {
         const year = currentDate.getFullYear();
@@ -62,8 +72,6 @@ export const AntrenamenteViitoare: React.FC<AntrenamenteViitoareProps> = ({ curr
         return { days: daysArray, monthName, yearName: year };
     }, [currentDate]);
 
-    const todayString = new Date().toISOString().split('T')[0];
-
     return (
         <Card>
             <h3 className="text-lg font-bold text-white mb-4">Calendar Antrenamente</h3>
@@ -76,8 +84,8 @@ export const AntrenamenteViitoare: React.FC<AntrenamenteViitoareProps> = ({ curr
                 </div>
             </div>
             <div className="grid grid-cols-7 gap-1 text-center text-xs font-bold text-slate-400">
-                {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map(day => (
-                    <div key={day} className="py-1">{day}</div>
+                {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((day, i) => (
+                    <div key={i} className="py-1">{day}</div>
                 ))}
             </div>
             <div className="grid grid-cols-7 gap-1 mt-1">
@@ -86,19 +94,31 @@ export const AntrenamenteViitoare: React.FC<AntrenamenteViitoareProps> = ({ curr
                     
                     const dateString = day.toISOString().split('T')[0];
                     const trainingsOnDay = upcomingTrainingsByDate.get(dateString);
-                    const isToday = dateString === todayString;
+                    const isToday = day.getTime() === today.getTime();
+                    const isPast = day < today;
+
+                    const firstEventStatus = trainingsOnDay ? trainingsOnDay[0].status : null;
+                    const dotColorClass = getDotColor(firstEventStatus);
 
                     return (
-                        <div key={dateString} className="relative group flex items-center justify-center">
-                            <div className={`w-10 h-10 flex items-center justify-center rounded-full font-semibold transition-colors ${isToday ? 'bg-brand-secondary text-black ring-2 ring-white' : 'text-white'}`}>
+                        <div key={dateString} className={`relative group flex items-center justify-center ${isPast && !isToday ? 'opacity-50' : ''}`}>
+                            <div className={`w-10 h-10 flex items-center justify-center rounded-full font-semibold transition-colors ${
+                                isToday ? 'bg-brand-secondary text-black ring-2 ring-white' : (isPast ? 'text-slate-500' : 'text-white')
+                            }`}>
                                 {day.getDate()}
                             </div>
                             {trainingsOnDay && (
                                 <>
-                                    <div className={`absolute bottom-1 w-1.5 h-1.5 rounded-full ${isToday ? 'bg-black' : 'bg-brand-secondary'}`} style={{ boxShadow: `0 0 5px var(--brand-secondary)` }}></div>
-                                    <div className="absolute bottom-full mb-2 w-max max-w-xs p-2 bg-slate-900 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 border border-slate-700">
+                                    <div className={`absolute bottom-1 w-2 h-2 rounded-full ${dotColorClass}`} style={{ boxShadow: `0 0 5px var(--${dotColorClass.replace('bg-', 'brand-')})` }}></div>
+                                    <div className="absolute bottom-full mb-2 w-max max-w-xs p-3 bg-slate-900 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 border border-slate-700 space-y-2">
                                         {trainingsOnDay.map((t, i) => (
-                                            <div key={i}>{t.groupName}: {t.time}</div>
+                                            <div key={i} className="flex items-center gap-2">
+                                                <div className={`w-2 h-2 rounded-full ${getDotColor(t.status)}`}></div>
+                                                <div>
+                                                    <span className="font-bold">{t.groupName}:</span> {t.time}
+                                                    {t.status && <span className="font-semibold ml-1">({t.status})</span>}
+                                                </div>
+                                            </div>
                                         ))}
                                         <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-slate-900"></div>
                                     </div>

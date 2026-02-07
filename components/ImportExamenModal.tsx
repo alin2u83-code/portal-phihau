@@ -207,9 +207,10 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                     const { error: rpcError } = await supabase.rpc('process_exam_row_v2', {
                         p_nume: row.Nume,
                         p_prenume: row.Prenume,
-                        p_cnp: String(row.CNP || '').trim(), // Trimite CNP-ul la RPC
+                        p_cnp: String(row.CNP || '').trim(),
                         p_cod_sportiv: action === 'create' ? row.generatedCode : null,
                         p_existing_sportiv_id: sportivId,
+                        p_club_id: currentUser.club_id, // FIX: Pass the club_id
                         p_ordine_grad: parseInt(row.Grad_Nou_Ordine),
                         p_rezultat: row.Rezultat,
                         p_contributie: parseFloat(row.Contributie) || 0,

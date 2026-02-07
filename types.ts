@@ -129,6 +129,9 @@ export interface AnuntPrezenta {
   detalii: string | null;
 }
 
+// FIX: Export AnuntStatus type to be used across components.
+export type AnuntStatus = AnuntPrezenta['status'];
+
 export interface SportivProgramPersonalizat {
     sportiv_id: string;
     orar_id: string;

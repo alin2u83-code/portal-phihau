@@ -78,7 +78,6 @@ export const SportivAccountSettingsModal: React.FC<SportivAccountSettingsModalPr
                     if (sportivRole) finalRoleIds.push(sportivRole.id);
                 }
                 
-                // --- Start Migration ---
                 await supabase.from('utilizator_roluri_multicont').delete().eq('user_id', sportiv.user_id);
                 
                 const rolesToInsert = finalRoleIds.map(roleId => {
@@ -97,7 +96,6 @@ export const SportivAccountSettingsModal: React.FC<SportivAccountSettingsModalPr
                     const { error: insErr } = await supabase.from('utilizator_roluri_multicont').insert(rolesToInsert as any);
                     if (insErr) throw insErr;
                 }
-                // --- End Migration ---
             }
             
             const cleanedUsername = (editForm.username || '').toLowerCase().replace(/\s/g, '');
@@ -111,7 +109,6 @@ export const SportivAccountSettingsModal: React.FC<SportivAccountSettingsModalPr
             const { data, error } = await supabase.from('sportivi').update(updates).eq('id', sportiv.id).select().single();
             if (error) throw error;
             
-            // Re-fetch roles from the new table to update local state accurately
             const { data: rolesData, error: rolesError } = await supabase.from('utilizator_roluri_multicont').select('*').eq('user_id', sportiv.user_id);
             if (rolesError) throw rolesError;
             
@@ -133,3 +130,65 @@ export const SportivAccountSettingsModal: React.FC<SportivAccountSettingsModalPr
             setLoading(false);
         }
     };
+
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title={`Setări Cont: ${sportiv?.nume} ${sportiv?.prenume}`}>
+            {hasAccount ? (
+                <form onSubmit={handleSaveEdit} className="space-y-6">
+                    <Card>
+                        <h3 className="text-lg font-bold text-white mb-4">Informații Autentificare</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <Input label="Email (Login)" name="email" type="email" value={editForm.email} onChange={handleEditFormChange} required />
+                            <Input label="Nume Utilizator" name="username" value={editForm.username} onChange={handleEditFormChange} />
+                        </div>
+                    </Card>
+                    <Card>
+                        <h3 className="text-lg font-bold text-white mb-4">Resetare Parolă</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <Input label="Parolă Nouă (lasă gol pentru a o păstra)" name="parola" type="password" value={editForm.parola} onChange={handleEditFormChange} />
+                            <Input label="Confirmă Parola" name="confirmParola" type="password" value={editForm.confirmParola} onChange={handleEditFormChange} />
+                        </div>
+                    </Card>
+                    {canEditRoles && (
+                        <Card>
+                            <h3 className="text-lg font-bold text-white mb-4">Management Roluri</h3>
+                            <div className="flex flex-wrap gap-2 mb-4">
+                                {selectedRoleIds.map(roleId => {
+                                    const role = allRoles.find(r => r.id === roleId);
+                                    if (!role) return null;
+                                    return (
+                                        <RoleBadge
+                                            key={role.id}
+                                            role={role}
+                                            isRemovable={role.nume !== 'Sportiv'}
+                                            onRemove={() => handleRoleRemove(role.id)}
+                                        />
+                                    );
+                                })}
+                            </div>
+                            <div className="flex items-end gap-2">
+                                <Select label="Adaugă Rol Nou" value={roleToAdd} onChange={e => setRoleToAdd(e.target.value)}>
+                                    <option value="">Selectează...</option>
+                                    {allRoles.filter(r => !selectedRoleIds.includes(r.id)).map(r => (
+                                        <option key={r.id} value={r.id}>{r.nume}</option>
+                                    ))}
+                                </Select>
+                                <Button type="button" onClick={handleRoleAdd} variant="secondary" className="h-9"><PlusIcon className="w-4 h-4" /></Button>
+                            </div>
+                        </Card>
+                    )}
+                    <div className="flex justify-end pt-4 gap-2 border-t border-slate-700">
+                        <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button>
+                        <Button type="submit" variant="success" isLoading={loading}>Salvează Modificările</Button>
+                    </div>
+                </form>
+            ) : (
+                <div className="text-center p-4">
+                    <h3 className="text-lg font-bold text-white mb-2">Acest sportiv nu are un cont de acces.</h3>
+                    <p className="text-sm text-slate-400">Puteți crea un cont de acces din panoul de User Management.</p>
+                    <Button variant="secondary" onClick={onClose} className="mt-6">Închide</Button>
+                </div>
+            )}
+        </Modal>
+    );
+};

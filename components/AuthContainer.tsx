@@ -65,8 +65,6 @@ export const AuthContainer: React.FC = () => {
             return;
         }
 
-        // 2. Extragere Date: După autentificare, se apelează funcția RPC `get_user_login_data_v2`
-        //    pentru a valida existența unui rol înainte de a permite accesul complet.
         if (signInData.user) {
             const { data: rolesData, error: rpcError } = await supabase.rpc('get_user_login_data_v2');
 
@@ -77,11 +75,19 @@ export const AuthContainer: React.FC = () => {
                 return;
             }
 
-            // 3. Validare Rol: Se verifică dacă RPC-ul returnează cel puțin un rând.
-            //    Această logică acceptă orice rol (inclusiv SUPER_ADMIN_FEDERATIE) și afișează
-            //    mesajul de 'Acces revocat' doar dacă setul de date este gol.
-            if (!rolesData || (Array.isArray(rolesData) && rolesData.length === 0)) {
-                setMessage({ type: 'error', text: 'Contul nu are niciun rol asignat. Acces revocat.' });
+            // 3. Validare Rol: Modificată pentru a fi robustă
+            console.log("Date primite de la RPC:", rolesData); // Debug log critic
+
+            // Verificăm dacă avem date valide sub orice formă (Array sau Obiect)
+            const hasRole = Array.isArray(rolesData) 
+                ? rolesData.length > 0 
+                : (rolesData && typeof rolesData === 'object');
+
+            if (!hasRole) {
+                setMessage({ 
+                    type: 'error', 
+                    text: 'Contul nu are niciun rol asignat în sistemul multicont. Contactați administratorul.' 
+                });
                 await supabase.auth.signOut();
                 setLoading(false);
                 return;

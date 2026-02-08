@@ -29,9 +29,8 @@ class ErrorBoundary extends React.Component<Props, State> {
     console.error("Uncaught error:", error, errorInfo);
   }
 
-  // FIX: Converted to an arrow function property to automatically bind `this`.
-  // This ensures that when handleRedirect is called from an event handler like onClick,
-  // `this` refers to the ErrorBoundary instance, allowing access to `this.setState` and `this.props`.
+  // FIX: Converted to an arrow function to ensure `this` is correctly bound when called from an event handler.
+  // This ensures that `this` refers to the ErrorBoundary instance, allowing access to `this.setState` and `this.props`.
   public handleRedirect = () => {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {

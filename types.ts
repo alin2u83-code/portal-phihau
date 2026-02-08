@@ -72,6 +72,16 @@ export interface TranzactieClub {
   status: 'Activ' | 'Inactiv';
 }
 
+// NOU: Tip de date pentru vederea `balanta_club`
+export interface BalantaClub {
+  id: string;
+  data_platii: string; // YYYY-MM-DD
+  suma: number;
+  sportiv_nume_complet: string;
+  descriere: string;
+  metoda_plata: 'Cash' | 'Transfer Bancar';
+}
+
 
 export interface Grad {
   id:string;

@@ -86,32 +86,59 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
         let userProfileData: any;
 
         if (!primarySportivId) {
-            // This case handles data corruption where a role context has no sportiv_id.
-            // We must load the user's own profile as the only option.
-            const { data: ownProfile, error: ownProfileError } = await supabase.from('sportivi').select('*, cluburi(*)').eq('user_id', authUser.id).maybeSingle();
-
-            if (ownProfileError) {
-                return { user: null, roles: null, error: ownProfileError };
+            // This case handles a role context with a null sportiv_id.
+            const primaryRoleName = primaryContext?.rol_denumire;
+        
+            // Check if the user is an admin type who can operate without a specific sportiv profile.
+            if (primaryRoleName === 'SUPER_ADMIN_FEDERATIE' || primaryRoleName === 'Admin Club' || primaryRoleName === 'Admin') {
+                console.warn(`[Auth] Admin user ${authUser.email} is operating without a sportiv_id. Using a fallback profile.`);
+                // Create a minimal, temporary user profile object for these admin roles.
+                userProfileData = {
+                    id: 'ADMIN_FALLBACK_PROFILE', // This is a placeholder, not a real DB ID.
+                    user_id: authUser.id,
+                    nume: primaryContext.sportiv?.nume || 'Admin',
+                    prenume: primaryContext.sportiv?.prenume || 'System',
+                    email: authUser.email,
+                    club_id: primaryContext.club_id,
+                    cluburi: primaryContext.club,
+                    data_nasterii: '1900-01-01',
+                    status: 'Activ',
+                    data_inscrierii: new Date().toISOString().split('T')[0],
+                    cnp: null,
+                    grupa_id: null,
+                    familie_id: null,
+                    tip_abonament_id: null,
+                    participa_vacanta: false,
+                    trebuie_schimbata_parola: false,
+                };
+            } else {
+                // For other roles (like 'Sportiv'), a linked sportiv profile is mandatory.
+                const { data: ownProfile, error: ownProfileError } = await supabase.from('sportivi').select('*, cluburi(*)').eq('user_id', authUser.id).maybeSingle();
+                
+                if (ownProfileError) {
+                    return { user: null, roles: null, error: ownProfileError };
+                }
+                
+                if (!ownProfile) {
+                    // If still no profile is found, it's a critical error for a non-admin user.
+                    const customError = new Error('Contul nu este legat de un profil de sportiv.');
+                    return { user: null, roles: null, error: customError };
+                }
+                
+                userProfileData = ownProfile;
             }
-            if (!ownProfile) {
-                return { user: fallbackUser(authUser.email || 'unknown@user.com'), roles: roleContexts, error: new Error("Contul are roluri definite, dar niciun profil de sportiv nu este direct asociat (user_id).") };
-            }
-            userProfileData = ownProfile;
         } else {
             // Standard Path: Attempt to load the profile corresponding to the primary role.
             const { data: primaryProfile, error: primaryProfileError } = await supabase.from('sportivi').select('*, cluburi(*)').eq('id', primarySportivId).maybeSingle();
 
             if (primaryProfileError) {
-                // A non-RLS error occurred (e.g., network). This is fatal.
                 return { user: null, roles: null, error: primaryProfileError };
             }
 
             if (primaryProfile) {
-                // Success! The active user can see the primary context's profile.
                 userProfileData = primaryProfile;
             } else {
                 // Fallback: The primary context profile was not visible (likely RLS).
-                // Load the user's "own" profile instead to prevent a crash.
                 console.warn(`[Auth] Primary context profile (ID: ${primarySportivId}) was not fetchable. Falling back to user's own profile.`);
                 const { data: ownProfile, error: ownProfileError } = await supabase.from('sportivi').select('*, cluburi(*)').eq('user_id', authUser.id).maybeSingle();
                 
@@ -119,8 +146,8 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
                     return { user: null, roles: null, error: ownProfileError };
                 }
                 if (!ownProfile) {
-                    // Critical failure: User has roles but no accessible profile at all.
-                    return { user: fallbackUser(authUser.email || 'unknown@user.com'), roles: roleContexts, error: new Error("Nu s-a putut încărca niciun profil valid (nici cel primar, nici cel propriu).") };
+                    const customError = new Error("Nu s-a putut încărca niciun profil valid (nici cel primar, nici cel propriu).");
+                    return { user: fallbackUser(authUser.email || 'unknown@user.com'), roles: roleContexts, error: customError };
                 }
                 userProfileData = ownProfile;
             }

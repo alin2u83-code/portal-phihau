@@ -297,8 +297,8 @@ function App() {
                 </div>
             );
         }
-        // FIX: The onNavigate prop for SportivDashboard requires a function that takes a single 'view' argument.
-        // We wrap setActiveView to ensure type compatibility.
+        {/* FIX: The onNavigate prop for SportivDashboard requires a function that takes a single 'view' argument. */}
+        {/* We wrap setActiveView to ensure type compatibility. */}
         return <SportivDashboard currentUser={currentUser!} viewedUser={currentUser!} participari={filteredData.inscrieriExamene} examene={sesiuniExamene} grade={grade} istoricGrade={filteredData.istoricGrade} grupe={filteredData.grupe} plati={filteredData.plati} onNavigate={(view) => setActiveView(view)} antrenamente={filteredData.antrenamente} anunturi={anunturiPrezenta} setAnunturi={setAnunturiPrezenta} sportivi={filteredData.sportivi} permissions={permissions} canSwitchRoles={canSwitchRoles} activeRole={activeRole!} onSwitchRole={handleSwitchRole} isSwitchingRole={isSwitchingRole} />;
       
       case 'sportivi':
@@ -308,8 +308,8 @@ function App() {
         return renderProtected(selectedSportiv ? <UserProfile sportiv={selectedSportiv} currentUser={currentUser!} participari={filteredData.inscrieriExamene} examene={sesiuniExamene} grade={grade} istoricGrade={filteredData.istoricGrade} setIstoricGrade={setIstoricGrade} antrenamente={filteredData.antrenamente} plati={filteredData.plati} tranzactii={filteredData.tranzactii} reduceri={filteredData.reduceri} grupe={filteredData.grupe} familii={filteredData.familii} tipuriAbonament={filteredData.tipuriAbonament} setSportivi={setSportivi} setPlati={setPlati} setTranzactii={setTranzactii} onBack={() => setActiveView('sportivi')} clubs={clubs} /> : null, isAtLeastInstructor);
 
       case 'structura-federatie':
-        // FIX: The onNavigate prop for FederationStructure requires a function that takes a single 'view' argument.
-        // We wrap setActiveView to ensure type compatibility.
+        {/* FIX: The onNavigate prop for FederationStructure requires a function that takes a single 'view' argument. */}
+        {/* We wrap setActiveView to ensure type compatibility. */}
         return renderProtected(<FederationStructure clubs={clubs} sportivi={sportivi} grupe={grupe} onBack={() => setActiveView('dashboard')} onNavigate={(view) => setActiveView(view)} />, isFederationAdmin);
 
       case 'examene':
@@ -344,8 +344,8 @@ function App() {
         return renderProtected(<RaportPrezenta antrenamente={filteredData.antrenamente} sportivi={filteredData.sportivi} grupe={filteredData.grupe} onBack={() => setActiveView('dashboard')} onViewSportiv={onViewSportiv} />, isAtLeastInstructor);
 
       case 'calendar':
-        // FIX: The onNavigate prop for CalendarView requires a function that takes a single 'view' argument.
-        // We wrap setActiveView to ensure type compatibility.
+        {/* FIX: The onNavigate prop for CalendarView requires a function that takes a single 'view' argument. */}
+        {/* We wrap setActiveView to ensure type compatibility. */}
         return <CalendarView antrenamente={filteredData.antrenamente} sesiuniExamene={filteredData.sesiuniExamene} evenimente={filteredData.evenimente} grupe={filteredData.grupe} locatii={locatii} onBack={() => setActiveView('dashboard')} onNavigate={(view) => setActiveView(view)} currentUser={currentUser!} sportivi={filteredData.sportivi} rezultate={filteredData.rezultate} setRezultate={setRezultate} plati={filteredData.plati} setPlati={setPlati} preturiConfig={preturiConfig} permissions={permissions} />;
 
       case 'financial-dashboard':
@@ -373,8 +373,8 @@ function App() {
         return renderProtected(<CluburiManagement clubs={clubs} setClubs={setClubs} onBack={() => setActiveView('dashboard')} currentUser={currentUser!} permissions={permissions} />, isFederationAdmin);
       
       case 'data-maintenance':
-        // FIX: The onNavigate prop for BackupManager requires a function that takes a single 'view' argument.
-        // We wrap setActiveView to ensure type compatibility.
+        {/* FIX: The onNavigate prop for BackupManager requires a function that takes a single 'view' argument. */}
+        {/* We wrap setActiveView to ensure type compatibility. */}
         return renderProtected(<BackupManager onBack={() => setActiveView('dashboard')} onDataRestored={() => window.location.reload()} sportivi={sportivi} setSportivi={setSportivi} grade={grade} preturiConfig={preturiConfig} participari={inscrieriExamene} examene={sesiuniExamene} plati={plati} setPlati={setPlati} familii={familii} onNavigate={(view) => setActiveView(view)} currentUser={currentUser!} />, isFederationAdmin);
       
       case 'rapoarte-examen':
@@ -420,7 +420,7 @@ function App() {
         return <FisaDigitalaSportiv currentUser={currentUser!} grade={grade} participari={inscrieriExamene} examene={sesiuniExamene} plati={plati} onBack={() => setActiveView('my-portal')} />;
 
       case 'fisa-competitie':
-        // FIX: Replaced undefined variable 'examene' with the correct 'sesiuniExamene'. The error was due to a typo.
+        {/* FIX: Replaced undefined variable 'examene' with the correct 'sesiuniExamene'. The error was due to a typo. */}
         return <FisaCompetitie currentUser={currentUser!} grade={grade} participari={inscrieriExamene} examene={sesiuniExamene} onBack={() => setActiveView('my-portal')} />;
 
       case 'backdoor-check':

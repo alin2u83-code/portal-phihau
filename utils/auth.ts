@@ -59,10 +59,18 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
 
         if (!roleContexts || roleContexts.length === 0) {
             const { data: bareProfile, error: bareProfileError } = await supabase.from('sportivi').select('*, cluburi(*)').eq('user_id', authUser.id).maybeSingle();
-            if (bareProfile && !bareProfileError) {
+            
+            if (bareProfileError) {
+                return { user: null, roles: null, error: bareProfileError };
+            }
+
+            if (bareProfile) {
                 return { user: { ...bareProfile, roluri: [] } as User, roles: [], error: null };
             }
-            return { user: fallbackUser(authUser.email || 'unknown@user.com'), roles: [], error: null };
+            
+            // CRITICAL ERROR: The user is authenticated, but no sportivi record is linked to them.
+            const customError = new Error('Contul de utilizator nu este legat de un profil de sportiv. Contactați administratorul Phi Hau.');
+            return { user: null, roles: null, error: customError };
         }
 
         // Step 2: Determine the primary context.

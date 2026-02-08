@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions } from '../types';
+// FIX: Removed obsolete `SportivAccountSettingsModal` import and added `RoleBadge` import from `ui`.
 import { Button, Modal, Input, Select, Card, Switch, RoleBadge } from './ui';
 import { PlusIcon, ArrowLeftIcon, WalletIcon, UserXIcon, UserCheckIcon } from './icons';
 import { supabase } from '../supabaseClient';

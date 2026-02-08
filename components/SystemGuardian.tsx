@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { User, Permissions } from '../types';
 import { clubTheme, federationTheme, applyTheme, Theme } from '../themes';
 import { FEDERATIE_ID } from '../constants';
+import { Button } from './ui';
 
 // --- Sub-componente interne ---
 
@@ -22,6 +23,21 @@ const ErrorScreen: React.FC<{ message: string }> = ({ message }) => (
         <p className="mt-2 text-red-200">{message}</p>
     </div>
 );
+
+const ProfileLinkErrorScreen: React.FC = () => (
+    <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="flex flex-col items-center justify-center h-full text-center p-8 bg-red-900/30 rounded-lg border border-red-700/50 max-w-lg">
+            <h1 className="text-2xl font-bold text-red-300">Eroare de Asociere Cont</h1>
+            <p className="mt-2 text-red-200">
+                Contul de utilizator nu este legat de un profil de sportiv. Contactați administratorul Phi Hau.
+            </p>
+            <Button variant="secondary" onClick={() => window.location.reload()} className="mt-6">
+                Reîmprospătează Pagina
+            </Button>
+        </div>
+    </div>
+);
+
 
 // --- Componenta Principală ---
 
@@ -65,6 +81,9 @@ export const SystemGuardian: React.FC<SystemGuardianProps> = ({ children, isLoad
     }, [isLoading, currentUser, permissions.isFederationAdmin]);
 
     if (error) {
+        if (error.includes('Contul de utilizator nu este legat')) {
+            return <ProfileLinkErrorScreen />;
+        }
         return <ErrorScreen message={error} />;
     }
     

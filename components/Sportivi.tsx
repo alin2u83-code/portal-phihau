@@ -52,7 +52,8 @@ const initialFormState: Partial<Sportiv> = {
     nume: '', prenume: '', status: 'Activ', 
     data_inscrierii: new Date().toISOString().split('T')[0],
     participa_vacanta: false,
-    data_nasterii: ''
+    data_nasterii: '',
+    gen: null,
 };
 
 interface SportivFormFieldsProps {
@@ -88,20 +89,14 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
         [currentUser]
     );
 
-    const isClubAdmin = useMemo(() => 
-        !isSuperAdmin && currentUser?.roluri.some(r => r.nume === 'Admin Club' || r.nume === 'Instructor'), 
-        [currentUser, isSuperAdmin]
-    );
-
     const validate = useCallback((data: Partial<Sportiv>) => {
         const newErrors: Record<string, string> = {};
         if (!data.nume?.trim()) newErrors.nume = "Numele este obligatoriu.";
         if (!data.prenume?.trim()) newErrors.prenume = "Prenumele este obligatoriu.";
-        if (!data.data_nasterii) {
-            newErrors.data_nasterii = "Data nașterii este obligatorie.";
-        }
+        if (!data.data_nasterii) newErrors.data_nasterii = "Data nașterii este obligatorie.";
+        if (!initialData.id && data.parola && data.parola.length < 6) newErrors.parola = "Parola trebuie să aibă minim 6 caractere.";
         return newErrors;
-    }, []);
+    }, [initialData.id]);
 
     useEffect(() => {
         let data = { ...initialData };
@@ -116,7 +111,7 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
 
     const handleChange = (e: any) => {
         const { name, value, type, checked } = e.target;
-        const updatedData: Partial<Sportiv> = { ...formData };
+        let updatedData: Partial<Sportiv> = { ...formData };
         let finalValue: any;
 
         if (type === 'checkbox') {
@@ -124,7 +119,7 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
         } else if (name === 'inaltime') {
             const num = parseInt(value, 10);
             finalValue = isNaN(num) ? null : num;
-        } else if (['familie_id', 'grupa_id', 'tip_abonament_id', 'club_id'].includes(name)) {
+        } else if (['familie_id', 'grupa_id', 'tip_abonament_id', 'club_id', 'gen'].includes(name)) {
             finalValue = value === '' ? null : value;
         } else {
             finalValue = value;
@@ -139,6 +134,21 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
             }
         }
         
+        // Auto-generate logic for new sportiv
+        if (!initialData.id && (name === 'nume' || name === 'prenume')) {
+            const sanitize = (str: string) => (str || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, '');
+            const nume = sanitize(name === 'nume' ? value : updatedData.nume || '');
+            const prenume = sanitize(name === 'prenume' ? value : updatedData.prenume || '');
+            
+            if (nume && prenume) {
+                const targetClubId = updatedData.club_id || currentUser?.club_id;
+                const club = clubs.find(c => c.id === targetClubId);
+                const domain = club ? club.nume.toLowerCase().replace(/[^a-z0-9]/g, '') + '.ro' : 'phihau.ro';
+                updatedData.email = `${nume}.${prenume}@${domain}`;
+                updatedData.parola = `${nume}.1234!`;
+            }
+        }
+
         setFormData(updatedData);
         const newErrors = validate(updatedData);
         setErrors(newErrors);
@@ -146,23 +156,42 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
     };
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-6">
             <FormSection title="Date Personale">
                 <Input label="Nume" name="nume" value={formData.nume || ''} onChange={handleChange} required disabled={loading} error={errors.nume} />
                 <Input label="Prenume" name="prenume" value={formData.prenume || ''} onChange={handleChange} required disabled={loading} error={errors.prenume} />
                 <BirthDateInput label="Data Nașterii" value={formData.data_nasterii} onChange={(v) => handleChange({ target: { name: 'data_nasterii', value: v } })} required error={errors.data_nasterii}/>
-                 <Select label="Club" name="club_id" value={formData.club_id || ''} onChange={handleChange} disabled={loading || !isSuperAdmin}>
-                    {!isSuperAdmin && <option value={currentUser?.club_id || ''}>{clubs.find(c => c.id === currentUser?.club_id)?.nume || 'Clubul Meu'}</option>}
-                    {isSuperAdmin && (
-                        <>
-                            <option value="">Nespecificat</option>
-                            {clubs.map(c => <option key={c.id} value={c.id}>{c.id === FEDERATIE_ID ? FEDERATIE_NAME : c.nume}</option>)}
-                        </>
-                    )}
+                <Input label="CNP" name="cnp" value={formData.cnp || ''} onChange={handleChange} disabled={loading} maxLength={13} />
+                <Input label="Înălțime (cm)" name="inaltime" type="number" value={formData.inaltime || ''} onChange={handleChange} disabled={loading} />
+                <Select label="Gen" name="gen" value={formData.gen || ''} onChange={handleChange} disabled={loading}>
+                    <option value="">Nespecificat</option>
+                    <option value="Masculin">Masculin</option>
+                    <option value="Feminin">Feminin</option>
                 </Select>
             </FormSection>
 
+            <FormSection title="Date Contact">
+                 <Input label="Telefon" name="telefon" value={formData.telefon || ''} onChange={handleChange} disabled={loading} />
+                 <Input label="Adresă" name="adresa" value={formData.adresa || ''} onChange={handleChange} disabled={loading} />
+            </FormSection>
+
+            {!initialData.id && (
+                <FormSection title="Detalii Cont Acces (Opțional)">
+                    <p className="text-xs text-slate-400 col-span-full -mt-1">La salvare, se va crea automat un cont de acces cu email și parolă generate. Puteți edita detaliile mai jos.</p>
+                    <Input label="Email" name="email" type="email" value={formData.email || ''} onChange={handleChange} disabled={loading} required error={errors.email} />
+                    <Input label="Username (Opțional)" name="username" value={formData.username || ''} onChange={handleChange} disabled={loading} placeholder="ex: ion.popescu" />
+                    <Input label="Parolă" name="parola" value={formData.parola || ''} onChange={handleChange} disabled={loading} required error={errors.parola} />
+                </FormSection>
+            )}
+
             <FormSection title="Club & Antrenament">
+                <Input label="Data Înscrierii" name="data_inscrierii" type="date" value={formData.data_inscrierii?.split('T')[0] || ''} onChange={handleChange} disabled={loading} />
+                {isSuperAdmin && (
+                    <Select label="Club" name="club_id" value={formData.club_id || ''} onChange={handleChange} disabled={loading}>
+                        <option value="">Nespecificat</option>
+                        {clubs.map(c => <option key={c.id} value={c.id}>{c.id === FEDERATIE_ID ? FEDERATIE_NAME : c.nume}</option>)}
+                    </Select>
+                )}
                 <div className="flex gap-1 items-end">
                     <Select label="Grupă" name="grupa_id" value={formData.grupa_id || ''} onChange={handleChange} disabled={loading} className="flex-grow">
                         <option value="">Fără grupă</option>
@@ -176,6 +205,15 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
                         {familii.map(f => <option key={f.id} value={f.id}>{f.nume}</option>)}
                     </Select>
                     <Button type="button" variant="secondary" size="sm" onClick={onQuickAddFamilie} className="h-[34px]"><PlusIcon className="w-4 h-4"/></Button>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                     <Select label="Status" name="status" value={formData.status || 'Activ'} onChange={handleChange} disabled={loading}>
+                        <option value="Activ">Activ</option>
+                        <option value="Inactiv">Inactiv</option>
+                    </Select>
+                    <div className="pt-5">
+                         <Switch label="Participă la antrenamentele din vacanță" name="participa_vacanta" checked={formData.participa_vacanta || false} onChange={handleChange} />
+                    </div>
                 </div>
             </FormSection>
         </div>
@@ -197,7 +235,7 @@ export const SportivFormModal: React.FC<{
 }> = ({ 
   isOpen, onClose, onSave, sportivToEdit, grupe, setGrupe, familii, setFamilii, tipuriAbonament, clubs, currentUser
 }) => {
-    const { showError, showSuccess } = useError();
+    const { showError } = useError();
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState<Partial<Sportiv>>(initialFormState);
     const [isFormValid, setIsFormValid] = useState(false);
@@ -223,9 +261,8 @@ export const SportivFormModal: React.FC<{
 
         const isSuperAdmin = currentUser?.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'Admin');
         
-        // Verificare critică Multi-Tenancy
         if (!isSuperAdmin && formData.club_id && formData.club_id !== currentUser?.club_id) {
-            setCriticalPermissionError(`Tentativă de modificare neautorizată! Nu aveți drepturi de administrare pentru clubul selectat. Verificați rolul și clubul asociat profilului dumneavoastră.`);
+            setCriticalPermissionError(`Tentativă de modificare neautorizată! Nu aveți drepturi de administrare pentru clubul selectat.`);
             return;
         }
 
@@ -236,16 +273,12 @@ export const SportivFormModal: React.FC<{
 
         setLoading(true);
         try {
-            const { roluri, id, created_at, parola, ...cleanData } = formData;
-            const result = await onSave(cleanData);
+            const result = await onSave(formData);
             if (result.success) {
-                showSuccess('Succes', sportivToEdit ? 'Sportiv actualizat!' : 'Sportiv adăugat!');
                 onClose(result.data);
-            } else {
-                showError("Eroare Salvare", result.error);
             }
         } catch (err) {
-            showError("Eroare Critică", err);
+            // erorile sunt gestionate în onSave
         } finally {
             setLoading(false);
         }

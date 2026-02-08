@@ -45,6 +45,9 @@ export interface Sportiv {
   puncte_slabe?: string | null;
   obiective?: string | null;
   trebuie_schimbata_parola?: boolean;
+  telefon?: string | null;
+  adresa?: string | null;
+  gen?: 'Masculin' | 'Feminin' | null;
   [key: string]: any; 
 }
 

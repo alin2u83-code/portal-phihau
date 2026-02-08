@@ -95,11 +95,7 @@ function App() {
   const [platiPentruIncasare, setPlatiPentruIncasare] = useState<Plata[]>([]);
 
 
-  const activeRole = useMemo((): Rol['nume'] | null => {
-    return activeRoleContext?.rol_denumire || null;
-  }, [activeRoleContext]);
-
-  const permissions = usePermissions(currentUser, activeRole);
+  const permissions = usePermissions(currentUser);
   const { activeClubId, loading: clubFilterLoading, globalClubFilter, setGlobalClubFilter } = useClubFilter(currentUser, permissions);
 
    const canSwitchRoles = useMemo(() => {
@@ -280,7 +276,7 @@ function App() {
 
       case 'dashboard':
       case 'my-portal':
-        if (permissions.hasAdminAccess && activeRole !== 'Sportiv') {
+        if (permissions.hasAdminAccess && currentUser?.rol_activ_context !== 'Sportiv') {
             if (sportivi.length === 0 && !isEmergencyAdmin && !loading) {
                 return <Card className="text-center p-8"><p className="text-slate-400 italic">Așteptare autorizare date sau nu există date pentru contextul selectat...</p></Card>
             }
@@ -299,7 +295,7 @@ function App() {
         }
         // FIX: The onNavigate prop for SportivDashboard requires a function that takes a single 'view' argument.
         // We wrap setActiveView to ensure type compatibility.
-        return <SportivDashboard currentUser={currentUser!} viewedUser={currentUser!} participari={filteredData.inscrieriExamene} examene={sesiuniExamene} grade={grade} istoricGrade={filteredData.istoricGrade} grupe={filteredData.grupe} plati={filteredData.plati} onNavigate={(view) => setActiveView(view)} antrenamente={filteredData.antrenamente} anunturi={anunturiPrezenta} setAnunturi={setAnunturiPrezenta} sportivi={filteredData.sportivi} permissions={permissions} canSwitchRoles={canSwitchRoles} activeRole={activeRole!} onSwitchRole={handleSwitchRole} isSwitchingRole={isSwitchingRole} />;
+        return <SportivDashboard currentUser={currentUser!} viewedUser={currentUser!} participari={filteredData.inscrieriExamene} examene={sesiuniExamene} grade={grade} istoricGrade={filteredData.istoricGrade} grupe={filteredData.grupe} plati={filteredData.plati} onNavigate={(view) => setActiveView(view)} antrenamente={filteredData.antrenamente} anunturi={anunturiPrezenta} setAnunturi={setAnunturiPrezenta} sportivi={filteredData.sportivi} permissions={permissions} canSwitchRoles={canSwitchRoles} activeRole={currentUser!.rol_activ_context!} onSwitchRole={handleSwitchRole} isSwitchingRole={isSwitchingRole} />;
       
       case 'sportivi':
         return renderProtected(<SportiviManagement onBack={() => setActiveView('dashboard')} sportivi={filteredData.sportivi} setSportivi={setSportivi} grupe={filteredData.grupe} setGrupe={setGrupe} tipuriAbonament={filteredData.tipuriAbonament} familii={filteredData.familii} setFamilii={setFamilii} allRoles={allRoles} setAllRoles={setAllRoles} currentUser={currentUser!} plati={filteredData.plati} setPlati={setPlati} tranzactii={filteredData.tranzactii} setTranzactii={setTranzactii} onViewSportiv={onViewSportiv} clubs={clubs} grade={grade} permissions={permissions} />, isAtLeastInstructor);
@@ -427,7 +423,7 @@ function App() {
         return <BackdoorCheck currentUser={currentUser!} onBack={() => setActiveView('dashboard')} />;
         
       case 'backdoor-test':
-        return <BackdoorTest currentUser={currentUser!} onBack={() => setActiveView('dashboard')} activeRole={activeRole!} userRoles={userRoles} />;
+        return <BackdoorTest currentUser={currentUser!} onBack={() => setActiveView('dashboard')} activeRole={currentUser!.rol_activ_context!} userRoles={userRoles} />;
 
       default:
          return <div>Lipsește Vizualizarea</div>;
@@ -450,7 +446,7 @@ function App() {
        needsRoleSelection ? <RoleSelectionPage roles={userRoles} onSelect={handleSelectRole} loading={isSwitchingRole} onLogout={handleLogout} /> :
        currentUser ? (
             <div className="flex min-h-screen bg-[var(--bg-main)]">
-              <Sidebar currentUser={currentUser} onNavigate={setActiveView} onLogout={handleLogout} activeView={activeView} isExpanded={isSidebarExpanded} setIsExpanded={setIsSidebarExpanded} clubs={clubs} globalClubFilter={globalClubFilter} setGlobalClubFilter={setGlobalClubFilter} permissions={permissions} activeRole={activeRole!} canSwitchRoles={canSwitchRoles} onSwitchRole={handleSwitchRole} isSwitchingRole={isSwitchingRole} grade={grade} />
+              <Sidebar currentUser={currentUser} onNavigate={setActiveView} onLogout={handleLogout} activeView={activeView} isExpanded={isSidebarExpanded} setIsExpanded={setIsSidebarExpanded} clubs={clubs} globalClubFilter={globalClubFilter} setGlobalClubFilter={setGlobalClubFilter} permissions={permissions} activeRole={currentUser.rol_activ_context!} canSwitchRoles={canSwitchRoles} onSwitchRole={handleSwitchRole} isSwitchingRole={isSwitchingRole} grade={grade} />
               <main className={`flex-1 transition-all duration-300 ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'}`}>
                 <div className="absolute top-4 right-8 z-30 flex items-center gap-4">
                   {currentUser && permissions.hasAdminAccess && <NotificationBell currentUser={currentUser} />}

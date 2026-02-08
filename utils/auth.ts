@@ -167,6 +167,9 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
         const formattedProfile = {
             ...userProfileData,
             roluri: uniqueRoles,
+            rol_activ_context: primaryContext.rol_denumire,
+            // Ensure the user object's club_id reflects the active context
+            club_id: primaryContext.club_id
         };
 
         return { user: formattedProfile as User, roles: roleContexts, error: null };

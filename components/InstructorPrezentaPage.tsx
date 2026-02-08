@@ -218,18 +218,19 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
             const training = trainings.find(t => t.id === antrenamentId);
             if (!training) throw new Error("Antrenament negăsit.");
 
-            const { data: dbPresence, error: fetchError } = await supabase.from('prezenta_antrenament').select('sportiv_id, status').eq('antrenament_id', antrenamentId);
+            const { data: dbPresence, error: fetchError } = await supabase.from('prezenta_antrenament').select('sportiv_id').eq('antrenament_id', antrenamentId);
             if (fetchError) throw fetchError;
             
             const allInvolvedIds = new Set([
                 ...(training.grupe?.sportivi.map(s => s.id) || []),
-                ...dbPresence.map(p => p.sportiv_id)
+                ...dbPresence.map(p => p.sportiv_id),
+                ...Array.from(uiPresentIds)
             ]);
             
             const recordsToUpsert = Array.from(allInvolvedIds).map(sportivId => ({
                 antrenament_id: antrenamentId,
                 sportiv_id: sportivId,
-                status: uiPresentIds.has(sportivId) ? 'prezent' : 'absent'
+                status: uiPresentIds.has(sportivId) ? 'prezent' as const : 'absent' as const,
             }));
 
             if (recordsToUpsert.length > 0) {
@@ -239,7 +240,7 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
             
             setTrainings(prev => prev.map(t => t.id === antrenamentId ? { 
                 ...t, 
-                prezenta: recordsToUpsert.map(({ sportiv_id, status }) => ({ sportiv_id, status }))
+                prezenta: recordsToUpsert.map(({ sportiv_id, status }) => ({ sportiv_id, status: status as string | null }))
             } : t));
             showSuccess("Succes", "Prezența a fost salvată!");
 

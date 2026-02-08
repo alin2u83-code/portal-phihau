@@ -6,6 +6,7 @@ import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { SportivFormModal } from './Sportivi';
+// FIX: Removed obsolete import for SportivAccountSettingsModal.
 import { SportivWallet } from './SportivWallet';
 import { ResponsiveTable, Column } from './ResponsiveTable';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
@@ -81,39 +82,6 @@ export const SportiviManagement: React.FC<{
         plati.forEach(p => { if (p.familie_id) balances.set(p.familie_id, (balances.get(p.familie_id) || 0) - p.suma); });
         return balances;
     }, [familii, plati, tranzactii]);
-    
-    const { individualBalances, lastIndividualTransactions } = useMemo(() => {
-        const balances = new Map<string, number>();
-        const lastTx = new Map<string, string>();
-
-        if (!sportivi || !plati || !tranzactii) {
-            return { individualBalances: balances, lastIndividualTransactions: lastTx };
-        }
-
-        sportivi.forEach(s => {
-            if (!s.familie_id) {
-                balances.set(s.id, 0);
-            }
-        });
-
-        tranzactii.forEach(t => {
-            if (t.sportiv_id && !t.familie_id && balances.has(t.sportiv_id)) {
-                balances.set(t.sportiv_id, (balances.get(t.sportiv_id) || 0) + t.suma);
-                const existingDate = lastTx.get(t.sportiv_id);
-                if (!existingDate || new Date(t.data_platii) > new Date(existingDate)) {
-                    lastTx.set(t.sportiv_id, t.data_platii);
-                }
-            }
-        });
-
-        plati.forEach(p => {
-            if (p.sportiv_id && !p.familie_id && balances.has(p.sportiv_id)) {
-                balances.set(p.sportiv_id, (balances.get(p.sportiv_id) || 0) - p.suma);
-            }
-        });
-
-        return { individualBalances: balances, lastIndividualTransactions: lastTx };
-    }, [sportivi, plati, tranzactii]);
 
     const filteredSportivi = useMemo(() => {
         return (sportivi || []).filter((s: Sportiv) =>
@@ -174,45 +142,6 @@ export const SportiviManagement: React.FC<{
             )
         },
         { key: 'grupa_id', label: 'Grupă', tooltip: "Grupa de antrenament în care este încadrat sportivul.", render: (s) => grupe.find(g => g.id === s.grupa_id)?.denumire || '-', className: 'hidden md:table-cell' },
-        {
-            key: 'situatie_financiara' as any,
-            label: 'Situație Financiară',
-            tooltip: "Soldul individual al sportivului. Se aplică doar sportivilor neasociați unei familii.",
-            render: (s) => {
-                if (s.familie_id) {
-                    return <span className="text-slate-500 italic text-xs">În familie</span>;
-                }
-                const balance = individualBalances.get(s.id);
-                if (balance === undefined) return '-';
-
-                const lastTxDate = lastIndividualTransactions.get(s.id);
-                let hasRecentPayment = false;
-                if (lastTxDate) {
-                    const thirtyDaysAgo = new Date();
-                    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-                    if (new Date(lastTxDate) >= thirtyDaysAgo) {
-                        hasRecentPayment = true;
-                    }
-                }
-                
-                const isRestanta = balance < 0 && !hasRecentPayment;
-
-                return (
-                    <div className="flex flex-col items-end">
-                        <span className={`font-bold text-sm ${balance >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                            {balance.toFixed(2)} lei
-                        </span>
-                        {isRestanta && (
-                             <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-600/30 text-amber-400 mt-1">
-                                Restanță
-                            </span>
-                        )}
-                    </div>
-                );
-            },
-            cellClassName: 'text-right',
-            headerClassName: 'text-right'
-        },
         {
             key: 'actions',
             label: 'Acțiuni',

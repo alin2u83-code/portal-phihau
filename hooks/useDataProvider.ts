@@ -41,6 +41,8 @@ const initialData: AppData = {
     locatii: [], clubs: [], deconturiFederatie: [],
 };
 
+const USER_CONTEXT_CACHE_KEY = 'phi-hau-user-context';
+
 // The main data provider hook
 export const useDataProvider = () => {
     const [data, setData] = useState<AppData>(initialData);
@@ -60,46 +62,64 @@ export const useDataProvider = () => {
         setNeedsRoleSelection(false);
 
         try {
-            if (!supabase) {
-                throw new Error("Clientul Supabase nu este configurat.");
-            }
+            if (!supabase) throw new Error("Clientul Supabase nu este configurat.");
 
             const { data: { session: currentSession } } = await supabase.auth.getSession();
             if (!currentSession) {
                 setSession(null);
                 setCurrentUser(null);
-                return; // Not an error, just no session.
+                sessionStorage.removeItem(USER_CONTEXT_CACHE_KEY);
+                return;
             }
             setSession(currentSession);
 
-            // Pas 1: Verificare roluri via RPC. Aceasta este 'diagnosticarea'.
-            // FIX: Renamed `rolesData` to avoid redeclaration conflict.
-            const { data: rolesValidationData, error: rpcError } = await supabase.rpc('get_user_login_data_v2');
+            let profile, roles, primaryContext;
 
-            if (rpcError) {
-                throw new Error(`Eroare la verificarea rolurilor: ${rpcError.message}`);
-            }
-            
-            if (!rolesValidationData || (Array.isArray(rolesValidationData) && rolesValidationData.length === 0)) {
-                // User is authenticated but has no roles. This is the "Incomplete Profile" scenario.
-                throw new Error("PROFIL_INCOMPLET: Contul este valid, dar nu are roluri sau profil asociat.");
+            // NOU: Pas 1 - Încearcă să încarci contextul utilizatorului din cache-ul sesiunii.
+            const cachedUserContext = sessionStorage.getItem(USER_CONTEXT_CACHE_KEY);
+            if (cachedUserContext) {
+                const parsed = JSON.parse(cachedUserContext);
+                profile = parsed.user;
+                roles = parsed.roles;
+                primaryContext = parsed.activeRole;
+            } else {
+                // NOU: Pas 2 - Dacă nu există cache, preia de la server.
+                const { data: rolesValidationData, error: rpcError } = await supabase.rpc('get_user_login_data_v2');
+                if (rpcError) throw rpcError;
+                
+                const { user: fetchedProfile, roles: fetchedRoles, error: profileFetchError } = await getAuthenticatedUser(supabase);
+                if (profileFetchError) throw profileFetchError;
+
+                if (!fetchedProfile || !fetchedRoles) {
+                    const userRolesFromJwt = currentSession.user.app_metadata?.roles || [];
+                    const hasAdminRole = userRolesFromJwt.some((r: string) => ['SUPER_ADMIN_FEDERATIE', 'Admin', 'Admin Club', 'Instructor'].includes(r));
+                    
+                    if (hasAdminRole) {
+                        console.warn("[Fallback] Profilul de sportiv nu a putut fi încărcat, dar utilizatorul are rol de admin. Se creează un profil de avarie pentru a permite accesul.");
+                        profile = {
+                            id: 'FALLBACK_PROFILE_ID', user_id: currentSession.user.id, nume: 'Admin', prenume: 'Fallback', email: currentSession.user.email,
+                            roluri: userRolesFromJwt.map((r: string) => ({ nume: r })), club_id: null, data_nasterii: '1900-01-01', data_inscrierii: '1900-01-01',
+                            status: 'Activ', cnp: null, familie_id: null, tip_abonament_id: null, participa_vacanta: false, trebuie_schimbata_parola: false
+                        };
+                        roles = []; primaryContext = null;
+                    } else {
+                        throw new Error("PROFIL_INCOMPLET: Contul este valid, dar nu are roluri sau profil asociat.");
+                    }
+                } else {
+                    profile = fetchedProfile;
+                    roles = fetchedRoles;
+                    primaryContext = roles.find(r => r.is_primary) || roles[0];
+                    sessionStorage.setItem(USER_CONTEXT_CACHE_KEY, JSON.stringify({ user: profile, roles: roles, activeRole: primaryContext }));
+                }
             }
 
-            // Pas 2: Dacă verificarea a trecut, continuă cu încărcarea completă a datelor.
-            const { user: profile, roles, error: profileFetchError } = await getAuthenticatedUser(supabase);
+            setCurrentUser(profile as User);
+            setUserRoles(roles as any[]);
+            setActiveRoleContext(primaryContext as any);
             
-            if (profileFetchError) throw profileFetchError;
-            if (!profile || !roles) throw new Error("Profilul utilizatorului nu a putut fi încărcat după validarea inițială.");
-            
-            setCurrentUser(profile);
-            setUserRoles(roles);
-            
-            const primaryContext = roles.find(r => r.is_primary);
-            setActiveRoleContext(primaryContext || null);
-            
-            if (roles.length > 1 && !primaryContext) {
+            if ((roles?.length || 0) > 1 && !primaryContext) {
                 setNeedsRoleSelection(true);
-                return; // Stop loading here, user needs to select a role.
+                return; 
             }
             
             // Pas 3: Încarcă restul datelor aplicației.
@@ -194,9 +214,8 @@ export const useDataProvider = () => {
 
         } catch (err: any) {
             setError(err.message);
-            // Pentru erori critice (altele decât profil incomplet), deconectăm utilizatorul pentru siguranță.
             if (!err.message.startsWith('PROFIL_INCOMPLET')) {
-                console.error("Critical error during data fetch, signing out:", err);
+                console.error("Eroare critică în timpul încărcării datelor, se deconectează:", err);
                 await supabase?.auth.signOut();
             }
         } finally {
@@ -213,6 +232,7 @@ export const useDataProvider = () => {
                     initializeAndFetchData();
                 }
             } else if (event === 'SIGNED_OUT') {
+                sessionStorage.removeItem(USER_CONTEXT_CACHE_KEY);
                 setSession(null);
                 setCurrentUser(null);
                 setUserRoles([]);

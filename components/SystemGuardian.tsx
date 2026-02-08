@@ -42,7 +42,7 @@ const DiagnosticScreen: React.FC<{ timedOut?: boolean }> = ({ timedOut = false }
             <>
                 <p className="mt-2 text-amber-400">Diagnosticarea durează mai mult decât de obicei...</p>
                 <Button variant="secondary" onClick={() => window.location.reload()} className="mt-6">
-                    Reîncearcă
+                    Forțează Intrarea
                 </Button>
             </>
         ) : (
@@ -110,7 +110,7 @@ export const SystemGuardian: React.FC<SystemGuardianProps> = ({ children, isLoad
 
             timeoutTimer = window.setTimeout(() => {
                 setTimedOut(true);
-            }, 5000);
+            }, 3000); // NOU: Timeout redus la 3 secunde
         }
 
         return () => {

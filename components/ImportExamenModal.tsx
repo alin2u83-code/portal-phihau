@@ -116,7 +116,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
         const validationPromises = data.map(async (row, index): Promise<PreviewRow> => {
             const baseRow: Omit<PreviewRow, 'sessionInfo' | 'status' | 'message'> = { ...row, originalIndex: index };
             
-            const existingSession = (initialSesiuni || []).find(s => s.denumire === row.Sesiune_Denumire?.trim() && s.data === row.Data_Examen?.trim());
+            const existingSession = (initialSesiuni || []).find(s => s.data === row.Data_Examen?.trim());
             const sessionInfo = {
                 key: `${row.Sesiune_Denumire?.trim()}-${row.Data_Examen?.trim()}`,
                 isNew: !existingSession,
@@ -188,7 +188,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                     locatie = newLoc;
                     localLocatii.push(newLoc);
                 }
-                const { data: newSes, error: sesError } = await supabase.from('sesiuni_examene').insert({ denumire: sessionInfo.sesiuneDenumire, data: sessionInfo.dataExamen, locatie_id: locatie.id, club_id: currentUser.club_id }).select().single();
+                const { data: newSes, error: sesError } = await supabase.from('sesiuni_examene').insert({ data: sessionInfo.dataExamen, locatie_id: locatie.id, club_id: currentUser.club_id, comisia: [], status: 'Finalizat' }).select().single();
                 if (sesError) throw new Error(`Nu s-a putut crea sesiunea '${sessionInfo.sesiuneDenumire}': ${sesError.message}`);
                 createdSessionIds.set(key, newSes.id);
                 localSesiuni.push(newSes);
@@ -207,9 +207,10 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                     const { error: rpcError } = await supabase.rpc('process_exam_row_v2', {
                         p_nume: row.Nume,
                         p_prenume: row.Prenume,
-                        p_cnp: String(row.CNP || '').trim(), // Trimite CNP-ul la RPC
+                        p_cnp: (row.CNP || '').trim(),
                         p_cod_sportiv: action === 'create' ? row.generatedCode : null,
                         p_existing_sportiv_id: sportivId,
+                        p_club_id: currentUser.club_id,
                         p_ordine_grad: parseInt(row.Grad_Nou_Ordine),
                         p_rezultat: row.Rezultat,
                         p_contributie: parseFloat(row.Contributie) || 0,
@@ -267,35 +268,89 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                             <table className="w-full text-left text-sm">
                                 <thead className="bg-slate-800 sticky top-0 z-10"><tr><th className="p-2">Sportiv</th><th className="p-2">Sesiune</th><th className="p-2 w-1/3">Acțiune/Status</th></tr></thead>
                                 <tbody className="divide-y divide-slate-800">{previewData.map(row => (
-                                    <tr key={row.originalIndex} className={`${row.status === 'error' ? 'bg-red-900/30' : ''}`}>
-                                        <td className="p-2">{row.Nume} {row.Prenume}</td>
+                                    <tr key={row.originalIndex}>
+                                        <td className="p-2 font-semibold text-white">{row.Nume} {row.Prenume}</td>
                                         <td className="p-2 text-xs text-slate-400">{row.Sesiune_Denumire}</td>
                                         <td className="p-2">
                                             {row.status === 'conflict' ? (
-                                                <div className="space-y-1">
-                                                    <div className="flex items-center gap-1 text-amber-400 text-xs"><ExclamationTriangleIcon className="w-4 h-4"/><span>Potriviri găsite. Alegeți:</span></div>
-                                                    <Select label="" onChange={(e) => { const [action, sportivId] = e.target.value.split(':'); handleResolution(row.originalIndex, { action: action as any, sportivId }); }}>
-                                                        <option value="">Alege...</option><option value="create:">Creează Sportiv Nou ({row.generatedCode})</option>
-                                                        {(row.conflicts || []).map(match => (<option key={match.id} value={`use_existing:${match.id}`}>Folosește: {match.nume} {match.prenume} (Sim: {Math.round(match.similarity * 100)}%)</option>))}
-                                                    </Select>
-                                                </div>
-                                            ) : row.status === 'valid' || row.status === 'resolved' ? (
-                                                <div className="flex items-center gap-2"><CheckCircleIcon className="w-5 h-5 text-green-500"/><span className="text-slate-400">{row.message}</span></div>
-                                            ) : row.status === 'create' ? (
-                                                <div className="flex items-center gap-2"><UserPlusIcon className="w-5 h-5 text-sky-400"/><span className="text-slate-400">{row.message}</span></div>
+                                                <ConflictResolver row={row} onResolve={handleResolution} />
                                             ) : (
-                                                <div className="flex items-center gap-2"><XCircleIcon className="w-5 h-5 text-red-500"/><span className="text-red-400">{row.message}</span></div>
+                                                <div className="flex items-center gap-2">
+                                                    {row.status === 'valid' || row.status === 'resolved' || row.status === 'create' ? <CheckCircleIcon className="w-5 h-5 text-green-400" /> : <XCircleIcon className="w-5 h-5 text-red-400" />}
+                                                    <span className="text-xs">{row.message}</span>
+                                                </div>
                                             )}
                                         </td>
-                                    </tr>))}
-                                </tbody>
+                                    </tr>
+                                ))}</tbody>
                             </table>
                         </div>
                     </div>
                 )}
+                
+                {previewData.length > 0 && (
+                    <div className="flex justify-end pt-4 border-t border-slate-700">
+                        <Button onClick={confirmImport} variant="primary" size="md" isLoading={isProcessing} disabled={isProcessing || unresolvedConflicts || importableRowsCount === 0}>
+                            Importă {importableRowsCount} Înregistrări
+                        </Button>
+                    </div>
+                )}
+
+                {errorLog && (
+                    <div className="mt-6 p-4 bg-red-900/30 border border-red-700 rounded-lg animate-fade-in-down">
+                        <h3 className="text-lg font-bold text-red-300 flex items-center gap-2">
+                            <XCircleIcon className="w-6 h-6"/> Jurnal Erori Import
+                        </h3>
+                        {errorLog.general && <p className="text-red-200 mt-2">{errorLog.general}</p>}
+                        {errorLog.details && (
+                            <div className="mt-2 max-h-40 overflow-y-auto bg-black/30 p-2 rounded-md text-xs space-y-1">
+                                {errorLog.details.map((e: any, i: number) => (
+                                    <div key={i}>
+                                        <p className="font-mono text-red-300">Rând {e.row} ({e.name}): <span className="text-red-400">{e.error}</span></p>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        {errorLog.message && !errorLog.details && (
+                             <pre className="mt-2 max-h-40 overflow-y-auto bg-black/30 p-2 rounded-md text-xs font-mono text-red-400">
+                                {errorLog.message}
+                            </pre>
+                        )}
+                        <Button 
+                            size="sm" 
+                            variant="secondary" 
+                            className="mt-4" 
+                            onClick={() => navigator.clipboard.writeText(JSON.stringify(errorLog, null, 2))}
+                        >
+                            Copiază Cod Debug
+                        </Button>
+                    </div>
+                )}
             </div>
-            {errorLog && ( <div className="mt-6 p-4 bg-black border-l-4 border-red-600 rounded"><div className="flex justify-between items-center mb-2"><h4 className="text-red-500 font-bold">Raport Eroare Tehnică</h4><button onClick={() => { navigator.clipboard.writeText(JSON.stringify(errorLog, null, 2)); showSuccess('Copiat!', 'Codul de debug a fost copiat în clipboard.'); }} className="text-xs bg-red-900 px-3 py-1 rounded text-white hover:bg-red-800">Copiază Cod Debug</button></div><pre className="text-[10px] text-red-300 overflow-x-auto">{JSON.stringify(errorLog, null, 2)}</pre></div>)}
-            {previewData.length > 0 && ( <div className="flex justify-end pt-4 border-t border-slate-700 mt-6"><Button variant="primary" onClick={confirmImport} isLoading={isProcessing} disabled={isProcessing || unresolvedConflicts || importableRowsCount === 0}>{unresolvedConflicts ? 'Rezolvă conflictele' : `Confirmă și Importă ${importableRowsCount} Înregistrări`}</Button></div>)}
         </Modal>
+    );
+};
+
+
+const ConflictResolver: React.FC<{ row: PreviewRow, onResolve: (index: number, resolution: any) => void }> = ({ row, onResolve }) => {
+    const [isOpen, setIsOpen] = useState(false);
+
+    return (
+        <div className="flex items-center gap-2">
+            <ExclamationTriangleIcon className="w-5 h-5 text-amber-400" />
+            <span className="text-xs text-amber-400">{row.message}</span>
+            <Button size="sm" variant="warning" className="!text-xs !py-0.5" onClick={() => setIsOpen(!isOpen)}>Rezolvă</Button>
+            {isOpen && (
+                <div className="absolute z-20 mt-1 w-72 bg-slate-700 border border-slate-600 rounded-md shadow-lg p-2 right-4">
+                    <p className="text-xs font-bold mb-2">Alege o acțiune:</p>
+                    {row.conflicts?.map(c => (
+                        <button key={c.id} onClick={() => onResolve(row.originalIndex, { action: 'use_existing', sportivId: c.id })} className="w-full text-left p-1 hover:bg-slate-600 rounded text-xs">{c.nume} {c.prenume} (Cod: {c.cod_sportiv || 'N/A'})</button>
+                    ))}
+                    <button onClick={() => onResolve(row.originalIndex, { action: 'create' })} className="w-full text-left p-1 hover:bg-slate-600 rounded text-xs font-bold text-green-400 mt-1 border-t border-slate-600 pt-1">
+                        <UserPlusIcon className="w-4 h-4 inline mr-1"/> Creează sportiv nou
+                    </button>
+                </div>
+            )}
+        </div>
     );
 };

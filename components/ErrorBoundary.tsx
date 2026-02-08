@@ -14,7 +14,7 @@ interface State {
 }
 
 class ErrorBoundary extends React.Component<Props, State> {
-  // state initialization is now in constructor.
+  // FIX: Moved state initialization to the constructor to ensure it's set up before any other methods are called.
   constructor(props: Props) {
     super(props);
     // FIX: Added 'this' keyword to correctly assign to the component's state.
@@ -36,13 +36,11 @@ class ErrorBoundary extends React.Component<Props, State> {
     console.error("Uncaught error:", error, errorInfo);
   }
 
-  // Converted to a standard class method. The binding is now handled in the constructor.
+  // FIX: Converted to a standard class method. The binding is now handled in the constructor.
   public handleRedirect() {
     // FIX: Added 'this' keyword to call setState and access props.
     this.setState({ hasError: false, error: undefined });
-    // FIX: Added 'this' keyword to access props.
     if (this.props.onNavigate) {
-        // FIX: Added 'this' keyword to access props.
         this.props.onNavigate('dashboard');
     }
   }
@@ -64,7 +62,6 @@ class ErrorBoundary extends React.Component<Props, State> {
           {/* FIX: Added 'this' keyword to access state. */}
           {this.state.error && (
             <pre className="mt-4 text-left text-xs bg-black/30 p-2 rounded overflow-auto">
-              {/* FIX: Added 'this' keyword to access state. */}
               {this.state.error.toString()}
             </pre>
           )}

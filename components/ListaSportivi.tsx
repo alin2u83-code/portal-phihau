@@ -67,7 +67,6 @@ export const ListaSportivi: React.FC = () => {
       
       if (dbError) throw dbError;
       
-      // FIX: Adăugat verificarea explicită pentru a preveni erorile de 'map'
       if (data && Array.isArray(data)) {
         setSportivi(data);
       } else {
@@ -102,7 +101,7 @@ export const ListaSportivi: React.FC = () => {
   if (loading && sportivi.length === 0) {
     return (
       <SafeAreaView style={styles.container}>
-        <ActivityIndicator size="large" color="#64ffda" />
+        <ActivityIndicator size="large" color="#FFD700" />
       </SafeAreaView>
     );
   }
@@ -137,12 +136,12 @@ export const ListaSportivi: React.FC = () => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor="#64ffda"
+            tintColor="#FFD700"
           />
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>Niciun sportiv găsit.</Text>
+            <Text style={styles.emptyText}>Nu există sportivi înregistrați în clubul tău.</Text>
           </View>
         }
       />

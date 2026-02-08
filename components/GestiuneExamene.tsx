@@ -1,12 +1,13 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { SesiuneExamen, InscriereExamen, Sportiv, Grad, Locatie, Plata, PretConfig, User, Club, DecontFederatie, View, IstoricGrade } from '../types';
 import { Button, Modal, Input, Select, Card } from './ui';
-import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon, FileTextIcon } from './icons';
+import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon, FileTextIcon, UploadCloudIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { ManagementInscrieri } from './ManagementInscrieri';
+import { ImportExamenModal } from './ImportExamenModal';
 
 // --- SUB-COMPONENTE PENTRU MANAGEMENTUL SESIUNILOR (PĂSTRATE) ---
 
@@ -178,6 +179,7 @@ interface DetaliiSesiuneProps {
     setDeconturiFederatie: React.Dispatch<React.SetStateAction<DecontFederatie[]>>;
     onViewSportiv: (sportiv: Sportiv) => void;
     onEdit: () => void;
+    currentUser: User;
 }
 const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
     const { showError, showSuccess } = useError();
@@ -219,7 +221,7 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
                     )}
                 </div>
                  {props.sesiune.status !== 'Finalizat' && (
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                         <Button variant="secondary" onClick={props.onEdit}>
                             <EditIcon className="w-4 h-4 mr-2" /> Editează
                         </Button>
@@ -261,6 +263,7 @@ interface GestiuneExameneProps {
 
 export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, clubs, onBack, onNavigate, sesiuni, setSesiuni, inscrieri, setInscrieri, sportivi, setSportivi, grade, istoricGrade, locatii, setLocatii, plati, setPlati, preturiConfig, deconturiFederatie, setDeconturiFederatie, onViewSportiv }) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isBulkImportModalOpen, setIsBulkImportModalOpen] = useState(false);
   const [sesiuneToEdit, setSesiuneToEdit] = useState<SesiuneExamen | null>(null);
   const [sesiuneToDelete, setSesiuneToDelete] = useState<SesiuneExamen | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -268,6 +271,12 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
   const { showError, showSuccess } = useError();
   
   const selectedSesiune = useMemo(() => selectedSesiuneId ? (sesiuni || []).find(e => e.id === selectedSesiuneId) || null : null, [selectedSesiuneId, sesiuni]);
+  
+  const canGenerateInvoice = useMemo(() => 
+      currentUser.roluri.some(r => 
+          ['Instructor', 'Admin Club', 'Admin', 'SUPER_ADMIN_FEDERATIE'].includes(r.nume)
+      ),
+  [currentUser.roluri]);
 
   const handleBackToList = () => setSelectedSesiuneId(null);
   
@@ -315,6 +324,13 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
     }
   };
 
+    const handleImportComplete = () => {
+        showSuccess("Import Finalizat", "Datele au fost procesate. Pagina se va reîmprospăta pentru a reflecta toate modificările.");
+        setTimeout(() => {
+            window.location.reload();
+        }, 2000);
+    };
+
   if (selectedSesiune) {
      return (
         <div>
@@ -336,6 +352,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
                 setDeconturiFederatie={setDeconturiFederatie}
                 onViewSportiv={onViewSportiv}
                 onEdit={handleEditSelected}
+                currentUser={currentUser}
             />
         </div>
      );
@@ -348,44 +365,67 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-white">Gestiune Sesiuni Examen</h1>
         <div className="flex gap-2">
-            <Button onClick={() => onNavigate('gestiune-facturi')} variant="secondary">
-                <FileTextIcon className="w-4 h-4 mr-2" /> Generează Factură Examen
+            {canGenerateInvoice && (
+                <Button onClick={() => onNavigate('gestiune-facturi')} variant="secondary">
+                    <FileTextIcon className="w-4 h-4 mr-2" /> Generează Factură Examen
+                </Button>
+            )}
+             <Button onClick={() => setIsBulkImportModalOpen(true)} variant="info">
+                <UploadCloudIcon className="w-5 h-5 mr-2" /> Import Bulk Examen
             </Button>
-            <Button onClick={() => { setSesiuneToEdit(null); setIsFormOpen(true); }} variant="info">
+            <Button onClick={() => { setSesiuneToEdit(null); setIsFormOpen(true); }} variant="primary">
                 <PlusIcon className="w-5 h-5 mr-2" />Adaugă Sesiune
             </Button>
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {sortedSesiuni.map(s => ( 
-            <Card key={s.id} className="sesiune-card flex flex-col group hover:border-amber-400/50 hover:shadow-[0_0_15px_2px_rgba(251,146,60,0.4)] hover:-translate-y-1 transition-all duration-300">
-                <div className="flex-grow">
-                    <div className="flex justify-between items-start">
-                        <span className={`px-2 py-1 text-xs font-bold rounded-full ${s.status === 'Finalizat' ? 'bg-green-600/30 text-green-300' : 'bg-sky-600/30 text-sky-300'}`}>
-                            {s.status || 'Programat'}
-                        </span>
-                        <span className="text-sm font-bold text-slate-300">{new Date(s.data+'T00:00:00').toLocaleDateString('ro-RO')}</span>
+        {sortedSesiuni.map(s => { 
+            const club = clubs.find(c => c.id === s.club_id);
+            const cardStyle = club?.theme_config ? (club.theme_config as React.CSSProperties) : {};
+            return (
+                <Card 
+                    key={s.id} 
+                    className="sesiune-card flex flex-col group"
+                    style={cardStyle}
+                >
+                    <div className="flex-grow">
+                        <div className="flex justify-between items-start">
+                            <span className={`px-2 py-1 text-xs font-bold rounded-full ${s.status === 'Finalizat' ? 'bg-green-600/30 text-green-300' : 'bg-sky-600/30 text-sky-300'}`}>
+                                {s.status || 'Programat'}
+                            </span>
+                            <span className="text-sm font-bold text-slate-300">{new Date(s.data+'T00:00:00').toLocaleDateString('ro-RO')}</span>
+                        </div>
+                        <h3 className="text-lg font-bold text-white mt-3 group-hover:text-brand-secondary transition-colors">{(locatii || []).find(l => l.id === s.locatie_id)?.nume || 'Locație Nespecificată'}</h3>
+                        <p className="text-xs text-slate-400">{s.club_id ? ((clubs || []).find(c => c.id === s.club_id)?.nume || 'Club Necunoscut') : 'Eveniment Federație'}</p>
                     </div>
-                    <h3 className="text-lg font-bold text-white mt-3 group-hover:text-brand-secondary transition-colors">{(locatii || []).find(l => l.id === s.locatie_id)?.nume || 'Locație Nespecificată'}</h3>
-                    <p className="text-xs text-slate-400">{s.club_id ? ((clubs || []).find(c => c.id === s.club_id)?.nume || 'Club Necunoscut') : 'Eveniment Federație'}</p>
-                </div>
-                <div className="mt-4 pt-4 border-t border-slate-700 flex justify-between items-center">
-                    <div className="text-sm">
-                        <span className="font-bold text-white">{(inscrieri || []).filter(p => p.sesiune_id === s.id).length}</span>
-                        <span className="text-slate-400"> participanți</span>
+                    <div className="mt-4 pt-4 border-t border-[var(--border-color)] flex justify-between items-center">
+                        <div className="text-sm">
+                            <span className="font-bold text-white">{(inscrieri || []).filter(p => p.sesiune_id === s.id).length}</span>
+                            <span className="text-slate-400"> participanți</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Button size="sm" variant="info" onClick={() => setSelectedSesiuneId(s.id)}>Vezi Detalii</Button>
+                            <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); setSesiuneToEdit(s); setIsFormOpen(true); }}><EditIcon className="w-4 h-4" /></Button>
+                            <Button size="sm" variant="danger" onClick={(e) => { e.stopPropagation(); setSesiuneToDelete(s); }}><TrashIcon className="w-4 h-4" /></Button>
+                        </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <Button size="sm" variant="info" onClick={() => setSelectedSesiuneId(s.id)}>Vezi Detalii</Button>
-                        <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); setSesiuneToEdit(s); setIsFormOpen(true); }}><EditIcon className="w-4 h-4" /></Button>
-                        <Button size="sm" variant="danger" onClick={(e) => { e.stopPropagation(); setSesiuneToDelete(s); }}><TrashIcon className="w-4 h-4" /></Button>
-                    </div>
-                </div>
-            </Card>
-        ))}
+                </Card>
+            )
+        })}
         {sortedSesiuni.length === 0 && <p className="col-span-full p-4 text-center text-slate-400">Nicio sesiune programată.</p>}
       </div>
       <SesiuneForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} onSave={handleSaveSesiune} sesiuneToEdit={sesiuneToEdit} locatii={locatii} setLocatii={setLocatii} clubs={clubs} currentUser={currentUser} />
       <ConfirmDeleteModal isOpen={!!sesiuneToDelete} onClose={() => setSesiuneToDelete(null)} onConfirm={() => { if(sesiuneToDelete) confirmDeleteSesiune(sesiuneToDelete.id) }} tableName="Sesiuni (și toate înscrierile asociate)" isLoading={isDeleting} />
+       <ImportExamenModal 
+            isOpen={isBulkImportModalOpen}
+            onClose={() => setIsBulkImportModalOpen(false)}
+            onImportComplete={handleImportComplete}
+            currentUser={currentUser}
+            locatii={locatii}
+            setLocatii={setLocatii}
+            sesiuni={sesiuni}
+            setSesiuni={setSesiuni}
+       />
     </div> 
   );
 };

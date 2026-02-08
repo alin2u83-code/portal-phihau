@@ -1,8 +1,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions } from '../types';
-// FIX: Added RoleBadge to imports to resolve 'Cannot find name' errors.
+// FIX: Removed unused ShieldCheckIcon and obsolete SportivAccountSettingsModal import
 import { Button, Modal, Input, Select, Card, RoleBadge } from './ui';
-// FIX: Removed ShieldCheckIcon as the associated account settings feature is obsolete.
 import { PlusIcon, ArrowLeftIcon, WalletIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
@@ -51,6 +50,8 @@ export const SportiviManagement: React.FC<{
     const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
     const [sportivForWallet, setSportivForWallet] = useState<Sportiv | null>(null);
     const [selectedSportivForHighlight, setSelectedSportivForHighlight] = useState<Sportiv | null>(null);
+    // FIX: Removed state for obsolete modal
+    // const [accountSettingsSportiv, setAccountSettingsSportiv] = useState<Sportiv | null>(null);
 
     const { showError, showSuccess } = useError();
     
@@ -147,7 +148,7 @@ export const SportiviManagement: React.FC<{
         {
             key: 'actions',
             label: 'Acțiuni',
-            // FIX: Updated tooltip after removing the account settings button.
+            // FIX: Updated tooltip text
             tooltip: "Acțiuni rapide: gestionează portofelul sportivului.",
             headerClassName: 'text-right',
             cellClassName: 'text-right',
@@ -156,58 +157,47 @@ export const SportiviManagement: React.FC<{
                     <Button size="sm" variant="info" onClick={() => handleOpenWallet(s)} title="Portofel Sportiv" className="!p-2">
                         <WalletIcon className="w-4 h-4" />
                     </Button>
+                    {/* FIX: Removed button that opens the obsolete modal */}
                 </div>
             )
         }
     ];
 
     const handleSave = async (formData: Partial<Sportiv>): Promise<{ success: boolean; error?: any; data?: Sportiv; }> => {
+        const { roluri, ...sportivData } = formData;
         try {
             if (sportivToEdit) {
-                const { roluri, ...sportivData } = formData;
-                const { data, error } = await supabase.from('sportivi').update(sportivData).eq('id', sportivToEdit.id).select('*, cluburi(*), roluri:utilizator_roluri_multicont(rol_denumire)').single();
+                const { data, error } = await supabase.from('sportivi').update(sportivData).eq('id', sportivToEdit.id).select('*, roluri(id, nume)').single();
                 if (error) throw error;
-                const updatedSportiv = { ...data, roluri: (data.roluri || []).map((r: any) => allRoles.find(ar => ar.nume === r.rol_denumire)).filter(Boolean) } as Sportiv;
+                const updatedSportiv = { ...data, roluri: data.roluri || [] };
                 setSportivi(prev => prev.map(s => s.id === sportivToEdit.id ? updatedSportiv : s));
                 showSuccess('Succes', 'Sportiv actualizat!');
                 return { success: true, data: updatedSportiv };
             } else {
-                if (!formData.nume || !formData.prenume) throw new Error("Numele și prenumele sunt obligatorii.");
-                if (!formData.email || !formData.parola) throw new Error("Emailul și parola sunt obligatorii pentru crearea contului.");
-                
-                const { email, parola } = formData;
-                
-                const { data: authData, error: authError } = await supabase.functions.invoke('create-user-admin', { body: { email, password: parola } });
-                if (authError || authData.error) {
-                    const errMsg = authError?.message || authData?.error || 'Eroare la crearea contului.';
-                    if (String(errMsg).includes('User already exists')) throw new Error(`Un cont cu email-ul "${email}" există deja.`);
-                    throw new Error(errMsg);
-                }
-                const newAuthUser = authData.user;
-                if (!newAuthUser?.id) throw new Error('Funcția de creare a utilizatorului nu a returnat un ID valid.');
-
-                const dataToSave = { ...formData, user_id: newAuthUser.id, trebuie_schimbata_parola: true };
-                delete dataToSave.parola; // Nu stocăm parola în clar
-
+                const dataToSave = { ...sportivData };
                 if (!dataToSave.familie_id) {
                     const individualSubscription = tipuriAbonament.find(ab => ab.numar_membri === 1);
-                    if (individualSubscription) dataToSave.tip_abonament_id = individualSubscription.id;
+                    if (individualSubscription) {
+                        dataToSave.tip_abonament_id = individualSubscription.id;
+                    }
                 }
 
-                const { data: newSportivData, error: sportivError } = await supabase.from('sportivi').insert(dataToSave).select('*, cluburi(*)').single();
-                if (sportivError) throw new Error(`Cont Auth creat, dar eroare la profil: ${sportivError.message}`);
-                
+                const { data, error } = await supabase.from('sportivi').insert(dataToSave).select().single();
+                if (error) throw error;
+
+                let newSportiv = { ...data, roluri: [] } as Sportiv;
                 const sportivRole = allRoles.find(r => r.nume === 'Sportiv');
-                if (!sportivRole) throw new Error("Rolul 'Sportiv' nu a fost găsit.");
-
-                const { error: roleError } = await supabase.from('utilizator_roluri_multicont').insert({ user_id: newAuthUser.id, rol_denumire: 'Sportiv', club_id: newSportivData.club_id, sportiv_id: newSportivData.id, is_primary: true });
-                if (roleError) throw new Error(`Profil creat, dar eroare la rol: ${roleError.message}`);
-
-                const finalSportivObject: Sportiv = { ...newSportivData, roluri: [sportivRole] };
-                setSportivi(prev => [...prev, finalSportivObject]);
-                
-                showSuccess('Succes!', `Sportiv adăugat! Contul a fost creat cu email-ul: ${email}`);
-                return { success: true, data: finalSportivObject };
+                if (sportivRole) {
+                    const { error: roleError } = await supabase.from('sportivi_roluri').insert({ sportiv_id: data.id, rol_id: sportivRole.id });
+                    if (roleError) {
+                        showError("Utilizator creat, dar eroare la asignarea rolului", roleError.message);
+                    } else {
+                        newSportiv.roluri = [sportivRole];
+                    }
+                }
+                setSportivi(prev => [...prev, newSportiv]);
+                showSuccess('Succes', 'Sportiv adăugat!');
+                return { success: true, data: newSportiv };
             }
         } catch (err: any) {
             showError("Eroare la Salvare", err.message);

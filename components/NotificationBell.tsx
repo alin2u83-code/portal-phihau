@@ -43,8 +43,8 @@ export const NotificationBell: React.FC<{ currentUser: User }> = ({ currentUser 
                 .eq('recipient_user_id', currentUser.user_id)
                 .order('created_at', { ascending: false })
                 .limit(15);
-            if (!error && data) {
-                setNotifications(data as Notification[]);
+            if (!error) {
+                setNotifications(data || []);
             }
         };
         fetchNotifications();

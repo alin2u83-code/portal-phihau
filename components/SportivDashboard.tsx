@@ -320,7 +320,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
             }
         } catch (error: any) {
             showError("Eroare la salvarea statusului", error.message);
-            throw error;
+            throw error; // Re-throw to be caught by the calling component for UI feedback
         }
     };
     // --- End Logic ---

@@ -1,7 +1,9 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions } from '../types';
-import { Button, Modal, Input, Select, Card } from './ui';
-import { PlusIcon, ArrowLeftIcon, WalletIcon, UserXIcon, UserCheckIcon } from './icons';
+// FIX: Removed unused UserXIcon, UserCheckIcon and added RoleBadge.
+import { Button, Modal, Input, Select, Card, RoleBadge } from './ui';
+// FIX: Removed unused ShieldCheckIcon
+import { PlusIcon, ArrowLeftIcon, WalletIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
@@ -20,18 +22,6 @@ const getAge = (dateString: string | null | undefined): number => {
     if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; } 
     return age; 
 };
-
-const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
-    const colorClasses: Record<Rol['nume'], string> = { 
-        'Admin': 'bg-red-600 text-white', 
-        'SUPER_ADMIN_FEDERATIE': 'bg-red-800 text-white', 
-        'Admin Club': 'bg-blue-600 text-white', 
-        'Instructor': 'bg-sky-600 text-white', 
-        'Sportiv': 'bg-slate-600 text-slate-200' 
-    };
-    return <span className={`px-2 py-1 text-[10px] font-semibold rounded-full ${colorClasses[role.nume] || 'bg-gray-500 text-white'}`}>{role.nume}</span>;
-};
-
 
 // --- Componenta Management Principală ---
 export const SportiviManagement: React.FC<{
@@ -52,7 +42,10 @@ export const SportiviManagement: React.FC<{
     clubs: Club[];
     grade: Grad[];
     permissions: Permissions;
-}> = ({ onBack, sportivi, setSportivi, grupe, setGrupe, tipuriAbonament, familii, setFamilii, currentUser, plati, setPlati, tranzactii, setTranzactii, onViewSportiv, clubs, grade, permissions }) => {
+    // FIX: Added allRoles and setAllRoles to props to resolve scope issues.
+    allRoles: Rol[];
+    setAllRoles: React.Dispatch<React.SetStateAction<Rol[]>>;
+}> = ({ onBack, sportivi, setSportivi, grupe, setGrupe, tipuriAbonament, familii, setFamilii, currentUser, plati, setPlati, tranzactii, setTranzactii, onViewSportiv, clubs, grade, permissions, allRoles, setAllRoles }) => {
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
     const [sportivToEdit, setSportivToEdit] = useState<Sportiv | null>(null);
     const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);

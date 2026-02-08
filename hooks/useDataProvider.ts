@@ -200,9 +200,16 @@ export const useDataProvider = () => {
             const allNomenclatorRoles = rolesData || [];
 
             const allSportivi = sportiviData?.map(s => {
-                const joinedRoles = (s as any).roles || [];
-                const userRolesFromJoin = joinedRoles.map((mcr: any) => allNomenclatorRoles.find(r => r.nume === mcr.rol_denumire)).filter(Boolean);
-                return { ...s, roluri: userRolesFromJoin, cluburi: s.club_id ? (clubsMap.get(s.club_id) || { id: s.club_id, nume: 'Club Indisponibil' }) : null };
+                const joinedRoles = Array.isArray((s as any).roles) ? (s as any).roles : [];
+                const userRolesFromJoin = joinedRoles
+                    .map((mcr: any) => allNomenclatorRoles.find(r => r.nume === mcr.rol_denumire))
+                    .filter((r): r is Rol => !!r);
+                
+                return { 
+                    ...s, 
+                    roluri: userRolesFromJoin, 
+                    cluburi: s.club_id ? (clubsMap.get(s.club_id) || { id: s.club_id, nume: 'Club Indisponibil' }) : null 
+                };
             }) || [];
             
             const allGrupe = groupsData?.map(g => ({ ...g, program: g.program || [] })) || [];

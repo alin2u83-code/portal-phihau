@@ -90,7 +90,7 @@ export const SportiviManagement: React.FC<{
             (`${s.nume} ${s.prenume}`.toLowerCase().includes(filters.searchTerm.toLowerCase())) &&
             (filters.statusFilter ? s.status === filters.statusFilter : true) &&
             (filters.grupaFilter ? s.grupa_id === filters.grupaFilter : true) &&
-            (filters.rolFilter ? s.roluri.some(r => r.id === filters.rolFilter) : true) &&
+            (filters.rolFilter ? (s.roluri || []).some(r => r.id === filters.rolFilter) : true) &&
             (filters.gradFilter ? (filters.gradFilter === 'null' ? !s.grad_actual_id : s.grad_actual_id === filters.gradFilter) : true)
         ).sort((a: Sportiv, b: Sportiv) => a.nume.localeCompare(b.nume));
     }, [sportivi, filters]);
@@ -125,8 +125,8 @@ export const SportiviManagement: React.FC<{
             tooltip: "Rolurile de acces ale utilizatorului în aplicație.",
             render: (s) => (
                 <div className="flex flex-wrap gap-1">
-                    {s.roluri.length > 0 
-                        ? s.roluri.map(r => <RoleBadge key={r.id} role={r}/>)
+                    {(s.roluri || []).length > 0 
+                        ? (s.roluri || []).map(r => <RoleBadge key={r.id} role={r}/>)
                         : <span className="text-slate-500 italic">N/A</span>
                     }
                 </div>

@@ -53,17 +53,42 @@ export const AuthContainer: React.FC = () => {
             return;
         }
 
-        const { error } = await supabase.auth.signInWithPassword({
+        // 1. Autentifică utilizatorul
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
             email: form.email,
             password: form.parola,
         });
 
-        if (error) {
+        if (signInError) {
             setMessage({ type: 'error', text: 'Date de autentificare invalide. Verificați email/utilizator și parola.' });
             setLoading(false);
+            return;
         }
-        // La succes, listener-ul onAuthStateChange din App.tsx va prelua controlul.
-        // Nu este nevoie de cod suplimentar aici.
+
+        // 2. Dacă autentificarea reușește, verifică rolurile folosind o funcție RPC
+        //    care are permisiuni superioare pentru a ocoli potențialele probleme RLS la logare.
+        if (signInData.user) {
+            const { data: rolesData, error: rpcError } = await supabase.rpc('get_user_login_data');
+
+            if (rpcError) {
+                setMessage({ type: 'error', text: `Eroare la verificarea rolurilor: ${rpcError.message}` });
+                await supabase.auth.signOut(); // Deconectează utilizatorul dacă verificarea eșuează
+                setLoading(false);
+                return;
+            }
+
+            // 3. Dacă funcția RPC nu returnează niciun rol, blochează accesul și deconectează.
+            if (!rolesData || (Array.isArray(rolesData) && rolesData.length === 0)) {
+                setMessage({ type: 'error', text: 'Contul nu are niciun rol asignat. Acces revocat.' });
+                await supabase.auth.signOut();
+                setLoading(false);
+                return;
+            }
+        }
+        
+        // 4. Dacă rolurile există, nu mai face nimic. Listener-ul onAuthStateChange din App.tsx va
+        //    prelua controlul, va încărca toate datele și va naviga la dashboard. Starea de 'loading'
+        //    se va opri natural la demontarea componentei.
     };
 
     const handleSignUp = async (e: React.FormEvent) => {

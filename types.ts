@@ -48,7 +48,6 @@ export interface Sportiv {
   telefon?: string | null;
   adresa?: string | null;
   gen?: 'Masculin' | 'Feminin' | null;
-  rol_activ_context?: Rol['nume'] | null;
   [key: string]: any; 
 }
 

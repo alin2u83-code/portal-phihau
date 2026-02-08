@@ -53,19 +53,17 @@ export const AuthContainer: React.FC = () => {
             return;
         }
 
-        // Simplificat: Doar încercăm să ne autentificăm. Listener-ul onAuthStateChange
-        // din useDataProvider va prelua controlul, va verifica rolurile și va gestiona fluxul.
-        const { error: signInError } = await supabase.auth.signInWithPassword({
+        const { error } = await supabase.auth.signInWithPassword({
             email: form.email,
             password: form.parola,
         });
 
-        setLoading(false);
-
-        if (signInError) {
+        if (error) {
             setMessage({ type: 'error', text: 'Date de autentificare invalide. Verificați email/utilizator și parola.' });
+            setLoading(false);
         }
-        // Nu mai este necesar cod pentru `on success`, deoarece listener-ul global va gestiona tranziția.
+        // La succes, listener-ul onAuthStateChange din App.tsx va prelua controlul.
+        // Nu este nevoie de cod suplimentar aici.
     };
 
     const handleSignUp = async (e: React.FormEvent) => {

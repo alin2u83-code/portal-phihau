@@ -7,7 +7,6 @@ import {
     Rol, AnuntPrezenta, Reducere, TipPlata, Locatie, Club, DecontFederatie, IstoricGrade 
 } from '../types';
 import { Session } from '@supabase/supabase-js';
-import { useError } from '../components/ErrorProvider';
 
 // Define a type for the complete application data state
 export interface AppData {
@@ -42,11 +41,8 @@ const initialData: AppData = {
     locatii: [], clubs: [], deconturiFederatie: [],
 };
 
-const USER_CONTEXT_CACHE_KEY = 'phi-hau-user-context';
-
 // The main data provider hook
 export const useDataProvider = () => {
-    const { showError } = useError();
     const [data, setData] = useState<AppData>(initialData);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -59,88 +55,68 @@ export const useDataProvider = () => {
     const [needsRoleSelection, setNeedsRoleSelection] = useState(false);
 
     const initializeAndFetchData = useCallback(async () => {
-        setLoading(true);
+        if (!supabase) {
+            setError("Clientul Supabase nu este configurat.");
+            setLoading(false);
+            return;
+        }
+
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        
+        if (!currentSession) {
+            setSession(null);
+            setCurrentUser(null);
+            setLoading(false);
+            return;
+        }
+        
+        setSession(currentSession);
         setError(null);
         setNeedsRoleSelection(false);
+        setLoading(true);
 
+        // 1. Așteaptă contextul utilizatorului
+        const { user: profile, roles, error: profileFetchError } = await getAuthenticatedUser(supabase);
+        
+        if (profileFetchError) {
+            setError(profileFetchError.message);
+            await supabase.auth.signOut();
+            setSession(null);
+            setCurrentUser(null);
+            setLoading(false);
+            return;
+        }
+
+        if (!profile || !roles) {
+            setError("Profilul utilizatorului nu a putut fi încărcat.");
+            setLoading(false);
+            return;
+        }
+        
+        // Gatekeeper: Forțează deconectarea dacă nu există roluri
+        if (roles.length === 0) {
+            console.error(`[Security Gatekeeper] User ${profile.email} has a valid session but no roles. Forcing sign out.`);
+            await supabase.auth.signOut();
+            window.location.href = '/?error=no-roles';
+            return;
+        }
+
+        setCurrentUser(profile);
+        setUserRoles(roles);
+
+        // 2. Determină dacă este necesară selecția rolului
+        const primaryContext = roles.find(r => r.is_primary);
+        setActiveRoleContext(primaryContext || null);
+        
+        if (roles.length > 1 && !primaryContext) {
+            setNeedsRoleSelection(true);
+            setLoading(false);
+            return; 
+        }
+        
+        // 3. Dacă contextul este valid, încarcă restul datelor
         try {
-            if (!supabase) throw new Error("Clientul Supabase nu este configurat.");
-
-            const { data: { session: currentSession } } = await supabase.auth.getSession();
-            if (!currentSession) {
-                setSession(null);
-                setCurrentUser(null);
-                sessionStorage.removeItem(USER_CONTEXT_CACHE_KEY);
-                return;
-            }
-            setSession(currentSession);
-
-            let profile, roles, primaryContext;
-
-            const cachedUserContext = sessionStorage.getItem(USER_CONTEXT_CACHE_KEY);
-            if (cachedUserContext) {
-                const parsed = JSON.parse(cachedUserContext);
-                profile = parsed.user;
-                roles = parsed.roles;
-                primaryContext = parsed.activeRole;
-            } else {
-                const { data: rolesValidationData, error: rpcError } = await supabase.rpc('get_user_login_data_v2');
-                if (rpcError) throw new Error(`Eroare la verificarea rolurilor: ${rpcError.message}`);
-
-                const loginDataContext = Array.isArray(rolesValidationData) ? rolesValidationData[0] : rolesValidationData;
-                const hasValidLoginData = loginDataContext && typeof loginDataContext === 'object';
-                
-                const { user: fetchedProfile, roles: fetchedRoles, error: profileFetchError } = await getAuthenticatedUser(supabase);
-                if (profileFetchError) throw profileFetchError;
-
-                if (!fetchedProfile || !fetchedRoles) {
-                    const userRolesFromJwt = currentSession.user.app_metadata?.roles || [];
-                    const hasAdminRole = userRolesFromJwt.some((r: string) => ['SUPER_ADMIN_FEDERATIE', 'Admin', 'Admin Club', 'Instructor'].includes(r));
-                    
-                    if (hasAdminRole) {
-                        console.warn("[Fallback] Profilul de sportiv nu a putut fi încărcat, dar utilizatorul are rol de admin. Se creează un profil de avarie pentru a permite accesul.");
-                        profile = {
-                            id: 'FALLBACK_PROFILE_ID', user_id: currentSession.user.id, nume: 'Admin', prenume: 'Fallback', email: currentSession.user.email,
-                            roluri: userRolesFromJwt.map((r: string) => ({ nume: r })), club_id: null, data_nasterii: '1900-01-01', data_inscrierii: '1900-01-01',
-                            status: 'Activ', cnp: null, familie_id: null, tip_abonament_id: null, participa_vacanta: false, trebuie_schimbata_parola: false
-                        };
-                        roles = []; primaryContext = null;
-                    } else {
-                        if (!hasValidLoginData) {
-                             throw new Error("PROFIL_INCOMPLET: Contul este valid, dar nu are roluri sau profil asociat.");
-                        }
-                        throw new Error("Profilul utilizatorului nu a putut fi încărcat după validarea inițială.");
-                    }
-                } else {
-                    profile = fetchedProfile;
-                    roles = fetchedRoles;
-                    
-                    if (hasValidLoginData) {
-                        primaryContext = roles.find(r => 
-                            r.rol_denumire === loginDataContext.rol_activ_context && 
-                            r.sportiv_id === loginDataContext.sportiv_id
-                        );
-                        if (!primaryContext) {
-                            primaryContext = roles.find(r => r.is_primary) || roles[0];
-                        }
-                    } else {
-                        primaryContext = roles.find(r => r.is_primary) || roles[0];
-                    }
-                    
-                    sessionStorage.setItem(USER_CONTEXT_CACHE_KEY, JSON.stringify({ user: profile, roles: roles, activeRole: primaryContext }));
-                }
-            }
-
-            setCurrentUser(profile as User);
-            setUserRoles(roles as any[]);
-            setActiveRoleContext(primaryContext as any);
-            
-            if ((roles?.length || 0) > 1 && !primaryContext) {
-                setNeedsRoleSelection(true);
-                return; 
-            }
-            
-            const queries = [
+             const queries = [
                 supabase.from('cluburi').select('*'),
                 supabase.from('roluri').select('*'),
                 supabase.from('grade').select('*'),
@@ -163,10 +139,10 @@ export const useDataProvider = () => {
                 supabase.from('deconturi_federatie').select('*'),
                 supabase.from('istoric_grade').select('*'),
             ];
-
+            
             const settledResults = await Promise.allSettled(queries);
             
-            const processedResults = settledResults.map((result) => {
+            const processedResults = settledResults.map((result, index) => {
                 if (result.status === 'fulfilled') {
                     const { data, error } = result.value;
                     if (error && (error.code === '42501' || String(error.code) === '403' || error.message.includes('permission denied'))) {
@@ -197,6 +173,7 @@ export const useDataProvider = () => {
             
             const clubsMap = new Map((clubsData || []).map(c => [c.id, c]));
             const allNomenclatorRoles = rolesData || [];
+
             const allSportivi = sportiviData?.map(s => {
                 const joinedRoles = (s as any).roles || [];
                 const userRolesFromJoin = joinedRoles.map((mcr: any) => allNomenclatorRoles.find(r => r.nume === mcr.rol_denumire)).filter(Boolean);
@@ -231,39 +208,31 @@ export const useDataProvider = () => {
 
         } catch (err: any) {
             setError(err.message);
-            showError("Eroare la încărcarea datelor", `A apărut o problemă la preluarea datelor de pe server: ${err.message}`);
-            if (!err.message.startsWith('PROFIL_INCOMPLET')) {
-                console.error("Eroare critică în timpul încărcării datelor, se deconectează:", err);
-                await supabase?.auth.signOut();
-            }
         } finally {
             setLoading(false);
         }
-    }, [showError]);
+    }, []);
 
     useEffect(() => {
         if (!supabase) return;
         
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
             if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'USER_UPDATED' || event === 'TOKEN_REFRESHED') {
-                if (session) {
-                    initializeAndFetchData();
-                }
+                initializeAndFetchData();
             } else if (event === 'SIGNED_OUT') {
-                sessionStorage.removeItem(USER_CONTEXT_CACHE_KEY);
                 setSession(null);
                 setCurrentUser(null);
                 setUserRoles([]);
                 setActiveRoleContext(null);
                 setData(initialData);
                 setLoading(false);
-                setError(null);
             }
         });
 
         return () => subscription.unsubscribe();
     }, [initializeAndFetchData]);
     
+    // Create setters for individual data slices
     const createSetter = <K extends keyof AppData>(key: K) => 
         useCallback((value: React.SetStateAction<AppData[K]>) => {
             setData(prev => ({ ...prev, [key]: typeof value === 'function' ? (value as (prevState: AppData[K]) => AppData[K])(prev[key]) : value }));

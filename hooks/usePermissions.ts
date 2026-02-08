@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { User, Rol, Permissions } from '../types';
+import { ROLES } from '../constants';
 
-// The default state when no user is logged in. All permissions are denied.
 const initialPermissions: Permissions = {
     isSuperAdmin: false,
     isAdmin: false,
@@ -19,45 +19,40 @@ const initialPermissions: Permissions = {
     isMultiContextAdmin: false,
 };
 
-/**
- * A custom hook that calculates a user's permissions based on their assigned roles and their active context.
- * It distinguishes between a user's total capabilities and their permissions in the current session.
- *
- * @param user The full user object, including all their possible roles (`user.roluri`) and the active context.
- * @returns A `Permissions` object detailing what the user can and cannot do.
- */
-export const usePermissions = (user: User | null): Permissions => {
-    return useMemo((): Permissions => {
+export const usePermissions = (user: User | null, activeRole: Rol['nume'] | null): Permissions => {
+    const permissions = useMemo((): Permissions => {
         if (!user) {
             return initialPermissions;
         }
+        
+        // Normalizează rolul activ pentru verificări dependente de context
+        const normalizedActiveRole = activeRole?.toUpperCase().replace(/ /g, '_');
 
-        // --- 1. Determine User's Overall Capabilities ---
-        // These flags are based on ALL roles the user possesses.
-        const allUserRoles = new Set((user.roluri || []).map(r => r.nume));
+        // Flag-urile de bază se determină pe baza TUTUROR rolurilor pe care le deține utilizatorul, acum normalizate.
+        const allUserRoles = new Set((user.roluri || []).map(r => r.nume.toUpperCase().replace(/ /g, '_')));
 
-        const isSuperAdmin = allUserRoles.has('SUPER_ADMIN_FEDERATIE');
-        const isAdmin = allUserRoles.has('Admin');
+        const isSuperAdmin = allUserRoles.has(ROLES.SUPER_ADMIN_FEDERATIE);
+        const isAdmin = allUserRoles.has(ROLES.ADMIN);
         const isFederationAdmin = isSuperAdmin || isAdmin;
-        const isAdminClub = allUserRoles.has('Admin Club');
-        const isInstructor = allUserRoles.has('Instructor');
-        const isSportiv = allUserRoles.has('Sportiv');
+        const isAdminClub = allUserRoles.has(ROLES.ADMIN_CLUB);
+        const isInstructor = allUserRoles.has(ROLES.INSTRUCTOR);
+        const isSportiv = allUserRoles.has(ROLES.SPORTIV);
+        
+        // hasAdminAccess este determinat de capacitățile totale ale utilizatorului.
         const hasAdminAccess = isFederationAdmin || isAdminClub || isInstructor;
-
+        
         const canBeClubAdmin = isAdminClub;
         const canBeFederationAdmin = isFederationAdmin;
         const isMultiContextAdmin = canBeClubAdmin && canBeFederationAdmin;
 
-        // --- 2. Determine Permissions for the ACTIVE Context ---
-        const activeRole = user.rol_activ_context || null;
-
-        const isFederationLevel = activeRole === 'SUPER_ADMIN_FEDERATIE' || activeRole === 'Admin';
-        const canManageFinances = isFederationLevel || activeRole === 'Admin Club';
+        // Flag-urile de business logic sunt derivate din contextul de sesiune activ NORMALIZAT.
+        const isFederationLevel = normalizedActiveRole === ROLES.SUPER_ADMIN_FEDERATIE || normalizedActiveRole === ROLES.ADMIN;
+        const canManageFinances = isFederationLevel || normalizedActiveRole === ROLES.ADMIN_CLUB;
         const canGradeStudents = hasAdminAccess;
 
-        // --- 3. Determine Data Visibility ---
+        // Logica pentru cluburile vizibile depinde, de asemenea, de contextul activ.
         const visibleClubIds: 'all' | string[] = isFederationLevel ? 'all' : (user.club_id ? [user.club_id] : []);
-
+        
         return {
             isSuperAdmin,
             isAdmin,
@@ -66,13 +61,16 @@ export const usePermissions = (user: User | null): Permissions => {
             isInstructor,
             isSportiv,
             hasAdminAccess,
-            canBeClubAdmin,
-            canBeFederationAdmin,
-            isMultiContextAdmin,
             isFederationLevel,
             canManageFinances,
             canGradeStudents,
             visibleClubIds,
+            // Proprietăți noi
+            canBeClubAdmin,
+            canBeFederationAdmin,
+            isMultiContextAdmin,
         };
-    }, [user]);
+    }, [user, activeRole]);
+
+    return permissions;
 };

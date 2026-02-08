@@ -170,9 +170,10 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
             return;
         }
 
-        const newPlati: Omit<Plata, 'id'>[] = sportiviDeFacturat.map(s => ({
+        const newPlati: (Omit<Plata, 'id' | 'club_id'> & { club_id?: string | null })[] = sportiviDeFacturat.map(s => ({
             sportiv_id: s.id,
             familie_id: s.familie_id,
+            club_id: s.club_id,
             suma: taxaToGenerate.suma,
             data: new Date().toISOString().split('T')[0],
             status: 'Neachitat',

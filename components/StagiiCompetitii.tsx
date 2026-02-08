@@ -97,7 +97,7 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment, rezultate,
             setRezultate(prev => [...prev, data as Rezultat]);
 
             if (taxaConfig) {
-                const newPlata: Omit<Plata, 'id'> = { sportiv_id: sportiv.id, familie_id: sportiv.familie_id, suma: taxaConfig.suma, data: eveniment.data, status: 'Neachitat', descriere: `Taxa ${eveniment.tip}: ${eveniment.denumire}`, tip: eveniment.tip === 'Stagiu' ? 'Taxa Stagiu' : 'Taxa Competitie', observatii: 'Generat automat la înscriere.' };
+                const newPlata: Omit<Plata, 'id' | 'club_id'> & { club_id?: string | null } = { sportiv_id: sportiv.id, familie_id: sportiv.familie_id, club_id: sportiv.club_id, suma: taxaConfig.suma, data: eveniment.data, status: 'Neachitat', descriere: `Taxa ${eveniment.tip}: ${eveniment.denumire}`, tip: eveniment.tip === 'Stagiu' ? 'Taxa Stagiu' : 'Taxa Competitie', observatii: 'Generat automat la înscriere.' };
                 const { data: plataData, error: plataError } = await supabase.from('plati').insert(newPlata).select().single();
                 if(plataError) throw plataError;
                 setPlati(prev => [...prev, plataData as Plata]);

@@ -75,8 +75,6 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
                 throw new Error("Contextul curent nu are un club ID asociat.");
             }
     
-            // Interogarea se bazează acum pe RLS pentru a filtra sportivii la nivel de bază de date.
-            // Filtrul manual `.eq('club_id', clubId)` a fost eliminat.
             const { data: sportiviActivi, error } = await supabase
                 .from('sportivi')
                 .select('*')
@@ -90,7 +88,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
             const lunaCurentaIdx = today.getMonth();
             const anulCurent = today.getFullYear();
             
-            const platiToInsert: Omit<Plata, 'id'>[] = [];
+            const platiToInsert: (Omit<Plata, 'id' | 'club_id'> & { club_id?: string | null })[] = [];
             const sportiviProcesati = new Set<string>();
     
             const familyIdsInClub = new Set(sportiviActivi.map(s => s.familie_id).filter(Boolean));
@@ -125,7 +123,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
                     if (creditFamilie >= sumaDeFacturat) { status = 'Achitat'; observatii += ` Stins automat din credit.`; } 
                     else if (creditFamilie > 0) { sumaDeFacturat -= creditFamilie; observatii += ` Parțial stins din credit.`; }
     
-                    platiToInsert.push({ sportiv_id: null, familie_id: familie.id, suma: sumaDeFacturat, data: dataCurenta, status: status, descriere: `Abonament Familie ${lunaText}`, tip: 'Abonament', observatii: observatii });
+                    platiToInsert.push({ sportiv_id: null, familie_id: familie.id, suma: sumaDeFacturat, data: dataCurenta, status: status, descriere: `Abonament Familie ${lunaText}`, tip: 'Abonament', observatii: observatii, club_id: membriActiviInFamilie[0]?.club_id });
                     membriActiviInFamilie.forEach(m => sportiviProcesati.add(m.id));
                 }
             });
@@ -142,7 +140,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
                     let observatii = 'Generat automat.';
                     if (creditSportiv >= sumaDeFacturat) { status = 'Achitat'; observatii += ' Stins automat din credit.'; } 
                     else if (creditSportiv > 0) { sumaDeFacturat -= creditSportiv; observatii += ' Parțial stins din credit.'; }
-                    platiToInsert.push({ sportiv_id: sportiv.id, familie_id: null, suma: sumaDeFacturat, data: dataCurenta, status: status, descriere: `Abonament ${lunaText}`, tip: 'Abonament', observatii: observatii });
+                    platiToInsert.push({ sportiv_id: sportiv.id, familie_id: null, suma: sumaDeFacturat, data: dataCurenta, status: status, descriere: `Abonament ${lunaText}`, tip: 'Abonament', observatii: observatii, club_id: sportiv.club_id });
                 }
             });
     

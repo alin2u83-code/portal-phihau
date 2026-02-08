@@ -106,15 +106,19 @@ const AdaugaAvans: React.FC<{
         const familieSelectata = familii.find(f => f.id === familieId);
         if (!familieSelectata) return;
 
+        const sportivInFamilie = sportivi.find(s => s.familie_id === familieId);
+        const clubId = sportivInFamilie?.club_id;
+
         setLoading(true);
-        const newTranzactie: Omit<Tranzactie, 'id'> = {
+        const newTranzactie: Omit<Tranzactie, 'id' | 'club_id'> & { club_id?: string | null } = {
             plata_ids: [],
             sportiv_id: null,
             familie_id: familieId,
             suma: +suma,
             data_platii: dataPlatii,
             metoda_plata: metodaPlata,
-            descriere: `Plată în avans Familia ${familieSelectata.nume}`
+            descriere: `Plată în avans Familia ${familieSelectata.nume}`,
+            club_id: clubId
         };
 
         const { data, error } = await supabase.from('tranzactii').insert(newTranzactie).select().single();
@@ -308,7 +312,10 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
                     throw new Error(`Plată Blocată: Factura "${alreadyPaid[0].descriere}" este deja achitată.`);
                 }
                 
-                const { data: tx, error: txError } = await supabase.from('tranzactii').insert({ plata_ids: idsToUpdate, sportiv_id: formState.sportiv_id || platiInitiale[0]?.sportiv_id, familie_id: formState.familie_id || platiInitiale[0]?.familie_id, suma: sumaNum, data_platii: formState.data_platii!, metoda_plata: formState.metoda_plata! }).select().single();
+                const sportivPtClub = sportivi.find(s => s.id === (formState.sportiv_id || platiInitiale[0]?.sportiv_id));
+                const clubId = sportivPtClub?.club_id;
+                
+                const { data: tx, error: txError } = await supabase.from('tranzactii').insert({ plata_ids: idsToUpdate, sportiv_id: formState.sportiv_id || platiInitiale[0]?.sportiv_id, familie_id: formState.familie_id || platiInitiale[0]?.familie_id, suma: sumaNum, data_platii: formState.data_platii!, metoda_plata: formState.metoda_plata!, club_id: clubId }).select().single();
                 if (txError) throw txError;
                 tranzactieId = (tx as Tranzactie).id;
 
@@ -347,9 +354,11 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
 
             } else {
                 const sportiv = sportivi.find(s => s.id === formState.sportiv_id);
+                const clubId = sportiv?.club_id;
                 const { data: newPlata, error: plataError } = await supabase.from('plati').insert({ 
                     sportiv_id: formState.sportiv_id, 
                     familie_id: sportiv?.familie_id, 
+                    club_id: clubId,
                     suma: sumaNum, 
                     suma_initiala: formState.suma_initiala > 0 ? formState.suma_initiala : null, 
                     reducere_id: formState.reducere_id,
@@ -362,7 +371,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
                 }).select().single();
                 if (plataError) throw plataError;
                 newPlataId = (newPlata as Plata).id;
-                const { data: tx, error: txError } = await supabase.from('tranzactii').insert({ plata_ids: [newPlataId], sportiv_id: formState.sportiv_id, familie_id: sportiv?.familie_id, suma: sumaNum, data_platii: formState.data_platii!, metoda_plata: formState.metoda_plata! }).select().single();
+                const { data: tx, error: txError } = await supabase.from('tranzactii').insert({ plata_ids: [newPlataId], sportiv_id: formState.sportiv_id, familie_id: sportiv?.familie_id, suma: sumaNum, data_platii: formState.data_platii!, metoda_plata: formState.metoda_plata!, club_id: clubId }).select().single();
                 if (txError) throw txError;
                 tranzactieId = (tx as Tranzactie).id;
                 setPlati(prev => [...prev, newPlata as Plata]);

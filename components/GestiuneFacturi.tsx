@@ -69,15 +69,21 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
         }
 
         const sportivSelectat = sportivi.find(s => s.id === formState.sportiv_id);
-        if (sportivSelectat?.club_id !== currentUser.club_id) {
+        if (!sportivSelectat) {
+             showError("Eroare", "Sportivul selectat nu a fost găsit.");
+            return;
+        }
+
+        if (sportivSelectat.club_id !== currentUser.club_id) {
             showError("Acces Interzis", "Nu puteți emite facturi pentru sportivi din alt club.");
             return;
         }
 
         setLoading(true);
-        const newPlata: Omit<Plata, 'id'> = {
+        const newPlata: Omit<Plata, 'id' | 'club_id'> & { club_id?: string | null } = {
             sportiv_id: formState.sportiv_id,
             familie_id: sportivSelectat.familie_id,
+            club_id: sportivSelectat.club_id,
             suma: sumaNum,
             data: formState.data,
             status: 'Neachitat',

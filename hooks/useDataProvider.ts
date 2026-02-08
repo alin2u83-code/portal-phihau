@@ -89,12 +89,10 @@ export const useDataProvider = () => {
                         setError('Eroare la reîmprospătarea sesiunii. Vă rugăm să vă autentificați din nou.');
                         await supabase.auth.signOut();
                     } else {
-                        // After refreshing, reload the page to re-trigger the entire data fetch with the new token.
                         window.location.reload();
                         return;
                     }
                 } else {
-                    // We've already tried refreshing, now we show the error.
                     sessionStorage.removeItem('sessionRefreshed');
                     setError(profileFetchError.message);
                 }
@@ -102,13 +100,11 @@ export const useDataProvider = () => {
                 setError(profileFetchError.message);
             }
             
-            // Common error path after failed fetch or failed refresh attempt
             setSession(null);
             setCurrentUser(null);
             setLoading(false);
             return;
         } else {
-            // Clear the refresh flag on a successful fetch
             sessionStorage.removeItem('sessionRefreshed');
         }
 
@@ -118,7 +114,6 @@ export const useDataProvider = () => {
             return;
         }
         
-        // Gatekeeper: Forțează deconectarea dacă nu există roluri
         if (roles.length === 0) {
             console.error(`[Security Gatekeeper] User ${profile.email} has a valid session but no roles. Forcing sign out.`);
             await supabase.auth.signOut();
@@ -129,7 +124,6 @@ export const useDataProvider = () => {
         setCurrentUser(profile);
         setUserRoles(roles);
 
-        // 2. Determină dacă este necesară selecția rolului
         const primaryContext = roles.find(r => r.is_primary);
         setActiveRoleContext(primaryContext || null);
         
@@ -139,7 +133,6 @@ export const useDataProvider = () => {
             return; 
         }
         
-        // 3. Dacă contextul este valid, încarcă restul datelor
         try {
              const queries = [
                 supabase.from('cluburi').select('*'),
@@ -167,18 +160,18 @@ export const useDataProvider = () => {
             
             const settledResults = await Promise.allSettled(queries);
             
-            const processedResults = settledResults.map((result, index) => {
+            const processedResults = settledResults.map((result) => {
                 if (result.status === 'fulfilled') {
-                    const { data, error } = result.value;
-                    if (error && (error.code === '42501' || String(error.code) === '403' || error.message.includes('permission denied'))) {
-                        console.warn(`RLS a blocat accesul la un tabel. Se returnează un array gol.`, error.message);
+                    const { data, error: queryError } = result.value;
+                    if (queryError && (queryError.code === '42501' || String(queryError.code) === '403' || queryError.message.includes('permission denied'))) {
+                        console.warn(`RLS a blocat accesul la un tabel. Se returnează un array gol.`, queryError.message);
                         return { data: [], error: null };
                     }
-                    if (error) throw error;
-                    return { data, error };
+                    if (queryError) throw queryError;
+                    return { data, error: null };
                 } else {
                     const error = result.reason;
-                    if (error.code === '42501' || String(error.code) === '403' || error.message.includes('permission denied')) {
+                     if (error.code === '42501' || String(error.code) === '403' || error.message.includes('permission denied')) {
                         console.warn(`RLS a blocat accesul la un tabel. Se returnează un array gol.`, error.message);
                         return { data: [], error: null };
                     }
@@ -199,7 +192,7 @@ export const useDataProvider = () => {
             const clubsMap = new Map((clubsData || []).map(c => [c.id, c]));
             const allNomenclatorRoles = rolesData || [];
 
-            const allSportivi = sportiviData?.map(s => {
+            let allSportivi = sportiviData?.map(s => {
                 const joinedRoles = Array.isArray((s as any).roles) ? (s as any).roles : [];
                 const userRolesFromJoin = joinedRoles
                     .map((mcr: any) => allNomenclatorRoles.find(r => r.nume === mcr.rol_denumire))
@@ -213,6 +206,23 @@ export const useDataProvider = () => {
             }) || [];
             
             const allGrupe = groupsData?.map(g => ({ ...g, program: g.program || [] })) || [];
+
+            // FILTRARE PENTRU ROL SPORTIV
+            let filteredPlati = platiData || [];
+            let filteredTranzactii = tranzactiiData || [];
+            const isSportivOnly = profile.roluri.length === 1 && profile.roluri[0].nume === 'Sportiv';
+            
+            if (isSportivOnly) {
+                const userFamilyId = profile.familie_id;
+                if (userFamilyId) {
+                    const familyMemberIds = new Set(allSportivi.filter(s => s.familie_id === userFamilyId).map(s => s.id));
+                    filteredPlati = (platiData || []).filter(p => p.familie_id === userFamilyId || (p.sportiv_id && familyMemberIds.has(p.sportiv_id)));
+                    filteredTranzactii = (tranzactiiData || []).filter(t => t.familie_id === userFamilyId || (t.sportiv_id && familyMemberIds.has(t.sportiv_id)));
+                } else {
+                    filteredPlati = (platiData || []).filter(p => p.sportiv_id === profile.id);
+                    filteredTranzactii = (tranzactiiData || []).filter(t => t.sportiv_id === profile.id);
+                }
+            }
             
             setData({
                 sportivi: allSportivi as Sportiv[],
@@ -220,8 +230,8 @@ export const useDataProvider = () => {
                 inscrieriExamene: registrationsData as InscriereExamen[],
                 istoricGrade: istoricGradeData as IstoricGrade[],
                 antrenamente: (trainingsData?.map(t => ({...t, prezenta: (t as any).prezenta || []})) || []) as Antrenament[],
-                plati: platiData as Plata[],
-                tranzactii: tranzactiiData as Tranzactie[],
+                plati: filteredPlati as Plata[],
+                tranzactii: filteredTranzactii as Tranzactie[],
                 evenimente: eventsData as Eveniment[],
                 rezultate: resultsData as Rezultat[],
                 familii: familiesData as Familie[],
@@ -264,7 +274,6 @@ export const useDataProvider = () => {
         return () => subscription.unsubscribe();
     }, [initializeAndFetchData]);
     
-    // Create setters for individual data slices
     const createSetter = <K extends keyof AppData>(key: K) => 
         useCallback((value: React.SetStateAction<AppData[K]>) => {
             setData(prev => ({ ...prev, [key]: typeof value === 'function' ? (value as (prevState: AppData[K]) => AppData[K])(prev[key]) : value }));

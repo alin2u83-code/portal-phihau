@@ -1,9 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Sportiv, Familie, Plata, Tranzactie } from '../types';
-import { Modal, Button, Input, Select, Card } from './ui';
-import { supabase } from '../supabaseClient';
-import { useError } from './ErrorProvider';
-import { PlusIcon, WalletIcon } from './icons';
+import { Modal, Button } from './ui';
+import { BanknotesIcon, BookOpenIcon, TrophyIcon, WalletIcon } from './icons';
 
 interface SportivWalletProps {
     sportiv: Sportiv;
@@ -14,19 +12,22 @@ interface SportivWalletProps {
     onClose: () => void;
 }
 
-export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, allPlati, allTranzactii, setTranzactii, onClose }) => {
-    const { showError, showSuccess } = useError();
-    const [loading, setLoading] = useState(false);
-    const [formState, setFormState] = useState({
-        suma: '',
-        data_platii: new Date().toISOString().split('T')[0],
-        metoda_plata: 'Cash' as 'Cash' | 'Transfer Bancar',
-        observatii: ''
-    });
+const getPaymentIcon = (type: string) => {
+    const normalizedType = type.toLowerCase();
+    if (normalizedType.includes('abonament')) return <BanknotesIcon className="w-5 h-5 text-sky-400" />;
+    if (normalizedType.includes('examen')) return <BookOpenIcon className="w-5 h-5 text-amber-400" />;
+    if (normalizedType.includes('stagiu') || normalizedType.includes('competitie')) return <TrophyIcon className="w-5 h-5 text-fuchsia-400" />;
+    return <WalletIcon className="w-5 h-5 text-slate-400" />;
+};
 
+export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, allPlati, allTranzactii, setTranzactii, onClose }) => {
+    
     const isFamilyWallet = !!sportiv.familie_id && !!familie;
 
-    const { sold, history } = useMemo(() => {
+    const { sold, history, lastPaymentDate } = useMemo(() => {
+        if (!allPlati || !allTranzactii) {
+             return { sold: 0, history: [], lastPaymentDate: null };
+        }
         const relevantPlati = isFamilyWallet
             ? allPlati.filter(p => p.familie_id === sportiv.familie_id)
             : allPlati.filter(p => p.sportiv_id === sportiv.id && !p.familie_id);
@@ -41,137 +42,82 @@ export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, 
         const currentSold = totalIncasari - totalDatorii;
         
         const platiHistory = relevantPlati.map(p => ({
-            id: p.id,
-            date: p.data,
-            amount: -p.suma,
-            description: p.descriere,
-            type: 'debit' as const
+            id: p.id, date: p.data, amount: -p.suma,
+            description: p.descriere, type: 'debit' as const, paymentType: p.tip
         }));
 
         const tranzactiiHistory = relevantTranzactii.map(t => ({
-            id: t.id,
-            date: t.data_platii,
-            amount: t.suma,
-            description: t.descriere || `Încasare ${t.metoda_plata}`,
-            type: 'credit' as const,
-            facturi: t.plata_ids ? allPlati.filter(p => t.plata_ids.includes(p.id)) : []
+            id: t.id, date: t.data_platii, amount: t.suma,
+            description: t.descriere || `Încasare ${t.metoda_plata}`, type: 'credit' as const, paymentType: 'Incasare'
         }));
 
-        const combinedHistory = [...platiHistory, ...tranzactiiHistory].sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        const combinedHistory = [...platiHistory, ...tranzactiiHistory].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         
-        return { sold: currentSold, history: combinedHistory };
+        const lastPayment = [...relevantTranzactii].sort((a,b) => new Date(b.data_platii).getTime() - new Date(a.data_platii).getTime())[0];
+
+        return { sold: currentSold, history: combinedHistory, lastPaymentDate: lastPayment?.data_platii };
 
     }, [sportiv, isFamilyWallet, allPlati, allTranzactii]);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        setFormState(prev => ({...prev, [e.target.name]: e.target.value }));
-    };
+    const cotisationStatus = useMemo(() => {
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        const hasRecentPayment = lastPaymentDate && new Date(lastPaymentDate) > thirtyDaysAgo;
+        if (sold < 0 && !hasRecentPayment) return { text: "Restant", color: "text-red-400" };
+        return { text: "Activ", color: "text-green-400" };
+    }, [sold, lastPaymentDate]);
 
-    const handlePlataRapida = async (e: React.FormEvent) => {
-        e.preventDefault();
-        const sumaNum = parseFloat(formState.suma);
-        if (isNaN(sumaNum) || sumaNum <= 0) {
-            showError("Sumă Invalidă", "Vă rugăm introduceți o sumă validă.");
-            return;
-        }
-        setLoading(true);
-
-        const newTranzactie: Omit<Tranzactie, 'id'> = {
-            plata_ids: [],
-            sportiv_id: isFamilyWallet ? null : sportiv.id,
-            familie_id: sportiv.familie_id,
-            suma: sumaNum,
-            data_platii: formState.data_platii,
-            metoda_plata: formState.metoda_plata,
-            descriere: formState.observatii || 'Plată rapidă (avans)'
-        };
-        
-        const { data, error } = await supabase.from('tranzactii').insert(newTranzactie).select().single();
-        setLoading(false);
-        if (error) {
-            showError("Eroare la Salvare", error);
-        } else if (data) {
-            setTranzactii(prev => [...prev, data as Tranzactie]);
-            showSuccess("Succes", "Plata a fost înregistrată cu succes.");
-            setFormState({ suma: '', data_platii: new Date().toISOString().split('T')[0], metoda_plata: 'Cash', observatii: '' });
-        }
-    };
-    
-    const title = isFamilyWallet ? `Portofel Familie: ${familie?.nume}` : `Portofel Sportiv: ${sportiv.nume} ${sportiv.prenume}`;
+    const title = isFamilyWallet ? `Portofel Familie: ${familie?.nume}` : `Portofel Personal: ${sportiv.nume} ${sportiv.prenume}`;
 
     return (
         <Modal isOpen={true} onClose={onClose} title={title}>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6" style={{fontSize: '13px'}}>
-                {/* Left side: Balance and Quick Pay */}
-                <div className="md:col-span-1 space-y-4">
-                    <Card className="text-center bg-navy-card-mobile md:bg-brand-primary/20">
-                        <h3 className="text-sm font-bold uppercase text-slate-400 tracking-wider">Sold Curent</h3>
-                        <p className={`text-4xl font-bold mt-2 ${sold >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                           {sold >= 0 ? '+' : ''}{sold.toFixed(2)}
-                           <span className="text-xl ml-1">lei</span>
-                        </p>
-                        <p className={`text-xs font-semibold ${sold >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                            {sold >= 0 ? 'Avans / Credit' : 'Datorie / Restanță'}
-                        </p>
-                    </Card>
-                    <form onSubmit={handlePlataRapida} className="space-y-3">
-                        <h4 className="font-bold text-center text-white">Plată Rapidă</h4>
-                        <Input label="Suma Primită (lei)" name="suma" type="number" step="0.01" value={formState.suma} onChange={handleChange} required/>
-                        <Input label="Data Plății" name="data_platii" type="date" value={formState.data_platii} onChange={handleChange} required/>
-                        <Select label="Metoda" name="metoda_plata" value={formState.metoda_plata} onChange={handleChange}>
-                            <option>Cash</option>
-                            <option>Transfer Bancar</option>
-                        </Select>
-                        <Input label="Observații (opțional)" name="observatii" value={formState.observatii} onChange={handleChange} placeholder="Ex: Avans"/>
-                        <Button type="submit" variant="primary" className="w-full" isLoading={loading}>
-                            <PlusIcon className="w-5 h-5 mr-1"/> Înregistrează Plata
-                        </Button>
-                    </form>
+            <div className="space-y-6">
+                <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-6 shadow-2xl border border-slate-700">
+                    <div className="flex justify-between items-start">
+                        <div>
+                            <p className="text-sm font-bold uppercase text-slate-400 tracking-wider">Sold Curent</p>
+                            <p className={`text-5xl font-black mt-2 ${sold >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                               {sold.toFixed(2)}
+                               <span className="text-2xl ml-1">RON</span>
+                            </p>
+                        </div>
+                        <div className={`text-right ${cotisationStatus.color}`}>
+                            <p className="text-sm font-bold uppercase tracking-wider">Status Cotizație</p>
+                            <p className="text-lg font-bold">{cotisationStatus.text}</p>
+                        </div>
+                    </div>
+                    <div className="mt-6 pt-4 border-t border-slate-700 flex justify-between items-center text-sm">
+                        <span className="text-slate-400">Ultima Plată:</span>
+                        <span className="font-bold text-white">{lastPaymentDate ? new Date(lastPaymentDate + 'T00:00:00').toLocaleDateString('ro-RO') : 'N/A'}</span>
+                    </div>
                 </div>
 
-                {/* Right side: History */}
-                <div className="md:col-span-2">
-                     <h3 className="text-lg font-bold text-white mb-2 text-center">Extras de Cont</h3>
-                     <div className="bg-slate-900/50 border border-slate-700 rounded-lg max-h-96 overflow-y-auto" style={{fontSize: '12px'}}>
-                        <table className="w-full text-left">
-                            <thead className="sticky top-0 bg-slate-700/80 backdrop-blur-sm">
-                                <tr>
-                                    <th className="p-2 font-semibold">Data</th>
-                                    <th className="p-2 font-semibold">Descriere</th>
-                                    <th className="p-2 font-semibold text-right">Sumă (lei)</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-700">
-                                {history.map((item: any) => (
-                                    <tr key={`${item.type}-${item.id}`} className="hover:bg-white/5">
-                                        <td className="p-2 text-slate-400">{new Date(item.date).toLocaleDateString('ro-RO')}</td>
-                                        <td className="p-2">
-                                            {item.description}
-                                            {item.type === 'credit' && item.facturi && item.facturi.length > 0 && (
-                                                <ul className="text-xs text-slate-500 pl-4 mt-1 list-disc list-inside">
-                                                    {item.facturi.map((f: any) => (
-                                                        <li key={f.id}>Stinge: "{f.descriere}"</li>
-                                                    ))}
-                                                </ul>
-                                            )}
-                                        </td>
-                                        <td className={`p-2 text-right font-bold ${item.type === 'credit' ? 'text-green-400' : 'text-red-400'}`}>
+                <div>
+                     <h3 className="text-lg font-bold text-white mb-2">Istoric Tranzacții</h3>
+                     <div className="bg-slate-900/50 border border-slate-700 rounded-lg max-h-80 overflow-y-auto">
+                        {history.length > 0 ? (
+                            <ul className="divide-y divide-slate-800">
+                                {history.map((item, index) => (
+                                    <li key={`${item.id}-${index}`} className="flex items-center p-3 gap-3">
+                                        <div className="p-2 bg-slate-700/50 rounded-full">{getPaymentIcon(item.paymentType)}</div>
+                                        <div className="flex-grow">
+                                            <p className="font-semibold text-white text-sm">{item.description}</p>
+                                            <p className="text-xs text-slate-400">{new Date(item.date).toLocaleDateString('ro-RO')}</p>
+                                        </div>
+                                        <p className={`text-base font-bold text-right ${item.type === 'credit' ? 'text-green-400' : 'text-red-400'}`}>
                                             {item.type === 'credit' ? '+' : ''}{item.amount.toFixed(2)}
-                                        </td>
-                                    </tr>
+                                        </p>
+                                    </li>
                                 ))}
-                                {history.length === 0 && (
-                                    <tr><td colSpan={3} className="p-8 text-center text-slate-500 italic">Niciun istoric financiar.</td></tr>
-                                )}
-                            </tbody>
-                             <tfoot className="sticky bottom-0 bg-slate-700/80 backdrop-blur-sm">
-                                <tr className="font-bold text-white">
-                                    <td colSpan={2} className="p-2 text-right">Sold Final:</td>
-                                    <td className={`p-2 text-right ${sold >= 0 ? 'text-green-400' : 'text-red-400'}`}>{sold.toFixed(2)} lei</td>
-                                </tr>
-                             </tfoot>
-                        </table>
+                            </ul>
+                        ) : (
+                            <p className="p-8 text-center text-slate-500 italic">Momentan nu există plăți înregistrate pentru profilul tău.</p>
+                        )}
                      </div>
+                </div>
+
+                 <div className="flex justify-end pt-4">
+                    <Button variant="secondary" onClick={onClose}>Închide</Button>
                 </div>
             </div>
         </Modal>

@@ -1,6 +1,8 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions } from '../types';
+// FIX: Added `RoleBadge` to imports as it is used in the component.
 import { Button, Modal, Input, Select, Card, RoleBadge } from './ui';
+// FIX: Removed `UserXIcon`, `UserCheckIcon` as they were unused, and `ShieldCheckIcon` as its feature was removed.
 import { PlusIcon, ArrowLeftIcon, WalletIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
@@ -20,6 +22,86 @@ const getAge = (dateString: string | null | undefined): number => {
     if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; } 
     return age; 
 };
+
+// --- NOU: Componentă pentru vizualizarea familiei ---
+const FamilyView: React.FC<{
+    currentUser: User;
+    sportivi: Sportiv[];
+    plati: Plata[];
+    tranzactii: Tranzactie[];
+    familii: Familie[];
+    grade: Grad[];
+    onViewSportiv: (sportiv: Sportiv) => void;
+}> = ({ currentUser, sportivi, plati, tranzactii, familii, grade, onViewSportiv }) => {
+    
+    const familyMembers = useMemo(() => {
+        if (!currentUser?.familie_id) return [currentUser];
+        return sportivi.filter(s => s.familie_id === currentUser.familie_id);
+    }, [currentUser, sportivi]);
+
+    const familyInfo = useMemo(() => {
+        if (!currentUser?.familie_id) return null;
+        return familii.find(f => f.id === currentUser.familie_id);
+    }, [currentUser, familii]);
+
+    const { familyBalance, lastPaymentDate } = useMemo(() => {
+        const familyId = currentUser?.familie_id;
+        if (!familyId) return { familyBalance: 0, lastPaymentDate: null };
+
+        const relevantPlati = (plati || []).filter(p => p.familie_id === familyId);
+        const relevantTranzactii = (tranzactii || []).filter(t => t.familie_id === familyId);
+
+        const totalDatorii = relevantPlati.reduce((sum, p) => sum + p.suma, 0);
+        const totalIncasari = relevantTranzactii.reduce((sum, t) => sum + t.suma, 0);
+        
+        const lastPayment = [...relevantTranzactii].sort((a,b) => new Date(b.data_platii).getTime() - new Date(a.data_platii).getTime())[0];
+
+        return {
+            familyBalance: totalIncasari - totalDatorii,
+            lastPaymentDate: lastPayment ? new Date(lastPayment.data_platii).toLocaleDateString('ro-RO') : null,
+        };
+    }, [currentUser, plati, tranzactii]);
+
+    return (
+        <div className="space-y-6">
+            <h1 className="text-2xl font-bold text-white uppercase tracking-tight">Portalul Familiei {familyInfo?.nume || currentUser.nume}</h1>
+            <Card className="border-l-4 border-brand-secondary">
+                <h2 className="text-lg font-bold text-slate-300 mb-2">Situație Financiară</h2>
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <p className="text-sm text-slate-400">Sold Curent</p>
+                        <p className={`text-4xl font-black ${familyBalance >= 0 ? 'text-green-400' : 'text-red-400'}`}>{familyBalance.toFixed(2)} RON</p>
+                    </div>
+                    {lastPaymentDate && (
+                        <div className="text-right">
+                            <p className="text-sm text-slate-400">Ultima Plată</p>
+                            <p className="text-lg font-bold text-white">{lastPaymentDate}</p>
+                        </div>
+                    )}
+                </div>
+            </Card>
+
+            <Card>
+                <h2 className="text-lg font-bold text-white mb-4">Membrii Familiei</h2>
+                <div className="space-y-3">
+                    {familyMembers.map(member => {
+                        const grad = grade.find(g => g.id === member.grad_actual_id);
+                        return (
+                            <div key={member.id} className="bg-slate-700/50 p-3 rounded-md flex justify-between items-center">
+                                <div>
+                                    <p className="font-bold text-white">{member.nume} {member.prenume}</p>
+                                    <p className="text-sm text-slate-400">{grad?.nume || 'Începător'} - {getAge(member.data_nasterii)} ani</p>
+                                </div>
+                                <Button size="sm" variant="info" onClick={() => onViewSportiv(member)}>Detalii</Button>
+                            </div>
+                        );
+                    })}
+                </div>
+            </Card>
+        </div>
+    );
+};
+
 
 // --- Componenta Management Principală ---
 export const SportiviManagement: React.FC<{
@@ -42,7 +124,8 @@ export const SportiviManagement: React.FC<{
     permissions: Permissions;
     allRoles: Rol[];
     setAllRoles: React.Dispatch<React.SetStateAction<Rol[]>>;
-}> = ({ onBack, sportivi, setSportivi, grupe, setGrupe, tipuriAbonament, familii, setFamilii, currentUser, plati, setPlati, tranzactii, setTranzactii, onViewSportiv, clubs, grade, permissions, allRoles, setAllRoles }) => {
+}> = (props) => {
+    const { onBack, sportivi, setSportivi, grupe, setGrupe, tipuriAbonament, familii, setFamilii, currentUser, plati, setPlati, tranzactii, setTranzactii, onViewSportiv, clubs, grade, permissions, allRoles, setAllRoles } = props;
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
     const [sportivToEdit, setSportivToEdit] = useState<Sportiv | null>(null);
     const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
@@ -311,6 +394,10 @@ export const SportiviManagement: React.FC<{
             return { success: false, error: err };
         }
     };
+
+    if (permissions?.isSportiv && !permissions.hasAdminAccess) {
+        return <FamilyView {...props} />;
+    }
 
     return (
         <div className="space-y-6">

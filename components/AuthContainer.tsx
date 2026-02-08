@@ -68,7 +68,7 @@ export const AuthContainer: React.FC = () => {
         // 2. Dacă autentificarea reușește, verifică rolurile folosind o funcție RPC
         //    care are permisiuni superioare pentru a ocoli potențialele probleme RLS la logare.
         if (signInData.user) {
-            const { data: rolesData, error: rpcError } = await supabase.rpc('get_user_login_data');
+            const { data: rolesData, error: rpcError } = await supabase.rpc('get_user_login_data_v2');
 
             if (rpcError) {
                 setMessage({ type: 'error', text: `Eroare la verificarea rolurilor: ${rpcError.message}` });
@@ -77,7 +77,7 @@ export const AuthContainer: React.FC = () => {
                 return;
             }
 
-            // 3. Dacă funcția RPC nu returnează niciun rol, blochează accesul și deconectează.
+            // 3. Dacă funcția RPC nu returnează niciun rol (indiferent de denumire), blochează accesul și deconectează.
             if (!rolesData || (Array.isArray(rolesData) && rolesData.length === 0)) {
                 setMessage({ type: 'error', text: 'Contul nu are niciun rol asignat. Acces revocat.' });
                 await supabase.auth.signOut();

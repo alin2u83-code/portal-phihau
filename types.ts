@@ -48,6 +48,22 @@ export interface Sportiv {
   [key: string]: any; 
 }
 
+// NOU: Tip de date pentru vederea `sportiv_detaliu`
+export interface SportivDetaliu {
+  id: string;
+  nume_complet: string;
+  telefon: string | null;
+  status: 'Activ' | 'Inactiv';
+  club_id: string;
+  club_nume: string;
+  grupa_id: string | null;
+  grupa_denumire: string | null;
+  grad_actual: string | null;
+  ultima_prezenta: string | null; // Format 'YYYY-MM-DD'
+  total_prezente: number;
+}
+
+
 export interface Grad {
   id:string;
   nume: string;

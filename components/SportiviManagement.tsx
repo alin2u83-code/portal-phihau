@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions } from '../types';
 import { Button, Modal, Input, Select, Card, RoleBadge } from './ui';
-import { PlusIcon, ArrowLeftIcon, WalletIcon } from './icons';
+import { PlusIcon, ArrowLeftIcon, WalletIcon, UserXIcon, UserCheckIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
@@ -145,7 +145,7 @@ export const SportiviManagement: React.FC<{
         {
             key: 'actions',
             label: 'Acțiuni',
-            tooltip: "Acțiuni rapide: gestionează portofelul sportivului.",
+            tooltip: "Acțiuni rapide: gestionează portofelul sau setările contului.",
             headerClassName: 'text-right',
             cellClassName: 'text-right',
             render: (s) => (
@@ -158,7 +158,7 @@ export const SportiviManagement: React.FC<{
         }
     ];
 
-    const handleSave = async (formData: Partial<Sportiv>): Promise<{ success: boolean; error?: any; data?: Sportiv; }> => {
+    const handleSave = async (formData: Partial<Sportiv>) => {
         const { roluri, ...sportivData } = formData;
         try {
             if (sportivToEdit) {
@@ -166,8 +166,6 @@ export const SportiviManagement: React.FC<{
                 if (error) throw error;
                 const updatedSportiv = { ...data, roluri: data.roluri || [] };
                 setSportivi(prev => prev.map(s => s.id === sportivToEdit.id ? updatedSportiv : s));
-                showSuccess('Succes', 'Sportiv actualizat!');
-                return { success: true, data: updatedSportiv };
             } else {
                 const dataToSave = { ...sportivData };
                 if (!dataToSave.familie_id) {
@@ -191,11 +189,9 @@ export const SportiviManagement: React.FC<{
                     }
                 }
                 setSportivi(prev => [...prev, newSportiv]);
-                showSuccess('Succes', 'Sportiv adăugat!');
-                return { success: true, data: newSportiv };
             }
+            return { success: true };
         } catch (err: any) {
-            showError("Eroare la Salvare", err.message);
             return { success: false, error: err };
         }
     };
@@ -250,12 +246,7 @@ export const SportiviManagement: React.FC<{
             {isFormModalOpen && (
                  <SportivFormModal 
                     isOpen={isFormModalOpen}
-                    onClose={(savedSportiv?: Sportiv) => {
-                        setIsFormModalOpen(false);
-                        if (savedSportiv && !sportivToEdit) {
-                            onViewSportiv(savedSportiv);
-                        }
-                    }}
+                    onClose={() => setIsFormModalOpen(false)}
                     onSave={handleSave}
                     sportivToEdit={sportivToEdit}
                     grupe={grupe}

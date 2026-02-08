@@ -77,7 +77,6 @@ export const useDataProvider = () => {
 
             let profile, roles, primaryContext;
 
-            // NOU: Pas 1 - Încearcă să încarci contextul utilizatorului din cache-ul sesiunii.
             const cachedUserContext = sessionStorage.getItem(USER_CONTEXT_CACHE_KEY);
             if (cachedUserContext) {
                 const parsed = JSON.parse(cachedUserContext);
@@ -85,9 +84,11 @@ export const useDataProvider = () => {
                 roles = parsed.roles;
                 primaryContext = parsed.activeRole;
             } else {
-                // NOU: Pas 2 - Dacă nu există cache, preia de la server.
                 const { data: rolesValidationData, error: rpcError } = await supabase.rpc('get_user_login_data_v2');
                 if (rpcError) throw new Error(`Eroare la verificarea rolurilor: ${rpcError.message}`);
+
+                const loginDataContext = Array.isArray(rolesValidationData) ? rolesValidationData[0] : rolesValidationData;
+                const hasValidLoginData = loginDataContext && typeof loginDataContext === 'object';
                 
                 const { user: fetchedProfile, roles: fetchedRoles, error: profileFetchError } = await getAuthenticatedUser(supabase);
                 if (profileFetchError) throw profileFetchError;
@@ -105,8 +106,7 @@ export const useDataProvider = () => {
                         };
                         roles = []; primaryContext = null;
                     } else {
-                        // CAZ CRITIC: Dacă utilizatorul este autentificat, dar nu are roluri, este profil incomplet.
-                        if (!rolesValidationData || (Array.isArray(rolesValidationData) && rolesValidationData.length === 0)) {
+                        if (!hasValidLoginData) {
                              throw new Error("PROFIL_INCOMPLET: Contul este valid, dar nu are roluri sau profil asociat.");
                         }
                         throw new Error("Profilul utilizatorului nu a putut fi încărcat după validarea inițială.");
@@ -114,7 +114,19 @@ export const useDataProvider = () => {
                 } else {
                     profile = fetchedProfile;
                     roles = fetchedRoles;
-                    primaryContext = roles.find(r => r.is_primary) || roles[0];
+                    
+                    if (hasValidLoginData) {
+                        primaryContext = roles.find(r => 
+                            r.rol_denumire === loginDataContext.rol_activ_context && 
+                            r.sportiv_id === loginDataContext.sportiv_id
+                        );
+                        if (!primaryContext) {
+                            primaryContext = roles.find(r => r.is_primary) || roles[0];
+                        }
+                    } else {
+                        primaryContext = roles.find(r => r.is_primary) || roles[0];
+                    }
+                    
                     sessionStorage.setItem(USER_CONTEXT_CACHE_KEY, JSON.stringify({ user: profile, roles: roles, activeRole: primaryContext }));
                 }
             }
@@ -128,7 +140,6 @@ export const useDataProvider = () => {
                 return; 
             }
             
-            // Pas 3: Încarcă restul datelor aplicației.
             const queries = [
                 supabase.from('cluburi').select('*'),
                 supabase.from('roluri').select('*'),
@@ -226,7 +237,6 @@ export const useDataProvider = () => {
                 await supabase?.auth.signOut();
             }
         } finally {
-            // Asigură că starea de loading este oprită indiferent de rezultat
             setLoading(false);
         }
     }, [showError]);
@@ -254,7 +264,6 @@ export const useDataProvider = () => {
         return () => subscription.unsubscribe();
     }, [initializeAndFetchData]);
     
-    // Create setters for individual data slices
     const createSetter = <K extends keyof AppData>(key: K) => 
         useCallback((value: React.SetStateAction<AppData[K]>) => {
             setData(prev => ({ ...prev, [key]: typeof value === 'function' ? (value as (prevState: AppData[K]) => AppData[K])(prev[key]) : value }));

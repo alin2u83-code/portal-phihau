@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions } from '../types';
 import { Button, Modal, Input, Select, Card, RoleBadge } from './ui';
-// FIX: Removed obsolete ShieldCheckIcon.
 import { PlusIcon, ArrowLeftIcon, WalletIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
@@ -51,7 +50,6 @@ export const SportiviManagement: React.FC<{
     const [sportivForWallet, setSportivForWallet] = useState<Sportiv | null>(null);
     const [selectedSportivForHighlight, setSelectedSportivForHighlight] = useState<Sportiv | null>(null);
 
-    // FIX: Destructured showSuccess to resolve 'Cannot find name' error.
     const { showError, showSuccess } = useError();
     
     const [filters, setFilters] = useLocalStorage('phi-hau-sportivi-filters', {
@@ -147,7 +145,6 @@ export const SportiviManagement: React.FC<{
         {
             key: 'actions',
             label: 'Acțiuni',
-            // FIX: Updated tooltip text
             tooltip: "Acțiuni rapide: gestionează portofelul sportivului.",
             headerClassName: 'text-right',
             cellClassName: 'text-right',
@@ -156,7 +153,6 @@ export const SportiviManagement: React.FC<{
                     <Button size="sm" variant="info" onClick={() => handleOpenWallet(s)} title="Portofel Sportiv" className="!p-2">
                         <WalletIcon className="w-4 h-4" />
                     </Button>
-                    {/* FIX: Removed button that opens the obsolete modal */}
                 </div>
             )
         }

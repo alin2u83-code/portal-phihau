@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import { Rol, User, Club, Permissions } from '../types';
 import { Button, Card } from './ui';
-// FIX: Added CheckCircleIcon, UsersIcon, UserCircleIcon and removed obsolete IdentitySwitcher import.
 import { ArrowLeftIcon, ShieldCheckIcon, CheckCircleIcon, UsersIcon, UserCircleIcon } from './icons';
 import { useError } from './ErrorProvider';
 import { supabase } from '../supabaseClient';
 
-// FIX: Re-implemented the deleted IdentitySwitcher component and its helpers locally.
 // --- Helper Functions from RoleSelectionPage ---
 const getRoleDisplayName = (role: any) => {
     switch(role.rol_denumire) {

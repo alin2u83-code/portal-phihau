@@ -71,25 +71,18 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
         setIsGenerating(true);
         try {
             const clubId = currentUser?.club_id;
-            if (!clubId) {
-                throw new Error("Contextul curent al adminului nu are un club ID asociat.");
+            if (!clubId && !permissions.isSuperAdmin) {
+                throw new Error("Contextul curent nu are un club ID asociat.");
             }
     
-            const { data: roleData, error: roleError } = await supabase
-                .from('utilizator_roluri_multicont')
-                .select('sportiv_id, sportiv:sportivi!inner(*)')
-                .eq('rol_denumire', 'SPORTIV');
-    
-            if (roleError) throw roleError;
-            
-            const sportiviActivi = roleData
-                .map(item => item.sportiv)
-                .filter(s => {
-                    if (!s) {
-                        throw new Error(`Eroare de integritate: Un utilizator cu rol de sportiv are 'sportiv_id' null sau un profil de sportiv neasociat.`);
-                    }
-                    return s.status === 'Activ';
-                });
+            // Interogarea se bazează acum pe RLS pentru a filtra sportivii la nivel de bază de date.
+            // Filtrul manual `.eq('club_id', clubId)` a fost eliminat.
+            const { data: sportiviActivi, error } = await supabase
+                .from('sportivi')
+                .select('*')
+                .eq('status', 'Activ');
+
+            if (error) throw error;
             
             const today = new Date();
             const dataCurenta = today.toISOString().split('T')[0];
@@ -154,8 +147,8 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
             });
     
             if (platiToInsert.length > 0) {
-                const { data, error } = await supabase.from('plati').insert(platiToInsert).select();
-                if (error) { throw error; } 
+                const { data, error: insertError } = await supabase.from('plati').insert(platiToInsert).select();
+                if (insertError) { throw insertError; } 
                 else if (data) { setPlati(prev => [...prev, ...data]); showSuccess("Generare Finalizată", `${data.length} facturi noi au fost generate.`); }
             } else {
                 showSuccess("Info", "Nicio factură nouă de generat pentru luna curentă pentru sportivii din acest club.");

@@ -277,7 +277,6 @@ interface UserProfileProps {
     grupe: Grupa[];
     familii: Familie[];
     tipuriAbonament: TipAbonament[];
-    allRoles: Rol[];
     setSportivi: React.Dispatch<React.SetStateAction<Sportiv[]>>;
     setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
     setTranzactii: React.Dispatch<React.SetStateAction<Tranzactie[]>>;
@@ -285,7 +284,7 @@ interface UserProfileProps {
     clubs: Club[];
 }
 
-export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, participari, examene, grade, istoricGrade, setIstoricGrade, antrenamente, plati, tranzactii, reduceri, grupe, familii, tipuriAbonament, allRoles, setSportivi, setPlati, setTranzactii, onBack, clubs }) => {
+export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, participari, examene, grade, istoricGrade, setIstoricGrade, antrenamente, plati, tranzactii, reduceri, grupe, familii, tipuriAbonament, setSportivi, setPlati, setTranzactii, onBack, clubs }) => {
     const { showError, showSuccess } = useError();
     
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -294,9 +293,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
     const [isReportModalOpen, setIsReportModalOpen] = useState(false);
     const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
     const [isAddGradeModalOpen, setIsAddGradeModalOpen] = useState(false);
-
-    const [isEditingRoles, setIsEditingRoles] = useState(false);
-    const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>((sportiv.roluri || []).map(r => r.id));
 
     const [isEditingFeedback, setIsEditingFeedback] = useState(false);
     const [feedbackData, setFeedbackData] = useState({
@@ -312,7 +308,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
     const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
-        setSelectedRoleIds((sportiv.roluri || []).map(r => r.id));
         setFeedbackData({
             puncte_forte: sportiv.puncte_forte || '',
             puncte_slabe: sportiv.puncte_slabe || '',
@@ -320,7 +315,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
         });
     }, [sportiv]);
 
-    const isAdmin = currentUser.roluri.some(r => r.nume === 'Admin');
     const isSuperAdmin = currentUser.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'Admin');
 
     const gradeHistory = useMemo(() => {
@@ -401,7 +395,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
         setIsSavingFeedback(false);
     };
 
-    const handleSave = async (formData: Partial<Sportiv>) => {
+    const handleSave = async (formData: Partial<Sportiv>): Promise<{ success: boolean; error?: any }> => {
         const { roluri, ...sportivData } = formData;
         if (sportiv.id) {
             const { data, error } = await supabase.from('sportivi').update(sportivData).eq('id', sportiv.id).select('*, cluburi(*), sportivi_roluri(roluri(id, nume))').single();
@@ -428,18 +422,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
         else { setSportivi(prev => prev.filter(s => s.id !== sportiv.id)); onBack(); showSuccess("Succes", "Sportivul a fost șters definitiv."); }
     };
     
-     const handleSaveRoles = async () => {
-        if (!supabase) { showError("Eroare", "Supabase client not initialized."); return; }
-        let finalRoleIds = [...selectedRoleIds];
-        if (finalRoleIds.length === 0) { const sportivRole = allRoles.find(r => r.nume === 'Sportiv'); if (sportivRole) finalRoleIds.push(sportivRole.id); }
-        const { error } = await supabase.rpc('schimba_rol_utilizator', { p_user_id: sportiv.id, p_role_ids: finalRoleIds });
-        if (error) { showError("Eroare RPC", error.message); } else {
-            const updatedRoles = allRoles.filter(r => finalRoleIds.includes(r.id));
-            setSportivi(prev => prev.map(s => s.id === sportiv.id ? { ...s, roluri: updatedRoles } : s));
-            setIsEditingRoles(false); showSuccess("Roluri Salvate", "Rolurile au fost actualizate.");
-        }
-    };
-    
     const handleAddGrade = async (data: { grad_id: string; data_obtinere: string; observatii: string }) => {
         if(!supabase) return;
         try {
@@ -459,7 +441,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
     const handleSavePlataEdit = async (editedPlata: Plata) => {
         setIsSaving(true);
         const { id, ...updates } = editedPlata;
-        const { error } = await supabase.from('plati').update(updates).eq('id', id);
+        const { error } = await supabase.from('plati').update(updates).eq('id', id).select().single();
         setIsSaving(false);
         if (error) {
             showError("Eroare la Salvare", error);
@@ -486,12 +468,10 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
             showError("Eroare la Ștergere", error);
         } else {
             setPlati(prev => prev.filter(p => p.id !== id));
+            setPlataToDelete(null);
             showSuccess("Succes", "Factura a fost ștearsă.");
         }
-        setPlataToDelete(null);
     };
-
-    const unassignedRoles = allRoles.filter(r => !selectedRoleIds.includes(r.id));
 
     return (
         <div className="space-y-6">
@@ -547,10 +527,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                                 ))}
                             </div>
                         </div>
-                    </Card>
-                    <Card><h3 className="text-lg font-bold text-white mb-3">Roluri & Permisiuni</h3>
-                        <div className="flex flex-wrap gap-2">{sportiv.roluri.map(r => <RoleBadge key={r.id} role={r}/>)}</div>
-                        {isAdmin && (isEditingRoles ? <div className="mt-4 space-y-2"><div className="flex items-end gap-2"><Select label="Adaugă Rol" value="" onChange={e => { if (e.target.value) setSelectedRoleIds(p => [...new Set([...p, e.target.value])]); }}><option value="">Selectează...</option>{unassignedRoles.map(r => <option key={r.id} value={r.id}>{r.nume}</option>)}</Select></div><div className="flex justify-end gap-2"><Button size="sm" variant="secondary" onClick={() => setIsEditingRoles(false)}>Anulează</Button><Button size="sm" variant="success" onClick={handleSaveRoles}>Salvează</Button></div></div> : <Button size="sm" variant="secondary" className="w-full mt-3" onClick={() => setIsEditingRoles(true)}><EditIcon className="w-4 h-4 mr-1"/> Modifică Roluri</Button>)}
                     </Card>
                     <Card>
                         <AttendanceIndicator attendances={lastThreeAttendances} />

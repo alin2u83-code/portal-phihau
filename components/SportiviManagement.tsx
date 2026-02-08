@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions } from '../types';
-import { Button, Modal, Input, Select, Card, Switch } from './ui';
-import { PlusIcon, ArrowLeftIcon, ShieldCheckIcon, WalletIcon, UserXIcon, UserCheckIcon } from './icons';
+import { Button, Modal, Input, Select, Card, Switch, RoleBadge } from './ui';
+import { PlusIcon, ArrowLeftIcon, WalletIcon, UserXIcon, UserCheckIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
@@ -20,19 +20,6 @@ const getAge = (dateString: string | null | undefined): number => {
     const m = today.getMonth() - birthDate.getMonth(); 
     if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; } 
     return age; 
-};
-
-const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
-// FIX: Corrected key from 'Super Admin' to 'SUPER_ADMIN_FEDERATIE' to match the 'Rol' type definition.
-// FIX: Completed the color mapping to include all roles.
-    const colorClasses: Record<Rol['nume'], string> = {
-        'Admin': 'bg-red-600 text-white',
-        'SUPER_ADMIN_FEDERATIE': 'bg-red-800 text-white',
-        'Admin Club': 'bg-blue-600 text-white',
-        'Instructor': 'bg-sky-600 text-white',
-        'Sportiv': 'bg-slate-600 text-slate-200',
-    };
-    return <span className={`px-2 py-1 text-[10px] font-semibold rounded-full ${colorClasses[role.nume] || 'bg-gray-500 text-white'}`}>{role.nume}</span>;
 };
 
 const DeactivationModal: React.FC<{

@@ -3,7 +3,7 @@ import { User, Rol } from '../types';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { Button, Card, Input } from './ui';
-import { ArrowLeftIcon, MailIcon, LockIcon, ShieldCheckIcon, UserCircleIcon, UsersIcon } from './icons';
+import { ArrowLeftIcon, MailIcon, LockIcon, ShieldCheckIcon, UserCircleIcon, UsersIcon, CheckCircleIcon } from './icons';
 
 interface AccountSettingsProps {
     currentUser: User;
@@ -11,6 +11,7 @@ interface AccountSettingsProps {
     userRoles: any[]; // Lista completă a contextelor de rol
 }
 
+// --- Helper Functions ---
 const getRoleDisplayName = (role: any) => {
     switch(role.rol_denumire) {
         case 'SUPER_ADMIN_FEDERATIE': return 'Super Admin Federație';
@@ -22,12 +23,23 @@ const getRoleDisplayName = (role: any) => {
     }
 };
 
+const getRoleDescription = (role: any) => {
+    switch(role.rol_denumire) {
+        case 'SUPER_ADMIN_FEDERATIE': return 'Acces total la nivel de federație.';
+        case 'Admin': return 'Acces administrativ general.';
+        case 'Admin Club': return `Management complet pentru ${role.club?.nume || 'club'}.`;
+        case 'Instructor': return `Management sportivi și prezențe la ${role.club?.nume || 'club'}.`;
+        case 'Sportiv': return 'Accesează portalul personal de sportiv.';
+        default: return 'Selectează acest profil pentru a continua.';
+    }
+}
+
 const getRoleIcon = (roleName: Rol['nume']) => {
     switch(roleName) {
         case 'SUPER_ADMIN_FEDERATIE':
         case 'Admin':
-        case 'Admin Club':
             return ShieldCheckIcon;
+        case 'Admin Club':
         case 'Instructor':
             return UsersIcon;
         case 'Sportiv':
@@ -35,6 +47,7 @@ const getRoleIcon = (roleName: Rol['nume']) => {
             return UserCircleIcon;
     }
 };
+
 
 export const AccountSettings: React.FC<AccountSettingsProps> = ({ currentUser, onBack, userRoles }) => {
     const { showError, showSuccess } = useError();
@@ -112,7 +125,7 @@ export const AccountSettings: React.FC<AccountSettingsProps> = ({ currentUser, o
                 <h2 className="text-2xl font-bold text-white mb-4">Profilurile Mele</h2>
                 <p className="text-sm text-slate-400 mb-6">Alege profilul principal pe care dorești să-l folosești la următoarea autentificare. Acesta va determina permisiunile și datele vizibile la pornirea aplicației.</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {(userRoles || []).map(role => {
+                    {(userRoles || []).map((role, index) => {
                         const Icon = getRoleIcon(role.rol_denumire);
                         const isPrimary = role.is_primary;
                         const contextKey = `${role.sportiv_id}-${role.rol_denumire}`;

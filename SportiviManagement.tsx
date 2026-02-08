@@ -1,12 +1,12 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions } from '../types';
-import { Button, Modal, Input, Select, Card, Switch } from './ui';
+// FIX: Removed obsolete `SportivAccountSettingsModal` import and added `RoleBadge` import from `ui`.
+import { Button, Modal, Input, Select, Card, Switch, RoleBadge } from './ui';
 import { PlusIcon, ArrowLeftIcon, ShieldCheckIcon, WalletIcon, UserXIcon, UserCheckIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { SportivFormModal } from './Sportivi';
-import { SportivAccountSettingsModal } from './SportivAccountSettings';
 import { SportivWallet } from './SportivWallet';
 import { ResponsiveTable, Column } from './ResponsiveTable';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
@@ -23,18 +23,7 @@ const getAge = (dateString: string | null | undefined): number => {
     return age; 
 };
 
-const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
-// FIX: Corrected key from 'Super Admin' to 'SUPER_ADMIN_FEDERATIE' to match the 'Rol' type definition.
-// FIX: Completed the color mapping to include all roles.
-    const colorClasses: Record<Rol['nume'], string> = {
-        'Admin': 'bg-red-600 text-white',
-        'SUPER_ADMIN_FEDERATIE': 'bg-red-800 text-white',
-        'Admin Club': 'bg-blue-600 text-white',
-        'Instructor': 'bg-sky-600 text-white',
-        'Sportiv': 'bg-slate-600 text-slate-200',
-    };
-    return <span className={`px-2 py-1 text-[10px] font-semibold rounded-full ${colorClasses[role.nume] || 'bg-gray-500 text-white'}`}>{role.nume}</span>;
-};
+// FIX: Removed local duplicate of RoleBadge. It will be imported from `./ui` now.
 
 const DeactivationModal: React.FC<{
     isOpen: boolean;
@@ -197,17 +186,15 @@ export const SportiviManagement: React.FC<{
     setAllRoles: React.Dispatch<React.SetStateAction<Rol[]>>;
     currentUser: User;
     plati: Plata[];
-    setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
     tranzactii: Tranzactie[];
     setTranzactii: React.Dispatch<React.SetStateAction<Tranzactie[]>>;
     onViewSportiv: (sportiv: Sportiv) => void;
     clubs: Club[];
     grade: Grad[];
     permissions: Permissions;
-}> = ({ onBack, sportivi, setSportivi, grupe, setGrupe, tipuriAbonament, familii, setFamilii, allRoles, setAllRoles, currentUser, plati, setPlati, tranzactii, setTranzactii, onViewSportiv, clubs, grade, permissions }) => {
+}> = ({ onBack, sportivi, setSportivi, grupe, setGrupe, tipuriAbonament, familii, setFamilii, allRoles, setAllRoles, currentUser, plati, tranzactii, setTranzactii, onViewSportiv, clubs, grade, permissions }) => {
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
     const [sportivToEdit, setSportivToEdit] = useState<Sportiv | null>(null);
-    const [accountSettingsSportiv, setAccountSettingsSportiv] = useState<Sportiv | null>(null);
     const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
     const [sportivForWallet, setSportivForWallet] = useState<Sportiv | null>(null);
     const [selectedSportivForHighlight, setSelectedSportivForHighlight] = useState<Sportiv | null>(null);
@@ -401,29 +388,26 @@ export const SportiviManagement: React.FC<{
             headerClassName: 'text-right',
             cellClassName: 'text-right',
             render: (s) => (
-                <div className="flex justify-end items-center gap-2">
-                    <Button size="sm" variant="info" onClick={(e) => { e.stopPropagation(); handleOpenWallet(s); }} title="Portofel Sportiv" className="!p-2">
+                <div className="flex justify-end items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                    <Button size="sm" variant="info" onClick={() => handleOpenWallet(s)} title="Portofel Sportiv" className="!p-2">
                         <WalletIcon className="w-4 h-4" />
                     </Button>
                     <Button
                         size="sm"
                         variant={s.status === 'Activ' ? 'warning' : 'success'}
-                        onClick={(e) => { e.stopPropagation(); handleToggleStatus(s); }}
+                        onClick={() => handleToggleStatus(s)}
                         title={s.status === 'Activ' ? 'Dezactivează sportiv' : 'Activează sportiv'}
                         className="!p-2"
                         isLoading={loadingStates[s.id]}
                     >
                         {s.status === 'Activ' ? <UserXIcon className="w-4 h-4" /> : <UserCheckIcon className="w-4 h-4" />}
                     </Button>
-                    <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); setAccountSettingsSportiv(s); }} title="Setări Cont de Acces" className="!p-2">
-                        <ShieldCheckIcon className="w-4 h-4" />
-                    </Button>
                 </div>
             )
         }
     ];
 
-    const handleSave = async (formData: Partial<Sportiv>) => {
+    const handleSave = async (formData: Partial<Sportiv>): Promise<{ success: boolean; error?: any; data?: Sportiv; }> => {
         const { roluri, ...sportivData } = formData;
         try {
             if (sportivToEdit) {
@@ -431,6 +415,7 @@ export const SportiviManagement: React.FC<{
                 if (error) throw error;
                 const updatedSportiv = { ...data, roluri: data.roluri || [] };
                 setSportivi(prev => prev.map(s => s.id === sportivToEdit.id ? updatedSportiv : s));
+                return { success: true, data: updatedSportiv };
             } else {
                 const dataToSave = { ...sportivData };
                 if (!dataToSave.familie_id) {
@@ -442,20 +427,12 @@ export const SportiviManagement: React.FC<{
 
                 const { data, error } = await supabase.from('sportivi').insert(dataToSave).select().single();
                 if (error) throw error;
-
+                
+                // Noul sportiv este creat fără roluri; rolul 'Sportiv' și contul de acces se adaugă din 'User Management'
                 let newSportiv = { ...data, roluri: [] } as Sportiv;
-                const sportivRole = (allRoles || []).find(r => r.nume === 'Sportiv');
-                if (sportivRole) {
-                    const { error: roleError } = await supabase.from('sportivi_roluri').insert({ sportiv_id: data.id, rol_id: sportivRole.id });
-                    if (roleError) {
-                        showError("Utilizator creat, dar eroare la asignarea rolului", roleError.message);
-                    } else {
-                        newSportiv.roluri = [sportivRole];
-                    }
-                }
                 setSportivi(prev => [...prev, newSportiv]);
+                return { success: true, data: newSportiv };
             }
-            return { success: true };
         } catch (err: any) {
             return { success: false, error: err };
         }
@@ -474,7 +451,7 @@ export const SportiviManagement: React.FC<{
                 )}
             </div>
 
-            <Card className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-center">
+            <Card className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-center">
                 <Select label="Status" value={filters.statusFilter} onChange={e => handleFilterChange('statusFilter', e.target.value)}>
                     <option value="Activ">Activi</option>
                     <option value="Inactiv">Inactivi</option>
@@ -488,10 +465,6 @@ export const SportiviManagement: React.FC<{
                     <option value="">Toate gradele</option>
                     <option value="null">Începător (fără grad)</option>
                     {(grade || []).sort((a,b) => a.ordine - b.ordine).map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}
-                </Select>
-                <Select label="Rol" value={filters.rolFilter} onChange={e => handleFilterChange('rolFilter', e.target.value)}>
-                    <option value="">Toate rolurile</option>
-                    {(allRoles || []).map(r => <option key={r.id} value={r.id}>{r.nume}</option>)}
                 </Select>
                 <div className="pt-5">
                     <Switch 
@@ -521,7 +494,12 @@ export const SportiviManagement: React.FC<{
             {isFormModalOpen && (
                  <SportivFormModal 
                     isOpen={isFormModalOpen}
-                    onClose={() => setIsFormModalOpen(false)}
+                    onClose={(savedSportiv?: Sportiv) => {
+                        setIsFormModalOpen(false);
+                        if (savedSportiv && !sportivToEdit) {
+                            onViewSportiv(savedSportiv);
+                        }
+                    }}
                     onSave={handleSave}
                     sportivToEdit={sportivToEdit}
                     grupe={grupe}
@@ -542,16 +520,6 @@ export const SportiviManagement: React.FC<{
                 plati={plati}
                 tipuriAbonament={tipuriAbonament}
                 onConfirm={handleConfirmDeactivation}
-            />
-
-            <SportivAccountSettingsModal
-                isOpen={!!accountSettingsSportiv}
-                onClose={() => setAccountSettingsSportiv(null)}
-                sportiv={accountSettingsSportiv}
-                setSportivi={setSportivi}
-                allRoles={allRoles}
-                setAllRoles={setAllRoles}
-                currentUser={currentUser}
             />
 
             {isWalletModalOpen && sportivForWallet && (

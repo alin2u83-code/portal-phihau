@@ -79,12 +79,37 @@ export const useDataProvider = () => {
         const { user: profile, roles, error: profileFetchError } = await getAuthenticatedUser(supabase);
         
         if (profileFetchError) {
-            setError(profileFetchError.message);
-            await supabase.auth.signOut();
+            if (profileFetchError.message.includes('Contul de utilizator nu este legat')) {
+                const hasRefreshed = sessionStorage.getItem('sessionRefreshed');
+                if (!hasRefreshed) {
+                    sessionStorage.setItem('sessionRefreshed', 'true');
+                    console.warn('[DataProvider] Incomplete profile detected. Attempting to refresh session to get updated claims.');
+                    const { error: refreshError } = await supabase.auth.refreshSession();
+                    if (refreshError) {
+                        setError('Eroare la reîmprospătarea sesiunii. Vă rugăm să vă autentificați din nou.');
+                        await supabase.auth.signOut();
+                    } else {
+                        // After refreshing, reload the page to re-trigger the entire data fetch with the new token.
+                        window.location.reload();
+                        return;
+                    }
+                } else {
+                    // We've already tried refreshing, now we show the error.
+                    sessionStorage.removeItem('sessionRefreshed');
+                    setError(profileFetchError.message);
+                }
+            } else {
+                setError(profileFetchError.message);
+            }
+            
+            // Common error path after failed fetch or failed refresh attempt
             setSession(null);
             setCurrentUser(null);
             setLoading(false);
             return;
+        } else {
+            // Clear the refresh flag on a successful fetch
+            sessionStorage.removeItem('sessionRefreshed');
         }
 
         if (!profile || !roles) {

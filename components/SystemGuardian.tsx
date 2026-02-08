@@ -29,10 +29,13 @@ const ProfileLinkErrorScreen: React.FC = () => (
         <div className="flex flex-col items-center justify-center h-full text-center p-8 bg-red-900/30 rounded-lg border border-red-700/50 max-w-lg">
             <h1 className="text-2xl font-bold text-red-300">Eroare de Asociere Cont</h1>
             <p className="mt-2 text-red-200">
-                Contul de utilizator nu este legat de un profil de sportiv. Contactați administratorul Phi Hau.
+                Contul de utilizator nu este legat de un profil de sportiv. Acest lucru se poate întâmpla din cauza unei întârzieri de sincronizare.
             </p>
-            <Button variant="secondary" onClick={() => window.location.reload()} className="mt-6">
-                Reîmprospătează Pagina
+            <Button variant="secondary" onClick={() => {
+                localStorage.clear();
+                window.location.reload();
+            }} className="mt-6">
+                Încearcă din nou
             </Button>
         </div>
     </div>

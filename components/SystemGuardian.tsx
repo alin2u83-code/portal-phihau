@@ -119,6 +119,7 @@ export const SystemGuardian: React.FC<SystemGuardianProps> = ({ children, isLoad
         };
     }, [isLoading, currentUser, permissions.isFederationAdmin]);
     
+    // NOU: Gestionează cazul de profil incomplet înainte de orice altă eroare.
     if (error && error.startsWith('PROFIL_INCOMPLET')) {
         return <IncompleteProfileScreen />;
     }

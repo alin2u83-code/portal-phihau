@@ -73,51 +73,28 @@ export const useDataProvider = () => {
             }
             setSession(currentSession);
 
-            let profile, roles, primaryContext;
-
-            // NOU: Pas 1 - Încearcă să încarci contextul utilizatorului din cache-ul sesiunii.
-            const cachedUserContext = sessionStorage.getItem(USER_CONTEXT_CACHE_KEY);
-            if (cachedUserContext) {
-                const parsed = JSON.parse(cachedUserContext);
-                profile = parsed.user;
-                roles = parsed.roles;
-                primaryContext = parsed.activeRole;
-            } else {
-                // NOU: Pas 2 - Dacă nu există cache, preia de la server.
-                const { data: rolesValidationData, error: rpcError } = await supabase.rpc('get_user_login_data_v2');
-                if (rpcError) throw rpcError;
-                
-                const { user: fetchedProfile, roles: fetchedRoles, error: profileFetchError } = await getAuthenticatedUser(supabase);
-                if (profileFetchError) throw profileFetchError;
-
-                if (!fetchedProfile || !fetchedRoles) {
-                    const userRolesFromJwt = currentSession.user.app_metadata?.roles || [];
-                    const hasAdminRole = userRolesFromJwt.some((r: string) => ['SUPER_ADMIN_FEDERATIE', 'Admin', 'Admin Club', 'Instructor'].includes(r));
-                    
-                    if (hasAdminRole) {
-                        console.warn("[Fallback] Profilul de sportiv nu a putut fi încărcat, dar utilizatorul are rol de admin. Se creează un profil de avarie pentru a permite accesul.");
-                        profile = {
-                            id: 'FALLBACK_PROFILE_ID', user_id: currentSession.user.id, nume: 'Admin', prenume: 'Fallback', email: currentSession.user.email,
-                            roluri: userRolesFromJwt.map((r: string) => ({ nume: r })), club_id: null, data_nasterii: '1900-01-01', data_inscrierii: '1900-01-01',
-                            status: 'Activ', cnp: null, familie_id: null, tip_abonament_id: null, participa_vacanta: false, trebuie_schimbata_parola: false
-                        };
-                        roles = []; primaryContext = null;
-                    } else {
-                        throw new Error("PROFIL_INCOMPLET: Contul este valid, dar nu are roluri sau profil asociat.");
-                    }
-                } else {
-                    profile = fetchedProfile;
-                    roles = fetchedRoles;
-                    primaryContext = roles.find(r => r.is_primary) || roles[0];
-                    sessionStorage.setItem(USER_CONTEXT_CACHE_KEY, JSON.stringify({ user: profile, roles: roles, activeRole: primaryContext }));
-                }
+            // Pas 1: Verificare roluri via RPC. Aceasta este 'diagnosticarea'.
+            const { data: rolesValidationData, error: rpcError } = await supabase.rpc('get_user_login_data_v2');
+            if (rpcError) throw new Error(`Eroare la verificarea rolurilor: ${rpcError.message}`);
+            
+            // CAZ CRITIC: Dacă utilizatorul este autentificat, dar RPC-ul returnează un array gol,
+            // înseamnă că nu are niciun context de rol valid.
+            if (!rolesValidationData || (Array.isArray(rolesValidationData) && rolesValidationData.length === 0)) {
+                throw new Error("PROFIL_INCOMPLET: Contul este valid, dar nu are roluri sau profil asociat.");
             }
 
-            setCurrentUser(profile as User);
-            setUserRoles(roles as any[]);
-            setActiveRoleContext(primaryContext as any);
+            // Pas 2: Dacă verificarea a trecut, continuă cu încărcarea completă a datelor.
+            const { user: profile, roles, error: profileFetchError } = await getAuthenticatedUser(supabase);
+            if (profileFetchError) throw profileFetchError;
+            if (!profile || !roles) throw new Error("Profilul utilizatorului nu a putut fi încărcat după validarea inițială.");
             
-            if ((roles?.length || 0) > 1 && !primaryContext) {
+            setCurrentUser(profile);
+            setUserRoles(roles);
+            
+            const primaryContext = roles.find(r => r.is_primary);
+            setActiveRoleContext(primaryContext || null);
+            
+            if (roles.length > 1 && !primaryContext) {
                 setNeedsRoleSelection(true);
                 return; 
             }
@@ -214,11 +191,13 @@ export const useDataProvider = () => {
 
         } catch (err: any) {
             setError(err.message);
+            // Pentru erori critice (altele decât profil incomplet), deconectăm utilizatorul pentru siguranță.
             if (!err.message.startsWith('PROFIL_INCOMPLET')) {
                 console.error("Eroare critică în timpul încărcării datelor, se deconectează:", err);
                 await supabase?.auth.signOut();
             }
         } finally {
+            // Asigură că starea de loading este oprită indiferent de rezultat
             setLoading(false);
         }
     }, []);

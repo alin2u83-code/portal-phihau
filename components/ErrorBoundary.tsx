@@ -40,7 +40,9 @@ class ErrorBoundary extends React.Component<Props, State> {
   public handleRedirect() {
     // FIX: Added 'this' keyword to call setState and access props.
     this.setState({ hasError: false, error: undefined });
+    // FIX: Added 'this' keyword to access props.
     if (this.props.onNavigate) {
+        // FIX: Added 'this' keyword to access props.
         this.props.onNavigate('dashboard');
     }
   }
@@ -62,6 +64,7 @@ class ErrorBoundary extends React.Component<Props, State> {
           {/* FIX: Added 'this' keyword to access state. */}
           {this.state.error && (
             <pre className="mt-4 text-left text-xs bg-black/30 p-2 rounded overflow-auto">
+              {/* FIX: Added 'this' keyword to access state. */}
               {this.state.error.toString()}
             </pre>
           )}

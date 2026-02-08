@@ -420,7 +420,7 @@ function App() {
         return <FisaDigitalaSportiv currentUser={currentUser!} grade={grade} participari={inscrieriExamene} examene={sesiuniExamene} plati={plati} onBack={() => setActiveView('my-portal')} />;
 
       case 'fisa-competitie':
-        // FIX: Replaced undefined variable 'examene' with the correct 'sesiuniExamene'.
+        // FIX: Replaced undefined variable 'examene' with the correct 'sesiuniExamene'. The error was due to a typo.
         return <FisaCompetitie currentUser={currentUser!} grade={grade} participari={inscrieriExamene} examene={sesiuniExamene} onBack={() => setActiveView('my-portal')} />;
 
       case 'backdoor-check':

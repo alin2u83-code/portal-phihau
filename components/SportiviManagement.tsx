@@ -1,8 +1,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions } from '../types';
-// FIX: Added `RoleBadge` to imports as it is used in the component.
 import { Button, Modal, Input, Select, Card, RoleBadge } from './ui';
-// FIX: Removed `UserXIcon`, `UserCheckIcon` as they were unused, and `ShieldCheckIcon` as its feature was removed.
+// FIX: Removed unused ShieldCheckIcon
 import { PlusIcon, ArrowLeftIcon, WalletIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
@@ -472,6 +471,7 @@ export const SportiviManagement: React.FC<{
                     sportiv={sportivForWallet}
                     familie={familii.find(f => f.id === sportivForWallet.familie_id)}
                     allPlati={plati}
+                    setPlati={setPlati}
                     allTranzactii={tranzactii}
                     setTranzactii={setTranzactii}
                     onClose={() => {

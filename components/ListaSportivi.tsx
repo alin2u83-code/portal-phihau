@@ -66,8 +66,14 @@ export const ListaSportivi: React.FC = () => {
         .select('*');
       
       if (dbError) throw dbError;
+      
+      // FIX: Adăugat verificarea explicită pentru a preveni erorile de 'map'
+      if (data && Array.isArray(data)) {
+        setSportivi(data);
+      } else {
+        setSportivi([]);
+      }
 
-      setSportivi(data || []);
     } catch (err: any) {
       setError(err.message || 'A apărut o eroare la preluarea datelor.');
     }

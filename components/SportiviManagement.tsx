@@ -34,6 +34,7 @@ export const SportiviManagement: React.FC<{
     familii: Familie[];
     setFamilii: React.Dispatch<React.SetStateAction<Familie[]>>;
     allRoles: Rol[];
+    setAllRoles: React.Dispatch<React.SetStateAction<Rol[]>>;
     currentUser: User;
     plati: Plata[];
     setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
@@ -43,7 +44,7 @@ export const SportiviManagement: React.FC<{
     clubs: Club[];
     grade: Grad[];
     permissions: Permissions;
-}> = ({ onBack, sportivi, setSportivi, grupe, setGrupe, tipuriAbonament, familii, setFamilii, allRoles, currentUser, plati, setPlati, tranzactii, setTranzactii, onViewSportiv, clubs, grade, permissions }) => {
+}> = ({ onBack, sportivi, setSportivi, grupe, setGrupe, tipuriAbonament, familii, setFamilii, allRoles, setAllRoles, currentUser, plati, setPlati, tranzactii, setTranzactii, onViewSportiv, clubs, grade, permissions }) => {
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
     const [sportivToEdit, setSportivToEdit] = useState<Sportiv | null>(null);
     const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
@@ -145,7 +146,8 @@ export const SportiviManagement: React.FC<{
         {
             key: 'actions',
             label: 'Acțiuni',
-            tooltip: "Acțiuni rapide: gestionează portofelul sau setările contului.",
+            // FIX: Updated tooltip after removing the account settings button.
+            tooltip: "Acțiuni rapide: gestionează portofelul sportivului.",
             headerClassName: 'text-right',
             cellClassName: 'text-right',
             render: (s) => (
@@ -170,15 +172,9 @@ export const SportiviManagement: React.FC<{
                 return { success: true, data: updatedSportiv };
             } else {
                 if (!formData.nume || !formData.prenume) throw new Error("Numele și prenumele sunt obligatorii.");
+                if (!formData.email || !formData.parola) throw new Error("Emailul și parola sunt obligatorii pentru crearea contului.");
                 
-                const sanitize = (str: string) => (str || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, '');
-                const numeSanitized = sanitize(formData.nume);
-                const prenumeSanitized = sanitize(formData.prenume);
-                const club = clubs.find(c => c.id === formData.club_id);
-                const clubDomain = club?.nume.toLowerCase().replace(/\s/g, '') || 'phihau.ro';
-
-                const email = formData.email || `${numeSanitized}.${prenumeSanitized}@${clubDomain}`;
-                const parola = formData.parola || `${numeSanitized}.1234!`;
+                const { email, parola } = formData;
                 
                 const { data: authData, error: authError } = await supabase.functions.invoke('create-user-admin', { body: { email, password: parola } });
                 if (authError || authData.error) {
@@ -189,8 +185,8 @@ export const SportiviManagement: React.FC<{
                 const newAuthUser = authData.user;
                 if (!newAuthUser?.id) throw new Error('Funcția de creare a utilizatorului nu a returnat un ID valid.');
 
-                const dataToSave = { ...formData, user_id: newAuthUser.id, email, trebuie_schimbata_parola: true };
-                delete dataToSave.parola;
+                const dataToSave = { ...formData, user_id: newAuthUser.id, trebuie_schimbata_parola: true };
+                delete dataToSave.parola; // Nu stocăm parola în clar
 
                 if (!dataToSave.familie_id) {
                     const individualSubscription = tipuriAbonament.find(ab => ab.numar_membri === 1);

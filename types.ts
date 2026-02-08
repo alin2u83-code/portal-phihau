@@ -47,6 +47,7 @@ export interface Sportiv {
   trebuie_schimbata_parola?: boolean;
   telefon?: string | null;
   adresa?: string | null;
+  gen?: 'Masculin' | 'Feminin' | null;
   [key: string]: any; 
 }
 

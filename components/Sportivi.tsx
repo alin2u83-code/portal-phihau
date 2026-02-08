@@ -52,7 +52,8 @@ const initialFormState: Partial<Sportiv> = {
     nume: '', prenume: '', status: 'Activ', 
     data_inscrierii: new Date().toISOString().split('T')[0],
     participa_vacanta: false,
-    data_nasterii: ''
+    data_nasterii: '',
+    gen: null,
 };
 
 interface SportivFormFieldsProps {
@@ -118,7 +119,7 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
         } else if (name === 'inaltime') {
             const num = parseInt(value, 10);
             finalValue = isNaN(num) ? null : num;
-        } else if (['familie_id', 'grupa_id', 'tip_abonament_id', 'club_id'].includes(name)) {
+        } else if (['familie_id', 'grupa_id', 'tip_abonament_id', 'club_id', 'gen'].includes(name)) {
             finalValue = value === '' ? null : value;
         } else {
             finalValue = value;
@@ -138,8 +139,12 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
             const sanitize = (str: string) => (str || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, '');
             const nume = sanitize(name === 'nume' ? value : updatedData.nume || '');
             const prenume = sanitize(name === 'prenume' ? value : updatedData.prenume || '');
+            
             if (nume && prenume) {
-                updatedData.email = `${nume}.${prenume}@phihau.ro`;
+                const targetClubId = updatedData.club_id || currentUser?.club_id;
+                const club = clubs.find(c => c.id === targetClubId);
+                const domain = club ? club.nume.toLowerCase().replace(/[^a-z0-9]/g, '') + '.ro' : 'phihau.ro';
+                updatedData.email = `${nume}.${prenume}@${domain}`;
                 updatedData.parola = `${nume}.1234!`;
             }
         }
@@ -158,7 +163,11 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
                 <BirthDateInput label="Data Nașterii" value={formData.data_nasterii} onChange={(v) => handleChange({ target: { name: 'data_nasterii', value: v } })} required error={errors.data_nasterii}/>
                 <Input label="CNP" name="cnp" value={formData.cnp || ''} onChange={handleChange} disabled={loading} maxLength={13} />
                 <Input label="Înălțime (cm)" name="inaltime" type="number" value={formData.inaltime || ''} onChange={handleChange} disabled={loading} />
-                <Input label="Data Înscrierii" name="data_inscrierii" type="date" value={formData.data_inscrierii?.split('T')[0] || ''} onChange={handleChange} disabled={loading} />
+                <Select label="Gen" name="gen" value={formData.gen || ''} onChange={handleChange} disabled={loading}>
+                    <option value="">Nespecificat</option>
+                    <option value="Masculin">Masculin</option>
+                    <option value="Feminin">Feminin</option>
+                </Select>
             </FormSection>
 
             <FormSection title="Date Contact">
@@ -176,6 +185,7 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
             )}
 
             <FormSection title="Club & Antrenament">
+                <Input label="Data Înscrierii" name="data_inscrierii" type="date" value={formData.data_inscrierii?.split('T')[0] || ''} onChange={handleChange} disabled={loading} />
                 {isSuperAdmin && (
                     <Select label="Club" name="club_id" value={formData.club_id || ''} onChange={handleChange} disabled={loading}>
                         <option value="">Nespecificat</option>

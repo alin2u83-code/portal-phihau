@@ -78,7 +78,8 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
             const { data: roleData, error: roleError } = await supabase
                 .from('utilizator_roluri_multicont')
                 .select('sportiv_id, sportiv:sportivi!inner(*)')
-                .eq('rol_denumire', 'SPORTIV');
+                .eq('rol_denumire', 'SPORTIV')
+                .eq('club_id', clubId);
     
             if (roleError) throw roleError;
             

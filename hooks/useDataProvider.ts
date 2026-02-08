@@ -7,6 +7,7 @@ import {
     Rol, AnuntPrezenta, Reducere, TipPlata, Locatie, Club, DecontFederatie, IstoricGrade 
 } from '../types';
 import { Session } from '@supabase/supabase-js';
+import { useError } from '../components/ErrorProvider';
 
 // Define a type for the complete application data state
 export interface AppData {
@@ -45,6 +46,7 @@ const USER_CONTEXT_CACHE_KEY = 'phi-hau-user-context';
 
 // The main data provider hook
 export const useDataProvider = () => {
+    const { showError } = useError();
     const [data, setData] = useState<AppData>(initialData);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -218,6 +220,7 @@ export const useDataProvider = () => {
 
         } catch (err: any) {
             setError(err.message);
+            showError("Eroare la încărcarea datelor", `A apărut o problemă la preluarea datelor de pe server: ${err.message}`);
             if (!err.message.startsWith('PROFIL_INCOMPLET')) {
                 console.error("Eroare critică în timpul încărcării datelor, se deconectează:", err);
                 await supabase?.auth.signOut();
@@ -226,7 +229,7 @@ export const useDataProvider = () => {
             // Asigură că starea de loading este oprită indiferent de rezultat
             setLoading(false);
         }
-    }, []);
+    }, [showError]);
 
     useEffect(() => {
         if (!supabase) return;

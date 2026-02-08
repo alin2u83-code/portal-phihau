@@ -55,84 +55,55 @@ export const useDataProvider = () => {
     const [needsRoleSelection, setNeedsRoleSelection] = useState(false);
 
     const initializeAndFetchData = useCallback(async () => {
-        if (!supabase) {
-            setError("Clientul Supabase nu este configurat.");
-            setLoading(false);
-            return;
-        }
-
-        const { data: { session: currentSession } } = await supabase.auth.getSession();
-        
-        if (!currentSession) {
-            setSession(null);
-            setCurrentUser(null);
-            setLoading(false);
-            return;
-        }
-        
-        setSession(currentSession);
+        setLoading(true);
         setError(null);
         setNeedsRoleSelection(false);
-        setLoading(true);
 
-        // NOU: Verificare centralizată a rolurilor prin RPC la fiecare încărcare de sesiune.
-        const { data: rolesData, error: rpcError } = await supabase.rpc('get_user_login_data_v2');
-        if (rpcError) {
-            setError(`Eroare la verificarea rolurilor: ${rpcError.message}`);
-            await supabase.auth.signOut();
-            return;
-        }
-        
-        const hasRole = Array.isArray(rolesData) ? rolesData.length > 0 : (rolesData && typeof rolesData === 'object' && Object.keys(rolesData).length > 0);
-
-        if (!hasRole) {
-            console.error(`[Security Gatekeeper] User ${currentSession.user.email} authenticated but RPC get_user_login_data_v2 returned no roles. Forcing sign out.`);
-            await supabase.auth.signOut();
-            // Redirecționarea va fi gestionată de onAuthStateChange care va vedea sesiunea nulă.
-            // Pentru a fi explicit, putem seta stările de încărcare/eroare aici.
-            setError('Contul nu are niciun rol asignat. Accesul a fost revocat.');
-            setLoading(false);
-            return;
-        }
-
-        // 1. Așteaptă contextul utilizatorului
-        const { user: profile, roles, error: profileFetchError } = await getAuthenticatedUser(supabase);
-        
-        if (profileFetchError) {
-            setError(profileFetchError.message);
-            await supabase.auth.signOut();
-            return;
-        }
-
-        if (!profile || !roles) {
-            setError("Profilul utilizatorului nu a putut fi încărcat.");
-            setLoading(false);
-            return;
-        }
-        
-        if (roles.length === 0) {
-            console.error(`[Security Gatekeeper] User ${profile.email} has a valid session but no roles. Forcing sign out.`);
-            await supabase.auth.signOut();
-            window.location.href = '/?error=no-roles';
-            return;
-        }
-
-        setCurrentUser(profile);
-        setUserRoles(roles);
-
-        // 2. Determină dacă este necesară selecția rolului
-        const primaryContext = roles.find(r => r.is_primary);
-        setActiveRoleContext(primaryContext || null);
-        
-        if (roles.length > 1 && !primaryContext) {
-            setNeedsRoleSelection(true);
-            setLoading(false);
-            return; 
-        }
-        
-        // 3. Dacă contextul este valid, încarcă restul datelor
         try {
-             const queries = [
+            if (!supabase) {
+                throw new Error("Clientul Supabase nu este configurat.");
+            }
+
+            const { data: { session: currentSession } } = await supabase.auth.getSession();
+            if (!currentSession) {
+                setSession(null);
+                setCurrentUser(null);
+                return; // Not an error, just no session.
+            }
+            setSession(currentSession);
+
+            // Pas 1: Verificare roluri via RPC. Aceasta este 'diagnosticarea'.
+            // FIX: Renamed `rolesData` to avoid redeclaration conflict.
+            const { data: rolesValidationData, error: rpcError } = await supabase.rpc('get_user_login_data_v2');
+
+            if (rpcError) {
+                throw new Error(`Eroare la verificarea rolurilor: ${rpcError.message}`);
+            }
+            
+            if (!rolesValidationData || (Array.isArray(rolesValidationData) && rolesValidationData.length === 0)) {
+                // User is authenticated but has no roles. This is the "Incomplete Profile" scenario.
+                throw new Error("PROFIL_INCOMPLET: Contul este valid, dar nu are roluri sau profil asociat.");
+            }
+
+            // Pas 2: Dacă verificarea a trecut, continuă cu încărcarea completă a datelor.
+            const { user: profile, roles, error: profileFetchError } = await getAuthenticatedUser(supabase);
+            
+            if (profileFetchError) throw profileFetchError;
+            if (!profile || !roles) throw new Error("Profilul utilizatorului nu a putut fi încărcat după validarea inițială.");
+            
+            setCurrentUser(profile);
+            setUserRoles(roles);
+            
+            const primaryContext = roles.find(r => r.is_primary);
+            setActiveRoleContext(primaryContext || null);
+            
+            if (roles.length > 1 && !primaryContext) {
+                setNeedsRoleSelection(true);
+                return; // Stop loading here, user needs to select a role.
+            }
+            
+            // Pas 3: Încarcă restul datelor aplicației.
+            const queries = [
                 supabase.from('cluburi').select('*'),
                 supabase.from('roluri').select('*'),
                 supabase.from('grade').select('*'),
@@ -155,10 +126,10 @@ export const useDataProvider = () => {
                 supabase.from('deconturi_federatie').select('*'),
                 supabase.from('istoric_grade').select('*'),
             ];
-            
+
             const settledResults = await Promise.allSettled(queries);
             
-            const processedResults = settledResults.map((result, index) => {
+            const processedResults = settledResults.map((result) => {
                 if (result.status === 'fulfilled') {
                     const { data, error } = result.value;
                     if (error && (error.code === '42501' || String(error.code) === '403' || error.message.includes('permission denied'))) {
@@ -189,7 +160,6 @@ export const useDataProvider = () => {
             
             const clubsMap = new Map((clubsData || []).map(c => [c.id, c]));
             const allNomenclatorRoles = rolesData || [];
-
             const allSportivi = sportiviData?.map(s => {
                 const joinedRoles = (s as any).roles || [];
                 const userRolesFromJoin = joinedRoles.map((mcr: any) => allNomenclatorRoles.find(r => r.nume === mcr.rol_denumire)).filter(Boolean);
@@ -224,6 +194,11 @@ export const useDataProvider = () => {
 
         } catch (err: any) {
             setError(err.message);
+            // Pentru erori critice (altele decât profil incomplet), deconectăm utilizatorul pentru siguranță.
+            if (!err.message.startsWith('PROFIL_INCOMPLET')) {
+                console.error("Critical error during data fetch, signing out:", err);
+                await supabase?.auth.signOut();
+            }
         } finally {
             setLoading(false);
         }

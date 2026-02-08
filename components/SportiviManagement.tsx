@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions } from '../types';
-// FIX: Removed import for obsolete SportivAccountSettingsModal and unused ShieldCheckIcon.
-import { Button, Modal, Input, Select, Card } from './ui';
+import { Button, Modal, Input, Select, Card, RoleBadge } from './ui';
+// FIX: Removed obsolete ShieldCheckIcon.
 import { PlusIcon, ArrowLeftIcon, WalletIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
@@ -22,19 +22,6 @@ const getAge = (dateString: string | null | undefined): number => {
     return age; 
 };
 
-const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
-    // FIX: Corrected key from 'Super Admin' to 'SUPER_ADMIN_FEDERATIE' to match the 'Rol' type definition.
-    // FIX: Completed the color mapping to include all roles.
-    const colorClasses: Record<Rol['nume'], string> = { 
-        'Admin': 'bg-red-600 text-white', 
-        'SUPER_ADMIN_FEDERATIE': 'bg-red-800 text-white', 
-        'Admin Club': 'bg-blue-600 text-white', 
-        'Instructor': 'bg-sky-600 text-white', 
-        'Sportiv': 'bg-slate-600 text-slate-200' 
-    };
-    return <span className={`px-2 py-1 text-[10px] font-semibold rounded-full ${colorClasses[role.nume] || 'bg-gray-500 text-white'}`}>{role.nume}</span>;
-};
-
 
 // --- Componenta Management Principală ---
 export const SportiviManagement: React.FC<{
@@ -50,22 +37,22 @@ export const SportiviManagement: React.FC<{
     setAllRoles: React.Dispatch<React.SetStateAction<Rol[]>>;
     currentUser: User;
     plati: Plata[];
+    setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
     tranzactii: Tranzactie[];
     setTranzactii: React.Dispatch<React.SetStateAction<Tranzactie[]>>;
     onViewSportiv: (sportiv: Sportiv) => void;
     clubs: Club[];
     grade: Grad[];
     permissions: Permissions;
-}> = ({ onBack, sportivi, setSportivi, grupe, setGrupe, tipuriAbonament, familii, setFamilii, allRoles, setAllRoles, currentUser, plati, tranzactii, setTranzactii, onViewSportiv, clubs, grade, permissions }) => {
+}> = ({ onBack, sportivi, setSportivi, grupe, setGrupe, tipuriAbonament, familii, setFamilii, allRoles, setAllRoles, currentUser, plati, setPlati, tranzactii, setTranzactii, onViewSportiv, clubs, grade, permissions }) => {
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
     const [sportivToEdit, setSportivToEdit] = useState<Sportiv | null>(null);
-    // FIX: Removed state for obsolete modal
-    // const [accountSettingsSportiv, setAccountSettingsSportiv] = useState<Sportiv | null>(null);
     const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
     const [sportivForWallet, setSportivForWallet] = useState<Sportiv | null>(null);
     const [selectedSportivForHighlight, setSelectedSportivForHighlight] = useState<Sportiv | null>(null);
 
-    const { showError } = useError();
+    // FIX: Destructured showSuccess to resolve 'Cannot find name' error.
+    const { showError, showSuccess } = useError();
     
     const [filters, setFilters] = useLocalStorage('phi-hau-sportivi-filters', {
         searchTerm: '',

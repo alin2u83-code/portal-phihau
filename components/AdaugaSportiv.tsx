@@ -39,7 +39,7 @@ export const AdaugaSportiv: React.FC<{ navigation?: any }> = ({ navigation }) =>
       if (authError) throw authError;
       if (!authData.user) throw new Error("Contul de autentificare nu a putut fi creat.");
 
-      // 4. Inserează în public.sportivi
+      // 4. Inserează în public.sportivi (fără club_id, conform regulii)
       const newSportivData: Omit<Sportiv, 'id' | 'roluri' | 'club_id'> = {
         nume: nume.trim(),
         prenume: prenume.trim(),
@@ -61,7 +61,6 @@ export const AdaugaSportiv: React.FC<{ navigation?: any }> = ({ navigation }) =>
       
       if (insertError) {
         // Încercare de a șterge utilizatorul creat dacă inserarea profilului eșuează
-        // Necesită client de admin, dar încercăm ce se poate
         await supabase.auth.signOut(); // Deloghează sesiunea temporară
         Alert.alert("Eroare Critică", `Contul a fost creat, dar profilul nu a putut fi salvat. Contactați administratorul. Eroare: ${insertError.message}`);
         throw insertError;
@@ -175,7 +174,7 @@ const styles = StyleSheet.create({
     borderColor: '#334155',
   },
   saveButton: {
-    backgroundColor: '#64ffda', // Accent color
+    backgroundColor: '#FFD700', // Gold accent
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',

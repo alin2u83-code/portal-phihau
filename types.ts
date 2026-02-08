@@ -63,6 +63,15 @@ export interface SportivDetaliu {
   total_prezente: number;
 }
 
+// NOU: Tip de date pentru vederea `tranzactie_club`
+export interface TranzactieClub {
+  id: string;
+  nume_articol: string;
+  categorie: string;
+  pret: number;
+  status: 'Activ' | 'Inactiv';
+}
+
 
 export interface Grad {
   id:string;

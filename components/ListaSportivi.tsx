@@ -5,6 +5,8 @@ import {
 } from 'react-native';
 import { supabase } from '../supabaseClient';
 import { SportivDetaliu } from '../types';
+import { Session } from '@supabase/supabase-js';
+
 // Folosim iconițe simple sau putem instala un pachet precum react-native-vector-icons
 const PhoneIcon = () => <Text style={{color: '#fff'}}>📞</Text>; 
 const SearchIcon = () => <Text style={{color: '#9ca3af'}}>🔍</Text>; 
@@ -52,22 +54,46 @@ export const ListaSportivi: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
 
-  const fetchSportivi = useCallback(async () => {
+  useEffect(() => {
     if (!supabase) {
       setError("Clientul Supabase nu este configurat.");
+      setLoading(false);
+      return;
+    }
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setLoading(!session);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const fetchSportivi = useCallback(async () => {
+    if (!supabase || !session?.user?.id) {
+      setError("Autentificare necesară pentru a vizualiza datele.");
+      setSportivi([]);
       return;
     }
     setError(null);
+
     try {
-      // RLS se va ocupa de filtrarea pe club_id
       const { data, error: dbError } = await supabase
         .from('sportiv_detaliu')
         .select('*');
       
       if (dbError) throw dbError;
       
-      if (data && Array.isArray(data)) {
+      if (data === null) {
+          setError('Eroare de securitate sau context lipsă. Asigurați-vă că aveți un rol activ.');
+          setSportivi([]);
+      } else if (Array.isArray(data)) {
         setSportivi(data);
       } else {
         setSportivi([]);
@@ -76,12 +102,17 @@ export const ListaSportivi: React.FC = () => {
     } catch (err: any) {
       setError(err.message || 'A apărut o eroare la preluarea datelor.');
     }
-  }, []);
+  }, [session]);
 
   useEffect(() => {
-    setLoading(true);
-    fetchSportivi().finally(() => setLoading(false));
-  }, [fetchSportivi]);
+    if (session) {
+      setLoading(true);
+      fetchSportivi().finally(() => setLoading(false));
+    } else {
+      setSportivi([]);
+      setLoading(false);
+    }
+  }, [session, fetchSportivi]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -98,7 +129,7 @@ export const ListaSportivi: React.FC = () => {
     );
   }, [sportivi, searchTerm]);
 
-  if (loading && sportivi.length === 0) {
+  if (loading) {
     return (
       <SafeAreaView style={styles.container}>
         <ActivityIndicator size="large" color="#FFD700" />
@@ -125,8 +156,6 @@ export const ListaSportivi: React.FC = () => {
         />
       </View>
 
-      {error && <Text style={styles.errorText}>{error}</Text>}
-
       <FlatList
         data={filteredSportivi}
         renderItem={({ item }) => <SportivCard item={item} />}
@@ -141,7 +170,11 @@ export const ListaSportivi: React.FC = () => {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>Nu există sportivi înregistrați în clubul tău.</Text>
+            {error ? (
+              <Text style={styles.errorText}>{error}</Text>
+            ) : (
+              <Text style={styles.emptyText}>Nu există sportivi înregistrați în clubul tău.</Text>
+            )}
           </View>
         }
       />
@@ -240,14 +273,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 50,
+    padding: 20,
   },
   emptyText: {
     color: '#94a3b8',
     fontSize: 16,
+    textAlign: 'center',
   },
   errorText: {
     color: '#ef4444',
     textAlign: 'center',
-    marginHorizontal: 16,
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });

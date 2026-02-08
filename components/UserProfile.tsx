@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Sportiv, User, Rol, InscriereExamen, Examen, Grad, Antrenament, IstoricGrade, Plata, Familie, TipAbonament, Tranzactie, Reducere, Club, ProgramItem, Grupa } from '../types';
+import { Sportiv, User, Rol, InscriereExamen, Examen, Grad, Antrenament, IstoricGrade, Plata, Familie, TipAbonament, Tranzactie, Reducere, Club, ProgramItem, Grupa, VizualizarePlata } from '../types';
 import { Button, Card, Select, Modal, Input, RoleBadge } from './ui';
 import { ArrowLeftIcon, EditIcon, WalletIcon, TrashIcon, ShieldCheckIcon, PlusIcon, ChartBarIcon, TransferIcon, CheckCircleIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -282,9 +282,10 @@ interface UserProfileProps {
     setTranzactii: React.Dispatch<React.SetStateAction<Tranzactie[]>>;
     onBack: () => void;
     clubs: Club[];
+    vizualizarePlati: VizualizarePlata[];
 }
 
-export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, participari, examene, grade, istoricGrade, setIstoricGrade, antrenamente, plati, tranzactii, reduceri, grupe, familii, tipuriAbonament, setSportivi, setPlati, setTranzactii, onBack, clubs }) => {
+export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, participari, examene, grade, istoricGrade, setIstoricGrade, antrenamente, plati, tranzactii, reduceri, grupe, familii, tipuriAbonament, setSportivi, setPlati, setTranzactii, onBack, clubs, vizualizarePlati }) => {
     const { showError, showSuccess } = useError();
     
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -364,6 +365,12 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
         const tranzactiiRelevante = tranzactii.filter(t => t.sportiv_id === sportiv.id || (t.familie_id && t.familie_id === sportiv.familie_id)).sort((a, b) => new Date(b.data_platii).getTime() - new Date(a.data_platii).getTime());
         return { totalRestante: restante, ultimaTranzactie: tranzactiiRelevante[0], sportivPlati: platiRelevante.sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime()) };
     }, [sportiv, plati, tranzactii]);
+
+    const istoricIncasari = useMemo(() => {
+        return (vizualizarePlati || [])
+            .filter(vp => vp.sportiv_id === sportiv.id && vp.data_plata)
+            .sort((a, b) => new Date(b.data_plata!).getTime() - new Date(a.data_plata!).getTime());
+    }, [vizualizarePlati, sportiv.id]);
 
 
     const lastThreeAttendances = useMemo(() => {
@@ -557,6 +564,39 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                                             <td className="py-2 text-right capitalize">{h.source}</td>
                                         </tr>
                                     ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </Card>
+                    <Card>
+                        <h3 className="text-lg font-bold text-white mb-3">Istoric Încasări</h3>
+                        <div className="max-h-60 overflow-y-auto pr-2">
+                            <table className="w-full text-left text-sm">
+                                <thead className="text-slate-400 text-xs uppercase sticky top-0 bg-[var(--bg-card)]">
+                                    <tr>
+                                        <th className="py-2">Data Plății</th>
+                                        <th className="py-2">Descriere</th>
+                                        <th className="py-2 text-right">Sumă</th>
+                                        <th className="py-2 text-center">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-700">
+                                    {istoricIncasari.length > 0 ? istoricIncasari.map(item => (
+                                        <tr key={item.tranzactie_id}>
+                                            <td className="py-2">{new Date(item.data_plata!).toLocaleDateString('ro-RO')}</td>
+                                            <td className="py-2 font-semibold text-white">{item.descriere}</td>
+                                            <td className="py-2 font-bold text-right">{item.suma_incasata?.toFixed(2)} RON</td>
+                                            <td className="py-2 text-center">
+                                                <span className={`font-bold ${item.status === 'Achitat' ? 'text-green-400' : 'text-red-400'}`}>
+                                                    {item.status}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    )) : (
+                                        <tr>
+                                            <td colSpan={4} className="py-8 text-center text-slate-500 italic">Niciun istoric de încasări.</td>
+                                        </tr>
+                                    )}
                                 </tbody>
                             </table>
                         </div>

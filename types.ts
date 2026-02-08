@@ -85,6 +85,21 @@ export interface BalantaClub {
   metoda_plata: 'Cash' | 'Transfer Bancar';
 }
 
+export interface VizualizarePlata {
+  plata_id: string;
+  sportiv_id: string;
+  nume_complet: string;
+  club_id: string;
+  data_emitere: string;
+  descriere: string;
+  suma_datorata: number;
+  status: 'Achitat' | 'Neachitat' | 'Achitat Parțial';
+  tranzactie_id: string | null;
+  data_plata: string | null;
+  suma_incasata: number | null;
+  metoda_plata: 'Cash' | 'Transfer Bancar' | null;
+}
+
 
 export interface Grad {
   id:string;

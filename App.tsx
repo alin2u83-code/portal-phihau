@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { supabase } from './supabaseClient';
 // FIX: Added 'Plata' to imports to resolve 'Cannot find name' errors.
-import { Sportiv, View, Rol, Permissions, Plata } from './types';
+import { Sportiv, View, Rol, Permissions, Plata, VizualizarePlata } from './types';
 import { SportiviManagement } from './components/SportiviManagement';
 import { UserProfile } from './components/UserProfile';
 import { GestiuneExamene } from './components/Examene';
@@ -86,7 +86,7 @@ function App() {
       setCurrentUser, sportivi, sesiuniExamene, inscrieriExamene, grade, istoricGrade, antrenamente,
       grupe, plati, tranzactii, evenimente, rezultate, preturiConfig, tipuriAbonament,
       familii, allRoles, anunturiPrezenta, reduceri, tipuriPlati, locatii, clubs,
-      deconturiFederatie, setPlati, setSportivi, setSesiuniExamene, setInscrieriExamene,
+      deconturiFederatie, vizualizarePlati, setPlati, setSportivi, setSesiuniExamene, setInscrieriExamene,
       setAntrenamente, setGrupe, setTranzactii, setEvenimente, setRezultate, setFamilii,
       setAllRoles, setAnunturiPrezenta, setReduceri, setTipuriPlati, setLocatii, setClubs,
       setGrade, setTipuriAbonament, setDeconturiFederatie, setIstoricGrade
@@ -176,7 +176,7 @@ function App() {
         return {
             sportivi, sesiuniExamene, inscrieriExamene, antrenamente, grupe, plati,
             tranzactii, evenimente, rezultate, tipuriAbonament, familii,
-            anunturiPrezenta, reduceri, deconturiFederatie, istoricGrade
+            anunturiPrezenta, reduceri, deconturiFederatie, istoricGrade, vizualizarePlati
         };
     }
 
@@ -187,6 +187,8 @@ function App() {
     const fEvenimente = (evenimente || []).filter(e => e.club_id === activeClubId || e.club_id === null);
     const fTipuriAbonament = (tipuriAbonament || []).filter(t => t.club_id === activeClubId || t.club_id === null);
     const fDeconturiFederatie = (deconturiFederatie || []).filter(d => d.club_id === activeClubId);
+    const fVizualizarePlati = (vizualizarePlati || []).filter(vp => vp.club_id === activeClubId);
+
 
     const sportivIdsInClub = new Set(fSportivi.map(s => s.id));
     const grupaIdsInClub = new Set(fGrupe.map(g => g.id));
@@ -217,12 +219,13 @@ function App() {
         anunturiPrezenta: fAnunturiPrezenta,
         reduceri,
         deconturiFederatie: fDeconturiFederatie,
-        istoricGrade: fIstoricGrade
+        istoricGrade: fIstoricGrade,
+        vizualizarePlati: fVizualizarePlati
     };
 }, [
     activeClubId, permissions.isFederationAdmin, sportivi, sesiuniExamene, inscrieriExamene, antrenamente,
     grupe, plati, tranzactii, evenimente, rezultate, tipuriAbonament,
-    familii, anunturiPrezenta, reduceri, deconturiFederatie, istoricGrade
+    familii, anunturiPrezenta, reduceri, deconturiFederatie, istoricGrade, vizualizarePlati
 ]);
 
   const handleLogout = async () => {
@@ -306,7 +309,7 @@ function App() {
         return renderProtected(<SportiviManagement onBack={() => setActiveView('dashboard')} sportivi={filteredData.sportivi} setSportivi={setSportivi} grupe={filteredData.grupe} setGrupe={setGrupe} tipuriAbonament={filteredData.tipuriAbonament} familii={filteredData.familii} setFamilii={setFamilii} currentUser={currentUser!} plati={filteredData.plati} setPlati={setPlati} tranzactii={filteredData.tranzactii} setTranzactii={setTranzactii} onViewSportiv={onViewSportiv} clubs={clubs} grade={grade} permissions={permissions} allRoles={allRoles} setAllRoles={setAllRoles} />, isAtLeastInstructor);
 
       case 'profil-sportiv':
-        return renderProtected(selectedSportiv ? <UserProfile sportiv={selectedSportiv} currentUser={currentUser!} participari={filteredData.inscrieriExamene} examene={sesiuniExamene} grade={grade} istoricGrade={filteredData.istoricGrade} setIstoricGrade={setIstoricGrade} antrenamente={filteredData.antrenamente} plati={filteredData.plati} tranzactii={filteredData.tranzactii} reduceri={filteredData.reduceri} grupe={filteredData.grupe} familii={filteredData.familii} tipuriAbonament={filteredData.tipuriAbonament} setSportivi={setSportivi} setPlati={setPlati} setTranzactii={setTranzactii} onBack={() => setActiveView('sportivi')} clubs={clubs} /> : null, isAtLeastInstructor);
+        return renderProtected(selectedSportiv ? <UserProfile sportiv={selectedSportiv} currentUser={currentUser!} participari={filteredData.inscrieriExamene} examene={sesiuniExamene} grade={grade} istoricGrade={filteredData.istoricGrade} setIstoricGrade={setIstoricGrade} antrenamente={filteredData.antrenamente} plati={filteredData.plati} tranzactii={filteredData.tranzactii} reduceri={filteredData.reduceri} grupe={filteredData.grupe} familii={filteredData.familii} tipuriAbonament={filteredData.tipuriAbonament} setSportivi={setSportivi} setPlati={setPlati} setTranzactii={setTranzactii} onBack={() => setActiveView('sportivi')} clubs={clubs} vizualizarePlati={filteredData.vizualizarePlati} /> : null, isAtLeastInstructor);
 
       case 'structura-federatie':
         {/* FIX: The onNavigate prop for FederationStructure requires a function that takes a single 'view' argument. */}

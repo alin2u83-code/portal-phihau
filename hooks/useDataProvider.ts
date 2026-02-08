@@ -4,7 +4,7 @@ import { getAuthenticatedUser } from '../utils/auth';
 import { 
     Sportiv, SesiuneExamen, Grad, InscriereExamen, Antrenament, Grupa, Plata, 
     Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, 
-    Rol, AnuntPrezenta, Reducere, TipPlata, Locatie, Club, DecontFederatie, IstoricGrade 
+    Rol, AnuntPrezenta, Reducere, TipPlata, Locatie, Club, DecontFederatie, IstoricGrade, VizualizarePlata
 } from '../types';
 import { Session } from '@supabase/supabase-js';
 
@@ -31,6 +31,7 @@ export interface AppData {
     locatii: Locatie[];
     clubs: Club[];
     deconturiFederatie: DecontFederatie[];
+    vizualizarePlati: VizualizarePlata[];
 }
 
 const initialData: AppData = {
@@ -38,7 +39,7 @@ const initialData: AppData = {
     antrenamente: [], grupe: [], plati: [], tranzactii: [], evenimente: [], 
     rezultate: [], preturiConfig: [], tipuriAbonament: [], familii: [], 
     allRoles: [], anunturiPrezenta: [], reduceri: [], tipuriPlati: [], 
-    locatii: [], clubs: [], deconturiFederatie: [],
+    locatii: [], clubs: [], deconturiFederatie: [], vizualizarePlati: []
 };
 
 // The main data provider hook
@@ -134,6 +135,9 @@ export const useDataProvider = () => {
         }
         
         try {
+            // Interogarea pentru view se bazează pe RLS-ul tabelelor subiacente.
+            const platiViewQuery = supabase.from('view_plata_sportiv').select('*');
+
              const queries = [
                 supabase.from('cluburi').select('*'),
                 supabase.from('roluri').select('*'),
@@ -154,6 +158,7 @@ export const useDataProvider = () => {
                 supabase.from('familii').select('*'),
                 supabase.from('anunturi_prezenta').select('*'),
                 supabase.from('preturi_config').select('*'),
+                platiViewQuery,
                 supabase.from('deconturi_federatie').select('*'),
                 supabase.from('istoric_grade').select('*'),
             ];
@@ -185,8 +190,8 @@ export const useDataProvider = () => {
                 { data: reduceriData }, { data: sportiviData }, { data: sessionsData },
                 { data: registrationsData }, { data: trainingsData }, { data: platiData },
                 { data: tranzactiiData }, { data: eventsData }, { data: resultsData },
-                { data: familiesData }, { data: anunturiData }, { data: pricesData }, { data: deconturiData },
-                { data: istoricGradeData }
+                { data: familiesData }, { data: anunturiData }, { data: pricesData },
+                { data: vizualizarePlatiData }, { data: deconturiData }, { data: istoricGradeData }
             ] = processedResults;
             
             const clubsMap = new Map((clubsData || []).map(c => [c.id, c]));
@@ -206,23 +211,6 @@ export const useDataProvider = () => {
             }) || [];
             
             const allGrupe = groupsData?.map(g => ({ ...g, program: g.program || [] })) || [];
-
-            // FILTRARE PENTRU ROL SPORTIV
-            let filteredPlati = platiData || [];
-            let filteredTranzactii = tranzactiiData || [];
-            const isSportivOnly = profile.roluri.length === 1 && profile.roluri[0].nume === 'Sportiv';
-            
-            if (isSportivOnly) {
-                const userFamilyId = profile.familie_id;
-                if (userFamilyId) {
-                    const familyMemberIds = new Set(allSportivi.filter(s => s.familie_id === userFamilyId).map(s => s.id));
-                    filteredPlati = (platiData || []).filter(p => p.familie_id === userFamilyId || (p.sportiv_id && familyMemberIds.has(p.sportiv_id)));
-                    filteredTranzactii = (tranzactiiData || []).filter(t => t.familie_id === userFamilyId || (t.sportiv_id && familyMemberIds.has(t.sportiv_id)));
-                } else {
-                    filteredPlati = (platiData || []).filter(p => p.sportiv_id === profile.id);
-                    filteredTranzactii = (tranzactiiData || []).filter(t => t.sportiv_id === profile.id);
-                }
-            }
             
             setData({
                 sportivi: allSportivi as Sportiv[],
@@ -230,8 +218,8 @@ export const useDataProvider = () => {
                 inscrieriExamene: registrationsData as InscriereExamen[],
                 istoricGrade: istoricGradeData as IstoricGrade[],
                 antrenamente: (trainingsData?.map(t => ({...t, prezenta: (t as any).prezenta || []})) || []) as Antrenament[],
-                plati: filteredPlati as Plata[],
-                tranzactii: filteredTranzactii as Tranzactie[],
+                plati: (platiData || []) as Plata[],
+                tranzactii: (tranzactiiData || []) as Tranzactie[],
                 evenimente: eventsData as Eveniment[],
                 rezultate: resultsData as Rezultat[],
                 familii: familiesData as Familie[],
@@ -246,6 +234,7 @@ export const useDataProvider = () => {
                 tipuriPlati: platiTypesData as TipPlata[],
                 reduceri: reduceriData as Reducere[],
                 deconturiFederatie: deconturiData as DecontFederatie[],
+                vizualizarePlati: vizualizarePlatiData as VizualizarePlata[],
             });
 
         } catch (err: any) {
@@ -310,5 +299,6 @@ export const useDataProvider = () => {
         setReduceri: createSetter('reduceri'),
         setDeconturiFederatie: createSetter('deconturiFederatie'),
         setAnunturiPrezenta: createSetter('anunturiPrezenta'),
+        setVizualizarePlati: createSetter('vizualizarePlati'),
     };
 };

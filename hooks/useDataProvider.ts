@@ -75,15 +75,32 @@ export const useDataProvider = () => {
         setNeedsRoleSelection(false);
         setLoading(true);
 
+        // NOU: Verificare centralizată a rolurilor prin RPC la fiecare încărcare de sesiune.
+        const { data: rolesData, error: rpcError } = await supabase.rpc('get_user_login_data_v2');
+        if (rpcError) {
+            setError(`Eroare la verificarea rolurilor: ${rpcError.message}`);
+            await supabase.auth.signOut();
+            return;
+        }
+        
+        const hasRole = Array.isArray(rolesData) ? rolesData.length > 0 : (rolesData && typeof rolesData === 'object' && Object.keys(rolesData).length > 0);
+
+        if (!hasRole) {
+            console.error(`[Security Gatekeeper] User ${currentSession.user.email} authenticated but RPC get_user_login_data_v2 returned no roles. Forcing sign out.`);
+            await supabase.auth.signOut();
+            // Redirecționarea va fi gestionată de onAuthStateChange care va vedea sesiunea nulă.
+            // Pentru a fi explicit, putem seta stările de încărcare/eroare aici.
+            setError('Contul nu are niciun rol asignat. Accesul a fost revocat.');
+            setLoading(false);
+            return;
+        }
+
         // 1. Așteaptă contextul utilizatorului
         const { user: profile, roles, error: profileFetchError } = await getAuthenticatedUser(supabase);
         
         if (profileFetchError) {
             setError(profileFetchError.message);
             await supabase.auth.signOut();
-            setSession(null);
-            setCurrentUser(null);
-            setLoading(false);
             return;
         }
 
@@ -93,7 +110,6 @@ export const useDataProvider = () => {
             return;
         }
         
-        // Gatekeeper: Forțează deconectarea dacă nu există roluri
         if (roles.length === 0) {
             console.error(`[Security Gatekeeper] User ${profile.email} has a valid session but no roles. Forcing sign out.`);
             await supabase.auth.signOut();
@@ -216,9 +232,11 @@ export const useDataProvider = () => {
     useEffect(() => {
         if (!supabase) return;
         
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
             if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'USER_UPDATED' || event === 'TOKEN_REFRESHED') {
-                initializeAndFetchData();
+                if (session) {
+                    initializeAndFetchData();
+                }
             } else if (event === 'SIGNED_OUT') {
                 setSession(null);
                 setCurrentUser(null);
@@ -226,6 +244,7 @@ export const useDataProvider = () => {
                 setActiveRoleContext(null);
                 setData(initialData);
                 setLoading(false);
+                setError(null);
             }
         });
 

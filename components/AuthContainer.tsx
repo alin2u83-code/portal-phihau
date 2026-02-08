@@ -53,50 +53,19 @@ export const AuthContainer: React.FC = () => {
             return;
         }
 
-        // 1. Autentifică utilizatorul
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        // Simplificat: Doar încercăm să ne autentificăm. Listener-ul onAuthStateChange
+        // din useDataProvider va prelua controlul, va verifica rolurile și va gestiona fluxul.
+        const { error: signInError } = await supabase.auth.signInWithPassword({
             email: form.email,
             password: form.parola,
         });
 
+        setLoading(false);
+
         if (signInError) {
             setMessage({ type: 'error', text: 'Date de autentificare invalide. Verificați email/utilizator și parola.' });
-            setLoading(false);
-            return;
         }
-
-        if (signInData.user) {
-            const { data: rolesData, error: rpcError } = await supabase.rpc('get_user_login_data_v2');
-
-            if (rpcError) {
-                setMessage({ type: 'error', text: `Eroare la verificarea rolurilor: ${rpcError.message}` });
-                await supabase.auth.signOut(); // Deconectează utilizatorul dacă verificarea eșuează
-                setLoading(false);
-                return;
-            }
-
-            // 3. Validare Rol: Modificată pentru a fi robustă
-            console.log("Date primite de la RPC:", rolesData); // Debug log critic
-
-            // Verificăm dacă avem date valide sub orice formă (Array sau Obiect)
-            const hasRole = Array.isArray(rolesData) 
-                ? rolesData.length > 0 
-                : (rolesData && typeof rolesData === 'object');
-
-            if (!hasRole) {
-                setMessage({ 
-                    type: 'error', 
-                    text: 'Contul nu are niciun rol asignat în sistemul multicont. Contactați administratorul.' 
-                });
-                await supabase.auth.signOut();
-                setLoading(false);
-                return;
-            }
-        }
-        
-        // 4. Redirecționare & Salvare Context: Dacă verificarea a trecut, nu mai este necesară nicio acțiune aici.
-        //    Listener-ul `onAuthStateChange` din App.tsx va prelua controlul, va încărca contextul
-        //    (club, rol specific) și va naviga la panoul de control corespunzător.
+        // Nu mai este necesar cod pentru `on success`, deoarece listener-ul global va gestiona tranziția.
     };
 
     const handleSignUp = async (e: React.FormEvent) => {

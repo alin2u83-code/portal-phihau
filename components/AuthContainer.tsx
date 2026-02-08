@@ -65,8 +65,8 @@ export const AuthContainer: React.FC = () => {
             return;
         }
 
-        // 2. Dacă autentificarea reușește, verifică rolurile folosind o funcție RPC
-        //    care are permisiuni superioare pentru a ocoli potențialele probleme RLS la logare.
+        // 2. Extragere Date: După autentificare, se apelează funcția RPC `get_user_login_data_v2`
+        //    pentru a valida existența unui rol înainte de a permite accesul complet.
         if (signInData.user) {
             const { data: rolesData, error: rpcError } = await supabase.rpc('get_user_login_data_v2');
 
@@ -77,7 +77,9 @@ export const AuthContainer: React.FC = () => {
                 return;
             }
 
-            // 3. Dacă funcția RPC nu returnează niciun rol (indiferent de denumire), blochează accesul și deconectează.
+            // 3. Validare Rol: Se verifică dacă RPC-ul returnează cel puțin un rând.
+            //    Această logică acceptă orice rol (inclusiv SUPER_ADMIN_FEDERATIE) și afișează
+            //    mesajul de 'Acces revocat' doar dacă setul de date este gol.
             if (!rolesData || (Array.isArray(rolesData) && rolesData.length === 0)) {
                 setMessage({ type: 'error', text: 'Contul nu are niciun rol asignat. Acces revocat.' });
                 await supabase.auth.signOut();
@@ -86,9 +88,9 @@ export const AuthContainer: React.FC = () => {
             }
         }
         
-        // 4. Dacă rolurile există, nu mai face nimic. Listener-ul onAuthStateChange din App.tsx va
-        //    prelua controlul, va încărca toate datele și va naviga la dashboard. Starea de 'loading'
-        //    se va opri natural la demontarea componentei.
+        // 4. Redirecționare & Salvare Context: Dacă verificarea a trecut, nu mai este necesară nicio acțiune aici.
+        //    Listener-ul `onAuthStateChange` din App.tsx va prelua controlul, va încărca contextul
+        //    (club, rol specific) și va naviga la panoul de control corespunzător.
     };
 
     const handleSignUp = async (e: React.FormEvent) => {

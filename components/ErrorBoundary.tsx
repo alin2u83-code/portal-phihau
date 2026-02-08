@@ -14,11 +14,14 @@ interface State {
 }
 
 class ErrorBoundary extends React.Component<Props, State> {
-  // FIX: Using property initializer for state as constructor initialization seems to be causing issues.
-  public state: State = {
-    hasError: false,
-    error: undefined,
-  };
+  // FIX: Replaced property initializer with a constructor to resolve issues with 'this' context in class methods.
+  constructor(props: Props) {
+    super(props);
+    this.state = {
+      hasError: false,
+      error: undefined,
+    };
+  }
 
   static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };

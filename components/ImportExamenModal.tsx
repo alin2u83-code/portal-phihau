@@ -219,14 +219,16 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                     });
                     if (rpcError) throw rpcError;
                     successCount++;
-                } catch (err: any) {
+                } catch (err: unknown) {
                     errorCount++;
-                    errorDetails.push({ row: row.originalIndex + 1, name: `${row.Nume} ${row.Prenume}`, error: err.message });
+                    const errorMessage = err instanceof Error ? err.message : String(err);
+                    errorDetails.push({ row: row.originalIndex + 1, name: `${row.Nume} ${row.Prenume}`, error: errorMessage });
                 }
             }
-        } catch (err: any) {
-            setErrorLog(err);
-            showError("Eroare Critică de Import", err.message);
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : String(err);
+            setErrorLog({ general: errorMessage });
+            showError("Eroare Critică de Import", errorMessage);
         } finally {
             setIsProcessing(false);
             if (errorCount > 0) {

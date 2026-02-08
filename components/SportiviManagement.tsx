@@ -2,6 +2,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions } from '../types';
 // FIX: Added RoleBadge to imports to resolve 'Cannot find name' errors.
 import { Button, Modal, Input, Select, Card, RoleBadge } from './ui';
+// FIX: Removed ShieldCheckIcon as the associated account settings feature is obsolete.
 import { PlusIcon, ArrowLeftIcon, WalletIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';

@@ -283,9 +283,11 @@ interface UserProfileProps {
     onBack: () => void;
     clubs: Club[];
     vizualizarePlati: VizualizarePlata[];
+    // FIX: Add 'sportivi' to props to fix 'Cannot find name' errors.
+    sportivi: Sportiv[];
 }
 
-export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, participari, examene, grade, istoricGrade, setIstoricGrade, antrenamente, plati, tranzactii, reduceri, grupe, familii, tipuriAbonament, setSportivi, setPlati, setTranzactii, onBack, clubs, vizualizarePlati }) => {
+export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, participari, examene, grade, istoricGrade, setIstoricGrade, antrenamente, plati, tranzactii, reduceri, grupe, familii, tipuriAbonament, setSportivi, setPlati, setTranzactii, onBack, clubs, vizualizarePlati, sportivi }) => {
     const { showError, showSuccess } = useError();
     
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -359,12 +361,40 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
         return lastGradeEvent ? grade.find(g => g.id === lastGradeEvent.grad_id) : null;
     }, [gradeHistory, grade]);
 
-    const { totalRestante, ultimaTranzactie, sportivPlati } = useMemo(() => {
-        const platiRelevante = plati.filter(p => p.sportiv_id === sportiv.id || (p.familie_id && p.familie_id === sportiv.familie_id));
-        const restante = platiRelevante.filter(p => p.status === 'Neachitat' || p.status === 'Achitat Parțial').reduce((sum, p) => sum + p.suma, 0);
-        const tranzactiiRelevante = tranzactii.filter(t => t.sportiv_id === sportiv.id || (t.familie_id && t.familie_id === sportiv.familie_id)).sort((a, b) => new Date(b.data_platii).getTime() - new Date(a.data_platii).getTime());
-        return { totalRestante: restante, ultimaTranzactie: tranzactiiRelevante[0], sportivPlati: platiRelevante.sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime()) };
-    }, [sportiv, plati, tranzactii]);
+    const { totalRestante, sportivPlati } = useMemo(() => {
+        // Obține toate ID-urile membrilor familiei, inclusiv sportivul curent
+        const memberIds = sportiv.familie_id
+            ? new Set(sportivi.filter(s => s.familie_id === sportiv.familie_id).map(s => s.id))
+            : new Set([sportiv.id]);
+
+        // Filtrează view-ul pentru toți membrii
+        const platiRelevante = (vizualizarePlati || []).filter(p => memberIds.has(p.sportiv_id));
+
+        // Agreghează plățile unice, deoarece view-ul poate duplica facturile cu plăți multiple
+        const platiUniceMap = new Map<string, VizualizarePlata>();
+        platiRelevante.forEach(p => {
+            if (!platiUniceMap.has(p.plata_id)) {
+                platiUniceMap.set(p.plata_id, { ...p });
+            }
+        });
+        const platiUnice = Array.from(platiUniceMap.values());
+
+        // Calculează suma restantă
+        const restante = platiUnice
+            .filter(p => p.status === 'Neachitat' || p.status === 'Achitat Parțial')
+            .reduce((sum, p) => {
+                const totalIncasatPentruPlata = platiRelevante
+                    .filter(item => item.plata_id === p.plata_id)
+                    .reduce((s, i) => s + (i.suma_incasata || 0), 0);
+                
+                return sum + (p.suma_datorata - totalIncasatPentruPlata);
+            }, 0);
+
+        return { 
+            totalRestante: restante, 
+            sportivPlati: plati.filter(p => p.sportiv_id === sportiv.id || (p.familie_id && p.familie_id === sportiv.familie_id)).sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime())
+        };
+    }, [sportiv, vizualizarePlati, plati, sportivi]);
 
     const istoricIncasari = useMemo(() => {
         return (vizualizarePlati || [])
@@ -604,7 +634,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                 </div>
             </div>
             {isEditModalOpen && <SportivFormModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} onSave={handleSave} sportivToEdit={sportiv} grupe={grupe} setGrupe={()=>{}} familii={familii} setFamilii={()=>{}} tipuriAbonament={tipuriAbonament} clubs={clubs} currentUser={currentUser} />}
-            {isWalletModalOpen && <SportivWallet sportiv={sportiv} familie={familii.find(f => f.id === sportiv.familie_id)} allPlati={plati} allTranzactii={tranzactii} setTranzactii={setTranzactii} onClose={() => setIsWalletModalOpen(false)} />}
+            {isWalletModalOpen && <SportivWallet sportiv={sportiv} familie={familii.find(f => f.id === sportiv.familie_id)} allPlati={plati} allTranzactii={tranzactii} setPlati={setPlati} setTranzactii={setTranzactii} onClose={() => setIsWalletModalOpen(false)} />}
             {isDeleteModalOpen && <DeleteAuditModal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} sportiv={sportiv} onDeactivate={handleDeactivate} onDelete={handleDelete} />}
             {isReportModalOpen && <SportivFeedbackReport isOpen={isReportModalOpen} onClose={() => setIsReportModalOpen(false)} sportiv={sportiv} antrenamente={antrenamente} grupe={grupe} grade={grade} participari={participari} examene={examene} />}
             {isTransferModalOpen && <TransferModal isOpen={isTransferModalOpen} onClose={() => setIsTransferModalOpen(false)} sportiv={sportiv} clubs={clubs} onTransferComplete={(updatedSportiv) => { setSportivi(p => p.map(s => s.id === updatedSportiv.id ? updatedSportiv : s)); setIsTransferModalOpen(false); }} />}

@@ -137,7 +137,7 @@ export const useDataProvider = () => {
         
         try {
             // Interogarea pentru view se bazează pe RLS-ul tabelelor subiacente.
-            const platiViewQuery = supabase.from('view_plata_sportiv').select('plata_id, sportiv_id, club_id, familie_id, data_emitere, descriere, suma_datorata, status, data_plata, suma_incasata');
+            const platiViewQuery = supabase.from('view_plata_sportiv').select('plata_id, sportiv_id, club_id, familie_id, data_emitere, descriere, suma_datorata, status, data_plata, suma_incasata, tranzactie_id');
 
              const queries = [
                 supabase.from('cluburi').select('*'),
@@ -194,6 +194,8 @@ export const useDataProvider = () => {
                 { data: vizualizarePlatiData }, { data: deconturiData }, { data: istoricGradeData }
             ] = processedResults;
             
+            console.log('Date primite din View (view_plata_sportiv):', vizualizarePlatiData);
+
             const clubsMap = new Map((clubsData || []).map(c => [c.id, c]));
             const allNomenclatorRoles = rolesData || [];
 

@@ -46,8 +46,6 @@ export const Notificari: React.FC<NotificariProps> = ({ onBack, currentUser }) =
             return;
         }
         
-        // Verifică dacă utilizatorul curent are un user_id valid (UUID) înainte de a trimite.
-        // Aceasta este cheia pentru a respecta constrângerea de cheie străină `sent_by`.
         if (!currentUser?.user_id) {
             showError("Eroare de Autentificare", "ID-ul de utilizator nu a fost găsit în sesiune. Notificarea nu poate fi trimisă.");
             return;
@@ -55,26 +53,42 @@ export const Notificari: React.FC<NotificariProps> = ({ onBack, currentUser }) =
 
         setLoading(true);
 
-        const { data, error } = await supabase
-            .from('notificari')
-            .insert({
-                title: title, // Coloana 'title' este folosită corect
-                body: body,   // Coloana 'body' (înlocuitor pentru 'mesaj') este folosită corect
-                sent_by: currentUser.user_id, // Se folosește user_id-ul valid
-                sender_sportiv_id: currentUser.id,
-            })
-            .select()
-            .single();
+        try {
+            const { data: sportivi, error: sportiviError } = await supabase.from('sportivi').select('user_id').not('user_id', 'is', null);
+            if (sportiviError) throw sportiviError;
+            
+            const recipientIds = sportivi.map(s => s.user_id).filter(Boolean);
 
-        setLoading(false);
+            if (recipientIds.length === 0) {
+                showError("Niciun Destinatar", "Nu s-au găsit utilizatori cărora să le fie trimisă notificarea.");
+                setLoading(false);
+                return;
+            }
 
-        if (error) {
-            showError("Eroare la trimitere", `Asigurați-vă că rolul dumneavoastră are permisiunea de a insera în tabelul 'notificari'. Detalii: ${error.message}`);
-        } else if (data) {
-            showSuccess("Succes", "Anunțul a fost trimis cu succes!");
-            setHistory(prev => [data as AnuntGeneral, ...prev]);
-            setTitle('');
-            setBody('');
+            const notificationsToInsert = recipientIds.map(userId => ({
+                recipient_user_id: userId,
+                title: title,
+                body: body,
+                sent_by: currentUser.user_id,
+                sender_sportiv_id: currentUser.id
+            }));
+
+            const { error } = await supabase.from('notificari').insert(notificationsToInsert);
+
+            if (error) {
+                throw error;
+            } else {
+                showSuccess("Succes", `Anunțul a fost trimis către ${recipientIds.length} utilizatori!`);
+                // Adăugăm o singură instanță în istoric pentru a nu supraîncărca UI-ul
+                const historyEntry = { ...notificationsToInsert[0], id: `temp-${Date.now()}`, created_at: new Date().toISOString() };
+                setHistory(prev => [historyEntry as unknown as AnuntGeneral, ...prev]);
+                setTitle('');
+                setBody('');
+            }
+        } catch (error: any) {
+             showError("Eroare la trimitere", `Asigurați-vă că rolul dumneavoastră are permisiunea de a insera în tabelul 'notificari'. Detalii: ${error.message}`);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -101,7 +115,7 @@ export const Notificari: React.FC<NotificariProps> = ({ onBack, currentUser }) =
                 <div className="space-y-3 max-h-96 overflow-y-auto">
                     {history.length > 0 ? history.map(anunt => (
                         <div key={anunt.id} className="bg-slate-700/50 p-3 rounded-md">
-                            <p className="font-bold text-white">{anunt.title}</p>
+                            <p className="font-bold text-white">{anunt.title || (anunt as any).titlu}</p>
                             <p className="text-sm text-slate-300">{anunt.body}</p>
                             <p className="text-xs text-slate-500 mt-1">Trimis la: {new Date(anunt.created_at).toLocaleString('ro-RO')}</p>
                         </div>

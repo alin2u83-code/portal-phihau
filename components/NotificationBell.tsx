@@ -6,6 +6,7 @@ import { BellIcon } from './icons';
 interface Notification {
     id: string;
     title: string;
+    titlu?: string;
     body: string;
     message?: string; // Fallback for old data
     created_at: string;
@@ -112,7 +113,7 @@ export const NotificationBell: React.FC<{ currentUser: User }> = ({ currentUser 
                         {notifications.length > 0 ? (
                             notifications.map(n => (
                                 <div key={n.id} className={`p-3 border-b border-slate-700/50 ${!n.is_read ? 'bg-brand-primary/10' : ''}`}>
-                                    <p className="text-sm font-bold text-slate-200">{n.title || 'Notificare'}</p>
+                                    <p className="text-sm font-bold text-slate-200">{n.title || n.titlu || 'Notificare'}</p>
                                     <p className="text-sm text-slate-300">{n.body || n.message}</p>
                                     <p className="text-xs text-slate-500 text-right mt-1">{timeAgo(n.created_at)}</p>
                                 </div>

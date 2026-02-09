@@ -189,7 +189,11 @@ export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, 
                                             <div className="p-2 bg-slate-700/50 rounded-full">{getPaymentIcon(invoice.details.descriere)}</div>
                                             <div className="flex-grow">
                                                 <p className="font-semibold text-white text-sm">{invoice.details.descriere}</p>
-                                                <p className="text-xs text-slate-400">{new Date(invoice.details.data_emitere).toLocaleDateString('ro-RO')}</p>
+                                                <p className="text-xs text-slate-400">
+                                                    {(invoice.details.data_plata || invoice.details.data_emitere) 
+                                                        ? new Date(invoice.details.data_plata || invoice.details.data_emitere).toLocaleDateString('ro-RO') 
+                                                        : 'Fără dată'}
+                                                </p>
                                             </div>
                                             <p className={`text-base font-bold text-right ${invoice.remaining > 0 ? 'text-red-400' : 'text-green-400'}`}>
                                                 {invoice.remaining > 0 ? `-${invoice.remaining.toFixed(2)}` : invoice.details.suma_datorata.toFixed(2)}

@@ -90,6 +90,7 @@ export interface VizualizarePlata {
   sportiv_id: string;
   nume_complet: string;
   club_id: string;
+  familie_id: string | null;
   data_emitere: string;
   descriere: string;
   suma_datorata: number;
@@ -178,6 +179,7 @@ export interface AnuntPrezenta {
   id?: string;
   antrenament_id: string;
   sportiv_id: string;
+  club_id?: string;
   status: 'Confirm' | 'Intarziat' | 'Absent';
   detalii: string | null;
 }
@@ -290,6 +292,7 @@ export interface AnuntGeneral {
   id: string;
   created_at: string;
   title: string;
+  titlu?: string;
   body: string;
   sent_by: string;
 }

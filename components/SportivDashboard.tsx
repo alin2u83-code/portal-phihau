@@ -287,18 +287,18 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
             return;
         }
 
-        // 1. Validare Date: Verifică dacă contextul utilizatorului este complet încărcat.
-        if (!currentUser?.id || !currentUser.user_id) {
+        if (!currentUser?.id || !currentUser.user_id || !currentUser.club_id) {
             showError("Sesiune invalidă", "Profilul tău nu este complet încărcat. Te rugăm să te reautentifici pentru a trimite prezența.");
             return;
         }
 
         try {
             const existingAnunt = (anunturi || []).find(a => a.antrenament_id === trainingId && a.sportiv_id === currentUser.id);
-            const upsertData = {
+            const upsertData: Omit<AnuntPrezenta, 'id'> & { id?: string } = {
                 id: existingAnunt?.id,
                 antrenament_id: trainingId,
                 sportiv_id: currentUser.id,
+                club_id: currentUser.club_id,
                 status: status,
                 detalii: null 
             };
@@ -320,14 +320,13 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                         newAnunturi[index] = data;
                         return newAnunturi;
                     } else {
-                        return [...prev, data];
+                        return [...prev, data as AnuntPrezenta];
                     }
                 });
             }
         } catch (error: any) {
-            // 2. Feedback Utilizator: Mesaj specific pentru erori RLS.
-            if (error.message.includes('violates row-level security policy')) {
-                showError("Sesiune invalidă", "Te rugăm să te reautentifici pentru a trimite prezența.");
+            if (error.code === '42501' || error.message.includes('violates row-level security policy')) {
+                showError("Lipsă permisiuni scriere", "Nu aveți permisiunea de a înregistra prezența. Contactați administratorul.");
             } else {
                 showError("Eroare la salvarea statusului", error.message);
             }

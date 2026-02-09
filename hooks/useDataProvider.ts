@@ -56,6 +56,7 @@ export const useDataProvider = () => {
     const [needsRoleSelection, setNeedsRoleSelection] = useState(false);
 
     const initializeAndFetchData = useCallback(async () => {
+      try {
         if (!supabase) {
             setError("Clientul Supabase nu este configurat.");
             setLoading(false);
@@ -136,7 +137,7 @@ export const useDataProvider = () => {
         
         try {
             // Interogarea pentru view se bazează pe RLS-ul tabelelor subiacente.
-            const platiViewQuery = supabase.from('view_plata_sportiv').select('*');
+            const platiViewQuery = supabase.from('view_plata_sportiv').select('plata_id, sportiv_id, club_id, familie_id, data_emitere, descriere, suma_datorata, status, data_plata, suma_incasata, tranzactie_id');
 
              const queries = [
                 supabase.from('cluburi').select('*'),
@@ -165,22 +166,21 @@ export const useDataProvider = () => {
             
             const settledResults = await Promise.allSettled(queries);
             
-            const processedResults = settledResults.map((result) => {
+            const processedResults = settledResults.map((result, index) => {
                 if (result.status === 'fulfilled') {
                     const { data, error: queryError } = result.value;
-                    if (queryError && (queryError.code === '42501' || String(queryError.code) === '403' || queryError.message.includes('permission denied'))) {
-                        console.warn(`RLS a blocat accesul la un tabel. Se returnează un array gol.`, queryError.message);
+                    if (queryError) {
+                        console.warn(`[DataProvider] A eșuat interogarea #${index}. Se returnează un array gol. Motiv:`, queryError);
+                        if (String(queryError.code).includes('42P01')) {
+                           console.error(`[DataProvider] Eroare de schemă (42P01): Tabela/coloana nu a fost găsită. Asigurați-vă că view-urile/tabelele și coloanele există. Este posibil să fie necesară o reîncărcare a schemei PostgREST. Rulați în SQL: NOTIFY pgrst, 'reload schema';`);
+                        }
                         return { data: [], error: null };
                     }
-                    if (queryError) throw queryError;
                     return { data, error: null };
                 } else {
                     const error = result.reason;
-                     if (error.code === '42501' || String(error.code) === '403' || error.message.includes('permission denied')) {
-                        console.warn(`RLS a blocat accesul la un tabel. Se returnează un array gol.`, error.message);
-                        return { data: [], error: null };
-                    }
-                    throw error;
+                    console.warn(`[DataProvider] O promisiune de interogare (index ${index}) a fost respinsă. Motiv:`, error);
+                    return { data: [], error: null };
                 }
             });
 
@@ -194,10 +194,13 @@ export const useDataProvider = () => {
                 { data: vizualizarePlatiData }, { data: deconturiData }, { data: istoricGradeData }
             ] = processedResults;
             
+            console.log('Date primite din View (view_plata_sportiv):', vizualizarePlatiData);
+
             const clubsMap = new Map((clubsData || []).map(c => [c.id, c]));
             const allNomenclatorRoles = rolesData || [];
 
             let allSportivi = sportiviData?.map(s => {
+                if (!s) return null;
                 const joinedRoles = Array.isArray((s as any).roles) ? (s as any).roles : [];
                 const userRolesFromJoin = joinedRoles
                     .map((mcr: any) => allNomenclatorRoles.find(r => r.nume === mcr.rol_denumire))
@@ -208,40 +211,44 @@ export const useDataProvider = () => {
                     roluri: userRolesFromJoin, 
                     cluburi: s.club_id ? (clubsMap.get(s.club_id) || { id: s.club_id, nume: 'Club Indisponibil' }) : null 
                 };
-            }) || [];
+            }).filter(Boolean) as Sportiv[] || [];
             
             const allGrupe = groupsData?.map(g => ({ ...g, program: g.program || [] })) || [];
             
             setData({
-                sportivi: allSportivi as Sportiv[],
-                sesiuniExamene: sessionsData as SesiuneExamen[],
-                inscrieriExamene: registrationsData as InscriereExamen[],
-                istoricGrade: istoricGradeData as IstoricGrade[],
+                sportivi: allSportivi,
+                sesiuniExamene: (sessionsData || []) as SesiuneExamen[],
+                inscrieriExamene: (registrationsData || []) as InscriereExamen[],
+                istoricGrade: (istoricGradeData || []) as IstoricGrade[],
                 antrenamente: (trainingsData?.map(t => ({...t, prezenta: (t as any).prezenta || []})) || []) as Antrenament[],
                 plati: (platiData || []) as Plata[],
                 tranzactii: (tranzactiiData || []) as Tranzactie[],
-                evenimente: eventsData as Eveniment[],
-                rezultate: resultsData as Rezultat[],
-                familii: familiesData as Familie[],
-                anunturiPrezenta: anunturiData as AnuntPrezenta[],
-                preturiConfig: pricesData as PretConfig[],
-                clubs: clubsData as Club[],
-                allRoles: rolesData as Rol[],
-                grade: gradesData as Grad[],
+                evenimente: (eventsData || []) as Eveniment[],
+                rezultate: (resultsData || []) as Rezultat[],
+                familii: (familiesData || []) as Familie[],
+                anunturiPrezenta: (anunturiData || []) as AnuntPrezenta[],
+                preturiConfig: (pricesData || []) as PretConfig[],
+                clubs: (clubsData || []) as Club[],
+                allRoles: (rolesData || []) as Rol[],
+                grade: (gradesData || []) as Grad[],
                 grupe: allGrupe as Grupa[],
-                tipuriAbonament: subscriptionTypesData as TipAbonament[],
-                locatii: locatiiData as Locatie[],
-                tipuriPlati: platiTypesData as TipPlata[],
-                reduceri: reduceriData as Reducere[],
-                deconturiFederatie: deconturiData as DecontFederatie[],
-                vizualizarePlati: vizualizarePlatiData as VizualizarePlata[],
+                tipuriAbonament: (subscriptionTypesData || []) as TipAbonament[],
+                locatii: (locatiiData || []) as Locatie[],
+                tipuriPlati: (platiTypesData || []) as TipPlata[],
+                reduceri: (reduceriData || []) as Reducere[],
+                deconturiFederatie: (deconturiData || []) as DecontFederatie[],
+                vizualizarePlati: (vizualizarePlatiData || []) as VizualizarePlata[],
             });
 
         } catch (err: any) {
-            setError(err.message);
+            setError(`Eroare la procesarea datelor aplicației: ${err.message}`);
         } finally {
             setLoading(false);
         }
+      } catch (err: any) {
+        setError(`Eroare de conexiune sau de configurare: ${err.message}`);
+        setLoading(false);
+      }
     }, []);
 
     useEffect(() => {

@@ -312,10 +312,10 @@ export const SportiviManagement: React.FC<{
     ];
 
     const handleSave = async (formData: Partial<Sportiv>): Promise<{ success: boolean; error?: any; data?: Sportiv; }> => {
-        const { roluri, ...sportivData } = formData;
         try {
             if (sportivToEdit) {
                 // UPDATE logic
+                const { roluri, ...sportivData } = formData;
                 const { data, error } = await supabase.from('sportivi').update(sportivData).eq('id', sportivToEdit.id).select('*, cluburi(*), roles:utilizator_roluri_multicont(rol_denumire)').single();
                 if (error) throw error;
     
@@ -328,78 +328,54 @@ export const SportiviManagement: React.FC<{
                 return { success: true, data: updatedSportiv };
             } else {
                 // CREATE logic
-                const { email, parola, ...profileData } = sportivData;
-
-                if (!email || !parola) {
-                    throw new Error("Emailul și parola sunt obligatorii pentru crearea unui cont nou.");
-                }
+                const { email, parola, roluri, ...profileData } = formData;
+                if (!email || !parola) throw new Error("Emailul și parola sunt obligatorii pentru crearea unui cont nou.");
+                if (!profileData.club_id) throw new Error("Clubul este obligatoriu la adăugarea unui sportiv nou.");
                 
-                if (!profileData.club_id) {
-                    showError('Date Incomplete', 'Clubul este obligatoriu la adăugarea unui sportiv nou.');
-                    return { success: false, error: 'Clubul este obligatoriu.' };
-                }
-                
-                // Verificare duplicat
-                const { data: existing, error: checkError } = await supabase
-                    .from('sportivi')
-                    .select('id')
-                    .eq('nume', profileData.nume!)
-                    .eq('prenume', profileData.prenume!)
-                    .eq('data_nasterii', profileData.data_nasterii!)
-                    .eq('club_id', profileData.club_id!)
-                    .maybeSingle();
-                
-                if (checkError) throw checkError;
-                
-                if (existing) {
-                    showError('Sportiv Duplicat', 'Acest sportiv este deja înscris în club.');
-                    return { success: false, error: 'Sportiv duplicat' };
-                }
-
-                const { data: { user }, error: authError } = await supabase.auth.signUp({
-                    email: email,
-                    password: parola
-                });
+                const { data: { user }, error: authError } = await supabase.auth.signUp({ email, password: parola });
                 if (authError) throw authError;
                 if (!user) throw new Error("Nu s-a putut crea contul de autentificare.");
 
-                const finalProfileData = { 
-                    ...profileData, 
-                    user_id: user.id, 
-                    email: email,
-                    status_viza_medicala: 'Expirat' as const
-                };
-                const { data: newProfile, error: profileError } = await supabase.from('sportivi').insert(finalProfileData).select('*, cluburi(*)').single();
-                if (profileError) {
-                    await supabase.auth.admin.deleteUser(user.id);
-                    throw new Error(`Contul de autentificare a fost creat, dar profilul nu a putut fi salvat: ${profileError.message}`);
-                }
-
-                const sportivRole = allRoles.find(r => r.nume === 'Sportiv');
-                if (!sportivRole) {
-                    throw new Error("Rolul de bază 'Sportiv' nu a fost găsit în sistem.");
-                }
-
-                const { error: roleError } = await supabase.from('utilizator_roluri_multicont').insert({
-                    user_id: user.id,
-                    rol_denumire: 'Sportiv',
-                    club_id: newProfile.club_id,
-                    sportiv_id: newProfile.id,
-                    is_primary: true
-                });
+                const finalProfileData = { ...profileData, user_id: user.id, email, status_viza_medicala: 'Expirat' as const };
                 
-                if (roleError) {
-                    throw new Error(`Profilul a fost creat, dar rolul nu a putut fi atribuit: ${roleError.message}`);
+                let newProfile;
+                try {
+                    const { data, error: profileError } = await supabase.from('sportivi').insert(finalProfileData).select('*, cluburi(*)').single();
+                    if (profileError) throw profileError;
+                    newProfile = data;
+                } catch (profileError: any) {
+                    await supabase.auth.admin.deleteUser(user.id);
+                    throw profileError;
                 }
+
+                // Adaugă gradul de începător în istoric
+                const incepatorGrad = grade.find(g => g.ordine === 0 || g.nume.toLowerCase().includes('începător'));
+                if (incepatorGrad) {
+                    await supabase.from('istoric_grade').insert({
+                        sportiv_id: newProfile.id,
+                        grad_id: incepatorGrad.id,
+                        data_obtinere: newProfile.data_inscrierii,
+                        observatii: 'Grad inițial la înscriere'
+                    });
+                }
+                
+                const sportivRole = allRoles.find(r => r.nume === 'Sportiv');
+                if (!sportivRole) throw new Error("Rolul de bază 'Sportiv' nu a fost găsit.");
+
+                const { error: roleError } = await supabase.from('utilizator_roluri_multicont').insert({ user_id: user.id, rol_denumire: 'Sportiv', club_id: newProfile.club_id, sportiv_id: newProfile.id, is_primary: true });
+                if (roleError) throw new Error(`Profilul a fost creat, dar rolul nu a putut fi atribuit: ${roleError.message}`);
 
                 const newSportiv = { ...newProfile, roluri: [sportivRole] };
                 setSportivi(prev => [...prev, newSportiv]);
-
                 showSuccess('Succes', 'Sportivul a fost adăugat cu succes în catalogul Phi Hau.');
                 return { success: true, data: newSportiv };
             }
         } catch (err: any) {
-            showError("Eroare la Salvare", err.message);
+            if (err.code === '23505' && (err.message.includes('sportivi_nume_prenume_data_nasterii_club_id_key') || err.message.includes('sportivi'))) {
+                showError('Sportiv Duplicat', 'Acest sportiv este deja înscris în baza de date a clubului.');
+            } else {
+                showError("Eroare la Salvare", err.message);
+            }
             return { success: false, error: err };
         }
     };

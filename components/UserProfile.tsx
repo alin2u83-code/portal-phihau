@@ -361,49 +361,44 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
         return lastGradeEvent ? grade.find(g => g.id === lastGradeEvent.grad_id) : null;
     }, [gradeHistory, grade]);
 
-    const { totalRestante, sportivPlati } = useMemo(() => {
-        if (!vizualizarePlati || !sportivi) return { totalRestante: 0, sportivPlati: [] };
-        // Obține toate ID-urile membrilor familiei, inclusiv sportivul curent
+    const { totalRestante, istoricFacturi } = useMemo(() => {
+        if (!vizualizarePlati || !sportivi) return { totalRestante: 0, istoricFacturi: [] };
+        
         const memberIds = sportiv.familie_id
             ? new Set(sportivi.filter(s => s.familie_id === sportiv.familie_id).map(s => s.id))
             : new Set([sportiv.id]);
 
-        // Filtrează view-ul pentru toți membrii
         const platiRelevante = vizualizarePlati.filter(p => p.sportiv_id && memberIds.has(p.sportiv_id));
 
-        // Agreghează plățile unice, deoarece view-ul poate duplica facturile cu plăți multiple
-        const platiUniceMap = new Map<string, VizualizarePlata>();
+        const facturiMap = new Map<string, {
+            detalii: VizualizarePlata;
+            incasari: { data_plata: string; suma_incasata: number }[];
+            totalIncasat: number;
+        }>();
+
         platiRelevante.forEach(p => {
-            if (!platiUniceMap.has(p.plata_id)) {
-                platiUniceMap.set(p.plata_id, { ...p });
+            if (!facturiMap.has(p.plata_id)) {
+                facturiMap.set(p.plata_id, { detalii: { ...p, suma_datorata: p.suma_datorata }, incasari: [], totalIncasat: 0 });
+            }
+            if (p.tranzactie_id && p.data_plata && p.suma_incasata) {
+                const factura = facturiMap.get(p.plata_id)!;
+                factura.incasari.push({ data_plata: p.data_plata, suma_incasata: p.suma_incasata });
+                factura.totalIncasat += p.suma_incasata;
             }
         });
-        const platiUnice = Array.from(platiUniceMap.values());
-
-        // Calculează suma restantă
-        const restante = platiUnice
-            .filter(p => p.status === 'Neachitat' || p.status === 'Achitat Parțial')
-            .reduce((sum, p) => {
-                const totalIncasatPentruPlata = platiRelevante
-                    .filter(item => item.plata_id === p.plata_id)
-                    .reduce((s, i) => s + (i.suma_incasata || 0), 0);
-                
-                return sum + (p.suma_datorata - totalIncasatPentruPlata);
-            }, 0);
+        
+        const facturiProcesate = Array.from(facturiMap.values());
+        
+        const restante = facturiProcesate.reduce((sum, f) => {
+            const ramasDePlata = f.detalii.suma_datorata - f.totalIncasat;
+            return sum + Math.max(0, ramasDePlata);
+        }, 0);
 
         return { 
             totalRestante: restante, 
-            sportivPlati: plati.filter(p => p.sportiv_id === sportiv.id || (p.familie_id && p.familie_id === sportiv.familie_id)).sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime())
+            istoricFacturi: facturiProcesate.sort((a, b) => new Date(b.detalii.data_emitere).getTime() - new Date(a.detalii.data_emitere).getTime())
         };
-    }, [sportiv, vizualizarePlati, plati, sportivi]);
-
-    const istoricIncasari = useMemo(() => {
-        if (!vizualizarePlati) return [];
-        return vizualizarePlati
-            .filter(vp => vp.sportiv_id === sportiv.id && vp.data_plata)
-            .sort((a, b) => new Date(b.data_plata!).getTime() - new Date(a.data_plata!).getTime());
-    }, [vizualizarePlati, sportiv.id]);
-
+    }, [sportiv, vizualizarePlati, sportivi]);
 
     const lastThreeAttendances = useMemo(() => {
         const now = new Date();
@@ -536,34 +531,28 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                         <div className="mt-4 pt-4 border-t border-slate-700">
                             <h4 className="text-md font-bold text-slate-300 mb-2">Istoric Facturi</h4>
                             <div className="max-h-60 overflow-y-auto space-y-2 pr-2">
-                                {sportivPlati.map(plata => (
-                                    <div key={plata.id} className="text-xs bg-slate-800/50 p-2 rounded-md">
-                                        <div className="flex justify-between items-start">
-                                            <div className="flex-grow">
-                                                <p className="font-bold text-white">{plata.descriere}</p>
-                                                {plata.reducere_detalii && (
-                                                    <p className="text-xs text-amber-400">Reducere: {plata.reducere_detalii}</p>
-                                                )}
-                                                <div className="flex items-baseline gap-2 text-slate-400">
-                                                    <span>{new Date(plata.data).toLocaleDateString('ro-RO')}</span>
-                                                    <span>-</span>
-                                                    {plata.suma_initiala && plata.suma_initiala > plata.suma ? (
-                                                        <>
-                                                            <span className="line-through">{plata.suma_initiala.toFixed(2)}</span>
-                                                            <span className="font-bold text-white text-sm">{plata.suma.toFixed(2)} RON</span>
-                                                        </>
-                                                    ) : (
-                                                        <span className="font-bold text-white text-sm">{plata.suma.toFixed(2)} RON</span>
-                                                    )}
+                                {istoricFacturi.map(({ detalii: p, totalIncasat }) => {
+                                    const ramasDePlata = p.suma_datorata - totalIncasat;
+                                    return (
+                                        <div key={p.plata_id} className="text-xs bg-slate-800/50 p-2 rounded-md">
+                                            <div className="flex justify-between items-start">
+                                                <div className="flex-grow">
+                                                    <p className="font-bold text-white">{p.descriere}</p>
+                                                    <div className="flex items-baseline gap-2 text-slate-400">
+                                                        <span>Emis: {new Date(p.data_emitere).toLocaleDateString('ro-RO')}</span>
+                                                        <span>-</span>
+                                                        <span className="font-bold text-white text-sm">{p.suma_datorata.toFixed(2)} RON</span>
+                                                    </div>
+                                                    {p.data_plata && <p className="text-green-400">Achitat la: {new Date(p.data_plata).toLocaleDateString('ro-RO')}</p>}
+                                                </div>
+                                                <div className="flex items-center gap-2 ml-2 flex-shrink-0">
+                                                    <Button size="sm" variant="secondary" className="!p-1.5 h-auto" onClick={() => setPlataToEdit(plati.find(pl => pl.id === p.plata_id) || null)}><EditIcon className="w-3 h-3"/></Button>
+                                                    <Button size="sm" variant="danger" className="!p-1.5 h-auto" onClick={() => setPlataToDelete(plati.find(pl => pl.id === p.plata_id) || null)}><TrashIcon className="w-3 h-3"/></Button>
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-2 ml-2 flex-shrink-0">
-                                                <Button size="sm" variant="secondary" className="!p-1.5 h-auto" onClick={() => setPlataToEdit(plata)}><EditIcon className="w-3 h-3"/></Button>
-                                                <Button size="sm" variant="danger" className="!p-1.5 h-auto" onClick={() => setPlataToDelete(plata)}><TrashIcon className="w-3 h-3"/></Button>
-                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         </div>
                     </Card>
@@ -600,39 +589,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                             </table>
                         </div>
                     </Card>
-                    <Card>
-                        <h3 className="text-lg font-bold text-white mb-3">Istoric Încasări</h3>
-                        <div className="max-h-60 overflow-y-auto pr-2">
-                            <table className="w-full text-left text-sm">
-                                <thead className="text-slate-400 text-xs uppercase sticky top-0 bg-[var(--bg-card)]">
-                                    <tr>
-                                        <th className="py-2">Data Plății</th>
-                                        <th className="py-2">Descriere</th>
-                                        <th className="py-2 text-right">Sumă</th>
-                                        <th className="py-2 text-center">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-700">
-                                    {istoricIncasari.length > 0 ? istoricIncasari.map(item => (
-                                        <tr key={item.tranzactie_id}>
-                                            <td className="py-2">{item.data_plata ? new Date(item.data_plata).toLocaleDateString('ro-RO') : 'Fără dată'}</td>
-                                            <td className="py-2 font-semibold text-white">{item.descriere}</td>
-                                            <td className="py-2 font-bold text-right">{item.suma_incasata?.toFixed(2)} RON</td>
-                                            <td className="py-2 text-center">
-                                                <span className={`font-bold ${item.status === 'Achitat' ? 'text-green-400' : 'text-red-400'}`}>
-                                                    {item.status}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    )) : (
-                                        <tr>
-                                            <td colSpan={4} className="py-8 text-center text-slate-500 italic">Nu există încasări înregistrate pentru acest profil.</td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    </Card>
+                    <ProgramAntrenament grupaId={sportiv.grupa_id} grupe={grupe} />
                 </div>
             </div>
             {isEditModalOpen && <SportivFormModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} onSave={handleSave} sportivToEdit={sportiv} grupe={grupe} setGrupe={()=>{}} familii={familii} setFamilii={()=>{}} tipuriAbonament={tipuriAbonament} clubs={clubs} currentUser={currentUser} />}

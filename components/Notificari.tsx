@@ -54,6 +54,17 @@ export const Notificari: React.FC<NotificariProps> = ({ onBack, currentUser }) =
         setLoading(true);
 
         try {
+            // Pasul 1: Invocă funcția Edge pentru a trimite notificările push
+            const { error: functionError } = await supabase.functions.invoke('send-push-notifications', {
+                body: { title, body },
+            });
+
+            if (functionError) {
+                // Afișează o eroare, dar continuă pentru a salva notificarea in-app
+                showError("Eroare Notificări Push", `Nu s-au putut trimite notificările push, dar anunțul va fi vizibil în aplicație. Detalii: ${functionError.message}`);
+            }
+
+            // Pasul 2: Salvează notificarea în baza de date (pentru istoric și in-app bell)
             const { data: sportivi, error: sportiviError } = await supabase.from('sportivi').select('user_id').not('user_id', 'is', null);
             if (sportiviError) throw sportiviError;
             
@@ -73,10 +84,10 @@ export const Notificari: React.FC<NotificariProps> = ({ onBack, currentUser }) =
                 sender_sportiv_id: currentUser.id
             }));
 
-            const { error } = await supabase.from('notificari').insert(notificationsToInsert);
+            const { error: dbError } = await supabase.from('notificari').insert(notificationsToInsert);
 
-            if (error) {
-                throw error;
+            if (dbError) {
+                throw dbError;
             } else {
                 showSuccess("Succes", `Anunțul a fost trimis către ${recipientIds.length} utilizatori!`);
                 // Adăugăm o singură instanță în istoric pentru a nu supraîncărca UI-ul

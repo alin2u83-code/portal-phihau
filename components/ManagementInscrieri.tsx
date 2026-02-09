@@ -6,6 +6,7 @@ import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { getPretProdus } from '../utils/pricing';
+import { getEligibleGrade } from '../utils/eligibility';
 
 // Helper functions
 const getAgeOnDate = (birthDateStr: string, onDateStr: string): number => {
@@ -127,7 +128,7 @@ const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps> = ({ isOpen, onC
                                        type="checkbox"
                                        checked={isSelected}
                                        onChange={(e) => handleSelect(s.id, selections.get(s.id) || s.defaultNextGradeId, e.target.checked)}
-                                       className="h-5 w-5 rounded border-slate-500 bg-slate-900 text-brand-secondary focus:ring-brand-secondary"
+                                       className="h-5 w-5 rounded border-slate-500 bg-slate-900 text-brand-secondary focus:ring-brand-secondary focus:ring-offset-slate-800"
                                        disabled={!isEligible}
                                    />
                                    <div className="flex-grow">
@@ -179,9 +180,10 @@ interface ManagementInscrieriProps {
     setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
     preturiConfig: PretConfig[];
     onViewSportiv: (sportiv: Sportiv) => void;
+    isReadOnly?: boolean;
 }
 
-export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiune, sportivi, setSportivi, allInscrieri, grade, istoricGrade, setInscrieri, plati, setPlati, preturiConfig, onViewSportiv }) => {
+export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiune, sportivi, setSportivi, allInscrieri, grade, istoricGrade, setInscrieri, plati, setPlati, preturiConfig, onViewSportiv, isReadOnly = false }) => {
     const { showError, showSuccess } = useError();
     const [isBulkAddModalOpen, setIsBulkAddModalOpen] = useState(false);
 
@@ -479,19 +481,23 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
 
     return (
         <div className="space-y-6">
-             <Card>
-                <h3 className="text-lg font-bold text-white mb-2">Înscriere Participanți</h3>
-                <Button onClick={() => setIsBulkAddModalOpen(true)} variant="info" className="w-full">
-                    <PlusIcon className="w-5 h-5 mr-2" /> Adaugă Participanți (Bulk)
-                </Button>
-            </Card>
+             {!isReadOnly && (
+                <Card>
+                    <h3 className="text-lg font-bold text-white mb-2">Înscriere Participanți</h3>
+                    <Button onClick={() => setIsBulkAddModalOpen(true)} variant="info" className="w-full">
+                        <PlusIcon className="w-5 h-5 mr-2" /> Adaugă Participanți (Bulk)
+                    </Button>
+                </Card>
+             )}
 
             <Card>
                  <div className="flex justify-between items-center mb-2">
                     <h3 className="text-lg font-bold text-white">Participanți Înscriși ({participantiInscrisi.length})</h3>
-                    <Button onClick={handleSaveResults} variant="success" size="sm" isLoading={isSavingResults} disabled={Object.entries(rezultateLocale).every(([id, res]) => res === initialRezultate[id])}>
-                        Salvează Rezultate
-                    </Button>
+                    {!isReadOnly && (
+                        <Button onClick={handleSaveResults} variant="success" size="sm" isLoading={isSavingResults} disabled={Object.entries(rezultateLocale).every(([id, res]) => res === initialRezultate[id])}>
+                            Salvează Rezultate
+                        </Button>
+                    )}
                 </div>
                 <div className="max-h-96 overflow-y-auto pr-2">
                     {participantiInscrisi.length > 0 ? (
@@ -501,7 +507,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                                     <th className="p-2 font-semibold">Nume Sportiv</th>
                                     <th className="p-2 font-semibold">Grad Vizat</th>
                                     <th className="p-2 font-semibold w-56 text-center">Rezultat</th>
-                                    <th className="p-2 font-semibold text-right">Acțiuni</th>
+                                    {!isReadOnly && <th className="p-2 font-semibold text-right">Acțiuni</th>}
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-700">
@@ -528,28 +534,31 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                                                     value={rezultat}
                                                     onChange={(e) => handleResultChange(inscriere.id, e.target.value as any)}
                                                     className={`!py-1 ${statusColorClass}`}
+                                                    disabled={isReadOnly}
                                                 >
                                                     <option value="Neprezentat">În așteptare</option>
                                                     <option value="Admis">Admis</option>
                                                     <option value="Respins">Respins</option>
                                                 </Select>
                                             </td>
-                                            <td className="p-2">
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <Button size="sm" variant="secondary" onClick={() => handleOpenEditModal(inscriere)} title="Modifică gradul vizat">
-                                                        <EditIcon className="w-4 h-4" />
-                                                    </Button>
-                                                    <Button 
-                                                        size="sm" 
-                                                        variant='danger' 
-                                                        onClick={() => handleInitiateDelete(inscriere)} 
-                                                        title="Retrage înscriere"
-                                                        isLoading={false}
-                                                    >
-                                                        <TrashIcon className="w-4 h-4" />
-                                                    </Button>
-                                                </div>
-                                            </td>
+                                            {!isReadOnly && (
+                                                <td className="p-2">
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        <Button size="sm" variant="secondary" onClick={() => handleOpenEditModal(inscriere)} title="Modifică gradul vizat">
+                                                            <EditIcon className="w-4 h-4" />
+                                                        </Button>
+                                                        <Button 
+                                                            size="sm" 
+                                                            variant='danger' 
+                                                            onClick={() => handleInitiateDelete(inscriere)} 
+                                                            title="Retrage înscriere"
+                                                            isLoading={false}
+                                                        >
+                                                            <TrashIcon className="w-4 h-4" />
+                                                        </Button>
+                                                    </div>
+                                                </td>
+                                            )}
                                         </tr>
                                     );
                                 })}

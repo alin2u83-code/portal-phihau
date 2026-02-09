@@ -30,7 +30,7 @@ export interface EligibilityStatus {
   recommendedGrade: Grad | null;
 }
 
-export const calculateExamEligibility = (
+export const getEligibleGrade = (
     sportiv: Sportiv, 
     sesiune: SesiuneExamen, 
     allGrades: Grad[],
@@ -46,23 +46,15 @@ export const calculateExamEligibility = (
     if (!currentGrade) {
         let recommendedGrade: Grad | null = null;
 
-        // User's rules
-        if (ageAtExam < 12) {
-            // Find lowest order 'Cap' grade
-            recommendedGrade = sortedGrades.filter(g => g.nume.toLowerCase().includes('cap')).sort((a,b) => a.ordine - b.ordine)[0] || null;
-        } else if (ageAtExam >= 18) {
-            recommendedGrade = sortedGrades.find(g => g.nume.includes('1 Dang')) || null;
-        }
-
-        // Fallback to existing detailed logic if no match from user rules
-        if (!recommendedGrade) {
-            if (ageAtExam < 7) {
-                recommendedGrade = sortedGrades.find(g => g.nume.includes('1 Cap Galben')) || null;
-            } else if (ageAtExam >= 7 && ageAtExam <= 12) {
-                recommendedGrade = sortedGrades.find(g => g.nume.includes('1 Cap Rusu')) || null;
-            } else { // Over 12
-                recommendedGrade = sortedGrades.find(g => g.nume.includes('1 Cap Albastru')) || null;
-            }
+        if (ageAtExam < 7) {
+            recommendedGrade = sortedGrades.find(g => g.nume.toLowerCase().includes('micul dragon')) || sortedGrades.find(g => g.ordine === 0 || g.ordine === 1) || null;
+        } else if (ageAtExam >= 7 && ageAtExam <= 12) {
+            recommendedGrade = sortedGrades.find(g => g.nume.toLowerCase() === '1 cap') || sortedGrades.find(g => g.nume.toLowerCase().includes('1 cap rusu')) || null;
+        } else if (ageAtExam > 18) {
+            // For adults, the path to 1 Dang starts with a senior beginner grade.
+            recommendedGrade = sortedGrades.find(g => g.nume.toLowerCase().includes('1 cap albastru')) || null;
+        } else { // 13-18
+             recommendedGrade = sortedGrades.find(g => g.nume.toLowerCase().includes('1 cap albastru')) || null; // Fallback
         }
 
         if (!recommendedGrade) {

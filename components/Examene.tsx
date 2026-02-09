@@ -180,6 +180,7 @@ interface DetaliiSesiuneProps {
     onViewSportiv: (sportiv: Sportiv) => void;
     onEdit: () => void;
     currentUser: User;
+    isReadOnly?: boolean;
 }
 const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
     const { showError, showSuccess } = useError();
@@ -220,7 +221,7 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
                         <span className="px-3 py-1 text-sm font-bold text-sky-300 bg-sky-900/50 border border-sky-700/50 rounded-full">Programat</span>
                     )}
                 </div>
-                 {props.sesiune.status !== 'Finalizat' && (
+                 {props.sesiune.status !== 'Finalizat' && !props.isReadOnly && (
                     <div className="flex flex-col sm:flex-row gap-2">
                         <Button variant="secondary" onClick={props.onEdit}>
                             <EditIcon className="w-4 h-4 mr-2" /> Editează
@@ -259,9 +260,10 @@ interface GestiuneExameneProps {
     deconturiFederatie: DecontFederatie[];
     setDeconturiFederatie: React.Dispatch<React.SetStateAction<DecontFederatie[]>>;
     onViewSportiv: (sportiv: Sportiv) => void;
+    isReadOnly?: boolean;
 }
 
-export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, clubs, onBack, onNavigate, sesiuni, setSesiuni, inscrieri, setInscrieri, sportivi, setSportivi, grade, istoricGrade, locatii, setLocatii, plati, setPlati, preturiConfig, deconturiFederatie, setDeconturiFederatie, onViewSportiv }) => {
+export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, clubs, onBack, onNavigate, sesiuni, setSesiuni, inscrieri, setInscrieri, sportivi, setSportivi, grade, istoricGrade, locatii, setLocatii, plati, setPlati, preturiConfig, deconturiFederatie, setDeconturiFederatie, onViewSportiv, isReadOnly = false }) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isBulkImportModalOpen, setIsBulkImportModalOpen] = useState(false);
   const [sesiuneToEdit, setSesiuneToEdit] = useState<SesiuneExamen | null>(null);
@@ -353,6 +355,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
                 onViewSportiv={onViewSportiv}
                 onEdit={handleEditSelected}
                 currentUser={currentUser}
+                isReadOnly={isReadOnly}
             />
         </div>
      );
@@ -364,19 +367,21 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
       <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-white">Gestiune Sesiuni Examen</h1>
-        <div className="flex gap-2">
-            {canGenerateInvoice && (
-                <Button onClick={() => onNavigate('gestiune-facturi')} variant="secondary">
-                    <FileTextIcon className="w-4 h-4 mr-2" /> Generează Factură Examen
+        {!isReadOnly && (
+            <div className="flex gap-2">
+                {canGenerateInvoice && (
+                    <Button onClick={() => onNavigate('gestiune-facturi')} variant="secondary">
+                        <FileTextIcon className="w-4 h-4 mr-2" /> Generează Factură Examen
+                    </Button>
+                )}
+                 <Button onClick={() => setIsBulkImportModalOpen(true)} variant="info">
+                    <UploadCloudIcon className="w-5 h-5 mr-2" /> Import Bulk Examen
                 </Button>
-            )}
-             <Button onClick={() => setIsBulkImportModalOpen(true)} variant="info">
-                <UploadCloudIcon className="w-5 h-5 mr-2" /> Import Bulk Examen
-            </Button>
-            <Button onClick={() => { setSesiuneToEdit(null); setIsFormOpen(true); }} variant="primary">
-                <PlusIcon className="w-5 h-5 mr-2" />Adaugă Sesiune
-            </Button>
-        </div>
+                <Button onClick={() => { setSesiuneToEdit(null); setIsFormOpen(true); }} variant="primary">
+                    <PlusIcon className="w-5 h-5 mr-2" />Adaugă Sesiune
+                </Button>
+            </div>
+        )}
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {sortedSesiuni.map(s => { 
@@ -405,8 +410,12 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
                         </div>
                         <div className="flex items-center gap-2">
                             <Button size="sm" variant="info" onClick={() => setSelectedSesiuneId(s.id)}>Vezi Detalii</Button>
-                            <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); setSesiuneToEdit(s); setIsFormOpen(true); }}><EditIcon className="w-4 h-4" /></Button>
-                            <Button size="sm" variant="danger" onClick={(e) => { e.stopPropagation(); setSesiuneToDelete(s); }}><TrashIcon className="w-4 h-4" /></Button>
+                            {!isReadOnly && (
+                                <>
+                                    <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); setSesiuneToEdit(s); setIsFormOpen(true); }}><EditIcon className="w-4 h-4" /></Button>
+                                    <Button size="sm" variant="danger" onClick={(e) => { e.stopPropagation(); setSesiuneToDelete(s); }}><TrashIcon className="w-4 h-4" /></Button>
+                                </>
+                            )}
                         </div>
                     </div>
                 </Card>

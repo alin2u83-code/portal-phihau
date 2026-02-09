@@ -156,7 +156,7 @@ function App() {
   useEffect(() => {
     if (currentUser && !permissions.hasAdminAccess && activeRoleContext) {
         const adminViews: View[] = [
-            'sportivi', 'examene', 'grade', 'prezenta', 'grupe', 'raport-prezenta', 'raport-lunar-prezenta',
+            'sportivi', 'grade', 'prezenta', 'grupe', 'raport-prezenta', 'raport-lunar-prezenta',
             'stagii', 'competitii', 'plati-scadente', 'jurnal-incasari', 'raport-financiar',
             'configurare-preturi', 'tipuri-abonament', 'familii', 'user-management',
             'data-maintenance', 'activitati', 'setari-club', 'data-inspector', 'reduceri',
@@ -316,9 +316,10 @@ function App() {
         {/* We wrap setActiveView to ensure type compatibility. */}
         return renderProtected(<FederationStructure clubs={clubs} sportivi={sportivi} grupe={grupe} onBack={() => setActiveView('dashboard')} onNavigate={(view) => setActiveView(view)} />, isFederationAdmin);
 
-      case 'examene':
-        {/* FIX: Wrapped setActiveView in an arrow function to satisfy the onNavigate prop type strictly. This resolves a subtle type inference issue. */}
-        return renderProtected(<GestiuneExamene currentUser={currentUser!} clubs={clubs} onBack={() => setActiveView('dashboard')} onNavigate={(view) => setActiveView(view)} sesiuni={filteredData.sesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={filteredData.inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={filteredData.sportivi} setSportivi={setSportivi} grade={grade} istoricGrade={istoricGrade} locatii={locatii} setLocatii={setLocatii} plati={filteredData.plati} setPlati={setPlati} preturiConfig={preturiConfig} deconturiFederatie={filteredData.deconturiFederatie} setDeconturiFederatie={setDeconturiFederatie} onViewSportiv={onViewSportiv} />, permissions.isInstructor);
+      case 'examene': {
+        const canManageExams = permissions.isInstructor;
+        return <GestiuneExamene currentUser={currentUser!} clubs={clubs} onBack={() => setActiveView('dashboard')} onNavigate={(view) => setActiveView(view)} sesiuni={filteredData.sesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={filteredData.inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={filteredData.sportivi} setSportivi={setSportivi} grade={grade} istoricGrade={istoricGrade} locatii={locatii} setLocatii={setLocatii} plati={filteredData.plati} setPlati={setPlati} preturiConfig={preturiConfig} deconturiFederatie={filteredData.deconturiFederatie} setDeconturiFederatie={setDeconturiFederatie} onViewSportiv={onViewSportiv} isReadOnly={!canManageExams} />;
+      }
         
       case 'stagii': case 'competitii':
         return renderProtected(<StagiiCompetitiiManagement type={activeView === 'stagii' ? 'Stagiu' : 'Competitie'} evenimente={filteredData.evenimente} setEvenimente={setEvenimente} rezultate={filteredData.rezultate} setRezultate={setRezultate} sportivi={filteredData.sportivi} preturiConfig={preturiConfig} inscrieriExamene={inscrieriExamene} examene={sesiuniExamene} grade={grade} setPlati={setPlati} onBack={() => setActiveView('dashboard')} currentUser={currentUser!} permissions={permissions}/>, permissions.isInstructor);

@@ -95,7 +95,6 @@ export interface VizualizarePlata {
   descriere: string;
   suma_datorata: number;
   status: 'Achitat' | 'Neachitat' | 'Achitat Parțial';
-  tranzactie_id: string | null;
   data_plata: string | null;
   suma_incasata: number | null;
   metoda_plata: 'Cash' | 'Transfer Bancar' | null;
@@ -261,6 +260,8 @@ export interface Plata {
     reducere_detalii?: string | null;
     suma: number;
     data: string;
+    data_plata?: string | null;
+    suma_incasata?: number | null;
     status: 'Achitat' | 'Neachitat' | 'Achitat Parțial';
     descriere: string;
     tip: string;

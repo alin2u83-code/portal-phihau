@@ -1,5 +1,3 @@
-
-
 import React, { useMemo } from 'react';
 import { Plata, Sportiv, Familie, Tranzactie } from '../types';
 import { Card, Input, Select, Button } from './ui';

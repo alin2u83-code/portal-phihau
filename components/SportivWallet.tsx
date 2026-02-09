@@ -65,7 +65,7 @@ export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, 
                 });
                 totalBilledOverall += p.suma_datorata;
             }
-            if (p.tranzactie_id && p.suma_incasata && p.data_plata) {
+            if (p.suma_incasata && p.data_plata) {
                 invoices.get(p.plata_id)!.payments.push(p);
             }
         });
@@ -201,10 +201,10 @@ export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, 
                                         </div>
                                         {invoice.payments.length > 0 && (
                                             <div className="pl-10 mt-2 space-y-1">
-                                                {invoice.payments.map(p => (
-                                                    <div key={p.tranzactie_id} className="text-xs flex justify-between items-center text-green-400">
+                                                {invoice.payments.map((p, index) => (
+                                                    <div key={`${p.plata_id}-${index}`} className="text-xs flex justify-between items-center text-green-400">
                                                         <span>&#8627; Încasat la {p.data_plata ? new Date(p.data_plata).toLocaleDateString('ro-RO') : 'Fără dată'}</span>
-                                                        <span className="font-bold">+{p.suma_incasata?.toFixed(2)}</span>
+                                                        <span className="font-bold">+{ (p.suma_incasata || 0).toFixed(2)}</span>
                                                     </div>
                                                 ))}
                                             </div>

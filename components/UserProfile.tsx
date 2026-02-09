@@ -613,7 +613,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                                 <tbody className="divide-y divide-slate-700">
                                     {istoricIncasari.length > 0 ? istoricIncasari.map(item => (
                                         <tr key={item.tranzactie_id}>
-                                            <td className="py-2">{new Date(item.data_plata!).toLocaleDateString('ro-RO')}</td>
+                                            <td className="py-2">{item.data_plata ? new Date(item.data_plata).toLocaleDateString('ro-RO') : '-'}</td>
                                             <td className="py-2 font-semibold text-white">{item.descriere}</td>
                                             <td className="py-2 font-bold text-right">{item.suma_incasata?.toFixed(2)} RON</td>
                                             <td className="py-2 text-center">
@@ -624,7 +624,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                                         </tr>
                                     )) : (
                                         <tr>
-                                            <td colSpan={4} className="py-8 text-center text-slate-500 italic">Niciun istoric de încasări.</td>
+                                            <td colSpan={4} className="py-8 text-center text-slate-500 italic">Nu există încasări înregistrate pentru acest profil.</td>
                                         </tr>
                                     )}
                                 </tbody>
@@ -634,7 +634,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                 </div>
             </div>
             {isEditModalOpen && <SportivFormModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} onSave={handleSave} sportivToEdit={sportiv} grupe={grupe} setGrupe={()=>{}} familii={familii} setFamilii={()=>{}} tipuriAbonament={tipuriAbonament} clubs={clubs} currentUser={currentUser} />}
-            {isWalletModalOpen && <SportivWallet sportiv={sportiv} familie={familii.find(f => f.id === sportiv.familie_id)} allPlati={plati} allTranzactii={tranzactii} setPlati={setPlati} setTranzactii={setTranzactii} onClose={() => setIsWalletModalOpen(false)} />}
+            {isWalletModalOpen && <SportivWallet sportiv={sportiv} familie={familii.find(f => f.id === sportiv.familie_id)} allSportivi={sportivi} vizualizarePlati={vizualizarePlati} setPlati={setPlati} setTranzactii={setTranzactii} onClose={() => setIsWalletModalOpen(false)} />}
             {isDeleteModalOpen && <DeleteAuditModal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} sportiv={sportiv} onDeactivate={handleDeactivate} onDelete={handleDelete} />}
             {isReportModalOpen && <SportivFeedbackReport isOpen={isReportModalOpen} onClose={() => setIsReportModalOpen(false)} sportiv={sportiv} antrenamente={antrenamente} grupe={grupe} grade={grade} participari={participari} examene={examene} />}
             {isTransferModalOpen && <TransferModal isOpen={isTransferModalOpen} onClose={() => setIsTransferModalOpen(false)} sportiv={sportiv} clubs={clubs} onTransferComplete={(updatedSportiv) => { setSportivi(p => p.map(s => s.id === updatedSportiv.id ? updatedSportiv : s)); setIsTransferModalOpen(false); }} />}

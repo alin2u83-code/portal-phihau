@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions } from '../types';
+import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions, VizualizarePlata } from '../types';
 import { Button, Modal, Input, Select, Card, RoleBadge } from './ui';
 import { PlusIcon, ArrowLeftIcon, WalletIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -122,8 +122,9 @@ export const SportiviManagement: React.FC<{
     permissions: Permissions;
     allRoles: Rol[];
     setAllRoles: React.Dispatch<React.SetStateAction<Rol[]>>;
+    vizualizarePlati: VizualizarePlata[];
 }> = (props) => {
-    const { onBack, sportivi, setSportivi, grupe, setGrupe, tipuriAbonament, familii, setFamilii, currentUser, plati, setPlati, tranzactii, setTranzactii, onViewSportiv, clubs, grade, permissions, allRoles, setAllRoles } = props;
+    const { onBack, sportivi, setSportivi, grupe, setGrupe, tipuriAbonament, familii, setFamilii, currentUser, plati, setPlati, tranzactii, setTranzactii, onViewSportiv, clubs, grade, permissions, allRoles, setAllRoles, vizualizarePlati } = props;
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
     const [sportivToEdit, setSportivToEdit] = useState<Sportiv | null>(null);
     const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
@@ -330,155 +331,4 @@ export const SportiviManagement: React.FC<{
                 const { email, parola, ...profileData } = sportivData;
 
                 if (!email || !parola) {
-                    throw new Error("Emailul și parola sunt obligatorii pentru crearea unui cont nou.");
-                }
-
-                const { data: authData, error: authError } = await supabase.functions.invoke('create-user-admin', {
-                    body: { email, password: parola },
-                });
-
-                if (authError || authData.error) {
-                    const errorMessage = authError?.message || authData?.error;
-                    if (String(errorMessage).includes('User already exists')) {
-                         throw new Error(`Un utilizator cu email-ul ${email} există deja. Folosiți panoul de administrare staff pentru a asocia contul.`);
-                    }
-                    throw new Error(errorMessage || 'A apărut o eroare la crearea contului de autentificare.');
-                }
-
-                const newAuthUser = authData.user;
-                if (!newAuthUser || !newAuthUser.id) {
-                    throw new Error('Funcția de creare a utilizatorului nu a returnat un ID valid.');
-                }
-
-                const { data: newSportivData, error: profileError } = await supabase
-                    .from('sportivi')
-                    .insert({
-                        ...profileData,
-                        user_id: newAuthUser.id,
-                        email: email,
-                        trebuie_schimbata_parola: true
-                    })
-                    .select('*, cluburi(*)')
-                    .single();
-
-                if (profileError) {
-                    throw new Error(`Contul de autentificare a fost creat, dar profilul nu. Ștergeți manual utilizatorul Auth (${email}) și reîncercați. Eroare: ${profileError.message}`);
-                }
-
-                const sportivRole = allRoles.find(r => r.nume === 'Sportiv');
-                let finalRoles: Rol[] = [];
-                if (sportivRole) {
-                    const { error: roleError } = await supabase.from('utilizator_roluri_multicont').insert({
-                        user_id: newAuthUser.id,
-                        rol_denumire: 'Sportiv',
-                        club_id: newSportivData.club_id,
-                        sportiv_id: newSportivData.id,
-                        is_primary: true
-                    });
-                    if (roleError) {
-                         showError("Avertisment Rol", `Profilul a fost creat, dar rolul 'Sportiv' nu a putut fi atribuit. Eroare: ${roleError.message}`);
-                    } else {
-                        finalRoles = [sportivRole];
-                    }
-                }
-
-                const finalSportivObject: Sportiv = { ...newSportivData, roluri: finalRoles };
-                setSportivi(prev => [...prev, finalSportivObject]);
-                showSuccess('Succes', 'Sportiv adăugat și cont de acces creat!');
-                return { success: true, data: finalSportivObject };
-            }
-        } catch (err: any) {
-            showError("Eroare la Salvare", err.message);
-            return { success: false, error: err };
-        }
-    };
-
-    if (permissions?.isSportiv && !permissions.hasAdminAccess) {
-        return <FamilyView {...props} />;
-    }
-
-    return (
-        <div className="space-y-6">
-            <Button onClick={onBack} variant="secondary" className="mb-2"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
-            
-            <div className="flex justify-between items-center gap-4">
-                <h1 className="text-2xl font-bold text-white uppercase tracking-tight">Management Sportivi</h1>
-                {permissions.hasAdminAccess && (
-                    <Button variant="primary" onClick={() => { setSportivToEdit(null); setIsFormModalOpen(true); }}>
-                        <PlusIcon className="w-5 h-5 mr-1"/> Adaugă Sportiv
-                    </Button>
-                )}
-            </div>
-
-            <Card className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Select label="Status" value={filters.statusFilter} onChange={e => handleFilterChange('statusFilter', e.target.value)}>
-                    <option value="Activ">Activi</option>
-                    <option value="Inactiv">Inactivi</option>
-                    <option value="">Toți</option>
-                </Select>
-                <Select label="Grupă" value={filters.grupaFilter} onChange={e => handleFilterChange('grupaFilter', e.target.value)}>
-                    <option value="">Toate grupele</option>
-                    {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
-                </Select>
-                <Select label="Grad" value={filters.gradFilter} onChange={e => handleFilterChange('gradFilter', e.target.value)}>
-                    <option value="">Toate gradele</option>
-                    <option value="null">Începător (fără grad)</option>
-                    {grade.sort((a,b) => a.ordine - b.ordine).map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}
-                </Select>
-                <Select label="Rol" value={filters.rolFilter} onChange={e => handleFilterChange('rolFilter', e.target.value)}>
-                    <option value="">Toate rolurile</option>
-                    {allRoles.map(r => <option key={r.id} value={r.id}>{r.nume}</option>)}
-                </Select>
-            </Card>
-
-            <div className="text-slate-900">
-                <ResponsiveTable
-                    columns={columns}
-                    data={filteredSportivi}
-                    searchTerm={filters.searchTerm}
-                    onSearchChange={(val) => handleFilterChange('searchTerm', val)}
-                    onRowClick={handleRowClick}
-                    searchPlaceholder="Caută sportiv după nume..."
-                    selectedRowId={selectedSportivForHighlight?.id}
-                    rowClassName={(sportiv) => !sportiv.user_id ? 'bg-red-900/20 hover:bg-red-900/40 !border-l-2 !border-red-500' : ''}
-                />
-            </div>
-
-            {isFormModalOpen && (
-                 <SportivFormModal 
-                    isOpen={isFormModalOpen}
-                    onClose={(savedSportiv?: Sportiv) => {
-                        setIsFormModalOpen(false);
-                        if (savedSportiv && !sportivToEdit) {
-                            onViewSportiv(savedSportiv);
-                        }
-                    }}
-                    onSave={handleSave}
-                    sportivToEdit={sportivToEdit}
-                    grupe={grupe}
-                    setGrupe={setGrupe}
-                    familii={familii}
-                    setFamilii={setFamilii}
-                    tipuriAbonament={tipuriAbonament}
-                    clubs={clubs}
-                    currentUser={currentUser}
-                />
-            )}
-
-            {isWalletModalOpen && sportivForWallet && (
-                <SportivWallet
-                    sportiv={sportivForWallet}
-                    familie={familii.find(f => f.id === sportivForWallet.familie_id)}
-                    allPlati={plati}
-                    setPlati={setPlati}
-                    allTranzactii={tranzactii}
-                    setTranzactii={setTranzactii}
-                    onClose={() => {
-                        setIsWalletModalOpen(false);
-                        setSportivForWallet(null);
-                    }}
-                />
-            )}
-        </div>
-    );
-};
+                    throw new Error("Emailul și parola

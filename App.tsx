@@ -415,7 +415,7 @@ function App() {
         return <MartialAttendance currentUser={currentUser!} antrenamente={antrenamente} grupe={grupe} onBack={() => setActiveView('my-portal')} />;
 
       case 'istoric-plati':
-        return <IstoricPlati viewedUser={currentUser!} plati={plati} tranzactii={tranzactii} onBack={() => setActiveView('my-portal')} />;
+        return <IstoricPlati viewedUser={currentUser!} vizualizarePlati={vizualizarePlati} onBack={() => setActiveView('my-portal')} />;
 
       case 'account-settings':
         return <AccountSettings currentUser={currentUser!} onBack={() => setActiveView('my-portal')} userRoles={userRoles} />;

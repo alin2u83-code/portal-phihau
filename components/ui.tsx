@@ -22,7 +22,7 @@ export const Button: React.FC<ButtonProps & { as?: 'label', htmlFor?: string }> 
   const baseClasses = "rounded-md font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center shadow-sm text-sm whitespace-nowrap";
   
   const sizeClasses = {
-    sm: "px-3 py-1.5 text-xs h-9",
+    sm: "px-3 py-1.5 text-xs h-11",
     md: "px-4 py-2.5 text-sm h-11",
   };
   

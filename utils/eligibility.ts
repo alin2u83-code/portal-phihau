@@ -45,12 +45,24 @@ export const calculateExamEligibility = (
     // Logic for Beginners
     if (!currentGrade) {
         let recommendedGrade: Grad | null = null;
-        if (ageAtExam < 7) {
-            recommendedGrade = sortedGrades.find(g => g.nume.includes('1 Cap Galben')) || null;
-        } else if (ageAtExam >= 7 && ageAtExam <= 12) {
-            recommendedGrade = sortedGrades.find(g => g.nume.includes('1 Cap Rusu')) || null;
-        } else { // Over 12
-            recommendedGrade = sortedGrades.find(g => g.nume.includes('1 Cap Albastru')) || null;
+
+        // User's rules
+        if (ageAtExam < 12) {
+            // Find lowest order 'Cap' grade
+            recommendedGrade = sortedGrades.filter(g => g.nume.toLowerCase().includes('cap')).sort((a,b) => a.ordine - b.ordine)[0] || null;
+        } else if (ageAtExam >= 18) {
+            recommendedGrade = sortedGrades.find(g => g.nume.includes('1 Dang')) || null;
+        }
+
+        // Fallback to existing detailed logic if no match from user rules
+        if (!recommendedGrade) {
+            if (ageAtExam < 7) {
+                recommendedGrade = sortedGrades.find(g => g.nume.includes('1 Cap Galben')) || null;
+            } else if (ageAtExam >= 7 && ageAtExam <= 12) {
+                recommendedGrade = sortedGrades.find(g => g.nume.includes('1 Cap Rusu')) || null;
+            } else { // Over 12
+                recommendedGrade = sortedGrades.find(g => g.nume.includes('1 Cap Albastru')) || null;
+            }
         }
 
         if (!recommendedGrade) {

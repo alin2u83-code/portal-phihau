@@ -287,6 +287,12 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
             return;
         }
 
+        // 1. Validare Date: Verifică dacă contextul utilizatorului este complet încărcat.
+        if (!currentUser?.id || !currentUser.user_id) {
+            showError("Sesiune invalidă", "Profilul tău nu este complet încărcat. Te rugăm să te reautentifici pentru a trimite prezența.");
+            return;
+        }
+
         try {
             const existingAnunt = (anunturi || []).find(a => a.antrenament_id === trainingId && a.sportiv_id === currentUser.id);
             const upsertData = {
@@ -319,8 +325,13 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                 });
             }
         } catch (error: any) {
-            showError("Eroare la salvarea statusului", error.message);
-            throw error; // Re-throw to be caught by the calling component for UI feedback
+            // 2. Feedback Utilizator: Mesaj specific pentru erori RLS.
+            if (error.message.includes('violates row-level security policy')) {
+                showError("Sesiune invalidă", "Te rugăm să te reautentifici pentru a trimite prezența.");
+            } else {
+                showError("Eroare la salvarea statusului", error.message);
+            }
+            throw error;
         }
     };
     // --- End Logic ---
@@ -375,12 +386,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                      <AttendanceTracker currentUser={currentUser} antrenamente={antrenamente} onNavigate={onNavigate} />
                 </div>
                 <div className="lg:col-span-2 space-y-6">
-                    <AntrenamenteViitoare currentUser={currentUser} antrenamente={antrenamente} grupe={grupe} />
-                    <Card>
-                        <h3 className="text-lg font-bold text-white mb-2">Program Săptămânal</h3>
-                        <p className="text-sm text-slate-400">Vezi orarul complet de antrenamente pentru grupa ta.</p>
-                        <Button onClick={() => setIsViewingProgram(true)} variant="primary" className="w-full mt-4">Vezi Orarul Complet</Button>
-                    </Card>
+                    <ProgramSaptamanalPage grupaId={viewedUser.grupa_id} grupe={grupe} onBack={() => {}}/>
                     <VizaMedicalaCard plati={plati} sportivId={viewedUser.id} />
                     <IstoricGradeCard grade={grade} istoricGrade={istoricGrade} sportivId={viewedUser.id} />
                 </div>

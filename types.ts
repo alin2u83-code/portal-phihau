@@ -90,15 +90,14 @@ export interface VizualizarePlata {
   sportiv_id: string;
   nume_complet: string;
   club_id: string;
-  familie_id: string | null;
+  familie_id?: string | null;
   data_emitere: string;
   descriere: string;
   suma_datorata: number;
   status: 'Achitat' | 'Neachitat' | 'Achitat Parțial';
-  tranzactie_id: string | null;
+  tranzactie_id?: string | null;
   data_plata: string | null;
   suma_incasata: number | null;
-  metoda_plata: 'Cash' | 'Transfer Bancar' | null;
 }
 
 

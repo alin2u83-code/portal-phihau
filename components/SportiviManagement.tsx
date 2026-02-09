@@ -333,6 +333,28 @@ export const SportiviManagement: React.FC<{
                 if (!email || !parola) {
                     throw new Error("Emailul și parola sunt obligatorii pentru crearea unui cont nou.");
                 }
+                
+                if (!profileData.club_id) {
+                    showError('Date Incomplete', 'Clubul este obligatoriu la adăugarea unui sportiv nou.');
+                    return { success: false, error: 'Clubul este obligatoriu.' };
+                }
+                
+                // Verificare duplicat
+                const { data: existing, error: checkError } = await supabase
+                    .from('sportivi')
+                    .select('id')
+                    .eq('nume', profileData.nume!)
+                    .eq('prenume', profileData.prenume!)
+                    .eq('data_nasterii', profileData.data_nasterii!)
+                    .eq('club_id', profileData.club_id!)
+                    .maybeSingle();
+                
+                if (checkError) throw checkError;
+                
+                if (existing) {
+                    showError('Sportiv Duplicat', 'Acest sportiv este deja înscris în club.');
+                    return { success: false, error: 'Sportiv duplicat' };
+                }
 
                 const { data: { user }, error: authError } = await supabase.auth.signUp({
                     email: email,
@@ -341,10 +363,14 @@ export const SportiviManagement: React.FC<{
                 if (authError) throw authError;
                 if (!user) throw new Error("Nu s-a putut crea contul de autentificare.");
 
-                const finalProfileData = { ...profileData, user_id: user.id, email: email };
+                const finalProfileData = { 
+                    ...profileData, 
+                    user_id: user.id, 
+                    email: email,
+                    status_viza_medicala: 'Expirat' as const
+                };
                 const { data: newProfile, error: profileError } = await supabase.from('sportivi').insert(finalProfileData).select('*, cluburi(*)').single();
                 if (profileError) {
-                    // Cleanup failed user
                     await supabase.auth.admin.deleteUser(user.id);
                     throw new Error(`Contul de autentificare a fost creat, dar profilul nu a putut fi salvat: ${profileError.message}`);
                 }
@@ -369,7 +395,7 @@ export const SportiviManagement: React.FC<{
                 const newSportiv = { ...newProfile, roluri: [sportivRole] };
                 setSportivi(prev => [...prev, newSportiv]);
 
-                showSuccess('Succes', 'Sportiv adăugat!');
+                showSuccess('Succes', 'Sportivul a fost adăugat cu succes în catalogul Phi Hau.');
                 return { success: true, data: newSportiv };
             }
         } catch (err: any) {

@@ -48,6 +48,7 @@ export interface Sportiv {
   telefon?: string | null;
   adresa?: string | null;
   gen?: 'Masculin' | 'Feminin' | null;
+  status_viza_medicala?: 'Expirat' | 'Valid' | null;
   [key: string]: any; 
 }
 

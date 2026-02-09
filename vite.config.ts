@@ -1,23 +1,24 @@
-import path from 'path';
-import { defineConfig, loadEnv } from 'vite';
-import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import { VitePWA } from 'vite-plugin-pwa'
 
-export default defineConfig(({ mode }) => {
-    const env = loadEnv(mode, '.', '');
-    return {
-      server: {
-        port: 3000,
-        host: '0.0.0.0',
+export default defineConfig({
+  plugins: [
+    react(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      // Nu dorim să generăm un manifest, ci doar să gestionăm Service Worker-ul
+      manifest: false,
+      // Fișierul nostru sw.js se află la rădăcina proiectului
+      srcDir: '.',
+      filename: 'sw.js',
+      // Folosim 'injectManifest' pentru a copia fișierul nostru fără a-l modifica
+      strategies: 'injectManifest',
+      injectManifest: {
+        // Setarea injectionPoint la undefined previne plugin-ul din a injecta
+        // un manifest de precache în fișierul nostru sw.js
+        injectionPoint: undefined,
       },
-      plugins: [react()],
-      define: {
-        'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
-      },
-      resolve: {
-        alias: {
-          '@': path.resolve(__dirname, '.'),
-        }
-      }
-    };
-});
+    })
+  ]
+})

@@ -49,7 +49,7 @@ export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, 
             ? new Set(allSportivi.filter(s => s.familie_id === sportiv.familie_id).map(s => s.id))
             : new Set([sportiv.id]);
 
-        const relevantPlatiView = vizualizarePlati.filter(p => memberIds.has(p.sportiv_id));
+        const relevantPlatiView = vizualizarePlati.filter(p => p.sportiv_id && memberIds.has(p.sportiv_id));
 
         const invoices = new Map<string, InvoiceHistoryItem>();
         let totalPaidOverall = 0;
@@ -78,7 +78,7 @@ export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, 
         });
         
         const currentSold = totalPaidOverall - totalBilledOverall;
-        const dueAmount = Array.from(invoices.values()).reduce((sum, inv) => sum + inv.remaining, 0);
+        const dueAmount = Array.from(invoices.values()).reduce((sum, inv) => sum + Math.max(0, inv.remaining), 0);
         
         const sortedHistory = Array.from(invoices.values()).sort((a,b) => new Date(b.details.data_emitere).getTime() - new Date(a.details.data_emitere).getTime());
 
@@ -199,7 +199,7 @@ export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, 
                                             <div className="pl-10 mt-2 space-y-1">
                                                 {invoice.payments.map(p => (
                                                     <div key={p.tranzactie_id} className="text-xs flex justify-between items-center text-green-400">
-                                                        <span>&#8627; Încasat la {p.data_plata ? new Date(p.data_plata).toLocaleDateString('ro-RO') : '-'}</span>
+                                                        <span>&#8627; Încasat la {p.data_plata ? new Date(p.data_plata).toLocaleDateString('ro-RO') : 'Fără dată'}</span>
                                                         <span className="font-bold">+{p.suma_incasata?.toFixed(2)}</span>
                                                     </div>
                                                 ))}

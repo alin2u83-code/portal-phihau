@@ -362,13 +362,14 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
     }, [gradeHistory, grade]);
 
     const { totalRestante, sportivPlati } = useMemo(() => {
+        if (!vizualizarePlati || !sportivi) return { totalRestante: 0, sportivPlati: [] };
         // Obține toate ID-urile membrilor familiei, inclusiv sportivul curent
         const memberIds = sportiv.familie_id
             ? new Set(sportivi.filter(s => s.familie_id === sportiv.familie_id).map(s => s.id))
             : new Set([sportiv.id]);
 
         // Filtrează view-ul pentru toți membrii
-        const platiRelevante = (vizualizarePlati || []).filter(p => memberIds.has(p.sportiv_id));
+        const platiRelevante = vizualizarePlati.filter(p => p.sportiv_id && memberIds.has(p.sportiv_id));
 
         // Agreghează plățile unice, deoarece view-ul poate duplica facturile cu plăți multiple
         const platiUniceMap = new Map<string, VizualizarePlata>();
@@ -397,7 +398,8 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
     }, [sportiv, vizualizarePlati, plati, sportivi]);
 
     const istoricIncasari = useMemo(() => {
-        return (vizualizarePlati || [])
+        if (!vizualizarePlati) return [];
+        return vizualizarePlati
             .filter(vp => vp.sportiv_id === sportiv.id && vp.data_plata)
             .sort((a, b) => new Date(b.data_plata!).getTime() - new Date(a.data_plata!).getTime());
     }, [vizualizarePlati, sportiv.id]);
@@ -613,7 +615,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                                 <tbody className="divide-y divide-slate-700">
                                     {istoricIncasari.length > 0 ? istoricIncasari.map(item => (
                                         <tr key={item.tranzactie_id}>
-                                            <td className="py-2">{item.data_plata ? new Date(item.data_plata).toLocaleDateString('ro-RO') : '-'}</td>
+                                            <td className="py-2">{item.data_plata ? new Date(item.data_plata).toLocaleDateString('ro-RO') : 'Fără dată'}</td>
                                             <td className="py-2 font-semibold text-white">{item.descriere}</td>
                                             <td className="py-2 font-bold text-right">{item.suma_incasata?.toFixed(2)} RON</td>
                                             <td className="py-2 text-center">

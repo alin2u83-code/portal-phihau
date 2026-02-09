@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Sportiv, Familie, Plata, Tranzactie } from '../types';
+import { Sportiv, Familie, Plata, Tranzactie, VizualizarePlata } from '../types';
 import { Modal, Button, Input, Select, Card } from './ui';
 import { BanknotesIcon, BookOpenIcon, TrophyIcon, WalletIcon, PlusIcon } from './icons';
 import { useError } from './ErrorProvider';
@@ -8,8 +8,9 @@ import { supabase } from '../supabaseClient';
 interface SportivWalletProps {
     sportiv: Sportiv;
     familie: Familie | undefined;
-    allPlati: Plata[];
-    allTranzactii: Tranzactie[];
+    allSportivi: Sportiv[];
+    vizualizarePlati: VizualizarePlata[];
+    allPlati: Plata[]; // Still needed for write operations
     setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
     setTranzactii: React.Dispatch<React.SetStateAction<Tranzactie[]>>;
     onClose: () => void;
@@ -23,7 +24,14 @@ const getPaymentIcon = (type: string) => {
     return <WalletIcon className="w-5 h-5 text-slate-400" />;
 };
 
-export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, allPlati, allTranzactii, setPlati, setTranzactii, onClose }) => {
+type InvoiceHistoryItem = {
+    details: VizualizarePlata;
+    payments: VizualizarePlata[];
+    totalPaid: number;
+    remaining: number;
+};
+
+export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, allSportivi, vizualizarePlati, allPlati, setPlati, setTranzactii, onClose }) => {
     
     const isFamilyWallet = !!sportiv.familie_id && !!familie;
     const { showError, showSuccess } = useError();
@@ -32,47 +40,59 @@ export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, 
     const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'Transfer Bancar'>('Cash');
     const [isSaving, setIsSaving] = useState(false);
 
-    const { sold, history, lastPaymentDate, relevantPlati, totalDue } = useMemo(() => {
-        if (!allPlati || !allTranzactii) {
-             return { sold: 0, history: [], lastPaymentDate: null, relevantPlati: [], totalDue: 0 };
+    const { sold, totalDue, invoiceHistory } = useMemo(() => {
+        if (!vizualizarePlati || !allSportivi) {
+             return { sold: 0, invoiceHistory: [], totalDue: 0 };
         }
-        const relPlati = isFamilyWallet
-            ? allPlati.filter(p => p.familie_id === sportiv.familie_id)
-            : allPlati.filter(p => p.sportiv_id === sportiv.id && !p.familie_id);
         
-        const relTranzactii = isFamilyWallet
-            ? allTranzactii.filter(t => t.familie_id === sportiv.familie_id)
-            : allTranzactii.filter(t => t.sportiv_id === sportiv.id && !t.familie_id);
+        const memberIds = isFamilyWallet
+            ? new Set(allSportivi.filter(s => s.familie_id === sportiv.familie_id).map(s => s.id))
+            : new Set([sportiv.id]);
 
-        const totalDatorii = relPlati.reduce((sum, p) => sum + p.suma, 0);
-        const totalIncasari = relTranzactii.reduce((sum, t) => sum + t.suma, 0);
+        const relevantPlatiView = vizualizarePlati.filter(p => memberIds.has(p.sportiv_id));
+
+        const invoices = new Map<string, InvoiceHistoryItem>();
+        let totalPaidOverall = 0;
+        let totalBilledOverall = 0;
+
+        relevantPlatiView.forEach(p => {
+            if (!invoices.has(p.plata_id)) {
+                invoices.set(p.plata_id, {
+                    details: p,
+                    payments: [],
+                    totalPaid: 0,
+                    remaining: p.suma_datorata,
+                });
+                totalBilledOverall += p.suma_datorata;
+            }
+            if (p.tranzactie_id && p.suma_incasata && p.data_plata) {
+                invoices.get(p.plata_id)!.payments.push(p);
+            }
+        });
+
+        invoices.forEach(invoice => {
+            const totalPaidForInvoice = invoice.payments.reduce((sum, payment) => sum + (payment.suma_incasata || 0), 0);
+            invoice.totalPaid = totalPaidForInvoice;
+            invoice.remaining = invoice.details.suma_datorata - totalPaidForInvoice;
+            totalPaidOverall += totalPaidForInvoice;
+        });
         
-        const currentSold = totalIncasari - totalDatorii;
+        const currentSold = totalPaidOverall - totalBilledOverall;
+        const dueAmount = Array.from(invoices.values()).reduce((sum, inv) => sum + inv.remaining, 0);
         
-        const platiHistory = relPlati.map(p => ({
-            id: p.id, date: p.data, amount: -p.suma,
-            description: p.descriere, type: 'debit' as const, paymentType: p.tip,
-            suma_initiala: p.suma_initiala, status: p.status
-        }));
+        const sortedHistory = Array.from(invoices.values()).sort((a,b) => new Date(b.details.data_emitere).getTime() - new Date(a.details.data_emitere).getTime());
 
-        const tranzactiiHistory = relTranzactii.map(t => ({
-            id: t.id, date: t.data_platii, amount: t.suma,
-            description: t.descriere || `Încasare ${t.metoda_plata}`, type: 'credit' as const, paymentType: 'Incasare',
-            suma_initiala: null, status: 'Achitat' as const
-        }));
+        return { sold: currentSold, totalDue: dueAmount, invoiceHistory: sortedHistory };
 
-        const combinedHistory = [...platiHistory, ...tranzactiiHistory].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-        const lastPayment = [...relTranzactii].sort((a,b) => new Date(b.data_platii).getTime() - new Date(a.data_platii).getTime())[0];
-        const dueAmount = relPlati.filter(p => p.status !== 'Achitat').reduce((acc, p) => acc + p.suma, 0);
-
-        return { sold: currentSold, history: combinedHistory, lastPaymentDate: lastPayment?.data_platii, relevantPlati: relPlati, totalDue: dueAmount };
-
-    }, [sportiv, isFamilyWallet, allPlati, allTranzactii]);
+    }, [sportiv, isFamilyWallet, vizualizarePlati, allSportivi]);
 
     const handleConfirmPayment = async () => {
         setIsSaving(true);
-        const unpaidPlati = relevantPlati
-            .filter(p => p.status === 'Neachitat' || p.status === 'Achitat Parțial')
+        const unpaidPlati = (allPlati || [])
+            .filter(p => {
+                const isForEntity = isFamilyWallet ? p.familie_id === sportiv.familie_id : p.sportiv_id === sportiv.id;
+                return isForEntity && (p.status === 'Neachitat' || p.status === 'Achitat Parțial');
+            })
             .sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());
 
         let amountToSettle = parseFloat(paymentAmount);
@@ -96,7 +116,7 @@ export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, 
             const paymentForThisPlata = Math.min(amountToApply, plata.suma);
             const newRemaining = plata.suma - paymentForThisPlata;
             const newStatus: Plata['status'] = newRemaining < 0.01 ? 'Achitat' : 'Achitat Parțial';
-            platiToUpdate.push({ id: plata.id, suma: newRemaining < 0.01 ? (plata.suma_initiala || plata.suma) : newRemaining, status: newStatus });
+            platiToUpdate.push({ id: plata.id, status: newStatus });
             platiIdsToLink.push(plata.id);
             amountToApply -= paymentForThisPlata;
         }
@@ -111,7 +131,7 @@ export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, 
             setTranzactii(prev => [...prev, tx as Tranzactie]);
             setPlati(prev => {
                 const updatesMap = new Map((updatedPlati as Plata[]).map(p => [p.id, p]));
-                return prev.map(p => updatesMap.has(p.id) ? updatesMap.get(p.id)! : p);
+                return prev.map(p => updatesMap.has(p.id) ? { ...p, ...updatesMap.get(p.id)!} : p);
             });
 
             showSuccess('Succes', `Încasare de ${amountToSettle.toFixed(2)} RON confirmată!`);
@@ -155,44 +175,38 @@ export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, 
                         </div>
                     </Card>
                 ) : (
-                    <Button variant="primary" onClick={() => setShowPaymentForm(true)} className="w-full"><PlusIcon className="w-5 h-5 mr-2" /> Adaugă o Încasare</Button>
+                    totalDue > 0 && <Button variant="primary" onClick={() => setShowPaymentForm(true)} className="w-full"><PlusIcon className="w-5 h-5 mr-2" /> Adaugă o Încasare</Button>
                 )}
 
                 <div>
-                     <h3 className="text-lg font-bold text-white mb-2">Istoric Tranzacții</h3>
+                     <h3 className="text-lg font-bold text-white mb-2">Istoric Facturi</h3>
                      <div className="bg-slate-900/50 border border-slate-700 rounded-lg max-h-80 overflow-y-auto">
-                        {history.length > 0 ? (
+                        {invoiceHistory.length > 0 ? (
                             <ul className="divide-y divide-slate-800">
-                                {history.map((item) => {
-                                    const isDebit = item.type === 'debit';
-                                    const isPartiallyPaid = isDebit && item.suma_initiala && (item.status === 'Achitat Parțial' || (item.status === 'Achitat' && item.suma_initiala > -item.amount));
-                                    const originalAmount = item.suma_initiala || -item.amount;
-                                    const remainingAmount = -item.amount;
-                                    const paidAmount = originalAmount - remainingAmount;
-                                    const progress = originalAmount > 0 ? (paidAmount / originalAmount) * 100 : (item.status === 'Achitat' ? 100 : 0);
-
-                                    return (
-                                        <li key={`${item.id}-${item.date}`} className="p-3">
-                                            <div className="flex items-start gap-3">
-                                                <div className="p-2 bg-slate-700/50 rounded-full">{getPaymentIcon(item.paymentType)}</div>
-                                                <div className="flex-grow">
-                                                    <p className="font-semibold text-white text-sm">{item.description}</p>
-                                                    <p className="text-xs text-slate-400">{new Date(item.date).toLocaleDateString('ro-RO')}</p>
-                                                     {isDebit && (item.status !== 'Achitat' || isPartiallyPaid) && item.suma_initiala && (
-                                                        <div className="mt-1.5">
-                                                            <div className="w-full bg-slate-600 rounded-full h-1.5"><div className="bg-amber-400 h-1.5 rounded-full" style={{ width: `${progress}%` }}></div></div>
-                                                            {item.status === 'Achitat Parțial' && <span className="text-xs font-semibold px-1.5 py-0.5 rounded-full bg-amber-600/30 text-amber-400 mt-1 inline-block">Rest: {remainingAmount.toFixed(2)} RON</span>}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <p className={`text-base font-bold text-right ${item.type === 'credit' ? 'text-green-400' : 'text-red-400'}`}>
-                                                    {item.type === 'credit' ? '+' : ''}
-                                                    {isDebit && item.suma_initiala ? (-item.suma_initiala).toFixed(2) : item.amount.toFixed(2)}
-                                                </p>
+                                {invoiceHistory.map(invoice => (
+                                    <li key={invoice.details.plata_id} className="p-3">
+                                        <div className="flex items-start gap-3">
+                                            <div className="p-2 bg-slate-700/50 rounded-full">{getPaymentIcon(invoice.details.descriere)}</div>
+                                            <div className="flex-grow">
+                                                <p className="font-semibold text-white text-sm">{invoice.details.descriere}</p>
+                                                <p className="text-xs text-slate-400">{new Date(invoice.details.data_emitere).toLocaleDateString('ro-RO')}</p>
                                             </div>
-                                        </li>
-                                    );
-                                })}
+                                            <p className={`text-base font-bold text-right ${invoice.remaining > 0 ? 'text-red-400' : 'text-green-400'}`}>
+                                                {invoice.remaining > 0 ? `-${invoice.remaining.toFixed(2)}` : invoice.details.suma_datorata.toFixed(2)}
+                                            </p>
+                                        </div>
+                                        {invoice.payments.length > 0 && (
+                                            <div className="pl-10 mt-2 space-y-1">
+                                                {invoice.payments.map(p => (
+                                                    <div key={p.tranzactie_id} className="text-xs flex justify-between items-center text-green-400">
+                                                        <span>&#8627; Încasat la {p.data_plata ? new Date(p.data_plata).toLocaleDateString('ro-RO') : '-'}</span>
+                                                        <span className="font-bold">+{p.suma_incasata?.toFixed(2)}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </li>
+                                ))}
                             </ul>
                         ) : ( <p className="p-8 text-center text-slate-500 italic">Nu există istoric financiar.</p> )}
                      </div>

@@ -331,4 +331,131 @@ export const SportiviManagement: React.FC<{
                 const { email, parola, ...profileData } = sportivData;
 
                 if (!email || !parola) {
-                    throw new Error("Emailul și parola
+                    throw new Error("Emailul și parola sunt obligatorii pentru crearea unui cont nou.");
+                }
+
+                const { data: { user }, error: authError } = await supabase.auth.signUp({
+                    email: email,
+                    password: parola
+                });
+                if (authError) throw authError;
+                if (!user) throw new Error("Nu s-a putut crea contul de autentificare.");
+
+                const finalProfileData = { ...profileData, user_id: user.id, email: email };
+                const { data: newProfile, error: profileError } = await supabase.from('sportivi').insert(finalProfileData).select('*, cluburi(*)').single();
+                if (profileError) {
+                    // Cleanup failed user
+                    await supabase.auth.admin.deleteUser(user.id);
+                    throw new Error(`Contul de autentificare a fost creat, dar profilul nu a putut fi salvat: ${profileError.message}`);
+                }
+
+                const sportivRole = allRoles.find(r => r.nume === 'Sportiv');
+                if (!sportivRole) {
+                    throw new Error("Rolul de bază 'Sportiv' nu a fost găsit în sistem.");
+                }
+
+                const { error: roleError } = await supabase.from('utilizator_roluri_multicont').insert({
+                    user_id: user.id,
+                    rol_denumire: 'Sportiv',
+                    club_id: newProfile.club_id,
+                    sportiv_id: newProfile.id,
+                    is_primary: true
+                });
+                
+                if (roleError) {
+                    throw new Error(`Profilul a fost creat, dar rolul nu a putut fi atribuit: ${roleError.message}`);
+                }
+
+                const newSportiv = { ...newProfile, roluri: [sportivRole] };
+                setSportivi(prev => [...prev, newSportiv]);
+
+                showSuccess('Succes', 'Sportiv adăugat!');
+                return { success: true, data: newSportiv };
+            }
+        } catch (err: any) {
+            showError("Eroare la Salvare", err.message);
+            return { success: false, error: err };
+        }
+    };
+
+    return (
+        <div className="space-y-6">
+            <Button onClick={onBack} variant="secondary" className="mb-2"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
+            
+            <div className="flex justify-between items-center gap-4">
+                <h1 className="text-2xl font-bold text-white uppercase tracking-tight">Management Sportivi</h1>
+                {permissions.hasAdminAccess && (
+                    <Button variant="primary" onClick={() => { setSportivToEdit(null); setIsFormModalOpen(true); }}>
+                        <PlusIcon className="w-5 h-5 mr-1"/> Adaugă Sportiv
+                    </Button>
+                )}
+            </div>
+
+            <Card className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Select label="Status" value={filters.statusFilter} onChange={e => handleFilterChange('statusFilter', e.target.value)}>
+                    <option value="Activ">Activi</option>
+                    <option value="Inactiv">Inactivi</option>
+                    <option value="">Toți</option>
+                </Select>
+                <Select label="Grupă" value={filters.grupaFilter} onChange={e => handleFilterChange('grupaFilter', e.target.value)}>
+                    <option value="">Toate grupele</option>
+                    {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
+                </Select>
+                <Select label="Grad" value={filters.gradFilter} onChange={e => handleFilterChange('gradFilter', e.target.value)}>
+                    <option value="">Toate gradele</option>
+                    <option value="null">Începător (fără grad)</option>
+                    {grade.sort((a,b) => a.ordine - b.ordine).map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}
+                </Select>
+                <Select label="Rol" value={filters.rolFilter} onChange={e => handleFilterChange('rolFilter', e.target.value)}>
+                    <option value="">Toate rolurile</option>
+                    {allRoles.map(r => <option key={r.id} value={r.id}>{r.nume}</option>)}
+                </Select>
+            </Card>
+
+            <div className="text-slate-900">
+                <ResponsiveTable
+                    columns={columns}
+                    data={filteredSportivi}
+                    searchTerm={filters.searchTerm}
+                    onSearchChange={(val) => handleFilterChange('searchTerm', val)}
+                    onRowClick={handleRowClick}
+                    searchPlaceholder="Caută sportiv după nume..."
+                    selectedRowId={selectedSportivForHighlight?.id}
+                    rowClassName={(sportiv) => !sportiv.user_id ? 'bg-red-900/20 hover:bg-red-900/40 !border-l-2 !border-red-500' : ''}
+                />
+            </div>
+
+            {isFormModalOpen && (
+                 <SportivFormModal 
+                    isOpen={isFormModalOpen}
+                    onClose={() => setIsFormModalOpen(false)}
+                    onSave={handleSave}
+                    sportivToEdit={sportivToEdit}
+                    grupe={grupe}
+                    setGrupe={setGrupe}
+                    familii={familii}
+                    setFamilii={setFamilii}
+                    tipuriAbonament={tipuriAbonament}
+                    clubs={clubs}
+                    currentUser={currentUser}
+                />
+            )}
+
+            {isWalletModalOpen && sportivForWallet && (
+                <SportivWallet
+                    sportiv={sportivForWallet}
+                    familie={familii.find(f => f.id === sportivForWallet.familie_id)}
+                    allSportivi={sportivi}
+                    vizualizarePlati={vizualizarePlati}
+                    allPlati={plati}
+                    setPlati={setPlati}
+                    setTranzactii={setTranzactii}
+                    onClose={() => {
+                        setIsWalletModalOpen(false);
+                        setSportivForWallet(null);
+                    }}
+                />
+            )}
+        </div>
+    );
+};

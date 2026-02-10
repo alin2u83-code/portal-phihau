@@ -29,9 +29,13 @@ export const AdminDebugFloatingPanel: React.FC<AdminDebugFloatingPanelProps> = (
 
         setLoadingRole(roleName);
 
-        const targetContext = userRoles.find(r => r.rol_denumire === roleName);
+        const normalize = (str: string) => str.toUpperCase().replace(/ /g, '_');
+        const targetRoleNameNormalized = normalize(roleName);
+        
+        const targetContext = userRoles.find(r => normalize(r.rol_denumire) === targetRoleNameNormalized);
+
         if (!targetContext) {
-            showError("Impersonare Eșuată", `Nu aveți un context de rol "${roleName}" pentru a comuta.`);
+            showError("Impersonare Eșuată", `Nu aveți un context de rol "${roleName}" pentru a comuta. Adăugați rolul în User Management.`);
             setLoadingRole(null);
             return;
         }

@@ -44,9 +44,9 @@ CALL public.reset_all_policies_for_table('sportivi');
 ALTER TABLE public.sportivi ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.sportivi FORCE ROW LEVEL SECURITY;
 
--- Politica 1: Super Adminii Federației au acces total.
-CREATE POLICY "Super Admin - Acces total la sportivi" ON public.sportivi
-    FOR ALL USING (get_active_role() = 'SUPER_ADMIN_FEDERATIE');
+-- Politica 1: Adminii de Federație (Super Admin & Admin) au acces total.
+CREATE POLICY "Admin Federație - Acces total la sportivi" ON public.sportivi
+    FOR ALL USING (get_active_role() IN ('SUPER_ADMIN_FEDERATIE', 'Admin'));
 
 -- Politica 2: Adminii de Club au acces total la sportivii din clubul lor.
 CREATE POLICY "Admin Club - Management total al sportivilor din propriul club" ON public.sportivi
@@ -71,9 +71,9 @@ CALL public.reset_all_policies_for_table('plati');
 ALTER TABLE public.plati ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.plati FORCE ROW LEVEL SECURITY;
 
--- Politica 1: Super Adminii Federației au acces total.
-CREATE POLICY "Super Admin - Acces total la plăți" ON public.plati
-    FOR ALL USING (get_active_role() = 'SUPER_ADMIN_FEDERATIE');
+-- Politica 1: Adminii de Federație au acces total.
+CREATE POLICY "Admin Federație - Acces total la plăți" ON public.plati
+    FOR ALL USING (get_active_role() IN ('SUPER_ADMIN_FEDERATIE', 'Admin'));
 
 -- Politica 2: Adminii de Club au acces total (inclusiv INSERT) la plățile din clubul lor.
 CREATE POLICY "Admin Club - Management total al plăților din propriul club" ON public.plati
@@ -110,7 +110,7 @@ ALTER TABLE public.grupe ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.grupe FORCE ROW LEVEL SECURITY;
 
 CREATE POLICY "Super Admin - Acces total la grupe" ON public.grupe
-    FOR ALL USING (get_active_role() = 'SUPER_ADMIN_FEDERATIE');
+    FOR ALL USING (get_active_role() IN ('SUPER_ADMIN_FEDERATIE', 'Admin'));
 
 CREATE POLICY "Staff-ul clubului gestionează grupele proprii" ON public.grupe
     FOR ALL USING ((get_active_role() = 'Admin Club' OR get_active_role() = 'Instructor') AND club_id = get_active_club_id())

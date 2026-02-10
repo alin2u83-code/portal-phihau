@@ -28,7 +28,7 @@ const MenuItem: React.FC<{ label: string; icon: React.ElementType; onClick: () =
 export const NavbarAdmin: React.FC<NavbarAdminProps> = ({ currentUser, permissions, onNavigate, onLogout }) => {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
-    const initials = (currentUser.nume?.[0] || '') + (currentUser.prenume?.[0] || '');
+    const initials = `${currentUser.prenume?.[0] || ''}${currentUser.nume?.[0] || ''}`.toUpperCase();
     const primaryRole = getPrimaryRoleName(permissions);
 
     useEffect(() => {
@@ -52,13 +52,17 @@ export const NavbarAdmin: React.FC<NavbarAdminProps> = ({ currentUser, permissio
                 onClick={() => setIsOpen(p => !p)}
                 className="flex items-center gap-3 p-1 rounded-full hover:opacity-90 transition-opacity"
             >
-                <div className="w-10 h-10 rounded-full bg-brand-primary flex items-center justify-center text-white font-bold text-base border-2 border-slate-300">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-base border-2 border-slate-300 ${permissions.isAdminClub ? 'bg-red-700' : 'bg-brand-primary'}`}>
                     {initials}
                 </div>
                 
                 <div className="hidden sm:block text-left">
-                    <p className="text-sm font-medium text-white truncate max-w-[150px]">{currentUser.nume} {currentUser.prenume}</p>
-                    <p className="text-[10px] uppercase tracking-wider text-slate-400">{primaryRole}</p>
+                    <p className="text-sm font-medium text-white truncate max-w-[150px]">{currentUser.prenume} {currentUser.nume?.[0]}.</p>
+                    {permissions.isAdminClub ? (
+                        <p className="text-[10px] text-amber-400 font-bold">[ADMIN CLUB]</p>
+                    ) : (
+                        <p className="text-[10px] uppercase tracking-wider text-slate-400">{primaryRole}</p>
+                    )}
                 </div>
 
                 <ChevronDownIcon className={`hidden sm:block w-5 h-5 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />

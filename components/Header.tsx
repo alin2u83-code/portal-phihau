@@ -4,6 +4,7 @@ import { Button } from './ui';
 import { ArrowLeftIcon } from './icons';
 import { NotificationBell } from './NotificationBell';
 import { NavbarAdmin } from './NavbarAdmin';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 interface HeaderProps {
     activeView: View;
@@ -16,7 +17,7 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ activeView, onBack, currentUser, permissions, onNavigate, onLogout }) => {
     const isDashboard = activeView === 'dashboard' || activeView === 'my-portal';
-    const isMobile = window.innerWidth < 1024; // lg breakpoint
+    const isMobile = useIsMobile();
 
     return (
         <header 

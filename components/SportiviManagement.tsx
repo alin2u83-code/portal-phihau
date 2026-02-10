@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions, VizualizarePlata } from '../types';
-import { Button, Modal, Input, Select, Card, RoleBadge } from './ui';
-import { PlusIcon, ArrowLeftIcon, WalletIcon } from './icons';
+import { Button, Input, Select, Card, RoleBadge } from './ui';
+import { PlusIcon, WalletIcon, UserXIcon, UserCheckIcon, SearchIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
@@ -9,94 +9,59 @@ import { SportivFormModal } from './Sportivi';
 import { SportivWallet } from './SportivWallet';
 import { ResponsiveTable, Column } from './ResponsiveTable';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
+import { useIsMobile } from '../hooks/useIsMobile';
 
-const getAge = (dateString: string | null | undefined): number => { 
-    if (!dateString) return 0; 
-    const today = new Date(); 
-    const birthDate = new Date(dateString.includes('T') ? dateString : dateString + 'T00:00:00'); 
-    if (isNaN(birthDate.getTime())) { return 0; } 
-    let age = today.getFullYear() - birthDate.getFullYear(); 
-    const m = today.getMonth() - birthDate.getMonth(); 
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; } 
-    return age; 
+const getAge = (dateString: string | null | undefined): number => {
+    if (!dateString) return 0;
+    const today = new Date();
+    const birthDate = new Date(dateString.includes('T') ? dateString : dateString + 'T00:00:00');
+    if (isNaN(birthDate.getTime())) { return 0; }
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; }
+    return age;
 };
 
-// --- NOU: Componentă pentru vizualizarea familiei ---
-const FamilyView: React.FC<{
-    currentUser: User;
-    sportivi: Sportiv[];
-    plati: Plata[];
-    tranzactii: Tranzactie[];
-    familii: Familie[];
-    grade: Grad[];
-    onViewSportiv: (sportiv: Sportiv) => void;
-}> = ({ currentUser, sportivi, plati, tranzactii, familii, grade, onViewSportiv }) => {
-    
-    const familyMembers = useMemo(() => {
-        if (!currentUser?.familie_id) return [currentUser];
-        return sportivi.filter(s => s.familie_id === currentUser.familie_id);
-    }, [currentUser, sportivi]);
-
-    const familyInfo = useMemo(() => {
-        if (!currentUser?.familie_id) return null;
-        return familii.find(f => f.id === currentUser.familie_id);
-    }, [currentUser, familii]);
-
-    const { familyBalance, lastPaymentDate } = useMemo(() => {
-        const familyId = currentUser?.familie_id;
-        if (!familyId) return { familyBalance: 0, lastPaymentDate: null };
-
-        const relevantPlati = (plati || []).filter(p => p.familie_id === familyId);
-        const relevantTranzactii = (tranzactii || []).filter(t => t.familie_id === familyId);
-
-        const totalDatorii = relevantPlati.reduce((sum, p) => sum + p.suma, 0);
-        const totalIncasari = relevantTranzactii.reduce((sum, t) => sum + t.suma, 0);
-        
-        const lastPayment = [...relevantTranzactii].sort((a,b) => new Date(b.data_platii).getTime() - new Date(a.data_platii).getTime())[0];
-
-        return {
-            familyBalance: totalIncasari - totalDatorii,
-            lastPaymentDate: lastPayment ? new Date(lastPayment.data_platii).toLocaleDateString('ro-RO') : null,
-        };
-    }, [currentUser, plati, tranzactii]);
-
+// --- Mobile Card Component ---
+const SportivCardMobile: React.FC<{
+    sportiv: Sportiv;
+    onRowClick: (item: Sportiv) => void;
+    onOpenWallet: (item: Sportiv) => void;
+    familie: Familie | undefined;
+    familyBalance: number | undefined;
+    individualBalance: number | undefined;
+    grupa: Grupa | undefined;
+}> = ({ sportiv, onRowClick, onOpenWallet, familie, familyBalance, individualBalance, grupa }) => {
     return (
-        <div className="space-y-6">
-            <h1 className="text-2xl font-bold text-white uppercase tracking-tight">Portalul Familiei {familyInfo?.nume || currentUser.nume}</h1>
-            <Card className="border-l-4 border-brand-secondary">
-                <h2 className="text-lg font-bold text-slate-300 mb-2">Situație Financiară</h2>
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <div>
-                        <p className="text-sm text-slate-400">Sold Curent</p>
-                        <p className={`text-4xl font-black ${familyBalance >= 0 ? 'text-green-400' : 'text-red-400'}`}>{familyBalance.toFixed(2)} RON</p>
+        <Card onClick={() => onRowClick(sportiv)} className={`border-l-4 ${sportiv.status === 'Activ' ? 'border-green-500' : 'border-slate-600'}`}>
+            <div className="flex justify-between items-start">
+                <div>
+                    <p className="font-bold text-white text-lg">{sportiv.nume} {sportiv.prenume}</p>
+                    <p className="text-sm text-slate-400">{getAge(sportiv.data_nasterii)} ani - {grupa?.denumire || 'Fără grupă'}</p>
+                </div>
+                <div className="flex flex-wrap gap-1 justify-end">
+                    {(sportiv.roluri || []).map(r => <RoleBadge key={r.id} role={r} />)}
+                </div>
+            </div>
+            <div className="mt-4 pt-4 border-t border-slate-700">
+                {familie && familyBalance !== undefined ? (
+                    <div className="text-xs">
+                        <p className="text-slate-300">Familia {familie.nume}</p>
+                        <p className={`font-bold ${familyBalance >= 0 ? 'text-green-400' : 'text-red-400'}`}>Sold: {familyBalance.toFixed(2)} lei</p>
                     </div>
-                    {lastPaymentDate && (
-                        <div className="text-right">
-                            <p className="text-sm text-slate-400">Ultima Plată</p>
-                            <p className="text-lg font-bold text-white">{lastPaymentDate}</p>
-                        </div>
-                    )}
-                </div>
-            </Card>
-
-            <Card>
-                <h2 className="text-lg font-bold text-white mb-4">Membrii Familiei</h2>
-                <div className="space-y-3">
-                    {familyMembers.map(member => {
-                        const grad = grade.find(g => g.id === member.grad_actual_id);
-                        return (
-                            <div key={member.id} className="bg-slate-700/50 p-3 rounded-md flex justify-between items-center">
-                                <div>
-                                    <p className="font-bold text-white">{member.nume} {member.prenume}</p>
-                                    <p className="text-sm text-slate-400">{grad?.nume || 'Începător'} - {getAge(member.data_nasterii)} ani</p>
-                                </div>
-                                <Button size="sm" variant="info" onClick={() => onViewSportiv(member)}>Detalii</Button>
-                            </div>
-                        );
-                    })}
-                </div>
-            </Card>
-        </div>
+                ) : individualBalance !== undefined ? (
+                     <div className="text-xs">
+                        <p className="text-slate-300">Sold Individual</p>
+                        <p className={`font-bold ${individualBalance >= 0 ? 'text-green-400' : 'text-red-400'}`}>{individualBalance.toFixed(2)} lei</p>
+                    </div>
+                ) : null}
+            </div>
+            <div className="mt-4 flex gap-2">
+                <Button size="sm" variant="info" onClick={(e) => { e.stopPropagation(); onOpenWallet(sportiv); }} className="w-full">
+                    <WalletIcon className="w-4 h-4 mr-2" /> Portofel
+                </Button>
+            </div>
+        </Card>
     );
 };
 
@@ -124,7 +89,7 @@ export const SportiviManagement: React.FC<{
     setAllRoles: React.Dispatch<React.SetStateAction<Rol[]>>;
     vizualizarePlati: VizualizarePlata[];
 }> = (props) => {
-    const { onBack, sportivi, setSportivi, grupe, setGrupe, tipuriAbonament, familii, setFamilii, currentUser, plati, setPlati, tranzactii, setTranzactii, onViewSportiv, clubs, grade, permissions, allRoles, setAllRoles, vizualizarePlati } = props;
+    const { sportivi, setSportivi, grupe, setGrupe, tipuriAbonament, familii, setFamilii, currentUser, plati, setPlati, tranzactii, setTranzactii, onViewSportiv, clubs, grade, permissions, allRoles, setAllRoles, vizualizarePlati } = props;
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
     const [sportivToEdit, setSportivToEdit] = useState<Sportiv | null>(null);
     const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
@@ -132,6 +97,7 @@ export const SportiviManagement: React.FC<{
     const [selectedSportivForHighlight, setSelectedSportivForHighlight] = useState<Sportiv | null>(null);
 
     const { showError, showSuccess } = useError();
+    const isMobile = useIsMobile();
     
     const [filters, setFilters] = useLocalStorage('phi-hau-sportivi-filters', {
         searchTerm: '',
@@ -164,37 +130,13 @@ export const SportiviManagement: React.FC<{
         return balances;
     }, [familii, plati, tranzactii]);
     
-    const { individualBalances, lastIndividualTransactions } = useMemo(() => {
+    const individualBalances = useMemo(() => {
         const balances = new Map<string, number>();
-        const lastTx = new Map<string, string>();
-
-        if (!sportivi || !plati || !tranzactii) {
-            return { individualBalances: balances, lastIndividualTransactions: lastTx };
-        }
-
-        sportivi.forEach(s => {
-            if (!s.familie_id) {
-                balances.set(s.id, 0);
-            }
-        });
-
-        tranzactii.forEach(t => {
-            if (t.sportiv_id && !t.familie_id && balances.has(t.sportiv_id)) {
-                balances.set(t.sportiv_id, (balances.get(t.sportiv_id) || 0) + t.suma);
-                const existingDate = lastTx.get(t.sportiv_id);
-                if (!existingDate || new Date(t.data_platii) > new Date(existingDate)) {
-                    lastTx.set(t.sportiv_id, t.data_platii);
-                }
-            }
-        });
-
-        plati.forEach(p => {
-            if (p.sportiv_id && !p.familie_id && balances.has(p.sportiv_id)) {
-                balances.set(p.sportiv_id, (balances.get(p.sportiv_id) || 0) - p.suma);
-            }
-        });
-
-        return { individualBalances: balances, lastIndividualTransactions: lastTx };
+        if (!sportivi || !plati || !tranzactii) return balances;
+        sportivi.forEach(s => { if (!s.familie_id) balances.set(s.id, 0); });
+        tranzactii.forEach(t => { if (t.sportiv_id && !t.familie_id && balances.has(t.sportiv_id)) balances.set(t.sportiv_id, (balances.get(t.sportiv_id) || 0) + t.suma); });
+        plati.forEach(p => { if (p.sportiv_id && !p.familie_id && balances.has(p.sportiv_id)) balances.set(p.sportiv_id, (balances.get(p.sportiv_id) || 0) - p.suma); });
+        return balances;
     }, [sportivi, plati, tranzactii]);
 
     const filteredSportivi = useMemo(() => {
@@ -211,38 +153,12 @@ export const SportiviManagement: React.FC<{
         {
             key: 'nume',
             label: 'Nume Complet',
-            tooltip: "Numele complet al sportivului. Dacă face parte dintr-o familie, este afișat și soldul familiei.",
-            render: (s) => {
-                const familie = s.familie_id ? familii.find(f => f.id === s.familie_id) : null;
-                const familieBalance = s.familie_id ? familyBalances.get(s.familie_id) : undefined;
-                return (
-                    <div>
-                        <div className="font-bold text-white hover:text-brand-primary">{s.nume} {s.prenume} <span className="text-slate-400 font-normal">({getAge(s.data_nasterii)} ani)</span></div>
-                        {familie && familieBalance !== undefined && (
-                            <div className="text-xs text-slate-300 mt-1">
-                                Familia {familie.nume}
-                                <span className={`ml-2 font-bold ${familieBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                    Sold: {familieBalance >= 0 ? '+' : ''}{familieBalance.toFixed(2)} lei
-                                </span>
-                            </div>
-                        )}
-                    </div>
-                );
-            },
-        },
-        { key: 'club_id', label: 'Club', tooltip: "Clubul de care aparține sportivul.", render: (s) => s.cluburi?.id === FEDERATIE_ID ? FEDERATIE_NAME : s.cluburi?.nume || '-', className: 'hidden md:table-cell' },
-        { 
-            key: 'roluri', 
-            label: 'Roluri', 
-            tooltip: "Rolurile de acces ale utilizatorului în aplicație.",
+            tooltip: "Numele complet al sportivului.",
             render: (s) => (
-                <div className="flex flex-wrap gap-1">
-                    {(s.roluri || []).length > 0 
-                        ? (s.roluri || []).map(r => <RoleBadge key={r.id} role={r}/>)
-                        : <span className="text-slate-500 italic">N/A</span>
-                    }
+                <div>
+                    <div className="font-bold text-white hover:text-brand-primary">{s.nume} {s.prenume} <span className="text-slate-400 font-normal">({getAge(s.data_nasterii)} ani)</span></div>
                 </div>
-            )
+            ),
         },
         { 
             key: 'status', 
@@ -255,66 +171,12 @@ export const SportiviManagement: React.FC<{
                 </span>
             )
         },
-        { key: 'grupa_id', label: 'Grupă', tooltip: "Grupa de antrenament în care este încadrat sportivul.", render: (s) => grupe.find(g => g.id === s.grupa_id)?.denumire || '-', className: 'hidden md:table-cell' },
-        {
-            key: 'situatie_financiara' as any,
-            label: 'Situație Financiară',
-            tooltip: "Soldul individual al sportivului. Se aplică doar sportivilor neasociați unei familii.",
-            render: (s) => {
-                if (s.familie_id) {
-                    return <span className="text-slate-500 italic text-xs">În familie</span>;
-                }
-                const balance = individualBalances.get(s.id);
-                if (balance === undefined) return <span className="text-slate-500 italic text-xs">Acces limitat</span>;
-
-                const lastTxDate = lastIndividualTransactions.get(s.id);
-                let hasRecentPayment = false;
-                if (lastTxDate) {
-                    const thirtyDaysAgo = new Date();
-                    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-                    if (new Date(lastTxDate) >= thirtyDaysAgo) {
-                        hasRecentPayment = true;
-                    }
-                }
-                
-                const isRestanta = balance < 0 && !hasRecentPayment;
-
-                return (
-                    <div className="flex flex-col items-end">
-                        <span className={`font-bold text-sm ${balance >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                            {balance.toFixed(2)} lei
-                        </span>
-                        {isRestanta && (
-                             <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-600/30 text-amber-400 mt-1">
-                                Restanță
-                            </span>
-                        )}
-                    </div>
-                );
-            },
-            cellClassName: 'text-right',
-            headerClassName: 'text-right'
-        },
-        {
-            key: 'actions',
-            label: 'Acțiuni',
-            tooltip: "Acțiuni rapide: gestionează portofelul sportivului.",
-            headerClassName: 'text-right',
-            cellClassName: 'text-right',
-            render: (s) => (
-                <div className="flex justify-end items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                    <Button size="sm" variant="info" onClick={() => handleOpenWallet(s)} title="Portofel Sportiv" className="!p-2">
-                        <WalletIcon className="w-4 h-4" />
-                    </Button>
-                </div>
-            )
-        }
+        { key: 'grupa_id', label: 'Grupă', tooltip: "Grupa de antrenament.", render: (s) => grupe.find(g => g.id === s.grupa_id)?.denumire || '-', className: 'hidden md:table-cell' },
     ];
 
     const handleSave = async (formData: Partial<Sportiv>): Promise<{ success: boolean; error?: any; data?: Sportiv; }> => {
         try {
             if (sportivToEdit) {
-                // UPDATE logic
                 const { roluri, ...sportivData } = formData;
                 const { data, error } = await supabase.from('sportivi').update(sportivData).eq('id', sportivToEdit.id).select('*, cluburi(*), roles:utilizator_roluri_multicont(rol_denumire)').single();
                 if (error) throw error;
@@ -327,7 +189,6 @@ export const SportiviManagement: React.FC<{
                 showSuccess('Succes', 'Sportiv actualizat!');
                 return { success: true, data: updatedSportiv };
             } else {
-                // CREATE logic
                 const { email, parola, roluri, ...profileData } = formData;
                 if (!email || !parola) throw new Error("Emailul și parola sunt obligatorii pentru crearea unui cont nou.");
                 if (!profileData.club_id) throw new Error("Clubul este obligatoriu la adăugarea unui sportiv nou.");
@@ -348,17 +209,6 @@ export const SportiviManagement: React.FC<{
                     throw profileError;
                 }
 
-                // Adaugă gradul de începător în istoric
-                const incepatorGrad = grade.find(g => g.ordine === 0 || g.nume.toLowerCase().includes('începător'));
-                if (incepatorGrad) {
-                    await supabase.from('istoric_grade').insert({
-                        sportiv_id: newProfile.id,
-                        grad_id: incepatorGrad.id,
-                        data_obtinere: newProfile.data_inscrierii,
-                        observatii: 'Grad inițial la înscriere'
-                    });
-                }
-                
                 const sportivRole = allRoles.find(r => r.nume === 'Sportiv');
                 if (!sportivRole) throw new Error("Rolul de bază 'Sportiv' nu a fost găsit.");
 
@@ -367,23 +217,17 @@ export const SportiviManagement: React.FC<{
 
                 const newSportiv = { ...newProfile, roluri: [sportivRole] };
                 setSportivi(prev => [...prev, newSportiv]);
-                showSuccess('Succes', 'Sportivul a fost adăugat cu succes în catalogul Phi Hau.');
+                showSuccess('Succes', 'Sportivul a fost adăugat cu succes.');
                 return { success: true, data: newSportiv };
             }
         } catch (err: any) {
-            if (err.code === '23505' && (err.message.includes('sportivi_nume_prenume_data_nasterii_club_id_key') || err.message.includes('sportivi'))) {
-                showError('Sportiv Duplicat', 'Acest sportiv este deja înscris în baza de date a clubului.');
-            } else {
-                showError("Eroare la Salvare", err.message);
-            }
+            showError("Eroare la Salvare", err.message);
             return { success: false, error: err };
         }
     };
 
     return (
         <div className="space-y-6">
-            <Button onClick={onBack} variant="secondary" className="mb-2"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
-            
             <div className="flex justify-between items-center gap-4">
                 <h1 className="text-2xl font-bold text-white uppercase tracking-tight">Management Sportivi</h1>
                 {permissions.hasAdminAccess && (
@@ -393,7 +237,20 @@ export const SportiviManagement: React.FC<{
                 )}
             </div>
 
-            <Card className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="md:col-span-2 lg:col-span-1">
+                     <div className="relative w-full">
+                        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                        <Input
+                            label=""
+                            type="text"
+                            value={filters.searchTerm}
+                            onChange={(e) => handleFilterChange('searchTerm', e.target.value)}
+                            placeholder="Caută sportiv..."
+                            className="!pl-10"
+                        />
+                    </div>
+                </div>
                 <Select label="Status" value={filters.statusFilter} onChange={e => handleFilterChange('statusFilter', e.target.value)}>
                     <option value="Activ">Activi</option>
                     <option value="Inactiv">Inactivi</option>
@@ -403,29 +260,34 @@ export const SportiviManagement: React.FC<{
                     <option value="">Toate grupele</option>
                     {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
                 </Select>
-                <Select label="Grad" value={filters.gradFilter} onChange={e => handleFilterChange('gradFilter', e.target.value)}>
-                    <option value="">Toate gradele</option>
-                    <option value="null">Începător (fără grad)</option>
-                    {grade.sort((a,b) => a.ordine - b.ordine).map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}
-                </Select>
-                <Select label="Rol" value={filters.rolFilter} onChange={e => handleFilterChange('rolFilter', e.target.value)}>
-                    <option value="">Toate rolurile</option>
-                    {allRoles.map(r => <option key={r.id} value={r.id}>{r.nume}</option>)}
-                </Select>
             </Card>
 
-            <div className="text-slate-900">
+            {isMobile ? (
+                <div className="space-y-3">
+                    {filteredSportivi.map(s => (
+                        <SportivCardMobile
+                            key={s.id}
+                            sportiv={s}
+                            onRowClick={handleRowClick}
+                            onOpenWallet={handleOpenWallet}
+                            familie={familii.find(f => f.id === s.familie_id)}
+                            familyBalance={familyBalances.get(s.familie_id!)}
+                            individualBalance={individualBalances.get(s.id)}
+                            grupa={grupe.find(g => g.id === s.grupa_id)}
+                        />
+                    ))}
+                </div>
+            ) : (
+                // FIX: Removed invalid props `searchTerm`, `onSearchChange`, and `searchPlaceholder` from `ResponsiveTable`.
+                // Search functionality is handled by the external `Input` component.
                 <ResponsiveTable
                     columns={columns}
                     data={filteredSportivi}
-                    searchTerm={filters.searchTerm}
-                    onSearchChange={(val) => handleFilterChange('searchTerm', val)}
                     onRowClick={handleRowClick}
-                    searchPlaceholder="Caută sportiv după nume..."
                     selectedRowId={selectedSportivForHighlight?.id}
                     rowClassName={(sportiv) => !sportiv.user_id ? 'bg-red-900/20 hover:bg-red-900/40 !border-l-2 !border-red-500' : ''}
                 />
-            </div>
+            )}
 
             {isFormModalOpen && (
                  <SportivFormModal 

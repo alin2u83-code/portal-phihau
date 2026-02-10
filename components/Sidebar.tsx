@@ -181,10 +181,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
                      return <NavItem key={item.label} item={item} isExpanded={isExpanded} isActive={isActive} onNavigate={handleNavigate} activeView={activeView} />
                 })}
 
-                {currentUser?.email === 'alin2u83@gmail.com' && (
-                    <div onClick={() => handleNavigate('admin-console')} className={`flex items-center p-2.5 text-white rounded-md cursor-pointer bg-amber-600/20 hover:bg-amber-600/40 border border-amber-500/50 mt-4 transition-colors`} title={!isExpanded ? "Admin Console" : ''}>
+                {canSwitchRoles && permissions.hasAdminAccess && (
+                    <div onClick={() => handleNavigate('admin-console')} className={`flex items-center p-2.5 text-white rounded-md cursor-pointer bg-amber-600/20 hover:bg-amber-600/40 border border-amber-500/50 mt-4 transition-colors`} title={!isExpanded ? "Consolă Admin / Schimbă Rol" : ''}>
                         <ShieldCheckIcon className={`h-6 w-6 shrink-0 text-amber-300 ${isExpanded ? 'mr-3' : 'mx-auto'}`} />
-                        {isExpanded && <span className="flex-1 font-semibold text-sm">Admin Console</span>}
+                        {isExpanded && <span className="flex-1 font-semibold text-sm">Consolă Admin</span>}
                     </div>
                 )}
 
@@ -195,19 +195,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
                     </div>
                 )}
             </nav>
-
-            {canSwitchRoles && permissions.hasAdminAccess && (
-                <div className="px-3 py-2 border-t border-white/10">
-                    <button
-                        onClick={() => handleNavigate('admin-console')}
-                        title={!isExpanded ? "Schimbă Context de Lucru" : ""}
-                        className={`w-full flex items-center p-2.5 rounded-md transition-colors text-left bg-slate-700 hover:bg-slate-600 text-white`}
-                    >
-                        <ShieldCheckIcon className={`h-6 w-6 shrink-0 ${isExpanded ? 'mr-3' : 'mx-auto'}`} />
-                        {isExpanded && <span className="text-sm font-semibold truncate">Schimbă Context</span>}
-                    </button>
-                </div>
-            )}
 
              <div className="p-3 border-t border-white/10">
                 <button

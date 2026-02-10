@@ -50,7 +50,7 @@ export const NavbarAdmin: React.FC<NavbarAdminProps> = ({ currentUser, permissio
             {isOpen && (
                 <div className="absolute right-0 mt-2 w-64 bg-[var(--bg-card)] rounded-lg shadow-2xl border border-[var(--border-color)] z-50 animate-fade-in-down">
                     <div className="p-3 border-b border-[var(--border-color)]">
-                        <p className="text-sm font-semibold text-white truncate">{currentUser.nume} {currentUser.prenume}</p>
+                        <p className="text-sm font-semibold text-[var(--brand-secondary)] truncate">{currentUser.nume} {currentUser.prenume}</p>
                         <p className="text-xs text-slate-400 truncate">{currentUser.email}</p>
                     </div>
                     

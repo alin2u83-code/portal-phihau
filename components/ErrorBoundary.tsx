@@ -14,12 +14,15 @@ interface State {
 }
 
 class ErrorBoundary extends React.Component<Props, State> {
-  // State is now initialized as a class property to ensure it's set up before any other methods are called.
-  // This resolves build issues and ensures `this.state` is available throughout the component.
-  public state: State = {
-    hasError: false,
-    error: undefined,
-  };
+  // FIX: Moved state to constructor and bound methods to fix context issues.
+  constructor(props: Props) {
+    super(props);
+    this.state = {
+      hasError: false,
+      error: undefined,
+    };
+    this.handleRedirect = this.handleRedirect.bind(this);
+  }
 
   static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
@@ -29,8 +32,7 @@ class ErrorBoundary extends React.Component<Props, State> {
     console.error("Uncaught error:", error, errorInfo);
   }
 
-  // FIX: Converted to an arrow function property to automatically bind `this`.
-  handleRedirect = () => {
+  handleRedirect() {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {
         this.props.onNavigate('dashboard');
@@ -44,10 +46,9 @@ class ErrorBoundary extends React.Component<Props, State> {
           <h1 className="text-2xl font-bold">A apărut o eroare neașteptată.</h1>
           <p className="mt-2">Ceva nu a funcționat corect în această secțiune. Încercați să reîncărcați pagina sau să reveniți la panoul principal.</p>
           {this.props.onNavigate && (
-              // FIX: The onClick handler now correctly calls the bound class method.
-              <Button onClick={this.handleRedirect} variant="secondary" className="mt-6">
-                  <ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la pagina principală
-              </Button>
+                  <Button onClick={this.handleRedirect} variant="secondary" className="mt-6">
+                      <ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la pagina principală
+                  </Button>
           )}
           {this.state.error && (
             <pre className="mt-4 text-left text-xs bg-black/30 p-2 rounded overflow-auto">

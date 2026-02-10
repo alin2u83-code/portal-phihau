@@ -49,7 +49,7 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
                 club_id,
                 is_primary,
                 club:cluburi(nume),
-                sportiv:sportivi(nume, prenume)
+                sportiv:sportiv_id(nume, prenume)
             `)
             .eq('user_id', authUser.id);
         

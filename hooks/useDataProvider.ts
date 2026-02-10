@@ -148,7 +148,7 @@ export const useDataProvider = () => {
                 supabase.from('nom_locatii').select('*'),
                 supabase.from('tipuri_plati').select('*'),
                 supabase.from('reduceri').select('*'),
-                supabase.from('sportivi').select('*, roles:utilizator_roluri_multicont(rol_denumire, is_primary)'),
+                supabase.from('sportivi').select('*, roles:utilizator_roluri_multicont!sportiv_id(rol_denumire, is_primary)'),
                 supabase.from('sesiuni_examene').select('*'),
                 supabase.from('inscrieri_examene').select('*, sportivi:sportiv_id(*), grades:grad_vizat_id(*)'),
                 supabase.from('program_antrenamente').select('*, grupe(*), prezenta:prezenta_antrenament!antrenament_id(sportiv_id, status)'),
@@ -189,7 +189,7 @@ export const useDataProvider = () => {
                 { data: subscriptionTypesData }, { data: locatiiData }, { data: platiTypesData },
                 { data: reduceriData }, { data: sportiviData }, { data: sessionsData },
                 { data: registrationsData }, { data: trainingsData }, { data: platiData },
-                { data: tranzactiiData }, { data: eventsData }, { data: resultsData },
+                { data: tranzactiiData }, { data: evenimenteData }, { data: resultsData },
                 { data: familiesData }, { data: anunturiData }, { data: pricesData },
                 { data: vizualizarePlatiData }, { data: deconturiData }, { data: istoricGradeData }
             ] = processedResults;
@@ -221,7 +221,8 @@ export const useDataProvider = () => {
                 antrenamente: (trainingsData?.map(t => ({...t, prezenta: (t as any).prezenta || []})) || []) as Antrenament[],
                 plati: (platiData || []) as Plata[],
                 tranzactii: (tranzactiiData || []) as Tranzactie[],
-                evenimente: (eventsData || []) as Eveniment[],
+                // FIX: Renamed 'eventsData' to 'evenimenteData' to resolve the 'Cannot find name' error.
+                evenimente: (evenimenteData || []) as Eveniment[],
                 rezultate: (resultsData || []) as Rezultat[],
                 familii: (familiesData || []) as Familie[],
                 anunturiPrezenta: (anunturiData || []) as AnuntPrezenta[],

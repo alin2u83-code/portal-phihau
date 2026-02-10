@@ -107,62 +107,6 @@ const IstoricGradeCard: React.FC<{
     );
 };
 
-// --- Pagina Program Saptamanal (noua componenta refactorizata) ---
-const ProgramSaptamanalPage: React.FC<{ grupaId: string | null; grupe: Grupa[]; onBack: () => void; }> = ({ grupaId, grupe, onBack }) => {
-    const zileSaptamanaOrdonate: Record<ProgramItem['ziua'], number> = { 'Luni': 1, 'Marți': 2, 'Miercuri': 3, 'Joi': 4, 'Vineri': 5, 'Sâmbătă': 6, 'Duminică': 7 };
-    const grupaCurenta = useMemo(() => grupe.find(g => g.id === grupaId), [grupaId, grupe]);
-    const programSortat = useMemo(() => {
-        if (!grupaCurenta?.program) return [];
-        return [...grupaCurenta.program]
-            .filter(p => p.is_activ !== false)
-            .sort((a, b) => {
-                const ziCompare = zileSaptamanaOrdonate[a.ziua] - zileSaptamanaOrdonate[b.ziua];
-                if (ziCompare !== 0) return ziCompare;
-                return a.ora_start.localeCompare(b.ora_start);
-            });
-    }, [grupaCurenta]);
-
-    return (
-        <div className="animate-fade-in-down">
-            <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi</Button>
-            <Card>
-                <h1 className="text-2xl font-bold text-white mb-2">Program Săptămânal</h1>
-                {!grupaId || !grupaCurenta ? (
-                    <p className="text-slate-400 italic py-8 text-center">Momentan nu ești alocat unei grupe. Contactează instructorul Phi Hau.</p>
-                ) : (
-                    <>
-                        <div className="text-slate-300 mb-4">{grupaCurenta.denumire} - Sala: {grupaCurenta.sala || 'Nespecificată'}</div>
-                        {programSortat.length > 0 ? (
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-left text-sm">
-                                    <thead className="text-slate-400 text-xs uppercase">
-                                        <tr>
-                                            <th className="py-2">Ziua</th>
-                                            <th className="py-2">Ora Start</th>
-                                            <th className="py-2">Ora Sfârșit</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-700">
-                                        {programSortat.map((item, index) => (
-                                            <tr key={index}>
-                                                <td className="py-2 font-semibold">{item.ziua}</td>
-                                                <td className="py-2">{item.ora_start}</td>
-                                                <td className="py-2">{item.ora_sfarsit}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        ) : (
-                            <p className="text-sm text-slate-400 italic text-center py-4">Grupa curentă nu are un program săptămânal definit.</p>
-                        )}
-                    </>
-                )}
-            </Card>
-        </div>
-    );
-};
-
 
 // --- Componente și Logică pentru Acțiuni Rapide (Mutate din AthleteQuickActions.tsx) ---
 type AnuntStatus = 'Confirm' | 'Intarziat' | 'Absent';
@@ -265,7 +209,6 @@ interface SportivDashboardProps {
 
 export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser, viewedUser, participari, examene, grade, istoricGrade, grupe, plati, onNavigate, antrenamente, anunturi, setAnunturi, sportivi, permissions, canSwitchRoles, activeRole, onSwitchRole, isSwitchingRole }) => {
     
-    const [isViewingProgram, setIsViewingProgram] = useState(false);
     const { showSuccess, showError } = useError();
     const isViewingOwnProfile = currentUser.id === viewedUser.id;
 
@@ -347,10 +290,6 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
         return getGrad(admittedParticipations[0]?.grad_vizat_id || null, grade);
     }, [participari, viewedUser.grad_actual_id, viewedUser.id, grade, examene]);
 
-    if (isViewingProgram) {
-        return <ProgramSaptamanalPage grupaId={viewedUser.grupa_id} grupe={grupe} onBack={() => setIsViewingProgram(false)} />;
-    }
-
     return (
         <div className="space-y-6">
             <header className="text-center md:text-left border-b border-slate-700/50 pb-4">
@@ -382,10 +321,10 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
             
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-1">
-                     <AttendanceTracker currentUser={currentUser} antrenamente={antrenamente} onNavigate={onNavigate} />
+                     <AttendanceTracker currentUser={viewedUser} antrenamente={antrenamente} onNavigate={onNavigate} />
                 </div>
                 <div className="lg:col-span-2 space-y-6">
-                    <ProgramSaptamanalPage grupaId={viewedUser.grupa_id} grupe={grupe} onBack={() => setIsViewingProgram(false)}/>
+                    <AntrenamenteViitoare currentUser={viewedUser} antrenamente={antrenamente} grupe={grupe} />
                     <VizaMedicalaCard plati={plati} sportivId={viewedUser.id} />
                     <IstoricGradeCard grade={grade} istoricGrade={istoricGrade} sportivId={viewedUser.id} />
                 </div>

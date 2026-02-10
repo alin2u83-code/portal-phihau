@@ -290,19 +290,35 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
   };
 
   const handleSaveSesiune = async (sesiuneData: Partial<SesiuneExamen>) => {
-    const locatieSelectata = (locatii || []).find(l => l.id === sesiuneData.locatie_id);
-    const dataToSave: Partial<SesiuneExamen> = {
-        ...sesiuneData,
-        localitate: locatieSelectata ? locatieSelectata.nume : 'Necunoscută',
-        club_id: sesiuneData.club_id === '' ? null : sesiuneData.club_id
-    };
-
-    if (sesiuneToEdit) {
-        const { data, error } = await supabase.from('sesiuni_examene').update(dataToSave).eq('id', sesiuneToEdit.id).select().single();
-        if (error) { showError("Eroare la actualizare", error); } else if (data) { setSesiuni(prev => prev.map(e => e.id === data.id ? data as SesiuneExamen : e)); showSuccess("Succes", "Sesiunea a fost actualizată."); }
-    } else {
-        const { data, error } = await supabase.from('sesiuni_examene').insert(dataToSave).select().single();
-        if (error) { showError("Eroare la adăugare", error); } else if (data) { setSesiuni(prev => [...prev, data as SesiuneExamen]); showSuccess("Succes", "Sesiunea a fost creată."); }
+    try {
+        const locatieSelectata = (locatii || []).find(l => l.id === sesiuneData.locatie_id);
+        
+        // Separa ID-ul de restul datelor pentru a evita trimiterea lui in payload-ul de update/insert.
+        const { id, ...payload } = {
+            ...sesiuneData,
+            localitate: locatieSelectata ? locatieSelectata.nume : 'Necunoscută',
+            club_id: sesiuneData.club_id === '' ? null : sesiuneData.club_id
+        };
+        
+        if (sesiuneToEdit) {
+            // Logic for UPDATE: Editează o sesiune existentă.
+            const { data, error } = await supabase.from('sesiuni_examene').update(payload).eq('id', sesiuneToEdit.id).select().single();
+            if (error) throw error;
+            if (data) {
+                setSesiuni(prev => prev.map(e => e.id === data.id ? data as SesiuneExamen : e));
+                showSuccess("Succes", "Sesiunea a fost actualizată.");
+            }
+        } else {
+            // Logic for INSERT: Creează o sesiune nouă.
+            const { data, error } = await supabase.from('sesiuni_examene').insert(payload).select().single();
+            if (error) throw error;
+            if (data) {
+                setSesiuni(prev => [...prev, data as SesiuneExamen]);
+                showSuccess("Succes", "Sesiunea a fost creată.");
+            }
+        }
+    } catch (err: any) {
+        showError("Eroare la Salvare", err.message || 'A apărut o eroare necunoscută.');
     }
   };
 

@@ -317,7 +317,7 @@ function App() {
         return renderProtected(<FederationStructure clubs={clubs} sportivi={sportivi} grupe={grupe} onBack={() => setActiveView('dashboard')} onNavigate={(view) => setActiveView(view)} />, isFederationAdmin);
 
       case 'examene': {
-        const canManageExams = permissions.isInstructor;
+        const canManageExams = permissions.canGradeStudents;
         return <GestiuneExamene currentUser={currentUser!} clubs={clubs} onBack={() => setActiveView('dashboard')} onNavigate={(view) => setActiveView(view)} sesiuni={filteredData.sesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={filteredData.inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={filteredData.sportivi} setSportivi={setSportivi} grade={grade} istoricGrade={istoricGrade} locatii={locatii} setLocatii={setLocatii} plati={filteredData.plati} setPlati={setPlati} preturiConfig={preturiConfig} deconturiFederatie={filteredData.deconturiFederatie} setDeconturiFederatie={setDeconturiFederatie} onViewSportiv={onViewSportiv} isReadOnly={!canManageExams} />;
       }
         

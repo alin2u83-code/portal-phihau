@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { User, Antrenament, Grupa } from '../types';
+import { User, Antrenament, Grupa, AnuntPrezenta } from '../types';
 import { Card, Button } from './ui';
 import { ChevronLeftIcon, ChevronRightIcon, ClockIcon } from './icons';
 
@@ -7,9 +7,10 @@ interface AntrenamenteViitoareProps {
     currentUser: User;
     antrenamente: Antrenament[];
     grupe: Grupa[];
+    anunturi: AnuntPrezenta[];
 }
 
-export const AntrenamenteViitoare: React.FC<AntrenamenteViitoareProps> = ({ currentUser, antrenamente, grupe }) => {
+export const AntrenamenteViitoare: React.FC<AntrenamenteViitoareProps> = ({ currentUser, antrenamente, grupe, anunturi }) => {
     const [displayDate, setDisplayDate] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState(new Date());
 
@@ -21,35 +22,61 @@ export const AntrenamenteViitoare: React.FC<AntrenamenteViitoareProps> = ({ curr
             return newDate;
         });
     };
-
-    const upcomingTrainingsByDate = useMemo(() => {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        const events = new Map<string, { time: string; groupName: string }[]>();
+    
+    const trainingsByDate = useMemo(() => {
+        const events = new Map<string, { time: string; groupName: string; antrenament: Antrenament }[]>();
+        if (!antrenamente) return events;
         
-        antrenamente
-            .forEach(a => {
-                const trainingDate = new Date(a.data);
-                if (trainingDate < today) return; // Arată doar antrenamentele viitoare
-
-                const isInGroup = a.grupa_id === currentUser.grupa_id;
-                const isVacationTraining = currentUser.participa_vacanta && a.grupa_id === null;
-                
-                if (isInGroup || isVacationTraining) {
-                    const dateKey = a.data;
-                    const existing = events.get(dateKey) || [];
-                    const groupName = a.grupa_id ? (grupe.find(g => g.id === a.grupa_id)?.denumire || 'Grupă') : 'Liber (Vacanță)';
-                    events.set(dateKey, [...existing, { time: `${a.ora_start} - ${a.ora_sfarsit}`, groupName }]);
-                }
-            });
-            
+        antrenamente.forEach(a => {
+            const isInGroup = a.grupa_id === currentUser.grupa_id;
+            const isVacationTraining = currentUser.participa_vacanta && a.grupa_id === null;
+            if (isInGroup || isVacationTraining) {
+                const dateKey = a.data;
+                const existing = events.get(dateKey) || [];
+                const groupName = a.grupa_id ? (grupe.find(g => g.id === a.grupa_id)?.denumire || 'Grupă') : 'Liber (Vacanță)';
+                events.set(dateKey, [...existing, { time: `${a.ora_start} - ${a.ora_sfarsit}`, groupName, antrenament: a }]);
+            }
+        });
+        
         events.forEach((eventsOnDay, date) => {
             events.set(date, eventsOnDay.sort((a, b) => a.time.localeCompare(b.time)));
         });
             
         return events;
     }, [antrenamente, currentUser, grupe]);
+
+    const dayStatusMap = useMemo(() => {
+        const statusMap = new Map<string, 'prezent' | 'absent' | 'viitor' | 'neanuntat'>();
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        trainingsByDate.forEach((dayTrainings, dateKey) => {
+            const date = new Date(dateKey + 'T00:00:00');
+
+            if (date >= today) {
+                statusMap.set(dateKey, 'viitor');
+                return;
+            }
+
+            const announcementsForDay = anunturi.filter(anunt => dayTrainings.some(t => t.antrenament.id === anunt.antrenament_id));
+            const wasPresent = announcementsForDay.some(a => a.status === 'Confirm' || a.status === 'Intarziat');
+            if (wasPresent) {
+                statusMap.set(dateKey, 'prezent');
+                return;
+            }
+
+            const wasAbsentFromAll = dayTrainings.every(t => announcementsForDay.some(a => a.antrenament_id === t.antrenament.id && a.status === 'Absent'));
+            if (wasAbsentFromAll && announcementsForDay.length >= dayTrainings.length) {
+                statusMap.set(dateKey, 'absent');
+                return;
+            }
+            
+            statusMap.set(dateKey, 'neanuntat');
+        });
+
+        return statusMap;
+    }, [trainingsByDate, anunturi]);
+
 
     const { days, monthName, yearName } = useMemo(() => {
         const year = displayDate.getFullYear();
@@ -68,14 +95,30 @@ export const AntrenamenteViitoare: React.FC<AntrenamenteViitoareProps> = ({ curr
 
     const selectedDayEvents = useMemo(() => {
         const dateKey = selectedDate.toISOString().split('T')[0];
-        return upcomingTrainingsByDate.get(dateKey) || [];
-    }, [selectedDate, upcomingTrainingsByDate]);
+        const events = trainingsByDate.get(dateKey) || [];
+        const today = new Date(); today.setHours(0,0,0,0);
+        const isPast = selectedDate < today;
+
+        return events.map(event => {
+            let status: 'Prezent' | 'Absent' | 'Viitor' | 'Neanunțat' = 'Viitor';
+            if (isPast) {
+                const anunt = anunturi.find(a => a.antrenament_id === event.antrenament.id);
+                if (anunt) {
+                    if (anunt.status === 'Confirm' || anunt.status === 'Intarziat') status = 'Prezent';
+                    else if (anunt.status === 'Absent') status = 'Absent';
+                } else {
+                    status = 'Neanunțat';
+                }
+            }
+            return { ...event, status };
+        });
+    }, [selectedDate, trainingsByDate, anunturi]);
 
     const todayString = new Date().toISOString().split('T')[0];
 
     return (
         <Card>
-            <h3 className="text-lg font-bold text-white mb-4">Calendar Antrenamente Viitoare</h3>
+            <h3 className="text-lg font-bold text-white mb-4">Calendar Activitate</h3>
             <div className="flex items-center justify-between mb-3">
                 <h4 className="font-bold text-brand-secondary capitalize">{monthName} <span className="text-slate-400">{yearName}</span></h4>
                 <div className="flex items-center gap-2">
@@ -94,9 +137,16 @@ export const AntrenamenteViitoare: React.FC<AntrenamenteViitoareProps> = ({ curr
                     if (!day) return <div key={`pad-${index}`} className="w-full h-10"></div>;
                     
                     const dateString = day.toISOString().split('T')[0];
-                    const hasEvents = upcomingTrainingsByDate.has(dateString);
+                    const status = dayStatusMap.get(dateString);
                     const isToday = dateString === todayString;
                     const isSelected = dateString === selectedDate.toISOString().split('T')[0];
+                    
+                    const statusColorClass = {
+                        prezent: 'bg-green-500',
+                        absent: 'bg-red-500',
+                        viitor: 'bg-sky-400',
+                        neanuntat: 'bg-slate-600',
+                    }[status || ''];
 
                     return (
                         <div key={dateString} className="flex items-center justify-center">
@@ -108,7 +158,9 @@ export const AntrenamenteViitoare: React.FC<AntrenamenteViitoareProps> = ({ curr
                                 `}
                             >
                                 <span>{day.getDate()}</span>
-                                {hasEvents && !isToday && <div className="absolute bottom-1 w-1.5 h-1.5 rounded-full bg-brand-secondary" style={{ boxShadow: `0 0 4px var(--brand-secondary)` }}></div>}
+                                {status && (
+                                    <div className={`absolute bottom-1 w-4 h-1.5 rounded-full ${statusColorClass}`} />
+                                )}
                             </button>
                         </div>
                     );
@@ -121,18 +173,31 @@ export const AntrenamenteViitoare: React.FC<AntrenamenteViitoareProps> = ({ curr
                 </h4>
                 {selectedDayEvents.length > 0 ? (
                     <ul className="mt-2 space-y-2">
-                        {selectedDayEvents.map((event, i) => (
-                            <li key={i} className="flex items-center gap-3 bg-slate-800/50 p-2 rounded-md border-l-4 border-slate-600">
-                                <ClockIcon className="w-5 h-5 text-slate-400 shrink-0" />
-                                <div>
-                                    <p className="font-mono text-sm font-bold text-slate-200">{event.time}</p>
-                                    <p className="text-xs text-slate-400">{event.groupName}</p>
-                                </div>
-                            </li>
-                        ))}
+                        {selectedDayEvents.map((event, i) => {
+                            const statusInfo = {
+                                Prezent: { color: 'bg-green-500', text: 'Prezent' },
+                                Absent: { color: 'bg-red-500', text: 'Absent' },
+                                Viitor: { color: 'bg-sky-500', text: 'Viitor' },
+                                Neanunțat: { color: 'bg-slate-600', text: 'Neanunțat' }
+                            }[event.status];
+
+                            return (
+                                <li key={i} className="flex items-center gap-3 bg-slate-800/50 p-2 rounded-md border-l-4 border-slate-600">
+                                    <ClockIcon className="w-5 h-5 text-slate-400 shrink-0" />
+                                    <div className="flex-grow">
+                                        <p className="font-mono text-sm font-bold text-slate-200">{event.time}</p>
+                                        <p className="text-xs text-slate-400">{event.groupName}</p>
+                                    </div>
+                                     <div className="flex items-center gap-2 text-xs font-semibold">
+                                        <div className={`w-2.5 h-2.5 rounded-full ${statusInfo.color}`} />
+                                        <span className="text-slate-300">{statusInfo.text}</span>
+                                    </div>
+                                </li>
+                            );
+                        })}
                     </ul>
                 ) : (
-                    <p className="mt-2 text-sm text-slate-400 italic">Niciun antrenament programat.</p>
+                    <p className="mt-2 text-sm text-slate-400 italic">Nicio activitate programată.</p>
                 )}
             </div>
         </Card>

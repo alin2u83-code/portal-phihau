@@ -324,7 +324,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                      <AttendanceTracker currentUser={viewedUser} antrenamente={antrenamente} onNavigate={onNavigate} />
                 </div>
                 <div className="lg:col-span-2 space-y-6">
-                    <AntrenamenteViitoare currentUser={viewedUser} antrenamente={antrenamente} grupe={grupe} />
+                    <AntrenamenteViitoare currentUser={viewedUser} antrenamente={antrenamente} grupe={grupe} anunturi={anunturi} />
                     <VizaMedicalaCard plati={plati} sportivId={viewedUser.id} />
                     <IstoricGradeCard grade={grade} istoricGrade={istoricGrade} sportivId={viewedUser.id} />
                 </div>

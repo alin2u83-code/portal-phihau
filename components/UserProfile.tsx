@@ -162,7 +162,6 @@ const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose, sportiv,
 
         } catch (err: any) {
             showError("Eroare la Transfer", err.message);
-            setLoading(false);
         }
     };
     
@@ -509,7 +508,11 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center"><Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi</Button><Button variant="info" onClick={() => setIsEditModalOpen(true)}><EditIcon className="w-4 h-4 mr-2"/> Editează Profil</Button></div>
+            <div className="flex justify-end items-center">
+                <Button variant="info" onClick={() => setIsEditModalOpen(true)}>
+                    <EditIcon className="w-4 h-4 mr-2"/> Editează Profil
+                </Button>
+            </div>
             <header className="bg-[var(--bg-card)] p-6 rounded-xl shadow-lg border border-[var(--border-color)] flex flex-col md:flex-row items-center gap-6">
                 <div><GradBadge grad={currentGrad} isLarge /></div>
                 <div className="text-center md:text-left flex-grow">

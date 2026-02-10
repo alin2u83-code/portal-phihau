@@ -83,8 +83,6 @@ export const FisaCompetitie: React.FC<FisaCompetitieProps> = ({ currentUser, gra
 
     return (
         <div className="space-y-6 animate-fade-in-down">
-            <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Portal</Button>
-            
             <Card className="border-l-4 border-brand-secondary">
                 <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                     <div>

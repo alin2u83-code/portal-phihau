@@ -79,8 +79,6 @@ export const FisaDigitalaSportiv: React.FC<FisaDigitalaSportivProps> = ({ curren
 
     return (
         <div className="space-y-6 animate-fade-in-down">
-            <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Portal</Button>
-            
             <h1 className="text-3xl font-bold text-white">Fișa Digitală a Sportivului</h1>
 
             {totalRestante > 0 && (

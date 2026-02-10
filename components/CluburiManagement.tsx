@@ -126,7 +126,6 @@ export const CluburiManagement: React.FC<CluburiManagementProps> = ({ clubs, set
 
     return (
         <div>
-            <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-bold text-white">Gestiune Cluburi</h1>
                 {permissions.isSuperAdmin && (

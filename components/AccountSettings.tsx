@@ -114,7 +114,6 @@ export const AccountSettings: React.FC<AccountSettingsProps> = ({ currentUser, o
     
     return (
         <div className="space-y-8 animate-fade-in-down bg-black p-4 md:p-8 rounded-lg">
-            <Button onClick={onBack} variant="secondary" className="bg-zinc-800 hover:bg-zinc-700 text-white"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Portal</Button>
             
             <header>
                 <h1 className="text-4xl font-black text-white">Setări Cont & Profiluri</h1>

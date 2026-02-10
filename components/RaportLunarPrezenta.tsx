@@ -123,7 +123,6 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ sporti
 
     return (
         <div className="space-y-6">
-            <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
             <h1 className="text-3xl font-bold text-white">Raport Lunar de Prezență</h1>
             
             <Card className="grid grid-cols-1 md:grid-cols-3 gap-4">

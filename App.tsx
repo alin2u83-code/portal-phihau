@@ -61,9 +61,8 @@ import { GeneralAttendanceWidget } from './components/GeneralAttendanceWidget';
 import { SportivDashboard } from './components/SportivDashboard';
 import { Card, Button } from './components/ui';
 import { RoleSelectionPage } from './components/RoleSelectionPage';
-import { NotificationBell } from './components/NotificationBell';
 import { RaportLunarPrezenta } from './components/RaportLunarPrezenta';
-import { NavbarAdmin } from './components/NavbarAdmin';
+import { Header } from './components/Header';
 import { useDataProvider } from './hooks/useDataProvider';
 import { useIsMobile } from './hooks/useIsMobile';
 import { MobileSkeletonLoader } from './components/MobileSkeletonLoader';
@@ -101,6 +100,11 @@ function App() {
 
   const permissions = usePermissions(currentUser, activeRole);
   const { activeClubId, loading: clubFilterLoading, globalClubFilter, setGlobalClubFilter } = useClubFilter(currentUser, permissions);
+  
+  const handleBackToDashboard = useCallback(() => {
+    const dashboardView = permissions.hasAdminAccess && activeRole !== 'Sportiv' ? 'dashboard' : 'my-portal';
+    setActiveView(dashboardView);
+  }, [permissions.hasAdminAccess, activeRole, setActiveView]);
 
    const canSwitchRoles = useMemo(() => {
         if (!currentUser || !userRoles || userRoles.length <= 1) return false;
@@ -300,8 +304,6 @@ function App() {
                 </div>
             );
         }
-        // FIX: The onNavigate prop for SportivDashboard requires a function that takes a single 'view' argument.
-        // We wrap setActiveView to ensure type compatibility.
         return <SportivDashboard currentUser={currentUser!} viewedUser={currentUser!} participari={filteredData.inscrieriExamene} examene={sesiuniExamene} grade={grade} istoricGrade={filteredData.istoricGrade} grupe={filteredData.grupe} plati={filteredData.plati} onNavigate={(view) => setActiveView(view)} antrenamente={filteredData.antrenamente} anunturi={anunturiPrezenta} setAnunturi={setAnunturiPrezenta} sportivi={filteredData.sportivi} permissions={permissions} canSwitchRoles={canSwitchRoles} activeRole={activeRole!} onSwitchRole={handleSwitchRole} isSwitchingRole={isSwitchingRole} />;
       
       case 'sportivi':
@@ -312,8 +314,6 @@ function App() {
         return renderProtected(selectedSportiv ? <UserProfile sportiv={selectedSportiv} currentUser={currentUser!} participari={filteredData.inscrieriExamene} examene={sesiuniExamene} grade={grade} istoricGrade={filteredData.istoricGrade} setIstoricGrade={setIstoricGrade} antrenamente={filteredData.antrenamente} plati={filteredData.plati} tranzactii={filteredData.tranzactii} reduceri={filteredData.reduceri} grupe={filteredData.grupe} familii={filteredData.familii} tipuriAbonament={filteredData.tipuriAbonament} setSportivi={setSportivi} setPlati={setPlati} setTranzactii={setTranzactii} onBack={() => setActiveView('sportivi')} clubs={clubs} vizualizarePlati={filteredData.vizualizarePlati} sportivi={filteredData.sportivi} /> : null, isAtLeastInstructor);
 
       case 'structura-federatie':
-        {/* FIX: The onNavigate prop for FederationStructure requires a function that takes a single 'view' argument. */}
-        {/* We wrap setActiveView to ensure type compatibility. */}
         return renderProtected(<FederationStructure clubs={clubs} sportivi={sportivi} grupe={grupe} onBack={() => setActiveView('dashboard')} onNavigate={(view) => setActiveView(view)} />, isFederationAdmin);
 
       case 'examene': {
@@ -349,8 +349,6 @@ function App() {
         return renderProtected(<RaportPrezenta antrenamente={filteredData.antrenamente} sportivi={filteredData.sportivi} grupe={filteredData.grupe} onBack={() => setActiveView('dashboard')} onViewSportiv={onViewSportiv} />, isAtLeastInstructor);
 
       case 'calendar':
-        {/* FIX: The onNavigate prop for CalendarView requires a function that takes a single 'view' argument. */}
-        {/* We wrap setActiveView to ensure type compatibility. */}
         return <CalendarView antrenamente={filteredData.antrenamente} sesiuniExamene={filteredData.sesiuniExamene} evenimente={filteredData.evenimente} grupe={filteredData.grupe} locatii={locatii} onBack={() => setActiveView('dashboard')} onNavigate={(view) => setActiveView(view)} currentUser={currentUser!} sportivi={filteredData.sportivi} rezultate={filteredData.rezultate} setRezultate={setRezultate} plati={filteredData.plati} setPlati={setPlati} preturiConfig={preturiConfig} permissions={permissions} />;
 
       case 'financial-dashboard':
@@ -378,8 +376,6 @@ function App() {
         return renderProtected(<CluburiManagement clubs={clubs} setClubs={setClubs} onBack={() => setActiveView('dashboard')} currentUser={currentUser!} permissions={permissions} />, isFederationAdmin);
       
       case 'data-maintenance':
-        {/* FIX: The onNavigate prop for BackupManager requires a function that takes a single 'view' argument. */}
-        {/* We wrap setActiveView to ensure type compatibility. */}
         return renderProtected(<BackupManager onBack={() => setActiveView('dashboard')} onDataRestored={() => window.location.reload()} sportivi={sportivi} setSportivi={setSportivi} grade={grade} preturiConfig={preturiConfig} participari={inscrieriExamene} examene={sesiuniExamene} plati={plati} setPlati={setPlati} familii={familii} onNavigate={(view) => setActiveView(view)} currentUser={currentUser!} />, isFederationAdmin);
       
       case 'rapoarte-examen':
@@ -456,13 +452,17 @@ function App() {
        currentUser ? (
             <div className="flex min-h-screen bg-[var(--bg-main)]">
               <Sidebar currentUser={currentUser} onNavigate={setActiveView} onLogout={handleLogout} activeView={activeView} isExpanded={isSidebarExpanded} setIsExpanded={setIsSidebarExpanded} clubs={clubs} globalClubFilter={globalClubFilter} setGlobalClubFilter={setGlobalClubFilter} permissions={permissions} activeRole={activeRole!} canSwitchRoles={canSwitchRoles} onSwitchRole={handleSwitchRole} isSwitchingRole={isSwitchingRole} grade={grade} />
-              <main className={`flex-1 transition-all duration-300 ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'}`}>
-                <div className="absolute top-4 right-8 z-30 flex items-center gap-4">
-                  {currentUser && permissions.hasAdminAccess && <NotificationBell currentUser={currentUser} />}
-                  {/* FIX: The onNavigate prop for NavbarAdmin requires a function that takes a single 'view' argument. */}
-                  {/* We wrap setActiveView to ensure type compatibility. */}
-                  {currentUser && permissions.hasAdminAccess && (<NavbarAdmin currentUser={currentUser} permissions={permissions} onNavigate={(view) => setActiveView(view)} onLogout={handleLogout} />)}
-                </div>
+              
+              <Header 
+                activeView={activeView}
+                onBack={handleBackToDashboard}
+                currentUser={currentUser}
+                permissions={permissions}
+                onNavigate={setActiveView}
+                onLogout={handleLogout}
+              />
+
+              <main className={`flex-1 transition-all duration-300 pt-16 ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'}`}>
                 <div className="p-4 md:p-8 max-w-7xl mx-auto">
                   {permissions.isMultiContextAdmin && permissions.hasAdminAccess && <GlobalContextSwitcher activeContext={adminContext} onContextChange={setAdminContext} />}
                   <ErrorBoundary onNavigate={setActiveView}>
@@ -470,8 +470,7 @@ function App() {
                   </ErrorBoundary>
                 </div>
               </main>
-              {/* FIX: The onNavigate prop for AdminDebugFloatingPanel requires a function that takes a single 'view' argument. */}
-              {/* We wrap setActiveView to ensure type compatibility. */}
+
               {(import.meta as any).env.DEV && currentUser && (<AdminDebugFloatingPanel currentUser={currentUser} userRoles={userRoles} onNavigate={(view) => setActiveView(view)} />)}
             </div>
       ) : null}

@@ -93,7 +93,6 @@ export const RaportActivitate: React.FC<{ onBack: () => void, currentUser: User 
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
-                <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
                 <h1 className="text-3xl font-bold text-white">Raport de Activitate</h1>
             </div>
             

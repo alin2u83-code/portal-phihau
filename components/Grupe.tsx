@@ -229,7 +229,6 @@ export const GrupeManagement: React.FC<GrupeManagementProps> = ({ onBack, curren
     
     return (
         <div className="space-y-6">
-            <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
             <div className="flex justify-between items-center">
                 <h1 className="text-3xl font-bold text-white">Management Grupe & Orar</h1>
                 <Button onClick={handleOpenAdd} variant="info"><PlusIcon className="w-5 h-5 mr-2" />Adaugă Grupă</Button>

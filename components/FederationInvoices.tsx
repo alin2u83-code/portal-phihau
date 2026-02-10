@@ -129,7 +129,6 @@ export const FederationInvoices: React.FC<FederationInvoicesProps> = ({ decontur
 
     return (
         <div className="space-y-6">
-            <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
             <h1 className="text-3xl font-bold text-white">Deconturi către Federație</h1>
 
             <Card className="bg-brand-primary/10 border-brand-primary/30">

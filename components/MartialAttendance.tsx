@@ -106,8 +106,6 @@ export const MartialAttendance: React.FC<MartialAttendanceProps> = ({ currentUse
     
     return (
         <div className="space-y-8 font-sans tracking-wide">
-            <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Portal</Button>
-            
             <header className="flex flex-col items-center justify-center py-6 animate-fade-in-down">
                 <ProgressRing percentage={attendancePercentage} totalAttended={totalAttended} />
                 <p className="mt-4 text-xl font-bold text-slate-300">

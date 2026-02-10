@@ -218,7 +218,7 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
             const training = trainings.find(t => t.id === antrenamentId);
             if (!training) throw new Error("Antrenament negăsit.");
 
-            const { data: dbPresence, error: fetchError } = await supabase.from('prezenta_antrenament').select('sportiv_id').eq('antrenament_id', antrenamentId);
+            const { data: dbPresence, error: fetchError } = await supabase.from('prezenta_antrenament').select('sportiv_id, status').eq('antrenament_id', antrenamentId);
             if (fetchError) throw fetchError;
             
             const allInvolvedIds = new Set([
@@ -230,7 +230,7 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
             const recordsToUpsert = Array.from(allInvolvedIds).map(sportivId => ({
                 antrenament_id: antrenamentId,
                 sportiv_id: sportivId,
-                status: uiPresentIds.has(sportivId) ? 'prezent' as const : 'absent' as const,
+                status: uiPresentIds.has(sportivId) ? 'prezent' : 'absent'
             }));
 
             if (recordsToUpsert.length > 0) {
@@ -253,7 +253,6 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
-                <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
                 <h1 className="text-3xl font-bold text-white">Prezență Zilnică</h1>
             </div>
             <Card>

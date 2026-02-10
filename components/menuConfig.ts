@@ -2,7 +2,7 @@ import React from 'react';
 import { View } from '../types';
 import { 
     HomeIcon, UsersIcon, TrophyIcon, BanknotesIcon, CalendarDaysIcon, 
-    UserCircleIcon, ClipboardCheckIcon, CogIcon, SitemapIcon, WalletIcon 
+    UserCircleIcon, ClipboardCheckIcon, CogIcon, SitemapIcon, WalletIcon, FileTextIcon
 } from './icons';
 
 export interface MenuItem {
@@ -53,9 +53,10 @@ export const instructorMenu: MenuItem[] = [
 ];
 
 export const sportivMenu: MenuItem[] = [
-    { 
-        label: 'Portalul Meu', 
-        icon: UserCircleIcon, 
-        view: 'my-portal'
-    },
+    { label: 'Dashboard', icon: HomeIcon, view: 'my-portal' },
+    { label: 'Istoric Prezență', icon: ClipboardCheckIcon, view: 'istoric-prezenta' },
+    { label: 'Istoric Plăți', icon: BanknotesIcon, view: 'istoric-plati' },
+    { label: 'Fișa Digitală', icon: FileTextIcon, view: 'fisa-digitala' },
+    { label: 'Fișa de Competiție', icon: TrophyIcon, view: 'fisa-competitie' },
+    { label: 'Setări Cont', icon: CogIcon, view: 'account-settings' },
 ];

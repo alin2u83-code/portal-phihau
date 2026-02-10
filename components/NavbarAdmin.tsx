@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { User, View, Permissions } from '../types';
-import { ChevronDownIcon, CogIcon, ArrowRightOnRectangleIcon, HomeIcon, SitemapIcon } from './icons';
+import { ChevronDownIcon, CogIcon, ArrowRightOnRectangleIcon, HomeIcon, SitemapIcon, UserCircleIcon } from './icons';
 
 interface NavbarAdminProps {
     currentUser: User;
@@ -55,11 +55,14 @@ export const NavbarAdmin: React.FC<NavbarAdminProps> = ({ currentUser, permissio
                     </div>
                     
                     <div className="p-2 space-y-1">
-                        {permissions.canBeClubAdmin && (
-                            <MenuItem label="Consolă Club" icon={HomeIcon} onClick={() => handleNavigate('dashboard')} />
+                        {permissions.isSportiv && (
+                             <MenuItem label="Portalul Meu" icon={UserCircleIcon} onClick={() => handleNavigate('my-portal')} />
                         )}
-                        {permissions.canBeFederationAdmin && (
-                            <MenuItem label="Consolă Federație" icon={SitemapIcon} onClick={() => handleNavigate('federation-dashboard')} />
+                        {permissions.hasAdminAccess && (
+                            <MenuItem label="Dashboard Admin" icon={HomeIcon} onClick={() => handleNavigate('dashboard')} />
+                        )}
+                        {permissions.isMultiContextAdmin && (
+                             <MenuItem label="Schimbă Context" icon={SitemapIcon} onClick={() => handleNavigate('admin-console')} />
                         )}
                         <MenuItem label="Setări Cont" icon={CogIcon} onClick={() => handleNavigate('account-settings')} />
                     </div>

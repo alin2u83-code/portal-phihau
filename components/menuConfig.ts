@@ -1,6 +1,9 @@
 import React from 'react';
 import { View } from '../types';
-import { HomeIcon, UsersIcon, TrophyIcon, ClipboardDocumentListIcon, BanknotesIcon, CalendarDaysIcon, UserCircleIcon, ShieldCheckIcon, ClipboardCheckIcon, ArchiveBoxIcon, CogIcon, BellIcon, WalletIcon, UserPlusIcon, BookOpenIcon, ChartBarIcon, BookMarkedIcon, FileTextIcon, SitemapIcon } from './icons';
+import { 
+    HomeIcon, UsersIcon, TrophyIcon, BanknotesIcon, CalendarDaysIcon, 
+    UserCircleIcon, ClipboardCheckIcon, CogIcon, SitemapIcon, WalletIcon 
+} from './icons';
 
 export interface MenuItem {
     label: string;
@@ -14,126 +17,45 @@ export interface SubMenuItem {
     view: View;
 }
 
-export const federationAdminMenu: MenuItem[] = [
+// Meniu unificat pentru SUPER_ADMIN_FEDERATIE și Admin Club
+export const adminMenu: MenuItem[] = [
     { label: 'Dashboard', icon: HomeIcon, view: 'dashboard' },
     { 
-        label: 'Gestiune Membri', 
+        label: 'Sportivi', 
         icon: UsersIcon,
-        submenu: [
-             { label: 'Listă Sportivi', view: 'sportivi' },
-             { label: 'Portal Sportiv (Admin)', view: 'portal-sportiv-admin' },
-             { label: 'Gestiune Familii', view: 'familii' },
-             { label: 'Administrare Staff', view: 'user-management' }
-        ]
-    },
-    {
-        label: 'Activitate Sală',
-        icon: ClipboardCheckIcon,
-        submenu: [
-            { label: 'Orar & Gestiune Grupe', view: 'grupe' },
-            { label: 'Generator Program', view: 'activitati' },
-            { label: 'Înregistrare Prezențe', view: 'prezenta' },
-            { label: 'Raport Prezențe', view: 'raport-prezenta' },
-            { label: 'Raport Lunar Prezențe', view: 'raport-lunar-prezenta' },
-            { label: 'Raport Activitate', view: 'raport-activitate' }
-        ]
-    },
-    {
-        label: 'Evenimente & Examene',
-        icon: TrophyIcon,
-        submenu: [
-             { view: 'examene', label: 'Sesiuni Examene' },
-             { view: 'stagii', label: 'Stagii & Competiții' },
-             { view: 'rapoarte-examen', label: 'Rapoarte Examen' },
-        ]
+        view: 'sportivi'
     },
     { 
-        label: 'Financiar', 
-        icon: BanknotesIcon, 
-        submenu: [ 
-            { view: 'financial-dashboard', label: 'Dashboard Financiar' },
-            { view: 'gestiune-facturi', label: 'Adaugă Factură Manuală' },
-            { view: 'plati-scadente', label: 'Listă Facturi' }, 
-            { view: 'jurnal-incasari', label: 'Jurnal Încasări' },
-            { view: 'raport-financiar', label: 'Raport Încasări' },
-            { view: 'deconturi-federatie', label: 'Deconturi Federație' },
-        ] 
+        label: 'Antrenamente', 
+        icon: CalendarDaysIcon,
+        view: 'prezenta' // Link direct către managementul prezenței
     },
-    {
-        label: 'Setări & Nomenclatoare',
-        icon: CogIcon,
-        submenu: [
-            { label: 'Setări Club', view: 'setari-club' },
-            { label: 'Config. Abonamente', view: 'tipuri-abonament' }, 
-            { label: 'Config. Taxe Examen', view: 'configurare-preturi' },
-            { label: 'Config. Taxe Anuale', view: 'taxe-anuale' },
-            { label: 'Nomenclator Grade', view: 'grade' },
-            { label: 'Politici Reducere', view: 'reduceri' },
-            { label: 'Categorii Plăți', view: 'nomenclatoare' },
-            { label: 'Management Cluburi', view: 'cluburi' },
-            { label: 'Trimite Notificări', view: 'notificari' },
-            { label: 'Mentenanță Date', view: 'data-maintenance' },
-        ]
-    }
+    { 
+        label: 'Examene', 
+        icon: TrophyIcon, 
+        view: 'examene'
+    },
+    { 
+        label: 'Facturi', 
+        icon: BanknotesIcon,
+        view: 'plati-scadente' // Link direct către lista de facturi
+    },
+    { label: 'Gestiune Cluburi', icon: CogIcon, view: 'cluburi' },
+    { label: 'Structură Națională', icon: SitemapIcon, view: 'structura-federatie' },
+    { label: 'Deconturi Globale', icon: WalletIcon, view: 'deconturi-federatie' },
 ];
-
-// Made identical to federationAdminMenu to unify permissions
-export const clubAdminMenu: MenuItem[] = [...federationAdminMenu];
 
 export const instructorMenu: MenuItem[] = [
     { label: 'Dashboard', icon: HomeIcon, view: 'dashboard' },
-    { label: 'Prezență Zilnică', icon: ClipboardCheckIcon, view: 'prezenta-instructor' },
-    { label: 'Vizualizare Sportivi', icon: UsersIcon, view: 'sportivi' },
-    {
-        label: 'Orar',
-        icon: CalendarDaysIcon,
-        submenu: [
-            { label: 'Gestiune Grupe & Orar', view: 'grupe' },
-            { label: 'Generator Program', view: 'activitati' },
-        ]
-    },
-    {
-        label: 'Prezență (Admin)',
-        icon: ClipboardCheckIcon,
-        submenu: [
-            { label: 'Înregistrare Avansată', view: 'prezenta' },
-            { label: 'Raport Prezențe', view: 'raport-prezenta' },
-            { label: 'Raport Lunar Prezențe', view: 'raport-lunar-prezenta' },
-            { label: 'Raport Activitate', view: 'raport-activitate' }
-        ]
-    },
-     {
-        label: 'Evenimente & Examene',
-        icon: TrophyIcon,
-        submenu: [
-             { view: 'examene', label: 'Sesiuni Examene' },
-             { view: 'stagii', label: 'Stagii & Competiții' },
-             { view: 'rapoarte-examen', label: 'Rapoarte Examen' },
-        ]
-    },
-    { 
-        label: 'Financiar', 
-        icon: BanknotesIcon, 
-        submenu: [ 
-            { view: 'gestiune-facturi', label: 'Adaugă Factură Manuală' },
-            { view: 'plati-scadente', label: 'Listă Facturi' }, 
-            { view: 'jurnal-incasari', label: 'Jurnal Încasări' },
-        ] 
-    },
+    { label: 'Sportivi', icon: UsersIcon, view: 'sportivi' },
+    { label: 'Prezență', icon: ClipboardCheckIcon, view: 'prezenta-instructor' },
+    { label: 'Examene', icon: TrophyIcon, view: 'examene' },
 ];
 
 export const sportivMenu: MenuItem[] = [
     { 
         label: 'Portalul Meu', 
         icon: UserCircleIcon, 
-        submenu: [
-            { label: 'Dashboard', view: 'my-portal' },
-            { label: 'Fișa Digitală', view: 'fisa-digitala' },
-            { label: 'Fișa Competiție', view: 'fisa-competitie' },
-            { label: 'Istoric Prezență', view: 'istoric-prezenta' },
-            { label: 'Istoric Grade', view: 'istoric-examene' },
-            { label: 'Istoric Financiar', view: 'istoric-plati' },
-            { label: 'Setări Cont', view: 'account-settings' },
-        ]
+        view: 'my-portal'
     },
 ];

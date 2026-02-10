@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { User, View, Club, Permissions, Rol } from '../types';
-import { instructorMenu, sportivMenu, clubAdminMenu, federationAdminMenu, MenuItem } from './menuConfig';
+import { adminMenu, instructorMenu, sportivMenu, MenuItem } from './menuConfig';
 import { ArrowRightOnRectangleIcon, Bars3Icon, ChevronDownIcon, ShieldCheckIcon, UserCircleIcon } from './icons';
 import { Select } from './ui';
 import { FEDERATIE_ID, FEDERATIE_NAME, ROLES } from '../constants';
@@ -80,26 +80,24 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
         let name: string;
         let border: string;
 
-        // Fallback: If the user has admin rights but the role is invalid, show a default admin menu.
         if (!activeRole && permissions.hasAdminAccess) {
-            menu = clubAdminMenu;
+            menu = adminMenu;
             name = 'Context Invalid';
             border = 'border-red-500';
             return { menuToDisplay: menu, contextName: name, borderClass: border };
         }
 
-        // Normalize the role name to handle variations like "Admin Club" vs "ADMIN_CLUB"
         const normalizedRole = (activeRole?.toUpperCase() || ROLES.SPORTIV).replace(/ /g, '_');
 
         switch (normalizedRole) {
             case ROLES.SUPER_ADMIN_FEDERATIE:
             case ROLES.ADMIN:
-                menu = federationAdminMenu;
+                menu = adminMenu;
                 name = 'Federație';
-                border = 'border-red-500';
+                border = 'border-amber-400';
                 break;
             case ROLES.ADMIN_CLUB:
-                menu = clubAdminMenu;
+                menu = adminMenu;
                 name = currentUser.cluburi?.nume || 'Club Nesetat';
                 border = 'border-blue-500';
                 break;
@@ -129,12 +127,25 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onNavigate, onLog
         }
         return 'Admin Club';
     }, [currentUser, permissions]);
+    
+    const HeaderIcon = useMemo(() => {
+        if (permissions.isSportiv && activeRole === 'Sportiv') return UserCircleIcon;
+        return ShieldCheckIcon;
+    }, [permissions.isSportiv, activeRole]);
+
+    const iconColorClass = useMemo(() => {
+        if (borderClass.includes('amber')) return 'text-amber-400';
+        if (borderClass.includes('blue')) return 'text-blue-400';
+        if (borderClass.includes('sky')) return 'text-sky-400';
+        if (borderClass.includes('green')) return 'text-green-400';
+        return 'text-slate-400';
+    }, [borderClass]);
 
     // Main content of the sidebar
     const sidebarContent = (
         <div className="flex flex-col h-full bg-[var(--bg-card)] text-white shadow-xl">
             <div className={`h-20 flex flex-col items-center justify-center p-2 border-b border-white/10 text-center ${isExpanded ? 'px-4' : 'px-1'}`}>
-                <ShieldCheckIcon className={`w-8 h-8 shrink-0 ${activeRole === 'SUPER_ADMIN_FEDERATIE' || activeRole === 'Admin' ? 'text-red-400' : 'text-blue-400'}`} />
+                <HeaderIcon className={`w-8 h-8 shrink-0 ${iconColorClass}`} />
                 {isExpanded && (
                     <>
                         <h2 className="text-xs font-bold text-slate-400 mt-1 uppercase">Mod Lucru</h2>

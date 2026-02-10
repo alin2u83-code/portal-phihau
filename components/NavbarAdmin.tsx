@@ -47,14 +47,14 @@ export const NavbarAdmin: React.FC<NavbarAdminProps> = ({ currentUser, permissio
         setIsOpen(false);
     };
 
-    const avatarBgClass = useMemo(() => {
+    const ringColorClass = useMemo(() => {
         if (permissions.isSuperAdmin || permissions.isAdmin || permissions.isAdminClub) {
-            return 'bg-red-700'; // Roșu închis (#b91c1c)
+            return 'ring-red-500/50';
         }
         if (permissions.isInstructor) {
-            return 'bg-sky-700'; // Albastru închis (#0369a1)
+            return 'ring-sky-500/50';
         }
-        return 'bg-brand-primary'; // Culoare default
+        return 'ring-slate-500/50';
     }, [permissions]);
 
      const roleBadgeClass = useMemo(() => {
@@ -74,14 +74,14 @@ export const NavbarAdmin: React.FC<NavbarAdminProps> = ({ currentUser, permissio
                 onClick={() => setIsOpen(p => !p)}
                 className="flex items-center gap-3 p-1 rounded-full hover:opacity-90 transition-opacity"
             >
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-extrabold text-base border-2 border-slate-300 ${avatarBgClass}`}>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-extrabold text-base bg-slate-900 ring-2 ${ringColorClass}`}>
                     {initials}
                 </div>
                 
                 <div className="hidden sm:block text-left">
-                    <p className="text-sm font-medium text-white truncate max-w-[150px]">{currentUser.prenume} {currentUser.nume?.[0]}.</p>
+                    <p className="text-sm font-bold text-white truncate max-w-[150px]">{currentUser.prenume}</p>
                     <div className="flex items-center gap-1 mt-0.5">
-                        <span className={`px-1.5 py-0.5 text-[9px] font-bold rounded-sm border ${roleBadgeClass}`}>
+                        <span className={`px-1 py-0.5 text-[9px] font-bold uppercase tracking-tighter rounded-sm border ${roleBadgeClass}`}>
                             {primaryRole}
                         </span>
                         {otherRolesCount > 0 && (

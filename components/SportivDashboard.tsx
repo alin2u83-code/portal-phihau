@@ -124,7 +124,7 @@ const ProgramSaptamanalPage: React.FC<{ grupaId: string | null; grupe: Grupa[]; 
 
     return (
         <div className="animate-fade-in-down">
-            <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Dashboard</Button>
+            <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi</Button>
             <Card>
                 <h1 className="text-2xl font-bold text-white mb-2">Program Săptămânal</h1>
                 {!grupaId || !grupaCurenta ? (
@@ -385,7 +385,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
                      <AttendanceTracker currentUser={currentUser} antrenamente={antrenamente} onNavigate={onNavigate} />
                 </div>
                 <div className="lg:col-span-2 space-y-6">
-                    <ProgramSaptamanalPage grupaId={viewedUser.grupa_id} grupe={grupe} onBack={() => {}}/>
+                    <ProgramSaptamanalPage grupaId={viewedUser.grupa_id} grupe={grupe} onBack={() => setIsViewingProgram(false)}/>
                     <VizaMedicalaCard plati={plati} sportivId={viewedUser.id} />
                     <IstoricGradeCard grade={grade} istoricGrade={istoricGrade} sportivId={viewedUser.id} />
                 </div>

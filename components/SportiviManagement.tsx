@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions, VizualizarePlata } from '../types';
 // FIX: Added SearchIcon to imports to be used in the new search input field.
 import { Button, Input, Select, Card, RoleBadge } from './ui';
-import { PlusIcon, WalletIcon, UserXIcon, UserCheckIcon, SearchIcon } from './icons';
+import { PlusIcon, WalletIcon, UserXIcon, UserCheckIcon, SearchIcon, ShieldCheckIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
@@ -11,6 +11,7 @@ import { SportivWallet } from './SportivWallet';
 import { ResponsiveTable, Column } from './ResponsiveTable';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { SportivAccountSettingsModal } from './SportivAccountSettings';
 
 const getAge = (dateString: string | null | undefined): number => {
     if (!dateString) return 0;
@@ -96,6 +97,7 @@ export const SportiviManagement: React.FC<{
     const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
     const [sportivForWallet, setSportivForWallet] = useState<Sportiv | null>(null);
     const [selectedSportivForHighlight, setSelectedSportivForHighlight] = useState<Sportiv | null>(null);
+    const [accountSettingsSportiv, setAccountSettingsSportiv] = useState<Sportiv | null>(null);
 
     const { showError, showSuccess } = useError();
     const isMobile = useIsMobile();
@@ -173,6 +175,23 @@ export const SportiviManagement: React.FC<{
             )
         },
         { key: 'grupa_id', label: 'Grupă', tooltip: "Grupa de antrenament.", render: (s) => grupe.find(g => g.id === s.grupa_id)?.denumire || '-', className: 'hidden md:table-cell' },
+        {
+            key: 'actions',
+            label: 'Acțiuni',
+            tooltip: "Acțiuni rapide: gestionează portofelul sau setările contului.",
+            headerClassName: 'text-right',
+            cellClassName: 'text-right',
+            render: (s) => (
+                <div className="flex justify-end items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                    <Button size="sm" variant="info" onClick={() => handleOpenWallet(s)} title="Portofel Sportiv" className="!p-2">
+                        <WalletIcon className="w-4 h-4" />
+                    </Button>
+                    <Button size="sm" variant="secondary" onClick={() => setAccountSettingsSportiv(s)} title="Setări Cont de Acces" className="!p-2">
+                        <ShieldCheckIcon className="w-4 h-4" />
+                    </Button>
+                </div>
+            )
+        }
     ];
 
     const handleSave = async (formData: Partial<Sportiv>): Promise<{ success: boolean; error?: any; data?: Sportiv; }> => {
@@ -294,6 +313,7 @@ export const SportiviManagement: React.FC<{
                     data={filteredSportivi}
                     onRowClick={handleRowClick}
                     selectedRowId={selectedSportivForHighlight?.id}
+                    rowClassName={(sportiv) => !sportiv.user_id ? 'bg-red-900/20 hover:bg-red-900/40 !border-l-2 !border-red-500' : ''}
                 />
             )}
 
@@ -312,6 +332,16 @@ export const SportiviManagement: React.FC<{
                     currentUser={currentUser}
                 />
             )}
+
+            <SportivAccountSettingsModal
+                isOpen={!!accountSettingsSportiv}
+                onClose={() => setAccountSettingsSportiv(null)}
+                sportiv={accountSettingsSportiv}
+                setSportivi={setSportivi}
+                allRoles={allRoles}
+                setAllRoles={setAllRoles}
+                currentUser={currentUser}
+            />
 
             {isWalletModalOpen && sportivForWallet && (
                 <SportivWallet

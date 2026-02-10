@@ -13,15 +13,16 @@ interface HeaderProps {
     permissions: Permissions;
     onNavigate: (view: View) => void;
     onLogout: () => void;
+    isSidebarExpanded: boolean;
 }
 
-export const Header: React.FC<HeaderProps> = ({ activeView, onBack, currentUser, permissions, onNavigate, onLogout }) => {
+export const Header: React.FC<HeaderProps> = ({ activeView, onBack, currentUser, permissions, onNavigate, onLogout, isSidebarExpanded }) => {
     const isDashboard = activeView === 'dashboard' || activeView === 'my-portal';
     const isMobile = useIsMobile();
 
     return (
         <header 
-            className="fixed top-0 left-0 right-0 bg-[var(--bg-main)]/80 backdrop-blur-sm z-40 h-16 flex items-center justify-between px-4 border-b border-[var(--border-color)]"
+            className={`fixed top-0 right-0 h-16 flex items-center justify-between px-4 border-b border-[var(--border-color)] bg-[var(--bg-card)] transition-all duration-300 ${isSidebarExpanded ? 'md:left-64' : 'md:left-20'} left-0 z-40`}
         >
             <div className="flex-1">
                 {!isDashboard && !isMobile && (

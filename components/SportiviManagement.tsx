@@ -1,5 +1,6 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions, VizualizarePlata } from '../types';
+// FIX: Added SearchIcon to imports to be used in the new search input field.
 import { Button, Input, Select, Card, RoleBadge } from './ui';
 import { PlusIcon, WalletIcon, UserXIcon, UserCheckIcon, SearchIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -237,8 +238,9 @@ export const SportiviManagement: React.FC<{
                 )}
             </div>
 
-            <Card className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="md:col-span-2 lg:col-span-1">
+            {/* FIX: Replaced the incorrect ResponsiveTable call with a proper filter card and a corrected ResponsiveTable call. */}
+            <Card className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div className="lg:col-span-1">
                      <div className="relative w-full">
                         <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                         <Input
@@ -260,6 +262,15 @@ export const SportiviManagement: React.FC<{
                     <option value="">Toate grupele</option>
                     {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
                 </Select>
+                 <Select label="Grad" value={filters.gradFilter} onChange={e => handleFilterChange('gradFilter', e.target.value)}>
+                    <option value="">Toate gradele</option>
+                    <option value="null">Începător (fără grad)</option>
+                    {grade.sort((a,b) => a.ordine - b.ordine).map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}
+                </Select>
+                 <Select label="Rol" value={filters.rolFilter} onChange={e => handleFilterChange('rolFilter', e.target.value)}>
+                    <option value="">Toate rolurile</option>
+                    {allRoles.map(r => <option key={r.id} value={r.id}>{r.nume}</option>)}
+                </Select>
             </Card>
 
             {isMobile ? (
@@ -278,14 +289,11 @@ export const SportiviManagement: React.FC<{
                     ))}
                 </div>
             ) : (
-                // FIX: Removed invalid props `searchTerm`, `onSearchChange`, and `searchPlaceholder` from `ResponsiveTable`.
-                // Search functionality is handled by the external `Input` component.
                 <ResponsiveTable
                     columns={columns}
                     data={filteredSportivi}
                     onRowClick={handleRowClick}
                     selectedRowId={selectedSportivForHighlight?.id}
-                    rowClassName={(sportiv) => !sportiv.user_id ? 'bg-red-900/20 hover:bg-red-900/40 !border-l-2 !border-red-500' : ''}
                 />
             )}
 

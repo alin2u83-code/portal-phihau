@@ -29,8 +29,8 @@ class ErrorBoundary extends React.Component<Props, State> {
     console.error("Uncaught error:", error, errorInfo);
   }
 
-  // FIX: Converted to an arrow function property. This ensures `this` is always correctly bound to the component instance, resolving errors where `this.setState` and `this.props` were not accessible.
-  handleRedirect = () => {
+  // FIX: Converted to a regular class method. The 'this' context will be provided by the caller in the render method.
+  handleRedirect() {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {
         this.props.onNavigate('dashboard');
@@ -44,8 +44,8 @@ class ErrorBoundary extends React.Component<Props, State> {
           <h1 className="text-2xl font-bold">A apărut o eroare neașteptată.</h1>
           <p className="mt-2">Ceva nu a funcționat corect în această secțiune. Încercați să reîncărcați pagina sau să reveniți la panoul principal.</p>
           {this.props.onNavigate && (
-              // FIX: The onClick handler now directly uses the correctly bound handleRedirect method.
-              <Button onClick={this.handleRedirect} variant="secondary" className="mt-6">
+              // FIX: Switched to an arrow function in onClick to explicitly bind `this` from the render method's context. This resolves ambiguity for the type checker and ensures `this.props` and `this.setState` are accessible within `handleRedirect`.
+              <Button onClick={() => this.handleRedirect()} variant="secondary" className="mt-6">
                   <ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la pagina principală
               </Button>
           )}

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { User, View, Permissions, Rol } from '../types';
 import { ChevronDownIcon, CogIcon, ArrowRightOnRectangleIcon, HomeIcon, SitemapIcon, UserCircleIcon } from './icons';
 
@@ -30,6 +30,7 @@ export const NavbarAdmin: React.FC<NavbarAdminProps> = ({ currentUser, permissio
     const dropdownRef = useRef<HTMLDivElement>(null);
     const initials = `${currentUser.prenume?.[0] || ''}${currentUser.nume?.[0] || ''}`.toUpperCase();
     const primaryRole = getPrimaryRoleName(permissions);
+    const otherRolesCount = (currentUser.roluri?.length || 1) - 1;
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -46,23 +47,49 @@ export const NavbarAdmin: React.FC<NavbarAdminProps> = ({ currentUser, permissio
         setIsOpen(false);
     };
 
+    const avatarBgClass = useMemo(() => {
+        if (permissions.isSuperAdmin || permissions.isAdmin || permissions.isAdminClub) {
+            return 'bg-red-700'; // Roșu închis (#b91c1c)
+        }
+        if (permissions.isInstructor) {
+            return 'bg-sky-700'; // Albastru închis (#0369a1)
+        }
+        return 'bg-brand-primary'; // Culoare default
+    }, [permissions]);
+
+     const roleBadgeClass = useMemo(() => {
+        if (permissions.isSuperAdmin || permissions.isAdmin || permissions.isAdminClub) {
+            return 'bg-red-500/20 text-red-300 border-red-500/50';
+        }
+        if (permissions.isInstructor) {
+            return 'bg-sky-500/20 text-sky-300 border-sky-500/50';
+        }
+        return 'bg-slate-500/20 text-slate-300 border-slate-500/50';
+    }, [permissions]);
+
+
     return (
         <div className="relative" ref={dropdownRef}>
             <button
                 onClick={() => setIsOpen(p => !p)}
                 className="flex items-center gap-3 p-1 rounded-full hover:opacity-90 transition-opacity"
             >
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-base border-2 border-slate-300 ${permissions.isAdminClub ? 'bg-red-700' : 'bg-brand-primary'}`}>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-extrabold text-base border-2 border-slate-300 ${avatarBgClass}`}>
                     {initials}
                 </div>
                 
                 <div className="hidden sm:block text-left">
                     <p className="text-sm font-medium text-white truncate max-w-[150px]">{currentUser.prenume} {currentUser.nume?.[0]}.</p>
-                    {permissions.isAdminClub ? (
-                        <p className="text-[10px] text-amber-400 font-bold">[ADMIN CLUB]</p>
-                    ) : (
-                        <p className="text-[10px] uppercase tracking-wider text-slate-400">{primaryRole}</p>
-                    )}
+                    <div className="flex items-center gap-1 mt-0.5">
+                        <span className={`px-1.5 py-0.5 text-[9px] font-bold rounded-sm border ${roleBadgeClass}`}>
+                            {primaryRole}
+                        </span>
+                        {otherRolesCount > 0 && (
+                            <span className="px-1.5 py-0.5 text-[9px] font-bold rounded-sm border bg-slate-500/20 text-slate-300 border-slate-500/50">
+                                +{otherRolesCount}
+                            </span>
+                        )}
+                    </div>
                 </div>
 
                 <ChevronDownIcon className={`hidden sm:block w-5 h-5 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />

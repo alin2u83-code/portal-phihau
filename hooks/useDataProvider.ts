@@ -137,7 +137,7 @@ export const useDataProvider = () => {
         
         try {
             // Interogarea pentru view se bazează pe RLS-ul tabelelor subiacente.
-            const platiViewQuery = supabase.from('view_plata_sportiv').select('plata_id, sportiv_id, club_id, data_plata, suma_incasata, suma_datorata, status, descriere, data_emitere, nume_complet');
+            const platiViewQuery = supabase.from('view_plata_sportiv').select('plata_id, sportiv_id, club_id, familie_id, data_emitere, descriere, suma_datorata, status, data_plata, suma_incasata, tranzactie_id, nume_complet');
 
              const queries = [
                 supabase.from('cluburi').select('*'),

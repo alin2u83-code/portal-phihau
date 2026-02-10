@@ -45,11 +45,15 @@ export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, 
              return { sold: 0, invoiceHistory: [], totalDue: 0 };
         }
         
-        const memberIds = isFamilyWallet
+        const familyMemberIds = isFamilyWallet
             ? new Set(allSportivi.filter(s => s.familie_id === sportiv.familie_id).map(s => s.id))
             : new Set([sportiv.id]);
 
-        const relevantPlatiView = vizualizarePlati.filter(p => p.sportiv_id && memberIds.has(p.sportiv_id));
+        const relevantPlatiView = vizualizarePlati.filter(p => {
+            if (isFamilyWallet && p.familie_id === sportiv.familie_id) return true;
+            if (p.sportiv_id && familyMemberIds.has(p.sportiv_id)) return true;
+            return false;
+        });
 
         const invoices = new Map<string, InvoiceHistoryItem>();
         let totalPaidOverall = 0;
@@ -84,7 +88,7 @@ export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, 
 
         return { sold: currentSold, totalDue: dueAmount, invoiceHistory: sortedHistory };
 
-    }, [sportiv, isFamilyWallet, vizualizarePlati, allSportivi]);
+    }, [sportiv, isFamilyWallet, vizualizarePlati, allSportivi, familie]);
 
     const handleConfirmPayment = async () => {
         setIsSaving(true);
@@ -212,7 +216,7 @@ export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, 
                                     </li>
                                 ))}
                             </ul>
-                        ) : ( <p className="p-8 text-center text-slate-500 italic">Nu există istoric financiar.</p> )}
+                        ) : ( <p className="p-8 text-center text-slate-500 italic">Nu există tranzacții înregistrate pentru acest sportiv.</p> )}
                      </div>
                 </div>
 

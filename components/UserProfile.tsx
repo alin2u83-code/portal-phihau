@@ -362,12 +362,16 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
 
     const { totalRestante, istoricFacturi } = useMemo(() => {
         if (!vizualizarePlati || !sportivi) return { totalRestante: 0, istoricFacturi: [] };
-        
-        const memberIds = sportiv.familie_id
+
+        const familyMemberIds = sportiv.familie_id
             ? new Set(sportivi.filter(s => s.familie_id === sportiv.familie_id).map(s => s.id))
             : new Set([sportiv.id]);
 
-        const platiRelevante = vizualizarePlati.filter(p => p.sportiv_id && memberIds.has(p.sportiv_id));
+        const platiRelevante = vizualizarePlati.filter(p => {
+            if (p.familie_id && p.familie_id === sportiv.familie_id) return true;
+            if (p.sportiv_id && familyMemberIds.has(p.sportiv_id)) return true;
+            return false;
+        });
 
         const facturiMap = new Map<string, {
             detalii: VizualizarePlata;
@@ -474,7 +478,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
     const handleSavePlataEdit = async (editedPlata: Plata) => {
         setIsSaving(true);
         const { id, ...updates } = editedPlata;
-        const { error } = await supabase.from('plati').update(updates).eq('id', id).select().single();
+        const { data, error } = await supabase.from('plati').update(updates).eq('id', id).select().single();
         setIsSaving(false);
         if (error) {
             showError("Eroare la Salvare", error);
@@ -534,7 +538,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                         <div className="mt-4 pt-4 border-t border-slate-700">
                             <h4 className="text-md font-bold text-slate-300 mb-2">Istoric Facturi</h4>
                             <div className="max-h-60 overflow-y-auto space-y-2 pr-2">
-                                {istoricFacturi.map(({ detalii: p, totalIncasat }) => {
+                                {istoricFacturi.length > 0 ? istoricFacturi.map(({ detalii: p, totalIncasat }) => {
                                     if (!p.data_plata && !p.data_emitere) return null;
 
                                     let amountDisplay;
@@ -572,7 +576,9 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                                             </div>
                                         </div>
                                     );
-                                })}
+                                }) : (
+                                    <p className="text-sm text-slate-500 italic text-center py-4">Nu există tranzacții înregistrate pentru acest sportiv.</p>
+                                )}
                             </div>
                         </div>
                     </Card>

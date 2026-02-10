@@ -1,4 +1,6 @@
 import React from 'react';
+import { Input } from './ui';
+import { SearchIcon } from './icons';
 
 // --- TYPE DEFINITIONS ---
 
@@ -20,6 +22,10 @@ interface ResponsiveTableProps<T> {
     rowClassName?: (item: T) => string;
     onSort?: (key: string) => void;
     sortConfig?: { key: string; direction: 'asc' | 'desc' };
+    // FIX: Add missing props to support search functionality within the table component.
+    searchTerm?: string;
+    onSearchChange?: (value: string) => void;
+    searchPlaceholder?: string;
 }
 
 // --- MAIN COMPONENT ---
@@ -32,10 +38,29 @@ export function ResponsiveTable<T extends { id: string }>({
     rowClassName,
     onSort,
     sortConfig,
+    searchTerm,
+    onSearchChange,
+    searchPlaceholder,
 }: ResponsiveTableProps<T>) {
 
     return (
         <div className="bg-[var(--bg-card)] rounded-lg shadow-md overflow-hidden border border-[var(--border-color)]">
+            {/* FIX: Render search input if onSearchChange handler is provided. */}
+            {onSearchChange && (
+                <div className="p-4 border-b border-[var(--border-color)]">
+                    <div className="relative w-full max-w-sm">
+                        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                        <Input
+                            label=""
+                            type="text"
+                            value={searchTerm || ''}
+                            onChange={(e) => onSearchChange(e.target.value)}
+                            placeholder={searchPlaceholder || "Caută..."}
+                            className="!pl-10"
+                        />
+                    </div>
+                </div>
+            )}
             {/* Unified Responsive Table */}
             <div className="overflow-x-auto">
                 <table className="w-full text-sm text-left text-slate-300">

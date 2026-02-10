@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
 import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions, VizualizarePlata } from '../types';
-// FIX: Added SearchIcon to imports to be used in the new search input field.
 import { Button, Input, Select, Card, RoleBadge } from './ui';
 import { PlusIcon, WalletIcon, UserXIcon, UserCheckIcon, SearchIcon, ShieldCheckIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -23,6 +22,50 @@ const getAge = (dateString: string | null | undefined): number => {
     if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; }
     return age;
 };
+
+// --- Mobile Card Component ---
+const SportivCardMobile: React.FC<{
+    sportiv: Sportiv;
+    onRowClick: (item: Sportiv) => void;
+    onOpenWallet: (item: Sportiv) => void;
+    familie: Familie | undefined;
+    familyBalance: number | undefined;
+    individualBalance: number | undefined;
+    grupa: Grupa | undefined;
+}> = ({ sportiv, onRowClick, onOpenWallet, familie, familyBalance, individualBalance, grupa }) => {
+    return (
+        <Card onClick={() => onRowClick(sportiv)} className={`border-l-4 ${sportiv.status === 'Activ' ? 'border-green-500' : 'border-slate-600'}`}>
+            <div className="flex justify-between items-start">
+                <div>
+                    <p className="font-bold text-white text-lg">{sportiv.nume} {sportiv.prenume}</p>
+                    <p className="text-sm text-slate-400">{getAge(sportiv.data_nasterii)} ani - {grupa?.denumire || 'Fără grupă'}</p>
+                </div>
+                <div className="flex flex-wrap gap-1 justify-end">
+                    {(sportiv.roluri || []).map(r => <RoleBadge key={r.id} role={r} />)}
+                </div>
+            </div>
+            <div className="mt-4 pt-4 border-t border-slate-700">
+                {familie && familyBalance !== undefined ? (
+                    <div className="text-xs">
+                        <p className="text-slate-300">Familia {familie.nume}</p>
+                        <p className={`font-bold ${familyBalance >= 0 ? 'text-green-400' : 'text-red-400'}`}>Sold: {familyBalance.toFixed(2)} lei</p>
+                    </div>
+                ) : individualBalance !== undefined ? (
+                     <div className="text-xs">
+                        <p className="text-slate-300">Sold Individual</p>
+                        <p className={`font-bold ${individualBalance >= 0 ? 'text-green-400' : 'text-red-400'}`}>{individualBalance.toFixed(2)} lei</p>
+                    </div>
+                ) : null}
+            </div>
+            <div className="mt-4 flex gap-2">
+                <Button size="sm" variant="info" onClick={(e) => { e.stopPropagation(); onOpenWallet(sportiv); }} className="w-full">
+                    <WalletIcon className="w-4 h-4 mr-2" /> Portofel
+                </Button>
+            </div>
+        </Card>
+    );
+};
+
 
 // --- Componenta Management Principală ---
 export const SportiviManagement: React.FC<{
@@ -212,7 +255,6 @@ export const SportiviManagement: React.FC<{
                 )}
             </div>
 
-            {/* FIX: Added the filter card which was missing and was causing the table to receive incorrect props. */}
             <Card className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                 <div className="lg:col-span-1">
                      <div className="relative w-full">
@@ -249,10 +291,20 @@ export const SportiviManagement: React.FC<{
 
             {isMobile ? (
                 <div className="space-y-3">
-                    {/* Placeholder for mobile view, not fully implemented in provided code */}
+                    {filteredSportivi.map(s => (
+                        <SportivCardMobile
+                            key={s.id}
+                            sportiv={s}
+                            onRowClick={handleRowClick}
+                            onOpenWallet={handleOpenWallet}
+                            familie={familii.find(f => f.id === s.familie_id)}
+                            familyBalance={familyBalances.get(s.familie_id!)}
+                            individualBalance={individualBalances.get(s.id)}
+                            grupa={grupe.find(g => g.id === s.grupa_id)}
+                        />
+                    ))}
                 </div>
             ) : (
-                // FIX: Removed invalid props 'searchTerm', 'onSearchChange', and 'searchPlaceholder'.
                 <ResponsiveTable
                     columns={columns}
                     data={filteredSportivi}

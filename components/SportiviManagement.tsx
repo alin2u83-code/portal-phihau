@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions, VizualizarePlata } from '../types';
 import { Button, Input, Select, Card, RoleBadge } from './ui';
-import { PlusIcon, WalletIcon, UserXIcon, UserCheckIcon, SearchIcon, ShieldCheckIcon } from './icons';
+import { PlusIcon, WalletIcon, UserXIcon, UserCheckIcon, SearchIcon, ShieldCheckIcon, TrashIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
@@ -11,6 +11,7 @@ import { ResponsiveTable, Column } from './ResponsiveTable';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { SportivAccountSettingsModal } from './SportivAccountSettings';
+import { DeleteAuditModal } from './DeleteAuditModal';
 
 const getAge = (dateString: string | null | undefined): number => {
     if (!dateString) return 0;
@@ -96,6 +97,7 @@ export const SportiviManagement: React.FC<{
     const [sportivForWallet, setSportivForWallet] = useState<Sportiv | null>(null);
     const [selectedSportivForHighlight, setSelectedSportivForHighlight] = useState<Sportiv | null>(null);
     const [accountSettingsSportiv, setAccountSettingsSportiv] = useState<Sportiv | null>(null);
+    const [sportivToDelete, setSportivToDelete] = useState<Sportiv | null>(null);
 
     const { showError, showSuccess } = useError();
     const isMobile = useIsMobile();
@@ -120,6 +122,28 @@ export const SportiviManagement: React.FC<{
     const handleRowClick = (sportiv: Sportiv) => {
         setSelectedSportivForHighlight(sportiv);
         onViewSportiv(sportiv);
+    };
+
+    const handleDeactivate = async (sportivToDeactivate: Sportiv) => {
+        if (!sportivToDeactivate) return;
+        const { error } = await supabase.from('sportivi').update({ status: 'Inactiv' }).eq('id', sportivToDeactivate.id);
+        if(error) {
+            showError("Eroare", error.message);
+        } else {
+            setSportivi(prev => prev.map(s => s.id === sportivToDeactivate.id ? { ...s, status: 'Inactiv'} : s));
+            showSuccess("Succes", "Sportivul a fost marcat ca inactiv.");
+        }
+    };
+    
+    const handleDelete = async (sportivToDelete: Sportiv) => {
+        if (!sportivToDelete) return;
+        const { error } = await supabase.from('sportivi').delete().eq('id', sportivToDelete.id);
+        if(error) {
+            showError("Eroare", error.message);
+        } else {
+            setSportivi(prev => prev.filter(s => s.id !== sportivToDelete.id));
+            showSuccess("Succes", "Sportivul a fost șters definitiv.");
+        }
     };
 
     const familyBalances = useMemo(() => {
@@ -176,7 +200,7 @@ export const SportiviManagement: React.FC<{
         {
             key: 'actions',
             label: 'Acțiuni',
-            tooltip: "Acțiuni rapide: gestionează portofelul sau setările contului.",
+            tooltip: "Acțiuni rapide: gestionează portofelul, setările contului sau șterge.",
             headerClassName: 'text-right',
             cellClassName: 'text-right',
             render: (s) => (
@@ -186,6 +210,9 @@ export const SportiviManagement: React.FC<{
                     </Button>
                     <Button size="sm" variant="secondary" onClick={() => setAccountSettingsSportiv(s)} title="Setări Cont de Acces" className="!p-2">
                         <ShieldCheckIcon className="w-4 h-4" />
+                    </Button>
+                     <Button size="sm" variant="danger" onClick={() => setSportivToDelete(s)} title="Șterge Sportiv" className="!p-2">
+                        <TrashIcon className="w-4 h-4" />
                     </Button>
                 </div>
             )
@@ -355,6 +382,14 @@ export const SportiviManagement: React.FC<{
                     }}
                 />
             )}
+            
+            <DeleteAuditModal
+                isOpen={!!sportivToDelete}
+                onClose={() => setSportivToDelete(null)}
+                sportiv={sportivToDelete!}
+                onDeactivate={handleDeactivate}
+                onDelete={handleDelete}
+            />
         </div>
     );
 };

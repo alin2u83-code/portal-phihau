@@ -48,8 +48,8 @@ export const NavbarAdmin: React.FC<NavbarAdminProps> = ({ currentUser, permissio
     };
 
     const ringColorClass = useMemo(() => {
-        if (permissions.isSuperAdmin || permissions.isAdmin || permissions.isAdminClub) {
-            return 'ring-red-500/50';
+        if (permissions.canManageFinances) {
+            return 'ring-amber-500'; // Gold ring for financial roles
         }
         if (permissions.isInstructor) {
             return 'ring-sky-500/50';
@@ -58,8 +58,8 @@ export const NavbarAdmin: React.FC<NavbarAdminProps> = ({ currentUser, permissio
     }, [permissions]);
 
      const roleBadgeClass = useMemo(() => {
-        if (permissions.isSuperAdmin || permissions.isAdmin || permissions.isAdminClub) {
-            return 'bg-red-500/20 text-red-300 border-red-500/50';
+        if (permissions.canManageFinances) {
+            return 'bg-black/70 text-amber-400 border-amber-500/50';
         }
         if (permissions.isInstructor) {
             return 'bg-sky-500/20 text-sky-300 border-sky-500/50';
@@ -74,14 +74,14 @@ export const NavbarAdmin: React.FC<NavbarAdminProps> = ({ currentUser, permissio
                 onClick={() => setIsOpen(p => !p)}
                 className="flex items-center gap-3 p-1 rounded-full hover:opacity-90 transition-opacity"
             >
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-extrabold text-base bg-slate-900 ring-2 ${ringColorClass}`}>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-black text-lg bg-slate-900 ring-2 ${ringColorClass}`}>
                     {initials}
                 </div>
                 
                 <div className="hidden sm:block text-left">
                     <p className="text-sm font-bold text-white truncate max-w-[150px]">{currentUser.prenume}</p>
                     <div className="flex items-center gap-1 mt-0.5">
-                        <span className={`px-1 py-0.5 text-[9px] font-bold uppercase tracking-tighter rounded-sm border ${roleBadgeClass}`}>
+                        <span className={`px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded-sm border ${roleBadgeClass}`}>
                             {primaryRole}
                         </span>
                         {otherRolesCount > 0 && (

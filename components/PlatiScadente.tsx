@@ -308,9 +308,9 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
             </Card>
 
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-                 <Button onClick={handleGenerateSubscriptions} variant="info" isLoading={isGenerating}>Generează Abonamente Luna Curentă</Button>
-                {selectedIds.size > 0 && (
-                    <Button onClick={handleIncasareClick} variant="success">
+                {permissions.canManageFinances && <Button onClick={handleGenerateSubscriptions} variant="info" isLoading={isGenerating}>Generează Abonamente Luna Curentă</Button>}
+                {permissions.canManageFinances && selectedIds.size > 0 && (
+                    <Button onClick={handleIncasareClick} variant="success" className="p-4 font-bold bg-green-800 hover:bg-green-700">
                         <BanknotesIcon className="w-5 h-5 mr-2"/>
                         Încasează {selectedIds.size} facturi selectate
                     </Button>

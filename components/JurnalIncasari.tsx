@@ -350,7 +350,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
                 }
 
                 setTranzactii(prev => [...prev, tx as Tranzactie]);
-                showSuccess('Succes', `Încasare de ${sumaNum.toFixed(2)} RON confirmată!`);
+                showSuccess('Succes', 'Încasare înregistrată cu succes în jurnalul clubului!');
 
             } else {
                 const sportiv = sportivi.find(s => s.id === formState.sportiv_id);
@@ -376,7 +376,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
                 tranzactieId = (tx as Tranzactie).id;
                 setPlati(prev => [...prev, newPlata as Plata]);
                 setTranzactii(prev => [...prev, tx as Tranzactie]);
-                showSuccess('Succes', `Încasare directă de ${sumaNum.toFixed(2)} RON înregistrată.`);
+                showSuccess('Succes', 'Încasare înregistrată cu succes în jurnalul clubului!');
             }
             onIncasareProcesata();
             setTimeout(() => onBack(), 1500);

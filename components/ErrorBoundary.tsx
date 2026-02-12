@@ -14,13 +14,16 @@ interface State {
 }
 
 class ErrorBoundary extends React.Component<Props, State> {
-  // FIX: Moved state to constructor and bound methods to fix context issues.
   constructor(props: Props) {
     super(props);
     this.state = {
       hasError: false,
       error: undefined,
     };
+    // FIX: The `handleRedirect` method was defined as a class property arrow function.
+    // If the build environment doesn't support class properties (as hinted by the original issue with state initialization),
+    // this syntax would also be invalid and could lead to the TypeScript compiler not recognizing the component's properties.
+    // Converting to a standard class method and binding `this` in the constructor ensures compatibility.
     this.handleRedirect = this.handleRedirect.bind(this);
   }
 

@@ -2,7 +2,7 @@ import React from 'react';
 import { View } from '../types';
 import { 
     HomeIcon, UsersIcon, TrophyIcon, BanknotesIcon, CalendarDaysIcon, 
-    UserCircleIcon, ClipboardCheckIcon, CogIcon, SitemapIcon, WalletIcon, FileTextIcon
+    UserCircleIcon, ClipboardCheckIcon, CogIcon, SitemapIcon, WalletIcon, FileTextIcon, BookOpenIcon
 } from './icons';
 
 export interface MenuItem {
@@ -40,6 +40,7 @@ export const adminMenu: MenuItem[] = [
         icon: BanknotesIcon,
         view: 'plati-scadente' // Link direct către lista de facturi
     },
+    { label: 'Configurare Grade', icon: BookOpenIcon, view: 'grade' },
     { label: 'Gestiune Cluburi', icon: CogIcon, view: 'cluburi' },
     { label: 'Structură Națională', icon: SitemapIcon, view: 'structura-federatie' },
     { label: 'Deconturi Globale', icon: WalletIcon, view: 'deconturi-federatie' },

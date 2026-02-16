@@ -69,7 +69,7 @@ export const BirthDateInput: React.FC<BirthDateInputProps> = ({ label, value, on
           value={day}
           onChange={(e) => setDay(e.target.value)}
           required={required}
-          className="!py-1"
+          className="!py-2.5 !text-lg h-12"
         >
           <option value="">Zi</option>
           {days.map(d => <option key={d} value={d}>{d}</option>)}
@@ -79,7 +79,7 @@ export const BirthDateInput: React.FC<BirthDateInputProps> = ({ label, value, on
           value={month}
           onChange={(e) => setMonth(e.target.value)}
           required={required}
-          className="!py-1"
+          className="!py-2.5 !text-lg h-12"
         >
           <option value="">Lună</option>
           {months.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
@@ -89,7 +89,7 @@ export const BirthDateInput: React.FC<BirthDateInputProps> = ({ label, value, on
           value={year}
           onChange={(e) => setYear(e.target.value)}
           required={required}
-          className="!py-1"
+          className="!py-2.5 !text-lg h-12"
         >
           <option value="">An</option>
           {years.map(y => <option key={y} value={y}>{y}</option>)}

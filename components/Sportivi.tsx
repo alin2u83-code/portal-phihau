@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
-import { Sportiv, Grupa, Familie, TipAbonament, Club, User } from '../types';
+import { Sportiv, Grupa, Familie, TipAbonament, Club, User, Grad } from '../types';
 import { Button, Modal, Input, Select, FormSection, Switch } from './ui';
 import { PlusIcon, ExclamationTriangleIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -61,6 +61,7 @@ interface SportivFormFieldsProps {
     onFormChange: (data: Partial<Sportiv>, isValid: boolean) => void;
     loading: boolean;
     grupe: Grupa[];
+    grade: Grad[];
     familii: Familie[];
     tipuriAbonament: TipAbonament[];
     clubs: Club[];
@@ -74,6 +75,7 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
     onFormChange,
     loading,
     grupe,
+    grade,
     familii,
     tipuriAbonament,
     clubs,
@@ -119,7 +121,7 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
         } else if (name === 'inaltime') {
             const num = parseInt(value, 10);
             finalValue = isNaN(num) ? null : num;
-        } else if (['familie_id', 'grupa_id', 'tip_abonament_id', 'club_id', 'gen'].includes(name)) {
+        } else if (['familie_id', 'grupa_id', 'tip_abonament_id', 'club_id', 'gen', 'grad_actual_id'].includes(name)) {
             finalValue = value === '' ? null : value;
         } else {
             finalValue = value;
@@ -134,7 +136,6 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
             }
         }
         
-        // Auto-generate logic for new sportiv
         if (!initialData.id && (name === 'nume' || name === 'prenume')) {
             const sanitize = (str: string) => (str || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, '');
             const nume = sanitize(name === 'nume' ? value : updatedData.nume || '');
@@ -154,60 +155,66 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
         setErrors(newErrors);
         onFormChange(updatedData, Object.keys(newErrors).length === 0);
     };
+    
+    const inputStyle = "!text-lg !py-2.5 h-12";
 
     return (
         <div className="space-y-6">
             <FormSection title="Date Personale">
-                <Input label="Nume" name="nume" value={formData.nume || ''} onChange={handleChange} required disabled={loading} error={errors.nume} />
-                <Input label="Prenume" name="prenume" value={formData.prenume || ''} onChange={handleChange} required disabled={loading} error={errors.prenume} />
+                <Input label="Nume" name="nume" value={formData.nume || ''} onChange={handleChange} required disabled={loading} error={errors.nume} className={inputStyle} />
+                <Input label="Prenume" name="prenume" value={formData.prenume || ''} onChange={handleChange} required disabled={loading} error={errors.prenume} className={inputStyle} />
                 <BirthDateInput label="Data Nașterii" value={formData.data_nasterii} onChange={(v) => handleChange({ target: { name: 'data_nasterii', value: v } })} required error={errors.data_nasterii}/>
-                <Input label="CNP" name="cnp" value={formData.cnp || ''} onChange={handleChange} disabled={loading} maxLength={13} />
-                <Input label="Înălțime (cm)" name="inaltime" type="number" value={formData.inaltime || ''} onChange={handleChange} disabled={loading} />
-                <Select label="Gen" name="gen" value={formData.gen || ''} onChange={handleChange} disabled={loading}>
+                <Input label="CNP" name="cnp" value={formData.cnp || ''} onChange={handleChange} disabled={loading} maxLength={13} className={inputStyle} />
+                <Input label="Înălțime (cm)" name="inaltime" type="number" value={formData.inaltime || ''} onChange={handleChange} disabled={loading} className={inputStyle} />
+                <Select label="Gen" name="gen" value={formData.gen || ''} onChange={handleChange} disabled={loading} className={inputStyle}>
                     <option value="">Nespecificat</option>
                     <option value="Masculin">Masculin</option>
                     <option value="Feminin">Feminin</option>
                 </Select>
             </FormSection>
 
-            <FormSection title="Date Contact">
-                 <Input label="Telefon" name="telefon" value={formData.telefon || ''} onChange={handleChange} disabled={loading} />
-                 <Input label="Adresă" name="adresa" value={formData.adresa || ''} onChange={handleChange} disabled={loading} />
+            <FormSection title="Date Contact & Acces">
+                 <Input label="Telefon" name="telefon" value={formData.telefon || ''} onChange={handleChange} disabled={loading} className={inputStyle} />
+                 <Input label="Adresă" name="adresa" value={formData.adresa || ''} onChange={handleChange} disabled={loading} className={inputStyle} />
+                 <Input label="Email (Login)" name="email" type="email" value={formData.email || ''} onChange={handleChange} disabled={loading} required={!initialData.id} error={errors.email} className={inputStyle} />
             </FormSection>
 
             {!initialData.id && (
                 <FormSection title="Detalii Cont Acces (Opțional)">
-                    <p className="text-xs text-slate-400 col-span-full -mt-1">La salvare, se va crea automat un cont de acces cu email și parolă generate. Puteți edita detaliile mai jos.</p>
-                    <Input label="Email" name="email" type="email" value={formData.email || ''} onChange={handleChange} disabled={loading} required error={errors.email} />
-                    <Input label="Username (Opțional)" name="username" value={formData.username || ''} onChange={handleChange} disabled={loading} placeholder="ex: ion.popescu" />
-                    <Input label="Parolă" name="parola" value={formData.parola || ''} onChange={handleChange} disabled={loading} required error={errors.parola} />
+                    <p className="text-xs text-slate-400 col-span-full -mt-1">La salvare, se va crea automat un cont de acces cu email și parolă generate. Puteți edita detaliile mai sus.</p>
+                    <Input label="Username (Opțional)" name="username" value={formData.username || ''} onChange={handleChange} disabled={loading} placeholder="ex: ion.popescu" className={inputStyle} />
+                    <Input label="Parolă" name="parola" value={formData.parola || ''} onChange={handleChange} disabled={loading} required error={errors.parola} className={inputStyle} />
                 </FormSection>
             )}
 
             <FormSection title="Club & Antrenament">
-                <Input label="Data Înscrierii" name="data_inscrierii" type="date" value={formData.data_inscrierii?.split('T')[0] || ''} onChange={handleChange} disabled={loading} />
+                <Input label="Data Înscrierii" name="data_inscrierii" type="date" value={formData.data_inscrierii?.split('T')[0] || ''} onChange={handleChange} disabled={loading} className={inputStyle} />
                 {isSuperAdmin && (
-                    <Select label="Club" name="club_id" value={formData.club_id || ''} onChange={handleChange} disabled={loading}>
+                    <Select label="Club" name="club_id" value={formData.club_id || ''} onChange={handleChange} disabled={loading} className={inputStyle}>
                         <option value="">Nespecificat</option>
                         {clubs.map(c => <option key={c.id} value={c.id}>{c.id === FEDERATIE_ID ? FEDERATIE_NAME : c.nume}</option>)}
                     </Select>
                 )}
+                 <Select label="Grad Inițial/Actual" name="grad_actual_id" value={formData.grad_actual_id || ''} onChange={handleChange} disabled={loading} className={inputStyle}>
+                    <option value="">Începător (fără grad)</option>
+                    {grade.sort((a,b) => a.ordine - b.ordine).map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}
+                </Select>
                 <div className="flex gap-1 items-end">
-                    <Select label="Grupă" name="grupa_id" value={formData.grupa_id || ''} onChange={handleChange} disabled={loading} className="flex-grow">
+                    <Select label="Grupă" name="grupa_id" value={formData.grupa_id || ''} onChange={handleChange} disabled={loading} className={`${inputStyle} flex-grow`}>
                         <option value="">Fără grupă</option>
                         {grupe.filter(g => !formData.club_id || g.club_id === formData.club_id).map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
                     </Select>
-                    <Button type="button" variant="secondary" size="sm" onClick={onQuickAddGrupa} className="h-[34px]"><PlusIcon className="w-4 h-4"/></Button>
+                    <Button type="button" variant="secondary" size="sm" onClick={onQuickAddGrupa} className="h-[52px] w-12"><PlusIcon className="w-5 h-5"/></Button>
                 </div>
                 <div className="flex gap-1 items-end">
-                    <Select label="Familie" name="familie_id" value={formData.familie_id || ''} onChange={handleChange} disabled={loading} className="flex-grow">
+                    <Select label="Familie" name="familie_id" value={formData.familie_id || ''} onChange={handleChange} disabled={loading} className={`${inputStyle} flex-grow`}>
                         <option value="">Individual</option>
                         {familii.map(f => <option key={f.id} value={f.id}>{f.nume}</option>)}
                     </Select>
-                    <Button type="button" variant="secondary" size="sm" onClick={onQuickAddFamilie} className="h-[34px]"><PlusIcon className="w-4 h-4"/></Button>
+                    <Button type="button" variant="secondary" size="sm" onClick={onQuickAddFamilie} className="h-[52px] w-12"><PlusIcon className="w-5 h-5"/></Button>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                     <Select label="Status" name="status" value={formData.status || 'Activ'} onChange={handleChange} disabled={loading}>
+                     <Select label="Status" name="status" value={formData.status || 'Activ'} onChange={handleChange} disabled={loading} className={inputStyle}>
                         <option value="Activ">Activ</option>
                         <option value="Inactiv">Inactiv</option>
                     </Select>
@@ -227,13 +234,14 @@ export const SportivFormModal: React.FC<{
     sportivToEdit: Partial<Sportiv> | null;
     grupe: Grupa[];
     setGrupe: React.Dispatch<React.SetStateAction<Grupa[]>>;
+    grade: Grad[];
     familii: Familie[];
     setFamilii: React.Dispatch<React.SetStateAction<Familie[]>>;
     tipuriAbonament: TipAbonament[];
     clubs: Club[];
     currentUser: User | null;
 }> = ({ 
-  isOpen, onClose, onSave, sportivToEdit, grupe, setGrupe, familii, setFamilii, tipuriAbonament, clubs, currentUser
+  isOpen, onClose, onSave, sportivToEdit, grupe, setGrupe, grade, familii, setFamilii, tipuriAbonament, clubs, currentUser
 }) => {
     const { showError } = useError();
     const [loading, setLoading] = useState(false);
@@ -314,6 +322,7 @@ export const SportivFormModal: React.FC<{
                             onFormChange={handleFormChange}
                             loading={loading}
                             grupe={grupe}
+                            grade={grade}
                             familii={familii}
                             tipuriAbonament={tipuriAbonament}
                             clubs={clubs}
@@ -323,7 +332,9 @@ export const SportivFormModal: React.FC<{
                         />
                         <div className="flex justify-end pt-4 mt-4 gap-2 border-t border-slate-700">
                             <Button type="button" variant="secondary" onClick={() => onClose()} disabled={loading}>Închide</Button>
-                            <Button type="submit" variant="primary" isLoading={loading} disabled={!isFormValid || loading}>Salvează</Button>
+                            <Button type="submit" variant="success" isLoading={loading} disabled={!isFormValid || loading}>
+                                {sportivToEdit ? 'Salvează Modificările' : 'Adaugă Practicant'}
+                            </Button>
                         </div>
                     </form>
                 )}

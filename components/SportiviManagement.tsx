@@ -266,7 +266,11 @@ export const SportiviManagement: React.FC<{
                 return { success: true, data: newSportiv };
             }
         } catch (err: any) {
-            showError("Eroare la Salvare", err.message);
+            if (err.message && (err.message.includes('duplicate key value violates unique constraint') || err.message.includes('unique_sportiv_phi_hau'))) {
+                showError("Eroare Duplicat", "Un sportiv cu același nume, prenume și dată de naștere există deja în sistem.");
+            } else {
+                showError("Eroare la Salvare", err.message);
+            }
             return { success: false, error: err };
         }
     };
@@ -349,6 +353,7 @@ export const SportiviManagement: React.FC<{
                     sportivToEdit={sportivToEdit}
                     grupe={grupe}
                     setGrupe={setGrupe}
+                    grade={grade}
                     familii={familii}
                     setFamilii={setFamilii}
                     tipuriAbonament={tipuriAbonament}

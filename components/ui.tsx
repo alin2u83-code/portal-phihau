@@ -30,7 +30,7 @@ export const Button: React.FC<ButtonProps & { as?: 'label', htmlFor?: string }> 
     primary: "bg-[var(--accent)] hover:bg-[var(--accent-hover)] focus:ring-[var(--accent)] text-white hover:shadow-glow-blue",
     secondary: "bg-slate-600 hover:bg-slate-700 focus:ring-slate-500 text-white hover:shadow-glow-blue",
     danger: "bg-status-danger hover:bg-red-700 focus:ring-red-500 text-white",
-    success: "bg-status-success hover:bg-green-700 focus:ring-green-500 text-white hover:shadow-glow-blue",
+    success: "bg-green-500 hover:bg-green-600 focus:ring-green-500 text-white font-bold",
     info: "bg-[var(--accent)] hover:bg-[var(--accent-hover)] focus:ring-[var(--accent)] text-white hover:shadow-glow-blue",
     warning: "bg-status-warning hover:bg-amber-600 focus:ring-amber-500 text-white hover:shadow-glow-blue hover:scale-105 active:ring-2 active:ring-white",
   };
@@ -156,7 +156,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(({ label,
 export const FormSection: React.FC<{ title: string, children: React.ReactNode }> = ({ title, children }) => (
     <div>
         <h3 className="text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider border-b border-[var(--border-color)] pb-1.5">{title}</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3 mt-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-4 mt-3">
             {children}
         </div>
     </div>

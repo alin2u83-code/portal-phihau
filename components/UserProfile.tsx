@@ -432,19 +432,29 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
         setIsSavingFeedback(false);
     };
 
-    const handleSave = async (formData: Partial<Sportiv>): Promise<{ success: boolean; error?: any }> => {
-        const { roluri, ...sportivData } = formData;
-        if (sportiv.id) {
-            const { data, error } = await supabase.from('sportivi').update(sportivData).eq('id', sportiv.id).select('*, cluburi(*), sportivi_roluri(roluri(id, nume))').single();
-            if (error) return { success: false, error };
+    const handleSave = async (formData: Partial<Sportiv>): Promise<{ success: boolean; error?: any; data?: Sportiv; }> => {
+        try {
+            if (!sportiv.id) throw new Error("ID-ul sportivului lipsește.");
             
-            const updatedUser = { ...data, roluri: data.sportivi_roluri.map((r: any) => r.roluri) };
-            delete updatedUser.sportivi_roluri;
-            
-            setSportivi(prev => prev.map(s => s.id === sportiv.id ? updatedUser : s));
-            return { success: true };
+            const { roluri, ...sportivData } = formData;
+            const { data, error } = await supabase.from('sportivi').update(sportivData).eq('id', sportiv.id).select('*, cluburi(*), roles:utilizator_roluri_multicont(rol_denumire)').single();
+            if (error) throw error;
+
+            const updatedRoles = (data.roles || []).map((r: any) => ({ nume: r.rol_denumire })).filter(Boolean);
+            const updatedSportiv = { ...data, roluri: updatedRoles };
+            delete (updatedSportiv as any).roles;
+
+            setSportivi(prev => prev.map(s => s.id === sportiv.id ? updatedSportiv : s));
+            showSuccess("Succes", "Profilul a fost actualizat.");
+            return { success: true, data: updatedSportiv };
+        } catch (err: any) {
+            if (err.message && (err.message.includes('duplicate key value violates unique constraint') || err.message.includes('unique_sportiv_phi_hau'))) {
+                showError("Eroare Duplicat", "Un sportiv cu același nume, prenume și dată de naștere există deja în sistem.");
+            } else {
+                showError("Eroare la Salvare", err.message);
+            }
+            return { success: false, error: err };
         }
-        return { success: false, error: 'Sportiv ID is missing' };
     };
 
     const handleDeactivate = async () => {
@@ -618,7 +628,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                     <ProgramAntrenament grupaId={sportiv.grupa_id} grupe={grupe} />
                 </div>
             </div>
-            {isEditModalOpen && <SportivFormModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} onSave={handleSave} sportivToEdit={sportiv} grupe={grupe} setGrupe={()=>{}} familii={familii} setFamilii={()=>{}} tipuriAbonament={tipuriAbonament} clubs={clubs} currentUser={currentUser} />}
+            {isEditModalOpen && <SportivFormModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} onSave={handleSave} sportivToEdit={sportiv} grupe={grupe} setGrupe={()=>{}} grade={grade} familii={familii} setFamilii={()=>{}} tipuriAbonament={tipuriAbonament} clubs={clubs} currentUser={currentUser} />}
             {isWalletModalOpen && <SportivWallet sportiv={sportiv} familie={familii.find(f => f.id === sportiv.familie_id)} allSportivi={sportivi} vizualizarePlati={vizualizarePlati} allPlati={plati} setPlati={setPlati} setTranzactii={setTranzactii} onClose={() => setIsWalletModalOpen(false)} />}
             {isDeleteModalOpen && <DeleteAuditModal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} sportiv={sportiv} onDeactivate={handleDeactivate} onDelete={handleDelete} />}
             {isReportModalOpen && <SportivFeedbackReport isOpen={isReportModalOpen} onClose={() => setIsReportModalOpen(false)} sportiv={sportiv} antrenamente={antrenamente} grupe={grupe} grade={grade} participari={participari} examene={examene} />}

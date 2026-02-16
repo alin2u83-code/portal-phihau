@@ -104,7 +104,10 @@ BEGIN
         RAISE EXCEPTION 'SPORTIV_NOT_FOUND: Sportivul cu ID-ul % nu a putut fi găsit sau creat.', v_sportiv_id;
     END IF;
     
-    -- Restul logicii este identică cu versiunea anterioară, dar fără CNP.
+    -- Pas 2: Identifică gradul după ordine.
+    -- NOTĂ: Această funcție acceptă ORICE `p_ordine_grad` valid, fără a
+    -- verifica dacă este următorul grad în ierarhia sportivului.
+    -- Validarea se face doar pentru existența gradului în nomenclator.
     SELECT * INTO v_grad FROM public.grade WHERE ordine = p_ordine_grad;
     IF NOT FOUND THEN
         RAISE EXCEPTION 'GRADE_NOT_FOUND: Gradul cu ordinul % nu a fost găsit în nomenclator.', p_ordine_grad;

@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { Sportiv, User, Rol, InscriereExamen, Examen, Grad, Antrenament, IstoricGrade, Plata, Familie, TipAbonament, Tranzactie, Reducere, Club, ProgramItem, Grupa, VizualizarePlata } from '../types';
 import { Button, Card, Select, Modal, Input, RoleBadge } from './ui';
@@ -611,10 +612,10 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                 <Card className="bg-yellow-100 dark:bg-yellow-900/30 border-l-4 border-yellow-500 flex flex-col md:flex-row items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
                         <ExclamationTriangleIcon className="w-6 h-6 text-yellow-500 dark:text-yellow-300" />
-                        <p className="font-semibold text-yellow-800 dark:text-yellow-200">Sportivul nu are cont de utilizator activ.</p>
+                        <p className="font-semibold text-yellow-800 dark:text-yellow-200">Acest sportiv nu are un cont de utilizator activ.</p>
                     </div>
-                    <Button variant="primary" size="sm" onClick={() => setIsCreateAccountModalOpen(true)}>
-                        <UserPlusIcon className="w-4 h-4 mr-2" /> Generează Cont Utilizator
+                    <Button variant="info" size="sm" onClick={() => setIsCreateAccountModalOpen(true)}>
+                        <UserPlusIcon className="w-4 h-4 mr-2" /> Creează Cont Acces Sportiv
                     </Button>
                 </Card>
             )}
@@ -634,7 +635,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                             <div className="max-h-60 overflow-y-auto space-y-2 pr-2">
                                 {possibleViewError ? (
                                     <div className="text-center p-4 bg-red-900/20 rounded-md">
-                                        <p className="text-sm text-red-300">A apărut o eroare la încărcarea detaliilor financiare. Acest lucru se poate datora lipsei unui cont de utilizator activ.</p>
+                                        <p className="text-sm text-red-300">Datele financiare sunt indisponibile. Acest lucru se poate datora lipsei unui cont de utilizator activ.</p>
                                         <Button onClick={() => window.location.reload()} variant="secondary" size="sm" className="mt-2">Reîncarcă</Button>
                                     </div>
                                 ) : istoricFacturi.length > 0 ? istoricFacturi.map(({ detalii: p, totalIncasat }) => {

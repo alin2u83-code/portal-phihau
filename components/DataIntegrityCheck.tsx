@@ -12,8 +12,7 @@ interface DataIntegrityCheckProps {
 interface Issue {
     type: 'critical' | 'warning' | 'info';
     message: string;
-    action?: () => void;
-    actionLabel?: string;
+    details?: React.ReactNode;
 }
 
 export const DataIntegrityCheck: React.FC<DataIntegrityCheckProps> = ({ sportivi, currentUser, onEditSportiv }) => {
@@ -24,20 +23,20 @@ export const DataIntegrityCheck: React.FC<DataIntegrityCheckProps> = ({ sportivi
         setLoading(true);
         const newIssues: Issue[] = [];
 
-        // Check 1: Current user profile validity (Critical for FK errors)
+        // Check 1: Current user profile validity
         if (!currentUser.id || !sportivi.some(s => s.id === currentUser.id)) {
             newIssues.push({
                 type: 'critical',
-                message: "EROARE CRITICĂ: Utilizatorul curent nu are un profil valid (în tabela 'sportivi'). Anumite acțiuni, precum salvarea prezenței, vor eșua din cauza erorilor de Foreign Key (ex: coloana 'sent_by' din 'notificari'). Contactați administratorul pentru a crea/asocia profilul.",
+                message: "EROARE CRITICĂ: Utilizatorul curent nu are un profil valid ('sportivi'). Anumite acțiuni (ex: salvarea prezenței) vor eșua din cauza erorilor de Foreign Key. Contactați administratorul pentru a crea/asocia profilul.",
             });
         } else {
              newIssues.push({
                 type: 'info',
-                message: "Profilul utilizatorului curent este valid și corect asociat. Eroarea de FK la 'notificari' nu ar trebui să apară pentru acest cont.",
+                message: "Profilul utilizatorului curent este valid și corect asociat. Erorile de FK la salvarea datelor nu ar trebui să apară pentru acest cont.",
             });
         }
-
-        // Check 2: Staff members without user accounts (Warning)
+        
+        // Check 2: Staff members without user accounts
         const staffRoles: Rol['nume'][] = ['Instructor', 'Admin Club', 'Admin', 'SUPER_ADMIN_FEDERATIE'];
         const staffWithoutAccounts = sportivi.filter(s =>
             !s.user_id && (s.roluri || []).some(r => staffRoles.includes(r.nume))
@@ -47,8 +46,11 @@ export const DataIntegrityCheck: React.FC<DataIntegrityCheckProps> = ({ sportivi
             newIssues.push({
                 type: 'warning',
                 message: `Au fost găsiți ${staffWithoutAccounts.length} membri staff (Instructori/Admini) care nu au un cont de utilizator creat. Aceștia nu se pot autentifica.`,
-                action: () => alert(`Staff fără cont: ${staffWithoutAccounts.map(s => `${s.nume} ${s.prenume}`).join(', ')}`),
-                actionLabel: "Vezi Lista"
+                details: (
+                    <ul className="text-xs list-disc pl-5 mt-2">
+                        {staffWithoutAccounts.slice(0, 5).map(s => <li key={s.id}>{s.nume} {s.prenume}</li>)}
+                    </ul>
+                )
             });
         }
 
@@ -58,6 +60,16 @@ export const DataIntegrityCheck: React.FC<DataIntegrityCheckProps> = ({ sportivi
             newIssues.push({
                 type: 'warning',
                 message: `Există ${incompleteProfiles.length} sportivi activi cu date esențiale lipsă (CNP sau data nașterii).`,
+                details: (
+                    <div className="mt-2 space-y-1 max-h-40 overflow-y-auto">
+                        {incompleteProfiles.slice(0,10).map(s => (
+                            <div key={s.id} className="flex justify-between items-center text-xs p-1 bg-slate-800/50 rounded">
+                                <span>{s.nume} {s.prenume}</span>
+                                <Button size="sm" variant="secondary" onClick={() => onEditSportiv(s)} className="!text-xs !py-0.5"><EditIcon className="w-3 h-3 mr-1"/> Remediază</Button>
+                            </div>
+                        ))}
+                    </div>
+                )
             });
         }
 
@@ -73,10 +85,8 @@ export const DataIntegrityCheck: React.FC<DataIntegrityCheckProps> = ({ sportivi
         };
         return (
             <div className={`p-3 rounded-md border ${colorClasses[issue.type]}`}>
-                <p className="text-sm">{issue.message}</p>
-                {issue.action && issue.actionLabel && (
-                    <Button size="sm" variant="secondary" onClick={issue.action} className="mt-2">{issue.actionLabel}</Button>
-                )}
+                <p className="text-sm font-semibold">{issue.message}</p>
+                {issue.details && <div className="mt-2">{issue.details}</div>}
             </div>
         );
     };
@@ -88,7 +98,7 @@ export const DataIntegrityCheck: React.FC<DataIntegrityCheckProps> = ({ sportivi
                 Verificare Integritate Date
             </h2>
             <p className="text-sm text-slate-400 mb-4">
-                Rulează o serie de verificări pentru a identifica probleme comune de date care pot cauza erori, precum cea legată de salvarea prezenței (Foreign Key pe `notificari`).
+                Rulează o serie de verificări pentru a identifica probleme comune de date care pot cauza erori, precum conturi de acces lipsă sau profiluri incomplete.
             </p>
 
             <div className="flex justify-end mb-4">

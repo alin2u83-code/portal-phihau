@@ -18,14 +18,11 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   activeRole,
   onNavigate,
 }) => {
-  const hasAdminPrivileges = useMemo(() => 
-    currentUser?.roluri.some(r => 
-      r.nume === 'SUPER_ADMIN_FEDERATIE' || 
-      r.nume === 'Admin' ||
-      r.nume === 'Admin Club'
-    ),
-    [currentUser?.roluri]
-  );
+  const hasAdminPrivileges = useMemo(() => {
+      if (!currentUser?.roluri) return false;
+      const adminRoles = new Set(['SUPER_ADMIN_FEDERATIE', 'Admin', 'Admin Club', 'ADMIN_CLUB']);
+      return currentUser.roluri.some(r => adminRoles.has(r.nume));
+    }, [currentUser?.roluri]);
 
   const hasRequiredRole = useMemo(() => {
     if (!activeRole) return false;

@@ -95,7 +95,10 @@ function App() {
 
 
   const activeRole = useMemo((): Rol['nume'] | null => {
-    return activeRoleContext?.rol_denumire || null;
+    const roleName = activeRoleContext?.rol_denumire;
+    // Normalizează valoarea din baza de date ('ADMIN_CLUB') la valoarea folosită în tipurile TypeScript ('Admin Club')
+    if (roleName === 'ADMIN_CLUB') return 'Admin Club';
+    return roleName || null;
   }, [activeRoleContext]);
 
   const permissions = usePermissions(currentUser, activeRole);

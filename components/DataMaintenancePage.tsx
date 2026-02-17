@@ -46,7 +46,7 @@ const QuickEditModal: React.FC<{
 
 
 // --- Componenta Principală ---
-interface DataMaintenanceProps {
+interface BackupManagerProps {
     onBack: () => void;
     onDataRestored: () => void;
     sportivi: Sportiv[];
@@ -62,7 +62,7 @@ interface DataMaintenanceProps {
     currentUser: User;
 }
 
-export const DataMaintenancePage: React.FC<DataMaintenanceProps> = ({ onBack, onDataRestored, sportivi, setSportivi, grade, preturiConfig, participari, examene, plati, setPlati, familii, onNavigate, currentUser }) => {
+export const BackupManager: React.FC<BackupManagerProps> = ({ onBack, onDataRestored, sportivi, setSportivi, grade, preturiConfig, participari, examene, plati, setPlati, familii, onNavigate, currentUser }) => {
     const { showError, showSuccess } = useError();
     const [progressMessage, setProgressMessage] = useState('');
     const [feedback, setFeedback] = useState<{ type: 'success' | 'error', message: string } | null>(null);
@@ -236,7 +236,11 @@ export const DataMaintenancePage: React.FC<DataMaintenanceProps> = ({ onBack, on
             <h1 className="text-3xl font-bold text-white">Mentenanță & Administrare Sistem</h1>
             {feedback && <div className={`p-3 rounded-md text-center font-semibold text-white ${feedback.type === 'success' ? 'bg-green-600/50' : 'bg-red-600/50'}`}>{feedback.message}</div>}
 
-            <DataIntegrityCheck sportivi={sportivi} currentUser={currentUser} onEditSportiv={setEditingSportiv} />
+            <DataIntegrityCheck
+                sportivi={sportivi}
+                currentUser={currentUser}
+                onEditSportiv={setEditingSportiv}
+            />
             
             <Card className="border-l-4 border-brand-primary">
                 <h2 className="text-2xl font-bold text-white mb-4">Backup, Export & Restaurare Date</h2>
@@ -273,5 +277,3 @@ export const DataMaintenancePage: React.FC<DataMaintenanceProps> = ({ onBack, on
         </div>
     );
 };
-
-export { DataMaintenancePage as BackupManager };

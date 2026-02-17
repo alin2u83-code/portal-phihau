@@ -190,16 +190,22 @@ export const Stepper: React.FC<{ value: number; onChange: (newValue: number) => 
 };
 
 export const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
-    const colorClasses: Record<Rol['nume'], string> = {
+    const isClubAdmin = (role.nume as any) === 'ADMIN_CLUB' || role.nume === 'Admin Club';
+    const displayName = isClubAdmin ? 'Admin Club' : role.nume;
+
+    const colorClasses: Record<string, string> = {
         'Admin': 'bg-red-600 text-white',
         'SUPER_ADMIN_FEDERATIE': 'bg-red-800 text-white',
-        'Admin Club': 'bg-blue-600 text-white',
+        'Admin Club': 'bg-[#FFD700] text-slate-900 font-bold',
         'Instructor': 'bg-sky-600 text-white',
         'Sportiv': 'bg-slate-600 text-slate-200',
     };
+
+    const roleKeyForColor = isClubAdmin ? 'Admin Club' : role.nume;
+
     return (
-        <span className={`px-2 py-1 text-[10px] font-semibold rounded-full ${colorClasses[role.nume] || 'bg-gray-500 text-white'}`}>
-            {role.nume}
+        <span className={`px-2 py-1 text-[10px] font-semibold rounded-full ${colorClasses[roleKeyForColor] || 'bg-gray-500 text-white'}`}>
+            {displayName}
         </span>
     );
 };

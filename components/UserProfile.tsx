@@ -317,6 +317,8 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
     }, [sportiv]);
 
     const isSuperAdmin = currentUser.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'Admin');
+    const canEdit = useMemo(() => currentUser.roluri.some(r => r.nume === 'Admin Club'), [currentUser]);
+
 
     const gradeHistory = useMemo(() => {
         const examGrades = participari
@@ -528,9 +530,9 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                     <p className="text-lg text-slate-300">{grupe.find(g => g.id === sportiv.grupa_id)?.denumire || 'Fără grupă'}</p>
                 </div>
                 <div className="flex gap-2">
-                    <Button variant="info" onClick={() => setIsEditModalOpen(true)} className="!py-2 !px-3"><EditIcon className="w-5 h-5 mr-2"/> Editare</Button>
+                    {canEdit && <Button variant="info" onClick={() => setIsEditModalOpen(true)} className="!py-2 !px-3"><EditIcon className="w-5 h-5 mr-2"/> Editare</Button>}
                     <Button variant="primary" onClick={() => setIsWalletModalOpen(true)} className="!py-2 !px-3"><WalletIcon className="w-5 h-5 mr-2"/> Portofel</Button>
-                    <Button variant="danger" onClick={() => setIsDeleteModalOpen(true)} className="!py-2 !px-3"><TrashIcon className="w-5 h-5 mr-2"/> Șterge</Button>
+                    {canEdit && <Button variant="danger" onClick={() => setIsDeleteModalOpen(true)} className="!py-2 !px-3"><TrashIcon className="w-5 h-5 mr-2"/> Șterge</Button>}
                 </div>
             </header>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

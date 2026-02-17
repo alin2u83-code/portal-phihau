@@ -30,7 +30,6 @@ export const NavbarAdmin: React.FC<NavbarAdminProps> = ({ currentUser, permissio
     const dropdownRef = useRef<HTMLDivElement>(null);
     const initials = `${currentUser.prenume?.[0] || ''}${currentUser.nume?.[0] || ''}`.toUpperCase();
     const primaryRole = getPrimaryRoleName(permissions);
-    const otherRolesCount = (currentUser.roluri?.length || 1) - 1;
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -48,23 +47,13 @@ export const NavbarAdmin: React.FC<NavbarAdminProps> = ({ currentUser, permissio
     };
 
     const ringColorClass = useMemo(() => {
-        if (permissions.canManageFinances) {
-            return 'ring-amber-500'; // Gold ring for financial roles
+        if (permissions.isFederationAdmin) {
+            return 'ring-amber-500';
         }
-        if (permissions.isInstructor) {
-            return 'ring-sky-500/50';
+        if (permissions.isAdminClub) {
+            return 'ring-sky-500';
         }
         return 'ring-slate-500/50';
-    }, [permissions]);
-
-     const roleBadgeClass = useMemo(() => {
-        if (permissions.canManageFinances) {
-            return 'bg-black/70 text-amber-400 border-amber-500/50';
-        }
-        if (permissions.isInstructor) {
-            return 'bg-sky-500/20 text-sky-300 border-sky-500/50';
-        }
-        return 'bg-slate-500/20 text-slate-300 border-slate-500/50';
     }, [permissions]);
 
 
@@ -74,25 +63,18 @@ export const NavbarAdmin: React.FC<NavbarAdminProps> = ({ currentUser, permissio
                 onClick={() => setIsOpen(p => !p)}
                 className="flex items-center gap-3 p-1 rounded-full hover:opacity-90 transition-opacity"
             >
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-black text-lg bg-slate-900 ring-2 ${ringColorClass}`}>
+                <div className={`w-11 h-11 rounded-full flex items-center justify-center text-white font-black text-lg bg-slate-950 ring-2 ${ringColorClass} antialiased`}>
                     {initials}
                 </div>
                 
-                <div className="hidden sm:block text-left">
-                    <p className="text-sm font-bold text-white truncate max-w-[150px]">{currentUser.prenume}</p>
-                    <div className="flex items-center gap-1 mt-0.5">
-                        <span className={`px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded-sm border ${roleBadgeClass}`}>
-                            {primaryRole}
-                        </span>
-                        {otherRolesCount > 0 && (
-                            <span className="px-1.5 py-0.5 text-[9px] font-bold rounded-sm border bg-slate-500/20 text-slate-300 border-slate-500/50">
-                                +{otherRolesCount}
-                            </span>
-                        )}
-                    </div>
+                <div className="text-left">
+                    <p className="text-sm font-bold text-white truncate max-w-[150px]">{currentUser.nume} {currentUser.prenume}</p>
+                     <span className="bg-slate-800 text-[10px] text-slate-300 px-1 rounded-sm mt-0.5">
+                        {primaryRole}
+                    </span>
                 </div>
 
-                <ChevronDownIcon className={`hidden sm:block w-5 h-5 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                <ChevronDownIcon className={`w-5 h-5 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
             {isOpen && (
                 <div className="absolute right-0 mt-2 w-64 bg-slate-100 rounded-lg shadow-2xl border border-slate-300 z-50 animate-fade-in-down">

@@ -3,7 +3,7 @@ import { View, User, Permissions, Rol } from '../types';
 import { Button } from './ui';
 import { ArrowLeftIcon, ChevronDownIcon, CogIcon, ArrowRightOnRectangleIcon, HomeIcon, SitemapIcon, UserCircleIcon } from './icons';
 import { NotificationBell } from './NotificationBell';
-import { useIsMobile } from './hooks/useIsMobile';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 // Helper function from former NavbarAdmin.tsx
 const getPrimaryRoleName = (permissions: Permissions): string => {

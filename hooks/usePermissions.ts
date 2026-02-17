@@ -33,7 +33,7 @@ export const usePermissions = (user: User | null, activeRole: Rol['nume'] | null
         const isSportiv = activeRole === 'Sportiv';
 
         // --- Flag-uri compozite și de business logic (bazate pe rolul activ) ---
-        const hasAdminAccess = isSuperAdmin || isAdminClub;
+        const hasAdminAccess = isFederationAdmin || isAdminClub;
         const isFederationLevel = isFederationAdmin;
         const canManageFinances = isFederationLevel || isAdminClub;
         const canGradeStudents = isFederationAdmin || isAdminClub || isInstructor;

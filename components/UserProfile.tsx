@@ -13,31 +13,11 @@ import { SportivProgressChart } from './SportivProgressChart';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
 import { AddGradeModal } from './AddGradeModal';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
+import { GradBadge } from '../utils/grades';
 
 const getGrad = (gradId: string | null, allGrades: Grad[]) => gradId ? allGrades.find(g => g.id === gradId) : null;
 const getAge = (dateString: string) => { if (!dateString) return 0; const today = new Date(); const birthDate = new Date(dateString.includes('T') ? dateString : dateString + 'T00:00:00'); if (isNaN(birthDate.getTime())) { return 0; } let age = today.getFullYear() - birthDate.getFullYear(); const m = today.getMonth() - birthDate.getMonth(); if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; } return age; };
 const parseDurationToMonths = (durationStr: string): number => { const parts = durationStr.split(' '); if (parts.length < 2) return 0; const value = parseInt(parts[0], 10); const unit = parts[1].toLowerCase(); if (unit.startsWith('lun')) return value; if (unit.startsWith('an')) return value * 12; return 0; };
-
-const getGradStyle = (gradName: string): string => {
-    const name = gradName.toLowerCase();
-    if (name.includes('dang')) {
-        if (name.includes('5')) return 'bg-black text-white border-2 border-yellow-400';
-        if (name.includes('6') || name.includes('7')) return 'bg-white text-red-600 border-2 border-red-600';
-        return 'bg-black text-white border-2 border-red-600';
-    }
-    if (name.includes('neagră')) return 'bg-black text-white';
-    if (name.includes('violet')) return 'bg-violet-600 text-white';
-    if (name.includes('roșu')) return 'bg-red-600 text-white';
-    if (name.includes('albastru')) return 'bg-white text-blue-600 border border-blue-600';
-    if (name.includes('galben')) return 'bg-yellow-400 text-black';
-    return 'bg-slate-600 text-white'; // Default
-};
-
-const GradBadge: React.FC<{ grad: Grad | null | undefined; isLarge?: boolean }> = ({ grad, isLarge }) => {
-    if (!grad) return null;
-    const sizeClasses = isLarge ? 'px-6 py-2 text-3xl font-black' : 'px-3 py-1 text-sm font-bold';
-    return <span className={`inline-block rounded-full whitespace-nowrap text-center ${sizeClasses} ${getGradStyle(grad.nume)}`}>{grad.nume}</span>;
-};
 
 const ProgramAntrenament: React.FC<{ grupaId: string | null; grupe: Grupa[] }> = ({ grupaId, grupe }) => {
     const zileSaptamanaOrdonate: Record<ProgramItem['ziua'], number> = { 'Luni': 1, 'Marți': 2, 'Miercuri': 3, 'Joi': 4, 'Vineri': 5, 'Sâmbătă': 6, 'Duminică': 7 };

@@ -12,6 +12,7 @@ import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { SportivAccountSettingsModal } from './SportivAccountSettings';
 import { DeleteAuditModal } from './DeleteAuditModal';
+import { GradBadge } from '../utils/grades';
 
 const getAge = (dateString: string | null | undefined): number => {
     if (!dateString) return 0;
@@ -33,13 +34,16 @@ const SportivCardMobile: React.FC<{
     familyBalance: number | undefined;
     individualBalance: number | undefined;
     grupa: Grupa | undefined;
-}> = ({ sportiv, onRowClick, onOpenWallet, familie, familyBalance, individualBalance, grupa }) => {
+    grade: Grad[];
+}> = ({ sportiv, onRowClick, onOpenWallet, familie, familyBalance, individualBalance, grupa, grade }) => {
+    const grad = grade.find(g => g.id === sportiv.grad_actual_id);
     return (
         <Card onClick={() => onRowClick(sportiv)} className={`border-l-4 ${sportiv.status === 'Activ' ? 'border-green-500' : 'border-slate-600'}`}>
             <div className="flex justify-between items-start">
                 <div>
-                    <p className="font-bold text-white text-lg">{sportiv.nume} {sportiv.prenume}</p>
-                    <p className="text-sm text-slate-400">{getAge(sportiv.data_nasterii)} ani - {grupa?.denumire || 'Fără grupă'}</p>
+                    <p className="font-bold text-white text-lg mb-1">{sportiv.nume} {sportiv.prenume}</p>
+                    <GradBadge grad={grad} />
+                    <p className="text-sm text-slate-400 mt-2">{getAge(sportiv.data_nasterii)} ani - {grupa?.denumire || 'Fără grupă'}</p>
                 </div>
                 <div className="flex flex-wrap gap-1 justify-end">
                     {(sportiv.roluri || []).map(r => <RoleBadge key={r.id} role={r} />)}
@@ -191,6 +195,15 @@ export const SportiviManagement: React.FC<{
                     <div className="font-bold text-white hover:text-brand-primary">{s.nume} {s.prenume} <span className="text-slate-400 font-normal">({getAge(s.data_nasterii)} ani)</span></div>
                 </div>
             ),
+        },
+        { 
+            key: 'grad_actual_id', 
+            label: 'Grad',
+            tooltip: "Gradul actual al sportivului.",
+            render: (s) => {
+                const gradObj = grade.find(g => g.id === s.grad_actual_id);
+                return <GradBadge grad={gradObj} />;
+            }
         },
         { 
             key: 'status', 
@@ -400,6 +413,7 @@ export const SportiviManagement: React.FC<{
                             familyBalance={familyBalances.get(s.familie_id!)}
                             individualBalance={individualBalances.get(s.id)}
                             grupa={grupe.find(g => g.id === s.grupa_id)}
+                            grade={grade}
                         />
                     ))}
                 </div>

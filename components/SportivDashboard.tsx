@@ -6,7 +6,7 @@ import { AttendanceTracker } from './AttendanceTracker';
 import { useError } from './ErrorProvider';
 import { supabase } from '../supabaseClient';
 import { CheckIcon, ExclamationTriangleIcon, ArrowLeftIcon } from './icons';
-import { GradBadge, getGradStyle } from '../utils/grades';
+import { GradBadge } from '../utils/grades';
 import { AntrenamenteViitoare } from './AntrenamenteViitoare';
 
 const getGrad = (gradId: string | null, allGrades: Grad[]) => gradId ? allGrades.find(g => g.id === gradId) : null;
@@ -69,11 +69,11 @@ const IstoricGradeCard: React.FC<{
                 if (!grad) return null;
                 return {
                     date: hg.data_obtinere,
-                    gradNume: grad.nume,
+                    grad,
                     source: hg.sesiune_examen_id ? 'Examen' : 'Manual'
                 };
             })
-            .filter((g): g is { date: string; gradNume: string; source: string } => g !== null)
+            .filter((g): g is { date: string; grad: Grad; source: string } => g !== null)
             .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     }, [grade, istoricGrade, sportivId]);
 
@@ -92,9 +92,7 @@ const IstoricGradeCard: React.FC<{
                         {gradeHistory.map((item, index) => (
                             <tr key={index}>
                                 <td className="py-2 font-semibold">
-                                     <span className={`inline-block rounded-full whitespace-nowrap text-center px-3 py-1 text-sm font-bold ${getGradStyle(item.gradNume)}`}>
-                                        {item.gradNume}
-                                    </span>
+                                    <GradBadge grad={item.grad} />
                                 </td>
                                 <td className="py-2 text-right">{new Date(item.date).toLocaleDateString('ro-RO')}</td>
                             </tr>
@@ -295,7 +293,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
             <header className="text-center md:text-left border-b border-slate-700/50 pb-4">
                 <h1 className="text-3xl font-bold text-white">{viewedUser.nume} {viewedUser.prenume}</h1>
                 <div className="mt-2">
-                   <GradBadge grad={currentGrad || {nume: 'Începător', ordine: 0} as Grad} isLarge />
+                   <GradBadge grad={currentGrad} isLarge />
                 </div>
                 
                 {isViewingOwnProfile && (

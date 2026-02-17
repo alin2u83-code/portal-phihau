@@ -17,35 +17,18 @@ export interface SubMenuItem {
     view: View;
 }
 
-// Meniu unificat pentru SUPER_ADMIN_FEDERATIE și Admin Club
+// Meniu complet pentru Adminii de Federație și de Club
 export const adminMenu: MenuItem[] = [
     { label: 'Dashboard', icon: HomeIcon, view: 'dashboard' },
-    { 
-        label: 'Sportivi', 
-        icon: UsersIcon,
-        view: 'sportivi'
-    },
-    { 
-        label: 'Antrenamente', 
-        icon: CalendarDaysIcon,
-        view: 'prezenta' // Link direct către managementul prezenței
-    },
-    { 
-        label: 'Examene', 
-        icon: TrophyIcon, 
-        view: 'examene'
-    },
-    { 
-        label: 'Facturi', 
-        icon: BanknotesIcon,
-        view: 'plati-scadente' // Link direct către lista de facturi
-    },
-    { label: 'Configurare Grade', icon: BookOpenIcon, view: 'grade' },
-    { label: 'Gestiune Cluburi', icon: CogIcon, view: 'cluburi' },
-    { label: 'Structură Națională', icon: SitemapIcon, view: 'structura-federatie' },
-    { label: 'Deconturi Globale', icon: WalletIcon, view: 'deconturi-federatie' },
+    { label: 'Sportivi', icon: UsersIcon, view: 'sportivi' },
+    { label: 'Antrenamente', icon: CalendarDaysIcon, view: 'prezenta' },
+    { label: 'Examene & Evenimente', icon: TrophyIcon, view: 'examene' },
+    { label: 'Financiar', icon: BanknotesIcon, view: 'plati-scadente' },
+    { label: 'Administrare', icon: CogIcon, view: 'user-management' },
+    { label: 'Structură Federație', icon: SitemapIcon, view: 'structura-federatie' },
 ];
 
+// Meniu pentru Instructori
 export const instructorMenu: MenuItem[] = [
     { label: 'Dashboard', icon: HomeIcon, view: 'dashboard' },
     { label: 'Sportivi', icon: UsersIcon, view: 'sportivi' },
@@ -53,8 +36,9 @@ export const instructorMenu: MenuItem[] = [
     { label: 'Examene', icon: TrophyIcon, view: 'examene' },
 ];
 
+// Meniu pentru Sportivi
 export const sportivMenu: MenuItem[] = [
-    { label: 'Dashboard', icon: HomeIcon, view: 'my-portal' },
+    { label: 'Portalul Meu', icon: HomeIcon, view: 'my-portal' },
     { label: 'Istoric Prezență', icon: ClipboardCheckIcon, view: 'istoric-prezenta' },
     { label: 'Istoric Plăți', icon: BanknotesIcon, view: 'istoric-plati' },
     { label: 'Fișa Digitală', icon: FileTextIcon, view: 'fisa-digitala' },

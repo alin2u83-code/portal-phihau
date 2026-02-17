@@ -3,51 +3,35 @@ import { Grad } from '../types';
 
 const normalizeGradName = (gradName: string): string => {
     if (!gradName) return '';
-    // Normalizează pentru a gestiona diacriticele (ex: 'â' vs 'a'), punctele și pentru a fi case-insensitive
+    // Normalizează pentru a gestiona diacriticele și pentru a fi case-insensitive
     return gradName
         .toLowerCase()
-        .replace(/\./g, '') // Elimină punctele pentru a trata "C.V." ca "cv"
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "");
 };
 
+
 /**
  * Returnează un șir de clase Tailwind CSS bazat pe numele gradului,
- * conform ierarhiei oficiale de culori a clubului Phi Hau.
+ * conform ierarhiei oficiale de culori a clubului Phi Hau pentru tema dark.
  */
 export const getGradStyle = (gradName: string): string => {
     if (!gradName) return 'bg-slate-600 text-white';
     const name = normalizeGradName(gradName);
     
-    // Prioritizează 'albastru' pentru a evita conflictul cu 'cap alb'
-    if (name.includes('albastru')) {
-        return 'bg-white text-blue-700 border border-blue-700';
-    }
+    // Reguli specifice pentru centuri cu grad înalt
+    if (name.includes('6 dang') || name.includes('7 dang') || name.includes('8 dang')) return 'bg-white text-red-600 border-2 border-red-600';
+    if (name.includes('5 dang')) return 'bg-black text-yellow-400 border-2 border-yellow-400';
+    if (name.includes('dang')) return 'bg-black text-red-600 border-2 border-red-600';
+    if (name.includes('neagra')) return 'bg-black text-white';
     
-    // Regulă specifică pentru 'Cap Alb' / 'Câp Alb' / 'C.V.'
-    if (name.includes('cap alb') || name.includes('violet') || name.includes('cv')) {
-        return 'bg-violet-600 text-white';
-    }
+    // Reguli pentru centuri colorate
+    if (name.includes('cap alb') || name.includes('violet') || name.includes('c.v.')) return 'bg-violet-600 text-white';
+    if (name.includes('rosu')) return 'bg-red-600 text-white';
+    if (name.includes('albastru')) return 'bg-white text-blue-700 border border-blue-700';
+    if (name.includes('galben')) return 'bg-yellow-400 text-black';
     
-    if (name.includes('6 dang') || name.includes('7 dang') || name.includes('8 dang')) {
-        return 'bg-white text-red-600 border-2 border-red-600';
-    }
-    if (name.includes('5 dang')) {
-        return 'bg-black text-yellow-400 border-2 border-yellow-400';
-    }
-    if (name.includes('dang')) {
-        return 'bg-black text-red-600 border-2 border-red-600';
-    }
-    if (name.includes('neagra')) { // 'neagră'
-        return 'bg-black text-white';
-    }
-    if (name.includes('rosu')) { // 'roșu'
-        return 'bg-red-600 text-white';
-    }
-    if (name.includes('galben')) {
-        return 'bg-yellow-400 text-black';
-    }
-    
+    // Default pentru începători sau grade nespecificate
     return 'bg-slate-600 text-white';
 };
 
@@ -59,9 +43,7 @@ export const getGradBorderColor = (gradName: string): string => {
     if (!gradName) return 'border-slate-700';
     const name = normalizeGradName(gradName);
     
-    if (name.includes('cap alb') || name.includes('violet') || name.includes('cv')) {
-        return 'border-violet-500';
-    }
+    if (name.includes('cap alb') || name.includes('violet') || name.includes('cv')) return 'border-violet-500';
     if (name.includes('albastru')) return 'border-blue-500';
     if (name.includes('rosu')) return 'border-red-500';
     if (name.includes('5 dang')) return 'border-yellow-400';
@@ -81,7 +63,7 @@ export const GradBadge: React.FC<{ grad: Grad | null | undefined; isLarge?: bool
     
     const sizeClasses = isLarge 
         ? 'px-6 py-2 text-3xl font-black' 
-        : 'px-3 py-1 text-sm font-bold';
+        : 'px-2 py-0.5 text-xs font-bold';
 
     return React.createElement(
         'span',

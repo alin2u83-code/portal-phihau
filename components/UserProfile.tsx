@@ -611,11 +611,17 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
             {!sportiv.user_id && (
                 <Card className="bg-yellow-100 dark:bg-yellow-900/30 border-l-4 border-yellow-500 flex flex-col md:flex-row items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
-                        <ExclamationTriangleIcon className="w-6 h-6 text-yellow-500 dark:text-yellow-300" />
+                        <ShieldCheckIcon className="w-6 h-6 text-yellow-500 dark:text-yellow-300" />
                         <p className="font-semibold text-yellow-800 dark:text-yellow-200">Acest sportiv nu are un cont de utilizator activ.</p>
                     </div>
-                    <Button variant="info" size="sm" onClick={() => setIsCreateAccountModalOpen(true)}>
-                        <UserPlusIcon className="w-4 h-4 mr-2" /> Creează Cont Acces Sportiv
+                    <Button variant="info" size="sm" onClick={() => {
+                        if (!sportiv.email) {
+                            showError("Email Lipsă", "Introdu o adresă de email în profilul sportivului pentru a putea genera contul.");
+                            return;
+                        }
+                        setIsCreateAccountModalOpen(true);
+                    }}>
+                        <UserPlusIcon className="w-4 h-4 mr-2" /> Activează Acces Aplicație
                     </Button>
                 </Card>
             )}

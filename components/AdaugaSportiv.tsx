@@ -31,6 +31,7 @@ export const AdaugaSportiv: React.FC<{ navigation?: any }> = ({ navigation }) =>
       const generatedPassword = `${sanitizedNume}.1234!`;
 
       // 3. Execută supabase.auth.signUp
+      if (!supabase) throw new Error("Clientul Supabase nu este initializat.");
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: generatedEmail,
         password: generatedPassword,
@@ -39,34 +40,54 @@ export const AdaugaSportiv: React.FC<{ navigation?: any }> = ({ navigation }) =>
       if (authError) throw authError;
       if (!authData.user) throw new Error("Contul de autentificare nu a putut fi creat.");
 
-      // 4. Inserează în public.sportivi (fără club_id, conform regulii)
-      const newSportivData: Omit<Sportiv, 'id' | 'roluri' | 'club_id'> = {
+      const PHI_HAU_IASI_CLUB_ID = 'cbb0b228-b3e0-4735-9658-70999eb256c6';
+
+      // 4. Inserează în public.sportivi. Obiectul este curat, fără proprietăți extra.
+      const newSportivData = {
         nume: nume.trim(),
         prenume: prenume.trim(),
         email: generatedEmail,
         user_id: authData.user.id,
-        data_nasterii: dataNasterii || '1900-01-01', // Placeholder dacă nu e completat
+        club_id: PHI_HAU_IASI_CLUB_ID,
+        data_nasterii: dataNasterii || '1900-01-01',
         cnp: cnp.trim() || null,
         data_inscrierii: new Date().toISOString().split('T')[0],
-        status: 'Activ',
+        status: 'Activ' as const,
         familie_id: null,
         grupa_id: null,
         tip_abonament_id: null,
         participa_vacanta: false,
       };
 
-      const { error: insertError } = await supabase
+      const { data: insertedSportiv, error: insertError } = await supabase
         .from('sportivi')
-        .insert(newSportivData);
+        .insert(newSportivData)
+        .select('id')
+        .single();
       
       if (insertError) {
-        // Încercare de a șterge utilizatorul creat dacă inserarea profilului eșuează
-        await supabase.auth.signOut(); // Deloghează sesiunea temporară
+        await supabase.auth.signOut().catch(console.error);
         Alert.alert("Eroare Critică", `Contul a fost creat, dar profilul nu a putut fi salvat. Contactați administratorul. Eroare: ${insertError.message}`);
         throw insertError;
       }
       
-      // 5. Afișează Alert cu datele de logare
+      if (!insertedSportiv) {
+        throw new Error("Profilul sportivului nu a putut fi creat sau ID-ul nu a fost returnat.");
+      }
+
+      // 5. Asignează rolul 'Sportiv' în tabela de legătură
+      const { error: roleError } = await supabase.from('utilizator_roluri_multicont').insert({
+        user_id: authData.user.id,
+        rol_denumire: 'Sportiv',
+        club_id: PHI_HAU_IASI_CLUB_ID,
+        sportiv_id: insertedSportiv.id,
+        is_primary: true,
+      });
+
+      if (roleError) {
+        throw new Error(`Profilul a fost creat, dar rolul nu a putut fi atribuit: ${roleError.message}`);
+      }
+      
       Alert.alert(
         "Cont Creat cu Succes!",
         `Trimiteți aceste date părintelui:\n\nEmail: ${generatedEmail}\nParolă: ${generatedPassword}`,
@@ -166,18 +187,20 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: '#1e293b',
     color: '#ffffff',
-    padding: 12,
+    paddingHorizontal: 12,
     borderRadius: 8,
     fontSize: 16,
     marginBottom: 16,
     borderWidth: 1,
     borderColor: '#334155',
+    height: 48, // Echivalent cu h-12
   },
   saveButton: {
-    backgroundColor: '#FFD700', // Gold accent
-    padding: 16,
+    backgroundColor: '#FFD700',
+    height: 48, // Echivalent cu h-12
     borderRadius: 8,
     alignItems: 'center',
+    justifyContent: 'center',
     marginTop: 24,
   },
   saveButtonText: {

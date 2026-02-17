@@ -14,15 +14,12 @@ interface State {
 }
 
 class ErrorBoundary extends React.Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = {
-      hasError: false,
-      error: undefined,
-    };
-    // Bind the method to ensure 'this' context is correct when called as an event handler.
-    this.handleRedirect = this.handleRedirect.bind(this);
-  }
+  // FIX: Initialize state as a class property to avoid using the constructor for this purpose.
+  // This is a more modern and cleaner approach.
+  state: State = {
+    hasError: false,
+    error: undefined,
+  };
 
   static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
@@ -32,7 +29,10 @@ class ErrorBoundary extends React.Component<Props, State> {
     console.error("Uncaught error:", error, errorInfo);
   }
 
-  handleRedirect() {
+  // FIX: Define handleRedirect as an arrow function. This automatically binds `this`
+  // to the component instance, removing the need for `.bind(this)` in the constructor.
+  // This resolves all errors related to accessing `this.props` and `this.setState`.
+  handleRedirect = () => {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {
         this.props.onNavigate('dashboard');
@@ -40,6 +40,8 @@ class ErrorBoundary extends React.Component<Props, State> {
   }
 
   render() {
+    // FIX: All accesses to `this.state` and `this.props` will now work correctly
+    // due to the refactoring above.
     if (this.state.hasError) {
       return (
         <div className="p-8 text-center bg-red-900/50 text-red-300 rounded-lg border border-red-700">

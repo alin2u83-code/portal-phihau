@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions, VizualizarePlata } from '../types';
-import { Button, Input, Select, Card, RoleBadge } from './ui';
+import { Button, Input, Select, Card, RoleBadge, Modal } from './ui';
 import { PlusIcon, WalletIcon, UserXIcon, UserCheckIcon, SearchIcon, ShieldCheckIcon, TrashIcon, EditIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
@@ -98,6 +98,13 @@ export const SportiviManagement: React.FC<{
     const [selectedSportivForHighlight, setSelectedSportivForHighlight] = useState<Sportiv | null>(null);
     const [accountSettingsSportiv, setAccountSettingsSportiv] = useState<Sportiv | null>(null);
     const [sportivToDelete, setSportivToDelete] = useState<Sportiv | null>(null);
+    
+    // Stări noi pentru modalul de creare cont
+    const [sportivForAccountCreation, setSportivForAccountCreation] = useState<Sportiv | null>(null);
+    const [createAccountForm, setCreateAccountForm] = useState({ email: '', username: '', parola: '' });
+    const [createAccountError, setCreateAccountError] = useState('');
+    const [createAccountLoading, setCreateAccountLoading] = useState(false);
+    const [accountCreationStep, setAccountCreationStep] = useState<'initial' | 'confirm_link'>('initial');
 
     const { showError, showSuccess } = useError();
     const isMobile = useIsMobile();
@@ -113,7 +120,7 @@ export const SportiviManagement: React.FC<{
     const handleFilterChange = (name: keyof typeof filters, value: string) => {
         setFilters(prev => ({ ...prev, [name]: value }));
     };
-    
+
     const handleOpenWallet = (sportiv: Sportiv) => {
         setSportivForWallet(sportiv);
         setIsWalletModalOpen(true);
@@ -279,6 +286,63 @@ export const SportiviManagement: React.FC<{
         }
     };
 
+    const handleOpenCreateAccountModal = (user: Sportiv) => {
+        setSportivForAccountCreation(user);
+        const sanitize = (str: string) => str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '');
+        const emailPrefix = `${sanitize(user.nume)}.${sanitize(user.prenume)}`;
+        setCreateAccountForm({
+            email: user.email || `${emailPrefix}@phihau.ro`,
+            username: user.username || emailPrefix,
+            parola: 'Parola123!'
+        });
+        setCreateAccountError('');
+        setAccountCreationStep('initial');
+    };
+
+     const handleCreateAccountFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setCreateAccountForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    };
+
+     const handleCreateAccount = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!supabase || !sportivForAccountCreation) return;
+        setCreateAccountLoading(true);
+        setCreateAccountError('');
+        
+        try {
+            const { data: { session: adminSession } } = await supabase.auth.getSession();
+            const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+                email: createAccountForm.email,
+                password: createAccountForm.parola,
+            });
+
+            if (signUpError) throw signUpError;
+            if (!signUpData.user) throw new Error("Nu s-a putut crea contul de autentificare.");
+
+            const { data, error } = await supabase.from('sportivi').update({ user_id: signUpData.user.id, email: createAccountForm.email, username: createAccountForm.username }).eq('id', sportivForAccountCreation.id).select('*, cluburi(*), utilizator_roluri_multicont(rol_denumire)').single();
+
+            await supabase.auth.signOut().catch(()=>{});
+            if (adminSession) {
+                await supabase.auth.setSession({ access_token: adminSession.access_token, refresh_token: adminSession.refresh_token });
+            }
+            if (error) throw error;
+            
+            const roles = (data.utilizator_roluri_multicont || []).map((r:any) => allRoles.find(role => role.nume === r.rol_denumire)).filter(Boolean);
+            const updatedSportiv = { ...data, roluri: roles };
+            
+            setSportivi(prev => prev.map(s => s.id === updatedSportiv.id ? updatedSportiv : s));
+            setSportivForAccountCreation(null);
+            setAccountSettingsSportiv(updatedSportiv); // Redeschide modalul de setări rol
+            showSuccess("Cont Creat!", `Contul pentru ${updatedSportiv.nume} a fost creat.`);
+
+        } catch (err: any) {
+            setCreateAccountError(err.message);
+        } finally {
+            setCreateAccountLoading(false);
+        }
+    };
+
+
     return (
         <div className="space-y-4">
             <div className="flex justify-between items-center gap-4">
@@ -374,7 +438,22 @@ export const SportiviManagement: React.FC<{
                 allRoles={allRoles}
                 setAllRoles={setAllRoles}
                 currentUser={currentUser}
+                onOpenCreateAccount={handleOpenCreateAccountModal}
             />
+
+            {sportivForAccountCreation && (
+                <Modal isOpen={!!sportivForAccountCreation} onClose={() => setSportivForAccountCreation(null)} title={`Creează Cont pentru ${sportivForAccountCreation.nume}`}>
+                    <form onSubmit={handleCreateAccount} className="space-y-4">
+                        <Input label="Email (Login)" name="email" type="email" value={createAccountForm.email} onChange={handleCreateAccountFormChange} required />
+                        <Input label="Parolă Inițială" name="parola" type="password" value={createAccountForm.parola} onChange={handleCreateAccountFormChange} required />
+                        {createAccountError && <p className="text-red-400 text-sm text-center bg-red-900/50 p-2 rounded">{createAccountError}</p>}
+                        <div className="flex justify-end pt-4 space-x-2">
+                            <Button type="button" variant="secondary" onClick={() => setSportivForAccountCreation(null)} disabled={createAccountLoading}>Anulează</Button>
+                            <Button type="submit" variant="success" disabled={createAccountLoading} isLoading={createAccountLoading}>Creează Cont</Button>
+                        </div>
+                    </form>
+                </Modal>
+            )}
 
             {isWalletModalOpen && sportivForWallet && (
                 <SportivWallet

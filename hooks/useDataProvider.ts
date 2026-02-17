@@ -148,7 +148,7 @@ export const useDataProvider = () => {
                 supabase.from('nom_locatii').select('*'),
                 supabase.from('tipuri_plati').select('*'),
                 supabase.from('reduceri').select('*'),
-                supabase.from('sportivi').select('*, roles:utilizator_roluri_multicont!sportiv_id(rol_denumire, is_primary)'),
+                supabase.from('sportivi').select('*, utilizator_roluri_multicont!sportiv_id(rol_denumire, is_primary)'),
                 supabase.from('sesiuni_examene').select('*'),
                 supabase.from('inscrieri_examene').select('*, sportivi:sportiv_id(*), grades:grad_vizat_id(*)'),
                 supabase.from('program_antrenamente').select('*, grupe(*), prezenta:prezenta_antrenament!antrenament_id(sportiv_id, status)'),
@@ -199,7 +199,7 @@ export const useDataProvider = () => {
 
             let allSportivi = sportiviData?.map(s => {
                 if (!s) return null;
-                const joinedRoles = Array.isArray((s as any).roles) ? (s as any).roles : [];
+                const joinedRoles = Array.isArray((s as any).utilizator_roluri_multicont) ? (s as any).utilizator_roluri_multicont : [];
                 const userRolesFromJoin = joinedRoles
                     .map((mcr: any) => allNomenclatorRoles.find(r => r.nume === mcr.rol_denumire))
                     .filter((r): r is Rol => !!r);

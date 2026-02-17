@@ -27,7 +27,7 @@ export const Button: React.FC<ButtonProps & { as?: 'label', htmlFor?: string }> 
   };
   
   const variantClasses = {
-    primary: "bg-blue-600 hover:bg-blue-700 focus:ring-blue-500 text-white font-bold",
+    primary: "bg-[#FFD700] hover:bg-yellow-500 focus:ring-yellow-400 text-slate-900 font-bold",
     secondary: "bg-slate-600 hover:bg-slate-700 focus:ring-slate-500 text-white hover:shadow-glow-blue",
     danger: "bg-status-danger hover:bg-red-700 focus:ring-red-500 text-white",
     success: "bg-green-600 hover:bg-green-700 focus:ring-green-600 text-white font-bold",

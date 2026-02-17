@@ -223,12 +223,12 @@ export const SportiviManagement: React.FC<{
         try {
             if (sportivToEdit) {
                 const { roluri, cluburi, ...sportivData } = formData;
-                const { data, error } = await supabase.from('sportivi').update(sportivData).eq('id', sportivToEdit.id).select('*, cluburi(*), roles:utilizator_roluri_multicont(rol_denumire)').single();
+                const { data, error } = await supabase.from('sportivi').update(sportivData).eq('id', sportivToEdit.id).select('*, cluburi(*), utilizator_roluri_multicont(rol_denumire)').single();
                 if (error) throw error;
     
-                const updatedRoles = (data.roles || []).map((r: any) => allRoles.find(role => role.nume === r.rol_denumire)).filter(Boolean);
+                const updatedRoles = (data.utilizator_roluri_multicont || []).map((r: any) => allRoles.find(role => role.nume === r.rol_denumire)).filter(Boolean);
                 const updatedSportiv = { ...data, roluri: updatedRoles };
-                delete (updatedSportiv as any).roles;
+                delete (updatedSportiv as any).utilizator_roluri_multicont;
     
                 setSportivi(prev => prev.map(s => s.id === sportivToEdit.id ? updatedSportiv : s));
                 showSuccess('Succes', 'Sportiv actualizat!');

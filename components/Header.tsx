@@ -89,10 +89,7 @@ export const Header: React.FC<HeaderProps> = ({ activeView, onBack, currentUser,
                         
                         <div className="hidden md:block text-left">
                             <p className="text-sm font-bold text-white truncate max-w-[150px]">
-                                {currentUser.prenume} {currentUser.nume?.[0] || ''}.
-                            </p>
-                            <p className="text-xs text-slate-400">
-                                [{primaryRole.toUpperCase()}]
+                                {currentUser.prenume} <span className="text-xs text-slate-400 font-normal">[{primaryRole.toUpperCase()}]</span>
                             </p>
                         </div>
 

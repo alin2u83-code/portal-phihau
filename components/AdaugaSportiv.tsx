@@ -4,7 +4,6 @@ import {
   ScrollView, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform
 } from 'react-native';
 import { supabase } from '../supabaseClient';
-import { Sportiv } from '../types';
 
 export const AdaugaSportiv: React.FC<{ navigation?: any }> = ({ navigation }) => {
   const [nume, setNume] = useState('');
@@ -42,8 +41,10 @@ export const AdaugaSportiv: React.FC<{ navigation?: any }> = ({ navigation }) =>
 
       const PHI_HAU_IASI_CLUB_ID = 'cbb0b228-b3e0-4735-9658-70999eb256c6';
 
-      // 4. Inserează în public.sportivi. Obiectul este curat, fără proprietăți extra.
-      const newSportivData = {
+      // 4. Construiește un obiect CURAT pentru inserare în tabela `sportivi`.
+      // Acest obiect conține DOAR coloanele care există în tabela `sportivi`,
+      // eliminând orice risc de a trimite proprietăți precum `roluri`.
+      const sportivPayload = {
         nume: nume.trim(),
         prenume: prenume.trim(),
         email: generatedEmail,
@@ -61,7 +62,7 @@ export const AdaugaSportiv: React.FC<{ navigation?: any }> = ({ navigation }) =>
 
       const { data: insertedSportiv, error: insertError } = await supabase
         .from('sportivi')
-        .insert(newSportivData)
+        .insert(sportivPayload)
         .select('id')
         .single();
       
@@ -75,7 +76,8 @@ export const AdaugaSportiv: React.FC<{ navigation?: any }> = ({ navigation }) =>
         throw new Error("Profilul sportivului nu a putut fi creat sau ID-ul nu a fost returnat.");
       }
 
-      // 5. Asignează rolul 'Sportiv' în tabela de legătură
+      // 5. Asignează rolul în tabela separată `utilizator_roluri_multicont`.
+      // Acest pas este corect, deoarece rolurile se gestionează separat.
       const { error: roleError } = await supabase.from('utilizator_roluri_multicont').insert({
         user_id: authData.user.id,
         rol_denumire: 'Sportiv',
@@ -111,44 +113,52 @@ export const AdaugaSportiv: React.FC<{ navigation?: any }> = ({ navigation }) =>
           <Text style={styles.title}>Adaugă Sportiv</Text>
           <Text style={styles.subtitle}>Un cont de acces va fi generat automat.</Text>
 
-          <Text style={styles.label}>Nume de Familie</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Popescu"
-            placeholderTextColor="#6b7280"
-            value={nume}
-            onChangeText={setNume}
-          />
+          <View style={{ marginBottom: 24 }}>
+            <Text style={styles.label}>Nume de Familie</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Popescu"
+              placeholderTextColor="#6b7280"
+              value={nume}
+              onChangeText={setNume}
+            />
+          </View>
 
-          <Text style={styles.label}>Prenume</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Ion"
-            placeholderTextColor="#6b7280"
-            value={prenume}
-            onChangeText={setPrenume}
-          />
+          <View style={{ marginBottom: 24 }}>
+            <Text style={styles.label}>Prenume</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Ion"
+              placeholderTextColor="#6b7280"
+              value={prenume}
+              onChangeText={setPrenume}
+            />
+          </View>
           
-          <Text style={styles.label}>Data Nașterii (Opțional)</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="YYYY-MM-DD"
-            placeholderTextColor="#6b7280"
-            value={dataNasterii}
-            onChangeText={setDataNasterii}
-            keyboardType="numeric"
-          />
+          <View style={{ marginBottom: 24 }}>
+            <Text style={styles.label}>Data Nașterii (Opțional)</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="YYYY-MM-DD"
+              placeholderTextColor="#6b7280"
+              value={dataNasterii}
+              onChangeText={setDataNasterii}
+              keyboardType="numeric"
+            />
+          </View>
 
-          <Text style={styles.label}>CNP (Opțional)</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Cod Numeric Personal"
-            placeholderTextColor="#6b7280"
-            value={cnp}
-            onChangeText={setCnp}
-            keyboardType="numeric"
-            maxLength={13}
-          />
+          <View style={{ marginBottom: 24 }}>
+            <Text style={styles.label}>CNP (Opțional)</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Cod Numeric Personal"
+              placeholderTextColor="#6b7280"
+              value={cnp}
+              onChangeText={setCnp}
+              keyboardType="numeric"
+              maxLength={13}
+            />
+          </View>
 
           <TouchableOpacity onPress={handleSave} style={styles.saveButton} disabled={loading}>
             {loading ? <ActivityIndicator color="#0a192f" /> : <Text style={styles.saveButtonText}>Salvează și Creează Cont</Text>}
@@ -190,7 +200,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 8,
     fontSize: 16,
-    marginBottom: 16,
     borderWidth: 1,
     borderColor: '#334155',
     height: 48, // Echivalent cu h-12

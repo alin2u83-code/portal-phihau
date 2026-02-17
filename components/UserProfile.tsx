@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Sportiv, User, Rol, InscriereExamen, Examen, Grad, Antrenament, IstoricGrade, Plata, Familie, TipAbonament, Tranzactie, Reducere, Club, ProgramItem, Grupa, VizualizarePlata } from '../types';
 import { Button, Card, Select, Modal, Input, RoleBadge } from './ui';
-import { ArrowLeftIcon, EditIcon, WalletIcon, TrashIcon, ShieldCheckIcon, PlusIcon, ChartBarIcon, TransferIcon, CheckCircleIcon } from './icons';
+import { ArrowLeftIcon, EditIcon, WalletIcon, TrashIcon, ShieldCheckIcon, PlusIcon, ChartBarIcon, TransferIcon, CheckCircleIcon, ExclamationTriangleIcon, UserPlusIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { SportivFormModal } from './Sportivi';
@@ -123,7 +123,7 @@ interface TransferModalProps {
     onTransferComplete: (updatedSportiv: Sportiv) => void;
 }
 
-const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose, sportiv, clubs, onTransferComplete }) => {
+const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose, onTransferComplete, sportiv, clubs }) => {
     const [newClubId, setNewClubId] = useState('');
     const [loading, setLoading] = useState(false);
     const [transferSuccess, setTransferSuccess] = useState(false);
@@ -253,6 +253,68 @@ const PlataEditModal: React.FC<PlataEditModalProps> = ({ plata, onClose, onSave,
     );
 }
 
+const CreateAccountModal: React.FC<{
+    sportiv: Sportiv;
+    onClose: () => void;
+    onAccountCreated: () => void;
+}> = ({ sportiv, onClose, onAccountCreated }) => {
+    const { showError, showSuccess } = useError();
+    const [form, setForm] = useState({ email: '', parola: '' });
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        const sanitize = (str: string) => (str || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, '');
+        const nume = sanitize(sportiv.nume);
+        const prenume = sanitize(sportiv.prenume);
+        const defaultEmail = sportiv.email || `${nume}.${prenume}@phihau.ro`;
+        const defaultPassword = `${nume}.1234!`;
+        setForm({ email: defaultEmail, parola: defaultPassword });
+    }, [sportiv]);
+
+    const handleSave = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!form.email || !form.parola) {
+            showError("Date Incomplete", "Emailul și parola sunt obligatorii.");
+            return;
+        }
+        setLoading(true);
+
+        try {
+            const { data: authData, error: authError } = await supabase.functions.invoke('create-user-admin', {
+                body: { email: form.email, password: form.parola },
+            });
+            if (authError || authData.error) { throw new Error(authError?.message || authData?.error || "Eroare la crearea contului de autentificare."); }
+            const newAuthUser = authData.user;
+            if (!newAuthUser) throw new Error("Funcția de creare a utilizatorului nu a returnat un ID valid.");
+            
+            const { error: updateError } = await supabase.from('sportivi').update({ user_id: newAuthUser.id, email: form.email }).eq('id', sportiv.id);
+            if (updateError) throw updateError;
+            
+            showSuccess("Cont Creat!", `Contul pentru ${sportiv.nume} a fost generat.`);
+            onAccountCreated();
+            onClose();
+
+        } catch (err: any) {
+            showError("Eroare la Generare Cont", err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <Modal isOpen={true} onClose={onClose} title={`Generează Cont pentru ${sportiv.nume}`}>
+            <form onSubmit={handleSave} className="space-y-4">
+                <Input label="Email de Autentificare" type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} required />
+                <Input label="Parolă Inițială" value={form.parola} onChange={e => setForm(p => ({ ...p, parola: e.target.value }))} required />
+                <div className="flex justify-end pt-4 gap-2 border-t border-slate-700">
+                    <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button>
+                    <Button type="submit" variant="success" isLoading={loading}>Generează și Asociază</Button>
+                </div>
+            </form>
+        </Modal>
+    );
+};
+
 
 const DataField: React.FC<{label: string, value: React.ReactNode}> = ({label, value}) => (
     <div>
@@ -294,6 +356,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
     const [isReportModalOpen, setIsReportModalOpen] = useState(false);
     const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
     const [isAddGradeModalOpen, setIsAddGradeModalOpen] = useState(false);
+    const [isCreateAccountModalOpen, setIsCreateAccountModalOpen] = useState(false);
 
     const [isEditingFeedback, setIsEditingFeedback] = useState(false);
     const [feedbackData, setFeedbackData] = useState({
@@ -401,6 +464,11 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
             istoricFacturi: facturiProcesate.sort((a, b) => new Date(b.detalii.data_emitere).getTime() - new Date(a.detalii.data_emitere).getTime())
         };
     }, [sportiv, vizualizarePlati, sportivi]);
+
+    const userPlatiIds = useMemo(() => {
+        return new Set(plati.filter(p => (p.sportiv_id === sportiv.id || (p.familie_id && p.familie_id === sportiv.familie_id))).map(p => p.id));
+    }, [plati, sportiv]);
+    const possibleViewError = userPlatiIds.size > 0 && istoricFacturi.length === 0 && !sportiv.user_id;
 
     const lastThreeAttendances = useMemo(() => {
         const now = new Date();
@@ -519,6 +587,11 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
         }
     };
 
+    const handleAccountCreated = () => {
+        showSuccess("Succes!", "Pagina se va reîncărca pentru a reflecta noul cont.");
+        setTimeout(() => window.location.reload(), 1500);
+    };
+
     return (
         <div className="space-y-4">
             <header className="bg-[var(--bg-card)] p-4 rounded-xl shadow-lg border border-[var(--border-color)] flex flex-col md:flex-row items-center gap-6">
@@ -533,6 +606,19 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                     <Button variant="danger" onClick={() => setIsDeleteModalOpen(true)} className="!py-2 !px-3"><TrashIcon className="w-5 h-5 mr-2"/> Șterge</Button>
                 </div>
             </header>
+
+            {!sportiv.user_id && (
+                <Card className="bg-yellow-100 dark:bg-yellow-900/30 border-l-4 border-yellow-500 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                        <ExclamationTriangleIcon className="w-6 h-6 text-yellow-500 dark:text-yellow-300" />
+                        <p className="font-semibold text-yellow-800 dark:text-yellow-200">Sportivul nu are cont de utilizator activ.</p>
+                    </div>
+                    <Button variant="primary" size="sm" onClick={() => setIsCreateAccountModalOpen(true)}>
+                        <UserPlusIcon className="w-4 h-4 mr-2" /> Generează Cont Utilizator
+                    </Button>
+                </Card>
+            )}
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <div className="lg:col-span-1 space-y-4">
                     <Card><h3 className="text-lg font-bold text-white mb-3">Date Personale</h3><dl className="space-y-3"><DataField label="Vârstă" value={`${getAge(sportiv.data_nasterii)} ani`} /><DataField label="Data Înscrierii" value={new Date(sportiv.data_inscrierii).toLocaleDateString('ro-RO')} /><DataField label="Status" value={<span className={`px-2 py-0.5 text-xs rounded-full ${sportiv.status === 'Activ' ? 'bg-green-600/30 text-green-400' : 'bg-red-600/30 text-red-400'}`}>{sportiv.status}</span>} /><DataField label="Club" value={sportiv.cluburi?.id === FEDERATIE_ID ? FEDERATIE_NAME : sportiv.cluburi?.nume} /></dl>
@@ -546,37 +632,22 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                         <div className="mt-4 pt-4 border-t border-slate-700">
                             <h4 className="text-md font-bold text-slate-300 mb-2">Istoric Facturi</h4>
                             <div className="max-h-60 overflow-y-auto space-y-2 pr-2">
-                                {istoricFacturi.length > 0 ? istoricFacturi.map(({ detalii: p, totalIncasat }) => {
+                                {possibleViewError ? (
+                                    <div className="text-center p-4 bg-red-900/20 rounded-md">
+                                        <p className="text-sm text-red-300">A apărut o eroare la încărcarea detaliilor financiare. Acest lucru se poate datora lipsei unui cont de utilizator activ.</p>
+                                        <Button onClick={() => window.location.reload()} variant="secondary" size="sm" className="mt-2">Reîncarcă</Button>
+                                    </div>
+                                ) : istoricFacturi.length > 0 ? istoricFacturi.map(({ detalii: p, totalIncasat }) => {
                                     if (!p.data_plata && !p.data_emitere) return null;
-
-                                    let amountDisplay;
-                                    let amountColor;
-                                    let originalAmount = null;
-
-                                    if (p.status === 'Achitat') {
-                                        amountDisplay = `${totalIncasat.toFixed(2)} RON`;
-                                        amountColor = 'text-green-400';
-                                    } else if (p.status === 'Neachitat') {
-                                        amountDisplay = `${p.suma_datorata.toFixed(2)} RON`;
-                                        amountColor = 'text-red-400';
-                                    } else { // Achitat Parțial
-                                        const ramasDePlata = p.suma_datorata - totalIncasat;
-                                        amountDisplay = `${ramasDePlata.toFixed(2)} RON`;
-                                        amountColor = 'text-amber-400';
-                                        originalAmount = p.suma_datorata;
-                                    }
-                                    
+                                    let amountDisplay; let amountColor; let originalAmount = null;
+                                    if (p.status === 'Achitat') { amountDisplay = `${totalIncasat.toFixed(2)} RON`; amountColor = 'text-green-400';
+                                    } else if (p.status === 'Neachitat') { amountDisplay = `${p.suma_datorata.toFixed(2)} RON`; amountColor = 'text-red-400';
+                                    } else { const ramasDePlata = p.suma_datorata - totalIncasat; amountDisplay = `${ramasDePlata.toFixed(2)} RON`; amountColor = 'text-amber-400'; originalAmount = p.suma_datorata; }
                                     return (
                                         <div key={p.plata_id} className="text-xs bg-slate-800/50 p-2 rounded-md">
                                             <div className="flex justify-between items-start gap-2">
-                                                <div className="flex-grow">
-                                                    <p className="font-bold text-white">{p.descriere}</p>
-                                                    <p className="text-slate-400">Emis: {new Date(p.data_emitere).toLocaleDateString('ro-RO')}</p>
-                                                </div>
-                                                <div className="text-right flex-shrink-0">
-                                                    <p className={`font-bold text-sm ${amountColor}`}>{amountDisplay}</p>
-                                                    {originalAmount && <p className="text-xs text-slate-500 line-through">din {originalAmount.toFixed(2)}</p>}
-                                                </div>
+                                                <div className="flex-grow"><p className="font-bold text-white">{p.descriere}</p><p className="text-slate-400">Emis: {new Date(p.data_emitere).toLocaleDateString('ro-RO')}</p></div>
+                                                <div className="text-right flex-shrink-0"><p className={`font-bold text-sm ${amountColor}`}>{amountDisplay}</p>{originalAmount && <p className="text-xs text-slate-500 line-through">din {originalAmount.toFixed(2)}</p>}</div>
                                                 <div className="flex items-center gap-2 flex-shrink-0">
                                                     <Button size="sm" variant="secondary" className="!p-1.5 h-auto" onClick={() => setPlataToEdit(plati.find(pl => pl.id === p.plata_id) || null)}><EditIcon className="w-3 h-3"/></Button>
                                                     <Button size="sm" variant="danger" className="!p-1.5 h-auto" onClick={() => setPlataToDelete(plati.find(pl => pl.id === p.plata_id) || null)}><TrashIcon className="w-3 h-3"/></Button>
@@ -584,15 +655,11 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                                             </div>
                                         </div>
                                     );
-                                }) : (
-                                    <p className="text-sm text-slate-500 italic text-center py-4">Nu există tranzacții înregistrate pentru acest sportiv.</p>
-                                )}
+                                }) : ( <p className="text-sm text-slate-500 italic text-center py-4">Nu există tranzacții înregistrate pentru acest sportiv.</p> )}
                             </div>
                         </div>
                     </Card>
-                    <Card>
-                        <AttendanceIndicator attendances={lastThreeAttendances} />
-                    </Card>
+                    <Card><AttendanceIndicator attendances={lastThreeAttendances} /></Card>
                     <Card><h3 className="text-lg font-bold text-white mb-3">Feedback Instructor</h3>
                         {isEditingFeedback ? <div className="space-y-3"><Input label="Puncte Forte" name="puncte_forte" value={feedbackData.puncte_forte} onChange={(e) => setFeedbackData(p=>({...p, puncte_forte: e.target.value}))}/><Input label="Puncte Slabe" name="puncte_slabe" value={feedbackData.puncte_slabe} onChange={(e) => setFeedbackData(p=>({...p, puncte_slabe: e.target.value}))}/><Input label="Obiective" name="obiective" value={feedbackData.obiective} onChange={(e) => setFeedbackData(p=>({...p, obiective: e.target.value}))}/><div className="flex justify-end gap-2"><Button size="sm" variant="secondary" onClick={()=>setIsEditingFeedback(false)}>Anulează</Button><Button size="sm" variant="success" onClick={handleSaveFeedback} isLoading={isSavingFeedback}>Salvează</Button></div></div>
                         : <><dl className="space-y-3"><DataField label="Puncte Forte" value={sportiv.puncte_forte} /><DataField label="Puncte Slabe" value={sportiv.puncte_slabe} /><DataField label="Obiective" value={sportiv.obiective} /></dl><Button size="sm" variant="secondary" className="w-full mt-3" onClick={() => setIsEditingFeedback(true)}><EditIcon className="w-4 h-4 mr-1"/> Editează Feedback</Button></>}
@@ -605,21 +672,9 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                         <div className="mt-3 max-h-60 overflow-y-auto pr-2">
                              <table className="w-full text-left text-sm">
                                 <thead className="text-slate-400 text-xs uppercase sticky top-0 bg-[var(--bg-card)]">
-                                    <tr>
-                                        <th className="py-2">Grad</th>
-                                        <th className="py-2">Data</th>
-                                        <th className="py-2 text-right">Sursă</th>
-                                    </tr>
+                                    <tr><th className="py-2">Grad</th><th className="py-2">Data</th><th className="py-2 text-right">Sursă</th></tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-700">
-                                    {[...gradeHistory].reverse().map(h => (
-                                        <tr key={`${h.date}-${h.rank}`}>
-                                            <td className="py-2 font-semibold text-white">{h.gradNume}</td>
-                                            <td className="py-2">{new Date(h.date).toLocaleDateString('ro-RO')}</td>
-                                            <td className="py-2 text-right capitalize">{h.source}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
+                                <tbody className="divide-y divide-slate-700">{[...gradeHistory].reverse().map(h => ( <tr key={`${h.date}-${h.rank}`}><td className="py-2 font-semibold text-white">{h.gradNume}</td><td className="py-2">{new Date(h.date).toLocaleDateString('ro-RO')}</td><td className="py-2 text-right capitalize">{h.source}</td></tr> ))}</tbody>
                             </table>
                         </div>
                     </Card>
@@ -632,7 +687,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
             {isReportModalOpen && <SportivFeedbackReport isOpen={isReportModalOpen} onClose={() => setIsReportModalOpen(false)} sportiv={sportiv} antrenamente={antrenamente} grupe={grupe} grade={grade} participari={participari} examene={examene} />}
             {isTransferModalOpen && <TransferModal isOpen={isTransferModalOpen} onClose={() => setIsTransferModalOpen(false)} sportiv={sportiv} clubs={clubs} onTransferComplete={(updatedSportiv) => { setSportivi(p => p.map(s => s.id === updatedSportiv.id ? updatedSportiv : s)); setIsTransferModalOpen(false); }} />}
             {isAddGradeModalOpen && <AddGradeModal isOpen={isAddGradeModalOpen} onClose={() => setIsAddGradeModalOpen(false)} onSave={handleAddGrade} sportiv={sportiv} grades={grade} />}
-        
+            {isCreateAccountModalOpen && <CreateAccountModal sportiv={sportiv} onClose={() => setIsCreateAccountModalOpen(false)} onAccountCreated={handleAccountCreated} />}
             <PlataEditModal plata={plataToEdit} onClose={() => setPlataToEdit(null)} onSave={handleSavePlataEdit} isLoading={isSaving} />
             <ConfirmDeleteModal isOpen={!!plataToDelete} onClose={() => setPlataToDelete(null)} onConfirm={() => { if(plataToDelete) confirmDeletePlata(plataToDelete.id) }} tableName="Factură" isLoading={isDeleting} />
         </div>

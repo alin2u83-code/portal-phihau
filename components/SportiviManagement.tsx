@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions, VizualizarePlata } from '../types';
 import { Button, Input, Select, Card, RoleBadge } from './ui';
-import { PlusIcon, WalletIcon, UserXIcon, UserCheckIcon, SearchIcon, ShieldCheckIcon, TrashIcon } from './icons';
+import { PlusIcon, WalletIcon, UserXIcon, UserCheckIcon, SearchIcon, ShieldCheckIcon, TrashIcon, EditIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
@@ -205,6 +205,9 @@ export const SportiviManagement: React.FC<{
             cellClassName: 'text-right',
             render: (s) => (
                 <div className="flex justify-end items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                    <Button size="sm" variant="secondary" onClick={() => { setSportivToEdit(s); setIsFormModalOpen(true); }} title="Editează Profil" className="!p-2">
+                        <EditIcon className="w-4 h-4" />
+                    </Button>
                     <Button size="sm" variant="info" onClick={() => handleOpenWallet(s)} title="Portofel Sportiv" className="!p-2">
                         <WalletIcon className="w-4 h-4" />
                     </Button>

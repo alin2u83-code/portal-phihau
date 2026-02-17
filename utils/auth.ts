@@ -73,10 +73,13 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
             return { user: null, roles: null, error: customError };
         }
 
-        // Step 2: Determine the primary context.
-        let primaryContext = roleContexts.find(r => r.is_primary);
+        // Step 2: Determine the primary context. Prioritize 'ADMIN_CLUB'.
+        let primaryContext = roleContexts.find(r => r.rol_denumire === 'ADMIN_CLUB');
         if (!primaryContext) {
-            const roleOrder: Rol['nume'][] = ['SUPER_ADMIN_FEDERATIE', 'Admin', 'Admin Club', 'Instructor', 'Sportiv'];
+            primaryContext = roleContexts.find(r => r.is_primary);
+        }
+        if (!primaryContext) {
+            const roleOrder: (Rol['nume'] | 'ADMIN_CLUB')[] = ['SUPER_ADMIN_FEDERATIE', 'Admin', 'ADMIN_CLUB', 'Admin Club', 'Instructor', 'Sportiv'];
             const sortedRoles = [...roleContexts].sort((a, b) => roleOrder.indexOf(a.rol_denumire) - roleOrder.indexOf(b.rol_denumire));
             primaryContext = sortedRoles[0];
         }

@@ -236,8 +236,9 @@ export const SportiviManagement: React.FC<{
             } else {
                 const { email, parola, roluri, ...profileData } = formData;
                 if (!email || !parola) throw new Error("Emailul și parola sunt obligatorii pentru crearea unui cont nou.");
+                if (!profileData.club_id) { profileData.club_id = currentUser?.club_id; }
                 if (!profileData.club_id) throw new Error("Clubul este obligatoriu la adăugarea unui sportiv nou.");
-                
+
                 const { data: { user }, error: authError } = await supabase.auth.signUp({ email, password: parola });
                 if (authError) throw authError;
                 if (!user) throw new Error("Nu s-a putut crea contul de autentificare.");
@@ -276,7 +277,7 @@ export const SportiviManagement: React.FC<{
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4">
             <div className="flex justify-between items-center gap-4">
                 <h1 className="text-2xl font-bold text-white uppercase tracking-tight">Management Sportivi</h1>
                 {permissions.hasAdminAccess && (

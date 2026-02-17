@@ -282,7 +282,6 @@ interface UserProfileProps {
     onBack: () => void;
     clubs: Club[];
     vizualizarePlati: VizualizarePlata[];
-    // FIX: Add 'sportivi' to props to fix 'Cannot find name' errors.
     sportivi: Sportiv[];
 }
 
@@ -521,22 +520,21 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
     };
 
     return (
-        <div className="space-y-6">
-            <div className="flex justify-end items-center">
-                <Button variant="info" onClick={() => setIsEditModalOpen(true)}>
-                    <EditIcon className="w-4 h-4 mr-2"/> Editează Profil
-                </Button>
-            </div>
-            <header className="bg-[var(--bg-card)] p-6 rounded-xl shadow-lg border border-[var(--border-color)] flex flex-col md:flex-row items-center gap-6">
+        <div className="space-y-4">
+            <header className="bg-[var(--bg-card)] p-4 rounded-xl shadow-lg border border-[var(--border-color)] flex flex-col md:flex-row items-center gap-6">
                 <div><GradBadge grad={currentGrad} isLarge /></div>
                 <div className="text-center md:text-left flex-grow">
                     <h1 className="text-3xl font-bold text-white">{sportiv.nume} {sportiv.prenume}</h1>
                     <p className="text-lg text-slate-300">{grupe.find(g => g.id === sportiv.grupa_id)?.denumire || 'Fără grupă'}</p>
                 </div>
-                <div className="flex gap-2"><Button variant="primary" onClick={() => setIsWalletModalOpen(true)} className="!py-2 !px-3"><WalletIcon className="w-5 h-5 mr-2"/> Portofel</Button><Button variant="danger" onClick={() => setIsDeleteModalOpen(true)} className="!py-2 !px-3"><TrashIcon className="w-5 h-5 mr-2"/> Șterge</Button></div>
+                <div className="flex gap-2">
+                    <Button variant="info" onClick={() => setIsEditModalOpen(true)} className="!py-2 !px-3"><EditIcon className="w-5 h-5 mr-2"/> Editare</Button>
+                    <Button variant="primary" onClick={() => setIsWalletModalOpen(true)} className="!py-2 !px-3"><WalletIcon className="w-5 h-5 mr-2"/> Portofel</Button>
+                    <Button variant="danger" onClick={() => setIsDeleteModalOpen(true)} className="!py-2 !px-3"><TrashIcon className="w-5 h-5 mr-2"/> Șterge</Button>
+                </div>
             </header>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-1 space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div className="lg:col-span-1 space-y-4">
                     <Card><h3 className="text-lg font-bold text-white mb-3">Date Personale</h3><dl className="space-y-3"><DataField label="Vârstă" value={`${getAge(sportiv.data_nasterii)} ani`} /><DataField label="Data Înscrierii" value={new Date(sportiv.data_inscrierii).toLocaleDateString('ro-RO')} /><DataField label="Status" value={<span className={`px-2 py-0.5 text-xs rounded-full ${sportiv.status === 'Activ' ? 'bg-green-600/30 text-green-400' : 'bg-red-600/30 text-red-400'}`}>{sportiv.status}</span>} /><DataField label="Club" value={sportiv.cluburi?.id === FEDERATIE_ID ? FEDERATIE_NAME : sportiv.cluburi?.nume} /></dl>
                         {isSuperAdmin && <Button onClick={() => setIsTransferModalOpen(true)} variant="secondary" className="w-full mt-4"><TransferIcon className="w-4 h-4 mr-2"/> Transferă Sportiv</Button>}
                     </Card>
@@ -601,7 +599,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                     </Card>
                     <Button onClick={() => setIsReportModalOpen(true)} className="w-full"><ChartBarIcon className="w-5 h-5 mr-2" /> Generează Raport Feedback</Button>
                 </div>
-                <div className="lg:col-span-2 space-y-6">
+                <div className="lg:col-span-2 space-y-4">
                     <Card><h3 className="text-lg font-bold text-white mb-3">Progres Tehnic</h3><SportivProgressChart sportiv={sportiv} gradeHistory={gradeHistory} antrenamente={antrenamente} grade={grade} /></Card>
                     <Card><div className="flex justify-between items-center"><h3 className="text-lg font-bold text-white">Istoric Grade</h3><Button size="sm" variant="secondary" onClick={() => setIsAddGradeModalOpen(true)}><PlusIcon className="w-4 h-4 mr-1"/> Adaugă Manual</Button></div>
                         <div className="mt-3 max-h-60 overflow-y-auto pr-2">

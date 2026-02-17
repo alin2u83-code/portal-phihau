@@ -159,7 +159,7 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
     const inputStyle = "!text-lg !py-2.5 h-12";
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4">
             <FormSection title="Date Personale">
                 <Input label="Nume" name="nume" value={formData.nume || ''} onChange={handleChange} required disabled={loading} error={errors.nume} className={inputStyle} />
                 <Input label="Prenume" name="prenume" value={formData.prenume || ''} onChange={handleChange} required disabled={loading} error={errors.prenume} className={inputStyle} />
@@ -204,14 +204,14 @@ const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
                         <option value="">Fără grupă</option>
                         {grupe.filter(g => !formData.club_id || g.club_id === formData.club_id).map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
                     </Select>
-                    <Button type="button" variant="secondary" size="sm" onClick={onQuickAddGrupa} className="h-[52px] w-12"><PlusIcon className="w-5 h-5"/></Button>
+                    <Button type="button" variant="secondary" size="sm" onClick={onQuickAddGrupa} className="h-12 w-12"><PlusIcon className="w-5 h-5"/></Button>
                 </div>
                 <div className="flex gap-1 items-end">
                     <Select label="Familie" name="familie_id" value={formData.familie_id || ''} onChange={handleChange} disabled={loading} className={`${inputStyle} flex-grow`}>
                         <option value="">Individual</option>
                         {familii.map(f => <option key={f.id} value={f.id}>{f.nume}</option>)}
                     </Select>
-                    <Button type="button" variant="secondary" size="sm" onClick={onQuickAddFamilie} className="h-[52px] w-12"><PlusIcon className="w-5 h-5"/></Button>
+                    <Button type="button" variant="secondary" size="sm" onClick={onQuickAddFamilie} className="h-12 w-12"><PlusIcon className="w-5 h-5"/></Button>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                      <Select label="Status" name="status" value={formData.status || 'Activ'} onChange={handleChange} disabled={loading} className={inputStyle}>

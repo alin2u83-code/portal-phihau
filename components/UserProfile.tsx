@@ -436,12 +436,12 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
             if (!sportiv.id) throw new Error("ID-ul sportivului lipsește.");
             
             const { roluri, cluburi, ...sportivData } = formData;
-            const { data, error } = await supabase.from('sportivi').update(sportivData).eq('id', sportiv.id).select('*, cluburi(*), roles:utilizator_roluri_multicont(rol_denumire)').single();
+            const { data, error } = await supabase.from('sportivi').update(sportivData).eq('id', sportiv.id).select('*, cluburi(*), utilizator_roluri_multicont(rol_denumire)').single();
             if (error) throw error;
 
-            const updatedRoles = (data.roles || []).map((r: any) => ({ nume: r.rol_denumire })).filter(Boolean);
+            const updatedRoles = (data.utilizator_roluri_multicont || []).map((r: any) => ({ nume: r.rol_denumire })).filter(Boolean);
             const updatedSportiv = { ...data, roluri: updatedRoles };
-            delete (updatedSportiv as any).roles;
+            delete (updatedSportiv as any).utilizator_roluri_multicont;
 
             setSportivi(prev => prev.map(s => s.id === sportiv.id ? updatedSportiv : s));
             showSuccess("Succes", "Profilul a fost actualizat.");

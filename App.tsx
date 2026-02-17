@@ -274,7 +274,7 @@ function App() {
         return hasAccess ? view : <AccessDenied onBack={() => setActiveView('dashboard')} />;
     };
 
-    const isAtLeastInstructor = permissions.hasAdminAccess;
+    const isAtLeastInstructor = permissions.isFederationAdmin || permissions.isAdminClub || permissions.isInstructor;
     const isAtLeastClubAdmin = permissions.isAdminClub || permissions.isFederationAdmin;
     const isFederationAdmin = permissions.isFederationAdmin;
     const canManageFinances = permissions.canManageFinances;

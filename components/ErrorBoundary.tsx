@@ -14,7 +14,6 @@ interface State {
 }
 
 class ErrorBoundary extends React.Component<Props, State> {
-  // FIX: Refactored to use class properties for state and an arrow function for the method to ensure correct 'this' context and resolve errors.
   state: State = {
     hasError: false,
     error: undefined,
@@ -29,7 +28,7 @@ class ErrorBoundary extends React.Component<Props, State> {
   }
 
   // FIX: Converted `handleRedirect` to an arrow function. This ensures that `this` is correctly bound to the class instance
-  // when the method is passed as a callback to the `onClick` event handler, resolving the errors.
+  // when the method is passed as a callback to the `onClick` event handler, resolving errors related to `this` context.
   handleRedirect = () => {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {

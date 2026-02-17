@@ -25,7 +25,6 @@ export const usePermissions = (user: User | null, activeRole: Rol['nume'] | null
         }
 
         // --- Permisiuni bazate pe ROLUL ACTIV CURENT ---
-        // Acestea definesc ce poate face utilizatorul în sesiunea curentă.
         const isSuperAdmin = activeRole === 'SUPER_ADMIN_FEDERATIE';
         const isAdmin = activeRole === 'Admin';
         const isFederationAdmin = isSuperAdmin || isAdmin;
@@ -34,10 +33,10 @@ export const usePermissions = (user: User | null, activeRole: Rol['nume'] | null
         const isSportiv = activeRole === 'Sportiv';
 
         // --- Flag-uri compozite și de business logic (bazate pe rolul activ) ---
-        const hasAdminAccess = isFederationAdmin || isAdminClub || isInstructor;
+        const hasAdminAccess = isFederationAdmin || isAdminClub;
         const isFederationLevel = isFederationAdmin;
         const canManageFinances = isFederationLevel || isAdminClub;
-        const canGradeStudents = hasAdminAccess;
+        const canGradeStudents = isFederationAdmin || isAdminClub || isInstructor;
 
         // --- Scopul Vizibilității Datelor (bazat pe rolul activ și contextul utilizatorului) ---
         // Dacă rolul activ este la nivel de federație, poate vedea toate cluburile.
@@ -47,7 +46,6 @@ export const usePermissions = (user: User | null, activeRole: Rol['nume'] | null
             : (user.club_id ? [user.club_id] : []);
 
         // --- Capabilități de Rol (bazate pe TOATE rolurile disponibile ale utilizatorului) ---
-        // Acestea sunt utile pentru UI, de ex. pentru a afișa opțiuni de comutare a rolului.
         const allUserRoles = new Set((user.roluri || []).map(r => r.nume));
         const canBeFederationAdmin = allUserRoles.has('SUPER_ADMIN_FEDERATIE') || allUserRoles.has('Admin');
         const canBeClubAdmin = allUserRoles.has('Admin Club');

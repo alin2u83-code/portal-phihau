@@ -435,7 +435,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
         try {
             if (!sportiv.id) throw new Error("ID-ul sportivului lipsește.");
             
-            const { roluri, ...sportivData } = formData;
+            const { roluri, cluburi, ...sportivData } = formData;
             const { data, error } = await supabase.from('sportivi').update(sportivData).eq('id', sportiv.id).select('*, cluburi(*), roles:utilizator_roluri_multicont(rol_denumire)').single();
             if (error) throw error;
 

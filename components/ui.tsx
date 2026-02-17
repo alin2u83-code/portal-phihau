@@ -27,7 +27,7 @@ export const Button: React.FC<ButtonProps & { as?: 'label', htmlFor?: string }> 
   };
   
   const variantClasses = {
-    primary: "bg-[var(--accent)] hover:bg-[var(--accent-hover)] focus:ring-[var(--accent)] text-white hover:shadow-glow-blue",
+    primary: "bg-blue-600 hover:bg-blue-700 focus:ring-blue-500 text-white font-bold",
     secondary: "bg-slate-600 hover:bg-slate-700 focus:ring-slate-500 text-white hover:shadow-glow-blue",
     danger: "bg-status-danger hover:bg-red-700 focus:ring-red-500 text-white",
     success: "bg-green-600 hover:bg-green-700 focus:ring-green-600 text-white font-bold",
@@ -122,12 +122,12 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(({ label, id, error, ...props }, ref) => {
-    const errorClasses = error ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-[var(--border-color)] focus:ring-[var(--accent)] focus:border-[var(--accent)]';
+    const errorClasses = error ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-slate-300 focus:ring-sky-500 focus:border-sky-500';
     const themeClasses = 'bg-[var(--bg-input)] text-[var(--text-primary)] placeholder-[var(--text-secondary)]';
 
     return (
         <div className="w-full">
-            {label && <label htmlFor={id} className={`block text-[11px] uppercase font-bold text-[var(--text-secondary)] mb-1 ml-1`}>{label}</label>}
+            {label && <label htmlFor={id} className={`block text-[11px] uppercase font-bold text-slate-200 mb-1 ml-1`}>{label}</label>}
             <input
                 id={id}
                 ref={ref}
@@ -146,8 +146,8 @@ interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
 
 export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(({ label, id, children, ...props }, ref) => (
     <div className="w-full">
-        {label && <label htmlFor={id} className="block text-[11px] uppercase font-bold text-[var(--text-secondary)] mb-1 ml-1">{label}</label>}
-        <select id={id} ref={ref} {...props} className={`w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded px-2 py-1 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)] focus:border-[var(--accent)] transition-all appearance-none ${props.className}`}>
+        {label && <label htmlFor={id} className="block text-[11px] uppercase font-bold text-slate-200 mb-1 ml-1">{label}</label>}
+        <select id={id} ref={ref} {...props} className={`w-full bg-[var(--bg-input)] border border-slate-300 rounded px-2 py-1 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-sky-500 focus:border-sky-500 transition-all appearance-none ${props.className}`}>
             {children}
         </select>
     </div>

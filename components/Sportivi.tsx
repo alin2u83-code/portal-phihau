@@ -332,7 +332,12 @@ export const SportivFormModal: React.FC<{
                         />
                         <div className="flex justify-end pt-4 mt-4 gap-2 border-t border-slate-700">
                             <Button type="button" variant="secondary" onClick={() => onClose()} disabled={loading}>Închide</Button>
-                            <Button type="submit" variant="success" isLoading={loading} disabled={!isFormValid || loading}>
+                            <Button
+                                type="submit"
+                                variant={sportivToEdit ? 'success' : 'primary'}
+                                isLoading={loading}
+                                disabled={!isFormValid || loading}
+                            >
                                 {sportivToEdit ? 'Salvează Modificările' : 'Adaugă Practicant'}
                             </Button>
                         </div>

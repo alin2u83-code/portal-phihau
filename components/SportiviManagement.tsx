@@ -222,7 +222,7 @@ export const SportiviManagement: React.FC<{
     const handleSave = async (formData: Partial<Sportiv>): Promise<{ success: boolean; error?: any; data?: Sportiv; }> => {
         try {
             if (sportivToEdit) {
-                const { roluri, ...sportivData } = formData;
+                const { roluri, cluburi, ...sportivData } = formData;
                 const { data, error } = await supabase.from('sportivi').update(sportivData).eq('id', sportivToEdit.id).select('*, cluburi(*), roles:utilizator_roluri_multicont(rol_denumire)').single();
                 if (error) throw error;
     
@@ -234,7 +234,7 @@ export const SportiviManagement: React.FC<{
                 showSuccess('Succes', 'Sportiv actualizat!');
                 return { success: true, data: updatedSportiv };
             } else {
-                const { email, parola, roluri, ...profileData } = formData;
+                const { email, parola, roluri, cluburi, ...profileData } = formData;
                 if (!email || !parola) throw new Error("Emailul și parola sunt obligatorii pentru crearea unui cont nou.");
                 if (!profileData.club_id) { profileData.club_id = currentUser?.club_id; }
                 if (!profileData.club_id) throw new Error("Clubul este obligatoriu la adăugarea unui sportiv nou.");

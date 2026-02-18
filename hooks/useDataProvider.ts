@@ -148,8 +148,7 @@ export const useDataProvider = () => {
                 supabase.from('nom_locatii').select('*'),
                 supabase.from('tipuri_plati').select('*'),
                 supabase.from('reduceri').select('*'),
-                supabase.from('sportivi').select('*, cluburi(*)'),
-                supabase.from('utilizator_roluri_multicont').select('*'),
+                supabase.from('sportivi').select('*, cluburi(*), utilizator_roluri_multicont(rol_denumire)'),
                 supabase.from('sesiuni_examene').select('*'),
                 supabase.from('inscrieri_examene').select('*, sportivi:sportiv_id(*), grades:grad_vizat_id(*)'),
                 supabase.from('program_antrenamente').select('*, grupe(*), prezenta:prezenta_antrenament!antrenament_id(sportiv_id, status)'),
@@ -188,7 +187,7 @@ export const useDataProvider = () => {
             const [
                 { data: clubsData }, { data: rolesData }, { data: gradesData }, { data: groupsData },
                 { data: subscriptionTypesData }, { data: locatiiData }, { data: platiTypesData },
-                { data: reduceriData }, { data: sportiviData }, { data: multiContData }, { data: sessionsData },
+                { data: reduceriData }, { data: sportiviData }, { data: sessionsData },
                 { data: registrationsData }, { data: trainingsData }, { data: platiData },
                 { data: tranzactiiData }, { data: evenimenteData }, { data: resultsData },
                 { data: familiesData }, { data: anunturiData }, { data: pricesData },
@@ -196,17 +195,18 @@ export const useDataProvider = () => {
             ] = processedResults;
             
             const allNomenclatorRoles = (rolesData || []) as Rol[];
-            const multiContRolesData = (multiContData || []) as any[];
 
             let allSportivi = (sportiviData || []).map(s => {
                 if (!s) return null;
-                const userRolesFromJoin = multiContRolesData
-                    .filter(mcr => mcr.sportiv_id === s.id)
-                    .map(mcr => allNomenclatorRoles.find(r => r.nume === mcr.rol_denumire))
+                const sportivWithRoles = s as any;
+                const userRolesFromJoin = (sportivWithRoles.utilizator_roluri_multicont || [])
+                    .map((joinedRole: { rol_denumire: string }) => allNomenclatorRoles.find(r => r.nume === joinedRole.rol_denumire))
                     .filter((r): r is Rol => !!r);
                 
+                delete sportivWithRoles.utilizator_roluri_multicont;
+
                 return { 
-                    ...s, 
+                    ...sportivWithRoles, 
                     roluri: userRolesFromJoin,
                 };
             }).filter(Boolean) as Sportiv[] || [];

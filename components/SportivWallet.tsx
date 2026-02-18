@@ -67,7 +67,7 @@ export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, 
                     totalPaid: 0,
                     remaining: p.suma_datorata,
                 });
-                totalBilledOverall += p.suma_datorata;
+                totalBilledOverall += (p.suma_datorata || 0);
             }
             if (p.tranzactie_id && p.suma_incasata && p.data_plata) {
                 invoices.get(p.plata_id)!.payments.push(p);
@@ -77,12 +77,12 @@ export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, 
         invoices.forEach(invoice => {
             const totalPaidForInvoice = invoice.payments.reduce((sum, payment) => sum + (payment.suma_incasata || 0), 0);
             invoice.totalPaid = totalPaidForInvoice;
-            invoice.remaining = invoice.details.suma_datorata - totalPaidForInvoice;
+            invoice.remaining = (invoice.details.suma_datorata || 0) - totalPaidForInvoice;
             totalPaidOverall += totalPaidForInvoice;
         });
         
         const currentSold = totalPaidOverall - totalBilledOverall;
-        const dueAmount = Array.from(invoices.values()).reduce((sum, inv) => sum + Math.max(0, inv.remaining), 0);
+        const dueAmount = Array.from(invoices.values()).reduce((sum, inv) => sum + Math.max(0, inv.remaining || 0), 0);
         
         const sortedHistory = Array.from(invoices.values()).sort((a,b) => new Date(b.details.data_emitere).getTime() - new Date(a.details.data_emitere).getTime());
 
@@ -200,7 +200,7 @@ export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, 
                                                 </p>
                                             </div>
                                             <p className={`text-base font-bold text-right ${invoice.remaining > 0 ? 'text-red-400' : 'text-green-400'}`}>
-                                                {invoice.remaining > 0 ? `-${(invoice.remaining || 0).toFixed(2)}` : (invoice.details.suma_datorata || 0).toFixed(2)}
+                                                {invoice.remaining > 0 ? `-${(invoice.remaining || 0).toFixed(2)}` : ((invoice.details.suma_datorata || 0)).toFixed(2)}
                                             </p>
                                         </div>
                                         {invoice.payments.length > 0 && (

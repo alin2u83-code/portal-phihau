@@ -661,9 +661,10 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                                 ) : istoricFacturi.length > 0 ? istoricFacturi.map(({ detalii: p, totalIncasat }) => {
                                     if (!p.data_plata && !p.data_emitere) return null;
                                     let amountDisplay; let amountColor; let originalAmount = null;
+                                    const ramasDePlata = (p.suma_datorata || 0) - (totalIncasat || 0);
                                     if (p.status === 'Achitat') { amountDisplay = `${((totalIncasat || 0)).toFixed(2)} RON`; amountColor = 'text-green-400';
                                     } else if (p.status === 'Neachitat') { amountDisplay = `${((p.suma_datorata || 0)).toFixed(2)} RON`; amountColor = 'text-red-400';
-                                    } else { const ramasDePlata = (p.suma_datorata || 0) - (totalIncasat || 0); amountDisplay = `${((ramasDePlata || 0)).toFixed(2)} RON`; amountColor = 'text-amber-400'; originalAmount = p.suma_datorata; }
+                                    } else { amountDisplay = `${((ramasDePlata || 0)).toFixed(2)} RON`; amountColor = 'text-amber-400'; originalAmount = p.suma_datorata; }
                                     return (
                                         <div key={p.plata_id} className="text-xs bg-slate-800/50 p-2 rounded-md">
                                             <div className="flex justify-between items-start gap-2">

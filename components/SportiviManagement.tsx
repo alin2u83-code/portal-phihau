@@ -108,6 +108,8 @@ export const SportiviManagement: React.FC<{
     const [createAccountForm, setCreateAccountForm] = useState({ email: '', username: '', parola: '' });
     const [createAccountError, setCreateAccountError] = useState('');
     const [createAccountLoading, setCreateAccountLoading] = useState(false);
+    
+    const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>({ key: 'nume', direction: 'asc' });
 
     const { showError, showSuccess } = useError();
     const isMobile = useIsMobile();
@@ -122,6 +124,14 @@ export const SportiviManagement: React.FC<{
     
     const handleFilterChange = (name: keyof typeof filters, value: string) => {
         setFilters(prev => ({ ...prev, [name]: value }));
+    };
+    
+    const requestSort = (key: string) => {
+        let direction: 'asc' | 'desc' = 'asc';
+        if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+            direction = 'desc';
+        }
+        setSortConfig({ key, direction });
     };
 
     const handleOpenWallet = (sportiv: Sportiv) => {
@@ -181,9 +191,36 @@ export const SportiviManagement: React.FC<{
             (filters.grupaFilter ? s.grupa_id === filters.grupaFilter : true) &&
             (filters.rolFilter ? (s.roluri || []).some(r => r.id === filters.rolFilter) : true) &&
             (filters.gradFilter ? (filters.gradFilter === 'null' ? !s.grad_actual_id : s.grad_actual_id === filters.gradFilter) : true)
-        ).sort((a: Sportiv, b: Sportiv) => a.nume.localeCompare(b.nume));
+        );
     }, [sportivi, filters]);
     
+    const sortedAndFilteredSportivi = useMemo(() => {
+        let sortableItems = [...filteredSportivi];
+        if (sortConfig !== null) {
+            sortableItems.sort((a, b) => {
+                if (sortConfig.key === 'grad_actual_id') {
+                    const gradA = grade.find(g => g.id === a.grad_actual_id);
+                    const gradB = grade.find(g => g.id === b.grad_actual_id);
+                    const ordineA = gradA ? gradA.ordine : -1;
+                    const ordineB = gradB ? gradB.ordine : -1;
+                    if (ordineA < ordineB) return sortConfig.direction === 'asc' ? -1 : 1;
+                    if (ordineA > ordineB) return sortConfig.direction === 'asc' ? 1 : -1;
+                    return 0;
+                }
+                const aVal = a[sortConfig.key as keyof Sportiv] as any;
+                const bVal = b[sortConfig.key as keyof Sportiv] as any;
+                if (aVal < bVal) {
+                    return sortConfig.direction === 'asc' ? -1 : 1;
+                }
+                if (aVal > bVal) {
+                    return sortConfig.direction === 'asc' ? 1 : -1;
+                }
+                return 0;
+            });
+        }
+        return sortableItems;
+    }, [filteredSportivi, sortConfig, grade]);
+
      const columns: Column<Sportiv>[] = [
         {
             key: 'nume',
@@ -418,7 +455,7 @@ export const SportiviManagement: React.FC<{
 
             {isMobile ? (
                 <div className="space-y-3">
-                    {filteredSportivi.map(s => (
+                    {sortedAndFilteredSportivi.map(s => (
                         <SportivCardMobile
                             key={s.id}
                             sportiv={s}
@@ -435,10 +472,12 @@ export const SportiviManagement: React.FC<{
             ) : (
                 <ResponsiveTable
                     columns={columns}
-                    data={filteredSportivi}
+                    data={sortedAndFilteredSportivi}
                     onRowClick={handleRowClick}
                     selectedRowId={selectedSportivForHighlight?.id}
                     rowClassName={(sportiv) => !sportiv.user_id ? 'bg-red-900/20 hover:bg-red-900/40 !border-l-2 !border-red-500' : ''}
+                    onSort={requestSort}
+                    sortConfig={sortConfig || undefined}
                 />
             )}
 

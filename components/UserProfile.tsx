@@ -261,17 +261,36 @@ const CreateAccountModal: React.FC<{
         setLoading(true);
 
         try {
+            // Pas 1: Creează contul de autentificare
             const { data: authData, error: authError } = await supabase.functions.invoke('create-user-admin', {
                 body: { email: form.email, password: form.parola },
             });
-            if (authError || authData.error) { throw new Error(authError?.message || authData?.error || "Eroare la crearea contului de autentificare."); }
+            if (authError || authData.error) {
+                if (authData?.error?.includes('User already exists')) {
+                    throw new Error('Un utilizator cu acest email există deja în sistem. Asociați-l manual.');
+                }
+                throw new Error(authError?.message || authData?.error || "Eroare la crearea contului de autentificare.");
+            }
             const newAuthUser = authData.user;
             if (!newAuthUser) throw new Error("Funcția de creare a utilizatorului nu a returnat un ID valid.");
             
+            // Pas 2: Leagă noul cont de profilul sportivului
             const { error: updateError } = await supabase.from('sportivi').update({ user_id: newAuthUser.id, email: form.email }).eq('id', sportiv.id);
             if (updateError) throw updateError;
             
-            showSuccess("Cont Creat!", `Contul pentru ${sportiv.nume} a fost generat.`);
+            // Pas 3: Atribuie rolul implicit de 'Sportiv'
+            const { error: roleError } = await supabase.from('utilizator_roluri_multicont').insert({
+                user_id: newAuthUser.id,
+                sportiv_id: sportiv.id,
+                club_id: sportiv.club_id,
+                rol_denumire: 'Sportiv',
+                is_primary: true
+            });
+            if (roleError) {
+                throw new Error(`Cont creat, dar rolul 'Sportiv' nu a putut fi asignat: ${roleError.message}. Contactați administratorul.`);
+            }
+
+            showSuccess("Cont Creat!", `Contul pentru ${sportiv.nume} a fost generat și asociat.`);
             onAccountCreated();
             onClose();
 
@@ -596,7 +615,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                     </div>
                     <Button variant="info" size="sm" onClick={() => {
                         if (!sportiv.email) {
-                            showError("Email Lipsă", "Introdu o adresă de email în profilul sportivului pentru a putea genera contul.");
+                            showError("Email Lipsă", "Introduceți o adresă de email în profilul sportivului pentru a putea genera contul.");
                             return;
                         }
                         setIsCreateAccountModalOpen(true);

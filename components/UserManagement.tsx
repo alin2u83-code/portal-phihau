@@ -321,7 +321,6 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
     const [createAccountForm, setCreateAccountForm] = useState({ email: '', username: '', parola: '' });
     const [createAccountError, setCreateAccountError] = useState('');
     const [createAccountLoading, setCreateAccountLoading] = useState(false);
-    const [accountCreationStep, setAccountCreationStep] = useState<'initial' | 'confirm_link'>('initial');
     
     const [newRoleName, setNewRoleName] = useState('');
     const [roleCreationFeedback, setRoleCreationFeedback] = useState<{ type: 'success' | 'error', message: string } | null>(null);
@@ -435,127 +434,61 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
         });
         setIsCreateAccountModalOpen(true);
         setCreateAccountError('');
-        setAccountCreationStep('initial');
     };
 
     const handleCreateAccountFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setCreateAccountForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
     };
     
-    const handleLinkExistingAccount = async () => {
-        if (!supabase || !selectedUserForAccount) return;
-        setCreateAccountLoading(true);
-        setCreateAccountError('');
-        
-        const { data: { session: adminSession } } = await supabase.auth.getSession();
-
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ email: createAccountForm.email, password: createAccountForm.parola });
-
-        if (signInError) {
-            setCreateAccountError("Parola este incorectă pentru contul existent. Asocierea a eșuat.");
-            if (adminSession) {
-                await supabase.auth.setSession({ access_token: adminSession!.access_token, refresh_token: adminSession!.refresh_token });
-            }
-            setAccountCreationStep('initial');
-            setCreateAccountLoading(false);
-            return;
-        }
-
-        if (signInData.user) {
-            const existingUserId = signInData.user.id;
-            const { data: linkedProfile, error: checkError } = await supabase.from('sportivi').select('id, nume, prenume').eq('user_id', existingUserId).not('id', 'eq', selectedUserForAccount.id).maybeSingle();
-
-            if (checkError) {
-                setCreateAccountError(`Eroare la verificare profil existent: ${checkError.message}`);
-            } else if (linkedProfile) {
-                setCreateAccountError(`Contul este deja asociat cu sportivul ${linkedProfile.nume} ${linkedProfile.prenume}.`);
-            } else {
-                const profileUpdates = { user_id: existingUserId, email: createAccountForm.email, username: createAccountForm.username };
-                const { data: updateData, error: updateError } = await supabase.from('sportivi').update(profileUpdates).eq('id', selectedUserForAccount.id).select('*, cluburi(*)').single();
-
-                if (updateError) {
-                    setCreateAccountError(`Asociere eșuată la actualizarea profilului: ${updateError.message}`);
-                } else if (updateData) {
-                    const updatedUser = { ...updateData, roluri: selectedUserForAccount.roluri };
-                    setSportivi(prev => prev.map(s => s.id === selectedUserForAccount.id ? updatedUser as Sportiv : s));
-                    
-                    setIsCreateAccountModalOpen(false);
-                    showSuccess("Asociere Reușită", `Sportivul a fost asociat cu succes contului existent!`);
-                }
-            }
-        }
-        await supabase.auth.signOut();
-        if (adminSession) {
-            await supabase.auth.setSession({ access_token: adminSession.access_token, refresh_token: adminSession.refresh_token });
-        }
-        setCreateAccountLoading(false);
-    };
-
     const handleCreateAccount = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!supabase || !selectedUserForAccount) return;
-        if (!createAccountForm.email || !createAccountForm.parola) {
-            setCreateAccountError("Email-ul și parola sunt obligatorii.");
-            return;
-        }
         setCreateAccountLoading(true);
         setCreateAccountError('');
-    
-        if (createAccountForm.username) {
-            const { data: existingUser, error: checkError } = await supabase.from('sportivi').select('id').eq('username', createAccountForm.username).not('id', 'eq', selectedUserForAccount.id).limit(1);
-            if (checkError) { setCreateAccountError(`Eroare la verificare: ${checkError.message}`); setCreateAccountLoading(false); return; }
-            if (existingUser && existingUser.length > 0) { setCreateAccountError('Numele de utilizator este deja folosit.'); setCreateAccountLoading(false); return; }
-        }
-    
-        const { data: { session: adminSession } } = await supabase.auth.getSession();
-    
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-            email: createAccountForm.email,
-            password: createAccountForm.parola,
-        });
-    
-        if (signUpError) {
-            if (signUpError.message.includes("User already exists")) {
-                setCreateAccountError(`Un cont cu email-ul "${createAccountForm.email}" există deja. Confirmați parola pentru a-l asocia.`);
-                setAccountCreationStep('confirm_link');
-            } else {
-                setCreateAccountError(`Eroare la crearea contului: ${signUpError.message}`);
-            }
-            if(adminSession) {
-                 await supabase.auth.setSession({ access_token: adminSession.access_token, refresh_token: adminSession.refresh_token });
-            }
-            setCreateAccountLoading(false);
-            return;
-        }
         
-        const authUser = signUpData.user;
+        try {
+            const { data: authData, error: authError } = await supabase.functions.invoke('create-user-admin', {
+                body: { email: createAccountForm.email, password: createAccountForm.parola },
+            });
+
+            if (authError || authData.error) {
+                const errorMessage = authError?.message || authData?.error;
+                if (String(errorMessage).includes('User already exists')) {
+                     throw new Error('Un utilizator cu acest email există deja. Asociați-l manual dacă este necesar.');
+                }
+                throw new Error(errorMessage || 'A apărut o eroare la crearea contului.');
+            }
     
-        if (authUser) {
+            const authUser = authData.user;
+            if (!authUser) throw new Error("Nu s-a putut crea contul de autentificare. Răspunsul de la server a fost gol.");
+    
             const profileUpdates = { user_id: authUser.id, email: createAccountForm.email, username: createAccountForm.username };
             const { data, error } = await supabase.from('sportivi').update(profileUpdates).eq('id', selectedUserForAccount.id).select('*, cluburi(*)').single();
     
-            await supabase.auth.signOut().catch(()=>{});
-            if (adminSession) {
-                await supabase.auth.setSession({ access_token: adminSession.access_token, refresh_token: adminSession.refresh_token });
-            }
+            if (error) throw new Error(`Cont Auth creat, dar eroare la legarea profilului: ${error.message}.`);
+            
+            const { error: roleError } = await supabase.from('utilizator_roluri_multicont').insert({
+                user_id: authUser.id,
+                sportiv_id: selectedUserForAccount.id,
+                club_id: selectedUserForAccount.club_id,
+                rol_denumire: 'Sportiv',
+                is_primary: true
+            });
+            if (roleError) throw new Error(`Profil legat, dar eroare la asignarea rolului 'Sportiv': ${roleError.message}`);
+
+            const sportivRole = allRoles.find(r => r.nume === 'Sportiv');
+            const updatedUser = { ...data, roluri: sportivRole ? [sportivRole] : [] };
+
+            setSportivi(prev => prev.map(s => s.id === selectedUserForAccount.id ? updatedUser as Sportiv : s));
+            
+            setIsCreateAccountModalOpen(false);
+            showSuccess("Cont Creat", `Contul pentru ${selectedUserForAccount.nume} a fost creat cu succes.`);
     
-            if (error) {
-                setCreateAccountError(`Cont Auth creat (ID: ${authUser.id}), dar eroare la legarea profilului: ${error.message}. Încercați să asociați contul manual.`);
-            } else if (data) {
-                const updatedUser = { ...data, roluri: selectedUserForAccount.roluri };
-                setSportivi(prev => prev.map(s => s.id === selectedUserForAccount.id ? updatedUser as Sportiv : s));
-                
-                setIsCreateAccountModalOpen(false);
-                showSuccess("Cont Creat", `Contul pentru ${selectedUserForAccount.nume} a fost creat. Utilizatorul va trebui să confirme adresa de email.`);
-            }
-        } else {
-            if(adminSession) {
-                 await supabase.auth.setSession({ access_token: adminSession.access_token, refresh_token: adminSession.refresh_token });
-            }
-            setCreateAccountError('Nu s-a putut crea contul de autentificare. Răspunsul de la server a fost gol.');
+        } catch (err: any) {
+            setCreateAccountError(err.message);
+        } finally {
+            setCreateAccountLoading(false);
         }
-        
-        setCreateAccountLoading(false);
     };
 
     const handleAddNewRole = async () => {
@@ -699,27 +632,16 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
 
             {isCreateAccountModalOpen && selectedUserForAccount && (
                 <Modal isOpen={isCreateAccountModalOpen} onClose={() => setIsCreateAccountModalOpen(false)} title={`Creează Cont pentru ${selectedUserForAccount.nume} ${selectedUserForAccount.prenume}`}>
-                    {accountCreationStep === 'initial' ? (
-                        <form onSubmit={handleCreateAccount} className="space-y-4">
-                            <Input label="Email (Login)" name="email" type="email" value={createAccountForm.email} onChange={handleCreateAccountFormChange} required />
-                            <Input label="Nume Utilizator" name="username" type="text" value={createAccountForm.username} onChange={handleCreateAccountFormChange} placeholder="Opțional. Ex: ion.popescu"/>
-                            <Input label="Parolă Inițială" name="parola" type="password" value={createAccountForm.parola} onChange={handleCreateAccountFormChange} required />
-                            {createAccountError && <p className="text-red-400 text-sm text-center bg-red-900/50 p-2 rounded">{createAccountError}</p>}
-                            <div className="flex justify-end pt-4 space-x-2">
-                                <Button type="button" variant="secondary" onClick={() => setIsCreateAccountModalOpen(false)} disabled={createAccountLoading}>Anulează</Button>
-                                <Button type="submit" variant="success" disabled={createAccountLoading}>{createAccountLoading ? 'Se creează...' : 'Creează Cont'}</Button>
-                            </div>
-                        </form>
-                    ) : (
-                        <form onSubmit={(e) => { e.preventDefault(); handleLinkExistingAccount(); }} className="space-y-4">
-                             <p className="text-amber-300 text-sm text-center bg-amber-900/50 p-3 rounded-md">{createAccountError}</p>
-                            <Input label="Confirmă Parola Contului Existent" name="parola" type="password" value={createAccountForm.parola} onChange={handleCreateAccountFormChange} required />
-                             <div className="flex justify-end pt-4 space-x-2">
-                                <Button type="button" variant="secondary" onClick={() => { setCreateAccountError(''); setAccountCreationStep('initial'); }} disabled={createAccountLoading}>Înapoi</Button>
-                                <Button type="submit" variant="success" disabled={createAccountLoading}>{createAccountLoading ? 'Se asociază...' : 'Da, Asociază Contul'}</Button>
-                            </div>
-                        </form>
-                    )}
+                    <form onSubmit={handleCreateAccount} className="space-y-4">
+                        <Input label="Email (Login)" name="email" type="email" value={createAccountForm.email} onChange={handleCreateAccountFormChange} required />
+                        <Input label="Nume Utilizator" name="username" type="text" value={createAccountForm.username} onChange={handleCreateAccountFormChange} placeholder="Opțional. Ex: ion.popescu"/>
+                        <Input label="Parolă Inițială" name="parola" type="password" value={createAccountForm.parola} onChange={handleCreateAccountFormChange} required />
+                        {createAccountError && <p className="text-red-400 text-sm text-center bg-red-900/50 p-2 rounded">{createAccountError}</p>}
+                        <div className="flex justify-end pt-4 space-x-2">
+                            <Button type="button" variant="secondary" onClick={() => setIsCreateAccountModalOpen(false)} disabled={createAccountLoading}>Anulează</Button>
+                            <Button type="submit" variant="success" disabled={createAccountLoading}>{createAccountLoading ? 'Se creează...' : 'Creează Cont'}</Button>
+                        </div>
+                    </form>
                 </Modal>
             )}
 

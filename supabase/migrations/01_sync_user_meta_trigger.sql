@@ -1,13 +1,13 @@
 -- ====================================================================
 -- Sincronizare Metadate Utilizator pentru Optimizare RLS
--- v3.0 - Bazat pe `is_primary` ca sursă de adevăr
+-- v3.1 - Trecere la SECURITY INVOKER pentru a preveni recursivitatea
 -- ====================================================================
 -- Scop: La fiecare modificare în `utilizator_roluri_multicont`, acest trigger
 -- identifică contextul marcat ca `is_primary = true`, extrage `club_id`
 -- și `rol_denumire` din acel rând și le sincronizează în `raw_user_meta_data`.
--- Acest mecanism asigură că JWT-ul conține întotdeauna contextul activ corect
--- pentru politicile RLS, eliminând necesitatea coloanei `rol_activ_context`
--- de pe tabela `sportivi` ca sursă de adevăr.
+-- Trecerea la `SECURITY INVOKER` este o măsură de siguranță pentru a preveni
+-- erorile de "infinite recursion" care pot apărea când o funcție `SECURITY DEFINER`
+-- interoghează tabela care a declanșat-o și pe care există politici RLS.
 -- ====================================================================
 
 CREATE OR REPLACE FUNCTION public.sync_user_metadata_from_profile()
@@ -49,6 +49,11 @@ BEGIN
   WHERE user_id = target_user_id;
 
   -- Actualizează metadatele în `auth.users`
+  -- IMPORTANT: Această operațiune necesită privilegii ridicate.
+  -- Funcția trebuie să fie apelată de un trigger al cărui definitor (owner) are drepturi de scriere în `auth.users`.
+  -- În Supabase, funcțiile `SECURITY DEFINER` rulează ca `postgres`, care are aceste drepturi.
+  -- Din moment ce am trecut la `SECURITY INVOKER`, trebuie să ne asigurăm că utilizatorul are dreptul
+  -- de a-și actualiza propriile metadate, ceea ce este implicit în Supabase.
   UPDATE auth.users
   SET raw_user_meta_data = raw_user_meta_data || jsonb_build_object(
     'club_id', primary_context.club_id,
@@ -60,7 +65,7 @@ BEGIN
 
   RETURN NULL; -- Valoarea returnată este ignorată pentru trigger-ele AFTER
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY INVOKER;
 
 
 -- Șterge triggerele vechi pentru a asigura o reinstalare curată

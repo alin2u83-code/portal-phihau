@@ -170,23 +170,42 @@ const CreateStaffModal: React.FC<{
         setLoading(true);
 
         try {
-            const { data: authData, error: authError } = await supabase.functions.invoke('create-user-admin', {
-                body: { email: formData.email, password: formData.parola },
-            });
+            let newAuthUser: { id: string } | null = null;
 
-            if (authError || authData.error) {
-                const errorMessage = authError?.message || authData?.error;
-                if (String(errorMessage).includes('User already exists')) {
-                     throw new Error('Un utilizator cu acest email există deja în sistemul de autentificare.');
+            // FIX: Implementat fallback pentru crearea de utilizatori.
+            // Încearcă mai întâi cu funcția Edge, iar dacă eșuează, folosește `signUp` ca alternativă.
+            try {
+                const { data: authData, error: authError } = await supabase.functions.invoke('create-user-admin', {
+                    body: { email: formData.email, password: formData.parola },
+                });
+
+                if (authError || authData?.error) {
+                    console.warn("Edge Function 'create-user-admin' a eșuat. Se comută pe supabase.auth.signUp.", authError || authData.error);
+                    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+                        email: formData.email,
+                        password: formData.parola,
+                    });
+                    if (signUpError) {
+                        if (signUpError.message.includes("User already exists")) {
+                            throw new Error('Un utilizator cu acest email există deja. Contactați administratorul pentru a asocia manual contul existent.');
+                        }
+                        throw signUpError;
+                    }
+                    if (!signUpData.user) throw new Error("Metoda alternativă (signUp) nu a returnat un utilizator valid.");
+                    newAuthUser = signUpData.user;
+                    showSuccess("Cont Creat (Confirmare Necesară)", "Utilizatorul trebuie să confirme adresa de email înainte de a se putea autentifica.");
+                } else {
+                    newAuthUser = authData.user;
                 }
-                throw new Error(errorMessage || 'A apărut o eroare la crearea contului de autentificare.');
+            } catch (e: any) {
+                throw new Error(`Eroare la crearea contului de autentificare: ${e.message}`);
             }
-            
-            const newAuthUser = authData.user;
+
             if (!newAuthUser || !newAuthUser.id) {
                 throw new Error('Funcția de creare a utilizatorului nu a returnat un ID valid.');
             }
 
+            // Secvența corectă: 1. Auth User -> 2. Sportiv Profile -> 3. Roles
             const newSportivProfile: Omit<Sportiv, 'id' | 'roluri' | 'cluburi'> = {
                 user_id: newAuthUser.id,
                 nume: formData.nume,
@@ -226,7 +245,7 @@ const CreateStaffModal: React.FC<{
                 }
             ];
             
-            // Every staff member is also a "Sportiv" contextually
+            // Orice membru staff este și un "Sportiv" din punct de vedere contextual
             const sportivRole = allRoles.find(r => r.nume === 'Sportiv');
             if (sportivRole) {
                 rolesToInsert.push({
@@ -325,6 +344,9 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
     const [newRoleName, setNewRoleName] = useState('');
     const [roleCreationFeedback, setRoleCreationFeedback] = useState<{ type: 'success' | 'error', message: string } | null>(null);
 
+    // FIX: Adăugat stare de încărcare pentru butoanele de salvare a rolurilor.
+    const [roleSaveLoading, setRoleSaveLoading] = useState<Record<string, boolean>>({});
+
     const roleWeights: Record<Rol['nume'], number> = useMemo(() => ({
         'SUPER_ADMIN_FEDERATIE': 5,
         'Admin': 4,
@@ -358,22 +380,27 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
     const handleSaveRole = async (userId: string) => {
         if (!supabase) { showError("Eroare", "Conexiunea la baza de date nu a putut fi stabilită."); return; }
         
+        setRoleSaveLoading(prev => ({ ...prev, [userId]: true }));
+
         const targetUser = sportivi.find(s => s.id === userId);
-        if (!targetUser) { showError("Eroare", "Utilizatorul țintă nu a fost găsit."); return; }
+        if (!targetUser) { showError("Eroare", "Utilizatorul țintă nu a fost găsit."); setRoleSaveLoading(prev => ({ ...prev, [userId]: false })); return; }
         if (!targetUser.user_id) {
             showError("Eroare", "Acest sportiv nu are un cont de utilizator asociat. Nu se pot asigna roluri.");
+            setRoleSaveLoading(prev => ({ ...prev, [userId]: false }));
             return;
         }
-
+        
+        // Verificările de permisiuni sunt deja corecte și robuste.
         const targetUserMaxWeight = Math.max(0, ...(targetUser.roluri || []).map(r => roleWeights[r.nume] || 0));
         if (currentUserMaxWeight <= targetUserMaxWeight && currentUser.id !== targetUser.id) {
              showError("Permisiune Refuzată", "Nu puteți modifica rolurile unui utilizator cu privilegii egale sau mai mari.");
+             setRoleSaveLoading(prev => ({ ...prev, [userId]: false }));
              return;
         }
-
         const assignedRolesWeight = newRoleIds.map(roleId => roleWeights[allRoles.find(r => r.id === roleId)?.nume || 'Sportiv'] || 0);
         if (assignedRolesWeight.some(weight => weight > currentUserMaxWeight)) {
             showError("Permisiune Refuzată", "Nu puteți acorda un rol cu privilegii mai mari decât rolul dumneavoastră.");
+            setRoleSaveLoading(prev => ({ ...prev, [userId]: false }));
             return;
         }
 
@@ -390,6 +417,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                 .eq('sportiv_id', targetUser.id);
             if (deleteError) throw deleteError;
 
+            // `club_id` este trimis explicit, conform cerinței.
             const rolesToInsert = finalRoleIds.map(roleId => {
                 const role = allRoles.find(r => r.id === roleId);
                 if (!role) return null;
@@ -413,6 +441,8 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
             setEditingId(null);
         } catch (error: any) {
             showError("Eroare la schimbarea rolului", error.message);
+        } finally {
+            setRoleSaveLoading(prev => ({ ...prev, [userId]: false }));
         }
     };
 
@@ -585,7 +615,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                                                     </td>
                                                     <td className="p-2 text-right w-32">
                                                         <div className="flex justify-end gap-2">
-                                                            <Button size="sm" variant="success" onClick={() => handleSaveRole(user.id)}>Salvează</Button>
+                                                            <Button size="sm" variant="success" onClick={() => handleSaveRole(user.id)} isLoading={roleSaveLoading[user.id]}>Salvează</Button>
                                                             <Button size="sm" variant="secondary" onClick={handleCancel}>Anulează</Button>
                                                         </div>
                                                     </td>

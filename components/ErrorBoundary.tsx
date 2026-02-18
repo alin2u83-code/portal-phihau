@@ -14,8 +14,8 @@ interface State {
 }
 
 class ErrorBoundary extends React.Component<Props, State> {
-  // FIX: Refactored to use class properties for state and an arrow function for the method,
-  // which is a more modern and concise syntax that avoids manual `this` binding.
+  // FIX: Using class properties for state and an arrow function for methods
+  // to ensure 'this' is correctly scoped, which resolves issues with 'props' and 'setState' not being found.
   state: State = {
     hasError: false,
     error: undefined,
@@ -34,7 +34,7 @@ class ErrorBoundary extends React.Component<Props, State> {
     if (this.props.onNavigate) {
         this.props.onNavigate('dashboard');
     }
-  }
+  };
 
   render() {
     if (this.state.hasError) {

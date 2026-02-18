@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { Sportiv, User, Rol, InscriereExamen, Examen, Grad, Antrenament, IstoricGrade, Plata, Familie, TipAbonament, Tranzactie, Reducere, Club, ProgramItem, Grupa, VizualizarePlata } from '../types';
 import { Button, Card, Select, Modal, Input, RoleBadge } from './ui';
@@ -455,7 +456,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
         const facturiProcesate = Array.from(facturiMap.values());
         
         const restante = facturiProcesate.reduce((sum, f) => {
-            const ramasDePlata = f.detalii.suma_datorata - f.totalIncasat;
+            const ramasDePlata = (f.detalii.suma_datorata || 0) - f.totalIncasat;
             return sum + Math.max(0, ramasDePlata);
         }, 0);
 
@@ -633,7 +634,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                     <Card><h3 className="text-lg font-bold text-white mb-3">Situație Financiară</h3>
                         <div className="flex justify-between items-center mb-4">
                             <span className="text-sm font-semibold text-slate-400">Total Restant:</span>
-                            <span className={`text-2xl font-bold ${totalRestante > 0 ? 'text-red-400' : 'text-green-400'}`}>{totalRestante.toFixed(2)} RON</span>
+                            <span className={`text-2xl font-bold ${totalRestante > 0 ? 'text-red-400' : 'text-green-400'}`}>{((totalRestante || 0)).toFixed(2)} RON</span>
                         </div>
                         <div className="mt-4 pt-4 border-t border-slate-700">
                             <h4 className="text-md font-bold text-slate-300 mb-2">Istoric Facturi</h4>
@@ -646,14 +647,14 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                                 ) : istoricFacturi.length > 0 ? istoricFacturi.map(({ detalii: p, totalIncasat }) => {
                                     if (!p.data_plata && !p.data_emitere) return null;
                                     let amountDisplay; let amountColor; let originalAmount = null;
-                                    if (p.status === 'Achitat') { amountDisplay = `${totalIncasat.toFixed(2)} RON`; amountColor = 'text-green-400';
-                                    } else if (p.status === 'Neachitat') { amountDisplay = `${p.suma_datorata.toFixed(2)} RON`; amountColor = 'text-red-400';
-                                    } else { const ramasDePlata = p.suma_datorata - totalIncasat; amountDisplay = `${ramasDePlata.toFixed(2)} RON`; amountColor = 'text-amber-400'; originalAmount = p.suma_datorata; }
+                                    if (p.status === 'Achitat') { amountDisplay = `${((totalIncasat || 0)).toFixed(2)} RON`; amountColor = 'text-green-400';
+                                    } else if (p.status === 'Neachitat') { amountDisplay = `${((p.suma_datorata || 0)).toFixed(2)} RON`; amountColor = 'text-red-400';
+                                    } else { const ramasDePlata = (p.suma_datorata || 0) - (totalIncasat || 0); amountDisplay = `${((ramasDePlata || 0)).toFixed(2)} RON`; amountColor = 'text-amber-400'; originalAmount = p.suma_datorata; }
                                     return (
                                         <div key={p.plata_id} className="text-xs bg-slate-800/50 p-2 rounded-md">
                                             <div className="flex justify-between items-start gap-2">
                                                 <div className="flex-grow"><p className="font-bold text-white">{p.descriere}</p><p className="text-slate-400">Emis: {new Date(p.data_emitere).toLocaleDateString('ro-RO')}</p></div>
-                                                <div className="text-right flex-shrink-0"><p className={`font-bold text-sm ${amountColor}`}>{amountDisplay}</p>{originalAmount && <p className="text-xs text-slate-500 line-through">din {originalAmount.toFixed(2)}</p>}</div>
+                                                <div className="text-right flex-shrink-0"><p className={`font-bold text-sm ${amountColor}`}>{amountDisplay}</p>{originalAmount && <p className="text-xs text-slate-500 line-through">din {((originalAmount || 0)).toFixed(2)}</p>}</div>
                                                 <div className="flex items-center gap-2 flex-shrink-0">
                                                     <Button size="sm" variant="secondary" className="!p-1.5 h-auto" onClick={() => setPlataToEdit(plati.find(pl => pl.id === p.plata_id) || null)}><EditIcon className="w-3 h-3"/></Button>
                                                     <Button size="sm" variant="danger" className="!p-1.5 h-auto" onClick={() => setPlataToDelete(plati.find(pl => pl.id === p.plata_id) || null)}><TrashIcon className="w-3 h-3"/></Button>

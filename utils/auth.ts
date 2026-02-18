@@ -73,15 +73,31 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
             return { user: null, roles: null, error: customError };
         }
 
-        // Step 2: Determine the primary context. Prioritize 'ADMIN_CLUB'.
-        let primaryContext = roleContexts.find(r => r.rol_denumire === 'ADMIN_CLUB');
-        if (!primaryContext) {
-            primaryContext = roleContexts.find(r => r.is_primary);
-        }
-        if (!primaryContext) {
-            const roleOrder: (Rol['nume'] | 'ADMIN_CLUB')[] = ['SUPER_ADMIN_FEDERATIE', 'Admin', 'ADMIN_CLUB', 'Admin Club', 'Instructor', 'Sportiv'];
-            const sortedRoles = [...roleContexts].sort((a, b) => roleOrder.indexOf(a.rol_denumire) - roleOrder.indexOf(b.rol_denumire));
-            primaryContext = sortedRoles[0];
+        // Step 2: Determine the primary context with explicit priority logic.
+        // This ensures that users with administrative roles default to the correct interface.
+
+        // LOGICĂ PRIORITIZARE ROL:
+        // 1. Prioritate maximă: Rolurile de administrare ('SUPER_ADMIN_FEDERATIE', 'ADMIN_CLUB') sunt selectate automat.
+        // 2. Prioritate medie: Dacă nu există un rol de admin, se respectă contextul marcat explicit de utilizator ca `is_primary`.
+        // 3. Fallback: Dacă niciun rol nu este marcat ca primar, se alege cel mai privilegiat rol dintr-o ierarhie predefinită.
+        let primaryContext;
+
+        const superAdminContext = roleContexts.find(r => r.rol_denumire === 'SUPER_ADMIN_FEDERATIE');
+        const adminClubContext = roleContexts.find(r => r.rol_denumire === 'ADMIN_CLUB');
+        const explicitPrimaryContext = roleContexts.find(r => r.is_primary);
+
+        if (superAdminContext) {
+            primaryContext = superAdminContext;
+        } else if (adminClubContext) {
+            primaryContext = adminClubContext;
+        } else if (explicitPrimaryContext) {
+            primaryContext = explicitPrimaryContext;
+        } else if (roleContexts.length > 0) {
+            const roleHierarchy: string[] = ['SUPER_ADMIN_FEDERATIE', 'Admin', 'ADMIN_CLUB', 'Instructor', 'Sportiv'];
+            const sortedContexts = [...roleContexts].sort((a, b) => 
+                roleHierarchy.indexOf(a.rol_denumire) - roleHierarchy.indexOf(b.rol_denumire)
+            );
+            primaryContext = sortedContexts[0];
         }
         
         // Step 3: Robustly fetch the user profile data.

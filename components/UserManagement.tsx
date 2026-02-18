@@ -344,7 +344,6 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
     const [newRoleName, setNewRoleName] = useState('');
     const [roleCreationFeedback, setRoleCreationFeedback] = useState<{ type: 'success' | 'error', message: string } | null>(null);
 
-    // FIX: Adăugat stare de încărcare pentru butoanele de salvare a rolurilor.
     const [roleSaveLoading, setRoleSaveLoading] = useState<Record<string, boolean>>({});
 
     const roleWeights: Record<Rol['nume'], number> = useMemo(() => ({
@@ -390,7 +389,6 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
             return;
         }
         
-        // Verificările de permisiuni sunt deja corecte și robuste.
         const targetUserMaxWeight = Math.max(0, ...(targetUser.roluri || []).map(r => roleWeights[r.nume] || 0));
         if (currentUserMaxWeight <= targetUserMaxWeight && currentUser.id !== targetUser.id) {
              showError("Permisiune Refuzată", "Nu puteți modifica rolurile unui utilizator cu privilegii egale sau mai mari.");
@@ -405,20 +403,13 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
         }
 
         let finalRoleIds = [...newRoleIds];
-        if (finalRoleIds.length === 0) {
-            const sportivRole = allRoles.find(r => r.nume === 'Sportiv');
-            if (sportivRole) finalRoleIds.push(sportivRole.id);
+        const sportivRole = allRoles.find(r => r.nume === 'Sportiv');
+        if (finalRoleIds.length === 0 && sportivRole) {
+            finalRoleIds.push(sportivRole.id);
         }
         
         try {
-            const { error: deleteError } = await supabase
-                .from('utilizator_roluri_multicont')
-                .delete()
-                .eq('sportiv_id', targetUser.id);
-            if (deleteError) throw deleteError;
-
-            // `club_id` este trimis explicit, conform cerinței.
-            const rolesToInsert = finalRoleIds.map(roleId => {
+            const rolesToUpsert = finalRoleIds.map(roleId => {
                 const role = allRoles.find(r => r.id === roleId);
                 if (!role) return null;
                 return {
@@ -427,12 +418,28 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                     club_id: targetUser.club_id,
                     sportiv_id: targetUser.id,
                 };
-            }).filter(Boolean);
-            
-            if (rolesToInsert.length > 0) {
-                const { error: insertError } = await supabase.from('utilizator_roluri_multicont').insert(rolesToInsert as any[]);
-                if (insertError) throw insertError;
+            }).filter((r): r is NonNullable<typeof r> => r !== null);
+
+            const roleDenumiriToKeep = rolesToUpsert.map(r => r.rol_denumire);
+
+            if (rolesToUpsert.length > 0) {
+                const { error: upsertError } = await supabase
+                    .from('utilizator_roluri_multicont')
+                    .upsert(rolesToUpsert, { onConflict: 'user_id,sportiv_id,rol_denumire' });
+                if (upsertError) throw upsertError;
             }
+            
+            const deleteQuery = supabase
+                .from('utilizator_roluri_multicont')
+                .delete()
+                .eq('sportiv_id', targetUser.id);
+
+            if (roleDenumiriToKeep.length > 0) {
+                deleteQuery.not('rol_denumire', 'in', `(${roleDenumiriToKeep.map(r => `'${r}'`).join(',')})`);
+            }
+            
+            const { error: deleteError } = await deleteQuery;
+            if (deleteError) throw deleteError;
 
             const updatedRoles = allRoles.filter(r => finalRoleIds.includes(r.id));
             setSportivi(prev => prev.map(s => s.id === userId ? { ...s, roluri: updatedRoles } : s));

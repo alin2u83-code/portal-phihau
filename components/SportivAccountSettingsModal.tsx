@@ -84,9 +84,7 @@ export const SportivAccountSettingsModal: React.FC<SportivAccountSettingsModalPr
         }
         
         try {
-            await supabase.from('utilizator_roluri_multicont').delete().eq('sportiv_id', sportiv.id);
-
-            const rolesToInsert = finalRoleIds.map(roleId => {
+            const rolesToUpsert = finalRoleIds.map(roleId => {
                 const role = allRoles.find(r => r.id === roleId);
                 if (!role) return null;
                 return {
@@ -95,16 +93,27 @@ export const SportivAccountSettingsModal: React.FC<SportivAccountSettingsModalPr
                     club_id: sportiv.club_id,
                     sportiv_id: sportiv.id,
                 };
-            }).filter(Boolean);
-            
-            if (rolesToInsert.length > 0) {
-                const { error: insertError } = await supabase.from('utilizator_roluri_multicont').insert(rolesToInsert as any[]);
-                if (insertError) throw insertError;
+            }).filter((r): r is NonNullable<typeof r> => r !== null);
+
+            const roleDenumiriToKeep = rolesToUpsert.map(r => r.rol_denumire);
+
+            if (rolesToUpsert.length > 0) {
+                const { error: upsertError } = await supabase
+                    .from('utilizator_roluri_multicont')
+                    .upsert(rolesToUpsert, { onConflict: 'user_id,sportiv_id,rol_denumire' });
+                if (upsertError) throw upsertError;
             }
+
+            const deleteQuery = supabase.from('utilizator_roluri_multicont').delete().eq('sportiv_id', sportiv.id);
+            if (roleDenumiriToKeep.length > 0) {
+                deleteQuery.not('rol_denumire', 'in', `(${roleDenumiriToKeep.map(r => `'${r}'`).join(',')})`);
+            }
+            const { error: deleteError } = await deleteQuery;
+            if (deleteError) throw deleteError;
 
             const updatedRoles = allRoles.filter(r => finalRoleIds.includes(r.id));
             setSportivi(prev => prev.map(s => s.id === sportiv.id ? { ...s, roluri: updatedRoles } : s));
-            
+
             showSuccess("Succes", `Rolurile pentru ${sportiv.nume} au fost salvate!`);
             onClose();
         } catch (error: any) {

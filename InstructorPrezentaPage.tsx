@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
-import { Antrenament, Sportiv, Grupa, User, View, Grad } from '../types';
+import { Antrenament, Sportiv, Grupa, User, View, Grad, SportivProgramPersonalizat } from '../types';
 import { useError } from './ErrorProvider';
 import { Card, Button, Select } from './ui';
 import { ArrowLeftIcon, UserPlusIcon, XIcon } from './icons';
@@ -223,13 +223,14 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
             
             const allInvolvedIds = new Set([
                 ...(training.grupe?.sportivi.map(s => s.id) || []),
-                ...dbPresence.map(p => p.sportiv_id)
+                ...dbPresence.map(p => p.sportiv_id),
+                ...Array.from(uiPresentIds)
             ]);
             
             const recordsToUpsert = Array.from(allInvolvedIds).map(sportivId => ({
                 antrenament_id: antrenamentId,
                 sportiv_id: sportivId,
-                status: uiPresentIds.has(sportivId) ? 'prezent' : 'absent'
+                status: uiPresentIds.has(sportivId) ? 'prezent' as const : 'absent' as const
             }));
 
             if (recordsToUpsert.length > 0) {
@@ -239,7 +240,7 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
             
             setTrainings(prev => prev.map(t => t.id === antrenamentId ? { 
                 ...t, 
-                prezenta: recordsToUpsert.map(({ sportiv_id, status }) => ({ sportiv_id, status }))
+                prezenta: recordsToUpsert.map(({ sportiv_id, status }) => ({ sportiv_id, status: status as string | null }))
             } : t));
             showSuccess("Succes", "Prezența a fost salvată!");
 

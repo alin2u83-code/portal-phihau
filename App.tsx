@@ -66,6 +66,7 @@ import { useDataProvider } from './hooks/useDataProvider';
 import { useIsMobile } from './hooks/useIsMobile';
 import { MobileSkeletonLoader } from './components/MobileSkeletonLoader';
 import { AdminDashboard } from './components/AdminDashboard';
+import { MobileDashboard } from './components/MobileDashboard';
 
 
 function App() {
@@ -273,6 +274,19 @@ function App() {
       return <MandatoryPasswordChange currentUser={currentUser} onPasswordChanged={() => {}} />;
     }
     
+    if (isMobile) {
+        const user_role = permissions.isInstructor ? 'instructor' : 'sportiv';
+        return (
+            <MobileDashboard 
+                currentUser={currentUser!}
+                user_role={user_role}
+                anunturiPrezenta={filteredData.anunturiPrezenta}
+                view_istoric_grade_sportivi={istoricGrade} // Pass the view data
+                onNavigate={setActiveView}
+            />
+        );
+    }
+
     const renderProtected = (view: React.ReactNode, hasAccess: boolean) => {
         return hasAccess ? view : <AccessDenied onBack={() => setActiveView('dashboard')} />;
     };
@@ -451,7 +465,7 @@ function App() {
        needsRoleSelection ? <RoleSelectionPage roles={userRoles} onSelect={handleSelectRole} loading={isSwitchingRole} onLogout={handleLogout} /> :
        currentUser ? (
             <div className="flex min-h-screen bg-[var(--bg-main)]">
-              <Sidebar currentUser={currentUser} onNavigate={setActiveView} onLogout={handleLogout} activeView={activeView} isExpanded={isSidebarExpanded} setIsExpanded={setIsSidebarExpanded} clubs={clubs} globalClubFilter={globalClubFilter} setGlobalClubFilter={setGlobalClubFilter} permissions={permissions} activeRole={activeRole!} canSwitchRoles={canSwitchRoles} onSwitchRole={handleSwitchRole} isSwitchingRole={isSwitchingRole} grade={grade} />
+              {!isMobile && <Sidebar currentUser={currentUser} onNavigate={setActiveView} onLogout={handleLogout} activeView={activeView} isExpanded={isSidebarExpanded} setIsExpanded={setIsSidebarExpanded} clubs={clubs} globalClubFilter={globalClubFilter} setGlobalClubFilter={setGlobalClubFilter} permissions={permissions} activeRole={activeRole!} canSwitchRoles={canSwitchRoles} onSwitchRole={handleSwitchRole} isSwitchingRole={isSwitchingRole} grade={grade} />}
               
               <Header 
                 activeView={activeView}
@@ -463,16 +477,16 @@ function App() {
                 isSidebarExpanded={isSidebarExpanded}
               />
 
-              <main className={`flex-1 transition-all duration-300 pt-16 ${isSidebarExpanded ? 'md:ml-64' : 'md:ml-20'}`}>
+              <main className={`flex-1 transition-all duration-300 pt-16 ${isMobile ? '' : (isSidebarExpanded ? 'md:ml-64' : 'md:ml-20')}`}>
                 <div className="p-4 md:p-8 max-w-7xl mx-auto">
-                  {permissions.isMultiContextAdmin && permissions.hasAdminAccess && <GlobalContextSwitcher activeContext={adminContext} onContextChange={setAdminContext} />}
+                  {!isMobile && permissions.isMultiContextAdmin && permissions.hasAdminAccess && <GlobalContextSwitcher activeContext={adminContext} onContextChange={setAdminContext} />}
                   <ErrorBoundary onNavigate={setActiveView}>
                     {renderContent()}
                   </ErrorBoundary>
                 </div>
               </main>
 
-              {(import.meta as any).env.DEV && currentUser && (<AdminDebugFloatingPanel currentUser={currentUser} userRoles={userRoles} onNavigate={(view) => setActiveView(view)} />)}
+              {(import.meta as any).env.DEV && currentUser && !isMobile && (<AdminDebugFloatingPanel currentUser={currentUser} userRoles={userRoles} onNavigate={(view) => setActiveView(view)} />)}
             </div>
       ) : null}
     </SystemGuardian>

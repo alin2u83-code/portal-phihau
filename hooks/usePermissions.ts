@@ -24,8 +24,7 @@ export const usePermissions = (user: User | null, activeRole: Rol['nume'] | null
             return initialPermissions;
         }
 
-        // --- Permisiuni bazate pe ROLUL ACTIV CURENT ---
-        // `activeRole` este echivalentul lui `rol_activ_context`
+        // --- Permissions based on the CURRENT ACTIVE role/context ---
         const isSuperAdmin = activeRole === 'SUPER_ADMIN_FEDERATIE';
         const isAdmin = activeRole === 'Admin';
         const isFederationAdmin = isSuperAdmin || isAdmin;
@@ -33,26 +32,29 @@ export const usePermissions = (user: User | null, activeRole: Rol['nume'] | null
         const isInstructor = activeRole === 'Instructor';
         const isSportiv = activeRole === 'Sportiv';
 
-        // --- Flag-uri compozite și de business logic (bazate pe rolul activ) ---
-        const hasAdminAccess = isFederationAdmin || isAdminClub;
-        const isFederationLevel = isFederationAdmin;
-        const canManageFinances = isFederationLevel || isAdminClub;
-        const canGradeStudents = isFederationAdmin || isAdminClub || isInstructor;
+        // --- Capabilities based on ALL available roles for the user ---
+        const hasAdminAccess = (user.roluri || []).some(
+            r => r.nume === 'Admin Club' || r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'Admin'
+        );
 
-        // --- Scopul Vizibilității Datelor (bazat pe rolul activ și contextul utilizatorului) ---
-        // `currentUser.club_id` reflectă clubul din contextul activ.
-        const visibleClubIds: 'all' | string[] = isFederationLevel 
-            ? 'all' 
-            : (user.club_id ? [user.club_id] : []);
+        const canManageFinances = hasAdminAccess;
 
-        // --- Capabilități de Rol (bazate pe TOATE rolurile disponibile ale utilizatorului) ---
-        // `user.roluri` conține toate rolurile pe care le poate asuma utilizatorul,
-        // indiferent de cel activ.
+        const canGradeStudents = (user.roluri || []).some(
+            r => r.nume === 'Admin Club' || r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'Admin' || r.nume === 'Instructor'
+        );
+
         const allUserRoles = new Set((user.roluri || []).map(r => r.nume));
         const canBeFederationAdmin = allUserRoles.has('SUPER_ADMIN_FEDERATIE') || allUserRoles.has('Admin');
         const canBeClubAdmin = allUserRoles.has('Admin Club');
         const isMultiContextAdmin = canBeFederationAdmin && canBeClubAdmin;
 
+        // --- Context-dependent flags ---
+        const isFederationLevel = isFederationAdmin; // This is about the *current view*, so it's based on activeRole.
+        
+        const visibleClubIds: 'all' | string[] = isFederationLevel 
+            ? 'all' 
+            : (user.club_id ? [user.club_id] : []);
+        
         return {
             isSuperAdmin,
             isAdmin,

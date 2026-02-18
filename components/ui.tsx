@@ -190,8 +190,6 @@ export const Stepper: React.FC<{ value: number; onChange: (newValue: number) => 
 };
 
 export const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
-    // FIX: Updated color mapping to match user request (Admin Club=Gold, Instructor=Red, Sportiv=Blue)
-    // and created a distinct hierarchy for Super Admin/Admin roles.
     const isClubAdmin = (role.nume as any) === 'ADMIN_CLUB' || role.nume === 'Admin Club';
     const displayName = isClubAdmin ? 'Admin Club' : role.nume;
 

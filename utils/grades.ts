@@ -21,14 +21,14 @@ export const getGradStyle = (gradName: string): string => {
     
     // Reguli specifice pentru centuri cu grad înalt
     if (name.includes('6 dang') || name.includes('7 dang') || name.includes('8 dang')) return 'bg-white text-red-600 border-2 border-red-600';
-    if (name.includes('5 dang')) return 'bg-black text-yellow-400 border-2 border-yellow-400';
-    if (name.includes('dang')) return 'bg-black text-red-600 border-2 border-red-600';
+    if (name.includes('dang')) return 'bg-black text-yellow-400 border-2 border-yellow-400'; // All other 'Dang' are Black/Gold
     if (name.includes('neagra')) return 'bg-black text-white';
     
     // Reguli pentru centuri colorate
-    if (name.includes('cap alb') || name.includes('violet') || name.includes('c.v.')) return 'bg-violet-600 text-white';
+    if (name.includes('cap alb') || name.includes('violet') || name.includes('c.v.')) return 'bg-sky-600 text-white'; // Changed from violet to blue
     if (name.includes('rosu')) return 'bg-red-600 text-white';
-    if (name.includes('albastru')) return 'bg-white text-blue-700 border border-blue-700';
+    if (name.includes('albastru')) return 'bg-white text-blue-700 border border-blue-700'; // 'Cap Albastru' is already blue-themed
+    if (name.includes('cap')) return 'bg-blue-600 text-white'; // Generic fallback for other 'cap' grades
     if (name.includes('galben')) return 'bg-yellow-400 text-black';
     
     // Default pentru începători sau grade nespecificate

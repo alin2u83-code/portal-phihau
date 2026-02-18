@@ -14,8 +14,7 @@ interface State {
 }
 
 class ErrorBoundary extends React.Component<Props, State> {
-  // FIX: Replaced constructor with a class property for state initialization. This is a more modern
-  // and less verbose syntax that correctly sets up the component's state.
+  // This is a modern and correct way to initialize state.
   state: State = {
     hasError: false,
     error: undefined,
@@ -29,8 +28,8 @@ class ErrorBoundary extends React.Component<Props, State> {
     console.error("Uncaught error:", error, errorInfo);
   }
 
-  // FIX: Refactored to a standard class method. The `this` context is now bound at the call site in the render method using an inline arrow function, ensuring `this.setState` and `this.props` are available.
-  handleRedirect() {
+  // FIX: Converted `handleRedirect` to an arrow function to ensure `this` is correctly bound to the component instance. This resolves issues where `this.props` and `this.setState` were not accessible.
+  handleRedirect = () => {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {
         this.props.onNavigate('dashboard');
@@ -44,7 +43,7 @@ class ErrorBoundary extends React.Component<Props, State> {
           <h1 className="text-2xl font-bold">A apărut o eroare neașteptată.</h1>
           <p className="mt-2">Ceva nu a funcționat corect în această secțiune. Încercați să reîncărcați pagina sau să reveniți la panoul principal.</p>
           {this.props.onNavigate && (
-                  <Button onClick={() => this.handleRedirect()} variant="secondary" className="mt-6">
+                  <Button onClick={this.handleRedirect} variant="secondary" className="mt-6">
                       <ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la pagina principală
                   </Button>
           )}

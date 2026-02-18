@@ -1,5 +1,3 @@
-
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { Sportiv, User, Rol, InscriereExamen, Examen, Grad, Antrenament, IstoricGrade, Plata, Familie, TipAbonament, Tranzactie, Reducere, Club, ProgramItem, Grupa, VizualizarePlata } from '../types';
 import { Button, Card, Select, Modal, Input, RoleBadge } from './ui';
@@ -262,24 +260,27 @@ const CreateAccountModal: React.FC<{
         setLoading(true);
 
         try {
-            // Pas 1: Creează contul de autentificare
-            const { data: authData, error: authError } = await supabase.functions.invoke('create-user-admin', {
-                body: { email: form.email, password: form.parola },
+            // FIX: Bypass Edge Function, use supabase.auth.signUp directly.
+            const { data: authData, error: authError } = await supabase.auth.signUp({
+                email: form.email,
+                password: form.parola,
             });
-            if (authError || authData.error) {
-                if (authData?.error?.includes('User already exists')) {
+
+            if (authError) {
+                if (authError.message.includes('User already exists')) {
                     throw new Error('Un utilizator cu acest email există deja în sistem. Asociați-l manual.');
                 }
-                throw new Error(authError?.message || authData?.error || "Eroare la crearea contului de autentificare.");
+                throw authError;
             }
-            const newAuthUser = authData.user;
-            if (!newAuthUser) throw new Error("Funcția de creare a utilizatorului nu a returnat un ID valid.");
             
-            // Pas 2: Leagă noul cont de profilul sportivului
+            const newAuthUser = authData.user;
+            if (!newAuthUser) throw new Error("Contul de autentificare nu a putut fi creat. Răspunsul de la server a fost gol.");
+            
+            // FIX: Immediately link the new auth user to the existing sportiv profile.
             const { error: updateError } = await supabase.from('sportivi').update({ user_id: newAuthUser.id, email: form.email }).eq('id', sportiv.id);
             if (updateError) throw updateError;
             
-            // Pas 3: Atribuie rolul implicit de 'Sportiv'
+            // FIX: Immediately insert the default 'Sportiv' role.
             const { error: roleError } = await supabase.from('utilizator_roluri_multicont').insert({
                 user_id: newAuthUser.id,
                 sportiv_id: sportiv.id,
@@ -288,10 +289,10 @@ const CreateAccountModal: React.FC<{
                 is_primary: true
             });
             if (roleError) {
-                throw new Error(`Cont creat, dar rolul 'Sportiv' nu a putut fi asignat: ${roleError.message}. Contactați administratorul.`);
+                throw new Error(`Profilul a fost creat, dar rolul 'Sportiv' nu a putut fi asignat: ${roleError.message}. Contactați administratorul.`);
             }
 
-            showSuccess("Cont Creat!", `Contul pentru ${sportiv.nume} a fost generat și asociat.`);
+            showSuccess("Cont Creat!", `Contul pentru ${sportiv.nume} a fost generat. Utilizatorul trebuie să confirme adresa de email.`);
             onAccountCreated();
             onClose();
 
@@ -614,15 +615,28 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                         <ShieldCheckIcon className="w-6 h-6 text-yellow-500 dark:text-yellow-300" />
                         <p className="font-semibold text-yellow-800 dark:text-yellow-200">Acest sportiv nu are un cont de utilizator activ.</p>
                     </div>
-                    <Button variant="info" size="sm" onClick={() => {
-                        if (!sportiv.email) {
-                            showError("Email Lipsă", "Introduceți o adresă de email în profilul sportivului pentru a putea genera contul.");
-                            return;
-                        }
-                        setIsCreateAccountModalOpen(true);
-                    }}>
-                        <UserPlusIcon className="w-4 h-4 mr-2" /> Activează Acces Aplicație
-                    </Button>
+                    <div>
+                        <Button 
+                            variant="info" 
+                            size="sm" 
+                            onClick={() => {
+                                if (!sportiv.email) {
+                                    showError("Email Lipsă", "Introduceți o adresă de email în profilul sportivului pentru a putea genera contul.");
+                                    return;
+                                }
+                                setIsCreateAccountModalOpen(true);
+                            }}
+                            disabled={!sportiv.email}
+                            title={!sportiv.email ? 'Adăugați un email pentru a activa contul' : 'Activează contul de acces'}
+                        >
+                            <UserPlusIcon className="w-4 h-4 mr-2" /> Activează Acces Aplicație
+                        </Button>
+                        {!sportiv.email && (
+                            <p className="text-xs text-yellow-400 text-center mt-1">
+                                Lipsă email - nu se poate genera cont
+                            </p>
+                        )}
+                    </div>
                 </Card>
             )}
 

@@ -138,7 +138,7 @@ export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, 
                 return prev.map(p => updatesMap.has(p.id) ? { ...p, ...updatesMap.get(p.id)!} : p);
             });
 
-            showSuccess('Succes', `Încasare de ${amountToSettle.toFixed(2)} RON confirmată!`);
+            showSuccess('Succes', `Încasare de ${(amountToSettle || 0).toFixed(2)} RON confirmată!`);
             setShowPaymentForm(false);
             setPaymentAmount('');
         } catch (err: any) {
@@ -157,11 +157,11 @@ export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, 
                     <div className="flex justify-between items-start">
                         <div>
                             <p className="text-sm font-bold uppercase text-slate-400 tracking-wider">Sold Curent</p>
-                            <p className={`text-5xl font-black mt-2 ${sold >= 0 ? 'text-green-400' : 'text-red-400'}`}>{sold.toFixed(2)}<span className="text-2xl ml-1">RON</span></p>
+                            <p className={`text-5xl font-black mt-2 ${sold >= 0 ? 'text-green-400' : 'text-red-400'}`}>{(sold || 0).toFixed(2)}<span className="text-2xl ml-1">RON</span></p>
                         </div>
                         <div className={`text-right ${totalDue > 0 ? 'text-red-400' : 'text-green-400'}`}>
                              <p className="text-sm font-bold uppercase tracking-wider">Total Datorat</p>
-                            <p className="text-lg font-bold">{totalDue.toFixed(2)} RON</p>
+                            <p className="text-lg font-bold">{(totalDue || 0).toFixed(2)} RON</p>
                         </div>
                     </div>
                 </div>
@@ -170,7 +170,7 @@ export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, 
                     <Card className="bg-slate-900/50 border-brand-secondary">
                         <h3 className="text-lg font-bold text-white mb-4">Adaugă Încasare</h3>
                         <div className="space-y-4">
-                            <Input label="Sumă Încasată (RON)" type="number" step="0.01" value={paymentAmount} onChange={e => setPaymentAmount(e.target.value)} placeholder={`Max ${totalDue.toFixed(2)}`} />
+                            <Input label="Sumă Încasată (RON)" type="number" step="0.01" value={paymentAmount} onChange={e => setPaymentAmount(e.target.value)} placeholder={`Max ${(totalDue || 0).toFixed(2)}`} />
                             <Select label="Metoda de Plată" value={paymentMethod} onChange={e => setPaymentMethod(e.target.value as any)}><option value="Cash">Cash</option><option value="Transfer Bancar">Transfer Bancar</option></Select>
                             <div className="flex justify-end gap-2 pt-2">
                                 <Button variant="secondary" onClick={() => setShowPaymentForm(false)} disabled={isSaving}>Anulează</Button>
@@ -200,7 +200,7 @@ export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, 
                                                 </p>
                                             </div>
                                             <p className={`text-base font-bold text-right ${invoice.remaining > 0 ? 'text-red-400' : 'text-green-400'}`}>
-                                                {invoice.remaining > 0 ? `-${invoice.remaining.toFixed(2)}` : invoice.details.suma_datorata.toFixed(2)}
+                                                {invoice.remaining > 0 ? `-${(invoice.remaining || 0).toFixed(2)}` : (invoice.details.suma_datorata || 0).toFixed(2)}
                                             </p>
                                         </div>
                                         {invoice.payments.length > 0 && (
@@ -208,7 +208,7 @@ export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, 
                                                 {invoice.payments.map(p => (
                                                     <div key={p.tranzactie_id} className="text-xs flex justify-between items-center text-green-400">
                                                         <span>&#8627; Încasat la {p.data_plata ? new Date(p.data_plata).toLocaleDateString('ro-RO') : 'Fără dată'}</span>
-                                                        <span className="font-bold">+{p.suma_incasata?.toFixed(2)}</span>
+                                                        <span className="font-bold">+{((p.suma_incasata || 0)).toFixed(2)}</span>
                                                     </div>
                                                 ))}
                                             </div>

@@ -24,12 +24,13 @@ const getAge = (dateString: string | null | undefined): number => {
 const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
     // FIX: Corrected key from 'Super Admin' to 'SUPER_ADMIN_FEDERATIE' to match the 'Rol' type definition.
     // FIX: Completed the color mapping to include all roles.
+    // FIX: Corrected role names to match type definition.
     const colorClasses: Record<Rol['nume'], string> = { 
-        'Admin': 'bg-red-600 text-white', 
+        'ADMIN': 'bg-red-600 text-white', 
         'SUPER_ADMIN_FEDERATIE': 'bg-red-800 text-white', 
-        'Admin Club': 'bg-blue-600 text-white', 
-        'Instructor': 'bg-sky-600 text-white', 
-        'Sportiv': 'bg-slate-600 text-slate-200' 
+        'ADMIN_CLUB': 'bg-blue-600 text-white', 
+        'INSTRUCTOR': 'bg-sky-600 text-white', 
+        'SPORTIV': 'bg-slate-600 text-slate-200' 
     };
     return <span className={`px-2 py-1 text-[10px] font-semibold rounded-full ${colorClasses[role.nume] || 'bg-gray-500 text-white'}`}>{role.nume}</span>;
 };
@@ -59,6 +60,7 @@ export const SportiviManagement: React.FC<{
 }> = ({ onBack, sportivi, setSportivi, grupe, setGrupe, tipuriAbonament, familii, setFamilii, allRoles, setAllRoles, currentUser, plati, setPlati, tranzactii, setTranzactii, onViewSportiv, clubs, grade, permissions }) => {
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
     const [sportivToEdit, setSportivToEdit] = useState<Sportiv | null>(null);
+    const [accountSettingsSportiv, setAccountSettingsSportiv] = useState<Sportiv | null>(null);
     const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
     const [sportivForWallet, setSportivForWallet] = useState<Sportiv | null>(null);
     const [selectedSportivForHighlight, setSelectedSportivForHighlight] = useState<Sportiv | null>(null);

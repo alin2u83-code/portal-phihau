@@ -96,8 +96,6 @@ function App() {
 
   const activeRole = useMemo((): Rol['nume'] | null => {
     const roleName = activeRoleContext?.rol_denumire;
-    // Normalizează valoarea din baza de date ('ADMIN_CLUB') la valoarea folosită în tipurile TypeScript ('Admin Club')
-    if (roleName === 'ADMIN_CLUB') return 'Admin Club';
     return roleName || null;
   }, [activeRoleContext]);
 
@@ -105,7 +103,7 @@ function App() {
   const { activeClubId, loading: clubFilterLoading, globalClubFilter, setGlobalClubFilter } = useClubFilter(currentUser, permissions);
   
   const handleBackToDashboard = useCallback(() => {
-    const dashboardView = permissions.hasAdminAccess && activeRole !== 'Sportiv' ? 'dashboard' : 'my-portal';
+    const dashboardView = permissions.hasAdminAccess && activeRole !== 'SPORTIV' ? 'dashboard' : 'my-portal';
     setActiveView(dashboardView);
   }, [permissions.hasAdminAccess, activeRole, setActiveView]);
 
@@ -119,8 +117,8 @@ function App() {
       
       let targetRoleContext: any = null;
 
-      if (roleName === 'Sportiv') {
-          targetRoleContext = userRoles.find(r => r.rol_denumire === 'Sportiv' && r.is_primary) || userRoles.find(r => r.rol_denumire === 'Sportiv');
+      if (roleName === 'SPORTIV') {
+          targetRoleContext = userRoles.find(r => r.rol_denumire === 'SPORTIV' && r.is_primary) || userRoles.find(r => r.rol_denumire === 'SPORTIV');
       } else {
           targetRoleContext = userRoles.find(r => r.rol_denumire === roleName);
       }
@@ -143,7 +141,7 @@ function App() {
           setIsSwitchingRole(false);
           setSwitchingToRole(null);
       } else {
-          if (roleName === 'Sportiv') {
+          if (roleName === 'SPORTIV') {
               localStorage.setItem('phi-hau-redirect-after-role-switch', 'my-portal');
           } else {
               localStorage.removeItem('phi-hau-redirect-after-role-switch');
@@ -290,7 +288,7 @@ function App() {
 
       case 'dashboard':
       case 'my-portal':
-        if (permissions.hasAdminAccess && activeRole !== 'Sportiv') {
+        if (permissions.hasAdminAccess && activeRole !== 'SPORTIV') {
             if (sportivi.length === 0 && !isEmergencyAdmin && !loading) {
                 return <Card className="text-center p-8"><p className="text-slate-400 italic">Așteptare autorizare date sau nu există date pentru contextul selectat...</p></Card>
             }

@@ -75,11 +75,6 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
 
         // Step 2: Determine the primary context with explicit priority logic.
         // This ensures that users with administrative roles default to the correct interface.
-
-        // LOGICĂ PRIORITIZARE ROL:
-        // 1. Prioritate maximă: Rolurile de administrare ('SUPER_ADMIN_FEDERATIE', 'ADMIN_CLUB') sunt selectate automat.
-        // 2. Prioritate medie: Dacă nu există un rol de admin, se respectă contextul marcat explicit de utilizator ca `is_primary`.
-        // 3. Fallback: Dacă niciun rol nu este marcat ca primar, se alege cel mai privilegiat rol dintr-o ierarhie predefinită.
         let primaryContext;
 
         const superAdminContext = roleContexts.find(r => r.rol_denumire === 'SUPER_ADMIN_FEDERATIE');
@@ -93,7 +88,10 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
         } else if (explicitPrimaryContext) {
             primaryContext = explicitPrimaryContext;
         } else if (roleContexts.length > 0) {
-            const roleHierarchy: string[] = ['SUPER_ADMIN_FEDERATIE', 'Admin', 'ADMIN_CLUB', 'Instructor', 'Sportiv'];
+            // LOGICĂ DE FALLBACK: Dacă niciun rol nu este marcat ca `is_primary` (inclusiv cazul în care câmpul este null),
+            // se alege automat rolul cu cele mai înalte privilegii dintr-o ierarhie predefinită,
+            // asigurând o experiență de utilizare consistentă și prevenind blocajele la autentificare.
+            const roleHierarchy: string[] = ['SUPER_ADMIN_FEDERATIE', 'ADMIN', 'ADMIN_CLUB', 'INSTRUCTOR', 'SPORTIV'];
             const sortedContexts = [...roleContexts].sort((a, b) => 
                 roleHierarchy.indexOf(a.rol_denumire) - roleHierarchy.indexOf(b.rol_denumire)
             );

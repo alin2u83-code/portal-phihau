@@ -10,11 +10,12 @@ import { supabase } from '../supabaseClient';
 // --- Helper Functions from RoleSelectionPage ---
 const getRoleDisplayName = (role: any) => {
     switch(role.rol_denumire) {
+        // FIX: Corrected role names to match type definition.
         case 'SUPER_ADMIN_FEDERATIE': return 'Super Admin Federație';
-        case 'Admin': return 'Admin General';
-        case 'Admin Club': return `Admin - ${role.club?.nume || 'Club Nedefinit'}`;
-        case 'Instructor': return `Instructor - ${role.club?.nume || 'Club Nedefinit'}`;
-        case 'Sportiv': return `Sportiv - ${role.sportiv?.nume || ''} ${role.sportiv?.prenume || ''}`;
+        case 'ADMIN': return 'Admin General';
+        case 'ADMIN_CLUB': return `Admin - ${role.club?.nume || 'Club Nedefinit'}`;
+        case 'INSTRUCTOR': return `Instructor - ${role.club?.nume || 'Club Nedefinit'}`;
+        case 'SPORTIV': return `Sportiv - ${role.sportiv?.nume || ''} ${role.sportiv?.prenume || ''}`;
         default: return role.rol_denumire;
     }
 };
@@ -22,10 +23,10 @@ const getRoleDisplayName = (role: any) => {
 const getRoleDescription = (role: any) => {
     switch(role.rol_denumire) {
         case 'SUPER_ADMIN_FEDERATIE': return 'Acces total la nivel de federație.';
-        case 'Admin': return 'Acces administrativ general.';
-        case 'Admin Club': return `Management complet pentru ${role.club?.nume || 'club'}.`;
-        case 'Instructor': return `Management sportivi și prezențe la ${role.club?.nume || 'club'}.`;
-        case 'Sportiv': return 'Accesează portalul personal de sportiv.';
+        case 'ADMIN': return 'Acces administrativ general.';
+        case 'ADMIN_CLUB': return `Management complet pentru ${role.club?.nume || 'club'}.`;
+        case 'INSTRUCTOR': return `Management sportivi și prezențe la ${role.club?.nume || 'club'}.`;
+        case 'SPORTIV': return 'Accesează portalul personal de sportiv.';
         default: return 'Selectează acest profil pentru a continua.';
     }
 }
@@ -33,12 +34,12 @@ const getRoleDescription = (role: any) => {
 const getRoleIcon = (roleName: Rol['nume']) => {
     switch(roleName) {
         case 'SUPER_ADMIN_FEDERATIE':
-        case 'Admin':
+        case 'ADMIN':
             return ShieldCheckIcon;
-        case 'Admin Club':
-        case 'Instructor':
+        case 'ADMIN_CLUB':
+        case 'INSTRUCTOR':
             return UsersIcon;
-        case 'Sportiv':
+        case 'SPORTIV':
             return UserCircleIcon;
         default:
             return UsersIcon;
@@ -127,7 +128,8 @@ const DevRoleImpersonation: React.FC<{ userRoles: any[] }> = ({ userRoles }) => 
         }
     };
 
-    const rolesToImpersonate: Rol['nume'][] = ['SUPER_ADMIN_FEDERATIE', 'Admin Club', 'Sportiv'];
+    // FIX: Corrected role names to match type definition.
+    const rolesToImpersonate: Rol['nume'][] = ['SUPER_ADMIN_FEDERATIE', 'ADMIN_CLUB', 'SPORTIV'];
 
     return (
         <Card>
@@ -146,7 +148,8 @@ const DevRoleImpersonation: React.FC<{ userRoles: any[] }> = ({ userRoles }) => 
                         isLoading={loadingRole === roleName}
                         disabled={!!loadingRole}
                         className="text-lg py-6 flex-1"
-                        variant={roleName === 'SUPER_ADMIN_FEDERATIE' ? 'danger' : roleName === 'Admin Club' ? 'primary' : 'secondary'}
+                        // FIX: Corrected role names to match type definition.
+                        variant={roleName === 'SUPER_ADMIN_FEDERATIE' ? 'danger' : roleName === 'ADMIN_CLUB' ? 'primary' : 'secondary'}
                     >
                         {roleName}
                     </Button>

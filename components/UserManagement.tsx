@@ -148,7 +148,7 @@ const CreateStaffModal: React.FC<{
     const { showError, showSuccess } = useError();
 
     const staffRoles = useMemo(() => {
-        return allRoles.filter(r => r.nume === 'Instructor' || r.nume === 'Admin Club' || r.nume === 'Admin' || r.nume === 'SUPER_ADMIN_FEDERATIE');
+        return allRoles.filter(r => r.nume === 'INSTRUCTOR' || r.nume === 'ADMIN_CLUB' || r.nume === 'ADMIN' || r.nume === 'SUPER_ADMIN_FEDERATIE');
     }, [allRoles]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -246,11 +246,11 @@ const CreateStaffModal: React.FC<{
             ];
             
             // Orice membru staff este și un "Sportiv" din punct de vedere contextual
-            const sportivRole = allRoles.find(r => r.nume === 'Sportiv');
+            const sportivRole = allRoles.find(r => r.nume === 'SPORTIV');
             if (sportivRole) {
                 rolesToInsert.push({
                     user_id: newAuthUser.id,
-                    rol_denumire: 'Sportiv',
+                    rol_denumire: 'SPORTIV',
                     club_id: formData.club_id,
                     sportiv_id: sportivData.id,
                     is_primary: true
@@ -263,7 +263,7 @@ const CreateStaffModal: React.FC<{
             }
             
             const finalRoles = [rolAtribuit];
-            if(sportivRole && rolAtribuit.nume !== 'Sportiv') {
+            if(sportivRole && rolAtribuit.nume !== 'SPORTIV') {
                 finalRoles.push(sportivRole);
             }
             
@@ -348,10 +348,10 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
 
     const roleWeights: Record<Rol['nume'], number> = useMemo(() => ({
         'SUPER_ADMIN_FEDERATIE': 5,
-        'Admin': 4,
-        'Admin Club': 3,
-        'Instructor': 2,
-        'Sportiv': 1,
+        'ADMIN': 4,
+        'ADMIN_CLUB': 3,
+        'INSTRUCTOR': 2,
+        'SPORTIV': 1,
     }), []);
 
     const currentUserMaxWeight = useMemo(() => 
@@ -395,7 +395,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
              setRoleSaveLoading(prev => ({ ...prev, [userId]: false }));
              return;
         }
-        const assignedRolesWeight = newRoleIds.map(roleId => roleWeights[allRoles.find(r => r.id === roleId)?.nume || 'Sportiv'] || 0);
+        const assignedRolesWeight = newRoleIds.map(roleId => roleWeights[allRoles.find(r => r.id === roleId)?.nume || 'SPORTIV'] || 0);
         if (assignedRolesWeight.some(weight => weight > currentUserMaxWeight)) {
             showError("Permisiune Refuzată", "Nu puteți acorda un rol cu privilegii mai mari decât rolul dumneavoastră.");
             setRoleSaveLoading(prev => ({ ...prev, [userId]: false }));
@@ -403,7 +403,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
         }
 
         let finalRoleIds = [...newRoleIds];
-        const sportivRole = allRoles.find(r => r.nume === 'Sportiv');
+        const sportivRole = allRoles.find(r => r.nume === 'SPORTIV');
         if (finalRoleIds.length === 0 && sportivRole) {
             finalRoleIds.push(sportivRole.id);
         }
@@ -508,12 +508,12 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                 user_id: authUser.id,
                 sportiv_id: selectedUserForAccount.id,
                 club_id: selectedUserForAccount.club_id,
-                rol_denumire: 'Sportiv',
+                rol_denumire: 'SPORTIV',
                 is_primary: true
             });
             if (roleError) throw new Error(`Profil legat, dar eroare la asignarea rolului 'Sportiv': ${roleError.message}`);
 
-            const sportivRole = allRoles.find(r => r.nume === 'Sportiv');
+            const sportivRole = allRoles.find(r => r.nume === 'SPORTIV');
             const updatedUser = { ...data, roluri: sportivRole ? [sportivRole] : [] };
 
             setSportivi(prev => prev.map(s => s.id === selectedUserForAccount.id ? updatedUser as Sportiv : s));
@@ -560,7 +560,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
             
             <MyProfile user={currentUser} setSportivi={setSportivi} setCurrentUser={setCurrentUser} />
 
-            {currentUser.roluri.some(r => r.nume === 'Admin' || r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'Admin Club') && (
+            {currentUser.roluri.some(r => r.nume === 'ADMIN' || r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN_CLUB') && (
                 <>
                 <Card className="mb-8">
                      <h3 className="text-xl font-bold text-white mb-4">Adaugă Rol Nou</h3>

@@ -26,26 +26,26 @@ export const usePermissions = (user: User | null, activeRole: Rol['nume'] | null
 
         // --- Permissions based on the CURRENT ACTIVE role/context ---
         const isSuperAdmin = activeRole === 'SUPER_ADMIN_FEDERATIE';
-        const isAdmin = activeRole === 'Admin';
+        const isAdmin = activeRole === 'ADMIN';
         const isFederationAdmin = isSuperAdmin || isAdmin;
-        const isAdminClub = activeRole === 'Admin Club';
-        const isInstructor = activeRole === 'Instructor';
-        const isSportiv = activeRole === 'Sportiv';
+        const isAdminClub = activeRole === 'ADMIN_CLUB';
+        const isInstructor = activeRole === 'INSTRUCTOR';
+        const isSportiv = activeRole === 'SPORTIV';
 
         // --- Capabilities based on ALL available roles for the user ---
         const hasAdminAccess = (user.roluri || []).some(
-            r => r.nume === 'Admin Club' || r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'Admin'
+            r => r.nume === 'ADMIN_CLUB' || r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN'
         );
 
         const canManageFinances = hasAdminAccess;
 
         const canGradeStudents = (user.roluri || []).some(
-            r => r.nume === 'Admin Club' || r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'Admin' || r.nume === 'Instructor'
+            r => r.nume === 'ADMIN_CLUB' || r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN' || r.nume === 'INSTRUCTOR'
         );
 
         const allUserRoles = new Set((user.roluri || []).map(r => r.nume));
-        const canBeFederationAdmin = allUserRoles.has('SUPER_ADMIN_FEDERATIE') || allUserRoles.has('Admin');
-        const canBeClubAdmin = allUserRoles.has('Admin Club');
+        const canBeFederationAdmin = allUserRoles.has('SUPER_ADMIN_FEDERATIE') || allUserRoles.has('ADMIN');
+        const canBeClubAdmin = allUserRoles.has('ADMIN_CLUB');
         const isMultiContextAdmin = canBeFederationAdmin && canBeClubAdmin;
 
         // --- Context-dependent flags ---

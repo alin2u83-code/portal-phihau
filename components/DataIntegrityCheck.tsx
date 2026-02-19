@@ -37,7 +37,8 @@ export const DataIntegrityCheck: React.FC<DataIntegrityCheckProps> = ({ sportivi
         }
         
         // Check 2: Staff members without user accounts
-        const staffRoles: Rol['nume'][] = ['Instructor', 'Admin Club', 'Admin', 'SUPER_ADMIN_FEDERATIE'];
+        // FIX: Corrected role names to match the type definition.
+        const staffRoles: Rol['nume'][] = ['INSTRUCTOR', 'ADMIN_CLUB', 'ADMIN', 'SUPER_ADMIN_FEDERATIE'];
         const staffWithoutAccounts = sportivi.filter(s =>
             !s.user_id && (s.roluri || []).some(r => staffRoles.includes(r.nume))
         );

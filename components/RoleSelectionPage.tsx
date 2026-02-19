@@ -6,11 +6,12 @@ import { Rol } from '../types';
 // --- Helper Functions ---
 const getRoleDisplayName = (role: any) => {
     switch(role.rol_denumire) {
+        // FIX: Corrected role names to match type definition.
         case 'SUPER_ADMIN_FEDERATIE': return 'Super Admin Federație';
-        case 'Admin': return 'Admin General';
-        case 'Admin Club': return `Admin - ${role.club?.nume || 'Club Nedefinit'}`;
-        case 'Instructor': return `Instructor - ${role.club?.nume || 'Club Nedefinit'}`;
-        case 'Sportiv': return `Sportiv - ${role.sportiv?.nume || ''} ${role.sportiv?.prenume || ''}`;
+        case 'ADMIN': return 'Admin General';
+        case 'ADMIN_CLUB': return `Admin - ${role.club?.nume || 'Club Nedefinit'}`;
+        case 'INSTRUCTOR': return `Instructor - ${role.club?.nume || 'Club Nedefinit'}`;
+        case 'SPORTIV': return `Sportiv - ${role.sportiv?.nume || ''} ${role.sportiv?.prenume || ''}`;
         default: return role.rol_denumire;
     }
 };
@@ -18,23 +19,24 @@ const getRoleDisplayName = (role: any) => {
 const getRoleDescription = (role: any) => {
     switch(role.rol_denumire) {
         case 'SUPER_ADMIN_FEDERATIE': return 'Acces total la nivel de federație.';
-        case 'Admin': return 'Acces administrativ general.';
-        case 'Admin Club': return `Management complet pentru ${role.club?.nume || 'club'}.`;
-        case 'Instructor': return `Management sportivi și prezențe la ${role.club?.nume || 'club'}.`;
-        case 'Sportiv': return 'Accesează portalul personal de sportiv.';
+        case 'ADMIN': return 'Acces administrativ general.';
+        case 'ADMIN_CLUB': return `Management complet pentru ${role.club?.nume || 'club'}.`;
+        case 'INSTRUCTOR': return `Management sportivi și prezențe la ${role.club?.nume || 'club'}.`;
+        case 'SPORTIV': return 'Accesează portalul personal de sportiv.';
         default: return 'Selectează acest profil pentru a continua.';
     }
 }
 
 const getRoleIcon = (roleName: Rol['nume']) => {
     switch(roleName) {
+        // FIX: Corrected role names to match type definition.
         case 'SUPER_ADMIN_FEDERATIE':
-        case 'Admin':
+        case 'ADMIN':
             return ShieldCheckIcon;
-        case 'Admin Club':
-        case 'Instructor':
+        case 'ADMIN_CLUB':
+        case 'INSTRUCTOR':
             return UsersIcon;
-        case 'Sportiv':
+        case 'SPORTIV':
             return UserCircleIcon;
         default:
             return UsersIcon;

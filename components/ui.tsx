@@ -190,21 +190,26 @@ export const Stepper: React.FC<{ value: number; onChange: (newValue: number) => 
 };
 
 export const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
-    const isClubAdmin = (role.nume as any) === 'ADMIN_CLUB' || role.nume === 'Admin Club';
-    const displayName = isClubAdmin ? 'Admin Club' : role.nume;
-
-    const colorClasses: Record<string, string> = {
+    const displayNameMap: Record<Rol['nume'], string> = {
+        'SUPER_ADMIN_FEDERATIE': 'Super Admin',
+        'ADMIN': 'Admin',
+        'ADMIN_CLUB': 'Admin Club',
+        'INSTRUCTOR': 'Instructor',
+        'SPORTIV': 'Sportiv'
+    };
+    
+    const colorClasses: Record<Rol['nume'], string> = {
         'SUPER_ADMIN_FEDERATIE': 'bg-purple-900 text-white font-black',
-        'Admin': 'bg-purple-700 text-white',
-        'Admin Club': 'bg-[#FFD700] text-slate-900 font-bold',
-        'Instructor': 'bg-red-600 text-white',
-        'Sportiv': 'bg-blue-600 text-white',
+        'ADMIN': 'bg-purple-700 text-white',
+        'ADMIN_CLUB': 'bg-[#FFD700] text-slate-900 font-bold',
+        'INSTRUCTOR': 'bg-red-600 text-white',
+        'SPORTIV': 'bg-blue-600 text-white',
     };
 
-    const roleKeyForColor = isClubAdmin ? 'Admin Club' : role.nume;
+    const displayName = displayNameMap[role.nume] || role.nume;
 
     return (
-        <span className={`px-2 py-1 text-[10px] font-semibold rounded-full ${colorClasses[roleKeyForColor] || 'bg-gray-500 text-white'}`}>
+        <span className={`px-2 py-1 text-[10px] font-semibold rounded-full ${colorClasses[role.nume] || 'bg-gray-500 text-white'}`}>
             {displayName}
         </span>
     );

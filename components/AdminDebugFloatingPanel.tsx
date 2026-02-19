@@ -75,8 +75,10 @@ export const AdminDebugFloatingPanel: React.FC<AdminDebugFloatingPanelProps> = (
                  <Button
                     size="sm"
                     variant="secondary"
-                    onClick={() => handleSwitch('Admin Club')}
-                    isLoading={loadingRole === 'Admin Club'}
+                    // FIX: Corrected role name to match type definition.
+                    onClick={() => handleSwitch('ADMIN_CLUB')}
+                    // FIX: Corrected role name to match type definition.
+                    isLoading={loadingRole === 'ADMIN_CLUB'}
                     disabled={!!loadingRole}
                 >
                     Set: Club
@@ -84,8 +86,10 @@ export const AdminDebugFloatingPanel: React.FC<AdminDebugFloatingPanelProps> = (
                  <Button
                     size="sm"
                     variant="secondary"
-                    onClick={() => handleSwitch('Sportiv')}
-                    isLoading={loadingRole === 'Sportiv'}
+                    // FIX: Corrected role name to match type definition.
+                    onClick={() => handleSwitch('SPORTIV')}
+                    // FIX: Corrected role name to match type definition.
+                    isLoading={loadingRole === 'SPORTIV'}
                     disabled={!!loadingRole}
                 >
                     Set: Sportiv

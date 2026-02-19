@@ -1,16 +1,13 @@
 import React, { useState } from 'react';
 import { Rol, User, Club, Permissions } from '../types';
 import { Button, Card } from './ui';
-// FIX: Added CheckCircleIcon, UsersIcon, UserCircleIcon and removed obsolete IdentitySwitcher import.
 import { ArrowLeftIcon, ShieldCheckIcon, CheckCircleIcon, UsersIcon, UserCircleIcon } from './icons';
 import { useError } from './ErrorProvider';
 import { supabase } from '../supabaseClient';
 
-// FIX: Re-implemented the deleted IdentitySwitcher component and its helpers locally.
 // --- Helper Functions from RoleSelectionPage ---
 const getRoleDisplayName = (role: any) => {
     switch(role.rol_denumire) {
-        // FIX: Corrected role names to match type definition.
         case 'SUPER_ADMIN_FEDERATIE': return 'Super Admin Federație';
         case 'ADMIN': return 'Admin General';
         case 'ADMIN_CLUB': return `Admin - ${role.club?.nume || 'Club Nedefinit'}`;
@@ -59,7 +56,7 @@ const IdentitySwitcher: React.FC<{
             <div className="space-y-4">
                 {userRoles.map((role, index) => {
                     const Icon = getRoleIcon(role.rol_denumire);
-                    const isActive = activeRoleContext?.rol_denumire === role.rol_denumire && activeRoleContext?.sportiv_id === role.sportiv_id;
+                    const isActive = activeRoleContext?.id === role.id;
                     return (
                         <button
                             key={index}
@@ -104,7 +101,6 @@ const DevRoleImpersonation: React.FC<{ userRoles: any[] }> = ({ userRoles }) => 
         }
         setLoadingRole(roleName);
         
-        // Găsește un context care corespunde numelui rolului
         const targetContext = userRoles.find(r => r.rol_denumire === roleName);
         if (!targetContext) {
             showError("Impersonare Eșuată", `Nu aveți un context de rol "${roleName}" pentru a comuta. Adăugați rolul în User Management.`);
@@ -112,9 +108,8 @@ const DevRoleImpersonation: React.FC<{ userRoles: any[] }> = ({ userRoles }) => 
             return;
         }
         
-        const { error } = await supabase.rpc('set_primary_context', {
-            p_sportiv_id: targetContext.sportiv_id,
-            p_rol_denumire: targetContext.rol_denumire
+        const { error } = await supabase.rpc('switch_primary_context', {
+            p_target_context_id: targetContext.id,
         });
 
         if (error) {
@@ -128,7 +123,6 @@ const DevRoleImpersonation: React.FC<{ userRoles: any[] }> = ({ userRoles }) => 
         }
     };
 
-    // FIX: Corrected role names to match type definition.
     const rolesToImpersonate: Rol['nume'][] = ['SUPER_ADMIN_FEDERATIE', 'ADMIN_CLUB', 'SPORTIV'];
 
     return (
@@ -148,7 +142,6 @@ const DevRoleImpersonation: React.FC<{ userRoles: any[] }> = ({ userRoles }) => 
                         isLoading={loadingRole === roleName}
                         disabled={!!loadingRole}
                         className="text-lg py-6 flex-1"
-                        // FIX: Corrected role names to match type definition.
                         variant={roleName === 'SUPER_ADMIN_FEDERATIE' ? 'danger' : roleName === 'ADMIN_CLUB' ? 'primary' : 'secondary'}
                     >
                         {roleName}
@@ -179,9 +172,8 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ currentUser, userRol
         if (!supabase || !currentUser?.user_id) return;
         setIsSwitchingRole(true);
 
-        const { error } = await supabase.rpc('set_primary_context', {
-            p_sportiv_id: roleContext.sportiv_id,
-            p_rol_denumire: roleContext.rol_denumire
+        const { error } = await supabase.rpc('switch_primary_context', {
+            p_target_context_id: roleContext.id
         });
 
         if (error) {

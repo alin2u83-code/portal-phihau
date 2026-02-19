@@ -21,19 +21,14 @@ serve(async (req) => {
     }
 
     const supabaseAdmin = createClient(
-      // FIX: Cannot find name 'Deno'.
       (globalThis as any).Deno.env.get('SUPABASE_URL') ?? '',
-      // FIX: Cannot find name 'Deno'.
       (globalThis as any).Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
     
     // Set VAPID details din variabilele de mediu
-    // FIX: Cannot find name 'Deno'.
     const vapidPublicKey = (globalThis as any).Deno.env.get('VITE_VAPID_PUBLIC_KEY');
-    // FIX: Cannot find name 'Deno'.
     const vapidPrivateKey = (globalThis as any).Deno.env.get('VAPID_PRIVATE_KEY');
-    // FIX: Cannot find name 'Deno'.
     const mailto = (globalThis as any).Deno.env.get('VAPID_MAILTO');
 
     if (!vapidPublicKey || !vapidPrivateKey || !mailto) {

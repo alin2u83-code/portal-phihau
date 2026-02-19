@@ -95,30 +95,27 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
         switch (normalizedRole) {
             case ROLES.SUPER_ADMIN_FEDERATIE:
             case ROLES.ADMIN_CLUB:
-                menu = adminMenu.filter(item => 
-                    ['Sportivi', 'Plăți', 'Examene', 'Grupe', 'Prezență'].includes(item.label) || 
-                    (normalizedRole === ROLES.SUPER_ADMIN_FEDERATIE && ['Setări Globale', 'Structură Federație'].includes(item.label))
-                );
+                menu = adminMenu;
                 name = normalizedRole === ROLES.SUPER_ADMIN_FEDERATIE ? 'Federație' : currentUser.cluburi?.nume || 'Club';
                 border = 'border-amber-400';
                 icon = ShieldCheckIcon;
                 break;
             case ROLES.INSTRUCTOR:
-                menu = instructorMenu.filter(item => ['Sportivi', 'Prezență', 'Examene'].includes(item.label));
+                menu = instructorMenu;
                 name = currentUser.cluburi?.nume || 'Club';
                 border = 'border-sky-500';
                 icon = ShieldCheckIcon;
                 break;
             case ROLES.SPORTIV:
             default:
-                menu = sportivMenu.filter(item => item.label === 'Portalul Meu');
+                menu = sportivMenu;
                 name = 'Portal Sportiv';
                 border = 'border-green-500';
                 icon = UserCircleIcon;
                 break;
         }
         return { menuToDisplay: menu, contextName: name, borderClass: border, headerIcon: icon };
-    }, [activeRole, currentUser.cluburi?.nume, permissions.isFederationAdmin]);
+    }, [activeRole, currentUser.cluburi?.nume]);
 
 
     const iconColorClass = useMemo(() => {
@@ -151,7 +148,10 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
                         <p className="text-xs font-bold text-slate-500 px-2 pb-1">Alege context</p>
                         <div className="space-y-1">
                         {(userRoles || [])
-                            .filter(role => role.rol_denumire !== activeRole)
+                            .filter(role => {
+                                const activeContext = userRoles.find(r => r.is_primary);
+                                return activeContext ? role.id !== activeContext.id : true;
+                            })
                             .map((role) => {
                                 const Icon = getRoleIcon(role.rol_denumire);
                                 return (

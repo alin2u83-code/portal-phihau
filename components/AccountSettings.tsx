@@ -5,16 +5,9 @@ import { useError } from './ErrorProvider';
 import { Button, Card, Input } from './ui';
 import { ArrowLeftIcon, MailIcon, LockIcon, ShieldCheckIcon, UserCircleIcon, UsersIcon, CheckCircleIcon } from './icons';
 
-interface AccountSettingsProps {
-    currentUser: User;
-    onBack: () => void;
-    userRoles: any[]; // Lista completă a contextelor de rol
-}
-
 // --- Helper Functions ---
 const getRoleDisplayName = (role: any) => {
     switch(role.rol_denumire) {
-        // FIX: Corrected role names to match type definition.
         case 'SUPER_ADMIN_FEDERATIE': return 'Super Admin Federație';
         case 'ADMIN': return 'Admin General';
         case 'ADMIN_CLUB': return `Admin - ${role.club?.nume || 'Club Nedefinit'}`;
@@ -37,7 +30,6 @@ const getRoleDescription = (role: any) => {
 
 const getRoleIcon = (roleName: Rol['nume']) => {
     switch(roleName) {
-        // FIX: Corrected role names to match type definition.
         case 'SUPER_ADMIN_FEDERATIE':
         case 'ADMIN':
             return ShieldCheckIcon;
@@ -52,7 +44,11 @@ const getRoleIcon = (roleName: Rol['nume']) => {
 };
 
 
-export const AccountSettings: React.FC<AccountSettingsProps> = ({ currentUser, onBack, userRoles }) => {
+export const AccountSettings: React.FC<{
+    currentUser: User;
+    onBack: () => void;
+    userRoles: any[]; // Lista completă a contextelor de rol
+}> = ({ currentUser, onBack, userRoles }) => {
     const { showError, showSuccess } = useError();
     
     // Email State
@@ -99,9 +95,8 @@ export const AccountSettings: React.FC<AccountSettingsProps> = ({ currentUser, o
         const contextKey = `${roleContext.sportiv_id}-${roleContext.rol_denumire}`;
         setRoleLoading(contextKey);
 
-        const { error } = await supabase.rpc('set_primary_context', {
-            p_sportiv_id: roleContext.sportiv_id,
-            p_rol_denumire: roleContext.rol_denumire
+        const { error } = await supabase.rpc('switch_primary_context', {
+            p_target_context_id: roleContext.id
         });
 
         if (error) {

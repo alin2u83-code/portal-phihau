@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { supabase } from './supabaseClient';
-// FIX: Added 'Plata' to imports to resolve 'Cannot find name' errors.
 import { Sportiv, View, Rol, Permissions, Plata, VizualizarePlata } from './types';
 import { SportiviManagement } from './components/SportiviManagement';
 import { UserProfile } from './components/UserProfile';
@@ -137,8 +136,12 @@ function App() {
       if (refreshError) {
           showError("Eroare la reîmprospătarea sesiunii. Pagina se va reîncărca.", refreshError.message);
           setTimeout(() => window.location.reload(), 1500);
+      } else {
+        // Interfața se va actualiza automat prin listener-ul onAuthStateChange din useDataProvider
+        // Oprim manual indicatorul de încărcare aici
+        setIsSwitchingRole(false);
+        setSwitchingToRole(null);
       }
-      // UI will update automatically via the onAuthStateChange listener in useDataProvider
   }, [currentUser, showError]);
 
   useEffect(() => {
@@ -232,6 +235,7 @@ function App() {
     if (!supabase || !currentUser?.user_id) return;
     setIsSwitchingRole(true);
     
+    // Funcție veche, acum se folosește handleSwitchRole
     const { error } = await supabase.rpc('set_primary_context', { p_sportiv_id: role.sportiv_id, p_rol_denumire: role.rol_denumire });
 
     if (error) {
@@ -300,7 +304,6 @@ function App() {
         return renderProtected(<SportiviManagement onBack={handleBackToDashboard} sportivi={filteredData.sportivi} setSportivi={setSportivi} grupe={filteredData.grupe} setGrupe={setGrupe} tipuriAbonament={filteredData.tipuriAbonament} familii={filteredData.familii} setFamilii={setFamilii} currentUser={currentUser!} plati={filteredData.plati} setPlati={setPlati} tranzactii={filteredData.tranzactii} setTranzactii={setTranzactii} onViewSportiv={onViewSportiv} clubs={clubs} grade={grade} permissions={permissions} allRoles={allRoles} setAllRoles={setAllRoles} vizualizarePlati={filteredData.vizualizarePlati} />, isAtLeastInstructor);
 
       case 'profil-sportiv':
-        {/* FIX: Pass sportivi prop to UserProfile to resolve 'Cannot find name' error. */}
         return renderProtected(selectedSportiv ? <UserProfile sportiv={selectedSportiv} currentUser={currentUser!} participari={filteredData.inscrieriExamene} examene={sesiuniExamene} grade={grade} istoricGrade={filteredData.istoricGrade} setIstoricGrade={setIstoricGrade} antrenamente={filteredData.antrenamente} plati={filteredData.plati} tranzactii={filteredData.tranzactii} reduceri={filteredData.reduceri} grupe={filteredData.grupe} familii={filteredData.familii} tipuriAbonament={filteredData.tipuriAbonament} setSportivi={setSportivi} setPlati={setPlati} setTranzactii={setTranzactii} onBack={() => setActiveView('sportivi')} clubs={clubs} vizualizarePlati={filteredData.vizualizarePlati} sportivi={filteredData.sportivi} /> : null, isAtLeastInstructor);
 
       case 'structura-federatie':

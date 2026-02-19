@@ -28,11 +28,8 @@ export const AdminDebugFloatingPanel: React.FC<AdminDebugFloatingPanelProps> = (
         }
 
         setLoadingRole(roleName);
-
-        const normalize = (str: string) => str.toUpperCase().replace(/ /g, '_');
-        const targetRoleNameNormalized = normalize(roleName);
         
-        const targetContext = userRoles.find(r => normalize(r.rol_denumire) === targetRoleNameNormalized);
+        const targetContext = userRoles.find(r => r.rol_denumire === roleName);
 
         if (!targetContext) {
             showError("Impersonare Eșuată", `Nu aveți un context de rol "${roleName}" pentru a comuta. Adăugați rolul în User Management.`);
@@ -40,9 +37,8 @@ export const AdminDebugFloatingPanel: React.FC<AdminDebugFloatingPanelProps> = (
             return;
         }
 
-        const { error } = await supabase.rpc('set_primary_context', {
-            p_sportiv_id: targetContext.sportiv_id,
-            p_rol_denumire: targetContext.rol_denumire
+        const { error } = await supabase.rpc('switch_primary_context', {
+            p_target_context_id: targetContext.id
         });
 
         if (error) {
@@ -75,9 +71,7 @@ export const AdminDebugFloatingPanel: React.FC<AdminDebugFloatingPanelProps> = (
                  <Button
                     size="sm"
                     variant="secondary"
-                    // FIX: Corrected role name to match type definition.
                     onClick={() => handleSwitch('ADMIN_CLUB')}
-                    // FIX: Corrected role name to match type definition.
                     isLoading={loadingRole === 'ADMIN_CLUB'}
                     disabled={!!loadingRole}
                 >
@@ -86,9 +80,7 @@ export const AdminDebugFloatingPanel: React.FC<AdminDebugFloatingPanelProps> = (
                  <Button
                     size="sm"
                     variant="secondary"
-                    // FIX: Corrected role name to match type definition.
                     onClick={() => handleSwitch('SPORTIV')}
-                    // FIX: Corrected role name to match type definition.
                     isLoading={loadingRole === 'SPORTIV'}
                     disabled={!!loadingRole}
                 >

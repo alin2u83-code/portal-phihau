@@ -6,7 +6,6 @@ import { Rol } from '../types';
 // --- Helper Functions ---
 const getRoleDisplayName = (role: any) => {
     switch(role.rol_denumire) {
-        // FIX: Corrected role names to match type definition.
         case 'SUPER_ADMIN_FEDERATIE': return 'Super Admin Federație';
         case 'ADMIN': return 'Admin General';
         case 'ADMIN_CLUB': return `Admin - ${role.club?.nume || 'Club Nedefinit'}`;
@@ -29,7 +28,6 @@ const getRoleDescription = (role: any) => {
 
 const getRoleIcon = (roleName: Rol['nume']) => {
     switch(roleName) {
-        // FIX: Corrected role names to match type definition.
         case 'SUPER_ADMIN_FEDERATIE':
         case 'ADMIN':
             return ShieldCheckIcon;

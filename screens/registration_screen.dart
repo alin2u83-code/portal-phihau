@@ -29,40 +29,38 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   Future<void> _fetchAdminClubId() async {
     if (supabase.auth.currentUser == null) return;
     try {
-      // Obține club_id din contextul primar al adminului, folosind maybeSingle() pentru siguranță
-      final context = await supabase
+      // Obține club_id din contextul primar al adminului, folosind .select()
+      final contextResponse = await supabase
           .from('utilizator_roluri_multicont')
           .select('club_id')
           .eq('user_id', supabase.auth.currentUser!.id)
-          .eq('is_primary', true)
-          .maybeSingle();
+          .eq('is_primary', true);
       
-      if (context != null && context['club_id'] != null) {
+      if (contextResponse.isNotEmpty && contextResponse[0]['club_id'] != null) {
         setState(() {
-          _adminClubId = context['club_id'];
+          _adminClubId = contextResponse[0]['club_id'];
         });
       } else {
         // Fallback: dacă nu există context primar, caută primul context de admin club disponibil
-        final fallbackContext = await supabase
+        final fallbackResponse = await supabase
           .from('utilizator_roluri_multicont')
           .select('club_id')
           .eq('user_id', supabase.auth.currentUser!.id)
           .in_('rol_denumire', ['ADMIN_CLUB', 'SUPER_ADMIN_FEDERATIE'])
-          .limit(1)
-          .maybeSingle();
+          .limit(1);
 
-        if (fallbackContext != null && fallbackContext['club_id'] != null) {
+        if (fallbackResponse.isNotEmpty && fallbackResponse[0]['club_id'] != null) {
           setState(() {
-            _adminClubId = fallbackContext['club_id'];
+            _adminClubId = fallbackResponse[0]['club_id'];
           });
         } else {
-          if (context.mounted) {
-            _showErrorDialog("Eroare de Context", "Nu am putut identifica un context de club valid pentru contul dumneavoastră.");
+          if (mounted) {
+            _showErrorDialog("Eroare de Context", "Nu am putut identifica un context de club valid pentru contul dumneavoastră. Asigurați-vă că aveți rolul de Admin asignat.");
           }
         }
       }
     } catch (e) {
-      if (context.mounted) {
+      if (mounted) {
         _showErrorDialog("Eroare Necunoscută", "A apărut o problemă la verificarea permisiunilor: ${e.toString()}");
       }
     }
@@ -116,9 +114,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           .eq('nume', _numeController.text.trim())
           .eq('prenume', _prenumeController.text.trim())
           .eq('data_nasterii', _dataNasteriiController.text.trim())
-          .maybeSingle();
+          .limit(1);
 
-      if (checkResponse != null) {
+      if (checkResponse.isNotEmpty) {
         _showErrorDialog("Sportiv Duplicat", "Un sportiv cu același nume, prenume și dată de naștere este deja înregistrat.");
         setState(() => _isLoading = false);
         return;

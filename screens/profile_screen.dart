@@ -32,11 +32,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
 
     try {
+      // Am înlocuit .single() cu .select() și am adăugat o verificare pentru a preveni crash-ul.
       final sportivRes = await supabase
           .from('sportivi')
           .select('*, grad:grad_actual_id(*)')
-          .eq('id', widget.sportivId)
-          .single();
+          .eq('id', widget.sportivId);
+      
+      if (sportivRes.isEmpty) {
+        // Cazul în care sportivul nu este găsit.
+        throw const PostgrestException(message: 'Sportivul cu ID-ul specificat nu a fost găsit.');
+      }
       
       final istoricRes = await supabase
           .from('istoric_grade')
@@ -45,7 +50,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           .order('data_obtinere', ascending: false);
 
       setState(() {
-        _sportiv = Sportiv.fromJson(sportivRes);
+        _sportiv = Sportiv.fromJson(sportivRes[0]); // Preluăm primul element din listă
         _istoricGrade = (istoricRes as List)
             .map((item) => IstoricGrade.fromJson(item))
             .toList();
@@ -57,7 +62,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
      catch (e) {
       setState(() {
-        _error = 'A apărut o eroare neașteptată.';
+        _error = 'A apărut o eroare neașteptată: ${e.toString()}';
       });
     } finally {
       if (mounted) {

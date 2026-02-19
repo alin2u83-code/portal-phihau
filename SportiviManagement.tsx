@@ -1,14 +1,17 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions } from '../types';
 import { Button, Modal, Input, Select, Card } from './ui';
-import { PlusIcon, ArrowLeftIcon, WalletIcon, UserXIcon, UserCheckIcon } from './icons';
-import { supabase } from '../supabaseClient';
+// FIX: Added missing ShieldCheckIcon import
+import { PlusIcon, ArrowLeftIcon, WalletIcon, UserXIcon, UserCheckIcon, ShieldCheckIcon } from './icons';
+import { supabase } from './supabaseClient';
 import { useError } from './ErrorProvider';
-import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useLocalStorage } from './hooks/useLocalStorage';
 import { SportivFormModal } from './Sportivi';
 import { SportivWallet } from './SportivWallet';
 import { ResponsiveTable, Column } from './ResponsiveTable';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
+// FIX: Added missing SportivAccountSettingsModal import
+import { SportivAccountSettingsModal } from './SportivAccountSettingsModal';
 
 const getAge = (dateString: string | null | undefined): number => { 
     if (!dateString) return 0; 

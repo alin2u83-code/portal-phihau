@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screens/registration_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/activation_screen.dart'; // Import noul ecran
+import 'services/profile_service.dart'; // Import noul serviciu
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,6 +23,8 @@ Future<void> main() async {
 }
 
 final supabase = Supabase.instance.client;
+// Creează o instanță a noului serviciu
+final profileService = ProfileService(supabase);
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -68,7 +71,11 @@ class MyApp extends StatelessWidget {
         '/activate': (context) => const ActivationScreen(), // Adaugă ruta nouă
         // Exemplu de rută către profilul unui sportiv specific
         '/profile': (context) {
-           final sportivId = ModalRoute.of(context)!.settings.arguments as String? ?? 'd2e2b2f1-5f33-4a11-a8b2-54a487c6c4f0'; // ID de test
+           final sportivId = ModalRoute.of(context)!.settings.arguments as String?;
+           // Dacă nu se primește un ID, afișează un mesaj de eroare
+           if (sportivId == null) {
+              return const Scaffold(body: Center(child: Text("ID Sportiv lipsă.")));
+           }
            return ProfileScreen(sportivId: sportivId);
         },
       },
@@ -78,6 +85,38 @@ class MyApp extends StatelessWidget {
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
+
+  // Funcție pentru a gestiona navigarea către profilul activ
+  void _navigateToMyProfile(BuildContext context) async {
+    // Afișează un dialog de încărcare
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const Center(child: CircularProgressIndicator());
+      },
+    );
+
+    final activeProfile = await profileService.getActiveUserProfile();
+    
+    // Închide dialogul de încărcare
+    if (context.mounted) {
+      Navigator.of(context).pop();
+    }
+
+    if (context.mounted) {
+      if (activeProfile != null) {
+        Navigator.pushNamed(context, '/profile', arguments: activeProfile.id);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Nu s-a putut încărca profilul activ. Asigură-te că ești autentificat și ai un rol asignat.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -89,6 +128,11 @@ class HomeScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             ElevatedButton(
+              onPressed: () => _navigateToMyProfile(context),
+              child: const Text('Vezi Profilul Meu (Activ)'),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
               onPressed: () => Navigator.pushNamed(context, '/register'),
               child: const Text('Înregistrează Sportiv'),
             ),
@@ -96,11 +140,6 @@ class HomeScreen extends StatelessWidget {
              ElevatedButton(
               onPressed: () => Navigator.pushNamed(context, '/activate'),
               child: const Text('Asignează Rol (Activare Cont)'),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => Navigator.pushNamed(context, '/profile'),
-              child: const Text('Vezi Profil Sportiv (Exemplu)'),
             ),
           ],
         ),

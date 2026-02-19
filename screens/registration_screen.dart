@@ -18,6 +18,73 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final _dataNasteriiController = TextEditingController(); // YYYY-MM-DD
   
   bool _isLoading = false;
+  String? _adminClubId;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchAdminClubId();
+  }
+
+  Future<void> _fetchAdminClubId() async {
+    if (supabase.auth.currentUser == null) return;
+    try {
+      // Obține club_id din contextul primar al adminului, folosind maybeSingle() pentru siguranță
+      final context = await supabase
+          .from('utilizator_roluri_multicont')
+          .select('club_id')
+          .eq('user_id', supabase.auth.currentUser!.id)
+          .eq('is_primary', true)
+          .maybeSingle();
+      
+      if (context != null && context['club_id'] != null) {
+        setState(() {
+          _adminClubId = context['club_id'];
+        });
+      } else {
+        // Fallback: dacă nu există context primar, caută primul context de admin club disponibil
+        final fallbackContext = await supabase
+          .from('utilizator_roluri_multicont')
+          .select('club_id')
+          .eq('user_id', supabase.auth.currentUser!.id)
+          .in_('rol_denumire', ['ADMIN_CLUB', 'SUPER_ADMIN_FEDERATIE'])
+          .limit(1)
+          .maybeSingle();
+
+        if (fallbackContext != null && fallbackContext['club_id'] != null) {
+          setState(() {
+            _adminClubId = fallbackContext['club_id'];
+          });
+        } else {
+          if (context.mounted) {
+            _showErrorDialog("Eroare de Context", "Nu am putut identifica un context de club valid pentru contul dumneavoastră.");
+          }
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        _showErrorDialog("Eroare Necunoscută", "A apărut o problemă la verificarea permisiunilor: ${e.toString()}");
+      }
+    }
+  }
+
+  void _showErrorDialog(String title, String content) {
+    if (!context.mounted) return;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF112240),
+        title: Text(title, style: const TextStyle(color: Colors.white)),
+        content: Text(content, style: const TextStyle(color: Color(0xFF94a3b8))),
+        actions: [
+          TextButton(
+            child: const Text("OK", style: TextStyle(color: Color(0xFFFFD700))),
+            onPressed: () => Navigator.of(ctx).pop(),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   void dispose() {
@@ -32,21 +99,37 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     if (!_formKey.currentState!.validate()) {
       return;
     }
+    if (_adminClubId == null) {
+      _showErrorDialog("Acțiune Blocată", "Contextul de club nu a fost încărcat. Nu se poate adăuga sportivul.");
+      return;
+    }
 
     setState(() {
       _isLoading = true;
     });
 
     try {
-      // Hardcodat pentru clubul Phi Hau Iași, conform structurii existente
-      const clubId = 'cbb0b228-b3e0-4735-9658-70999eb256c6';
+      // Verificare proactivă pentru a evita duplicarea, conform constrângerii 'unique_sportiv_identitate'
+      final checkResponse = await supabase
+          .from('sportivi')
+          .select('id')
+          .eq('nume', _numeController.text.trim())
+          .eq('prenume', _prenumeController.text.trim())
+          .eq('data_nasterii', _dataNasteriiController.text.trim())
+          .maybeSingle();
 
-      final response = await supabase.from('sportivi').insert({
+      if (checkResponse != null) {
+        _showErrorDialog("Sportiv Duplicat", "Un sportiv cu același nume, prenume și dată de naștere este deja înregistrat.");
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      await supabase.from('sportivi').insert({
         'nume': _numeController.text.trim(),
         'prenume': _prenumeController.text.trim(),
-        'cnp': _cnpController.text.trim(),
+        'cnp': _cnpController.text.trim().isEmpty ? null : _cnpController.text.trim(),
         'data_nasterii': _dataNasteriiController.text.trim(),
-        'club_id': clubId,
+        'club_id': _adminClubId, // Folosește ID-ul de club preluat dinamic
         'status': 'Activ',
         'data_inscrierii': DateTime.now().toIso8601String(),
       });
@@ -64,30 +147,17 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     } on PostgrestException catch (e) {
       String errorMessage = 'A apărut o eroare necunoscută.';
       
-      // GESTIONAREA ERORII SPECIFICE DE CHEIE DUPLICĂ
+      // GESTIONAREA ERORII SPECIFICE DE CHEIE DUPLICĂ (ca fallback)
       if (e.message.contains('unique_sportiv_identitate')) {
         errorMessage = 'Acest sportiv este deja înregistrat în baza de date a clubului.';
       } else {
         errorMessage = e.message;
       }
       
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorMessage),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
-      }
+      _showErrorDialog("Eroare la Salvare", errorMessage);
+
     } catch (e) {
-       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Eroare: ${e.toString()}'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
-      }
+       _showErrorDialog("Eroare Neprevăzută", e.toString());
     } finally {
       if (mounted) {
         setState(() {
@@ -112,14 +182,32 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 TextFormField(
                   controller: _numeController,
                   decoration: const InputDecoration(labelText: 'Nume de Familie'),
-                  validator: (value) => value!.isEmpty ? 'Numele este obligatoriu' : null,
+                  validator: (value) => value!.trim().isEmpty ? 'Numele este obligatoriu' : null,
                   style: const TextStyle(color: Colors.white),
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _prenumeController,
                   decoration: const InputDecoration(labelText: 'Prenume'),
-                  validator: (value) => value!.isEmpty ? 'Prenumele este obligatoriu' : null,
+                  validator: (value) => value!.trim().isEmpty ? 'Prenumele este obligatoriu' : null,
+                  style: const TextStyle(color: Colors.white),
+                ),
+                const SizedBox(height: 16),
+                 TextFormField(
+                  controller: _dataNasteriiController,
+                  decoration: const InputDecoration(labelText: 'Data Nașterii (YYYY-MM-DD)'),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Data nașterii este obligatorie.';
+                    }
+                    // O validare simplă de format
+                    final regex = RegExp(r'^\d{4}-\d{2}-\d{2}$');
+                    if (!regex.hasMatch(value)) {
+                      return 'Formatul trebuie să fie YYYY-MM-DD.';
+                    }
+                    return null;
+                  },
+                  keyboardType: TextInputType.datetime,
                   style: const TextStyle(color: Colors.white),
                 ),
                 const SizedBox(height: 16),
@@ -129,15 +217,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   keyboardType: TextInputType.number,
                    style: const TextStyle(color: Colors.white),
                 ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _dataNasteriiController,
-                  decoration: const InputDecoration(labelText: 'Data Nașterii (YYYY-MM-DD) (Opțional)'),
-                   style: const TextStyle(color: Colors.white),
-                ),
                 const SizedBox(height: 32),
                 ElevatedButton(
-                  onPressed: _isLoading ? null : _register,
+                  onPressed: (_isLoading || _adminClubId == null) ? null : _register,
                   child: _isLoading
                       ? const CircularProgressIndicator(color: Color(0xFF0a192f))
                       : const Text('Salvează Sportiv'),

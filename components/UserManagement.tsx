@@ -1,131 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { Sportiv, User, Rol, Club, Permissions } from '../types';
 import { Button, Input, Card, Select, Modal, RoleBadge } from './ui';
-import { ArrowLeftIcon, EditIcon, ShieldCheckIcon, PlusIcon, LockIcon } from './icons';
+import { ArrowLeftIcon, ShieldCheckIcon, PlusIcon, LockIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
-
-// Componenta pentru editarea profilului personal
-const MyProfile: React.FC<{ user: User; setSportivi: React.Dispatch<React.SetStateAction<Sportiv[]>>; setCurrentUser: React.Dispatch<React.SetStateAction<User | null>> }> = ({ user, setSportivi, setCurrentUser }) => {
-    const [formData, setFormData] = useState({
-        nume: user.nume,
-        prenume: user.prenume,
-        email: user.email,
-        username: user.username || '',
-        parola: '',
-        confirmParola: ''
-    });
-    const [successMessage, setSuccessMessage] = useState('');
-    const [errorMessage, setErrorMessage] = useState('');
-    const [loading, setLoading] = useState(false);
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
-    };
-
-    const handleSave = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!supabase) {
-            setErrorMessage("Eroare de configurare: Conexiunea la baza de date nu a putut fi stabilită.");
-            return;
-        }
-        if (formData.parola && formData.parola !== formData.confirmParola) {
-            setErrorMessage("Parolele nu se potrivesc.");
-            return;
-        }
-        
-        setLoading(true);
-        setErrorMessage('');
-        setSuccessMessage('');
-
-        // 0. Verifică unicitatea username-ului dacă a fost schimbat
-        if (formData.username && formData.username !== user.username) {
-            const { data: existingUser, error: checkError } = await supabase
-                .from('sportivi')
-                .select('id')
-                .eq('username', formData.username)
-                .not('id', 'eq', user.id)
-                .limit(1);
-
-            if (checkError) {
-                setErrorMessage(`Eroare la verificare: ${checkError.message}`);
-                setLoading(false);
-                return;
-            }
-            if (existingUser && existingUser.length > 0) {
-                setErrorMessage('Numele de utilizator este deja folosit.');
-                setLoading(false);
-                return;
-            }
-        }
-
-        // 1. Actualizează datele de autentificare dacă s-au schimbat
-        const authUpdates: any = {};
-        if (formData.email !== user.email) authUpdates.email = formData.email;
-        if (formData.parola) authUpdates.password = formData.parola;
-
-        if (Object.keys(authUpdates).length > 0) {
-            const { error: authError } = await supabase.auth.updateUser(authUpdates);
-            if (authError) {
-                setErrorMessage(`Eroare la actualizarea autentificării: ${authError.message}`);
-                setLoading(false);
-                return;
-            }
-        }
-
-        // 2. Actualizează profilul în tabelul 'sportivi'
-        const profileUpdates = {
-            nume: formData.nume,
-            prenume: formData.prenume,
-            email: formData.email,
-            username: formData.username,
-        };
-        const { data, error } = await supabase.from('sportivi').update(profileUpdates).eq('user_id', user.user_id).select('*, cluburi(*)').single();
-
-        if (error) {
-            setErrorMessage(`Eroare la actualizarea profilului: ${error.message}`);
-            setLoading(false);
-            return;
-        }
-
-        // 3. Actualizează starea locală
-        if(data) {
-             const updatedUser = { ...data, roluri: user.roluri } as Sportiv; // Păstrăm rolurile existente
-            setSportivi(prev => prev.map(s => s.id === user.id ? updatedUser : s));
-            setCurrentUser(updatedUser);
-        }
-        
-        setSuccessMessage("Profilul a fost actualizat cu succes!");
-        setFormData(prev => ({ ...prev, parola: '', confirmParola: '' }));
-        setTimeout(() => setSuccessMessage(''), 3000);
-        setLoading(false);
-    };
-
-    return (
-        <Card className="mb-8">
-            <h2 className="text-2xl font-bold text-white mb-4">Profilul Meu</h2>
-            <form onSubmit={handleSave} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Input label="Nume" name="nume" value={formData.nume} onChange={handleChange} required />
-                    <Input label="Prenume" name="prenume" value={formData.prenume} onChange={handleChange} required />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Input label="Email (Login)" name="email" type="email" value={formData.email || ''} onChange={handleChange} required />
-                    <Input label="Nume Utilizator" name="username" type="text" value={formData.username} onChange={handleChange} placeholder="ex: ion.popescu"/>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Input label="Parolă Nouă (lasă gol pentru a o păstra)" name="parola" type="password" value={formData.parola} onChange={handleChange} />
-                    <Input label="Confirmă Parola Nouă" name="confirmParola" type="password" value={formData.confirmParola} onChange={handleChange} />
-                </div>
-                {errorMessage && <p className="text-red-400 text-sm text-center">{errorMessage}</p>}
-                <div className="flex justify-end items-center gap-4 pt-2">
-                    {successMessage && <p className="text-green-400 text-sm font-semibold">{successMessage}</p>}
-                    <Button type="submit" variant="success" disabled={loading}>{loading ? 'Se salvează...' : 'Salvează Modificările'}</Button>
-                </div>
-            </form>
-        </Card>
-    );
-};
 
 const initialStaffFormState = {
     nume: '',
@@ -318,16 +196,14 @@ interface UserManagementProps {
     sportivi: Sportiv[];
     setSportivi: React.Dispatch<React.SetStateAction<Sportiv[]>>;
     onBack?: () => void;
-    isEmbedded?: boolean;
     currentUser: User;
-    setCurrentUser: React.Dispatch<React.SetStateAction<User | null>>;
     allRoles: Rol[];
     setAllRoles: React.Dispatch<React.SetStateAction<Rol[]>>;
     clubs: Club[];
     permissions: Permissions;
 }
 
-export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSportivi, onBack, isEmbedded = false, currentUser, setCurrentUser, allRoles, setAllRoles, clubs, permissions }) => {
+export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSportivi, onBack, currentUser, allRoles, setAllRoles, clubs, permissions }) => {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [newRoleIds, setNewRoleIds] = useState<string[]>([]);
     const [isCreateStaffModalOpen, setIsCreateStaffModalOpen] = useState(false);
@@ -489,7 +365,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
             });
 
             if (authError || authData.error) {
-                const errorMessage = authError?.message || authData?.error;
+                const errorMessage = authError?.message || authData.error;
                 if (String(errorMessage).includes('User already exists')) {
                      throw new Error('Un utilizator cu acest email există deja. Asociați-l manual dacă este necesar.');
                 }
@@ -553,20 +429,21 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
 
 
     return (
-        <div>
-            {!isEmbedded && onBack && (
-                <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
-            )}
+        <div className="space-y-8">
+            {onBack && <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>}
             
-            <MyProfile user={currentUser} setSportivi={setSportivi} setCurrentUser={setCurrentUser} />
+            <header>
+                <h1 className="text-3xl font-bold text-white">Administrare Utilizatori & Roluri</h1>
+                <p className="text-slate-400">Gestionează conturile de acces și permisiunile pentru staff și sportivi.</p>
+            </header>
 
-            {currentUser.roluri.some(r => r.nume === 'ADMIN' || r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN_CLUB') && (
+            {permissions.hasAdminAccess && (
                 <>
-                <Card className="mb-8">
-                     <h3 className="text-xl font-bold text-white mb-4">Adaugă Rol Nou</h3>
+                <Card>
+                     <h3 className="text-xl font-bold text-white mb-4">Adaugă Rol Nou în Nomenclator</h3>
                      <div className="flex items-end gap-2">
                         <Input label="Nume Rol" value={newRoleName} onChange={e => setNewRoleName(e.target.value)} placeholder="ex: Antrenor Copii" />
-                        <Button onClick={handleAddNewRole} variant="info"><PlusIcon className="w-5 h-5 mr-2" /> Adaugă</Button>
+                        <Button onClick={handleAddNewRole} variant="info"><PlusIcon className="w-5 h-5 mr-2" /> Adaugă Rol</Button>
                      </div>
                       {roleCreationFeedback && <p className={`mt-2 text-sm ${roleCreationFeedback.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>{roleCreationFeedback.message}</p>}
                 </Card>

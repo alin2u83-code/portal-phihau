@@ -358,7 +358,7 @@ function App() {
         return renderProtected(<RaportFinanciar onBack={handleBackToDashboard} plati={filteredData.plati} sportivi={filteredData.sportivi} familii={filteredData.familii} tranzactii={filteredData.tranzactii} />, isAtLeastClubAdmin);
 
       case 'user-management':
-        return renderProtected(<UserManagement onBack={handleBackToDashboard} sportivi={filteredData.sportivi} setSportivi={setSportivi} currentUser={currentUser!} setCurrentUser={setCurrentUser} allRoles={allRoles} setAllRoles={setAllRoles} clubs={clubs} permissions={permissions} />, isAtLeastClubAdmin);
+        return renderProtected(<UserManagement onBack={handleBackToDashboard} sportivi={filteredData.sportivi} setSportivi={setSportivi} currentUser={currentUser!} allRoles={allRoles} setAllRoles={setAllRoles} clubs={clubs} permissions={permissions} />, isAtLeastClubAdmin);
 
       case 'cluburi':
         return renderProtected(<CluburiManagement onBack={handleBackToDashboard} clubs={clubs} setClubs={setClubs} currentUser={currentUser!} permissions={permissions} />, isFederationAdmin);
@@ -403,7 +403,7 @@ function App() {
         return <IstoricPlati onBack={handleBackToDashboard} viewedUser={currentUser!} vizualizarePlati={vizualizarePlati} />;
 
       case 'account-settings':
-        return <AccountSettings onBack={handleBackToDashboard} currentUser={currentUser!} userRoles={userRoles} />;
+        return <AccountSettings onBack={handleBackToDashboard} currentUser={currentUser!} userRoles={userRoles} setCurrentUser={setCurrentUser} setSportivi={setSportivi} />;
       
       case 'fisa-digitala':
         return <FisaDigitalaSportiv onBack={handleBackToDashboard} currentUser={currentUser!} grade={grade} participari={inscrieriExamene} examene={sesiuniExamene} plati={plati} />;

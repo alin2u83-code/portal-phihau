@@ -14,13 +14,17 @@ interface State {
 }
 
 class ErrorBoundary extends React.Component<Props, State> {
-  // FIX: The constructor-based state initialization was still causing type errors.
-  // Reverting to the class property syntax for state, which is a modern and standard approach.
-  // This simplifies the component and should resolve issues with `this` context and property access.
-  state: State = {
-    hasError: false,
-    error: undefined,
-  };
+  // FIX: Switched to a constructor for state initialization and method binding.
+  // This is a more robust pattern that ensures `this` is correctly bound,
+  // resolving errors where `setState` and `props` were not accessible.
+  constructor(props: Props) {
+    super(props);
+    this.state = {
+      hasError: false,
+      error: undefined,
+    };
+    this.handleRedirect = this.handleRedirect.bind(this);
+  }
 
   static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
@@ -30,12 +34,12 @@ class ErrorBoundary extends React.Component<Props, State> {
     console.error("Uncaught error:", error, errorInfo);
   }
 
-  handleRedirect = () => {
+  handleRedirect() {
     this.setState({ hasError: false, error: undefined });
     if (this.props.onNavigate) {
         this.props.onNavigate('dashboard');
     }
-  };
+  }
 
   render() {
     if (this.state.hasError) {

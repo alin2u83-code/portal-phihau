@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Rol } from '../types';
+import { User, Rol, Sportiv } from '../types';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { Button, Card, Input } from './ui';
@@ -43,53 +43,76 @@ const getRoleIcon = (roleName: Rol['nume']) => {
     }
 };
 
-
-export const AccountSettings: React.FC<{
+interface AccountSettingsProps {
     currentUser: User;
     onBack: () => void;
-    userRoles: any[]; // Lista completă a contextelor de rol
-}> = ({ currentUser, onBack, userRoles }) => {
+    userRoles: any[];
+    setCurrentUser: React.Dispatch<React.SetStateAction<User | null>>;
+    setSportivi: React.Dispatch<React.SetStateAction<Sportiv[]>>;
+}
+
+export const AccountSettings: React.FC<AccountSettingsProps> = ({ currentUser, onBack, userRoles, setCurrentUser, setSportivi }) => {
     const { showError, showSuccess } = useError();
     
-    // Email State
-    const [newEmail, setNewEmail] = useState('');
-    const [emailLoading, setEmailLoading] = useState(false);
-
-    // Password State
-    const [passwordForm, setPasswordForm] = useState({ newPassword: '', confirmPassword: '' });
-    const [passwordLoading, setPasswordLoading] = useState(false);
-
-    // Role State
+    // State combinat pentru datele personale și de securitate
+    const [formData, setFormData] = useState({
+        nume: currentUser.nume,
+        prenume: currentUser.prenume,
+        email: currentUser.email || '',
+        parola: '',
+        confirmParola: ''
+    });
+    const [loading, setLoading] = useState(false);
+    
     const [roleLoading, setRoleLoading] = useState<string | null>(null);
 
-    const handleEmailUpdate = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!supabase) { showError("Eroare Configurare", "Clientul Supabase nu este inițializat."); return; }
-        if (!newEmail || newEmail === currentUser.email) { showError("Date Invalide", "Introduceți o adresă de email nouă, diferită de cea curentă."); return; }
-        
-        setEmailLoading(true);
-        const { error } = await supabase.auth.updateUser({ email: newEmail });
-        setEmailLoading(false);
+    const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFormData(p => ({ ...p, [e.target.name]: e.target.value }));
+    };
 
-        if (error) { showError("Eroare la actualizare email", error.message); } 
-        else { showSuccess("Verificați Email-ul", "Un link de confirmare a fost trimis pe ambele adrese de email."); setNewEmail(''); }
+    const handleSaveProfile = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!supabase) { showError("Eroare", "Client Supabase neinițializat."); return; }
+        if (formData.parola && formData.parola !== formData.confirmParola) { showError("Eroare", "Parolele nu se potrivesc."); return; }
+        if (formData.parola && formData.parola.length < 6) { showError("Eroare", "Parola trebuie să aibă cel puțin 6 caractere."); return; }
+        
+        setLoading(true);
+
+        try {
+            // Pas 1: Actualizează datele de autentificare dacă este necesar
+            const authUpdates: any = {};
+            if (formData.email !== currentUser.email) authUpdates.email = formData.email;
+            if (formData.parola) authUpdates.password = formData.parola;
+
+            if (Object.keys(authUpdates).length > 0) {
+                const { error: authError } = await supabase.auth.updateUser(authUpdates);
+                if (authError) throw authError;
+            }
+
+            // Pas 2: Actualizează profilul în tabela 'sportivi'
+            const profileUpdates = {
+                nume: formData.nume,
+                prenume: formData.prenume,
+                email: formData.email,
+            };
+            const { data, error: profileError } = await supabase.from('sportivi').update(profileUpdates).eq('id', currentUser.id).select('*, cluburi(*)').single();
+            if (profileError) throw profileError;
+
+            // Pas 3: Actualizează starea globală a aplicației
+            const updatedUser = { ...currentUser, ...data };
+
+            setCurrentUser(updatedUser);
+            setSportivi(prev => prev.map(s => s.id === currentUser.id ? updatedUser as Sportiv : s));
+            
+            showSuccess("Succes", "Profilul a fost actualizat.");
+            setFormData(p => ({...p, parola: '', confirmParola: ''}));
+        } catch (err: any) {
+            showError("Eroare la actualizare", err.message);
+        } finally {
+            setLoading(false);
+        }
     };
     
-    const handlePasswordUpdate = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!supabase) { showError("Eroare Configurare", "Clientul Supabase nu este inițializat."); return; }
-        const { newPassword, confirmPassword } = passwordForm;
-        if (!newPassword || newPassword.length < 6) { showError("Parolă Invalidă", "Parola trebuie să conțină cel puțin 6 caractere."); return; }
-        if (newPassword !== confirmPassword) { showError("Eroare", "Parolele nu se potrivesc."); return; }
-        
-        setPasswordLoading(true);
-        const { error } = await supabase.auth.updateUser({ password: newPassword });
-        setPasswordLoading(false);
-
-        if (error) { showError("Eroare la actualizare parolă", error.message); } 
-        else { showSuccess("Succes", "Parola a fost actualizată cu succes!"); setPasswordForm({ newPassword: '', confirmPassword: '' }); }
-    };
-
     const handleSetPrimaryRole = async (roleContext: any) => {
         if (!supabase) return;
         const contextKey = `${roleContext.sportiv_id}-${roleContext.rol_denumire}`;
@@ -111,12 +134,29 @@ export const AccountSettings: React.FC<{
     };
     
     return (
-        <div className="space-y-8 animate-fade-in-down bg-black p-4 md:p-8 rounded-lg">
-            
+        <div className="space-y-8 animate-fade-in-down">
             <header>
                 <h1 className="text-4xl font-black text-white">Setări Cont & Profiluri</h1>
                 <p className="text-slate-400">Actualizează-ți datele de securitate și gestionează profilurile de lucru.</p>
             </header>
+
+            <Card className="bg-zinc-900 border-zinc-800">
+                <form onSubmit={handleSaveProfile} className="space-y-6">
+                    <h2 className="text-2xl font-bold text-white mb-4">Date Personale & Securitate</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <Input label="Nume" name="nume" value={formData.nume} onChange={handleFormChange} required className="bg-black border-zinc-700"/>
+                        <Input label="Prenume" name="prenume" value={formData.prenume} onChange={handleFormChange} required className="bg-black border-zinc-700"/>
+                    </div>
+                    <Input label="Email de Autentificare" name="email" type="email" value={formData.email} onChange={handleFormChange} required className="bg-black border-zinc-700"/>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <Input label="Parolă Nouă (lasă gol pentru a o păstra)" name="parola" type="password" value={formData.parola} onChange={handleFormChange} className="bg-black border-zinc-700"/>
+                        <Input label="Confirmare Parolă Nouă" name="confirmParola" type="password" value={formData.confirmParola} onChange={handleFormChange} className="bg-black border-zinc-700"/>
+                    </div>
+                    <div className="flex justify-end pt-4">
+                        <Button type="submit" variant="success" isLoading={loading}>Salvează Modificările</Button>
+                    </div>
+                </form>
+            </Card>
 
             <Card className="bg-zinc-900 border-zinc-800">
                 <h2 className="text-2xl font-bold text-white mb-4">Profilurile Mele</h2>
@@ -153,34 +193,6 @@ export const AccountSettings: React.FC<{
                         )
                     })}
                 </div>
-            </Card>
-
-            <Card className="bg-zinc-900 border-zinc-800">
-                <form onSubmit={handleEmailUpdate} className="space-y-4">
-                    <div className="flex items-center gap-3 mb-2">
-                        <MailIcon className="w-6 h-6 text-slate-400" />
-                        <h2 className="text-xl font-bold text-white">Schimbare Email</h2>
-                    </div>
-                    <p className="text-sm text-slate-400">Email curent: <strong className="font-mono text-slate-300">{currentUser.email}</strong></p>
-                    <Input label="Email Nou" type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="introduceti.noul.email@domeniu.com" required className="bg-black border-zinc-700"/>
-                    <div className="flex justify-end pt-2">
-                        <Button type="submit" variant="secondary" className="bg-zinc-800 hover:bg-zinc-700 text-white" isLoading={emailLoading}>Actualizează Email</Button>
-                    </div>
-                </form>
-            </Card>
-
-            <Card className="bg-zinc-900 border-zinc-800">
-                <form onSubmit={handlePasswordUpdate} className="space-y-4">
-                     <div className="flex items-center gap-3 mb-2">
-                        <LockIcon className="w-6 h-6 text-slate-400" />
-                        <h2 className="text-xl font-bold text-white">Schimbare Parolă</h2>
-                    </div>
-                    <Input label="Parolă Nouă" type="password" value={passwordForm.newPassword} onChange={(e) => setPasswordForm(p => ({...p, newPassword: e.target.value}))} placeholder="Minim 6 caractere" required className="bg-black border-zinc-700"/>
-                    <Input label="Confirmare Parolă Nouă" type="password" value={passwordForm.confirmPassword} onChange={(e) => setPasswordForm(p => ({...p, confirmPassword: e.target.value}))} required className="bg-black border-zinc-700"/>
-                     <div className="flex justify-end pt-2">
-                        <Button type="submit" variant="secondary" className="bg-zinc-800 hover:bg-zinc-700 text-white" isLoading={passwordLoading}>Actualizează Parola</Button>
-                    </div>
-                </form>
             </Card>
         </div>
     );

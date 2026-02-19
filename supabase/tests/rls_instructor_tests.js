@@ -1,23 +1,22 @@
+
 // Acest script este destinat să fie rulat într-un mediu Node.js pentru a testa politicile RLS.
 // Asigurați-vă că aveți `dotenv` și `@supabase/supabase-js` instalate (`npm install dotenv @supabase/supabase-js`).
 // Creați un fișier `.env` la rădăcina proiectului cu variabilele de mediu necesare.
 
 import { createClient } from '@supabase/supabase-js';
-// Pentru a rula, asigurați-vă că ați instalat dotenv: npm install dotenv
-// import 'dotenv/config';
+import 'dotenv/config'; // Asigură încărcarea variabilelor de mediu
 
 // --- CONFIGURARE ---
-// Completați aceste variabile cu datele proiectului dumneavoastră Supabase.
-// Recomandat: Folosiți un fișier .env pentru a le gestiona în siguranță.
-const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'YOUR_SUPABASE_URL';
-const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY';
+// Scriptul citește aceste valori din fișierul `.env`.
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY;
 
 // --- DATE DE TEST ---
-// Înlocuiți cu date reale din baza de date pentru a rula testele.
+// ÎNLOCUIȚI ACESTE VALORI cu date reale din baza de date pentru a rula testele.
 const INSTRUCTOR_EMAIL = 'instructor@phihau.ro'; // Email-ul unui utilizator cu rol 'Instructor'
 const INSTRUCTOR_PASSWORD = 'password123';
 const INSTRUCTOR_CLUB_ID = '3e5513f1-2c78-4363-8a9a-7dc60634f198'; // UUID-ul clubului instructorului
-const RIVAL_CLUB_SPORTIV_ID = 'UUID_SPORTIV_DIN_ALT_CLUB'; // UUID-ul unui sportiv dintr-un club rival
+const RIVAL_CLUB_SPORTIV_ID = 'UUID_AL_UNUI_SPORTIV_DIN_ALT_CLUB'; // UUID-ul unui sportiv dintr-un club rival
 
 // Inițializare client Supabase
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -136,9 +135,9 @@ async function test_cannotReadRivalAthlete() {
 }
 
 // --- Pornirea testelor ---
-// Asigurați-vă că ați completat variabilele de configurare și datele de test.
-if (SUPABASE_URL === 'YOUR_SUPABASE_URL' || !INSTRUCTOR_EMAIL) {
-    console.error("Vă rugăm să configurați variabilele de mediu și datele de test în script înainte de a rula.");
+if (!SUPABASE_URL || !INSTRUCTOR_EMAIL || !INSTRUCTOR_PASSWORD) {
+    console.error("Vă rugăm să completați variabilele de mediu și datele de test din acest script înainte de a rula.");
 } else {
     runTests();
 }
+      

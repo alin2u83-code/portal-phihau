@@ -14,8 +14,7 @@ interface State {
 }
 
 class ErrorBoundary extends React.Component<Props, State> {
-  // Fix: Initialize state in the constructor and bind methods.
-  // This classic pattern is more robust against potential build tool or 'this' context issues.
+  // FIX: Reverted to constructor-based state and method binding to ensure correct `this` context.
   constructor(props: Props) {
     super(props);
     this.state = {

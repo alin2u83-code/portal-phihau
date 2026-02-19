@@ -125,6 +125,8 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
         if (borderClass.includes('green')) return 'text-green-400';
         return 'text-slate-400';
     }, [borderClass]);
+    
+    const activeRoleContext = useMemo(() => userRoles.find(r => r.is_primary), [userRoles]);
 
     const sidebarContent = (
         <div className="flex flex-col h-full bg-[var(--bg-card)] text-white shadow-xl">
@@ -148,10 +150,7 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
                         <p className="text-xs font-bold text-slate-500 px-2 pb-1">Alege context</p>
                         <div className="space-y-1">
                         {(userRoles || [])
-                            .filter(role => {
-                                const activeContext = userRoles.find(r => r.is_primary);
-                                return activeContext ? role.id !== activeContext.id : true;
-                            })
+                            .filter(role => role.id !== activeRoleContext?.id)
                             .map((role) => {
                                 const Icon = getRoleIcon(role.rol_denumire);
                                 return (

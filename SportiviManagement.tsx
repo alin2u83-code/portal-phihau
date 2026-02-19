@@ -22,6 +22,8 @@ const getAge = (dateString: string | null | undefined): number => {
 };
 
 const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
+    // FIX: Corrected key from 'Super Admin' to 'SUPER_ADMIN_FEDERATIE' to match the 'Rol' type definition.
+    // FIX: Completed the color mapping to include all roles.
     // FIX: Corrected object keys to match the exact string literals in the `Rol['nume']` type definition.
     const colorClasses: Record<Rol['nume'], string> = {
         'ADMIN': 'bg-red-600 text-white',
@@ -165,6 +167,9 @@ export const SportiviManagement: React.FC<{
                     <Button size="sm" variant="info" onClick={() => handleOpenWallet(s)} title="Portofel Sportiv" className="!p-2">
                         <WalletIcon className="w-4 h-4" />
                     </Button>
+                    <Button size="sm" variant="secondary" onClick={() => setAccountSettingsSportiv(s)} title="Setări Cont de Acces" className="!p-2">
+                        <ShieldCheckIcon className="w-4 h-4" />
+                    </Button>
                 </div>
             )
         }
@@ -270,6 +275,16 @@ export const SportiviManagement: React.FC<{
                     currentUser={currentUser}
                 />
             )}
+
+            <SportivAccountSettingsModal
+                isOpen={!!accountSettingsSportiv}
+                onClose={() => setAccountSettingsSportiv(null)}
+                sportiv={accountSettingsSportiv}
+                setSportivi={setSportivi}
+                allRoles={allRoles}
+                setAllRoles={setAllRoles}
+                currentUser={currentUser}
+            />
 
             {isWalletModalOpen && sportivForWallet && (
                 <SportivWallet

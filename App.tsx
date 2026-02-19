@@ -112,43 +112,34 @@ function App() {
         return true;
     }, [currentUser, userRoles]);
     
-  const handleSwitchRole = useCallback(async (roleName: Rol['nume']) => {
-      if (!supabase || !currentUser?.user_id || !userRoles) return;
-      
-      let targetRoleContext: any = null;
-
-      if (roleName === 'SPORTIV') {
-          targetRoleContext = userRoles.find(r => r.rol_denumire === 'SPORTIV' && r.is_primary) || userRoles.find(r => r.rol_denumire === 'SPORTIV');
-      } else {
-          targetRoleContext = userRoles.find(r => r.rol_denumire === roleName);
+  const handleSwitchRole = useCallback(async (targetContext: any) => {
+      if (!supabase || !currentUser?.user_id || !targetContext?.id) {
+          showError("Eroare la comutare", "Contextul selectat este invalid.");
+          return;
       }
 
-      if (!targetRoleContext) {
-          showError("Eroare la comutare", `Nu s-a găsit un context valid pentru rolul "${roleName}".`);
+      setIsSwitchingRole(true);
+      setSwitchingToRole(targetContext.rol_denumire);
+      
+      const { error: rpcError } = await supabase.rpc('switch_primary_context', {
+          p_target_context_id: targetContext.id
+      });
+
+      if (rpcError) {
+          showError("Eroare la comutarea rolului", rpcError.message);
+          setIsSwitchingRole(false);
+          setSwitchingToRole(null);
           return;
       }
       
-      setIsSwitchingRole(true);
-      setSwitchingToRole(roleName);
-      
-      const { error } = await supabase.rpc('set_primary_context', {
-          p_sportiv_id: targetRoleContext.sportiv_id,
-          p_rol_denumire: targetRoleContext.rol_denumire
-      });
+      const { error: refreshError } = await supabase.auth.refreshSession();
 
-      if (error) {
-          showError("Eroare la comutarea rolului", error.message);
-          setIsSwitchingRole(false);
-          setSwitchingToRole(null);
-      } else {
-          if (roleName === 'SPORTIV') {
-              localStorage.setItem('phi-hau-redirect-after-role-switch', 'my-portal');
-          } else {
-              localStorage.removeItem('phi-hau-redirect-after-role-switch');
-          }
-          setTimeout(() => window.location.reload(), 1200);
+      if (refreshError) {
+          showError("Eroare la reîmprospătarea sesiunii. Pagina se va reîncărca.", refreshError.message);
+          setTimeout(() => window.location.reload(), 1500);
       }
-  }, [currentUser, userRoles, showError]);
+      // UI will update automatically via the onAuthStateChange listener in useDataProvider
+  }, [currentUser, showError]);
 
   useEffect(() => {
     const redirectView = localStorage.getItem('phi-hau-redirect-after-role-switch');
@@ -442,7 +433,7 @@ function App() {
       {isSwitchingRole && (
         <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[10000] flex flex-col items-center justify-center animate-fade-in-down">
             <svg className="animate-spin h-10 w-10 text-violet-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-            <p className="text-white text-lg font-bold">Se verifică gradul și permisiunile în contextul {switchingToRole}...</p>
+            <p className="text-white text-lg font-bold">Se comută contextul pe {switchingToRole}...</p>
         </div>
       )}
       {!session ? <AuthContainer /> :

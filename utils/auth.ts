@@ -44,6 +44,7 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
         const { data: roleContexts, error: contextsError } = await supabase
             .from('utilizator_roluri_multicont')
             .select(`
+                id,
                 rol_denumire,
                 sportiv_id,
                 club_id,

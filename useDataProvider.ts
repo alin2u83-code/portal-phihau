@@ -137,7 +137,7 @@ export const useDataProvider = () => {
         
         try {
             // Interogarea pentru view se bazează pe RLS-ul tabelelor subiacente.
-            const platiViewQuery = supabase.from('view_plata_sportiv').select('plata_id, sportiv_id, club_id, familie_id, data_emitere, descriere, suma_datorata, status, data_plata, suma_incasata, tranzactie_id');
+            const platiViewQuery = supabase.from('view_plata_sportiv').select('plata_id, sportiv_id, club_id, familie_id, data_emitere, descriere, suma_datorata, status, data_plata, suma_incasata, tranzactie_id, nume_complet');
 
              const queries = [
                 supabase.from('cluburi').select('*'),
@@ -148,7 +148,7 @@ export const useDataProvider = () => {
                 supabase.from('nom_locatii').select('*'),
                 supabase.from('tipuri_plati').select('*'),
                 supabase.from('reduceri').select('*'),
-                supabase.from('sportivi').select('*, roles:utilizator_roluri_multicont(rol_denumire, is_primary)'),
+                supabase.from('sportivi').select('*, cluburi(*), utilizator_roluri_multicont(rol_denumire)'),
                 supabase.from('sesiuni_examene').select('*'),
                 supabase.from('inscrieri_examene').select('*, sportivi:sportiv_id(*), grades:grad_vizat_id(*)'),
                 supabase.from('program_antrenamente').select('*, grupe(*), prezenta:prezenta_antrenament!antrenament_id(sportiv_id, status)'),
@@ -189,25 +189,25 @@ export const useDataProvider = () => {
                 { data: subscriptionTypesData }, { data: locatiiData }, { data: platiTypesData },
                 { data: reduceriData }, { data: sportiviData }, { data: sessionsData },
                 { data: registrationsData }, { data: trainingsData }, { data: platiData },
-                { data: tranzactiiData }, { data: eventsData }, { data: resultsData },
+                { data: tranzactiiData }, { data: evenimenteData }, { data: resultsData },
                 { data: familiesData }, { data: anunturiData }, { data: pricesData },
                 { data: vizualizarePlatiData }, { data: deconturiData }, { data: istoricGradeData }
             ] = processedResults;
             
-            const clubsMap = new Map((clubsData || []).map(c => [c.id, c]));
-            const allNomenclatorRoles = rolesData || [];
+            const allNomenclatorRoles = (rolesData || []) as Rol[];
 
-            let allSportivi = sportiviData?.map(s => {
+            let allSportivi = (sportiviData || []).map(s => {
                 if (!s) return null;
-                const joinedRoles = Array.isArray((s as any).roles) ? (s as any).roles : [];
-                const userRolesFromJoin = joinedRoles
-                    .map((mcr: any) => allNomenclatorRoles.find(r => r.nume === mcr.rol_denumire))
-                    .filter((r): r is Rol => !!r);
+                const sportivWithRoles = s as any;
+                const userRolesFromJoin = (sportivWithRoles.utilizator_roluri_multicont || [])
+                    .map((joinedRole: { rol_denumire: string }) => allNomenclatorRoles.find(r => r.nume === joinedRole.rol_denumire))
+                    .filter(Boolean);
                 
+                delete sportivWithRoles.utilizator_roluri_multicont;
+
                 return { 
-                    ...s, 
-                    roluri: userRolesFromJoin, 
-                    cluburi: s.club_id ? (clubsMap.get(s.club_id) || { id: s.club_id, nume: 'Club Indisponibil' }) : null 
+                    ...sportivWithRoles, 
+                    roluri: userRolesFromJoin,
                 };
             }).filter(Boolean) as Sportiv[] || [];
             
@@ -221,13 +221,13 @@ export const useDataProvider = () => {
                 antrenamente: (trainingsData?.map(t => ({...t, prezenta: (t as any).prezenta || []})) || []) as Antrenament[],
                 plati: (platiData || []) as Plata[],
                 tranzactii: (tranzactiiData || []) as Tranzactie[],
-                evenimente: (eventsData || []) as Eveniment[],
+                evenimente: (evenimenteData || []) as Eveniment[],
                 rezultate: (resultsData || []) as Rezultat[],
                 familii: (familiesData || []) as Familie[],
                 anunturiPrezenta: (anunturiData || []) as AnuntPrezenta[],
                 preturiConfig: (pricesData || []) as PretConfig[],
                 clubs: (clubsData || []) as Club[],
-                allRoles: (rolesData || []) as Rol[],
+                allRoles: allNomenclatorRoles,
                 grade: (gradesData || []) as Grad[],
                 grupe: allGrupe as Grupa[],
                 tipuriAbonament: (subscriptionTypesData || []) as TipAbonament[],

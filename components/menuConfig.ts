@@ -1,8 +1,9 @@
 import React from 'react';
 import { View } from '../types';
+// FIX: Added 'FileTextIcon' to imports to resolve 'Cannot find name' error.
 import { 
     HomeIcon, UsersIcon, TrophyIcon, BanknotesIcon, CalendarDaysIcon, 
-    UserCircleIcon, ClipboardCheckIcon, CogIcon, SitemapIcon, WalletIcon, FileTextIcon, BookOpenIcon
+    UserCircleIcon, ClipboardCheckIcon, CogIcon, SitemapIcon, ArchiveBoxIcon, FileTextIcon
 } from './icons';
 
 export interface MenuItem {
@@ -21,10 +22,12 @@ export interface SubMenuItem {
 export const adminMenu: MenuItem[] = [
     { label: 'Dashboard', icon: HomeIcon, view: 'dashboard' },
     { label: 'Sportivi', icon: UsersIcon, view: 'sportivi' },
-    { label: 'Antrenamente', icon: CalendarDaysIcon, view: 'prezenta' },
-    { label: 'Examene & Evenimente', icon: TrophyIcon, view: 'examene' },
-    { label: 'Financiar', icon: BanknotesIcon, view: 'plati-scadente' },
+    { label: 'Prezență', icon: CalendarDaysIcon, view: 'prezenta' },
+    { label: 'Examene', icon: TrophyIcon, view: 'examene' },
+    { label: 'Grupe', icon: ArchiveBoxIcon, view: 'grupe' },
+    { label: 'Plăți', icon: BanknotesIcon, view: 'plati-scadente' },
     { label: 'Administrare', icon: CogIcon, view: 'user-management' },
+    { label: 'Setări Globale', icon: CogIcon, view: 'setari-club' },
     { label: 'Structură Federație', icon: SitemapIcon, view: 'structura-federatie' },
 ];
 

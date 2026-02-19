@@ -253,6 +253,8 @@ export const useDataProvider = () => {
         if (!supabase) return;
         
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+            // FIX: Adăugat TOKEN_REFRESHED. Acesta este declanșat de supabase.auth.refreshSession()
+            // și este esențial pentru actualizarea stării după o comutare de rol fără reîncărcare.
             if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'USER_UPDATED' || event === 'TOKEN_REFRESHED') {
                 initializeAndFetchData();
             } else if (event === 'SIGNED_OUT') {

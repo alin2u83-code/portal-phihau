@@ -111,34 +111,39 @@ function App() {
         return true;
     }, [currentUser, userRoles]);
     
+  // NOUA funcție de comutare a rolului: atomică și fără reîncărcare a paginii
   const handleSwitchRole = useCallback(async (targetContext: any) => {
       if (!supabase || !currentUser?.user_id || !targetContext?.id) {
-          showError("Eroare la comutare", "Contextul selectat este invalid.");
+          showError("Eroare la comutare", "Contextul selectat este invalid sau sesiunea a expirat.");
           return;
       }
 
       setIsSwitchingRole(true);
       setSwitchingToRole(targetContext.rol_denumire);
       
+      // 1. Apelează funcția atomică din baza de date
       const { error: rpcError } = await supabase.rpc('switch_primary_context', {
           p_target_context_id: targetContext.id
       });
 
       if (rpcError) {
-          showError("Eroare la comutarea rolului", rpcError.message);
+          showError("Eroare la comutarea rolului", `O problemă a apărut în baza de date: ${rpcError.message}`);
           setIsSwitchingRole(false);
           setSwitchingToRole(null);
           return;
       }
       
+      // 2. Reîmprospătează sesiunea pentru a obține noul JWT cu permisiuni actualizate
       const { error: refreshError } = await supabase.auth.refreshSession();
 
       if (refreshError) {
           showError("Eroare la reîmprospătarea sesiunii. Pagina se va reîncărca.", refreshError.message);
+          // Fallback la reîncărcare completă dacă refresh-ul eșuează
           setTimeout(() => window.location.reload(), 1500);
       } else {
-        // Interfața se va actualiza automat prin listener-ul onAuthStateChange din useDataProvider
-        // Oprim manual indicatorul de încărcare aici
+        // 3. Succes! Listener-ul onAuthStateChange din useDataProvider va prelua controlul.
+        // Acesta va detecta evenimentul TOKEN_REFRESHED și va reîncărca datele.
+        // Oprim manual indicatorul de încărcare.
         setIsSwitchingRole(false);
         setSwitchingToRole(null);
       }
@@ -233,17 +238,7 @@ function App() {
 
   const handleSelectRole = async (role: any) => {
     if (!supabase || !currentUser?.user_id) return;
-    setIsSwitchingRole(true);
-    
-    // Funcție veche, acum se folosește handleSwitchRole
-    const { error } = await supabase.rpc('set_primary_context', { p_sportiv_id: role.sportiv_id, p_rol_denumire: role.rol_denumire });
-
-    if (error) {
-        showError("Eroare la selectarea rolului", error.message);
-        setIsSwitchingRole(false);
-    } else {
-        window.location.reload();
-    }
+    await handleSwitchRole(role);
   };
   
   const handleIncaseazaMultiple = (platiSelectate: Plata[]) => {

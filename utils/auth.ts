@@ -40,7 +40,7 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
         }
 
         // Step 1: Fetch all role contexts for the authenticated user.
-        // The join to `sportivi` is now an outer join (no `!inner`) to prevent RLS from blocking the entire query.
+        // The query relies on RLS to scope results to the current user (user_id = auth.uid()).
         const { data: roleContexts, error: contextsError } = await supabase
             .from('utilizator_roluri_multicont')
             .select(`
@@ -50,15 +50,15 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
                 is_primary,
                 club:cluburi(nume),
                 sportiv:sportiv_id(nume, prenume)
-            `)
-            .eq('user_id', authUser.id);
+            `);
         
         if (contextsError) {
             return { user: null, roles: null, error: contextsError };
         }
 
         if (!roleContexts || roleContexts.length === 0) {
-            const { data: bareProfile, error: bareProfileError } = await supabase.from('sportivi').select('*, cluburi(*)').eq('user_id', authUser.id).maybeSingle();
+            // This fallback also relies on RLS (`user_id = auth.uid()`) to fetch the user's own profile.
+            const { data: bareProfile, error: bareProfileError } = await supabase.from('sportivi').select('*, cluburi(*)').maybeSingle();
             
             if (bareProfileError) {
                 return { user: null, roles: null, error: bareProfileError };
@@ -106,8 +106,8 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
 
         if (!primarySportivId) {
             // This case handles data corruption where a role context has no sportiv_id.
-            // We must load the user's own profile as the only option.
-            const { data: ownProfile, error: ownProfileError } = await supabase.from('sportivi').select('*, cluburi(*)').eq('user_id', authUser.id).maybeSingle();
+            // We must load the user's own profile as the only option, relying on RLS.
+            const { data: ownProfile, error: ownProfileError } = await supabase.from('sportivi').select('*, cluburi(*)').maybeSingle();
 
             if (ownProfileError) {
                 return { user: null, roles: null, error: ownProfileError };
@@ -130,9 +130,9 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
                 userProfileData = primaryProfile;
             } else {
                 // Fallback: The primary context profile was not visible (likely RLS).
-                // Load the user's "own" profile instead to prevent a crash.
+                // Load the user's "own" profile instead to prevent a crash, relying on RLS.
                 console.warn(`[Auth] Primary context profile (ID: ${primarySportivId}) was not fetchable. Falling back to user's own profile.`);
-                const { data: ownProfile, error: ownProfileError } = await supabase.from('sportivi').select('*, cluburi(*)').eq('user_id', authUser.id).maybeSingle();
+                const { data: ownProfile, error: ownProfileError } = await supabase.from('sportivi').select('*, cluburi(*)').maybeSingle();
                 
                 if (ownProfileError) {
                     return { user: null, roles: null, error: ownProfileError };

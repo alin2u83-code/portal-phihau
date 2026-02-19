@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { User, View, Club, Permissions, Rol, Grad } from '../types';
 import { adminMenu, instructorMenu, sportivMenu, MenuItem } from './menuConfig';
-import { ArrowRightOnRectangleIcon, Bars3Icon, ChevronDownIcon, ShieldCheckIcon, UserCircleIcon } from './icons';
+import { ArrowRightOnRectangleIcon, Bars3Icon, ChevronDownIcon, ShieldCheckIcon, UserCircleIcon, UsersIcon, ArchiveBoxIcon } from './icons';
 import { Select } from './ui';
 import { FEDERATIE_ID, FEDERATIE_NAME, ROLES } from '../constants';
 
@@ -20,6 +20,34 @@ const NavItem: React.FC<{
     );
 };
 
+// Helper Functions for Role Switcher
+const getRoleDisplayName = (role: any): string => {
+    switch(role.rol_denumire) {
+        case 'SUPER_ADMIN_FEDERATIE': return 'Super Admin Federație';
+        case 'ADMIN': return 'Admin General';
+        case 'ADMIN_CLUB': return `Admin - ${role.club?.nume || 'Club Nedefinit'}`;
+        case 'INSTRUCTOR': return `Instructor - ${role.club?.nume || 'Club Nedefinit'}`;
+        case 'SPORTIV': return `Sportiv - ${role.sportiv?.nume || ''} ${role.sportiv?.prenume || ''}`;
+        default: return role.rol_denumire;
+    }
+};
+
+const getRoleIcon = (roleName: Rol['nume']): React.ElementType => {
+    switch(roleName) {
+        case 'SUPER_ADMIN_FEDERATIE':
+        case 'ADMIN':
+        case 'ADMIN_CLUB':
+            return ShieldCheckIcon;
+        case 'INSTRUCTOR':
+            return UsersIcon;
+        case 'SPORTIV':
+            return UserCircleIcon;
+        default:
+            return UsersIcon;
+    }
+};
+
+
 interface SidebarProps {
     currentUser: User;
     onNavigate: (view: View) => void;
@@ -36,11 +64,24 @@ interface SidebarProps {
     onSwitchRole: (roleName: Rol['nume']) => void;
     isSwitchingRole: boolean;
     grade: Grad[];
+    userRoles: any[];
 }
 
 export const Sidebar: React.FC<SidebarProps> = (props) => {
-    const { currentUser, onNavigate, onLogout, activeView, isExpanded, setIsExpanded, clubs, globalClubFilter, setGlobalClubFilter, permissions, activeRole } = props;
+    const { currentUser, onNavigate, onLogout, activeView, isExpanded, setIsExpanded, clubs, globalClubFilter, setGlobalClubFilter, permissions, activeRole, canSwitchRoles, onSwitchRole, isSwitchingRole, userRoles } = props;
     const [isMobileOpen, setIsMobileOpen] = useState(false);
+    const [isRoleSwitcherOpen, setIsRoleSwitcherOpen] = useState(false);
+    const roleSwitcherRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (roleSwitcherRef.current && !roleSwitcherRef.current.contains(event.target as Node)) {
+                setIsRoleSwitcherOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     const handleNavigate = (view: View) => {
         onNavigate(view);
@@ -48,27 +89,53 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
     };
     
     const { menuToDisplay, contextName, borderClass, headerIcon: HeaderIcon } = useMemo(() => {
-        let menu, name, border, icon;
+        let menu: MenuItem[], name: string, border: string, icon: React.ElementType;
         const normalizedRole = (activeRole || 'Sportiv').replace(/ /g, '_').toUpperCase();
 
         switch (normalizedRole) {
             case ROLES.SUPER_ADMIN_FEDERATIE:
             case ROLES.ADMIN:
-                menu = adminMenu; name = 'Federație'; border = 'border-amber-400'; icon = ShieldCheckIcon;
+            case ROLES.ADMIN_CLUB: {
+                let baseAdminMenu = adminMenu.map(item => {
+                    if (item.label === 'Antrenamente') return { ...item, label: 'Prezență' };
+                    if (item.label === 'Examene & Evenimente') return { ...item, label: 'Examene' };
+                    if (item.label === 'Financiar') return { ...item, label: 'Plăți' };
+                    return item;
+                });
+                if (!baseAdminMenu.some(item => item.view === 'grupe')) {
+                    const examIndex = baseAdminMenu.findIndex(item => item.view === 'examene');
+                    baseAdminMenu.splice(examIndex + 1, 0, { label: 'Grupe', icon: ArchiveBoxIcon, view: 'grupe' });
+                }
+
+                menu = baseAdminMenu;
+                if (normalizedRole === ROLES.ADMIN_CLUB) {
+                    menu = baseAdminMenu.filter(item => item.label !== 'Structură Federație');
+                    name = currentUser.cluburi?.nume || 'Club';
+                    border = 'border-blue-500';
+                    icon = ShieldCheckIcon;
+                } else {
+                    name = 'Federație';
+                    border = 'border-amber-400';
+                    icon = ShieldCheckIcon;
+                }
                 break;
-            case ROLES.ADMIN_CLUB:
-                menu = adminMenu; name = currentUser.cluburi?.nume || 'Club'; border = 'border-blue-500'; icon = ShieldCheckIcon;
-                break;
+            }
             case ROLES.INSTRUCTOR:
-                menu = instructorMenu; name = currentUser.cluburi?.nume || 'Club'; border = 'border-sky-500'; icon = ShieldCheckIcon;
+                menu = instructorMenu.filter(item => ['Sportivi', 'Prezență', 'Examene'].includes(item.label));
+                name = currentUser.cluburi?.nume || 'Club';
+                border = 'border-sky-500';
+                icon = ShieldCheckIcon;
                 break;
             case ROLES.SPORTIV:
             default:
-                menu = sportivMenu; name = 'Portal Sportiv'; border = 'border-green-500'; icon = UserCircleIcon;
+                menu = sportivMenu.filter(item => item.label === 'Portalul Meu');
+                name = 'Portal Sportiv';
+                border = 'border-green-500';
+                icon = UserCircleIcon;
                 break;
         }
         return { menuToDisplay: menu, contextName: name, borderClass: border, headerIcon: icon };
-    }, [activeRole, currentUser.cluburi?.nume]);
+    }, [activeRole, currentUser.cluburi?.nume, permissions.isFederationAdmin]);
 
     const iconColorClass = useMemo(() => {
         if (borderClass.includes('amber')) return 'text-amber-400';
@@ -80,12 +147,46 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
 
     const sidebarContent = (
         <div className="flex flex-col h-full bg-[var(--bg-card)] text-white shadow-xl">
-            <div className={`h-20 flex flex-col items-center justify-center p-2 border-b border-white/10 text-center ${isExpanded ? 'px-4' : 'px-1'}`}>
-                <HeaderIcon className={`w-8 h-8 shrink-0 ${iconColorClass}`} />
-                {isExpanded && (<>
-                    <h2 className="text-xs font-bold text-slate-400 mt-1 uppercase">Mod Lucru</h2>
-                    <p className="text-sm font-bold text-white truncate w-full">{contextName}</p>
-                </>)}
+            <div ref={roleSwitcherRef} className="relative">
+                 <button
+                    className={`w-full h-20 flex items-center justify-center p-2 border-b border-white/10 text-center ${canSwitchRoles ? 'cursor-pointer hover:bg-white/5' : ''} ${isExpanded ? 'px-4' : 'px-1'}`}
+                    onClick={() => canSwitchRoles && setIsRoleSwitcherOpen(p => !p)}
+                    disabled={!canSwitchRoles || isSwitchingRole}
+                >
+                    <HeaderIcon className={`w-8 h-8 shrink-0 ${iconColorClass}`} />
+                    {isExpanded && (
+                        <div className="flex-grow text-left ml-3 overflow-hidden">
+                            <p className="text-sm font-bold text-white truncate w-full">{contextName}</p>
+                            <p className="text-xs text-slate-400 mt-0.5 truncate">
+                                {canSwitchRoles ? 'Schimbă contextul' : 'Mod de lucru'}
+                            </p>
+                        </div>
+                    )}
+                    {isExpanded && canSwitchRoles && <ChevronDownIcon className={`w-5 h-5 text-slate-400 transition-transform shrink-0 ${isRoleSwitcherOpen ? 'rotate-180' : ''}`} />}
+                </button>
+                {isRoleSwitcherOpen && canSwitchRoles && (
+                    <div className="absolute top-full left-2 right-2 z-10 mt-1 bg-slate-900 border border-slate-700 rounded-lg shadow-lg p-2 animate-fade-in-down">
+                        <p className="text-xs font-bold text-slate-500 px-2 pb-1">Alege context</p>
+                        <div className="space-y-1">
+                        {(userRoles || [])
+                            .filter(role => role.rol_denumire !== activeRole || role.sportiv_id !== currentUser.id)
+                            .map((role, index) => {
+                                const Icon = getRoleIcon(role.rol_denumire);
+                                return (
+                                <button
+                                    key={`${role.rol_denumire}-${role.sportiv_id}`}
+                                    onClick={() => { onSwitchRole(role.rol_denumire); setIsRoleSwitcherOpen(false); }}
+                                    className="w-full flex items-center p-2 rounded-md text-sm text-left hover:bg-slate-700"
+                                >
+                                    <Icon className="w-5 h-5 mr-2 text-slate-400" />
+                                    <span className="text-white truncate">{getRoleDisplayName(role)}</span>
+                                </button>
+                                );
+                            })
+                        }
+                        </div>
+                    </div>
+                )}
             </div>
             
             <nav className="flex-1 px-2 py-4 space-y-1.5 overflow-y-auto">

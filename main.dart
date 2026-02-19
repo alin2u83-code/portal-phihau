@@ -4,6 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screens/registration_screen.dart';
 import 'screens/profile_screen.dart';
+import 'screens/activation_screen.dart'; // Import noul ecran
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -64,6 +65,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) => const HomeScreen(),
         '/register': (context) => const RegistrationScreen(),
+        '/activate': (context) => const ActivationScreen(), // Adaugă ruta nouă
         // Exemplu de rută către profilul unui sportiv specific
         '/profile': (context) {
            final sportivId = ModalRoute.of(context)!.settings.arguments as String? ?? 'd2e2b2f1-5f33-4a11-a8b2-54a487c6c4f0'; // ID de test
@@ -89,6 +91,11 @@ class HomeScreen extends StatelessWidget {
             ElevatedButton(
               onPressed: () => Navigator.pushNamed(context, '/register'),
               child: const Text('Înregistrează Sportiv'),
+            ),
+            const SizedBox(height: 16),
+             ElevatedButton(
+              onPressed: () => Navigator.pushNamed(context, '/activate'),
+              child: const Text('Asignează Rol (Activare Cont)'),
             ),
             const SizedBox(height: 16),
             ElevatedButton(

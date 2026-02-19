@@ -8,7 +8,8 @@ import { BirthDateInput } from './BirthDateInput';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
 
 // --- Modale de adăugare rapidă ---
-const QuickAddModal: React.FC<{ 
+// FIX: Exported QuickAddModal to be used in other components.
+export const QuickAddModal: React.FC<{ 
   title: string; 
   label: string; 
   isOpen: boolean; 
@@ -70,7 +71,8 @@ interface SportivFormFieldsProps {
     onQuickAddFamilie: () => void;
 }
 
-const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
+// FIX: Exported SportivFormFields to be used in other components.
+export const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
     initialData,
     onFormChange,
     loading,

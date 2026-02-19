@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Sportiv, User, Rol } from '../types';
-import { Button, Modal, Input, Select } from './ui';
+import { Button, Modal } from './ui';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { UserPlusIcon } from './icons';
@@ -11,7 +11,6 @@ interface SportivAccountSettingsModalProps {
     sportiv: Sportiv | null;
     setSportivi: React.Dispatch<React.SetStateAction<Sportiv[]>>;
     allRoles: Rol[];
-    setAllRoles: React.Dispatch<React.SetStateAction<Rol[]>>;
     currentUser: User;
     onOpenCreateAccount: (sportiv: Sportiv) => void;
 }

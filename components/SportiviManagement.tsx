@@ -349,9 +349,10 @@ export const SportiviManagement: React.FC<{
             parola: 'Parola123!'
         });
         setCreateAccountError('');
+        setIsFormModalOpen(true); // Re-use the form modal for this purpose. Let's make a dedicated one.
     };
 
-     const handleCreateAccountFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleCreateAccountFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setCreateAccountForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
     };
 
@@ -367,9 +368,9 @@ export const SportiviManagement: React.FC<{
             });
     
             if (authError || authData.error) {
-                const errorMessage = authError?.message || authData?.error;
+                const errorMessage = authError?.message || authData.error;
                 if (String(errorMessage).includes('User already exists')) {
-                    throw new Error('Un utilizator cu acest email există deja. Asociați-l manual dacă este necesar.');
+                     throw new Error('Un utilizator cu acest email există deja. Asociați-l manual dacă este necesar.');
                 }
                 throw new Error(errorMessage || 'A apărut o eroare la crearea contului.');
             }
@@ -391,14 +392,8 @@ export const SportiviManagement: React.FC<{
             });
             if (roleError) throw new Error(`Profil legat, dar eroare la asignarea rolului 'Sportiv': ${roleError.message}`);
     
-            const sportivRole = allRoles.find(r => r.nume === 'Sportiv');
-            const updatedUser = { ...data, roluri: sportivRole ? [sportivRole] : [] };
-    
-            setSportivi(prev => prev.map(s => s.id === sportivForAccountCreation.id ? updatedUser as Sportiv : s));
-            
-            setSportivForAccountCreation(null);
-            setAccountSettingsSportiv(updatedUser as Sportiv); 
-            showSuccess("Cont Creat", `Contul pentru ${sportivForAccountCreation.nume} a fost creat cu succes.`);
+            showSuccess("Cont Creat", `Contul pentru ${sportivForAccountCreation.nume} a fost creat cu succes. Reîncărcați pagina.`);
+            setTimeout(() => window.location.reload(), 1500);
     
         } catch (err: any) {
             setCreateAccountError(err.message);
@@ -504,9 +499,14 @@ export const SportiviManagement: React.FC<{
                 sportiv={accountSettingsSportiv}
                 setSportivi={setSportivi}
                 allRoles={allRoles}
-                setAllRoles={setAllRoles}
                 currentUser={currentUser}
-                onOpenCreateAccount={handleOpenCreateAccountModal}
+                onOpenCreateAccount={(user) => {
+                    setSportivForAccountCreation(user);
+                    const sanitize = (str: string) => str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '');
+                    const emailPrefix = `${sanitize(user.nume)}.${sanitize(user.prenume)}`;
+                    setCreateAccountForm({ email: user.email || `${emailPrefix}@phihau.ro`, username: user.username || emailPrefix, parola: 'Parola123!' });
+                    setCreateAccountError('');
+                }}
             />
 
             {sportivForAccountCreation && (
@@ -522,6 +522,7 @@ export const SportiviManagement: React.FC<{
                     </form>
                 </Modal>
             )}
+
 
             {isWalletModalOpen && sportivForWallet && (
                 <SportivWallet
@@ -539,13 +540,15 @@ export const SportiviManagement: React.FC<{
                 />
             )}
             
-            <DeleteAuditModal
-                isOpen={!!sportivToDelete}
-                onClose={() => setSportivToDelete(null)}
-                sportiv={sportivToDelete!}
-                onDeactivate={handleDeactivate}
-                onDelete={handleDelete}
-            />
+            {sportivToDelete && (
+                <DeleteAuditModal
+                    isOpen={!!sportivToDelete}
+                    onClose={() => setSportivToDelete(null)}
+                    sportiv={sportivToDelete}
+                    onDeactivate={handleDeactivate}
+                    onDelete={handleDelete}
+                />
+            )}
         </div>
     );
 };

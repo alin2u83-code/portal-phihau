@@ -82,6 +82,7 @@ import { useIsMobile } from './hooks/useIsMobile';
 import { MobileSkeletonLoader } from './components/MobileSkeletonLoader';
 import { AdminDashboard } from './components/AdminDashboard';
 import { RoleSelectorPhiHau } from './components/RoleSelectorPhiHau'; // Import a sua nova componente
+import { BottomNavBar } from './components/BottomNavBar'; // Import a sua nova componente
 
 // Mock data pentru roluri - înlocuiește cu datele reale de la Supabase
 const mockRoles = [
@@ -98,6 +99,7 @@ const handleRoleSelection = async (roleId: string) => {
 
 
 function App() {
+  const [bottomNavActiveView, setBottomNavActiveView] = useState<'sportivi' | 'management' | 'antrenamente'>('sportivi');
   const { showError } = useError();
   const isMobile = useIsMobile();
   const dataProvider = useDataProvider();
@@ -490,6 +492,13 @@ function App() {
               </main>
 
               {(import.meta as any).env.DEV && currentUser && (<AdminDebugFloatingPanel currentUser={currentUser} userRoles={userRoles} onNavigate={(view) => setActiveView(view)} />)}
+              {isMobile && (
+                <BottomNavBar 
+                  activeView={bottomNavActiveView} 
+                  onNavigate={setBottomNavActiveView} 
+                  onSwitchRole={() => setActiveView('role-selection')} // Or however you trigger role selection
+                />
+              )}
             </div>
       ) : null}
     </SystemGuardian>

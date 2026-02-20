@@ -4,6 +4,7 @@ import { Card, Input, Select, Button } from './ui';
 import { ArrowLeftIcon } from './icons';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell } from 'recharts';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 interface RaportPrezentaProps {
     antrenamente: Antrenament[];
@@ -33,6 +34,7 @@ const GROUP_COLORS = ['#4DBCE9', '#3D3D99', '#16a34a', '#f59e0b', '#dc2626', '#8
 
 export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ antrenamente, sportivi, grupe, onBack, onViewSportiv }) => {
     const [filters, setFilters] = useLocalStorage('phi-hau-raport-prezenta-filters', initialFilters);
+    const isMobile = useIsMobile();
 
     const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setFilters(prev => ({...prev, [e.target.name]: e.target.value}));
@@ -95,18 +97,27 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ antrenamente, sp
     }, [antrenamente, sportivi, grupe, filters]);
 
 
+    type MonthlyGroupPresence = {
+        name: string;
+    } & Record<string, number>;
+
     const { groupChartData, activeGroups } = useMemo(() => {
-        const groupNames: string[] = [...new Set<string>(filteredPresenceRecords.map(r => r.grupaNume))].sort();
-        const data = monthNames.map(monthName => {
-            const monthEntry: { [key: string]: string | number } = { name: monthName };
-            groupNames.forEach(gName => { monthEntry[gName] = 0; });
+        const groupNames: string[] = [...new Set(filteredPresenceRecords.map(r => r.grupaNume).filter(Boolean) as string[])].sort();
+        
+        const data: MonthlyGroupPresence[] = monthNames.map(monthName => {
+            const monthEntry: MonthlyGroupPresence = { name: monthName };
+            groupNames.forEach(gName => {
+                monthEntry[gName] = 0;
+            });
             return monthEntry;
         });
 
         filteredPresenceRecords.forEach(rec => {
             const monthIndex = new Date(rec.data).getMonth();
-            if (data[monthIndex] && typeof data[monthIndex][rec.grupaNume] === 'number') {
-                (data[monthIndex][rec.grupaNume] as number)++;
+            const groupName = rec.grupaNume;
+
+            if (data[monthIndex] && groupName && typeof data[monthIndex][groupName] !== 'undefined') {
+                data[monthIndex][groupName] = (data[monthIndex][groupName] || 0) + 1;
             }
         });
         
@@ -163,35 +174,53 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ antrenamente, sp
 
             <Card className="p-0 overflow-hidden">
                 <div className="p-4 bg-slate-700/50 font-bold text-white">Jurnal Detaliat Prezențe</div>
-                <div className="overflow-x-auto max-h-[600px]">
-                    <table className="w-full text-left text-sm min-w-[600px]">
-                        <thead className="bg-slate-800 text-slate-400 sticky top-0">
-                            <tr>
-                                <th className="p-3 font-semibold">Data</th>
-                                <th className="p-3 font-semibold">Nume Sportiv</th>
-                                <th className="p-3 font-semibold">Grupa</th>
-                                <th className="p-3 font-semibold text-center">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-700">
-                            {filteredDetailedLog.map(rec => (
-                                <tr key={rec.id} className="hover:bg-slate-700/30">
-                                    <td className="p-3 whitespace-nowrap">{new Date(rec.data + 'T00:00:00').toLocaleDateString('ro-RO')}</td>
-                                    <td className="p-3 font-medium text-white hover:text-brand-primary hover:underline cursor-pointer" onClick={() => rec.sportiv && onViewSportiv(rec.sportiv)}>
-                                        {rec.sportivNume}
-                                    </td>
-                                    <td className="p-3 text-slate-400">{rec.grupaNume}</td>
-                                    <td className="p-3 text-center">
-                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${rec.status === 'Prezent' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                            {rec.status}
-                                        </span>
-                                    </td>
+                {isMobile ? (
+                    <div className="p-4 space-y-2 max-h-[600px] overflow-y-auto">
+                        {filteredDetailedLog.map(rec => (
+                            <div key={rec.id} className="bg-slate-800 p-3 rounded-lg flex justify-between items-center cursor-pointer" onClick={() => rec.sportiv && onViewSportiv(rec.sportiv)}>
+                                <div>
+                                    <p className="font-bold text-white">{rec.sportivNume}</p>
+                                    <p className="text-sm text-slate-400">{rec.grupaNume}</p>
+                                    <p className="text-xs text-slate-500">{new Date(rec.data + 'T00:00:00').toLocaleDateString('ro-RO')}</p>
+                                </div>
+                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${rec.status === 'Prezent' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                    {rec.status}
+                                </span>
+                            </div>
+                        ))}
+                        {filteredDetailedLog.length === 0 && <p className="p-12 text-center text-slate-500 italic">Niciun rezultat conform filtrelor.</p>}
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto max-h-[600px]">
+                        <table className="w-full text-left text-sm min-w-[600px]">
+                            <thead className="bg-slate-800 text-slate-400 sticky top-0">
+                                <tr>
+                                    <th className="p-3 font-semibold">Data</th>
+                                    <th className="p-3 font-semibold">Nume Sportiv</th>
+                                    <th className="p-3 font-semibold">Grupa</th>
+                                    <th className="p-3 font-semibold text-center">Status</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                     {filteredDetailedLog.length === 0 && <p className="p-12 text-center text-slate-500 italic">Niciun rezultat conform filtrelor.</p>}
-                </div>
+                            </thead>
+                            <tbody className="divide-y divide-slate-700">
+                                {filteredDetailedLog.map(rec => (
+                                    <tr key={rec.id} className="hover:bg-slate-700/30">
+                                        <td className="p-3 whitespace-nowrap">{new Date(rec.data + 'T00:00:00').toLocaleDateString('ro-RO')}</td>
+                                        <td className="p-3 font-medium text-white hover:text-brand-primary hover:underline cursor-pointer" onClick={() => rec.sportiv && onViewSportiv(rec.sportiv)}>
+                                            {rec.sportivNume}
+                                        </td>
+                                        <td className="p-3 text-slate-400">{rec.grupaNume}</td>
+                                        <td className="p-3 text-center">
+                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${rec.status === 'Prezent' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                                {rec.status}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                         {filteredDetailedLog.length === 0 && <p className="p-12 text-center text-slate-500 italic">Niciun rezultat conform filtrelor.</p>}
+                    </div>
+                )}
             </Card>
         </div>
     );

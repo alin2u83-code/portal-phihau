@@ -6,6 +6,7 @@ import 'screens/registration_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/activation_screen.dart'; // Import noul ecran
 import 'screens/role_selection_screen.dart'; // Import ecran de selecție rol
+import 'widgets/profile_switcher.dart'; // Import noul widget
 import 'services/profile_service.dart'; // Import noul serviciu
 
 Future<void> main() async {
@@ -174,11 +175,10 @@ class HomeScreen extends StatelessWidget {
               onPressed: () => Navigator.pushNamed(context, '/activate'),
               child: const Text('Asignează Rol (Activare Cont)'),
             ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => Navigator.pushNamed(context, '/role-selection'),
-              child: const Text('Schimbă Rolul Activ'),
-            ),
+            const SizedBox(height: 24),
+            const Text('Schimbă Contextul Activ:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white70)),
+            const SizedBox(height: 12),
+            ProfileSwitcher(supabase: supabase, profileService: profileService),
           ],
         ),
       ),

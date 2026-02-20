@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  GiBelt, GiKarate,
+  GiBelt, GiMartialArts,
 } from 'react-icons/gi';
 import {
   Plus, Trash2, FilePenLine, ArrowLeft, Users, CalendarDays, Trophy,
@@ -58,4 +58,4 @@ export const UserCheckIcon = UserCheck;
 export const XCircleIcon = XCircle;
 export const ClockIcon = Clock;
 export const BlackBeltIcon = GiBelt;
-export const VoPhucIcon = GiKarate;
+export const VoPhucIcon = GiMartialArts;

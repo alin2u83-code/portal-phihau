@@ -81,6 +81,20 @@ import { useIsMobile } from './hooks/useIsMobile';
 
 import { MobileSkeletonLoader } from './components/MobileSkeletonLoader';
 import { AdminDashboard } from './components/AdminDashboard';
+import { RoleSelectorPhiHau } from './components/RoleSelectorPhiHau'; // Import a sua nova componente
+
+// Mock data pentru roluri - înlocuiește cu datele reale de la Supabase
+const mockRoles = [
+  { id: '1', rol_denumire: 'INSTRUCTOR', club_denumire: 'Clubul Central' },
+  { id: '2', rol_denumire: 'SPORTIV', club_denumire: 'Clubul Central' },
+  { id: '3', rol_denumire: 'ADMIN_CLUB', club_denumire: 'Clubul de Nord' },
+];
+
+const handleRoleSelection = async (roleId: string) => {
+  const { data, error } = await supabase.rpc('set_active_role', { p_rol_id: roleId });
+  if (error) console.error('Eroare la setarea rolului activ:', error);
+  else console.log('Rolul activ a fost setat:', data);
+};
 
 
 function App() {

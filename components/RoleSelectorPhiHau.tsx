@@ -3,9 +3,8 @@ import { supabase } from '../supabaseClient';
 import { RolContext } from '../types';
 import IconErrorBoundary from './IconErrorBoundary';
 
-// Importare sigură a pictogramelor
-const GiMartialArts = React.lazy(() => import('react-icons/gi').then(module => ({ default: module.GiMartialArts })));
-const GiPerson = React.lazy(() => import('react-icons/gi').then(module => ({ default: module.GiPerson })));
+// Importare statică a pictogramelor pentru a rezolva eroarea de bundling
+import { GiMartialArts, GiPerson } from 'react-icons/gi';
 
 interface RoleSelectorPhiHauProps {
   roles: RolContext[];
@@ -43,9 +42,7 @@ export const RoleSelectorPhiHau: React.FC<RoleSelectorPhiHauProps> = ({ roles, o
                 : 'bg-indigo-900 border-indigo-900 hover:border-indigo-700'
             }`}>
             <IconErrorBoundary fallback={<span className="text-3xl">&#x1f94b;</span>}>
-              <React.Suspense fallback={<div className="w-10 h-10 bg-gray-700 rounded-full animate-pulse" />}>
                 <RoleIcon roleName={role.rol_denumire} />
-              </React.Suspense>
             </IconErrorBoundary>
             <div className="ml-4">
               <p className="text-xl font-bold text-white">{role.rol_denumire}</p>

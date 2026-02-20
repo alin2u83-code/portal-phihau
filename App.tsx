@@ -63,6 +63,22 @@ import { RaportLunarPrezenta } from './components/RaportLunarPrezenta';
 import { Header } from './components/Header';
 import { useDataProvider } from './hooks/useDataProvider';
 import { useIsMobile } from './hooks/useIsMobile';
+
+// React Router v7 Future Flags Configuration:
+// Pentru a activa noile feature-uri din React Router v7, cum ar fi View Transitions,
+// va trebui să configurezi ruterul (de obicei în index.tsx sau unde este definit BrowserRouter)
+// folosind prop-ul `future`.
+//
+// Exemplu:
+//
+// import { BrowserRouter } from 'react-router-dom';
+//
+// <BrowserRouter future={{ v7_startTransition: true }}>
+//   <App />
+// </BrowserRouter>
+//
+// Acest lucru va activa tranzițiile de vizualizare, permițând animații fluide între pagini.
+
 import { MobileSkeletonLoader } from './components/MobileSkeletonLoader';
 import { AdminDashboard } from './components/AdminDashboard';
 

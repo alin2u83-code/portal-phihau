@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, Button } from './ui';
-import { ShieldCheckIcon, UsersIcon, UserCircleIcon, CheckCircleIcon } from './icons';
+import { ShieldCheckIcon, UsersIcon, CheckCircleIcon, BlackBeltIcon, VoPhucIcon } from './icons';
 import { Rol } from '../types';
 
 // --- Helper Functions ---
@@ -32,10 +32,11 @@ const getRoleIcon = (roleName: Rol['nume']) => {
         case 'ADMIN':
             return ShieldCheckIcon;
         case 'ADMIN_CLUB':
-        case 'INSTRUCTOR':
             return UsersIcon;
+        case 'INSTRUCTOR':
+            return BlackBeltIcon;
         case 'SPORTIV':
-            return UserCircleIcon;
+            return VoPhucIcon;
         default:
             return UsersIcon;
     }
@@ -45,7 +46,7 @@ const getRoleIcon = (roleName: Rol['nume']) => {
 // --- Main Component ---
 interface RoleSelectionPageProps {
     roles: any[];
-    onSelect: (role: any) => void;
+    onSelect: (roleContextId: string) => void; // Așteaptă un ID pentru a apela RPC-ul
     loading: boolean;
     onLogout: () => void;
 }
@@ -68,7 +69,7 @@ export const RoleSelectionPage: React.FC<RoleSelectionPageProps> = ({ roles, onS
                             return (
                                 <button
                                     key={index}
-                                    onClick={() => onSelect(role)}
+                                    onClick={() => onSelect(role.id)} // Trimite direct ID-ul
                                     disabled={loading || isActive}
                                     className={`relative w-full text-left p-6 rounded-lg transition-all duration-300 disabled:opacity-50 border-2 ${
                                         isActive 

@@ -1,5 +1,8 @@
 import React from 'react';
 import {
+  GiBelt, GiKarate,
+} from 'react-icons/gi';
+import {
   Plus, Trash2, FilePenLine, ArrowLeft, Users, CalendarDays, Trophy,
   ClipboardList, Landmark, Settings, ShieldCheck, LayoutDashboard, UserCircle,
   LogOut, Menu, Wallet, BarChart3, Archive, FileDown, ChevronDown, X,
@@ -54,3 +57,5 @@ export const UserXIcon = UserX;
 export const UserCheckIcon = UserCheck;
 export const XCircleIcon = XCircle;
 export const ClockIcon = Clock;
+export const BlackBeltIcon = GiBelt;
+export const VoPhucIcon = GiKarate;

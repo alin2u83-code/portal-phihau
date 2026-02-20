@@ -59,7 +59,8 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
 
         if (!roleContexts || roleContexts.length === 0) {
             // This fallback also relies on RLS (`user_id = auth.uid()`) to fetch the user's own profile.
-            const { data: bareProfile, error: bareProfileError } = await supabase.from('sportivi').select('*, cluburi(*)').maybeSingle();
+            const { data: bareProfiles, error: bareProfileError } = await supabase.from('sportivi').select('*, cluburi(*)');
+            const bareProfile = bareProfiles?.[0];
             
             if (bareProfileError) {
                 return { user: null, roles: null, error: bareProfileError };
@@ -106,7 +107,8 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
         if (!primarySportivId) {
             // This case handles data corruption where a role context has no sportiv_id.
             // We must load the user's own profile as the only option, relying on RLS.
-            const { data: ownProfile, error: ownProfileError } = await supabase.from('sportivi').select('*, cluburi(*)').maybeSingle();
+            const { data: ownProfiles, error: ownProfileError } = await supabase.from('sportivi').select('*, cluburi(*)');
+            const ownProfile = ownProfiles?.[0];
 
             if (ownProfileError) {
                 return { user: null, roles: null, error: ownProfileError };
@@ -117,7 +119,8 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
             userProfileData = ownProfile;
         } else {
             // Standard Path: Attempt to load the profile corresponding to the primary role.
-            const { data: primaryProfile, error: primaryProfileError } = await supabase.from('sportivi').select('*, cluburi(*)').eq('id', primarySportivId).maybeSingle();
+            const { data: primaryProfiles, error: primaryProfileError } = await supabase.from('sportivi').select('*, cluburi(*)').eq('id', primarySportivId);
+            const primaryProfile = primaryProfiles?.[0];
 
             if (primaryProfileError) {
                 // A non-RLS error occurred (e.g., network). This is fatal.
@@ -131,7 +134,8 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
                 // Fallback: The primary context profile was not visible (likely RLS).
                 // Load the user's "own" profile instead to prevent a crash, relying on RLS.
                 console.warn(`[Auth] Primary context profile (ID: ${primarySportivId}) was not fetchable. Falling back to user's own profile.`);
-                const { data: ownProfile, error: ownProfileError } = await supabase.from('sportivi').select('*, cluburi(*)').maybeSingle();
+                const { data: ownProfiles, error: ownProfileError } = await supabase.from('sportivi').select('*, cluburi(*)');
+                const ownProfile = ownProfiles?.[0];
                 
                 if (ownProfileError) {
                     return { user: null, roles: null, error: ownProfileError };

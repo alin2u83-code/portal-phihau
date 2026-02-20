@@ -100,6 +100,8 @@ export const SportiviManagement: React.FC<{
         return balances;
     }, [familii, plati, tranzactii]);
 
+    const sortedGrade = useMemo(() => [...grade].sort((a, b) => a.ordine - b.ordine), [grade]);
+
     const filteredSportivi = useMemo(() => {
         return (sportivi || []).filter((s: Sportiv) =>
             (`${s.nume} ${s.prenume}`.toLowerCase().includes(filters.searchTerm.toLowerCase())) &&
@@ -182,9 +184,11 @@ export const SportiviManagement: React.FC<{
         const { roluri, ...sportivData } = formData;
         try {
             if (sportivToEdit) {
-                const { data, error } = await supabase.from('sportivi').update(sportivData).eq('id', sportivToEdit.id).select('*, roluri(id, nume)').single();
+                const { data, error } = await supabase.from('sportivi').update(sportivData).eq('id', sportivToEdit.id).select('*, roluri(id, nume)');
                 if (error) throw error;
-                const updatedSportiv = { ...data, roluri: data.roluri || [] };
+                const updatedData = data?.[0];
+                if (!updatedData) throw new Error('Sportivul nu a fost găsit după actualizare.');
+                const updatedSportiv = { ...updatedData, roluri: updatedData.roluri || [] };
                 setSportivi(prev => prev.map(s => s.id === sportivToEdit.id ? updatedSportiv : s));
             } else {
                 const dataToSave = { ...sportivData };
@@ -195,13 +199,15 @@ export const SportiviManagement: React.FC<{
                     }
                 }
 
-                const { data, error } = await supabase.from('sportivi').insert(dataToSave).select().single();
+                const { data, error } = await supabase.from('sportivi').insert(dataToSave).select();
                 if (error) throw error;
+                const insertedData = data?.[0];
+                if (!insertedData) throw new Error('Eroare la crearea sportivului.');
 
-                let newSportiv = { ...data, roluri: [] } as Sportiv;
-                const sportivRole = allRoles.find(r => r.nume === 'Sportiv');
+                let newSportiv = { ...insertedData, roluri: [] } as Sportiv;
+                const sportivRole = allRoles.find(r => r.nume === 'SPORTIV'); // Corrected to match Rol['nume'] type
                 if (sportivRole) {
-                    const { error: roleError } = await supabase.from('sportivi_roluri').insert({ sportiv_id: data.id, rol_id: sportivRole.id });
+                    const { error: roleError } = await supabase.from('sportivi_roluri').insert({ sportiv_id: insertedData.id, rol_id: sportivRole.id });
                     if (roleError) {
                         showError("Utilizator creat, dar eroare la asignarea rolului", roleError.message);
                     } else {
@@ -242,7 +248,7 @@ export const SportiviManagement: React.FC<{
                 <Select label="Grad" value={filters.gradFilter} onChange={e => handleFilterChange('gradFilter', e.target.value)}>
                     <option value="">Toate gradele</option>
                     <option value="null">Începător (fără grad)</option>
-                    {grade.sort((a,b) => a.ordine - b.ordine).map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}
+                    {sortedGrade.map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}
                 </Select>
                 <Select label="Rol" value={filters.rolFilter} onChange={e => handleFilterChange('rolFilter', e.target.value)}>
                     <option value="">Toate rolurile</option>

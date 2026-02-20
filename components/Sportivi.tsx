@@ -191,13 +191,11 @@ export const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
 
             <FormSection title="Club & Antrenament">
                 <Input label="Data Înscrierii" name="data_inscrierii" type="date" value={formData.data_inscrierii?.split('T')[0] || ''} onChange={handleChange} disabled={loading} className={inputStyle} />
-                {isSuperAdmin ? (
+                {isSuperAdmin && (
                     <Select label="Club" name="club_id" value={formData.club_id || ''} onChange={handleChange} disabled={loading} className={inputStyle}>
                         <option value="">Nespecificat</option>
                         {clubs.map(c => <option key={c.id} value={c.id}>{c.id === FEDERATIE_ID ? FEDERATIE_NAME : c.nume}</option>)}
                     </Select>
-                ) : (
-                  <input type="hidden" name="club_id" value={formData.club_id || ''} />
                 )}
                  <Select label="Grad Inițial/Actual" name="grad_actual_id" value={formData.grad_actual_id || ''} onChange={handleChange} disabled={loading} className={inputStyle}>
                     <option value="">Începător (fără grad)</option>

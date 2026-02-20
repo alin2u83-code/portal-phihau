@@ -77,37 +77,4 @@ class ProfileService {
       return null;
     }
   }
-
-  /// Schimbă rolul primar al utilizatorului curent.
-  ///
-  /// Această funcție apelează o procedură stocată (RPC) în Supabase `switch_primary_context`
-  /// care execută următoarele operațiuni într-o singură tranzacție (atomic):
-  /// 1. Setează `is_primary = false` pentru toate rolurile utilizatorului curent.
-  /// 2. Setează `is_primary = true` pentru rolul specificat de `targetContextId`.
-  ///
-  /// Avantajul este că operațiunea este sigură și previne stările inconsistente.
-  Future<bool> switchPrimaryRole(String targetContextId) async {
-    final user = _supabase.auth.currentUser;
-    if (user == null) {
-      print('Eroare: Niciun utilizator autentificat pentru a schimba rolul.');
-      return false;
-    }
-
-    try {
-      // Apelează funcția RPC din Supabase pentru a efectua schimbarea atomică
-      await _supabase.rpc('switch_primary_context', params: {
-        'p_target_context_id': targetContextId,
-      });
-
-      // Odată ce RPC-ul a avut succes, reîmprospătează sesiunea locală
-      // pentru a te asigura că orice reguli RLS noi sunt aplicate.
-      await _supabase.auth.refreshSession();
-      
-      print('Rolul primar a fost schimbat cu succes în contextul cu ID: $targetContextId');
-      return true;
-    } catch (e) {
-      print('Eroare la schimbarea rolului primar prin RPC: $e');
-      return false;
-    }
-  }
 }

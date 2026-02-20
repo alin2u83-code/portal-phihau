@@ -234,9 +234,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ antrenamente, sesiun
         ];
 
         allEvents.forEach(e => {
-    // Înlocuim liniuțele cu slash-uri pentru a forța interpretarea ca dată locală, nu UTC
-            const dateParts = e.data.split('-');
-            const eventDate = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]));
+            const eventDate = new Date(e.data);
             const event: CalendarEvent = {
                 id: e.id,
                 title: e.denumire,
@@ -285,7 +283,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ antrenamente, sesiun
         }).filter(d => d.events.length > 0);
     }, [days, eventsByDate]);
 
-    const todayStr = useMemo(() => new Date().toLocaleDateString('ro-RO'), []);
+    const today = useMemo(() => { const d = new Date(); d.setHours(0,0,0,0); return d; }, []);
     const weekdays = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'];
     const eventStyles = {
         antrenament: 'bg-slate-700 text-slate-200 border border-slate-600',
@@ -332,7 +330,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ antrenamente, sesiun
                             if (!day) return <div key={`pad-${index}`} className="border-r border-b border-slate-700 bg-deep-navy"></div>;
                             const dateString = day.toISOString().split('T')[0];
                             const dayEvents = eventsByDate.get(dateString) || [];
-                            const isCurrentDay = day.toLocaleDateString('ro-RO') === todayStr;
+                            const isCurrentDay = day.getTime() === today.getTime();
                             return (
                                 <div key={dateString} className="border-r border-b border-slate-700 p-2 flex flex-col relative min-h-[120px] bg-light-navy/50 transition-colors hover:bg-light-navy/70">
                                     <span className={`font-bold text-sm ${isCurrentDay ? 'bg-brand-primary text-white rounded-full h-6 w-6 flex items-center justify-center' : 'text-slate-300'}`}>{day.getDate()}</span>

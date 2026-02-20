@@ -1,5 +1,5 @@
 {
-  "name": "Qwan Ki Do Club Management",
-  "description": "An admin dashboard for managing athletes, exams, and rank progression for a Qwan Ki Do club. It allows for creating, viewing, updating, and deleting records for athletes and exams.",
+  "name": "Qwan Ki Do Club Admin",
+  "description": "O aplicație pentru managementul unui club de arte marțiale Qwan Ki Do, cu management de roluri.",
   "requestFramePermissions": []
 }

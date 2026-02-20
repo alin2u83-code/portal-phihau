@@ -7,11 +7,13 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "lint": "tsc", 
+    "lint": "tsc",
     "preview": "vite preview"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.43.4",
+    "@supabase/auth-ui-react": "^0.4.7",
+    "@supabase/auth-ui-shared": "^0.1.8",
+    "@supabase/supabase-js": "^2.97.0",
     "clsx": "^2.1.1",
     "lucide-react": "^0.400.0",
     "papaparse": "^5.4.1",

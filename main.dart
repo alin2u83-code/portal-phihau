@@ -5,6 +5,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screens/registration_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/activation_screen.dart'; // Import noul ecran
+import 'screens/role_selection_screen.dart'; // Import ecran de selecție rol
+import 'widgets/profile_switcher.dart'; // Import noul widget
 import 'services/profile_service.dart'; // Import noul serviciu
 
 Future<void> main() async {
@@ -69,6 +71,38 @@ class MyApp extends StatelessWidget {
         '/': (context) => const HomeScreen(),
         '/register': (context) => const RegistrationScreen(),
         '/activate': (context) => const ActivationScreen(), // Adaugă ruta nouă
+        '/role-selection': (context) => RoleSelectionScreen(
+          userRoles: const [
+            // Mock data pentru testare UI
+            {
+              'id': '1', 'rol_denumire': 'ADMIN', 'club_denumire': 'Club Central',
+              'is_primary': true
+            },
+            {
+              'id': '2', 'rol_denumire': 'INSTRUCTOR', 'club_denumire': 'Club Central',
+              'is_primary': false
+            },
+            {
+              'id': '3', 'rol_denumire': 'SPORTIV', 'club_denumire': 'Club Central',
+              'is_primary': false
+            },
+          ],
+          onRoleSelected: (roleId) async {
+            final success = await profileService.switchPrimaryRole(roleId);
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(success ? 'Rolul a fost schimbat cu succes!' : 'Eroare la schimbarea rolului.'),
+                  backgroundColor: success ? Colors.green : Colors.red,
+                ),
+              );
+              if (success) {
+                // O opțiune ar fi să navighezi înapoi sau să reîncarci datele
+                Navigator.pop(context);
+              }
+            }
+          },
+        ),
         // Exemplu de rută către profilul unui sportiv specific
         '/profile': (context) {
            final sportivId = ModalRoute.of(context)!.settings.arguments as String?;
@@ -141,6 +175,10 @@ class HomeScreen extends StatelessWidget {
               onPressed: () => Navigator.pushNamed(context, '/activate'),
               child: const Text('Asignează Rol (Activare Cont)'),
             ),
+            const SizedBox(height: 24),
+            const Text('Schimbă Contextul Activ:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white70)),
+            const SizedBox(height: 12),
+            ProfileSwitcher(supabase: supabase, profileService: profileService),
           ],
         ),
       ),

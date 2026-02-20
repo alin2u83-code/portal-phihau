@@ -1,0 +1,29 @@
+
+name: qwan_ki_do_app
+description: Aplicație mobilă pentru managementul clubului Qwan Ki Do.
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # Dependența principală pentru interacțiunea cu Supabase
+  supabase_flutter: ^2.5.0
+  
+  # Pentru gestionarea variabilelor de mediu (chei API)
+  flutter_dotenv: ^5.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+
+  # Asigură-te că fișierul .env este inclus în active
+  assets:
+    - .env

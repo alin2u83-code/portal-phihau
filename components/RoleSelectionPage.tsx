@@ -106,26 +106,33 @@ export const RoleSelectionPage: React.FC<RoleSelectionPageProps> = ({ user, onSe
                 </div>
 
                 <div className="space-y-3">
-                    {profiles.map((profile, index) => {
-                        const Icon = getRoleIcon(profile.roluri?.nume);
-                        const isActive = profile.is_primary;
-                        return (
-                            <button
-                                key={index}
-                                onClick={() => handleRoleSelection(profile)}
-                                disabled={loading}
-                                className={`group relative w-full text-left p-4 rounded-lg transition-all duration-200 border flex items-center gap-4 ${isActive ? 'bg-amber-500/5 border-amber-500/50 shadow-lg' : 'bg-slate-900/50 border-slate-800 hover:border-slate-700 hover:bg-slate-900'}`}>
-                                <div className={`p-2 rounded-md ${isActive ? 'bg-amber-500/20 text-amber-500' : 'bg-slate-800 text-slate-400 group-hover:text-slate-300'}`}>
-                                    <Icon size={20} />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="font-semibold text-white truncate text-sm">{getRoleDisplayName(profile)}</p>
-                                    <p className="text-xs text-slate-500 truncate mt-0.5">{getRoleDescription(profile)}</p>
-                                </div>
-                                <ChevronRight className={`w-4 h-4 ${isActive ? 'text-amber-500' : 'text-slate-700 group-hover:text-slate-500'}`} />
-                            </button>
-                        )
-                    })}
+                    {profiles.length > 0 ? (
+                        profiles.map((profile, index) => {
+                            const Icon = getRoleIcon(profile.roluri?.nume);
+                            const isActive = profile.is_primary;
+                            return (
+                                <button
+                                    key={index}
+                                    onClick={() => handleRoleSelection(profile)}
+                                    disabled={loading}
+                                    className={`group relative w-full text-left p-4 rounded-lg transition-all duration-200 border flex items-center gap-4 ${isActive ? 'bg-amber-500/5 border-amber-500/50 shadow-lg' : 'bg-slate-900/50 border-slate-800 hover:border-slate-700 hover:bg-slate-900'}`}>
+                                    <div className={`p-2 rounded-md ${isActive ? 'bg-amber-500/20 text-amber-500' : 'bg-slate-800 text-slate-400 group-hover:text-slate-300'}`}>
+                                        <Icon size={20} />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-semibold text-white truncate text-sm">{getRoleDisplayName(profile)}</p>
+                                        <p className="text-xs text-slate-500 truncate mt-0.5">{getRoleDescription(profile)}</p>
+                                    </div>
+                                    <ChevronRight className={`w-4 h-4 ${isActive ? 'text-amber-500' : 'text-slate-700 group-hover:text-slate-500'}`} />
+                                </button>
+                            )
+                        })
+                    ) : (
+                        <div className="text-center">
+                            <p className="text-slate-400">Nu s-au găsit roluri pentru acest utilizator.</p>
+                            <Button onClick={onLogout} className="mt-4">Deconectare</Button>
+                        </div>
+                    )}
                 </div>
 
                 {loading && (

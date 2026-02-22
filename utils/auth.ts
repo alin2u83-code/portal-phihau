@@ -30,14 +30,19 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
     try {
         const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
 
+        console.log('Authenticated user:', authUser);
+
         if (authError) {
             console.error("Supabase auth error:", authError.message);
             return { user: null, roles: null, error: authError };
         }
         
         if (!authUser) {
+            console.log('No authenticated user found.');
             return { user: null, roles: null, error: null };
         }
+
+        console.log('Authenticated user:', authUser);
 
         // Fetch all roles first to map rol_id
         const { data: allRolesNomenclator, error: allRolesError } = await supabase.from('roluri').select('id, nume');

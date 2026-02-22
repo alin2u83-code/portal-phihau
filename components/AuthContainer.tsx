@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useReducer } from 'react';
 import { supabase } from '../supabaseClient';
 import { Button, Card, Input } from './ui';
-import { User } from '../types';
 import { useSearchParams } from 'react-router-dom';
 
 const QwanKiDoLogo: React.FC = () => (
@@ -13,25 +12,78 @@ const QwanKiDoLogo: React.FC = () => (
     </div>
 );
 
-export const AuthContainer: React.FC = () => {
-    const [view, setView] = useState<'login' | 'signup'>('login');
-    const [form, setForm] = useState({
+type AuthView = 'login' | 'signup';
+
+interface AuthState {
+    view: AuthView;
+    form: {
+        nume: string;
+        prenume: string;
+        email: string;
+        parola: string;
+        confirmParola: string;
+    };
+    message: { type: 'error' | 'success', text: string } | null;
+    loading: boolean;
+}
+
+type AuthAction =
+    | { type: 'SET_VIEW'; payload: AuthView }
+    | { type: 'UPDATE_FORM'; payload: { name: string; value: string } }
+    | { type: 'SET_MESSAGE'; payload: { type: 'error' | 'success'; text: string } | null }
+    | { type: 'SET_LOADING'; payload: boolean }
+    | { type: 'RESET_FORM' };
+
+const initialState: AuthState = {
+    view: 'login',
+    form: {
         nume: '',
         prenume: '',
         email: '',
         parola: '',
         confirmParola: ''
-    });
-    const [message, setMessage] = useState<{ type: 'error' | 'success', text: string } | null>(null);
-    const [loading, setLoading] = useState(false);
+    },
+    message: null,
+    loading: false,
+};
+
+function authReducer(state: AuthState, action: AuthAction): AuthState {
+    switch (action.type) {
+        case 'SET_VIEW':
+            return {
+                ...initialState,
+                view: action.payload,
+            };
+        case 'UPDATE_FORM':
+            return {
+                ...state,
+                form: { ...state.form, [action.payload.name]: action.payload.value }
+            };
+        case 'SET_MESSAGE':
+            return { ...state, message: action.payload };
+        case 'SET_LOADING':
+            return { ...state, loading: action.payload };
+        case 'RESET_FORM':
+            return { ...state, form: initialState.form, message: null };
+        default:
+            return state;
+    }
+}
+
+export const AuthContainer: React.FC = () => {
+    const [state, dispatch] = useReducer(authReducer, initialState);
+    const { view, form, message, loading } = state;
     const [searchParams] = useSearchParams();
 
     useEffect(() => {
         const error = searchParams.get('error');
         if (error === 'no-roles') {
-            setMessage({
-                type: 'error',
-                text: 'Contul dumneavoastră a fost autentificat, dar nu are niciun rol asignat. Accesul a fost revocat. Vă rugăm contactați un administrator.'
+            dispatch({
+                type: 'SET_MESSAGE',
+                payload: {
+                    type: 'error',
+                    text: 'Contul dumneavoastră a fost autentificat, dar nu are niciun rol asignat. Accesul a fost revocat. Vă rugăm contactați un administrator.'
+                }
             });
         }
     }, [searchParams]);
@@ -39,17 +91,17 @@ export const AuthContainer: React.FC = () => {
     const PHI_HAU_IASI_CLUB_ID = 'cbb0b228-b3e0-4735-9658-70999eb256c6';
     
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+        dispatch({ type: 'UPDATE_FORM', payload: { name: e.target.name, value: e.target.value } });
     };
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        setMessage(null);
-        setLoading(true);
+        dispatch({ type: 'SET_MESSAGE', payload: null });
+        dispatch({ type: 'SET_LOADING', payload: true });
 
         if (!supabase) {
-            setMessage({ type: 'error', text: 'Clientul bazei de date nu este configurat.' });
-            setLoading(false);
+            dispatch({ type: 'SET_MESSAGE', payload: { type: 'error', text: 'Clientul bazei de date nu este configurat.' } });
+            dispatch({ type: 'SET_LOADING', payload: false });
             return;
         }
 
@@ -59,31 +111,29 @@ export const AuthContainer: React.FC = () => {
         });
 
         if (error) {
-            setMessage({ type: 'error', text: 'Date de autentificare invalide. Verificați email/utilizator și parola.' });
-            setLoading(false);
+            dispatch({ type: 'SET_MESSAGE', payload: { type: 'error', text: 'Date de autentificare invalide. Verificați email/utilizator și parola.' } });
+            dispatch({ type: 'SET_LOADING', payload: false });
         }
-        // La succes, listener-ul onAuthStateChange din App.tsx va prelua controlul.
-        // Nu este nevoie de cod suplimentar aici.
     };
 
     const handleSignUp = async (e: React.FormEvent) => {
         e.preventDefault();
-        setMessage(null);
+        dispatch({ type: 'SET_MESSAGE', payload: null });
 
         if (form.parola.length < 6) {
-            setMessage({ type: 'error', text: 'Parola trebuie să aibă cel puțin 6 caractere.' });
+            dispatch({ type: 'SET_MESSAGE', payload: { type: 'error', text: 'Parola trebuie să aibă cel puțin 6 caractere.' } });
             return;
         }
         if (form.parola !== form.confirmParola) {
-            setMessage({ type: 'error', text: 'Parolele nu se potrivesc.' });
+            dispatch({ type: 'SET_MESSAGE', payload: { type: 'error', text: 'Parolele nu se potrivesc.' } });
             return;
         }
         if (!PHI_HAU_IASI_CLUB_ID) {
-            setMessage({ type: 'error', text: 'Eroare de configurare a sistemului. Vă rugăm contactați administratorul.' });
+            dispatch({ type: 'SET_MESSAGE', payload: { type: 'error', text: 'Eroare de configurare a sistemului. Vă rugăm contactați administratorul.' } });
             return;
         }
 
-        setLoading(true);
+        dispatch({ type: 'SET_LOADING', payload: true });
 
         const { data: { user }, error: signUpError } = await supabase.auth.signUp({
             email: form.email,
@@ -91,14 +141,14 @@ export const AuthContainer: React.FC = () => {
         });
 
         if (signUpError) {
-            setMessage({ type: 'error', text: signUpError.message });
-            setLoading(false);
+            dispatch({ type: 'SET_MESSAGE', payload: { type: 'error', text: signUpError.message } });
+            dispatch({ type: 'SET_LOADING', payload: false });
             return;
         }
 
         if (!user) {
-            setMessage({ type: 'error', text: 'Nu s-a putut crea contul. Vă rugăm reîncercați.' });
-            setLoading(false);
+            dispatch({ type: 'SET_MESSAGE', payload: { type: 'error', text: 'Nu s-a putut crea contul. Vă rugăm reîncercați.' } });
+            dispatch({ type: 'SET_LOADING', payload: false });
             return;
         }
 
@@ -117,8 +167,8 @@ export const AuthContainer: React.FC = () => {
             }).select().single();
 
         if (profileError) {
-             setMessage({ type: 'error', text: `Contul a fost creat, dar profilul nu a putut fi salvat: ${profileError.message}` });
-             setLoading(false);
+             dispatch({ type: 'SET_MESSAGE', payload: { type: 'error', text: `Contul a fost creat, dar profilul nu a putut fi salvat: ${profileError.message}` } });
+             dispatch({ type: 'SET_LOADING', payload: false });
              return;
         }
         
@@ -131,20 +181,17 @@ export const AuthContainer: React.FC = () => {
         });
         
         if (roleError) {
-             setMessage({ type: 'error', text: `Profilul a fost creat, dar rolul nu a putut fi atribuit: ${roleError.message}` });
-             setLoading(false);
+             dispatch({ type: 'SET_MESSAGE', payload: { type: 'error', text: `Profilul a fost creat, dar rolul nu a putut fi atribuit: ${roleError.message}` } });
+             dispatch({ type: 'SET_LOADING', payload: false });
              return;
         }
         
-        setMessage({ type: 'success', text: 'Cont creat cu succes! Vă rugăm să verificați email-ul pentru a vă confirma contul.' });
-        
-        setLoading(false);
+        dispatch({ type: 'SET_MESSAGE', payload: { type: 'success', text: 'Cont creat cu succes! Vă rugăm să verificați email-ul pentru a vă confirma contul.' } });
+        dispatch({ type: 'SET_LOADING', payload: false });
     };
 
-    const toggleView = (v: 'login' | 'signup') => {
-        setView(v);
-        setMessage(null);
-        setForm({ nume: '', prenume: '', email: '', parola: '', confirmParola: '' });
+    const toggleView = (v: AuthView) => {
+        dispatch({ type: 'SET_VIEW', payload: v });
     };
 
     return (

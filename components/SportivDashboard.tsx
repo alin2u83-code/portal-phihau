@@ -203,9 +203,15 @@ interface SportivDashboardProps {
   activeRole: Rol['nume'];
   onSwitchRole: (roleName: Rol['nume']) => void;
   isSwitchingRole: boolean;
+  isAdminView?: boolean;
 }
 
-export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser, viewedUser, participari, examene, grade, istoricGrade, grupe, plati, onNavigate, antrenamente, anunturi, setAnunturi, sportivi, permissions, canSwitchRoles, activeRole, onSwitchRole, isSwitchingRole }) => {
+export const SportivDashboard: React.FC<SportivDashboardProps> = ({ 
+    currentUser, viewedUser, participari, examene, grade, istoricGrade, grupe, 
+    plati, onNavigate, antrenamente, anunturi, setAnunturi, sportivi, 
+    permissions, canSwitchRoles, activeRole, onSwitchRole, isSwitchingRole,
+    isAdminView = false
+}) => {
     
     const { showSuccess, showError } = useError();
     const isViewingOwnProfile = currentUser.id === viewedUser.id;

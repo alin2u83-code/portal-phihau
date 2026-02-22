@@ -3,12 +3,15 @@ import { Sportiv, Plata, IstoricGrade } from '../types';
 import { Card } from './ui';
 import { UsersIcon, BanknotesIcon, TrophyIcon } from './icons';
 
-const KpiCard: React.FC<{ title: string; value: string | number; icon: React.ElementType; color: string }> = ({ title, value, icon: Icon, color }) => (
+const KpiCard: React.FC<{ title: string; value: string | number; icon: React.ElementType; color: string; subtext?: string }> = ({ title, value, icon: Icon, color, subtext }) => (
     <Card className={`relative overflow-hidden border-l-4 ${color}`}>
         <div className="flex items-start justify-between">
             <div>
                 <p className="text-sm font-bold uppercase text-slate-400 tracking-wider">{title}</p>
-                <p className="text-4xl font-extrabold text-white mt-2">{value}</p>
+                <div className="flex items-baseline gap-2 mt-2">
+                    <p className="text-4xl font-extrabold text-white">{value}</p>
+                    {subtext && <span className="text-sm text-slate-500 font-bold">{subtext}</span>}
+                </div>
             </div>
             <Icon className={`w-10 h-10 text-slate-600/70`} />
         </div>

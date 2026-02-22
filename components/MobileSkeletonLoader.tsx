@@ -1,7 +1,7 @@
 import React from 'react';
 
-const SkeletonBar: React.FC<{ width?: string; height?: string }> = ({ width = 'w-full', height = 'h-4' }) => (
-    <div className={`bg-slate-700 rounded-md ${width} ${height}`}></div>
+const SkeletonBar: React.FC<{ width?: string; height?: string; className?: string }> = ({ width = 'w-full', height = 'h-4', className = '' }) => (
+    <div className={`bg-slate-700 rounded-md ${width} ${height} ${className}`}></div>
 );
 
 export const MobileSkeletonLoader: React.FC = () => {

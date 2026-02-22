@@ -102,7 +102,7 @@ const SesiuneForm: React.FC<SesiuneFormProps> = ({ isOpen, onClose, onSave, sesi
   const [loading, setLoading] = useState(false);
   const [isLocatieModalOpen, setIsLocatieModalOpen] = useState(false);
   const { showError, showSuccess } = useError();
-  const isSuperAdmin = useMemo(() => currentUser.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'Admin'), [currentUser]);
+  const isSuperAdmin = useMemo(() => currentUser.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN'), [currentUser]);
 
   useEffect(() => {
       if (sesiuneToEdit) {

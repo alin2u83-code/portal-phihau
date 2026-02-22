@@ -209,9 +209,26 @@ export const AuthContainer: React.FC = () => {
                     </div>
 
                     {message && (
-                        <p className={`text-sm text-center p-3 rounded-md mb-4 ${message.type === 'error' ? 'bg-red-900/40 text-red-300' : 'bg-green-900/40 text-green-300'}`}>
-                            {message.text}
-                        </p>
+                        <div className={`flex items-start gap-3 p-4 rounded-xl mb-6 border animate-in fade-in slide-in-from-top-2 duration-300 ${
+                            message.type === 'error' 
+                                ? 'bg-red-500/10 border-red-500/20 text-red-400' 
+                                : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                        }`}>
+                            <div className="mt-0.5">
+                                {message.type === 'error' ? (
+                                    <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                ) : (
+                                    <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                )}
+                            </div>
+                            <p className="text-sm font-medium leading-relaxed">
+                                {message.text}
+                            </p>
+                        </div>
                     )}
 
                     {view === 'login' ? (

@@ -74,6 +74,9 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
             const { data: bareProfile, error: bareProfileError } = await supabase.from('sportivi').select('*, cluburi(*)').maybeSingle();
             
             if (bareProfileError) {
+                if (bareProfileError.code === 'PGRST116' || bareProfileError.message.includes('multiple rows')) {
+                    return { user: null, roles: null, error: new Error('Eroare: S-au găsit mai multe profiluri pentru acest cont. Contactați administratorul pentru unificare.') };
+                }
                 return { user: null, roles: null, error: bareProfileError };
             }
 
@@ -82,7 +85,7 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
             }
             
             // CRITICAL ERROR: The user is authenticated, but no sportivi record is linked to them.
-            const customError = new Error('Contul de utilizator nu este legat de un profil de sportiv. Contactați administratorul Phi Hau.');
+            const customError = new Error('Eroare: Contul de utilizator nu este legat de un profil de sportiv. Contactați administratorul Phi Hau.');
             return { user: null, roles: null, error: customError };
         }
 
@@ -121,10 +124,13 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
             const { data: ownProfile, error: ownProfileError } = await supabase.from('sportivi').select('*, cluburi(*)').maybeSingle();
 
             if (ownProfileError) {
+                if (ownProfileError.code === 'PGRST116' || ownProfileError.message.includes('multiple rows')) {
+                    return { user: null, roles: null, error: new Error('Eroare: S-au găsit mai multe profiluri pentru acest cont. Contactați administratorul.') };
+                }
                 return { user: null, roles: null, error: ownProfileError };
             }
             if (!ownProfile) {
-                return { user: fallbackUser(authUser.email || 'unknown@user.com'), roles: roleContexts, error: new Error("Contul are roluri definite, dar niciun profil de sportiv nu este direct asociat (user_id).") };
+                return { user: fallbackUser(authUser.email || 'unknown@user.com'), roles: roleContexts, error: new Error("Eroare: Contul are roluri definite, dar niciun profil de sportiv nu este direct asociat (user_id).") };
             }
             userProfileData = ownProfile;
         } else {
@@ -132,6 +138,9 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
             const { data: primaryProfile, error: primaryProfileError } = await supabase.from('sportivi').select('*, cluburi(*)').eq('id', primarySportivId).maybeSingle();
 
             if (primaryProfileError) {
+                if (primaryProfileError.code === 'PGRST116' || primaryProfileError.message.includes('multiple rows')) {
+                    return { user: null, roles: null, error: new Error('Eroare: S-au găsit mai multe profiluri asociate acestui rol. Contactați administratorul.') };
+                }
                 // A non-RLS error occurred (e.g., network). This is fatal.
                 return { user: null, roles: null, error: primaryProfileError };
             }
@@ -146,11 +155,14 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
                 const { data: ownProfile, error: ownProfileError } = await supabase.from('sportivi').select('*, cluburi(*)').maybeSingle();
                 
                 if (ownProfileError) {
+                    if (ownProfileError.code === 'PGRST116' || ownProfileError.message.includes('multiple rows')) {
+                        return { user: null, roles: null, error: new Error('Eroare: S-au găsit mai multe profiluri proprii. Contactați administratorul.') };
+                    }
                     return { user: null, roles: null, error: ownProfileError };
                 }
                 if (!ownProfile) {
                     // Critical failure: User has roles but no accessible profile at all.
-                    return { user: fallbackUser(authUser.email || 'unknown@user.com'), roles: roleContexts, error: new Error("Nu s-a putut încărca niciun profil valid (nici cel primar, nici cel propriu).") };
+                    return { user: fallbackUser(authUser.email || 'unknown@user.com'), roles: roleContexts, error: new Error("Eroare: Nu s-a putut încărca niciun profil valid (nici cel primar, nici cel propriu).") };
                 }
                 userProfileData = ownProfile;
             }

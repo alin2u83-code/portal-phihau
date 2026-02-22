@@ -157,7 +157,7 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
                                 <button
                                     key={role.id}
                                     onClick={() => { onSwitchRole(role); setIsRoleSwitcherOpen(false); }}
-                                    className="w-full flex items-center p-2 rounded-md text-sm text-left hover:bg-slate-700"
+                                    className="w-full flex items-center p-2 rounded-md text-sm text-left hover:bg-slate-700 min-h-[60px]"
                                 >
                                     <Icon className="w-5 h-5 mr-2 text-slate-400" />
                                     <span className="text-white truncate">{getRoleDisplayName(role)}</span>

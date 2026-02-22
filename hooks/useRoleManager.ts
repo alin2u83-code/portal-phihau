@@ -1,75 +1,53 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
 import { useError } from '../components/ErrorProvider';
-import { Rol } from '../types';
+import { useLocalStorage } from './useLocalStorage';
 
 export const useRoleManager = (userId: string | undefined) => {
-    const [roles, setRoles] = useState<any[]>([]);
-    const [loading, setLoading] = useState(false);
     const { showError } = useError();
+    const [loading, setLoading] = useState(false);
+    const [, setActiveRoleContextId] = useLocalStorage<string | null>('phi-hau-active-role-context-id', null);
 
-    const fetchRoles = useCallback(async () => {
-        if (!userId || !supabase) return;
+    const switchRole = useCallback(async (newContextId: string) => {
+        if (!userId) {
+            showError("Eroare", "ID-ul utilizatorului nu este disponibil.");
+            return;
+        }
+
         setLoading(true);
         try {
-            const { data, error } = await supabase
+            const { data: allUserRoles, error: fetchError } = await supabase
                 .from('utilizator_roluri_multicont')
-                .select(`
-                    id,
-                    rol_id,
-                    sportiv_id,
-                    club_id,
-                    is_primary,
-                    club:cluburi(nume),
-                    sportiv:sportiv_id(nume, prenume),
-                    roluri(nume)
-                `);
+                .select('*')
+                .eq('user_id', userId);
 
-            if (error) {
-                showError("Eroare la încărcarea rolurilor", error.message);
-            } else {
-                setRoles(data || []);
+            if (fetchError) throw fetchError;
+
+            const targetContext = allUserRoles.find(r => r.id === newContextId);
+
+            if (!targetContext) {
+                throw new Error("Contextul selectat nu a fost găsit pentru acest utilizator.");
             }
-        } catch (err: any) {
-            showError("Eroare neașteptată", err.message);
+
+            // Set the new active role in localStorage
+            setActiveRoleContextId(newContextId);
+
+            // Check for sportiv_id and set redirect if necessary
+            if (targetContext.sportiv_id) {
+                localStorage.setItem('phi-hau-redirect-after-role-switch', 'my-portal');
+            }
+
+            // Hard refresh to re-initialize the app with the new context
+            window.location.reload();
+
+        } catch (error: any) {
+            showError("Eroare la schimbarea rolului", error.message);
         } finally {
+            // Although the page reloads, this is good practice
             setLoading(false);
         }
-    }, [userId, showError]);
+    }, [userId, showError, setActiveRoleContextId]);
 
-    useEffect(() => {
-        if (userId) {
-            fetchRoles();
-        }
-    }, [userId, fetchRoles]);
-
-    const switchRole = useCallback(async (roleId: string) => {
-        if (!supabase) return;
-        
-        try {
-            // Save to localStorage as requested
-            localStorage.setItem('phi_hau_selected_role_id', roleId);
-            
-            const selectedRole = roles.find(r => r.id === roleId);
-            if (selectedRole?.sportiv_id) {
-                // Redirect to SportivDashboard by setting the active view in localStorage
-                localStorage.setItem('phi-hau-active-view', 'my-portal');
-            }
-
-            // Update DB primary context using the existing RPC
-            const { error } = await supabase.rpc('switch_primary_context', { p_target_context_id: roleId });
-            
-            if (error) {
-                console.error("Eroare RPC switch_primary_context:", error.message);
-                // Even if RPC fails, we do the hard refresh as requested
-            }
-
-            // Hard refresh of the application context
-            window.location.reload();
-        } catch (err: any) {
-            showError("Eroare la schimbarea rolului", err.message);
-        }
-    }, [roles, showError]);
-
-    return { roles, loading, switchRole, refreshRoles: fetchRoles };
+    return { switchRole, loading };
 };
+

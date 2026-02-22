@@ -5,18 +5,18 @@ import { Rol } from '../types';
 
 // --- Helper Functions ---
 const getRoleDisplayName = (role: any) => {
-    switch(role.rol_denumire) {
+    switch(role.roluri?.nume) {
         case 'SUPER_ADMIN_FEDERATIE': return 'Super Admin Federație';
         case 'ADMIN': return 'Admin General';
         case 'ADMIN_CLUB': return `Admin - ${role.club?.nume || 'Club Nedefinit'}`;
         case 'INSTRUCTOR': return `Instructor - ${role.club?.nume || 'Club Nedefinit'}`;
         case 'SPORTIV': return `Sportiv - ${role.sportiv?.nume || ''} ${role.sportiv?.prenume || ''}`;
-        default: return role.rol_denumire;
+        default: return role.roluri?.nume;
     }
 };
 
 const getRoleDescription = (role: any) => {
-    switch(role.rol_denumire) {
+    switch(role.roluri?.nume) {
         case 'SUPER_ADMIN_FEDERATIE': return 'Acces total la nivel de federație.';
         case 'ADMIN': return 'Acces administrativ general.';
         case 'ADMIN_CLUB': return `Management complet pentru ${role.club?.nume || 'club'}.`;
@@ -63,7 +63,7 @@ export const RoleSelectionPage: React.FC<RoleSelectionPageProps> = ({ roles, onS
 
                     <div className="space-y-4">
                         {roles.map((role, index) => {
-                            const Icon = getRoleIcon(role.rol_denumire);
+                            const Icon = getRoleIcon(role.roluri?.nume);
                             const isActive = role.is_primary;
                             return (
                                 <button

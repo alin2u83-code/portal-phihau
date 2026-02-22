@@ -45,7 +45,8 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
             .from('utilizator_roluri_multicont')
             .select(`
                 id,
-                rol_denumire,
+                rol_id,
+                roluri(nume),
                 sportiv_id,
                 club_id,
                 is_primary,
@@ -78,8 +79,8 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
         // This ensures that users with administrative roles default to the correct interface.
         let primaryContext;
 
-        const superAdminContext = roleContexts.find(r => r.rol_denumire === 'SUPER_ADMIN_FEDERATIE');
-        const adminClubContext = roleContexts.find(r => r.rol_denumire === 'ADMIN_CLUB');
+        const superAdminContext = roleContexts.find(r => r.roluri?.nume === 'SUPER_ADMIN_FEDERATIE');
+        const adminClubContext = roleContexts.find(r => r.roluri?.nume === 'ADMIN_CLUB');
         const explicitPrimaryContext = roleContexts.find(r => r.is_primary);
 
         if (superAdminContext) {
@@ -94,7 +95,7 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
             // asigurând o experiență de utilizare consistentă și prevenind blocajele la autentificare.
             const roleHierarchy: string[] = ['SUPER_ADMIN_FEDERATIE', 'ADMIN', 'ADMIN_CLUB', 'INSTRUCTOR', 'SPORTIV'];
             const sortedContexts = [...roleContexts].sort((a, b) => 
-                roleHierarchy.indexOf(a.rol_denumire) - roleHierarchy.indexOf(b.rol_denumire)
+                roleHierarchy.indexOf(a.roluri?.nume) - roleHierarchy.indexOf(b.roluri?.nume)
             );
             primaryContext = sortedContexts[0];
         }
@@ -149,7 +150,7 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
         if(allRolesError) { console.warn("Eroare la preluarea nomenclatorului de roluri:", allRolesError.message); }
 
         const mappedRoles = (roleContexts || []).map((mcr: any) => {
-            const roleFromNomenclator = (allRolesNomenclator || []).find(r => r.nume === mcr.rol_denumire);
+            const roleFromNomenclator = (allRolesNomenclator || []).find(r => r.nume === mcr.roluri?.nume);
             return roleFromNomenclator ? { id: roleFromNomenclator.id, nume: roleFromNomenclator.nume as Rol['nume'] } : null;
         }).filter((r): r is Rol => r !== null);
         

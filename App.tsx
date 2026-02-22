@@ -94,7 +94,7 @@ function App() {
 
 
   const activeRole = useMemo((): Rol['nume'] | null => {
-    const roleName = activeRoleContext?.rol_denumire;
+    const roleName = activeRoleContext?.roluri?.nume;
     return roleName || null;
   }, [activeRoleContext]);
 
@@ -119,7 +119,7 @@ function App() {
       }
 
       setIsSwitchingRole(true);
-      setSwitchingToRole(targetContext.rol_denumire);
+      setSwitchingToRole(targetContext.roluri?.nume);
       
       // 1. Apelează funcția atomică din baza de date
       const { error: rpcError } = await supabase.rpc('switch_primary_context', {

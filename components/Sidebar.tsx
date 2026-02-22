@@ -22,13 +22,13 @@ const NavItem: React.FC<{
 
 // Helper Functions for Role Switcher
 const getRoleDisplayName = (role: any): string => {
-    switch(role.rol_denumire) {
+    switch(role.roluri?.nume) {
         case 'SUPER_ADMIN_FEDERATIE': return 'Super Admin Federație';
         case 'ADMIN': return 'Admin General';
         case 'ADMIN_CLUB': return `Admin - ${role.club?.nume || 'Club Nedefinit'}`;
         case 'INSTRUCTOR': return `Instructor - ${role.club?.nume || 'Club Nedefinit'}`;
         case 'SPORTIV': return `Sportiv - ${role.sportiv?.nume || ''} ${role.sportiv?.prenume || ''}`;
-        default: return role.rol_denumire;
+        default: return role.roluri?.nume;
     }
 };
 
@@ -152,7 +152,7 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
                         {(userRoles || [])
                             .filter(role => role.id !== activeRoleContext?.id)
                             .map((role) => {
-                                const Icon = getRoleIcon(role.rol_denumire);
+                                const Icon = getRoleIcon(role.roluri?.nume);
                                 return (
                                 <button
                                     key={role.id}

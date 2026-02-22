@@ -148,7 +148,7 @@ export const useDataProvider = () => {
                 supabase.from('nom_locatii').select('*'),
                 supabase.from('tipuri_plati').select('*'),
                 supabase.from('reduceri').select('*'),
-                supabase.from('sportivi').select('*, cluburi(*), utilizator_roluri_multicont(roluri(nume))'),
+                supabase.from('sportivi').select('*, cluburi(*), utilizator_roluri_multicont(rol_id)'),
                 supabase.from('sesiuni_examene').select('*'),
                 supabase.from('inscrieri_examene').select('*, sportivi:sportiv_id(*), grades:grad_vizat_id(*)'),
                 supabase.from('program_antrenamente').select('*, grupe(*), prezenta:prezenta_antrenament!antrenament_id(sportiv_id, status)'),
@@ -200,7 +200,7 @@ export const useDataProvider = () => {
                 if (!s) return null;
                 const sportivWithRoles = s as any;
                 const userRolesFromJoin = (sportivWithRoles.utilizator_roluri_multicont || [])
-                    .map((joinedRole: any) => allNomenclatorRoles.find(r => r.nume === joinedRole.roluri?.nume))
+                    .map((joinedRole: any) => allNomenclatorRoles.find(r => r.id === joinedRole.rol_id))
                     .filter((r): r is Rol => !!r);
                 
                 delete sportivWithRoles.utilizator_roluri_multicont;

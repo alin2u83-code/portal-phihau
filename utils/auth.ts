@@ -39,14 +39,17 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
             return { user: null, roles: null, error: null };
         }
 
+        // Fetch all roles first to map rol_id
+        const { data: allRolesNomenclator, error: allRolesError } = await supabase.from('roluri').select('id, nume');
+        if(allRolesError) { console.warn("Eroare la preluarea nomenclatorului de roluri:", allRolesError.message); }
+
         // Step 1: Fetch all role contexts for the authenticated user.
         // The query relies on RLS to scope results to the current user (user_id = auth.uid()).
-        const { data: roleContexts, error: contextsError } = await supabase
+        const { data: rawRoleContexts, error: contextsError } = await supabase
             .from('utilizator_roluri_multicont')
             .select(`
                 id,
                 rol_id,
-                roluri(nume),
                 sportiv_id,
                 club_id,
                 is_primary,
@@ -57,6 +60,14 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
         if (contextsError) {
             return { user: null, roles: null, error: contextsError };
         }
+
+        const roleContexts = rawRoleContexts?.map(rc => {
+            const roleInfo = (allRolesNomenclator || []).find(r => r.id === rc.rol_id);
+            return {
+                ...rc,
+                roluri: roleInfo ? { nume: roleInfo.nume } : null
+            };
+        });
 
         if (!roleContexts || roleContexts.length === 0) {
             // This fallback also relies on RLS (`user_id = auth.uid()`) to fetch the user's own profile.
@@ -146,9 +157,6 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
         }
         
         // Step 4: Combine data. Get all unique roles from all contexts.
-        const { data: allRolesNomenclator, error: allRolesError } = await supabase.from('roluri').select('id, nume');
-        if(allRolesError) { console.warn("Eroare la preluarea nomenclatorului de roluri:", allRolesError.message); }
-
         const mappedRoles = (roleContexts || []).map((mcr: any) => {
             const roleFromNomenclator = (allRolesNomenclator || []).find(r => r.nume === mcr.roluri?.nume);
             return roleFromNomenclator ? { id: roleFromNomenclator.id, nume: roleFromNomenclator.nume as Rol['nume'] } : null;

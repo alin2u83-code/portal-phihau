@@ -1,4 +1,5 @@
 {
-  "name": "Project Recovery",
-  "description": "Recovering a deleted Vite + React project."
+  "name": "Remix: Qwan Ki Do Club Management",
+  "description": "An admin dashboard for managing athletes, exams, and rank progression for a Qwan Ki Do club. It allows for creating, viewing, updating, and deleting records for athletes and exams.",
+  "requestFramePermissions": []
 }

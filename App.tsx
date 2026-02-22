@@ -407,7 +407,7 @@ function App() {
         </div>
       )}
       {!session ? <AuthContainer /> :
-       needsRoleSelection ? <RoleSelectionPage roles={userRoles} onSelect={handleSelectRole} loading={isSwitchingRole} onLogout={handleLogout} /> :
+       needsRoleSelection ? <RoleSelectionPage user={session.user} onSelect={handleSelectRole} loading={isSwitchingRole} onLogout={handleLogout} /> :
        currentUser ? (
             <div className="flex min-h-screen bg-[var(--bg-main)]">
               <Sidebar currentUser={currentUser} onNavigate={setActiveView} onLogout={handleLogout} activeView={activeView} isExpanded={isSidebarExpanded} setIsExpanded={setIsSidebarExpanded} clubs={clubs} globalClubFilter={globalClubFilter} setGlobalClubFilter={setGlobalClubFilter} permissions={permissions} activeRole={activeRole!} canSwitchRoles={canSwitchRoles} onSwitchRole={handleSwitchRole} isSwitchingRole={isSwitchingRole} grade={grade} userRoles={userRoles} />

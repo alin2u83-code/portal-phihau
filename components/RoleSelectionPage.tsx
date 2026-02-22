@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, Button } from './ui';
 import { Shield, User, Users, GraduationCap, CheckCircle2, LogOut, ChevronRight } from 'lucide-react';
 import { Rol } from '../types';
+import { supabase } from '../supabaseClient';
 
 // --- Helper Functions ---
 const getRoleDisplayName = (role: any) => {
@@ -45,13 +46,52 @@ const getRoleIcon = (roleName: Rol['nume']) => {
 
 // --- Main Component ---
 interface RoleSelectionPageProps {
-    roles: any[];
+    user: any;
     onSelect: (role: any) => void;
     loading: boolean;
     onLogout: () => void;
 }
 
-export const RoleSelectionPage: React.FC<RoleSelectionPageProps> = ({ roles, onSelect, loading, onLogout }) => {
+export const RoleSelectionPage: React.FC<RoleSelectionPageProps> = ({ user, onSelect, loading, onLogout }) => {
+    const [profiles, setProfiles] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchProfiles = async () => {
+            if (user) {
+                const { data, error } = await supabase
+                    .from('user_profiles')
+                    .select('*, roluri:roles(*), club:clubs(*), sportiv:sportivi(*)')
+                    .eq('user_id', user.id);
+
+                if (error) {
+                    console.error('Error fetching profiles:', error);
+                } else {
+                    setProfiles(data || []);
+                }
+                setIsLoading(false);
+            }
+        };
+
+        fetchProfiles();
+    }, [user]);
+
+    const handleRoleSelection = (role: any) => {
+        localStorage.setItem('activeRole', JSON.stringify(role));
+        onSelect(role);
+    };
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center p-4 bg-slate-950">
+                <div className="flex items-center justify-center gap-3 text-slate-500 text-sm">
+                    <div className="w-4 h-4 border-2 border-slate-500 border-t-transparent rounded-full animate-spin" />
+                    Se încarcă profilurile...
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen flex items-center justify-center p-4 bg-slate-950">
             <div className="w-full max-w-md space-y-6">
@@ -66,41 +106,23 @@ export const RoleSelectionPage: React.FC<RoleSelectionPageProps> = ({ roles, onS
                 </div>
 
                 <div className="space-y-3">
-                    {roles.map((role, index) => {
-                        const Icon = getRoleIcon(role.roluri?.nume);
-                        const isActive = role.is_primary;
+                    {profiles.map((profile, index) => {
+                        const Icon = getRoleIcon(profile.roluri?.nume);
+                        const isActive = profile.is_primary;
                         return (
                             <button
                                 key={index}
-                                onClick={() => onSelect(role)}
+                                onClick={() => handleRoleSelection(profile)}
                                 disabled={loading}
-                                className={`group relative w-full text-left p-6 rounded-xl transition-all duration-200 border flex items-center gap-4 ${
-                                    isActive 
-                                    ? 'bg-amber-500/5 border-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.1)]' 
-                                    : 'bg-slate-900/50 border-slate-800 hover:border-slate-700 hover:bg-slate-900'
-                                }`}
-                            >
-                                <div className={`p-3 rounded-lg ${isActive ? 'bg-amber-500/20 text-amber-500' : 'bg-slate-800 text-slate-400 group-hover:text-slate-300'}`}>
-                                    <Icon size={24} />
+                                className={`group relative w-full text-left p-4 rounded-lg transition-all duration-200 border flex items-center gap-4 ${isActive ? 'bg-amber-500/5 border-amber-500/50 shadow-lg' : 'bg-slate-900/50 border-slate-800 hover:border-slate-700 hover:bg-slate-900'}`}>
+                                <div className={`p-2 rounded-md ${isActive ? 'bg-amber-500/20 text-amber-500' : 'bg-slate-800 text-slate-400 group-hover:text-slate-300'}`}>
+                                    <Icon size={20} />
                                 </div>
-                                
                                 <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2">
-                                        <p className="font-semibold text-white truncate">
-                                            {getRoleDisplayName(role)}
-                                        </p>
-                                        {isActive && (
-                                            <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded">
-                                                Activ
-                                            </span>
-                                        )}
-                                    </div>
-                                    <p className="text-xs text-slate-500 truncate mt-0.5">
-                                        {getRoleDescription(role)}
-                                    </p>
+                                    <p className="font-semibold text-white truncate text-sm">{getRoleDisplayName(profile)}</p>
+                                    <p className="text-xs text-slate-500 truncate mt-0.5">{getRoleDescription(profile)}</p>
                                 </div>
-
-                                <ChevronRight className={`w-5 h-5 ${isActive ? 'text-amber-500' : 'text-slate-700 group-hover:text-slate-500'}`} />
+                                <ChevronRight className={`w-4 h-4 ${isActive ? 'text-amber-500' : 'text-slate-700 group-hover:text-slate-500'}`} />
                             </button>
                         )
                     })}

@@ -77,6 +77,7 @@ function App() {
   const [selectedSportiv, setSelectedSportiv] = useState<Sportiv | null>(null);
   const [isSidebarExpanded, setIsSidebarExpanded] = useLocalStorage('phi-hau-sidebar-expanded', true);
   const [adminContext, setAdminContext] = useLocalStorage<'club' | 'federation'>('phi-hau-admin-context', 'club');
+  const [switchingToRole, setSwitchingToRole] = useState<string>('');
   
   const {
       loading, error, needsRoleSelection, session, currentUser, userRoles, activeRoleContext,
@@ -157,6 +158,14 @@ function App() {
     }
   }, [currentUser, permissions, activeView, setActiveView, activeRoleContext, showError]);
 
+  useEffect(() => {
+    // Protection mechanism for SUPER_ADMIN_FEDERATIE
+    if (activeRole === 'SUPER_ADMIN_FEDERATIE' && activeView !== 'federation-dashboard') {
+      console.warn('[Protection] SUPER_ADMIN_FEDERATIE is being redirected to the federation dashboard.');
+      setActiveView('federation-dashboard');
+    }
+  }, [activeView, activeRole, setActiveView]);
+
   const filteredData = useMemo(() => {
     if (!permissions.isFederationAdmin || !activeClubId) {
         return {
@@ -221,11 +230,27 @@ function App() {
   const handleSelectRole = async (role: any) => {
     if (!supabase || !currentUser?.user_id) return;
 
+    console.log(`[RoleSwitch] User ID: ${currentUser?.user_id} selected Role: ${role.roluri?.nume} (Context ID: ${role.id})`);
+    setSwitchingToRole(role.roluri?.nume || '...');
+
+    // Salvăm în localStorage pentru ca la refresh să știm unde să ne întoarcem
+    localStorage.setItem('activeRole', JSON.stringify(role));
+    localStorage.setItem('phi-hau-active-role-context-id', role.id);
+
+    // Setăm vizualizarea dorită înainte de refresh (opțional, dar bun pentru UX)
     if (role.roluri?.nume === 'SUPER_ADMIN_FEDERATIE') {
       setActiveView('federation-dashboard');
+      localStorage.setItem('phi-hau-redirect-after-role-switch', 'federation-dashboard');
+    } else if (role.roluri?.nume === 'SPORTIV') {
+      setActiveView('my-portal');
+      localStorage.setItem('phi-hau-redirect-after-role-switch', 'my-portal');
     } else {
-      await handleSwitchRole(role);
+      setActiveView('dashboard');
+      localStorage.setItem('phi-hau-redirect-after-role-switch', 'dashboard');
     }
+
+    // Executăm switch-ul tehnic care face window.location.reload()
+    await handleSwitchRole(role);
   };
   
   const handleIncaseazaMultiple = (platiSelectate: Plata[]) => {

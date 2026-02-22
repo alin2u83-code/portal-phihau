@@ -117,8 +117,13 @@ export const useDataProvider = () => {
         }
 
         const primaryContext = roles.find(r => r.is_primary);
-        
-        if (!profile && roles.length > 0) {
+
+        if (roles.length > 0 && primaryContext) {
+            setCurrentUser(profile);
+            setUserRoles(roles);
+            setActiveRoleContext(primaryContext);
+            setNeedsRoleSelection(false);
+        } else if (!profile && roles.length > 0) {
             // Selection is needed
             setUserRoles(roles);
             setNeedsRoleSelection(true);

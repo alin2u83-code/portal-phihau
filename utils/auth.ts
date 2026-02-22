@@ -44,19 +44,47 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
         if(allRolesError) { console.warn("Eroare la preluarea nomenclatorului de roluri:", allRolesError.message); }
 
         // Step 1: Try to fetch the primary role context using maybeSingle()
-        const { data: primaryContextData, error: primaryError } = await supabase
-            .from('utilizator_roluri_multicont')
-            .select(`
-                id,
-                rol_id,
-                sportiv_id,
-                club_id,
-                is_primary,
-                club:cluburi(nume),
-                sportiv:sportiv_id(nume, prenume)
-            `)
-            .eq('is_primary', true)
-            .maybeSingle();
+        // We also check localStorage for a manually selected role
+        const selectedRoleId = localStorage.getItem('phi_hau_selected_role_id');
+
+        let primaryContextData: any = null;
+        let primaryError: any = null;
+
+        if (selectedRoleId) {
+            const { data, error } = await supabase
+                .from('utilizator_roluri_multicont')
+                .select(`
+                    id,
+                    rol_id,
+                    sportiv_id,
+                    club_id,
+                    is_primary,
+                    club:cluburi(nume),
+                    sportiv:sportiv_id(nume, prenume)
+                `)
+                .eq('id', selectedRoleId)
+                .maybeSingle();
+            primaryContextData = data;
+            primaryError = error;
+        }
+
+        if (!primaryContextData) {
+            const { data, error } = await supabase
+                .from('utilizator_roluri_multicont')
+                .select(`
+                    id,
+                    rol_id,
+                    sportiv_id,
+                    club_id,
+                    is_primary,
+                    club:cluburi(nume),
+                    sportiv:sportiv_id(nume, prenume)
+                `)
+                .eq('is_primary', true)
+                .maybeSingle();
+            primaryContextData = data;
+            primaryError = error;
+        }
 
         // If multiple rows returned, we must let the user choose
         if (primaryError && (primaryError.code === 'PGRST116' || primaryError.message.includes('multiple rows'))) {

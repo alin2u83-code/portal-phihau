@@ -1,13 +1,8 @@
 import React, { useMemo } from 'react';
-import { Sportiv, Antrenament, Grad } from '../types';
+import { Sportiv, Antrenament, Grad, GradeHistoryEntry } from '../types';
 import { ResponsiveContainer, ComposedChart, XAxis, YAxis, Tooltip, CartesianGrid, Area, Bar, Legend } from 'recharts';
 
 // Props interface
-interface GradeHistoryEntry {
-    date: number;
-    rank: number;
-    rankName: string;
-}
 interface SportivProgressChartProps {
     sportiv: Sportiv;
     gradeHistory: GradeHistoryEntry[];

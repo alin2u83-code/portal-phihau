@@ -58,6 +58,7 @@ import { ArhivaPrezente } from './components/ArhivaPrezente';
 import { AdminMasterMap } from './components/AdminMasterMap';
 import { SportivDashboard } from './components/SportivDashboard';
 import { Card } from './components/ui';
+import { useRoleManager } from './hooks/useRoleManager';
 import { RoleSelectionPage } from './components/RoleSelectionPage';
 import { RaportLunarPrezenta } from './components/RaportLunarPrezenta';
 import { Header } from './components/Header';
@@ -76,8 +77,6 @@ function App() {
   const [selectedSportiv, setSelectedSportiv] = useState<Sportiv | null>(null);
   const [isSidebarExpanded, setIsSidebarExpanded] = useLocalStorage('phi-hau-sidebar-expanded', true);
   const [adminContext, setAdminContext] = useLocalStorage<'club' | 'federation'>('phi-hau-admin-context', 'club');
-  const [isSwitchingRole, setIsSwitchingRole] = useState(false);
-  const [switchingToRole, setSwitchingToRole] = useState<string | null>(null);
   
   const {
       loading, error, needsRoleSelection, session, currentUser, userRoles, activeRoleContext,
@@ -98,6 +97,8 @@ function App() {
     return roleName || null;
   }, [activeRoleContext]);
 
+  const { switchRole, loading: isSwitchingRole } = useRoleManager(currentUser?.user_id);
+
   const permissions = usePermissions(currentUser, activeRole);
   const { activeClubId, loading: clubFilterLoading, globalClubFilter, setGlobalClubFilter } = useClubFilter(currentUser, permissions);
   
@@ -111,43 +112,14 @@ function App() {
         return true;
     }, [currentUser, userRoles]);
     
-  // NOUA funcție de comutare a rolului: atomică și fără reîncărcare a paginii
+  // NOUA funcție de comutare a rolului: atomică și cu hard refresh conform cerinței
   const handleSwitchRole = useCallback(async (targetContext: any) => {
-      if (!supabase || !currentUser?.user_id || !targetContext?.id) {
-          showError("Eroare la comutare", "Contextul selectat este invalid sau sesiunea a expirat.");
+      if (!targetContext?.id) {
+          showError("Eroare la comutare", "Contextul selectat este invalid.");
           return;
       }
-
-      setIsSwitchingRole(true);
-      setSwitchingToRole(targetContext.roluri?.nume);
-      
-      // 1. Apelează funcția atomică din baza de date
-      const { error: rpcError } = await supabase.rpc('switch_primary_context', {
-          p_target_context_id: targetContext.id
-      });
-
-      if (rpcError) {
-          showError("Eroare la comutarea rolului", `O problemă a apărut în baza de date: ${rpcError.message}`);
-          setIsSwitchingRole(false);
-          setSwitchingToRole(null);
-          return;
-      }
-      
-      // 2. Reîmprospătează sesiunea pentru a obține noul JWT cu permisiuni actualizate
-      const { error: refreshError } = await supabase.auth.refreshSession();
-
-      if (refreshError) {
-          showError("Eroare la reîmprospătarea sesiunii. Pagina se va reîncărca.", refreshError.message);
-          // Fallback la reîncărcare completă dacă refresh-ul eșuează
-          setTimeout(() => window.location.reload(), 1500);
-      } else {
-        // 3. Succes! Listener-ul onAuthStateChange din useDataProvider va prelua controlul.
-        // Acesta va detecta evenimentul TOKEN_REFRESHED și va reîncărca datele.
-        // Oprim manual indicatorul de încărcare.
-        setIsSwitchingRole(false);
-        setSwitchingToRole(null);
-      }
-  }, [currentUser, showError]);
+      await switchRole(targetContext.id);
+  }, [switchRole, showError]);
 
   useEffect(() => {
     const redirectView = localStorage.getItem('phi-hau-redirect-after-role-switch');
@@ -367,7 +339,7 @@ function App() {
         return renderProtected(<BackupManager onBack={handleBackToDashboard} onDataRestored={() => window.location.reload()} sportivi={sportivi} setSportivi={setSportivi} grade={grade} preturiConfig={preturiConfig} participari={inscrieriExamene} examene={sesiuniExamene} plati={plati} setPlati={setPlati} familii={familii} onNavigate={(view) => setActiveView(view)} currentUser={currentUser!} />, isFederationAdmin);
       
       case 'rapoarte-examen':
-        return renderProtected(<RapoarteExamen onBack={handleBackToDashboard} currentUser={currentUser!} clubs={clubs} sesiuni={filteredData.sesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={filteredData.inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={filteredData.sportivi} setSportivi={setSportivi} grade={grade} locatii={locatii} setLocatii={setLocatii} plati={filteredData.plati} setPlati={setPlati} preturiConfig={preturiConfig} deconturiFederatie={filteredData.deconturiFederatie} setDeconturiFederatie={setDeconturiFederatie} onViewSportiv={onViewSportiv} />, permissions.isInstructor);
+        return renderProtected(<RapoarteExamen onBack={handleBackToDashboard} currentUser={currentUser!} clubs={clubs} sesiuni={filteredData.sesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={filteredData.inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={filteredData.sportivi} setSportivi={setSportivi} grade={grade} locatii={locatii} setLocatii={setLocatii} plati={filteredData.plati} setPlati={setPlati} preturiConfig={preturiConfig} deconturiFederatie={filteredData.deconturiFederatie} setDeconturiFederatie={setDeconturiFederatie} istoricGrade={filteredData.istoricGrade} setIstoricGrade={setIstoricGrade} onViewSportiv={onViewSportiv} />, permissions.isInstructor);
       
       case 'setari-club':
         return renderProtected(<ClubSettings onBack={handleBackToDashboard} />, isAtLeastClubAdmin);

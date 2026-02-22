@@ -331,6 +331,12 @@ export interface ClubDashboardStats {
     total_datorii: number;
 }
 
+export interface GradeHistoryEntry {
+    date: number;
+    rank: number;
+    rankName: string;
+}
+
 export interface Permissions {
     isSuperAdmin: boolean;
     isAdmin: boolean;

@@ -199,7 +199,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
             // Pas 2: Procesare Rânduri
             for (const row of rowsToProcess) {
                 const action = row.resolution?.action || (row.status === 'valid' ? 'use_existing' : 'create');
-                const sportivId = action === 'use_existing' ? (row.resolution?.sportivId || row.existingSportiv?.id) : null;
+                const sportivId = action === 'use_existing' ? ((row.resolution as any)?.sportivId || row.existingSportiv?.id) : null;
                 const sessionId = row.sessionInfo.existingSessionId || createdSessionIds.get(row.sessionInfo.key);
                 if (!sessionId) throw new Error(`ID-ul sesiunii pentru ${row.Nume} ${row.Prenume} nu a putut fi determinat.`);
 

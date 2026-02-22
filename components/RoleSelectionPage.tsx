@@ -74,7 +74,7 @@ export const RoleSelectionPage: React.FC<RoleSelectionPageProps> = ({ roles, onS
                                 key={index}
                                 onClick={() => onSelect(role)}
                                 disabled={loading}
-                                className={`group relative w-full text-left p-4 rounded-xl transition-all duration-200 border flex items-center gap-4 ${
+                                className={`group relative w-full text-left p-6 rounded-xl transition-all duration-200 border flex items-center gap-4 ${
                                     isActive 
                                     ? 'bg-amber-500/5 border-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.1)]' 
                                     : 'bg-slate-900/50 border-slate-800 hover:border-slate-700 hover:bg-slate-900'

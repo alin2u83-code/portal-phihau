@@ -381,7 +381,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
         });
     }, [sportiv]);
 
-    const isSuperAdmin = currentUser.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'Admin');
+    const isSuperAdmin = currentUser.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN');
 
     const gradeHistory = useMemo(() => {
         const examGrades = participari
@@ -394,7 +394,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                     source: 'examen',
                     date: new Date(examen.data).getTime(),
                     grad_id: grad.id,
-                    gradNume: grad.nume,
+                    rankName: grad.nume,
                     rank: grad.ordine
                 };
             })
@@ -409,7 +409,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                     source: 'manual',
                     date: new Date(hg.data_obtinere).getTime(),
                     grad_id: grad.id,
-                    gradNume: grad.nume,
+                    rankName: grad.nume,
                     rank: grad.ordine
                 };
             })

@@ -89,7 +89,7 @@ export const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
     const [errors, setErrors] = useState<Record<string, string>>({});
     
     const isSuperAdmin = useMemo(() => 
-        currentUser?.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'Admin'), 
+        currentUser?.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN'), 
         [currentUser]
     );
 

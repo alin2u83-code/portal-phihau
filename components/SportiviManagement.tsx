@@ -319,10 +319,10 @@ export const SportiviManagement: React.FC<{
                     throw profileError;
                 }
 
-                const sportivRole = allRoles.find(r => r.nume === 'Sportiv');
-                if (!sportivRole) throw new Error("Rolul de bază 'Sportiv' nu a fost găsit.");
+                const sportivRole = allRoles.find(r => r.nume === 'SPORTIV');
+                if (!sportivRole) throw new Error("Rolul de bază 'SPORTIV' nu a fost găsit.");
 
-                const { error: roleError } = await supabase.from('utilizator_roluri_multicont').insert({ user_id: user.id, rol_denumire: 'Sportiv', club_id: newProfile.club_id, sportiv_id: newProfile.id, is_primary: true });
+                const { error: roleError } = await supabase.from('utilizator_roluri_multicont').insert({ user_id: user.id, rol_denumire: 'SPORTIV', club_id: newProfile.club_id, sportiv_id: newProfile.id, is_primary: true });
                 if (roleError) throw new Error(`Profilul a fost creat, dar rolul nu a putut fi atribuit: ${roleError.message}`);
 
                 const newSportiv = { ...newProfile, roluri: [sportivRole] };

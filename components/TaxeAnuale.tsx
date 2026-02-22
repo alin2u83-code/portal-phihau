@@ -118,7 +118,7 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
     const [isGenerating, setIsGenerating] = useState(false);
     const { showError, showSuccess } = useError();
 
-    const isAdmin = useMemo(() => currentUser.roluri.some(r => r.nume === 'Admin'), [currentUser.roluri]);
+    const isAdmin = useMemo(() => currentUser.roluri.some(r => r.nume === 'ADMIN'), [currentUser.roluri]);
 
     const fetchTaxe = useCallback(async () => {
         if (!supabase) return;

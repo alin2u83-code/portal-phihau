@@ -12,10 +12,11 @@ interface SportivAccountSettingsModalProps {
     allRoles: Rol[];
     setAllRoles: React.Dispatch<React.SetStateAction<Rol[]>>;
     currentUser: User;
+    onOpenCreateAccount?: (sportiv: Sportiv) => void;
 }
 
 export const SportivAccountSettingsModal: React.FC<SportivAccountSettingsModalProps> = ({
-    isOpen, onClose, sportiv, setSportivi, allRoles, currentUser
+    isOpen, onClose, sportiv, setSportivi, allRoles, currentUser, onOpenCreateAccount
 }) => {
     const [newRoleIds, setNewRoleIds] = useState<string[]>([]);
     const { showError, showSuccess } = useError();

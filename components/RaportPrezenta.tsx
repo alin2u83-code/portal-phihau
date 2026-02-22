@@ -106,7 +106,7 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ antrenamente, sp
         filteredPresenceRecords.forEach(rec => {
             const monthIndex = new Date(rec.data).getMonth();
             if (data[monthIndex] && typeof data[monthIndex][rec.grupaNume] === 'number') {
-                (data[monthIndex][rec.grupaNume] as number)++;
+                data[monthIndex][rec.grupaNume] = (data[monthIndex][rec.grupaNume] as number) + 1;
             }
         });
         

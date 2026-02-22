@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useMemo, useReducer } from 'react';
 import { Sportiv, Grupa, Familie, TipAbonament, Club, User, Grad } from '../types';
 import { Button, Modal, Input, Select, FormSection, Switch } from './ui';
 import { PlusIcon, ExclamationTriangleIcon } from './icons';
@@ -71,6 +71,19 @@ interface SportivFormFieldsProps {
     onQuickAddFamilie: () => void;
 }
 
+const formReducer = (state: any, action: any) => {
+    switch (action.type) {
+        case 'SET_FIELD':
+            return { ...state, [action.field]: action.value };
+        case 'SET_FORM_DATA':
+            return action.payload;
+        case 'RESET':
+            return action.payload;
+        default:
+            return state;
+    }
+};
+
 // FIX: Exported SportivFormFields to be used in other components.
 export const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
     initialData,
@@ -85,7 +98,7 @@ export const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
     onQuickAddGrupa,
     onQuickAddFamilie,
 }) => {
-    const [formData, setFormData] = useState(initialData);
+    const [formData, dispatch] = useReducer(formReducer, initialData);
     const [errors, setErrors] = useState<Record<string, string>>({});
     
     const isSuperAdmin = useMemo(() => 
@@ -107,7 +120,7 @@ export const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
         if (!isSuperAdmin && !data.club_id) {
             data.club_id = currentUser?.club_id;
         }
-        setFormData(data);
+        dispatch({ type: 'RESET', payload: data });
         const initialErrors = validate(data);
         setErrors(initialErrors);
         onFormChange(data, Object.keys(initialErrors).length === 0);
@@ -152,7 +165,7 @@ export const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
             }
         }
 
-        setFormData(updatedData);
+        dispatch({ type: 'SET_FORM_DATA', payload: updatedData });
         const newErrors = validate(updatedData);
         setErrors(newErrors);
         onFormChange(updatedData, Object.keys(newErrors).length === 0);
@@ -269,7 +282,7 @@ export const SportivFormModal: React.FC<{
         e.preventDefault();
         setCriticalPermissionError(null);
 
-        const isSuperAdmin = currentUser?.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'Admin');
+        const isSuperAdmin = currentUser?.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN');
         
         if (!isSuperAdmin && formData.club_id && formData.club_id !== currentUser?.club_id) {
             setCriticalPermissionError(`Tentativă de modificare neautorizată! Nu aveți drepturi de administrare pentru clubul selectat.`);
@@ -295,7 +308,7 @@ export const SportivFormModal: React.FC<{
     };
 
     const handleQuickAddGrupa = async (nume: string) => {
-        const isSuperAdmin = currentUser?.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'Admin');
+        const isSuperAdmin = currentUser?.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN');
         const { data, error } = await supabase.from('grupe').insert({ 
             denumire: nume, 
             sala: 'N/A', 

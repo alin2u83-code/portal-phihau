@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { SesiuneExamen, InscriereExamen, Sportiv, Grad, Locatie, Plata, PretConfig, User, Club, DecontFederatie, View } from '../types';
+import { SesiuneExamen, InscriereExamen, Sportiv, Grad, Locatie, Plata, PretConfig, User, Club, DecontFederatie, View, IstoricGrade } from '../types';
 import { Button, Modal, Input, Select, Card } from './ui';
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -175,6 +175,8 @@ const DetaliiSesiune: React.FC<{
     preturiConfig: PretConfig[];
     setSesiuni: React.Dispatch<React.SetStateAction<SesiuneExamen[]>>;
     setDeconturiFederatie: React.Dispatch<React.SetStateAction<DecontFederatie[]>>;
+    istoricGrade: IstoricGrade[];
+    setIstoricGrade: React.Dispatch<React.SetStateAction<IstoricGrade[]>>;
     onViewSportiv: (sportiv: Sportiv) => void;
 }> = (props) => {
     const { showError, showSuccess } = useError();
@@ -251,7 +253,7 @@ interface RapoarteExamenProps {
     onViewSportiv: (sportiv: Sportiv) => void;
 }
 
-export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ currentUser, clubs, onBack, sesiuni, setSesiuni, inscrieri, setInscrieri, sportivi, setSportivi, grade, locatii, setLocatii, plati, setPlati, preturiConfig, deconturiFederatie, setDeconturiFederatie, onViewSportiv }) => {
+export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ currentUser, clubs, onBack, sesiuni, setSesiuni, inscrieri, setInscrieri, sportivi, setSportivi, grade, locatii, setLocatii, plati, setPlati, preturiConfig, deconturiFederatie, setDeconturiFederatie, istoricGrade, setIstoricGrade, onViewSportiv }) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [sesiuneToEdit, setSesiuneToEdit] = useState<SesiuneExamen | null>(null);
   const [sesiuneToDelete, setSesiuneToDelete] = useState<SesiuneExamen | null>(null);
@@ -318,6 +320,8 @@ export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ currentUser, clu
                 preturiConfig={preturiConfig}
                 setSesiuni={setSesiuni}
                 setDeconturiFederatie={setDeconturiFederatie}
+                istoricGrade={istoricGrade}
+                setIstoricGrade={setIstoricGrade}
                 onViewSportiv={onViewSportiv}
             />
         </div>

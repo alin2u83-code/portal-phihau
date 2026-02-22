@@ -10,7 +10,6 @@ interface SportivAccountSettingsModalProps {
     sportiv: Sportiv | null;
     setSportivi: React.Dispatch<React.SetStateAction<Sportiv[]>>;
     allRoles: Rol[];
-    setAllRoles: React.Dispatch<React.SetStateAction<Rol[]>>;
     currentUser: User;
     onOpenCreateAccount?: (sportiv: Sportiv) => void;
 }

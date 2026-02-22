@@ -696,7 +696,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                                 <thead className="text-slate-400 text-xs uppercase sticky top-0 bg-[var(--bg-card)]">
                                     <tr><th className="py-2">Grad</th><th className="py-2">Data</th><th className="py-2 text-right">Sursă</th></tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-700">{[...gradeHistory].reverse().map(h => ( <tr key={`${h.date}-${h.rank}`}><td className="py-2 font-semibold text-white">{h.gradNume}</td><td className="py-2">{new Date(h.date).toLocaleDateString('ro-RO')}</td><td className="py-2 text-right capitalize">{h.source}</td></tr> ))}</tbody>
+                                <tbody className="divide-y divide-slate-700">{[...gradeHistory].reverse().map(h => ( <tr key={`${h.date}-${h.rank}`}><td className="py-2 font-semibold text-white">{h.rankName}</td><td className="py-2">{new Date(h.date).toLocaleDateString('ro-RO')}</td><td className="py-2 text-right capitalize">{h.source}</td></tr> ))}</tbody>
                             </table>
                         </div>
                     </Card>

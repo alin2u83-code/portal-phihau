@@ -9,6 +9,8 @@
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "noEmit": true,
     "jsx": "react-jsx",
     "strict": false,
@@ -20,5 +22,6 @@
     },
     "types": ["node"]
   },
-  "include": ["."]
+  "include": ["src", "components", "utils", "hooks", "types.ts", "supabaseClient.ts"],
+  "exclude": ["node_modules", "scripts"]
 }

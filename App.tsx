@@ -313,10 +313,10 @@ function App() {
         return renderProtected(<StagiiCompetitiiManagement onBack={handleBackToDashboard} type={activeView === 'stagii' ? 'Stagiu' : 'Competitie'} evenimente={filteredData.evenimente} setEvenimente={setEvenimente} rezultate={filteredData.rezultate} setRezultate={setRezultate} sportivi={filteredData.sportivi} preturiConfig={preturiConfig} inscrieriExamene={inscrieriExamene} examene={sesiuniExamene} grade={grade} setPlati={setPlati} currentUser={currentUser!} permissions={permissions}/>, permissions.isInstructor);
 
       case 'prezenta':
-        return renderProtected(<PrezentaManagement onBack={handleBackToDashboard} currentUser={currentUser!} />, isAtLeastInstructor);
+        return renderProtected(<PrezentaManagement onBack={handleBackToDashboard} currentUser={currentUser!} onViewSportiv={onViewSportiv} />, isAtLeastInstructor);
       
       case 'prezenta-instructor':
-        return renderProtected(<InstructorPrezentaPage onBack={handleBackToDashboard} onNavigate={setActiveView} allClubSportivi={filteredData.sportivi} currentUser={currentUser!} grade={grade} />, permissions.isInstructor);
+        return renderProtected(<InstructorPrezentaPage onBack={handleBackToDashboard} onNavigate={setActiveView} allClubSportivi={filteredData.sportivi} currentUser={currentUser!} grade={grade} onViewSportiv={onViewSportiv} />, permissions.isInstructor);
       
       case 'arhiva-prezente':
         return renderProtected(<ArhivaPrezente onBack={() => setActiveView('prezenta-instructor')} />, permissions.isInstructor);

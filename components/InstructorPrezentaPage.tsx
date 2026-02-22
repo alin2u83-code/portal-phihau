@@ -18,9 +18,10 @@ interface AthleteRowProps {
     isExtra: boolean;
     onRemove?: (sportivId: string) => void;
     grade: Grad | null | undefined;
+    onViewSportiv?: (s: Sportiv) => void;
 }
 
-const AthleteRow: React.FC<AthleteRowProps> = ({ sportiv, isPresent, onToggle, isExtra, onRemove, grade }) => {
+const AthleteRow: React.FC<AthleteRowProps> = ({ sportiv, isPresent, onToggle, isExtra, onRemove, grade, onViewSportiv }) => {
     const borderColor = getGradBorderColor(grade?.nume || '');
 
     return (
@@ -35,7 +36,12 @@ const AthleteRow: React.FC<AthleteRowProps> = ({ sportiv, isPresent, onToggle, i
                 />
             </td>
             <td className="py-2">
-                <label htmlFor={`att-${sportiv.id}`} className="font-medium cursor-pointer">{sportiv.nume} {sportiv.prenume}</label>
+                <span 
+                    className={`font-medium cursor-pointer ${onViewSportiv ? 'hover:text-brand-primary hover:underline' : ''}`}
+                    onClick={() => onViewSportiv && onViewSportiv(sportiv)}
+                >
+                    {sportiv.nume} {sportiv.prenume}
+                </span>
             </td>
             <td className="py-2 text-right">
                 <GradBadge grad={grade} className="text-[10px] !font-bold" />
@@ -56,20 +62,21 @@ interface TrainingCardProps {
     allClubSportivi: Sportiv[];
     onSave: (trainingId: string, presentIds: Set<string>) => Promise<void>;
     grade: Grad[];
+    onViewSportiv?: (s: Sportiv) => void;
 }
 
-const TrainingCard: React.FC<TrainingCardProps> = ({ training, allClubSportivi, onSave, grade }) => {
+const TrainingCard: React.FC<TrainingCardProps> = ({ training, allClubSportivi, onSave, grade, onViewSportiv }) => {
     const [initialPresentIds, setInitialPresentIds] = useState(new Set<string>());
     const [presentIds, setPresentIds] = useState<Set<string>>(new Set());
     const [extraAthleteIds, setExtraAthleteIds] = useState<Set<string>>(new Set());
     
     useEffect(() => {
-        const initialIds = new Set(training.prezenta.filter(p => p.status === 'prezent').map(p => p.sportiv_id));
+        const initialIds = new Set<string>(training.prezenta.filter(p => p.status === 'prezent').map(p => p.sportiv_id));
         setInitialPresentIds(initialIds);
         setPresentIds(initialIds);
 
         const groupIds = new Set(training.grupe?.sportivi.map(s => s.id) || []);
-        const extras = new Set(Array.from(initialIds).filter(id => !groupIds.has(id)));
+        const extras = new Set<string>(Array.from(initialIds).filter(id => !groupIds.has(id)));
         setExtraAthleteIds(extras);
     }, [training]);
 
@@ -130,11 +137,11 @@ const TrainingCard: React.FC<TrainingCardProps> = ({ training, allClubSportivi, 
             <div className="flex-grow max-h-96 overflow-y-auto pr-2">
                 <table className="w-full text-sm border-separate border-spacing-y-1">
                     <tbody>
-                        {groupAthletes.map(s => <AthleteRow key={s.id} sportiv={s} isPresent={presentIds.has(s.id)} onToggle={handleToggle} isExtra={false} grade={grade.find(g => g.id === s.grad_actual_id)} />)}
+                        {groupAthletes.map(s => <AthleteRow key={s.id} sportiv={s} isPresent={presentIds.has(s.id)} onToggle={handleToggle} isExtra={false} grade={grade.find(g => g.id === s.grad_actual_id)} onViewSportiv={onViewSportiv} />)}
                         {extraAthletes.length > 0 && (
                             <>
                                 <tr><td colSpan={4} className="pt-2 mt-2 border-t border-slate-700"><h4 className="text-xs font-bold text-slate-400 uppercase mb-1">Participanți Externi</h4></td></tr>
-                                {extraAthletes.map(s => <AthleteRow key={s.id} sportiv={s} isPresent={presentIds.has(s.id)} onToggle={handleToggle} isExtra={true} onRemove={handleRemoveExtra} grade={grade.find(g => g.id === s.grad_actual_id)} />)}
+                                {extraAthletes.map(s => <AthleteRow key={s.id} sportiv={s} isPresent={presentIds.has(s.id)} onToggle={handleToggle} isExtra={true} onRemove={handleRemoveExtra} grade={grade.find(g => g.id === s.grad_actual_id)} onViewSportiv={onViewSportiv} />)}
                             </>
                         )}
                     </tbody>
@@ -166,9 +173,10 @@ interface InstructorPrezentaPageProps {
     allClubSportivi: Sportiv[];
     currentUser: User;
     grade: Grad[];
+    onViewSportiv?: (s: Sportiv) => void;
 }
 
-export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ onBack, onNavigate, allClubSportivi, currentUser, grade }) => {
+export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ onBack, onNavigate, allClubSportivi, currentUser, grade, onViewSportiv }) => {
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [trainings, setTrainings] = useState<TrainingWithGroupAndAthletes[]>([]);
     const [loading, setLoading] = useState(true);
@@ -280,6 +288,7 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
                             allClubSportivi={allClubSportivi}
                             onSave={handleSave}
                             grade={grade}
+                            onViewSportiv={onViewSportiv}
                         />
                     ))}
                 </div>

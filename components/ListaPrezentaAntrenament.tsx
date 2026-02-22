@@ -16,9 +16,10 @@ interface ListaPrezentaProps {
     allAnunturi: AnuntPrezenta[];
     allSportivi: Sportiv[];
     grade: Grad[];
+    onViewSportiv?: (s: Sportiv) => void;
 }
 
-const AttendanceGroup: React.FC<{ title: string; data: AttendanceData[]; colorClass: string }> = ({ title, data, colorClass }) => {
+const AttendanceGroup: React.FC<{ title: string; data: AttendanceData[]; colorClass: string; onViewSportiv?: (s: Sportiv) => void }> = ({ title, data, colorClass, onViewSportiv }) => {
     if (data.length === 0) return null;
     return (
         <div>
@@ -29,7 +30,12 @@ const AttendanceGroup: React.FC<{ title: string; data: AttendanceData[]; colorCl
                 {data.map(({ sportiv, grad, anunt }) => (
                     <div key={sportiv.id} className="bg-slate-700/50 p-3 rounded-md flex justify-between items-center">
                         <div>
-                            <p className="font-semibold text-white">{sportiv.nume} {sportiv.prenume}</p>
+                            <p 
+                                className={`font-semibold text-white cursor-pointer ${onViewSportiv ? 'hover:text-brand-primary hover:underline' : ''}`}
+                                onClick={() => onViewSportiv && onViewSportiv(sportiv)}
+                            >
+                                {sportiv.nume} {sportiv.prenume}
+                            </p>
                             {anunt.detalii && <p className="text-xs text-slate-400">"{anunt.detalii}"</p>}
                         </div>
                         <GradBadge grad={grad} className="text-[10px]" />
@@ -40,7 +46,7 @@ const AttendanceGroup: React.FC<{ title: string; data: AttendanceData[]; colorCl
     );
 };
 
-export const ListaPrezentaAntrenament: React.FC<ListaPrezentaProps> = ({ antrenament, onBack, allAnunturi, allSportivi, grade }) => {
+export const ListaPrezentaAntrenament: React.FC<ListaPrezentaProps> = ({ antrenament, onBack, allAnunturi, allSportivi, grade, onViewSportiv }) => {
     
     const attendanceData = useMemo((): AttendanceData[] => {
         return allAnunturi
@@ -82,9 +88,9 @@ export const ListaPrezentaAntrenament: React.FC<ListaPrezentaProps> = ({ antrena
                         </Button>
                     </div>
                     <div className="space-y-6">
-                        <AttendanceGroup title="Prezență Confirmată" data={groupedData.confirmati} colorClass="bg-green-600/20 text-green-300" />
-                        <AttendanceGroup title="Întârzieri Anunțate" data={groupedData.intarziati} colorClass="bg-yellow-600/20 text-yellow-300" />
-                        <AttendanceGroup title="Absențe Anunțate" data={groupedData.absenti} colorClass="bg-red-600/20 text-red-300" />
+                        <AttendanceGroup title="Prezență Confirmată" data={groupedData.confirmati} colorClass="bg-green-600/20 text-green-300" onViewSportiv={onViewSportiv} />
+                        <AttendanceGroup title="Întârzieri Anunțate" data={groupedData.intarziati} colorClass="bg-yellow-600/20 text-yellow-300" onViewSportiv={onViewSportiv} />
+                        <AttendanceGroup title="Absențe Anunțate" data={groupedData.absenti} colorClass="bg-red-600/20 text-red-300" onViewSportiv={onViewSportiv} />
                         {attendanceData.length === 0 && (
                             <p className="text-center italic text-slate-400 p-8">Niciun sportiv nu și-a anunțat prezența pentru acest antrenament.</p>
                         )}

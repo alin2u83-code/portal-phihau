@@ -62,7 +62,8 @@ export const AntrenamentForm: React.FC<{
 const ListaPrezenta: React.FC<{
     antrenament: Antrenament & { grupe: Grupa & { sportivi: Sportiv[] }};
     onBack: () => void; onSave: () => void;
-}> = ({ antrenament, onBack, onSave }) => {
+    onViewSportiv?: (s: Sportiv) => void;
+}> = ({ antrenament, onBack, onSave, onViewSportiv }) => {
     const { showError, showSuccess } = useError();
     const [presentIds, setPresentIds] = useState<Set<string>>(new Set());
     const [loading, setLoading] = useState(false);
@@ -102,10 +103,15 @@ const ListaPrezenta: React.FC<{
             </div>
             <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
                 {sportiviInGrupa.map(s => (
-                    <label key={s.id} className="flex items-center gap-3 p-2 bg-slate-800/50 rounded-md cursor-pointer hover:bg-slate-700/50">
-                        <input type="checkbox" checked={presentIds.has(s.id)} onChange={() => handleToggle(s.id)} className="h-5 w-5 rounded"/>
-                        <span className="font-medium">{s.nume} {s.prenume}</span>
-                    </label>
+                    <div key={s.id} className="flex items-center gap-3 p-2 bg-slate-800/50 rounded-md hover:bg-slate-700/50">
+                        <input type="checkbox" checked={presentIds.has(s.id)} onChange={() => handleToggle(s.id)} className="h-5 w-5 rounded cursor-pointer"/>
+                        <span 
+                            className={`font-medium flex-grow cursor-pointer ${onViewSportiv ? 'hover:text-brand-primary hover:underline' : ''}`}
+                            onClick={() => onViewSportiv && onViewSportiv(s)}
+                        >
+                            {s.nume} {s.prenume}
+                        </span>
+                    </div>
                 ))}
             </div>
             <div className="flex justify-end pt-4 mt-4 border-t border-slate-700">
@@ -258,7 +264,7 @@ const GrupeList: React.FC<{ onSelect: (id: string) => void; grupe: (Grupa & {spo
 );
 
 // --- Componenta Principală de Navigare ---
-export const Prezenta: React.FC<{ onBack: () => void; currentUser: User }> = ({ onBack, currentUser }) => {
+export const Prezenta: React.FC<{ onBack: () => void; currentUser: User; onViewSportiv?: (s: Sportiv) => void }> = ({ onBack, currentUser, onViewSportiv }) => {
     const [viewStack, setViewStack] = useState<ViewState[]>([{ view: 'grupe', id: null }]);
     const [grupe, setGrupe] = useState<(Grupa & { program: ProgramItem[], sportivi_count: {count: number}[] })[]>([]);
     const [antrenamentDetaliu, setAntrenamentDetaliu] = useState<(Antrenament & { grupe: Grupa & { sportivi: Sportiv[] }}) | null>(null);
@@ -301,7 +307,7 @@ export const Prezenta: React.FC<{ onBack: () => void; currentUser: User }> = ({ 
             case 'grupe': return <GrupeList onSelect={id => navigateTo('orar', id)} grupe={grupe} />;
             case 'orar': return selectedGrupa ? <OrarEditor grupa={selectedGrupa} onNavigate={id => navigateTo('calendar', id)} onBack={navigateBack} setGrupe={setGrupe as any}/> : <p>Grupă negăsită.</p>;
             case 'calendar': return selectedGrupa ? <CalendarActivitati grupa={selectedGrupa} onSelect={handleSelectAntrenament} onBack={navigateBack} grupe={grupe}/> : <p>Grupă negăsită.</p>;
-            case 'prezenta': return antrenamentDetaliu ? <ListaPrezenta antrenament={antrenamentDetaliu} onBack={navigateBack} onSave={navigateBack}/> : <p>Antrenament negăsit.</p>;
+            case 'prezenta': return antrenamentDetaliu ? <ListaPrezenta antrenament={antrenamentDetaliu} onBack={navigateBack} onSave={navigateBack} onViewSportiv={onViewSportiv}/> : <p>Antrenament negăsit.</p>;
             default: return null;
         }
     };

@@ -28,10 +28,10 @@ export const SportivAccountSettingsModal: React.FC<SportivAccountSettingsModalPr
 
     const roleWeights: Record<Rol['nume'], number> = useMemo(() => ({
         'SUPER_ADMIN_FEDERATIE': 5,
-        'Admin': 4,
-        'Admin Club': 3,
-        'Instructor': 2,
-        'Sportiv': 1,
+        'ADMIN': 4,
+        'ADMIN_CLUB': 3,
+        'INSTRUCTOR': 2,
+        'SPORTIV': 1,
     }), []);
 
     const currentUserMaxWeight = useMemo(() =>
@@ -62,14 +62,14 @@ export const SportivAccountSettingsModal: React.FC<SportivAccountSettingsModalPr
              return;
         }
 
-        const assignedRolesWeight = newRoleIds.map(roleId => roleWeights[allRoles.find(r => r.id === roleId)?.nume || 'Sportiv'] || 0);
+        const assignedRolesWeight = newRoleIds.map(roleId => roleWeights[allRoles.find(r => r.id === roleId)?.nume || 'SPORTIV'] || 0);
         if (assignedRolesWeight.some(weight => weight > currentUserMaxWeight)) {
             showError("Permisiune Refuzată", "Nu puteți acorda un rol cu privilegii mai mari decât rolul dumneavoastră.");
             return;
         }
 
         let finalRoleIds = [...newRoleIds];
-        const sportivRole = allRoles.find(r => r.nume === 'Sportiv');
+        const sportivRole = allRoles.find(r => r.nume === 'SPORTIV');
         if (finalRoleIds.length === 0 && sportivRole) {
             finalRoleIds.push(sportivRole.id);
         }

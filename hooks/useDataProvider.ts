@@ -110,30 +110,31 @@ export const useDataProvider = () => {
             sessionStorage.removeItem('sessionRefreshed');
         }
 
-        if (!profile || !roles) {
+        if (!roles || roles.length === 0) {
+            setError(profileFetchError?.message || "Profilul utilizatorului nu a putut fi încărcat (lipsă roluri).");
+            setLoading(false);
+            return;
+        }
+
+        const primaryContext = roles.find(r => r.is_primary);
+        
+        if (!profile && roles.length > 0) {
+            // Selection is needed
+            setUserRoles(roles);
+            setNeedsRoleSelection(true);
+            setLoading(false);
+            return;
+        }
+
+        if (!profile) {
             setError("Profilul utilizatorului nu a putut fi încărcat.");
             setLoading(false);
             return;
         }
         
-        if (roles.length === 0) {
-            console.error(`[Security Gatekeeper] User ${profile.email} has a valid session but no roles. Forcing sign out.`);
-            await supabase.auth.signOut();
-            window.location.href = '/?error=no-roles';
-            return;
-        }
-
         setCurrentUser(profile);
         setUserRoles(roles);
-
-        const primaryContext = roles.find(r => r.is_primary);
         setActiveRoleContext(primaryContext || null);
-        
-        if (roles.length > 1 && !primaryContext) {
-            setNeedsRoleSelection(true);
-            setLoading(false);
-            return; 
-        }
         
         try {
             // Interogarea pentru view se bazează pe RLS-ul tabelelor subiacente.

@@ -290,16 +290,26 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({ currentUser,
 
     return (
         <div className="space-y-6">
-            <header className="text-center md:text-left border-b border-slate-700/50 pb-4">
-                <h1 className="text-3xl font-bold text-white">{viewedUser.nume} {viewedUser.prenume}</h1>
-                <div className="mt-2">
-                   <GradBadge grad={currentGrad} isLarge />
-                </div>
-                
-                {isViewingOwnProfile && (
-                    <div className="mt-4 max-w-md mx-auto md:mx-0">
-                        <NotificationPermissionWidget />
+            <header className="text-center md:text-left border-b border-slate-700/50 pb-4 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold text-white">{viewedUser.nume} {viewedUser.prenume}</h1>
+                    <div className="mt-2">
+                       <GradBadge grad={currentGrad} isLarge />
                     </div>
+                    
+                    {isViewingOwnProfile && (
+                        <div className="mt-4 max-w-md mx-auto md:mx-0">
+                            <NotificationPermissionWidget />
+                        </div>
+                    )}
+                </div>
+                {isViewingOwnProfile && (
+                    <Button variant="primary" onClick={() => onNavigate('istoric-plati')} className="w-full md:w-auto">
+                        <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                        </svg>
+                        Portofelul Meu
+                    </Button>
                 )}
             </header>
 

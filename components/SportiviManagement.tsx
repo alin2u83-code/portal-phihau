@@ -264,8 +264,9 @@ export const SportiviManagement: React.FC<{
                     <Button size="sm" variant="secondary" onClick={() => { setSportivToEdit(s); setIsFormModalOpen(true); }} title="Editează Profil" className="!p-2">
                         <EditIcon className="w-4 h-4" />
                     </Button>
-                    <Button size="sm" variant="info" onClick={() => handleOpenWallet(s)} title="Portofel Sportiv" className="!p-2">
+                    <Button size="sm" variant="info" onClick={() => handleOpenWallet(s)} title="Portofel Sportiv" className="!p-2 flex items-center gap-1">
                         <WalletIcon className="w-4 h-4" />
+                        <span className="hidden lg:inline text-xs font-bold">Portofel</span>
                     </Button>
                     <Button size="sm" variant="secondary" onClick={() => setAccountSettingsSportiv(s)} title="Setări Cont de Acces" className="!p-2">
                         <ShieldCheckIcon className="w-4 h-4" />

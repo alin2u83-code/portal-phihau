@@ -122,6 +122,16 @@ function App() {
   }, [switchRole, showError]);
 
   useEffect(() => {
+    const savedRole = localStorage.getItem('activeRole');
+    if (savedRole) {
+      const role = JSON.parse(savedRole);
+      if (role.roluri?.nume === 'SUPER_ADMIN_FEDERATIE') {
+        setActiveView('federation-dashboard');
+      }
+    }
+  }, []);
+
+  useEffect(() => {
     const redirectView = localStorage.getItem('phi-hau-redirect-after-role-switch');
     if (redirectView) {
         setActiveView(redirectView as View);
@@ -210,7 +220,12 @@ function App() {
 
   const handleSelectRole = async (role: any) => {
     if (!supabase || !currentUser?.user_id) return;
-    await handleSwitchRole(role);
+
+    if (role.roluri?.nume === 'SUPER_ADMIN_FEDERATIE') {
+      setActiveView('federation-dashboard');
+    } else {
+      await handleSwitchRole(role);
+    }
   };
   
   const handleIncaseazaMultiple = (platiSelectate: Plata[]) => {
@@ -247,6 +262,9 @@ function App() {
     switch (activeView) {
       case 'admin-console':
         return renderProtected(<AdminConsole onBack={handleBackToDashboard} currentUser={currentUser!} userRoles={userRoles} activeRoleContext={activeRoleContext} sportivi={filteredData.sportivi} allRoles={allRoles} clubs={clubs} permissions={permissions} />, permissions.hasAdminAccess || isEmergencyAdmin);
+
+      case 'federation-dashboard':
+        return renderProtected(<FederationDashboard onNavigate={setActiveView} />, isFederationAdmin);
 
       case 'dashboard':
       case 'my-portal':

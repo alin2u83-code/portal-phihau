@@ -83,7 +83,9 @@ export const RoleSelectionPage: React.FC<RoleSelectionPageProps> = ({ user, onSe
     }, [user]);
 
     const handleRoleSelection = (role: any) => {
-        localStorage.setItem('activeRole', JSON.stringify(role));
+        if (navigator.vibrate) {
+            navigator.vibrate(100);
+        }
         onSelect(role);
     };
 

@@ -162,13 +162,22 @@ function App() {
 
   useEffect(() => {
     // Protection mechanism for SUPER_ADMIN_FEDERATIE
-    if (activeRole === 'SUPER_ADMIN_FEDERATIE' && activeView !== 'federation-dashboard') {
-      console.warn('[Protection] SUPER_ADMIN_FEDERATIE is being redirected to the federation dashboard.');
+    if (permissions.isFederationLevel && activeView !== 'federation-dashboard') {
+      console.warn('[Protection] Federation-level role is being redirected to the federation dashboard.');
       setActiveView('federation-dashboard');
     }
-  }, [activeView, activeRole, setActiveView]);
+  }, [activeView, permissions.isFederationLevel, setActiveView]);
 
   const filteredData = useMemo(() => {
+    if (permissions.isFederationLevel) {
+      // Federation-level users see all data, no club filter applied
+      return {
+          sportivi, sesiuniExamene, inscrieriExamene, antrenamente, grupe, plati,
+          tranzactii, evenimente, rezultate, tipuriAbonament, familii,
+          anunturiPrezenta, reduceri, deconturiFederatie, istoricGrade, vizualizarePlati
+      };
+    }
+
     if (!permissions.isFederationAdmin || !activeClubId) {
         return {
             sportivi, sesiuniExamene, inscrieriExamene, antrenamente, grupe, plati,
@@ -230,28 +239,16 @@ function App() {
   };
 
   const handleSelectRole = async (role: any) => {
-    if (!supabase || !currentUser?.user_id) return;
-
-    console.log(`[RoleSwitch] User ID: ${currentUser?.user_id} selected Role: ${role.roluri?.nume} (Context ID: ${role.id})`);
-    setSwitchingToRole(role.roluri?.nume || '...');
-
-    // 2. Persistență pentru refresh
+    // Salvăm imediat în storage pentru a "convinge" providerul de date
     localStorage.setItem('activeRole', JSON.stringify(role));
     localStorage.setItem('phi-hau-active-role-context-id', role.id);
     
-    // 3. Setăm vizualizarea potrivită
-    const targetView = role.roluri?.nume === 'SUPER_ADMIN_FEDERATIE' 
-        ? 'federation-dashboard' 
-        : (role.roluri?.nume === 'SPORTIV' ? 'my-portal' : 'dashboard');
-    
-    localStorage.setItem('phi-hau-redirect-after-role-switch', targetView);
-    setActiveView(targetView as View);
-
-    // 4. Executăm switch-ul tehnic
-    try {
+    if (role.roluri?.nume === 'SUPER_ADMIN_FEDERATIE') {
+        setActiveView('federation-dashboard');
+        // Forțăm o stare care să ignore selecția
+        window.location.href = '/?view=federation-dashboard'; // Resetare curată de sesiune
+    } else {
         await handleSwitchRole(role);
-    } catch (err) {
-        showError("Eroare", "Nu s-a putut schimba rolul.");
     }
   };
   
@@ -295,12 +292,12 @@ function App() {
 
       case 'dashboard':
       case 'my-portal':
+        if (permissions.isFederationLevel) {
+          return <FederationDashboard onNavigate={setActiveView} />;
+        }
         if (permissions.hasAdminAccess && activeRole !== 'SPORTIV') {
             if (sportivi.length === 0 && !isEmergencyAdmin && !loading) {
                 return <Card className="text-center p-8"><p className="text-slate-400 italic">Așteptare autorizare date sau nu există date pentru contextul selectat...</p></Card>
-            }
-            if (permissions.isFederationLevel && adminContext === 'federation') {
-                return <FederationDashboard onNavigate={setActiveView} />;
             }
             return (
                 <div className="space-y-8 animate-fade-in-down">

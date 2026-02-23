@@ -33,6 +33,27 @@ export const usePermissions = (user: User | null, activeRole: Rol['nume'] | null
         const isInstructor = activeRole === 'INSTRUCTOR';
         const isSportiv = activeRole === 'SPORTIV';
 
+        // If the active role is SUPER_ADMIN_FEDERATIE, grant all administrative permissions
+        if (isSuperAdmin) {
+            return {
+                isSuperAdmin: true,
+                isAdmin: true, // Super Admin implies Admin
+                isFederationAdmin: true,
+                isAdminClub: true, // Super Admin implies Admin Club
+                isInstructor: true, // Super Admin implies Instructor
+                isSportiv: false, // Super Admin is not a regular sportiv in this context
+                hasAdminAccess: true,
+                isFederationLevel: true,
+                canManageFinances: true,
+                canGradeStudents: true,
+                visibleClubIds: 'all',
+                canBeClubAdmin: true,
+                canBeFederationAdmin: true,
+                isMultiContextAdmin: true,
+                hasClubFilter: false,
+            };
+        }
+
         // --- Capabilities based on ALL available roles for the user ---
         const hasAdminAccess = (user.roluri || []).some(
             r => r.nume === 'ADMIN_CLUB' || r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN'

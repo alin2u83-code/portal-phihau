@@ -6,7 +6,8 @@ import {
     Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, 
     Rol, AnuntPrezenta, Reducere, TipPlata, Locatie, Club, DecontFederatie, IstoricGrade, VizualizarePlata
 } from '../types';
-import { Session } from '@supabase/supabase-js';
+import { Session, SupabaseClient } from '@supabase/supabase-js';
+import { withCleanUuidFilters } from '../utils/supabaseFilters';
 
 // Define a type for the complete application data state
 export interface AppData {
@@ -63,6 +64,8 @@ export const useDataProvider = () => {
             return;
         }
 
+        const cleanedSupabase = withCleanUuidFilters(supabase as SupabaseClient<any, any>);
+
         const { data: { session: currentSession } } = await supabase.auth.getSession();
         
         if (!currentSession) {
@@ -117,16 +120,18 @@ export const useDataProvider = () => {
         }
 
         const primaryContext = roles.find(r => r.is_primary);
-        const savedActiveRoleContextId = localStorage.getItem('phi-hau-active-role-context-id');
+        const savedRoleIdRaw = localStorage.getItem('phi-hau-active-role-context-id');
+        // Curățăm ghilimelele extra dacă există
+        const savedRoleId = savedRoleIdRaw ? savedRoleIdRaw.replace(/\"/g, '') : null;
         let initialActiveRoleContext = null;
 
         if (roles.length === 1) {
             // If only one role, select it automatically
             initialActiveRoleContext = roles[0];
             setNeedsRoleSelection(false);
-        } else if (savedActiveRoleContextId) {
+        } else if (savedRoleId) {
             // Try to find the previously saved role
-            initialActiveRoleContext = roles.find(r => r.id === savedActiveRoleContextId);
+            initialActiveRoleContext = roles.find(r => r.id === savedRoleId);
             if (initialActiveRoleContext) {
                 setNeedsRoleSelection(false);
             } else {
@@ -185,31 +190,31 @@ export const useDataProvider = () => {
         
         try {
             // Interogarea pentru view se bazează pe RLS-ul tabelelor subiacente.
-            const platiViewQuery = supabase.from('view_plata_sportiv').select('plata_id, sportiv_id, club_id, familie_id, data_emitere, descriere, suma_datorata, status, data_plata, suma_incasata, tranzactie_id, nume_complet');
+            const platiViewQuery = cleanedSupabase.from('view_plata_sportiv').select('plata_id, sportiv_id, club_id, familie_id, data_emitere, descriere, suma_datorata, status, data_plata, suma_incasata, tranzactie_id, nume_complet');
 
              const queries = [
-                supabase.from('cluburi').select('*'),
-                supabase.from('roluri').select('*'),
-                supabase.from('grade').select('*'),
-                supabase.from('grupe').select('*, program:orar_saptamanal!grupa_id(*)'),
-                supabase.from('tipuri_abonament').select('*'),
-                supabase.from('nom_locatii').select('*'),
-                supabase.from('tipuri_plati').select('*'),
-                supabase.from('reduceri').select('*'),
-                supabase.from('sportivi').select('*, cluburi(*), utilizator_roluri_multicont(rol_id)'),
-                supabase.from('sesiuni_examene').select('*'),
-                supabase.from('inscrieri_examene').select('*, sportivi:sportiv_id(*), grades:grad_vizat_id(*)'),
-                supabase.from('program_antrenamente').select('*, grupe(*), prezenta:prezenta_antrenament!antrenament_id(sportiv_id, status)'),
-                supabase.from('plati').select('*'),
-                supabase.from('tranzactii').select('*'),
-                supabase.from('evenimente').select('*'),
-                supabase.from('rezultate').select('*'),
-                supabase.from('familii').select('*'),
-                supabase.from('anunturi_prezenta').select('*'),
-                supabase.from('preturi_config').select('*'),
+                cleanedSupabase.from('cluburi').select('*'),
+                cleanedSupabase.from('roluri').select('*'),
+                cleanedSupabase.from('grade').select('*'),
+                cleanedSupabase.from('grupe').select('*, program:orar_saptamanal!grupa_id(*)'),
+                cleanedSupabase.from('tipuri_abonament').select('*'),
+                cleanedSupabase.from('nom_locatii').select('*'),
+                cleanedSupabase.from('tipuri_plati').select('*'),
+                cleanedSupabase.from('reduceri').select('*'),
+                cleanedSupabase.from('sportivi').select('*, cluburi(*), utilizator_roluri_multicont(rol_id)'),
+                cleanedSupabase.from('sesiuni_examene').select('*'),
+                cleanedSupabase.from('inscrieri_examene').select('*, sportivi:sportiv_id(*), grades:grad_vizat_id(*)'),
+                cleanedSupabase.from('program_antrenamente').select('*, grupe(*), prezenta:prezenta_antrenament!antrenament_id(sportiv_id, status)'),
+                cleanedSupabase.from('plati').select('*'),
+                cleanedSupabase.from('tranzactii').select('*'),
+                cleanedSupabase.from('evenimente').select('*'),
+                cleanedSupabase.from('rezultate').select('*'),
+                cleanedSupabase.from('familii').select('*'),
+                cleanedSupabase.from('anunturi_prezenta').select('*'),
+                cleanedSupabase.from('preturi_config').select('*'),
                 platiViewQuery,
-                supabase.from('deconturi_federatie').select('*'),
-                supabase.from('istoric_grade').select('*'),
+                cleanedSupabase.from('deconturi_federatie').select('*'),
+                cleanedSupabase.from('istoric_grade').select('*'),
             ];
             
             const settledResults = await Promise.allSettled(queries);

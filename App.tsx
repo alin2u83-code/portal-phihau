@@ -65,6 +65,7 @@ import { Header } from './components/Header';
 import { useDataProvider } from './hooks/useDataProvider';
 import { useIsMobile } from './hooks/useIsMobile';
 import { MartialArtsSkeleton } from './components/MartialArtsSkeleton';
+import { DebugPage } from './components/DebugPage';
 import { AdminDashboard } from './components/AdminDashboard';
 
 
@@ -345,6 +346,9 @@ function App() {
     const isEmergencyAdmin = currentUser?.email === 'alin2u83@gmail.com';
 
     switch (activeView) {
+      case 'debug':
+        return <DebugPage />;
+
       case 'admin-console':
         return renderProtected(<AdminConsole onBack={handleBackToDashboard} currentUser={currentUser!} userRoles={userRoles} activeRoleContext={activeRoleContext} sportivi={filteredData.sportivi} allRoles={allRoles} clubs={clubs} permissions={permissions} />, permissions.hasAdminAccess || isEmergencyAdmin);
 

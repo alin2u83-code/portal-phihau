@@ -14,6 +14,7 @@ import { SportivAccountSettingsModal } from './SportivAccountSettings';
 import { DeleteAuditModal } from './DeleteAuditModal';
 import { GradBadge } from '../utils/grades';
 import { MartialArtsSkeleton } from './MartialArtsSkeleton';
+import { SportiviGrid } from './SportiviGrid';
 
 const getAge = (dateString: string | null | undefined): number => {
     if (!dateString) return 0;
@@ -420,69 +421,7 @@ export const SportiviManagement: React.FC<{
             {loading ? (
                 <MartialArtsSkeleton count={8} />
             ) : (
-                <>
-                    <Card className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                        <div className="lg:col-span-1">
-                            <div className="relative w-full">
-                                <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                                <Input
-                                    label=""
-                                    type="text"
-                                    value={filters.searchTerm}
-                                    onChange={(e) => handleFilterChange('searchTerm', e.target.value)}
-                                    placeholder="Caută sportiv..."
-                                    className="!pl-10"
-                                />
-                            </div>
-                        </div>
-                        <Select label="Status" value={filters.statusFilter} onChange={e => handleFilterChange('statusFilter', e.target.value)}>
-                            <option value="Activ">Activi</option>
-                            <option value="Inactiv">Inactivi</option>
-                            <option value="">Toți</option>
-                        </Select>
-                        <Select label="Grupă" value={filters.grupaFilter} onChange={e => handleFilterChange('grupaFilter', e.target.value)}>
-                            <option value="">Toate grupele</option>
-                            {(grupe || []).map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
-                        </Select>
-                        <Select label="Grad" value={filters.gradFilter} onChange={e => handleFilterChange('gradFilter', e.target.value)}>
-                            <option value="">Toate gradele</option>
-                            <option value="null">Începător (fără grad)</option>
-                            {(grade || []).sort((a,b) => a.ordine - b.ordine).map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}
-                        </Select>
-                        <Select label="Rol" value={filters.rolFilter} onChange={e => handleFilterChange('rolFilter', e.target.value)}>
-                            <option value="">Toate rolurile</option>
-                            {(allRoles || []).map(r => <option key={r.id} value={r.id}>{r.nume}</option>)}
-                        </Select>
-                    </Card>
-
-                    {isMobile ? (
-                        <div className="space-y-3">
-                            {(sortedAndFilteredSportivi || []).map(s => (
-                                <SportivCardMobile
-                                    key={s.id}
-                                    sportiv={s}
-                                    onRowClick={handleRowClick}
-                                    onOpenWallet={handleOpenWallet}
-                                    familie={(familii || []).find(f => f.id === s.familie_id)}
-                                    familyBalance={familyBalances.get(s.familie_id!)}
-                                    individualBalance={individualBalances.get(s.id)}
-                                    grupa={(grupe || []).find(g => g.id === s.grupa_id)}
-                                    grade={grade}
-                                />
-                            ))}
-                        </div>
-                    ) : (
-                        <ResponsiveTable
-                            columns={columns}
-                            data={sortedAndFilteredSportivi || []}
-                            onRowClick={handleRowClick}
-                            selectedRowId={selectedSportivForHighlight?.id}
-                            rowClassName={(sportiv) => !sportiv.user_id ? 'bg-red-900/20 hover:bg-red-900/40 !border-l-2 !border-red-500' : ''}
-                            onSort={requestSort}
-                            sortConfig={sortConfig || undefined}
-                        />
-                    )}
-                </>
+                <SportiviGrid sportivi={sportivi} />
             )}
 
             {isFormModalOpen && (

@@ -101,53 +101,58 @@ export const useDataProvider = () => {
             const activeRoleName = Array.isArray(activeCtx.roluri) ? activeCtx.roluri[0]?.nume : activeCtx.roluri?.nume;
 
             if (cleanClubId || activeRoleName === 'SUPER_ADMIN_FEDERATIE') {
-                const queries = [
-                    cleanedSupabase.from('cluburi').select('*'),
-                    cleanedSupabase.from('roluri').select('*'),
-                    cleanedSupabase.from('grade').select('*'),
-                    cleanedSupabase.from('grupe').select('*, program:orar_saptamanal!grupa_id(*)'),
-                    cleanedSupabase.from('tipuri_abonament').select('*'),
-                    cleanedSupabase.from('nom_locatii').select('*'),
-                    cleanedSupabase.from('tipuri_plati').select('*'),
-                    cleanedSupabase.from('reduceri').select('*'),
-                    cleanedSupabase.from('sportivi').select('*, cluburi(*), utilizator_roluri_multicont(rol_id)'),
-                    cleanedSupabase.from('sesiuni_examene').select('*'),
-                    cleanedSupabase.from('inscrieri_examene').select('*, sportivi:sportiv_id(*), grades:grad_vizat_id(*)'),
-                    cleanedSupabase.from('program_antrenamente').select('*, grupe(*), prezenta:prezenta_antrenament!antrenament_id(sportiv_id, status)'),
-                    cleanedSupabase.from('plati').select('*'),
-                    cleanedSupabase.from('tranzactii').select('*'),
-                    cleanedSupabase.from('evenimente').select('*'),
-                    cleanedSupabase.from('rezultate').select('*'),
-                    cleanedSupabase.from('familii').select('*'),
-                    cleanedSupabase.from('anunturi_prezenta').select('*'),
-                    cleanedSupabase.from('preturi_config').select('*'),
-                    cleanedSupabase.from('view_plata_sportiv').select('*'),
-                    cleanedSupabase.from('deconturi_federatie').select('*'),
-                    cleanedSupabase.from('istoric_grade').select('*')
-                ];
+                const queries: Record<string, any> = {
+                    clubs: cleanedSupabase.from('cluburi').select('*'),
+                    allRoles: cleanedSupabase.from('roluri').select('*'),
+                    grade: cleanedSupabase.from('grade').select('*'),
+                    grupe: cleanedSupabase.from('grupe').select('*, program:orar_saptamanal!grupa_id(*)'),
+                    tipuriAbonament: cleanedSupabase.from('tipuri_abonament').select('*'),
+                    locatii: cleanedSupabase.from('nom_locatii').select('*'),
+                    tipuriPlati: cleanedSupabase.from('tipuri_plati').select('*'),
+                    reduceri: cleanedSupabase.from('reduceri').select('*'),
+                    sportiviRaw: cleanedSupabase.from('sportivi').select('*, cluburi(*), utilizator_roluri_multicont(rol_denumire)'),
+                    sesiuniExamene: cleanedSupabase.from('sesiuni_examene').select('*'),
+                    inscrieriExamene: cleanedSupabase.from('inscrieri_examene').select('*, sportivi:sportiv_id(*), grades:grad_vizat_id(*)'),
+                    antrenamente: cleanedSupabase.from('program_antrenamente').select('*, grupe(*), prezenta:prezenta_antrenament!antrenament_id(sportiv_id, status)'),
+                    plati: cleanedSupabase.from('plati').select('*'),
+                    tranzactii: cleanedSupabase.from('tranzactii').select('*'),
+                    evenimente: cleanedSupabase.from('evenimente').select('*'),
+                    rezultate: cleanedSupabase.from('rezultate').select('*'),
+                    familii: cleanedSupabase.from('familii').select('*'),
+                    anunturiPrezenta: cleanedSupabase.from('anunturi_prezenta').select('*'),
+                    preturiConfig: cleanedSupabase.from('preturi_config').select('*'),
+                    vizualizarePlati: cleanedSupabase.from('view_plata_sportiv').select('*'),
+                    deconturiFederatie: cleanedSupabase.from('deconturi_federatie').select('*'),
+                    istoricGrade: cleanedSupabase.from('istoric_grade').select('*')
+                };
 
-                const settledResults = await Promise.allSettled(queries);
-                const results = settledResults.map(r => r.status === 'fulfilled' ? r.value.data : []);
+                const queryKeys = Object.keys(queries);
+                const settledResults = await Promise.allSettled(Object.values(queries));
+
+                const results: Record<string, any[]> = {};
+                settledResults.forEach((result, index) => {
+                    const key = queryKeys[index];
+                    if (result.status === 'fulfilled' && result.value.data) {
+                        results[key] = result.value.data;
+                    } else {
+                        results[key] = []; // Asigurăm un array gol în caz de eroare sau date goale
+                    }
+                });
 
                 // Mapare Date
-                const allRoles = (results[1] || []) as Rol[];
-                const allSportivi = (results[8] || []).map((s: any) => ({
+                const allRoles = (results.allRoles || []) as Rol[];
+                const allSportivi = (results.sportiviRaw || []).map((s: any) => ({
                     ...s,
                     roluri: (s.utilizator_roluri_multicont || [])
-                        .map((urm: any) => allRoles.find(r => r.id === urm.rol_id))
+                        .map((urm: any) => allRoles.find(r => r.nume === urm.rol_denumire))
                         .filter(Boolean)
                 })) as Sportiv[];
 
                 setData({
-                    clubs: results[0], allRoles: results[1], grade: results[2],
-                    grupe: results[3].map((g:any) => ({...g, program: g.program || []})),
-                    tipuriAbonament: results[4], locatii: results[5], tipuriPlati: results[6],
-                    reduceri: results[7], sportivi: allSportivi, sesiuniExamene: results[9],
-                    inscrieriExamene: results[10], antrenamente: results[11], plati: results[12],
-                    tranzactii: results[13], evenimente: results[14], rezultate: results[15],
-                    familii: results[16], anunturiPrezenta: results[17], preturiConfig: results[18],
-                    vizualizarePlati: results[19], deconturiFederatie: results[20], istoricGrade: results[21]
-                });
+                    ...results,
+                    sportivi: allSportivi,
+                    grupe: (results.grupe || []).map((g: any) => ({ ...g, program: g.program || [] }))
+                } as AppData);
             }
         } catch (err: any) {
             console.error("Critical Fetch Error:", err);

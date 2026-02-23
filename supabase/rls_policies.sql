@@ -34,3 +34,13 @@ CREATE POLICY "Enable full access for super admins and club admins/instructors f
     FROM public.utilizator_roluri_multicont urmc
     WHERE urmc.club_id = (SELECT club_id FROM public.utilizator_roluri_multicont WHERE user_id = auth.uid() AND is_primary LIMIT 1)
   ));
+
+-- RLS Policy for 'utilizator_roluri_multicont' table
+ALTER TABLE public.utilizator_roluri_multicont ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Enable full access for super admins, club admins/instructors for their club's roles, and users for their own roles on utilizator_roluri_multicont" ON public.utilizator_roluri_multicont;
+CREATE POLICY "Enable full access for super admins, club admins/instructors for their club's roles, and users for their own roles on utilizator_roluri_multicont" ON public.utilizator_roluri_multicont
+  FOR SELECT
+  USING (public.is_super_admin() OR
+         (auth.uid() = user_id) OR
+         (EXISTS (SELECT 1 FROM public.utilizator_roluri_multicont urmc_admin WHERE urmc_admin.user_id = auth.uid() AND urmc_admin.club_id = utilizator_roluri_multicont.club_id AND urmc_admin.rol_denumire IN ('ADMIN_CLUB', 'INSTRUCTOR'))));

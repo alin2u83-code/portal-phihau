@@ -9,6 +9,51 @@ import { CheckIcon, ExclamationTriangleIcon, ArrowLeftIcon } from './icons';
 import { GradBadge } from '../utils/grades';
 import { AntrenamenteViitoare } from './AntrenamenteViitoare';
 
+interface EligibilityResult {
+    eligible: boolean;
+    reason: string;
+    nextGrad?: Grad;
+}
+
+// Placeholder for getEligibleGrade function
+const getEligibleGrade = (currentGradId: string | null, istoricGrade: IstoricGrade[], allGrades: Grad[]): EligibilityResult => {
+    if (!currentGradId) {
+        return { eligible: false, reason: "Sportivul nu are un grad actual." };
+    }
+
+    const currentGrad = allGrades.find(g => g.id === currentGradId);
+    if (!currentGrad) {
+        return { eligible: false, reason: "Gradul actual nu a fost găsit." };
+    }
+
+    const nextGradIndex = allGrades.findIndex(g => g.id === currentGradId) + 1;
+    const nextGrad = allGrades[nextGradIndex];
+
+    if (!nextGrad) {
+        return { eligible: false, reason: "Nu există un grad superior disponibil." };
+    }
+
+    // Find the last exam date for the current grade
+    const lastExamForCurrentGrade = istoricGrade
+        .filter(hg => hg.sportiv_id === currentGrad.id) // Assuming istoricGrade stores sportiv_id and grad_id
+        .sort((a, b) => new Date(b.data_obtinere).getTime() - new Date(a.data_obtinere).getTime())[0];
+
+    if (!lastExamForCurrentGrade) {
+        return { eligible: false, reason: `Nu s-a găsit nicio înregistrare de examen pentru gradul ${currentGrad.nume}.` };
+    }
+
+    const lastExamDate = new Date(lastExamForCurrentGrade.data_obtinere);
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6); // Hypothetical 6-month waiting period
+
+    if (lastExamDate > sixMonthsAgo) {
+        return { eligible: false, reason: `Trebuie să treacă cel puțin 6 luni de la ultimul examen (${lastExamDate.toLocaleDateString('ro-RO')}) pentru a avansa la gradul ${nextGrad.nume}.` };
+    }
+
+    return { eligible: true, reason: "Sportivul este eligibil pentru următorul grad.", nextGrad: nextGrad };
+};
+
+
 const getGrad = (gradId: string | null, allGrades: Grad[]) => gradId ? allGrades.find(g => g.id === gradId) : null;
 
 // --- Componenta Viza Medicala ---
@@ -206,12 +251,13 @@ interface SportivDashboardProps {
   isAdminView?: boolean;
 }
 
-export const SportivDashboard: React.FC<SportivDashboardProps> = ({ 
-    currentUser, viewedUser, participari, examene, grade, istoricGrade, grupe, 
-    plati, onNavigate, antrenamente, anunturi, setAnunturi, sportivi, 
+export const SportivDashboard: React.FC<SportivDashboardProps> = ({
+    currentUser, viewedUser, participari, examene, grade, istoricGrade, grupe,
+    plati, onNavigate, antrenamente, anunturi, setAnunturi, sportivi,
     permissions, canSwitchRoles, activeRole, onSwitchRole, isSwitchingRole,
     isAdminView = false
 }) => {
+
     
     const { showSuccess, showError } = useError();
     const isViewingOwnProfile = currentUser.id === viewedUser.id;
@@ -229,6 +275,19 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
     }, [antrenamente, todayString, currentUser]);
     
     const handleStatusChange = async (trainingId: string, status: AnuntStatus) => {
+        // Check eligibility for grade change if the action implies it (e.g., 'Confirm' status for a specific training type)
+        // This part needs to be refined based on actual business logic for grade changes.
+        // For demonstration, let's assume 'Confirm' status for a specific training might trigger a check.
+        // You would typically check the training type here, e.g., if (training.type === 'ExamPreparation')
+        if (status === 'Confirm') { // Simplified for now, assuming any 'Confirm' triggers check
+            const eligibility = getEligibleGrade(viewedUser.grad_actual_id, istoricGrade, grade);
+            if (!eligibility.eligible) {
+                showError("Neeligibil pentru grad superior", eligibility.reason);
+                return; // Prevent status change if not eligible
+            }
+            showSuccess("Eligibil pentru grad superior", `Sportivul este eligibil pentru gradul: ${eligibility.nextGrad?.nume || 'Necunoscut'}`);
+        }
+
         if (!supabase) {
             showError("Eroare", "Client Supabase neconfigurat.");
             return;

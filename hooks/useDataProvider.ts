@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
-import { getAuthenticatedUser } from '../utils/auth';
+
 import { 
     Sportiv, SesiuneExamen, Grad, InscriereExamen, Antrenament, Grupa, Plata, 
     Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, 
@@ -66,6 +66,44 @@ export const useDataProvider = () => {
 
         const cleanedSupabase = withCleanUuidFilters(supabase as SupabaseClient<any, any>);
 
+        // Utility for retrying async functions
+        const retry = async <T>(fn: () => Promise<T>, { retries = 3, delay = 1000 }: { retries?: number; delay?: number }): Promise<T> => {
+            for (let i = 0; i < retries; i++) {
+                try {
+                    return await fn();
+                } catch (err: any) {
+                    if (i < retries - 1) {
+                        console.warn(`[Retry] Attempt ${i + 1}/${retries} failed. Retrying in ${delay}ms...`, err.message);
+                        await new Promise(res => setTimeout(res, delay));
+                    } else {
+                        throw err; // Last attempt, rethrow error
+                    }
+                }
+            }
+            throw new Error('Retry mechanism failed unexpectedly.'); // Should not be reached
+        };
+
+        // Fetch user roles with detailed select and retry mechanism
+        const fetchUserRoles = async (userId: string) => {
+            try {
+                const { data, error } = await supabase
+                    .from('utilizator_roluri_multicont')
+                    .select(`
+                        id, rol_id, sportiv_id, club_id, is_primary, rol_denumire,
+                        roluri:rol_id ( nume ),
+                        club:club_id ( nume ),
+                        sportiv:sportiv_id ( id, nume, prenume, email, data_nasterii, data_inscrierii, status, cnp, familie_id, tip_abonament_id, participa_vacanta, trebuie_schimbata_parola, grupa_id, club_id )
+                    `)
+                    .eq('user_id', userId);
+
+                if (error) throw error;
+                return data || [];
+            } catch (err: any) {
+                console.error("Eroare critică la încărcarea rolurilor:", err.message);
+                throw err; // Re-throw to be caught by retry
+            }
+        };
+
         const { data: { session: currentSession } } = await supabase.auth.getSession();
         
         if (!currentSession) {
@@ -80,8 +118,13 @@ export const useDataProvider = () => {
         setNeedsRoleSelection(false);
         setLoading(true);
 
-        // 1. Așteaptă contextul utilizatorului
-        const { user: profile, roles, error: profileFetchError } = await getAuthenticatedUser(supabase);
+        // 1. Așteaptă contextul utilizatorului cu retry
+        const { data: roles, error: profileFetchError } = await retry(
+            () => fetchUserRoles(currentSession.user.id),
+            { retries: 3, delay: 1000 } // Retry 3 times with 1-second delay
+        );
+        // Extract profile from roles if available, assuming the first role's sportiv is the primary user profile
+        const profile = roles.find(r => r.sportiv_id)?.sportiv || null;
         
         if (profileFetchError) {
             if (profileFetchError.message.includes('Contul de utilizator nu este legat')) {
@@ -119,39 +162,32 @@ export const useDataProvider = () => {
             return;
         }
 
-        const primaryContext = roles.find(r => r.is_primary);
-        const savedRoleIdRaw = localStorage.getItem('phi-hau-active-role-context-id');
-        // Curățăm ghilimelele extra dacă există
-        const savedRoleId = savedRoleIdRaw ? savedRoleIdRaw.replace(/\"/g, '') : null;
-        let initialActiveRoleContext = null;
+        // Verificăm dacă avem un rol salvat în memorie (după ce ai dat click pe buton)
+        const savedRoleId = localStorage.getItem('phi-hau-active-role-context-id')?.replace(/"/g, '');
 
-        if (roles.length === 1) {
-            // If only one role, select it automatically
-            initialActiveRoleContext = roles[0];
-            setNeedsRoleSelection(false);
-        } else if (savedRoleId) {
-            // Try to find the previously saved role
+        let initialActiveRoleContext = null;
+        if (savedRoleId) {
             initialActiveRoleContext = roles.find(r => r.id === savedRoleId);
-            if (initialActiveRoleContext) {
-                setNeedsRoleSelection(false);
-            } else {
-                // If saved role not found (e.g., deleted), force selection
-                setNeedsRoleSelection(true);
-            }
-        } else if (primaryContext) {
-            // If no saved role, but there's a primary role, use it
-            initialActiveRoleContext = primaryContext;
+        }
+
+        // DACĂ nu avem rol salvat SAU rolul salvat nu mai e valid, luăm primul rol disponibil (Super Admin-ul lui Alin)
+        if (!initialActiveRoleContext && roles.length > 0) {
+            initialActiveRoleContext = roles.find(r => r.is_primary) || roles[0];
+        }
+
+        if (initialActiveRoleContext) {
+            setActiveRoleContext(initialActiveRoleContext);
+            setNeedsRoleSelection(false); // OPRIM LOOP-UL dacă am găsit MĂCAR un rol
+        } else if (roles.length > 1) {
+            setNeedsRoleSelection(true);
+        } else if (roles.length === 1) {
+            // If only one role and no context, set it automatically
+            initialActiveRoleContext = roles[0];
+            setActiveRoleContext(initialActiveRoleContext);
             setNeedsRoleSelection(false);
         } else {
-            // New logic: If no primary or saved context, and an instructor role exists, use it.
-            const instructorRole = roles.find(r => r.roluri?.nume === 'INSTRUCTOR');
-            if (instructorRole) {
-                initialActiveRoleContext = instructorRole;
-                setNeedsRoleSelection(false);
-            } else {
-                // Otherwise, force selection
-                setNeedsRoleSelection(true);
-            }
+            // No roles at all
+            setNeedsRoleSelection(true);
         }
 
         // Ensure currentUser is populated even if sportivi table doesn't return data (for admins who are not active sportivi)
@@ -187,117 +223,122 @@ export const useDataProvider = () => {
         } else {
             setNeedsRoleSelection(true);
         }
-        
-        try {
-            // Interogarea pentru view se bazează pe RLS-ul tabelelor subiacente.
-            const platiViewQuery = cleanedSupabase.from('view_plata_sportiv').select('plata_id, sportiv_id, club_id, familie_id, data_emitere, descriere, suma_datorata, status, data_plata, suma_incasata, tranzactie_id, nume_complet');
 
-             const queries = [
-                cleanedSupabase.from('cluburi').select('*'),
-                cleanedSupabase.from('roluri').select('*'),
-                cleanedSupabase.from('grade').select('*'),
-                cleanedSupabase.from('grupe').select('*, program:orar_saptamanal!grupa_id(*)'),
-                cleanedSupabase.from('tipuri_abonament').select('*'),
-                cleanedSupabase.from('nom_locatii').select('*'),
-                cleanedSupabase.from('tipuri_plati').select('*'),
-                cleanedSupabase.from('reduceri').select('*'),
-                cleanedSupabase.from('sportivi').select('*, cluburi(*), utilizator_roluri_multicont(rol_id)'),
-                cleanedSupabase.from('sesiuni_examene').select('*'),
-                cleanedSupabase.from('inscrieri_examene').select('*, sportivi:sportiv_id(*), grades:grad_vizat_id(*)'),
-                cleanedSupabase.from('program_antrenamente').select('*, grupe(*), prezenta:prezenta_antrenament!antrenament_id(sportiv_id, status)'),
-                cleanedSupabase.from('plati').select('*'),
-                cleanedSupabase.from('tranzactii').select('*'),
-                cleanedSupabase.from('evenimente').select('*'),
-                cleanedSupabase.from('rezultate').select('*'),
-                cleanedSupabase.from('familii').select('*'),
-                cleanedSupabase.from('anunturi_prezenta').select('*'),
-                cleanedSupabase.from('preturi_config').select('*'),
-                platiViewQuery,
-                cleanedSupabase.from('deconturi_federatie').select('*'),
-                cleanedSupabase.from('istoric_grade').select('*'),
-            ];
-            
-            const settledResults = await Promise.allSettled(queries);
-            
-            const processedResults = settledResults.map((result, index) => {
-                if (result.status === 'fulfilled') {
-                    const { data, error: queryError } = result.value;
-                    if (queryError) {
-                        console.warn(`[DataProvider] A eșuat interogarea #${index}. Se returnează un array gol. Motiv:`, queryError);
-                        if (String(queryError.code).includes('42P01')) {
-                           console.error(`[DataProvider] Eroare de schemă (42P01): Tabela/coloana nu a fost găsită. Asigurați-vă că view-urile/tabelele și coloanele există. Este posibil să fie necesară o reîncărcare a schemei PostgREST. Rulați în SQL: NOTIFY pgrst, 'reload schema';`);
+        // Adăugăm logica pentru a curăța club_id și a apela fetchAppData condiționat
+        const activeClubId = initialActiveRoleContext?.club_id;
+        // DACĂ activeClubId este 'null' (string) sau undefined, îl transformăm în null real
+        const cleanClubId = (activeClubId && activeClubId !== 'null') ? activeClubId : null;
+
+        // Doar dacă avem un club_id valid SAU suntem Super Admin, încărcăm restul datelor
+        if (cleanClubId || initialActiveRoleContext?.roluri?.nume === 'SUPER_ADMIN_FEDERATIE') {
+            try {
+                // Interogarea pentru view se bazează pe RLS-ul tabelelor subiacente.
+                const platiViewQuery = cleanedSupabase.from('view_plata_sportiv').select('plata_id, sportiv_id, club_id, familie_id, data_emitere, descriere, suma_datorata, status, data_plata, suma_incasata, tranzactie_id, nume_complet');
+
+                const queries = [
+                    cleanedSupabase.from('cluburi').select('*'),
+                    cleanedSupabase.from('roluri').select('*'),
+                    cleanedSupabase.from('grade').select('*'),
+                    cleanedSupabase.from('grupe').select('*, program:orar_saptamanal!grupa_id(*)'),
+                    cleanedSupabase.from('tipuri_abonament').select('*'),
+                    cleanedSupabase.from('nom_locatii').select('*'),
+                    cleanedSupabase.from('tipuri_plati').select('*'),
+                    cleanedSupabase.from('reduceri').select('*'),
+                    cleanedSupabase.from('sportivi').select('*, cluburi(*), utilizator_roluri_multicont(rol_id)'),
+                    cleanedSupabase.from('sesiuni_examene').select('*'),
+                    cleanedSupabase.from('inscrieri_examene').select('*, sportivi:sportiv_id(*), grades:grad_vizat_id(*)'),
+                    cleanedSupabase.from('program_antrenamente').select('*, grupe(*), prezenta:prezenta_antrenament!antrenament_id(sportiv_id, status)'),
+                    cleanedSupabase.from('plati').select('*'),
+                    cleanedSupabase.from('tranzactii').select('*'),
+                    cleanedSupabase.from('evenimente').select('*'),
+                    cleanedSupabase.from('rezultate').select('*'),
+                    cleanedSupabase.from('familii').select('*'),
+                    cleanedSupabase.from('anunturi_prezenta').select('*'),
+                    cleanedSupabase.from('preturi_config').select('*'),
+                    platiViewQuery,
+                    cleanedSupabase.from('deconturi_federatie').select('*'),
+                    cleanedSupabase.from('istoric_grade').select('*'),
+                ];
+                
+                const settledResults = await Promise.allSettled(queries);
+                
+                const processedResults = settledResults.map((result, index) => {
+                    if (result.status === 'fulfilled') {
+                        const { data, error: queryError } = result.value;
+                        if (queryError) {
+                            console.warn(`[DataProvider] A eșuat interogarea #${index}. Se returnează un array gol. Motiv:`, queryError);
+                            if (String(queryError.code).includes('42P01')) {
+                               console.error(`[DataProvider] Eroare de schemă (42P01): Tabela/coloana nu a fost găsită. Asigurați-vă că view-urile/tabelele și coloanele există. Este posibil să fie necesară o reîncărcare a schemei PostgREST. Rulați în SQL: NOTIFY pgrst, 'reload schema';`);
+                            }
+                            return { data: [], error: null };
                         }
+                        return { data, error: null };
+                    }
+                      else {
+                        const error = result.reason;
+                        console.warn(`[DataProvider] O promisiune de interogare (index ${index}) a fost respinsă. Motiv:`, error);
                         return { data: [], error: null };
                     }
-                    return { data, error: null };
-                } else {
-                    const error = result.reason;
-                    console.warn(`[DataProvider] O promisiune de interogare (index ${index}) a fost respinsă. Motiv:`, error);
-                    return { data: [], error: null };
-                }
-            });
+                });
 
-            const [
-                { data: clubsData }, { data: rolesData }, { data: gradesData }, { data: groupsData },
-                { data: subscriptionTypesData }, { data: locatiiData }, { data: platiTypesData },
-                { data: reduceriData }, { data: sportiviData }, { data: sessionsData },
-                { data: registrationsData }, { data: trainingsData }, { data: platiData },
-                { data: tranzactiiData }, { data: evenimenteData }, { data: resultsData },
-                { data: familiesData }, { data: anunturiData }, { data: pricesData },
-                { data: vizualizarePlatiData }, { data: deconturiData }, { data: istoricGradeData }
-            ] = processedResults;
-            
-            const allNomenclatorRoles = (rolesData || []) as Rol[];
-
-            let allSportivi = (sportiviData || []).map(s => {
-                if (!s) return null;
-                const sportivWithRoles = s as any;
-                const userRolesFromJoin = (sportivWithRoles.utilizator_roluri_multicont || [])
-                    .map((joinedRole: any) => allNomenclatorRoles.find(r => r.id === joinedRole.rol_id))
-                    .filter((r): r is Rol => !!r);
+                const [
+                    { data: clubsData }, { data: rolesData }, { data: gradesData }, { data: groupsData },
+                    { data: subscriptionTypesData }, { data: locatiiData }, { data: platiTypesData },
+                    { data: reduceriData }, { data: sportiviData }, { data: sessionsData },
+                    { data: registrationsData }, { data: trainingsData }, { data: platiData },
+                    { data: tranzactiiData }, { data: evenimenteData }, { data: resultsData },
+                    { data: familiesData }, { data: anunturiData }, { data: pricesData },
+                    { data: vizualizarePlatiData }, { data: deconturiData }, { data: istoricGradeData }
+                ] = processedResults;
                 
-                delete sportivWithRoles.utilizator_roluri_multicont;
+                const allNomenclatorRoles = (rolesData || []) as Rol[];
 
-                return { 
-                    ...sportivWithRoles, 
-                    roluri: userRolesFromJoin,
-                };
-            }).filter(Boolean) as Sportiv[] || [];
-            
-            const allGrupe = groupsData?.map(g => ({ ...g, program: g.program || [] })) || [];
-            
-            setData({
-                sportivi: allSportivi,
-                sesiuniExamene: (sessionsData || []) as SesiuneExamen[],
-                inscrieriExamene: (registrationsData || []) as InscriereExamen[],
-                istoricGrade: (istoricGradeData || []) as IstoricGrade[],
-                antrenamente: (trainingsData?.map(t => ({...t, prezenta: (t as any).prezenta || []})) || []) as Antrenament[],
-                plati: (platiData || []) as Plata[],
-                tranzactii: (tranzactiiData || []) as Tranzactie[],
-                evenimente: (evenimenteData || []) as Eveniment[],
-                rezultate: (resultsData || []) as Rezultat[],
-                familii: (familiesData || []) as Familie[],
-                anunturiPrezenta: (anunturiData || []) as AnuntPrezenta[],
-                preturiConfig: (pricesData || []) as PretConfig[],
-                clubs: (clubsData || []) as Club[],
-                allRoles: allNomenclatorRoles,
-                grade: (gradesData || []) as Grad[],
-                grupe: allGrupe as Grupa[],
-                tipuriAbonament: (subscriptionTypesData || []) as TipAbonament[],
-                locatii: (locatiiData || []) as Locatie[],
-                tipuriPlati: (platiTypesData || []) as TipPlata[],
-                reduceri: (reduceriData || []) as Reducere[],
-                deconturiFederatie: (deconturiData || []) as DecontFederatie[],
-                vizualizarePlati: (vizualizarePlatiData || []) as VizualizarePlata[],
-            });
+                let allSportivi = (sportiviData || []).map(s => {
+                    if (!s) return null;
+                    const sportivWithRoles = s as any;
+                    const userRolesFromJoin = (sportivWithRoles.utilizator_roluri_multicont || [])
+                        .map((joinedRole: any) => allNomenclatorRoles.find(r => r.id === joinedRole.rol_id))
+                        .filter((r): r is Rol => !!r);
+                    
+                    delete sportivWithRoles.utilizator_roluri_multicont;
 
-        } catch (err: any) {
-            setError(`Eroare la procesarea datelor aplicației: ${err.message}`);
-        } finally {
-            setLoading(false);
-        }
+                    return { 
+                        ...sportivWithRoles, 
+                        roluri: userRolesFromJoin,
+                    };
+                }).filter(Boolean) as Sportiv[] || [];
+                
+                const allGrupe = groupsData?.map(g => ({ ...g, program: g.program || [] })) || [];
+                
+                setData({
+                    sportivi: allSportivi,
+                    sesiuniExamene: (sessionsData || []) as SesiuneExamen[],
+                    inscrieriExamene: (registrationsData || []) as InscriereExamen[],
+                    istoricGrade: (istoricGradeData || []) as IstoricGrade[],
+                    antrenamente: (trainingsData?.map(t => ({...t, prezenta: (t as any).prezenta || []})) || []) as Antrenament[],
+                    plati: (platiData || []) as Plata[],
+                    tranzactii: (tranzactiiData || []) as Tranzactie[],
+                    evenimente: (evenimenteData || []) as Eveniment[],
+                    rezultate: (resultsData || []) as Rezultat[],
+                    familii: (familiesData || []) as Familie[],
+                    anunturiPrezenta: (anunturiData || []) as AnuntPrezenta[],
+                    preturiConfig: (pricesData || []) as PretConfig[],
+                    clubs: (clubsData || []) as Club[],
+                    allRoles: allNomenclatorRoles,
+                    grade: (gradesData || []) as Grad[],
+                    grupe: allGrupe as Grupa[],
+                    tipuriAbonament: (subscriptionTypesData || []) as TipAbonament[],
+                    locatii: (locatiiData || []) as Locatie[],
+                    tipuriPlati: (platiTypesData || []) as TipPlata[],
+                    reduceri: (reduceriData || []) as Reducere[],
+                    deconturiFederatie: (deconturiData || []) as DecontFederatie[],
+                    vizualizarePlati: (vizualizarePlatiData || []) as VizualizarePlata[],
+                });
+
+
       } catch (err: any) {
         setError(`Eroare de conexiune sau de configurare: ${err.message}`);
+      } finally {
         setLoading(false);
       }
     }, []);

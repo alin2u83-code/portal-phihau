@@ -262,6 +262,10 @@ interface GestiuneExameneProps {
 }
 
 export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, clubs, onBack, onNavigate, sesiuni, setSesiuni, inscrieri, setInscrieri, sportivi, setSportivi, grade, istoricGrade, locatii, setLocatii, plati, setPlati, preturiConfig, deconturiFederatie, setDeconturiFederatie, onViewSportiv }) => {
+  const [dateFilter, setDateFilter] = useState('');
+  const [locationFilter, setLocationFilter] = useState('');
+  const [clubFilter, setClubFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isBulkImportModalOpen, setIsBulkImportModalOpen] = useState(false);
   const [sesiuneToEdit, setSesiuneToEdit] = useState<SesiuneExamen | null>(null);
@@ -358,7 +362,26 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
      );
   }
 
-  const sortedSesiuni = [...(sesiuni || [])].sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+  const filteredSesiuni = useMemo(() => {
+    let filtered = [...(sesiuni || [])];
+
+    if (dateFilter) {
+      filtered = filtered.filter(s => s.data === dateFilter);
+    }
+    if (locationFilter) {
+      filtered = filtered.filter(s => s.locatie_id === locationFilter);
+    }
+    if (clubFilter) {
+      filtered = filtered.filter(s => s.club_id === clubFilter);
+    }
+    if (statusFilter) {
+      filtered = filtered.filter(s => s.status === statusFilter);
+    }
+
+    return filtered.sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+  }, [sesiuni, dateFilter, locationFilter, clubFilter, statusFilter]);
+
+  const sortedSesiuni = filteredSesiuni;
   return ( 
     <div>
       <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
@@ -377,6 +400,22 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
                 <PlusIcon className="w-5 h-5 mr-2" />Adaugă Sesiune
             </Button>
         </div>
+      </div>
+      <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Input label="Filtrează după dată" type="date" value={dateFilter} onChange={e => setDateFilter(e.target.value)} />
+        <Select label="Filtrează după locație" value={locationFilter} onChange={e => setLocationFilter(e.target.value)}>
+          <option value="">Toate locațiile</option>
+          {(locatii || []).map(l => <option key={l.id} value={l.id}>{l.nume}</option>)}
+        </Select>
+        <Select label="Filtrează după club" value={clubFilter} onChange={e => setClubFilter(e.target.value)}>
+          <option value="">Toate cluburile</option>
+          {(clubs || []).map(c => <option key={c.id} value={c.id}>{c.nume}</option>)}
+        </Select>
+        <Select label="Filtrează după status" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+          <option value="">Toate statusurile</option>
+          <option value="Programat">Programat</option>
+          <option value="Finalizat">Finalizat</option>
+        </Select>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {sortedSesiuni.map(s => { 

@@ -1,4 +1,5 @@
 import { SupabaseClient } from '@supabase/supabase-js';
+import { PostgrestQueryBuilder } from '@supabase/postgrest-js';
 
 const cleanUuid = (uuid: string | null | undefined): string | null => {
   if (typeof uuid !== 'string') return uuid;
@@ -7,13 +8,16 @@ const cleanUuid = (uuid: string | null | undefined): string | null => {
 };
 
 // Decorator function to apply UUID cleaning to .eq() and .in() filters
-export const withCleanUuidFilters = <T extends Record<string, any>>(supabase: SupabaseClient) => {
-  const originalFrom = supabase.from.bind(supabase);
+export const withCleanUuidFilters = (supabase: SupabaseClient) => {
+  const originalFrom = supabase.from; // Keep it as a method, not bound yet
 
-  supabase.from = <U extends T>(table: string) => {
-    const query = originalFrom<U>(table);
-    const originalEq = query.eq.bind(query);
-    const originalIn = query.in.bind(query);
+  // Reassign supabase.from with a new function that captures the generic type
+  supabase.from = function<T extends Record<string, any>>(table: string): PostgrestQueryBuilder<T, any, any> {
+    // Call the original from method, ensuring it retains its generic behavior
+    const query: any = originalFrom.call(this, table);
+
+    const originalEq: typeof query.eq = query.eq.bind(query);
+    const originalIn: typeof query.in = query.in.bind(query);
 
     query.eq = (column: string, value: string | number | boolean | null) => {
       if (typeof value === 'string' && (column.endsWith('_id') || column === 'id')) {

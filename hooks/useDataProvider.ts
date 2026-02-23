@@ -165,10 +165,13 @@ export const useDataProvider = () => {
         setUserRoles(roles);
         setActiveRoleContext(initialActiveRoleContext);
 
-        if (!initialActiveRoleContext && roles.length > 0) {
-            setNeedsRoleSelection(true);
+        // Set needsRoleSelection to false if there's at least one role and a valid activeRoleContext
+        if (roles.length > 0 && initialActiveRoleContext) {
+            setNeedsRoleSelection(false);
         } else if (roles.length === 0) {
             setError(profileFetchError?.message || "Profilul utilizatorului nu a putut fi încărcat (lipsă roluri).");
+            setNeedsRoleSelection(true);
+        } else {
             setNeedsRoleSelection(true);
         }
         

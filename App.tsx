@@ -141,6 +141,8 @@ function App() {
   }, [setActiveView]);
 
   useEffect(() => {
+    if (loading) return; // Wait until dataProvider has finished loading
+
     if (currentUser && !permissions.hasAdminAccess && activeRoleContext) {
         const adminViews: View[] = [
             'sportivi', 'grade', 'prezenta', 'grupe', 'raport-prezenta', 'raport-lunar-prezenta',
@@ -156,7 +158,7 @@ function App() {
             showError('Acces Neautorizat', 'Nu aveți permisiunile necesare pentru a accesa această pagină.');
         }
     }
-  }, [currentUser, permissions, activeView, setActiveView, activeRoleContext, showError]);
+  }, [currentUser, permissions, activeView, setActiveView, activeRoleContext, showError, loading]);
 
   useEffect(() => {
     // Protection mechanism for SUPER_ADMIN_FEDERATIE

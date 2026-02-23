@@ -169,15 +169,16 @@ function App() {
   }, [activeView, permissions.isFederationLevel, setActiveView]);
 
   const filteredData = useMemo(() => {
-    if (permissions.isFederationLevel) {
-      // Federation-level users see all data, no club filter applied
-      return {
-          sportivi, sesiuniExamene, inscrieriExamene, antrenamente, grupe, plati,
-          tranzactii, evenimente, rezultate, tipuriAbonament, familii,
-          anunturiPrezenta, reduceri, deconturiFederatie, istoricGrade, vizualizarePlati
-      };
+    // DACĂ este Super Admin, returnăm TOATE datele direct
+    if (activeRole === 'SUPER_ADMIN_FEDERATIE') {
+        return {
+            sportivi, sesiuniExamene, inscrieriExamene, antrenamente, grupe, plati,
+            tranzactii, evenimente, rezultate, tipuriAbonament, familii,
+            anunturiPrezenta, reduceri, deconturiFederatie, istoricGrade, vizualizarePlati
+        };
     }
 
+    // Restul logicii de filtrare pentru Admin de Club sau Instructor rămâne neschimbată...
     if (!permissions.isFederationAdmin || !activeClubId) {
         return {
             sportivi, sesiuniExamene, inscrieriExamene, antrenamente, grupe, plati,
@@ -231,7 +232,8 @@ function App() {
 }, [
     activeClubId, permissions.isFederationAdmin, sportivi, sesiuniExamene, inscrieriExamene, antrenamente,
     grupe, plati, tranzactii, evenimente, rezultate, tipuriAbonament,
-    familii, anunturiPrezenta, reduceri, deconturiFederatie, istoricGrade, vizualizarePlati
+    familii, anunturiPrezenta, reduceri, deconturiFederatie, istoricGrade, vizualizarePlati,
+    activeRole
 ]);
 
   const handleLogout = async () => {

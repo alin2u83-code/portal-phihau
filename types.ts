@@ -34,7 +34,7 @@ export interface Sportiv {
   inaltime?: number; // în cm, pentru calcul preț echipament
   data_inscrierii: string;
   status: 'Activ' | 'Inactiv';
-  grupa_id: string | null;
+  grupa_id?: string | null;
   club_id?: string | null; // FK to cluburi
   cluburi?: Club | null; // From the join
   grad_actual_id?: string | null; // FK to grade
@@ -352,4 +352,5 @@ export interface Permissions {
     canBeClubAdmin: boolean;
     canBeFederationAdmin: boolean;
     isMultiContextAdmin: boolean;
+    hasClubFilter: boolean;
 }

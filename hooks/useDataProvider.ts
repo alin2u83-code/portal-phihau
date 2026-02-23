@@ -157,6 +157,7 @@ export const useDataProvider = () => {
             tip_abonament_id: null,
             participa_vacanta: false,
             trebuie_schimbata_parola: false,
+            grupa_id: null,
             club_id: initialActiveRoleContext?.club_id || null,
             roluri: roles.map((r: any) => r.roluri) as Rol[] || [],
         };

@@ -1,41 +1,46 @@
 import { SupabaseClient } from '@supabase/supabase-js';
-import { PostgrestQueryBuilder } from '@supabase/postgrest-js';
 
 const cleanUuid = (uuid: string | null | undefined): string | null => {
   if (typeof uuid !== 'string') return uuid;
-  const cleaned = uuid.replace(/"/g, '').trim();
+  const cleaned = uuid.replace(/\"/g, '').trim();
   return cleaned === 'null' || cleaned === '' ? null : cleaned;
 };
 
-// Decorator function to apply UUID cleaning to .eq() and .in() filters
-export const withCleanUuidFilters = (supabase: SupabaseClient) => {
-  const originalFrom = supabase.from; // Keep it as a method, not bound yet
+export const withCleanUuidFilters = (client: SupabaseClient): SupabaseClient => {
+  return new Proxy(client, {
+    get(target, prop, receiver) {
+      const value = Reflect.get(target, prop, receiver);
 
-  // Reassign supabase.from with a new function that captures the generic type
-  supabase.from = function<T extends Record<string, any>>(table: string): PostgrestQueryBuilder<T, any, any> {
-    // Call the original from method, ensuring it retains its generic behavior
-    const query: any = originalFrom.call(this, table);
+      // Dacă accesăm .from, interceptăm query builder-ul
+      if (prop === 'from' && typeof value === 'function') {
+        return (...args: any[]) => {
+          const queryBuilder = value.apply(target, args);
+          
+          // Interceptăm metodele .eq() și .in() ale query builder-ului
+          const originalEq = queryBuilder.eq;
+          const originalIn = queryBuilder.in;
 
-    const originalEq: typeof query.eq = query.eq.bind(query);
-    const originalIn: typeof query.in = query.in.bind(query);
+          queryBuilder.eq = (column: string, val: any) => {
+            if (typeof val === 'string' && (column.endsWith('_id') || column === 'id')) {
+              return originalEq.call(queryBuilder, column, cleanUuid(val));
+            }
+            return originalEq.call(queryBuilder, column, val);
+          };
 
-    query.eq = (column: string, value: string | number | boolean | null) => {
-      if (typeof value === 'string' && (column.endsWith('_id') || column === 'id')) {
-        return originalEq(column, cleanUuid(value));
+          queryBuilder.in = (column: string, values: any[]) => {
+            if (column.endsWith('_id') || column === 'id') {
+              const cleaned = values.map(v => typeof v === 'string' ? cleanUuid(v) : v);
+              return originalIn.call(queryBuilder, column, cleaned);
+            }
+            return originalIn.call(queryBuilder, column, values);
+          };
+
+          return queryBuilder;
+        };
       }
-      return originalEq(column, value);
-    };
 
-    query.in = (column: string, values: (string | number | boolean | null)[]) => {
-      if (column.endsWith('_id') || column === 'id') {
-        const cleanedValues = values.map(v => typeof v === 'string' ? cleanUuid(v) : v);
-        return originalIn(column, cleanedValues);
-      }
-      return originalIn(column, values);
-    };
-
-    return query;
-  };
-
-  return supabase;
+      // Pentru orice altă proprietate/metodă (auth, storage etc.), returnăm valoarea originală legată corect
+      return typeof value === 'function' ? value.bind(target) : value;
+    }
+  });
 };

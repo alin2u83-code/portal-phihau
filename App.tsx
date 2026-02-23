@@ -64,7 +64,7 @@ import { RaportLunarPrezenta } from './components/RaportLunarPrezenta';
 import { Header } from './components/Header';
 import { useDataProvider } from './hooks/useDataProvider';
 import { useIsMobile } from './hooks/useIsMobile';
-import { MobileSkeletonLoader } from './components/MobileSkeletonLoader';
+import { MartialArtsSkeleton } from './components/MartialArtsSkeleton';
 import { AdminDashboard } from './components/AdminDashboard';
 
 
@@ -438,7 +438,7 @@ function App() {
   };
   
   if ((loading || clubFilterLoading) && isMobile) {
-      return <MobileSkeletonLoader />;
+      return <MartialArtsSkeleton />;
   }
 
   return (

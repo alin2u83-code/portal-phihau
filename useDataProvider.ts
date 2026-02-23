@@ -91,7 +91,7 @@ export const useDataProvider = () => {
                 return; 
             }
 
-            // 2. Fetch Bulk Data cu protecție RLS
+            // 2. Fetch Bulk Data
             const queries = [
                 cleanedSupabase.from('cluburi').select('*'),
                 cleanedSupabase.from('roluri').select('*'),
@@ -119,12 +119,11 @@ export const useDataProvider = () => {
             
             const results = await Promise.allSettled(queries);
             
-            const processed = results.map((res, i) => {
+            const processed = results.map((res) => {
                 if (res.status === 'fulfilled') return res.value.data || [];
                 return [];
             });
 
-            // Destructurare cu fallback la array gol
             const [
                 cData, rData, gData, grpData, subData, locData, pTypeData, 
                 redData, sRaw, sessData, regData, trainData, payData, 
@@ -132,43 +131,57 @@ export const useDataProvider = () => {
                 vPayData, decData, istGData
             ] = processed;
 
-            // Mapare sigură pentru Sportivi (Evităm eroarea .map pe undefined)
+            // --- MODIFICARE CHEIE: Mapare sigură pentru a evita .map pe undefined în UI ---
             const allSportivi = (sRaw || []).map(s => {
                 if (!s) return null;
                 const sWithRoles = s as any;
-                const joinedRoles = (sWithRoles.utilizator_roluri_multicont || [])
+                const rawRoles = sWithRoles.utilizator_roluri_multicont || [];
+                const joinedRoles = rawRoles
                     .map((jr: any) => (rData || []).find((r: any) => r.nume === jr.rol_denumire))
                     .filter(Boolean);
                 
-                return { ...sWithRoles, roluri: joinedRoles };
+                return { 
+                    ...sWithRoles, 
+                    roluri: joinedRoles,
+                    cluburi: sWithRoles.cluburi || {} 
+                };
             }).filter(Boolean) as Sportiv[];
 
             setData({
-                clubs: cData,
-                allRoles: rData,
-                grade: gData,
+                clubs: cData || [],
+                allRoles: rData || [],
+                grade: gData || [],
                 grupe: (grpData || []).map((g: any) => ({ ...g, program: g.program || [] })),
-                tipuriAbonament: subData,
-                locatii: locData,
-                tipuriPlati: pTypeData,
-                reduceri: redData,
+                tipuriAbonament: subData || [],
+                locatii: locData || [],
+                tipuriPlati: pTypeData || [],
+                reduceri: redData || [],
                 sportivi: allSportivi,
-                sesiuniExamene: sessData,
-                inscrieriExamene: regData,
-                antrenamente: (trainData || []).map((t: any) => ({ ...t, prezenta: t.prezenta || [] })),
-                plati: payData,
-                tranzactii: trData,
-                evenimente: evData,
-                rezultate: resData,
-                familii: famData,
-                anunturiPrezenta: annData,
-                preturiConfig: prcData,
-                vizualizarePlati: vPayData,
-                deconturiFederatie: decData,
-                istoricGrade: istGData
+                sesiuniExamene: sessData || [],
+                inscrieriExamene: (regData || []).map((r: any) => ({
+                    ...r,
+                    sportivi: r.sportivi || {}, 
+                    grades: r.grades || {}     
+                })),
+                antrenamente: (trainData || []).map((t: any) => ({ 
+                    ...t, 
+                    grupe: t.grupe || {},
+                    prezenta: t.prezenta || [] 
+                })),
+                plati: payData || [],
+                tranzactii: trData || [],
+                evenimente: evData || [],
+                rezultate: resData || [],
+                familii: famData || [],
+                anunturiPrezenta: annData || [],
+                preturiConfig: prcData || [],
+                vizualizarePlati: vPayData || [],
+                deconturiFederatie: decData || [],
+                istoricGrade: istGData || []
             });
 
         } catch (err: any) {
+            console.error("Fetch Error:", err);
             setError(`Eroare critică: ${err.message}`);
         } finally {
             setLoading(false);
@@ -177,6 +190,13 @@ export const useDataProvider = () => {
 
     useEffect(() => {
         initializeAndFetchData();
+        // Ascultăm schimbările de autentificare pentru refresh automat
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+            if (['SIGNED_IN', 'TOKEN_REFRESHED', 'USER_UPDATED'].includes(event)) {
+                initializeAndFetchData();
+            }
+        });
+        return () => subscription.unsubscribe();
     }, [initializeAndFetchData]);
 
     const createSetter = <K extends keyof AppData>(key: K) => 

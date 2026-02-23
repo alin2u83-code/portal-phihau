@@ -30,13 +30,13 @@ export const useClubFilter = (currentUser: User | null, permissions: Permissions
         if (canChangeClub) {
             setActiveClubId(globalClubFilter);
         } else {
-            // For all other users (Admin Club, Instructor, Sportiv), their active club is determined by their profile context.
-            // This is already resolved in the `currentUser` object.
-            setActiveClubId(currentUser.club_id);
+            // For club-level users, their context is fixed to their club.
+            const userClubId = currentUser.club_id;
+            setActiveClubId(userClubId);
             
-            // Ensure non-admins don't have a global filter set.
-            if (globalClubFilter !== null) {
-                setGlobalClubFilter(null);
+            // Ensure the global filter reflects this fixed context for UI consistency.
+            if (globalClubFilter !== userClubId) {
+                setGlobalClubFilter(userClubId);
             }
         }
         

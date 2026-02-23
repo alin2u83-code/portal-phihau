@@ -169,47 +169,92 @@ function App() {
   }, [activeView, permissions.isFederationLevel, setActiveView]);
 
   const filteredData = useMemo(() => {
-    // DACĂ este Super Admin, returnăm TOATE datele direct
+    // Dacă suntem Super Admin, NU aplicăm filtre de club_id
     if (activeRole === 'SUPER_ADMIN_FEDERATIE') {
         return {
-            sportivi, sesiuniExamene, inscrieriExamene, antrenamente, grupe, plati,
-            tranzactii, evenimente, rezultate, tipuriAbonament, familii,
-            anunturiPrezenta, reduceri, deconturiFederatie, istoricGrade, vizualizarePlati
-        };
+            sportivi,
+            sesiuniExamene,
+            inscrieriExamene,
+            antrenamente,
+            grupe,
+            plati,
+            tranzactii,
+            evenimente,
+            rezultate,
+            tipuriAbonament,
+            familii,
+            anunturiPrezenta,
+            reduceri,
+            deconturiFederatie,
+            istoricGrade,
+            vizualizarePlati,
+        }; // Returnează array-urile complete
     }
 
-    // Restul logicii de filtrare pentru Admin de Club sau Instructor rămâne neschimbată...
-    if (!permissions.isFederationAdmin || !activeClubId) {
+    // Pentru restul, filtrăm normal
+    if (!activeClubId) {
+        // Dacă nu există un club activ, returnăm array-uri goale pentru a evita erorile de filtrare.
         return {
-            sportivi, sesiuniExamene, inscrieriExamene, antrenamente, grupe, plati,
-            tranzactii, evenimente, rezultate, tipuriAbonament, familii,
-            anunturiPrezenta, reduceri, deconturiFederatie, istoricGrade, vizualizarePlati
+            sportivi: [], sesiuniExamene: [], inscrieriExamene: [], antrenamente: [], grupe: [], plati: [],
+            tranzactii: [], evenimente: [], rezultate: [], tipuriAbonament: [], familii: [],
+            anunturiPrezenta: [], reduceri: [], deconturiFederatie: [], istoricGrade: [], vizualizarePlati: []
         };
     }
 
-    const fSportivi = (sportivi || []).filter(s => s.club_id === activeClubId);
-    const fGrupe = (grupe || []).filter(g => g.club_id === activeClubId);
-    
-    const fSesiuniExamene = (sesiuniExamene || []).filter(s => s.club_id === activeClubId || s.club_id === null);
-    const fEvenimente = (evenimente || []).filter(e => e.club_id === activeClubId || e.club_id === null);
-    const fTipuriAbonament = (tipuriAbonament || []).filter(t => t.club_id === activeClubId || t.club_id === null);
-    const fDeconturiFederatie = (deconturiFederatie || []).filter(d => d.club_id === activeClubId);
-    const fVizualizarePlati = (vizualizarePlati || []).filter(vp => vp.club_id === activeClubId);
+    const fSportivi = (sportivi || []).filter((s) => s.club_id === activeClubId);
+    const fGrupe = (grupe || []).filter((g) => g.club_id === activeClubId);
 
+    const fSesiuniExamene = (sesiuniExamene || []).filter(
+        (s) => s.club_id === activeClubId || s.club_id === null
+    );
+    const fEvenimente = (evenimente || []).filter(
+        (e) => e.club_id === activeClubId || e.club_id === null
+    );
+    const fTipuriAbonament = (tipuriAbonament || []).filter(
+        (t) => t.club_id === activeClubId || t.club_id === null
+    );
+    const fDeconturiFederatie = (deconturiFederatie || []).filter(
+        (d) => d.club_id === activeClubId
+    );
+    const fVizualizarePlati = (vizualizarePlati || []).filter(
+        (vp) => vp.club_id === activeClubId
+    );
 
-    const sportivIdsInClub = new Set(fSportivi.map(s => s.id));
-    const grupaIdsInClub = new Set(fGrupe.map(g => g.id));
-    
-    const fFamilii = (familii || []).filter(fam => (sportivi || []).some(s => s.familie_id === fam.id && s.club_id === activeClubId));
-    const familieIdsInClub = new Set(fFamilii.map(f => f.id));
+    const sportivIdsInClub = new Set(fSportivi.map((s) => s.id));
+    const grupaIdsInClub = new Set(fGrupe.map((g) => g.id));
 
-    const fPlati = (plati || []).filter(p => (p.sportiv_id && sportivIdsInClub.has(p.sportiv_id)) || (p.familie_id && familieIdsInClub.has(p.familie_id)));
-    const fTranzactii = (tranzactii || []).filter(t => (t.sportiv_id && sportivIdsInClub.has(t.sportiv_id)) || (t.familie_id && familieIdsInClub.has(t.familie_id)));
-    const fAntrenamente = (antrenamente || []).filter(a => a.grupa_id === null || (a.grupa_id && grupaIdsInClub.has(a.grupa_id)));
-    const fInscrieriExamene = (inscrieriExamene || []).filter(i => sportivIdsInClub.has(i.sportiv_id));
-    const fRezultate = (rezultate || []).filter(r => sportivIdsInClub.has(r.sportiv_id));
-    const fAnunturiPrezenta = (anunturiPrezenta || []).filter(a => sportivIdsInClub.has(a.sportiv_id));
-    const fIstoricGrade = (istoricGrade || []).filter(ig => sportivIdsInClub.has(ig.sportiv_id));
+    const fFamilii = (familii || []).filter((fam) =>
+        (sportivi || []).some(
+            (s) => s.familie_id === fam.id && s.club_id === activeClubId
+        )
+    );
+    const familieIdsInClub = new Set(fFamilii.map((f) => f.id));
+
+    const fPlati = (plati || []).filter(
+        (p) =>
+            (p.sportiv_id && sportivIdsInClub.has(p.sportiv_id)) ||
+            (p.familie_id && familieIdsInClub.has(p.familie_id))
+    );
+    const fTranzactii = (tranzactii || []).filter(
+        (t) =>
+            (t.sportiv_id && sportivIdsInClub.has(t.sportiv_id)) ||
+            (t.familie_id && familieIdsInClub.has(t.familie_id))
+    );
+    const fAntrenamente = (antrenamente || []).filter(
+        (a) => a.grupa_id === null || (a.grupa_id && grupaIdsInClub.has(a.grupa_id))
+    );
+    const fInscrieriExamene = (inscrieriExamene || []).filter((i) =>
+        sportivIdsInClub.has(i.sportiv_id)
+    );
+    const fRezultate = (rezultate || []).filter((r) =>
+        sportivIdsInClub.has(r.sportiv_id)
+    );
+    const fAnunturiPrezenta = (anunturiPrezenta || []).filter((a) =>
+        sportivIdsInClub.has(a.sportiv_id)
+    );
+    const fIstoricGrade = (istoricGrade || []).filter((ig) =>
+        sportivIdsInClub.has(ig.sportiv_id)
+    );
 
     return {
         sportivi: fSportivi,
@@ -227,13 +272,27 @@ function App() {
         reduceri,
         deconturiFederatie: fDeconturiFederatie,
         istoricGrade: fIstoricGrade,
-        vizualizarePlati: fVizualizarePlati
+        vizualizarePlati: fVizualizarePlati,
     };
 }, [
-    activeClubId, permissions.isFederationAdmin, sportivi, sesiuniExamene, inscrieriExamene, antrenamente,
-    grupe, plati, tranzactii, evenimente, rezultate, tipuriAbonament,
-    familii, anunturiPrezenta, reduceri, deconturiFederatie, istoricGrade, vizualizarePlati,
-    activeRole
+    activeRole,
+    activeClubId,
+    sportivi,
+    sesiuniExamene,
+    inscrieriExamene,
+    antrenamente,
+    grupe,
+    plati,
+    tranzactii,
+    evenimente,
+    rezultate,
+    tipuriAbonament,
+    familii,
+    anunturiPrezenta,
+    reduceri,
+    deconturiFederatie,
+    istoricGrade,
+    vizualizarePlati,
 ]);
 
   const handleLogout = async () => {

@@ -16,34 +16,26 @@ export const useRoleManager = (userId: string | undefined) => {
 
         setLoading(true);
         try {
-            const { data: allUserRoles, error: fetchError } = await supabase
+            // 1. Resetăm toate rolurile utilizatorului la is_primary = false
+            await supabase
                 .from('utilizator_roluri_multicont')
-                .select('*')
+                .update({ is_primary: false })
                 .eq('user_id', userId);
 
-            if (fetchError) throw fetchError;
+            // 2. Setăm noul rol ca is_primary = true
+            const { error: updateError } = await supabase
+                .from('utilizator_roluri_multicont')
+                .update({ is_primary: true })
+                .eq('id', newContextId);
 
-            const targetContext = allUserRoles.find(r => r.id === newContextId);
+            if (updateError) throw updateError;
 
-            if (!targetContext) {
-                throw new Error("Contextul selectat nu a fost găsit pentru acest utilizator.");
-            }
-
-            // Set the new active role in localStorage
+            // 3. Salvăm în local storage și dăm refresh
             setActiveRoleContextId(newContextId);
-
-            // Check for sportiv_id and set redirect if necessary
-            if (targetContext.sportiv_id) {
-                localStorage.setItem('phi-hau-redirect-after-role-switch', 'my-portal');
-            }
-
-            // Hard refresh to re-initialize the app with the new context
             window.location.reload();
-
         } catch (error: any) {
             showError("Eroare la schimbarea rolului", error.message);
         } finally {
-            // Although the page reloads, this is good practice
             setLoading(false);
         }
     }, [userId, showError, setActiveRoleContextId]);

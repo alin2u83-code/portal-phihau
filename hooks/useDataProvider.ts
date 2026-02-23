@@ -138,8 +138,15 @@ export const useDataProvider = () => {
             initialActiveRoleContext = primaryContext;
             setNeedsRoleSelection(false);
         } else {
-            // Otherwise, force selection
-            setNeedsRoleSelection(true);
+            // New logic: If no primary or saved context, and an instructor role exists, use it.
+            const instructorRole = roles.find(r => r.roluri?.nume === 'INSTRUCTOR');
+            if (instructorRole) {
+                initialActiveRoleContext = instructorRole;
+                setNeedsRoleSelection(false);
+            } else {
+                // Otherwise, force selection
+                setNeedsRoleSelection(true);
+            }
         }
 
         // Ensure currentUser is populated even if sportivi table doesn't return data (for admins who are not active sportivi)

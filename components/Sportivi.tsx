@@ -100,6 +100,16 @@ export const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
 }) => {
     const [formData, dispatch] = useReducer(formReducer, initialData);
     const [errors, setErrors] = useState<Record<string, string>>({});
+
+    useEffect(() => {
+      // Dacă este un sportiv nou (nu are ID) și nu are grad selectat
+      if (!formData.id && !formData.grad_actual_id && grade.length > 0) {
+        const debutantGrade = grade.find(g => g.ordine === 1 || g.nume === 'Debutant');
+        if (debutantGrade) {
+          dispatch({ type: 'SET_FIELD', field: 'grad_actual_id', value: debutantGrade.id });
+        }
+      }
+    }, [grade, formData.id, formData.grad_actual_id]);
     
     const isSuperAdmin = useMemo(() => 
         currentUser?.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN'), 

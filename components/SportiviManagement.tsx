@@ -13,6 +13,7 @@ import { useIsMobile } from '../hooks/useIsMobile';
 import { SportivAccountSettingsModal } from './SportivAccountSettings';
 import { DeleteAuditModal } from './DeleteAuditModal';
 import { GradBadge } from '../utils/grades';
+import { MartialArtsSkeleton } from './MartialArtsSkeleton';
 
 const getAge = (dateString: string | null | undefined): number => {
     if (!dateString) return 0;
@@ -93,8 +94,9 @@ export const SportiviManagement: React.FC<{
     allRoles: Rol[];
     setAllRoles: React.Dispatch<React.SetStateAction<Rol[]>>;
     vizualizarePlati: VizualizarePlata[];
+    loading?: boolean;
 }> = (props) => {
-    const { sportivi, setSportivi, grupe, setGrupe, tipuriAbonament, familii, setFamilii, currentUser, plati, setPlati, tranzactii, setTranzactii, onViewSportiv, clubs, grade, permissions, allRoles, setAllRoles, vizualizarePlati } = props;
+    const { sportivi, setSportivi, grupe, setGrupe, tipuriAbonament, familii, setFamilii, currentUser, plati, setPlati, tranzactii, setTranzactii, onViewSportiv, clubs, grade, permissions, allRoles, setAllRoles, vizualizarePlati, loading } = props;
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
     const [sportivToEdit, setSportivToEdit] = useState<Sportiv | null>(null);
     const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
@@ -169,18 +171,18 @@ export const SportiviManagement: React.FC<{
     const familyBalances = useMemo(() => {
         const balances = new Map<string, number>();
         if (!familii || !plati || !tranzactii) return balances;
-        familii.forEach(f => balances.set(f.id, 0));
-        tranzactii.forEach(t => { if (t.familie_id) balances.set(t.familie_id, (balances.get(t.familie_id) || 0) + t.suma); });
-        plati.forEach(p => { if (p.familie_id) balances.set(p.familie_id, (balances.get(p.familie_id) || 0) - p.suma); });
+        (familii || []).forEach(f => balances.set(f.id, 0));
+        (tranzactii || []).forEach(t => { if (t.familie_id) balances.set(t.familie_id, (balances.get(t.familie_id) || 0) + t.suma); });
+        (plati || []).forEach(p => { if (p.familie_id) balances.set(p.familie_id, (balances.get(p.familie_id) || 0) - p.suma); });
         return balances;
     }, [familii, plati, tranzactii]);
     
     const individualBalances = useMemo(() => {
         const balances = new Map<string, number>();
         if (!sportivi || !plati || !tranzactii) return balances;
-        sportivi.forEach(s => { if (!s.familie_id) balances.set(s.id, 0); });
-        tranzactii.forEach(t => { if (t.sportiv_id && !t.familie_id && balances.has(t.sportiv_id)) balances.set(t.sportiv_id, (balances.get(t.sportiv_id) || 0) + t.suma); });
-        plati.forEach(p => { if (p.sportiv_id && !p.familie_id && balances.has(p.sportiv_id)) balances.set(p.sportiv_id, (balances.get(p.sportiv_id) || 0) - p.suma); });
+        (sportivi || []).forEach(s => { if (!s.familie_id) balances.set(s.id, 0); });
+        (tranzactii || []).forEach(t => { if (t.sportiv_id && !t.familie_id && balances.has(t.sportiv_id)) balances.set(t.sportiv_id, (balances.get(t.sportiv_id) || 0) + t.suma); });
+        (plati || []).forEach(p => { if (p.sportiv_id && !p.familie_id && balances.has(p.sportiv_id)) balances.set(p.sportiv_id, (balances.get(p.sportiv_id) || 0) - p.suma); });
         return balances;
     }, [sportivi, plati, tranzactii]);
 
@@ -415,66 +417,72 @@ export const SportiviManagement: React.FC<{
                 )}
             </div>
 
-            <Card className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                <div className="lg:col-span-1">
-                     <div className="relative w-full">
-                        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                        <Input
-                            label=""
-                            type="text"
-                            value={filters.searchTerm}
-                            onChange={(e) => handleFilterChange('searchTerm', e.target.value)}
-                            placeholder="Caută sportiv..."
-                            className="!pl-10"
-                        />
-                    </div>
-                </div>
-                <Select label="Status" value={filters.statusFilter} onChange={e => handleFilterChange('statusFilter', e.target.value)}>
-                    <option value="Activ">Activi</option>
-                    <option value="Inactiv">Inactivi</option>
-                    <option value="">Toți</option>
-                </Select>
-                <Select label="Grupă" value={filters.grupaFilter} onChange={e => handleFilterChange('grupaFilter', e.target.value)}>
-                    <option value="">Toate grupele</option>
-                    {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
-                </Select>
-                 <Select label="Grad" value={filters.gradFilter} onChange={e => handleFilterChange('gradFilter', e.target.value)}>
-                    <option value="">Toate gradele</option>
-                    <option value="null">Începător (fără grad)</option>
-                    {grade.sort((a,b) => a.ordine - b.ordine).map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}
-                </Select>
-                 <Select label="Rol" value={filters.rolFilter} onChange={e => handleFilterChange('rolFilter', e.target.value)}>
-                    <option value="">Toate rolurile</option>
-                    {allRoles.map(r => <option key={r.id} value={r.id}>{r.nume}</option>)}
-                </Select>
-            </Card>
-
-            {isMobile ? (
-                <div className="space-y-3">
-                    {sortedAndFilteredSportivi.map(s => (
-                        <SportivCardMobile
-                            key={s.id}
-                            sportiv={s}
-                            onRowClick={handleRowClick}
-                            onOpenWallet={handleOpenWallet}
-                            familie={familii.find(f => f.id === s.familie_id)}
-                            familyBalance={familyBalances.get(s.familie_id!)}
-                            individualBalance={individualBalances.get(s.id)}
-                            grupa={grupe.find(g => g.id === s.grupa_id)}
-                            grade={grade}
-                        />
-                    ))}
-                </div>
+            {loading ? (
+                <MartialArtsSkeleton count={8} />
             ) : (
-                <ResponsiveTable
-                    columns={columns}
-                    data={sortedAndFilteredSportivi}
-                    onRowClick={handleRowClick}
-                    selectedRowId={selectedSportivForHighlight?.id}
-                    rowClassName={(sportiv) => !sportiv.user_id ? 'bg-red-900/20 hover:bg-red-900/40 !border-l-2 !border-red-500' : ''}
-                    onSort={requestSort}
-                    sortConfig={sortConfig || undefined}
-                />
+                <>
+                    <Card className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                        <div className="lg:col-span-1">
+                            <div className="relative w-full">
+                                <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                                <Input
+                                    label=""
+                                    type="text"
+                                    value={filters.searchTerm}
+                                    onChange={(e) => handleFilterChange('searchTerm', e.target.value)}
+                                    placeholder="Caută sportiv..."
+                                    className="!pl-10"
+                                />
+                            </div>
+                        </div>
+                        <Select label="Status" value={filters.statusFilter} onChange={e => handleFilterChange('statusFilter', e.target.value)}>
+                            <option value="Activ">Activi</option>
+                            <option value="Inactiv">Inactivi</option>
+                            <option value="">Toți</option>
+                        </Select>
+                        <Select label="Grupă" value={filters.grupaFilter} onChange={e => handleFilterChange('grupaFilter', e.target.value)}>
+                            <option value="">Toate grupele</option>
+                            {(grupe || []).map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
+                        </Select>
+                        <Select label="Grad" value={filters.gradFilter} onChange={e => handleFilterChange('gradFilter', e.target.value)}>
+                            <option value="">Toate gradele</option>
+                            <option value="null">Începător (fără grad)</option>
+                            {(grade || []).sort((a,b) => a.ordine - b.ordine).map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}
+                        </Select>
+                        <Select label="Rol" value={filters.rolFilter} onChange={e => handleFilterChange('rolFilter', e.target.value)}>
+                            <option value="">Toate rolurile</option>
+                            {(allRoles || []).map(r => <option key={r.id} value={r.id}>{r.nume}</option>)}
+                        </Select>
+                    </Card>
+
+                    {isMobile ? (
+                        <div className="space-y-3">
+                            {(sortedAndFilteredSportivi || []).map(s => (
+                                <SportivCardMobile
+                                    key={s.id}
+                                    sportiv={s}
+                                    onRowClick={handleRowClick}
+                                    onOpenWallet={handleOpenWallet}
+                                    familie={(familii || []).find(f => f.id === s.familie_id)}
+                                    familyBalance={familyBalances.get(s.familie_id!)}
+                                    individualBalance={individualBalances.get(s.id)}
+                                    grupa={(grupe || []).find(g => g.id === s.grupa_id)}
+                                    grade={grade}
+                                />
+                            ))}
+                        </div>
+                    ) : (
+                        <ResponsiveTable
+                            columns={columns}
+                            data={sortedAndFilteredSportivi || []}
+                            onRowClick={handleRowClick}
+                            selectedRowId={selectedSportivForHighlight?.id}
+                            rowClassName={(sportiv) => !sportiv.user_id ? 'bg-red-900/20 hover:bg-red-900/40 !border-l-2 !border-red-500' : ''}
+                            onSort={requestSort}
+                            sortConfig={sortConfig || undefined}
+                        />
+                    )}
+                </>
             )}
 
             {isFormModalOpen && (

@@ -28,6 +28,7 @@ export const adminMenu: MenuItem[] = [
     { label: 'Administrare', icon: CogIcon, view: 'user-management' },
     { label: 'Setări Globale', icon: CogIcon, view: 'setari-club' },
     { label: 'Structură Federație', icon: SitemapIcon, view: 'structura-federatie' },
+    { label: 'Setări Cont', icon: CogIcon, view: 'account-settings' },
 ];
 
 // Meniu pentru Instructori
@@ -36,6 +37,7 @@ export const instructorMenu: MenuItem[] = [
     { label: 'Sportivi', icon: UsersIcon, view: 'sportivi' },
     { label: 'Prezență', icon: ClipboardCheckIcon, view: 'prezenta-instructor' },
     { label: 'Examene', icon: TrophyIcon, view: 'examene' },
+    { label: 'Setări Cont', icon: CogIcon, view: 'account-settings' },
 ];
 
 // Meniu pentru Sportivi

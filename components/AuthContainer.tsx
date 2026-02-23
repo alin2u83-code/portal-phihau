@@ -120,6 +120,11 @@ export const AuthContainer: React.FC = () => {
         e.preventDefault();
         dispatch({ type: 'SET_MESSAGE', payload: null });
 
+        if (!supabase) {
+            dispatch({ type: 'SET_MESSAGE', payload: { type: 'error', text: 'Clientul bazei de date nu este configurat.' } });
+            return;
+        }
+
         if (form.parola.length < 6) {
             dispatch({ type: 'SET_MESSAGE', payload: { type: 'error', text: 'Parola trebuie să aibă cel puțin 6 caractere.' } });
             return;

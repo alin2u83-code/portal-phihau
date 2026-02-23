@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { SesiuneExamen, InscriereExamen, Sportiv, Grad, Locatie, Plata, PretConfig, User, Club, DecontFederatie, View, IstoricGrade } from '../types';
 import { Button, Modal, Input, Select, Card } from './ui';
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon, FileTextIcon, UploadCloudIcon } from './icons';
+import { MartialArtsSkeleton } from './MartialArtsSkeleton';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
@@ -186,6 +187,10 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
     const [isFinalizing, setIsFinalizing] = useState(false);
 
     const handleFinalizeExam = async () => {
+        if (!supabase) {
+            showError("Eroare", "Client Supabase neconfigurat.");
+            return;
+        }
         if (!window.confirm("Această acțiune este ireversibilă. Se va marca examenul ca finalizat și se va genera decontul pentru federație. Doriți să continuați?")) {
             return;
         }
@@ -259,9 +264,10 @@ interface GestiuneExameneProps {
     deconturiFederatie: DecontFederatie[];
     setDeconturiFederatie: React.Dispatch<React.SetStateAction<DecontFederatie[]>>;
     onViewSportiv: (sportiv: Sportiv) => void;
+    loading?: boolean;
 }
 
-export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, clubs, onBack, onNavigate, sesiuni, setSesiuni, inscrieri, setInscrieri, sportivi, setSportivi, grade, istoricGrade, locatii, setLocatii, plati, setPlati, preturiConfig, deconturiFederatie, setDeconturiFederatie, onViewSportiv }) => {
+export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, clubs, onBack, onNavigate, sesiuni, setSesiuni, inscrieri, setInscrieri, sportivi, setSportivi, grade, istoricGrade, locatii, setLocatii, plati, setPlati, preturiConfig, deconturiFederatie, setDeconturiFederatie, onViewSportiv, loading }) => {
   const [dateFilter, setDateFilter] = useState('');
   const [locationFilter, setLocationFilter] = useState('');
   const [clubFilter, setClubFilter] = useState('');
@@ -292,6 +298,10 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
   };
 
   const handleSaveSesiune = async (sesiuneData: Partial<SesiuneExamen>) => {
+    if (!supabase) {
+        showError("Eroare", "Client Supabase neconfigurat.");
+        return;
+    }
     const locatieSelectata = (locatii || []).find(l => l.id === sesiuneData.locatie_id);
     const dataToSave: Partial<SesiuneExamen> = {
         ...sesiuneData,
@@ -309,6 +319,10 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
   };
 
   const confirmDeleteSesiune = async (id: string) => {
+    if (!supabase) {
+        showError("Eroare", "Client Supabase neconfigurat.");
+        return;
+    }
     setIsDeleting(true);
     try {
         const { error: inscrieriError } = await supabase.from('inscrieri_examene').delete().eq('sesiune_id', id);
@@ -417,42 +431,47 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
           <option value="Finalizat">Finalizat</option>
         </Select>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {sortedSesiuni.map(s => { 
-            const club = clubs.find(c => c.id === s.club_id);
-            const cardStyle = club?.theme_config ? (club.theme_config as React.CSSProperties) : {};
-            return (
-                <Card 
-                    key={s.id} 
-                    className="sesiune-card flex flex-col group"
-                    style={cardStyle}
-                >
-                    <div className="flex-grow">
-                        <div className="flex justify-between items-start">
-                            <span className={`px-2 py-1 text-xs font-bold rounded-full ${s.status === 'Finalizat' ? 'bg-green-600/30 text-green-300' : 'bg-sky-600/30 text-sky-300'}`}>
-                                {s.status || 'Programat'}
-                            </span>
-                            <span className="text-sm font-bold text-slate-300">{new Date(s.data+'T00:00:00').toLocaleDateString('ro-RO')}</span>
+      
+      {loading ? (
+          <MartialArtsSkeleton count={6} />
+      ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {(sortedSesiuni || []).map(s => { 
+                const club = (clubs || []).find(c => c.id === s.club_id);
+                const cardStyle = club?.theme_config ? (club.theme_config as React.CSSProperties) : {};
+                return (
+                    <Card 
+                        key={s.id} 
+                        className="sesiune-card flex flex-col group"
+                        style={cardStyle}
+                    >
+                        <div className="flex-grow">
+                            <div className="flex justify-between items-start">
+                                <span className={`px-2 py-1 text-xs font-bold rounded-full ${s.status === 'Finalizat' ? 'bg-green-600/30 text-green-300' : 'bg-sky-600/30 text-sky-300'}`}>
+                                    {s.status || 'Programat'}
+                                </span>
+                                <span className="text-sm font-bold text-slate-300">{new Date(s.data+'T00:00:00').toLocaleDateString('ro-RO')}</span>
+                            </div>
+                            <h3 className="text-lg font-bold text-white mt-3 group-hover:text-brand-secondary transition-colors">{(locatii || []).find(l => l.id === s.locatie_id)?.nume || 'Locație Nespecificată'}</h3>
+                            <p className="text-xs text-slate-400">{s.club_id ? (((clubs || []).find(c => c.id === s.club_id))?.nume || 'Club Necunoscut') : 'Eveniment Federație'}</p>
                         </div>
-                        <h3 className="text-lg font-bold text-white mt-3 group-hover:text-brand-secondary transition-colors">{(locatii || []).find(l => l.id === s.locatie_id)?.nume || 'Locație Nespecificată'}</h3>
-                        <p className="text-xs text-slate-400">{s.club_id ? ((clubs || []).find(c => c.id === s.club_id)?.nume || 'Club Necunoscut') : 'Eveniment Federație'}</p>
-                    </div>
-                    <div className="mt-4 pt-4 border-t border-[var(--border-color)] flex justify-between items-center">
-                        <div className="text-sm">
-                            <span className="font-bold text-white">{(inscrieri || []).filter(p => p.sesiune_id === s.id).length}</span>
-                            <span className="text-slate-400"> participanți</span>
+                        <div className="mt-4 pt-4 border-t border-[var(--border-color)] flex justify-between items-center">
+                            <div className="text-sm">
+                                <span className="font-bold text-white">{(inscrieri || []).filter(p => p.sesiune_id === s.id).length}</span>
+                                <span className="text-slate-400"> participanți</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Button size="sm" variant="info" onClick={() => setSelectedSesiuneId(s.id)}>Vezi Detalii</Button>
+                                <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); setSesiuneToEdit(s); setIsFormOpen(true); }}><EditIcon className="w-4 h-4" /></Button>
+                                <Button size="sm" variant="danger" onClick={(e) => { e.stopPropagation(); setSesiuneToDelete(s); }}><TrashIcon className="w-4 h-4" /></Button>
+                            </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <Button size="sm" variant="info" onClick={() => setSelectedSesiuneId(s.id)}>Vezi Detalii</Button>
-                            <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); setSesiuneToEdit(s); setIsFormOpen(true); }}><EditIcon className="w-4 h-4" /></Button>
-                            <Button size="sm" variant="danger" onClick={(e) => { e.stopPropagation(); setSesiuneToDelete(s); }}><TrashIcon className="w-4 h-4" /></Button>
-                        </div>
-                    </div>
-                </Card>
-            )
-        })}
-        {sortedSesiuni.length === 0 && <p className="col-span-full p-4 text-center text-slate-400">Nicio sesiune programată.</p>}
-      </div>
+                    </Card>
+                )
+            })}
+            {(sortedSesiuni || []).length === 0 && <p className="col-span-full p-4 text-center text-slate-400">Nicio sesiune programată.</p>}
+          </div>
+      )}
       <SesiuneForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} onSave={handleSaveSesiune} sesiuneToEdit={sesiuneToEdit} locatii={locatii} setLocatii={setLocatii} clubs={clubs} currentUser={currentUser} />
       <ConfirmDeleteModal isOpen={!!sesiuneToDelete} onClose={() => setSesiuneToDelete(null)} onConfirm={() => { if(sesiuneToDelete) confirmDeleteSesiune(sesiuneToDelete.id) }} tableName="Sesiuni (și toate înscrierile asociate)" isLoading={isDeleting} />
        <ImportExamenModal 

@@ -9,6 +9,10 @@ export const useRoleManager = (userId: string | undefined) => {
     const [, setActiveRoleContextId] = useLocalStorage<string | null>('phi-hau-active-role-context-id', null);
 
     const switchRole = useCallback(async (newContextId: string) => {
+        if (!supabase) {
+            showError("Eroare", "Clientul Supabase nu este configurat.");
+            return;
+        }
         if (!userId) {
             showError("Eroare", "ID-ul utilizatorului nu este disponibil.");
             return;

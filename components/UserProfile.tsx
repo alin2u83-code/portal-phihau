@@ -253,6 +253,10 @@ const CreateAccountModal: React.FC<{
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!supabase) {
+            showError("Eroare Configurare", "Clientul Supabase nu este inițializat.");
+            return;
+        }
         if (!form.email || !form.parola) {
             showError("Date Incomplete", "Emailul și parola sunt obligatorii.");
             return;
@@ -549,6 +553,10 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
     }, [antrenamente, sportiv]);
 
     const handleSaveFeedback = async () => {
+        if (!supabase) {
+            showError("Eroare", "Client Supabase neinițializat.");
+            return;
+        }
         setIsSavingFeedback(true);
         const { error } = await supabase.from('sportivi').update(feedbackData).eq('id', sportiv.id);
         if (error) showError("Eroare la Salvare", error.message);
@@ -582,12 +590,14 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
     };
 
     const handleDeactivate = async () => {
+        if (!supabase) return;
         const { error } = await supabase.from('sportivi').update({ status: 'Inactiv' }).eq('id', sportiv.id);
         if(error) showError("Eroare", error.message);
         else { setSportivi(prev => prev.map(s => s.id === sportiv.id ? { ...s, status: 'Inactiv'} : s)); showSuccess("Succes", "Sportivul a fost marcat ca inactiv."); }
     };
 
     const handleDelete = async () => {
+        if (!supabase) return;
         const { error } = await supabase.from('sportivi').delete().eq('id', sportiv.id);
         if(error) showError("Eroare", error.message);
         else { setSportivi(prev => prev.filter(s => s.id !== sportiv.id)); onBack(); showSuccess("Succes", "Sportivul a fost șters definitiv."); }
@@ -610,6 +620,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
     };
 
     const handleSavePlataEdit = async (editedPlata: Plata) => {
+        if (!supabase) return;
         setIsSaving(true);
         const { id, ...updates } = editedPlata;
         const { data, error } = await supabase.from('plati').update(updates).eq('id', id).select().single();
@@ -624,6 +635,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
     };
 
     const confirmDeletePlata = async (id: string) => {
+        if (!supabase) return;
         setIsDeleting(true);
         const { data: tranzactiiData, error: tranzactiiError } = await supabase.from('tranzactii').select('id, plata_ids').contains('plata_ids', [id]);
         if (tranzactiiError) { showError("Eroare la Verificare", tranzactiiError); setIsDeleting(false); return; }

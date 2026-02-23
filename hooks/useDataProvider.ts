@@ -81,25 +81,26 @@ export const useDataProvider = () => {
 
             // 2. Determinare Context Activ (Admin/Instructor/Sportiv)
             const savedRoleId = localStorage.getItem('phi-hau-active-role-context-id')?.replace(/"/g, '');
-            let activeCtx = roles.find(r => r.id === savedRoleId) || roles.find(r => r.is_primary) || roles[0];
+            let activeCtx = (roles.find(r => r.id === savedRoleId) || roles.find(r => r.is_primary) || roles[0]) as any;
             
             setActiveRoleContext(activeCtx);
             setUserRoles(roles);
 
             // 3. Configurare User Profile
             const profile = activeCtx.sportiv;
-            setCurrentUser(profile || {
+            setCurrentUser((profile || {
                 id: currentSession.user.id,
                 email: currentSession.user.email,
                 nume: 'Utilizator',
                 prenume: 'Sistem',
                 roluri: roles.map((r: any) => r.roluri)
-            });
+            }) as any);
 
             // 4. Fetch Bulk Data (Modul Sportivi, Evenimente, Administrativ)
             const cleanClubId = (activeCtx.club_id && activeCtx.club_id !== 'null') ? activeCtx.club_id : null;
+            const activeRoleName = Array.isArray(activeCtx.roluri) ? activeCtx.roluri[0]?.nume : activeCtx.roluri?.nume;
 
-            if (cleanClubId || activeCtx.roluri?.nume === 'SUPER_ADMIN_FEDERATIE') {
+            if (cleanClubId || activeRoleName === 'SUPER_ADMIN_FEDERATIE') {
                 const queries = [
                     cleanedSupabase.from('cluburi').select('*'),
                     cleanedSupabase.from('roluri').select('*'),
@@ -158,6 +159,7 @@ export const useDataProvider = () => {
 
     useEffect(() => {
         initializeAndFetchData();
+        if (!supabase) return;
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
             if (['SIGNED_IN', 'TOKEN_REFRESHED', 'USER_UPDATED'].includes(event)) initializeAndFetchData();
         });
@@ -169,5 +171,37 @@ export const useDataProvider = () => {
             setData(prev => ({ ...prev, [key]: typeof value === 'function' ? (value as any)(prev[key]) : value }));
         }, []);
 
-    return { ...data, loading, error, needsRoleSelection, session, currentUser, userRoles, activeRoleContext, setSportivi: createSetter('sportivi') /* ... restul setterelor */ };
+    return { 
+        ...data, 
+        loading, 
+        error, 
+        needsRoleSelection, 
+        session, 
+        currentUser, 
+        userRoles, 
+        activeRoleContext, 
+        setCurrentUser,
+        setSportivi: createSetter('sportivi'),
+        setSesiuniExamene: createSetter('sesiuniExamene'),
+        setInscrieriExamene: createSetter('inscrieriExamene'),
+        setIstoricGrade: createSetter('istoricGrade'),
+        setAntrenamente: createSetter('antrenamente'),
+        setPlati: createSetter('plati'),
+        setTranzactii: createSetter('tranzactii'),
+        setEvenimente: createSetter('evenimente'),
+        setRezultate: createSetter('rezultate'),
+        setFamilii: createSetter('familii'),
+        setPreturiConfig: createSetter('preturiConfig'),
+        setClubs: createSetter('clubs'),
+        setAllRoles: createSetter('allRoles'),
+        setGrade: createSetter('grade'),
+        setGrupe: createSetter('grupe'),
+        setTipuriAbonament: createSetter('tipuriAbonament'),
+        setLocatii: createSetter('locatii'),
+        setTipuriPlati: createSetter('tipuriPlati'),
+        setReduceri: createSetter('reduceri'),
+        setDeconturiFederatie: createSetter('deconturiFederatie'),
+        setAnunturiPrezenta: createSetter('anunturiPrezenta'),
+        setVizualizarePlati: createSetter('vizualizarePlati'),
+    };
 };

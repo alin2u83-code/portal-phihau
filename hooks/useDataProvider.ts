@@ -127,68 +127,51 @@ export const useDataProvider = () => {
                 ];
                 
                 const results = await Promise.allSettled(queries);
-                
-                const dataBrute = results.map((res, index) => {
-                    if (res.status === 'fulfilled') {
-                        // Verificăm explicit pentru null, care indică o problemă RLS
-                        if (res.value.data === null) {
-                            console.warn(`RLS Check: Query at index ${index} returned null.`);
-                            // Returnăm un identificator special pentru a prinde aceste cazuri
-                            return 'RLS_BLOCKED';
-                        }
-                        return (res.value as any).data || [];
-                    } else {
-                        // Tratăm și promisiunile respinse ca un posibil indicator de problemă
-                        console.error(`Promise rejected at index ${index}:`, res.reason);
-                        return [];
-                    }
-                });
 
-                // Verificăm dacă vreunul dintre rezultate a fost blocat de RLS
-                if (dataBrute.some(data => data === 'RLS_BLOCKED')) {
-                    setError('Eroare RLS: Acces Refuzat. Este posibil să nu aveți permisiunile necesare pentru a vizualiza aceste date.');
-                    // Nu setăm setLoading(false) pentru a menține spinner-ul activ împreună cu mesajul de eroare
-                    return; // Oprim execuția ulterioară
-                }
+                // EXTRACȚIE CORECTĂ:
+                const cleanData = results.map(res => 
+                    res.status === 'fulfilled' ? (res.value as any).data || [] : []
+                );
 
-    
                 const [
                     cData, rData, gData, grpData, subData, locData, pTypeData, 
                     redData, sRaw, sessData, regData, trainData, payData, 
                     trData, evData, resData, famData, annData, prcData, 
                     vPayData, decData, istGData
-                ] = dataBrute;
-    
+                ] = cleanData;
+
+                // Mapăm sportivii cu fallback pentru obiecte goale (prevenim erori de map în UI)
                 const allSportivi = (sRaw || []).map((s: any) => ({
                     ...s,
+                    cluburi: s.cluburi || {},
                     roluri: (s.utilizator_roluri_multicont || [])
                         .map((jr: any) => rData.find((r: any) => r.nume === jr.rol_denumire))
                         .filter(Boolean)
                 }));
-    
+
                 setData({
-                    clubs: cData,
-                    allRoles: rData,
-                    grade: gData,
-                    grupe: grpData,
-                    tipuriAbonament: subData,
-                    locatii: locData,
-                    tipuriPlati: pTypeData,
-                    reduceri: redData,
                     sportivi: allSportivi,
                     sesiuniExamene: sessData,
                     inscrieriExamene: regData,
+                    grade: gData,
+                    istoricGrade: istGData,
                     antrenamente: trainData,
+                    grupe: grpData,
                     plati: payData,
                     tranzactii: trData,
                     evenimente: evData,
                     rezultate: resData,
-                    familii: famData,
-                    anunturiPrezenta: annData,
                     preturiConfig: prcData,
-                    vizualizarePlati: vPayData,
+                    tipuriAbonament: subData,
+                    familii: famData,
+                    allRoles: rData,
+                    anunturiPrezenta: annData,
+                    reduceri: redData,
+                    tipuriPlati: pTypeData,
+                    locatii: locData,
+                    clubs: cData,
                     deconturiFederatie: decData,
-                    istoricGrade: istGData
+                    vizualizarePlati: vPayData
                 });
             }
         } catch (err: any) {

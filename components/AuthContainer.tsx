@@ -255,11 +255,7 @@ export const AuthContainer: React.FC = () => {
                         </form>
                     )}
                     
-                    <div className="text-center mt-6">
-                        <button onClick={() => toggleView(view === 'login' ? 'signup' : 'login')} className="text-sm text-slate-400 hover:text-white hover:underline transition-colors">
-                            {view === 'login' ? 'Nu ai cont? Creează unul acum.' : 'Ai deja cont? Autentifică-te.'}
-                        </button>
-                    </div>
+
                 </Card>
             </div>
         </div>

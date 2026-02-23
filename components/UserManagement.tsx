@@ -265,17 +265,29 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
             return;
         }
         
-        const targetUserMaxWeight = Math.max(0, ...(targetUser.roluri || []).map(r => roleWeights[r.nume] || 0));
-        if (currentUserMaxWeight <= targetUserMaxWeight && currentUser.id !== targetUser.id) {
-             showError("Permisiune Refuzată", "Nu puteți modifica rolurile unui utilizator cu privilegii egale sau mai mari.");
-             setRoleSaveLoading(prev => ({ ...prev, [userId]: false }));
-             return;
-        }
-        const assignedRolesWeight = newRoleIds.map(roleId => roleWeights[allRoles.find(r => r.id === roleId)?.nume || 'SPORTIV'] || 0);
-        if (assignedRolesWeight.some(weight => weight > currentUserMaxWeight)) {
-            showError("Permisiune Refuzată", "Nu puteți acorda un rol cu privilegii mai mari decât rolul dumneavoastră.");
-            setRoleSaveLoading(prev => ({ ...prev, [userId]: false }));
-            return;
+        const targetUserCurrentMaxWeight = Math.max(0, ...(targetUser.roluri || []).map(r => roleWeights[r.nume] || 0));
+        const newAssignedRolesWeights = newRoleIds.map(roleId => roleWeights[allRoles.find(r => r.id === roleId)?.nume || 'SPORTIV'] || 0);
+        const newMaxAssignedWeight = Math.max(0, ...newAssignedRolesWeights);
+
+        // Prevent modifying users with equal or higher privileges (unless it's self-edit) or assigning higher privilege roles
+        if (currentUser.id !== targetUser.id) {
+            if (currentUserMaxWeight <= targetUserCurrentMaxWeight) {
+                showError("Permisiune Refuzată", "Nu puteți modifica rolurile unui utilizator cu privilegii egale sau mai mari.");
+                setRoleSaveLoading(prev => ({ ...prev, [userId]: false }));
+                return;
+            }
+            if (newMaxAssignedWeight > currentUserMaxWeight) {
+                showError("Permisiune Refuzată", "Nu puteți acorda un rol cu privilegii mai mari decât rolul dumneavoastră.");
+                setRoleSaveLoading(prev => ({ ...prev, [userId]: false }));
+                return;
+            }
+        } else {
+            // Self-edit: allow demotion, but not promotion beyond current max
+            if (newMaxAssignedWeight > currentUserMaxWeight) {
+                showError("Permisiune Refuzată", "Nu vă puteți acorda un rol cu privilegii mai mari decât rolul dumneavoastră curent.");
+                setRoleSaveLoading(prev => ({ ...prev, [userId]: false }));
+                return;
+            }
         }
 
         let finalRoleIds = [...newRoleIds];

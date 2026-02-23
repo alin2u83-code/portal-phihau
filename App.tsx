@@ -233,24 +233,24 @@ function App() {
     console.log(`[RoleSwitch] User ID: ${currentUser?.user_id} selected Role: ${role.roluri?.nume} (Context ID: ${role.id})`);
     setSwitchingToRole(role.roluri?.nume || '...');
 
-    // Salvăm în localStorage pentru ca la refresh să știm unde să ne întoarcem
+    // 2. Persistență pentru refresh
     localStorage.setItem('activeRole', JSON.stringify(role));
     localStorage.setItem('phi-hau-active-role-context-id', role.id);
+    
+    // 3. Setăm vizualizarea potrivită
+    const targetView = role.roluri?.nume === 'SUPER_ADMIN_FEDERATIE' 
+        ? 'federation-dashboard' 
+        : (role.roluri?.nume === 'SPORTIV' ? 'my-portal' : 'dashboard');
+    
+    localStorage.setItem('phi-hau-redirect-after-role-switch', targetView);
+    setActiveView(targetView as View);
 
-    // Setăm vizualizarea dorită înainte de refresh (opțional, dar bun pentru UX)
-    if (role.roluri?.nume === 'SUPER_ADMIN_FEDERATIE') {
-      setActiveView('federation-dashboard');
-      localStorage.setItem('phi-hau-redirect-after-role-switch', 'federation-dashboard');
-    } else if (role.roluri?.nume === 'SPORTIV') {
-      setActiveView('my-portal');
-      localStorage.setItem('phi-hau-redirect-after-role-switch', 'my-portal');
-    } else {
-      setActiveView('dashboard');
-      localStorage.setItem('phi-hau-redirect-after-role-switch', 'dashboard');
+    // 4. Executăm switch-ul tehnic
+    try {
+        await handleSwitchRole(role);
+    } catch (err) {
+        showError("Eroare", "Nu s-a putut schimba rolul.");
     }
-
-    // Executăm switch-ul tehnic care face window.location.reload()
-    await handleSwitchRole(role);
   };
   
   const handleIncaseazaMultiple = (platiSelectate: Plata[]) => {

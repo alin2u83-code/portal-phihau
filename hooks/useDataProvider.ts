@@ -117,29 +117,60 @@ export const useDataProvider = () => {
         }
 
         const primaryContext = roles.find(r => r.is_primary);
+        const savedActiveRoleContextId = localStorage.getItem('phi-hau-active-role-context-id');
+        let initialActiveRoleContext = null;
 
-        if (roles.length > 0 && primaryContext) {
-            setCurrentUser(profile);
-            setUserRoles(roles);
-            setActiveRoleContext(primaryContext);
+        if (roles.length === 1) {
+            // If only one role, select it automatically
+            initialActiveRoleContext = roles[0];
             setNeedsRoleSelection(false);
-        } else if (!profile && roles.length > 0) {
-            // Selection is needed
-            setUserRoles(roles);
+        } else if (savedActiveRoleContextId) {
+            // Try to find the previously saved role
+            initialActiveRoleContext = roles.find(r => r.id === savedActiveRoleContextId);
+            if (initialActiveRoleContext) {
+                setNeedsRoleSelection(false);
+            } else {
+                // If saved role not found (e.g., deleted), force selection
+                setNeedsRoleSelection(true);
+            }
+        } else if (primaryContext) {
+            // If no saved role, but there's a primary role, use it
+            initialActiveRoleContext = primaryContext;
+            setNeedsRoleSelection(false);
+        } else {
+            // Otherwise, force selection
             setNeedsRoleSelection(true);
-            setLoading(false);
-            return;
         }
 
-        if (!profile) {
-            setError("Profilul utilizatorului nu a putut fi încărcat.");
-            setLoading(false);
-            return;
-        }
-        
-        setCurrentUser(profile);
+        // Ensure currentUser is populated even if sportivi table doesn't return data (for admins who are not active sportivi)
+        const finalCurrentUser: User = profile || {
+            id: currentSession.user.id,
+            user_id: currentSession.user.id,
+            email: currentSession.user.email || 'N/A',
+            nume: 'Utilizator',
+            prenume: 'Sistem',
+            data_nasterii: null,
+            data_inscrierii: new Date().toISOString().split('T')[0],
+            status: 'Activ',
+            cnp: null,
+            familie_id: null,
+            tip_abonament_id: null,
+            participa_vacanta: false,
+            trebuie_schimbata_parola: false,
+            club_id: initialActiveRoleContext?.club_id || null,
+            roluri: roles.map((r: any) => r.roluri) as Rol[] || [],
+        };
+
+        setCurrentUser(finalCurrentUser);
         setUserRoles(roles);
-        setActiveRoleContext(primaryContext || null);
+        setActiveRoleContext(initialActiveRoleContext);
+
+        if (!initialActiveRoleContext && roles.length > 0) {
+            setNeedsRoleSelection(true);
+        } else if (roles.length === 0) {
+            setError(profileFetchError?.message || "Profilul utilizatorului nu a putut fi încărcat (lipsă roluri).");
+            setNeedsRoleSelection(true);
+        }
         
         try {
             // Interogarea pentru view se bazează pe RLS-ul tabelelor subiacente.

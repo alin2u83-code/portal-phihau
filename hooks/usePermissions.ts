@@ -16,6 +16,7 @@ const initialPermissions: Permissions = {
     canBeClubAdmin: false,
     canBeFederationAdmin: false,
     isMultiContextAdmin: false,
+    hasClubFilter: false,
 };
 
 export const usePermissions = (user: User | null, activeRole: Rol['nume'] | null): Permissions => {
@@ -51,9 +52,11 @@ export const usePermissions = (user: User | null, activeRole: Rol['nume'] | null
         // --- Context-dependent flags ---
         const isFederationLevel = isFederationAdmin; // This is about the *current view*, so it's based on activeRole.
         
-        const visibleClubIds: 'all' | string[] = isFederationLevel 
-            ? 'all' 
+        const visibleClubIds: 'all' | string[] = isSuperAdmin
+            ? 'all'
             : (user.club_id ? [user.club_id] : []);
+
+        const hasClubFilter = visibleClubIds !== 'all';
         
         return {
             isSuperAdmin,
@@ -70,6 +73,7 @@ export const usePermissions = (user: User | null, activeRole: Rol['nume'] | null
             canBeClubAdmin,
             canBeFederationAdmin,
             isMultiContextAdmin,
+            hasClubFilter,
         };
     }, [user, activeRole]);
 };

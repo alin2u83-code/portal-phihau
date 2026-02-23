@@ -68,14 +68,12 @@ export const useDataProvider = () => {
             }
             setSession(currentSession);
 
-            // Folosim Proxy-ul pentru a evita erorile de tip "bind" în producție
             const cleanedSupabase = withCleanUuidFilters(supabase as SupabaseClient<any, any>);
 
-            // 1. Obținem Profilul și Rolurile (Gatekeeper)
+            // 1. Gatekeeper: Profil și Roluri
             const { user: profile, roles, error: profileError } = await getAuthenticatedUser(supabase);
             
             if (profileError || !profile || !roles || roles.length === 0) {
-                console.error("[Security] Profil invalid sau lipsă roluri.");
                 setError(profileError?.message || "Acces refuzat: Lipsă roluri.");
                 setLoading(false);
                 return;
@@ -93,7 +91,7 @@ export const useDataProvider = () => {
                 return; 
             }
 
-            // 2. Fetch Bulk Data (Modul Sportivi & Administrativ)
+            // 2. Fetch Bulk Data cu protecție RLS
             const queries = [
                 cleanedSupabase.from('cluburi').select('*'),
                 cleanedSupabase.from('roluri').select('*'),
@@ -122,37 +120,52 @@ export const useDataProvider = () => {
             const results = await Promise.allSettled(queries);
             
             const processed = results.map((res, i) => {
-                if (res.status === 'fulfilled') {
-                    return res.value.data || [];
-                }
-                console.warn(`Query ${i} failed`, res.reason);
+                if (res.status === 'fulfilled') return res.value.data || [];
                 return [];
             });
 
-            // 3. Mapare Date (Structură specifică Qwan Ki Do)
+            // Destructurare cu fallback la array gol
+            const [
+                cData, rData, gData, grpData, subData, locData, pTypeData, 
+                redData, sRaw, sessData, regData, trainData, payData, 
+                trData, evData, resData, famData, annData, prcData, 
+                vPayData, decData, istGData
+            ] = processed;
+
+            // Mapare sigură pentru Sportivi (Evităm eroarea .map pe undefined)
+            const allSportivi = (sRaw || []).map(s => {
+                if (!s) return null;
+                const sWithRoles = s as any;
+                const joinedRoles = (sWithRoles.utilizator_roluri_multicont || [])
+                    .map((jr: any) => (rData || []).find((r: any) => r.nume === jr.rol_denumire))
+                    .filter(Boolean);
+                
+                return { ...sWithRoles, roluri: joinedRoles };
+            }).filter(Boolean) as Sportiv[];
+
             setData({
-                clubs: processed[0],
-                allRoles: processed[1],
-                grade: processed[2],
-                grupe: processed[3],
-                tipuriAbonament: processed[4],
-                locatii: processed[5],
-                tipuriPlati: processed[6],
-                reduceri: processed[7],
-                sportivi: processed[8],
-                sesiuniExamene: processed[9],
-                inscrieriExamene: processed[10],
-                antrenamente: processed[11],
-                plati: processed[12],
-                tranzactii: processed[13],
-                evenimente: processed[14],
-                rezultate: processed[15],
-                familii: processed[16],
-                anunturiPrezenta: processed[17],
-                preturiConfig: processed[18],
-                vizualizarePlati: processed[19],
-                deconturiFederatie: processed[20],
-                istoricGrade: processed[21]
+                clubs: cData,
+                allRoles: rData,
+                grade: gData,
+                grupe: (grpData || []).map((g: any) => ({ ...g, program: g.program || [] })),
+                tipuriAbonament: subData,
+                locatii: locData,
+                tipuriPlati: pTypeData,
+                reduceri: redData,
+                sportivi: allSportivi,
+                sesiuniExamene: sessData,
+                inscrieriExamene: regData,
+                antrenamente: (trainData || []).map((t: any) => ({ ...t, prezenta: t.prezenta || [] })),
+                plati: payData,
+                tranzactii: trData,
+                evenimente: evData,
+                rezultate: resData,
+                familii: famData,
+                anunturiPrezenta: annData,
+                preturiConfig: prcData,
+                vizualizarePlati: vPayData,
+                deconturiFederatie: decData,
+                istoricGrade: istGData
             });
 
         } catch (err: any) {

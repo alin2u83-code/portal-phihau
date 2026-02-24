@@ -101,6 +101,30 @@ function App() {
     return roleName || null;
   }, [activeRoleContext]);
 
+  const handleRedirectToRoleSelection = useCallback(() => {
+    // This function will be called by SystemGuardian if activeRole is null after timeout
+    // It forces a re-evaluation of the role selection state.
+    // In a real app, you might want to clear some local storage or trigger a re-fetch.
+    console.log('Redirecting to role selection due to timeout...');
+    // Forcing a re-render by updating a state or simply reloading the session context
+    // For now, we'll just set needsRoleSelection to true if it's not already.
+    // The dataProvider should handle the actual state change based on activeRole being null.
+    // A simple window.location.reload() might also be an option for a hard reset.
+    // Since needsRoleSelection is derived from activeRoleContext, we don't directly set it here.
+    // The onSelect in RoleSelectionPage will handle setting the primary context.
+    // We'll just ensure the RoleSelectionPage is shown.
+    if (!needsRoleSelection) {
+      // This is a bit of a hack, but it will force the App to render RoleSelectionPage
+      // if the activeRole is null and the timeout has passed.
+      // A more robust solution might involve a state in dataProvider to explicitly trigger this.
+      // For now, we rely on the needsRoleSelection prop to the RoleSelectionPage.
+      // The SystemGuardian will render RoleSelectionPrompt, which calls onRetry, which will trigger this.
+      // The dataProvider's internal logic should then re-evaluate activeRoleContext.
+      // Forcing a refresh of the session might be the most reliable way to re-sync JWT claims.
+      supabase.auth.refreshSession();
+    }
+  }, [needsRoleSelection]);
+
   const { switchRole, loading: isSwitchingRole } = useRoleManager(currentUser?.user_id);
 
   const permissions = usePermissions(currentUser, activeRole);
@@ -434,8 +458,14 @@ function App() {
       return <MartialArtsSkeleton />;
   }
 
-  return (
-    <SystemGuardian isLoading={loading || clubFilterLoading} currentUser={currentUser} permissions={permissions} error={error}>
+  // The second SystemGuardian is likely a remnant or intended for a different flow.
+  // Given the current structure, the first one wraps the entire app, so this one is redundant.
+  // I will remove it to avoid confusion and potential issues.
+  // If it was intended for a different purpose, it needs to be explicitly re-added with a clear use case.
+
+  // Original second SystemGuardian block (removed):
+  // return (
+  //   <SystemGuardian isLoading={loading || clubFilterLoading} currentUser={currentUser} permissions={permissions} error={error}>
       {isSwitchingRole && (
         <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[10000] flex flex-col items-center justify-center animate-fade-in-down">
             <svg className="animate-spin h-10 w-10 text-violet-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>

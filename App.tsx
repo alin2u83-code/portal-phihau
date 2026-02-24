@@ -508,13 +508,13 @@ function App() {
     }
   };
   
-  if ((loading || clubFilterLoading) && isMobile) {
-      return <MartialArtsSkeleton />;
-  }
-
   const effectiveNeedsRoleSelection = useMemo(() => {
     return needsRoleSelection || (session && !loading && !activeRole);
   }, [needsRoleSelection, session, loading, activeRole]);
+
+  if ((loading || clubFilterLoading) && isMobile) {
+      return <MartialArtsSkeleton />;
+  }
 
   return (
     <SystemGuardian 

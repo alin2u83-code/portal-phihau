@@ -130,7 +130,7 @@ export const SystemGuardian: React.FC<SystemGuardianProps> = ({ children, isLoad
                             Retry Sync
                         </Button>
                         <Button 
-                            variant="ghost" 
+                            variant="secondary" 
                             className="w-full text-slate-400 hover:text-white"
                             onClick={() => window.location.reload()}
                         >

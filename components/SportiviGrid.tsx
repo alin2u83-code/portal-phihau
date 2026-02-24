@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Sportiv } from '../types';
 import { Card } from './ui';
 
@@ -17,7 +17,13 @@ const CardSportiv: React.FC<{ sportiv: Sportiv }> = ({ sportiv }) => (
 );
 
 export const SportiviGrid: React.FC<SportiviGridProps> = ({ sportivi }) => {
-    const sportiviAfisati = sportivi?.filter(s => s !== null) || [];
+    const sportiviAfisati = useMemo(() => {
+        // DEBUG: Dacă ești Super Admin, ignoră orice filtru dacă lista e goală
+        if (sportivi && sportivi.length === 0) {
+           console.log("DEBUG: Lista de sportivi e goală. Verifică RLS.");
+        }
+        return sportivi || []; 
+    }, [sportivi]);
 
     return (
         <div className="p-4 bg-slate-900 min-h-screen text-white">
@@ -26,23 +32,25 @@ export const SportiviGrid: React.FC<SportiviGridProps> = ({ sportivi }) => {
                 <p className="text-center text-slate-400">Randează direct din hook, fără filtre.</p>
             </header>
 
+            {(!sportivi) && <p className="text-center text-slate-400 animate-pulse">Se încarcă datele din Supabase...</p>}
+            {sportivi && sportivi.length === 0 && (
+                <div className="p-10 text-center bg-red-900/20 border border-red-700/50 rounded-lg mb-4">
+                    <p className="text-lg font-semibold text-red-300">Eroare: RLS blochează accesul (0 sportivi găsiți).</p>
+                    <p className="text-red-400/70 text-sm mt-1">Dacă ești Super Admin, acest lucru indică o problemă în politicile consolidated_rls_policies.sql.</p>
+                </div>
+            )}
+
             {sportiviAfisati.length > 0 && (
-                <div className="bg-slate-800 p-2 rounded-md mb-4 text-xs font-mono overflow-x-auto">
+                <div className="bg-slate-800 p-2 rounded-md mb-4 text-xs font-mono overflow-x-auto border border-slate-700">
                     <pre><code>{JSON.stringify(sportiviAfisati[0], null, 2)}</code></pre>
                 </div>
             )}
 
-            {sportiviAfisati.length > 0 ? (
+            {sportiviAfisati.length > 0 && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {sportiviAfisati.map(sportiv => (
                         <CardSportiv key={sportiv.id} sportiv={sportiv} />
                     ))}
-                </div>
-            ) : (
-                <div className="p-10 text-center bg-slate-800 rounded-lg">
-                    <p className="text-lg font-semibold">Debug Info:</p>
-                    <p className="text-slate-300">Datele sunt în hook (total: {sportivi?.length}), dar nu trec de filtrele paginii sau `sportiviAfisati` este gol.</p>
-                    <p className="text-slate-400 mt-2 text-sm">Verifică dacă `sportivi` este `null` sau `undefined`.</p>
                 </div>
             )}
         </div>

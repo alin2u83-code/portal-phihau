@@ -3,7 +3,7 @@ import { supabase } from '../supabaseClient';
 import { 
     Sportiv, SesiuneExamen, Grad, InscriereExamen, Antrenament, Grupa, Plata, 
     Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, 
-    Rol, AnuntPrezenta, Reducere, TipPlata, Locatie, Club, DecontFederatie, IstoricGrade, VizualizarePlata
+    Rol, AnuntPrezenta, Reducere, TipPlata, Locatie, Club, DecontFederatie, IstoricGrade, VizualizarePlata, IstoricPlataDetaliat
 } from '../types';
 import { Session, SupabaseClient } from '@supabase/supabase-js';
 import { withCleanUuidFilters } from '../utils/supabaseFilters';
@@ -32,6 +32,7 @@ export interface AppData {
     clubs: Club[];
     deconturiFederatie: DecontFederatie[];
     vizualizarePlati: VizualizarePlata[];
+    istoricPlatiDetaliat: IstoricPlataDetaliat[];
 }
 
 const initialData: AppData = {
@@ -39,7 +40,8 @@ const initialData: AppData = {
     antrenamente: [], grupe: [], plati: [], tranzactii: [], evenimente: [], 
     rezultate: [], preturiConfig: [], tipuriAbonament: [], familii: [], 
     allRoles: [], anunturiPrezenta: [], reduceri: [], tipuriPlati: [], 
-    locatii: [], clubs: [], deconturiFederatie: [], vizualizarePlati: []
+    locatii: [], clubs: [], deconturiFederatie: [], vizualizarePlati: [],
+    istoricPlatiDetaliat: []
 };
 
 export const useDataProvider = () => {
@@ -142,6 +144,7 @@ export const useDataProvider = () => {
                     anunturiPrezenta: cleanedSupabase.from('anunturi_prezenta').select('*'),
                     preturiConfig: cleanedSupabase.from('preturi_config').select('*'),
                     vizualizarePlati: cleanedSupabase.from('view_plata_sportiv').select('*'),
+                    istoricPlatiDetaliat: cleanedSupabase.from('view_istoric_plati_detaliat').select('*'),
                     deconturiFederatie: cleanedSupabase.from('deconturi_federatie').select('*'),
                     istoricGrade: cleanedSupabase.from('istoric_grade').select('*'),
                 };
@@ -160,7 +163,7 @@ export const useDataProvider = () => {
                     sesiuniExamene: sessData, inscrieriExamene: regData, antrenamente: trainData, 
                     plati: payData, tranzactii: trData, evenimente: evData, rezultate: resData, 
                     familii: famData, anunturiPrezenta: annData, preturiConfig: prcData, 
-                    vizualizarePlati: vPayData, deconturiFederatie: decData, istoricGrade: istGData
+                    vizualizarePlati: vPayData, istoricPlatiDetaliat: istPayData, deconturiFederatie: decData, istoricGrade: istGData
                 } = processedData;
 
                 const allSportivi = (sRaw || []).map((s: any) => ({
@@ -177,7 +180,7 @@ export const useDataProvider = () => {
                     sesiuniExamene: sessData, inscrieriExamene: regData, antrenamente: trainData,
                     plati: payData, tranzactii: trData, evenimente: evData, rezultate: resData,
                     familii: famData, anunturiPrezenta: annData, preturiConfig: prcData,
-                    vizualizarePlati: vPayData, deconturiFederatie: decData, istoricGrade: istGData
+                    vizualizarePlati: vPayData, istoricPlatiDetaliat: istPayData, deconturiFederatie: decData, istoricGrade: istGData
                 } as AppData);
             }
         } catch (err: any) {

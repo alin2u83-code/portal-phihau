@@ -54,3 +54,4 @@ export const UserXIcon = UserX;
 export const UserCheckIcon = UserCheck;
 export const XCircleIcon = XCircle;
 export const ClockIcon = Clock;
+export const DownloadIcon = FileDown;

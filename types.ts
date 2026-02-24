@@ -101,6 +101,23 @@ export interface VizualizarePlata {
   suma_incasata: number | null;
 }
 
+export interface IstoricPlataDetaliat {
+  plata_id: string;
+  sportiv_id: string | null;
+  familie_id: string | null;
+  nume_complet: string;
+  descriere: string;
+  suma_datorata: number;
+  status: 'Achitat' | 'Neachitat' | 'Achitat Parțial';
+  data_emitere: string;
+  total_incasat: number;
+  rest_de_plata: number;
+  tranzactie_id: string | null;
+  data_plata: string | null;
+  suma_incasata: number | null;
+  metoda_plata: 'Cash' | 'Transfer Bancar' | null;
+}
+
 
 export interface Grad {
   id:string;

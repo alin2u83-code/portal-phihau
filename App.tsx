@@ -85,7 +85,7 @@ function App() {
       setCurrentUser, sportivi, sesiuniExamene, inscrieriExamene, grade, istoricGrade, antrenamente,
       grupe, plati, tranzactii, evenimente, rezultate, preturiConfig, tipuriAbonament,
       familii, allRoles, anunturiPrezenta, reduceri, tipuriPlati, locatii, clubs,
-      deconturiFederatie, vizualizarePlati, setPlati, setSportivi, setSesiuniExamene, setInscrieriExamene,
+      deconturiFederatie, vizualizarePlati, istoricPlatiDetaliat, setPlati, setSportivi, setSesiuniExamene, setInscrieriExamene,
       setAntrenamente, setGrupe, setTranzactii, setEvenimente, setRezultate, setFamilii,
       setAllRoles, setAnunturiPrezenta, setReduceri, setTipuriPlati, setLocatii, setClubs,
       setGrade, setTipuriAbonament, setDeconturiFederatie, setIstoricGrade, initializeAndFetchData
@@ -194,6 +194,7 @@ function App() {
             deconturiFederatie,
             istoricGrade,
             vizualizarePlati,
+            istoricPlatiDetaliat,
         }; // Returnează array-urile complete
     }
 
@@ -203,7 +204,8 @@ function App() {
         return {
             sportivi: [], sesiuniExamene: [], inscrieriExamene: [], antrenamente: [], grupe: [], plati: [],
             tranzactii: [], evenimente: [], rezultate: [], tipuriAbonament: [], familii: [],
-            anunturiPrezenta: [], reduceri: [], deconturiFederatie: [], istoricGrade: [], vizualizarePlati: []
+            anunturiPrezenta: [], reduceri: [], deconturiFederatie: [], istoricGrade: [], vizualizarePlati: [],
+            istoricPlatiDetaliat: []
         };
     }
 
@@ -246,6 +248,9 @@ function App() {
             (t.sportiv_id && sportivIdsInClub.has(t.sportiv_id)) ||
             (t.familie_id && familieIdsInClub.has(t.familie_id))
     );
+    const fIstoricPlatiDetaliat = (istoricPlatiDetaliat || []).filter(
+        (ip) => (ip.sportiv_id && sportivIdsInClub.has(ip.sportiv_id)) || (ip.familie_id && familieIdsInClub.has(ip.familie_id))
+    );
     const fAntrenamente = (antrenamente || []).filter(
         (a) => a.grupa_id === null || (a.grupa_id && grupaIdsInClub.has(a.grupa_id))
     );
@@ -279,6 +284,7 @@ function App() {
         deconturiFederatie: fDeconturiFederatie,
         istoricGrade: fIstoricGrade,
         vizualizarePlati: fVizualizarePlati,
+        istoricPlatiDetaliat: fIstoricPlatiDetaliat,
     };
 }, [
     activeRole,
@@ -299,6 +305,7 @@ function App() {
     deconturiFederatie,
     istoricGrade,
     vizualizarePlati,
+    istoricPlatiDetaliat
 ]);
 
   const handleLogout = async () => {
@@ -486,7 +493,7 @@ function App() {
         return <MartialAttendance onBack={handleBackToDashboard} currentUser={currentUser!} antrenamente={antrenamente} grupe={grupe} />;
 
       case 'istoric-plati':
-        return <IstoricPlati onBack={handleBackToDashboard} viewedUser={currentUser!} vizualizarePlati={vizualizarePlati} />;
+        return <IstoricPlati onBack={handleBackToDashboard} viewedUser={currentUser!} istoricPlatiDetaliat={filteredData.istoricPlatiDetaliat} />;
 
       case 'account-settings':
         return <AccountSettings onBack={handleBackToDashboard} currentUser={currentUser!} userRoles={userRoles} setCurrentUser={setCurrentUser} setSportivi={setSportivi} />;

@@ -1,10 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { User, Permissions } from '../types';
 import { clubTheme, federationTheme, applyTheme, Theme } from '../themes';
 import { FEDERATIE_ID } from '../constants';
 import { Button } from './ui';
 
 // --- Sub-componente interne ---
+
+const RoleSelectionPrompt: React.FC<{ onRetry: () => void }> = ({ onRetry }) => (
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-slate-900 text-white">
+        <h1 className="text-2xl font-bold mb-4">Selecție Rol Necesara</h1>
+        <p className="text-center mb-6">Nu s-a putut determina rolul activ. Vă rugăm să selectați un rol pentru a continua.</p>
+        <Button onClick={onRetry} variant="primary" className="px-6 py-3 text-lg">Reîncearcă Sincronizarea</Button>
+    </div>
+);
 
 const DiagnosticScreen: React.FC = () => (
     <div className="flex flex-col items-center justify-center h-full min-h-[50vh] text-center p-4">
@@ -50,38 +58,57 @@ interface SystemGuardianProps {
     currentUser: User | null;
     permissions: Permissions;
     error: string | null;
+    activeRole: string | null;
+    onRedirectToRoleSelection: () => void;
 }
 
-export const SystemGuardian: React.FC<SystemGuardianProps> = ({ children, isLoading, currentUser, permissions, error }) => {
+export const SystemGuardian: React.FC<SystemGuardianProps> = ({ children, isLoading, currentUser, permissions, error, activeRole, onRedirectToRoleSelection }) => {
     const [showLoadingScreen, setShowLoadingScreen] = useState(false);
+    const [showRetryButton, setShowRetryButton] = useState(false);
+    const timeoutId = useRef<NodeJS.Timeout | null>(null);
     
     useEffect(() => {
         if (currentUser) {
-            // Priority: Theme from DB
             if (currentUser.cluburi?.theme_config) {
                 applyTheme(currentUser.cluburi.theme_config as Partial<Theme>);
-            }
-            // Fallback: Federation theme for federation users
-            else if (permissions.isFederationAdmin || currentUser.club_id === FEDERATIE_ID) {
+            } else if (permissions.isFederationAdmin || currentUser.club_id === FEDERATIE_ID) {
                 applyTheme(federationTheme);
-            }
-            // Fallback: Default club theme for others
-            else {
+            } else {
                 applyTheme(clubTheme);
             }
         } else {
-            // Theme for login screen
             applyTheme(federationTheme);
         }
 
-        const timer = setTimeout(() => {
-            if (isLoading) {
-                setShowLoadingScreen(true);
-            }
-        }, 500);
+        // Clear any existing timeout
+        if (timeoutId.current) {
+            clearTimeout(timeoutId.current);
+        }
 
-        return () => clearTimeout(timer);
-    }, [isLoading, currentUser, permissions.isFederationAdmin]);
+        if (isLoading) {
+            // Set a timeout to show loading screen after 500ms
+            timeoutId.current = setTimeout(() => {
+                setShowLoadingScreen(true);
+            }, 500);
+
+            // Set another timeout to show retry button and redirect if activeRole is still null after 5 seconds
+            timeoutId.current = setTimeout(() => {
+                if (activeRole === null) {
+                    setShowRetryButton(true);
+                    onRedirectToRoleSelection(); // Redirect to role selection page
+                }
+            }, 5000); // 5 seconds timeout
+        } else {
+            setShowLoadingScreen(false);
+            setShowRetryButton(false);
+        }
+
+        return () => {
+            if (timeoutId.current) {
+                clearTimeout(timeoutId.current);
+            }
+        };
+    }, [isLoading, currentUser, permissions.isFederationAdmin, activeRole, onRedirectToRoleSelection]);
 
     if (error) {
         if (error.includes('Contul de utilizator nu este legat')) {
@@ -90,6 +117,10 @@ export const SystemGuardian: React.FC<SystemGuardianProps> = ({ children, isLoad
         return <ErrorScreen message={error} />;
     }
     
+    if (activeRole === null && showRetryButton) {
+        return <RoleSelectionPrompt onRetry={onRedirectToRoleSelection} />;
+    }
+
     if (!isLoading) {
         return <>{children}</>;
     }

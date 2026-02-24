@@ -151,10 +151,20 @@ ALTER TABLE public.sesiuni_examene ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Super Admin - Acces total examene" ON public.sesiuni_examene
     FOR ALL USING (get_active_role() = 'SUPER_ADMIN_FEDERATIE');
 
-CREATE POLICY "Admin/Instructor - Management examene club" ON public.sesiuni_examene
+CREATE POLICY "Admin/Instructor - Management examene club sau generale" ON public.sesiuni_examene
     FOR ALL USING (
         get_active_role() IN ('Admin Club', 'Instructor', 'ADMIN_CLUB', 'INSTRUCTOR') 
-        AND club_id = get_active_club_id()
+        AND (club_id = get_active_club_id() OR club_id IS NULL)
+    );
+
+CREATE POLICY "Sportiv - Vizualizare examene inscrise sau generale" ON public.sesiuni_examene
+    FOR SELECT USING (
+        club_id IS NULL OR
+        EXISTS (
+            SELECT 1 FROM public.inscrieri_examene ie 
+            JOIN public.sportivi s ON ie.sportiv_id = s.id 
+            WHERE ie.sesiune_id = sesiuni_examene.id AND s.user_id = auth.uid()
+        )
     );
 
 

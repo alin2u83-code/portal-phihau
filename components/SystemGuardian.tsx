@@ -1,18 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, Permissions } from '../types';
 import { clubTheme, federationTheme, applyTheme, Theme } from '../themes';
 import { FEDERATIE_ID } from '../constants';
 import { Button } from './ui';
 
 // --- Sub-componente interne ---
-
-const RoleSelectionPrompt: React.FC<{ onRetry: () => void }> = ({ onRetry }) => (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-slate-900 text-white">
-        <h1 className="text-2xl font-bold mb-4">Selecție Rol Necesara</h1>
-        <p className="text-center mb-6">Nu s-a putut determina rolul activ. Vă rugăm să selectați un rol pentru a continua.</p>
-        <Button onClick={onRetry} variant="primary" className="px-6 py-3 text-lg">Reîncearcă Sincronizarea</Button>
-    </div>
-);
 
 const DiagnosticScreen: React.FC = () => (
     <div className="flex flex-col items-center justify-center h-full min-h-[50vh] text-center p-4">
@@ -58,57 +50,49 @@ interface SystemGuardianProps {
     currentUser: User | null;
     permissions: Permissions;
     error: string | null;
-    activeRole: string | null;
-    onRedirectToRoleSelection: () => void;
+    onRetry?: () => void;
 }
 
-export const SystemGuardian: React.FC<SystemGuardianProps> = ({ children, isLoading, currentUser, permissions, error, activeRole, onRedirectToRoleSelection }) => {
+export const SystemGuardian: React.FC<SystemGuardianProps> = ({ children, isLoading, currentUser, permissions, error, onRetry }) => {
     const [showLoadingScreen, setShowLoadingScreen] = useState(false);
-    const [showRetryButton, setShowRetryButton] = useState(false);
-    const timeoutId = useRef<NodeJS.Timeout | null>(null);
+    const [isTimedOut, setIsTimedOut] = useState(false);
     
     useEffect(() => {
         if (currentUser) {
+            // Priority: Theme from DB
             if (currentUser.cluburi?.theme_config) {
                 applyTheme(currentUser.cluburi.theme_config as Partial<Theme>);
-            } else if (permissions.isFederationAdmin || currentUser.club_id === FEDERATIE_ID) {
+            }
+            // Fallback: Federation theme for federation users
+            else if (permissions.isFederationAdmin || currentUser.club_id === FEDERATIE_ID) {
                 applyTheme(federationTheme);
-            } else {
+            }
+            // Fallback: Default club theme for others
+            else {
                 applyTheme(clubTheme);
             }
         } else {
+            // Theme for login screen
             applyTheme(federationTheme);
         }
 
-        // Clear any existing timeout
-        if (timeoutId.current) {
-            clearTimeout(timeoutId.current);
-        }
-
-        if (isLoading) {
-            // Set a timeout to show loading screen after 500ms
-            timeoutId.current = setTimeout(() => {
+        const timer = setTimeout(() => {
+            if (isLoading) {
                 setShowLoadingScreen(true);
-            }, 500);
+            }
+        }, 500);
 
-            // Set another timeout to show retry button and redirect if activeRole is still null after 5 seconds
-            timeoutId.current = setTimeout(() => {
-                if (activeRole === null) {
-                    setShowRetryButton(true);
-                    onRedirectToRoleSelection(); // Redirect to role selection page
-                }
-            }, 5000); // 5 seconds timeout
-        } else {
-            setShowLoadingScreen(false);
-            setShowRetryButton(false);
-        }
+        const timeoutTimer = setTimeout(() => {
+            if (isLoading) {
+                setIsTimedOut(true);
+            }
+        }, 5000);
 
         return () => {
-            if (timeoutId.current) {
-                clearTimeout(timeoutId.current);
-            }
+            clearTimeout(timer);
+            clearTimeout(timeoutTimer);
         };
-    }, [isLoading, currentUser, permissions.isFederationAdmin, activeRole, onRedirectToRoleSelection]);
+    }, [isLoading, currentUser, permissions.isFederationAdmin]);
 
     if (error) {
         if (error.includes('Contul de utilizator nu este legat')) {
@@ -117,12 +101,45 @@ export const SystemGuardian: React.FC<SystemGuardianProps> = ({ children, isLoad
         return <ErrorScreen message={error} />;
     }
     
-    if (activeRole === null && showRetryButton) {
-        return <RoleSelectionPrompt onRetry={onRedirectToRoleSelection} />;
-    }
-
     if (!isLoading) {
         return <>{children}</>;
+    }
+
+    if (isTimedOut) {
+        return (
+            <div className="flex flex-col items-center justify-center h-full min-h-screen text-center p-8 bg-slate-900">
+                <div className="bg-slate-800 p-8 rounded-2xl border border-slate-700 shadow-2xl max-w-md w-full">
+                    <div className="w-16 h-16 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg className="w-8 h-8 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <h1 className="text-2xl font-bold text-white mb-2">Sincronizare Întârziată</h1>
+                    <p className="text-slate-400 mb-8">
+                        Încărcarea permisiunilor durează mai mult decât de obicei. Acest lucru se poate întâmpla din cauza unei conexiuni slabe sau a unei sesiuni expirate.
+                    </p>
+                    <div className="space-y-3">
+                        <Button 
+                            className="w-full bg-violet-600 hover:bg-violet-700 text-white py-6 text-lg"
+                            onClick={() => {
+                                setIsTimedOut(false);
+                                if (onRetry) onRetry();
+                                else window.location.reload();
+                            }}
+                        >
+                            Retry Sync
+                        </Button>
+                        <Button 
+                            variant="ghost" 
+                            className="w-full text-slate-400 hover:text-white"
+                            onClick={() => window.location.reload()}
+                        >
+                            Refresh Page
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        );
     }
 
     if (showLoadingScreen) {

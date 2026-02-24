@@ -100,7 +100,7 @@ export const useDataProvider = () => {
             let activeCtx = (roles.find(r => r.id === savedRoleId) || roles.find(r => r.is_primary) || roles[0]) as any;
 
             if (!activeCtx) {
-                setError("Nu s-a putut determina un rol activ. Vă rugăm contactați administratorul.");
+                setNeedsRoleSelection(true);
                 setLoading(false);
                 return;
             }

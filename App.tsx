@@ -62,6 +62,8 @@ import { useRoleManager } from './hooks/useRoleManager';
 import { RoleSelectionPage } from './components/RoleSelectionPage';
 import { RaportLunarPrezenta } from './components/RaportLunarPrezenta';
 import { Header } from './components/Header';
+import { MainLayout } from './components/MainLayout';
+import { AppRouter } from './components/AppRouter';
 import { useDataProvider } from './hooks/useDataProvider';
 import { useIsMobile } from './hooks/useIsMobile';
 import { MartialArtsSkeleton } from './components/MartialArtsSkeleton';
@@ -125,10 +127,15 @@ function App() {
 
   useEffect(() => {
     const savedRole = localStorage.getItem('activeRole');
-    if (savedRole) {
-      const role = JSON.parse(savedRole);
-      if (role.roluri?.nume === 'SUPER_ADMIN_FEDERATIE') {
-        setActiveView('federation-dashboard');
+    if (savedRole && savedRole !== 'undefined') {
+      try {
+        const role = JSON.parse(savedRole);
+        if (role && role.roluri?.nume === 'SUPER_ADMIN_FEDERATIE') {
+          setActiveView('federation-dashboard');
+        }
+      } catch (error) {
+        console.error('Failed to parse activeRole from localStorage', error);
+        localStorage.removeItem('activeRole');
       }
     }
   }, []);
@@ -329,177 +336,99 @@ function App() {
     setPlatiPentruIncasare([]);
   };
 
-  const renderContent = () => {
-    if (currentUser && currentUser.trebuie_schimbata_parola) {
-      return <MandatoryPasswordChange currentUser={currentUser} onPasswordChanged={() => {}} />;
-    }
-    
-    const renderProtected = (view: React.ReactNode, hasAccess: boolean) => {
-        return hasAccess ? view : <AccessDenied onBack={() => setActiveView('dashboard')} />;
-    };
+  return (
+    <SystemGuardian isLoading={loading || clubFilterLoading} currentUser={currentUser} permissions={permissions} error={error}>
+      {isSwitchingRole && (
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[10000] flex flex-col items-center justify-center animate-fade-in-down">
+            <svg className="animate-spin h-10 w-10 text-violet-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <p className="text-white text-lg font-bold">Se comută contextul pe {switchingToRole}...</p>
+        </div>
+      )}
+      {!session ? <AuthContainer /> :
+       needsRoleSelection ? <RoleSelectionPage user={session.user} onSelect={handleSelectRole} loading={isSwitchingRole} onLogout={handleLogout} /> :
+       currentUser ? (
+            <MainLayout
+              currentUser={currentUser}
+              onNavigate={setActiveView}
+              onLogout={handleLogout}
+              activeView={activeView}
+              isSidebarExpanded={isSidebarExpanded}
+              setIsSidebarExpanded={setIsSidebarExpanded}
+              clubs={clubs}
+              globalClubFilter={globalClubFilter}
+              setGlobalClubFilter={setGlobalClubFilter}
+              permissions={permissions}
+              activeRole={activeRole!}
+              canSwitchRoles={canSwitchRoles}
+              onSwitchRole={handleSwitchRole}
+              isSwitchingRole={isSwitchingRole}
+              grade={grade}
+              userRoles={userRoles}
+            >
+              <AppRouter
+                activeView={activeView}
+                currentUser={currentUser}
+                permissions={permissions}
+                sportivi={filteredData.sportivi}
+                sesiuniExamene={filteredData.sesiuniExamene}
+                inscrieriExamene={filteredData.inscrieriExamene}
+                antrenamente={filteredData.antrenamente}
+                grupe={filteredData.grupe}
+                plati={filteredData.plati}
+                tranzactii={filteredData.tranzactii}
+                evenimente={filteredData.evenimente}
+                rezultate={filteredData.rezultate}
+                tipuriAbonament={filteredData.tipuriAbonament}
+                familii={filteredData.familii}
+                anunturiPrezenta={filteredData.anunturiPrezenta}
+                reduceri={filteredData.reduceri}
+                deconturiFederatie={filteredData.deconturiFederatie}
+                istoricGrade={filteredData.istoricGrade}
+                vizualizarePlati={filteredData.vizualizarePlati}
+                grade={grade}
+                allRoles={allRoles}
+                clubs={clubs}
+                locatii={locatii}
+                tipuriPlati={tipuriPlati}
+                preturiConfig={preturiConfig}
+                setSportivi={setSportivi}
+                setSesiuniExamene={setSesiuniExamene}
+                setInscrieriExamene={setInscrieriExamene}
+                setAntrenamente={setAntrenamente}
+                setGrupe={setGrupe}
+                setPlati={setPlati}
+                setTranzactii={setTranzactii}
+                setEvenimente={setEvenimente}
+                setRezultate={setRezultate}
+                setFamilii={setFamilii}
+                setAllRoles={setAllRoles}
+                setAnunturiPrezenta={setAnunturiPrezenta}
+                setReduceri={setReduceri}
+                setTipuriPlati={setTipuriPlati}
+                setLocatii={setLocatii}
+                setClubs={setClubs}
+                setGrade={setGrade}
+                setTipuriAbonament={setTipuriAbonament}
+                setDeconturiFederatie={setDeconturiFederatie}
+                setIstoricGrade={setIstoricGrade}
+                handleBackToDashboard={handleBackToDashboard}
+                setActiveView={setActiveView}
+                selectedSportiv={selectedSportiv}
+                setSelectedSportiv={setSelectedSportiv}
+                handleIncaseazaMultiple={handleIncaseazaMultiple}
+                platiPentruIncasare={platiPentruIncasare}
+                handleJurnalBack={handleJurnalBack}
+                handleIncasareProcesata={handleIncasareProcesata}
+                userRoles={userRoles}
+                activeRoleContext={activeRoleContext}
+                activeRole={activeRole}
+                loading={loading}
+              />
+            </MainLayout>
+      ) : null}
+    </SystemGuardian>
+  );
 
-    const isAtLeastInstructor = permissions.isFederationAdmin || permissions.isAdminClub || permissions.isInstructor;
-    const isAtLeastClubAdmin = permissions.isAdminClub || permissions.isFederationAdmin;
-    const isFederationAdmin = permissions.isFederationAdmin;
-    const canManageFinances = permissions.canManageFinances;
-    const onViewSportiv = (s: Sportiv) => { setSelectedSportiv(s); setActiveView('profil-sportiv'); };
-    const isEmergencyAdmin = currentUser?.email === 'alin2u83@gmail.com';
-
-    switch (activeView) {
-      case 'debug':
-        return <DebugPage />;
-
-      case 'admin-console':
-        return renderProtected(<AdminConsole onBack={handleBackToDashboard} currentUser={currentUser!} userRoles={userRoles} activeRoleContext={activeRoleContext} sportivi={filteredData.sportivi} allRoles={allRoles} clubs={clubs} permissions={permissions} />, permissions.hasAdminAccess || isEmergencyAdmin);
-
-      case 'federation-dashboard':
-        return renderProtected(<FederationDashboard onNavigate={setActiveView} />, isFederationAdmin);
-
-      case 'dashboard':
-      case 'my-portal':
-        if (permissions.isFederationLevel) {
-          return <FederationDashboard onNavigate={setActiveView} />;
-        }
-        if (permissions.hasAdminAccess && activeRole !== 'SPORTIV') {
-            if (sportivi.length === 0 && !isEmergencyAdmin && !loading) {
-                return <Card className="text-center p-8"><p className="text-slate-400 italic">Așteptare autorizare date sau nu există date pentru contextul selectat...</p></Card>
-            }
-            return (
-                <div className="space-y-8 animate-fade-in-down">
-                    <header><h1 className="text-3xl font-bold text-white">Panou de Control Principal</h1><p className="text-slate-400">Selectează un modul pentru a începe.</p></header>
-                    <AdminDashboard sportivi={filteredData.sportivi} plati={filteredData.plati} istoricGrade={filteredData.istoricGrade} />
-                    <AdminMasterMap onNavigate={setActiveView} deconturiFederatie={filteredData.deconturiFederatie} inscrieriExamene={filteredData.inscrieriExamene} plati={filteredData.plati} />
-                </div>
-            );
-        }
-        return <SportivDashboard currentUser={currentUser!} viewedUser={currentUser!} participari={filteredData.inscrieriExamene} examene={sesiuniExamene} grade={grade} istoricGrade={filteredData.istoricGrade} grupe={filteredData.grupe} plati={filteredData.plati} onNavigate={(view) => setActiveView(view)} antrenamente={filteredData.antrenamente} anunturi={anunturiPrezenta} setAnunturi={setAnunturiPrezenta} sportivi={filteredData.sportivi} permissions={permissions} canSwitchRoles={canSwitchRoles} activeRole={activeRole!} onSwitchRole={handleSwitchRole} isSwitchingRole={isSwitchingRole} />;
-      
-      case 'sportivi':
-        return renderProtected(<SportiviManagement onBack={handleBackToDashboard} sportivi={filteredData.sportivi} setSportivi={setSportivi} grupe={filteredData.grupe} setGrupe={setGrupe} tipuriAbonament={filteredData.tipuriAbonament} familii={filteredData.familii} setFamilii={setFamilii} currentUser={currentUser!} plati={filteredData.plati} setPlati={setPlati} tranzactii={filteredData.tranzactii} setTranzactii={setTranzactii} onViewSportiv={onViewSportiv} clubs={clubs} grade={grade} permissions={permissions} allRoles={allRoles} setAllRoles={setAllRoles} vizualizarePlati={filteredData.vizualizarePlati} loading={loading} />, isAtLeastInstructor);
-
-      case 'profil-sportiv':
-        return renderProtected(selectedSportiv ? <UserProfile sportiv={selectedSportiv} currentUser={currentUser!} participari={filteredData.inscrieriExamene} examene={sesiuniExamene} grade={grade} istoricGrade={filteredData.istoricGrade} setIstoricGrade={setIstoricGrade} antrenamente={filteredData.antrenamente} plati={filteredData.plati} tranzactii={filteredData.tranzactii} reduceri={filteredData.reduceri} grupe={filteredData.grupe} familii={filteredData.familii} tipuriAbonament={filteredData.tipuriAbonament} setSportivi={setSportivi} setPlati={setPlati} setTranzactii={setTranzactii} onBack={() => setActiveView('sportivi')} clubs={clubs} vizualizarePlati={filteredData.vizualizarePlati} sportivi={filteredData.sportivi} /> : null, isAtLeastInstructor);
-
-      case 'structura-federatie':
-        return renderProtected(<FederationStructure clubs={clubs} sportivi={sportivi} grupe={grupe} onBack={handleBackToDashboard} onNavigate={(view) => setActiveView(view)} />, isFederationAdmin);
-
-      case 'examene': {
-        const canManageExams = permissions.canGradeStudents;
-        return <GestiuneExamene onBack={handleBackToDashboard} currentUser={currentUser!} clubs={clubs} onNavigate={(view) => setActiveView(view)} sesiuni={filteredData.sesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={filteredData.inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={filteredData.sportivi} setSportivi={setSportivi} grade={grade} istoricGrade={istoricGrade} locatii={locatii} setLocatii={setLocatii} plati={filteredData.plati} setPlati={setPlati} preturiConfig={preturiConfig} deconturiFederatie={filteredData.deconturiFederatie} setDeconturiFederatie={setDeconturiFederatie} onViewSportiv={onViewSportiv} isReadOnly={!canManageExams} loading={loading} />;
-      }
-        
-      case 'stagii': case 'competitii':
-        return renderProtected(<StagiiCompetitiiManagement onBack={handleBackToDashboard} type={activeView === 'stagii' ? 'Stagiu' : 'Competitie'} evenimente={filteredData.evenimente} setEvenimente={setEvenimente} rezultate={filteredData.rezultate} setRezultate={setRezultate} sportivi={filteredData.sportivi} preturiConfig={preturiConfig} inscrieriExamene={inscrieriExamene} examene={sesiuniExamene} grade={grade} setPlati={setPlati} currentUser={currentUser!} permissions={permissions}/>, permissions.isInstructor);
-
-      case 'prezenta':
-        return renderProtected(<PrezentaManagement onBack={handleBackToDashboard} currentUser={currentUser!} onViewSportiv={onViewSportiv} />, isAtLeastInstructor);
-      
-      case 'prezenta-instructor':
-        return renderProtected(<InstructorPrezentaPage onBack={handleBackToDashboard} onNavigate={setActiveView} allClubSportivi={filteredData.sportivi} currentUser={currentUser!} grade={grade} onViewSportiv={onViewSportiv} />, permissions.isInstructor);
-      
-      case 'arhiva-prezente':
-        return renderProtected(<ArhivaPrezente onBack={() => setActiveView('prezenta-instructor')} />, permissions.isInstructor);
-        
-      case 'raport-activitate':
-        return renderProtected(<RaportActivitate onBack={handleBackToDashboard} currentUser={currentUser!} />, permissions.isInstructor);
-      
-      case 'raport-lunar-prezenta':
-        return renderProtected(<RaportLunarPrezenta onBack={handleBackToDashboard} sportivi={filteredData.sportivi} grupe={filteredData.grupe} antrenamente={filteredData.antrenamente} grade={grade} />, isAtLeastInstructor);
-
-      case 'grupe':
-        return renderProtected(<GrupeManagement onBack={handleBackToDashboard} grupe={filteredData.grupe} setGrupe={setGrupe} currentUser={currentUser!} clubs={clubs} sportivi={filteredData.sportivi} />, isAtLeastInstructor);
-
-      case 'activitati':
-        return renderProtected(<ProgramareActivitati onBack={handleBackToDashboard} antrenamente={filteredData.antrenamente} setAntrenamente={setAntrenamente} grupe={filteredData.grupe} />, isAtLeastInstructor);
-
-      case 'raport-prezenta':
-        return renderProtected(<RaportPrezenta antrenamente={filteredData.antrenamente} sportivi={filteredData.sportivi} grupe={filteredData.grupe} onViewSportiv={onViewSportiv} onBack={handleBackToDashboard} />, isAtLeastInstructor);
-
-      case 'calendar':
-        return <CalendarView onBack={handleBackToDashboard} antrenamente={filteredData.antrenamente} sesiuniExamene={filteredData.sesiuniExamene} evenimente={filteredData.evenimente} grupe={filteredData.grupe} locatii={locatii} onNavigate={(view) => setActiveView(view)} currentUser={currentUser!} sportivi={filteredData.sportivi} rezultate={filteredData.rezultate} setRezultate={setRezultate} plati={filteredData.plati} setPlati={setPlati} preturiConfig={preturiConfig} permissions={permissions} />;
-
-      case 'financial-dashboard':
-        return renderProtected(<FinancialDashboard onBack={handleBackToDashboard} plati={filteredData.plati} tranzactii={filteredData.tranzactii} sportivi={filteredData.sportivi} familii={filteredData.familii} />, isAtLeastClubAdmin);
-
-      case 'gestiune-facturi':
-        return renderProtected(<GestiuneFacturi onBack={handleBackToDashboard} currentUser={currentUser!} sportivi={filteredData.sportivi} plati={filteredData.plati} setPlati={setPlati} tipuriPlati={tipuriPlati} familii={filteredData.familii} />, canManageFinances);
-
-      case 'deconturi-federatie':
-        return renderProtected(<FederationInvoices onBack={handleBackToDashboard} deconturi={filteredData.deconturiFederatie} setDeconturi={setDeconturiFederatie} currentUser={currentUser!} permissions={permissions} />, isAtLeastClubAdmin);
-
-      case 'plati-scadente':
-        return renderProtected(<PlatiScadente plati={filteredData.plati} inscrieriExamene={filteredData.inscrieriExamene} grade={grade} setPlati={setPlati} sportivi={filteredData.sportivi} familii={filteredData.familii} tipuriAbonament={filteredData.tipuriAbonament} tranzactii={tranzactii} reduceri={reduceri} onIncaseazaMultiple={handleIncaseazaMultiple} onViewSportiv={onViewSportiv} currentUser={currentUser!} clubs={clubs} permissions={permissions} onBack={handleBackToDashboard} />, canManageFinances);
-
-      case 'jurnal-incasari':
-        return renderProtected(<JurnalIncasari currentUser={currentUser!} plati={filteredData.plati} setPlati={setPlati} sportivi={filteredData.sportivi} familii={filteredData.familii} preturiConfig={preturiConfig} tipuriAbonament={filteredData.tipuriAbonament} tipuriPlati={tipuriPlati} setTipuriPlati={setTipuriPlati} tranzactii={filteredData.tranzactii} setTranzactii={setTranzactii} platiInitiale={platiPentruIncasare} onIncasareProcesata={handleIncasareProcesata} onBack={handleJurnalBack} reduceri={reduceri} />, canManageFinances);
-
-      case 'raport-financiar':
-        return renderProtected(<RaportFinanciar onBack={handleBackToDashboard} plati={filteredData.plati} sportivi={filteredData.sportivi} familii={filteredData.familii} tranzactii={filteredData.tranzactii} />, isAtLeastClubAdmin);
-
-      case 'user-management':
-        return renderProtected(<UserManagement onBack={handleBackToDashboard} sportivi={filteredData.sportivi} setSportivi={setSportivi} currentUser={currentUser!} allRoles={allRoles} setAllRoles={setAllRoles} clubs={clubs} permissions={permissions} />, isAtLeastClubAdmin);
-
-      case 'cluburi':
-        return renderProtected(<CluburiManagement onBack={handleBackToDashboard} clubs={clubs} setClubs={setClubs} currentUser={currentUser!} permissions={permissions} />, isFederationAdmin);
-      
-      case 'data-maintenance':
-        return renderProtected(<BackupManager onBack={handleBackToDashboard} onDataRestored={() => window.location.reload()} sportivi={sportivi} setSportivi={setSportivi} grade={grade} preturiConfig={preturiConfig} participari={inscrieriExamene} examene={sesiuniExamene} plati={plati} setPlati={setPlati} familii={familii} onNavigate={(view) => setActiveView(view)} currentUser={currentUser!} />, isFederationAdmin);
-      
-      case 'rapoarte-examen':
-        return renderProtected(<RapoarteExamen onBack={handleBackToDashboard} currentUser={currentUser!} clubs={clubs} sesiuni={filteredData.sesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={filteredData.inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={filteredData.sportivi} setSportivi={setSportivi} grade={grade} locatii={locatii} setLocatii={setLocatii} plati={filteredData.plati} setPlati={setPlati} preturiConfig={preturiConfig} deconturiFederatie={filteredData.deconturiFederatie} setDeconturiFederatie={setDeconturiFederatie} istoricGrade={filteredData.istoricGrade} setIstoricGrade={setIstoricGrade} onViewSportiv={onViewSportiv} />, permissions.isInstructor);
-      
-      case 'setari-club':
-        return renderProtected(<ClubSettings onBack={handleBackToDashboard} />, isAtLeastClubAdmin);
-        
-      case 'tipuri-abonament':
-        return renderProtected(<TipuriAbonamentManagement onBack={handleBackToDashboard} tipuriAbonament={filteredData.tipuriAbonament} setTipuriAbonament={setTipuriAbonament} currentUser={currentUser!} clubs={clubs}/>, isAtLeastClubAdmin);
-
-      case 'configurare-preturi':
-        return renderProtected(<ConfigurarePreturi grade={grade} onBack={handleBackToDashboard} />, isAtLeastClubAdmin);
-
-      case 'grade':
-        return renderProtected(<GradeManagement grade={grade} setGrade={setGrade} onBack={handleBackToDashboard} />, isAtLeastClubAdmin);
-
-      case 'reduceri':
-        return renderProtected(<ReduceriManagement onBack={handleBackToDashboard} reduceri={reduceri} setReduceri={setReduceri} />, isAtLeastClubAdmin);
-      
-      case 'nomenclatoare':
-        return renderProtected(<GestionareNomenclatoare onBack={handleBackToDashboard} tipuriPlati={tipuriPlati} setTipuriPlati={setTipuriPlati} plati={plati} />, isAtLeastClubAdmin);
-
-      case 'familii':
-        return renderProtected(<FamiliiManagement onBack={handleBackToDashboard} familii={filteredData.familii} setFamilii={setFamilii} sportivi={filteredData.sportivi} setSportivi={setSportivi} tipuriAbonament={filteredData.tipuriAbonament} grupe={filteredData.grupe} currentUser={currentUser!} />, isAtLeastInstructor);
-        
-      case 'notificari':
-        return renderProtected(<Notificari onBack={handleBackToDashboard} currentUser={currentUser!}/>, isAtLeastInstructor);
-      
-      case 'taxe-anuale':
-        return renderProtected(<TaxeAnuale onBack={handleBackToDashboard} currentUser={currentUser!} sportivi={filteredData.sportivi} plati={filteredData.plati} setPlati={setPlati} />, isAtLeastClubAdmin);
-
-      case 'istoric-prezenta':
-        return <MartialAttendance onBack={handleBackToDashboard} currentUser={currentUser!} antrenamente={antrenamente} grupe={grupe} />;
-
-      case 'istoric-plati':
-        return <IstoricPlati onBack={handleBackToDashboard} viewedUser={currentUser!} vizualizarePlati={vizualizarePlati} />;
-
-      case 'account-settings':
-        return <AccountSettings onBack={handleBackToDashboard} currentUser={currentUser!} userRoles={userRoles} setCurrentUser={setCurrentUser} setSportivi={setSportivi} />;
-      
-      case 'fisa-digitala':
-        return <FisaDigitalaSportiv onBack={handleBackToDashboard} currentUser={currentUser!} grade={grade} participari={inscrieriExamene} examene={sesiuniExamene} plati={plati} />;
-
-      case 'fisa-competitie':
-        return <FisaCompetitie onBack={handleBackToDashboard} currentUser={currentUser!} grade={grade} participari={inscrieriExamene} examene={sesiuniExamene} />;
-
-      case 'backdoor-check':
-        return <BackdoorCheck onBack={handleBackToDashboard} currentUser={currentUser!} />;
-        
-      case 'backdoor-test':
-        return <BackdoorTest onBack={handleBackToDashboard} currentUser={currentUser!} activeRole={activeRole!} userRoles={userRoles} />;
-
-      default:
-         return <div>Lipsește Vizualizarea</div>;
-    }
-  };
   
   if ((loading || clubFilterLoading) && isMobile) {
       return <MartialArtsSkeleton />;

@@ -15,6 +15,9 @@ import { DeleteAuditModal } from './DeleteAuditModal';
 import { GradBadge } from '../utils/grades';
 import { MartialArtsSkeleton } from './MartialArtsSkeleton';
 import { SportiviGrid } from './SportiviGrid';
+import { SportiviFilter } from './SportiviFilter';
+import { SportiviTable } from './SportiviTable';
+import { SportiviMobileList } from './SportiviMobileList';
 
 const getAge = (dateString: string | null | undefined): number => {
     if (!dateString) return 0;
@@ -27,51 +30,8 @@ const getAge = (dateString: string | null | undefined): number => {
     return age;
 };
 
-// --- Mobile Card Component ---
-const SportivCardMobile: React.FC<{
-    sportiv: Sportiv;
-    onRowClick: (item: Sportiv) => void;
-    onOpenWallet: (item: Sportiv) => void;
-    familie: Familie | undefined;
-    familyBalance: number | undefined;
-    individualBalance: number | undefined;
-    grupa: Grupa | undefined;
-    grade: Grad[];
-}> = ({ sportiv, onRowClick, onOpenWallet, familie, familyBalance, individualBalance, grupa, grade }) => {
-    const grad = grade.find(g => g.id === sportiv.grad_actual_id);
-    return (
-        <Card onClick={() => onRowClick(sportiv)} className={`border-l-4 ${sportiv.status === 'Activ' ? 'border-green-500' : 'border-slate-600'}`}>
-            <div className="flex justify-between items-start">
-                <div>
-                    <p className="font-bold text-white text-lg mb-1">{sportiv.nume} {sportiv.prenume}</p>
-                    <GradBadge grad={grad} />
-                    <p className="text-sm text-slate-400 mt-2">{getAge(sportiv.data_nasterii)} ani - {grupa?.denumire || 'Fără grupă'}</p>
-                </div>
-                <div className="flex flex-wrap gap-1 justify-end">
-                    {(sportiv.roluri || []).map(r => <RoleBadge key={r.id} role={r} />)}
-                </div>
-            </div>
-            <div className="mt-4 pt-4 border-t border-slate-700">
-                {familie && familyBalance !== undefined ? (
-                    <div className="text-xs">
-                        <p className="text-slate-300">Familia {familie.nume}</p>
-                        <p className={`font-bold ${familyBalance >= 0 ? 'text-green-400' : 'text-red-400'}`}>Sold: {familyBalance.toFixed(2)} lei</p>
-                    </div>
-                ) : individualBalance !== undefined ? (
-                     <div className="text-xs">
-                        <p className="text-slate-300">Sold Individual</p>
-                        <p className={`font-bold ${individualBalance >= 0 ? 'text-green-400' : 'text-red-400'}`}>{individualBalance.toFixed(2)} lei</p>
-                    </div>
-                ) : null}
-            </div>
-            <div className="mt-4 flex gap-2">
-                <Button size="sm" variant="info" onClick={(e) => { e.stopPropagation(); onOpenWallet(sportiv); }} className="w-full">
-                    <WalletIcon className="w-4 h-4 mr-2" /> Portofel
-                </Button>
-            </div>
-        </Card>
-    );
-};
+
+
 
 
 // --- Componenta Management Principală ---
@@ -96,6 +56,7 @@ export const SportiviManagement: React.FC<{
     setAllRoles: React.Dispatch<React.SetStateAction<Rol[]>>;
     vizualizarePlati: VizualizarePlata[];
     loading?: boolean;
+    onBack: () => void;
 }> = (props) => {
     const { sportivi, setSportivi, grupe, setGrupe, tipuriAbonament, familii, setFamilii, currentUser, plati, setPlati, tranzactii, setTranzactii, onViewSportiv, clubs, grade, permissions, allRoles, setAllRoles, vizualizarePlati, loading } = props;
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -224,63 +185,7 @@ export const SportiviManagement: React.FC<{
         return sortableItems;
     }, [filteredSportivi, sortConfig, grade]);
 
-     const columns: Column<Sportiv>[] = [
-        {
-            key: 'nume',
-            label: 'Nume Complet',
-            tooltip: "Numele complet al sportivului.",
-            render: (s) => (
-                <div>
-                    <div className="font-bold text-white hover:text-brand-primary">{s.nume} {s.prenume} <span className="text-slate-400 font-normal">({getAge(s.data_nasterii)} ani)</span></div>
-                </div>
-            ),
-        },
-        { 
-            key: 'grad_actual_id', 
-            label: 'Grad',
-            tooltip: "Gradul actual al sportivului.",
-            render: (s) => {
-                const gradObj = grade.find(g => g.id === s.grad_actual_id);
-                return <GradBadge grad={gradObj} />;
-            }
-        },
-        { 
-            key: 'status', 
-            label: 'Status',
-            tooltip: "Indică dacă sportivul este activ sau inactiv.",
-            className: 'hidden md:table-cell',
-            render: (s) => (
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${s.status === 'Activ' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                    {s.status}
-                </span>
-            )
-        },
-        { key: 'grupa_id', label: 'Grupă', tooltip: "Grupa de antrenament.", render: (s) => grupe.find(g => g.id === s.grupa_id)?.denumire || '-', className: 'hidden md:table-cell' },
-        {
-            key: 'actions',
-            label: 'Acțiuni',
-            tooltip: "Acțiuni rapide: gestionează portofelul, setările contului sau șterge.",
-            headerClassName: 'text-right',
-            cellClassName: 'text-right',
-            render: (s) => (
-                <div className="flex justify-end items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                    <Button size="sm" variant="secondary" onClick={() => { setSportivToEdit(s); setIsFormModalOpen(true); }} title="Editează Profil" className="!p-2">
-                        <EditIcon className="w-4 h-4" />
-                    </Button>
-                    <Button size="sm" variant="info" onClick={() => handleOpenWallet(s)} title="Portofel Sportiv" className="!p-2 flex items-center gap-1">
-                        <WalletIcon className="w-4 h-4" />
-                        <span className="hidden lg:inline text-xs font-bold">Portofel</span>
-                    </Button>
-                    <Button size="sm" variant="secondary" onClick={() => setAccountSettingsSportiv(s)} title="Setări Cont de Acces" className="!p-2">
-                        <ShieldCheckIcon className="w-4 h-4" />
-                    </Button>
-                     <Button size="sm" variant="danger" onClick={() => setSportivToDelete(s)} title="Șterge Sportiv" className="!p-2">
-                        <TrashIcon className="w-4 h-4" />
-                    </Button>
-                </div>
-            )
-        }
-    ];
+
 
     const handleSave = async (formData: Partial<Sportiv>): Promise<{ success: boolean; error?: any; data?: Sportiv; }> => {
         try {
@@ -418,10 +323,39 @@ export const SportiviManagement: React.FC<{
                 )}
             </div>
 
+            <SportiviFilter 
+                filters={filters}
+                onFilterChange={handleFilterChange}
+                grupe={grupe}
+                allRoles={allRoles}
+                grade={grade}
+            />
+
             {loading ? (
                 <MartialArtsSkeleton count={8} />
+            ) : isMobile ? (
+                <SportiviMobileList
+                    sportivi={sortedAndFilteredSportivi}
+                    onRowClick={handleRowClick}
+                    onOpenWallet={handleOpenWallet}
+                    families={familii}
+                    familyBalances={familyBalances}
+                    individualBalances={individualBalances}
+                    grupe={grupe}
+                    grade={grade}
+                />
             ) : (
-                <SportiviGrid sportivi={sportivi} />
+                <SportiviTable
+                    sportivi={sortedAndFilteredSportivi}
+                    grupe={grupe}
+                    grade={grade}
+                    onRowClick={handleRowClick}
+                    onEdit={(s) => { setSportivToEdit(s); setIsFormModalOpen(true); }}
+                    onOpenWallet={handleOpenWallet}
+                    onOpenAccountSettings={setAccountSettingsSportiv}
+                    onDelete={setSportivToDelete}
+                    requestSort={requestSort}
+                />
             )}
 
             {isFormModalOpen && (

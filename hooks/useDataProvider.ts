@@ -55,9 +55,10 @@ export const useDataProvider = () => {
     const initializeAndFetchData = useCallback(async () => {
         try {
             setLoading(true);
+            setError(null);
             if (!supabase) throw new Error("Clientul Supabase nu este configurat.");
 
-            const { data: { session: currentSession } } = await supabase.auth.getSession();
+            let { data: { session: currentSession } } = await supabase.auth.getSession();
             if (!currentSession) {
                 setSession(null);
                 setLoading(false);
@@ -67,7 +68,22 @@ export const useDataProvider = () => {
             setSession(currentSession);
             const cleanedSupabase = withCleanUuidFilters(supabase as SupabaseClient<any, any>);
 
-            // 1. Fetch Roluri Utilizator
+            // Verificam si setam contextul de rol, daca e necesar
+            if (!currentSession.user?.user_metadata?.rol_activ_context) {
+                try {
+                    const { error: rpcError } = await supabase.rpc('set_primary_context');
+                    if (rpcError) throw new Error(`Eroare la setarea contextului de rol: ${rpcError.message}`);
+                    
+                    // Re-fetch session pentru a avea metadatele actualizate
+                    const { data: { session: updatedSession } } = await supabase.auth.getSession();
+                    if (!updatedSession) throw new Error('Sesiunea nu a putut fi reîmprospătată după setarea contextului.');
+                    currentSession = updatedSession;
+                } catch (rpcError: any) {
+                    console.warn('RPC set_primary_context not available, proceeding without it:', rpcError.message);
+                }
+            }
+
+            // Fetch Roluri Utilizator
             const { data: roles, error: rolesError } = await supabase
                 .from('utilizator_roluri_multicont')
                 .select(`id, rol_id, sportiv_id, club_id, is_primary, rol_denumire, roluri:rol_id(nume), club:club_id(nume), sportiv:sportiv_id(*)`)
@@ -80,14 +96,18 @@ export const useDataProvider = () => {
                 return;
             }
 
-            // 2. Determinare Context Activ (Admin/Instructor/Sportiv)
             const savedRoleId = localStorage.getItem('phi-hau-active-role-context-id')?.replace(/"/g, '');
             let activeCtx = (roles.find(r => r.id === savedRoleId) || roles.find(r => r.is_primary) || roles[0]) as any;
+
+            if (!activeCtx) {
+                setError("Nu s-a putut determina un rol activ. Vă rugăm contactați administratorul.");
+                setLoading(false);
+                return;
+            }
             
             setActiveRoleContext(activeCtx);
             setUserRoles(roles);
 
-            // 3. Configurare User Profile
             const profile = activeCtx.sportiv;
             setCurrentUser((profile || {
                 id: currentSession.user.id,
@@ -97,7 +117,6 @@ export const useDataProvider = () => {
                 roluri: roles.map((r: any) => r.roluri)
             }) as any);
 
-            // 4. Fetch Bulk Data (Modul Sportivi, Evenimente, Administrativ)
             const cleanClubId = (activeCtx.club_id && activeCtx.club_id !== 'null') ? activeCtx.club_id : null;
             const activeRoleName = Array.isArray(activeCtx.roluri) ? activeCtx.roluri[0]?.nume : activeCtx.roluri?.nume;
 
@@ -163,11 +182,17 @@ export const useDataProvider = () => {
             }
         } catch (err: any) {
             console.error("Critical Fetch Error:", err);
-            setError(err.message);
+            if (err.message.includes('network')) {
+                setError('Eroare de rețea. Verificați conexiunea la internet.');
+            } else if (err.message.includes('403') || err.message.includes('RLS')) {
+                setError('Acces Refuzat. Nu aveți permisiunile necesare.');
+            } else {
+                setError(`A apărut o eroare neașteptată: ${err.message}`);
+            }
         } finally {
             setLoading(false);
         }
-    }, [withCleanUuidFilters]);
+    }, []);
 
     useEffect(() => {
         initializeAndFetchData();

@@ -169,10 +169,16 @@ export const AuthContainer: React.FC = () => {
                 data_inscrierii: new Date().toISOString().split('T')[0],
                 status: 'Activ',
                 trebuie_schimbata_parola: true,
-            }).select().single();
+            }).select().maybeSingle();
 
         if (profileError) {
              dispatch({ type: 'SET_MESSAGE', payload: { type: 'error', text: `Contul a fost creat, dar profilul nu a putut fi salvat: ${profileError.message}` } });
+             dispatch({ type: 'SET_LOADING', payload: false });
+             return;
+        }
+
+        if (!newProfile) {
+             dispatch({ type: 'SET_MESSAGE', payload: { type: 'error', text: 'Contul a fost creat, dar profilul nu a putut fi recuperat. Verificați permisiunile.' } });
              dispatch({ type: 'SET_LOADING', payload: false });
              return;
         }

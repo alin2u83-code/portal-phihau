@@ -283,8 +283,9 @@ export const SportiviManagement: React.FC<{
         try {
             if (sportivToEdit) {
                 const { roluri, cluburi, ...sportivData } = formData;
-                const { data, error } = await supabase.from('sportivi').update(sportivData).eq('id', sportivToEdit.id).select('*, cluburi(*), utilizator_roluri_multicont(rol_denumire)').single();
+                const { data, error } = await supabase.from('sportivi').update(sportivData).eq('id', sportivToEdit.id).select('*, cluburi(*), utilizator_roluri_multicont(rol_denumire)').maybeSingle();
                 if (error) throw error;
+                if (!data) throw new Error("Nu s-au putut prelua datele actualizate. Verificați permisiunile.");
     
                 const updatedRoles = (data.utilizator_roluri_multicont || []).map((r: any) => allRoles.find(role => role.nume === r.rol_denumire)).filter(Boolean);
                 const updatedSportiv = { ...data, roluri: updatedRoles };
@@ -311,8 +312,9 @@ export const SportiviManagement: React.FC<{
                 
                 let newProfile;
                 try {
-                    const { data, error: profileError } = await supabase.from('sportivi').insert(finalProfileData).select('*, cluburi(*)').single();
+                    const { data, error: profileError } = await supabase.from('sportivi').insert(finalProfileData).select('*, cluburi(*)').maybeSingle();
                     if (profileError) throw profileError;
+                    if (!data) throw new Error("Profilul a fost creat, dar nu a putut fi recuperat. Verificați permisiunile.");
                     newProfile = data;
                 } catch (profileError: any) {
                     await supabase.functions.invoke('delete-user-admin', { body: { user_id: user.id } });
@@ -380,9 +382,10 @@ export const SportiviManagement: React.FC<{
             if (!authUser) throw new Error("Nu s-a putut crea contul de autentificare. Răspunsul de la server a fost gol.");
     
             const profileUpdates = { user_id: authUser.id, email: createAccountForm.email, username: createAccountForm.username };
-            const { data, error } = await supabase.from('sportivi').update(profileUpdates).eq('id', sportivForAccountCreation.id).select('*, cluburi(*)').single();
+            const { data, error } = await supabase.from('sportivi').update(profileUpdates).eq('id', sportivForAccountCreation.id).select('*, cluburi(*)').maybeSingle();
     
             if (error) throw new Error(`Cont Auth creat, dar eroare la legarea profilului: ${error.message}.`);
+            if (!data) throw new Error(`Cont Auth creat, dar profilul nu a putut fi recuperat după legare. Verificați permisiunile.`);
             
             const { error: roleError } = await supabase.from('utilizator_roluri_multicont').insert({
                 user_id: authUser.id,

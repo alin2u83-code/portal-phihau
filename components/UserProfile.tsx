@@ -13,6 +13,7 @@ import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
 import { AddGradeModal } from './AddGradeModal';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { GradBadge } from '../utils/grades';
+import { SportivAvatarEditor } from './SportivAvatarEditor';
 
 const getGrad = (gradId: string | null, allGrades: Grad[]) => gradId ? allGrades.find(g => g.id === gradId) : null;
 const getAge = (dateString: string) => { if (!dateString) return 0; const today = new Date(); const birthDate = new Date(dateString.includes('T') ? dateString : dateString + 'T00:00:00'); if (isNaN(birthDate.getTime())) { return 0; } let age = today.getFullYear() - birthDate.getFullYear(); const m = today.getMonth() - birthDate.getMonth(); if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; } return age; };
@@ -130,8 +131,9 @@ const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose, onTransf
                 .from('sportivi')
                 .select('*, roluri(id, nume)')
                 .eq('id', sportiv.id)
-                .single();
+                .maybeSingle();
             if (fetchError) throw fetchError;
+            if (!updatedSportiv) throw new Error("Nu s-a putut recupera profilul după transfer. Verificați permisiunile.");
 
             showSuccess("Transfer Finalizat", `${sportiv.nume} ${sportiv.prenume} a fost mutat la noul club.`);
             setTransferSuccess(true);
@@ -569,8 +571,9 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
             if (!sportiv.id) throw new Error("ID-ul sportivului lipsește.");
             
             const { roluri, cluburi, ...sportivData } = formData;
-            const { data, error } = await supabase.from('sportivi').update(sportivData).eq('id', sportiv.id).select('*, cluburi(*), utilizator_roluri_multicont(rol_denumire)').single();
+            const { data, error } = await supabase.from('sportivi').update(sportivData).eq('id', sportiv.id).select('*, cluburi(*), utilizator_roluri_multicont(rol_denumire)').maybeSingle();
             if (error) throw error;
+            if (!data) throw new Error("Nu s-au putut prelua datele actualizate. Verificați permisiunile.");
 
             const updatedRoles = (data.utilizator_roluri_multicont || []).map((r: any) => ({ nume: r.rol_denumire })).filter(Boolean);
             const updatedSportiv = { ...data, roluri: updatedRoles };
@@ -623,12 +626,14 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
         if (!supabase) return;
         setIsSaving(true);
         const { id, ...updates } = editedPlata;
-        const { data, error } = await supabase.from('plati').update(updates).eq('id', id).select().single();
+        const { data, error } = await supabase.from('plati').update(updates).eq('id', id).select().maybeSingle();
         setIsSaving(false);
         if (error) {
-            showError("Eroare la Salvare", error);
+            showError("Eroare la Salvare", error.message || error);
+        } else if (!data) {
+            showError("Eroare la Salvare", "Nu s-a putut actualiza factura. Verificați permisiunile.");
         } else {
-            setPlati(prev => prev.map(p => p.id === id ? editedPlata : p));
+            setPlati(prev => prev.map(p => p.id === id ? data : p));
             setPlataToEdit(null);
             showSuccess("Succes", "Factura a fost actualizată.");
         }
@@ -664,10 +669,20 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
     return (
         <div className="space-y-4">
             <header className="bg-[var(--bg-card)] p-4 rounded-xl shadow-lg border border-[var(--border-color)] flex flex-col md:flex-row items-center gap-6">
-                <div><GradBadge grad={currentGrad} isLarge /></div>
-                <div className="text-center md:text-left flex-grow">
-                    <h1 className="text-3xl font-bold text-white">{sportiv.nume} {sportiv.prenume}</h1>
-                    <p className="text-lg text-slate-300">{grupe.find(g => g.id === sportiv.grupa_id)?.denumire || 'Fără grupă'}</p>
+                <div className="flex flex-col md:flex-row items-center gap-6 flex-grow">
+                    <div className="flex flex-col items-center">
+                        <SportivAvatarEditor 
+                            sportiv={sportiv} 
+                            onUploadSuccess={(url) => {
+                                setSportivi(prev => prev.map(s => s.id === sportiv.id ? { ...s, foto_url: url } : s));
+                            }} 
+                        />
+                        <GradBadge grad={currentGrad} isLarge />
+                    </div>
+                    <div className="text-center md:text-left">
+                        <h1 className="text-3xl font-bold text-white">{sportiv.nume} {sportiv.prenume}</h1>
+                        <p className="text-lg text-slate-300">{grupe.find(g => g.id === sportiv.grupa_id)?.denumire || 'Fără grupă'}</p>
+                    </div>
                 </div>
                 <div className="flex gap-2">
                     <Button variant="info" onClick={() => setIsEditModalOpen(true)} className="!py-2 !px-3"><EditIcon className="w-5 h-5 mr-2"/> Editare</Button>

@@ -329,8 +329,9 @@ export const SportivFormModal: React.FC<{
             denumire: nume, 
             sala: 'N/A', 
             club_id: isSuperAdmin ? null : currentUser?.club_id 
-        }).select().single();
+        }).select().maybeSingle();
         if (error) throw error;
+        if (!data) throw new Error("Grupa a fost creată, dar nu a putut fi recuperată. Verificați permisiunile.");
         setGrupe(prev => [...prev, { ...data, program: [] }]);
     };
 
@@ -394,8 +395,9 @@ export const SportivFormModal: React.FC<{
             </Modal>
             <QuickAddModal title="Adaugă Grupă" label="Nume Grupă" isOpen={isGrupaModalOpen} onClose={() => setIsGrupaModalOpen(false)} onSave={handleQuickAddGrupa} />
             <QuickAddModal title="Adaugă Familie" label="Nume Familie" isOpen={isFamilieModalOpen} onClose={() => setIsFamilieModalOpen(false)} onSave={async (n) => {
-                const { data, error } = await supabase.from('familii').insert({ nume: n }).select().single();
+                const { data, error } = await supabase.from('familii').insert({ nume: n }).select().maybeSingle();
                 if (error) throw error;
+                if (!data) throw new Error("Familia a fost creată, dar nu a putut fi recuperată. Verificați permisiunile.");
                 setFamilii(prev => [...prev, data]);
             }} />
         </>

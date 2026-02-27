@@ -126,7 +126,10 @@ const SesiuneForm: React.FC<SesiuneFormProps> = ({ isOpen, onClose, onSave, sesi
   const handleSaveLocatie = async (locatieData: { nume: string, adresa: string }) => {
         if (!supabase) { showError("Eroare", "Client Supabase neconfigurat."); return; }
         const { data, error } = await supabase.from('nom_locatii').insert(locatieData).select().single();
-        if (error) { showError("Eroare la salvare locație", error); } 
+        if (error) { 
+            console.error('DEBUG:', error);
+            showError("Eroare la salvare locație", error); 
+        } 
         else if (data) {
             setLocatii(prev => [...prev, data]);
             setFormState(p => ({ ...p, locatie_id: data.id }));
@@ -207,6 +210,7 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
             }
             showSuccess("Examen Finalizat", "Decontul a fost generat și trimis către federație.");
         } catch (err: any) {
+            console.error('DEBUG:', err);
             showError("Eroare la finalizare", `Funcția RPC 'finalizeaza_examen' nu a putut fi executată. Asigurați-vă că există în baza de date. Detalii: ${err.message}`);
         } finally {
             setIsFinalizing(false);
@@ -311,10 +315,16 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
 
     if (sesiuneToEdit) {
         const { data, error } = await supabase.from('sesiuni_examene').update(dataToSave).eq('id', sesiuneToEdit.id).select().single();
-        if (error) { showError("Eroare la actualizare", error); } else if (data) { setSesiuni(prev => prev.map(e => e.id === data.id ? data as SesiuneExamen : e)); showSuccess("Succes", "Sesiunea a fost actualizată."); }
+        if (error) { 
+            console.error('DEBUG:', error);
+            showError("Eroare la actualizare", error); 
+        } else if (data) { setSesiuni(prev => prev.map(e => e.id === data.id ? data as SesiuneExamen : e)); showSuccess("Succes", "Sesiunea a fost actualizată."); }
     } else {
         const { data, error } = await supabase.from('sesiuni_examene').insert(dataToSave).select().single();
-        if (error) { showError("Eroare la adăugare", error); } else if (data) { setSesiuni(prev => [...prev, data as SesiuneExamen]); showSuccess("Succes", "Sesiunea a fost creată."); }
+        if (error) { 
+            console.error('DEBUG:', error);
+            showError("Eroare la adăugare", error); 
+        } else if (data) { setSesiuni(prev => [...prev, data as SesiuneExamen]); showSuccess("Succes", "Sesiunea a fost creată."); }
     }
   };
 
@@ -335,6 +345,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
         handleBackToList();
         showSuccess("Succes", "Sesiunea și înscrierile asociate au fost șterse.");
     } catch (err: any) {
+        console.error('DEBUG:', err);
         showError("Eroare la ștergere", err);
     } finally {
         setIsDeleting(false);

@@ -153,6 +153,7 @@ const CreateStaffModal: React.FC<{
             onClose();
 
         } catch (err: any) {
+            console.error('DEBUG:', err);
             showError("Operațiune eșuată", err.message);
         } finally {
             setLoading(false);
@@ -335,6 +336,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
             showSuccess("Succes", `Rolurile pentru ${targetUser.nume} au fost salvate!`);
             setEditingId(null);
         } catch (error: any) {
+            console.error('DEBUG:', error);
             showError("Eroare la schimbarea rolului", error.message);
         } finally {
             setRoleSaveLoading(prev => ({ ...prev, [userId]: false }));
@@ -410,6 +412,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
             showSuccess("Cont Creat", `Contul pentru ${selectedUserForAccount.nume} a fost creat cu succes.`);
     
         } catch (err: any) {
+            console.error('DEBUG:', err);
             setCreateAccountError(err.message);
         } finally {
             setCreateAccountLoading(false);
@@ -430,6 +433,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
         
         const { data, error } = await supabase.from('roluri').insert({ nume: trimmedName }).select().single();
         if (error) {
+            console.error('DEBUG:', error);
             setRoleCreationFeedback({type: 'error', message: `Eroare: ${error.message}`});
         } else if (data) {
             setAllRoles(prev => [...prev, data as Rol]);

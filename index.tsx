@@ -14,11 +14,11 @@ if (!rootElement) {
 
 const root = ReactDOM.createRoot(rootElement);
 root.render(
-  <React.StrictMode>
-    <ErrorProvider>
+  <ErrorProvider>
+    <React.StrictMode>
       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <App />
       </BrowserRouter>
-    </ErrorProvider>
-  </React.StrictMode>
+    </React.StrictMode>
+  </ErrorProvider>
 );

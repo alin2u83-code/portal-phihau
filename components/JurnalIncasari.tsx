@@ -26,6 +26,7 @@ const QuickAddTipPlataModal: React.FC<{
             setName('');
             onClose();
         } catch (err) {
+            console.error('DEBUG:', err);
             showError("Eroare Adăugare", err);
         } finally {
             setLoading(false);
@@ -125,6 +126,7 @@ const AdaugaAvans: React.FC<{
         setLoading(false);
 
         if (error) {
+            console.error('DEBUG:', error);
             showError("Eroare la Salvare", error);
         } else if (data) {
             setTranzactii(prev => [...prev, data as Tranzactie]);
@@ -204,7 +206,10 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
 
     const handleQuickAddTipPlata = async (nume: string) => {
         const { data, error } = await supabase.from('tipuri_plati').insert({ nume, is_system_type: false }).select().single();
-        if (error) throw error;
+        if (error) {
+            console.error('DEBUG:', error);
+            throw error;
+        }
         setTipuriPlati(prev => [...prev, data as TipPlata]);
         setFormState(p => ({ ...p, tip: data.nume }));
     };
@@ -381,6 +386,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
             onIncasareProcesata();
             setTimeout(() => onBack(), 1500);
         } catch (err: any) {
+            console.error('DEBUG:', err);
             let detailedMessage = err.message || err;
             if (String(detailedMessage).includes('plati_tip_check')) { detailedMessage = `Tipul de plată selectat ('${formState.tip}') nu este permis. Actualizați constrângerea bazei de date. (${detailedMessage})`; }
             showError("Eroare la procesarea încasării", detailedMessage);
@@ -410,6 +416,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
             }
             showSuccess("Succes", "Tranzacția a fost ștearsă și facturile asociate au fost actualizate.");
         } catch (err: any) {
+            console.error('DEBUG:', err);
             showError("Eroare la ștergere", err);
         } finally {
             setLoading(false);

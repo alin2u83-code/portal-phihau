@@ -23,8 +23,8 @@
               'status-warning': '#f59e0b',
             },
             boxShadow: {
-              'glow-blue': '0 0 12px 3px rgba(29, 78, 216, 0.25)',
-              'glow-secondary': '0 0 15px 4px rgba(100, 255, 218, 0.4)',
+              'glow-blue': '0 0 12px 3px rgba(61, 61, 153, 0.25)',
+              'glow-secondary': '0 0 15px 4px rgba(77, 188, 233, 0.4)',
             },
             animation: {
               'fade-in-down': 'fade-in-down 0.5s ease-out forwards',
@@ -43,8 +43,8 @@
                 },
               },
               'glow-pulse': {
-                  '0%, 100%': { boxShadow: '0 0 10px 2px rgba(100, 255, 218, 0.3)' },
-                  '50%': { boxShadow: '0 0 20px 5px rgba(100, 255, 218, 0.6)' },
+                  '0%, 100%': { boxShadow: '0 0 10px 2px rgba(77, 188, 233, 0.3)' },
+                  '50%': { boxShadow: '0 0 20px 5px rgba(77, 188, 233, 0.6)' },
               },
               'subtle-bounce-in': {
                   '0%': { transform: 'scale(0.9)', opacity: '0' },
@@ -67,13 +67,13 @@
         --bg-input: #1e293b;
         --bg-table-header: #1e293b;
         --bg-table-row-hover: #172a46;
-        --accent: #1d4ed8;
-        --accent-hover: #1e40af;
+        --accent: #3D3D99;
+        --accent-hover: #2E2E7A;
         --text-primary: #ffffff;
         --text-secondary: #94a3b8;
         --border-color: #334155;
-        --brand-primary: #1d4ed8;
-        --brand-secondary: #64ffda;
+        --brand-primary: #3D3D99;
+        --brand-secondary: #4DBCE9;
       }
       body {
         background-color: var(--bg-main);
@@ -87,7 +87,7 @@
       .selected-row-highlight {
         outline: 2px solid var(--brand-secondary);
         outline-offset: -2px;
-        background-color: rgba(100, 255, 218, 0.1);
+        background-color: rgba(77, 188, 233, 0.1);
       }
 
       .sesiune-card {
@@ -148,27 +148,7 @@
         #lista-prezenta-print-area .signature-col { width: 30%; }
         #lista-prezenta-print-area .signature-area { margin-top: 4rem; padding-top: 1rem; border-top: 1px solid #ccc; display: flex; justify-content: space-between; font-size: 11pt; }
       }
-    </style>
-  <script type="importmap">
-{
-  "imports": {
-    "react": "https://esm.sh/react@^18.3.1",
-    "react-dom/": "https://esm.sh/react-dom@^18.3.1/",
-    "react/": "https://esm.sh/react@^18.3.1/",
-    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@^2.43.4",
-    "recharts": "https://esm.sh/recharts@^2.12.7",
-    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
-    "dotenv": "https://esm.sh/dotenv@^17.2.3",
-    "react-router-dom": "https://esm.sh/react-router-dom@6.23.1",
-    "papaparse": "https://esm.sh/papaparse@5.4.1",
-    "react-native": "https://esm.sh/react-native@^0.83.1",
-    "vite-plugin-pwa": "https://esm.sh/vite-plugin-pwa@^1.2.0",
-    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.3",
-    "vite": "https://esm.sh/vite@^7.3.1",
-    "dotenv/": "https://esm.sh/dotenv@^17.3.1/"
-  }
-}
-</script>
+  </style>
 </head>
   <body>
     <div id="root"></div>

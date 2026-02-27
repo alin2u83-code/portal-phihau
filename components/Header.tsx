@@ -25,7 +25,7 @@ export const Header: React.FC<HeaderProps> = ({ activeView, onBack, currentUser,
 
     return (
         <header 
-            className={`fixed top-0 right-0 h-16 flex items-center justify-between px-4 border-b border-slate-700 bg-[#0a192f] transition-all duration-300 ${isSidebarExpanded ? 'md:left-64' : 'md:left-20'} left-0 z-40`}
+            className={`fixed top-0 right-0 h-16 flex items-center justify-between px-4 border-b border-white/10 bg-[#3D3D99] transition-all duration-300 ${isSidebarExpanded ? 'md:left-64' : 'md:left-20'} left-0 z-40`}
         >
             <div className="flex-1">
                 {!isDashboard && !isMobile && (

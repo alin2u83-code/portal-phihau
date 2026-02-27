@@ -27,8 +27,8 @@ export const Button: React.FC<ButtonProps & { as?: 'label', htmlFor?: string }> 
   };
   
   const variantClasses = {
-    primary: "bg-[#FFD700] hover:bg-yellow-500 focus:ring-yellow-400 text-slate-900 font-bold",
-    secondary: "bg-slate-600 hover:bg-slate-700 focus:ring-slate-500 text-white hover:shadow-glow-blue",
+    primary: "bg-[#3D3D99] hover:bg-[#2E2E7A] focus:ring-[#3D3D99] text-white font-bold",
+    secondary: "bg-[#4DBCE9] hover:bg-[#3AA8D1] focus:ring-[#4DBCE9] text-white hover:shadow-glow-secondary",
     danger: "bg-status-danger hover:bg-red-700 focus:ring-red-500 text-white",
     success: "bg-green-600 hover:bg-green-700 focus:ring-green-600 text-white font-bold",
     info: "bg-[var(--accent)] hover:bg-[var(--accent-hover)] focus:ring-[var(--accent)] text-white hover:shadow-glow-blue",
@@ -122,7 +122,7 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(({ label, id, error, ...props }, ref) => {
-    const errorClasses = error ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-slate-300 focus:ring-sky-500 focus:border-sky-500';
+    const errorClasses = error ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-slate-300 focus:ring-[#4DBCE9] focus:border-[#4DBCE9]';
     const themeClasses = 'bg-[var(--bg-input)] text-[var(--text-primary)] placeholder-[var(--text-secondary)]';
 
     return (
@@ -147,7 +147,7 @@ interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
 export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(({ label, id, children, ...props }, ref) => (
     <div className="w-full">
         {label && <label htmlFor={id} className="block text-[11px] uppercase font-bold text-slate-200 mb-1 ml-1">{label}</label>}
-        <select id={id} ref={ref} {...props} className={`w-full bg-[var(--bg-input)] border border-slate-300 rounded px-2 py-1 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-sky-500 focus:border-sky-500 transition-all appearance-none ${props.className}`}>
+        <select id={id} ref={ref} {...props} className={`w-full bg-[var(--bg-input)] border border-slate-300 rounded px-2 py-1 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[#4DBCE9] focus:border-[#4DBCE9] transition-all appearance-none ${props.className}`}>
             {children}
         </select>
     </div>
@@ -201,9 +201,9 @@ export const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
     const colorClasses: Record<Rol['nume'], string> = {
         'SUPER_ADMIN_FEDERATIE': 'bg-purple-900 text-white font-black',
         'ADMIN': 'bg-purple-700 text-white',
-        'ADMIN_CLUB': 'bg-[#FFD700] text-slate-900 font-bold',
+        'ADMIN_CLUB': 'bg-[#3D3D99] text-white font-bold',
         'INSTRUCTOR': 'bg-red-600 text-white',
-        'SPORTIV': 'bg-blue-600 text-white',
+        'SPORTIV': 'bg-[#4DBCE9] text-white',
     };
 
     const displayName = displayNameMap[role.nume] || role.nume;

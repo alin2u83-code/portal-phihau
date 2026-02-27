@@ -48,6 +48,20 @@ export const ErrorNotification: React.FC<ErrorNotificationProps> = ({ title, mes
           <div className="ml-3 w-0 flex-1">
             <p className={`font-bold ${styles.titleColor}`} style={{ fontSize: '14px' }}>{title}</p>
             <p className={`mt-1 text-sm ${styles.messageColor}`} style={{ fontSize: '14px' }}>{message}</p>
+            {type === 'error' && (
+              <button 
+                onClick={() => {
+                  navigator.clipboard.writeText(`${title}: ${message}`);
+                  // Optional: change text briefly to "Copiat!"
+                }}
+                className="mt-2 text-[10px] uppercase font-bold tracking-wider bg-black/20 hover:bg-black/40 px-2 py-1 rounded transition-colors flex items-center gap-1"
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                </svg>
+                Copiază Eroarea
+              </button>
+            )}
           </div>
           <div className="ml-4 flex-shrink-0 flex">
             <button onClick={onClose} className={`inline-flex ${styles.messageColor} rounded-md hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-white/50`}>

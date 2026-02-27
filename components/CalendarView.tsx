@@ -73,7 +73,7 @@ const BulkRegistrationModal: React.FC<BulkRegistrationModalProps> = ({ isOpen, o
                 </div>
                 <div className="flex justify-end pt-4 gap-2 border-t border-slate-700">
                     <Button variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button>
-                    <Button variant="primary" className="bg-blue-700 hover:bg-blue-600 text-white" onClick={handleSaveClick} isLoading={loading} disabled={selectedIds.size === 0}>Înscrie {selectedIds.size > 0 ? `${selectedIds.size} Sportivi` : ''}</Button>
+                    <Button variant="primary" onClick={handleSaveClick} isLoading={loading} disabled={selectedIds.size === 0}>Înscrie {selectedIds.size > 0 ? `${selectedIds.size} Sportivi` : ''}</Button>
                 </div>
             </div>
         </Modal>
@@ -118,14 +118,14 @@ const EventActions: React.FC<EventActionsProps> = ({ event, currentUser, rezulta
         if (registrationStatus.isRegistered) {
             return <div className="text-center text-sm font-bold bg-green-900/50 text-green-300 p-2 rounded-md w-full">Înscris</div>;
         }
-        return <Button onClick={handleSingleClick} isLoading={loading} className="bg-blue-700 hover:bg-blue-600 text-white w-full md:w-auto">Mă înscriu</Button>;
+        return <Button variant="primary" onClick={handleSingleClick} isLoading={loading} className="w-full md:w-auto">Mă înscriu</Button>;
     }
 
     if (permissions.isAdminClub || permissions.isFederationAdmin) {
         if ((registrationStatus.registeredCount ?? 0) > 0) {
             return <div className="text-center text-sm font-bold bg-green-900/50 text-green-300 p-2 rounded-md w-full">Lot Înscris ({registrationStatus.registeredCount})</div>;
         }
-        return <Button onClick={() => onBulkRegister(event.originalEvent)} className="bg-blue-700 hover:bg-blue-600 text-white w-full md:w-auto">Înscriere Lot</Button>;
+        return <Button variant="primary" onClick={() => onBulkRegister(event.originalEvent)} className="w-full md:w-auto">Înscriere Lot</Button>;
     }
 
     return null;
@@ -182,6 +182,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ antrenamente, sesiun
             }
             showSuccess("Înscriere reușită!", `Te-ai înscris la ${event.denumire}.`);
         } catch (err) {
+            console.error('DEBUG:', err);
             showError("Eroare la înscriere", err);
         }
     };
@@ -210,6 +211,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ antrenamente, sesiun
                     newPlati.push(pData as Plata);
                 }
             } catch (err) {
+                console.error('DEBUG:', err);
                 errorCount++;
                 showError(`Eroare la înscrierea lui ${sportiv.nume}`, err);
             }

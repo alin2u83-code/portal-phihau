@@ -112,6 +112,7 @@ export const SportiviManagement: React.FC<{
         if (!sportivToDeactivate) return;
         const { error } = await supabase.from('sportivi').update({ status: 'Inactiv' }).eq('id', sportivToDeactivate.id);
         if(error) {
+            console.error('DEBUG:', error);
             showError("Eroare", error.message);
         } else {
             setSportivi(prev => prev.map(s => s.id === sportivToDeactivate.id ? { ...s, status: 'Inactiv'} : s));
@@ -123,6 +124,7 @@ export const SportiviManagement: React.FC<{
         if (!sportivToDelete) return;
         const { error } = await supabase.from('sportivi').delete().eq('id', sportivToDelete.id);
         if(error) {
+            console.error('DEBUG:', error);
             showError("Eroare", error.message);
         } else {
             setSportivi(prev => prev.filter(s => s.id !== sportivToDelete.id));
@@ -239,6 +241,7 @@ export const SportiviManagement: React.FC<{
                 return { success: true, data: newSportiv };
             }
         } catch (err: any) {
+            console.error('DEBUG:', err);
             if (err.message && (err.message.includes('duplicate key value violates unique constraint') || err.message.includes('unique_sportiv_phi_hau'))) {
                 showError("Eroare Duplicat", "Un sportiv cu același nume, prenume și dată de naștere există deja în sistem.");
             } else {
@@ -305,6 +308,7 @@ export const SportiviManagement: React.FC<{
             setTimeout(() => window.location.reload(), 1500);
     
         } catch (err: any) {
+            console.error('DEBUG:', err);
             setCreateAccountError(err.message);
         } finally {
             setCreateAccountLoading(false);

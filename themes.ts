@@ -24,13 +24,13 @@ export const federationTheme: Theme = {
   '--bg-input': '#1e293b',
   '--bg-table-header': '#1e293b',
   '--bg-table-row-hover': '#172a46',
-  '--accent': '#1d4ed8',
-  '--accent-hover': '#1e40af',
+  '--accent': '#3D3D99',
+  '--accent-hover': '#2E2E7A',
   '--text-primary': '#ffffff',
   '--text-secondary': '#94a3b8',
   '--border-color': '#334155',
-  '--brand-primary': '#1d4ed8',
-  '--brand-secondary': '#64ffda',
+  '--brand-primary': '#3D3D99',
+  '--brand-secondary': '#4DBCE9',
 };
 
 // A sample theme for other clubs for contrast if theme_config is not set

@@ -275,11 +275,13 @@ export const SportivFormModal: React.FC<{
     const [isGrupaModalOpen, setIsGrupaModalOpen] = useState(false);
     const [isFamilieModalOpen, setIsFamilieModalOpen] = useState(false);
     const [criticalPermissionError, setCriticalPermissionError] = useState<string | null>(null);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     useEffect(() => {
         if (isOpen) {
             setFormData(sportivToEdit || initialFormState);
             setCriticalPermissionError(null);
+            setErrorMessage(null);
         }
     }, [isOpen, sportivToEdit]);
     
@@ -291,6 +293,7 @@ export const SportivFormModal: React.FC<{
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setCriticalPermissionError(null);
+        setErrorMessage(null);
 
         const isSuperAdmin = currentUser?.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN');
         
@@ -309,9 +312,12 @@ export const SportivFormModal: React.FC<{
             const result = await onSave(formData);
             if (result.success) {
                 onClose(result.data);
+            } else if (result.error) {
+                setErrorMessage(result.error.message || "A apărut o eroare la salvare.");
             }
-        } catch (err) {
-            // erorile sunt gestionate în onSave
+        } catch (err: any) {
+            console.error('DEBUG:', err);
+            setErrorMessage(err.message || "A apărut o eroare neașteptată.");
         } finally {
             setLoading(false);
         }
@@ -342,6 +348,23 @@ export const SportivFormModal: React.FC<{
                     </div>
                 ) : (
                     <form onSubmit={handleSubmit}>
+                        {errorMessage && (
+                            <div className="mb-4 p-3 bg-red-900/30 border border-red-500/50 rounded-md flex items-start justify-between gap-3 animate-fade-in-down">
+                                <div className="flex items-start gap-2">
+                                    <ExclamationTriangleIcon className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                                    <p className="text-red-400 text-sm font-medium">{errorMessage}</p>
+                                </div>
+                                <button 
+                                    type="button"
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(errorMessage);
+                                    }}
+                                    className="text-[10px] uppercase font-bold bg-red-500/20 hover:bg-red-500/40 px-2 py-1 rounded text-red-200 transition-colors shrink-0"
+                                >
+                                    Copiază
+                                </button>
+                            </div>
+                        )}
                         <SportivFormFields
                             initialData={formData}
                             onFormChange={handleFormChange}

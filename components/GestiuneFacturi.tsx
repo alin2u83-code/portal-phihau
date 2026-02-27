@@ -96,6 +96,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
         setLoading(false);
 
         if (error) {
+            console.error('DEBUG:', error);
             showError("Eroare la adăugare", error.message);
         } else if (data) {
             setPlati(prev => [data, ...prev]);
@@ -116,6 +117,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
         setIsEditLoading(false);
 
         if (error) {
+            console.error('DEBUG:', error);
             showError("Eroare la modificare", error.message);
         } else if (data) {
             setPlati(prev => prev.map(p => p.id === data.id ? data : p));
@@ -131,6 +133,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
         setIsDeleting(false);
 
         if (error) {
+            console.error('DEBUG:', error);
             showError("Eroare la ștergere", error.message);
         } else {
             setPlati(prev => prev.filter(p => p.id !== plataToDelete.id));

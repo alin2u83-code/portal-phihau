@@ -80,7 +80,10 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
                 .select('*')
                 .eq('status', 'Activ');
 
-            if (error) throw error;
+            if (error) {
+                console.error('DEBUG:', error);
+                throw error;
+            }
             
             const today = new Date();
             const dataCurenta = today.toISOString().split('T')[0];
@@ -153,6 +156,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
             }
     
         } catch (err: any) {
+            console.error('DEBUG:', err);
             showError("Eroare la generare", err.message);
         } finally {
             setIsGenerating(false);
@@ -165,7 +169,10 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
         const { id, ...updates } = editingPlata;
         const { error } = await supabase.from('plati').update(updates).eq('id', id);
         setIsSaving(false);
-        if(error) { showError("Eroare la Salvare", error.message); }
+        if(error) { 
+            console.error('DEBUG:', error);
+            showError("Eroare la Salvare", error.message); 
+        }
         else { setPlati(prev => prev.map(p => p.id === id ? editingPlata : p)); setEditingPlata(null); }
     };
     
@@ -174,7 +181,10 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
         setIsDeleting(true);
         const { error } = await supabase.from('plati').delete().eq('id', id);
         setIsDeleting(false);
-        if(error) { showError("Eroare la Ștergere", error.message); }
+        if(error) { 
+            console.error('DEBUG:', error);
+            showError("Eroare la Ștergere", error.message); 
+        }
         else { setPlati(prev => prev.filter(p => p.id !== id)); }
         setPlataToDelete(null);
     };

@@ -113,7 +113,8 @@ const DevRoleImpersonation: React.FC<{ userRoles: any[] }> = ({ userRoles }) => 
         });
 
         if (error) {
-            showError("Eroare la comutarea rolului", error.message);
+            console.error('DEBUG:', error);
+            showError("Ereare la comutarea rolului", error.message);
             setLoadingRole(null);
         } else {
             showSuccess("Context Schimbat", `Perspectiva a fost setată la ${roleName}. Pagina se va reîncărca...`);
@@ -177,6 +178,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ currentUser, userRol
         });
 
         if (error) {
+            console.error('DEBUG:', error);
             showError("Eroare la comutarea rolului", error.message);
             setIsSwitchingRole(false);
         } else {

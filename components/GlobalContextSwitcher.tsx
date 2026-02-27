@@ -14,7 +14,7 @@ export const GlobalContextSwitcher: React.FC<GlobalContextSwitcherProps> = ({ ac
         const isActive = activeContext === context;
         let base = "flex-1 md:flex-none font-bold py-2 px-4 rounded-md transition-all duration-300 flex items-center justify-center gap-2 text-sm";
         if (isActive) {
-            if (context === 'club') return `${base} bg-blue-600 text-white shadow-lg ring-2 ring-white/50`;
+            if (context === 'club') return `${base} bg-[#3D3D99] text-white shadow-lg ring-2 ring-white/50`;
             if (context === 'federation') return `${base} bg-red-600 text-white shadow-lg ring-2 ring-white/50`;
         } else {
             return `${base} bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white`;

@@ -62,20 +62,20 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
             case ROLES.ADMIN_CLUB:
                 menu = adminMenu;
                 name = normalizedRole === ROLES.SUPER_ADMIN_FEDERATIE ? 'Federație' : currentUser.cluburi?.nume || 'Club';
-                border = 'border-amber-400';
+                border = 'border-[#4DBCE9]';
                 icon = ShieldCheckIcon;
                 break;
             case ROLES.INSTRUCTOR:
                 menu = instructorMenu;
                 name = currentUser.cluburi?.nume || 'Club';
-                border = 'border-sky-500';
+                border = 'border-[#4DBCE9]';
                 icon = ShieldCheckIcon;
                 break;
             case ROLES.SPORTIV:
             default:
                 menu = sportivMenu;
                 name = 'Portal Sportiv';
-                border = 'border-green-500';
+                border = 'border-[#4DBCE9]';
                 icon = UserCircleIcon;
                 break;
         }
@@ -84,17 +84,13 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
 
 
     const iconColorClass = useMemo(() => {
-        if (borderClass.includes('amber')) return 'text-amber-400';
-        if (borderClass.includes('blue')) return 'text-blue-400';
-        if (borderClass.includes('sky')) return 'text-sky-400';
-        if (borderClass.includes('green')) return 'text-green-400';
-        return 'text-slate-400';
-    }, [borderClass]);
+        return 'text-[#4DBCE9]';
+    }, []);
     
     const activeRoleContext = useMemo(() => userRoles.find(r => r.is_primary), [userRoles]);
 
     const sidebarContent = (
-        <div className="flex flex-col h-full bg-[var(--bg-card)] text-white shadow-xl">
+        <div className="flex flex-col h-full bg-[#3D3D99] text-white shadow-xl">
             <div ref={roleSwitcherRef}>
                 <RoleSwitcher
                     isExpanded={isExpanded}

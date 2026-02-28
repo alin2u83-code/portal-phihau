@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Plata, Sportiv, User, TipPlata, Familie } from '../types';
 import { Button, Card, Input, Select, Modal } from './ui';
-import { ArrowLeftIcon, PlusIcon, EditIcon, TrashIcon } from './icons';
+import { ArrowLeftIcon, PlusIcon, EditIcon, TrashIcon, SearchIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
@@ -28,6 +28,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
     const { showError, showSuccess } = useError();
     const [formState, setFormState] = useState(initialFormState);
     const [loading, setLoading] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
 
     const [plataToEdit, setPlataToEdit] = useState<Plata | null>(null);
     const [editStatus, setEditStatus] = useState<Plata['status']>('Neachitat');
@@ -53,6 +54,15 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
         }
         return 'N/A';
     };
+
+    const filteredPlati = useMemo(() => {
+        const query = searchQuery.toLowerCase();
+        return clubPlati.filter(p => {
+            const entityName = getEntityName(p).toLowerCase();
+            const desc = p.descriere.toLowerCase();
+            return entityName.includes(query) || desc.includes(query);
+        });
+    }, [clubPlati, searchQuery, sportivi, familii]);
 
     const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setFormState(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -168,7 +178,21 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
             </Card>
 
             <Card className="p-0 overflow-hidden">
-                <div className="p-4 bg-slate-700/50 font-bold text-white">Facturi Recente</div>
+                <div className="p-4 bg-slate-700/50 font-bold text-white flex justify-between items-center flex-wrap gap-4">
+                    <span>Facturi Recente</span>
+                    <div className="relative w-full md:w-64">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <SearchIcon className="h-4 w-4 text-slate-400" />
+                        </div>
+                        <Input
+                            label=""
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Caută după nume sau descriere..."
+                            className="pl-10 py-1 text-sm !mt-0"
+                        />
+                    </div>
+                </div>
                 <div className="overflow-x-auto max-h-[60vh]">
                     <table className="w-full text-left text-sm">
                         <thead className="bg-slate-800 text-slate-400 sticky top-0">
@@ -182,7 +206,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-700">
-                            {clubPlati.map(p => (
+                            {filteredPlati.map(p => (
                                 <tr key={p.id}>
                                     <td className="p-3">{new Date(p.data).toLocaleDateString('ro-RO')}</td>
                                     <td className="p-3 font-medium text-white">{getEntityName(p)}</td>
@@ -207,7 +231,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
                             ))}
                         </tbody>
                     </table>
-                     {clubPlati.length === 0 && <p className="p-12 text-center text-slate-500 italic">Nicio factură manuală adăugată pentru acest club.</p>}
+                     {filteredPlati.length === 0 && <p className="p-12 text-center text-slate-500 italic">Nicio factură găsită.</p>}
                 </div>
             </Card>
 

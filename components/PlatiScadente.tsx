@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Plata, Sportiv, TipAbonament, Familie, Tranzactie, Reducere, User, Club, Permissions, InscriereExamen, Grad } from '../types';
 import { Button, Input, Select, Card, Modal } from './ui';
-import { EditIcon, ArrowLeftIcon, TrashIcon, BanknotesIcon } from './icons';
+import { EditIcon, ArrowLeftIcon, TrashIcon, BanknotesIcon, SearchIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
@@ -190,6 +190,35 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
     };
     
     const filteredPlati = useMemo(() => {
+        const query = (filter.sportiv || '').toLowerCase().trim();
+        
+        let relevantFamilyIds = new Set<string>();
+        let relevantSportivIds = new Set<string>();
+
+        if (query) {
+            (familii || []).forEach(f => {
+                if (f.nume.toLowerCase().includes(query)) {
+                    relevantFamilyIds.add(f.id);
+                }
+            });
+
+            (sportivi || []).forEach(s => {
+                const fullName = `${s.nume} ${s.prenume}`.toLowerCase();
+                if (fullName.includes(query)) {
+                    relevantSportivIds.add(s.id);
+                    if (s.familie_id) {
+                        relevantFamilyIds.add(s.familie_id);
+                    }
+                }
+            });
+
+            (sportivi || []).forEach(s => {
+                if (s.familie_id && relevantFamilyIds.has(s.familie_id)) {
+                    relevantSportivIds.add(s.id);
+                }
+            });
+        }
+
         return (plati || []).filter(p => {
             const sportivPlata = p.sportiv_id ? (sportivi || []).find(s => s.id === p.sportiv_id) : null;
             const familiePlata = p.familie_id ? (familii || []).find(f => f.id === p.familie_id) : null;
@@ -210,7 +239,13 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
             if (!statusMatch) return false;
 
             if (filter.tip && p.tip !== filter.tip) return false;
-            if (filter.sportiv && p.sportiv_id !== filter.sportiv) return false;
+            
+            if (query) {
+                const isRelevantSportiv = p.sportiv_id && relevantSportivIds.has(p.sportiv_id);
+                const isRelevantFamily = p.familie_id && relevantFamilyIds.has(p.familie_id);
+                if (!isRelevantSportiv && !isRelevantFamily) return false;
+            }
+
             return true;
         }).sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime());
     }, [plati, sportivi, familii, filter]);
@@ -311,10 +346,23 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
                      <option value="">Toate Tipurile</option>
                      {[...new Set((plati || []).map(p=>p.tip))].sort().map(tip => <option key={tip} value={tip}>{tip}</option>)}
                 </Select>
-                <Select label="Sportiv" name="sportiv" value={filter.sportiv} onChange={e => setFilter(p => ({...p, sportiv: e.target.value}))}>
-                    <option value="">Toți Sportivii</option>
-                    {(sportivi || []).sort((a,b)=>a.nume.localeCompare(b.nume)).map(s => <option key={s.id} value={s.id}>{s.nume} {s.prenume}</option>)}
-                </Select>
+                
+                <div className="w-full">
+                    <label className="block text-[11px] uppercase font-bold text-slate-200 mb-1 ml-1">Caută Sportiv / Familie</label>
+                    <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <SearchIcon className="h-4 w-4 text-slate-400" />
+                        </div>
+                        <Input
+                            label=""
+                            value={filter.sportiv}
+                            onChange={e => setFilter(p => ({...p, sportiv: e.target.value}))}
+                            placeholder="Nume sportiv sau familie..."
+                            className="pl-10 py-1 text-sm !mt-0"
+                        />
+                    </div>
+                </div>
+
                 <div className="flex items-end">
                     <Button variant="secondary" onClick={() => setFilter(initialFilters)} className="w-full">Resetează Filtre</Button>
                 </div>

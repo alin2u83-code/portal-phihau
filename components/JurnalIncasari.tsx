@@ -319,9 +319,21 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
                 
                 const sportivPtClub = sportivi.find(s => s.id === (formState.sportiv_id || platiInitiale[0]?.sportiv_id));
                 const clubId = sportivPtClub?.club_id;
+
+                if (!clubId) {
+                    throw new Error("Nu s-a putut identifica clubul sportivului. Asigurați-vă că sportivul este alocat unui club.");
+                }
                 
                 const { data: tx, error: txError } = await supabase.from('tranzactii').insert({ plata_ids: idsToUpdate, sportiv_id: formState.sportiv_id || platiInitiale[0]?.sportiv_id, familie_id: formState.familie_id || platiInitiale[0]?.familie_id, suma: sumaNum, data_platii: formState.data_platii!, metoda_plata: formState.metoda_plata!, club_id: clubId }).select().single();
-                if (txError) throw txError;
+                
+                if (txError) {
+                    console.error("Eroare Insert Tranzactie:", txError);
+                    throw new Error(`Eroare la salvarea tranzacției: ${txError.message}`);
+                }
+                if (!tx) {
+                    throw new Error("Tranzacția nu a putut fi salvată (niciun răspuns de la baza de date).");
+                }
+
                 tranzactieId = (tx as Tranzactie).id;
 
                 let amountToDistribute = sumaNum;
@@ -346,7 +358,11 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
 
                 if (platiUpdates.length > 0) {
                     const { error: updateError } = await supabase.from('plati').upsert(platiUpdates);
-                    if (updateError) throw updateError;
+                    if (updateError) {
+                         // Rollback transaction if update fails
+                         await supabase.from('tranzactii').delete().eq('id', tranzactieId);
+                         throw new Error(`Eroare la actualizarea facturilor: ${updateError.message}`);
+                    }
                     
                     setPlati(prevPlati => {
                         const updatesMap = new Map(platiUpdates.map(p => [p.id, p]));
@@ -360,6 +376,11 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
             } else {
                 const sportiv = sportivi.find(s => s.id === formState.sportiv_id);
                 const clubId = sportiv?.club_id;
+
+                if (!clubId) {
+                    throw new Error("Nu s-a putut identifica clubul sportivului. Asigurați-vă că sportivul este alocat unui club.");
+                }
+
                 const { data: newPlata, error: plataError } = await supabase.from('plati').insert({ 
                     sportiv_id: formState.sportiv_id, 
                     familie_id: sportiv?.familie_id, 
@@ -374,10 +395,24 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
                     tip: formState.tip, 
                     observatii: formState.observatii 
                 }).select().single();
-                if (plataError) throw plataError;
+                
+                if (plataError) throw new Error(`Eroare la crearea facturii: ${plataError.message}`);
+                if (!newPlata) throw new Error("Factura nu a putut fi creată.");
+
                 newPlataId = (newPlata as Plata).id;
+                
                 const { data: tx, error: txError } = await supabase.from('tranzactii').insert({ plata_ids: [newPlataId], sportiv_id: formState.sportiv_id, familie_id: sportiv?.familie_id, suma: sumaNum, data_platii: formState.data_platii!, metoda_plata: formState.metoda_plata!, club_id: clubId }).select().single();
-                if (txError) throw txError;
+                
+                if (txError) {
+                    // Rollback plata
+                    await supabase.from('plati').delete().eq('id', newPlataId);
+                    throw new Error(`Eroare la salvarea tranzacției: ${txError.message}`);
+                }
+                if (!tx) {
+                     await supabase.from('plati').delete().eq('id', newPlataId);
+                     throw new Error("Tranzacția nu a putut fi salvată.");
+                }
+
                 tranzactieId = (tx as Tranzactie).id;
                 setPlati(prev => [...prev, newPlata as Plata]);
                 setTranzactii(prev => [...prev, tx as Tranzactie]);

@@ -33,15 +33,19 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 export const SportivProgressChart: React.FC<SportivProgressChartProps> = ({ sportiv, gradeHistory, antrenamente, grade }) => {
     const { chartData, yAxisTicks } = useMemo(() => {
+        if (!grade || !antrenamente || !gradeHistory) return { chartData: [], yAxisTicks: [] };
+
         // --- Grade Data is now pre-processed and passed in as gradeHistory ---
-        const sortedGrades = [...grade].sort((a, b) => a.ordine - b.ordine);
+        const sortedGrades = [...(grade || [])].sort((a, b) => a.ordine - b.ordine);
         
         // --- Attendance Data ---
         const attendanceByMonth: { [key: string]: number } = {};
-        antrenamente.forEach(a => {
-            if (a.prezenta.some(p => p.sportiv_id === sportiv.id)) {
-                const monthKey = a.data.substring(0, 7); // YYYY-MM
-                attendanceByMonth[monthKey] = (attendanceByMonth[monthKey] || 0) + 1;
+        (antrenamente || []).forEach(a => {
+            if ((a.prezenta || []).some(p => p.sportiv_id === sportiv.id)) {
+                const monthKey = (a.data || '').substring(0, 7); // YYYY-MM
+                if (monthKey) {
+                    attendanceByMonth[monthKey] = (attendanceByMonth[monthKey] || 0) + 1;
+                }
             }
         });
         
@@ -105,6 +109,10 @@ export const SportivProgressChart: React.FC<SportivProgressChartProps> = ({ spor
         const grade = yAxisTicks.find(g => g.ordine === tickValue);
         return grade ? grade.nume : '';
     };
+
+    if (!grade || !antrenamente || !gradeHistory) {
+        return <div className="h-80 w-full flex items-center justify-center bg-slate-800/20 rounded-lg animate-pulse">Încărcare date grafic...</div>;
+    }
 
     return (
         <div className="h-80 w-full" style={{fontSize: '12px'}}>

@@ -189,6 +189,10 @@ export const Stepper: React.FC<{ value: number; onChange: (newValue: number) => 
     );
 };
 
+export const Skeleton: React.FC<{ className?: string }> = ({ className }) => (
+  <div className={`animate-pulse bg-slate-700 rounded ${className}`}></div>
+);
+
 export const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
     const displayNameMap: Record<Rol['nume'], string> = {
         'SUPER_ADMIN_FEDERATIE': 'Super Admin',

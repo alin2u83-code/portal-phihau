@@ -121,8 +121,10 @@ export const useDataProvider = () => {
 
             const cleanClubId = (activeCtx.club_id && activeCtx.club_id !== 'null') ? activeCtx.club_id : null;
             const activeRoleName = Array.isArray(activeCtx.roluri) ? activeCtx.roluri[0]?.nume : activeCtx.roluri?.nume;
+            const isSuperAdmin = activeRoleName === 'SUPER_ADMIN_FEDERATIE';
+            const isAdminClub = activeRoleName === 'ADMIN_CLUB' || activeRoleName === 'Admin Club';
 
-            if (cleanClubId || activeRoleName === 'SUPER_ADMIN_FEDERATIE') {
+            if (cleanClubId || isSuperAdmin || isAdminClub) {
                 const queries: Record<string, any> = {
                     clubs: cleanedSupabase.from('cluburi').select('*'),
                     allRoles: cleanedSupabase.from('roluri').select('*'),
@@ -148,6 +150,21 @@ export const useDataProvider = () => {
                     deconturiFederatie: cleanedSupabase.from('deconturi_federatie').select('*'),
                     istoricGrade: cleanedSupabase.from('istoric_grade').select('*'),
                 };
+
+                // Apply club filter if NOT super admin AND NOT admin club (let RLS handle it for them)
+                if (!isSuperAdmin && !isAdminClub && cleanClubId) {
+                    const tablesToFilter = [
+                        'grupe', 'sportiviRaw', 'plati', 'tranzactii', 'evenimente', 
+                        'familii', 'anunturiPrezenta', 'preturiConfig', 'deconturiFederatie', 
+                        'istoricGrade', 'vizualizarePlati', 'istoricPlatiDetaliat',
+                        'sesiuniExamene', 'inscrieriExamene', 'locatii', 'tipuriAbonament', 'reduceri'
+                    ];
+                    tablesToFilter.forEach(key => {
+                        if (queries[key]) {
+                            queries[key] = queries[key].eq('club_id', cleanClubId);
+                        }
+                    });
+                }
 
                 const queryKeys = Object.keys(queries);
                 const settledResults = await Promise.allSettled(Object.values(queries)) as any;

@@ -21,7 +21,7 @@ $$;
 
 -- Funcții Helper pentru citirea contextului din JWT (Rol activ și Club)
 CREATE OR REPLACE FUNCTION public.get_active_role() RETURNS TEXT AS $$
-  SELECT NULLIF(current_setting('request.jwt.claims', true)::jsonb->>'rol_activ_context', '')::text;
+  SELECT UPPER(auth.jwt() -> 'user_metadata' ->> 'rol_activ_context');
 $$ LANGUAGE sql STABLE;
 
 CREATE OR REPLACE FUNCTION public.get_active_club_id() RETURNS UUID AS $$
@@ -97,22 +97,7 @@ END;
 $$;
 
 -- =================================================================
--- 4. SECURITATE (RLS): Politici Granulare pe Module
+-- 4. FINALIZARE
 -- =================================================================
-
--- Aplicare politici Sportivi
-CALL public.reset_all_policies_for_table('sportivi');
-ALTER TABLE public.sportivi ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Admin Club - Management total sportivi club" ON public.sportivi
-    FOR ALL USING (get_active_role() = 'Admin Club' AND club_id = get_active_club_id());
-
--- Aplicare politici Plăți
-CALL public.reset_all_policies_for_table('plati');
-ALTER TABLE public.plati ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.plati ADD COLUMN IF NOT EXISTS reducere_detalii TEXT;
-
-CREATE POLICY "Utilizatorii își văd propriile plăți" ON public.plati
-    FOR SELECT USING (EXISTS (
-        SELECT 1 FROM public.sportivi s WHERE s.user_id = auth.uid() 
-        AND (s.id = plati.sportiv_id OR s.familie_id = plati.familie_id)
-    ));
+-- Notă: Politicile RLS și securitatea sunt acum gestionate în fișierul 
+-- `20260228_CONSOLIDATED_SECURITY.sql`.

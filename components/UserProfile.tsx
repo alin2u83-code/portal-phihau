@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Sportiv, User, Rol, InscriereExamen, Examen, Grad, Antrenament, IstoricGrade, Plata, Familie, TipAbonament, Tranzactie, Reducere, Club, ProgramItem, Grupa, VizualizarePlata } from '../types';
-import { Button, Card, Select, Modal, Input, RoleBadge } from './ui';
+import { Button, Card, Select, Modal, Input, RoleBadge, Skeleton } from './ui';
 import { ArrowLeftIcon, EditIcon, WalletIcon, TrashIcon, ShieldCheckIcon, PlusIcon, ChartBarIcon, TransferIcon, CheckCircleIcon, ExclamationTriangleIcon, UserPlusIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
@@ -22,18 +22,20 @@ const parseDurationToMonths = (durationStr: string): number => { const parts = d
 const ProgramAntrenament: React.FC<{ grupaId: string | null; grupe: Grupa[] }> = ({ grupaId, grupe }) => {
     const zileSaptamanaOrdonate: Record<ProgramItem['ziua'], number> = { 'Luni': 1, 'Marți': 2, 'Miercuri': 3, 'Joi': 4, 'Vineri': 5, 'Sâmbătă': 6, 'Duminică': 7 };
 
-    const grupaCurenta = useMemo(() => grupe.find(g => g.id === grupaId), [grupaId, grupe]);
+    const grupaCurenta = useMemo(() => (grupe || []).find(g => g.id === grupaId), [grupaId, grupe]);
     
     const programSortat = useMemo(() => {
         if (!grupaCurenta?.program) return [];
-        return [...grupaCurenta.program]
+        return [...(grupaCurenta.program || [])]
             .filter(p => p.is_activ !== false) // Show only active sessions
             .sort((a, b) => {
-                const ziCompare = zileSaptamanaOrdonate[a.ziua] - zileSaptamanaOrdonate[b.ziua];
+                const ziCompare = (zileSaptamanaOrdonate[a.ziua] || 0) - (zileSaptamanaOrdonate[b.ziua] || 0);
                 if (ziCompare !== 0) return ziCompare;
-                return a.ora_start.localeCompare(b.ora_start);
+                return (a.ora_start || '').localeCompare(b.ora_start || '');
             });
     }, [grupaCurenta]);
+
+    if (!grupe) return <Card><Skeleton className="h-24 w-full" /></Card>;
 
     return (
         <Card>
@@ -69,7 +71,18 @@ const ProgramAntrenament: React.FC<{ grupaId: string | null; grupe: Grupa[] }> =
 };
 
 const AttendanceIndicator: React.FC<{ attendances: {date: string; present: boolean}[] }> = ({ attendances }) => {
-    const indicators = [...attendances].reverse(); // Afișează cel mai vechi primul
+    if (!attendances) return (
+        <div>
+            <h3 className="text-lg font-bold text-white mb-3">Prezență Recente</h3>
+            <div className="flex gap-2">
+                <Skeleton className="w-8 h-12" />
+                <Skeleton className="w-8 h-12" />
+                <Skeleton className="w-8 h-12" />
+            </div>
+        </div>
+    );
+
+    const indicators = [...(attendances || [])].reverse(); // Afișează cel mai vechi primul
 
     // Umple array-ul pentru a afișa întotdeauna 3 indicatori
     const displayItems = Array.from({ length: 3 }, (_, i) => {
@@ -177,7 +190,7 @@ const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose, onTransf
                         disabled={loading}
                     >
                         <option value="">Alege un club...</option>
-                        {availableClubs.map(c => <option key={c.id} value={c.id}>{c.nume}</option>)}
+                        {(availableClubs || []).map(c => <option key={c.id} value={c.id}>{c.nume}</option>)}
                     </Select>
                     <div className="flex justify-end pt-4 gap-2 border-t border-slate-700">
                         <Button variant="secondary" onClick={handleClose} disabled={loading}>Anulează</Button>
@@ -341,9 +354,11 @@ const TrainingHistory: React.FC<TrainingHistoryProps> = ({ sportivId, antrenamen
     const trainingRecords = useMemo(() => {
         const records: { date: string; groupName: string; status: 'Prezent' | 'Absent' | 'N/A' }[] = [];
         
+        if (!antrenamente || !grupe) return [];
+
         antrenamente.forEach(antr => {
-            const isPresent = antr.prezenta.some(p => p.sportiv_id === sportivId);
-            const group = grupe.find(g => g.id === antr.grupa_id);
+            const isPresent = (antr.prezenta || []).some(p => p.sportiv_id === sportivId);
+            const group = (grupe || []).find(g => g.id === antr.grupa_id);
             
             records.push({
                 date: antr.data,
@@ -354,6 +369,8 @@ const TrainingHistory: React.FC<TrainingHistoryProps> = ({ sportivId, antrenamen
 
         return records.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     }, [sportivId, antrenamente, grupe]);
+
+    if (!antrenamente || !grupe) return <Card><Skeleton className="h-40 w-full" /></Card>;
 
     return (
         <Card>
@@ -445,11 +462,13 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
     const isSuperAdmin = currentUser.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN');
 
     const gradeHistory = useMemo(() => {
-        const examGrades = participari
+        if (!participari || !grade || !examene || !istoricGrade) return [];
+
+        const examGrades = (participari || [])
             .filter(p => p.sportiv_id === sportiv.id && p.rezultat === 'Admis')
             .map(p => {
-                const examen = examene.find(e => e.id === p.sesiune_id);
-                const grad = grade.find(g => g.id === p.grad_vizat_id);
+                const examen = (examene || []).find(e => e.id === p.sesiune_id);
+                const grad = (grade || []).find(g => g.id === p.grad_vizat_id);
                 if (!examen || !grad) return null;
                 return {
                     source: 'examen',
@@ -461,10 +480,10 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
             })
             .filter((p): p is NonNullable<typeof p> => p !== null);
 
-        const manualGrades = istoricGrade
+        const manualGrades = (istoricGrade || [])
             .filter(hg => hg.sportiv_id === sportiv.id && !hg.sesiune_examen_id)
             .map(hg => {
-                const grad = grade.find(g => g.id === hg.grad_id);
+                const grad = (grade || []).find(g => g.id === hg.grad_id);
                 if (!grad) return null;
                 return {
                     source: 'manual',
@@ -489,10 +508,10 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
         if (!vizualizarePlati || !sportivi) return { totalRestante: 0, istoricFacturi: [] };
 
         const familyMemberIds = sportiv.familie_id
-            ? new Set(sportivi.filter(s => s.familie_id === sportiv.familie_id).map(s => s.id))
+            ? new Set((sportivi || []).filter(s => s.familie_id === sportiv.familie_id).map(s => s.id))
             : new Set([sportiv.id]);
 
-        const platiRelevante = vizualizarePlati.filter(p => {
+        const platiRelevante = (vizualizarePlati || []).filter(p => {
             if (p.familie_id && p.familie_id === sportiv.familie_id) return true;
             if (p.sportiv_id && familyMemberIds.has(p.sportiv_id)) return true;
             return false;
@@ -529,7 +548,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
     }, [sportiv, vizualizarePlati, sportivi]);
 
     const userPlatiIds = useMemo(() => {
-        return new Set(plati.filter(p => (p.sportiv_id === sportiv.id || (p.familie_id && p.familie_id === sportiv.familie_id))).map(p => p.id));
+        return new Set((plati || []).filter(p => (p.sportiv_id === sportiv.id || (p.familie_id && p.familie_id === sportiv.familie_id))).map(p => p.id));
     }, [plati, sportiv]);
     const possibleViewError = userPlatiIds.size > 0 && istoricFacturi.length === 0 && !sportiv.user_id;
 
@@ -735,7 +754,12 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                         <div className="mt-4 pt-4 border-t border-slate-700">
                             <h4 className="text-md font-bold text-slate-300 mb-2">Istoric Facturi</h4>
                             <div className="max-h-60 overflow-y-auto space-y-2 pr-2">
-                                {possibleViewError ? (
+                                {!vizualizarePlati ? (
+                                    <div className="space-y-2">
+                                        <Skeleton className="h-12 w-full" />
+                                        <Skeleton className="h-12 w-full" />
+                                    </div>
+                                ) : possibleViewError ? (
                                     <div className="text-center p-4 bg-red-900/20 rounded-md">
                                         <p className="text-sm text-red-300">Datele financiare sunt indisponibile. Acest lucru se poate datora lipsei unui cont de utilizator activ.</p>
                                         <Button onClick={() => window.location.reload()} variant="secondary" size="sm" className="mt-2">Reîncarcă</Button>
@@ -778,7 +802,17 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                                 <thead className="text-slate-400 text-xs uppercase sticky top-0 bg-[var(--bg-card)]">
                                     <tr><th className="py-2">Grad</th><th className="py-2">Data</th><th className="py-2 text-right">Sursă</th></tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-700">{[...gradeHistory].reverse().map(h => ( <tr key={`${h.date}-${h.rank}`}><td className="py-2 font-semibold text-white">{h.rankName}</td><td className="py-2">{new Date(h.date).toLocaleDateString('ro-RO')}</td><td className="py-2 text-right capitalize">{h.source}</td></tr> ))}</tbody>
+                                <tbody className="divide-y divide-slate-700">
+                                    {!gradeHistory ? (
+                                        <tr><td colSpan={3}><Skeleton className="h-20 w-full" /></td></tr>
+                                    ) : [...(gradeHistory || [])].reverse().map(h => ( 
+                                        <tr key={`${h.date}-${h.rank}`}>
+                                            <td className="py-2 font-semibold text-white">{h.rankName}</td>
+                                            <td className="py-2">{new Date(h.date).toLocaleDateString('ro-RO')}</td>
+                                            <td className="py-2 text-right capitalize">{h.source}</td>
+                                        </tr> 
+                                    ))}
+                                </tbody>
                             </table>
                         </div>
                     </Card>

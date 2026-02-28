@@ -24,27 +24,8 @@ COMMENT ON TABLE public.push_subscriptions IS 'Stochează abonamentele pentru no
 COMMENT ON COLUMN public.push_subscriptions.user_id IS 'ID-ul utilizatorului din auth.users. Unic pentru a permite upsert-uri simple.';
 COMMENT ON COLUMN public.push_subscriptions.subscription IS 'Obiectul de abonament generat de browser (include endpoint, keys etc.)';
 
--- Aplică politici de securitate (RLS)
-ALTER TABLE public.push_subscriptions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.push_subscriptions FORCE ROW LEVEL SECURITY;
-
--- Resetează politicile existente pentru a asigura o stare curată
-DO $$
-BEGIN
-   IF EXISTS (SELECT FROM pg_proc WHERE proname = 'reset_all_policies_for_table') THEN
-      CALL public.reset_all_policies_for_table('push_subscriptions');
-   END IF;
-END;
-$$;
-
--- Politica 1: Utilizatorii își pot gestiona propriile abonamente.
--- Le permite să insereze, să vadă, să actualizeze sau să șteargă
--- doar rândurile care corespund propriului lor auth.uid().
-CREATE POLICY "Utilizatorii își gestionează propriile abonamente push"
-ON public.push_subscriptions
-FOR ALL
-USING ( auth.uid() = user_id )
-WITH CHECK ( auth.uid() = user_id );
+-- Notă: Politicile RLS pentru `push_subscriptions` sunt acum gestionate în 
+-- fișierul `20260228_CONSOLIDATED_SECURITY.sql`.
 
 -- Nu este necesară o politică de admin, deoarece funcțiile server-side (Edge Functions)
 -- vor folosi cheia de serviciu (service_role_key) care ocolește RLS.

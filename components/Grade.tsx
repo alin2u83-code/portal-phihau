@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { Grad } from '../types';
 import { Button, Modal, Input, Select } from './ui';
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon } from './icons';
-import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
+import { useNomenclatoare } from '../hooks/useNomenclatoare';
 
 const emptyFormState: Omit<Grad, 'id'> = { nume: '', ordine: 1, varsta_minima: 7, timp_asteptare: "6 luni", grad_start_id: null };
 
@@ -76,19 +76,16 @@ export const GradeManagement: React.FC<GradeManagementProps> = ({ grade, setGrad
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [gradToEdit, setGradToEdit] = useState<Grad | null>(null);
   const [gradToDelete, setGradToDelete] = useState<Grad | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const { showError, showSuccess } = useError();
+  const { showError } = useError();
+  const { addGrade, updateGrade, deleteGrade, loading } = useNomenclatoare();
 
   const handleSaveGrad = async (gradData: Omit<Grad, 'id'>) => {
-    if (!supabase) return;
     if (gradToEdit) {
-        const { data, error } = await supabase.from('grade').update(gradData).eq('id', gradToEdit.id).select().single();
-        if (error) { showError("Eroare la actualizare", error); } 
-        else if (data) { setGrade(prev => prev.map(g => g.id === gradToEdit.id ? data as Grad : g)); showSuccess("Succes", "Grad actualizat."); }
+        const data = await updateGrade(gradToEdit.id, gradData);
+        if (data) { setGrade(prev => prev.map(g => g.id === gradToEdit.id ? data : g)); }
     } else {
-        const { data, error } = await supabase.from('grade').insert(gradData).select().single();
-        if (error) { showError("Eroare la adăugare", error); } 
-        else if (data) { setGrade(prev => [...prev, data as Grad]); showSuccess("Succes", "Grad adăugat."); }
+        const data = await addGrade(gradData);
+        if (data) { setGrade(prev => [...prev, data]); }
     }
   };
   
@@ -96,25 +93,11 @@ export const GradeManagement: React.FC<GradeManagementProps> = ({ grade, setGrad
   const handleOpenAdd = () => { setGradToEdit(null); setIsModalOpen(true); };
   
   const confirmDelete = async (gradId: string) => { 
-      if (!supabase) return;
-      setIsDeleting(true);
-      try {
-          const { data, error: checkError } = await supabase.from('inscrieri_examene').select('id').eq('grad_vizat_id', gradId).limit(1);
-          if (checkError) throw checkError;
-          if (data && data.length > 0) {
-              throw new Error("Acest grad nu poate fi șters deoarece este asociat cu istoricul de examinări al unor sportivi. Îl puteți edita dacă este necesar.");
-          }
-          const { error } = await supabase.from('grade').delete().eq('id', gradId);
-          if (error) throw error;
-
+      const success = await deleteGrade(gradId);
+      if (success) {
           setGrade(prev => prev.filter(g => g.id !== gradId));
-          showSuccess("Succes", "Gradul a fost șters.");
-      } catch (err: any) {
-          showError("Eroare la ștergere", err);
-      } finally {
-          setIsDeleting(false);
-          setGradToDelete(null);
       }
+      setGradToDelete(null);
   };
 
   const sortedGrade = [...grade].sort((a, b) => a.ordine - b.ordine);
@@ -149,7 +132,7 @@ export const GradeManagement: React.FC<GradeManagementProps> = ({ grade, setGrad
         {sortedGrade.length === 0 && <p className="p-4 text-center text-slate-400">Niciun grad definit.</p>}
       </div>
       <GradFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSaveGrad} grade={sortedGrade} gradToEdit={gradToEdit} />
-      <ConfirmDeleteModal isOpen={!!gradToDelete} onClose={() => setGradToDelete(null)} onConfirm={() => { if(gradToDelete) confirmDelete(gradToDelete.id) }} tableName="Grade" isLoading={isDeleting} />
+      <ConfirmDeleteModal isOpen={!!gradToDelete} onClose={() => setGradToDelete(null)} onConfirm={() => { if(gradToDelete) confirmDelete(gradToDelete.id) }} tableName="Grade" isLoading={loading} />
     </div>
   );
 };

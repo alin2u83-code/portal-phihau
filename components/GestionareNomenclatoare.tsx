@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { TipPlata, Plata } from '../types';
 import { Button, Input, Card } from './ui';
 import { PlusIcon, TrashIcon, ArrowLeftIcon } from './icons';
-import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
+import { useNomenclatoare } from '../hooks/useNomenclatoare';
 
 interface GestionareNomenclatoareProps {
     tipuriPlati: TipPlata[];
@@ -15,14 +15,12 @@ interface GestionareNomenclatoareProps {
 
 export const GestionareNomenclatoare: React.FC<GestionareNomenclatoareProps> = ({ tipuriPlati, setTipuriPlati, plati, onBack }) => {
     const [newNume, setNewNume] = useState('');
-    const [loading, setLoading] = useState(false);
     const [toDelete, setToDelete] = useState<TipPlata | null>(null);
-    const [isDeleting, setIsDeleting] = useState(false);
-    const { showError, showSuccess } = useError();
+    const { showError } = useError();
+    const { addTipPlata, deleteTipPlata, loading } = useNomenclatoare();
 
     const handleAdd = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!supabase) { showError("Eroare Configurare", "Client Supabase neinițializat."); return; }
         
         const trimmedName = newNume.trim();
         if (!trimmedName) { showError("Validare Eșuată", "Numele este obligatoriu."); return; }
@@ -34,21 +32,15 @@ export const GestionareNomenclatoare: React.FC<GestionareNomenclatoareProps> = (
 
         const newTipPlata: Omit<TipPlata, 'id'> = { nume: trimmedName, is_system_type: false };
         
-        setLoading(true);
-        const { data, error: insertError } = await supabase.from('tipuri_plati').insert(newTipPlata).select().single();
-        setLoading(false);
+        const data = await addTipPlata(newTipPlata);
 
-        if(insertError) { showError("Eroare la adăugare", insertError); }
-        else if (data) {
-            setTipuriPlati(prev => [...prev, data as TipPlata]);
+        if (data) {
+            setTipuriPlati(prev => [...prev, data]);
             setNewNume('');
-            showSuccess("Succes", "Noul tip de plată a fost adăugat.");
         }
     };
 
     const confirmDelete = async (tipPlata: TipPlata) => {
-        if(!supabase) return;
-        
         if (tipPlata.is_system_type) {
             showError("Ștergere Blocată", "Acesta este un tip de plată de sistem și nu poate fi șters.");
             setToDelete(null);
@@ -62,18 +54,11 @@ export const GestionareNomenclatoare: React.FC<GestionareNomenclatoareProps> = (
             return;
         }
 
-        setIsDeleting(true);
-        try {
-            const { error } = await supabase.from('tipuri_plati').delete().eq('id', tipPlata.id);
-            if (error) throw error;
+        const success = await deleteTipPlata(tipPlata.id);
+        if (success) {
             setTipuriPlati(prev => prev.filter(tp => tp.id !== tipPlata.id));
-            showSuccess('Succes', 'Tipul de plată a fost șters.');
-        } catch (err: any) {
-            showError('Eroare la ștergere', err);
-        } finally {
-            setIsDeleting(false);
-            setToDelete(null);
         }
+        setToDelete(null);
     };
     
     return (
@@ -126,7 +111,7 @@ export const GestionareNomenclatoare: React.FC<GestionareNomenclatoareProps> = (
                 onClose={() => setToDelete(null)} 
                 onConfirm={() => { if(toDelete) confirmDelete(toDelete) }} 
                 tableName={`Tipul de Plată "${toDelete?.nume}"`} 
-                isLoading={isDeleting} 
+                isLoading={loading} 
             />
         </div>
     );

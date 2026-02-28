@@ -14,6 +14,8 @@ interface HeaderProps {
     onNavigate: (view: View) => void;
     onLogout: () => void;
     isSidebarExpanded: boolean;
+    userRoles?: any[];
+    onSwitchRole?: (context: any) => void;
 }
 
 const ROOT_VIEWS: View[] = ['dashboard', 'my-portal', 'federation-dashboard', 'admin-dashboard'];
@@ -25,7 +27,9 @@ export const Header: React.FC<HeaderProps> = ({
     permissions, 
     onNavigate, 
     onLogout, 
-    isSidebarExpanded 
+    isSidebarExpanded,
+    userRoles,
+    onSwitchRole
 }) => {
     const isRootView = ROOT_VIEWS.includes(activeView);
     const isMobile = useIsMobile();
@@ -58,6 +62,8 @@ export const Header: React.FC<HeaderProps> = ({
                     permissions={permissions} 
                     onNavigate={onNavigate} 
                     onLogout={onLogout} 
+                    userRoles={userRoles}
+                    onSwitchRole={onSwitchRole}
                 />
             </div>
         </header>

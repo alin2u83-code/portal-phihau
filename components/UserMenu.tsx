@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { User, Permissions, View } from '../types';
-import { ChevronDownIcon, CogIcon, ArrowRightOnRectangleIcon, HomeIcon, SitemapIcon, UserCircleIcon } from './icons';
+import { User, Permissions, View, Rol } from '../types';
+import { ChevronDownIcon, CogIcon, ArrowRightOnRectangleIcon, HomeIcon, SitemapIcon, UserCircleIcon, ShieldCheckIcon } from './icons';
 
 interface UserMenuProps {
   currentUser: User;
   permissions: Permissions;
   onNavigate: (view: View) => void;
   onLogout: () => void;
+  userRoles?: any[];
+  onSwitchRole?: (context: any) => void;
 }
 
 const getPrimaryRoleName = (permissions: Permissions): string => {
@@ -18,14 +20,14 @@ const getPrimaryRoleName = (permissions: Permissions): string => {
     return 'Utilizator';
 };
 
-const MenuItem: React.FC<{ label: string; icon: React.ElementType; onClick: () => void }> = ({ label, icon: Icon, onClick }) => (
-    <button onClick={onClick} className="flex items-center w-full px-3 py-2 text-sm text-slate-700 hover:bg-slate-200 hover:text-slate-900 rounded-md transition-colors">
+const MenuItem: React.FC<{ label: string; icon: React.ElementType; onClick: () => void; className?: string }> = ({ label, icon: Icon, onClick, className = '' }) => (
+    <button onClick={onClick} className={`flex items-center w-full px-3 py-2 text-sm text-slate-700 hover:bg-slate-200 hover:text-slate-900 rounded-md transition-colors ${className}`}>
         <Icon className="w-5 h-5 mr-3 text-slate-500" />
         <span>{label}</span>
     </button>
 );
 
-export const UserMenu: React.FC<UserMenuProps> = ({ currentUser, permissions, onNavigate, onLogout }) => {
+export const UserMenu: React.FC<UserMenuProps> = ({ currentUser, permissions, onNavigate, onLogout, userRoles = [], onSwitchRole }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const initials = `${currentUser.prenume?.[0] || ''}${currentUser.nume?.[0] || ''}`.toUpperCase();
@@ -47,6 +49,13 @@ export const UserMenu: React.FC<UserMenuProps> = ({ currentUser, permissions, on
     setIsDropdownOpen(false);
   };
 
+  const handleRoleSwitch = (roleContext: any) => {
+      if (onSwitchRole) {
+          onSwitchRole(roleContext);
+      }
+      setIsDropdownOpen(false);
+  };
+
   return (
     <div className="relative" ref={dropdownRef}>
       <button
@@ -66,12 +75,36 @@ export const UserMenu: React.FC<UserMenuProps> = ({ currentUser, permissions, on
         <ChevronDownIcon className={`hidden md:block w-5 h-5 text-slate-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
       </button>
       {isDropdownOpen && (
-        <div className="absolute right-0 mt-2 w-64 bg-slate-100 rounded-lg shadow-2xl border border-slate-300 z-50 animate-fade-in-down">
+        <div className="absolute right-0 mt-2 w-64 bg-slate-100 rounded-lg shadow-2xl border border-slate-300 z-50 animate-fade-in-down max-h-[80vh] overflow-y-auto">
           <div className="p-3 border-b border-slate-300">
             <p className="text-sm font-semibold text-slate-900 truncate">{currentUser.nume} {currentUser.prenume}</p>
             <p className="text-xs text-slate-600 truncate">{currentUser.email}</p>
           </div>
           
+          {userRoles.length > 1 && (
+              <div className="p-2 border-b border-slate-300">
+                  <p className="text-xs font-bold text-slate-500 uppercase px-3 mb-1">Schimbă Rolul</p>
+                  {userRoles.map((roleCtx) => {
+                      const roleName = Array.isArray(roleCtx.roluri) ? roleCtx.roluri[0]?.nume : roleCtx.roluri?.nume;
+                      const clubName = roleCtx.club?.nume || 'Federație';
+                      const isPrimary = roleCtx.is_primary;
+                      return (
+                          <button 
+                              key={roleCtx.id} 
+                              onClick={() => handleRoleSwitch(roleCtx)}
+                              className={`flex flex-col w-full px-3 py-2 text-sm text-left rounded-md transition-colors ${isPrimary ? 'bg-blue-100 text-blue-900 font-semibold' : 'text-slate-700 hover:bg-slate-200 hover:text-slate-900'}`}
+                          >
+                              <span className="flex items-center gap-2">
+                                  <ShieldCheckIcon className={`w-4 h-4 ${isPrimary ? 'text-blue-600' : 'text-slate-400'}`} />
+                                  {roleName}
+                              </span>
+                              <span className="text-xs text-slate-500 ml-6 truncate">{clubName}</span>
+                          </button>
+                      );
+                  })}
+              </div>
+          )}
+
           <div className="p-2 space-y-1">
             {permissions.isSportiv && (
               <MenuItem label="Portalul Meu" icon={UserCircleIcon} onClick={() => handleNavigate('my-portal')} />

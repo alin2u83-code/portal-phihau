@@ -20,21 +20,18 @@ export const useRoleManager = (userId: string | undefined) => {
 
         setLoading(true);
         try {
-            // 1. Resetăm toate rolurile utilizatorului la is_primary = false
-            await supabase
-                .from('utilizator_roluri_multicont')
-                .update({ is_primary: false })
-                .eq('user_id', userId);
+            // Apelează funcția RPC pentru a schimba contextul primar
+            const { error: rpcError } = await supabase.rpc('switch_primary_context', {
+                p_target_context_id: newContextId
+            });
 
-            // 2. Setăm noul rol ca is_primary = true
-            const { error: updateError } = await supabase
-                .from('utilizator_roluri_multicont')
-                .update({ is_primary: true })
-                .eq('id', newContextId);
+            if (rpcError) throw rpcError;
 
-            if (updateError) throw updateError;
+            // Reîmprospătează sesiunea pentru a citi noile metadate din JWT
+            const { error: refreshError } = await supabase.auth.refreshSession();
+            if (refreshError) throw refreshError;
 
-            // 3. Salvăm în local storage și dăm refresh
+            // Salvăm în local storage și dăm refresh
             setActiveRoleContextId(newContextId);
             window.location.reload();
         } catch (error: any) {

@@ -75,12 +75,34 @@ export const SportivAccountSettingsModal: React.FC<SportivAccountSettingsModalPr
         }
 
         try {
-            await supabase.from('utilizator_roluri_multicont').delete().eq('sportiv_id', sportiv.id);
+            // 1. Obținem rolurile curente din utilizator_roluri_multicont
+            const { data: currentRoles, error: fetchError } = await supabase
+                .from('utilizator_roluri_multicont')
+                .select('*')
+                .eq('sportiv_id', sportiv.id);
+                
+            if (fetchError) throw fetchError;
 
-            const rolesToInsert = finalRoleIds.map(roleId => {
+            // 2. Ștergem rolurile care nu mai sunt selectate
+            const rolesToDelete = currentRoles?.filter(cr => !finalRoleIds.some(id => allRoles.find(r => r.id === id)?.nume === cr.rol_denumire)) || [];
+            if (rolesToDelete.length > 0) {
+                const { error: deleteError } = await supabase
+                    .from('utilizator_roluri_multicont')
+                    .delete()
+                    .in('id', rolesToDelete.map(r => r.id));
+                if (deleteError) throw deleteError;
+            }
+
+            // 3. Adăugăm rolurile noi (Upsert pentru a evita duplicatele)
+            const rolesToUpsert = finalRoleIds.map(roleId => {
                 const role = allRoles.find(r => r.id === roleId);
                 if (!role) return null;
+                
+                // Verificăm dacă rolul există deja
+                const existingRole = currentRoles?.find(cr => cr.rol_denumire === role.nume);
+                
                 return {
+                    id: existingRole?.id, // Dacă există, facem update (deși nu e nevoie de update la alte câmpuri, dar e bine pentru upsert)
                     user_id: sportiv.user_id,
                     rol_denumire: role.nume,
                     club_id: sportiv.club_id,
@@ -88,11 +110,14 @@ export const SportivAccountSettingsModal: React.FC<SportivAccountSettingsModalPr
                 };
             }).filter(Boolean);
 
-            if (rolesToInsert.length > 0) {
-                const { error: insertError } = await supabase.from('utilizator_roluri_multicont').insert(rolesToInsert as any[]);
-                if (insertError) throw insertError;
+            if (rolesToUpsert.length > 0) {
+                const { error: upsertError } = await supabase
+                    .from('utilizator_roluri_multicont')
+                    .upsert(rolesToUpsert as any[], { onConflict: 'user_id,rol_denumire,club_id' });
+                if (upsertError) throw upsertError;
             }
 
+            // 4. Actualizăm starea locală
             const updatedRoles = allRoles.filter(r => finalRoleIds.includes(r.id));
             setSportivi(prev => prev.map(s => s.id === sportiv.id ? { ...s, roluri: updatedRoles } : s));
 

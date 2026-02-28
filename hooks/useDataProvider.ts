@@ -123,6 +123,7 @@ export const useDataProvider = () => {
             const activeRoleName = Array.isArray(activeCtx.roluri) ? activeCtx.roluri[0]?.nume : activeCtx.roluri?.nume;
             const isSuperAdmin = activeRoleName === 'SUPER_ADMIN_FEDERATIE';
             const isAdminClub = activeRoleName === 'ADMIN_CLUB' || activeRoleName === 'Admin Club';
+            const isSportiv = activeRoleName === 'SPORTIV';
 
             if (cleanClubId || isSuperAdmin || isAdminClub) {
                 const queries: Record<string, any> = {
@@ -131,12 +132,9 @@ export const useDataProvider = () => {
                     grade: cleanedSupabase.from('grade').select('*'),
                     grupe: cleanedSupabase.from('grupe').select('*, program:orar_saptamanal!grupa_id(*)'),
                     tipuriAbonament: cleanedSupabase.from('tipuri_abonament').select('*'),
-                    locatii: cleanedSupabase.from('nom_locatii').select('*'),
                     tipuriPlati: cleanedSupabase.from('tipuri_plati').select('*'),
-                    reduceri: cleanedSupabase.from('reduceri').select('*'),
                     sportiviRaw: cleanedSupabase.from('sportivi').select('*, cluburi(*), utilizator_roluri_multicont(rol_denumire)'),
                     sesiuniExamene: cleanedSupabase.from('sesiuni_examene').select('*'),
-                    inscrieriExamene: cleanedSupabase.from('inscrieri_examene').select('*, sportivi:sportiv_id(*), grades:grad_vizat_id(*)'),
                     antrenamente: cleanedSupabase.from('program_antrenamente').select('*, grupe(*), prezenta:prezenta_antrenament!antrenament_id(sportiv_id, status)'),
                     plati: cleanedSupabase.from('plati').select('*'),
                     tranzactii: cleanedSupabase.from('tranzactii').select('*'),
@@ -144,12 +142,29 @@ export const useDataProvider = () => {
                     rezultate: cleanedSupabase.from('rezultate').select('*'),
                     familii: cleanedSupabase.from('familii').select('*'),
                     anunturiPrezenta: cleanedSupabase.from('anunturi_prezenta').select('*'),
-                    preturiConfig: cleanedSupabase.from('preturi_config').select('*'),
                     vizualizarePlati: cleanedSupabase.from('view_plata_sportiv').select('*'),
-                    istoricPlatiDetaliat: cleanedSupabase.from('view_istoric_plati_detaliat').select('*'),
-                    deconturiFederatie: cleanedSupabase.from('deconturi_federatie').select('*'),
-                    istoricGrade: cleanedSupabase.from('istoric_grade').select('*'),
                 };
+
+                if (!isSportiv) {
+                    queries.locatii = cleanedSupabase.from('nom_locatii').select('*');
+                    queries.reduceri = cleanedSupabase.from('reduceri').select('*');
+                    queries.preturiConfig = cleanedSupabase.from('preturi_config').select('*');
+                    queries.istoricPlatiDetaliat = cleanedSupabase.from('view_istoric_plati_detaliat').select('*');
+                    queries.deconturiFederatie = cleanedSupabase.from('deconturi_federatie').select('*');
+                }
+
+                // Some tables might have RLS that allows SPORTIV to read their own records, but we'll fetch them and ignore errors if they fail, or just fetch them.
+                if (isSportiv) {
+                    queries.inscrieriExamene = cleanedSupabase.from('inscrieri_examene').select('*, sportivi:sportiv_id(*), grades:grad_vizat_id(*)').eq('sportiv_id', activeCtx.sportiv_id);
+                    queries.istoricGrade = cleanedSupabase.from('istoric_grade').select('*').eq('sportiv_id', activeCtx.sportiv_id);
+                    queries.plati = cleanedSupabase.from('plati').select('*').eq('sportiv_id', activeCtx.sportiv_id);
+                    queries.vizualizarePlati = cleanedSupabase.from('view_plata_sportiv').select('*').eq('sportiv_id', activeCtx.sportiv_id);
+                    // For antrenamente, they might only have access to their group's trainings or where they are present.
+                    // We will let RLS handle antrenamente, or we can filter by grupa_id if needed, but usually RLS handles it.
+                } else {
+                    queries.inscrieriExamene = cleanedSupabase.from('inscrieri_examene').select('*, sportivi:sportiv_id(*), grades:grad_vizat_id(*)');
+                    queries.istoricGrade = cleanedSupabase.from('istoric_grade').select('*');
+                }
 
                 // Apply club filter if NOT super admin AND NOT admin club (let RLS handle it for them)
                 if (!isSuperAdmin && !isAdminClub && cleanClubId) {
@@ -170,8 +185,13 @@ export const useDataProvider = () => {
                 const settledResults = await Promise.allSettled(Object.values(queries)) as any;
                 const { data: processedData, rlsErrors } = processSettledQueries(settledResults, queryKeys);
 
-                if (rlsErrors.length > 0) {
-                    setError(`RLS Error: Access denied for ${rlsErrors.join(', ')}`);
+                // Filter out RLS errors for tables that SPORTIV might not have access to but are not critical
+                const criticalRlsErrors = isSportiv 
+                    ? rlsErrors.filter(err => !['locatii', 'reduceri', 'preturiConfig', 'istoricPlatiDetaliat', 'deconturiFederatie', 'inscrieriExamene', 'istoricGrade'].includes(err))
+                    : rlsErrors;
+
+                if (criticalRlsErrors.length > 0) {
+                    setError(`RLS Error: Access denied for ${criticalRlsErrors.join(', ')}`);
                 }
 
                 const { 

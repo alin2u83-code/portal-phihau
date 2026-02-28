@@ -439,6 +439,8 @@ function App() {
                 onNavigate={setActiveView}
                 onLogout={handleLogout}
                 isSidebarExpanded={isSidebarExpanded}
+                userRoles={userRoles}
+                onSwitchRole={handleSwitchRole}
               />
 
               <main className={`flex-1 transition-all duration-300 pt-16 ${isSidebarExpanded ? 'md:ml-64' : 'md:ml-20'}`}>

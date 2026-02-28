@@ -181,73 +181,118 @@ export const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
         onFormChange(updatedData, Object.keys(newErrors).length === 0);
     };
     
+    const [activeTab, setActiveTab] = useState<'general' | 'contact' | 'club'>('general');
+    
     const inputStyle = "!text-lg !py-2.5 h-12";
 
     return (
         <div className="space-y-4">
-            <FormSection title="Date Personale">
-                <Input label="Nume" name="nume" value={formData.nume || ''} onChange={handleChange} required disabled={loading} error={errors.nume} className={inputStyle} />
-                <Input label="Prenume" name="prenume" value={formData.prenume || ''} onChange={handleChange} required disabled={loading} error={errors.prenume} className={inputStyle} />
-                <BirthDateInput label="Data Nașterii" value={formData.data_nasterii} onChange={(v) => handleChange({ target: { name: 'data_nasterii', value: v } })} required error={errors.data_nasterii}/>
-                <Input label="CNP" name="cnp" value={formData.cnp || ''} onChange={handleChange} disabled={loading} maxLength={13} className={inputStyle} />
-                <Input label="Înălțime (cm)" name="inaltime" type="number" value={formData.inaltime || ''} onChange={handleChange} disabled={loading} className={inputStyle} />
-                <Select label="Gen" name="gen" value={formData.gen || ''} onChange={handleChange} disabled={loading} className={inputStyle}>
-                    <option value="">Nespecificat</option>
-                    <option value="Masculin">Masculin</option>
-                    <option value="Feminin">Feminin</option>
-                </Select>
-            </FormSection>
+            {/* Tabs Navigation */}
+            <div className="flex border-b border-slate-700 mb-4">
+                <button
+                    type="button"
+                    onClick={() => setActiveTab('general')}
+                    className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                        activeTab === 'general' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'
+                    }`}
+                >
+                    Date Personale
+                </button>
+                <button
+                    type="button"
+                    onClick={() => setActiveTab('contact')}
+                    className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                        activeTab === 'contact' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'
+                    }`}
+                >
+                    Contact & Acces
+                </button>
+                <button
+                    type="button"
+                    onClick={() => setActiveTab('club')}
+                    className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                        activeTab === 'club' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'
+                    }`}
+                >
+                    Club & Status
+                </button>
+            </div>
 
-            <FormSection title="Date Contact & Acces">
-                 <Input label="Telefon" name="telefon" value={formData.telefon || ''} onChange={handleChange} disabled={loading} className={inputStyle} />
-                 <Input label="Adresă" name="adresa" value={formData.adresa || ''} onChange={handleChange} disabled={loading} className={inputStyle} />
-                 <Input label="Email (Login)" name="email" type="email" value={formData.email || ''} onChange={handleChange} disabled={loading} required={!initialData.id} error={errors.email} className={inputStyle} />
-            </FormSection>
-
-            {!initialData.id && (
-                <FormSection title="Detalii Cont Acces (Opțional)">
-                    <p className="text-xs text-slate-400 col-span-full -mt-1">La salvare, se va crea automat un cont de acces cu email și parolă generate. Puteți edita detaliile mai sus.</p>
-                    <Input label="Username (Opțional)" name="username" value={formData.username || ''} onChange={handleChange} disabled={loading} placeholder="ex: ion.popescu" className={inputStyle} />
-                    <Input label="Parolă" name="parola" value={formData.parola || ''} onChange={handleChange} disabled={loading} required error={errors.parola} className={inputStyle} />
-                </FormSection>
+            {activeTab === 'general' && (
+                <div className="space-y-4 animate-fade-in">
+                    <FormSection title="Date Personale">
+                        <Input label="Nume" name="nume" value={formData.nume || ''} onChange={handleChange} required disabled={loading} error={errors.nume} className={inputStyle} />
+                        <Input label="Prenume" name="prenume" value={formData.prenume || ''} onChange={handleChange} required disabled={loading} error={errors.prenume} className={inputStyle} />
+                        <BirthDateInput label="Data Nașterii" value={formData.data_nasterii} onChange={(v) => handleChange({ target: { name: 'data_nasterii', value: v } })} required error={errors.data_nasterii}/>
+                        <Input label="CNP" name="cnp" value={formData.cnp || ''} onChange={handleChange} disabled={loading} maxLength={13} className={inputStyle} />
+                        <Input label="Înălțime (cm)" name="inaltime" type="number" value={formData.inaltime || ''} onChange={handleChange} disabled={loading} className={inputStyle} />
+                        <Select label="Gen" name="gen" value={formData.gen || ''} onChange={handleChange} disabled={loading} className={inputStyle}>
+                            <option value="">Nespecificat</option>
+                            <option value="Masculin">Masculin</option>
+                            <option value="Feminin">Feminin</option>
+                        </Select>
+                    </FormSection>
+                </div>
             )}
 
-            <FormSection title="Club & Antrenament">
-                <Input label="Data Înscrierii" name="data_inscrierii" type="date" value={formData.data_inscrierii?.split('T')[0] || ''} onChange={handleChange} disabled={loading} className={inputStyle} />
-                {isSuperAdmin && (
-                    <Select label="Club" name="club_id" value={formData.club_id || ''} onChange={handleChange} disabled={loading} className={inputStyle}>
-                        <option value="">Nespecificat</option>
-                        {clubs.map(c => <option key={c.id} value={c.id}>{c.id === FEDERATIE_ID ? FEDERATIE_NAME : c.nume}</option>)}
-                    </Select>
-                )}
-                 <Select label="Grad Inițial/Actual" name="grad_actual_id" value={formData.grad_actual_id || ''} onChange={handleChange} disabled={loading} className={inputStyle}>
-                    <option value="">Începător (fără grad)</option>
-                    {grade.sort((a,b) => a.ordine - b.ordine).map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}
-                </Select>
-                <div className="flex gap-1 items-end">
-                    <Select label="Grupă" name="grupa_id" value={formData.grupa_id || ''} onChange={handleChange} disabled={loading} className={`${inputStyle} flex-grow`}>
-                        <option value="">Fără grupă</option>
-                        {grupe.filter(g => !formData.club_id || g.club_id === formData.club_id).map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
-                    </Select>
-                    <Button type="button" variant="secondary" size="sm" onClick={onQuickAddGrupa} className="h-12 w-12"><PlusIcon className="w-5 h-5"/></Button>
+            {activeTab === 'contact' && (
+                <div className="space-y-4 animate-fade-in">
+                    <FormSection title="Date Contact">
+                        <Input label="Telefon" name="telefon" value={formData.telefon || ''} onChange={handleChange} disabled={loading} className={inputStyle} />
+                        <Input label="Adresă" name="adresa" value={formData.adresa || ''} onChange={handleChange} disabled={loading} className={inputStyle} />
+                        <Input label="Email (Login)" name="email" type="email" value={formData.email || ''} onChange={handleChange} disabled={loading} required={!initialData.id} error={errors.email} className={inputStyle} />
+                    </FormSection>
+
+                    {!initialData.id && (
+                        <FormSection title="Detalii Cont Acces (Opțional)">
+                            <p className="text-xs text-slate-400 col-span-full -mt-1">La salvare, se va crea automat un cont de acces cu email și parolă generate. Puteți edita detaliile mai sus.</p>
+                            <Input label="Username (Opțional)" name="username" value={formData.username || ''} onChange={handleChange} disabled={loading} placeholder="ex: ion.popescu" className={inputStyle} />
+                            <Input label="Parolă" name="parola" value={formData.parola || ''} onChange={handleChange} disabled={loading} required error={errors.parola} className={inputStyle} />
+                        </FormSection>
+                    )}
                 </div>
-                <div className="flex gap-1 items-end">
-                    <Select label="Familie" name="familie_id" value={formData.familie_id || ''} onChange={handleChange} disabled={loading} className={`${inputStyle} flex-grow`}>
-                        <option value="">Individual</option>
-                        {familii.map(f => <option key={f.id} value={f.id}>{f.nume}</option>)}
-                    </Select>
-                    <Button type="button" variant="secondary" size="sm" onClick={onQuickAddFamilie} className="h-12 w-12"><PlusIcon className="w-5 h-5"/></Button>
+            )}
+
+            {activeTab === 'club' && (
+                <div className="space-y-4 animate-fade-in">
+                    <FormSection title="Club & Antrenament">
+                        <Input label="Data Înscrierii" name="data_inscrierii" type="date" value={formData.data_inscrierii?.split('T')[0] || ''} onChange={handleChange} disabled={loading} className={inputStyle} />
+                        {isSuperAdmin && (
+                            <Select label="Club" name="club_id" value={formData.club_id || ''} onChange={handleChange} disabled={loading} className={inputStyle}>
+                                <option value="">Nespecificat</option>
+                                {clubs.map(c => <option key={c.id} value={c.id}>{c.id === FEDERATIE_ID ? FEDERATIE_NAME : c.nume}</option>)}
+                            </Select>
+                        )}
+                        <Select label="Grad Inițial/Actual" name="grad_actual_id" value={formData.grad_actual_id || ''} onChange={handleChange} disabled={loading} className={inputStyle}>
+                            <option value="">Începător (fără grad)</option>
+                            {grade.sort((a,b) => a.ordine - b.ordine).map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}
+                        </Select>
+                        <div className="flex gap-1 items-end">
+                            <Select label="Grupă" name="grupa_id" value={formData.grupa_id || ''} onChange={handleChange} disabled={loading} className={`${inputStyle} flex-grow`}>
+                                <option value="">Fără grupă</option>
+                                {grupe.filter(g => !formData.club_id || g.club_id === formData.club_id).map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
+                            </Select>
+                            <Button type="button" variant="secondary" size="sm" onClick={onQuickAddGrupa} className="h-12 w-12"><PlusIcon className="w-5 h-5"/></Button>
+                        </div>
+                        <div className="flex gap-1 items-end">
+                            <Select label="Familie" name="familie_id" value={formData.familie_id || ''} onChange={handleChange} disabled={loading} className={`${inputStyle} flex-grow`}>
+                                <option value="">Individual</option>
+                                {familii.map(f => <option key={f.id} value={f.id}>{f.nume}</option>)}
+                            </Select>
+                            <Button type="button" variant="secondary" size="sm" onClick={onQuickAddFamilie} className="h-12 w-12"><PlusIcon className="w-5 h-5"/></Button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <Select label="Status" name="status" value={formData.status || 'Activ'} onChange={handleChange} disabled={loading} className={inputStyle}>
+                                <option value="Activ">Activ</option>
+                                <option value="Inactiv">Inactiv</option>
+                            </Select>
+                            <div className="pt-5">
+                                <Switch label="Participă la antrenamentele din vacanță" name="participa_vacanta" checked={formData.participa_vacanta || false} onChange={handleChange} />
+                            </div>
+                        </div>
+                    </FormSection>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                     <Select label="Status" name="status" value={formData.status || 'Activ'} onChange={handleChange} disabled={loading} className={inputStyle}>
-                        <option value="Activ">Activ</option>
-                        <option value="Inactiv">Inactiv</option>
-                    </Select>
-                    <div className="pt-5">
-                         <Switch label="Participă la antrenamentele din vacanță" name="participa_vacanta" checked={formData.participa_vacanta || false} onChange={handleChange} />
-                    </div>
-                </div>
-            </FormSection>
+            )}
         </div>
     );
 };

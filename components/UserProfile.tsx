@@ -8,7 +8,7 @@ import { SportivFormModal } from './Sportivi';
 import { SportivWallet } from './SportivWallet';
 import { DeleteAuditModal } from './DeleteAuditModal';
 import { SportivFeedbackReport } from './SportivFeedbackReport';
-import { SportivProgressChart } from './SportivProgressChart';
+import { SportivProgressChart, ChartDataPoint } from './SportivProgressChart';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
 import { AddGradeModal } from './AddGradeModal';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
@@ -507,6 +507,16 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
         return [...examGrades, ...manualGrades].sort((a, b) => a.date - b.date);
 
     }, [participari, examene, grade, istoricGrade, sportiv.id]);
+
+    const chartData: ChartDataPoint[] = useMemo(() => {
+        return gradeHistory.map(item => ({
+            date: new Date(item.date).toLocaleDateString('ro-RO'),
+            rankOrder: item.rank,
+            rankName: item.rankName,
+            timestamp: item.date,
+            source: item.source
+        }));
+    }, [gradeHistory]);
     
     const currentGrad = useMemo(() => {
         const lastGradeEvent = [...gradeHistory].sort((a,b) => b.date - a.date)[0];
@@ -908,7 +918,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                     <div className="space-y-6">
                         <Card>
                             <h3 className="text-lg font-bold text-white mb-4">Evoluție în Timp</h3>
-                            <SportivProgressChart istoricGrade={istoricGrade} grade={grade} themeColor={primaryColor} />
+                            <SportivProgressChart data={chartData} themeColor={primaryColor} />
                         </Card>
 
                         <Card>

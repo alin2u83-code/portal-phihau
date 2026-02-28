@@ -351,7 +351,7 @@ function App() {
         return renderProtected(<RapoarteExamen onBack={handleBackToDashboard} currentUser={currentUser!} clubs={clubs} sesiuni={filteredData.sesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={filteredData.inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={filteredData.sportivi} setSportivi={setSportivi} grade={grade} locatii={locatii} setLocatii={setLocatii} plati={filteredData.plati} setPlati={setPlati} preturiConfig={preturiConfig} deconturiFederatie={filteredData.deconturiFederatie} setDeconturiFederatie={setDeconturiFederatie} istoricGrade={filteredData.istoricGrade} setIstoricGrade={setIstoricGrade} onViewSportiv={onViewSportiv} />, permissions.isInstructor);
       
       case 'setari-club':
-        return renderProtected(<ClubSettings onBack={handleBackToDashboard} />, isAtLeastClubAdmin);
+        return renderProtected(<ClubSettings onBack={handleBackToDashboard} currentUser={currentUser!} clubs={clubs} setClubs={setClubs} />, isAtLeastClubAdmin);
         
       case 'tipuri-abonament':
         return renderProtected(<TipuriAbonamentManagement onBack={handleBackToDashboard} tipuriAbonament={filteredData.tipuriAbonament} setTipuriAbonament={setTipuriAbonament} currentUser={currentUser!} clubs={clubs}/>, isAtLeastClubAdmin);
@@ -381,7 +381,7 @@ function App() {
         return <MartialAttendance onBack={handleBackToDashboard} currentUser={currentUser!} antrenamente={antrenamente} grupe={grupe} />;
 
       case 'istoric-plati':
-        return <IstoricPlati onBack={handleBackToDashboard} viewedUser={currentUser!} istoricPlatiDetaliat={filteredData.istoricPlatiDetaliat} />;
+        return <IstoricPlati onBack={handleBackToDashboard} viewedUser={currentUser!} plati={filteredData.plati} tranzactii={filteredData.tranzactii} />;
 
       case 'account-settings':
         return <AccountSettings onBack={handleBackToDashboard} currentUser={currentUser!} userRoles={userRoles} setCurrentUser={setCurrentUser} setSportivi={setSportivi} />;

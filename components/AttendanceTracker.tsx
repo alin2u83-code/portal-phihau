@@ -19,10 +19,10 @@ export const AttendanceTracker: React.FC<AttendanceTrackerProps> = ({ currentUse
     const progressPercentage = Math.min(100, (totalAttended / examThreshold) * 100);
 
     return (
-        <Card className="bg-black border border-slate-800 p-6 flex flex-col items-center text-center">
+        <Card className="p-6 flex flex-col items-center text-center">
             <h3 className="text-xl font-bold text-white mb-2">Progres Examen</h3>
             
-            <p className="font-black text-8xl" style={{ color: '#ADFF2F', textShadow: '0 0 10px rgba(173, 255, 47, 0.5)' }}>
+            <p className="font-black text-8xl" style={{ color: '#4DBCE9', textShadow: '0 0 10px rgba(77, 188, 233, 0.5)' }}>
                 {totalAttended}
             </p>
             <p className="text-sm font-bold uppercase tracking-widest text-slate-400 -mt-2">Prezențe Totale</p>
@@ -30,8 +30,8 @@ export const AttendanceTracker: React.FC<AttendanceTrackerProps> = ({ currentUse
             <div className="w-full mt-6">
                 <div className="h-3 w-full bg-gray-700 rounded-full">
                     <div 
-                        className={`h-3 rounded-full transition-all duration-500 ${isEligible ? 'bg-yellow-500' : 'bg-green-500'}`}
-                        style={{ width: `${progressPercentage}%`, boxShadow: `0 0 8px ${isEligible ? '#f59e0b' : '#22c55e'}` }}
+                        className={`h-3 rounded-full transition-all duration-500 ${isEligible ? 'bg-yellow-500' : 'bg-[#4DBCE9]'}`}
+                        style={{ width: `${progressPercentage}%`, boxShadow: `0 0 8px ${isEligible ? '#f59e0b' : '#4DBCE9'}` }}
                     ></div>
                 </div>
                 <div className="flex justify-between text-xs font-bold text-slate-500 mt-1">

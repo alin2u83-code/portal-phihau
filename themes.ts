@@ -16,38 +16,38 @@ export interface Theme {
   '--brand-secondary': string;
 }
 
-// The fallback 'Deep Navy' theme
+// The fallback 'Deep Navy' theme - Updated to use #4DBCE9
 export const federationTheme: Theme = {
-  '--bg-main': '#0a192f',
-  '--bg-card': '#112240',
-  '--bg-card-hover': '#1d2f50',
-  '--bg-input': '#1e293b',
-  '--bg-table-header': '#1e293b',
-  '--bg-table-row-hover': '#172a46',
-  '--accent': '#3D3D99',
-  '--accent-hover': '#2E2E7A',
-  '--text-primary': '#ffffff',
-  '--text-secondary': '#94a3b8',
-  '--border-color': '#334155',
-  '--brand-primary': '#3D3D99',
-  '--brand-secondary': '#4DBCE9',
+  '--bg-main': '#0f172a', // Slate 900
+  '--bg-card': '#1e293b', // Slate 800
+  '--bg-card-hover': '#334155', // Slate 700
+  '--bg-input': '#0f172a', // Slate 900
+  '--bg-table-header': '#1e293b', // Slate 800
+  '--bg-table-row-hover': '#334155', // Slate 700
+  '--accent': '#4DBCE9', // The requested blue
+  '--accent-hover': '#38bdf8', // Sky 400
+  '--text-primary': '#f8fafc', // Slate 50
+  '--text-secondary': '#94a3b8', // Slate 400
+  '--border-color': '#334155', // Slate 700
+  '--brand-primary': '#4DBCE9', // The requested blue
+  '--brand-secondary': '#4DBCE9', // The requested blue
 };
 
-// A sample theme for other clubs for contrast if theme_config is not set
+// A sample theme for other clubs - Updated to match the blue theme request
 export const clubTheme: Theme = {
-  '--bg-main': '#18181b', // zinc-900
-  '--bg-card': '#27272a', // zinc-800
-  '--bg-card-hover': '#3f3f46', // zinc-700
-  '--bg-input': '#3f3f46',
-  '--bg-table-header': '#3f3f46',
-  '--bg-table-row-hover': '#52525b',
-  '--accent': '#a16207', // amber-700
-  '--accent-hover': '#854d0e', // amber-800
-  '--text-primary': '#ffffff',
-  '--text-secondary': '#a1a1aa', // zinc-400
-  '--border-color': '#52525b', // zinc-600
-  '--brand-primary': '#f59e0b', // amber-500
-  '--brand-secondary': '#f59e0b',
+  '--bg-main': '#0f172a', // Slate 900
+  '--bg-card': '#1e293b', // Slate 800
+  '--bg-card-hover': '#334155', // Slate 700
+  '--bg-input': '#0f172a', // Slate 900
+  '--bg-table-header': '#1e293b', // Slate 800
+  '--bg-table-row-hover': '#334155', // Slate 700
+  '--accent': '#4DBCE9', // The requested blue
+  '--accent-hover': '#38bdf8', // Sky 400
+  '--text-primary': '#f8fafc', // Slate 50
+  '--text-secondary': '#94a3b8', // Slate 400
+  '--border-color': '#334155', // Slate 700
+  '--brand-primary': '#4DBCE9', // The requested blue
+  '--brand-secondary': '#4DBCE9', // The requested blue
 };
 
 /**

@@ -26,7 +26,7 @@ interface PlatiScadenteProps {
     grade: Grad[];
 }
 
-const initialFilters = { sportiv: '', tip: '', status: 'scadent', clubId: '' };
+const initialFilters = { sportiv: '', tip: '', status: '', clubId: '' };
 
 export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, sportivi, familii, tipuriAbonament, tranzactii, reduceri, onIncaseazaMultiple, onBack, onViewSportiv, currentUser, clubs, permissions, inscrieriExamene, grade }) => {
     const [filter, setFilter] = useLocalStorage('phi-hau-plati-scadente-filter', initialFilters);
@@ -301,11 +301,11 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
                     </Select>
                 )}
                  <Select label="Status" name="status" value={filter.status} onChange={e => setFilter(p => ({...p, status: e.target.value}))}>
+                    <option value="">Toate Statusurile</option>
                     <option value="scadent">Scadent (Neachitat/Parțial)</option>
                     <option value="Neachitat">Doar Neachitat</option>
                     <option value="Achitat Parțial">Doar Achitat Parțial</option>
                     <option value="Achitat">Achitat</option>
-                    <option value="">Toate</option>
                 </Select>
                 <Select label="Tip Plată" name="tip" value={filter.tip} onChange={e => setFilter(p => ({...p, tip: e.target.value}))}>
                      <option value="">Toate Tipurile</option>
@@ -315,6 +315,9 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
                     <option value="">Toți Sportivii</option>
                     {(sportivi || []).sort((a,b)=>a.nume.localeCompare(b.nume)).map(s => <option key={s.id} value={s.id}>{s.nume} {s.prenume}</option>)}
                 </Select>
+                <div className="flex items-end">
+                    <Button variant="secondary" onClick={() => setFilter(initialFilters)} className="w-full">Resetează Filtre</Button>
+                </div>
             </Card>
 
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
@@ -359,7 +362,12 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
                             ))}
                         </tbody>
                     </table>
-                     {platiCuDetalii.length === 0 && <p className="p-12 text-center text-slate-500 italic">Nicio factură de afișat conform filtrelor.</p>}
+                     {platiCuDetalii.length === 0 && (
+                        <div className="p-12 text-center text-slate-500 italic">
+                            <p>Nicio factură de afișat conform filtrelor.</p>
+                            {(plati || []).length > 0 && <p className="text-xs mt-2">Există {(plati || []).length} plăți în total, dar sunt ascunse de filtre.</p>}
+                        </div>
+                     )}
                 </div>
             </Card>
             

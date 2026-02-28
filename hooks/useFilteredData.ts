@@ -1,22 +1,59 @@
 import { useMemo } from 'react';
-import { AppData } from './useDataProvider';
-import { Rol } from '../types';
+import { Sportiv, Rol, SesiuneExamen, InscriereExamen, Antrenament, Grupa, Plata, Tranzactie, Eveniment, Rezultat, TipAbonament, Familie, AnuntPrezenta, Reducere, DecontFederatie, IstoricGrade, VizualizarePlata, IstoricPlataDetaliat } from '../types';
 
-export const useFilteredData = (
-    data: AppData,
-    activeRole: Rol['nume'] | null,
-    activeClubId: string | null
-) => {
-    const {
-        sportivi, sesiuniExamene, inscrieriExamene, antrenamente, grupe, plati,
-        tranzactii, evenimente, rezultate, tipuriAbonament, familii,
-        anunturiPrezenta, reduceri, deconturiFederatie, istoricGrade,
-        vizualizarePlati, istoricPlatiDetaliat
-    } = data;
+interface UseFilteredDataProps {
+    activeRole: Rol['nume'] | null;
+    activeClubId: string | null;
+    sportivi: Sportiv[];
+    sesiuniExamene: SesiuneExamen[];
+    inscrieriExamene: InscriereExamen[];
+    antrenamente: Antrenament[];
+    grupe: Grupa[];
+    plati: Plata[];
+    tranzactii: Tranzactie[];
+    evenimente: Eveniment[];
+    rezultate: Rezultat[];
+    tipuriAbonament: TipAbonament[];
+    familii: Familie[];
+    anunturiPrezenta: AnuntPrezenta[];
+    reduceri: Reducere[];
+    deconturiFederatie: DecontFederatie[];
+    istoricGrade: IstoricGrade[];
+    vizualizarePlati: VizualizarePlata[];
+    istoricPlatiDetaliat: IstoricPlataDetaliat[];
+}
 
+export const useFilteredData = ({
+    activeRole,
+    activeClubId,
+    sportivi,
+    sesiuniExamene,
+    inscrieriExamene,
+    antrenamente,
+    grupe,
+    plati,
+    tranzactii,
+    evenimente,
+    rezultate,
+    tipuriAbonament,
+    familii,
+    anunturiPrezenta,
+    reduceri,
+    deconturiFederatie,
+    istoricGrade,
+    vizualizarePlati,
+    istoricPlatiDetaliat
+}: UseFilteredDataProps) => {
     return useMemo(() => {
-        // Dacă suntem Super Admin, NU aplicăm filtre de club_id
-        if (activeRole === 'SUPER_ADMIN_FEDERATIE') {
+        // LISTA ROLURILOR ADMINISTRATIVE CARE VAD TOT
+        // Modificat conform cerintei: "sa pot vedea toate tabelele in orice rol de administratie"
+        const isAdminRole = 
+            activeRole === 'SUPER_ADMIN_FEDERATIE' || 
+            activeRole === 'ADMIN_CLUB' || 
+            activeRole === 'ADMIN' ||
+            activeRole === 'INSTRUCTOR';
+
+        if (isAdminRole) {
             return {
                 sportivi,
                 sesiuniExamene,
@@ -38,7 +75,10 @@ export const useFilteredData = (
             };
         }
 
-        // Pentru restul, filtrăm normal
+        // LOGICA PENTRU SPORTIVI / USERI NON-ADMIN (sau fallback daca nu e rol selectat)
+        // Aici pastram filtrarea pe baza de club pentru a nu arata date irelevante in UI
+        // desi RLS-ul ar trebui sa blocheze accesul oricum.
+        
         if (!activeClubId) {
             return {
                 sportivi: [], sesiuniExamene: [], inscrieriExamene: [], antrenamente: [], grupe: [], plati: [],

@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Sportiv, User, Rol, InscriereExamen, Examen, Grad, Antrenament, IstoricGrade, Plata, Familie, TipAbonament, Tranzactie, Reducere, Club, ProgramItem, Grupa, VizualizarePlata } from '../types';
 import { Button, Card, Select, Modal, Input, RoleBadge, Skeleton } from './ui';
-import { ArrowLeftIcon, EditIcon, WalletIcon, TrashIcon, ShieldCheckIcon, PlusIcon, ChartBarIcon, TransferIcon, CheckCircleIcon, ExclamationTriangleIcon, UserPlusIcon } from './icons';
+import { ArrowLeftIcon, EditIcon, WalletIcon, TrashIcon, ShieldCheckIcon, PlusIcon, ChartBarIcon, TransferIcon, CheckCircleIcon, ExclamationTriangleIcon, UserPlusIcon, UserCircleIcon, ClipboardListIcon, TrophyIcon, BanknotesIcon, CalendarDaysIcon, UsersIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { SportivFormModal } from './Sportivi';
@@ -437,6 +437,15 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
     const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
     const [isAddGradeModalOpen, setIsAddGradeModalOpen] = useState(false);
     const [isCreateAccountModalOpen, setIsCreateAccountModalOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState<'profil' | 'contact' | 'grade' | 'financiar'>('profil');
+
+    const clubTheme = useMemo(() => {
+        const club = clubs.find(c => c.id === sportiv.club_id);
+        // Cast to any to avoid type errors if theme_config is not strictly typed yet
+        return (club as any)?.theme_config || {};
+    }, [clubs, sportiv.club_id]);
+
+    const primaryColor = clubTheme.primaryColor || '#3b82f6';
 
     const [isEditingFeedback, setIsEditingFeedback] = useState(false);
     const [feedbackData, setFeedbackData] = useState({
@@ -686,9 +695,13 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
     };
 
     return (
-        <div className="space-y-4">
-            <header className="bg-[var(--bg-card)] p-4 rounded-xl shadow-lg border border-[var(--border-color)] flex flex-col md:flex-row items-center gap-6">
-                <div className="flex flex-col md:flex-row items-center gap-6 flex-grow">
+        <div className="space-y-6 animate-fade-in-down">
+            {/* Header */}
+            <header 
+                className="bg-[var(--bg-card)] p-6 rounded-xl shadow-lg border border-[var(--border-color)] flex flex-col md:flex-row items-center gap-6 relative overflow-hidden"
+                style={{ borderTop: `4px solid ${primaryColor}` }}
+            >
+                <div className="flex flex-col md:flex-row items-center gap-6 flex-grow z-10">
                     <div className="flex flex-col items-center">
                         <SportivAvatarEditor 
                             sportiv={sportiv} 
@@ -696,130 +709,345 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                                 setSportivi(prev => prev.map(s => s.id === sportiv.id ? { ...s, foto_url: url } : s));
                             }} 
                         />
-                        <GradBadge grad={currentGrad} isLarge />
+                        <div className="mt-2 transform scale-110">
+                            <GradBadge grad={currentGrad} isLarge />
+                        </div>
                     </div>
-                    <div className="text-center md:text-left">
-                        <h1 className="text-3xl font-bold text-white">{sportiv.nume} {sportiv.prenume}</h1>
-                        <p className="text-lg text-slate-300">{grupe.find(g => g.id === sportiv.grupa_id)?.denumire || 'Fără grupă'}</p>
+                    <div className="text-center md:text-left space-y-1">
+                        <h1 className="text-3xl font-bold text-white tracking-tight">{sportiv.nume} {sportiv.prenume}</h1>
+                        <p className="text-lg text-slate-300 font-medium">{grupe.find(g => g.id === sportiv.grupa_id)?.denumire || 'Fără grupă'}</p>
+                        <div className="flex items-center justify-center md:justify-start gap-2 mt-2">
+                             <span className={`px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-full ${sportiv.status === 'Activ' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}`}>
+                                {sportiv.status}
+                            </span>
+                            {sportiv.cod_sportiv && (
+                                <span className="px-3 py-1 text-xs font-mono text-slate-400 bg-slate-800 rounded-full border border-slate-700">
+                                    #{sportiv.cod_sportiv}
+                                </span>
+                            )}
+                        </div>
                     </div>
                 </div>
-                <div className="flex gap-2">
-                    <Button variant="info" onClick={() => setIsEditModalOpen(true)} className="!py-2 !px-3"><EditIcon className="w-5 h-5 mr-2"/> Editare</Button>
-                    <Button variant="primary" onClick={() => setIsWalletModalOpen(true)} className="!py-2 !px-3"><WalletIcon className="w-5 h-5 mr-2"/> Portofel</Button>
-                    <Button variant="danger" onClick={() => setIsDeleteModalOpen(true)} className="!py-2 !px-3"><TrashIcon className="w-5 h-5 mr-2"/> Șterge</Button>
+                <div className="flex flex-wrap justify-center gap-3 z-10">
+                    <Button variant="secondary" onClick={() => setIsEditModalOpen(true)} className="shadow-sm hover:shadow-md transition-all">
+                        <EditIcon className="w-4 h-4 mr-2"/> Editare
+                    </Button>
+                    <Button variant="primary" onClick={() => setIsWalletModalOpen(true)} className="shadow-sm hover:shadow-md transition-all bg-indigo-600 hover:bg-indigo-500 border-none">
+                        <WalletIcon className="w-4 h-4 mr-2"/> Portofel
+                    </Button>
+                    {isSuperAdmin && (
+                        <Button variant="danger" onClick={() => setIsDeleteModalOpen(true)} className="shadow-sm hover:shadow-md transition-all">
+                            <TrashIcon className="w-4 h-4 mr-2"/> Șterge
+                        </Button>
+                    )}
                 </div>
             </header>
 
-            {!sportiv.user_id && (
-                <Card className="bg-yellow-100 dark:bg-yellow-900/30 border-l-4 border-yellow-500 flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                        <ShieldCheckIcon className="w-6 h-6 text-yellow-500 dark:text-yellow-300" />
-                        <p className="font-semibold text-yellow-800 dark:text-yellow-200">Acest sportiv nu are un cont de utilizator activ.</p>
-                    </div>
-                    <div>
-                        <Button 
-                            variant="info" 
-                            size="sm" 
-                            onClick={() => {
-                                if (!sportiv.email) {
-                                    showError("Email Lipsă", "Introduceți o adresă de email în profilul sportivului pentru a putea genera contul.");
-                                    return;
-                                }
-                                setIsCreateAccountModalOpen(true);
-                            }}
-                            disabled={!sportiv.email}
-                            title={!sportiv.email ? 'Adăugați un email pentru a activa contul' : 'Activează contul de acces'}
-                        >
-                            <UserPlusIcon className="w-4 h-4 mr-2" /> Activează Acces Aplicație
-                        </Button>
-                        {!sportiv.email && (
-                            <p className="text-xs text-yellow-400 text-center mt-1">
-                                Lipsă email - nu se poate genera cont
-                            </p>
-                        )}
-                    </div>
-                </Card>
-            )}
+            {/* Tabs Navigation */}
+            <div className="flex overflow-x-auto gap-2 border-b border-slate-700 pb-1 mb-6">
+                {[
+                    { id: 'profil', label: 'Profil & Activitate', icon: UserCircleIcon },
+                    { id: 'contact', label: 'Contact & Info', icon: ClipboardListIcon },
+                    { id: 'grade', label: 'Evoluție & Grade', icon: TrophyIcon },
+                    { id: 'financiar', label: 'Istoric Financiar', icon: BanknotesIcon },
+                ].map(tab => (
+                    <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id as any)}
+                        className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-all rounded-t-lg border-b-2 ${
+                            activeTab === tab.id 
+                                ? `border-[${primaryColor}] text-white bg-slate-800/50` 
+                                : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'
+                        }`}
+                        style={{ borderColor: activeTab === tab.id ? primaryColor : 'transparent' }}
+                    >
+                        <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? 'text-white' : 'text-slate-500'}`} />
+                        {tab.label}
+                    </button>
+                ))}
+            </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <div className="lg:col-span-1 space-y-4">
-                    <Card><h3 className="text-lg font-bold text-white mb-3">Date Personale</h3><dl className="space-y-3"><DataField label="Vârstă" value={`${getAge(sportiv.data_nasterii)} ani`} /><DataField label="Data Înscrierii" value={new Date(sportiv.data_inscrierii).toLocaleDateString('ro-RO')} /><DataField label="Status" value={<span className={`px-2 py-0.5 text-xs rounded-full ${sportiv.status === 'Activ' ? 'bg-green-600/30 text-green-400' : 'bg-red-600/30 text-red-400'}`}>{sportiv.status}</span>} /><DataField label="Club" value={sportiv.cluburi?.id === FEDERATIE_ID ? FEDERATIE_NAME : sportiv.cluburi?.nume} /></dl>
-                        {isSuperAdmin && <Button onClick={() => setIsTransferModalOpen(true)} variant="secondary" className="w-full mt-4"><TransferIcon className="w-4 h-4 mr-2"/> Transferă Sportiv</Button>}
-                    </Card>
-                    <Card><h3 className="text-lg font-bold text-white mb-3">Situație Financiară</h3>
-                        <div className="flex justify-between items-center mb-4">
-                            <span className="text-sm font-semibold text-slate-400">Total Restant:</span>
-                            <span className={`text-2xl font-bold ${totalRestante > 0 ? 'text-red-400' : 'text-green-400'}`}>{((totalRestante || 0)).toFixed(2)} RON</span>
+            {/* Tab Content */}
+            <div className="min-h-[400px]">
+                {activeTab === 'profil' && (
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* Left Column: Stats & Quick Info */}
+                        <div className="space-y-6">
+                            {!sportiv.user_id && (
+                                <Card className="bg-amber-900/20 border-l-4 border-amber-500">
+                                    <div className="flex flex-col gap-3">
+                                        <div className="flex items-center gap-2 text-amber-400 font-bold">
+                                            <ShieldCheckIcon className="w-5 h-5" />
+                                            <h3>Cont Inactiv</h3>
+                                        </div>
+                                        <p className="text-sm text-amber-200/80">Acest sportiv nu are acces la aplicație.</p>
+                                        <Button 
+                                            size="sm" 
+                                            className="w-full bg-amber-600 hover:bg-amber-500 text-white border-none"
+                                            onClick={() => {
+                                                if (!sportiv.email) {
+                                                    showError("Email Lipsă", "Introduceți o adresă de email în profilul sportivului.");
+                                                    return;
+                                                }
+                                                setIsCreateAccountModalOpen(true);
+                                            }}
+                                            disabled={!sportiv.email}
+                                        >
+                                            <UserPlusIcon className="w-4 h-4 mr-2" /> Generează Cont
+                                        </Button>
+                                    </div>
+                                </Card>
+                            )}
+
+                            <Card>
+                                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                                    <ChartBarIcon className="w-5 h-5 text-slate-400" />
+                                    Statistici
+                                </h3>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="bg-slate-800/50 p-3 rounded-lg text-center">
+                                        <p className="text-xs text-slate-400 uppercase">Vârstă</p>
+                                        <p className="text-xl font-bold text-white">{getAge(sportiv.data_nasterii)} ani</p>
+                                    </div>
+                                    <div className="bg-slate-800/50 p-3 rounded-lg text-center">
+                                        <p className="text-xs text-slate-400 uppercase">Vechime</p>
+                                        <p className="text-xl font-bold text-white">{getAge(sportiv.data_inscrierii)} ani</p>
+                                    </div>
+                                </div>
+                            </Card>
+
+                            <Card>
+                                <AttendanceIndicator attendances={lastThreeAttendances} />
+                            </Card>
                         </div>
-                        <div className="mt-4 pt-4 border-t border-slate-700">
-                            <h4 className="text-md font-bold text-slate-300 mb-2">Istoric Facturi</h4>
-                            <div className="max-h-60 overflow-y-auto space-y-2 pr-2">
-                                {!vizualizarePlati ? (
+
+                        {/* Right Column: Training & Feedback */}
+                        <div className="lg:col-span-2 space-y-6">
+                            <TrainingHistory sportivId={sportiv.id} antrenamente={antrenamente} grupe={grupe} />
+                            
+                            <Card>
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                                        <ClipboardListIcon className="w-5 h-5 text-slate-400" />
+                                        Feedback & Obiective
+                                    </h3>
+                                    {!isEditingFeedback && (
+                                        <Button size="sm" variant="secondary" onClick={() => setIsEditingFeedback(true)}>
+                                            <EditIcon className="w-4 h-4 mr-1"/> Editează
+                                        </Button>
+                                    )}
+                                </div>
+                                
+                                {isEditingFeedback ? (
+                                    <div className="space-y-4 bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+                                        <Input label="Puncte Forte" value={feedbackData.puncte_forte} onChange={(e) => setFeedbackData(p=>({...p, puncte_forte: e.target.value}))}/>
+                                        <Input label="Puncte Slabe" value={feedbackData.puncte_slabe} onChange={(e) => setFeedbackData(p=>({...p, puncte_slabe: e.target.value}))}/>
+                                        <Input label="Obiective" value={feedbackData.obiective} onChange={(e) => setFeedbackData(p=>({...p, obiective: e.target.value}))}/>
+                                        <div className="flex justify-end gap-2 pt-2">
+                                            <Button size="sm" variant="secondary" onClick={()=>setIsEditingFeedback(false)}>Anulează</Button>
+                                            <Button size="sm" variant="success" onClick={handleSaveFeedback} isLoading={isSavingFeedback}>Salvează Modificări</Button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div className="bg-emerald-900/20 p-4 rounded-lg border border-emerald-500/20">
+                                            <h4 className="text-sm font-bold text-emerald-400 mb-2 uppercase tracking-wider">Puncte Forte</h4>
+                                            <p className="text-slate-300 text-sm whitespace-pre-wrap">{sportiv.puncte_forte || 'Nespecificat'}</p>
+                                        </div>
+                                        <div className="bg-red-900/20 p-4 rounded-lg border border-red-500/20">
+                                            <h4 className="text-sm font-bold text-red-400 mb-2 uppercase tracking-wider">Puncte Slabe</h4>
+                                            <p className="text-slate-300 text-sm whitespace-pre-wrap">{sportiv.puncte_slabe || 'Nespecificat'}</p>
+                                        </div>
+                                        <div className="bg-blue-900/20 p-4 rounded-lg border border-blue-500/20">
+                                            <h4 className="text-sm font-bold text-blue-400 mb-2 uppercase tracking-wider">Obiective</h4>
+                                            <p className="text-slate-300 text-sm whitespace-pre-wrap">{sportiv.obiective || 'Nespecificat'}</p>
+                                        </div>
+                                    </div>
+                                )}
+                                <div className="mt-4 pt-4 border-t border-slate-700">
+                                    <Button onClick={() => setIsReportModalOpen(true)} variant="secondary" size="sm" className="w-full md:w-auto">
+                                        <ChartBarIcon className="w-4 h-4 mr-2" /> Generează Raport Detaliat
+                                    </Button>
+                                </div>
+                            </Card>
+                        </div>
+                    </div>
+                )}
+
+                {activeTab === 'contact' && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <Card>
+                            <h3 className="text-lg font-bold text-white mb-4">Informații Personale</h3>
+                            <dl className="space-y-4 divide-y divide-slate-700">
+                                <div className="pt-2"><DataField label="CNP" value={sportiv.cnp} /></div>
+                                <div className="pt-2"><DataField label="Data Nașterii" value={new Date(sportiv.data_nasterii).toLocaleDateString('ro-RO')} /></div>
+                                <div className="pt-2"><DataField label="Gen" value={sportiv.gen || 'Nespecificat'} /></div>
+                                <div className="pt-2"><DataField label="Înălțime" value={sportiv.inaltime ? `${sportiv.inaltime} cm` : 'Nespecificat'} /></div>
+                            </dl>
+                        </Card>
+                        <Card>
+                            <h3 className="text-lg font-bold text-white mb-4">Contact & Adresă</h3>
+                            <dl className="space-y-4 divide-y divide-slate-700">
+                                <div className="pt-2"><DataField label="Email" value={sportiv.email} /></div>
+                                <div className="pt-2"><DataField label="Telefon" value={sportiv.telefon} /></div>
+                                <div className="pt-2"><DataField label="Adresă" value={sportiv.adresa} /></div>
+                                <div className="pt-2"><DataField label="Club" value={sportiv.cluburi?.nume} /></div>
+                            </dl>
+                            {isSuperAdmin && (
+                                <div className="mt-6 pt-4 border-t border-slate-700">
+                                    <Button onClick={() => setIsTransferModalOpen(true)} variant="secondary" className="w-full">
+                                        <TransferIcon className="w-4 h-4 mr-2"/> Transferă la alt Club
+                                    </Button>
+                                </div>
+                            )}
+                        </Card>
+                    </div>
+                )}
+
+                {activeTab === 'grade' && (
+                    <div className="space-y-6">
+                        <Card>
+                            <h3 className="text-lg font-bold text-white mb-4">Evoluție în Timp</h3>
+                            <SportivProgressChart istoricGrade={istoricGrade} grade={grade} themeColor={primaryColor} />
+                        </Card>
+
+                        <Card>
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-lg font-bold text-white">Istoric Examinări & Grade</h3>
+                                <Button size="sm" variant="secondary" onClick={() => setIsAddGradeModalOpen(true)}>
+                                    <PlusIcon className="w-4 h-4 mr-1"/> Adaugă Manual
+                                </Button>
+                            </div>
+                            <div className="overflow-hidden rounded-lg border border-slate-700">
+                                <table className="w-full text-left text-sm">
+                                    <thead className="bg-slate-800 text-slate-400">
+                                        <tr>
+                                            <th className="p-3">Data</th>
+                                            <th className="p-3">Grad</th>
+                                            <th className="p-3">Sursă</th>
+                                            <th className="p-3">Observații</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-700 bg-slate-900/50">
+                                        {gradeHistory.length > 0 ? gradeHistory.map((item, idx) => (
+                                            <tr key={idx} className="hover:bg-slate-800/50 transition-colors">
+                                                <td className="p-3 font-medium text-white">{new Date(item.date).toLocaleDateString('ro-RO')}</td>
+                                                <td className="p-3"><span className="font-bold text-amber-400">{item.rankName}</span></td>
+                                                <td className="p-3">
+                                                    <span className={`px-2 py-1 rounded text-xs ${item.source === 'examen' ? 'bg-blue-900/30 text-blue-400' : 'bg-slate-700 text-slate-300'}`}>
+                                                        {item.source === 'examen' ? 'Examen Oficial' : 'Acordat Manual'}
+                                                    </span>
+                                                </td>
+                                                <td className="p-3 text-slate-400 italic">-</td>
+                                            </tr>
+                                        )) : (
+                                            <tr><td colSpan={4} className="p-4 text-center text-slate-500 italic">Nu există istoric înregistrat.</td></tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </Card>
+                    </div>
+                )}
+
+                {activeTab === 'financiar' && (
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className="lg:col-span-1">
+                            <Card className="sticky top-4">
+                                <h3 className="text-lg font-bold text-white mb-4">Sumar Financiar</h3>
+                                <div className="space-y-4">
+                                    <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+                                        <p className="text-sm text-slate-400">Total Restant</p>
+                                        <p className={`text-3xl font-bold mt-1 ${totalRestante > 0 ? 'text-red-500' : 'text-emerald-500'}`}>
+                                            {totalRestante.toFixed(2)} <span className="text-sm text-slate-500 font-normal">RON</span>
+                                        </p>
+                                    </div>
+                                    
                                     <div className="space-y-2">
-                                        <Skeleton className="h-12 w-full" />
-                                        <Skeleton className="h-12 w-full" />
+                                        <p className="text-sm font-medium text-slate-300">Abonament Activ</p>
+                                        <div className="p-3 bg-slate-800 rounded border border-slate-700">
+                                            {tipuriAbonament.find(t => t.id === sportiv.tip_abonament_id)?.denumire || 'Nespecificat'}
+                                        </div>
                                     </div>
-                                ) : possibleViewError ? (
-                                    <div className="text-center p-4 bg-red-900/20 rounded-md">
-                                        <p className="text-sm text-red-300">Datele financiare sunt indisponibile. Acest lucru se poate datora lipsei unui cont de utilizator activ.</p>
-                                        <Button onClick={() => window.location.reload()} variant="secondary" size="sm" className="mt-2">Reîncarcă</Button>
-                                    </div>
-                                ) : istoricFacturi.length > 0 ? istoricFacturi.map(({ detalii: p, totalIncasat }) => {
-                                    if (!p.data_plata && !p.data_emitere) return null;
-                                    let amountDisplay; let amountColor; let originalAmount = null;
-                                    const ramasDePlata = (p.suma_datorata || 0) - (totalIncasat || 0);
-                                    if (p.status === 'Achitat') { amountDisplay = `${((totalIncasat || 0)).toFixed(2)} RON`; amountColor = 'text-green-400';
-                                    } else if (p.status === 'Neachitat') { amountDisplay = `${((p.suma_datorata || 0)).toFixed(2)} RON`; amountColor = 'text-red-400';
-                                    } else { amountDisplay = `${((ramasDePlata || 0)).toFixed(2)} RON`; amountColor = 'text-amber-400'; originalAmount = p.suma_datorata; }
-                                    return (
-                                        <div key={p.plata_id} className="text-xs bg-slate-800/50 p-2 rounded-md">
-                                            <div className="flex justify-between items-start gap-2">
-                                                <div className="flex-grow"><p className="font-bold text-white">{p.descriere}</p><p className="text-slate-400">Emis: {new Date(p.data_emitere).toLocaleDateString('ro-RO')}</p></div>
-                                                <div className="text-right flex-shrink-0"><p className={`font-bold text-sm ${amountColor}`}>{amountDisplay}</p>{originalAmount && <p className="text-xs text-slate-500 line-through">din {((originalAmount || 0)).toFixed(2)}</p>}</div>
-                                                <div className="flex items-center gap-2 flex-shrink-0">
-                                                    <Button size="sm" variant="secondary" className="!p-1.5 h-auto" onClick={() => setPlataToEdit(plati.find(pl => pl.id === p.plata_id) || null)}><EditIcon className="w-3 h-3"/></Button>
-                                                    <Button size="sm" variant="danger" className="!p-1.5 h-auto" onClick={() => setPlataToDelete(plati.find(pl => pl.id === p.plata_id) || null)}><TrashIcon className="w-3 h-3"/></Button>
-                                                </div>
+
+                                    {sportiv.familie_id && (
+                                        <div className="space-y-2">
+                                            <p className="text-sm font-medium text-slate-300">Familie</p>
+                                            <div className="p-3 bg-slate-800 rounded border border-slate-700 flex items-center gap-2">
+                                                <UsersIcon className="w-4 h-4 text-slate-400" />
+                                                {familii.find(f => f.id === sportiv.familie_id)?.nume || 'Familie'}
                                             </div>
                                         </div>
-                                    );
-                                }) : ( <p className="text-sm text-slate-500 italic text-center py-4">Nu există tranzacții înregistrate pentru acest sportiv.</p> )}
-                            </div>
+                                    )}
+                                </div>
+                            </Card>
                         </div>
-                    </Card>
-                    <Card><AttendanceIndicator attendances={lastThreeAttendances} /></Card>
-                    <Card><h3 className="text-lg font-bold text-white mb-3">Feedback Instructor</h3>
-                        {isEditingFeedback ? <div className="space-y-3"><Input label="Puncte Forte" name="puncte_forte" value={feedbackData.puncte_forte} onChange={(e) => setFeedbackData(p=>({...p, puncte_forte: e.target.value}))}/><Input label="Puncte Slabe" name="puncte_slabe" value={feedbackData.puncte_slabe} onChange={(e) => setFeedbackData(p=>({...p, puncte_slabe: e.target.value}))}/><Input label="Obiective" name="obiective" value={feedbackData.obiective} onChange={(e) => setFeedbackData(p=>({...p, obiective: e.target.value}))}/><div className="flex justify-end gap-2"><Button size="sm" variant="secondary" onClick={()=>setIsEditingFeedback(false)}>Anulează</Button><Button size="sm" variant="success" onClick={handleSaveFeedback} isLoading={isSavingFeedback}>Salvează</Button></div></div>
-                        : <><dl className="space-y-3"><DataField label="Puncte Forte" value={sportiv.puncte_forte} /><DataField label="Puncte Slabe" value={sportiv.puncte_slabe} /><DataField label="Obiective" value={sportiv.obiective} /></dl><Button size="sm" variant="secondary" className="w-full mt-3" onClick={() => setIsEditingFeedback(true)}><EditIcon className="w-4 h-4 mr-1"/> Editează Feedback</Button></>}
-                    </Card>
-                    <Button onClick={() => setIsReportModalOpen(true)} className="w-full"><ChartBarIcon className="w-5 h-5 mr-2" /> Generează Raport Feedback</Button>
-                </div>
-                <div className="lg:col-span-2 space-y-4">
-                    <Card><h3 className="text-lg font-bold text-white mb-3">Progres Tehnic</h3><SportivProgressChart sportiv={sportiv} gradeHistory={gradeHistory} antrenamente={antrenamente} grade={grade} /></Card>
-                    <Card><div className="flex justify-between items-center"><h3 className="text-lg font-bold text-white">Istoric Grade</h3><Button size="sm" variant="secondary" onClick={() => setIsAddGradeModalOpen(true)}><PlusIcon className="w-4 h-4 mr-1"/> Adaugă Manual</Button></div>
-                        <div className="mt-3 max-h-60 overflow-y-auto pr-2">
-                             <table className="w-full text-left text-sm">
-                                <thead className="text-slate-400 text-xs uppercase sticky top-0 bg-[var(--bg-card)]">
-                                    <tr><th className="py-2">Grad</th><th className="py-2">Data</th><th className="py-2 text-right">Sursă</th></tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-700">
-                                    {!gradeHistory ? (
-                                        <tr><td colSpan={3}><Skeleton className="h-20 w-full" /></td></tr>
-                                    ) : [...(gradeHistory || [])].reverse().map(h => ( 
-                                        <tr key={`${h.date}-${h.rank}`}>
-                                            <td className="py-2 font-semibold text-white">{h.rankName}</td>
-                                            <td className="py-2">{new Date(h.date).toLocaleDateString('ro-RO')}</td>
-                                            <td className="py-2 text-right capitalize">{h.source}</td>
-                                        </tr> 
-                                    ))}
-                                </tbody>
-                            </table>
+
+                        <div className="lg:col-span-2">
+                            <Card>
+                                <h3 className="text-lg font-bold text-white mb-4">Istoric Facturi & Plăți</h3>
+                                <div className="space-y-3">
+                                    {!vizualizarePlati ? (
+                                        <div className="space-y-2"><Skeleton className="h-16 w-full" /><Skeleton className="h-16 w-full" /></div>
+                                    ) : possibleViewError ? (
+                                        <div className="text-center p-6 bg-red-900/20 rounded-lg border border-red-900/50">
+                                            <ExclamationTriangleIcon className="w-8 h-8 text-red-500 mx-auto mb-2" />
+                                            <p className="text-red-300">Datele financiare sunt indisponibile.</p>
+                                        </div>
+                                    ) : istoricFacturi.length > 0 ? (
+                                        istoricFacturi.map(({ detalii: p, totalIncasat }) => {
+                                            if (!p.data_plata && !p.data_emitere) return null;
+                                            const ramasDePlata = (p.suma_datorata || 0) - (totalIncasat || 0);
+                                            const isPaid = p.status === 'Achitat';
+                                            const isPartial = p.status === 'Achitat Parțial';
+
+                                            return (
+                                                <div key={p.plata_id} className="bg-slate-800/40 hover:bg-slate-800/80 transition-colors p-4 rounded-lg border border-slate-700/50 flex flex-col sm:flex-row justify-between gap-4">
+                                                    <div className="flex-grow">
+                                                        <div className="flex items-center gap-2 mb-1">
+                                                            <span className={`w-2 h-2 rounded-full ${isPaid ? 'bg-emerald-500' : isPartial ? 'bg-amber-500' : 'bg-red-500'}`}></span>
+                                                            <p className="font-bold text-white text-lg">{p.descriere}</p>
+                                                        </div>
+                                                        <p className="text-sm text-slate-400 flex items-center gap-2">
+                                                            <CalendarDaysIcon className="w-3 h-3" /> 
+                                                            Emis: {new Date(p.data_emitere).toLocaleDateString('ro-RO')}
+                                                        </p>
+                                                    </div>
+                                                    
+                                                    <div className="text-right min-w-[120px]">
+                                                        <p className={`font-bold text-xl ${isPaid ? 'text-emerald-400' : isPartial ? 'text-amber-400' : 'text-red-400'}`}>
+                                                            {isPaid ? totalIncasat.toFixed(2) : ramasDePlata.toFixed(2)} RON
+                                                        </p>
+                                                        {!isPaid && (
+                                                            <p className="text-xs text-slate-500">din {p.suma_datorata.toFixed(2)} RON</p>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="flex items-center gap-2 border-l border-slate-700 pl-4 ml-2">
+                                                        <Button size="sm" variant="secondary" onClick={() => setPlataToEdit(plati.find(pl => pl.id === p.plata_id) || null)} title="Editează">
+                                                            <EditIcon className="w-4 h-4"/>
+                                                        </Button>
+                                                        <Button size="sm" variant="danger" onClick={() => setPlataToDelete(plati.find(pl => pl.id === p.plata_id) || null)} title="Șterge">
+                                                            <TrashIcon className="w-4 h-4"/>
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })
+                                    ) : (
+                                        <div className="text-center py-10 text-slate-500">
+                                            <BanknotesIcon className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                                            <p>Nu există istoric financiar înregistrat.</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </Card>
                         </div>
-                    </Card>
-                    <ProgramAntrenament grupaId={sportiv.grupa_id} grupe={grupe} />
-                    <TrainingHistory sportivId={sportiv.id} antrenamente={antrenamente} grupe={grupe} />
-                </div>
+                    </div>
+                )}
             </div>
+
+            {/* Modals */}
             {isEditModalOpen && <SportivFormModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} onSave={handleSave} sportivToEdit={sportiv} grupe={grupe} setGrupe={()=>{}} grade={grade} familii={familii} setFamilii={()=>{}} tipuriAbonament={tipuriAbonament} clubs={clubs} currentUser={currentUser} />}
             {isWalletModalOpen && <SportivWallet sportiv={sportiv} familie={familii.find(f => f.id === sportiv.familie_id)} allSportivi={sportivi} vizualizarePlati={vizualizarePlati} allPlati={plati} setPlati={setPlati} setTranzactii={setTranzactii} onClose={() => setIsWalletModalOpen(false)} />}
             {isDeleteModalOpen && <DeleteAuditModal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} sportiv={sportiv} onDeactivate={handleDeactivate} onDelete={handleDelete} />}

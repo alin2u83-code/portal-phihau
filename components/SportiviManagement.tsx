@@ -1,23 +1,16 @@
 import React, { useState, useMemo } from 'react';
 import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions, VizualizarePlata } from '../types';
-import { Button, Input, Select, Card, RoleBadge, Modal } from './ui';
-import { PlusIcon, WalletIcon, UserXIcon, UserCheckIcon, SearchIcon, ShieldCheckIcon, TrashIcon, EditIcon } from './icons';
+import { Button } from './ui';
+import { PlusIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
-import { SportivFormModal } from './Sportivi';
-import { SportivWallet } from './SportivWallet';
-import { ResponsiveTable, Column } from './ResponsiveTable';
-import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
-import { useIsMobile } from '../hooks/useIsMobile';
-import { SportivAccountSettingsModal } from './SportivAccountSettings';
-import { DeleteAuditModal } from './DeleteAuditModal';
-import { GradBadge } from '../utils/grades';
 import { MartialArtsSkeleton } from './MartialArtsSkeleton';
-import { SportiviGrid } from './SportiviGrid';
 import { SportiviFilter } from './SportiviFilter';
 import { SportiviTable } from './SportiviTable';
 import { SportiviMobileList } from './SportiviMobileList';
+import { SportivModals } from './SportivModals';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 const getAge = (dateString: string | null | undefined): number => {
     if (!dateString) return 0;
@@ -362,30 +355,23 @@ export const SportiviManagement: React.FC<{
                 />
             )}
 
-            {isFormModalOpen && (
-                 <SportivFormModal 
-                    isOpen={isFormModalOpen}
-                    onClose={() => setIsFormModalOpen(false)}
-                    onSave={handleSave}
-                    sportivToEdit={sportivToEdit}
-                    grupe={grupe}
-                    setGrupe={setGrupe}
-                    grade={grade}
-                    familii={familii}
-                    setFamilii={setFamilii}
-                    tipuriAbonament={tipuriAbonament}
-                    clubs={clubs}
-                    currentUser={currentUser}
-                />
-            )}
-
-            <SportivAccountSettingsModal
-                isOpen={!!accountSettingsSportiv}
-                onClose={() => setAccountSettingsSportiv(null)}
-                sportiv={accountSettingsSportiv}
+            <SportivModals
+                isFormModalOpen={isFormModalOpen}
+                onCloseFormModal={() => setIsFormModalOpen(false)}
+                onSaveSportiv={handleSave}
+                sportivToEdit={sportivToEdit}
+                grupe={grupe}
+                setGrupe={setGrupe}
+                grade={grade}
+                familii={familii}
+                setFamilii={setFamilii}
+                tipuriAbonament={tipuriAbonament}
+                clubs={clubs}
+                currentUser={currentUser}
+                accountSettingsSportiv={accountSettingsSportiv}
+                onCloseAccountSettings={() => setAccountSettingsSportiv(null)}
                 setSportivi={setSportivi}
                 allRoles={allRoles}
-                currentUser={currentUser}
                 onOpenCreateAccount={(user) => {
                     setSportivForAccountCreation(user);
                     const sanitize = (str: string) => str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '');
@@ -393,48 +379,29 @@ export const SportiviManagement: React.FC<{
                     setCreateAccountForm({ email: user.email || `${emailPrefix}@phihau.ro`, username: user.username || emailPrefix, parola: 'Parola123!' });
                     setCreateAccountError('');
                 }}
+                sportivForAccountCreation={sportivForAccountCreation}
+                onCloseCreateAccount={() => setSportivForAccountCreation(null)}
+                createAccountForm={createAccountForm}
+                onCreateAccountFormChange={handleCreateAccountFormChange}
+                onCreateAccount={handleCreateAccount}
+                createAccountError={createAccountError}
+                createAccountLoading={createAccountLoading}
+                isWalletModalOpen={isWalletModalOpen}
+                onCloseWalletModal={() => {
+                    setIsWalletModalOpen(false);
+                    setSportivForWallet(null);
+                }}
+                sportivForWallet={sportivForWallet}
+                allSportivi={sportivi}
+                vizualizarePlati={vizualizarePlati}
+                plati={plati}
+                setPlati={setPlati}
+                setTranzactii={setTranzactii}
+                sportivToDelete={sportivToDelete}
+                onCloseDeleteModal={() => setSportivToDelete(null)}
+                onDeactivate={handleDeactivate}
+                onDelete={handleDelete}
             />
-
-            {sportivForAccountCreation && (
-                <Modal isOpen={!!sportivForAccountCreation} onClose={() => setSportivForAccountCreation(null)} title={`Creează Cont pentru ${sportivForAccountCreation.nume}`}>
-                    <form onSubmit={handleCreateAccount} className="space-y-4">
-                        <Input label="Email (Login)" name="email" type="email" value={createAccountForm.email} onChange={handleCreateAccountFormChange} required />
-                        <Input label="Parolă Inițială" name="parola" type="password" value={createAccountForm.parola} onChange={handleCreateAccountFormChange} required />
-                        {createAccountError && <p className="text-red-400 text-sm text-center bg-red-900/50 p-2 rounded">{createAccountError}</p>}
-                        <div className="flex justify-end pt-4 space-x-2">
-                            <Button type="button" variant="secondary" onClick={() => setSportivForAccountCreation(null)} disabled={createAccountLoading}>Anulează</Button>
-                            <Button type="submit" variant="success" disabled={createAccountLoading} isLoading={createAccountLoading}>Creează Cont</Button>
-                        </div>
-                    </form>
-                </Modal>
-            )}
-
-
-            {isWalletModalOpen && sportivForWallet && (
-                <SportivWallet
-                    sportiv={sportivForWallet}
-                    familie={familii.find(f => f.id === sportivForWallet.familie_id)}
-                    allSportivi={sportivi}
-                    vizualizarePlati={vizualizarePlati}
-                    allPlati={plati}
-                    setPlati={setPlati}
-                    setTranzactii={setTranzactii}
-                    onClose={() => {
-                        setIsWalletModalOpen(false);
-                        setSportivForWallet(null);
-                    }}
-                />
-            )}
-            
-            {sportivToDelete && (
-                <DeleteAuditModal
-                    isOpen={!!sportivToDelete}
-                    onClose={() => setSportivToDelete(null)}
-                    sportiv={sportivToDelete}
-                    onDeactivate={handleDeactivate}
-                    onDelete={handleDelete}
-                />
-            )}
         </div>
     );
 };

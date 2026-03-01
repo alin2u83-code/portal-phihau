@@ -10,6 +10,7 @@ import { AntrenamenteViitoare } from './AntrenamenteViitoare';
 import { SportivProgressChart, ChartDataPoint } from './SportivProgressChart';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, Cell } from 'recharts';
 import { ShieldCheckIcon } from './icons';
+import { useDataProvider } from '../hooks/useDataProvider';
 
 const VizaMedicalaCard: React.FC<{ plati: Plata[], sportivId: string }> = ({ plati, sportivId }) => {
     const vizaPlati = plati.filter(p => p.sportiv_id === sportivId && p.tip.toLowerCase().includes('viza') && p.status === 'Achitat');
@@ -143,7 +144,14 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
     isAdminView = false
 }) => {
     const { showSuccess, showError } = useError();
+    const { istoricPrezenta, fetchIstoricVedere } = useDataProvider();
     const isViewingOwnProfile = currentUser.id === viewedUser.id;
+
+    useEffect(() => {
+        if (viewedUser?.id) {
+            fetchIstoricVedere(viewedUser.id);
+        }
+    }, [viewedUser?.id, fetchIstoricVedere]);
 
     const todayString = useMemo(() => new Date().toISOString().split('T')[0], []);
 
@@ -268,31 +276,34 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
 
     // --- Attendance Stats Data ---
     const attendanceStats = useMemo(() => {
-        if (!antrenamente) return { total: 0, recent: [], loading: true };
+        if (!istoricPrezenta) return { total: 0, recent: [], loading: true };
         
-        const attended = antrenamente.filter(a => a.prezenta.some(p => p.sportiv_id === viewedUser.id));
+        const monthlyData: Record<string, number> = {};
         
-        // Get last 5 months stats
-        const monthsMap = new Map<string, number>();
+        // Get last 5 months stats initialized to 0
         const now = new Date();
         for (let i = 4; i >= 0; i--) {
             const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
             const monthName = d.toLocaleDateString('ro-RO', { month: 'short' });
-            monthsMap.set(monthName, 0);
+            monthlyData[monthName] = 0;
         }
 
-        attended.forEach(a => {
-            const d = new Date(a.data);
-            const monthName = d.toLocaleDateString('ro-RO', { month: 'short' });
-            if (monthsMap.has(monthName)) {
-                monthsMap.set(monthName, monthsMap.get(monthName)! + 1);
+        let totalPrezente = 0;
+
+        istoricPrezenta.forEach(p => {
+            if (p.status?.toLowerCase() === 'prezent') {
+                totalPrezente++;
+                const luna = new Date(p.data).toLocaleDateString('ro-RO', { month: 'short' });
+                if (monthlyData[luna] !== undefined) {
+                    monthlyData[luna] = (monthlyData[luna] || 0) + 1;
+                }
             }
         });
 
-        const recent = Array.from(monthsMap.entries()).map(([month, count]) => ({ month, count }));
+        const recent = Object.entries(monthlyData).map(([month, count]) => ({ month, count }));
 
-        return { total: attended.length, recent, loading: false };
-    }, [antrenamente, viewedUser.id]);
+        return { total: totalPrezente, recent, loading: false };
+    }, [istoricPrezenta]);
 
     return (
         <div className="space-y-4 md:space-y-6 pb-20 md:pb-0">

@@ -230,7 +230,7 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ antrenamente, sp
                                         </td>
                                         <td className="p-3 text-slate-400">{rec.grupaNume}</td>
                                         <td className="p-3 text-center">
-                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${rec.status === 'Prezent' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${rec.status === 'Prezent' ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}`}>
                                                 {rec.status}
                                             </span>
                                         </td>

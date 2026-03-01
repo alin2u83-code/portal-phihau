@@ -144,7 +144,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
     isAdminView = false
 }) => {
     const { showSuccess, showError } = useError();
-    const { istoricPrezenta, fetchIstoricVedere } = useDataProvider();
+    const { istoricPrezenta, fetchIstoricVedere, loadingIstoric } = useDataProvider();
     const isViewingOwnProfile = currentUser.id === viewedUser.id;
 
     useEffect(() => {
@@ -276,7 +276,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
 
     // --- Attendance Stats Data ---
     const attendanceStats = useMemo(() => {
-        if (!istoricPrezenta) return { total: 0, recent: [], loading: true };
+        if (!istoricPrezenta || loadingIstoric) return { total: 0, recent: [], loading: true };
         
         const monthlyData: Record<string, number> = {};
         

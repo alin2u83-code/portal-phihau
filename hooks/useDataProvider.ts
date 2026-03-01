@@ -52,8 +52,10 @@ export const useDataProvider = () => {
     const [activeRoleContext, setActiveRoleContext] = useState<any | null>(null);
     const [needsRoleSelection, setNeedsRoleSelection] = useState(false);
     const [istoricPrezenta, setIstoricPrezenta] = useState<any[]>([]);
+    const [loadingIstoric, setLoadingIstoric] = useState(false);
 
     const fetchIstoricVedere = useCallback(async (sportivId: string) => {
+        setLoadingIstoric(true);
         const { data, error } = await supabase
             .from('vedere_prezenta_sportiv')
             .select('*')
@@ -63,6 +65,7 @@ export const useDataProvider = () => {
         if (!error && data) {
             setIstoricPrezenta(data);
         }
+        setLoadingIstoric(false);
     }, []);
 
     const initializeAndFetchData = useCallback(async () => {
@@ -288,6 +291,7 @@ export const useDataProvider = () => {
         setDeconturiFederatie: createSetter('deconturiFederatie'),
         setVizualizarePlati: createSetter('vizualizarePlati'),
         istoricPrezenta,
+        loadingIstoric,
         fetchIstoricVedere,
     };
 };

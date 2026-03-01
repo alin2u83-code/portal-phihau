@@ -390,7 +390,7 @@ function App() {
         return renderProtected(<TaxeAnuale onBack={handleBackToDashboard} currentUser={currentUser!} sportivi={filteredData.sportivi} plati={filteredData.plati} setPlati={setPlati} />, isAtLeastClubAdmin);
 
       case 'istoric-prezenta':
-        return <MartialAttendance onBack={handleBackToDashboard} currentUser={currentUser!} antrenamente={antrenamente} grupe={grupe} />;
+        return <MartialAttendance onBack={handleBackToDashboard} currentUser={currentUser!} />;
 
       case 'istoric-plati':
         return <IstoricPlati onBack={handleBackToDashboard} viewedUser={currentUser!} plati={filteredData.plati} tranzactii={filteredData.tranzactii} />;

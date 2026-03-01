@@ -1,7 +1,7 @@
-import React, { useMemo, useState, useEffect } from 'react';
-import { User, Antrenament, Grupa } from '../types';
-import { Button, Card } from './ui';
-import { ArrowLeftIcon, CalendarDaysIcon, CheckCircleIcon, XCircleIcon } from './icons';
+import React, { useMemo, useEffect } from 'react';
+import { User } from '../types';
+import { Button } from './ui';
+import { ArrowLeftIcon, CalendarDaysIcon } from './icons';
 import { useDataProvider } from '../hooks/useDataProvider';
 import { TabelPrezentaVedere } from './TabelPrezentaVedere';
 
@@ -68,13 +68,11 @@ const ProgressRing: React.FC<ProgressRingProps> = ({ percentage, totalAttended }
 
 interface MartialAttendanceProps {
     currentUser: User;
-    antrenamente: Antrenament[];
-    grupe: Grupa[];
     onBack: () => void;
 }
 
-export const MartialAttendance: React.FC<MartialAttendanceProps> = ({ currentUser, antrenamente, grupe, onBack }) => {
-    const { istoricPrezenta, fetchIstoricVedere } = useDataProvider();
+export const MartialAttendance: React.FC<MartialAttendanceProps> = ({ currentUser, onBack }) => {
+    const { istoricPrezenta, fetchIstoricVedere, loadingIstoric } = useDataProvider();
 
     useEffect(() => {
         if (currentUser?.id) {
@@ -122,7 +120,7 @@ export const MartialAttendance: React.FC<MartialAttendanceProps> = ({ currentUse
                     Activitate Recentă
                 </h3>
                 
-                <TabelPrezentaVedere istoricPrezenta={istoricPrezenta} />
+                <TabelPrezentaVedere istoricPrezenta={istoricPrezenta} loading={loadingIstoric} />
             </div>
         </div>
     );

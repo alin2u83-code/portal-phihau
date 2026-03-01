@@ -15,7 +15,6 @@ export interface AppData {
     inscrieriExamene: InscriereExamen[];
     grade: Grad[];
     istoricGrade: IstoricGrade[];
-    antrenamente: Antrenament[];
     grupe: Grupa[];
     plati: Plata[];
     tranzactii: Tranzactie[];
@@ -25,7 +24,6 @@ export interface AppData {
     tipuriAbonament: TipAbonament[];
     familii: Familie[];
     allRoles: Rol[];
-    anunturiPrezenta: AnuntPrezenta[];
     reduceri: Reducere[];
     tipuriPlati: TipPlata[];
     locatii: Locatie[];
@@ -37,9 +35,9 @@ export interface AppData {
 
 const initialData: AppData = {
     sportivi: [], sesiuniExamene: [], inscrieriExamene: [], grade: [], istoricGrade: [], 
-    antrenamente: [], grupe: [], plati: [], tranzactii: [], evenimente: [], 
+    grupe: [], plati: [], tranzactii: [], evenimente: [], 
     rezultate: [], preturiConfig: [], tipuriAbonament: [], familii: [], 
-    allRoles: [], anunturiPrezenta: [], reduceri: [], tipuriPlati: [], 
+    allRoles: [], reduceri: [], tipuriPlati: [], 
     locatii: [], clubs: [], deconturiFederatie: [], vizualizarePlati: [],
     istoricPlatiDetaliat: []
 };
@@ -135,13 +133,11 @@ export const useDataProvider = () => {
                     tipuriPlati: cleanedSupabase.from('tipuri_plati').select('*'),
                     sportiviRaw: cleanedSupabase.from('sportivi').select('*, cluburi(*), utilizator_roluri_multicont(rol_denumire)'),
                     sesiuniExamene: cleanedSupabase.from('sesiuni_examene').select('*'),
-                    antrenamente: cleanedSupabase.from('program_antrenamente').select('*, grupe(*), prezenta:prezenta_antrenament!antrenament_id(sportiv_id, status)'),
                     plati: cleanedSupabase.from('plati').select('*'),
                     tranzactii: cleanedSupabase.from('tranzactii').select('*'),
                     evenimente: cleanedSupabase.from('evenimente').select('*'),
                     rezultate: cleanedSupabase.from('rezultate').select('*'),
                     familii: cleanedSupabase.from('familii').select('*'),
-                    anunturiPrezenta: cleanedSupabase.from('anunturi_prezenta').select('*'),
                     vizualizarePlati: cleanedSupabase.from('view_plata_sportiv').select('*'),
                 };
 
@@ -170,7 +166,7 @@ export const useDataProvider = () => {
                 if (!isSuperAdmin && !isAdminClub && cleanClubId) {
                     const tablesToFilter = [
                         'grupe', 'sportiviRaw', 'plati', 'tranzactii', 'evenimente', 
-                        'familii', 'anunturiPrezenta', 'preturiConfig', 'deconturiFederatie', 
+                        'familii', 'preturiConfig', 'deconturiFederatie', 
                         'istoricGrade', 'vizualizarePlati', 'istoricPlatiDetaliat',
                         'sesiuniExamene', 'inscrieriExamene', 'locatii', 'tipuriAbonament', 'reduceri'
                     ];
@@ -197,9 +193,9 @@ export const useDataProvider = () => {
                 const { 
                     clubs: cData, allRoles: rData, grade: gData, grupe: grpData, tipuriAbonament: subData, 
                     locatii: locData, tipuriPlati: pTypeData, reduceri: redData, sportiviRaw: sRaw, 
-                    sesiuniExamene: sessData, inscrieriExamene: regData, antrenamente: trainData, 
+                    sesiuniExamene: sessData, inscrieriExamene: regData, 
                     plati: payData, tranzactii: trData, evenimente: evData, rezultate: resData, 
-                    familii: famData, anunturiPrezenta: annData, preturiConfig: prcData, 
+                    familii: famData, preturiConfig: prcData, 
                     vizualizarePlati: vPayData, istoricPlatiDetaliat: istPayData, deconturiFederatie: decData, istoricGrade: istGData
                 } = processedData;
 
@@ -214,9 +210,9 @@ export const useDataProvider = () => {
                 setData({
                     clubs: cData, allRoles: rData, grade: gData, grupe: grpData, tipuriAbonament: subData,
                     locatii: locData, tipuriPlati: pTypeData, reduceri: redData, sportivi: allSportivi,
-                    sesiuniExamene: sessData, inscrieriExamene: regData, antrenamente: trainData,
+                    sesiuniExamene: sessData, inscrieriExamene: regData,
                     plati: payData, tranzactii: trData, evenimente: evData, rezultate: resData,
-                    familii: famData, anunturiPrezenta: annData, preturiConfig: prcData,
+                    familii: famData, preturiConfig: prcData,
                     vizualizarePlati: vPayData, istoricPlatiDetaliat: istPayData, deconturiFederatie: decData, istoricGrade: istGData
                 } as AppData);
             }
@@ -262,7 +258,6 @@ export const useDataProvider = () => {
         setSesiuniExamene: createSetter('sesiuniExamene'),
         setInscrieriExamene: createSetter('inscrieriExamene'),
         setIstoricGrade: createSetter('istoricGrade'),
-        setAntrenamente: createSetter('antrenamente'),
         setPlati: createSetter('plati'),
         setTranzactii: createSetter('tranzactii'),
         setEvenimente: createSetter('evenimente'),
@@ -278,7 +273,6 @@ export const useDataProvider = () => {
         setTipuriPlati: createSetter('tipuriPlati'),
         setReduceri: createSetter('reduceri'),
         setDeconturiFederatie: createSetter('deconturiFederatie'),
-        setAnunturiPrezenta: createSetter('anunturiPrezenta'),
         setVizualizarePlati: createSetter('vizualizarePlati'),
     };
 };

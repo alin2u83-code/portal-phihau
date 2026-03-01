@@ -62,6 +62,7 @@ import { RoleSelectionPage } from './components/RoleSelectionPage';
 import { RaportLunarPrezenta } from './components/RaportLunarPrezenta';
 import { Header } from './components/Header';
 import { useDataProvider } from './hooks/useDataProvider';
+import { useAttendanceData } from './hooks/useAttendanceData';
 import { useIsMobile } from './hooks/useIsMobile';
 import { useFilteredData } from './hooks/useFilteredData';
 import { MartialArtsSkeleton } from './components/MartialArtsSkeleton';
@@ -81,15 +82,26 @@ function App() {
   const [switchingToRole, setSwitchingToRole] = useState<string>('');
   
   const {
-      loading, error, needsRoleSelection, session, currentUser, userRoles, activeRoleContext,
-      setCurrentUser, sportivi, sesiuniExamene, inscrieriExamene, grade, istoricGrade, antrenamente,
+      loading: dataLoading, error: dataError, needsRoleSelection, session, currentUser, userRoles, activeRoleContext,
+      setCurrentUser, sportivi, sesiuniExamene, inscrieriExamene, grade, istoricGrade,
       grupe, plati, tranzactii, evenimente, rezultate, preturiConfig, tipuriAbonament,
-      familii, allRoles, anunturiPrezenta, reduceri, tipuriPlati, locatii, clubs,
+      familii, allRoles, reduceri, tipuriPlati, locatii, clubs,
       deconturiFederatie, vizualizarePlati, istoricPlatiDetaliat, setPlati, setSportivi, setSesiuniExamene, setInscrieriExamene,
-      setAntrenamente, setGrupe, setTranzactii, setEvenimente, setRezultate, setFamilii,
-      setAllRoles, setAnunturiPrezenta, setReduceri, setTipuriPlati, setLocatii, setClubs,
+      setGrupe, setTranzactii, setEvenimente, setRezultate, setFamilii,
+      setAllRoles, setReduceri, setTipuriPlati, setLocatii, setClubs,
       setGrade, setTipuriAbonament, setDeconturiFederatie, setIstoricGrade, initializeAndFetchData
   } = dataProvider;
+
+  const currentClubId = useMemo((): string | null => {
+    if (!activeRoleContext) return null;
+    const cleanClubId = (activeRoleContext.club_id && activeRoleContext.club_id !== 'null') ? activeRoleContext.club_id : null;
+    return cleanClubId;
+  }, [activeRoleContext]);
+
+  const { antrenamente, setAntrenamente, anunturiPrezenta, setAnunturiPrezenta, loading: attendanceLoading, error: attendanceError } = useAttendanceData(currentClubId);
+
+  const loading = dataLoading || attendanceLoading;
+  const error = dataError || attendanceError;
 
   const [platiPentruIncasare, setPlatiPentruIncasare] = useState<Plata[]>([]);
 

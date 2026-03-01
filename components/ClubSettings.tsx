@@ -196,7 +196,7 @@ export const ClubSettings: React.FC<ClubSettingsProps> = ({ onBack, currentUser,
             </div>
 
             <div className="flex justify-end pt-4 border-t border-slate-700">
-                <Button onClick={handleSave} variant="success" size="lg" isLoading={loading}>
+                <Button onClick={handleSave} variant="success" size="md" isLoading={loading}>
                     <SaveIcon className="w-5 h-5 mr-2" /> Salvează Modificările
                 </Button>
             </div>

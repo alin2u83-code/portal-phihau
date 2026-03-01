@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Antrenament, Sportiv, Grupa, ProgramItem, User } from '../types';
 import { Button, Card, Input, Select, Modal } from './ui';
-import { PlusIcon, ArrowLeftIcon, TrashIcon, CogIcon, CalendarDaysIcon, UsersIcon } from './icons';
+import { PlusIcon, ArrowLeftIcon, TrashIcon, CogIcon, CalendarDaysIcon, UsersIcon, CheckCircleIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 
@@ -67,6 +67,7 @@ const ListaPrezenta: React.FC<{
     const { showError, showSuccess } = useError();
     const [presentIds, setPresentIds] = useState<Set<string>>(new Set());
     const [loading, setLoading] = useState(false);
+    const [saved, setSaved] = useState(false);
 
     useEffect(() => {
         setPresentIds(new Set(antrenament.prezenta.filter(p => p.status === 'prezent').map(p => p.sportiv_id)));
@@ -79,6 +80,7 @@ const ListaPrezenta: React.FC<{
 
     const handleSave = async () => {
         setLoading(true);
+        setSaved(false);
         const recordsToUpsert = sportiviInGrupa.map(s => ({
             antrenament_id: antrenament.id,
             sportiv_id: s.id,
@@ -89,11 +91,23 @@ const ListaPrezenta: React.FC<{
         setLoading(false);
 
         if(error) { showError("Eroare la salvarea prezenței", error.message); }
-        else { showSuccess("Succes", `Prezența pentru ${sportiviInGrupa.length} sportivi a fost salvată.`); onSave(); }
+        else { 
+            showSuccess("Succes", `Prezența pentru ${sportiviInGrupa.length} sportivi a fost salvată.`); 
+            setSaved(true);
+            setTimeout(() => {
+                setSaved(false);
+                onSave();
+            }, 1000);
+        }
     };
 
     return (
-        <Card>
+        <Card className={`transition-all duration-300 relative ${saved ? 'ring-2 ring-green-500 shadow-[0_0_15px_rgba(34,197,94,0.3)]' : ''}`}>
+            {saved && (
+                <div className="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full animate-pulse flex items-center gap-1">
+                    <CheckCircleIcon className="w-3 h-3" /> Salvat
+                </div>
+            )}
             <Button onClick={onBack} variant="secondary" className="mb-4"><ArrowLeftIcon/> Înapoi la Calendar</Button>
             <h2 className="text-xl font-bold text-white mb-1">Prezență: {antrenament.grupe?.denumire}</h2>
             <p className="text-sm text-slate-400 mb-4">{new Date(antrenament.data + 'T00:00:00').toLocaleDateString('ro-RO')} - ora {antrenament.ora_start}</p>

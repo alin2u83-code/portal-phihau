@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { Antrenament, Sportiv, Grupa, View } from '../types';
 import { Card, Input, Select, Button } from './ui';
-import { ArrowLeftIcon } from './icons';
+import { ArrowLeftIcon, ExclamationTriangleIcon } from './icons';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell } from 'recharts';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 
@@ -41,7 +41,7 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ antrenamente, sp
     const monthNames = useMemo(() => ["Ian", "Feb", "Mar", "Apr", "Mai", "Iun", "Iul", "Aug", "Sep", "Oct", "Nov", "Dec"], []);
     const sali = useMemo(() => [...new Set((grupe || []).map(g => g.sala).filter(Boolean))], [grupe]);
 
-    const { filteredPresenceRecords, filteredDetailedLog } = useMemo(() => {
+    const { filteredPresenceRecords, filteredDetailedLog, athleteSummary } = useMemo(() => {
         const [type, yearStr] = filters.yearFilter.split('_');
         const year = parseInt(yearStr, 10);
         
@@ -91,7 +91,22 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ antrenamente, sp
             filters.searchTerm === '' || rec.sportivNume.toLowerCase().includes(filters.searchTerm.toLowerCase())
         ).sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime());
 
-        return { filteredPresenceRecords: presenceRecords, filteredDetailedLog: finalFilteredLog };
+        const athleteStats = new Map<string, { total: number, present: number, sportivNume: string, sportiv: Sportiv }>();
+        finalFilteredLog.forEach(rec => {
+            if (!athleteStats.has(rec.sportiv.id)) {
+                athleteStats.set(rec.sportiv.id, { total: 0, present: 0, sportivNume: rec.sportivNume, sportiv: rec.sportiv });
+            }
+            const stat = athleteStats.get(rec.sportiv.id)!;
+            stat.total++;
+            if (rec.status === 'Prezent') stat.present++;
+        });
+
+        const athleteSummary = Array.from(athleteStats.values()).map(stat => ({
+            ...stat,
+            percentage: stat.total > 0 ? Math.round((stat.present / stat.total) * 100) : 0
+        })).sort((a, b) => a.percentage - b.percentage);
+
+        return { filteredPresenceRecords: presenceRecords, filteredDetailedLog: finalFilteredLog, athleteSummary };
     }, [antrenamente, sportivi, grupe, filters]);
 
 
@@ -161,38 +176,72 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ antrenamente, sp
                 </Card>
             </div>
 
-            <Card className="p-0 overflow-hidden">
-                <div className="p-4 bg-slate-700/50 font-bold text-white">Jurnal Detaliat Prezențe</div>
-                <div className="overflow-x-auto max-h-[600px]">
-                    <table className="w-full text-left text-sm min-w-[600px]">
-                        <thead className="bg-slate-800 text-slate-400 sticky top-0">
-                            <tr>
-                                <th className="p-3 font-semibold">Data</th>
-                                <th className="p-3 font-semibold">Nume Sportiv</th>
-                                <th className="p-3 font-semibold">Grupa</th>
-                                <th className="p-3 font-semibold text-center">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-700">
-                            {filteredDetailedLog.map(rec => (
-                                <tr key={rec.id} className="hover:bg-slate-700/30">
-                                    <td className="p-3 whitespace-nowrap">{new Date(rec.data + 'T00:00:00').toLocaleDateString('ro-RO')}</td>
-                                    <td className="p-3 font-medium text-white hover:text-brand-primary hover:underline cursor-pointer" onClick={() => rec.sportiv && onViewSportiv(rec.sportiv)}>
-                                        {rec.sportivNume}
-                                    </td>
-                                    <td className="p-3 text-slate-400">{rec.grupaNume}</td>
-                                    <td className="p-3 text-center">
-                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${rec.status === 'Prezent' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                            {rec.status}
-                                        </span>
-                                    </td>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card className="p-0 overflow-hidden">
+                    <div className="p-4 bg-slate-700/50 font-bold text-white">Sumar pe Sportiv (Atenție &lt; 50%)</div>
+                    <div className="overflow-x-auto max-h-[600px]">
+                        <table className="w-full text-left text-sm min-w-[400px]">
+                            <thead className="bg-slate-800 text-slate-400 sticky top-0">
+                                <tr>
+                                    <th className="p-3 font-semibold">Nume Sportiv</th>
+                                    <th className="p-3 font-semibold text-center">Prezențe</th>
+                                    <th className="p-3 font-semibold text-center">Procentaj</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                     {filteredDetailedLog.length === 0 && <p className="p-12 text-center text-slate-500 italic">Niciun rezultat conform filtrelor.</p>}
-                </div>
-            </Card>
+                            </thead>
+                            <tbody className="divide-y divide-slate-700">
+                                {athleteSummary.map(stat => (
+                                    <tr key={stat.sportiv.id} className={`hover:bg-slate-700/30 ${stat.percentage < 50 ? 'bg-red-900/10' : ''}`}>
+                                        <td className="p-3 font-medium text-white hover:text-brand-primary hover:underline cursor-pointer flex items-center gap-2" onClick={() => onViewSportiv(stat.sportiv)}>
+                                            {stat.percentage < 50 && <span title="Prezență sub 50%"><ExclamationTriangleIcon className="w-4 h-4 text-red-500" /></span>}
+                                            {stat.sportivNume}
+                                        </td>
+                                        <td className="p-3 text-center text-slate-300">{stat.present} / {stat.total}</td>
+                                        <td className="p-3 text-center">
+                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${stat.percentage < 50 ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-green-500/20 text-green-400 border border-green-500/30'}`}>
+                                                {stat.percentage}%
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                        {athleteSummary.length === 0 && <p className="p-12 text-center text-slate-500 italic">Niciun rezultat conform filtrelor.</p>}
+                    </div>
+                </Card>
+
+                <Card className="p-0 overflow-hidden">
+                    <div className="p-4 bg-slate-700/50 font-bold text-white">Jurnal Detaliat Prezențe</div>
+                    <div className="overflow-x-auto max-h-[600px]">
+                        <table className="w-full text-left text-sm min-w-[500px]">
+                            <thead className="bg-slate-800 text-slate-400 sticky top-0">
+                                <tr>
+                                    <th className="p-3 font-semibold">Data</th>
+                                    <th className="p-3 font-semibold">Nume Sportiv</th>
+                                    <th className="p-3 font-semibold">Grupa</th>
+                                    <th className="p-3 font-semibold text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-700">
+                                {filteredDetailedLog.map(rec => (
+                                    <tr key={rec.id} className="hover:bg-slate-700/30">
+                                        <td className="p-3 whitespace-nowrap">{new Date(rec.data + 'T00:00:00').toLocaleDateString('ro-RO')}</td>
+                                        <td className="p-3 font-medium text-white hover:text-brand-primary hover:underline cursor-pointer" onClick={() => rec.sportiv && onViewSportiv(rec.sportiv)}>
+                                            {rec.sportivNume}
+                                        </td>
+                                        <td className="p-3 text-slate-400">{rec.grupaNume}</td>
+                                        <td className="p-3 text-center">
+                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${rec.status === 'Prezent' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                                {rec.status}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                         {filteredDetailedLog.length === 0 && <p className="p-12 text-center text-slate-500 italic">Niciun rezultat conform filtrelor.</p>}
+                    </div>
+                </Card>
+            </div>
         </div>
     );
 };

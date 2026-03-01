@@ -3,7 +3,7 @@ import { supabase } from '../supabaseClient';
 import { Antrenament, Sportiv, Grupa, User, View, Grad, SportivProgramPersonalizat } from '../types';
 import { useError } from './ErrorProvider';
 import { Card, Button, Select } from './ui';
-import { ArrowLeftIcon, UserPlusIcon, XIcon } from './icons';
+import { ArrowLeftIcon, UserPlusIcon, XIcon, CheckCircleIcon } from './icons';
 import { GradBadge, getGradBorderColor } from '../utils/grades';
 
 interface TrainingWithGroupAndAthletes extends Omit<Antrenament, 'grupe' | 'prezenta'> {
@@ -82,6 +82,7 @@ const TrainingCard: React.FC<TrainingCardProps> = ({ training, allClubSportivi, 
 
     const [selectedExternalId, setSelectedExternalId] = useState('');
     const [saving, setSaving] = useState(false);
+    const [saved, setSaved] = useState(false);
 
     const groupAthletes = useMemo(() => training.grupe?.sportivi || [], [training.grupe]);
     const extraAthletes = useMemo(() => allClubSportivi.filter(s => extraAthleteIds.has(s.id)), [allClubSportivi, extraAthleteIds]);
@@ -125,12 +126,23 @@ const TrainingCard: React.FC<TrainingCardProps> = ({ training, allClubSportivi, 
 
     const handleSaveClick = async () => {
         setSaving(true);
-        await onSave(training.id, presentIds);
-        setSaving(false);
+        setSaved(false);
+        try {
+            await onSave(training.id, presentIds);
+            setSaved(true);
+            setTimeout(() => setSaved(false), 3000);
+        } finally {
+            setSaving(false);
+        }
     };
 
     return (
-        <Card className="flex flex-col">
+        <Card className={`flex flex-col relative transition-all duration-300 ${saved ? 'ring-2 ring-green-500 shadow-[0_0_15px_rgba(34,197,94,0.3)]' : ''}`}>
+            {saved && (
+                <div className="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full animate-pulse flex items-center gap-1">
+                    <CheckCircleIcon className="w-3 h-3" /> Salvat
+                </div>
+            )}
             <h3 className="text-xl font-bold text-white">{training.grupe?.denumire || 'Antrenament Liber'}</h3>
             <p className="text-sm text-slate-400 mb-4">{training.ora_start} - {training.ora_sfarsit}</p>
             

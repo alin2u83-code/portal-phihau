@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Sportiv, Grupa, Antrenament, Grad } from '../types';
 import { Card, Select, Button } from './ui';
-import { ArrowLeftIcon, DocumentArrowDownIcon } from './icons';
+import { ArrowLeftIcon, DocumentArrowDownIcon, ExclamationTriangleIcon } from './icons';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 
 // Functie helper pentru export CSV, inclusa local pentru a evita crearea de fisiere noi
@@ -161,8 +161,11 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ sporti
                                 const atRisk = row.attendedTrainings < 5;
                                 const percentage = row.totalTrainings > 0 ? Math.round((row.attendedTrainings / row.totalTrainings) * 100) : 0;
                                 return (
-                                <tr key={row.sportivId} className={`${atRisk ? 'bg-red-900/30' : ''} hover:bg-slate-700/30`}>
-                                    <td className="p-3 font-medium text-white">{row.nume}</td>
+                                <tr key={row.sportivId} className={`${percentage < 50 ? 'bg-red-900/10' : ''} hover:bg-slate-700/30`}>
+                                    <td className="p-3 font-medium text-white flex items-center gap-2">
+                                        {percentage < 50 && <span title="Prezență sub 50%"><ExclamationTriangleIcon className="w-4 h-4 text-red-500" /></span>}
+                                        {row.nume}
+                                    </td>
                                     <td className="p-3">{row.grad}</td>
                                     <td className="p-3 text-center">{row.totalTrainings}</td>
                                     <td className={`p-3 text-center font-bold ${atRisk ? 'text-red-400' : 'text-white'}`}>{row.attendedTrainings}</td>

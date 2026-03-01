@@ -15,8 +15,7 @@ export const DebugPage: React.FC = () => {
     const {
         activeRoleContext,
         sportivi,
-        plati,
-        antrenamente
+        plati
     } = useDataProvider();
 
     const activeRole = activeRoleContext?.roluri?.nume || 'N/A';
@@ -38,7 +37,6 @@ export const DebugPage: React.FC = () => {
                 <DataRow label="Rol Activ Curent" value={activeRole} />
                 <DataRow label="# Sportivi Încărcați" value={renderCount(sportivi)} isError={sportivi == null} />
                 <DataRow label="# Plăți Încărcate" value={renderCount(plati)} isError={plati == null} />
-                <DataRow label="# Antrenamente Încărcate" value={renderCount(antrenamente)} isError={antrenamente == null} />
             </Card>
         </div>
     );

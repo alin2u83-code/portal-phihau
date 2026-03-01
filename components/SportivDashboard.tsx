@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Sportiv, InscriereExamen, Grad, Grupa, Plata, User, View, AnuntPrezenta, SesiuneExamen, Antrenament, Permissions, Rol, IstoricGrade } from '../types';
-import { Card, Button, Skeleton } from './ui';
+import { Card, Button, Skeleton, Modal } from './ui';
 import { NotificationPermissionWidget } from './NotificationPermissionWidget';
 import { useError } from './ErrorProvider';
 import { supabase } from '../supabaseClient';
@@ -138,6 +138,45 @@ interface SportivDashboardProps {
   isAdminView?: boolean;
 }
 
+// --- History Modal ---
+const HistoryModal: React.FC<{ isOpen: boolean; onClose: () => void; istoric: any[] }> = ({ isOpen, onClose, istoric }) => {
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title="Istoric Complet Prezențe">
+            <div className="max-h-[60vh] overflow-y-auto pr-2">
+                {istoric.length === 0 ? (
+                    <p className="text-slate-400 text-center py-8">Nu există date.</p>
+                ) : (
+                    <table className="w-full text-left text-sm">
+                        <thead className="bg-slate-800 text-slate-400 sticky top-0">
+                            <tr>
+                                <th className="p-3">Data</th>
+                                <th className="p-3">Ora</th>
+                                <th className="p-3">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-700">
+                            {istoric.map((row, idx) => (
+                                <tr key={idx} className="hover:bg-slate-700/50">
+                                    <td className="p-3 text-white">{new Date(row.data).toLocaleDateString('ro-RO')}</td>
+                                    <td className="p-3 text-slate-300">{row.ora_start}</td>
+                                    <td className="p-3">
+                                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${row.status?.toLowerCase() === 'prezent' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                                            {row.status}
+                                        </span>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                )}
+            </div>
+            <div className="mt-4 flex justify-end">
+                <Button onClick={onClose} variant="secondary">Închide</Button>
+            </div>
+        </Modal>
+    );
+};
+
 export const SportivDashboard: React.FC<SportivDashboardProps> = ({
     currentUser, viewedUser, participari, examene, grade, istoricGrade, grupe,
     plati, onNavigate, antrenamente, anunturi, setAnunturi, sportivi,
@@ -147,6 +186,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
     const { showSuccess, showError } = useError();
     const { istoricPrezenta, fetchIstoricVedere, loadingIstoric } = useDataProvider();
     const isViewingOwnProfile = currentUser.id === viewedUser.id;
+    const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
     useEffect(() => {
         if (viewedUser?.id) {
@@ -276,7 +316,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
     }, [participari, examene, grade, istoricGrade, viewedUser.id]);
 
     // --- Attendance Stats Data ---
-    const { attendanceStats, examStats } = useAttendanceStats(istoricPrezenta, istoricGrade, grade);
+    const { attendanceStats, gradeStats } = useAttendanceStats(istoricPrezenta, istoricGrade, grade);
 
     return (
         <div className="space-y-4 md:space-y-6 pb-20 md:pb-0">
@@ -360,10 +400,11 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                             </ResponsiveContainer>
                         </div>
                     )}
-                    <Button onClick={() => onNavigate('istoric-prezenta')} variant="secondary" size="sm" className="w-full mt-4">
+                    <Button onClick={() => setIsHistoryOpen(true)} variant="secondary" size="sm" className="w-full mt-4">
                         Vezi Istoric Detaliat
                     </Button>
                 </Card>
+                <HistoryModal isOpen={isHistoryOpen} onClose={() => setIsHistoryOpen(false)} istoric={istoricPrezenta || []} />
 
                 {/* Grade Evolution */}
                 <Card className="flex flex-col">
@@ -384,10 +425,10 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                     Evoluție Prezență pe Grade
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                    {examStats.length === 0 ? (
+                    {gradeStats.length === 0 ? (
                         <p className="text-slate-400 text-sm italic col-span-full">Nu există date suficiente pentru calculul intervalelor.</p>
                     ) : (
-                        examStats.map((stat, idx) => (
+                        gradeStats.map((stat, idx) => (
                             <div key={idx} className="flex flex-col p-3 bg-slate-800/50 rounded border border-slate-700/50 hover:bg-slate-700 transition-colors">
                                 <span className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">{stat.period}</span>
                                 <div className="flex items-baseline gap-2">

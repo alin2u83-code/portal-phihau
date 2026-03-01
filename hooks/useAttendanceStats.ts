@@ -30,7 +30,7 @@ export const useAttendanceStats = (
         return { total: totalAttended, recent, loading: false };
     }, [istoricPrezenta, totalAttended]);
 
-    const examStats = useMemo(() => {
+    const gradeStats = useMemo(() => {
         if (!istoricPrezenta || !istoricGrade || !grade) return [];
 
         const sortedGrades = [...istoricGrade].sort((a, b) => new Date(a.data_obtinere).getTime() - new Date(b.data_obtinere).getTime());
@@ -101,6 +101,6 @@ export const useAttendanceStats = (
     return {
         totalAttended,
         attendanceStats,
-        examStats
+        gradeStats
     };
 };

@@ -5,7 +5,7 @@ import { PlusIcon, ArrowLeftIcon, TrashIcon, CogIcon, CalendarDaysIcon, UsersIco
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 
-type View = 'grupe' | 'orar' | 'calendar' | 'prezenta';
+type View = 'grupe' | 'orar' | 'calendar' | 'prezenta' | 'istoric-global';
 interface ViewState { view: View; id: string | null; }
 
 // --- Formular Antrenament Personalizat (Reutilizat) ---
@@ -257,9 +257,15 @@ const OrarEditor: React.FC<{ grupa: Grupa & {program: ProgramItem[]}; onNavigate
 };
 
 // --- PASUL 1: Lista de grupe ---
-const GrupeList: React.FC<{ onSelect: (id: string) => void; grupe: (Grupa & {sportivi_count: {count: number}[]})[] }> = ({ onSelect, grupe }) => (
+const GrupeList: React.FC<{ onSelect: (id: string) => void; onGlobalHistory: () => void; grupe: (Grupa & {sportivi_count: {count: number}[]})[] }> = ({ onSelect, onGlobalHistory, grupe }) => (
     <div className="space-y-6">
-        <h1 className="text-3xl font-bold text-white">Management Prezență</h1>
+        <div className="flex justify-between items-center">
+            <h1 className="text-3xl font-bold text-white">Management Prezență</h1>
+            <Button variant="secondary" onClick={onGlobalHistory}>
+                <CalendarDaysIcon className="w-5 h-5 mr-2" />
+                Istoric Global
+            </Button>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {grupe.map(g => (
                 <Card key={g.id} className="flex flex-col">
@@ -276,6 +282,84 @@ const GrupeList: React.FC<{ onSelect: (id: string) => void; grupe: (Grupa & {spo
         </div>
     </div>
 );
+
+// --- Istoric Global Prezențe ---
+const IstoricPrezentaGlobal: React.FC<{ onBack: () => void, onViewSportiv?: (s: Sportiv) => void }> = ({ onBack, onViewSportiv }) => {
+    const [istoric, setIstoric] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const { showError } = useError();
+    const [sportivi, setSportivi] = useState<Record<string, Sportiv>>({});
+
+    useEffect(() => {
+        const fetchData = async () => {
+            setLoading(true);
+            const [istoricRes, sportiviRes] = await Promise.all([
+                supabase.from('vedere_prezenta_sportiv').select('*').order('data', { ascending: false }).limit(500),
+                supabase.from('sportivi').select('*')
+            ]);
+            
+            if (istoricRes.error) showError("Eroare la încărcarea istoricului", istoricRes.error.message);
+            else setIstoric(istoricRes.data || []);
+
+            if (sportiviRes.data) {
+                const spMap: Record<string, Sportiv> = {};
+                sportiviRes.data.forEach(s => spMap[s.id] = s);
+                setSportivi(spMap);
+            }
+            
+            setLoading(false);
+        };
+        fetchData();
+    }, [showError]);
+
+    return (
+        <div className="space-y-4">
+            <Button onClick={onBack} variant="secondary" className="mb-4"><ArrowLeftIcon/> Înapoi la Grupe</Button>
+            <Card>
+                <h2 className="text-xl font-bold text-white mb-4">Istoric Global Prezențe</h2>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm">
+                        <thead className="bg-slate-800 text-slate-400">
+                            <tr>
+                                <th className="p-3">Data</th>
+                                <th className="p-3">Ora</th>
+                                <th className="p-3">Sportiv</th>
+                                <th className="p-3">Grupa</th>
+                                <th className="p-3">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-700">
+                            {loading ? (
+                                <tr><td colSpan={5} className="p-4 text-center text-slate-400">Se încarcă...</td></tr>
+                            ) : istoric.length === 0 ? (
+                                <tr><td colSpan={5} className="p-4 text-center text-slate-400">Nu există prezențe înregistrate.</td></tr>
+                            ) : (
+                                istoric.map((row, idx) => {
+                                    const sp = sportivi[row.sportiv_id];
+                                    return (
+                                        <tr key={idx} className="hover:bg-slate-700/50">
+                                            <td className="p-3">{new Date(row.data).toLocaleDateString('ro-RO')}</td>
+                                            <td className="p-3">{row.ora_start}</td>
+                                            <td className="p-3 font-medium text-white cursor-pointer hover:text-brand-primary hover:underline" onClick={() => sp && onViewSportiv && onViewSportiv(sp)}>
+                                                {sp ? `${sp.nume} ${sp.prenume}` : 'Necunoscut'}
+                                            </td>
+                                            <td className="p-3 text-slate-400">{row.nume_grupa}</td>
+                                            <td className="p-3">
+                                                <span className={`px-2 py-1 rounded-full text-xs font-bold ${row.status?.toLowerCase() === 'prezent' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                                                    {row.status}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    );
+                                })
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </Card>
+        </div>
+    );
+};
 
 // --- Componenta Principală de Navigare ---
 export const Prezenta: React.FC<{ onBack: () => void; currentUser: User; onViewSportiv?: (s: Sportiv) => void }> = ({ onBack, currentUser, onViewSportiv }) => {
@@ -318,10 +402,11 @@ export const Prezenta: React.FC<{ onBack: () => void; currentUser: User; onViewS
     const renderContent = () => {
         if (loading) return <p>Se încarcă...</p>;
         switch (currentView.view) {
-            case 'grupe': return <GrupeList onSelect={id => navigateTo('orar', id)} grupe={grupe} />;
+            case 'grupe': return <GrupeList onSelect={id => navigateTo('orar', id)} onGlobalHistory={() => navigateTo('istoric-global', 'all')} grupe={grupe} />;
             case 'orar': return selectedGrupa ? <OrarEditor grupa={selectedGrupa} onNavigate={id => navigateTo('calendar', id)} onBack={navigateBack} setGrupe={setGrupe as any}/> : <p>Grupă negăsită.</p>;
             case 'calendar': return selectedGrupa ? <CalendarActivitati grupa={selectedGrupa} onSelect={handleSelectAntrenament} onBack={navigateBack} grupe={grupe}/> : <p>Grupă negăsită.</p>;
             case 'prezenta': return antrenamentDetaliu ? <ListaPrezenta antrenament={antrenamentDetaliu} onBack={navigateBack} onSave={navigateBack} onViewSportiv={onViewSportiv}/> : <p>Antrenament negăsit.</p>;
+            case 'istoric-global': return <IstoricPrezentaGlobal onBack={navigateBack} onViewSportiv={onViewSportiv} />;
             default: return null;
         }
     };

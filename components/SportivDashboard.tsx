@@ -11,6 +11,7 @@ import { SportivProgressChart, ChartDataPoint } from './SportivProgressChart';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, Cell } from 'recharts';
 import { ShieldCheckIcon } from './icons';
 import { useDataProvider } from '../hooks/useDataProvider';
+import { useAttendanceStats } from '../hooks/useAttendanceStats';
 
 const VizaMedicalaCard: React.FC<{ plati: Plata[], sportivId: string }> = ({ plati, sportivId }) => {
     const vizaPlati = plati.filter(p => p.sportiv_id === sportivId && p.tip.toLowerCase().includes('viza') && p.status === 'Achitat');
@@ -275,27 +276,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
     }, [participari, examene, grade, istoricGrade, viewedUser.id]);
 
     // --- Attendance Stats Data ---
-    const attendanceStats = useMemo(() => {
-        if (!istoricPrezenta || loadingIstoric) return { total: 0, recent: [], loading: true };
-        
-        const last5Months = Array.from({ length: 5 }, (_, i) => {
-            const d = new Date();
-            d.setMonth(d.getMonth() - i);
-            return d.toLocaleString('ro-RO', { month: 'short' });
-        }).reverse();
-
-        const recent = last5Months.map(month => ({
-            month: month,
-            count: (istoricPrezenta || []).filter(p => 
-                p.status?.toLowerCase() === 'prezent' && 
-                new Date(p.data).toLocaleString('ro-RO', { month: 'short' }) === month
-            ).length
-        }));
-
-        const totalPrezente = (istoricPrezenta || []).filter(p => p.status?.toLowerCase() === 'prezent').length;
-
-        return { total: totalPrezente, recent, loading: false };
-    }, [istoricPrezenta, loadingIstoric]);
+    const { attendanceStats, examStats } = useAttendanceStats(istoricPrezenta, istoricGrade, grade);
 
     return (
         <div className="space-y-4 md:space-y-6 pb-20 md:pb-0">
@@ -395,6 +376,30 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                     </div>
                 </Card>
             </div>
+
+            {/* Exam Attendance Stats */}
+            <Card className="flex flex-col">
+                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <ChartBarIcon className="w-5 h-5 text-emerald-400" />
+                    Evoluție Prezență pe Grade
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                    {examStats.length === 0 ? (
+                        <p className="text-slate-400 text-sm italic col-span-full">Nu există date suficiente pentru calculul intervalelor.</p>
+                    ) : (
+                        examStats.map((stat, idx) => (
+                            <div key={idx} className="flex flex-col p-3 bg-slate-800/50 rounded border border-slate-700/50 hover:bg-slate-700 transition-colors">
+                                <span className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">{stat.period}</span>
+                                <div className="flex items-baseline gap-2">
+                                    <span className="text-xl font-bold text-emerald-400">{stat.count}</span>
+                                    <span className="text-xs text-slate-500">prezențe</span>
+                                </div>
+                                <span className="text-[10px] text-slate-600 mt-1">Până la: {new Date(stat.date).toLocaleDateString('ro-RO')}</span>
+                            </div>
+                        ))
+                    )}
+                </div>
+            </Card>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <AntrenamenteViitoare currentUser={viewedUser} antrenamente={antrenamente} grupe={grupe} anunturi={anunturi} />

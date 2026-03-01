@@ -4,8 +4,10 @@ import { Button, Card, Input, Select, Modal } from './ui';
 import { PlusIcon, ArrowLeftIcon, TrashIcon, CogIcon, CalendarDaysIcon, UsersIcon, CheckCircleIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
+import { ListaPrezentaAntrenament, FormularPrezenta } from './ListaPrezentaAntrenament';
+import { useAttendanceData } from '../hooks/useAttendanceData';
 
-type View = 'grupe' | 'orar' | 'calendar' | 'prezenta' | 'istoric-global';
+type View = 'grupe' | 'orar' | 'calendar' | 'prezenta' | 'istoric-global' | 'prezenta-azi';
 interface ViewState { view: View; id: string | null; }
 
 // --- Formular Antrenament Personalizat (Reutilizat) ---
@@ -57,83 +59,6 @@ export const AntrenamentForm: React.FC<{
         </Modal>
     );
 };
-
-// --- PASUL 4: Lista de Prezență (Bulk Save) ---
-const ListaPrezenta: React.FC<{
-    antrenament: Antrenament & { grupe: Grupa & { sportivi: Sportiv[] }};
-    onBack: () => void; onSave: () => void;
-    onViewSportiv?: (s: Sportiv) => void;
-}> = ({ antrenament, onBack, onSave, onViewSportiv }) => {
-    const { showError, showSuccess } = useError();
-    const [presentIds, setPresentIds] = useState<Set<string>>(new Set());
-    const [loading, setLoading] = useState(false);
-    const [saved, setSaved] = useState(false);
-
-    useEffect(() => {
-        setPresentIds(new Set(antrenament.prezenta.filter(p => p.status === 'prezent').map(p => p.sportiv_id)));
-    }, [antrenament]);
-
-    const sportiviInGrupa = useMemo(() => antrenament.grupe?.sportivi.filter(s => s.status === 'Activ').sort((a,b) => a.nume.localeCompare(b.nume)) || [], [antrenament.grupe]);
-    
-    const handleToggle = (sportivId: string) => setPresentIds(prev => { const next = new Set(prev); if(next.has(sportivId)) next.delete(sportivId); else next.add(sportivId); return next; });
-    const handleSelectAll = (present: boolean) => setPresentIds(present ? new Set(sportiviInGrupa.map(s => s.id)) : new Set());
-
-    const handleSave = async () => {
-        setLoading(true);
-        setSaved(false);
-        const recordsToUpsert = sportiviInGrupa.map(s => ({
-            antrenament_id: antrenament.id,
-            sportiv_id: s.id,
-            status: presentIds.has(s.id) ? 'prezent' as const : 'absent' as const,
-        }));
-        
-        const { error } = await supabase.from('prezenta_antrenament').upsert(recordsToUpsert, { onConflict: 'antrenament_id, sportiv_id' });
-        setLoading(false);
-
-        if(error) { showError("Eroare la salvarea prezenței", error.message); }
-        else { 
-            showSuccess("Succes", `Prezența pentru ${sportiviInGrupa.length} sportivi a fost salvată.`); 
-            setSaved(true);
-            setTimeout(() => {
-                setSaved(false);
-                onSave();
-            }, 1000);
-        }
-    };
-
-    return (
-        <Card className={`transition-all duration-300 relative ${saved ? 'ring-2 ring-green-500 shadow-[0_0_15px_rgba(34,197,94,0.3)]' : ''}`}>
-            {saved && (
-                <div className="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full animate-pulse flex items-center gap-1">
-                    <CheckCircleIcon className="w-3 h-3" /> Salvat
-                </div>
-            )}
-            <Button onClick={onBack} variant="secondary" className="mb-4"><ArrowLeftIcon/> Înapoi la Calendar</Button>
-            <h2 className="text-xl font-bold text-white mb-1">Prezență: {antrenament.grupe?.denumire}</h2>
-            <p className="text-sm text-slate-400 mb-4">{new Date(antrenament.data + 'T00:00:00').toLocaleDateString('ro-RO')} - ora {antrenament.ora_start}</p>
-            <div className="flex gap-2 mb-4">
-                <Button size="sm" onClick={() => handleSelectAll(true)}>Toți Prezenți</Button>
-                <Button size="sm" onClick={() => handleSelectAll(false)}>Toți Absenți</Button>
-            </div>
-            <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
-                {sportiviInGrupa.map(s => (
-                    <div key={s.id} className="flex items-center gap-3 p-2 bg-slate-800/50 rounded-md hover:bg-slate-700/50">
-                        <input type="checkbox" checked={presentIds.has(s.id)} onChange={() => handleToggle(s.id)} className="h-5 w-5 rounded cursor-pointer"/>
-                        <span 
-                            className={`font-medium flex-grow cursor-pointer ${onViewSportiv ? 'hover:text-brand-primary hover:underline' : ''}`}
-                            onClick={() => onViewSportiv && onViewSportiv(s)}
-                        >
-                            {s.nume} {s.prenume}
-                        </span>
-                    </div>
-                ))}
-            </div>
-            <div className="flex justify-end pt-4 mt-4 border-t border-slate-700">
-                <Button variant="success" size="md" onClick={handleSave} isLoading={loading}>Confirmă Prezența Lot</Button>
-            </div>
-        </Card>
-    );
-}
 
 // --- PASUL 3: Calendar Activități (Instanțe Reale) ---
 const CalendarActivitati: React.FC<{
@@ -257,7 +182,7 @@ const OrarEditor: React.FC<{ grupa: Grupa & {program: ProgramItem[]}; onNavigate
 };
 
 // --- PASUL 1: Lista de grupe ---
-const GrupeList: React.FC<{ onSelect: (id: string) => void; onGlobalHistory: () => void; grupe: (Grupa & {sportivi_count: {count: number}[]})[] }> = ({ onSelect, onGlobalHistory, grupe }) => (
+const GrupeList: React.FC<{ onSelect: (id: string) => void; onSelectToday: (id: string) => void; onGlobalHistory: () => void; grupe: (Grupa & {sportivi_count: {count: number}[]})[] }> = ({ onSelect, onSelectToday, onGlobalHistory, grupe }) => (
     <div className="space-y-6">
         <div className="flex justify-between items-center">
             <h1 className="text-3xl font-bold text-white">Management Prezență</h1>
@@ -274,7 +199,8 @@ const GrupeList: React.FC<{ onSelect: (id: string) => void; onGlobalHistory: () 
                         <p className="text-sm text-slate-400 mb-2">{g.sala || 'Sală nespecificată'}</p>
                         <div className="flex items-center gap-2 text-sm text-green-400"><UsersIcon className="w-4 h-4"/><span>{g.sportivi_count[0]?.count || 0} Sportivi Activi</span></div>
                     </div>
-                    <div className="mt-4 pt-4 border-t border-slate-700">
+                    <div className="mt-4 pt-4 border-t border-slate-700 space-y-2">
+                        <Button variant="success" className="w-full" onClick={() => onSelectToday(g.id)}>Prezență Azi &rarr;</Button>
                         <Button variant="primary" className="w-full" onClick={() => onSelect(g.id)}>Vezi Orar &rarr;</Button>
                     </div>
                 </Card>
@@ -290,51 +216,169 @@ const IstoricPrezentaGlobal: React.FC<{ onBack: () => void, onViewSportiv?: (s: 
     const { showError } = useError();
     const [sportivi, setSportivi] = useState<Record<string, Sportiv>>({});
 
-    useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
-            const [istoricRes, sportiviRes] = await Promise.all([
-                supabase.from('vedere_prezenta_sportiv').select('*').order('data', { ascending: false }).limit(500),
-                supabase.from('sportivi').select('*')
-            ]);
-            
-            if (istoricRes.error) showError("Eroare la încărcarea istoricului", istoricRes.error.message);
-            else setIstoric(istoricRes.data || []);
+    // Filters & Sorting
+    const [filterNume, setFilterNume] = useState('');
+    const [filterGrupa, setFilterGrupa] = useState('');
+    const [filterDataStart, setFilterDataStart] = useState('');
+    const [filterDataEnd, setFilterDataEnd] = useState('');
+    const [sortField, setSortField] = useState<'data' | 'nume_sportiv' | 'nume_grupa'>('data');
+    const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
-            if (sportiviRes.data) {
+    const fetchFilteredData = useCallback(async () => {
+        setLoading(true);
+        let query = supabase.from('vedere_prezenta_sportiv').select('*');
+
+        if (filterDataStart) query = query.gte('data', filterDataStart);
+        if (filterDataEnd) query = query.lte('data', filterDataEnd);
+        if (filterGrupa) query = query.ilike('nume_grupa', `%${filterGrupa}%`);
+        
+        // Sorting: Only sort by 'data' on server side. 
+        // 'nume_sportiv' doesn't exist in view, and 'nume_grupa' might be safer to sort client side if we mix logic.
+        // However, we can sort by 'data' descending by default on server.
+        query = query.order('data', { ascending: false });
+
+        // Limit (pagination could be added later, for now 500 is reasonable for filtered views)
+        query = query.limit(500);
+
+        const { data, error } = await query;
+        
+        if (error) {
+            showError("Eroare la încărcarea istoricului", error.message);
+        } else {
+            let filteredData = data || [];
+            setIstoric(filteredData);
+        }
+        setLoading(false);
+    }, [filterDataStart, filterDataEnd, filterGrupa, showError]);
+
+    useEffect(() => {
+        const loadInitial = async () => {
+            setLoading(true);
+            const { data } = await supabase.from('sportivi').select('*');
+            if (data) {
                 const spMap: Record<string, Sportiv> = {};
-                sportiviRes.data.forEach(s => spMap[s.id] = s);
+                data.forEach(s => spMap[s.id] = s);
                 setSportivi(spMap);
             }
-            
-            setLoading(false);
+            fetchFilteredData();
         };
-        fetchData();
-    }, [showError]);
+        loadInitial();
+    }, []); // Initial load
+
+    useEffect(() => {
+        fetchFilteredData();
+    }, [fetchFilteredData]);
+
+    const filteredAndSortedIstoric = useMemo(() => {
+        let result = [...istoric];
+
+        // 1. Filter by Name (Client-side)
+        if (filterNume) {
+            const lowerFilter = filterNume.toLowerCase();
+            result = result.filter(row => {
+                const sp = sportivi[row.sportiv_id];
+                const numeComplet = sp ? `${sp.nume} ${sp.prenume}` : '';
+                return numeComplet.toLowerCase().includes(lowerFilter);
+            });
+        }
+
+        // 2. Sort (Client-side)
+        result.sort((a, b) => {
+            let valA: any = '';
+            let valB: any = '';
+
+            if (sortField === 'data') {
+                valA = new Date(a.data).getTime();
+                valB = new Date(b.data).getTime();
+            } else if (sortField === 'nume_sportiv') {
+                const spA = sportivi[a.sportiv_id];
+                const spB = sportivi[b.sportiv_id];
+                valA = spA ? `${spA.nume} ${spA.prenume}` : '';
+                valB = spB ? `${spB.nume} ${spB.prenume}` : '';
+            } else if (sortField === 'nume_grupa') {
+                valA = a.nume_grupa || '';
+                valB = b.nume_grupa || '';
+            }
+
+            if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
+            if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
+            return 0;
+        });
+
+        return result;
+    }, [istoric, filterNume, sportivi, sortField, sortDirection]);
+
+    const handleSort = (field: 'data' | 'nume_sportiv' | 'nume_grupa') => {
+        if (sortField === field) {
+            setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortField(field);
+            setSortDirection('asc');
+        }
+    };
 
     return (
         <div className="space-y-4">
             <Button onClick={onBack} variant="secondary" className="mb-4"><ArrowLeftIcon/> Înapoi la Grupe</Button>
             <Card>
-                <h2 className="text-xl font-bold text-white mb-4">Istoric Global Prezențe</h2>
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                    <h2 className="text-xl font-bold text-white">Istoric Global Prezențe</h2>
+                    <div className="flex flex-wrap gap-2">
+                        <Input 
+                            label="Caută Sportiv"
+                            placeholder="Nume..." 
+                            value={filterNume} 
+                            onChange={e => setFilterNume(e.target.value)} 
+                            className="w-40"
+                        />
+                        <Input 
+                            label="Caută Grupă"
+                            placeholder="Grupă..." 
+                            value={filterGrupa} 
+                            onChange={e => setFilterGrupa(e.target.value)} 
+                            className="w-40"
+                        />
+                        <Input 
+                            label="De la"
+                            type="date" 
+                            value={filterDataStart} 
+                            onChange={e => setFilterDataStart(e.target.value)} 
+                            className="w-36"
+                        />
+                        <Input 
+                            label="Până la"
+                            type="date" 
+                            value={filterDataEnd} 
+                            onChange={e => setFilterDataEnd(e.target.value)} 
+                            className="w-36"
+                        />
+                    </div>
+                </div>
+
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
                         <thead className="bg-slate-800 text-slate-400">
                             <tr>
-                                <th className="p-3">Data</th>
+                                <th className="p-3 cursor-pointer hover:text-white" onClick={() => handleSort('data')}>
+                                    Data {sortField === 'data' && (sortDirection === 'asc' ? '↑' : '↓')}
+                                </th>
                                 <th className="p-3">Ora</th>
-                                <th className="p-3">Sportiv</th>
-                                <th className="p-3">Grupa</th>
+                                <th className="p-3 cursor-pointer hover:text-white" onClick={() => handleSort('nume_sportiv')}>
+                                    Sportiv {sortField === 'nume_sportiv' && (sortDirection === 'asc' ? '↑' : '↓')}
+                                </th>
+                                <th className="p-3 cursor-pointer hover:text-white" onClick={() => handleSort('nume_grupa')}>
+                                    Grupa {sortField === 'nume_grupa' && (sortDirection === 'asc' ? '↑' : '↓')}
+                                </th>
                                 <th className="p-3">Status</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-700">
                             {loading ? (
                                 <tr><td colSpan={5} className="p-4 text-center text-slate-400">Se încarcă...</td></tr>
-                            ) : istoric.length === 0 ? (
-                                <tr><td colSpan={5} className="p-4 text-center text-slate-400">Nu există prezențe înregistrate.</td></tr>
+                            ) : filteredAndSortedIstoric.length === 0 ? (
+                                <tr><td colSpan={5} className="p-4 text-center text-slate-400">Nu au fost găsite rezultate.</td></tr>
                             ) : (
-                                istoric.map((row, idx) => {
+                                filteredAndSortedIstoric.map((row, idx) => {
                                     const sp = sportivi[row.sportiv_id];
                                     return (
                                         <tr key={idx} className="hover:bg-slate-700/50">
@@ -368,6 +412,7 @@ export const Prezenta: React.FC<{ onBack: () => void; currentUser: User; onViewS
     const [antrenamentDetaliu, setAntrenamentDetaliu] = useState<(Antrenament & { grupe: Grupa & { sportivi: Sportiv[] }}) | null>(null);
     const [loading, setLoading] = useState(true);
     const { showError } = useError();
+    const { saveAttendance } = useAttendanceData(null, true);
 
     useEffect(() => {
         const fetchGrupe = async () => {
@@ -402,10 +447,11 @@ export const Prezenta: React.FC<{ onBack: () => void; currentUser: User; onViewS
     const renderContent = () => {
         if (loading) return <p>Se încarcă...</p>;
         switch (currentView.view) {
-            case 'grupe': return <GrupeList onSelect={id => navigateTo('orar', id)} onGlobalHistory={() => navigateTo('istoric-global', 'all')} grupe={grupe} />;
+            case 'grupe': return <GrupeList onSelect={id => navigateTo('orar', id)} onSelectToday={id => navigateTo('prezenta-azi', id)} onGlobalHistory={() => navigateTo('istoric-global', 'all')} grupe={grupe} />;
             case 'orar': return selectedGrupa ? <OrarEditor grupa={selectedGrupa} onNavigate={id => navigateTo('calendar', id)} onBack={navigateBack} setGrupe={setGrupe as any}/> : <p>Grupă negăsită.</p>;
             case 'calendar': return selectedGrupa ? <CalendarActivitati grupa={selectedGrupa} onSelect={handleSelectAntrenament} onBack={navigateBack} grupe={grupe}/> : <p>Grupă negăsită.</p>;
-            case 'prezenta': return antrenamentDetaliu ? <ListaPrezenta antrenament={antrenamentDetaliu} onBack={navigateBack} onSave={navigateBack} onViewSportiv={onViewSportiv}/> : <p>Antrenament negăsit.</p>;
+            case 'prezenta': return antrenamentDetaliu ? <FormularPrezenta antrenament={antrenamentDetaliu} onBack={navigateBack} saveAttendance={saveAttendance} onViewSportiv={onViewSportiv}/> : <p>Antrenament negăsit.</p>;
+            case 'prezenta-azi': return selectedGrupa ? <ListaPrezentaAntrenament grupa={selectedGrupa} onBack={navigateBack} onViewSportiv={onViewSportiv} /> : <p>Grupă negăsită.</p>;
             case 'istoric-global': return <IstoricPrezentaGlobal onBack={navigateBack} onViewSportiv={onViewSportiv} />;
             default: return null;
         }

@@ -12,6 +12,7 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTo
 import { ShieldCheckIcon } from './icons';
 import { useDataProvider } from '../hooks/useDataProvider';
 import { useAttendanceStats } from '../hooks/useAttendanceStats';
+import { useDashboardPermissions } from '../hooks/useDashboardPermissions';
 
 const VizaMedicalaCard: React.FC<{ plati: Plata[], sportivId: string }> = ({ plati, sportivId }) => {
     const vizaPlati = plati.filter(p => p.sportiv_id === sportivId && p.tip.toLowerCase().includes('viza') && p.status === 'Achitat');
@@ -185,7 +186,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
 }) => {
     const { showSuccess, showError } = useError();
     const { istoricPrezenta, fetchIstoricVedere, loadingIstoric } = useDataProvider();
-    const isViewingOwnProfile = currentUser.id === viewedUser.id;
+    const { isViewingOwnProfile } = useDashboardPermissions(currentUser, viewedUser, permissions);
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
     useEffect(() => {

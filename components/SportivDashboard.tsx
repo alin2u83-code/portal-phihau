@@ -278,32 +278,24 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
     const attendanceStats = useMemo(() => {
         if (!istoricPrezenta || loadingIstoric) return { total: 0, recent: [], loading: true };
         
-        const monthlyData: Record<string, number> = {};
-        
-        // Get last 5 months stats initialized to 0
-        const now = new Date();
-        for (let i = 4; i >= 0; i--) {
-            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-            const monthName = d.toLocaleDateString('ro-RO', { month: 'short' });
-            monthlyData[monthName] = 0;
-        }
+        const last5Months = Array.from({ length: 5 }, (_, i) => {
+            const d = new Date();
+            d.setMonth(d.getMonth() - i);
+            return d.toLocaleString('ro-RO', { month: 'short' });
+        }).reverse();
 
-        let totalPrezente = 0;
+        const recent = last5Months.map(month => ({
+            month: month,
+            count: (istoricPrezenta || []).filter(p => 
+                p.status?.toLowerCase() === 'prezent' && 
+                new Date(p.data).toLocaleString('ro-RO', { month: 'short' }) === month
+            ).length
+        }));
 
-        istoricPrezenta.forEach(p => {
-            if (p.status?.toLowerCase() === 'prezent') {
-                totalPrezente++;
-                const luna = new Date(p.data).toLocaleDateString('ro-RO', { month: 'short' });
-                if (monthlyData[luna] !== undefined) {
-                    monthlyData[luna] = (monthlyData[luna] || 0) + 1;
-                }
-            }
-        });
-
-        const recent = Object.entries(monthlyData).map(([month, count]) => ({ month, count }));
+        const totalPrezente = (istoricPrezenta || []).filter(p => p.status?.toLowerCase() === 'prezent').length;
 
         return { total: totalPrezente, recent, loading: false };
-    }, [istoricPrezenta]);
+    }, [istoricPrezenta, loadingIstoric]);
 
     return (
         <div className="space-y-4 md:space-y-6 pb-20 md:pb-0">

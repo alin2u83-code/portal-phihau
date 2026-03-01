@@ -31,6 +31,7 @@ export interface AppData {
     deconturiFederatie: DecontFederatie[];
     vizualizarePlati: VizualizarePlata[];
     istoricPlatiDetaliat: IstoricPlataDetaliat[];
+    istoricPrezenta: any[];
 }
 
 const initialData: AppData = {
@@ -39,7 +40,7 @@ const initialData: AppData = {
     rezultate: [], preturiConfig: [], tipuriAbonament: [], familii: [], 
     allRoles: [], reduceri: [], tipuriPlati: [], 
     locatii: [], clubs: [], deconturiFederatie: [], vizualizarePlati: [],
-    istoricPlatiDetaliat: []
+    istoricPlatiDetaliat: [], istoricPrezenta: []
 };
 
 export const useDataProvider = () => {
@@ -51,11 +52,12 @@ export const useDataProvider = () => {
     const [userRoles, setUserRoles] = useState<any[]>([]);
     const [activeRoleContext, setActiveRoleContext] = useState<any | null>(null);
     const [needsRoleSelection, setNeedsRoleSelection] = useState(false);
-    const [istoricPrezenta, setIstoricPrezenta] = useState<any[]>([]);
     const [loadingIstoric, setLoadingIstoric] = useState(false);
+    const lastFetchedSportivId = React.useRef<string | null>(null);
 
-    const fetchIstoricVedere = useCallback(async (sportivId: string) => {
-        setLoadingIstoric(true);
+    const fetchIstoricVedere = useCallback(async (sportivId: string, silent = false) => {
+        lastFetchedSportivId.current = sportivId;
+        if (!silent) setLoadingIstoric(true);
         const { data, error } = await supabase
             .from('vedere_prezenta_sportiv')
             .select('*')
@@ -63,10 +65,35 @@ export const useDataProvider = () => {
             .order('data', { ascending: false });
 
         if (!error && data) {
-            setIstoricPrezenta(data);
+            setData(prev => ({ ...prev, istoricPrezenta: data }));
         }
-        setLoadingIstoric(false);
+        if (!silent) setLoadingIstoric(false);
     }, []);
+
+    useEffect(() => {
+        if (currentUser?.id) {
+            fetchIstoricVedere(currentUser.id);
+
+            const subscription = supabase
+                .channel('prezenta_antrenament_changes')
+                .on(
+                    'postgres_changes',
+                    { event: '*', schema: 'public', table: 'prezenta_antrenament' },
+                    () => {
+                        // Refetch when attendance changes (silent to prevent UI flash)
+                        // Use lastFetchedSportivId to support admin viewing another sportiv
+                        if (lastFetchedSportivId.current) {
+                            fetchIstoricVedere(lastFetchedSportivId.current, true);
+                        }
+                    }
+                )
+                .subscribe();
+
+            return () => {
+                supabase.removeChannel(subscription);
+            };
+        }
+    }, [currentUser?.id, fetchIstoricVedere]);
 
     const initializeAndFetchData = useCallback(async () => {
         try {
@@ -290,7 +317,6 @@ export const useDataProvider = () => {
         setReduceri: createSetter('reduceri'),
         setDeconturiFederatie: createSetter('deconturiFederatie'),
         setVizualizarePlati: createSetter('vizualizarePlati'),
-        istoricPrezenta,
         loadingIstoric,
         fetchIstoricVedere,
     };

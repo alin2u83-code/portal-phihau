@@ -58,17 +58,24 @@ export const useDataProvider = () => {
     const fetchIstoricVedere = useCallback(async (sportivId: string, silent = false) => {
         lastFetchedSportivId.current = sportivId;
         if (!silent) setLoadingIstoric(true);
-        const { data, error } = await supabase
+        
+        let query = supabase
             .from('vedere_prezenta_sportiv')
             .select('*')
-            .eq('sportiv_id', sportivId)
-            .order('data', { ascending: false });
+            .eq('sportiv_id', sportivId);
+
+        // Add club_id filter if available in context
+        if (activeRoleContext?.club_id && activeRoleContext.club_id !== 'null') {
+            query = query.eq('club_id', activeRoleContext.club_id);
+        }
+
+        const { data, error } = await query.order('data', { ascending: false });
 
         if (!error && data) {
             setData(prev => ({ ...prev, istoricPrezenta: data }));
         }
         if (!silent) setLoadingIstoric(false);
-    }, []);
+    }, [activeRoleContext]);
 
     useEffect(() => {
         if (currentUser?.id) {
@@ -194,8 +201,8 @@ export const useDataProvider = () => {
 
                 // Some tables might have RLS that allows SPORTIV to read their own records, but we'll fetch them and ignore errors if they fail, or just fetch them.
                 if (isSportiv) {
-                    queries.inscrieriExamene = cleanedSupabase.from('inscrieri_examene').select('*, sportivi:sportiv_id(*), grades:grad_vizat_id(*)').eq('sportiv_id', activeCtx.sportiv_id);
-                    queries.istoricGrade = cleanedSupabase.from('istoric_grade').select('*').eq('sportiv_id', activeCtx.sportiv_id);
+                    queries.inscrieriExamene = cleanedSupabase.from('vedere_inscrieri_examene_sportiv').select('*, sportivi:sportiv_id(*), grades:grad_vizat_id(*)').eq('sportiv_id', activeCtx.sportiv_id);
+                    queries.istoricGrade = cleanedSupabase.from('vedere_istoric_grade_sportiv').select('*').eq('sportiv_id', activeCtx.sportiv_id);
                     queries.plati = cleanedSupabase.from('plati').select('*').eq('sportiv_id', activeCtx.sportiv_id);
                     queries.vizualizarePlati = cleanedSupabase.from('view_plata_sportiv').select('*').eq('sportiv_id', activeCtx.sportiv_id);
                     // For antrenamente, they might only have access to their group's trainings or where they are present.

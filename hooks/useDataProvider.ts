@@ -8,6 +8,7 @@ import {
 import { Session, SupabaseClient } from '@supabase/supabase-js';
 import { withCleanUuidFilters } from '../utils/supabaseFilters';
 import { processSettledQueries } from '../utils/supabaseHelpers';
+import { useUserRoles } from './useUserRoles';
 
 export interface AppData {
     sportivi: Sportiv[];
@@ -45,15 +46,23 @@ const initialData: AppData = {
 
 export const useDataProvider = () => {
     const [data, setData] = useState<AppData>(initialData);
-    const [loading, setLoading] = useState(true);
+    const [loadingData, setLoadingData] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [session, setSession] = useState<Session | null>(null);
     const [currentUser, setCurrentUser] = useState<User | null>(null);
-    const [userRoles, setUserRoles] = useState<any[]>([]);
-    const [activeRoleContext, setActiveRoleContext] = useState<any | null>(null);
-    const [needsRoleSelection, setNeedsRoleSelection] = useState(false);
     const [loadingIstoric, setLoadingIstoric] = useState(false);
     const lastFetchedSportivId = React.useRef<string | null>(null);
+
+    // Use the new hook for user roles
+    const { 
+        userRoles, 
+        activeRoleContext, 
+        loading: rolesLoading, 
+        error: rolesError, 
+        needsRoleSelection, 
+        refreshRoles,
+        setActiveRoleContext
+    } = useUserRoles(session?.user?.id);
 
     const fetchIstoricVedere = useCallback(async (sportivId: string, silent = false) => {
         lastFetchedSportivId.current = sportivId;
@@ -102,69 +111,24 @@ export const useDataProvider = () => {
         }
     }, [currentUser?.id, fetchIstoricVedere]);
 
-    const initializeAndFetchData = useCallback(async () => {
+    // Function to fetch application data based on active context
+    const fetchAppData = useCallback(async (activeCtx: any) => {
         try {
-            setLoading(true);
+            setLoadingData(true);
             setError(null);
+            
             if (!supabase) throw new Error("Clientul Supabase nu este configurat.");
-
-            let { data: { session: currentSession } } = await supabase.auth.getSession();
-            if (!currentSession) {
-                setSession(null);
-                setLoading(false);
-                return;
-            }
-
-            setSession(currentSession);
+            
             const cleanedSupabase = withCleanUuidFilters(supabase as SupabaseClient<any, any>);
 
-            // Verificam si setam contextul de rol, daca e necesar
-            if (!currentSession.user?.user_metadata?.rol_activ_context) {
-                try {
-                    const { error: rpcError } = await supabase.rpc('set_primary_context');
-                    if (rpcError) throw new Error(`Eroare la setarea contextului de rol: ${rpcError.message}`);
-                    
-                    // Re-fetch session pentru a avea metadatele actualizate
-                    const { data: { session: updatedSession } } = await supabase.auth.getSession();
-                    if (!updatedSession) throw new Error('Sesiunea nu a putut fi reîmprospătată după setarea contextului.');
-                    currentSession = updatedSession;
-                } catch (rpcError: any) {
-                    console.warn('RPC set_primary_context not available, proceeding without it:', rpcError.message);
-                }
-            }
-
-            // Fetch Roluri Utilizator
-            const { data: roles, error: rolesError } = await supabase
-                .from('utilizator_roluri_multicont')
-                .select(`id, rol_id, sportiv_id, club_id, is_primary, rol_denumire, roluri:rol_id(nume), club:club_id(nume), sportiv:sportiv_id(*)`)
-                .eq('user_id', currentSession.user.id);
-
-            if (rolesError) throw rolesError;
-            if (!roles || roles.length === 0) {
-                setNeedsRoleSelection(true);
-                setLoading(false);
-                return;
-            }
-
-            const savedRoleId = localStorage.getItem('phi-hau-active-role-context-id')?.replace(/"/g, '');
-            let activeCtx = (roles.find(r => r.id === savedRoleId) || roles.find(r => r.is_primary) || roles[0]) as any;
-
-            if (!activeCtx) {
-                setNeedsRoleSelection(true);
-                setLoading(false);
-                return;
-            }
-            
-            setActiveRoleContext(activeCtx);
-            setUserRoles(roles);
-
             const profile = activeCtx.sportiv;
+            // We set currentUser here based on the active context
             setCurrentUser((profile || {
-                id: currentSession.user.id,
-                email: currentSession.user.email,
+                id: session?.user.id,
+                email: session?.user.email,
                 nume: 'Utilizator',
                 prenume: 'Sistem',
-                roluri: roles.map((r: any) => r.roluri)
+                roluri: userRoles.map((r: any) => r.roluri)
             }) as any);
 
             const cleanClubId = (activeCtx.club_id && activeCtx.club_id !== 'null') ? activeCtx.club_id : null;
@@ -276,9 +240,44 @@ export const useDataProvider = () => {
                 setError(`A apărut o eroare neașteptată: ${err.message}`);
             }
         } finally {
-            setLoading(false);
+            setLoadingData(false);
         }
-    }, []);
+    }, [session?.user.id, session?.user.email, userRoles]);
+
+    // Effect to trigger data fetch when active role context changes
+    useEffect(() => {
+        if (activeRoleContext) {
+            fetchAppData(activeRoleContext);
+        } else if (!rolesLoading && !needsRoleSelection) {
+            // If roles loaded but no context (and not waiting for selection), stop loading
+            setLoadingData(false);
+        }
+    }, [activeRoleContext, rolesLoading, needsRoleSelection, fetchAppData]);
+
+    const initializeAndFetchData = useCallback(async () => {
+        try {
+            setLoadingData(true);
+            setError(null);
+            if (!supabase) throw new Error("Clientul Supabase nu este configurat.");
+
+            let { data: { session: currentSession } } = await supabase.auth.getSession();
+            if (!currentSession) {
+                setSession(null);
+                setLoadingData(false);
+                return;
+            }
+
+            setSession(currentSession);
+            
+            // Refresh roles if session exists
+            refreshRoles();
+
+        } catch (err: any) {
+            console.error("Initialization Error:", err);
+            setError(err.message);
+            setLoadingData(false);
+        }
+    }, [refreshRoles]);
 
     useEffect(() => {
         initializeAndFetchData();
@@ -294,10 +293,13 @@ export const useDataProvider = () => {
             setData(prev => ({ ...prev, [key]: typeof value === 'function' ? (value as any)(prev[key]) : value }));
         }, []);
 
+    const loading = loadingData || rolesLoading;
+    const combinedError = error || rolesError;
+
     return { 
         ...data, 
         loading, 
-        error, 
+        error: combinedError, 
         needsRoleSelection, 
         session, 
         currentUser, 
@@ -326,5 +328,6 @@ export const useDataProvider = () => {
         setVizualizarePlati: createSetter('vizualizarePlati'),
         loadingIstoric,
         fetchIstoricVedere,
+        initializeAndFetchData // Expose for retry
     };
 };

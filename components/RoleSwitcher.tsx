@@ -1,6 +1,6 @@
 import React from 'react';
-import { ChevronDownIcon, ShieldCheckIcon, UserCircleIcon, UsersIcon } from './icons';
-import { Rol } from '../types';
+import { ChevronDownIcon } from './icons';
+import { getRoleDisplayName, getRoleIcon } from '../hooks/useUserRoles';
 
 interface RoleSwitcherProps {
   isExpanded: boolean;
@@ -16,31 +16,6 @@ interface RoleSwitcherProps {
   iconColorClass: string;
 }
 
-const getRoleDisplayName = (role: any): string => {
-    switch(role.roluri?.nume) {
-        case 'SUPER_ADMIN_FEDERATIE': return 'Super Admin Federație';
-        case 'ADMIN': return 'Admin General';
-        case 'ADMIN_CLUB': return `Admin - ${role.club?.nume || 'Club Nedefinit'}`;
-        case 'INSTRUCTOR': return `Instructor - ${role.club?.nume || 'Club Nedefinit'}`;
-        case 'SPORTIV': return `Sportiv - ${role.sportiv?.nume || ''} ${role.sportiv?.prenume || ''}`;
-        default: return role.roluri?.nume;
-    }
-};
-
-const getRoleIcon = (roleName: Rol['nume']): React.ElementType => {
-    switch(roleName) {
-        case 'SUPER_ADMIN_FEDERATIE':
-        case 'ADMIN':
-        case 'ADMIN_CLUB':
-            return ShieldCheckIcon;
-        case 'INSTRUCTOR':
-            return UsersIcon;
-        case 'SPORTIV':
-            return UserCircleIcon;
-        default:
-            return UsersIcon;
-    }
-};
 
 export const RoleSwitcher: React.FC<RoleSwitcherProps> = (props) => {
   const { isExpanded, canSwitchRoles, isSwitchingRole, isRoleSwitcherOpen, setIsRoleSwitcherOpen, userRoles, activeRoleContext, onSwitchRole, contextName, HeaderIcon, iconColorClass } = props;

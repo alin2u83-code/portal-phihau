@@ -8,8 +8,9 @@ import { ListaPrezentaAntrenament, FormularPrezenta } from './ListaPrezentaAntre
 import { useCalendarView } from '../hooks/useCalendarView';
 import { AntrenamentForm } from './AntrenamentForm';
 import { useAttendanceData } from '../hooks/useAttendanceData';
+import { GeneratorProgramMasiv } from './GeneratorProgramMasiv';
 
-type View = 'grupe' | 'orar' | 'calendar' | 'prezenta' | 'istoric-global' | 'prezenta-azi' | 'prezenta-azi-global';
+type View = 'grupe' | 'orar' | 'calendar' | 'prezenta' | 'istoric-global' | 'prezenta-azi' | 'prezenta-azi-global' | 'generator-masiv';
 interface ViewState { view: View; id: string | null; }
 
 // --- Dashboard Prezență Azi (Global) ---
@@ -17,8 +18,9 @@ const DashboardPrezentaAzi: React.FC<{
     onSelectAntrenament: (id: string) => void;
     onViewGrupe: () => void;
     onGlobalHistory: () => void;
+    onMassGenerator: () => void;
     clubId: string | null;
-}> = ({ onSelectAntrenament, onViewGrupe, onGlobalHistory, clubId }) => {
+}> = ({ onSelectAntrenament, onViewGrupe, onGlobalHistory, onMassGenerator, clubId }) => {
     const today = new Date().toISOString().split('T')[0];
     const { todaysTrainings, loading } = useAttendanceData(clubId, false, { date: today });
 
@@ -39,6 +41,10 @@ const DashboardPrezentaAzi: React.FC<{
                     <Button variant="secondary" onClick={onGlobalHistory}>
                         <CalendarDaysIcon className="w-5 h-5 mr-2 text-purple-400" />
                         Istoric Global
+                    </Button>
+                    <Button variant="primary" onClick={onMassGenerator}>
+                        <CalendarDaysIcon className="w-5 h-5 mr-2 text-emerald-400" />
+                        Generator Masiv
                     </Button>
                 </div>
             </div>
@@ -620,6 +626,7 @@ export const Prezenta: React.FC<{ onBack: () => void; currentUser: User; onViewS
                         onSelectAntrenament={handleSelectAntrenament}
                         onViewGrupe={() => navigateTo('grupe', null)}
                         onGlobalHistory={() => navigateTo('istoric-global', 'all')}
+                        onMassGenerator={() => navigateTo('generator-masiv', null)}
                     />
                 );
             case 'grupe': 
@@ -636,6 +643,7 @@ export const Prezenta: React.FC<{ onBack: () => void; currentUser: User; onViewS
             case 'prezenta': return antrenamentDetaliu ? <FormularPrezenta antrenament={antrenamentDetaliu} onBack={navigateBack} saveAttendance={saveAttendance} onViewSportiv={onViewSportiv}/> : <p>Antrenament negăsit.</p>;
             case 'prezenta-azi': return selectedGrupa ? <ListaPrezentaAntrenament grupa={selectedGrupa} onBack={navigateBack} onViewSportiv={onViewSportiv} /> : <p>Grupă negăsită.</p>;
             case 'istoric-global': return <IstoricPrezentaGlobal onBack={navigateBack} onViewSportiv={onViewSportiv} />;
+            case 'generator-masiv': return <GeneratorProgramMasiv onBack={navigateBack} clubId={currentUser.club_id} />;
             default: return null;
         }
     };

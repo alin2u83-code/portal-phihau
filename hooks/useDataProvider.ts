@@ -9,6 +9,8 @@ import { Session, SupabaseClient } from '@supabase/supabase-js';
 import { withCleanUuidFilters } from '../utils/supabaseFilters';
 import { processSettledQueries } from '../utils/supabaseHelpers';
 import { useUserRoles } from './useUserRoles';
+import { useFilteredData } from './useFilteredData';
+import { useAttendanceData } from './useAttendanceData';
 
 export interface AppData {
     sportivi: Sportiv[];
@@ -33,6 +35,7 @@ export interface AppData {
     vizualizarePlati: VizualizarePlata[];
     istoricPlatiDetaliat: IstoricPlataDetaliat[];
     istoricPrezenta: any[];
+    filteredData?: any; // Add filteredData to interface
 }
 
 const initialData: AppData = {
@@ -63,6 +66,35 @@ export const useDataProvider = () => {
         refreshRoles,
         setActiveRoleContext
     } = useUserRoles(session?.user?.id);
+
+    // Derive active role and club for filtering
+    const activeRole = activeRoleContext?.roluri?.nume || null;
+    const activeClubId = (activeRoleContext?.club_id && activeRoleContext.club_id !== 'null') ? activeRoleContext.club_id : null;
+
+    const attendanceData = useAttendanceData(activeClubId);
+
+    // Use the filtering hook internally
+    const filteredData = useFilteredData({
+        activeRole,
+        activeClubId,
+        sportivi: data.sportivi,
+        sesiuniExamene: data.sesiuniExamene,
+        inscrieriExamene: data.inscrieriExamene,
+        antrenamente: attendanceData.antrenamente,
+        grupe: data.grupe,
+        plati: data.plati,
+        tranzactii: data.tranzactii,
+        evenimente: data.evenimente,
+        rezultate: data.rezultate,
+        tipuriAbonament: data.tipuriAbonament,
+        familii: data.familii,
+        anunturiPrezenta: attendanceData.anunturiPrezenta,
+        reduceri: data.reduceri,
+        deconturiFederatie: data.deconturiFederatie,
+        istoricGrade: data.istoricGrade,
+        vizualizarePlati: data.vizualizarePlati,
+        istoricPlatiDetaliat: data.istoricPlatiDetaliat
+    });
 
     const fetchIstoricVedere = useCallback(async (sportivId: string, silent = false) => {
         lastFetchedSportivId.current = sportivId;
@@ -293,11 +325,13 @@ export const useDataProvider = () => {
             setData(prev => ({ ...prev, [key]: typeof value === 'function' ? (value as any)(prev[key]) : value }));
         }, []);
 
-    const loading = loadingData || rolesLoading;
-    const combinedError = error || rolesError;
+    const loading = loadingData || rolesLoading || attendanceData.loading;
+    const combinedError = error || rolesError || attendanceData.error;
 
     return { 
         ...data, 
+        filteredData,
+        ...attendanceData,
         loading, 
         error: combinedError, 
         needsRoleSelection, 

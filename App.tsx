@@ -62,9 +62,7 @@ import { RoleSelectionPage } from './components/RoleSelectionPage';
 import { RaportLunarPrezenta } from './components/RaportLunarPrezenta';
 import { Header } from './components/Header';
 import { useDataProvider } from './hooks/useDataProvider';
-import { useAttendanceData } from './hooks/useAttendanceData';
 import { useIsMobile } from './hooks/useIsMobile';
-import { useFilteredData } from './hooks/useFilteredData';
 import { MartialArtsSkeleton } from './components/MartialArtsSkeleton';
 import { DebugPage } from './components/DebugPage';
 import { AdminDashboard } from './components/AdminDashboard';
@@ -82,26 +80,16 @@ function App() {
   const [switchingToRole, setSwitchingToRole] = useState<string>('');
   
   const {
-      loading: dataLoading, error: dataError, needsRoleSelection, session, currentUser, userRoles, activeRoleContext,
+      loading, error, needsRoleSelection, session, currentUser, userRoles, activeRoleContext,
       setCurrentUser, sportivi, sesiuniExamene, inscrieriExamene, grade, istoricGrade,
       grupe, plati, tranzactii, evenimente, rezultate, preturiConfig, tipuriAbonament,
       familii, allRoles, reduceri, tipuriPlati, locatii, clubs,
       deconturiFederatie, vizualizarePlati, istoricPlatiDetaliat, setPlati, setSportivi, setSesiuniExamene, setInscrieriExamene,
       setGrupe, setTranzactii, setEvenimente, setRezultate, setFamilii,
       setAllRoles, setReduceri, setTipuriPlati, setLocatii, setClubs,
-      setGrade, setTipuriAbonament, setDeconturiFederatie, setIstoricGrade, initializeAndFetchData
+      setGrade, setTipuriAbonament, setDeconturiFederatie, setIstoricGrade, initializeAndFetchData,
+      filteredData, antrenamente, setAntrenamente, anunturiPrezenta, setAnunturiPrezenta
   } = dataProvider;
-
-  const currentClubId = useMemo((): string | null => {
-    if (!activeRoleContext) return null;
-    const cleanClubId = (activeRoleContext.club_id && activeRoleContext.club_id !== 'null') ? activeRoleContext.club_id : null;
-    return cleanClubId;
-  }, [activeRoleContext]);
-
-  const { antrenamente, setAntrenamente, anunturiPrezenta, setAnunturiPrezenta, loading: attendanceLoading, error: attendanceError } = useAttendanceData(currentClubId);
-
-  const loading = dataLoading || attendanceLoading;
-  const error = dataError || attendanceError;
 
   const [platiPentruIncasare, setPlatiPentruIncasare] = useState<Plata[]>([]);
 
@@ -185,28 +173,6 @@ function App() {
       setActiveView('federation-dashboard');
     }
   }, [activeView, permissions.isFederationLevel, setActiveView]);
-
-  const filteredData = useFilteredData({
-    activeRole,
-    activeClubId,
-    sportivi,
-    sesiuniExamene,
-    inscrieriExamene,
-    antrenamente,
-    grupe,
-    plati,
-    tranzactii,
-    evenimente,
-    rezultate,
-    tipuriAbonament,
-    familii,
-    anunturiPrezenta,
-    reduceri,
-    deconturiFederatie,
-    istoricGrade,
-    vizualizarePlati,
-    istoricPlatiDetaliat
-  });
 
   const handleLogout = async () => {
     await supabase?.auth.signOut();

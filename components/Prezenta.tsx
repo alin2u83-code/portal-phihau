@@ -19,7 +19,8 @@ const DashboardPrezentaAzi: React.FC<{
     onGlobalHistory: () => void;
     clubId: string | null;
 }> = ({ onSelectAntrenament, onViewGrupe, onGlobalHistory, clubId }) => {
-    const { todaysTrainings, allTrainings, loading } = useAttendanceData(clubId);
+    const today = new Date().toISOString().split('T')[0];
+    const { todaysTrainings, loading } = useAttendanceData(clubId, false, { date: today });
 
     return (
         <div className="space-y-8 animate-fade-in">
@@ -51,7 +52,6 @@ const DashboardPrezentaAzi: React.FC<{
                                 Programul Zilei
                             </h2>
                             <div className="flex items-center gap-2">
-                                <span className="text-[10px] text-slate-500 font-mono">Total: {allTrainings.length}</span>
                                 <span className="px-3 py-1 bg-indigo-500/10 text-indigo-400 text-xs font-bold rounded-full border border-indigo-500/20">
                                     {todaysTrainings.length} Azi
                                 </span>
@@ -68,29 +68,6 @@ const DashboardPrezentaAzi: React.FC<{
                                         <CalendarDaysIcon className="w-12 h-12 text-slate-700 mx-auto mb-3 opacity-20" />
                                         <p className="text-slate-500 italic">Niciun antrenament programat pentru astăzi.</p>
                                         <p className="text-xs text-slate-600 mt-2">Verifică calendarul sau orarul pentru alte zile.</p>
-                                    </div>
-
-                                    {/* Show recent trainings if today is empty */}
-                                    <div className="pt-6 border-t border-slate-800/50">
-                                        <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest mb-4">Antrenamente Recente (Istoric)</h3>
-                                        <div className="space-y-3">
-                                            {(allTrainings as any[])
-                                                .filter(a => new Date(a.data) < new Date())
-                                                .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime())
-                                                .slice(0, 5)
-                                                .map(a => (
-                                                    <div key={a.id} className="p-4 bg-slate-800/20 rounded-xl border border-slate-800/50 flex justify-between items-center">
-                                                        <div>
-                                                            <p className="text-white font-bold">{a.grupe?.denumire || 'Grupă'}</p>
-                                                            <p className="text-xs text-slate-500">{new Date(a.data).toLocaleDateString('ro-RO')} • {a.ora_start}</p>
-                                                        </div>
-                                                        <Button size="sm" variant="secondary" onClick={() => onSelectAntrenament(a.id)}>
-                                                            Vezi Prezență
-                                                        </Button>
-                                                    </div>
-                                                ))
-                                            }
-                                        </div>
                                     </div>
                                 </div>
                             ) : (

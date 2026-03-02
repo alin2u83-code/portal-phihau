@@ -1,9 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { Grupa, Antrenament, ProgramItem } from '../types';
 import { Button, Card, Input, Select } from './ui';
-import { ArrowLeftIcon, CalendarDaysIcon } from './icons';
+import { ArrowLeftIcon, CalendarDaysIcon, CogIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
+import { GeneratorProgramMasiv } from './GeneratorProgramMasiv';
 
 interface ProgramareActivitatiProps {
     grupe: Grupa[];
@@ -28,6 +29,7 @@ interface PreviewInstance {
 }
 
 export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ grupe, antrenamente, setAntrenamente, onBack }) => {
+    const [viewMode, setViewMode] = useState<'single' | 'mass'>('single');
     const [formState, setFormState] = useState({
         grupaId: '',
         programId: '', // Composite key: 'ziua-ora_start'
@@ -70,6 +72,10 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ grup
         
         return result.sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());
     }, [antrenamente, filters]);
+
+    if (viewMode === 'mass') {
+        return <GeneratorProgramMasiv onBack={() => setViewMode('single')} clubId={grupe[0]?.club_id} />;
+    }
 
     const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -285,7 +291,12 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ grup
 
     return (
         <div className="space-y-6">
-            <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
+            <div className="flex justify-between items-center">
+                <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
+                <Button onClick={() => setViewMode('mass')} variant="info">
+                    <CogIcon className="w-5 h-5 mr-2" /> Generator Masiv
+                </Button>
+            </div>
             
             <h1 className="text-3xl font-bold text-white">Generator Program Recurent</h1>
             

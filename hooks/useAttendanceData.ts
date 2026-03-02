@@ -3,7 +3,7 @@ import { supabase } from '../supabaseClient';
 import { Antrenament, AnuntPrezenta } from '../types';
 import { useError } from '../components/ErrorProvider';
 
-export const useAttendanceData = (clubId?: string | null, skipFetch = false) => {
+export const useAttendanceData = (clubId?: string | null, skipFetch = false, filters?: { date?: string, from?: string, to?: string }) => {
     const [antrenamente, setAntrenamente] = useState<Antrenament[]>([]);
     const [anunturiPrezenta, setAnunturiPrezenta] = useState<AnuntPrezenta[]>([]);
     const [todaysTrainings, setTodaysTrainings] = useState<Antrenament[]>([]);
@@ -19,13 +19,20 @@ export const useAttendanceData = (clubId?: string | null, skipFetch = false) => 
         setError(null);
         try {
             // Join with grupe and prezenta_antrenament
-            // Using standard join syntax for prezenta_antrenament
             let antrenamenteQuery = supabase.from('program_antrenamente').select('*, grupe(*), prezenta:prezenta_antrenament(sportiv_id, status)');
             let anunturiQuery = supabase.from('anunturi_prezenta').select('*');
 
             if (clubId) {
                 antrenamenteQuery = antrenamenteQuery.eq('club_id', clubId);
                 anunturiQuery = anunturiQuery.eq('club_id', clubId);
+            }
+
+            // Apply date filters if provided
+            if (filters?.date) {
+                antrenamenteQuery = antrenamenteQuery.eq('data', filters.date);
+            } else {
+                if (filters?.from) antrenamenteQuery = antrenamenteQuery.gte('data', filters.from);
+                if (filters?.to) antrenamenteQuery = antrenamenteQuery.lte('data', filters.to);
             }
 
             const [antrenamenteRes, anunturiRes] = await Promise.all([
@@ -40,7 +47,7 @@ export const useAttendanceData = (clubId?: string | null, skipFetch = false) => 
             setAntrenamente(allTrainings);
             setAnunturiPrezenta(anunturiRes.data || []);
 
-            // Filter today's trainings
+            // Filter today's trainings (if not already filtered by query)
             const today = getTodayString();
             const todayFiltered = allTrainings
                 .filter(a => a.data === today)
@@ -54,7 +61,7 @@ export const useAttendanceData = (clubId?: string | null, skipFetch = false) => 
         } finally {
             setLoading(false);
         }
-    }, [clubId, showError, skipFetch]);
+    }, [clubId, showError, skipFetch, JSON.stringify(filters)]);
 
     const saveAttendance = useCallback(async (antrenamentId: string, records: { sportiv_id: string; status: 'prezent' | 'absent' }[]) => {
         if (!antrenamentId) {

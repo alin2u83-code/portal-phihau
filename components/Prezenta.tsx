@@ -6,65 +6,17 @@ import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { ListaPrezentaAntrenament, FormularPrezenta } from './ListaPrezentaAntrenament';
 import { useAttendanceData } from '../hooks/useAttendanceData';
+import { AntrenamentForm } from './AntrenamentForm';
 
 type View = 'grupe' | 'orar' | 'calendar' | 'prezenta' | 'istoric-global' | 'prezenta-azi';
 interface ViewState { view: View; id: string | null; }
-
-// --- Formular Antrenament Personalizat (Reutilizat) ---
-// FIX: Exported AntrenamentForm to be used in other components, resolving the "not exported" error.
-export const AntrenamentForm: React.FC<{
-    isOpen: boolean; onClose: () => void; onSave: (data: Partial<Antrenament>) => Promise<void>;
-    grupaId: string | null; grupe: Grupa[];
-}> = ({ isOpen, onClose, onSave, grupaId, grupe }) => {
-    const getInitialState = () => ({
-        data: new Date().toISOString().split('T')[0],
-        ora_start: '18:00',
-        ora_sfarsit: '19:30',
-        grupa_id: grupaId || '',
-    });
-    const [formState, setFormState] = useState(getInitialState());
-    const [loading, setLoading] = useState(false);
-
-    useEffect(() => { if (isOpen) setFormState(getInitialState()); }, [isOpen, grupaId]);
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        setFormState(prev => ({ ...prev, [e.target.name]: e.target.value }));
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-        await onSave({ ...formState, is_recurent: false, ziua: null });
-        setLoading(false);
-        onClose();
-    };
-
-    return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Creează Antrenament Personalizat">
-            <form onSubmit={handleSubmit} className="space-y-4">
-                 <Input label="Data" type="date" name="data" value={formState.data} onChange={handleChange} required />
-                <div className="grid grid-cols-2 gap-4">
-                    <Input label="Ora Start" type="time" name="ora_start" value={formState.ora_start} onChange={handleChange} required />
-                    <Input label="Ora Sfârșit" type="time" name="ora_sfarsit" value={formState.ora_sfarsit} onChange={handleChange} required />
-                </div>
-                 <Select label="Grupa" name="grupa_id" value={formState.grupa_id} onChange={handleChange} required>
-                    <option value="">Alege o grupă...</option>
-                    {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
-                </Select>
-                <div className="flex justify-end pt-4 space-x-2 border-t border-slate-700 mt-6">
-                    <Button type="button" variant="secondary" onClick={onClose}>Anulează</Button>
-                    <Button type="submit" variant="success" isLoading={loading}>Salvează</Button>
-                </div>
-            </form>
-        </Modal>
-    );
-};
 
 // --- PASUL 3: Calendar Activități (Instanțe Reale) ---
 const CalendarActivitati: React.FC<{
     grupa: Grupa; onSelect: (id: string) => void; onBack: () => void; grupe: Grupa[]
 }> = ({ grupa, onSelect, onBack, grupe }) => {
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+    const [daysToGenerate, setDaysToGenerate] = useState(30);
     const [antrenamente, setAntrenamente] = useState<Antrenament[]>([]);
     const [loading, setLoading] = useState(true);
     const [isFormOpen, setIsFormOpen] = useState(false);
@@ -84,43 +36,112 @@ const CalendarActivitati: React.FC<{
     
     const handleGenerate = async () => {
         setLoading(true);
-        const { error } = await supabase.rpc('genereaza_antrenamente_din_orar', { p_zile_in_avans: 30 });
-        if (error) showError("Eroare RPC", error.message);
-        else { showSuccess("Succes", "Calendarul a fost populat."); await fetchAntrenamente(); }
+        const { error } = await supabase.rpc('genereaza_antrenamente_din_orar', { 
+            p_zile_in_avans: daysToGenerate,
+            p_grupa_id: grupa.id 
+        });
+        
+        if (error) {
+            const { error: error2 } = await supabase.rpc('genereaza_antrenamente_din_orar', { 
+                p_zile_in_avans: daysToGenerate 
+            });
+            if (error2) showError("Eroare RPC", error2.message);
+            else { 
+                showSuccess("Succes", `Calendarul a fost populat pentru următoarele ${daysToGenerate} zile (Global).`); 
+                await fetchAntrenamente(); 
+            }
+        } else { 
+            showSuccess("Succes", `Calendarul a fost populat pentru următoarele ${daysToGenerate} zile.`); 
+            await fetchAntrenamente(); 
+        }
         setLoading(false);
     };
 
-    const handleSaveCustom = async (data: Partial<Antrenament>) => {
-        const { data: newAntrenament, error } = await supabase.from('program_antrenamente').insert(data).select('*, grupe(*), prezenta:prezenta_antrenament(sportiv_id, status)').single();
-        if (error) showError("Eroare", error.message);
-        else if (newAntrenament) {
-            showSuccess("Succes", "Antrenamentul personalizat a fost adăugat.");
-            await fetchAntrenamente();
+    const handleSaveCustom = async (data: any) => {
+        if (data.is_recurent) {
+            const { error } = await supabase.from('orar_saptamanal').insert({
+                ziua: data.ziua,
+                ora_start: data.ora_start,
+                ora_sfarsit: data.ora_sfarsit,
+                grupa_id: data.grupa_id,
+                club_id: grupa.club_id,
+                is_activ: true
+            });
+            if (error) showError("Eroare la salvare orar", error.message);
+            else {
+                showSuccess("Succes", "Antrenamentul recurent a fost adăugat în orar.");
+                await handleGenerate();
+            }
+        } else {
+            const { data: newAntrenament, error } = await supabase.from('program_antrenamente').insert(data).select('*, grupe(*), prezenta:prezenta_antrenament(sportiv_id, status)').single();
+            if (error) showError("Eroare", error.message);
+            else if (newAntrenament) {
+                showSuccess("Succes", "Antrenamentul personalizat a fost adăugat.");
+                await fetchAntrenamente();
+            }
         }
     };
 
     return (
-        <div>
-            <Button onClick={onBack} variant="secondary" className="mb-4"><ArrowLeftIcon/> Înapoi la Orar</Button>
-            <Card>
-                <h2 className="text-xl font-bold text-white mb-1">Calendar Activități: {grupa.denumire}</h2>
-                <p className="text-sm text-slate-400 mb-4">Afișează antrenamentele reale, generate sau personalizate.</p>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end mb-4 p-3 bg-slate-900/50 rounded-lg border border-slate-700">
-                    <Input label="Afișează data" type="date" value={date} onChange={e => setDate(e.target.value)} />
-                    <Button onClick={handleGenerate} isLoading={loading}>Sincronizează 30 Zile</Button>
-                    <Button variant="info" onClick={() => setIsFormOpen(true)}>+ Antrenament Personalizat</Button>
+        <div className="space-y-6 animate-fade-in">
+            <Button onClick={onBack} variant="secondary" size="sm">
+                <ArrowLeftIcon className="w-4 h-4 mr-2"/> Înapoi la Orar
+            </Button>
+
+            <Card className="overflow-hidden border-none shadow-xl bg-slate-900/40 backdrop-blur-sm">
+                <div className="p-6 border-b border-slate-800 bg-slate-800/30">
+                    <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                        <CalendarDaysIcon className="w-6 h-6 text-indigo-400" />
+                        Calendar Activități: <span className="text-indigo-300">{grupa.denumire}</span>
+                    </h2>
+                    <p className="text-slate-400 mt-1">Gestionează instanțele reale de antrenament și prezența.</p>
                 </div>
-                <div className="space-y-3">
-                    {loading ? <p>Se încarcă...</p> : antrenamente.length === 0 ? <p className="text-slate-400 italic text-center p-4">Niciun antrenament programat.</p> :
-                     antrenamente.map(a => (
-                        <div key={a.id} className="p-3 bg-slate-700/50 rounded-md flex justify-between items-center">
-                            <div>
-                                <span className={`px-2 py-0.5 text-xs font-bold rounded-full mr-2 ${a.is_recurent ? 'bg-sky-900/50 text-sky-300' : 'bg-amber-900/50 text-amber-300'}`}>{a.is_recurent ? 'Recurent' : 'Personalizat'}</span>
-                                <span className="font-bold">{a.ora_start} - {a.ora_sfarsit}</span>
+
+                <div className="p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end mb-8 p-4 bg-slate-800/20 rounded-2xl border border-slate-700/30">
+                        <Input label="Afișează data" type="date" value={date} onChange={e => setDate(e.target.value)} />
+                        <Input label="Zile în avans" type="number" value={daysToGenerate} onChange={e => setDaysToGenerate(parseInt(e.target.value) || 0)} />
+                        <Button onClick={handleGenerate} isLoading={loading} className="w-full">Generează Calendar</Button>
+                        <Button variant="info" onClick={() => setIsFormOpen(true)} className="w-full">+ Adaugă Antrenament</Button>
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">Antrenamente Programate</h3>
+                        {loading ? (
+                            <div className="flex justify-center py-12">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
                             </div>
-                            <Button size="sm" onClick={() => onSelect(a.id)}>Bifează Prezența</Button>
-                        </div>
-                     ))}
+                        ) : antrenamente.length === 0 ? (
+                            <div className="text-center py-12 bg-slate-800/10 rounded-2xl border border-dashed border-slate-800">
+                                <CalendarDaysIcon className="w-12 h-12 text-slate-700 mx-auto mb-3 opacity-20" />
+                                <p className="text-slate-500 italic">Niciun antrenament programat pentru această dată.</p>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 gap-3">
+                                {antrenamente.map(a => (
+                                    <div key={a.id} className="group p-4 bg-slate-800/30 hover:bg-slate-800/50 rounded-2xl border border-slate-700/50 hover:border-indigo-500/30 transition-all flex flex-col sm:flex-row justify-between items-center gap-4">
+                                        <div className="flex items-center gap-4 w-full sm:w-auto">
+                                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${a.is_recurent ? 'bg-indigo-500/10 text-indigo-400' : 'bg-amber-500/10 text-amber-400'}`}>
+                                                <CalendarDaysIcon className="w-6 h-6" />
+                                            </div>
+                                            <div>
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className={`px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-full ${a.is_recurent ? 'bg-indigo-500/20 text-indigo-400' : 'bg-amber-500/20 text-amber-400'}`}>
+                                                        {a.is_recurent ? 'Recurent' : 'Personalizat'}
+                                                    </span>
+                                                    <span className="text-xs text-slate-500 font-mono">#{a.id.slice(0, 8)}</span>
+                                                </div>
+                                                <p className="text-lg font-bold text-white leading-none">{a.ora_start} - {a.ora_sfarsit}</p>
+                                            </div>
+                                        </div>
+                                        <Button size="sm" onClick={() => onSelect(a.id)} className="w-full sm:w-auto shadow-lg shadow-indigo-500/10">
+                                            Bifează Prezența &rarr;
+                                        </Button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                 </div>
             </Card>
             <AntrenamentForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} onSave={handleSaveCustom} grupaId={grupa.id} grupe={grupe} />
@@ -138,43 +159,101 @@ const OrarEditor: React.FC<{ grupa: Grupa & {program: ProgramItem[]}; onNavigate
     
     const handleSave = async () => {
         setLoading(true);
-        await supabase.from('orar_saptamanal').delete().eq('grupa_id', grupa.id);
-        const toInsert = program.map(({ id, ...rest }) => ({ ...rest, grupa_id: grupa.id, club_id: grupa.club_id }));
-        if (toInsert.length > 0) {
-            const { error } = await supabase.from('orar_saptamanal').insert(toInsert);
-            if (error) { showError("Eroare la salvare orar", error.message); setLoading(false); return; }
+        try {
+            await supabase.from('orar_saptamanal').delete().eq('grupa_id', grupa.id);
+            const toInsert = program.map(({ id, ...rest }) => ({ ...rest, grupa_id: grupa.id, club_id: grupa.club_id }));
+            if (toInsert.length > 0) {
+                const { error } = await supabase.from('orar_saptamanal').insert(toInsert);
+                if (error) throw error;
+            }
+            setGrupe(prev => prev.map(g => g.id === grupa.id ? { ...g, program: program } : g));
+            showSuccess("Succes", "Orarul a fost salvat.");
+        } catch (error: any) {
+            showError("Eroare la salvare orar", error.message);
+        } finally {
+            setLoading(false);
         }
-        setGrupe(prev => prev.map(g => g.id === grupa.id ? { ...g, program: program } : g));
-        showSuccess("Succes", "Orarul a fost salvat.");
-        setLoading(false);
     };
 
-    const handleAddItem = () => setProgram(p => [...p, { id: `new-${Date.now()}`, ziua: 'Luni', ora_start: '18:00', ora_sfarsit: '19:30', is_activ: true }]);
+    const handleAddItem = (zi: ProgramItem['ziua'] = 'Luni') => setProgram(p => [...p, { id: `new-${Date.now()}`, ziua: zi, ora_start: '18:00', ora_sfarsit: '19:30', is_activ: true }]);
     const handleRemoveItem = (id: string) => setProgram(p => p.filter(item => item.id !== id));
     const handleItemChange = (id: string, field: keyof ProgramItem, value: any) => setProgram(p => p.map(item => item.id === id ? { ...item, [field]: value } : item));
 
+    const programByDay = useMemo(() => {
+        const grouped: Record<string, ProgramItem[]> = {};
+        zileSaptamana.forEach(zi => grouped[zi] = program.filter(p => p.ziua === zi));
+        return grouped;
+    }, [program, zileSaptamana]);
+
     return (
-        <div>
-            <Button onClick={onBack} variant="secondary" className="mb-4"><ArrowLeftIcon/> Înapoi la Grupe</Button>
-            <Card>
-                <h2 className="text-xl font-bold text-white mb-1">Orar Săptămânal: {grupa.denumire}</h2>
-                <p className="text-sm text-slate-400 mb-4">Definește șablonul recurent al antrenamentelor.</p>
-                <div className="space-y-2 max-h-80 overflow-y-auto pr-2 mb-4">
-                    {program.map(item => (
-                        <div key={item.id} className="grid grid-cols-4 gap-2 items-center bg-slate-800/50 p-2 rounded-lg">
-                            <Select label="" value={item.ziua} onChange={e => handleItemChange(item.id, 'ziua', e.target.value)}>{zileSaptamana.map(zi => <option key={zi} value={zi}>{zi}</option>)}</Select>
-                            <Input label="" type="time" value={item.ora_start} onChange={e => handleItemChange(item.id, 'ora_start', e.target.value)} />
-                            <Input label="" type="time" value={item.ora_sfarsit} onChange={e => handleItemChange(item.id, 'ora_sfarsit', e.target.value)} />
-                            <Button variant="danger" size="sm" onClick={() => handleRemoveItem(item.id)} className="ml-auto"><TrashIcon/></Button>
+        <div className="space-y-6 animate-fade-in">
+            <div className="flex items-center justify-between">
+                <Button onClick={onBack} variant="secondary" size="sm">
+                    <ArrowLeftIcon className="w-4 h-4 mr-2"/> Înapoi la Grupe
+                </Button>
+                <div className="flex gap-2">
+                    <Button variant="success" onClick={handleSave} isLoading={loading} size="sm">
+                        <CheckCircleIcon className="w-4 h-4 mr-2"/> Salvează Orar
+                    </Button>
+                    <Button variant="primary" onClick={() => onNavigate(grupa.id)} size="sm">
+                        Gestionează Calendar <span className="ml-2">&rarr;</span>
+                    </Button>
+                </div>
+            </div>
+
+            <Card className="overflow-hidden border-none shadow-xl bg-slate-900/40 backdrop-blur-sm">
+                <div className="p-6 border-b border-slate-800 bg-slate-800/30">
+                    <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                        <CogIcon className="w-6 h-6 text-indigo-400" />
+                        Orar Săptămânal: <span className="text-indigo-300">{grupa.denumire}</span>
+                    </h2>
+                    <p className="text-slate-400 mt-1">Definește șablonul recurent al antrenamentelor pentru această grupă.</p>
+                </div>
+
+                <div className="p-6 space-y-8">
+                    {zileSaptamana.map(zi => (
+                        <div key={zi} className="group">
+                            <div className="flex items-center justify-between mb-3 border-b border-slate-800/50 pb-2">
+                                <h3 className="text-lg font-semibold text-slate-200 flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
+                                    {zi}
+                                </h3>
+                                <Button variant="secondary" size="sm" onClick={() => handleAddItem(zi)} className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <PlusIcon className="w-3 h-3 mr-1"/> Adaugă Interval
+                                </Button>
+                            </div>
+                            
+                            <div className="space-y-3">
+                                {programByDay[zi].length > 0 ? (
+                                    programByDay[zi].map(item => (
+                                        <div key={item.id} className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center bg-slate-800/30 p-3 rounded-xl border border-slate-700/50 hover:border-indigo-500/30 transition-all shadow-sm">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-xs font-medium text-slate-500 uppercase tracking-wider w-12">Start</span>
+                                                <Input label="" type="time" value={item.ora_start} onChange={e => handleItemChange(item.id, 'ora_start', e.target.value)} className="flex-grow" />
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-xs font-medium text-slate-500 uppercase tracking-wider w-12">Sfârșit</span>
+                                                <Input label="" type="time" value={item.ora_sfarsit} onChange={e => handleItemChange(item.id, 'ora_sfarsit', e.target.value)} className="flex-grow" />
+                                            </div>
+                                            <div className="flex justify-end">
+                                                <Button variant="danger" size="sm" onClick={() => handleRemoveItem(item.id)} className="hover:scale-105 transition-transform">
+                                                    <TrashIcon className="w-4 h-4"/>
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div 
+                                        onClick={() => handleAddItem(zi)}
+                                        className="py-4 px-6 border-2 border-dashed border-slate-800 rounded-xl text-center text-slate-500 hover:border-slate-700 hover:text-slate-400 cursor-pointer transition-all"
+                                    >
+                                        <p className="text-sm italic">Niciun antrenament programat pentru {zi.toLowerCase()}.</p>
+                                        <p className="text-xs mt-1">Apasă pentru a adăuga primul interval.</p>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     ))}
-                </div>
-                <div className="flex justify-between items-center pt-4 border-t border-slate-700">
-                    <Button variant="info" onClick={handleAddItem}><PlusIcon className="mr-2"/> Adaugă Interval</Button>
-                    <div className="flex gap-2">
-                        <Button variant="success" onClick={handleSave} isLoading={loading}>Salvează Orar</Button>
-                        <Button variant="primary" onClick={() => onNavigate(grupa.id)}>Gestionează Calendar <span className="ml-2">&rarr;</span></Button>
-                    </div>
                 </div>
             </Card>
         </div>
@@ -183,25 +262,67 @@ const OrarEditor: React.FC<{ grupa: Grupa & {program: ProgramItem[]}; onNavigate
 
 // --- PASUL 1: Lista de grupe ---
 const GrupeList: React.FC<{ onSelect: (id: string) => void; onSelectToday: (id: string) => void; onGlobalHistory: () => void; grupe: (Grupa & {sportivi_count: {count: number}[]})[] }> = ({ onSelect, onSelectToday, onGlobalHistory, grupe }) => (
-    <div className="space-y-6">
-        <div className="flex justify-between items-center">
-            <h1 className="text-3xl font-bold text-white">Management Prezență</h1>
-            <Button variant="secondary" onClick={onGlobalHistory}>
-                <CalendarDaysIcon className="w-5 h-5 mr-2" />
-                Istoric Global
+    <div className="space-y-8 animate-fade-in">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <h1 className="text-4xl font-black text-white tracking-tight">Management Prezență</h1>
+                <p className="text-slate-400 mt-1">Gestionează orarul, calendarul și prezența sportivilor pe grupe.</p>
+            </div>
+            <Button variant="secondary" onClick={onGlobalHistory} className="shadow-lg hover:shadow-indigo-500/10">
+                <CalendarDaysIcon className="w-5 h-5 mr-2 text-indigo-400" />
+                Istoric Global Prezențe
             </Button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {grupe.map(g => (
-                <Card key={g.id} className="flex flex-col">
-                    <div className="flex-grow">
-                        <h3 className="text-xl font-bold text-white">{g.denumire}</h3>
-                        <p className="text-sm text-slate-400 mb-2">{g.sala || 'Sală nespecificată'}</p>
-                        <div className="flex items-center gap-2 text-sm text-green-400"><UsersIcon className="w-4 h-4"/><span>{g.sportivi_count[0]?.count || 0} Sportivi Activi</span></div>
+                <Card key={g.id} className="group relative flex flex-col overflow-hidden border-none shadow-xl hover:shadow-2xl transition-all duration-300 bg-slate-900/40 backdrop-blur-sm">
+                    {/* Decorative accent */}
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 to-purple-500 opacity-50 group-hover:opacity-100 transition-opacity"></div>
+                    
+                    <div className="p-6 flex-grow">
+                        <div className="flex justify-between items-start mb-4">
+                            <div className="p-3 bg-indigo-500/10 rounded-2xl">
+                                <UsersIcon className="w-6 h-6 text-indigo-400" />
+                            </div>
+                            <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 text-xs font-bold rounded-full border border-emerald-500/20">
+                                {g.sportivi_count[0]?.count || 0} Sportivi
+                            </span>
+                        </div>
+
+                        <h3 className="text-2xl font-bold text-white group-hover:text-indigo-300 transition-colors mb-2">{g.denumire}</h3>
+                        
+                        <div className="space-y-2">
+                            <div className="flex items-center gap-2 text-sm text-slate-400">
+                                <span className="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
+                                <span>{g.sala || 'Sală nespecificată'}</span>
+                            </div>
+                            {g.program && g.program.length > 0 && (
+                                <div className="flex items-center gap-2 text-sm text-slate-500">
+                                    <CalendarDaysIcon className="w-3.5 h-3.5" />
+                                    <span>{g.program.length} intervale săptămânale</span>
+                                </div>
+                            )}
+                        </div>
                     </div>
-                    <div className="mt-4 pt-4 border-t border-slate-700 space-y-2">
-                        <Button variant="success" className="w-full" onClick={() => onSelectToday(g.id)}>Prezență Azi &rarr;</Button>
-                        <Button variant="primary" className="w-full" onClick={() => onSelect(g.id)}>Vezi Orar &rarr;</Button>
+
+                    <div className="p-6 pt-0 mt-auto space-y-3">
+                        <Button 
+                            variant="success" 
+                            className="w-full justify-between group/btn shadow-lg shadow-emerald-900/20" 
+                            onClick={() => onSelectToday(g.id)}
+                        >
+                            <span>Prezență Azi</span>
+                            <span className="group-hover/btn:translate-x-1 transition-transform">&rarr;</span>
+                        </Button>
+                        <Button 
+                            variant="primary" 
+                            className="w-full justify-between group/btn bg-slate-800 hover:bg-slate-700 border-none" 
+                            onClick={() => onSelect(g.id)}
+                        >
+                            <span>Configurare Orar</span>
+                            <CogIcon className="w-4 h-4 group-hover/btn:rotate-90 transition-transform" />
+                        </Button>
                     </div>
                 </Card>
             ))}
@@ -232,12 +353,7 @@ const IstoricPrezentaGlobal: React.FC<{ onBack: () => void, onViewSportiv?: (s: 
         if (filterDataEnd) query = query.lte('data', filterDataEnd);
         if (filterGrupa) query = query.ilike('nume_grupa', `%${filterGrupa}%`);
         
-        // Sorting: Only sort by 'data' on server side. 
-        // 'nume_sportiv' doesn't exist in view, and 'nume_grupa' might be safer to sort client side if we mix logic.
-        // However, we can sort by 'data' descending by default on server.
         query = query.order('data', { ascending: false });
-
-        // Limit (pagination could be added later, for now 500 is reasonable for filtered views)
         query = query.limit(500);
 
         const { data, error } = await query;
@@ -245,8 +361,7 @@ const IstoricPrezentaGlobal: React.FC<{ onBack: () => void, onViewSportiv?: (s: 
         if (error) {
             showError("Eroare la încărcarea istoricului", error.message);
         } else {
-            let filteredData = data || [];
-            setIstoric(filteredData);
+            setIstoric(data || []);
         }
         setLoading(false);
     }, [filterDataStart, filterDataEnd, filterGrupa, showError]);
@@ -263,7 +378,7 @@ const IstoricPrezentaGlobal: React.FC<{ onBack: () => void, onViewSportiv?: (s: 
             fetchFilteredData();
         };
         loadInitial();
-    }, []); // Initial load
+    }, []);
 
     useEffect(() => {
         fetchFilteredData();
@@ -272,7 +387,6 @@ const IstoricPrezentaGlobal: React.FC<{ onBack: () => void, onViewSportiv?: (s: 
     const filteredAndSortedIstoric = useMemo(() => {
         let result = [...istoric];
 
-        // 1. Filter by Name (Client-side)
         if (filterNume) {
             const lowerFilter = filterNume.toLowerCase();
             result = result.filter(row => {
@@ -282,7 +396,6 @@ const IstoricPrezentaGlobal: React.FC<{ onBack: () => void, onViewSportiv?: (s: 
             });
         }
 
-        // 2. Sort (Client-side)
         result.sort((a, b) => {
             let valA: any = '';
             let valB: any = '';
@@ -318,87 +431,82 @@ const IstoricPrezentaGlobal: React.FC<{ onBack: () => void, onViewSportiv?: (s: 
     };
 
     return (
-        <div className="space-y-4">
-            <Button onClick={onBack} variant="secondary" className="mb-4"><ArrowLeftIcon/> Înapoi la Grupe</Button>
-            <Card>
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                    <h2 className="text-xl font-bold text-white">Istoric Global Prezențe</h2>
-                    <div className="flex flex-wrap gap-2">
-                        <Input 
-                            label="Caută Sportiv"
-                            placeholder="Nume..." 
-                            value={filterNume} 
-                            onChange={e => setFilterNume(e.target.value)} 
-                            className="w-40"
-                        />
-                        <Input 
-                            label="Caută Grupă"
-                            placeholder="Grupă..." 
-                            value={filterGrupa} 
-                            onChange={e => setFilterGrupa(e.target.value)} 
-                            className="w-40"
-                        />
-                        <Input 
-                            label="De la"
-                            type="date" 
-                            value={filterDataStart} 
-                            onChange={e => setFilterDataStart(e.target.value)} 
-                            className="w-36"
-                        />
-                        <Input 
-                            label="Până la"
-                            type="date" 
-                            value={filterDataEnd} 
-                            onChange={e => setFilterDataEnd(e.target.value)} 
-                            className="w-36"
-                        />
+        <div className="space-y-6 animate-fade-in">
+            <Button onClick={onBack} variant="secondary" size="sm">
+                <ArrowLeftIcon className="w-4 h-4 mr-2"/> Înapoi la Grupe
+            </Button>
+
+            <Card className="overflow-hidden border-none shadow-xl bg-slate-900/40 backdrop-blur-sm">
+                <div className="p-6 border-b border-slate-800 bg-slate-800/30">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div>
+                            <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                                <CalendarDaysIcon className="w-6 h-6 text-indigo-400" />
+                                Istoric Global Prezențe
+                            </h2>
+                            <p className="text-slate-400 mt-1">Vizualizează și filtrează prezențele tuturor sportivilor.</p>
+                        </div>
                     </div>
                 </div>
 
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm">
-                        <thead className="bg-slate-800 text-slate-400">
-                            <tr>
-                                <th className="p-3 cursor-pointer hover:text-white" onClick={() => handleSort('data')}>
-                                    Data {sortField === 'data' && (sortDirection === 'asc' ? '↑' : '↓')}
-                                </th>
-                                <th className="p-3">Ora</th>
-                                <th className="p-3 cursor-pointer hover:text-white" onClick={() => handleSort('nume_sportiv')}>
-                                    Sportiv {sortField === 'nume_sportiv' && (sortDirection === 'asc' ? '↑' : '↓')}
-                                </th>
-                                <th className="p-3 cursor-pointer hover:text-white" onClick={() => handleSort('nume_grupa')}>
-                                    Grupa {sortField === 'nume_grupa' && (sortDirection === 'asc' ? '↑' : '↓')}
-                                </th>
-                                <th className="p-3">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-700">
-                            {loading ? (
-                                <tr><td colSpan={5} className="p-4 text-center text-slate-400">Se încarcă...</td></tr>
-                            ) : filteredAndSortedIstoric.length === 0 ? (
-                                <tr><td colSpan={5} className="p-4 text-center text-slate-400">Nu au fost găsite rezultate.</td></tr>
-                            ) : (
-                                filteredAndSortedIstoric.map((row, idx) => {
-                                    const sp = sportivi[row.sportiv_id];
-                                    return (
-                                        <tr key={idx} className="hover:bg-slate-700/50">
-                                            <td className="p-3">{new Date(row.data).toLocaleDateString('ro-RO')}</td>
-                                            <td className="p-3">{row.ora_start}</td>
-                                            <td className="p-3 font-medium text-white cursor-pointer hover:text-brand-primary hover:underline" onClick={() => sp && onViewSportiv && onViewSportiv(sp)}>
-                                                {sp ? `${sp.nume} ${sp.prenume}` : 'Necunoscut'}
-                                            </td>
-                                            <td className="p-3 text-slate-400">{row.nume_grupa}</td>
-                                            <td className="p-3">
-                                                <span className={`px-2 py-1 rounded-full text-xs font-bold ${row.status?.toLowerCase() === 'prezent' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                                                    {row.status}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    );
-                                })
-                            )}
-                        </tbody>
-                    </table>
+                <div className="p-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 p-4 bg-slate-800/20 rounded-2xl border border-slate-700/30">
+                        <Input label="Caută Sportiv" placeholder="Nume..." value={filterNume} onChange={e => setFilterNume(e.target.value)} />
+                        <Input label="Caută Grupă" placeholder="Grupă..." value={filterGrupa} onChange={e => setFilterGrupa(e.target.value)} />
+                        <Input label="De la" type="date" value={filterDataStart} onChange={e => setFilterDataStart(e.target.value)} />
+                        <Input label="Până la" type="date" value={filterDataEnd} onChange={e => setFilterDataEnd(e.target.value)} />
+                    </div>
+
+                    <div className="overflow-x-auto rounded-xl border border-slate-800">
+                        <table className="w-full text-left text-sm">
+                            <thead className="bg-slate-800/50 text-slate-400 uppercase text-[10px] font-black tracking-widest">
+                                <tr>
+                                    <th className="p-4 cursor-pointer hover:text-white transition-colors" onClick={() => handleSort('data')}>
+                                        Data {sortField === 'data' && (sortDirection === 'asc' ? '↑' : '↓')}
+                                    </th>
+                                    <th className="p-4">Ora</th>
+                                    <th className="p-4 cursor-pointer hover:text-white transition-colors" onClick={() => handleSort('nume_sportiv')}>
+                                        Sportiv {sortField === 'nume_sportiv' && (sortDirection === 'asc' ? '↑' : '↓')}
+                                    </th>
+                                    <th className="p-4 cursor-pointer hover:text-white transition-colors" onClick={() => handleSort('nume_grupa')}>
+                                        Grupa {sortField === 'nume_grupa' && (sortDirection === 'asc' ? '↑' : '↓')}
+                                    </th>
+                                    <th className="p-4">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-800">
+                                {loading ? (
+                                    <tr><td colSpan={5} className="p-12 text-center text-slate-500 italic">Se încarcă datele...</td></tr>
+                                ) : filteredAndSortedIstoric.length === 0 ? (
+                                    <tr><td colSpan={5} className="p-12 text-center text-slate-500 italic">Nu au fost găsite rezultate conform filtrelor.</td></tr>
+                                ) : (
+                                    filteredAndSortedIstoric.map((row, idx) => {
+                                        const sp = sportivi[row.sportiv_id];
+                                        return (
+                                            <tr key={idx} className="hover:bg-slate-800/30 transition-colors group">
+                                                <td className="p-4 text-slate-300">{new Date(row.data).toLocaleDateString('ro-RO')}</td>
+                                                <td className="p-4 text-slate-500 font-mono">{row.ora_start}</td>
+                                                <td className="p-4">
+                                                    <span 
+                                                        className="font-bold text-white cursor-pointer hover:text-indigo-400 hover:underline transition-colors"
+                                                        onClick={() => sp && onViewSportiv && onViewSportiv(sp)}
+                                                    >
+                                                        {sp ? `${sp.nume} ${sp.prenume}` : 'Necunoscut'}
+                                                    </span>
+                                                </td>
+                                                <td className="p-4 text-slate-400">{row.nume_grupa}</td>
+                                                <td className="p-4">
+                                                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${row.status?.toLowerCase() === 'prezent' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}`}>
+                                                        {row.status}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </Card>
         </div>

@@ -48,21 +48,24 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ grup
     };
 
     const handlePreview = () => {
+        // 1. Validări câmpuri necesare
         if (!formState.grupaId || !formState.programId || !formState.dataStart || !formState.dataSfarsit) {
-            showError("Date Incomplete", "Vă rugăm selectați grupa, programul și intervalul de date.");
+            showError("Date Incomplete", "Vă rugăm să completați toate câmpurile: grupă, orar, data de început și data de sfârșit.");
             return;
         }
 
         const selectedProgramItem = selectedGrupa?.program.find(p => `${p.ziua}-${p.ora_start}` === formState.programId);
         if (!selectedProgramItem) {
-            showError("Eroare", "Programul selectat nu a fost găsit.");
+            showError("Eroare", "Programul selectat nu a fost găsit în configurația grupei.");
             return;
         }
         
         const { ziua, ora_start, ora_sfarsit } = selectedProgramItem;
         
+        // 2. Generare listă instanțe viitoare
         const dates = generateDates(formState.dataStart, formState.dataSfarsit, ziua, formState.frecventa);
         
+        // Verificare conflicte cu antrenamentele existente
         const existingTrainings = new Set(antrenamente.map(a => `${a.data}-${a.ora_start}-${a.grupa_id}`));
 
         const previewInstances = dates.map(date => {
@@ -86,8 +89,11 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ grup
         const endDate = new Date(end);
         const dayIndex = ZILE_INDEX[ziua];
 
-        // Move to the first matching weekday on or after the start date
+        // Normalizare la începutul zilei UTC pentru a evita problemele de fus orar
         current.setUTCHours(0, 0, 0, 0);
+        endDate.setUTCHours(23, 59, 59, 999);
+
+        // Găsim prima zi care se potrivește cu ziua săptămânii selectată
         while (current.getUTCDay() !== dayIndex) {
             current.setUTCDate(current.getUTCDate() + 1);
         }
@@ -102,10 +108,7 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ grup
     };
     
     const handleGenerate = async () => {
-        if (!preview || preview.filter(p => !p.isConflict).length === 0) {
-            showError("Nicio acțiune", "Nu există antrenamente noi de generat sau toate intră în conflict cu cele existente.");
-            return;
-        }
+        if (!preview) return;
 
         const newTrainingsToInsert = preview
             .filter(p => !p.isConflict)
@@ -114,27 +117,41 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ grup
                 ora_start: p.ora_start,
                 ora_sfarsit: p.ora_sfarsit,
                 grupa_id: formState.grupaId,
+                club_id: selectedGrupa?.club_id,
                 ziua: p.ziua,
                 is_recurent: true
             }));
             
+        if (newTrainingsToInsert.length === 0) {
+            showError("Nicio acțiune", "Nu există antrenamente noi de generat (toate sunt în conflict).");
+            return;
+        }
+
         if (!window.confirm(`Sunteți pe cale să generați ${newTrainingsToInsert.length} antrenamente noi. Doriți să continuați?`)) return;
 
         setLoading(true);
-        const { data, error } = await supabase.from('program_antrenamente').insert(newTrainingsToInsert).select();
-        setLoading(false);
+        try {
+            const { data, error } = await supabase
+                .from('program_antrenamente')
+                .insert(newTrainingsToInsert)
+                .select();
 
-        if (error) {
-            showError("Eroare la Salvare", error);
-        } else if (data) {
-            const newAntrenamente: Antrenament[] = data.map(dbRecord => ({
-                ...(dbRecord as any),
-                sportivi_prezenti_ids: []
-            }));
+            if (error) throw error;
 
-            setAntrenamente(prev => [...prev, ...newAntrenamente]);
-            showSuccess("Succes!", `${data.length} antrenamente au fost adăugate în calendar.`);
-            setPreview(null);
+            if (data) {
+                const newAntrenamente: Antrenament[] = data.map(dbRecord => ({
+                    ...(dbRecord as any),
+                    prezenta: []
+                }));
+
+                setAntrenamente(prev => [...prev, ...newAntrenamente]);
+                showSuccess("Succes!", `${data.length} antrenamente au fost adăugate cu succes în calendar.`);
+                setPreview(null);
+            }
+        } catch (error: any) {
+            showError("Eroare la Generare", error.message || "A apărut o eroare neașteptată.");
+        } finally {
+            setLoading(false);
         }
     };
 

@@ -4,6 +4,8 @@ import { Card, Button } from './ui';
 import { ArrowLeftIcon, CheckCircleIcon, CalendarDaysIcon } from './icons';
 import { useAttendanceData } from '../hooks/useAttendanceData';
 import { useError } from './ErrorProvider';
+import { AntrenamentForm } from './AntrenamentForm';
+import { supabase } from '../supabaseClient';
 
 interface ListaPrezentaAntrenamentProps {
     grupa: Grupa;
@@ -141,14 +143,54 @@ export const FormularPrezenta: React.FC<{
 };
 
 export const ListaPrezentaAntrenament: React.FC<ListaPrezentaAntrenamentProps> = ({ grupa, onBack, onViewSportiv }) => {
-    const { antrenamente, loading, saveAttendance } = useAttendanceData(grupa.club_id);
+    const { antrenamente, loading, saveAttendance, refetch } = useAttendanceData(grupa.club_id);
     const [selectedTraining, setSelectedTraining] = useState<(Antrenament & { grupe: Grupa & { sportivi: Sportiv[] }}) | null>(null);
+    const [isFormOpen, setIsFormOpen] = useState(false);
+    const { showError, showSuccess } = useError();
 
     const todaysTrainings = useMemo(() => {
         // Filter by group ID and today's date
         const filtered = filterTrainingsForToday(antrenamente).filter(a => a.grupa_id === grupa.id);
         return filtered;
     }, [antrenamente, grupa.id]);
+
+    const handleSaveNewTraining = async (data: any) => {
+        if (data.is_recurent) {
+            const { error } = await supabase.from('orar_saptamanal').insert({
+                ziua: data.ziua,
+                ora_start: data.ora_start,
+                ora_sfarsit: data.ora_sfarsit,
+                grupa_id: data.grupa_id,
+                club_id: grupa.club_id,
+                is_activ: true
+            });
+            if (error) showError("Eroare la salvare orar", error.message);
+            else {
+                showSuccess("Succes", "Antrenamentul recurent a fost adăugat în orar.");
+                // Trigger generation
+                const { error: genError } = await supabase.rpc('genereaza_antrenamente_din_orar', { 
+                    p_zile_in_avans: 30,
+                    p_grupa_id: grupa.id
+                });
+                
+                if (genError) {
+                    // Fallback
+                    const { error: genError2 } = await supabase.rpc('genereaza_antrenamente_din_orar', { p_zile_in_avans: 30 });
+                    if (genError2) showError("Eroare generare", genError2.message);
+                    else await refetch();
+                } else {
+                    await refetch();
+                }
+            }
+        } else {
+            const { error } = await supabase.from('program_antrenamente').insert(data);
+            if (error) showError("Eroare", error.message);
+            else {
+                showSuccess("Succes", "Antrenamentul personalizat a fost adăugat.");
+                await refetch();
+            }
+        }
+    };
 
     if (selectedTraining) {
         return (
@@ -165,7 +207,10 @@ export const ListaPrezentaAntrenament: React.FC<ListaPrezentaAntrenamentProps> =
         <div>
             <Button onClick={onBack} variant="secondary" className="mb-4"><ArrowLeftIcon className="mr-2"/> Înapoi la Grupe</Button>
             <Card>
-                <h2 className="text-xl font-bold text-white mb-1">Antrenamente Azi: {grupa.denumire}</h2>
+                <div className="flex justify-between items-start mb-1">
+                    <h2 className="text-xl font-bold text-white">Antrenamente Azi: {grupa.denumire}</h2>
+                    <Button size="sm" variant="info" onClick={() => setIsFormOpen(true)}>+ Adaugă</Button>
+                </div>
                 <p className="text-sm text-slate-400 mb-6">{new Date().toLocaleDateString('ro-RO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
                 
                 {loading ? (
@@ -196,6 +241,13 @@ export const ListaPrezentaAntrenament: React.FC<ListaPrezentaAntrenamentProps> =
                     </div>
                 )}
             </Card>
+            <AntrenamentForm 
+                isOpen={isFormOpen} 
+                onClose={() => setIsFormOpen(false)} 
+                onSave={handleSaveNewTraining} 
+                grupaId={grupa.id} 
+                grupe={[grupa]} 
+            />
         </div>
     );
 };

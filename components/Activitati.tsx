@@ -37,9 +37,39 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ grup
     });
     const [preview, setPreview] = useState<PreviewInstance[] | null>(null);
     const [loading, setLoading] = useState(false);
+    const [filters, setFilters] = useState({
+        grupaId: '',
+        tip: 'toate', // toate, recurent, personalizat
+        perioada: 'viitoare', // toate, viitoare, luna-curenta
+    });
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [editForm, setEditForm] = useState<Partial<Antrenament>>({});
     const { showError, showSuccess } = useError();
 
     const selectedGrupa = useMemo(() => grupe.find(g => g.id === formState.grupaId), [grupe, formState.grupaId]);
+
+    const filteredAntrenamente = useMemo(() => {
+        let result = [...antrenamente];
+        if (filters.grupaId) result = result.filter(a => a.grupa_id === filters.grupaId);
+        if (filters.tip === 'recurent') result = result.filter(a => a.is_recurent);
+        if (filters.tip === 'personalizat') result = result.filter(a => !a.is_recurent);
+        
+        const now = new Date();
+        now.setHours(0,0,0,0);
+        
+        if (filters.perioada === 'viitoare') {
+            result = result.filter(a => new Date(a.data) >= now);
+        } else if (filters.perioada === 'luna-curenta') {
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            result = result.filter(a => {
+                const d = new Date(a.data);
+                return d >= startOfMonth && d <= endOfMonth;
+            });
+        }
+        
+        return result.sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());
+    }, [antrenamente, filters]);
 
     const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -54,6 +84,14 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ grup
             return;
         }
 
+        const startDate = new Date(formState.dataStart);
+        const endDate = new Date(formState.dataSfarsit);
+
+        if (endDate < startDate) {
+            showError("Interval Invalid", "Data de sfârșit trebuie să fie ulterioară datei de început.");
+            return;
+        }
+
         const selectedProgramItem = selectedGrupa?.program.find(p => `${p.ziua}-${p.ora_start}` === formState.programId);
         if (!selectedProgramItem) {
             showError("Eroare", "Programul selectat nu a fost găsit în configurația grupei.");
@@ -65,6 +103,11 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ grup
         // 2. Generare listă instanțe viitoare
         const dates = generateDates(formState.dataStart, formState.dataSfarsit, ziua, formState.frecventa);
         
+        if (dates.length === 0) {
+            showError("Niciun Rezultat", "Nu s-au găsit date care să se potrivească criteriilor în intervalul selectat.");
+            return;
+        }
+
         // Verificare conflicte cu antrenamentele existente
         const existingTrainings = new Set(antrenamente.map(a => `${a.data}-${a.ora_start}-${a.grupa_id}`));
 
@@ -81,6 +124,76 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ grup
         });
 
         setPreview(previewInstances);
+    };
+
+    const handleUpdatePreviewItem = (index: number, field: keyof PreviewInstance, value: any) => {
+        setPreview(prev => {
+            if (!prev) return null;
+            const next = [...prev];
+            next[index] = { ...next[index], [field]: value };
+            
+            // Re-check conflict if data or time changed
+            if (field === 'data' || field === 'ora_start') {
+                const dateString = next[index].data.toISOString().split('T')[0];
+                const conflictKey = `${dateString}-${next[index].ora_start}-${formState.grupaId}`;
+                const existingTrainings = new Set(antrenamente.map(a => `${a.data}-${a.ora_start}-${a.grupa_id}`));
+                next[index].isConflict = existingTrainings.has(conflictKey);
+            }
+            
+            return next;
+        });
+    };
+
+    const handleDeleteExisting = async (id: string) => {
+        if (!window.confirm("Sigur doriți să ștergeți acest antrenament?")) return;
+        
+        try {
+            const { error } = await supabase.from('program_antrenamente').delete().eq('id', id);
+            if (error) throw error;
+            setAntrenamente(prev => prev.filter(a => a.id !== id));
+            showSuccess("Succes", "Antrenamentul a fost șters.");
+        } catch (err: any) {
+            showError("Eroare", err.message);
+        }
+    };
+
+    const handleToggleActive = async (id: string, currentStatus: boolean) => {
+        try {
+            const { error } = await supabase.from('program_antrenamente').update({ is_activ: !currentStatus }).eq('id', id);
+            if (error) throw error;
+            setAntrenamente(prev => prev.map(a => a.id === id ? { ...a, is_activ: !currentStatus } : a));
+            showSuccess("Succes", `Antrenamentul a fost ${!currentStatus ? 'activat' : 'dezactivat'}.`);
+        } catch (err: any) {
+            showError("Eroare", err.message);
+        }
+    };
+
+    const handleStartEdit = (a: Antrenament) => {
+        setEditingId(a.id);
+        setEditForm({ ...a });
+    };
+
+    const handleSaveEdit = async () => {
+        if (!editingId || !editForm) return;
+        try {
+            const { error } = await supabase
+                .from('program_antrenamente')
+                .update({
+                    ora_start: editForm.ora_start,
+                    ora_sfarsit: editForm.ora_sfarsit,
+                    ziua: editForm.ziua,
+                    data: editForm.data,
+                })
+                .eq('id', editingId);
+
+            if (error) throw error;
+
+            setAntrenamente(prev => prev.map(a => a.id === editingId ? { ...a, ...editForm } : a));
+            showSuccess("Succes", "Antrenamentul a fost actualizat.");
+            setEditingId(null);
+        } catch (err: any) {
+            showError("Eroare la Salvare", err.message);
+        }
     };
 
     const generateDates = (start: string, end: string, ziua: ProgramItem['ziua'], frecventa: string): Date[] => {
@@ -194,36 +307,244 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ grup
             </Card>
 
             {preview !== null && (
-                <Card>
-                    <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-xl font-bold text-white">
-                            Rezultate Previzualizare <span className="text-slate-400 font-normal">({preview.length} instanțe)</span>
-                        </h3>
-                        <Button 
-                            onClick={handleGenerate} 
-                            variant="success" 
-                            isLoading={loading}
-                            disabled={preview.filter(p => !p.isConflict).length === 0}
-                        >
-                            Generează {preview.filter(p => !p.isConflict).length} Antrenamente
-                        </Button>
+                <Card className="border-l-4 border-emerald-500">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                        <div>
+                            <h3 className="text-xl font-black text-white uppercase tracking-tight">
+                                Previzualizare Generare
+                            </h3>
+                            <p className="text-slate-400 text-sm">Editează sau elimină instanțe înainte de a salva.</p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <span className="text-xs font-bold text-slate-500 bg-slate-800 px-3 py-1 rounded-full border border-slate-700">
+                                {preview.filter(p => !p.isConflict).length} noi / {preview.length} total
+                            </span>
+                            <Button 
+                                onClick={handleGenerate} 
+                                variant="success" 
+                                isLoading={loading}
+                                disabled={preview.filter(p => !p.isConflict).length === 0}
+                                className="shadow-lg shadow-emerald-900/20"
+                            >
+                                Confirmă Generarea
+                            </Button>
+                        </div>
                     </div>
-                    <div className="max-h-80 overflow-y-auto space-y-2 p-3 bg-slate-900/50 rounded-lg border border-slate-700">
+                    
+                    <div className="max-h-[400px] overflow-y-auto space-y-3 p-4 bg-slate-900/50 rounded-2xl border border-slate-800 custom-scrollbar">
                         {preview.length > 0 ? preview.map((inst, index) => (
-                            <div key={index} className={`flex justify-between items-center p-2 rounded-md ${inst.isConflict ? 'bg-red-900/30' : 'bg-slate-700/50'}`}>
-                                <p className="font-mono text-sm">{inst.data.toLocaleDateString('ro-RO')} la ora {inst.ora_start}</p>
-                                {inst.isConflict && (
-                                    <span className="text-xs font-bold text-red-400 px-2 py-1 bg-red-500/10 rounded-full border border-red-500/30">
-                                        CONFLICT
-                                    </span>
-                                )}
+                            <div key={index} className={`group flex flex-col sm:flex-row justify-between items-center p-4 rounded-xl border transition-all ${inst.isConflict ? 'bg-red-500/5 border-red-500/20' : 'bg-slate-800/40 border-slate-700/50 hover:border-indigo-500/30'}`}>
+                                <div className="flex items-center gap-4 w-full sm:w-auto mb-3 sm:mb-0">
+                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${inst.isConflict ? 'bg-red-500/20 text-red-400' : 'bg-indigo-500/10 text-indigo-400'}`}>
+                                        <CalendarDaysIcon className="w-5 h-5" />
+                                    </div>
+                                    <div className="grid grid-cols-2 sm:flex gap-2 items-center">
+                                        <input 
+                                            type="date" 
+                                            value={inst.data.toISOString().split('T')[0]} 
+                                            onChange={(e) => handleUpdatePreviewItem(index, 'data', new Date(e.target.value))}
+                                            className="bg-slate-800 text-white text-sm border border-slate-700 rounded-lg px-2 py-1 focus:ring-2 focus:ring-indigo-500 outline-none"
+                                        />
+                                        <input 
+                                            type="time" 
+                                            value={inst.ora_start} 
+                                            onChange={(e) => handleUpdatePreviewItem(index, 'ora_start', e.target.value)}
+                                            className="bg-slate-800 text-white text-sm border border-slate-700 rounded-lg px-2 py-1 focus:ring-2 focus:ring-indigo-500 outline-none"
+                                        />
+                                        <span className="text-slate-500 hidden sm:inline">-</span>
+                                        <input 
+                                            type="time" 
+                                            value={inst.ora_sfarsit} 
+                                            onChange={(e) => handleUpdatePreviewItem(index, 'ora_sfarsit', e.target.value)}
+                                            className="bg-slate-800 text-white text-sm border border-slate-700 rounded-lg px-2 py-1 focus:ring-2 focus:ring-indigo-500 outline-none"
+                                        />
+                                    </div>
+                                </div>
+                                
+                                <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+                                    {inst.isConflict && (
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-red-400 bg-red-500/10 px-2 py-1 rounded-md border border-red-500/20">
+                                            Conflict
+                                        </span>
+                                    )}
+                                    <Button 
+                                        variant="danger" 
+                                        size="sm" 
+                                        onClick={() => setPreview(p => p?.filter((_, i) => i !== index) || null)}
+                                        className="h-8 w-8 p-0"
+                                    >
+                                        <ArrowLeftIcon className="w-4 h-4 rotate-45" />
+                                    </Button>
+                                </div>
                             </div>
                         )) : (
-                            <p className="text-slate-500 italic text-center py-4">Niciun antrenament de generat pentru intervalul și setările selectate.</p>
+                            <div className="text-center py-12">
+                                <CalendarDaysIcon className="w-12 h-12 text-slate-700 mx-auto mb-3 opacity-20" />
+                                <p className="text-slate-500 italic">Niciun antrenament de generat.</p>
+                            </div>
                         )}
                     </div>
                 </Card>
             )}
+
+            <div className="pt-8 border-t border-slate-800">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                    <div>
+                        <h2 className="text-2xl font-black text-white tracking-tight uppercase">Management Program Existent</h2>
+                        <p className="text-slate-400 text-sm">Vizualizează și gestionează antrenamentele deja create.</p>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full md:w-auto">
+                        <Select 
+                            label="" 
+                            value={filters.grupaId} 
+                            onChange={e => setFilters(f => ({ ...f, grupaId: e.target.value }))}
+                        >
+                            <option value="">Toate Grupele</option>
+                            {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
+                        </Select>
+                        <Select 
+                            label="" 
+                            value={filters.tip} 
+                            onChange={e => setFilters(f => ({ ...f, tip: e.target.value }))}
+                        >
+                            <option value="toate">Toate Tipurile</option>
+                            <option value="recurent">Recurente</option>
+                            <option value="personalizat">Personalizate</option>
+                        </Select>
+                        <Select 
+                            label="" 
+                            value={filters.perioada} 
+                            onChange={e => setFilters(f => ({ ...f, perioada: e.target.value }))}
+                        >
+                            <option value="viitoare">Doar Viitoare</option>
+                            <option value="luna-curenta">Luna Curentă</option>
+                            <option value="toate">Toate (Istoric)</option>
+                        </Select>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {filteredAntrenamente.length > 0 ? filteredAntrenamente.map(a => (
+                        <Card key={a.id} className={`group relative overflow-hidden border-none shadow-lg transition-all ${!a.is_activ ? 'opacity-60 grayscale' : 'hover:shadow-indigo-500/10'} ${editingId === a.id ? 'ring-2 ring-indigo-500' : ''}`}>
+                            <div className={`absolute top-0 left-0 w-1 h-full ${a.is_recurent ? 'bg-indigo-500' : 'bg-amber-500'}`}></div>
+                            <div className="p-4">
+                                <div className="flex justify-between items-start mb-3">
+                                    <div>
+                                        <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${a.is_recurent ? 'bg-indigo-500/10 text-indigo-400' : 'bg-amber-500/10 text-amber-400'}`}>
+                                            {a.is_recurent ? 'Recurent' : 'Personalizat'}
+                                        </span>
+                                        <h4 className="text-lg font-bold text-white mt-1">{(a as any).grupe?.denumire || 'Grupă'}</h4>
+                                    </div>
+                                    <div className="flex gap-1">
+                                        {editingId === a.id ? (
+                                            <>
+                                                <Button size="sm" variant="success" className="h-8 w-8 p-0" onClick={handleSaveEdit}>
+                                                    <ArrowLeftIcon className="w-4 h-4 rotate-180" />
+                                                </Button>
+                                                <Button size="sm" variant="secondary" className="h-8 w-8 p-0" onClick={() => setEditingId(null)}>
+                                                    <ArrowLeftIcon className="w-4 h-4 rotate-45" />
+                                                </Button>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Button 
+                                                    size="sm" 
+                                                    variant="secondary" 
+                                                    className="h-8 w-8 p-0"
+                                                    onClick={() => handleStartEdit(a)}
+                                                    title="Editează"
+                                                >
+                                                    <CalendarDaysIcon className="w-4 h-4" />
+                                                </Button>
+                                                <Button 
+                                                    size="sm" 
+                                                    variant="secondary" 
+                                                    className="h-8 w-8 p-0"
+                                                    onClick={() => handleToggleActive(a.id, a.is_activ ?? true)}
+                                                    title={a.is_activ ? 'Dezactivează' : 'Activează'}
+                                                >
+                                                    <div className={`w-2 h-2 rounded-full ${a.is_activ ? 'bg-emerald-500' : 'bg-slate-500'}`}></div>
+                                                </Button>
+                                                <Button 
+                                                    size="sm" 
+                                                    variant="danger" 
+                                                    className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    onClick={() => handleDeleteExisting(a.id)}
+                                                >
+                                                    <ArrowLeftIcon className="w-4 h-4 rotate-45" />
+                                                </Button>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {editingId === a.id ? (
+                                    <div className="space-y-3 mt-4">
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] text-slate-500 uppercase font-bold">Data</label>
+                                                <input 
+                                                    type="date" 
+                                                    value={editForm.data} 
+                                                    onChange={e => setEditForm(f => ({ ...f, data: e.target.value }))}
+                                                    className="w-full bg-slate-800 text-white text-xs border border-slate-700 rounded-lg px-2 py-1.5"
+                                                />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] text-slate-500 uppercase font-bold">Ziua</label>
+                                                <select 
+                                                    value={editForm.ziua} 
+                                                    onChange={e => setEditForm(f => ({ ...f, ziua: e.target.value as any }))}
+                                                    className="w-full bg-slate-800 text-white text-xs border border-slate-700 rounded-lg px-2 py-1.5"
+                                                >
+                                                    {Object.keys(ZILE_INDEX).map(z => <option key={z} value={z}>{z}</option>)}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] text-slate-500 uppercase font-bold">Start</label>
+                                                <input 
+                                                    type="time" 
+                                                    value={editForm.ora_start} 
+                                                    onChange={e => setEditForm(f => ({ ...f, ora_start: e.target.value }))}
+                                                    className="w-full bg-slate-800 text-white text-xs border border-slate-700 rounded-lg px-2 py-1.5"
+                                                />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] text-slate-500 uppercase font-bold">Sfârșit</label>
+                                                <input 
+                                                    type="time" 
+                                                    value={editForm.ora_sfarsit} 
+                                                    onChange={e => setEditForm(f => ({ ...f, ora_sfarsit: e.target.value }))}
+                                                    className="w-full bg-slate-800 text-white text-xs border border-slate-700 rounded-lg px-2 py-1.5"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center gap-4 text-slate-400 text-sm font-medium">
+                                        <div className="flex items-center gap-1">
+                                            <CalendarDaysIcon className="w-4 h-4 text-slate-500" />
+                                            {new Date(a.data).toLocaleDateString('ro-RO')}
+                                            <span className="text-[10px] text-slate-600 ml-1">({a.ziua})</span>
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <span className="text-slate-500">Ora:</span>
+                                            <span className="text-white">{a.ora_start}</span>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </Card>
+                    )) : (
+                        <div className="col-span-full text-center py-20 bg-slate-900/20 rounded-3xl border-2 border-dashed border-slate-800">
+                            <CalendarDaysIcon className="w-16 h-16 text-slate-800 mx-auto mb-4" />
+                            <p className="text-slate-500 font-medium">Nu am găsit antrenamente care să corespundă filtrelor.</p>
+                        </div>
+                    )}
+                </div>
+            </div>
         </div>
     );
 };

@@ -5,8 +5,9 @@ import { PlusIcon, ArrowLeftIcon, TrashIcon, CogIcon, CalendarDaysIcon, UsersIco
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { ListaPrezentaAntrenament, FormularPrezenta } from './ListaPrezentaAntrenament';
-import { useAttendanceData } from '../hooks/useAttendanceData';
+import { useCalendarView } from '../hooks/useCalendarView';
 import { AntrenamentForm } from './AntrenamentForm';
+import { useAttendanceData } from '../hooks/useAttendanceData';
 
 type View = 'grupe' | 'orar' | 'calendar' | 'prezenta' | 'istoric-global' | 'prezenta-azi' | 'prezenta-azi-global';
 interface ViewState { view: View; id: string | null; }
@@ -151,72 +152,15 @@ const DashboardPrezentaAzi: React.FC<{
 const CalendarActivitati: React.FC<{
     grupa: Grupa; onSelect: (id: string) => void; onBack: () => void; grupe: Grupa[]
 }> = ({ grupa, onSelect, onBack, grupe }) => {
-    const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-    const [daysToGenerate, setDaysToGenerate] = useState(30);
-    const [antrenamente, setAntrenamente] = useState<Antrenament[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [isFormOpen, setIsFormOpen] = useState(false);
-    const { showError, showSuccess } = useError();
-
-    const fetchAntrenamente = useCallback(async () => {
-        setLoading(true);
-        const { data, error } = await supabase.from('program_antrenamente')
-            .select('*, grupe(*), prezenta:prezenta_antrenament(sportiv_id, status)')
-            .eq('grupa_id', grupa.id).eq('data', date).order('ora_start');
-        if (error) showError("Eroare la încărcarea calendarului", error.message);
-        else setAntrenamente((data || []).map(a => ({...a, prezenta: a.prezenta || []})));
-        setLoading(false);
-    }, [grupa.id, date, showError]);
-
-    useEffect(() => { fetchAntrenamente(); }, [fetchAntrenamente]);
-    
-    const handleGenerate = async () => {
-        setLoading(true);
-        const { error } = await supabase.rpc('genereaza_antrenamente_din_orar', { 
-            p_zile_in_avans: daysToGenerate,
-            p_grupa_id: grupa.id 
-        });
-        
-        if (error) {
-            const { error: error2 } = await supabase.rpc('genereaza_antrenamente_din_orar', { 
-                p_zile_in_avans: daysToGenerate 
-            });
-            if (error2) showError("Eroare RPC", error2.message);
-            else { 
-                showSuccess("Succes", `Calendarul a fost populat pentru următoarele ${daysToGenerate} zile (Global).`); 
-                await fetchAntrenamente(); 
-            }
-        } else { 
-            showSuccess("Succes", `Calendarul a fost populat pentru următoarele ${daysToGenerate} zile.`); 
-            await fetchAntrenamente(); 
-        }
-        setLoading(false);
-    };
-
-    const handleSaveCustom = async (data: any) => {
-        if (data.is_recurent) {
-            const { error } = await supabase.from('orar_saptamanal').insert({
-                ziua: data.ziua,
-                ora_start: data.ora_start,
-                ora_sfarsit: data.ora_sfarsit,
-                grupa_id: data.grupa_id,
-                club_id: grupa.club_id,
-                is_activ: true
-            });
-            if (error) showError("Eroare la salvare orar", error.message);
-            else {
-                showSuccess("Succes", "Antrenamentul recurent a fost adăugat în orar.");
-                await handleGenerate();
-            }
-        } else {
-            const { data: newAntrenament, error } = await supabase.from('program_antrenamente').insert(data).select('*, grupe(*), prezenta:prezenta_antrenament(sportiv_id, status)').single();
-            if (error) showError("Eroare", error.message);
-            else if (newAntrenament) {
-                showSuccess("Succes", "Antrenamentul personalizat a fost adăugat.");
-                await fetchAntrenamente();
-            }
-        }
-    };
+    const {
+        date, setDate,
+        daysToGenerate, setDaysToGenerate,
+        antrenamente,
+        loading,
+        isFormOpen, setIsFormOpen,
+        handleGenerate,
+        handleSaveCustom
+    } = useCalendarView(grupa.id);
 
     return (
         <div className="space-y-6 animate-fade-in">

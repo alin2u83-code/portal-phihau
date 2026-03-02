@@ -141,6 +141,17 @@ export const FormularPrezenta: React.FC<{
         }
     };
 
+    // Filter Logic
+    const [filterStatus, setFilterStatus] = useState<'all' | 'present' | 'absent'>('all');
+
+    const filteredSportivi = useMemo(() => {
+        if (filterStatus === 'all') return sportiviInGrupa;
+        return sportiviInGrupa.filter(s => {
+            const isPresent = presentIds.has(s.id);
+            return filterStatus === 'present' ? isPresent : !isPresent;
+        });
+    }, [sportiviInGrupa, presentIds, filterStatus]);
+
     // 3. Save Logic
     const handleSaveAttendance = async () => {
         setLoading(true);
@@ -163,8 +174,11 @@ export const FormularPrezenta: React.FC<{
     return (
         <Card className={`transition-all duration-500 relative ${saved ? 'ring-4 ring-emerald-500 shadow-[0_0_30px_rgba(16,185,129,0.4)] scale-[1.01]' : 'border-slate-800'}`}>
             {saved && (
-                <div className="absolute -top-3 -right-3 bg-emerald-500 text-white text-sm font-black px-4 py-2 rounded-xl animate-bounce flex items-center gap-2 shadow-xl z-20 border-2 border-white/20">
-                    <CheckCircleIcon className="w-5 h-5" /> SALVAT!
+                <div className="absolute top-0 left-0 right-0 -mt-12 flex justify-center z-50 pointer-events-none">
+                     <div className="bg-emerald-500 text-white text-lg font-black px-6 py-3 rounded-2xl animate-bounce flex items-center gap-3 shadow-2xl border-4 border-slate-900">
+                        <CheckCircleIcon className="w-6 h-6" /> 
+                        <span>PREZENȚĂ SALVATĂ CU SUCCES!</span>
+                    </div>
                 </div>
             )}
             
@@ -184,48 +198,76 @@ export const FormularPrezenta: React.FC<{
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 p-4 bg-slate-800/20 rounded-2xl border border-slate-700/30">
                 <Button size="sm" variant="secondary" onClick={() => setAllAttendance(true)} className="w-full bg-slate-800 hover:bg-slate-700">Toți Prezenți</Button>
                 <Button size="sm" variant="secondary" onClick={() => setAllAttendance(false)} className="w-full bg-slate-800 hover:bg-slate-700">Toți Absenți</Button>
-                <div className="sm:col-span-2 flex justify-center pt-2">
+                <div className="sm:col-span-2 flex flex-col items-center pt-2 gap-2">
                     <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">
                         Status: <span className="text-indigo-400">{presentIds.size}</span> / {sportiviInGrupa.length} prezenți
                     </span>
+                    
+                    {/* Filter Controls */}
+                    <div className="flex bg-slate-900/50 p-1 rounded-lg border border-slate-700/50">
+                        <button 
+                            onClick={() => setFilterStatus('all')}
+                            className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${filterStatus === 'all' ? 'bg-slate-700 text-white shadow-sm' : 'text-slate-400 hover:text-slate-300'}`}
+                        >
+                            Toți
+                        </button>
+                        <button 
+                            onClick={() => setFilterStatus('present')}
+                            className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${filterStatus === 'present' ? 'bg-emerald-500/20 text-emerald-400 shadow-sm' : 'text-slate-400 hover:text-emerald-400'}`}
+                        >
+                            Prezenți
+                        </button>
+                        <button 
+                            onClick={() => setFilterStatus('absent')}
+                            className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${filterStatus === 'absent' ? 'bg-rose-500/20 text-rose-400 shadow-sm' : 'text-slate-400 hover:text-rose-400'}`}
+                        >
+                            Absenți
+                        </button>
+                    </div>
                 </div>
             </div>
 
             <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar mb-6">
-                {sportiviInGrupa.map(s => {
-                    const isPresent = presentIds.has(s.id);
-                    return (
-                        <div 
-                            key={s.id} 
-                            className={`group flex items-center gap-4 p-4 rounded-2xl transition-all cursor-pointer border ${isPresent ? 'bg-emerald-500/10 border-emerald-500/30 shadow-sm' : 'bg-slate-800/30 border-slate-700/50 hover:bg-slate-800/50'}`}
-                            onClick={() => toggleSportiv(s.id)}
-                        >
-                            <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${isPresent ? 'bg-emerald-500 border-emerald-500 scale-110' : 'border-slate-600 group-hover:border-slate-500'}`}>
-                                {isPresent && <CheckCircleIcon className="w-4 h-4 text-white" />}
-                            </div>
-                            <span 
-                                className={`font-bold flex-grow select-none transition-colors ${isPresent ? 'text-emerald-400' : 'text-slate-300'}`}
+                {filteredSportivi.length === 0 ? (
+                    <div className="text-center py-8 text-slate-500 italic">
+                        Nu există sportivi pentru filtrul selectat.
+                    </div>
+                ) : (
+                    filteredSportivi.map(s => {
+                        const isPresent = presentIds.has(s.id);
+                        return (
+                            <div 
+                                key={s.id} 
+                                className={`group flex items-center gap-4 p-4 rounded-2xl transition-all cursor-pointer border ${isPresent ? 'bg-emerald-500/10 border-emerald-500/30 shadow-sm' : 'bg-slate-800/30 border-slate-700/50 hover:bg-slate-800/50'}`}
+                                onClick={() => toggleSportiv(s.id)}
                             >
-                                {s.nume} {s.prenume}
-                            </span>
-                            {onViewSportiv && (
-                                <Button 
-                                    size="sm" 
-                                    variant="secondary" 
-                                    className="opacity-0 group-hover:opacity-100 h-8 px-2 text-[10px]"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setSelectedSportiv(s);
-                                        setIsModalOpen(true);
-                                        if (onViewSportiv) onViewSportiv(s);
-                                    }}
+                                <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${isPresent ? 'bg-emerald-500 border-emerald-500 scale-110' : 'border-slate-600 group-hover:border-slate-500'}`}>
+                                    {isPresent && <CheckCircleIcon className="w-4 h-4 text-white" />}
+                                </div>
+                                <span 
+                                    className={`font-bold flex-grow select-none transition-colors ${isPresent ? 'text-emerald-400' : 'text-slate-300'}`}
                                 >
-                                    Profil
-                                </Button>
-                            )}
-                        </div>
-                    );
-                })}
+                                    {s.nume} {s.prenume}
+                                </span>
+                                {onViewSportiv && (
+                                    <Button 
+                                        size="sm" 
+                                        variant="secondary" 
+                                        className="opacity-0 group-hover:opacity-100 h-8 px-2 text-[10px]"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedSportiv(s);
+                                            setIsModalOpen(true);
+                                            if (onViewSportiv) onViewSportiv(s);
+                                        }}
+                                    >
+                                        Profil
+                                    </Button>
+                                )}
+                            </div>
+                        );
+                    })
+                )}
             </div>
 
             <SportivInfoModal 

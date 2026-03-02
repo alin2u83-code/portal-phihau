@@ -240,12 +240,12 @@ export const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
                     <FormSection title="Date Contact">
                         <Input label="Telefon" name="telefon" value={formData.telefon || ''} onChange={handleChange} disabled={loading} className={inputStyle} />
                         <Input label="Adresă" name="adresa" value={formData.adresa || ''} onChange={handleChange} disabled={loading} className={inputStyle} />
-                        <Input label="Email (Login)" name="email" type="email" value={formData.email || ''} onChange={handleChange} disabled={loading} required={!initialData.id} error={errors.email} className={inputStyle} />
                     </FormSection>
 
                     {!initialData.id && (
                         <FormSection title="Detalii Cont Acces (Opțional)">
                             <p className="text-xs text-slate-400 col-span-full -mt-1">La salvare, se va crea automat un cont de acces cu email și parolă generate. Puteți edita detaliile mai sus.</p>
+                            <Input label="Email (Login)" name="email" type="email" value={formData.email || ''} onChange={handleChange} disabled={loading} required={!initialData.id} error={errors.email} className={inputStyle} />
                             <Input label="Username (Opțional)" name="username" value={formData.username || ''} onChange={handleChange} disabled={loading} placeholder="ex: ion.popescu" className={inputStyle} />
                             <Input label="Parolă" name="parola" value={formData.parola || ''} onChange={handleChange} disabled={loading} required error={errors.parola} className={inputStyle} />
                         </FormSection>

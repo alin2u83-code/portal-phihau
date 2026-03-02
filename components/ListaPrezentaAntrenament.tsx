@@ -167,7 +167,10 @@ export const FormularPrezenta: React.FC<{
         setLoading(false);
         if (success) {
             setSaved(true);
-            setTimeout(() => setSaved(false), 3000);
+            setTimeout(() => {
+                setSaved(false);
+                onBack();
+            }, 1500);
         }
     };
 

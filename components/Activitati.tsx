@@ -108,18 +108,25 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ grup
             return;
         }
 
-        // Verificare conflicte cu antrenamentele existente
-        const existingTrainings = new Set(antrenamente.map(a => `${a.data}-${a.ora_start}-${a.grupa_id}`));
+        // Verificare conflicte cu antrenamentele existente (Overlap de timp)
+        const checkOverlap = (dateStr: string, start: string, end: string, grpId: string) => {
+            return antrenamente.some(a => 
+                a.grupa_id === grpId && 
+                a.data === dateStr &&
+                a.is_activ !== false && // Verificăm doar conflictele cu antrenamentele active
+                (start < (a.ora_sfarsit || '23:59') && (a.ora_start || '00:00') < end)
+            );
+        };
 
         const previewInstances = dates.map(date => {
             const dateString = date.toISOString().split('T')[0];
-            const conflictKey = `${dateString}-${ora_start}-${formState.grupaId}`;
+            const hasConflict = checkOverlap(dateString, ora_start, ora_sfarsit, formState.grupaId);
             return {
                 data: date,
                 ora_start,
                 ora_sfarsit,
                 ziua,
-                isConflict: existingTrainings.has(conflictKey),
+                isConflict: hasConflict,
             };
         });
 
@@ -133,11 +140,19 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ grup
             next[index] = { ...next[index], [field]: value };
             
             // Re-check conflict if data or time changed
-            if (field === 'data' || field === 'ora_start') {
+            if (field === 'data' || field === 'ora_start' || field === 'ora_sfarsit') {
                 const dateString = next[index].data.toISOString().split('T')[0];
-                const conflictKey = `${dateString}-${next[index].ora_start}-${formState.grupaId}`;
-                const existingTrainings = new Set(antrenamente.map(a => `${a.data}-${a.ora_start}-${a.grupa_id}`));
-                next[index].isConflict = existingTrainings.has(conflictKey);
+                const start = next[index].ora_start;
+                const end = next[index].ora_sfarsit;
+                
+                const hasConflict = antrenamente.some(a => 
+                    a.grupa_id === formState.grupaId && 
+                    a.data === dateString &&
+                    a.is_activ !== false &&
+                    (start < (a.ora_sfarsit || '23:59') && (a.ora_start || '00:00') < end)
+                );
+                
+                next[index].isConflict = hasConflict;
             }
             
             return next;

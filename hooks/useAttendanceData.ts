@@ -79,7 +79,17 @@ export const useAttendanceData = (clubId?: string | null, skipFetch = false) => 
             return true;
         } catch (err: any) {
             console.error("Error saving attendance:", err);
-            showError("Eroare salvare prezență", err.message || "A apărut o eroare la salvarea datelor în baza de date.");
+            let userMessage = "A apărut o eroare la salvarea datelor în baza de date.";
+            
+            if (err.code === '42501') {
+                userMessage = "Nu aveți permisiunea de a modifica prezența pentru acest antrenament.";
+            } else if (err.code === '23505') {
+                userMessage = "Există deja o înregistrare de prezență pentru acest sportiv.";
+            } else if (err.message) {
+                userMessage = err.message;
+            }
+
+            showError("Eroare salvare prezență", userMessage);
             return false;
         }
     }, [fetchAttendanceData, showError, showSuccess]);

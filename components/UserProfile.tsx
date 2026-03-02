@@ -14,6 +14,7 @@ import { AddGradeModal } from './AddGradeModal';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { GradBadge } from '../utils/grades';
 import { SportivAvatarEditor } from './SportivAvatarEditor';
+import { useRoleAssignment } from '../hooks/useRoleAssignment';
 
 const getGrad = (gradId: string | null, allGrades: Grad[]) => gradId ? allGrades.find(g => g.id === gradId) : null;
 const getAge = (dateString: string) => { if (!dateString) return 0; const today = new Date(); const birthDate = new Date(dateString.includes('T') ? dateString : dateString + 'T00:00:00'); if (isNaN(birthDate.getTime())) { return 0; } let age = today.getFullYear() - birthDate.getFullYear(); const m = today.getMonth() - birthDate.getMonth(); if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; } return age; };
@@ -252,10 +253,12 @@ const CreateAccountModal: React.FC<{
     sportiv: Sportiv;
     onClose: () => void;
     onAccountCreated: () => void;
-}> = ({ sportiv, onClose, onAccountCreated }) => {
-    const { showError, showSuccess } = useError();
+    currentUser: User;
+    allRoles: Rol[];
+}> = ({ sportiv, onClose, onAccountCreated, currentUser, allRoles }) => {
+    const { showError } = useError();
     const [form, setForm] = useState({ email: '', parola: '' });
-    const [loading, setLoading] = useState(false);
+    const { createAccountAndAssignRole, loading } = useRoleAssignment(currentUser, allRoles);
 
     useEffect(() => {
         const sanitize = (str: string) => (str || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, '');
@@ -268,57 +271,23 @@ const CreateAccountModal: React.FC<{
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!supabase) {
-            showError("Eroare Configurare", "Clientul Supabase nu este inițializat.");
-            return;
-        }
         if (!form.email || !form.parola) {
             showError("Date Incomplete", "Emailul și parola sunt obligatorii.");
             return;
         }
-        setLoading(true);
 
-        try {
-            // FIX: Bypass Edge Function, use supabase.auth.signUp directly.
-            const { data: authData, error: authError } = await supabase.auth.signUp({
-                email: form.email,
-                password: form.parola,
-            });
+        const sportivRole = allRoles.find(r => r.nume === 'SPORTIV');
+        if (!sportivRole) {
+            showError("Eroare", "Rolul 'SPORTIV' nu a fost găsit.");
+            return;
+        }
 
-            if (authError) {
-                if (authError.message.includes('User already exists')) {
-                    throw new Error('Un utilizator cu acest email există deja în sistem. Asociați-l manual.');
-                }
-                throw authError;
-            }
-            
-            const newAuthUser = authData.user;
-            if (!newAuthUser) throw new Error("Contul de autentificare nu a putut fi creat. Răspunsul de la server a fost gol.");
-            
-            // FIX: Immediately link the new auth user to the existing sportiv profile.
-            const { error: updateError } = await supabase.from('sportivi').update({ user_id: newAuthUser.id, email: form.email }).eq('id', sportiv.id);
-            if (updateError) throw updateError;
-            
-            // FIX: Immediately insert the default 'Sportiv' role.
-            const { error: roleError } = await supabase.from('utilizator_roluri_multicont').insert({
-                user_id: newAuthUser.id,
-                sportiv_id: sportiv.id,
-                club_id: sportiv.club_id,
-                rol_denumire: 'Sportiv',
-                is_primary: true
-            });
-            if (roleError) {
-                throw new Error(`Profilul a fost creat, dar rolul 'Sportiv' nu a putut fi asignat: ${roleError.message}. Contactați administratorul.`);
-            }
-
-            showSuccess("Cont Creat!", `Contul pentru ${sportiv.nume} a fost generat. Utilizatorul trebuie să confirme adresa de email.`);
+        const result = await createAccountAndAssignRole(form.email, form.parola, sportiv, [sportivRole]);
+        if (result.success) {
             onAccountCreated();
             onClose();
-
-        } catch (err: any) {
-            showError("Eroare la Generare Cont", err.message);
-        } finally {
-            setLoading(false);
+        } else {
+            showError("Eroare", result.error || "A apărut o eroare la crearea contului.");
         }
     };
 
@@ -425,9 +394,10 @@ interface UserProfileProps {
     clubs: Club[];
     vizualizarePlati: VizualizarePlata[];
     sportivi: Sportiv[];
+    allRoles: Rol[];
 }
 
-export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, participari, examene, grade, istoricGrade, setIstoricGrade, antrenamente, plati, tranzactii, reduceri, grupe, familii, tipuriAbonament, setSportivi, setPlati, setTranzactii, onBack, clubs, vizualizarePlati, sportivi }) => {
+export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, participari, examene, grade, istoricGrade, setIstoricGrade, antrenamente, plati, tranzactii, reduceri, grupe, familii, tipuriAbonament, setSportivi, setPlati, setTranzactii, onBack, clubs, vizualizarePlati, sportivi, allRoles }) => {
     const { showError, showSuccess } = useError();
     
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -1075,7 +1045,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
             {isReportModalOpen && <SportivFeedbackReport isOpen={isReportModalOpen} onClose={() => setIsReportModalOpen(false)} sportiv={sportiv} antrenamente={antrenamente} grupe={grupe} grade={grade} participari={participari} examene={examene} />}
             {isTransferModalOpen && <TransferModal isOpen={isTransferModalOpen} onClose={() => setIsTransferModalOpen(false)} sportiv={sportiv} clubs={clubs} onTransferComplete={(updatedSportiv) => { setSportivi(p => p.map(s => s.id === updatedSportiv.id ? updatedSportiv : s)); setIsTransferModalOpen(false); }} />}
             {isAddGradeModalOpen && <AddGradeModal isOpen={isAddGradeModalOpen} onClose={() => setIsAddGradeModalOpen(false)} onSave={handleAddGrade} sportiv={sportiv} grades={grade} />}
-            {isCreateAccountModalOpen && <CreateAccountModal sportiv={sportiv} onClose={() => setIsCreateAccountModalOpen(false)} onAccountCreated={handleAccountCreated} />}
+            {isCreateAccountModalOpen && <CreateAccountModal sportiv={sportiv} onClose={() => setIsCreateAccountModalOpen(false)} onAccountCreated={handleAccountCreated} currentUser={currentUser} allRoles={allRoles} />}
             <PlataEditModal plata={plataToEdit} onClose={() => setPlataToEdit(null)} onSave={handleSavePlataEdit} isLoading={isSaving} />
             <ConfirmDeleteModal isOpen={!!plataToDelete} onClose={() => setPlataToDelete(null)} onConfirm={() => { if(plataToDelete) confirmDeletePlata(plataToDelete.id) }} tableName="Factură" isLoading={isDeleting} />
         </div>

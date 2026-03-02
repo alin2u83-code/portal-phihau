@@ -11,6 +11,7 @@ import { SportiviTable } from './SportiviTable';
 import { SportiviMobileList } from './SportiviMobileList';
 import { SportivModals } from './SportivModals';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { useRoleAssignment } from '../hooks/useRoleAssignment';
 
 const getAge = (dateString: string | null | undefined): number => {
     if (!dateString) return 0;
@@ -182,16 +183,17 @@ export const SportiviManagement: React.FC<{
 
 
 
+    const { createAccountAndAssignRole } = useRoleAssignment(currentUser, allRoles);
+
     const handleSave = async (formData: Partial<Sportiv>): Promise<{ success: boolean; error?: any; data?: Sportiv; }> => {
         try {
             if (sportivToEdit) {
                 const { roluri, cluburi, ...sportivData } = formData;
-                const { data, error } = await supabase.from('sportivi').update(sportivData).eq('id', sportivToEdit.id).select('*, cluburi(*), utilizator_roluri_multicont(rol_denumire)').single();
+                const { data, error } = await supabase.from('sportivi').update(sportivData).eq('id', sportivToEdit.id).select('*, cluburi(*)').single();
                 if (error) throw error;
     
-                const updatedRoles = (data.utilizator_roluri_multicont || []).map((r: any) => allRoles.find(role => role.nume === r.rol_denumire)).filter(Boolean);
-                const updatedSportiv = { ...data, roluri: updatedRoles };
-                delete (updatedSportiv as any).utilizator_roluri_multicont;
+                // Preserve existing roles since we don't update them here yet
+                const updatedSportiv = { ...data, roluri: sportivToEdit.roluri };
     
                 setSportivi(prev => prev.map(s => s.id === sportivToEdit.id ? updatedSportiv : s));
                 showSuccess('Succes', 'Sportiv actualizat!');
@@ -202,36 +204,23 @@ export const SportiviManagement: React.FC<{
                 if (!profileData.club_id) { profileData.club_id = currentUser?.club_id; }
                 if (!profileData.club_id) throw new Error("Clubul este obligatoriu la adăugarea unui sportiv nou.");
 
-                const { data: authData, error: authError } = await supabase.functions.invoke('create-user-admin', {
-                    body: { email, password: parola }
-                });
-                if (authError || authData.error) throw new Error(authError?.message || authData.error);
-                
-                const user = authData.user;
-                if (!user) throw new Error("Nu s-a putut crea contul de autentificare.");
-
-                const finalProfileData = { ...profileData, user_id: user.id, email, status_viza_medicala: 'Expirat' as const };
-                
-                let newProfile;
-                try {
-                    const { data, error: profileError } = await supabase.from('sportivi').insert(finalProfileData).select('*, cluburi(*)').single();
-                    if (profileError) throw profileError;
-                    newProfile = data;
-                } catch (profileError: any) {
-                    await supabase.functions.invoke('delete-user-admin', { body: { user_id: user.id } });
-                    throw profileError;
-                }
-
                 const sportivRole = allRoles.find(r => r.nume === 'SPORTIV');
                 if (!sportivRole) throw new Error("Rolul de bază 'SPORTIV' nu a fost găsit.");
 
-                const { error: roleError } = await supabase.from('utilizator_roluri_multicont').insert({ user_id: user.id, rol_denumire: 'SPORTIV', club_id: newProfile.club_id, sportiv_id: newProfile.id, is_primary: true });
-                if (roleError) throw new Error(`Profilul a fost creat, dar rolul nu a putut fi atribuit: ${roleError.message}`);
+                const result = await createAccountAndAssignRole(
+                    email,
+                    parola,
+                    profileData,
+                    [sportivRole]
+                );
 
-                const newSportiv = { ...newProfile, roluri: [sportivRole] };
-                setSportivi(prev => [...prev, newSportiv]);
+                if (!result.success || !result.sportiv) {
+                    throw new Error(result.error || "A apărut o eroare la crearea contului.");
+                }
+
+                setSportivi(prev => [...prev, result.sportiv!]);
                 showSuccess('Succes', 'Sportivul a fost adăugat cu succes.');
-                return { success: true, data: newSportiv };
+                return { success: true, data: result.sportiv! };
             }
         } catch (err: any) {
             console.error('DEBUG:', err);
@@ -268,34 +257,19 @@ export const SportiviManagement: React.FC<{
         setCreateAccountError('');
         
         try {
-            const { data: authData, error: authError } = await supabase.functions.invoke('create-user-admin', {
-                body: { email: createAccountForm.email, password: createAccountForm.parola },
-            });
-    
-            if (authError || authData.error) {
-                const errorMessage = authError?.message || authData.error;
-                if (String(errorMessage).includes('User already exists')) {
-                     throw new Error('Un utilizator cu acest email există deja. Asociați-l manual dacă este necesar.');
-                }
-                throw new Error(errorMessage || 'A apărut o eroare la crearea contului.');
+            const sportivRole = allRoles.find(r => r.nume === 'SPORTIV');
+            if (!sportivRole) throw new Error("Rolul 'SPORTIV' nu a fost găsit.");
+
+            const result = await createAccountAndAssignRole(
+                createAccountForm.email,
+                createAccountForm.parola,
+                { ...sportivForAccountCreation, username: createAccountForm.username },
+                [sportivRole]
+            );
+
+            if (!result.success || !result.sportiv) {
+                throw new Error(result.error || 'A apărut o eroare la crearea contului.');
             }
-    
-            const authUser = authData.user;
-            if (!authUser) throw new Error("Nu s-a putut crea contul de autentificare. Răspunsul de la server a fost gol.");
-    
-            const profileUpdates = { user_id: authUser.id, email: createAccountForm.email, username: createAccountForm.username };
-            const { data, error } = await supabase.from('sportivi').update(profileUpdates).eq('id', sportivForAccountCreation.id).select('*, cluburi(*)').single();
-    
-            if (error) throw new Error(`Cont Auth creat, dar eroare la legarea profilului: ${error.message}.`);
-            
-            const { error: roleError } = await supabase.from('utilizator_roluri_multicont').insert({
-                user_id: authUser.id,
-                sportiv_id: sportivForAccountCreation.id,
-                club_id: sportivForAccountCreation.club_id,
-                rol_denumire: 'Sportiv',
-                is_primary: true
-            });
-            if (roleError) throw new Error(`Profil legat, dar eroare la asignarea rolului 'Sportiv': ${roleError.message}`);
     
             showSuccess("Cont Creat", `Contul pentru ${sportivForAccountCreation.nume} a fost creat cu succes. Reîncărcați pagina.`);
             setTimeout(() => window.location.reload(), 1500);

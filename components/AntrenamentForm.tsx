@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Input, Select } from './ui';
 import { Antrenament, Grupa } from '../types';
+import { useAttendanceData } from '../hooks/useAttendanceData';
+import { useError } from './ErrorProvider';
 
 export const AntrenamentForm: React.FC<{
     isOpen: boolean; 
@@ -19,8 +21,18 @@ export const AntrenamentForm: React.FC<{
     });
     const [formState, setFormState] = useState(getInitialState());
     const [loading, setLoading] = useState(false);
+    const [conflicts, setConflicts] = useState<Antrenament[]>([]);
+    
+    // We need to fetch existing trainings to check for conflicts
+    const { allTrainings } = useAttendanceData(grupe.length > 0 ? grupe[0].club_id : null, !isOpen);
+    const { showError } = useError();
 
-    useEffect(() => { if (isOpen) setFormState(getInitialState()); }, [isOpen, grupaId]);
+    useEffect(() => { 
+        if (isOpen) {
+            setFormState(getInitialState()); 
+            setConflicts([]);
+        }
+    }, [isOpen, grupaId]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
@@ -28,8 +40,58 @@ export const AntrenamentForm: React.FC<{
         setFormState(prev => ({ ...prev, [name]: val }));
     };
 
+    const handlePreview = () => {
+        if (!formState.grupa_id) return;
+
+        let foundConflicts: Antrenament[] = [];
+
+        if (formState.is_recurent) {
+            // For recurrent, we'd ideally check the 'orar_saptamanal' table, 
+            // but since we only have 'allTrainings' (program_antrenamente),
+            // we can check if there are any generated trainings on that day of the week
+            // that overlap. This is a simplified check.
+            const dayMap: Record<string, number> = { 'Duminică': 0, 'Luni': 1, 'Marți': 2, 'Miercuri': 3, 'Joi': 4, 'Vineri': 5, 'Sâmbătă': 6 };
+            const targetDay = dayMap[formState.ziua];
+            
+            foundConflicts = allTrainings.filter(a => {
+                if (a.grupa_id !== formState.grupa_id) return false;
+                const aDate = new Date(a.data);
+                if (aDate.getDay() !== targetDay) return false;
+                
+                // Check time overlap
+                return (formState.ora_start < a.ora_sfarsit && formState.ora_sfarsit > a.ora_start);
+            });
+
+        } else {
+            // For custom, check specific date and time
+            foundConflicts = allTrainings.filter(a => {
+                if (a.grupa_id !== formState.grupa_id) return false;
+                if (a.data !== formState.data) return false;
+                
+                // Check time overlap
+                return (formState.ora_start < a.ora_sfarsit && formState.ora_sfarsit > a.ora_start);
+            });
+        }
+
+        setConflicts(foundConflicts);
+    };
+
+    // Run preview whenever relevant fields change
+    useEffect(() => {
+        if (isOpen) {
+            handlePreview();
+        }
+    }, [formState.data, formState.ora_start, formState.ora_sfarsit, formState.grupa_id, formState.ziua, formState.is_recurent, allTrainings, isOpen]);
+
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        if (conflicts.length > 0) {
+            const confirm = window.confirm("Există conflicte de orar cu alte antrenamente. Doriți să salvați oricum?");
+            if (!confirm) return;
+        }
+
         setLoading(true);
         // Clean up data based on type
         const submitData = { ...formState };
@@ -78,6 +140,21 @@ export const AntrenamentForm: React.FC<{
                     <option value="">Alege o grupă...</option>
                     {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
                 </Select>
+
+                {conflicts.length > 0 && (
+                    <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-lg mt-4">
+                        <p className="text-sm font-bold text-rose-400 mb-2">Atenție: Conflicte detectate!</p>
+                        <ul className="text-xs text-rose-300 space-y-1">
+                            {conflicts.slice(0, 3).map(c => (
+                                <li key={c.id}>
+                                    • {c.data} ({c.ora_start} - {c.ora_sfarsit})
+                                </li>
+                            ))}
+                            {conflicts.length > 3 && <li>...și încă {conflicts.length - 3}</li>}
+                        </ul>
+                    </div>
+                )}
+
                 <div className="flex justify-end pt-4 space-x-2 border-t border-slate-700 mt-6">
                     <Button type="button" variant="secondary" onClick={onClose}>Anulează</Button>
                     <Button type="submit" variant="success" isLoading={loading}>Salvează</Button>

@@ -184,37 +184,17 @@ interface DetaliiSesiuneProps {
     onViewSportiv: (sportiv: Sportiv) => void;
     onEdit: () => void;
     currentUser: User;
+    onFinalize: (id: string) => Promise<boolean | undefined>;
+    isFinalizing: boolean;
 }
 const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
-    const { showError, showSuccess } = useError();
-    const [isFinalizing, setIsFinalizing] = useState(false);
+    const { showError } = useError();
 
     const handleFinalizeExam = async () => {
-        if (!supabase) {
-            showError("Eroare", "Client Supabase neconfigurat.");
-            return;
-        }
         if (!window.confirm("Această acțiune este ireversibilă. Se va marca examenul ca finalizat și se va genera decontul pentru federație. Doriți să continuați?")) {
             return;
         }
-        setIsFinalizing(true);
-        try {
-            // Presupunem că RPC-ul 'finalizeaza_examen' există și a fost creat în baza de date.
-            const { data, error } = await supabase.rpc('finalizeaza_examen', { p_sesiune_id: props.sesiune.id });
-            if (error) throw error;
-
-            props.setSesiuni(prev => prev.map(s => s.id === props.sesiune.id ? { ...s, status: 'Finalizat' } : s));
-            
-            if(data) {
-                props.setDeconturiFederatie(prev => [...prev, data]);
-            }
-            showSuccess("Examen Finalizat", "Decontul a fost generat și trimis către federație.");
-        } catch (err: any) {
-            console.error('DEBUG:', err);
-            showError("Eroare la finalizare", `Funcția RPC 'finalizeaza_examen' nu a putut fi executată. Asigurați-vă că există în baza de date. Detalii: ${err.message}`);
-        } finally {
-            setIsFinalizing(false);
-        }
+        await props.onFinalize(props.sesiune.id);
     };
     
     return (
@@ -234,7 +214,7 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
                         <Button variant="secondary" onClick={props.onEdit}>
                             <EditIcon className="w-4 h-4 mr-2" /> Editează
                         </Button>
-                        <Button variant="success" onClick={handleFinalizeExam} isLoading={isFinalizing}>
+                        <Button variant="success" onClick={handleFinalizeExam} isLoading={props.isFinalizing}>
                             Finalizează & Generează Decont
                         </Button>
                     </div>
@@ -245,6 +225,10 @@ const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
         </Card>
     );
 };
+
+import { useExamManager } from '../hooks/useExamManager';
+
+// ... (imports remain the same)
 
 // --- COMPONENTA PRINCIPALĂ (REFActorizată) ---
 interface GestiuneExameneProps { 
@@ -280,9 +264,10 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
   const [isBulkImportModalOpen, setIsBulkImportModalOpen] = useState(false);
   const [sesiuneToEdit, setSesiuneToEdit] = useState<SesiuneExamen | null>(null);
   const [sesiuneToDelete, setSesiuneToDelete] = useState<SesiuneExamen | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [selectedSesiuneId, setSelectedSesiuneId] = useLocalStorage<string | null>('phi-hau-selected-sesiune-id', null);
   const { showError, showSuccess } = useError();
+  
+  const { saveSesiune, deleteSesiune, finalizeExamen, loading: managerLoading } = useExamManager(setSesiuni, setInscrieri, setDeconturiFederatie);
   
   const selectedSesiune = useMemo(() => selectedSesiuneId ? (sesiuni || []).find(e => e.id === selectedSesiuneId) || null : null, [selectedSesiuneId, sesiuni]);
   
@@ -302,54 +287,15 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
   };
 
   const handleSaveSesiune = async (sesiuneData: Partial<SesiuneExamen>) => {
-    if (!supabase) {
-        showError("Eroare", "Client Supabase neconfigurat.");
-        return;
-    }
-    const locatieSelectata = (locatii || []).find(l => l.id === sesiuneData.locatie_id);
-    const dataToSave: Partial<SesiuneExamen> = {
-        ...sesiuneData,
-        localitate: locatieSelectata ? locatieSelectata.nume : 'Necunoscută',
-        club_id: sesiuneData.club_id === '' ? null : sesiuneData.club_id
-    };
-
-    if (sesiuneToEdit) {
-        const { data, error } = await supabase.from('sesiuni_examene').update(dataToSave).eq('id', sesiuneToEdit.id).select().single();
-        if (error) { 
-            console.error('DEBUG:', error);
-            showError("Eroare la actualizare", error); 
-        } else if (data) { setSesiuni(prev => prev.map(e => e.id === data.id ? data as SesiuneExamen : e)); showSuccess("Succes", "Sesiunea a fost actualizată."); }
-    } else {
-        const { data, error } = await supabase.from('sesiuni_examene').insert(dataToSave).select().single();
-        if (error) { 
-            console.error('DEBUG:', error);
-            showError("Eroare la adăugare", error); 
-        } else if (data) { setSesiuni(prev => [...prev, data as SesiuneExamen]); showSuccess("Succes", "Sesiunea a fost creată."); }
-    }
+      await saveSesiune(sesiuneData, sesiuneToEdit, locatii);
+      if (!managerLoading) setIsFormOpen(false); // Close only if successful (hook handles errors)
   };
 
   const confirmDeleteSesiune = async (id: string) => {
-    if (!supabase) {
-        showError("Eroare", "Client Supabase neconfigurat.");
-        return;
-    }
-    setIsDeleting(true);
-    try {
-        const { error: inscrieriError } = await supabase.from('inscrieri_examene').delete().eq('sesiune_id', id);
-        if(inscrieriError) throw inscrieriError;
-        setInscrieri(prev => prev.filter(p => p.sesiune_id !== id));
-        
-        const { error: sesiuneError } = await supabase.from('sesiuni_examene').delete().eq('id', id);
-        if(sesiuneError) throw sesiuneError;
-        setSesiuni(prev => prev.filter(e => e.id !== id));
-        handleBackToList();
-        showSuccess("Succes", "Sesiunea și înscrierile asociate au fost șterse.");
-    } catch (err: any) {
-        console.error('DEBUG:', err);
-        showError("Eroare la ștergere", err);
-    } finally {
-        setIsDeleting(false);
+    const success = await deleteSesiune(id);
+    if (success) {
         setSesiuneToDelete(null);
+        handleBackToList();
     }
   };
 
@@ -382,6 +328,8 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
                 onViewSportiv={onViewSportiv}
                 onEdit={handleEditSelected}
                 currentUser={currentUser}
+                onFinalize={finalizeExamen} // Pass finalize function
+                isFinalizing={managerLoading}
             />
         </div>
      );
@@ -484,7 +432,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ currentUser, c
           </div>
       )}
       <SesiuneForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} onSave={handleSaveSesiune} sesiuneToEdit={sesiuneToEdit} locatii={locatii} setLocatii={setLocatii} clubs={clubs} currentUser={currentUser} />
-      <ConfirmDeleteModal isOpen={!!sesiuneToDelete} onClose={() => setSesiuneToDelete(null)} onConfirm={() => { if(sesiuneToDelete) confirmDeleteSesiune(sesiuneToDelete.id) }} tableName="Sesiuni (și toate înscrierile asociate)" isLoading={isDeleting} />
+      <ConfirmDeleteModal isOpen={!!sesiuneToDelete} onClose={() => setSesiuneToDelete(null)} onConfirm={() => { if(sesiuneToDelete) confirmDeleteSesiune(sesiuneToDelete.id) }} tableName="Sesiuni (și toate înscrierile asociate)" isLoading={managerLoading} />
        <ImportExamenModal 
             isOpen={isBulkImportModalOpen}
             onClose={() => setIsBulkImportModalOpen(false)}

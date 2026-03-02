@@ -11,7 +11,7 @@ interface AdminDashboardProps {
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) => {
     const { currentUser, activeRoleContext } = useDataProvider();
-    const permissions = usePermissions(currentUser, activeRoleContext?.roluri?.nume);
+    const permissions = usePermissions(activeRoleContext);
 
     const [counts, setCounts] = useState<{ sportivi: number; plati: number; cluburi: number } | null>(null);
     const [loading, setLoading] = useState(true);

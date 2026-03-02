@@ -177,7 +177,8 @@ export const useDataProvider = () => {
                     grupe: cleanedSupabase.from('grupe').select('*, program:orar_saptamanal!grupa_id(*)'),
                     tipuriAbonament: cleanedSupabase.from('tipuri_abonament').select('*'),
                     tipuriPlati: cleanedSupabase.from('tipuri_plati').select('*'),
-                    sportiviRaw: cleanedSupabase.from('sportivi').select('*, cluburi(*), utilizator_roluri_multicont(rol_denumire)'),
+                    sportiviRaw: cleanedSupabase.from('sportivi').select('*, cluburi(*)'),
+                    sportiviRoles: cleanedSupabase.from('utilizator_roluri_multicont').select('sportiv_id, rol_denumire'),
                     sesiuniExamene: cleanedSupabase.from('sesiuni_examene').select('*'),
                     plati: cleanedSupabase.from('plati').select('*'),
                     tranzactii: cleanedSupabase.from('tranzactii').select('*'),
@@ -242,14 +243,16 @@ export const useDataProvider = () => {
                     sesiuniExamene: sessData, inscrieriExamene: regData, 
                     plati: payData, tranzactii: trData, evenimente: evData, rezultate: resData, 
                     familii: famData, preturiConfig: prcData, 
-                    vizualizarePlati: vPayData, istoricPlatiDetaliat: istPayData, deconturiFederatie: decData, istoricGrade: istGData
+                    vizualizarePlati: vPayData, istoricPlatiDetaliat: istPayData, deconturiFederatie: decData, istoricGrade: istGData,
+                    sportiviRoles: sRoles
                 } = processedData;
 
                 const allSportivi = (sRaw || []).map((s: any) => ({
                     ...s,
                     cluburi: s.cluburi || {},
-                    roluri: (s.utilizator_roluri_multicont || [])
-                        .map((jr: any) => rData.find((r: any) => r.nume === jr.rol_denumire))
+                    roluri: (sRoles || [])
+                        .filter((sr: any) => sr.sportiv_id === s.id)
+                        .map((sr: any) => rData.find((r: any) => r.nume === sr.rol_denumire))
                         .filter(Boolean)
                 }));
 

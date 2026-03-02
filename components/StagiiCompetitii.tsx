@@ -7,7 +7,6 @@ import { supabase } from '../supabaseClient';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useError } from './ErrorProvider';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
-import { usePermissions } from '../hooks/usePermissions';
 import { ROLES } from '../constants';
 
 const formatDateRange = (start: string) => {

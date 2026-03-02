@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { User, Rol, Permissions } from '../types';
+import { Permissions } from '../types';
 
 const initialPermissions: Permissions = {
     isSuperAdmin: false,
@@ -19,19 +19,21 @@ const initialPermissions: Permissions = {
     hasClubFilter: false,
 };
 
-export const usePermissions = (user: User | null, activeRole: Rol['nume'] | null): Permissions => {
+export const usePermissions = (activeRoleContext: any | null): Permissions => {
     return useMemo((): Permissions => {
-        if (!user || !activeRole) {
+        if (!activeRoleContext) {
             return initialPermissions;
         }
 
+        const roleName = activeRoleContext.roluri?.nume || activeRoleContext.rol_denumire;
+
         // --- Permissions based on the CURRENT ACTIVE role/context ---
-        const isSuperAdmin = activeRole === 'SUPER_ADMIN_FEDERATIE';
-        const isAdmin = activeRole === 'ADMIN';
+        const isSuperAdmin = roleName === 'SUPER_ADMIN_FEDERATIE';
+        const isAdmin = roleName === 'ADMIN';
         const isFederationAdmin = isSuperAdmin || isAdmin;
-        const isAdminClub = activeRole === 'ADMIN_CLUB';
-        const isInstructor = activeRole === 'INSTRUCTOR';
-        const isSportiv = activeRole === 'SPORTIV';
+        const isAdminClub = roleName === 'ADMIN_CLUB';
+        const isInstructor = roleName === 'INSTRUCTOR';
+        const isSportiv = roleName === 'SPORTIV';
 
         // If the active role is SUPER_ADMIN_FEDERATIE, grant all administrative permissions
         if (isSuperAdmin) {
@@ -54,28 +56,16 @@ export const usePermissions = (user: User | null, activeRole: Rol['nume'] | null
             };
         }
 
-        // --- Capabilities based on ALL available roles for the user ---
-        const hasAdminAccess = (user.roluri || []).some(
-            r => r.nume === 'ADMIN_CLUB' || r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN'
-        );
-
+        const hasAdminAccess = isFederationAdmin || isAdminClub;
         const canManageFinances = hasAdminAccess;
-
-        const canGradeStudents = (user.roluri || []).some(
-            r => r.nume === 'ADMIN_CLUB' || r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN' || r.nume === 'INSTRUCTOR'
-        );
-
-        const allUserRoles = new Set((user.roluri || []).map(r => r.nume));
-        const canBeFederationAdmin = allUserRoles.has('SUPER_ADMIN_FEDERATIE') || allUserRoles.has('ADMIN');
-        const canBeClubAdmin = allUserRoles.has('ADMIN_CLUB');
-        const isMultiContextAdmin = canBeFederationAdmin && canBeClubAdmin;
+        const canGradeStudents = hasAdminAccess || isInstructor;
 
         // --- Context-dependent flags ---
-        const isFederationLevel = isFederationAdmin; // This is about the *current view*, so it's based on activeRole.
+        const isFederationLevel = isFederationAdmin;
         
         const visibleClubIds: 'all' | string[] = isSuperAdmin
             ? 'all'
-            : (user.club_id ? [user.club_id] : []);
+            : (activeRoleContext.club_id ? [activeRoleContext.club_id] : []);
 
         const hasClubFilter = visibleClubIds !== 'all';
         
@@ -91,10 +81,10 @@ export const usePermissions = (user: User | null, activeRole: Rol['nume'] | null
             canManageFinances,
             canGradeStudents,
             visibleClubIds,
-            canBeClubAdmin,
-            canBeFederationAdmin,
-            isMultiContextAdmin,
+            canBeClubAdmin: false, // These are context-specific now, might need adjustment if used globally
+            canBeFederationAdmin: false,
+            isMultiContextAdmin: false,
             hasClubFilter,
         };
-    }, [user, activeRole]);
+    }, [activeRoleContext]);
 };

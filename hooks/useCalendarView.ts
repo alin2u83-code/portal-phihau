@@ -4,7 +4,9 @@ import { useError } from '../components/ErrorProvider';
 import { Antrenament, Grupa } from '../types';
 
 export const useCalendarView = (grupaId: string, initialDate?: string) => {
-    const [date, setDate] = useState(initialDate || new Date().toISOString().split('T')[0]);
+   // Calculăm data curentă folosind ora locală, nu UTC, pentru a evita decalajul de o zi
+    const todayLocal = new Date().toLocaleDateString('sv-SE'); // 'sv-SE' returnează formatul YYYY-MM-DD
+    const [date, setDate] = useState(initialDate || todayLocal);
     const [daysToGenerate, setDaysToGenerate] = useState(30);
     const [antrenamente, setAntrenamente] = useState<Antrenament[]>([]);
     const [loading, setLoading] = useState(true);
@@ -90,6 +92,7 @@ export const useCalendarView = (grupaId: string, initialDate?: string) => {
     return {
         date,
         setDate,
+        todayLocal, // Trimitem și data de azi pentru a fi folosită în UI la evidențiere
         daysToGenerate,
         setDaysToGenerate,
         antrenamente,

@@ -213,9 +213,9 @@ export const useDataProvider = () => {
                 if (!isSuperAdmin && !isAdminClub && cleanClubId) {
                     const tablesToFilter = [
                         'grupe', 'sportiviRaw', 'plati', 'tranzactii', 'evenimente', 
-                        'familii', 'preturiConfig', 'deconturiFederatie', 
-                        'istoricGrade', 'vizualizarePlati', 'istoricPlatiDetaliat',
-                        'sesiuniExamene', 'inscrieriExamene', 'locatii', 'tipuriAbonament', 'reduceri'
+                        'familii', 'deconturiFederatie', 
+                        'istoricGrade', 'vizualizarePlati',
+                        'sesiuniExamene', 'inscrieriExamene', 'tipuriAbonament'
                     ];
                     tablesToFilter.forEach(key => {
                         if (queries[key]) {

@@ -469,6 +469,11 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
     }, [sportiv]);
 
     const isSuperAdmin = currentUser.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN');
+    const canViewSensitiveInfo = useMemo(() => {
+        return currentUser.roluri.some(r => 
+            ['SUPER_ADMIN_FEDERATIE', 'ADMIN', 'ADMIN_CLUB', 'INSTRUCTOR'].includes(r.nume)
+        );
+    }, [currentUser.roluri]);
 
     const gradeHistory = useMemo(() => {
         if (!participari || !grade || !examene || !istoricGrade) return [];
@@ -719,9 +724,11 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                                 setSportivi(prev => prev.map(s => s.id === sportiv.id ? { ...s, foto_url: url } : s));
                             }} 
                         />
-                        <div className="mt-2 transform scale-110">
-                            <GradBadge grad={currentGrad} isLarge />
-                        </div>
+                        {canViewSensitiveInfo && (
+                            <div className="mt-2 transform scale-110">
+                                <GradBadge grad={currentGrad} isLarge />
+                            </div>
+                        )}
                     </div>
                     <div className="text-center md:text-left space-y-1">
                         <h1 className="text-3xl font-bold text-white tracking-tight">{sportiv.nume} {sportiv.prenume}</h1>
@@ -758,9 +765,9 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                 {[
                     { id: 'profil', label: 'Profil & Activitate', icon: UserCircleIcon },
                     { id: 'contact', label: 'Contact & Info', icon: ClipboardListIcon },
-                    { id: 'grade', label: 'Evoluție & Grade', icon: TrophyIcon },
+                    { id: 'grade', label: 'Evoluție & Grade', icon: TrophyIcon, hidden: !canViewSensitiveInfo },
                     { id: 'financiar', label: 'Istoric Financiar', icon: BanknotesIcon },
-                ].map(tab => (
+                ].filter(tab => !tab.hidden).map(tab => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id as any)}
@@ -826,14 +833,16 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                                 </div>
                             </Card>
 
-                            <Card>
-                                <AttendanceIndicator attendances={lastThreeAttendances} />
-                            </Card>
+                            {canViewSensitiveInfo && (
+                                <Card>
+                                    <AttendanceIndicator attendances={lastThreeAttendances} />
+                                </Card>
+                            )}
                         </div>
 
                         {/* Right Column: Training & Feedback */}
                         <div className="lg:col-span-2 space-y-6">
-                            <TrainingHistory sportivId={sportiv.id} antrenamente={antrenamente} grupe={grupe} />
+                            {canViewSensitiveInfo && <TrainingHistory sportivId={sportiv.id} antrenamente={antrenamente} grupe={grupe} />}
                             
                             <Card>
                                 <div className="flex justify-between items-center mb-4">
@@ -874,11 +883,13 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, currentUser, 
                                         </div>
                                     </div>
                                 )}
-                                <div className="mt-4 pt-4 border-t border-slate-700">
-                                    <Button onClick={() => setIsReportModalOpen(true)} variant="secondary" size="sm" className="w-full md:w-auto">
-                                        <ChartBarIcon className="w-4 h-4 mr-2" /> Generează Raport Detaliat
-                                    </Button>
-                                </div>
+                                {canViewSensitiveInfo && (
+                                    <div className="mt-4 pt-4 border-t border-slate-700">
+                                        <Button onClick={() => setIsReportModalOpen(true)} variant="secondary" size="sm" className="w-full md:w-auto">
+                                            <ChartBarIcon className="w-4 h-4 mr-2" /> Generează Raport Detaliat
+                                        </Button>
+                                    </div>
+                                )}
                             </Card>
                         </div>
                     </div>

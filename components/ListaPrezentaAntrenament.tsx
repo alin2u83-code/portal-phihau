@@ -13,15 +13,6 @@ interface ListaPrezentaAntrenamentProps {
     onViewSportiv?: (s: Sportiv) => void;
 }
 
-// Helper: Get today's date string (YYYY-MM-DD)
-const getTodayString = () => new Date().toISOString().split('T')[0];
-
-// Helper: Filter trainings for today
-const filterTrainingsForToday = (antrenamente: Antrenament[]) => {
-    const today = getTodayString();
-    return antrenamente.filter(a => a.data === today).sort((a, b) => a.ora_start.localeCompare(b.ora_start));
-};
-
 // Component: Attendance Marking Form
 export const FormularPrezenta: React.FC<{
     antrenament: Antrenament & { grupe: Grupa & { sportivi: Sportiv[] }};
@@ -33,14 +24,17 @@ export const FormularPrezenta: React.FC<{
     const [loading, setLoading] = useState(false);
     const [saved, setSaved] = useState(false);
 
-    // Populate initial data
+    // 1. Initial Data Population
     useEffect(() => {
-        const initialPresent = new Set(
-            (antrenament.prezenta || [])
-                .filter(p => p.status === 'prezent')
-                .map(p => p.sportiv_id)
-        );
-        setPresentIds(initialPresent);
+        const populateInitialData = () => {
+            const initialPresent = new Set(
+                (antrenament.prezenta || [])
+                    .filter(p => p.status === 'prezent')
+                    .map(p => p.sportiv_id)
+            );
+            setPresentIds(initialPresent);
+        };
+        populateInitialData();
     }, [antrenament]);
 
     const sportiviInGrupa = useMemo(() => {
@@ -49,8 +43,8 @@ export const FormularPrezenta: React.FC<{
             .sort((a, b) => a.nume.localeCompare(b.nume));
     }, [antrenament.grupe]);
 
-    // Helper: Toggle individual checkbox
-    const handleToggle = (sportivId: string) => {
+    // 2. Checkbox State Management
+    const toggleSportiv = (sportivId: string) => {
         setPresentIds(prev => {
             const next = new Set(prev);
             if (next.has(sportivId)) next.delete(sportivId);
@@ -59,13 +53,16 @@ export const FormularPrezenta: React.FC<{
         });
     };
 
-    // Helper: Select/Deselect All
-    const handleSelectAll = (present: boolean) => {
-        setPresentIds(present ? new Set(sportiviInGrupa.map(s => s.id)) : new Set());
+    const setAllAttendance = (isPresent: boolean) => {
+        if (isPresent) {
+            setPresentIds(new Set(sportiviInGrupa.map(s => s.id)));
+        } else {
+            setPresentIds(new Set());
+        }
     };
 
-    // Helper: Handle Save
-    const handleSave = async () => {
+    // 3. Save Logic
+    const handleSaveAttendance = async () => {
         setLoading(true);
         setSaved(false);
         
@@ -79,63 +76,79 @@ export const FormularPrezenta: React.FC<{
         setLoading(false);
         if (success) {
             setSaved(true);
-            // Hide success indicator after 3 seconds
             setTimeout(() => setSaved(false), 3000);
         }
     };
 
     return (
-        <Card className={`transition-all duration-300 relative ${saved ? 'ring-2 ring-green-500 shadow-[0_0_15px_rgba(34,197,94,0.3)]' : ''}`}>
+        <Card className={`transition-all duration-500 relative ${saved ? 'ring-4 ring-emerald-500 shadow-[0_0_30px_rgba(16,185,129,0.4)] scale-[1.01]' : 'border-slate-800'}`}>
             {saved && (
-                <div className="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold px-3 py-1.5 rounded-full animate-pulse flex items-center gap-1 shadow-md z-10">
-                    <CheckCircleIcon className="w-4 h-4" /> Prezență Salvată!
+                <div className="absolute -top-3 -right-3 bg-emerald-500 text-white text-sm font-black px-4 py-2 rounded-xl animate-bounce flex items-center gap-2 shadow-xl z-20 border-2 border-white/20">
+                    <CheckCircleIcon className="w-5 h-5" /> SALVAT!
                 </div>
             )}
             
-            <div className="flex justify-between items-center mb-4">
-                <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="mr-2"/> Înapoi</Button>
+            <div className="flex justify-between items-center mb-6">
+                <Button onClick={onBack} variant="secondary" size="sm">
+                    <ArrowLeftIcon className="w-4 h-4 mr-2"/> Înapoi
+                </Button>
                 <div className="text-right">
-                    <h2 className="text-xl font-bold text-white">Prezență: {antrenament.grupe?.denumire}</h2>
-                    <p className="text-sm text-slate-400">{new Date(antrenament.data).toLocaleDateString('ro-RO')} • {antrenament.ora_start}</p>
+                    <h2 className="text-2xl font-black text-white tracking-tight">{antrenament.grupe?.denumire}</h2>
+                    <p className="text-sm font-medium text-slate-400 flex items-center justify-end gap-2">
+                        <CalendarDaysIcon className="w-4 h-4" />
+                        {new Date(antrenament.data).toLocaleDateString('ro-RO', { day: 'numeric', month: 'long' })} • {antrenament.ora_start}
+                    </p>
                 </div>
             </div>
 
-            <div className="flex gap-2 mb-4 p-2 bg-slate-800/30 rounded-lg">
-                <Button size="sm" variant="secondary" onClick={() => handleSelectAll(true)}>Toți Prezenți</Button>
-                <Button size="sm" variant="secondary" onClick={() => handleSelectAll(false)}>Toți Absenți</Button>
-                <span className="ml-auto text-sm text-slate-400 flex items-center">
-                    {presentIds.size} / {sportiviInGrupa.length} prezenți
-                </span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 p-4 bg-slate-800/20 rounded-2xl border border-slate-700/30">
+                <Button size="sm" variant="secondary" onClick={() => setAllAttendance(true)} className="w-full bg-slate-800 hover:bg-slate-700">Toți Prezenți</Button>
+                <Button size="sm" variant="secondary" onClick={() => setAllAttendance(false)} className="w-full bg-slate-800 hover:bg-slate-700">Toți Absenți</Button>
+                <div className="sm:col-span-2 flex justify-center pt-2">
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+                        Status: <span className="text-indigo-400">{presentIds.size}</span> / {sportiviInGrupa.length} prezenți
+                    </span>
+                </div>
             </div>
 
-            <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
-                {sportiviInGrupa.map(s => (
-                    <div 
-                        key={s.id} 
-                        className={`flex items-center gap-3 p-3 rounded-md transition-colors ${presentIds.has(s.id) ? 'bg-green-900/20 border border-green-800/30' : 'bg-slate-800/50 border border-transparent hover:bg-slate-700/50'}`}
-                        onClick={() => handleToggle(s.id)}
-                    >
-                        <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${presentIds.has(s.id) ? 'bg-green-500 border-green-500' : 'border-slate-500'}`}>
-                            {presentIds.has(s.id) && <CheckCircleIcon className="w-4 h-4 text-white" />}
-                        </div>
-                        <span 
-                            className={`font-medium flex-grow select-none ${onViewSportiv ? 'hover:text-brand-primary hover:underline' : ''}`}
-                            onClick={(e) => {
-                                if (onViewSportiv) {
-                                    e.stopPropagation();
-                                    onViewSportiv(s);
-                                }
-                            }}
+            <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar mb-6">
+                {sportiviInGrupa.map(s => {
+                    const isPresent = presentIds.has(s.id);
+                    return (
+                        <div 
+                            key={s.id} 
+                            className={`group flex items-center gap-4 p-4 rounded-2xl transition-all cursor-pointer border ${isPresent ? 'bg-emerald-500/10 border-emerald-500/30 shadow-sm' : 'bg-slate-800/30 border-slate-700/50 hover:bg-slate-800/50'}`}
+                            onClick={() => toggleSportiv(s.id)}
                         >
-                            {s.nume} {s.prenume}
-                        </span>
-                    </div>
-                ))}
+                            <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${isPresent ? 'bg-emerald-500 border-emerald-500 scale-110' : 'border-slate-600 group-hover:border-slate-500'}`}>
+                                {isPresent && <CheckCircleIcon className="w-4 h-4 text-white" />}
+                            </div>
+                            <span 
+                                className={`font-bold flex-grow select-none transition-colors ${isPresent ? 'text-emerald-400' : 'text-slate-300'}`}
+                            >
+                                {s.nume} {s.prenume}
+                            </span>
+                            {onViewSportiv && (
+                                <Button 
+                                    size="sm" 
+                                    variant="secondary" 
+                                    className="opacity-0 group-hover:opacity-100 h-8 px-2 text-[10px]"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onViewSportiv(s);
+                                    }}
+                                >
+                                    Profil
+                                </Button>
+                            )}
+                        </div>
+                    );
+                })}
             </div>
 
-            <div className="flex justify-end pt-4 mt-4 border-t border-slate-700">
-                <Button variant="success" size="md" onClick={handleSave} isLoading={loading} className="w-full sm:w-auto">
-                    Confirmă Prezența Lot
+            <div className="pt-4 border-t border-slate-800">
+                <Button variant="success" size="md" onClick={handleSaveAttendance} isLoading={loading} className="w-full py-4 text-lg shadow-lg shadow-emerald-900/20">
+                    <CheckCircleIcon className="w-5 h-5 mr-2" /> Salvează Prezența Lot
                 </Button>
             </div>
         </Card>
@@ -143,16 +156,14 @@ export const FormularPrezenta: React.FC<{
 };
 
 export const ListaPrezentaAntrenament: React.FC<ListaPrezentaAntrenamentProps> = ({ grupa, onBack, onViewSportiv }) => {
-    const { antrenamente, loading, saveAttendance, refetch } = useAttendanceData(grupa.club_id);
+    const { todaysTrainings, loading, saveAttendance, refetch } = useAttendanceData(grupa.club_id);
     const [selectedTraining, setSelectedTraining] = useState<(Antrenament & { grupe: Grupa & { sportivi: Sportiv[] }}) | null>(null);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const { showError, showSuccess } = useError();
 
-    const todaysTrainings = useMemo(() => {
-        // Filter by group ID and today's date
-        const filtered = filterTrainingsForToday(antrenamente).filter(a => a.grupa_id === grupa.id);
-        return filtered;
-    }, [antrenamente, grupa.id]);
+    const filteredTodaysTrainings = useMemo(() => {
+        return todaysTrainings.filter(a => a.grupa_id === grupa.id);
+    }, [todaysTrainings, grupa.id]);
 
     const handleSaveNewTraining = async (data: any) => {
         if (data.is_recurent) {
@@ -215,7 +226,7 @@ export const ListaPrezentaAntrenament: React.FC<ListaPrezentaAntrenamentProps> =
                 
                 {loading ? (
                     <p className="text-center p-8 text-slate-400">Se încarcă antrenamentele...</p>
-                ) : todaysTrainings.length === 0 ? (
+                ) : filteredTodaysTrainings.length === 0 ? (
                     <div className="text-center p-8 bg-slate-800/30 rounded-lg border border-slate-700/50">
                         <CalendarDaysIcon className="w-12 h-12 mx-auto text-slate-600 mb-3" />
                         <p className="text-slate-400">Nu există antrenamente programate pentru astăzi.</p>
@@ -223,7 +234,7 @@ export const ListaPrezentaAntrenament: React.FC<ListaPrezentaAntrenamentProps> =
                     </div>
                 ) : (
                     <div className="space-y-3">
-                        {todaysTrainings.map(a => (
+                        {filteredTodaysTrainings.map(a => (
                             <div key={a.id} className="p-4 bg-slate-700/50 rounded-lg flex justify-between items-center hover:bg-slate-700 transition-colors border border-slate-600/30">
                                 <div>
                                     <div className="flex items-center gap-2 mb-1">

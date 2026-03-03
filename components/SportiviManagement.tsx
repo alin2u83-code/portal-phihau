@@ -52,7 +52,28 @@ export const SportiviManagement: React.FC<{
     loading?: boolean;
     onBack: () => void;
 }> = (props) => {
-    const { sportivi, setSportivi, grupe, setGrupe, tipuriAbonament, familii, setFamilii, currentUser, plati, setPlati, tranzactii, setTranzactii, onViewSportiv, clubs, grade, permissions, allRoles, setAllRoles, vizualizarePlati, loading } = props;
+    const { 
+        sportivi = [], 
+        setSportivi, 
+        grupe = [], 
+        setGrupe, 
+        tipuriAbonament = [], 
+        familii = [], 
+        setFamilii, 
+        currentUser, 
+        plati = [], 
+        setPlati, 
+        tranzactii = [], 
+        setTranzactii, 
+        onViewSportiv, 
+        clubs = [], 
+        grade = [], 
+        permissions, 
+        allRoles = [], 
+        setAllRoles, 
+        vizualizarePlati = [], 
+        loading 
+    } = props;
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
     const [sportivToEdit, setSportivToEdit] = useState<Sportiv | null>(null);
     const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);

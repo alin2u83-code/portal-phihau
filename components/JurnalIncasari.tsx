@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Plata, Sportiv, PretConfig, TipAbonament, Tranzactie, Familie, Reducere, TipPlata, User } from '../types';
+import { Plata, Sportiv, PretConfig, TipAbonament, Tranzactie, Familie, Reducere, TipPlata, User, Permissions } from '../types';
 import { Button, Input, Select, Card, Modal } from './ui';
 import { getPretValabil, getPretProdus } from '../utils/pricing';
 import { ArrowLeftIcon, PlusIcon, TrashIcon } from './icons';
@@ -48,6 +48,7 @@ const QuickAddTipPlataModal: React.FC<{
 
 interface JurnalIncasariProps {
     currentUser: User;
+    permissions: Permissions;
     plati: Plata[];
     setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
     sportivi: Sportiv[];
@@ -163,7 +164,7 @@ const AdaugaAvans: React.FC<{
 };
 
 
-export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, plati, setPlati, sportivi, familii, preturiConfig, tipuriAbonament, tipuriPlati, setTipuriPlati, tranzactii, setTranzactii, reduceri, platiInitiale, onIncasareProcesata, onBack }) => {
+export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, permissions, plati, setPlati, sportivi, familii, preturiConfig, tipuriAbonament, tipuriPlati, setTipuriPlati, tranzactii, setTranzactii, reduceri, platiInitiale, onIncasareProcesata, onBack }) => {
     const [formState, setFormState] = useState(emptyIncasareState);
     const [selectedEchipament, setSelectedEchipament] = useState('');
     const [selectedMarimeId, setSelectedMarimeId] = useState('');
@@ -318,9 +319,13 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
                 }
                 
                 const sportivPtClub = sportivi.find(s => s.id === (formState.sportiv_id || platiInitiale[0]?.sportiv_id));
-                const clubId = sportivPtClub?.club_id;
+                let clubId = sportivPtClub?.club_id || currentUser?.club_id;
 
-                if (!clubId) {
+                if (!clubId && Array.isArray(permissions.visibleClubIds) && permissions.visibleClubIds.length === 1) {
+                    clubId = permissions.visibleClubIds[0];
+                }
+
+                if (!clubId && !permissions.isSuperAdmin) {
                     throw new Error("Nu s-a putut identifica clubul sportivului. Asigurați-vă că sportivul este alocat unui club.");
                 }
                 
@@ -375,9 +380,13 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, pla
 
             } else {
                 const sportiv = sportivi.find(s => s.id === formState.sportiv_id);
-                const clubId = sportiv?.club_id;
+                let clubId = sportiv?.club_id || currentUser?.club_id;
 
-                if (!clubId) {
+                if (!clubId && Array.isArray(permissions.visibleClubIds) && permissions.visibleClubIds.length === 1) {
+                    clubId = permissions.visibleClubIds[0];
+                }
+
+                if (!clubId && !permissions.isSuperAdmin) {
                     throw new Error("Nu s-a putut identifica clubul sportivului. Asigurați-vă că sportivul este alocat unui club.");
                 }
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { AnuntGeneral, User } from '../types';
-import { Button, Card, Input } from './ui';
+import { AnuntGeneral, User, Club, Grupa } from '../types';
+import { Button, Card, Input, Select } from './ui';
 import { ArrowLeftIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
@@ -8,11 +8,17 @@ import { useError } from './ErrorProvider';
 interface NotificariProps {
     onBack: () => void;
     currentUser: User;
+    clubs: Club[];
+    grupe: Grupa[];
 }
 
-export const Notificari: React.FC<NotificariProps> = ({ onBack, currentUser }) => {
+type TargetType = 'all' | 'club' | 'grupa';
+
+export const Notificari: React.FC<NotificariProps> = ({ onBack, currentUser, clubs, grupe }) => {
     const [title, setTitle] = useState('');
     const [body, setBody] = useState('');
+    const [targetType, setTargetType] = useState<TargetType>('all');
+    const [targetId, setTargetId] = useState('');
     const [history, setHistory] = useState<AnuntGeneral[]>([]);
     const [loading, setLoading] = useState(false);
     const { showError, showSuccess } = useError();
@@ -46,6 +52,11 @@ export const Notificari: React.FC<NotificariProps> = ({ onBack, currentUser }) =
             return;
         }
         
+        if (targetType !== 'all' && !targetId) {
+            showError("Destinatar Lipsă", "Vă rugăm selectați clubul sau grupa destinatară.");
+            return;
+        }
+
         if (!currentUser?.user_id) {
             showError("Eroare de Autentificare", "ID-ul de utilizator nu a fost găsit în sesiune. Notificarea nu poate fi trimisă.");
             return;
@@ -55,8 +66,14 @@ export const Notificari: React.FC<NotificariProps> = ({ onBack, currentUser }) =
 
         try {
             // Pasul 1: Invocă funcția Edge pentru a trimite notificările push
+            // Putem adăuga target info în payload dacă funcția o suportă
             const { error: functionError } = await supabase.functions.invoke('send-push-notifications', {
-                body: { title, body },
+                body: { 
+                    title, 
+                    body,
+                    targetType,
+                    targetId
+                },
             });
 
             if (functionError) {
@@ -65,13 +82,21 @@ export const Notificari: React.FC<NotificariProps> = ({ onBack, currentUser }) =
             }
 
             // Pasul 2: Salvează notificarea în baza de date (pentru istoric și in-app bell)
-            const { data: sportivi, error: sportiviError } = await supabase.from('sportivi').select('user_id').not('user_id', 'is', null);
+            let query = supabase.from('sportivi').select('user_id').not('user_id', 'is', null);
+            
+            if (targetType === 'club') {
+                query = query.eq('club_id', targetId);
+            } else if (targetType === 'grupa') {
+                query = query.eq('grupa_id', targetId);
+            }
+
+            const { data: sportivi, error: sportiviError } = await query;
             if (sportiviError) throw sportiviError;
             
             const recipientIds = sportivi.map(s => s.user_id).filter(Boolean);
 
             if (recipientIds.length === 0) {
-                showError("Niciun Destinatar", "Nu s-au găsit utilizatori cărora să le fie trimisă notificarea.");
+                showError("Niciun Destinatar", "Nu s-au găsit utilizatori în segmentul selectat.");
                 setLoading(false);
                 return;
             }
@@ -113,6 +138,29 @@ export const Notificari: React.FC<NotificariProps> = ({ onBack, currentUser }) =
                     <p className="text-sm text-slate-400">
                         Anunțurile trimise aici vor apărea ca o notificare pe ecran pentru toți utilizatorii care au aplicația deschisă și au permis notificările în browser.
                     </p>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <Select label="Destinatari" value={targetType} onChange={e => { setTargetType(e.target.value as TargetType); setTargetId(''); }}>
+                            <option value="all">Toți Utilizatorii</option>
+                            <option value="club">Un Anumit Club</option>
+                            <option value="grupa">O Anumită Grupă</option>
+                        </Select>
+
+                        {targetType === 'club' && (
+                            <Select label="Alege Clubul" value={targetId} onChange={e => setTargetId(e.target.value)} required>
+                                <option value="">Selectează club...</option>
+                                {clubs.map(c => <option key={c.id} value={c.id}>{c.nume}</option>)}
+                            </Select>
+                        )}
+
+                        {targetType === 'grupa' && (
+                            <Select label="Alege Grupa" value={targetId} onChange={e => setTargetId(e.target.value)} required>
+                                <option value="">Selectează grupa...</option>
+                                {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire} ({clubs.find(c => c.id === g.club_id)?.nume || 'Club Necunoscut'})</option>)}
+                            </Select>
+                        )}
+                    </div>
+
                     <Input label="Titlu Notificare" value={title} onChange={e => setTitle(e.target.value)} required />
                     <Input label="Mesaj Notificare" value={body} onChange={e => setBody(e.target.value)} required />
                     <div className="flex justify-end">

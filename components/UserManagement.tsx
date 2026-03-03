@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Sportiv, User, Rol, Club, Permissions } from '../types';
 import { Button, Input, Card, Select, Modal, RoleBadge } from './ui';
-import { ArrowLeftIcon, ShieldCheckIcon, PlusIcon, LockIcon } from './icons';
+import { ArrowLeftIcon, ShieldCheckIcon, PlusIcon, LockIcon, ClipboardCheckIcon, WalletIcon, UsersIcon, CogIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { useRoleAssignment } from '../hooks/useRoleAssignment';
@@ -144,7 +144,82 @@ interface UserManagementProps {
     permissions: Permissions;
 }
 
+const PermissionGuide: React.FC = () => {
+    const roles = [
+        {
+            name: 'Super Admin Federație',
+            icon: ShieldCheckIcon,
+            color: 'text-purple-400',
+            permissions: [
+                'Acces total la toate cluburile din federație',
+                'Gestionare structură federație și cluburi noi',
+                'Configurare globală prețuri și grade',
+                'Administrare staff la orice nivel',
+                'Mentenanță date (Backup/Restore)'
+            ]
+        },
+        {
+            name: 'Admin Club',
+            icon: CogIcon,
+            color: 'text-amber-400',
+            permissions: [
+                'Management complet pentru propriul club',
+                'Gestionare sportivi, grupe și orar',
+                'Administrare financiară (plăți, facturi, deconturi)',
+                'Organizare sesiuni de examene',
+                'Configurare abonamente club'
+            ]
+        },
+        {
+            name: 'Instructor',
+            icon: ClipboardCheckIcon,
+            color: 'text-red-400',
+            permissions: [
+                'Înregistrare prezențe la antrenamente',
+                'Vizualizare fișe sportivi din grupele alocate',
+                'Propunere sportivi pentru examene',
+                'Acces la rapoarte de prezență',
+                'Vizualizare istoric grade'
+            ]
+        },
+        {
+            name: 'Sportiv',
+            icon: UsersIcon,
+            color: 'text-sky-400',
+            permissions: [
+                'Acces la portalul personal (My Portal)',
+                'Vizualizare istoric plăți și prezențe',
+                'Descărcare fișă digitală și de competiție',
+                'Înscriere la evenimente și examene',
+                'Actualizare date profil personal'
+            ]
+        }
+    ];
+
+    return (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            {roles.map((role, idx) => (
+                <Card key={idx} className="border-t-2 border-slate-700 hover:border-slate-500 transition-colors">
+                    <div className="flex items-center gap-2 mb-3">
+                        <role.icon className={`w-5 h-5 ${role.color}`} />
+                        <h4 className="font-bold text-white text-sm">{role.name}</h4>
+                    </div>
+                    <ul className="space-y-1.5">
+                        {role.permissions.map((p, i) => (
+                            <li key={i} className="text-[11px] text-slate-400 flex items-start gap-2">
+                                <span className="text-slate-600 mt-1">•</span>
+                                <span>{p}</span>
+                            </li>
+                        ))}
+                    </ul>
+                </Card>
+            ))}
+        </div>
+    );
+};
+
 export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSportivi, onBack, currentUser, allRoles, setAllRoles, clubs, permissions }) => {
+    const [activeTab, setActiveTab] = useState<'users' | 'guide'>('users');
     const [editingId, setEditingId] = useState<string | null>(null);
     const [newRoleIds, setNewRoleIds] = useState<string[]>([]);
     const [isCreateStaffModalOpen, setIsCreateStaffModalOpen] = useState(false);
@@ -372,12 +447,48 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
         <div className="space-y-8">
             {onBack && <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>}
             
-            <header>
-                <h1 className="text-3xl font-bold text-white">Administrare Utilizatori & Roluri</h1>
-                <p className="text-slate-400">Gestionează conturile de acces și permisiunile pentru staff și sportivi.</p>
+            <header className="mb-8">
+                <div className="flex justify-between items-start">
+                    <div>
+                        <h1 className="text-3xl font-bold text-white">Administrare Utilizatori & Roluri</h1>
+                        <p className="text-slate-400">Gestionează conturile de acces și permisiunile pentru staff și sportivi.</p>
+                    </div>
+                    <div className="flex bg-slate-800/50 p-1 rounded-lg border border-slate-700">
+                        <button 
+                            onClick={() => setActiveTab('users')}
+                            className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${activeTab === 'users' ? 'bg-[#3D3D99] text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'}`}
+                        >
+                            Utilizatori
+                        </button>
+                        <button 
+                            onClick={() => setActiveTab('guide')}
+                            className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${activeTab === 'guide' ? 'bg-[#3D3D99] text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'}`}
+                        >
+                            Ghid Permisiuni
+                        </button>
+                    </div>
+                </div>
             </header>
 
-            {permissions.hasAdminAccess && (
+            {activeTab === 'guide' ? (
+                <div className="animate-fade-in-down">
+                    <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                        <ShieldCheckIcon className="w-6 h-6 text-amber-400" />
+                        Matricea de Permisiuni și Responsabilități
+                    </h3>
+                    <PermissionGuide />
+                    <Card className="bg-blue-900/20 border-blue-500/30">
+                        <h4 className="font-bold text-blue-300 mb-2">Informații Suplimentare</h4>
+                        <p className="text-sm text-blue-200/80 leading-relaxed">
+                            Sistemul utilizează un model de control al accesului bazat pe roluri (RBAC) cu suport pentru multiple contexte. 
+                            Un utilizator poate avea roluri diferite în cluburi diferite (ex: Instructor la Club A și Admin la Club B). 
+                            La autentificare, utilizatorul va fi invitat să aleagă contextul în care dorește să lucreze.
+                        </p>
+                    </Card>
+                </div>
+            ) : (
+                <div className="animate-fade-in-down">
+                    {permissions.hasAdminAccess && (
                 <>
                 <Card>
                      <h3 className="text-xl font-bold text-white mb-4">Adaugă Rol Nou în Nomenclator</h3>
@@ -482,6 +593,8 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                     </div>
                 </Card>
                 </>
+            )}
+            </div>
             )}
 
             {isCreateAccountModalOpen && selectedUserForAccount && (

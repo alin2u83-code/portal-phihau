@@ -87,6 +87,7 @@ export const AdminMasterMap: React.FC<AdminMasterMapProps> = ({ onNavigate, deco
                 <ItemCard title="Facturi Federale" view="deconturi-federatie" icon={BanknotesIcon} onNavigate={onNavigate} badge={pendingDeconturi} />
                 <ItemCard title="Config. Abonamente" view="tipuri-abonament" icon={CogIcon} onNavigate={onNavigate} />
                 <ItemCard title="Configurare Prețuri" view="configurare-preturi" icon={CogIcon} onNavigate={onNavigate} />
+                <ItemCard title="Mentenanță Date" view="data-maintenance" icon={ArchiveBoxIcon} onNavigate={onNavigate} />
             </Group>
         </div>
     );

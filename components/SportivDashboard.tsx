@@ -156,8 +156,8 @@ const HistoryModal: React.FC<{ isOpen: boolean; onClose: () => void; istoric: an
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-700">
-                            {istoric.map((row, idx) => (
-                                <tr key={idx} className="hover:bg-slate-700/50">
+                            {istoric.map((row) => (
+                                <tr key={row.id || `${row.data}-${row.ora_start}`} className="hover:bg-slate-700/50">
                                     <td className="p-3 text-white">{new Date(row.data).toLocaleDateString('ro-RO')}</td>
                                     <td className="p-3 text-slate-300">{row.ora_start}</td>
                                     <td className="p-3">
@@ -430,7 +430,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                         <p className="text-slate-400 text-sm italic col-span-full">Nu există date suficiente pentru calculul intervalelor.</p>
                     ) : (
                         gradeStats.map((stat, idx) => (
-                            <div key={idx} className="flex flex-col p-3 bg-slate-800/50 rounded border border-slate-700/50 hover:bg-slate-700 transition-colors">
+                            <div key={`${stat.period}-${idx}`} className="flex flex-col p-3 bg-slate-800/50 rounded border border-slate-700/50 hover:bg-slate-700 transition-colors">
                                 <span className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">{stat.period}</span>
                                 <div className="flex items-baseline gap-2">
                                     <span className="text-xl font-bold text-emerald-400">{stat.count}</span>
@@ -462,9 +462,9 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                 <Card className="animate-fade-in-down" style={{ animationDelay: '300ms' }}>
                     <h3 className="text-lg font-bold text-white mb-4">Comută Rol Activ</h3>
                     <div className="flex flex-wrap gap-2">
-                        {(currentUser.roluri || []).map(rol => (
+                        {(currentUser.roluri || []).map((rol, idx) => (
                             <Button 
-                                key={rol.id}
+                                key={rol.id || rol.nume || idx}
                                 variant={activeRole === rol.nume ? 'primary' : 'secondary'}
                                 onClick={() => onSwitchRole(rol.nume)}
                                 disabled={isSwitchingRole}

@@ -7,6 +7,7 @@ import { useError } from './ErrorProvider';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { getPretProdus } from '../utils/pricing';
 import { getEligibleGrade } from '../utils/eligibility';
+import { sendBulkNotifications } from '../utils/notifications';
 
 // Helper functions
 const getAgeOnDate = (birthDateStr: string, onDateStr: string): number => {
@@ -300,6 +301,23 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         setPlati(prev => [...prev, ...newPlati]);
         setInscrieri(prev => [...prev, ...newInscrieri]);
     
+        // Send notifications to sportivi
+        const notifications = newInscrieri.map(inscriere => {
+            const sportiv = sportivi.find(s => s.id === inscriere.sportiv_id);
+            const grad = grade.find(g => g.id === inscriere.grad_vizat_id);
+            if (!sportiv?.user_id) return null;
+            return {
+                recipient_user_id: sportiv.user_id,
+                title: 'Înscriere Examen Nouă',
+                body: `Ai fost înscris la examenul din data de ${new Date(sesiune.data).toLocaleDateString('ro-RO')} pentru gradul ${grad?.nume || 'necunoscut'}.`,
+                type: 'examen'
+            };
+        }).filter((n): n is NonNullable<typeof n> => n !== null);
+
+        if (notifications.length > 0) {
+            await sendBulkNotifications(notifications);
+        }
+
         const successCount = selections.length - errorCount;
         if (successCount > 0) {
             showSuccess("Înscriere finalizată", `${successCount} sportivi au fost înscriși cu succes.`);

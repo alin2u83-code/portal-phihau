@@ -1,9 +1,10 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Plata, Sportiv, TipAbonament, Familie, Tranzactie, Reducere, User, Club, Permissions, InscriereExamen, Grad } from '../types';
 import { Button, Input, Select, Card, Modal } from './ui';
-import { EditIcon, ArrowLeftIcon, TrashIcon, BanknotesIcon, SearchIcon } from './icons';
+import { EditIcon, ArrowLeftIcon, TrashIcon, BanknotesIcon, SearchIcon, BellIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
+import { sendBulkNotifications } from '../utils/notifications';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
@@ -70,7 +71,13 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
         
         setIsGenerating(true);
         try {
-            const clubId = currentUser?.club_id;
+            let clubId = currentUser?.club_id;
+            
+            // Fallback to visibleClubIds if club_id is missing on currentUser
+            if (!clubId && Array.isArray(permissions.visibleClubIds) && permissions.visibleClubIds.length === 1) {
+                clubId = permissions.visibleClubIds[0];
+            }
+
             if (!clubId && !permissions.isSuperAdmin) {
                 throw new Error("Contextul curent nu are un club ID asociat.");
             }
@@ -323,6 +330,41 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
         return 'N/A';
     };
     
+    const handleNotifyOverdue = async () => {
+        if (selectedIds.size === 0) return;
+        setIsGenerating(true); // Reuse loading state
+        
+        try {
+            const selectedPlati = platiCuDetalii.filter(p => selectedIds.has(p.id));
+            const notifications = selectedPlati.map(p => {
+                const sportiv = sportivi.find(s => s.id === p.sportiv_id);
+                if (!sportiv?.user_id) return null;
+                return {
+                    recipient_user_id: sportiv.user_id,
+                    title: 'Plată Scadentă',
+                    body: `Ai o plată restantă: ${p.descriereDetaliata} în valoare de ${p.suma.toFixed(2)} RON. Te rugăm să achiți cât mai curând.`,
+                    type: 'plata'
+                };
+            }).filter((n): n is NonNullable<typeof n> => n !== null);
+
+            if (notifications.length > 0) {
+                const result = await sendBulkNotifications(notifications);
+                if (result.success) {
+                    showSuccess("Succes", `Au fost trimise ${notifications.length} notificări către debitori.`);
+                    setSelectedIds(new Set());
+                } else {
+                    throw new Error(result.error);
+                }
+            } else {
+                showError("Eroare", "Niciunul dintre sportivii selectați nu are un cont de utilizator asociat pentru a primi notificări.");
+            }
+        } catch (err: any) {
+            showError("Eroare la notificare", err.message);
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
     return (
         <div className="space-y-6">
             <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
@@ -369,7 +411,15 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
             </Card>
 
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-                {permissions.canManageFinances && <Button onClick={handleGenerateSubscriptions} variant="info" isLoading={isGenerating}>Generează Abonamente Luna Curentă</Button>}
+                <div className="flex gap-2">
+                    {permissions.canManageFinances && <Button onClick={handleGenerateSubscriptions} variant="info" isLoading={isGenerating}>Generează Abonamente Luna Curentă</Button>}
+                    {permissions.canManageFinances && selectedIds.size > 0 && (
+                        <Button onClick={handleNotifyOverdue} variant="warning" isLoading={isGenerating}>
+                            <BellIcon className="w-5 h-5 mr-2"/>
+                            Notifică {selectedIds.size} debitori
+                        </Button>
+                    )}
+                </div>
                 {permissions.canManageFinances && selectedIds.size > 0 && (
                     <Button onClick={handleIncasareClick} variant="success" className="p-4 font-bold bg-green-800 hover:bg-green-700">
                         <BanknotesIcon className="w-5 h-5 mr-2"/>

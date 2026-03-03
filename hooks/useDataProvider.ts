@@ -153,17 +153,26 @@ export const useDataProvider = () => {
             
             const cleanedSupabase = withCleanUuidFilters(supabase as SupabaseClient<any, any>);
 
+            const cleanClubId = (activeCtx.club_id && activeCtx.club_id !== 'null') ? activeCtx.club_id : null;
             const profile = activeCtx.sportiv;
             // We set currentUser here based on the active context
-            setCurrentUser((profile || {
-                id: session?.user.id,
-                email: session?.user.email,
-                nume: 'Utilizator',
-                prenume: 'Sistem',
-                roluri: userRoles.map((r: any) => r.roluri)
-            }) as any);
+            const currentRoles = userRoles.map((r: any) => ({
+                ...r.roluri,
+                id: r.id // Use the assignment ID as the unique identifier
+            })).filter(role => role.nume);
+            
+            setCurrentUser({
+                ...(profile || {
+                    id: session?.user.id,
+                    user_id: session?.user.id,
+                    email: session?.user.email,
+                    nume: 'Utilizator',
+                    prenume: 'Sistem',
+                }),
+                roluri: currentRoles,
+                club_id: cleanClubId
+            } as any);
 
-            const cleanClubId = (activeCtx.club_id && activeCtx.club_id !== 'null') ? activeCtx.club_id : null;
             const activeRoleName = Array.isArray(activeCtx.roluri) ? activeCtx.roluri[0]?.nume : activeCtx.roluri?.nume;
             const isSuperAdmin = activeRoleName === 'SUPER_ADMIN_FEDERATIE';
             const isAdminClub = activeRoleName === 'ADMIN_CLUB' || activeRoleName === 'Admin Club';
@@ -318,7 +327,7 @@ export const useDataProvider = () => {
         initializeAndFetchData();
         if (!supabase) return;
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-            if (['SIGNED_IN', 'TOKEN_REFRESHED', 'USER_UPDATED'].includes(event)) initializeAndFetchData();
+            if (['SIGNED_IN', 'SIGNED_OUT', 'TOKEN_REFRESHED', 'USER_UPDATED'].includes(event)) initializeAndFetchData();
         });
         return () => subscription.unsubscribe();
     }, [initializeAndFetchData]);

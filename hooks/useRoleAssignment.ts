@@ -15,10 +15,11 @@ export const useRoleAssignment = (currentUser: User, allRoles: Rol[]) => {
         'SPORTIV': 1,
     }), []);
 
-    const currentUserMaxWeight = useMemo(() =>
-        Math.max(0, ...currentUser.roluri.map(r => roleWeights[r.nume] || 0)),
-        [currentUser.roluri, roleWeights]
-    );
+    const currentUserMaxWeight = useMemo(() => {
+        const roles = currentUser?.roluri || [];
+        if (!Array.isArray(roles)) return 0;
+        return Math.max(0, ...roles.map(r => roleWeights[r.nume] || 0));
+    }, [currentUser?.roluri, roleWeights]);
 
     const getAvailableRoles = useCallback(() => {
         return allRoles.filter(r => (roleWeights[r.nume] || 0) <= currentUserMaxWeight);

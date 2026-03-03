@@ -2,7 +2,7 @@ import React from 'react';
 import { View } from '../types';
 import { 
     HomeIcon, UsersIcon, TrophyIcon, BanknotesIcon, CalendarDaysIcon, 
-    UserCircleIcon, ClipboardCheckIcon, CogIcon, SitemapIcon, ArchiveBoxIcon, FileTextIcon
+    UserCircleIcon, ClipboardCheckIcon, CogIcon, SitemapIcon, ArchiveBoxIcon, FileTextIcon, ChartBarIcon
 } from './icons';
 
 export interface MenuItem {
@@ -24,6 +24,7 @@ export const adminMenu: MenuItem[] = [
     { label: 'Examene', icon: TrophyIcon, view: 'examene' },
     { label: 'Grupe', icon: ArchiveBoxIcon, view: 'grupe' },
     { label: 'Plăți', icon: BanknotesIcon, view: 'plati-scadente' },
+    { label: 'Raport Financiar', icon: ChartBarIcon, view: 'raport-financiar' },
     { label: 'Prezență', icon: CalendarDaysIcon, view: 'prezenta' },
     { label: 'Administrare', icon: CogIcon, view: 'user-management' },
     { label: 'Setări Globale', icon: CogIcon, view: 'setari-club' },

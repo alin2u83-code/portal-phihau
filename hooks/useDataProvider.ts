@@ -218,8 +218,9 @@ export const useDataProvider = () => {
                     queries.istoricGrade = cleanedSupabase.from('istoric_grade').select('*');
                 }
 
-                // Apply club filter if NOT super admin AND NOT admin club (let RLS handle it for them)
-                if (!isSuperAdmin && !isAdminClub && cleanClubId) {
+                // Apply club filter if NOT super admin. 
+                // Admin Club and Instructors SHOULD be filtered by their active context (cleanClubId).
+                if (!isSuperAdmin && cleanClubId) {
                     const tablesToFilter = [
                         'grupe', 'sportiviRaw', 'plati', 'tranzactii', 'evenimente', 
                         'familii', 'deconturiFederatie', 

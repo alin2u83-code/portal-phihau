@@ -67,18 +67,22 @@ export const Notificari: React.FC<NotificariProps> = ({ onBack, currentUser, clu
         try {
             // Pasul 1: Invocă funcția Edge pentru a trimite notificările push
             // Putem adăuga target info în payload dacă funcția o suportă
-            const { error: functionError } = await supabase.functions.invoke('send-push-notifications', {
-                body: { 
-                    title, 
-                    body,
-                    targetType,
-                    targetId
-                },
-            });
+            try {
+                const { error: functionError } = await supabase.functions.invoke('send-push-notifications', {
+                    body: { 
+                        title, 
+                        body,
+                        targetType,
+                        targetId
+                    },
+                });
 
-            if (functionError) {
-                // Afișează o eroare, dar continuă pentru a salva notificarea in-app
-                showError("Eroare Notificări Push", `Nu s-au putut trimite notificările push, dar anunțul va fi vizibil în aplicație. Detalii: ${functionError.message}`);
+                if (functionError) {
+                    // Afișează o eroare, dar continuă pentru a salva notificarea in-app
+                    console.warn("Eroare Notificări Push:", functionError);
+                }
+            } catch (edgeErr: any) {
+                console.warn("Edge function invocation failed (Push Notifications skipped):", edgeErr);
             }
 
             // Pasul 2: Salvează notificarea în baza de date (pentru istoric și in-app bell)

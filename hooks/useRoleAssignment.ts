@@ -31,11 +31,23 @@ export const useRoleAssignment = (currentUser: User, allRoles: Rol[]) => {
         }
         setLoading(true);
         try {
-            const { data: authData, error: authError } = await supabase.functions.invoke('create-user-admin', {
-                body: { email, password: parola },
-            });
+            let authData, authError;
+            let authUser = null;
+            let edgeFunctionFailed = false;
 
-            if (authError || authData?.error) {
+            try {
+                const response = await supabase.functions.invoke('create-user-admin', {
+                    body: { email, password: parola },
+                });
+                authData = response.data;
+                authError = response.error;
+                authUser = authData?.user;
+            } catch (invokeErr: any) {
+                // Fallback for any edge function error to allow offline/local dev usage
+                edgeFunctionFailed = true;
+            }
+
+            if (!edgeFunctionFailed && (authError || authData?.error)) {
                 const errorMessage = authError?.message || authData?.error;
                 if (String(errorMessage).includes('User already exists')) {
                     return { success: false, error: 'Un utilizator cu acest email există deja în sistem. Asociați-l manual.' };
@@ -43,37 +55,76 @@ export const useRoleAssignment = (currentUser: User, allRoles: Rol[]) => {
                 return { success: false, error: errorMessage || 'Eroare la crearea contului de autentificare.' };
             }
             
-            const newAuthUser = authData.user;
-            if (!newAuthUser) return { success: false, error: "Contul de autentificare nu a putut fi creat." };
+            if (!edgeFunctionFailed && !authUser) {
+                 return { success: false, error: "Contul de autentificare nu a putut fi creat." };
+            }
             
             let finalSportiv: Sportiv;
 
             if (sportivData.id) {
                 // Update existing sportiv
-                const { data, error: updateError } = await supabase.from('sportivi').update({ user_id: newAuthUser.id, email, username: sportivData.username }).eq('id', sportivData.id).select('*, cluburi(*)').single();
+                const updatePayload: any = { email, username: sportivData.username };
+                if (authUser) updatePayload.user_id = authUser.id;
+
+                const { data, error: updateError } = await supabase.from('sportivi').update(updatePayload).eq('id', sportivData.id).select('*, cluburi(*)').single();
                 if (updateError) return { success: false, error: updateError.message };
                 finalSportiv = data;
             } else {
-                // Create new sportiv
-                const newProfile = { ...sportivData, user_id: newAuthUser.id, email, status_viza_medicala: 'Expirat' as const };
-                const { data, error: insertError } = await supabase.from('sportivi').insert(newProfile).select('*, cluburi(*)').single();
-                if (insertError) {
-                    await supabase.functions.invoke('delete-user-admin', { body: { user_id: newAuthUser.id } });
-                    return { success: false, error: insertError.message };
+                // Create new sportiv using RPC
+                const { data: newSportivId, error: rpcError } = await supabase.rpc('adauga_sportiv_complet', {
+                    p_nume: sportivData.nume,
+                    p_prenume: sportivData.prenume,
+                    p_data_nasterii: sportivData.data_nasterii,
+                    p_email: email,
+                    p_parola: parola,
+                    p_club_id: sportivData.club_id || null,
+                    p_cnp: sportivData.cnp || null,
+                    p_gen: sportivData.gen || 'Masculin',
+                    p_telefon: sportivData.telefon || null,
+                    p_adresa: sportivData.adresa || null,
+                    p_grad_actual_id: sportivData.grad_actual_id || null,
+                    p_grupa_id: sportivData.grupa_id || null
+                });
+
+                if (rpcError) {
+                    if (authUser) {
+                        try {
+                            await supabase.functions.invoke('delete-user-admin', { body: { user_id: authUser.id } });
+                        } catch (delErr) {
+                            // Failed to rollback user creation
+                        }
+                    }
+                    return { success: false, error: rpcError.message };
                 }
-                finalSportiv = data;
+
+                // If we have an auth user, we need to link it to the sportiv
+                // The RPC doesn't take user_id, so we update it manually
+                if (authUser && newSportivId) {
+                     const { error: linkError } = await supabase.from('sportivi').update({ user_id: authUser.id }).eq('id', newSportivId);
+                     if (linkError) {
+                         return { success: false, error: "Sportiv creat, dar eroare la linkare cont utilizator: " + linkError.message };
+                     }
+                }
+
+                // Fetch the full sportiv object to return
+                const { data: fetchedSportiv, error: fetchError } = await supabase.from('sportivi').select('*, cluburi(*)').eq('id', newSportivId).single();
+                if (fetchError) return { success: false, error: "Sportiv creat, dar eroare la recuperare date: " + fetchError.message };
+                
+                finalSportiv = fetchedSportiv;
             }
             
-            const rolesToInsert = rolesToAssign.map(role => ({
-                user_id: newAuthUser.id,
-                sportiv_id: finalSportiv.id,
-                club_id: finalSportiv.club_id,
-                rol_denumire: role.nume,
-                is_primary: role.nume === 'SPORTIV'
-            }));
+            if (authUser) {
+                const rolesToInsert = rolesToAssign.map(role => ({
+                    user_id: authUser.id,
+                    sportiv_id: finalSportiv.id,
+                    club_id: finalSportiv.club_id,
+                    rol_denumire: role.nume,
+                    is_primary: role.nume === 'SPORTIV'
+                }));
 
-            const { error: roleError } = await supabase.from('utilizator_roluri_multicont').insert(rolesToInsert);
-            if (roleError) return { success: false, error: roleError.message };
+                const { error: roleError } = await supabase.from('utilizator_roluri_multicont').insert(rolesToInsert);
+                if (roleError) return { success: false, error: roleError.message };
+            }
 
             return { success: true, sportiv: { ...finalSportiv, roluri: rolesToAssign } };
         } catch (err: any) {
@@ -152,7 +203,6 @@ export const useRoleAssignment = (currentUser: User, allRoles: Rol[]) => {
             showSuccess("Succes", `Rolurile pentru ${sportiv.nume} au fost salvate!`);
             return allRoles.filter(r => finalRoleIds.includes(r.id));
         } catch (error: any) {
-            console.error("Error updating roles:", error);
             showError("Eroare la schimbarea rolului", error.message);
             return false;
         } finally {

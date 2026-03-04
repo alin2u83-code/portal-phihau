@@ -6,13 +6,17 @@ import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { BirthDateInput } from './BirthDateInput';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
+import { useSportivForm } from '../hooks/useSportivForm';
+
+// --- Modale de adăugare rapidă ---
+import { validateSportiv } from '../utils/validation';
 
 // --- Modale de adăugare rapidă ---
 // FIX: Exported QuickAddModal to be used in other components.
 export const QuickAddModal: React.FC<{ 
-  title: string; 
-  label: string; 
-  isOpen: boolean; 
+  title: string;
+  label: string;
+  isOpen: boolean;
   onClose: () => void; 
   onSave: (name: string) => Promise<any>; 
 }> = ({ title, label, isOpen, onClose, onSave }) => {
@@ -103,12 +107,7 @@ export const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
 
     // Memoize validate to avoid dependency cycles
     const validate = useCallback((data: Partial<Sportiv>) => {
-        const newErrors: Record<string, string> = {};
-        if (!data.nume?.trim()) newErrors.nume = "Numele este obligatoriu.";
-        if (!data.prenume?.trim()) newErrors.prenume = "Prenumele este obligatoriu.";
-        if (!data.data_nasterii) newErrors.data_nasterii = "Data nașterii este obligatorie.";
-        if (!data.id && data.parola && data.parola.length < 6) newErrors.parola = "Parola trebuie să aibă minim 6 caractere.";
-        return newErrors;
+        return validateSportiv(data);
     }, []);
 
     const isSuperAdmin = useMemo(() => 
@@ -317,7 +316,7 @@ export const SportivFormModal: React.FC<{
 }) => {
     const { showError } = useError();
     const [loading, setLoading] = useState(false);
-    const [formData, setFormData] = useState<Partial<Sportiv>>(initialFormState);
+    const { formData, setFormData, errors, validate, handleChange } = useSportivForm(initialFormState);
     const [isFormValid, setIsFormValid] = useState(false);
     const [isGrupaModalOpen, setIsGrupaModalOpen] = useState(false);
     const [isFamilieModalOpen, setIsFamilieModalOpen] = useState(false);
@@ -326,9 +325,8 @@ export const SportivFormModal: React.FC<{
         if (isOpen) {
             if (sportivToEdit) {
                 setFormData(sportivToEdit);
-                setIsFormValid(true); // Assuming existing data is valid, or validation will run in child
+                setIsFormValid(true); 
             } else {
-                // Initialize defaults for new sportiv
                 const isSuperAdmin = currentUser?.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN');
                 const defaultClubId = !isSuperAdmin && currentUser?.club_id ? currentUser.club_id : null;
                 
@@ -346,12 +344,12 @@ export const SportivFormModal: React.FC<{
                 setIsFormValid(false);
             }
         }
-    }, [isOpen, sportivToEdit, currentUser, grade]);
+    }, [isOpen, sportivToEdit, currentUser, grade, setFormData]);
     
     const handleFormChange = useCallback((data: Partial<Sportiv>, isValid: boolean) => {
         setFormData(data);
         setIsFormValid(isValid);
-    }, []);
+    }, [setFormData]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

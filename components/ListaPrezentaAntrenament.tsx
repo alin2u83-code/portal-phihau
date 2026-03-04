@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { motion } from 'motion/react';
 import { Antrenament, Sportiv, Grupa } from '../types';
 import { Card, Button, Modal, Input, Select } from './ui';
 import { ArrowLeftIcon, CheckCircleIcon, CalendarDaysIcon, UsersIcon, SearchIcon, PlusIcon } from './icons';
@@ -245,7 +246,13 @@ export const FormularPrezenta: React.FC<{
                                 onClick={() => toggleSportiv(s.id)}
                             >
                                 <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${isPresent ? 'bg-emerald-500 border-emerald-500 scale-110' : 'border-slate-600 group-hover:border-slate-500'}`}>
-                                    {isPresent && <CheckCircleIcon className="w-4 h-4 text-white" />}
+                                    <motion.div
+                                        initial={false}
+                                        animate={{ scale: isPresent ? 1 : 0 }}
+                                        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                                    >
+                                        <CheckCircleIcon className="w-4 h-4 text-white" />
+                                    </motion.div>
                                 </div>
                                 <span 
                                     className={`font-bold flex-grow select-none transition-colors ${isPresent ? 'text-emerald-400' : 'text-slate-300'}`}

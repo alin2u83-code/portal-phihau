@@ -4,6 +4,7 @@ import { Button, Card, Input, Select } from './ui';
 import { ArrowLeftIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
+import { invokeEdgeFunction } from '../utils/supabaseUtils';
 
 interface NotificariProps {
     onBack: () => void;
@@ -68,13 +69,11 @@ export const Notificari: React.FC<NotificariProps> = ({ onBack, currentUser, clu
             // Pasul 1: Invocă funcția Edge pentru a trimite notificările push
             // Putem adăuga target info în payload dacă funcția o suportă
             try {
-                const { error: functionError } = await supabase.functions.invoke('send-push-notifications', {
-                    body: { 
-                        title, 
-                        body,
-                        targetType,
-                        targetId
-                    },
+                const { error: functionError } = await invokeEdgeFunction('send-push-notifications', {
+                    title, 
+                    body,
+                    targetType,
+                    targetId
                 });
 
                 if (functionError) {
@@ -82,7 +81,7 @@ export const Notificari: React.FC<NotificariProps> = ({ onBack, currentUser, clu
                     console.warn("Eroare Notificări Push:", functionError);
                 }
             } catch (edgeErr: any) {
-                console.warn("Edge function invocation failed (Push Notifications skipped):", edgeErr);
+                console.error("DEBUG: Edge function invocation failed (Push Notifications skipped):", edgeErr);
             }
 
             // Pasul 2: Salvează notificarea în baza de date (pentru istoric și in-app bell)

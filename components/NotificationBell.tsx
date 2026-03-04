@@ -1,17 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { supabase } from '../supabaseClient';
 import { User } from '../types';
 import { BellIcon } from './icons';
-
-interface Notification {
-    id: string;
-    title: string;
-    titlu?: string;
-    body: string;
-    message?: string; // Fallback for old data
-    created_at: string;
-    is_read: boolean;
-}
+import { useNotifications } from '../contexts/NotificationContext';
 
 function timeAgo(date: string) {
     const seconds = Math.floor((new Date().getTime() - new Date(date).getTime()) / 1000);
@@ -30,41 +20,10 @@ function timeAgo(date: string) {
 
 
 export const NotificationBell: React.FC<{ currentUser: User }> = ({ currentUser }) => {
-    const [notifications, setNotifications] = useState<Notification[]>([]);
+    const { notifications, unreadCount, markAsRead } = useNotifications();
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
     
-    useEffect(() => {
-        if (!currentUser.user_id || !supabase) return;
-
-        const fetchNotifications = async () => {
-            const { data, error } = await supabase
-                .from('notificari')
-                .select('*')
-                .eq('recipient_user_id', currentUser.user_id)
-                .order('created_at', { ascending: false })
-                .limit(15);
-            if (!error) {
-                setNotifications(data || []);
-            }
-        };
-        fetchNotifications();
-
-        const channel = supabase.channel('in-app-notifications')
-            .on(
-                'postgres_changes',
-                { event: 'INSERT', schema: 'public', table: 'notificari', filter: `recipient_user_id=eq.${currentUser.user_id}` },
-                (payload) => {
-                    setNotifications(prev => [payload.new as Notification, ...prev]);
-                }
-            )
-            .subscribe();
-        
-        return () => {
-            supabase.removeChannel(channel).catch(console.error);
-        };
-    }, [currentUser.user_id]);
-
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -75,17 +34,14 @@ export const NotificationBell: React.FC<{ currentUser: User }> = ({ currentUser 
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
     
-    const unreadCount = notifications.filter(n => !n.is_read).length;
-
     const handleOpen = async () => {
         const willBeOpen = !isOpen;
         setIsOpen(willBeOpen);
 
         if (willBeOpen && unreadCount > 0) {
-            const unreadIds = notifications.filter(n => !n.is_read).map(n => n.id);
-            const { error } = await supabase.from('notificari').update({ is_read: true }).in('id', unreadIds);
-            if (!error) {
-                setNotifications(prev => prev.map(n => unreadIds.includes(n.id) ? { ...n, is_read: true } : n));
+            const unreadNotifications = notifications.filter(n => !n.is_read);
+            for (const n of unreadNotifications) {
+                await markAsRead(n.id);
             }
         }
     };
@@ -113,8 +69,8 @@ export const NotificationBell: React.FC<{ currentUser: User }> = ({ currentUser 
                         {notifications.length > 0 ? (
                             notifications.map(n => (
                                 <div key={n.id} className={`p-3 border-b border-slate-700/50 ${!n.is_read ? 'bg-brand-primary/10' : ''}`}>
-                                    <p className="text-sm font-bold text-slate-200">{n.title || n.titlu || 'Notificare'}</p>
-                                    <p className="text-sm text-slate-300">{n.body || n.message}</p>
+                                    <p className="text-sm font-bold text-slate-200">{n.title || (n as any).titlu || 'Notificare'}</p>
+                                    <p className="text-sm text-slate-300">{n.body || (n as any).message}</p>
                                     <p className="text-xs text-slate-500 text-right mt-1">{timeAgo(n.created_at)}</p>
                                 </div>
                             ))

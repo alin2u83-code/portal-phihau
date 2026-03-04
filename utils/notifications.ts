@@ -36,7 +36,7 @@ export const sendNotification = async (payload: NotificationPayload) => {
                 },
             });
         } catch (pushErr) {
-            console.warn('Push notification failed, but in-app notification was saved:', pushErr);
+            console.error('DEBUG: Push notification failed:', pushErr);
         }
 
         return { success: true };

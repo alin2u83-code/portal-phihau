@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { supabase } from '../supabaseClient';
 import { useError } from '../components/ErrorProvider';
 import { Rol, Sportiv, User } from '../types';
+import { invokeEdgeFunction } from '../utils/supabaseUtils';
 
 export const useRoleAssignment = (currentUser: User, allRoles: Rol[]) => {
     const { showError, showSuccess } = useError();
@@ -36,13 +37,21 @@ export const useRoleAssignment = (currentUser: User, allRoles: Rol[]) => {
             let edgeFunctionFailed = false;
 
             try {
-                const response = await supabase.functions.invoke('create-user-admin', {
-                    body: { email, password: parola },
+                const { data: authData, error: authError } = await invokeEdgeFunction('create-user-admin', { 
+                    email, 
+                    password: parola,
+                    nume: sportivData.nume,
+                    prenume: sportivData.prenume,
+                    data_nasterii: sportivData.data_nasterii,
+                    gen: sportivData.gen
                 });
-                authData = response.data;
-                authError = response.error;
                 authUser = authData?.user;
+                if (authError) {
+                    // Fallback for any edge function error to allow offline/local dev usage
+                    edgeFunctionFailed = true;
+                }
             } catch (invokeErr: any) {
+                console.error('DEBUG: Edge function invocation failed:', invokeErr);
                 // Fallback for any edge function error to allow offline/local dev usage
                 edgeFunctionFailed = true;
             }

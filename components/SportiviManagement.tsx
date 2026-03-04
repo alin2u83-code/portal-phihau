@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
+import { supabase } from '../supabaseClient';
 import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions, VizualizarePlata } from '../types';
 import { Button } from './ui';
 import { PlusIcon } from './icons';
-import { supabase } from '../supabaseClient';
+import { adaugaSportiv, actualizeazaSportiv } from '../services/sportivService';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { MartialArtsSkeleton } from './MartialArtsSkeleton';
@@ -195,12 +196,11 @@ export const SportiviManagement: React.FC<{
     const handleSave = async (formData: Partial<Sportiv>): Promise<{ success: boolean; error?: any; data?: Sportiv; }> => {
         try {
             if (sportivToEdit) {
-                const { roluri, cluburi, ...sportivData } = formData;
-                const { data, error } = await supabase.from('sportivi').update(sportivData).eq('id', sportivToEdit.id).select('*, cluburi(*)').single();
-                if (error) throw error;
+                const result = await actualizeazaSportiv(sportivToEdit.id, formData);
+                if (!result.success) throw result.error;
     
                 // Preserve existing roles since we don't update them here yet
-                const updatedSportiv = { ...data, roluri: sportivToEdit.roluri };
+                const updatedSportiv = { ...result.data!, roluri: sportivToEdit.roluri };
     
                 setSportivi(prev => prev.map(s => s.id === sportivToEdit.id ? updatedSportiv : s));
                 showSuccess('Succes', 'Sportiv actualizat!');
@@ -230,11 +230,8 @@ export const SportiviManagement: React.FC<{
                 return { success: true, data: result.sportiv! };
             }
         } catch (err: any) {
-            if (err.message && (err.message.includes('duplicate key value violates unique constraint') || err.message.includes('unique_sportiv_phi_hau'))) {
-                showError("Eroare Duplicat", "Un sportiv cu același nume, prenume și dată de naștere există deja în sistem.");
-            } else {
-                showError("Eroare la Salvare", err.message);
-            }
+            // ErrorProvider handles the error message formatting, but we can pass it here
+            showError("Eroare la Salvare", err);
             return { success: false, error: err };
         }
     };

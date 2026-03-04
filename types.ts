@@ -92,7 +92,6 @@ export interface Sportiv {
   telefon?: string | null;
   adresa?: string | null;
   gen?: 'Masculin' | 'Feminin' | null;
-  status_viza_medicala?: 'Expirat' | 'Valid' | null;
   foto_url?: string | null;
   cod_sportiv?: string | null;
   club_provenienta?: string | null;

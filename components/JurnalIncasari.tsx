@@ -7,6 +7,7 @@ import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { useData } from '../contexts/DataContext';
+import { sendNotification } from '../utils/notifications';
 
 const QuickAddTipPlataModal: React.FC<{ 
   isOpen: boolean; 
@@ -377,6 +378,19 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
                 }
 
                 setTranzactii(prev => [...prev, tx as Tranzactie]);
+
+                // Send notification to sportiv
+                const sportiv = sportivi.find(s => s.id === (formState.sportiv_id || platiInitiale[0]?.sportiv_id));
+                if (sportiv?.user_id) {
+                    await sendNotification({
+                        recipient_user_id: sportiv.user_id,
+                        title: 'Plată Înregistrată',
+                        body: `Suma de ${sumaNum.toFixed(2)} RON a fost înregistrată pentru ${formState.descriere || 'plată'}.`,
+                        type: 'plata',
+                        metadata: { tranzactie_id: tranzactieId }
+                    });
+                }
+
                 showSuccess('Succes', 'Încasare înregistrată cu succes în jurnalul clubului!');
 
             } else {
@@ -426,6 +440,18 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
                 tranzactieId = (tx as Tranzactie).id;
                 setPlati(prev => [...prev, newPlata as Plata]);
                 setTranzactii(prev => [...prev, tx as Tranzactie]);
+
+                // Send notification to sportiv
+                if (sportiv?.user_id) {
+                    await sendNotification({
+                        recipient_user_id: sportiv.user_id,
+                        title: 'Plată Înregistrată',
+                        body: `Suma de ${sumaNum.toFixed(2)} RON a fost înregistrată pentru ${formState.descriere}.`,
+                        type: 'plata',
+                        metadata: { tranzactie_id: tranzactieId, plata_id: newPlataId }
+                    });
+                }
+
                 showSuccess('Succes', 'Încasare înregistrată cu succes în jurnalul clubului!');
             }
             onIncasareProcesata();

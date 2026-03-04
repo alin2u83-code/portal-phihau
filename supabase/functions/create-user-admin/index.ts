@@ -16,10 +16,10 @@ serve(async (req) => {
   }
 
   try {
-    const { email, password } = await req.json()
+    const { email, password, nume, prenume, data_nasterii, gen, username } = await req.json()
 
-    if (!email || !password) {
-      throw new Error('Email-ul și parola sunt obligatorii.')
+    if (!email || !password || !nume || !prenume || !data_nasterii || !gen) {
+      throw new Error('Toate câmpurile sunt obligatorii: email, password, nume, prenume, data_nasterii, gen.')
     }
 
     // Crearea unui client Supabase cu rol de administrator (folosind cheia de serviciu)
@@ -45,6 +45,24 @@ serve(async (req) => {
         })
       }
       throw error
+    }
+
+    // Generare username dacă nu este furnizat
+    const finalUsername = username || `${prenume.toLowerCase()}.${nume.toLowerCase()}`;
+
+    // Apel RPC pentru înregistrarea sportivului
+    const { error: rpcError } = await supabaseAdmin.rpc('inregistreaza_sportiv_rapid', {
+      p_user_id: data.user.id,
+      p_nume: nume,
+      p_prenume: prenume,
+      p_data_nasterii: data_nasterii,
+      p_gen: gen,
+      p_email: email,
+      p_username: finalUsername
+    });
+
+    if (rpcError) {
+      throw rpcError;
     }
 
     // Returnează datele noului utilizator

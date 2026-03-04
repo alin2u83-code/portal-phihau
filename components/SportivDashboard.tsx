@@ -7,6 +7,7 @@ import { supabase } from '../supabaseClient';
 import { CheckIcon, ExclamationTriangleIcon, TrophyIcon, CalendarDaysIcon, ChartBarIcon, WalletIcon } from './icons';
 import { GradBadge } from '../utils/grades';
 import { AntrenamenteViitoare } from './AntrenamenteViitoare';
+import { UpcomingTrainingsWidget } from './UpcomingTrainingsWidget';
 import { SportivProgressChart, ChartDataPoint } from './SportivProgressChart';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, Cell } from 'recharts';
 import { useDataProvider } from '../hooks/useDataProvider';
@@ -309,6 +310,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                 <AntrenamenteViitoare currentUser={viewedUser} antrenamente={antrenamente} grupe={grupe} anunturi={anunturi} />
                 
                 <div className="space-y-4 md:space-y-6">
+                    <UpcomingTrainingsWidget currentUser={viewedUser} antrenamente={antrenamente} grupe={grupe} />
                     <VizaMedicalaCard plati={plati} sportivId={viewedUser.id} />
                     
                     {isViewingOwnProfile && (

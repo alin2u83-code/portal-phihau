@@ -27,7 +27,14 @@ export const ErrorProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const showError = useCallback((title: string, errorObj: any) => {
     console.error('DEBUG:', errorObj);
-    const message = errorObj?.message || (typeof errorObj === 'string' ? errorObj : 'O eroare necunoscută a apărut.');
+    let message = errorObj?.message || (typeof errorObj === 'string' ? errorObj : 'O eroare necunoscută a apărut.');
+    
+    if (errorObj?.status === 403 || message.includes('403')) {
+        message = "Nu aveți permisiunea necesară pentru a efectua această acțiune. Vă rugăm contactați un administrator.";
+    } else if (message.includes('duplicate key value violates unique constraint')) {
+        message = "Datele introduse sunt deja în sistem (duplicat).";
+    }
+    
     const newNotification = { title, message, type: 'error' as const, id: Date.now() };
     setNotifications(prev => [...prev, newNotification]);
 

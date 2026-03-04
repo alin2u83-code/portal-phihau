@@ -5,6 +5,7 @@ import { ArrowLeftIcon, CalendarDaysIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { useData } from '../contexts/DataContext';
+import { sendBulkNotifications } from '../utils/notifications';
 
 interface ProgramareActivitatiProps {
     onBack: () => void;
@@ -178,6 +179,35 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ onBa
         try {
             const { error } = await supabase.from('program_antrenamente').update({ is_activ: !currentStatus }).eq('id', id);
             if (error) throw error;
+            
+            const antrenament = antrenamente.find(a => a.id === id);
+            
+            // If training was cancelled (deactivated)
+            if (currentStatus === true && antrenament) {
+                // Fetch sportivi in this group
+                const { data: sportiviInGrupa } = await supabase
+                    .from('sportivi')
+                    .select('user_id')
+                    .eq('grupa_id', antrenament.grupa_id)
+                    .eq('status', 'Activ');
+                
+                if (sportiviInGrupa && sportiviInGrupa.length > 0) {
+                    const notifications = sportiviInGrupa
+                        .filter(s => s.user_id)
+                        .map(s => ({
+                            recipient_user_id: s.user_id!,
+                            title: 'Antrenament Anulat',
+                            body: `Antrenamentul din data de ${new Date(antrenament.data).toLocaleDateString('ro-RO')} (${antrenament.ora_start}) a fost anulat.`,
+                            type: 'antrenament',
+                            metadata: { antrenament_id: id }
+                        }));
+                    
+                    if (notifications.length > 0) {
+                        await sendBulkNotifications(notifications);
+                    }
+                }
+            }
+
             setAntrenamente(prev => prev.map(a => a.id === id ? { ...a, is_activ: !currentStatus } : a));
             showSuccess("Succes", `Antrenamentul a fost ${!currentStatus ? 'activat' : 'dezactivat'}.`);
         } catch (err: any) {

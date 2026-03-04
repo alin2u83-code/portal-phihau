@@ -19,20 +19,20 @@ export const Button: React.FC<ButtonProps & { as?: 'label', htmlFor?: string }> 
   htmlFor,
   ...props 
 }) => {
-  const baseClasses = "rounded-md font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center shadow-sm text-sm whitespace-nowrap";
+  const baseClasses = "inline-flex items-center justify-center rounded-xl font-medium transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed text-sm whitespace-nowrap";
   
   const sizeClasses = {
-    sm: "px-3 py-1.5 text-xs h-11",
-    md: "px-4 py-2.5 text-sm h-11",
+    sm: "px-3 py-1.5 text-xs",
+    md: "px-4 py-2",
   };
   
   const variantClasses = {
-    primary: "bg-[#3D3D99] hover:bg-[#2E2E7A] focus:ring-[#3D3D99] text-white font-bold",
-    secondary: "bg-[#4DBCE9] hover:bg-[#3AA8D1] focus:ring-[#4DBCE9] text-white hover:shadow-glow-secondary",
-    danger: "bg-status-danger hover:bg-red-700 focus:ring-red-500 text-white",
-    success: "bg-green-600 hover:bg-green-700 focus:ring-green-600 text-white font-bold",
-    info: "bg-[var(--accent)] hover:bg-[var(--accent-hover)] focus:ring-[var(--accent)] text-white hover:shadow-glow-blue",
-    warning: "bg-status-warning hover:bg-amber-600 focus:ring-amber-500 text-white hover:shadow-glow-blue hover:scale-105 active:ring-2 active:ring-white",
+    primary: "bg-indigo-600 hover:bg-indigo-700 text-white focus:ring-indigo-500",
+    secondary: "bg-slate-700 hover:bg-slate-600 text-white focus:ring-slate-500",
+    danger: "bg-rose-600 hover:bg-rose-700 text-white focus:ring-rose-500",
+    success: "bg-emerald-600 hover:bg-emerald-700 text-white focus:ring-emerald-500",
+    info: "bg-sky-600 hover:bg-sky-700 text-white focus:ring-sky-500",
+    warning: "bg-amber-600 hover:bg-amber-700 text-white focus:ring-amber-500",
   };
 
   const finalClassName = `${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${className}`;
@@ -49,22 +49,14 @@ export const Button: React.FC<ButtonProps & { as?: 'label', htmlFor?: string }> 
 
   if (as === 'label') {
     return (
-      <label 
-        htmlFor={htmlFor} 
-        className={`${finalClassName} ${(disabled || isLoading) ? 'opacity-50 cursor-not-allowed' : ''}`}
-        {...(props as any)}
-      >
+      <label htmlFor={htmlFor} className={`${finalClassName} ${(disabled || isLoading) ? 'opacity-50 cursor-not-allowed' : ''}`} {...(props as any)}>
         {content}
       </label>
     );
   }
 
   return (
-    <button 
-      className={finalClassName}
-      disabled={disabled || isLoading}
-      {...props}
-    >
+    <button className={finalClassName} disabled={disabled || isLoading} {...props}>
       {content}
     </button>
   );
@@ -76,7 +68,7 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export const Card: React.FC<CardProps> = ({ children, className, ...props }) => (
-  <div className={`bg-[var(--bg-card)] p-4 rounded-lg border border-[var(--border-color)] shadow-lg shadow-black/20 ${className}`} {...props}>
+  <div className={`bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-sm ${className}`} {...props}>
     {children}
   </div>
 );
@@ -94,17 +86,11 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
   const titleId = React.useId();
 
   return (
-    <div
-      className="fixed inset-0 bg-black/80 z-50 flex sm:items-center sm:justify-center sm:p-4"
-      onClick={() => !persistent && onClose()}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby={titleId}
-    >
-      <div className="bg-[var(--bg-card)] w-full h-full flex flex-col sm:h-auto sm:max-h-[95vh] sm:max-w-2xl sm:rounded-lg sm:border border-[var(--border-color)] shadow-2xl animate-fade-in-down" onClick={(e) => e.stopPropagation()}>
-        <div className="flex justify-between items-center p-3 border-b border-[var(--border-color)]">
+    <div className="fixed inset-0 bg-black/60 z-50 flex sm:items-center sm:justify-center sm:p-4" onClick={() => !persistent && onClose()} role="dialog" aria-modal="true" aria-labelledby={titleId}>
+      <div className="bg-slate-900 border border-slate-700 w-full h-full flex flex-col sm:h-auto sm:max-h-[95vh] sm:max-w-2xl sm:rounded-2xl shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="flex justify-between items-center p-4 border-b border-slate-700">
           <h2 id={titleId} className="text-lg font-bold text-white uppercase tracking-tight">{title}</h2>
-          <button onClick={onClose} className="p-1 text-[var(--text-secondary)] hover:text-white transition-colors">
+          <button onClick={onClose} className="p-1 text-slate-400 hover:text-white transition-colors">
             <XIcon className="w-5 h-5" />
           </button>
         </div>
@@ -122,23 +108,21 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(({ label, id, error, ...props }, ref) => {
-    const errorClasses = error ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-slate-300 focus:ring-[#4DBCE9] focus:border-[#4DBCE9]';
-    const themeClasses = 'bg-[var(--bg-input)] text-[var(--text-primary)] placeholder-[var(--text-secondary)]';
+    const errorClasses = error ? 'border-rose-500 focus:ring-rose-500 focus:border-rose-500' : 'border-slate-700 focus:ring-indigo-500 focus:border-indigo-500';
 
     return (
         <div className="w-full">
-            {label && <label htmlFor={id} className={`block text-[11px] uppercase font-bold text-slate-200 mb-1 ml-1`}>{label}</label>}
+            {label && <label htmlFor={id} className="block text-xs font-bold text-slate-400 mb-1 ml-1 uppercase">{label}</label>}
             <input
                 id={id}
                 ref={ref}
                 {...props}
-                className={`w-full border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 transition-all ${errorClasses} ${themeClasses} ${props.className}`}
+                className={`w-full bg-slate-900 border ${errorClasses} rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 transition-all ${props.className}`}
             />
-            {error && <p className="text-red-400 text-xs mt-1 ml-1">{error}</p>}
+            {error && <p className="text-rose-400 text-xs mt-1 ml-1">{error}</p>}
         </div>
     );
 });
-
 
 interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
     label: string;
@@ -146,8 +130,8 @@ interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
 
 export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(({ label, id, children, ...props }, ref) => (
     <div className="w-full">
-        {label && <label htmlFor={id} className="block text-[11px] uppercase font-bold text-slate-200 mb-1 ml-1">{label}</label>}
-        <select id={id} ref={ref} {...props} className={`w-full bg-[var(--bg-input)] border border-slate-300 rounded px-2 py-1 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[#4DBCE9] focus:border-[#4DBCE9] transition-all appearance-none ${props.className}`}>
+        {label && <label htmlFor={id} className="block text-xs font-bold text-slate-400 mb-1 ml-1 uppercase">{label}</label>}
+        <select id={id} ref={ref} {...props} className={`w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all ${props.className}`}>
             {children}
         </select>
     </div>

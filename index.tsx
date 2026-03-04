@@ -7,6 +7,11 @@ import { BrowserRouter } from 'react-router-dom';
 // Înregistrarea Service Worker-ului este acum gestionată automat de `vite-plugin-pwa`.
 // Codul manual de înregistrare a fost eliminat pentru a preveni conflictele.
 
+import { DataProvider } from './contexts/DataContext';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient();
+
 const rootElement = document.getElementById('root');
 if (!rootElement) {
   throw new Error("Could not find root element to mount to");
@@ -15,10 +20,14 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <ErrorProvider>
-    <React.StrictMode>
-      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <App />
-      </BrowserRouter>
-    </React.StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <DataProvider>
+        <React.StrictMode>
+          <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+            <App />
+          </BrowserRouter>
+        </React.StrictMode>
+      </DataProvider>
+    </QueryClientProvider>
   </ErrorProvider>
 );

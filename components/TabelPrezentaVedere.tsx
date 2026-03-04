@@ -1,17 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { Card, Button, Select } from './ui';
 import { CheckIcon, XIcon } from './icons';
-
-export interface PrezentaVedere {
-    sportiv_id: string;
-    data: string;
-    ora_start: string;
-    status: string;
-    nume_grupa: string;
-}
+import { VederePrezentaSportiv } from '../types';
 
 interface TabelPrezentaVedereProps {
-    istoricPrezenta: PrezentaVedere[];
+    istoricPrezenta: VederePrezentaSportiv[];
     loading?: boolean;
 }
 

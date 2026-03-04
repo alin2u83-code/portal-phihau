@@ -3,7 +3,7 @@ import { supabase } from '../supabaseClient';
 import { 
     Sportiv, SesiuneExamen, Grad, InscriereExamen, Antrenament, Grupa, Plata, 
     Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, 
-    Rol, AnuntPrezenta, Reducere, TipPlata, Locatie, Club, DecontFederatie, IstoricGrade, VizualizarePlata, IstoricPlataDetaliat
+    Rol, AnuntPrezenta, Reducere, TipPlata, Locatie, Club, DecontFederatie, IstoricGrade, VizualizarePlata, IstoricPlataDetaliat, VederePrezentaSportiv, FilteredData
 } from '../types';
 import { Session, SupabaseClient } from '@supabase/supabase-js';
 import { withCleanUuidFilters } from '../utils/supabaseFilters';
@@ -11,6 +11,9 @@ import { processSettledQueries } from '../utils/supabaseHelpers';
 import { useUserRoles } from './useUserRoles';
 import { useFilteredData } from './useFilteredData';
 import { useAttendanceData } from './useAttendanceData';
+import { useSportivi } from './useSportivi';
+import { usePlati } from './usePlati';
+import { useGrupe } from './useGrupe';
 
 export interface AppData {
     sportivi: Sportiv[];
@@ -34,8 +37,8 @@ export interface AppData {
     deconturiFederatie: DecontFederatie[];
     vizualizarePlati: VizualizarePlata[];
     istoricPlatiDetaliat: IstoricPlataDetaliat[];
-    istoricPrezenta: any[];
-    filteredData?: any; // Add filteredData to interface
+    istoricPrezenta: VederePrezentaSportiv[];
+    filteredData?: FilteredData;
 }
 
 const initialData: AppData = {
@@ -72,6 +75,18 @@ export const useDataProvider = () => {
     const activeClubId = (activeRoleContext?.club_id && activeRoleContext.club_id !== 'null') ? activeRoleContext.club_id : null;
 
     const attendanceData = useAttendanceData(activeClubId);
+
+    // Use custom hooks for data fetching
+    const { data: sportiviData, isLoading: sportiviLoading, error: sportiviError } = useSportivi(activeClubId);
+    const { data: platiData, isLoading: platiLoading, error: platiError } = usePlati(activeClubId);
+    const { data: grupeData, isLoading: grupeLoading, error: grupeError } = useGrupe(activeClubId);
+
+    // Update state when data changes
+    useEffect(() => {
+        if (sportiviData) setData(prev => ({ ...prev, sportivi: sportiviData }));
+        if (platiData) setData(prev => ({ ...prev, plati: platiData }));
+        if (grupeData) setData(prev => ({ ...prev, grupe: grupeData }));
+    }, [sportiviData, platiData, grupeData]);
 
     // Use the filtering hook internally
     const filteredData = useFilteredData({

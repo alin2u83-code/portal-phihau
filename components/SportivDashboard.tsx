@@ -9,113 +9,14 @@ import { GradBadge } from '../utils/grades';
 import { AntrenamenteViitoare } from './AntrenamenteViitoare';
 import { SportivProgressChart, ChartDataPoint } from './SportivProgressChart';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, Cell } from 'recharts';
-import { ShieldCheckIcon } from './icons';
 import { useDataProvider } from '../hooks/useDataProvider';
 import { useAttendanceStats } from '../hooks/useAttendanceStats';
 import { useDashboardPermissions } from '../hooks/useDashboardPermissions';
-
-const VizaMedicalaCard: React.FC<{ plati: Plata[], sportivId: string }> = ({ plati, sportivId }) => {
-    const vizaPlati = plati.filter(p => p.sportiv_id === sportivId && p.tip.toLowerCase().includes('viza') && p.status === 'Achitat');
-    const hasValidViza = vizaPlati.length > 0; // Simplified logic
-
-    return (
-        <Card>
-            <div className="flex items-center gap-4">
-                <div className={`p-3 rounded-full ${hasValidViza ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                    <ShieldCheckIcon className="w-8 h-8" />
-                </div>
-                <div>
-                    <h3 className="text-lg font-bold text-white">Viza Medicală</h3>
-                    <p className={`text-sm font-medium ${hasValidViza ? 'text-green-400' : 'text-red-400'}`}>
-                        {hasValidViza ? 'Valabilă' : 'Expirată sau Inexistentă'}
-                    </p>
-                </div>
-            </div>
-        </Card>
-    );
-};
+import { VizaMedicalaCard } from './SportivDashboard/VizaMedicalaCard';
+import { TrainingActionCard, AnuntStatus } from './SportivDashboard/TrainingActionCard';
+import { HistoryModal } from './SportivDashboard/HistoryModal';
 
 const getGrad = (gradId: string | null, allGrades: Grad[]) => gradId ? allGrades.find(g => g.id === gradId) : null;
-
-type AnuntStatus = 'Confirm' | 'Intarziat' | 'Absent';
-
-interface TrainingActionCardProps {
-    training: Antrenament;
-    anunt: AnuntPrezenta | undefined;
-    onStatusChange: (trainingId: string, status: AnuntStatus) => Promise<void>;
-    currentUser: User;
-}
-
-const TrainingActionCard: React.FC<TrainingActionCardProps> = ({ training, anunt, onStatusChange, currentUser }) => {
-    const [loading, setLoading] = useState(false);
-    const [optimisticStatus, setOptimisticStatus] = useState<AnuntStatus | null>(null);
-
-    useEffect(() => {
-        setOptimisticStatus(anunt?.status || null);
-    }, [anunt]);
-
-    const handleClick = async (status: AnuntStatus) => {
-        setLoading(true);
-        setOptimisticStatus(status);
-        try {
-            await onStatusChange(training.id, status);
-        } catch (e) {
-            setOptimisticStatus(anunt?.status || null);
-        } finally {
-            setLoading(false);
-        }
-    };
-    
-    const getStyling = (status: AnuntStatus) => {
-        const baseClasses = ['font-bold', 'gap-2', 'text-sm', 'flex-1', 'py-3'];
-        const currentStatus = optimisticStatus;
-        const isSelected = currentStatus === status;
-        const isInactive = currentStatus !== null && !isSelected;
-
-        if (isSelected) {
-            baseClasses.push('ring-2', 'ring-white', 'ring-offset-2', 'ring-offset-[var(--bg-card)]', 'scale-[1.02]');
-        }
-        if (isInactive) {
-            baseClasses.push('opacity-50', 'hover:opacity-100');
-        }
-        
-        const variant: 'success' | 'warning' | 'danger' = status === 'Confirm' ? 'success' : status === 'Intarziat' ? 'warning' : 'danger';
-
-        return { variant, className: baseClasses.join(' '), isSelected };
-    };
-
-    const ActionButton: React.FC<{ status: AnuntStatus; children: React.ReactNode; }> = ({ status, children }) => {
-        const { variant, className, isSelected } = getStyling(status);
-        return (
-            <Button onClick={() => handleClick(status)} variant={variant} className={className} disabled={loading || !currentUser?.id}>
-                {children}
-                {status === 'Confirm' ? 
-                    <CheckIcon className="w-4 h-4 ml-1 text-white" /> :
-                    (isSelected && <CheckIcon className="w-4 h-4 ml-1" />)
-                }
-            </Button>
-        );
-    };
-
-    return (
-        <Card className="bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700 shadow-lg">
-            <div className="flex items-center gap-3 mb-4">
-                <div className="p-3 bg-blue-500/20 rounded-full">
-                    <CalendarDaysIcon className="w-6 h-6 text-blue-400" />
-                </div>
-                <div>
-                    <h3 className="text-lg font-bold text-white">Antrenament Azi</h3>
-                    <p className="text-sm text-slate-400">Ora: {new Date(training.data + 'T' + training.ora_start).toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' })}</p>
-                </div>
-            </div>
-            <div className="flex flex-row gap-2">
-                <ActionButton status="Confirm">Particip</ActionButton>
-                <ActionButton status="Intarziat">Întârzii</ActionButton>
-                <ActionButton status="Absent">Absent</ActionButton>
-            </div>
-        </Card>
-    );
-};
 
 interface SportivDashboardProps {
   currentUser: User;
@@ -138,45 +39,6 @@ interface SportivDashboardProps {
   isSwitchingRole: boolean;
   isAdminView?: boolean;
 }
-
-// --- History Modal ---
-const HistoryModal: React.FC<{ isOpen: boolean; onClose: () => void; istoric: any[] }> = ({ isOpen, onClose, istoric }) => {
-    return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Istoric Complet Prezențe">
-            <div className="max-h-[60vh] overflow-y-auto pr-2">
-                {istoric.length === 0 ? (
-                    <p className="text-slate-400 text-center py-8">Nu există date.</p>
-                ) : (
-                    <table className="w-full text-left text-sm">
-                        <thead className="bg-slate-800 text-slate-400 sticky top-0">
-                            <tr>
-                                <th className="p-3">Data</th>
-                                <th className="p-3">Ora</th>
-                                <th className="p-3">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-700">
-                            {istoric.map((row) => (
-                                <tr key={row.id || `${row.data}-${row.ora_start}`} className="hover:bg-slate-700/50">
-                                    <td className="p-3 text-white">{new Date(row.data).toLocaleDateString('ro-RO')}</td>
-                                    <td className="p-3 text-slate-300">{row.ora_start}</td>
-                                    <td className="p-3">
-                                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${row.status?.toLowerCase() === 'prezent' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                                            {row.status}
-                                        </span>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                )}
-            </div>
-            <div className="mt-4 flex justify-end">
-                <Button onClick={onClose} variant="secondary">Închide</Button>
-            </div>
-        </Modal>
-    );
-};
 
 export const SportivDashboard: React.FC<SportivDashboardProps> = ({
     currentUser, viewedUser, participari, examene, grade, istoricGrade, grupe,

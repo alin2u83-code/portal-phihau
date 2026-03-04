@@ -9,6 +9,7 @@ import { useCalendarView } from '../hooks/useCalendarView';
 import { AntrenamentForm } from './AntrenamentForm';
 import { useAttendanceData } from '../hooks/useAttendanceData';
 import { GeneratorProgramMasiv } from './GeneratorProgramMasiv';
+import { useData } from '../contexts/DataContext';
 
 type View = 'grupe' | 'orar' | 'calendar' | 'prezenta' | 'istoric-global' | 'prezenta-azi' | 'prezenta-azi-global' | 'generator-masiv';
 interface ViewState { view: View; id: string | null; }
@@ -577,7 +578,8 @@ const IstoricPrezentaGlobal: React.FC<{ onBack: () => void, onViewSportiv?: (s: 
 };
 
 // --- Componenta Principală de Navigare ---
-export const Prezenta: React.FC<{ onBack: () => void; currentUser: User; onViewSportiv?: (s: Sportiv) => void }> = ({ onBack, currentUser, onViewSportiv }) => {
+export const Prezenta: React.FC<{ onBack: () => void; onViewSportiv?: (s: Sportiv) => void }> = ({ onBack, onViewSportiv }) => {
+    const { currentUser } = useData();
     const [viewStack, setViewStack] = useState<ViewState[]>([{ view: 'prezenta-azi-global', id: null }]);
     const [grupe, setGrupe] = useState<(Grupa & { program: ProgramItem[], sportivi_count: {count: number}[] })[]>([]);
     const [antrenamentDetaliu, setAntrenamentDetaliu] = useState<(Antrenament & { grupe: Grupa & { sportivi: Sportiv[] }}) | null>(null);

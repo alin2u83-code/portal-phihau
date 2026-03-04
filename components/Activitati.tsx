@@ -4,11 +4,9 @@ import { Button, Card, Input, Select } from './ui';
 import { ArrowLeftIcon, CalendarDaysIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
+import { useData } from '../contexts/DataContext';
 
 interface ProgramareActivitatiProps {
-    grupe: Grupa[];
-    antrenamente: Antrenament[];
-    setAntrenamente: React.Dispatch<React.SetStateAction<Antrenament[]>>;
     onBack: () => void;
 }
 
@@ -27,7 +25,11 @@ interface PreviewInstance {
     isConflict: boolean;
 }
 
-export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ grupe, antrenamente, setAntrenamente, onBack }) => {
+export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ onBack }) => {
+    const { filteredData, setAntrenamente } = useData();
+    const grupe = filteredData.grupe;
+    const antrenamente = filteredData.antrenamente;
+    
     const [formState, setFormState] = useState({
         grupaId: '',
         programId: '', // Composite key: 'ziua-ora_start'

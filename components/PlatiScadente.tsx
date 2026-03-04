@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { Plata, Sportiv, TipAbonament, Familie, Tranzactie, Reducere, User, Club, Permissions, InscriereExamen, Grad } from '../types';
+import React, { useState, useMemo } from 'react';
+import { Plata, Sportiv, Permissions } from '../types';
 import { Button, Input, Select, Card, Modal } from './ui';
 import { EditIcon, ArrowLeftIcon, TrashIcon, BanknotesIcon, SearchIcon, BellIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -8,28 +8,27 @@ import { sendBulkNotifications } from '../utils/notifications';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
+import { useData } from '../contexts/DataContext';
 
 interface PlatiScadenteProps { 
-    plati: Plata[]; 
-    setPlati: React.Dispatch<React.SetStateAction<Plata[]>>; 
-    sportivi: Sportiv[]; 
-    familii: Familie[]; 
-    tipuriAbonament: TipAbonament[];
-    tranzactii: Tranzactie[];
-    reduceri: Reducere[];
     onIncaseazaMultiple: (plati: Plata[]) => void;
     onBack: () => void;
     onViewSportiv: (sportiv: Sportiv) => void;
-    currentUser: User;
-    clubs: Club[];
     permissions: Permissions;
-    inscrieriExamene: InscriereExamen[];
-    grade: Grad[];
 }
 
 const initialFilters = { sportiv: '', tip: '', status: '', clubId: '' };
 
-export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, sportivi, familii, tipuriAbonament, tranzactii, reduceri, onIncaseazaMultiple, onBack, onViewSportiv, currentUser, clubs, permissions, inscrieriExamene, grade }) => {
+export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultiple, onBack, onViewSportiv, permissions }) => {
+    const { filteredData, setPlati, currentUser, clubs, grade } = useData();
+    const plati = filteredData.plati;
+    const sportivi = filteredData.sportivi;
+    const familii = filteredData.familii;
+    const tipuriAbonament = filteredData.tipuriAbonament;
+    const tranzactii = filteredData.tranzactii;
+    const reduceri = filteredData.reduceri;
+    const inscrieriExamene = filteredData.inscrieriExamene;
+
     const [filter, setFilter] = useLocalStorage('phi-hau-plati-scadente-filter', initialFilters);
     const [editingPlata, setEditingPlata] = useState<Plata | null>(null);
     const [plataToDelete, setPlataToDelete] = useState<Plata | null>(null);
@@ -38,7 +37,6 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ plati, setPlati, s
     const { showError, showSuccess } = useError();
     const [isGenerating, setIsGenerating] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
-    const [viewingHistoryFor, setViewingHistoryFor] = useState<Plata | null>(null);
 
     const balances = useMemo(() => {
         const famBalances = new Map<string, number>();

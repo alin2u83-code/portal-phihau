@@ -12,6 +12,7 @@ import { SportiviMobileList } from './SportiviMobileList';
 import { SportivModals } from './SportivModals';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { useRoleAssignment } from '../hooks/useRoleAssignment';
+import { useData } from '../contexts/DataContext';
 
 const getAge = (dateString: string | null | undefined): number => {
     if (!dateString) return 0;
@@ -30,50 +31,37 @@ const getAge = (dateString: string | null | undefined): number => {
 
 // --- Componenta Management Principală ---
 export const SportiviManagement: React.FC<{
-    sportivi: Sportiv[];
-    setSportivi: React.Dispatch<React.SetStateAction<Sportiv[]>>;
-    grupe: Grupa[];
-    setGrupe: React.Dispatch<React.SetStateAction<Grupa[]>>;
-    tipuriAbonament: TipAbonament[];
-    familii: Familie[];
-    setFamilii: React.Dispatch<React.SetStateAction<Familie[]>>;
-    currentUser: User;
-    plati: Plata[];
-    setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
-    tranzactii: Tranzactie[];
-    setTranzactii: React.Dispatch<React.SetStateAction<Tranzactie[]>>;
     onViewSportiv: (sportiv: Sportiv) => void;
-    clubs: Club[];
-    grade: Grad[];
     permissions: Permissions;
-    allRoles: Rol[];
-    setAllRoles: React.Dispatch<React.SetStateAction<Rol[]>>;
-    vizualizarePlati: VizualizarePlata[];
-    loading?: boolean;
     onBack: () => void;
 }> = (props) => {
     const { 
-        sportivi = [], 
-        setSportivi, 
-        grupe = [], 
-        setGrupe, 
-        tipuriAbonament = [], 
-        familii = [], 
-        setFamilii, 
-        currentUser, 
-        plati = [], 
-        setPlati, 
-        tranzactii = [], 
-        setTranzactii, 
         onViewSportiv, 
-        clubs = [], 
-        grade = [], 
         permissions, 
-        allRoles = [], 
-        setAllRoles, 
-        vizualizarePlati = [], 
-        loading 
+        onBack 
     } = props;
+
+    const {
+        setSportivi,
+        setGrupe,
+        setFamilii,
+        currentUser,
+        setPlati,
+        setTranzactii,
+        clubs = [],
+        grade = [],
+        allRoles = [], setAllRoles,
+        loading,
+        filteredData
+    } = useData();
+
+    const sportivi = filteredData.sportivi;
+    const grupe = filteredData.grupe;
+    const familii = filteredData.familii;
+    const plati = filteredData.plati;
+    const tranzactii = filteredData.tranzactii;
+    const vizualizarePlati = filteredData.vizualizarePlati;
+    const tipuriAbonament = filteredData.tipuriAbonament;
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
     const [sportivToEdit, setSportivToEdit] = useState<Sportiv | null>(null);
     const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);

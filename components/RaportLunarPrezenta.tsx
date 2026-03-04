@@ -3,6 +3,7 @@ import { Sportiv, Grupa, Antrenament, Grad } from '../types';
 import { Card, Select, Button } from './ui';
 import { ArrowLeftIcon, DocumentArrowDownIcon, ExclamationTriangleIcon } from './icons';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useData } from '../contexts/DataContext';
 
 // Functie helper pentru export CSV, inclusa local pentru a evita crearea de fisiere noi
 const exportToCsv = (filename: string, rows: object[]) => {
@@ -51,14 +52,15 @@ interface ReportRow {
 }
 
 interface RaportLunarPrezentaProps {
-    sportivi: Sportiv[];
-    grupe: Grupa[];
-    antrenamente: Antrenament[];
-    grade: Grad[];
     onBack: () => void;
 }
 
-export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ sportivi, grupe, antrenamente, grade, onBack }) => {
+export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack }) => {
+    const { filteredData, grade } = useData();
+    const sportivi = filteredData.sportivi;
+    const grupe = filteredData.grupe;
+    const antrenamente = filteredData.antrenamente;
+    
     const today = new Date();
     const [filters, setFilters] = useLocalStorage('phi-hau-raport-lunar-filters', {
         month: today.getMonth(),

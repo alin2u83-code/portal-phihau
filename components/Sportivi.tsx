@@ -147,7 +147,7 @@ export const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
             finalValue = value;
         }
 
-        updatedData[name as keyof Sportiv] = finalValue;
+        (updatedData as any)[name] = finalValue;
         
         if (name === 'club_id') {
             const currentGroup = grupe.find(g => g.id === updatedData.grupa_id);

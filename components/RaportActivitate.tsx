@@ -5,10 +5,12 @@ import { useError } from './ErrorProvider';
 import { Card, Button, Input, Switch } from './ui';
 import { ArrowLeftIcon, DocumentArrowDownIcon } from './icons';
 import { exportToCsv } from '../utils/csv';
+import { useData } from '../contexts/DataContext';
 
 type SortKey = keyof RaportActivitateRecord;
 
-export const RaportActivitate: React.FC<{ onBack: () => void, currentUser: User }> = ({ onBack, currentUser }) => {
+export const RaportActivitate: React.FC<{ onBack: () => void }> = ({ onBack }) => {
+    const { currentUser } = useData();
     const [data, setData] = useState<RaportActivitateRecord[]>([]);
     const [loading, setLoading] = useState(true);
     const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: 'asc' | 'desc' }>({ key: 'nume_complet', direction: 'asc' });

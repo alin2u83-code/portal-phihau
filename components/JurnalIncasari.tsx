@@ -6,6 +6,7 @@ import { ArrowLeftIcon, PlusIcon, TrashIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
+import { useData } from '../contexts/DataContext';
 
 const QuickAddTipPlataModal: React.FC<{ 
   isOpen: boolean; 

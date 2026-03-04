@@ -5,6 +5,7 @@ import { useError } from './ErrorProvider';
 import { Card, Button, Select } from './ui';
 import { ArrowLeftIcon, UserPlusIcon, XIcon, CheckCircleIcon } from './icons';
 import { GradBadge, getGradBorderColor } from '../utils/grades';
+import { useData } from '../contexts/DataContext';
 
 interface TrainingWithGroupAndAthletes extends Omit<Antrenament, 'grupe' | 'prezenta'> {
     grupe: (Grupa & { sportivi: Sportiv[] }) | null;
@@ -182,13 +183,12 @@ const TrainingCard: React.FC<TrainingCardProps> = ({ training, allClubSportivi, 
 interface InstructorPrezentaPageProps {
     onBack: () => void;
     onNavigate: (view: any) => void;
-    allClubSportivi: Sportiv[];
-    currentUser: User;
-    grade: Grad[];
     onViewSportiv?: (s: Sportiv) => void;
 }
 
-export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ onBack, onNavigate, allClubSportivi, currentUser, grade, onViewSportiv }) => {
+export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ onBack, onNavigate, onViewSportiv }) => {
+    const { filteredData, grade } = useData();
+    const allClubSportivi = filteredData.sportivi;
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [trainings, setTrainings] = useState<TrainingWithGroupAndAthletes[]>([]);
     const [loading, setLoading] = useState(true);

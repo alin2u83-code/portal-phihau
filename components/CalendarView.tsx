@@ -1,11 +1,11 @@
-import React, { useState, useMemo, useCallback } from 'react';
-import { Antrenament, SesiuneExamen, Grupa, Locatie, Eveniment, View, User, Sportiv, Rezultat, Plata, PretConfig, Rol, Permissions } from '../types';
-import { Button, Modal, Input, Select } from './ui';
+import React, { useState, useMemo } from 'react';
+import { Eveniment, View, Sportiv, Rezultat, Plata, Permissions } from '../types';
+import { Button, Modal, Input } from './ui';
 import { ArrowLeftIcon, ChevronLeftIcon, ChevronRightIcon, PlusIcon } from './icons';
 import { useError } from './ErrorProvider';
 import { getPretValabil } from '../utils/pricing';
 import { supabase } from '../supabaseClient';
-
+import { useData } from '../contexts/DataContext';
 
 interface CalendarEvent {
   id: string;
@@ -82,7 +82,7 @@ const BulkRegistrationModal: React.FC<BulkRegistrationModalProps> = ({ isOpen, o
 
 interface EventActionsProps {
     event: CalendarEvent;
-    currentUser: User;
+    currentUser: any;
     rezultate: Rezultat[];
     clubSportivi: Sportiv[];
     onSingleRegister: (event: Eveniment) => Promise<void>;
@@ -133,24 +133,19 @@ const EventActions: React.FC<EventActionsProps> = ({ event, currentUser, rezulta
 
 
 interface CalendarViewProps {
-    antrenamente: Antrenament[];
-    sesiuniExamene: SesiuneExamen[];
-    evenimente: Eveniment[];
-    grupe: Grupa[];
-    locatii: Locatie[];
     onBack: () => void;
     onNavigate: (view: View) => void;
-    currentUser: User;
-    sportivi: Sportiv[];
-    rezultate: Rezultat[];
-    setRezultate: React.Dispatch<React.SetStateAction<Rezultat[]>>;
-    plati: Plata[];
-    setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
-    preturiConfig: PretConfig[];
     permissions: Permissions;
 }
 
-export const CalendarView: React.FC<CalendarViewProps> = ({ antrenamente, sesiuniExamene, evenimente, grupe, locatii, onBack, onNavigate, currentUser, sportivi, rezultate, setRezultate, plati, setPlati, preturiConfig, permissions }) => {
+export const CalendarView: React.FC<CalendarViewProps> = ({ onBack, onNavigate, permissions }) => {
+    const { filteredData, locatii, currentUser, setRezultate, setPlati, preturiConfig } = useData();
+    const antrenamente = filteredData.antrenamente;
+    const sesiuniExamene = filteredData.sesiuniExamene;
+    const evenimente = filteredData.evenimente;
+    const sportivi = filteredData.sportivi;
+    const rezultate = filteredData.rezultate;
+
     const [currentDate, setCurrentDate] = useState(new Date());
     const { showError, showSuccess } = useError();
     const [modalEvent, setModalEvent] = useState<Eveniment | null>(null);
@@ -166,6 +161,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ antrenamente, sesiun
 
     const handleSingleRegistration = async (event: Eveniment) => {
         if (!supabase) { showError("Eroare Configurare", "Client Supabase neconfigurat."); return; }
+        if (!currentUser) return;
         const taxaConfig = getPretValabil(preturiConfig, event.tip === 'Stagiu' ? 'Taxa Stagiu' : 'Taxa Competitie', event.data);
         const newRezultat: Omit<Rezultat, 'id'> = { sportiv_id: currentUser.id, eveniment_id: event.id, rezultat: 'Participare' };
 

@@ -4,11 +4,9 @@ import { Card, Input, Select, Button } from './ui';
 import { ArrowLeftIcon, ExclamationTriangleIcon } from './icons';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell } from 'recharts';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useData } from '../contexts/DataContext';
 
 interface RaportPrezentaProps {
-    antrenamente: Antrenament[];
-    sportivi: Sportiv[];
-    grupe: Grupa[];
     onBack: () => void;
     onViewSportiv: (sportiv: Sportiv) => void;
 }
@@ -31,7 +29,12 @@ const initialFilters: RaportFilters = {
 
 const GROUP_COLORS = ['#4DBCE9', '#3D3D99', '#16a34a', '#f59e0b', '#dc2626', '#8b5cf6', '#ec4899', '#64748b'];
 
-export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ antrenamente, sportivi, grupe, onBack, onViewSportiv }) => {
+export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSportiv }) => {
+    const { filteredData } = useData();
+    const antrenamente = filteredData.antrenamente;
+    const sportivi = filteredData.sportivi;
+    const grupe = filteredData.grupe;
+
     const [filters, setFilters] = useLocalStorage('phi-hau-raport-prezenta-filters', initialFilters);
 
     const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {

@@ -5,6 +5,7 @@ import { PlusIcon, TrashIcon, EditIcon, ArrowLeftIcon, UsersIcon } from './icons
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
+import { useData } from '../contexts/DataContext';
 
 // Interfață extinsă pentru datele aduse din Supabase
 interface GrupaWithDetails extends GrupaType {
@@ -135,44 +136,17 @@ const GrupaCard: React.FC<{ grupa: GrupaWithDetails; onEdit: (g: GrupaWithDetail
 // Componenta Principală
 interface GrupeManagementProps { 
     onBack: () => void; 
-    currentUser: User;
-    clubs: Club[];
-    // Următoarele props sunt menținute pentru compatibilitate cu App.tsx, dar nu sunt utilizate activ.
-    grupe: GrupaType[];
-    setGrupe: React.Dispatch<React.SetStateAction<GrupaType[]>>;
-    sportivi: Sportiv[];
 }
-export const GrupeManagement: React.FC<GrupeManagementProps> = ({ onBack, currentUser, clubs }) => {
-    const [grupe, setGrupe] = useState<GrupaWithDetails[]>([]);
-    const [loading, setLoading] = useState(true);
+export const GrupeManagement: React.FC<GrupeManagementProps> = ({ onBack }) => {
+    const { currentUser, clubs, grupe, setGrupe } = useData();
+    const [loading, setLoading] = useState(false); // Keep loading state if needed, or use loading from useData
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [grupaToEdit, setGrupaToEdit] = useState<GrupaWithDetails | null>(null);
     const [grupaToDelete, setGrupaToDelete] = useState<GrupaWithDetails | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const { showError, showSuccess } = useError();
 
-    useEffect(() => {
-        const fetchGrupe = async () => {
-            if (!supabase) {
-                showError("Eroare Configurare", "Clientul Supabase nu este inițializat.");
-                setLoading(false);
-                return;
-            }
-            setLoading(true);
-            const { data, error } = await supabase
-                .from('grupe')
-                .select('*, sportivi(count), program:orar_saptamanal!grupa_id(*)');
-
-            if (error) {
-                console.error('DEBUG:', error);
-                showError("Eroare la încărcarea grupelor", error.message);
-            } else {
-                setGrupe(data as GrupaWithDetails[]);
-            }
-            setLoading(false);
-        };
-        fetchGrupe();
-    }, [showError]);
+    // Remove useEffect for fetching grupe, as it's now in DataContext
 
     const handleSave = async (grupaData: GrupaWithDetails) => {
         const { program, sportivi, ...grupaInfo } = grupaData;
@@ -196,7 +170,7 @@ export const GrupeManagement: React.FC<GrupeManagementProps> = ({ onBack, curren
                 }
             }
             const { data: newProgramItems } = await supabase.from('orar_saptamanal').select('*').eq('grupa_id', grupaToEdit.id);
-            if (updatedGrupa) setGrupe(prev => prev.map(g => g.id === grupaToEdit.id ? { ...g, ...updatedGrupa, program: newProgramItems || [] } : g));
+            if (updatedGrupa) setGrupe(prev => (prev as GrupaWithDetails[]).map(g => g.id === grupaToEdit.id ? { ...g, ...updatedGrupa, program: newProgramItems || [] } : g));
             showSuccess("Succes", "Grupa a fost actualizată.");
         } else { // CREATE
             const { data: newGrupa, error: grupaError } = await supabase.from('grupe').insert(grupaDbPayload).select().single();
@@ -211,7 +185,7 @@ export const GrupeManagement: React.FC<GrupeManagementProps> = ({ onBack, curren
             }
             if (newGrupa) {
                 const { data: finalGrupa } = await supabase.from('grupe').select('*, sportivi(count), program:orar_saptamanal!grupa_id(*)').eq('id', newGrupa.id).single();
-                setGrupe(prev => [...prev, finalGrupa as GrupaWithDetails]);
+                setGrupe(prev => [...(prev as GrupaWithDetails[]), finalGrupa as GrupaWithDetails]);
                 showSuccess("Succes", "Grupa a fost creată.");
             }
         }
@@ -221,7 +195,7 @@ export const GrupeManagement: React.FC<GrupeManagementProps> = ({ onBack, curren
     const handleOpenEdit = (grupa: GrupaWithDetails) => { setGrupaToEdit(grupa); setIsModalOpen(true); };
     
     const confirmDelete = async (grupaId: string) => {
-        const grupa = grupe.find(g => g.id === grupaId);
+        const grupa = (grupe as GrupaWithDetails[]).find(g => g.id === grupaId);
         if ((grupa?.sportivi?.[0]?.count ?? 0) > 0) {
             showError("Ștergere Blocată", "Grupa are sportivi activi și nu poate fi ștearsă.");
             setGrupaToDelete(null);
@@ -234,14 +208,12 @@ export const GrupeManagement: React.FC<GrupeManagementProps> = ({ onBack, curren
             console.error('DEBUG:', grupaError);
             showError("Eroare la ștergerea grupei", grupaError); 
         }
-        else { setGrupe(prev => prev.filter(g => g.id !== grupaId)); showSuccess("Succes", "Grupa a fost ștearsă."); }
+        else { setGrupe(prev => (prev as GrupaWithDetails[]).filter(g => g.id !== grupaId)); showSuccess("Succes", "Grupa a fost ștearsă."); }
         setIsDeleting(false);
         setGrupaToDelete(null);
     };
 
-    if (loading) {
-        return <div className="text-center p-8">Se încarcă grupele...</div>;
-    }
+    // Remove loading check if not needed
     
     return (
         <div className="space-y-6">
@@ -251,7 +223,7 @@ export const GrupeManagement: React.FC<GrupeManagementProps> = ({ onBack, curren
             </div>
             {grupe.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {grupe.map(grupa => (
+                    {(grupe as GrupaWithDetails[]).map(grupa => (
                         <GrupaCard key={grupa.id} grupa={grupa} onEdit={handleOpenEdit} onDelete={setGrupaToDelete} />
                     ))}
                 </div>

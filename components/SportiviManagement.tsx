@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { supabase } from '../supabaseClient';
 import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions, VizualizarePlata } from '../types';
 import { Button } from './ui';
-import { PlusIcon } from './icons';
+import { PlusIcon, UploadCloudIcon } from './icons';
 import { adaugaSportiv, actualizeazaSportiv } from '../services/sportivService';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
@@ -11,6 +11,7 @@ import { SportiviFilter } from './SportiviFilter';
 import { SportiviTable } from './SportiviTable';
 import { SportiviMobileList } from './SportiviMobileList';
 import { SportivModals } from './SportivModals';
+import { ImportSportiviModal } from './ImportSportiviModal';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { useRoleAssignment } from '../hooks/useRoleAssignment';
 import { useData } from '../contexts/DataContext';
@@ -70,6 +71,7 @@ export const SportiviManagement: React.FC<{
     const [selectedSportivForHighlight, setSelectedSportivForHighlight] = useState<Sportiv | null>(null);
     const [accountSettingsSportiv, setAccountSettingsSportiv] = useState<Sportiv | null>(null);
     const [sportivToDelete, setSportivToDelete] = useState<Sportiv | null>(null);
+    const [isImportModalOpen, setIsImportModalOpen] = useState(false);
     
     // Stări noi pentru modalul de creare cont
     const [sportivForAccountCreation, setSportivForAccountCreation] = useState<Sportiv | null>(null);
@@ -290,9 +292,14 @@ export const SportiviManagement: React.FC<{
             <div className="flex justify-between items-center gap-4">
                 <h1 className="text-2xl font-bold text-white uppercase tracking-tight">Management Sportivi</h1>
                 {permissions.hasAdminAccess && (
-                    <Button variant="primary" onClick={() => { setSportivToEdit(null); setIsFormModalOpen(true); }}>
-                        <PlusIcon className="w-5 h-5 mr-1"/> Adaugă Sportiv
-                    </Button>
+                    <div className="flex gap-2">
+                        <Button variant="secondary" onClick={() => setIsImportModalOpen(true)}>
+                            <UploadCloudIcon className="w-5 h-5 mr-1"/> Import CSV
+                        </Button>
+                        <Button variant="primary" onClick={() => { setSportivToEdit(null); setIsFormModalOpen(true); }}>
+                            <PlusIcon className="w-5 h-5 mr-1"/> Adaugă Sportiv
+                        </Button>
+                    </div>
                 )}
             </div>
 
@@ -330,6 +337,17 @@ export const SportiviManagement: React.FC<{
                     requestSort={requestSort}
                 />
             )}
+
+            <ImportSportiviModal
+                isOpen={isImportModalOpen}
+                onClose={() => setIsImportModalOpen(false)}
+                onImportComplete={() => {
+                    setIsImportModalOpen(false);
+                    window.location.reload();
+                }}
+                currentUser={currentUser!}
+                clubs={clubs}
+            />
 
             <SportivModals
                 isFormModalOpen={isFormModalOpen}

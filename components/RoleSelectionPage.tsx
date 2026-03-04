@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Card, Button } from './ui';
-import { Shield, User, Users, GraduationCap, CheckCircle2, LogOut, ChevronRight } from 'lucide-react';
+import { Shield, User, Users, CheckCircle2, LogOut, ChevronRight } from 'lucide-react';
 import { Rol } from '../types';
 import { supabase } from '../supabaseClient';
 import { getRoleDisplayName, getRoleDescription, getRoleIcon } from '../hooks/useUserRoles';

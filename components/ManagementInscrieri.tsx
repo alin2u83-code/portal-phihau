@@ -50,15 +50,12 @@ const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps> = ({ isOpen, onC
             .filter(s => s.status === 'Activ' && !inscrisiIds.has(s.id))
             .map(s => {
                 // Eligibility check logic
-                const sixMonthsAgo = new Date();
-                sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-
                 const lastPromotion = (istoricGrade || [])
                     .filter(ig => ig.sportiv_id === s.id)
                     .sort((a, b) => new Date(b.data_obtinere).getTime() - new Date(a.data_obtinere).getTime())[0];
 
                 const lastPromotionDate = lastPromotion ? new Date(lastPromotion.data_obtinere) : new Date(s.data_inscrierii);
-                const isEligible = lastPromotionDate <= sixMonthsAgo;
+                const isEligible = true;
 
                 return {
                     ...s,

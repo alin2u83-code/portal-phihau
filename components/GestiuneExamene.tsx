@@ -65,6 +65,25 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
       ),
   [currentUser.roluri]);
 
+  const filteredSesiuni = useMemo(() => {
+    let filtered = [...(sesiuni || [])];
+
+    if (dateFilter) {
+      filtered = filtered.filter(s => s.data === dateFilter);
+    }
+    if (locationFilter) {
+      filtered = filtered.filter(s => s.locatie_id === locationFilter);
+    }
+    if (clubFilter) {
+      filtered = filtered.filter(s => s.club_id === clubFilter);
+    }
+    if (statusFilter) {
+      filtered = filtered.filter(s => s.status === statusFilter);
+    }
+
+    return filtered.sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+  }, [sesiuni, dateFilter, locationFilter, clubFilter, statusFilter]);
+
   const handleBackToList = () => setSelectedSesiuneId(null);
   
   const handleEditSelected = () => {
@@ -123,25 +142,6 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
         </div>
      );
   }
-
-  const filteredSesiuni = useMemo(() => {
-    let filtered = [...(sesiuni || [])];
-
-    if (dateFilter) {
-      filtered = filtered.filter(s => s.data === dateFilter);
-    }
-    if (locationFilter) {
-      filtered = filtered.filter(s => s.locatie_id === locationFilter);
-    }
-    if (clubFilter) {
-      filtered = filtered.filter(s => s.club_id === clubFilter);
-    }
-    if (statusFilter) {
-      filtered = filtered.filter(s => s.status === statusFilter);
-    }
-
-    return filtered.sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
-  }, [sesiuni, dateFilter, locationFilter, clubFilter, statusFilter]);
 
   const sortedSesiuni = filteredSesiuni;
   return ( 

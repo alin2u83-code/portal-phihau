@@ -8,6 +8,7 @@ import { BrowserRouter } from 'react-router-dom';
 // Codul manual de înregistrare a fost eliminat pentru a preveni conflictele.
 
 import { DataProvider } from './contexts/DataContext';
+import { NavigationProvider } from './contexts/NavigationContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const queryClient = new QueryClient();
@@ -22,11 +23,13 @@ root.render(
   <ErrorProvider>
     <QueryClientProvider client={queryClient}>
       <DataProvider>
-        <React.StrictMode>
-          <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-            <App />
-          </BrowserRouter>
-        </React.StrictMode>
+        <NavigationProvider>
+          <React.StrictMode>
+            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+              <App />
+            </BrowserRouter>
+          </React.StrictMode>
+        </NavigationProvider>
       </DataProvider>
     </QueryClientProvider>
   </ErrorProvider>

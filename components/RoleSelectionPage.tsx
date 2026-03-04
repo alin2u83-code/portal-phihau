@@ -3,45 +3,7 @@ import { Card, Button } from './ui';
 import { Shield, User, Users, GraduationCap, CheckCircle2, LogOut, ChevronRight } from 'lucide-react';
 import { Rol } from '../types';
 import { supabase } from '../supabaseClient';
-
-// --- Helper Functions ---
-const getRoleDisplayName = (role: any) => {
-    switch(role.roluri?.nume) {
-        case 'SUPER_ADMIN_FEDERATIE': return 'Super Admin Federație';
-        case 'ADMIN': return 'Admin General';
-        case 'ADMIN_CLUB': return `Admin - ${role.club?.nume || 'Fără Club'}`;
-        case 'INSTRUCTOR': return `Instructor - ${role.club?.nume || 'Fără Club'}`;
-        case 'SPORTIV': return `Sportiv - ${role.sportiv?.nume || ''} ${role.sportiv?.prenume || ''}`;
-        default: return role.roluri?.nume;
-    }
-};
-
-const getRoleDescription = (role: any) => {
-    switch(role.roluri?.nume) {
-        case 'SUPER_ADMIN_FEDERATIE': return 'Acces total la nivel de federație.';
-        case 'ADMIN': return 'Acces administrativ general.';
-        case 'ADMIN_CLUB': return `Management complet pentru ${role.club?.nume || 'club'}.`;
-        case 'INSTRUCTOR': return `Management sportivi și prezențe la ${role.club?.nume || 'club'}.`;
-        case 'SPORTIV': return 'Accesează portalul personal de sportiv.';
-        default: return 'Selectează acest profil pentru a continua.';
-    }
-}
-
-const getRoleIcon = (roleName: Rol['nume']) => {
-    switch(roleName) {
-        case 'SUPER_ADMIN_FEDERATIE':
-            return Shield;
-        case 'ADMIN':
-        case 'ADMIN_CLUB':
-            return Users;
-        case 'INSTRUCTOR':
-            return GraduationCap;
-        case 'SPORTIV':
-            return User;
-        default:
-            return User;
-    }
-};
+import { getRoleDisplayName, getRoleDescription, getRoleIcon } from '../hooks/useUserRoles';
 
 
 // --- Main Component ---

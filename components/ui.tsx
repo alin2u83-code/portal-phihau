@@ -22,20 +22,20 @@ export const Button: React.FC<ButtonProps & { as?: 'label', htmlFor?: string }> 
   const baseClasses = "inline-flex items-center justify-center rounded-xl font-medium transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed text-sm whitespace-nowrap";
   
   const sizeClasses = {
-    sm: "px-3 py-1.5 text-xs",
-    md: "px-4 py-2",
+    sm: "px-4 py-2 text-sm", // Increased touch target
+    md: "px-6 py-3 text-base", // Larger for mobile
   };
   
   const variantClasses = {
-    primary: "bg-indigo-600 hover:bg-indigo-700 text-white focus:ring-indigo-500",
-    secondary: "bg-slate-700 hover:bg-slate-600 text-white focus:ring-slate-500",
-    danger: "bg-rose-600 hover:bg-rose-700 text-white focus:ring-rose-500",
-    success: "bg-emerald-600 hover:bg-emerald-700 text-white focus:ring-emerald-500",
-    info: "bg-sky-600 hover:bg-sky-700 text-white focus:ring-sky-500",
-    warning: "bg-amber-600 hover:bg-amber-700 text-white focus:ring-amber-500",
+    primary: "bg-indigo-600 hover:bg-indigo-700 text-white focus:ring-indigo-500 shadow-md active:scale-95", // Added active state
+    secondary: "bg-slate-700 hover:bg-slate-600 text-white focus:ring-slate-500 shadow-sm active:scale-95",
+    danger: "bg-rose-600 hover:bg-rose-700 text-white focus:ring-rose-500 shadow-md active:scale-95",
+    success: "bg-emerald-600 hover:bg-emerald-700 text-white focus:ring-emerald-500 shadow-md active:scale-95",
+    info: "bg-sky-600 hover:bg-sky-700 text-white focus:ring-sky-500 shadow-md active:scale-95",
+    warning: "bg-amber-600 hover:bg-amber-700 text-white focus:ring-amber-500 shadow-md active:scale-95",
   };
 
-  const finalClassName = `${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${className}`;
+  const finalClassName = `${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${className} touch-manipulation`; // Added touch-manipulation
 
   const content = isLoading ? (
     <span className="flex items-center gap-2">
@@ -86,15 +86,15 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
   const titleId = React.useId();
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex sm:items-center sm:justify-center sm:p-4" onClick={() => !persistent && onClose()} role="dialog" aria-modal="true" aria-labelledby={titleId}>
-      <div className="bg-slate-900 border border-slate-700 w-full h-full flex flex-col sm:h-auto sm:max-h-[95vh] sm:max-w-2xl sm:rounded-2xl shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <div className="flex justify-between items-center p-4 border-b border-slate-700">
-          <h2 id={titleId} className="text-lg font-bold text-white uppercase tracking-tight">{title}</h2>
-          <button onClick={onClose} className="p-1 text-slate-400 hover:text-white transition-colors">
-            <XIcon className="w-5 h-5" />
+    <div className="fixed inset-0 bg-black/80 z-50 flex items-end sm:items-center sm:justify-center sm:p-4 backdrop-blur-sm" onClick={() => !persistent && onClose()} role="dialog" aria-modal="true" aria-labelledby={titleId}>
+      <div className="bg-slate-900 border-t sm:border border-slate-700 w-full h-[90vh] sm:h-auto sm:max-h-[90vh] sm:max-w-2xl rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col transition-transform transform translate-y-0" onClick={(e) => e.stopPropagation()}>
+        <div className="flex justify-between items-center p-4 sm:p-6 border-b border-slate-700 bg-slate-800/50 rounded-t-2xl sticky top-0 z-10 backdrop-blur-md">
+          <h2 id={titleId} className="text-lg sm:text-xl font-bold text-white uppercase tracking-tight truncate pr-4">{title}</h2>
+          <button onClick={onClose} className="p-2 -mr-2 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-full transition-colors active:scale-95 touch-manipulation">
+            <XIcon className="w-6 h-6" />
           </button>
         </div>
-        <div className="p-4 overflow-y-auto custom-scrollbar">
+        <div className="p-4 sm:p-6 overflow-y-auto custom-scrollbar flex-1 overscroll-contain">
           {children}
         </div>
       </div>
@@ -112,14 +112,14 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(({ label, id
 
     return (
         <div className="w-full">
-            {label && <label htmlFor={id} className="block text-xs font-bold text-slate-400 mb-1 ml-1 uppercase">{label}</label>}
+            {label && <label htmlFor={id} className="block text-xs font-bold text-slate-400 mb-1.5 ml-1 uppercase tracking-wide">{label}</label>}
             <input
                 id={id}
                 ref={ref}
                 {...props}
-                className={`w-full bg-slate-900 border ${errorClasses} rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 transition-all ${props.className}`}
+                className={`w-full bg-slate-900 border ${errorClasses} rounded-xl px-4 py-3 text-base sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 transition-all shadow-sm touch-manipulation appearance-none ${props.className}`}
             />
-            {error && <p className="text-rose-400 text-xs mt-1 ml-1">{error}</p>}
+            {error && <p className="text-rose-400 text-xs mt-1.5 ml-1 font-medium flex items-center gap-1">⚠️ {error}</p>}
         </div>
     );
 });
@@ -130,10 +130,15 @@ interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
 
 export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(({ label, id, children, ...props }, ref) => (
     <div className="w-full">
-        {label && <label htmlFor={id} className="block text-xs font-bold text-slate-400 mb-1 ml-1 uppercase">{label}</label>}
-        <select id={id} ref={ref} {...props} className={`w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all ${props.className}`}>
-            {children}
-        </select>
+        {label && <label htmlFor={id} className="block text-xs font-bold text-slate-400 mb-1.5 ml-1 uppercase tracking-wide">{label}</label>}
+        <div className="relative">
+            <select id={id} ref={ref} {...props} className={`w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-base sm:text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm appearance-none touch-manipulation ${props.className}`}>
+                {children}
+            </select>
+            <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-slate-400">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+            </div>
+        </div>
     </div>
 ));
 

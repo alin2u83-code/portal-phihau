@@ -147,19 +147,19 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
   return ( 
     <div>
       <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-white">Gestiune Sesiuni Examen</h1>
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold text-white">Gestiune Sesiuni Examen</h1>
         {!isReadOnly && (
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
                 {canGenerateInvoice && (
-                    <Button onClick={() => onNavigate('gestiune-facturi')} variant="secondary">
+                    <Button onClick={() => onNavigate('gestiune-facturi')} variant="secondary" className="w-full sm:w-auto justify-center">
                         <FileTextIcon className="w-4 h-4 mr-2" /> Generează Factură Examen
                     </Button>
                 )}
-                 <Button onClick={() => setIsBulkImportModalOpen(true)} variant="info">
+                 <Button onClick={() => setIsBulkImportModalOpen(true)} variant="info" className="w-full sm:w-auto justify-center">
                     <UploadCloudIcon className="w-5 h-5 mr-2" /> Import Bulk Examen
                 </Button>
-                <Button onClick={() => { setSesiuneToEdit(null); setIsFormOpen(true); }} variant="primary">
+                <Button onClick={() => { setSesiuneToEdit(null); setIsFormOpen(true); }} variant="primary" className="w-full sm:w-auto justify-center">
                     <PlusIcon className="w-5 h-5 mr-2" />Adaugă Sesiune
                 </Button>
             </div>

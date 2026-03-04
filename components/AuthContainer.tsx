@@ -143,6 +143,13 @@ export const AuthContainer: React.FC = () => {
         const { data: { user }, error: signUpError } = await supabase.auth.signUp({
             email: form.email,
             password: form.parola,
+            options: {
+                data: {
+                    nume: form.nume,
+                    prenume: form.prenume,
+                    full_name: `${form.prenume} ${form.nume}`
+                }
+            }
         });
 
         if (signUpError) {
@@ -157,46 +164,6 @@ export const AuthContainer: React.FC = () => {
             return;
         }
 
-        const { data: newProfile, error: profileError } = await supabase
-            .from('sportivi')
-            .insert({
-                user_id: user.id,
-                nume: form.nume,
-                prenume: form.prenume,
-                email: form.email,
-                club_id: PHI_HAU_IASI_CLUB_ID,
-                data_nasterii: '1900-01-01',
-                data_inscrierii: new Date().toISOString().split('T')[0],
-                status: 'Activ',
-                trebuie_schimbata_parola: true,
-            }).select().maybeSingle();
-
-        if (profileError) {
-             dispatch({ type: 'SET_MESSAGE', payload: { type: 'error', text: `Contul a fost creat, dar profilul nu a putut fi salvat: ${profileError.message}` } });
-             dispatch({ type: 'SET_LOADING', payload: false });
-             return;
-        }
-
-        if (!newProfile) {
-             dispatch({ type: 'SET_MESSAGE', payload: { type: 'error', text: 'Contul a fost creat, dar profilul nu a putut fi recuperat. Verificați permisiunile.' } });
-             dispatch({ type: 'SET_LOADING', payload: false });
-             return;
-        }
-        
-        const { error: roleError } = await supabase.from('utilizator_roluri_multicont').insert({
-            user_id: user.id,
-            rol_denumire: 'Sportiv',
-            club_id: PHI_HAU_IASI_CLUB_ID,
-            sportiv_id: newProfile.id,
-            is_primary: true
-        });
-        
-        if (roleError) {
-             dispatch({ type: 'SET_MESSAGE', payload: { type: 'error', text: `Profilul a fost creat, dar rolul nu a putut fi atribuit: ${roleError.message}` } });
-             dispatch({ type: 'SET_LOADING', payload: false });
-             return;
-        }
-        
         dispatch({ type: 'SET_MESSAGE', payload: { type: 'success', text: 'Cont creat cu succes! Vă rugăm să verificați email-ul pentru a vă confirma contul.' } });
         dispatch({ type: 'SET_LOADING', payload: false });
     };
@@ -243,22 +210,36 @@ export const AuthContainer: React.FC = () => {
                     )}
 
                     {view === 'login' ? (
-                        <form onSubmit={handleLogin} className="space-y-4">
-                            <Input label="Email sau Nume Utilizator" name="email" type="text" value={form.email} onChange={handleChange} required autoComplete="username" />
-                            <Input label="Parolă" name="parola" type="password" value={form.parola} onChange={handleChange} required autoComplete="current-password" />
-                            <Button type="submit" className="w-full !mt-6" size="md" isLoading={loading} variant="primary">Autentificare</Button>
-                        </form>
-                    ) : (
-                        <form onSubmit={handleSignUp} className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <Input label="Nume" name="nume" type="text" value={form.nume} onChange={handleChange} required autoComplete="family-name" />
-                                <Input label="Prenume" name="prenume" type="text" value={form.prenume} onChange={handleChange} required autoComplete="given-name" />
+                        <div className="space-y-4">
+                            <form onSubmit={handleLogin} className="space-y-4">
+                                <Input label="Email sau Nume Utilizator" name="email" type="text" value={form.email} onChange={handleChange} required autoComplete="username" />
+                                <Input label="Parolă" name="parola" type="password" value={form.parola} onChange={handleChange} required autoComplete="current-password" />
+                                <Button type="submit" className="w-full !mt-6" size="md" isLoading={loading} variant="primary">Autentificare</Button>
+                            </form>
+                            <div className="text-center mt-4">
+                                <button onClick={() => toggleView('signup')} className="text-sm text-amber-400 hover:text-amber-300 font-medium transition-colors">
+                                    Nu ai cont? Înregistrează-te aici
+                                </button>
                             </div>
-                            <Input label="Email" name="email" type="email" value={form.email} onChange={handleChange} required autoComplete="email" />
-                            <Input label="Parolă" name="parola" type="password" value={form.parola} onChange={handleChange} required autoComplete="new-password" />
-                            <Input label="Confirmă Parola" name="confirmParola" type="password" value={form.confirmParola} onChange={handleChange} required autoComplete="new-password" />
-                            <Button type="submit" className="w-full !mt-6" size="md" isLoading={loading} variant="primary">Creează Cont</Button>
-                        </form>
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            <form onSubmit={handleSignUp} className="space-y-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <Input label="Nume" name="nume" type="text" value={form.nume} onChange={handleChange} required autoComplete="family-name" />
+                                    <Input label="Prenume" name="prenume" type="text" value={form.prenume} onChange={handleChange} required autoComplete="given-name" />
+                                </div>
+                                <Input label="Email" name="email" type="email" value={form.email} onChange={handleChange} required autoComplete="email" />
+                                <Input label="Parolă" name="parola" type="password" value={form.parola} onChange={handleChange} required autoComplete="new-password" />
+                                <Input label="Confirmă Parola" name="confirmParola" type="password" value={form.confirmParola} onChange={handleChange} required autoComplete="new-password" />
+                                <Button type="submit" className="w-full !mt-6" size="md" isLoading={loading} variant="primary">Creează Cont</Button>
+                            </form>
+                            <div className="text-center mt-4">
+                                <button onClick={() => toggleView('login')} className="text-sm text-amber-400 hover:text-amber-300 font-medium transition-colors">
+                                    Ai deja cont? Autentifică-te aici
+                                </button>
+                            </div>
+                        </div>
                     )}
                     
 

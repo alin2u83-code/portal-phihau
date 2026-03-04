@@ -39,8 +39,8 @@ export const ComisieEditor: React.FC<{
                     <Input label="" value={newMembru} onChange={e => setNewMembru(e.target.value)} placeholder="Nume și prenume membru..." 
                         onKeyDown={(e) => { if(e.key === 'Enter') { e.preventDefault(); handleAdd(); } }}/>
                 </div>
-                <Button type="button" variant="info" onClick={handleAdd} className="h-[38px] aspect-square p-0" title="Adaugă membru">
-                    <PlusIcon className="w-5 h-5" />
+                <Button type="button" variant="info" onClick={handleAdd} className="h-[50px] w-[50px] !p-0 flex items-center justify-center flex-shrink-0" title="Adaugă membru">
+                    <PlusIcon className="w-6 h-6" />
                 </Button>
             </div>
         </div>

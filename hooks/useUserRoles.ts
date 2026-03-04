@@ -1,16 +1,31 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
 import { Rol } from '../types';
-import { ShieldCheckIcon, UsersIcon, UserCircleIcon } from '../components/icons';
+import { ShieldCheckIcon, UsersIcon, UserCircleIcon, GraduationCapIcon } from '../components/icons';
 
 export const getRoleDisplayName = (role: any): string => {
-    switch(role.roluri?.nume) {
+    if (!role) return 'Nespecificat';
+    const roleName = role.roluri?.nume || role.rol_denumire;
+    switch(roleName) {
         case 'SUPER_ADMIN_FEDERATIE': return 'Super Admin Federație';
         case 'ADMIN': return 'Admin General';
         case 'ADMIN_CLUB': return `Admin - ${role.club?.nume || 'Club Nedefinit'}`;
         case 'INSTRUCTOR': return `Instructor - ${role.club?.nume || 'Club Nedefinit'}`;
         case 'SPORTIV': return `Sportiv - ${role.sportiv?.nume || ''} ${role.sportiv?.prenume || ''}`;
-        default: return role.roluri?.nume;
+        default: return roleName || 'Rol Necunoscut';
+    }
+};
+
+export const getRoleDescription = (role: any): string => {
+    if (!role) return '';
+    const roleName = role.roluri?.nume || role.rol_denumire;
+    switch(roleName) {
+        case 'SUPER_ADMIN_FEDERATIE': return 'Acces total la nivel de federație.';
+        case 'ADMIN': return 'Acces administrativ general.';
+        case 'ADMIN_CLUB': return `Management complet pentru ${role.club?.nume || 'club'}.`;
+        case 'INSTRUCTOR': return `Management sportivi și prezențe la ${role.club?.nume || 'club'}.`;
+        case 'SPORTIV': return 'Accesează portalul personal de sportiv.';
+        default: return 'Selectează acest profil pentru a continua.';
     }
 };
 
@@ -21,7 +36,7 @@ export const getRoleIcon = (roleName: Rol['nume']): React.ElementType => {
         case 'ADMIN_CLUB':
             return ShieldCheckIcon;
         case 'INSTRUCTOR':
-            return UsersIcon;
+            return GraduationCapIcon || UsersIcon;
         case 'SPORTIV':
             return UserCircleIcon;
         default:
@@ -87,6 +102,7 @@ export const useUserRoles = (userId: string | undefined) => {
         refreshRoles: fetchUserRoles,
         setActiveRoleContext,
         getRoleDisplayName,
+        getRoleDescription,
         getRoleIcon
     };
 };

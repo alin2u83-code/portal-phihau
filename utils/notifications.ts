@@ -26,19 +26,10 @@ export const sendNotification = async (payload: NotificationPayload) => {
 
         if (error) throw error;
 
-        // Optionally trigger push notification via Edge Function
-        try {
-            await supabase.functions.invoke('send-push-notifications', {
-                body: { 
-                    title: payload.title, 
-                    body: payload.body,
-                    userId: payload.recipient_user_id
-                },
-            });
-        } catch (pushErr) {
-            console.error('DEBUG: Push notification failed:', pushErr);
-        }
-
+        // In-app notification saved successfully. 
+        // Push notifications via Edge Functions are disabled in this environment 
+        // to prevent "Failed to send a request to the Edge Function" errors.
+        
         return { success: true };
     } catch (err: any) {
         console.error('Error sending notification:', err);

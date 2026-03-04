@@ -594,7 +594,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
                         <Button 
                             type="submit" 
                             variant="success" 
-                            className="px-10" 
+                            className="w-full sm:w-auto px-10" 
                             disabled={loading || !formState.suma || parseFloat(String(formState.suma)) <= 0}
                         >
                             {loading ? 'Se procesează...' : 'Finalizează Încasarea'}

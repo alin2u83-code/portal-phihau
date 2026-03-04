@@ -6,7 +6,7 @@ import {
   ClipboardCheck, MessageCircleQuestion, Save, AlertTriangle, CheckCircle,
   ChevronLeft, ChevronRight, Printer, Check, ArrowRightLeft, Search, Bell, Network,
   UploadCloud, Mail, Lock, UserPlus, BookOpen, BookMarked, FileText, UserX, UserCheck, XCircle, Clock,
-  Camera, Upload, Building2, Paintbrush, MapPin
+  Camera, Upload, Building2, Paintbrush, MapPin, GraduationCap
 } from 'lucide-react';
 
 export const PlusIcon = Plus;
@@ -61,3 +61,4 @@ export const UploadIcon = Upload;
 export const BuildingOfficeIcon = Building2;
 export const PaintBrushIcon = Paintbrush;
 export const MapPinIcon = MapPin;
+export const GraduationCapIcon = GraduationCap;

@@ -75,7 +75,7 @@ export const SesiuneForm: React.FC<SesiuneFormProps> = ({ isOpen, onClose, onSav
                     {(locatii || []).map(l => <option key={l.id} value={l.id}>{l.nume}</option>)}
                 </Select>
             </div>
-            <Button type="button" variant="secondary" onClick={() => setIsLocatieModalOpen(true)} className="h-[38px] aspect-square p-0" title="Adaugă locație nouă"><PlusIcon className="w-5 h-5"/></Button>
+            <Button type="button" variant="secondary" onClick={() => setIsLocatieModalOpen(true)} className="h-[50px] w-[50px] !p-0 flex items-center justify-center flex-shrink-0" title="Adaugă locație nouă"><PlusIcon className="w-6 h-6"/></Button>
         </div>
         <ComisieEditor membri={formState.comisia || []} setMembri={(newMembri) => setFormState(p => ({ ...p, comisia: newMembri }))} />
         <div className="flex justify-end pt-4 space-x-2"><Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button><Button variant="success" type="submit" isLoading={loading}>{loading ? 'Se salvează...' : 'Salvează'}</Button></div>

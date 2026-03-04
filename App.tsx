@@ -19,6 +19,10 @@ import { MartialArtsSkeleton } from './components/MartialArtsSkeleton';
 import { AppRouter } from './components/AppRouter';
 import { NotificationProvider } from './contexts/NotificationContext';
 
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { RegisterPage } from './components/RegisterPage';
+import { LoginPage } from './components/LoginPage';
+
 function App() {
   const { showError } = useError();
   const isMobile = useIsMobile();
@@ -192,7 +196,13 @@ function App() {
             <p className="text-white text-lg font-bold">Se comută contextul pe {switchingToRole}...</p>
         </div>
       )}
-      {!session ? <AuthContainer /> :
+      {!session ? (
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      ) :
        effectiveNeedsRoleSelection ? <RoleSelectionPage user={session.user} onSelect={handleSelectRole} loading={isSwitchingRole} onLogout={handleLogout} /> :
        currentUser ? (
             <div className="flex min-h-screen bg-[var(--bg-main)]">

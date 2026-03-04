@@ -29,6 +29,12 @@ interface CsvRow {
     Localitate: string;
 }
 
+interface BirthdateRow {
+    Nume: string;
+    Prenume: string;
+    Data_Nasterii: string;
+}
+
 interface PotentialMatch extends Sportiv {
     similarity: number;
 }
@@ -49,6 +55,7 @@ interface PreviewRow extends CsvRow {
         localitate: string;
         existingSessionId?: string;
     };
+    birthdate?: string; // From second file
 }
 
 const stringSimilarity = (a: string, b: string): number => {
@@ -68,6 +75,9 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
     const [grades, setGrades] = useState<Grad[]>([]);
     const [errorLog, setErrorLog] = useState<any | null>(null);
     const { showError, showSuccess } = useError();
+    
+    const [examFile, setExamFile] = useState<File | null>(null);
+    const [birthdateFile, setBirthdateFile] = useState<File | null>(null);
 
     useEffect(() => {
         if (isOpen) {
@@ -80,6 +90,8 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
             fetchGrades();
             setPreviewData([]);
             setErrorLog(null);
+            setExamFile(null);
+            setBirthdateFile(null);
         }
     }, [isOpen, showError]);
 
@@ -93,28 +105,109 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        
+        // Template for birthdates
+        const birthCsv = Papa.unparse([{ Nume: "Popescu", Prenume: "Ion", Data_Nasterii: "2010-05-20" }]);
+        const bBlob = new Blob([`\uFEFF${birthCsv}`], { type: 'text/csv;charset=utf-8;' });
+        const bUrl = URL.createObjectURL(bBlob);
+        const bLink = document.createElement("a");
+        bLink.href = bUrl;
+        bLink.setAttribute("download", "model_date_nastere.csv");
+        document.body.appendChild(bLink);
+        bLink.click();
+        document.body.removeChild(bLink);
     };
 
-    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file && grades.length > 0) {
-            setIsProcessing(true);
-            setPreviewData([]);
-            setErrorLog(null);
-            Papa.parse<CsvRow>(file, { header: true, skipEmptyLines: true, complete: async (results) => {
-                const processed = await validateData(results.data);
+    const handleProcessFiles = async () => {
+        if (!examFile || grades.length === 0) return;
+        
+        setIsProcessing(true);
+        setPreviewData([]);
+        setErrorLog(null);
+
+        let birthdateRecords: { normalizedName: string; originalName: string; birthdate: string }[] = [];
+
+        // 1. Parse Birthdate File first (if exists)
+        if (birthdateFile) {
+            await new Promise<void>((resolve) => {
+                Papa.parse<BirthdateRow>(birthdateFile, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: (results) => {
+                        results.data.forEach(row => {
+                            if (row.Nume && row.Prenume && row.Data_Nasterii) {
+                                const fullName = `${row.Nume} ${row.Prenume}`;
+                                // Replace non-alphanumeric with space to handle "Ana-Maria" -> "Ana Maria"
+                                const normalized = fullName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, ' ').replace(/\s+/g, ' ').trim();
+                                birthdateRecords.push({
+                                    normalizedName: normalized,
+                                    originalName: fullName,
+                                    birthdate: row.Data_Nasterii.trim()
+                                });
+                            }
+                        });
+                        resolve();
+                    }
+                });
+            });
+        }
+
+        // 2. Parse Exam File
+        Papa.parse<CsvRow>(examFile, {
+            header: true,
+            skipEmptyLines: true,
+            complete: async (results) => {
+                const processed = await validateData(results.data, birthdateRecords);
                 setPreviewData(processed);
                 setIsProcessing(false);
-            }});
-        }
+            }
+        });
     };
 
-    const validateData = useCallback(async (data: CsvRow[]): Promise<PreviewRow[]> => {
+    const validateData = useCallback(async (data: CsvRow[], birthdateRecords: { normalizedName: string; originalName: string; birthdate: string }[]): Promise<PreviewRow[]> => {
         const { data: allSportivi, error } = await supabase.from('sportivi').select('*');
         if (error) { showError("Eroare la validare", error.message); return []; }
 
         const validationPromises = data.map(async (row, index): Promise<PreviewRow> => {
             const baseRow: Omit<PreviewRow, 'sessionInfo' | 'status' | 'message'> = { ...row, originalIndex: index };
+            
+            // --- Improved Birthdate Matching Logic ---
+            let birthdate: string | undefined;
+            if (row.Nume && row.Prenume) {
+                // Replace non-alphanumeric with space to handle "Ana-Maria" -> "Ana Maria"
+                const normalize = (s: string) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, ' ').replace(/\s+/g, ' ').trim();
+                
+                const name1 = normalize(`${row.Nume} ${row.Prenume}`);
+                const name2 = normalize(`${row.Prenume} ${row.Nume}`); // Reverse order check
+
+                // 1. Exact Match
+                let match = birthdateRecords.find(r => r.normalizedName === name1 || r.normalizedName === name2);
+
+                // 2. Fuzzy Match if no exact match
+                if (!match) {
+                    let bestScore = 0;
+                    let bestMatch = null;
+                    for (const record of birthdateRecords) {
+                        const score1 = stringSimilarity(name1, record.normalizedName);
+                        const score2 = stringSimilarity(name2, record.normalizedName); // Check reverse too
+                        const maxScore = Math.max(score1, score2);
+                        
+                        if (maxScore > bestScore) {
+                            bestScore = maxScore;
+                            bestMatch = record;
+                        }
+                    }
+                    // Threshold for fuzzy match (0.85 seems reasonable for names)
+                    if (bestScore > 0.85) {
+                        match = bestMatch;
+                    }
+                }
+
+                if (match) {
+                    birthdate = match.birthdate;
+                }
+            }
+            // -----------------------------------------
             
             const existingSession = (initialSesiuni || []).find(s => s.data === row.Data_Examen?.trim());
             const sessionInfo = {
@@ -127,18 +220,18 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
             };
 
             if (!row.Nume || !row.Prenume || !row.Grad_Nou_Ordine || !row.Sesiune_Denumire || !row.Data_Examen || !row.Localitate) {
-                return { ...baseRow, status: 'error', message: 'Rând incomplet. Toate coloanele sunt obligatorii.', sessionInfo };
+                return { ...baseRow, status: 'error', message: 'Rând incomplet. Toate coloanele sunt obligatorii.', sessionInfo, birthdate };
             }
 
             if (!grades.some(g => String(g.ordine) === String(row.Grad_Nou_Ordine).trim())) {
-                return { ...baseRow, status: 'error', message: `Cod Grad invalid: ${row.Grad_Nou_Ordine}`, sessionInfo };
+                return { ...baseRow, status: 'error', message: `Cod Grad invalid: ${row.Grad_Nou_Ordine}`, sessionInfo, birthdate };
             }
 
             const providedCnp = String(row.CNP || '').trim();
             if (providedCnp) {
                 const cnpMatch = (allSportivi || []).find(s => s.cnp && String(s.cnp).trim() === providedCnp);
                 if (cnpMatch) {
-                    return { ...baseRow, status: 'valid', message: `Găsit (CNP): ${cnpMatch.nume} ${cnpMatch.prenume}`, existingSportiv: cnpMatch, sessionInfo };
+                    return { ...baseRow, status: 'valid', message: `Găsit (CNP): ${cnpMatch.nume} ${cnpMatch.prenume}`, existingSportiv: cnpMatch, sessionInfo, birthdate };
                 }
             }
             
@@ -151,14 +244,28 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                 .slice(0, 3);
             
             if (potentialMatches.length > 0) {
-                return { ...baseRow, status: 'conflict', message: 'Potriviri găsite', conflicts: potentialMatches, sessionInfo };
+                // Check for exact birthdate match if available
+                const exactBirthdateMatch = birthdate ? potentialMatches.find(s => s.data_nasterii === birthdate) : null;
+                
+                if (exactBirthdateMatch) {
+                     return { 
+                        ...baseRow, 
+                        status: 'conflict', 
+                        message: 'Potrivire Nume + Data Nașterii', 
+                        conflicts: [exactBirthdateMatch, ...potentialMatches.filter(p => p.id !== exactBirthdateMatch.id)], 
+                        sessionInfo, 
+                        birthdate 
+                    };
+                }
+
+                return { ...baseRow, status: 'conflict', message: 'Potriviri nume găsite', conflicts: potentialMatches, sessionInfo, birthdate };
             }
             
             // Create new sportiv
             const { data: codeData, error: codeError } = await supabase.rpc('generate_sportiv_code', { p_an: new Date(row.Data_Examen).getFullYear(), p_nume: row.Nume, p_prenume: row.Prenume });
-            if (codeError) return { ...baseRow, status: 'error', message: `Eroare generare cod: ${codeError.message}`, sessionInfo };
+            if (codeError) return { ...baseRow, status: 'error', message: `Eroare generare cod: ${codeError.message}`, sessionInfo, birthdate };
             
-            return { ...baseRow, status: 'create', message: `Va fi creat (Cod: ${codeData})`, generatedCode: codeData, sessionInfo };
+            return { ...baseRow, status: 'create', message: `Va fi creat (Cod: ${codeData})`, generatedCode: codeData, sessionInfo, birthdate };
         });
 
         return Promise.all(validationPromises);
@@ -204,18 +311,21 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                 if (!sessionId) throw new Error(`ID-ul sesiunii pentru ${row.Nume} ${row.Prenume} nu a putut fi determinat.`);
 
                 try {
-                    const { error: rpcError } = await supabase.rpc('process_exam_row_v2', {
+                    // Use v3 which supports birthdate
+                    const { error: rpcError } = await supabase.rpc('process_exam_row_v3', {
                         p_nume: row.Nume,
                         p_prenume: row.Prenume,
                         p_cnp: (row.CNP || '').trim(),
-                        p_cod_sportiv: action === 'create' ? row.generatedCode : null,
+                        // p_cod_sportiv removed as column does not exist
+                        p_cod_sportiv: null, 
                         p_existing_sportiv_id: sportivId,
                         p_club_id: currentUser.club_id,
                         p_ordine_grad: parseInt(row.Grad_Nou_Ordine),
                         p_rezultat: row.Rezultat,
                         p_contributie: parseFloat(row.Contributie) || 0,
                         p_data_examen: row.Data_Examen,
-                        p_sesiune_id: sessionId
+                        p_sesiune_id: sessionId,
+                        p_data_nasterii: row.birthdate || null // Pass birthdate
                     });
                     if (rpcError) throw rpcError;
                     successCount++;
@@ -260,18 +370,47 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Import Bulk Rezultate Examen">
             <div className="space-y-6">
-                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2"><h2 className="text-xl font-bold">Pasul 1: Pregătește fișierul</h2><Button onClick={downloadTemplate} variant="secondary" size="sm"><DocumentArrowDownIcon size={18} className="mr-2"/> Model CSV</Button></div>
-                <Input type="file" onChange={handleFileUpload} accept=".csv" label="Pasul 2: Încarcă fișierul CSV" />
+                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                    <h2 className="text-xl font-bold">Pasul 1: Pregătește fișierele</h2>
+                    <Button onClick={downloadTemplate} variant="secondary" size="sm"><DocumentArrowDownIcon size={18} className="mr-2"/> Modele CSV</Button>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Input 
+                        type="file" 
+                        onChange={(e) => setExamFile(e.target.files?.[0] || null)} 
+                        accept=".csv" 
+                        label="Pasul 2a: Fișier Examen (Obligatoriu)" 
+                    />
+                    <Input 
+                        type="file" 
+                        onChange={(e) => setBirthdateFile(e.target.files?.[0] || null)} 
+                        accept=".csv" 
+                        label="Pasul 2b: Fișier Date Naștere (Opțional)" 
+                    />
+                </div>
+
+                <div className="flex justify-end">
+                    <Button 
+                        onClick={handleProcessFiles} 
+                        disabled={!examFile || isProcessing} 
+                        isLoading={isProcessing}
+                        variant="primary"
+                    >
+                        Procesează Fișierele
+                    </Button>
+                </div>
                 
                 {previewData.length > 0 && (
                     <div className="space-y-4 animate-fade-in-down">
                         <h2 className="text-xl font-bold">Pasul 3: Previzualizare și Confirmare</h2>
                         <div className="max-h-[45vh] overflow-y-auto border border-slate-700 rounded-lg">
                             <table className="w-full text-left text-sm">
-                                <thead className="bg-slate-800 sticky top-0 z-10"><tr><th className="p-2">Sportiv</th><th className="p-2">Sesiune</th><th className="p-2 w-1/3">Acțiune/Status</th></tr></thead>
+                                <thead className="bg-slate-800 sticky top-0 z-10"><tr><th className="p-2">Sportiv</th><th className="p-2">Data Nașterii</th><th className="p-2">Sesiune</th><th className="p-2 w-1/3">Acțiune/Status</th></tr></thead>
                                 <tbody className="divide-y divide-slate-800">{previewData.map(row => (
                                     <tr key={row.originalIndex}>
                                         <td className="p-2 font-semibold text-white">{row.Nume} {row.Prenume}</td>
+                                        <td className="p-2 text-xs text-slate-400">{row.birthdate || '-'}</td>
                                         <td className="p-2 text-xs text-slate-400">{row.Sesiune_Denumire}</td>
                                         <td className="p-2">
                                             {row.status === 'conflict' ? (
@@ -338,18 +477,22 @@ const ConflictResolver: React.FC<{ row: PreviewRow, onResolve: (index: number, r
     const [isOpen, setIsOpen] = useState(false);
 
     return (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 relative">
             <ExclamationTriangleIcon className="w-5 h-5 text-amber-400" />
             <span className="text-xs text-amber-400">{row.message}</span>
             <Button size="sm" variant="warning" className="!text-xs !py-0.5" onClick={() => setIsOpen(!isOpen)}>Rezolvă</Button>
             {isOpen && (
-                <div className="absolute z-20 mt-1 w-72 bg-slate-700 border border-slate-600 rounded-md shadow-lg p-2 right-4">
-                    <p className="text-xs font-bold mb-2">Alege o acțiune:</p>
+                <div className="absolute z-20 mt-1 w-80 bg-slate-700 border border-slate-600 rounded-md shadow-lg p-2 right-0 top-full">
+                    <p className="text-xs font-bold mb-2 text-white">Conflicte Găsite:</p>
                     {row.conflicts?.map(c => (
-                        <button key={c.id} onClick={() => onResolve(row.originalIndex, { action: 'use_existing', sportivId: c.id })} className="w-full text-left p-1 hover:bg-slate-600 rounded text-xs">{c.nume} {c.prenume} (Cod: {c.cod_sportiv || 'N/A'})</button>
+                        <button key={c.id} onClick={() => { onResolve(row.originalIndex, { action: 'use_existing', sportivId: c.id }); setIsOpen(false); }} className="w-full text-left p-2 hover:bg-slate-600 rounded text-xs mb-1 border border-slate-600">
+                            <div className="font-bold text-white">{c.nume} {c.prenume}</div>
+                            <div className="text-slate-400">Cod: {c.cod_sportiv || 'N/A'} | Data N.: {c.data_nasterii || 'N/A'}</div>
+                            {c.data_nasterii === row.birthdate && <div className="text-amber-400 font-bold mt-1">⚠️ Data nașterii identică!</div>}
+                        </button>
                     ))}
-                    <button onClick={() => onResolve(row.originalIndex, { action: 'create' })} className="w-full text-left p-1 hover:bg-slate-600 rounded text-xs font-bold text-green-400 mt-1 border-t border-slate-600 pt-1">
-                        <UserPlusIcon className="w-4 h-4 inline mr-1"/> Creează sportiv nou
+                    <button onClick={() => { onResolve(row.originalIndex, { action: 'create' }); setIsOpen(false); }} className="w-full text-left p-2 hover:bg-slate-600 rounded text-xs font-bold text-green-400 mt-2 border border-green-900 bg-green-900/20">
+                        <UserPlusIcon className="w-4 h-4 inline mr-1"/> Creează sportiv nou (Ignoră duplicatele)
                     </button>
                 </div>
             )}

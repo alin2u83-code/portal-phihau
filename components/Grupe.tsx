@@ -47,13 +47,13 @@ const ProgramEditor: React.FC<{ program: ProgramItem[], setProgram: React.Dispat
                     {program.length === 0 && <p className="text-slate-400 text-sm italic">Niciun interval adăugat.</p>}
                 </div>
             </div>
-            <div className="p-3 bg-slate-900/50 rounded-lg space-y-2 border border-slate-700">
-                <h4 className="text-sm font-semibold text-white">Adaugă Interval Nou</h4>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-2 items-end">
+            <div className="p-4 bg-slate-900/50 rounded-lg space-y-3 border border-slate-700">
+                <h4 className="text-sm font-semibold text-white uppercase tracking-wide">Adaugă Interval Nou</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 items-end">
                     <Select label="Ziua" name="ziua" value={newItem.ziua} onChange={handleChange}> {zileSaptamana.map(zi => <option key={zi} value={zi}>{zi}</option>)} </Select>
                     <Input label="Ora Start" type="time" name="ora_start" value={newItem.ora_start} onChange={handleChange} />
                     <Input label="Ora Sfârșit" type="time" name="ora_sfarsit" value={newItem.ora_sfarsit} onChange={handleChange} />
-                    <Button type="button" variant="info" onClick={handleAdd} className="h-[38px]"><PlusIcon className="w-5 h-5"/></Button>
+                    <Button type="button" variant="info" onClick={handleAdd} className="w-full h-[50px] flex items-center justify-center"><PlusIcon className="w-6 h-6"/></Button>
                 </div>
             </div>
         </div>
@@ -217,9 +217,9 @@ export const GrupeManagement: React.FC<GrupeManagementProps> = ({ onBack }) => {
     
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold text-white">Management Grupe & Orar</h1>
-                <Button onClick={handleOpenAdd} variant="info"><PlusIcon className="w-5 h-5 mr-2" />Adaugă Grupă</Button>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <h1 className="text-2xl sm:text-3xl font-bold text-white">Management Grupe & Orar</h1>
+                <Button onClick={handleOpenAdd} variant="info" className="w-full sm:w-auto"><PlusIcon className="w-5 h-5 mr-2" />Adaugă Grupă</Button>
             </div>
             {grupe.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

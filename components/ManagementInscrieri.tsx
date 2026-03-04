@@ -120,30 +120,32 @@ const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps> = ({ isOpen, onC
                        const isSelected = selections.has(s.id);
                        const { isEligible, lastPromotionDate } = s;
                        return (
-                           <div key={s.id} className={`p-2 rounded-md transition-colors ${isSelected ? 'bg-brand-secondary/20' : (isEligible ? 'bg-slate-700/50' : 'bg-red-900/20 opacity-70')}`}>
-                               <div className="flex items-center gap-3">
-                                   <input
-                                       type="checkbox"
-                                       checked={isSelected}
-                                       onChange={(e) => handleSelect(s.id, selections.get(s.id) || s.defaultNextGradeId, e.target.checked)}
-                                       className="h-5 w-5 rounded border-slate-500 bg-slate-900 text-brand-secondary focus:ring-brand-secondary focus:ring-offset-slate-800"
-                                       disabled={!isEligible}
-                                   />
-                                   <div className="flex-grow">
-                                       <p className={`font-medium ${!isEligible ? 'text-slate-400' : 'text-white'}`}>{s.nume} {s.prenume}</p>
-                                       {!isEligible ? (
-                                            <p className="text-xs text-red-400">Ineligibil (Ultima promovare: {lastPromotionDate})</p>
-                                       ) : (
-                                            <p className="text-xs text-slate-400">Grad actual: {(grade || []).find(g=>g.id === s.grad_actual_id)?.nume || 'Începător'}</p>
-                                       )}
+                           <div key={s.id} className={`p-3 rounded-md transition-colors ${isSelected ? 'bg-brand-secondary/20' : (isEligible ? 'bg-slate-700/50' : 'bg-red-900/20 opacity-70')}`}>
+                               <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                                   <div className="flex items-center gap-3 flex-grow">
+                                       <input
+                                           type="checkbox"
+                                           checked={isSelected}
+                                           onChange={(e) => handleSelect(s.id, selections.get(s.id) || s.defaultNextGradeId, e.target.checked)}
+                                           className="h-5 w-5 rounded border-slate-500 bg-slate-900 text-brand-secondary focus:ring-brand-secondary focus:ring-offset-slate-800 flex-shrink-0"
+                                           disabled={!isEligible}
+                                       />
+                                       <div className="flex-grow">
+                                           <p className={`font-medium ${!isEligible ? 'text-slate-400' : 'text-white'}`}>{s.nume} {s.prenume}</p>
+                                           {!isEligible ? (
+                                                <p className="text-xs text-red-400">Ineligibil (Ultima promovare: {lastPromotionDate})</p>
+                                           ) : (
+                                                <p className="text-xs text-slate-400">Grad actual: {(grade || []).find(g=>g.id === s.grad_actual_id)?.nume || 'Începător'}</p>
+                                           )}
+                                       </div>
                                    </div>
-                                   <div className="w-48">
+                                   <div className="w-full sm:w-48 pl-8 sm:pl-0">
                                        <Select
                                            label=""
                                            value={selections.get(s.id) || s.defaultNextGradeId}
                                            onChange={(e) => handleGradeChange(s.id, e.target.value)}
                                            disabled={!isSelected || !isEligible}
-                                           className="!py-1 text-xs"
+                                           className="!py-2 text-sm w-full"
                                        >
                                            <option value="">Alege grad...</option>
                                            {(grade || []).map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}
@@ -514,7 +516,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                         </Button>
                     )}
                 </div>
-                <div className="max-h-96 overflow-y-auto pr-2">
+                <div className="max-h-96 overflow-y-auto overflow-x-auto pr-2">
                     {participantiInscrisi.length > 0 ? (
                         <table className="w-full text-left text-sm min-w-[700px]">
                             <thead className="bg-slate-700/50 sticky top-0">

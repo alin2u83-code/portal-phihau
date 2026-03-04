@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { User, View, Club, Permissions, Rol, Grad } from '../types';
+import { useNavigation } from '../contexts/NavigationContext';
 import { adminMenu, instructorMenu, sportivMenu, MenuItem } from './menuConfig';
 import { ArrowRightOnRectangleIcon, Bars3Icon, ChevronDownIcon, ShieldCheckIcon, UserCircleIcon, UsersIcon } from './icons';
 import { RoleSwitcher } from './RoleSwitcher';
@@ -15,9 +16,7 @@ import { FEDERATIE_ID, FEDERATIE_NAME, ROLES } from '../constants';
 
 interface SidebarProps {
     currentUser: User;
-    onNavigate: (view: View) => void;
     onLogout: () => void;
-    activeView: View;
     isExpanded: boolean;
     setIsExpanded: React.Dispatch<React.SetStateAction<boolean>>;
     clubs: Club[];
@@ -33,7 +32,8 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = (props) => {
-    const { currentUser, onNavigate, onLogout, activeView, isExpanded, setIsExpanded, clubs, globalClubFilter, setGlobalClubFilter, permissions, activeRole, canSwitchRoles, onSwitchRole, isSwitchingRole, userRoles } = props;
+    const { currentUser, onLogout, isExpanded, setIsExpanded, clubs, globalClubFilter, setGlobalClubFilter, permissions, activeRole, canSwitchRoles, onSwitchRole, isSwitchingRole, userRoles } = props;
+    const { activeView, setActiveView } = useNavigation();
     const [isMobileOpen, setIsMobileOpen] = useState(false);
     const [isRoleSwitcherOpen, setIsRoleSwitcherOpen] = useState(false);
     const roleSwitcherRef = useRef<HTMLDivElement>(null);
@@ -49,7 +49,7 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
     }, []);
 
     const handleNavigate = (view: View) => {
-        onNavigate(view);
+        setActiveView(view);
         setIsMobileOpen(false);
     };
     
@@ -109,8 +109,6 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
             
             <NavMenu
                 isExpanded={isExpanded}
-                activeView={activeView}
-                onNavigate={handleNavigate}
                 permissions={permissions}
                 menuToDisplay={menuToDisplay}
             />

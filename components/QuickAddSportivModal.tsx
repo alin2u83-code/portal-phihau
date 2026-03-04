@@ -106,16 +106,16 @@ export const QuickAddSportivModal: React.FC<QuickAddSportivModalProps> = ({ isOp
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Adaugă Sportiv Nou / Vizitator">
-            <form onSubmit={handleSubmit} className="space-y-4" style={{ fontSize: '13px' }}>
+            <form onSubmit={handleSubmit} className="space-y-6">
                 <p className="text-sm text-slate-400">Introduceți datele minimale pentru a adăuga un sportiv nou direct la acest antrenament. Profilul complet poate fi editat ulterior.</p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <Input label="Nume" name="nume" value={formState.nume} onChange={handleChange} required />
-                    <Input label="Prenume" name="prenume" value={formState.prenume} onChange={handleChange} required />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <Input label="Nume" name="nume" value={formState.nume} onChange={handleChange} required autoCapitalize="words" />
+                    <Input label="Prenume" name="prenume" value={formState.prenume} onChange={handleChange} required autoCapitalize="words" />
                 </div>
                 <BirthDateInput label="Data Nașterii" value={formState.data_nasterii} onChange={handleDateChange} required />
-                <div className="flex justify-end pt-4 gap-2 border-t border-slate-700 mt-6">
-                    <Button type="button" variant="secondary" onClick={onClose} disabled={loading} className="!py-2 !px-4">Anulează</Button>
-                    <Button type="submit" variant="primary" isLoading={loading} className="!py-2 !px-4">Adaugă Sportiv</Button>
+                <div className="flex flex-col sm:flex-row justify-end pt-4 gap-3 border-t border-slate-700 mt-6">
+                    <Button type="button" variant="secondary" onClick={onClose} disabled={loading} className="w-full sm:w-auto order-2 sm:order-1">Anulează</Button>
+                    <Button type="submit" variant="primary" isLoading={loading} className="w-full sm:w-auto order-1 sm:order-2">Adaugă Sportiv</Button>
                 </div>
             </form>
         </Modal>

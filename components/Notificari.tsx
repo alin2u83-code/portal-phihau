@@ -4,7 +4,6 @@ import { Button, Card, Input, Select } from './ui';
 import { ArrowLeftIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
-import { invokeEdgeFunction } from '../utils/supabaseUtils';
 
 interface NotificariProps {
     onBack: () => void;
@@ -66,25 +65,7 @@ export const Notificari: React.FC<NotificariProps> = ({ onBack, currentUser, clu
         setLoading(true);
 
         try {
-            // Pasul 1: Invocă funcția Edge pentru a trimite notificările push
-            // Putem adăuga target info în payload dacă funcția o suportă
-            try {
-                const { error: functionError } = await invokeEdgeFunction('send-push-notifications', {
-                    title, 
-                    body,
-                    targetType,
-                    targetId
-                });
-
-                if (functionError) {
-                    // Afișează o eroare, dar continuă pentru a salva notificarea in-app
-                    console.warn("Eroare Notificări Push:", functionError);
-                }
-            } catch (edgeErr: any) {
-                console.error("DEBUG: Edge function invocation failed (Push Notifications skipped):", edgeErr);
-            }
-
-            // Pasul 2: Salvează notificarea în baza de date (pentru istoric și in-app bell)
+            // Pasul 1: Salvează notificarea în baza de date (pentru istoric și in-app bell)
             let query = supabase.from('sportivi').select('user_id').not('user_id', 'is', null);
             
             if (targetType === 'club') {

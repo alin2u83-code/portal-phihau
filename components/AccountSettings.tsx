@@ -3,45 +3,8 @@ import { User, Rol, Sportiv } from '../types';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { Button, Card, Input } from './ui';
-import { ArrowLeftIcon, MailIcon, LockIcon, ShieldCheckIcon, UserCircleIcon, UsersIcon, CheckCircleIcon } from './icons';
-
-// --- Helper Functions ---
-const getRoleDisplayName = (role: any) => {
-    switch(role.rol_denumire) {
-        case 'SUPER_ADMIN_FEDERATIE': return 'Super Admin Federație';
-        case 'ADMIN': return 'Admin General';
-        case 'ADMIN_CLUB': return `Admin - ${role.club?.nume || 'Club Nedefinit'}`;
-        case 'INSTRUCTOR': return `Instructor - ${role.club?.nume || 'Club Nedefinit'}`;
-        case 'SPORTIV': return `Sportiv - ${role.sportiv?.nume || ''} ${role.sportiv?.prenume || ''}`;
-        default: return role.rol_denumire;
-    }
-};
-
-const getRoleDescription = (role: any) => {
-    switch(role.rol_denumire) {
-        case 'SUPER_ADMIN_FEDERATIE': return 'Acces total la nivel de federație.';
-        case 'ADMIN': return 'Acces administrativ general.';
-        case 'ADMIN_CLUB': return `Management complet pentru ${role.club?.nume || 'club'}.`;
-        case 'INSTRUCTOR': return `Management sportivi și prezențe la ${role.club?.nume || 'club'}.`;
-        case 'SPORTIV': return 'Accesează portalul personal de sportiv.';
-        default: return 'Selectează acest profil pentru a continua.';
-    }
-}
-
-const getRoleIcon = (roleName: Rol['nume']) => {
-    switch(roleName) {
-        case 'SUPER_ADMIN_FEDERATIE':
-        case 'ADMIN':
-            return ShieldCheckIcon;
-        case 'ADMIN_CLUB':
-        case 'INSTRUCTOR':
-            return UsersIcon;
-        case 'SPORTIV':
-            return UserCircleIcon;
-        default:
-            return UsersIcon;
-    }
-};
+import { ArrowLeftIcon, MailIcon, LockIcon, CheckCircleIcon } from './icons';
+import { getRoleDisplayName, getRoleDescription, getRoleIcon } from '../hooks/useUserRoles';
 
 interface AccountSettingsProps {
     currentUser: User;

@@ -64,11 +64,11 @@ export const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
             </p>
         </div>
       </div>
-      <div className="mt-6 flex justify-center gap-3">
-        <Button variant="secondary" onClick={onClose} disabled={isLoading} className="bg-slate-600 hover:bg-slate-700">
+      <div className="mt-6 flex flex-col sm:flex-row justify-center gap-3">
+        <Button variant="secondary" onClick={onClose} disabled={isLoading} className="w-full sm:w-auto order-2 sm:order-1 bg-slate-600 hover:bg-slate-700">
           Anulează
         </Button>
-        <Button variant={confirmButtonVariant} onClick={onConfirm} isLoading={isLoading}>
+        <Button variant={confirmButtonVariant} onClick={onConfirm} isLoading={isLoading} className="w-full sm:w-auto order-1 sm:order-2">
           {confirmButtonText}
         </Button>
       </div>

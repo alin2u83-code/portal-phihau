@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, User, Permissions } from '../types';
+import { useNavigation } from '../contexts/NavigationContext';
 import { Button } from './ui';
 import { ArrowLeftIcon } from './icons';
 import { NotificationBell } from './NotificationBell';
@@ -7,11 +8,9 @@ import { UserMenu } from './UserMenu';
 import { useIsMobile } from '../hooks/useIsMobile';
 
 interface HeaderProps {
-    activeView: View;
     onBack: () => void;
     currentUser: User;
     permissions: Permissions;
-    onNavigate: (view: View) => void;
     onLogout: () => void;
     isSidebarExpanded: boolean;
     userRoles?: any[];
@@ -21,16 +20,15 @@ interface HeaderProps {
 const ROOT_VIEWS: View[] = ['dashboard', 'my-portal', 'federation-dashboard', 'admin-dashboard'];
 
 export const Header: React.FC<HeaderProps> = ({ 
-    activeView, 
     onBack, 
     currentUser, 
     permissions, 
-    onNavigate, 
     onLogout, 
     isSidebarExpanded,
     userRoles,
     onSwitchRole
 }) => {
+    const { activeView, setActiveView } = useNavigation();
     const isRootView = ROOT_VIEWS.includes(activeView);
     const isMobile = useIsMobile();
 
@@ -60,7 +58,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <UserMenu 
                     currentUser={currentUser} 
                     permissions={permissions} 
-                    onNavigate={onNavigate} 
+                    onNavigate={setActiveView} 
                     onLogout={onLogout} 
                     userRoles={userRoles}
                     onSwitchRole={onSwitchRole}

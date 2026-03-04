@@ -2,7 +2,6 @@ import { useState, useCallback, useMemo } from 'react';
 import { supabase } from '../supabaseClient';
 import { useError } from '../components/ErrorProvider';
 import { Rol, Sportiv, User } from '../types';
-import { invokeEdgeFunction } from '../utils/supabaseUtils';
 
 export const useRoleAssignment = (currentUser: User, allRoles: Rol[]) => {
     const { showError, showSuccess } = useError();
@@ -37,22 +36,10 @@ export const useRoleAssignment = (currentUser: User, allRoles: Rol[]) => {
             let edgeFunctionFailed = false;
 
             try {
-                const { data: authData, error: authError } = await invokeEdgeFunction('create-user-admin', { 
-                    email, 
-                    password: parola,
-                    nume: sportivData.nume,
-                    prenume: sportivData.prenume,
-                    data_nasterii: sportivData.data_nasterii,
-                    gen: sportivData.gen
-                });
-                authUser = authData?.user;
-                if (authError) {
-                    // Fallback for any edge function error to allow offline/local dev usage
-                    edgeFunctionFailed = true;
-                }
+                // Edge functions are disabled in this environment to prevent "Failed to send a request to the Edge Function" errors.
+                // We skip auth user creation and proceed with database record creation.
+                edgeFunctionFailed = true;
             } catch (invokeErr: any) {
-                console.error('DEBUG: Edge function invocation failed:', invokeErr);
-                // Fallback for any edge function error to allow offline/local dev usage
                 edgeFunctionFailed = true;
             }
 
@@ -97,11 +84,7 @@ export const useRoleAssignment = (currentUser: User, allRoles: Rol[]) => {
 
                 if (rpcError) {
                     if (authUser) {
-                        try {
-                            await supabase.functions.invoke('delete-user-admin', { body: { user_id: authUser.id } });
-                        } catch (delErr) {
-                            // Failed to rollback user creation
-                        }
+                        // Edge functions are disabled in this environment.
                     }
                     return { success: false, error: rpcError.message };
                 }

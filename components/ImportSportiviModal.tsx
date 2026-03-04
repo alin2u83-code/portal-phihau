@@ -29,81 +29,27 @@ export const ImportSportiviModal: React.FC<ImportSportiviModalProps> = ({
     const [progress, setProgress] = useState({ current: 0, total: 0, success: 0, failed: 0 });
     const [logs, setLogs] = useState<string[]>([]);
     const [headerMap, setHeaderMap] = useState<Record<string, string>>({});
+    const [isParsing, setIsParsing] = useState(false);
     const { showError, showSuccess } = useError();
     const { allRoles } = useData();
     const { createAccountAndAssignRole } = useRoleAssignment(currentUser, allRoles);
 
+    interface ImportRow {
+        id: number;
+        nume: string;
+        prenume: string;
+        data_nasterii: string;
+        gen: string;
+        club: string;
+        selected: boolean;
+        isValid: boolean;
+        errors: string[];
+    }
+
+    const [importRows, setImportRows] = useState<ImportRow[]>([]);
+    const [selectAll, setSelectAll] = useState(true);
+
     const isSuperAdmin = currentUser?.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN');
-
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const selectedFile = e.target.files?.[0];
-        if (selectedFile) {
-            setFile(selectedFile);
-            parseCSV(selectedFile);
-        }
-    };
-
-    const parseCSV = (file: File) => {
-        Papa.parse(file, {
-            header: true,
-            skipEmptyLines: true,
-            complete: (results) => {
-                if (results.data && results.data.length > 0) {
-                    // Validate headers
-                    const headers = results.meta.fields || [];
-                    const required = ['nume', 'prenume', 'data nasterii']; // Gen is now optional
-                    
-                    const newHeaderMap: Record<string, string> = {};
-                    const missing: string[] = [];
-
-                    required.forEach(req => {
-                        const found = headers.find(h => h.trim().toLowerCase() === req);
-                        if (found) {
-                            newHeaderMap[req] = found;
-                        } else {
-                            missing.push(req);
-                        }
-                    });
-                    
-                    // Optional headers
-                    const foundClub = headers.find(h => h.trim().toLowerCase() === 'club');
-                    if (foundClub) newHeaderMap['club'] = foundClub;
-
-                    const foundGen = headers.find(h => h.trim().toLowerCase() === 'gen');
-                    if (foundGen) newHeaderMap['gen'] = foundGen;
-
-                    if (missing.length > 0) {
-                        showError("Format CSV Invalid", `Lipsesc coloanele obligatorii: ${missing.map(m => m.charAt(0).toUpperCase() + m.slice(1)).join(', ')}`);
-                        setFile(null);
-                        setPreviewData([]);
-                        return;
-                    }
-                    
-                    setHeaderMap(newHeaderMap);
-                    setPreviewData(results.data as any[]);
-                }
-            },
-            error: (error) => {
-                showError("Eroare la citire CSV", error.message);
-            }
-        });
-    };
-
-    const downloadTemplate = () => {
-        const headers = ['Nume', 'Prenume', 'Data Nasterii', 'Gen', 'Club'];
-        const exampleRow = ['Popescu', 'Ion', '20/05/2010', 'M', isSuperAdmin ? 'Nume Club' : ''];
-        const csvContent = "data:text/csv;charset=utf-8," + 
-            headers.join(",") + "\n" + 
-            exampleRow.join(",");
-        
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "model_import_sportivi.csv");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
 
     const sanitize = (str: string) => (str || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, '');
 
@@ -131,11 +77,152 @@ export const ImportSportiviModal: React.FC<ImportSportiviModalProps> = ({
         return null;
     };
 
+    const downloadTemplate = () => {
+        const headers = ['Nume', 'Prenume', 'Data Nasterii', 'Gen', 'Club'];
+        const exampleRow = ['Popescu', 'Ion', '20/05/2010', 'M', isSuperAdmin ? 'Nume Club' : ''];
+        const csvContent = "data:text/csv;charset=utf-8," + 
+            headers.join(",") + "\n" + 
+            exampleRow.join(",");
+        
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "model_import_sportivi.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const parseCSV = (file: File) => {
+        Papa.parse(file, {
+            header: true,
+            skipEmptyLines: true,
+            complete: (results) => {
+                setIsParsing(false);
+                if (results.data && results.data.length > 0) {
+                    // Validate headers
+                    const headers = results.meta.fields || [];
+                    const required = ['nume', 'prenume', 'data nasterii'];
+                    
+                    const newHeaderMap: Record<string, string> = {};
+                    const missing: string[] = [];
+
+                    required.forEach(req => {
+                        const found = headers.find(h => h.trim().toLowerCase() === req);
+                        if (found) {
+                            newHeaderMap[req] = found;
+                        } else {
+                            missing.push(req);
+                        }
+                    });
+                    
+                    const foundClub = headers.find(h => h.trim().toLowerCase() === 'club');
+                    if (foundClub) newHeaderMap['club'] = foundClub;
+
+                    const foundGen = headers.find(h => h.trim().toLowerCase() === 'gen');
+                    if (foundGen) newHeaderMap['gen'] = foundGen;
+
+                    if (missing.length > 0) {
+                        showError("Format CSV Invalid", `Lipsesc coloanele obligatorii: ${missing.map(m => m.charAt(0).toUpperCase() + m.slice(1)).join(', ')}`);
+                        setFile(null);
+                        setPreviewData([]);
+                        return;
+                    }
+                    
+                    setHeaderMap(newHeaderMap);
+                    setPreviewData(results.data as any[]); // Keep raw data for debug if needed
+
+                    // Transform to ImportRow
+                    const rows: ImportRow[] = results.data.map((row: any, index: number) => {
+                        const nume = row[newHeaderMap['nume']]?.trim() || '';
+                        const prenume = row[newHeaderMap['prenume']]?.trim() || '';
+                        const data_nasterii = row[newHeaderMap['data nasterii']]?.trim() || '';
+                        const gen = newHeaderMap['gen'] ? row[newHeaderMap['gen']]?.trim() || '' : '';
+                        const club = newHeaderMap['club'] ? row[newHeaderMap['club']]?.trim() || '' : '';
+
+                        const errors: string[] = [];
+                        if (!nume) errors.push('Nume lipsă');
+                        if (!prenume) errors.push('Prenume lipsă');
+                        if (!data_nasterii) errors.push('Data nașterii lipsă');
+                        else if (!parseDate(data_nasterii)) errors.push('Format dată invalid (DD/MM/YYYY)');
+
+                        return {
+                            id: index,
+                            nume,
+                            prenume,
+                            data_nasterii,
+                            gen,
+                            club,
+                            selected: errors.length === 0, // Auto-select valid rows
+                            isValid: errors.length === 0,
+                            errors
+                        };
+                    });
+                    setImportRows(rows);
+                } else {
+                    console.warn("CSV Parsed but no data found:", results);
+                }
+            },
+            error: (error) => {
+                setIsParsing(false);
+                console.error("CSV Parsing Error:", error);
+                showError("Eroare la citire CSV", error.message);
+            }
+        });
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const selectedFile = e.target.files?.[0];
+        if (selectedFile) {
+            setFile(selectedFile);
+            setIsParsing(true);
+            setProgress({ current: 0, total: 0, success: 0, failed: 0 }); // Reset progress
+            setPreviewData([]);
+            setImportRows([]);
+            setSelectAll(true);
+            // Allow UI to update before parsing
+            setTimeout(() => parseCSV(selectedFile), 50);
+        }
+    };
+
+    const handleRowChange = (id: number, field: keyof ImportRow, value: string | boolean) => {
+        setImportRows(prev => prev.map(row => {
+            if (row.id !== id) return row;
+
+            const updatedRow = { ...row, [field]: value };
+            
+            // Re-validate if data fields changed
+            if (field !== 'selected' && field !== 'isValid' && field !== 'errors' && field !== 'id') {
+                const errors: string[] = [];
+                if (!updatedRow.nume) errors.push('Nume lipsă');
+                if (!updatedRow.prenume) errors.push('Prenume lipsă');
+                if (!updatedRow.data_nasterii) errors.push('Data nașterii lipsă');
+                else if (!parseDate(updatedRow.data_nasterii as string)) errors.push('Format dată invalid');
+                
+                updatedRow.errors = errors;
+                updatedRow.isValid = errors.length === 0;
+                if (!updatedRow.isValid) updatedRow.selected = false; // Deselect if invalid
+            }
+
+            return updatedRow as ImportRow;
+        }));
+    };
+
+    const toggleSelectAll = () => {
+        const newValue = !selectAll;
+        setSelectAll(newValue);
+        setImportRows(prev => prev.map(row => ({
+            ...row,
+            selected: row.isValid ? newValue : false // Only select valid rows
+        })));
+    };
+
     const processImport = async () => {
-        if (!previewData.length) return;
+        const rowsToImport = importRows.filter(r => r.selected);
+        if (!rowsToImport.length) return;
         
         setImporting(true);
-        setProgress({ current: 0, total: previewData.length, success: 0, failed: 0 });
+        setProgress({ current: 0, total: rowsToImport.length, success: 0, failed: 0 });
         setLogs([]);
         
         const sportivRole = allRoles.find(r => r.nume === 'SPORTIV');
@@ -145,87 +232,74 @@ export const ImportSportiviModal: React.FC<ImportSportiviModalProps> = ({
             return;
         }
 
-        for (let i = 0; i < previewData.length; i++) {
-            const row = previewData[i];
-            setProgress(prev => ({ ...prev, current: i + 1 }));
+        const BATCH_SIZE = 5;
+        
+        for (let i = 0; i < rowsToImport.length; i += BATCH_SIZE) {
+            const batch = rowsToImport.slice(i, i + BATCH_SIZE);
             
-            const nume = row[headerMap['nume']]?.trim();
-            const prenume = row[headerMap['prenume']]?.trim();
-            const dataNasteriiRaw = row[headerMap['data nasterii']]?.trim();
-            const genRaw = headerMap['gen'] ? row[headerMap['gen']]?.trim() : null;
-            const clubName = headerMap['club'] ? row[headerMap['club']]?.trim() : null;
-
-            try {
-                // 1. Validate Data
-                if (!nume || !prenume || !dataNasteriiRaw) {
-                    throw new Error("Date incomplete (Nume, Prenume sau Data Nașterii lipsă)");
-                }
-
-                const dataNasterii = parseDate(dataNasteriiRaw);
-                if (!dataNasterii) {
-                    throw new Error(`Format dată invalid: ${dataNasteriiRaw}. Folosiți DD/MM/YYYY.`);
-                }
-
-                // 2. Determine Club
-                let clubId = currentUser.club_id;
-                if (isSuperAdmin) {
-                    if (clubName) {
-                        const foundClub = clubs.find(c => c.nume.toLowerCase() === clubName.toLowerCase());
-                        if (foundClub) {
-                            clubId = foundClub.id;
-                        } else {
-                            throw new Error(`Clubul '${clubName}' nu a fost găsit.`);
-                        }
-                    } else {
-                        throw new Error("Clubul este obligatoriu pentru admini.");
-                    }
-                }
-
-                if (!clubId) throw new Error("Nu s-a putut determina clubul.");
-
-                // 3. Generate Credentials
-                const numeSanitized = sanitize(nume);
-                const prenumeSanitized = sanitize(prenume);
-                const club = clubs.find(c => c.id === clubId);
-                const domain = club ? sanitize(club.nume) + '.ro' : 'phihau.ro';
+            await Promise.all(batch.map(async (row, batchIndex) => {
+                const currentIndex = i + batchIndex;
                 
-                // Add random suffix to email to avoid collisions during bulk import
-                const randomSuffix = Math.floor(Math.random() * 1000);
-                const email = `${numeSanitized}.${prenumeSanitized}.${randomSuffix}@${domain}`;
-                const password = `${nume}.1234!`; // Default password pattern
-                const username = `${numeSanitized}.${prenumeSanitized}.${randomSuffix}`; // Temporary, backend might adjust
+                try {
+                    const dataNasterii = parseDate(row.data_nasterii);
+                    if (!dataNasterii) throw new Error(`Format dată invalid: ${row.data_nasterii}`);
 
-                // 4. Prepare Profile Data
-                const profileData: Partial<import('../types').Sportiv> = {
-                    nume: nume,
-                    prenume: prenume,
-                    data_nasterii: dataNasterii,
-                    gen: (genRaw === 'M' || genRaw === 'Masculin' ? 'Masculin' : (genRaw === 'F' || genRaw === 'Feminin' ? 'Feminin' : null)) as 'Masculin' | 'Feminin' | null,
-                    club_id: clubId,
-                    status: 'Activ' as 'Activ' | 'Inactiv',
-                    data_inscrierii: new Date().toISOString().split('T')[0]
-                };
+                    // Determine Club
+                    let clubId = currentUser.club_id;
+                    if (isSuperAdmin) {
+                        if (row.club) {
+                            const foundClub = clubs.find(c => c.nume.toLowerCase() === row.club.toLowerCase());
+                            if (foundClub) {
+                                clubId = foundClub.id;
+                            } else {
+                                throw new Error(`Clubul '${row.club}' nu a fost găsit.`);
+                            }
+                        } else {
+                            throw new Error("Clubul este obligatoriu pentru admini.");
+                        }
+                    }
 
-                // 5. Call Create Function
-                const result = await createAccountAndAssignRole(
-                    email,
-                    password,
-                    profileData,
-                    [sportivRole]
-                );
+                    if (!clubId) throw new Error("Nu s-a putut determina clubul.");
 
-                if (!result.success) {
-                    throw new Error(result.error || "Eroare necunoscută la creare.");
+                    const numeSanitized = sanitize(row.nume);
+                    const prenumeSanitized = sanitize(row.prenume);
+                    const clubObj = clubs.find(c => c.id === clubId);
+                    const domain = clubObj ? sanitize(clubObj.nume) + '.ro' : 'phihau.ro';
+                    
+                    const randomSuffix = Math.floor(Math.random() * 10000) + row.id;
+                    const email = `${numeSanitized}.${prenumeSanitized}.${randomSuffix}@${domain}`;
+                    const password = `${row.nume}.1234!`;
+                    
+                    const profileData: Partial<import('../types').Sportiv> = {
+                        nume: row.nume,
+                        prenume: row.prenume,
+                        data_nasterii: dataNasterii,
+                        gen: (row.gen === 'M' || row.gen === 'Masculin' ? 'Masculin' : (row.gen === 'F' || row.gen === 'Feminin' ? 'Feminin' : null)) as 'Masculin' | 'Feminin' | null,
+                        club_id: clubId,
+                        status: 'Activ' as 'Activ' | 'Inactiv',
+                        data_inscrierii: new Date().toISOString().split('T')[0]
+                    };
+
+                    const result = await createAccountAndAssignRole(
+                        email,
+                        password,
+                        profileData,
+                        [sportivRole]
+                    );
+
+                    if (!result.success) {
+                        throw new Error(result.error || "Eroare necunoscută la creare.");
+                    }
+
+                    setLogs(prev => [...prev, `✅ ${row.nume} ${row.prenume}: Importat cu succes.`]);
+                    setProgress(prev => ({ ...prev, success: prev.success + 1, current: prev.current + 1 }));
+
+                } catch (err: any) {
+                    console.error(err);
+                    setLogs(prev => [...prev, `❌ ${row.nume || 'N/A'} ${row.prenume || 'N/A'}: ${err.message}`]);
+                    setProgress(prev => ({ ...prev, failed: prev.failed + 1, current: prev.current + 1 }));
                 }
-
-                setLogs(prev => [...prev, `✅ ${nume} ${prenume}: Importat cu succes.`]);
-                setProgress(prev => ({ ...prev, success: prev.success + 1 }));
-
-            } catch (err: any) {
-                console.error(err);
-                setLogs(prev => [...prev, `❌ ${nume || 'N/A'} ${prenume || 'N/A'}: ${err.message}`]);
-                setProgress(prev => ({ ...prev, failed: prev.failed + 1 }));
-            }
+            }));
         }
 
         setImporting(false);
@@ -254,7 +328,13 @@ export const ImportSportiviModal: React.FC<ImportSportiviModalProps> = ({
                     </Button>
                 </div>
 
-                {!previewData.length ? (
+                {isParsing ? (
+                    <div className="border-2 border-dashed border-slate-600 rounded-lg p-12 text-center flex flex-col items-center justify-center animate-pulse">
+                        <div className="w-10 h-10 border-4 border-brand-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+                        <p className="text-slate-300 font-medium">Se analizează fișierul CSV...</p>
+                        <p className="text-xs text-slate-500 mt-2">Vă rugăm așteptați, procesarea poate dura câteva secunde.</p>
+                    </div>
+                ) : !previewData.length ? (
                     <div className="border-2 border-dashed border-slate-600 rounded-lg p-8 text-center hover:border-brand-primary transition-colors">
                         <input
                             type="file"
@@ -273,53 +353,174 @@ export const ImportSportiviModal: React.FC<ImportSportiviModalProps> = ({
                     <div className="space-y-4">
                         <div className="flex justify-between items-center">
                             <span className="text-sm text-slate-300">
-                                {previewData.length} sportivi identificați
+                                {importRows.length} sportivi identificați
                             </span>
-                            <Button variant="secondary" size="sm" onClick={() => { setFile(null); setPreviewData([]); setLogs([]); }} disabled={importing}>
+                            <Button variant="secondary" size="sm" onClick={() => { setFile(null); setPreviewData([]); setImportRows([]); setLogs([]); setSelectAll(true); }} disabled={importing}>
                                 Schimbă Fișierul
                             </Button>
                         </div>
 
-                        {(importing || progress.current > 0) && (
+                        {importing && (
                             <div className="space-y-2 bg-slate-800 p-4 rounded-lg border border-slate-700">
-                                <div className="flex justify-between text-xs text-slate-300 mb-1">
-                                    <span className="font-bold uppercase tracking-wider">{importing ? 'Se procesează...' : 'Import Finalizat'}</span>
-                                    <span className="font-mono font-bold">{Math.round((progress.current / progress.total) * 100)}%</span>
+                                <div className="flex justify-between text-xs text-slate-400 mb-1">
+                                    <span>Progres Import</span>
+                                    <span>{Math.round((progress.current / progress.total) * 100)}%</span>
                                 </div>
-                                <div className="h-4 bg-slate-900 rounded-full overflow-hidden border border-slate-700 relative">
+                                <div className="h-3 bg-slate-900 rounded-full overflow-hidden border border-slate-700">
                                     <div 
-                                        className={`h-full transition-all duration-300 ${importing ? 'bg-brand-primary' : 'bg-green-600'}`}
+                                        className="h-full bg-brand-primary transition-all duration-300 relative overflow-hidden"
                                         style={{ width: `${(progress.current / progress.total) * 100}%` }}
                                     >
-                                        {importing && <div className="absolute inset-0 bg-white/20 animate-pulse"></div>}
+                                        <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite]"></div>
                                     </div>
                                 </div>
-                                <div className="flex justify-between text-xs mt-1 font-medium">
-                                    <span className="text-slate-400">Progres: {progress.current} / {progress.total}</span>
-                                    <div className="flex gap-3">
-                                        <span className="text-green-400 flex items-center"><CheckCircleIcon className="w-3 h-3 mr-1"/> {progress.success}</span>
-                                        <span className="text-red-400 flex items-center"><XCircleIcon className="w-3 h-3 mr-1"/> {progress.failed}</span>
+                                <p className="text-xs text-center text-slate-300 mt-2 font-mono">
+                                    Procesat: {progress.current} / {progress.total} <span className="text-slate-500 mx-1">|</span> 
+                                    <span className="text-green-400">Succes: {progress.success}</span> <span className="text-slate-500 mx-1">|</span>
+                                    <span className="text-red-400">Eșuate: {progress.failed}</span>
+                                </p>
+                                <p className="text-[10px] text-center text-amber-500 mt-1 animate-pulse">
+                                    ⚠️ Vă rugăm nu închideți fereastra până la finalizare.
+                                </p>
+                            </div>
+                        )}
+
+                        {!importing && importRows.length > 0 && (
+                            <div className="bg-slate-900 rounded-lg border border-slate-700 overflow-hidden flex flex-col max-h-[400px]">
+                                <div className="px-4 py-2 bg-slate-800 border-b border-slate-700 font-bold text-xs text-slate-300 uppercase flex justify-between items-center shrink-0">
+                                    <span>Previzualizare și Editare ({importRows.filter(r => r.selected).length} selectați)</span>
+                                    <div className="flex items-center space-x-2">
+                                        <input 
+                                            type="checkbox" 
+                                            checked={selectAll} 
+                                            onChange={toggleSelectAll}
+                                            className="rounded border-slate-600 bg-slate-700 text-brand-primary focus:ring-brand-primary"
+                                        />
+                                        <span className="text-[10px] text-slate-400">Selectează Tot</span>
                                     </div>
+                                </div>
+                                <div className="overflow-auto custom-scrollbar">
+                                    <table className="w-full text-left text-xs text-slate-400">
+                                        <thead className="bg-slate-800/50 text-slate-200 uppercase font-medium sticky top-0 z-10 backdrop-blur-sm">
+                                            <tr>
+                                                <th className="px-2 py-2 w-8 text-center">
+                                                    #
+                                                </th>
+                                                <th className="px-2 py-2 w-32">Nume</th>
+                                                <th className="px-2 py-2 w-32">Prenume</th>
+                                                <th className="px-2 py-2 w-28">Data Nașterii</th>
+                                                <th className="px-2 py-2 w-20">Gen</th>
+                                                <th className="px-2 py-2 w-32">Club</th>
+                                                <th className="px-2 py-2 w-8">Valid</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-700">
+                                            {importRows.map((row) => (
+                                                <tr key={row.id} className={`hover:bg-slate-800/30 transition-colors ${!row.isValid ? 'bg-red-900/10' : ''}`}>
+                                                    <td className="px-2 py-2 text-center">
+                                                        <input 
+                                                            type="checkbox" 
+                                                            checked={row.selected} 
+                                                            onChange={(e) => handleRowChange(row.id, 'selected', e.target.checked)}
+                                                            disabled={!row.isValid}
+                                                            className="rounded border-slate-600 bg-slate-700 text-brand-primary focus:ring-brand-primary disabled:opacity-50"
+                                                        />
+                                                    </td>
+                                                    <td className="px-2 py-1">
+                                                        <input 
+                                                            type="text" 
+                                                            value={row.nume} 
+                                                            onChange={(e) => handleRowChange(row.id, 'nume', e.target.value)}
+                                                            className={`w-full bg-transparent border-b border-transparent focus:border-brand-primary focus:outline-none px-1 py-1 ${!row.nume ? 'border-red-500/50 bg-red-500/10' : ''}`}
+                                                            placeholder="Nume"
+                                                        />
+                                                    </td>
+                                                    <td className="px-2 py-1">
+                                                        <input 
+                                                            type="text" 
+                                                            value={row.prenume} 
+                                                            onChange={(e) => handleRowChange(row.id, 'prenume', e.target.value)}
+                                                            className={`w-full bg-transparent border-b border-transparent focus:border-brand-primary focus:outline-none px-1 py-1 ${!row.prenume ? 'border-red-500/50 bg-red-500/10' : ''}`}
+                                                            placeholder="Prenume"
+                                                        />
+                                                    </td>
+                                                    <td className="px-2 py-1">
+                                                        <input 
+                                                            type="text" 
+                                                            value={row.data_nasterii} 
+                                                            onChange={(e) => handleRowChange(row.id, 'data_nasterii', e.target.value)}
+                                                            className={`w-full bg-transparent border-b border-transparent focus:border-brand-primary focus:outline-none px-1 py-1 ${!row.data_nasterii || !parseDate(row.data_nasterii) ? 'border-red-500/50 bg-red-500/10' : ''}`}
+                                                            placeholder="DD/MM/YYYY"
+                                                        />
+                                                    </td>
+                                                    <td className="px-2 py-1">
+                                                        <input 
+                                                            type="text" 
+                                                            value={row.gen} 
+                                                            onChange={(e) => handleRowChange(row.id, 'gen', e.target.value)}
+                                                            className="w-full bg-transparent border-b border-transparent focus:border-brand-primary focus:outline-none px-1 py-1"
+                                                            placeholder="Gen"
+                                                        />
+                                                    </td>
+                                                    <td className="px-2 py-1">
+                                                        <input 
+                                                            type="text" 
+                                                            value={row.club} 
+                                                            onChange={(e) => handleRowChange(row.id, 'club', e.target.value)}
+                                                            className="w-full bg-transparent border-b border-transparent focus:border-brand-primary focus:outline-none px-1 py-1"
+                                                            placeholder="Club"
+                                                            disabled={!isSuperAdmin}
+                                                        />
+                                                    </td>
+                                                    <td className="px-2 py-2 text-center">
+                                                        {row.isValid ? (
+                                                            <CheckCircleIcon className="w-4 h-4 text-green-500 mx-auto" />
+                                                        ) : (
+                                                            <div className="group relative">
+                                                                <ExclamationTriangleIcon className="w-4 h-4 text-red-500 mx-auto cursor-help" />
+                                                                <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 w-48 bg-slate-900 border border-slate-700 p-2 rounded shadow-xl z-50 hidden group-hover:block">
+                                                                    <ul className="list-disc list-inside text-[10px] text-red-400 text-left">
+                                                                        {row.errors.map((err, i) => <li key={i}>{err}</li>)}
+                                                                    </ul>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         )}
 
-                        <div className="max-h-60 overflow-y-auto bg-slate-950 rounded border border-slate-800 p-2 text-xs font-mono space-y-1">
+                        <div className="max-h-60 overflow-y-auto bg-slate-950 rounded border border-slate-800 p-2 text-xs font-mono space-y-1 custom-scrollbar">
                             {logs.length > 0 ? logs.map((log, i) => (
-                                <div key={i} className={log.startsWith('✅') ? 'text-green-400' : 'text-red-400'}>
+                                <div key={i} className={log.startsWith('✅') ? 'text-green-400 border-b border-green-900/30 pb-1 mb-1' : 'text-red-400 border-b border-red-900/30 pb-1 mb-1'}>
                                     {log}
                                 </div>
                             )) : (
-                                <div className="text-slate-500 italic">Așteptare import...</div>
+                                <div className="text-slate-500 italic text-center py-4">
+                                    Jurnalul de import va apărea aici...
+                                </div>
                             )}
                         </div>
+
+                        {/* Debug Info Section */}
+                        <details className="text-[10px] text-slate-500 cursor-pointer">
+                            <summary className="hover:text-slate-300">Informații Debug (Click pentru detalii)</summary>
+                            <div className="mt-2 p-2 bg-black rounded border border-slate-800 font-mono whitespace-pre-wrap">
+                                <p>Header Map: {JSON.stringify(headerMap, null, 2)}</p>
+                                <p>First Row Raw: {JSON.stringify(previewData[0], null, 2)}</p>
+                            </div>
+                        </details>
 
                         <div className="flex justify-end gap-2 pt-4 border-t border-slate-700">
                             <Button variant="secondary" onClick={onClose} disabled={importing}>
                                 {importing ? 'Se procesează...' : 'Închide'}
                             </Button>
-                            <Button variant="primary" onClick={processImport} isLoading={importing} disabled={importing || progress.current === progress.total}>
-                                Importă {previewData.length} Sportivi
+                            <Button variant="primary" onClick={processImport} isLoading={importing} disabled={importing || (progress.total > 0 && progress.current === progress.total) || importRows.filter(r => r.selected).length === 0}>
+                                Importă {importRows.filter(r => r.selected).length} Sportivi
                             </Button>
                         </div>
                     </div>

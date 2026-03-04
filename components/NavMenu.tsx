@@ -9,6 +9,7 @@ interface NavMenuProps {
   isExpanded: boolean;
   permissions: Permissions;
   menuToDisplay: MenuItem[];
+  onNavigate: (view: View) => void;
 }
 
 const VIEW_TO_NOTIF_TYPE: Record<string, string> = {
@@ -50,8 +51,8 @@ const NavItem: React.FC<{
 };
 
 export const NavMenu: React.FC<NavMenuProps> = (props) => {
-  const { isExpanded, permissions, menuToDisplay } = props;
-  const { activeView, setActiveView } = useNavigation();
+  const { isExpanded, permissions, menuToDisplay, onNavigate } = props;
+  const { activeView } = useNavigation();
   const { unreadByType } = useNotifications();
 
   return (
@@ -66,7 +67,7 @@ export const NavMenu: React.FC<NavMenuProps> = (props) => {
                 item={item} 
                 isExpanded={isExpanded} 
                 isActive={item.view === activeView} 
-                onNavigate={setActiveView} 
+                onNavigate={onNavigate} 
                 badgeCount={badgeCount}
             />
         );
@@ -76,10 +77,10 @@ export const NavMenu: React.FC<NavMenuProps> = (props) => {
             item={{ label: 'Admin Dashboard', view: 'admin-dashboard', icon: ShieldCheckIcon }}
             isExpanded={isExpanded} 
             isActive={'admin-dashboard' === activeView} 
-            onNavigate={setActiveView} 
+            onNavigate={onNavigate} 
         />
       )}
-      <div onClick={() => setActiveView('debug')} className={`flex items-center p-2.5 text-white rounded-md cursor-pointer transition-colors w-full ${'debug' === activeView ? "bg-[#4DBCE9] text-white shadow-lg" : "hover:bg-white/10"}`} title={!isExpanded ? 'Debug' : ''}>
+      <div onClick={() => onNavigate('debug')} className={`flex items-center p-2.5 text-white rounded-md cursor-pointer transition-colors w-full ${'debug' === activeView ? "bg-[#4DBCE9] text-white shadow-lg" : "hover:bg-white/10"}`} title={!isExpanded ? 'Debug' : ''}>
           <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 shrink-0 ${isExpanded ? 'mr-3' : 'mx-auto'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
           {isExpanded && <span className="flex-1 font-semibold text-sm">Debug</span>}
       </div>

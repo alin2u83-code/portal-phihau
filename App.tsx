@@ -5,6 +5,7 @@ import { AuthContainer } from './components/AuthContainer';
 import { Sidebar } from './components/Sidebar';
 import { useError } from './components/ErrorProvider';
 import { useLocalStorage } from './hooks/useLocalStorage';
+import { useNavigation } from './contexts/NavigationContext';
 import { usePermissions } from './hooks/usePermissions';
 import { useClubFilter } from './hooks/useClubFilter';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -28,7 +29,7 @@ function App() {
   const isMobile = useIsMobile();
   const dataProvider = useData();
 
-  const [activeView, setActiveView] = useLocalStorage<View>('phi-hau-active-view', 'dashboard');
+  const { activeView, setActiveView } = useNavigation();
   const [selectedSportiv, setSelectedSportiv] = useState<Sportiv | null>(null);
   const [isSidebarExpanded, setIsSidebarExpanded] = useLocalStorage('phi-hau-sidebar-expanded', true);
   const [adminContext, setAdminContext] = useLocalStorage<'club' | 'federation'>('phi-hau-admin-context', 'club');
@@ -206,7 +207,7 @@ function App() {
        effectiveNeedsRoleSelection ? <RoleSelectionPage user={session.user} onSelect={handleSelectRole} loading={isSwitchingRole} onLogout={handleLogout} /> :
        currentUser ? (
             <div className="flex min-h-screen bg-[var(--bg-main)]">
-              <Sidebar currentUser={currentUser} onNavigate={setActiveView} onLogout={handleLogout} activeView={activeView} isExpanded={isSidebarExpanded} setIsExpanded={setIsSidebarExpanded} clubs={clubs} globalClubFilter={globalClubFilter} setGlobalClubFilter={setGlobalClubFilter} permissions={permissions} activeRole={activeRole!} canSwitchRoles={canSwitchRoles} onSwitchRole={handleSwitchRole} isSwitchingRole={isSwitchingRole} grade={grade} userRoles={userRoles} />
+              <Sidebar currentUser={currentUser} onLogout={handleLogout} isExpanded={isSidebarExpanded} setIsExpanded={setIsSidebarExpanded} clubs={clubs} globalClubFilter={globalClubFilter} setGlobalClubFilter={setGlobalClubFilter} permissions={permissions} activeRole={activeRole!} canSwitchRoles={canSwitchRoles} onSwitchRole={handleSwitchRole} isSwitchingRole={isSwitchingRole} grade={grade} userRoles={userRoles} />
               
               <Header 
                 activeView={activeView}
@@ -221,7 +222,7 @@ function App() {
               />
 
               <main className={`flex-1 transition-all duration-300 pt-16 ${isSidebarExpanded ? 'md:ml-64' : 'md:ml-20'}`}>
-                <div className="p-4 md:p-8 max-w-7xl mx-auto">
+                <div className="p-4 pb-24 md:p-8 max-w-7xl mx-auto">
                   <ErrorBoundary onNavigate={setActiveView}>
                         <AppRouter
                             activeView={activeView}

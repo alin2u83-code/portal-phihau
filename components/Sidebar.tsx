@@ -111,6 +111,7 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
                 isExpanded={isExpanded}
                 permissions={permissions}
                 menuToDisplay={menuToDisplay}
+                onNavigate={handleNavigate}
             />
 
              <div className="p-3 border-t border-white/10">

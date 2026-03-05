@@ -33,3 +33,7 @@ Adds a new athlete with all associated details (profile, roles, etc.) in a singl
 
 ## 10. `set_primary_context(p_context_id UUID)`
 Sets the initial primary context for a new user.
+
+## 11. `get_my_club_ids()`
+Returns a UUID array of all club IDs where the current user has the 'INSTRUCTOR' role.
+- **Source**: `supabase/migrations/20260305_get_my_club_ids_and_rls.sql`

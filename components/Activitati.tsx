@@ -52,26 +52,37 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ onBa
     const selectedGrupa = useMemo(() => grupe.find(g => g.id === formState.grupaId), [grupe, formState.grupaId]);
 
     const filteredAntrenamente = useMemo(() => {
-        let result = [...antrenamente];
-        if (filters.grupaId) result = result.filter(a => a.grupa_id === filters.grupaId);
-        if (filters.tip === 'recurent') result = result.filter(a => a.is_recurent);
-        if (filters.tip === 'personalizat') result = result.filter(a => !a.is_recurent);
-        
-        const now = new Date();
-        now.setHours(0,0,0,0);
-        
-        if (filters.perioada === 'viitoare') {
-            result = result.filter(a => new Date(a.data) >= now);
-        } else if (filters.perioada === 'luna-curenta') {
-            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-            const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-            result = result.filter(a => {
-                const d = new Date(a.data);
-                return d >= startOfMonth && d <= endOfMonth;
-            });
+        const { grupaId, tip, perioada } = filters;
+        let result = antrenamente;
+
+        if (grupaId) {
+            result = result.filter(a => a.grupa_id === grupaId);
+        }
+
+        if (tip === 'recurent') {
+            result = result.filter(a => a.is_recurent);
+        } else if (tip === 'personalizat') {
+            result = result.filter(a => !a.is_recurent);
         }
         
-        return result.sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());
+        if (perioada !== 'toate') {
+            const now = new Date();
+            now.setHours(0,0,0,0);
+            const nowTime = now.getTime();
+            
+            if (perioada === 'viitoare') {
+                result = result.filter(a => new Date(a.data).getTime() >= nowTime);
+            } else if (perioada === 'luna-curenta') {
+                const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+                const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getTime();
+                result = result.filter(a => {
+                    const d = new Date(a.data).getTime();
+                    return d >= startOfMonth && d <= endOfMonth;
+                });
+            }
+        }
+        
+        return [...result].sort((a, b) => a.data.localeCompare(b.data));
     }, [antrenamente, filters]);
 
     const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {

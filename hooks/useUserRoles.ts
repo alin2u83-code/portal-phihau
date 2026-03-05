@@ -11,7 +11,7 @@ export const getRoleDisplayName = (role: any): string => {
         case 'ADMIN': return 'Admin General';
         case 'ADMIN_CLUB': return `Admin - ${role.club?.nume || 'Club Nedefinit'}`;
         case 'INSTRUCTOR': return `Instructor - ${role.club?.nume || 'Club Nedefinit'}`;
-        case 'SPORTIV': return `Sportiv - ${role.sportiv?.nume || ''} ${role.sportiv?.prenume || ''}`;
+        case 'SPORTIV': return `Sportiv - ${role.nume_utilizator_cache || `${role.sportiv?.nume || ''} ${role.sportiv?.prenume || ''}`.trim() || 'Nespecificat'}`;
         default: return roleName || 'Rol Necunoscut';
     }
 };
@@ -61,7 +61,7 @@ export const useUserRoles = (userId: string | undefined) => {
             setLoading(true);
             const { data: roles, error: rolesError } = await supabase
                 .from('utilizator_roluri_multicont')
-                .select(`id, rol_id, sportiv_id, club_id, is_primary, rol_denumire, roluri:rol_id(nume), club:club_id(nume), sportiv:sportiv_id(*)`)
+                .select(`id, rol_id, sportiv_id, club_id, is_primary, rol_denumire, nume_utilizator_cache, roluri:rol_id(nume), club:club_id(nume), sportiv:sportiv_id(*)`)
                 .eq('user_id', userId);
 
             if (rolesError) throw rolesError;

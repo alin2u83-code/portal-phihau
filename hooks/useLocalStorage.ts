@@ -6,7 +6,14 @@ export function useLocalStorage<T,>(key: string, initialValue: T): [T, React.Dis
     try {
       const item = window.localStorage.getItem(key);
       if (item && item !== 'undefined') {
-        return JSON.parse(item);
+        // Remove surrounding quotes if they exist
+        const cleanedItem = item.replace(/^"|"$/g, '');
+        try {
+          return JSON.parse(cleanedItem);
+        } catch (e) {
+          // If JSON.parse fails, return the cleaned string directly
+          return cleanedItem as unknown as T;
+        }
       }
       return initialValue;
     } catch (error) {

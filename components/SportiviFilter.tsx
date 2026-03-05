@@ -1,7 +1,7 @@
 import React from 'react';
 import { Input, Select } from './ui';
 import { SearchIcon } from './icons';
-import { Grupa, Rol, Grad } from '../types';
+import { Grupa, Rol, Grad, Club, Permissions } from '../types';
 
 interface SportiviFilterProps {
   filters: {
@@ -10,16 +10,21 @@ interface SportiviFilterProps {
     grupaFilter: string;
     rolFilter: string;
     gradFilter: string;
+    clubFilter?: string;
   };
   onFilterChange: (name: string, value: string) => void;
   grupe: Grupa[];
   allRoles: Rol[];
   grade: Grad[];
+  clubs?: Club[];
+  permissions?: Permissions;
 }
 
-export const SportiviFilter: React.FC<SportiviFilterProps> = ({ filters, onFilterChange, grupe, allRoles, grade }) => {
+export const SportiviFilter: React.FC<SportiviFilterProps> = ({ filters, onFilterChange, grupe, allRoles, grade, clubs, permissions }) => {
+  const showClubFilter = permissions?.isFederationAdmin && clubs && clubs.length > 0;
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4 p-4 rounded-lg bg-slate-800/50">
+    <div className={`grid grid-cols-1 md:grid-cols-2 ${showClubFilter ? 'lg:grid-cols-6' : 'lg:grid-cols-5'} gap-4 mb-4 p-4 rounded-lg bg-slate-800/50`}>
       <Input
         label="Caută sportiv"
         placeholder="Nume, prenume..."
@@ -35,6 +40,16 @@ export const SportiviFilter: React.FC<SportiviFilterProps> = ({ filters, onFilte
         <option value="Activ">Activ</option>
         <option value="Inactiv">Inactiv</option>
       </Select>
+      {showClubFilter && (
+        <Select
+            label="Club"
+            value={filters.clubFilter || ''}
+            onChange={(e) => onFilterChange('clubFilter', e.target.value)}
+        >
+            <option value="">Toate Cluburile</option>
+            {clubs.map(c => <option key={c.id} value={c.id}>{c.nume}</option>)}
+        </Select>
+      )}
       <Select
         label="Grupă"
         value={filters.grupaFilter}

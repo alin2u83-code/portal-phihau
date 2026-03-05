@@ -6,14 +6,23 @@ const supabaseAnonKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY;
 let supabaseInstance: SupabaseClient | null = null;
 
 if (supabaseUrl && supabaseAnonKey) {
+  const activeClubId = localStorage.getItem('phi-hau-global-club-filter');
+  const cleanedClubId = activeClubId ? activeClubId.replace(/"/g, '') : '';
+
   supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
-        persistSession: true,
-        autoRefreshToken: true,
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+    },
+    global: {
+      headers: {
+        'active-role-context-id': cleanedClubId,
+      },
     },
   });
 } else {
   console.warn("Variabilele de mediu Supabase (VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY) nu sunt setate. Clientul Supabase nu a fost initializat.");
 }
 
-export const supabase = supabaseInstance;
+export const supabase = supabaseInstance as SupabaseClient;

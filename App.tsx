@@ -51,6 +51,30 @@ function App() {
   const [platiPentruIncasare, setPlatiPentruIncasare] = useState<Plata[]>([]);
 
 
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        localStorage.clear();
+        window.location.reload();
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (currentUser && currentUser.club_id) {
+      const storedClub = localStorage.getItem('phi-hau-global-club-filter');
+      if (storedClub && storedClub !== currentUser.club_id) {
+        // Sync and reload
+        localStorage.setItem('phi-hau-global-club-filter', JSON.stringify(currentUser.club_id));
+        window.location.reload();
+      }
+    }
+  }, [currentUser]);
+
   const activeRole = useMemo((): Rol['nume'] | null => {
     const roleName = activeRoleContext?.roluri?.nume;
     return roleName || null;
@@ -159,15 +183,17 @@ function App() {
   const handleSelectRole = async (role: any) => {
     // Salvăm imediat în storage pentru a "convinge" providerul de date
     localStorage.setItem('activeRole', JSON.stringify(role));
-    localStorage.setItem('phi-hau-active-role-context-id', role.id);
+    localStorage.setItem('phi-hau-active-role-context-id', JSON.stringify(role.id));
     
-    if (role.roluri?.nume === 'SUPER_ADMIN_FEDERATIE') {
-        setActiveView('federation-dashboard');
-        // Forțăm o stare care să ignore selecția
-        window.location.href = '/?view=federation-dashboard'; // Resetare curată de sesiune
+    // Save club_id for global filter
+    if (role.club_id) {
+        localStorage.setItem('phi-hau-global-club-filter', JSON.stringify(role.club_id));
     } else {
-        await handleSwitchRole(role);
+        localStorage.removeItem('phi-hau-global-club-filter');
     }
+    
+    // Reload to reinitialize supabaseClient with new header
+    window.location.reload();
   };
   
   const effectiveNeedsRoleSelection = useMemo(() => {

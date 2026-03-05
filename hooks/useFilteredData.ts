@@ -89,6 +89,13 @@ export const useFilteredData = ({
             };
         }
 
+        if (activeClubId && !isGlobalAdmin) {
+            const mismatchedSportivi = (sportivi || []).filter(s => s.club_id && s.club_id !== activeClubId);
+            if (mismatchedSportivi.length > 0) {
+                console.warn(`[useFilteredData] Found ${mismatchedSportivi.length} sportivi with club_id mismatching activeClubId (${activeClubId}). IDs: ${mismatchedSportivi.map(s => s.id).join(', ')}`);
+            }
+        }
+
         const fSportivi = (sportivi || []).filter((s) => s.club_id === activeClubId);
         const fGrupe = (grupe || []).filter((g) => g.club_id === activeClubId);
 

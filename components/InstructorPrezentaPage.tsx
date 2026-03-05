@@ -72,7 +72,7 @@ const TrainingCard: React.FC<TrainingCardProps> = ({ training, allClubSportivi, 
     const [extraAthleteIds, setExtraAthleteIds] = useState<Set<string>>(new Set());
     
     useEffect(() => {
-        const initialIds = new Set<string>(training.prezenta.filter(p => p.status === 'prezent').map(p => p.sportiv_id));
+        const initialIds = new Set<string>(training.prezenta.filter(p => p.status === 'Prezent').map(p => p.sportiv_id));
         setInitialPresentIds(initialIds);
         setPresentIds(initialIds);
 
@@ -250,7 +250,7 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
             const recordsToUpsert = Array.from(allInvolvedIds).map(sportivId => ({
                 antrenament_id: antrenamentId,
                 sportiv_id: sportivId,
-                status: uiPresentIds.has(sportivId) ? 'prezent' : 'absent'
+                status: uiPresentIds.has(sportivId) ? 'Prezent' : 'Absent'
             }));
 
             if (recordsToUpsert.length > 0) {

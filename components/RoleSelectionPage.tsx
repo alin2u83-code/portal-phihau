@@ -28,7 +28,8 @@ export const RoleSelectionPage: React.FC<RoleSelectionPageProps> = ({ user, onSe
                         *,
                         roluri:rol_id (id, nume),
                         club:club_id (id, nume),
-                        sportiv:sportiv_id (id, nume, prenume)
+                        sportiv:sportiv_id (id, nume, prenume),
+                        nume_utilizator_cache
                     `)
                     .eq('user_id', user.id);
 

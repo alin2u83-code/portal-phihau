@@ -1,5 +1,8 @@
 import { Rol } from '../types';
 
+/**
+ * Interfață pentru permisiunile pe tabelă
+ */
 export interface TablePermissions {
     canRead: boolean;
     canWrite: boolean; // Insert/Update
@@ -8,32 +11,17 @@ export interface TablePermissions {
 
 export type PermissionMap = Record<string, TablePermissions>;
 
-export const DEFAULT_PERMISSIONS: TablePermissions = {
-    canRead: false,
-    canWrite: false,
-    canDelete: false
-};
+// State-uri predefinite pentru reutilizare
+export const DEFAULT_PERMISSIONS: TablePermissions = { canRead: false, canWrite: false, canDelete: false };
+export const FULL_ACCESS: TablePermissions = { canRead: true, canWrite: true, canDelete: true };
+export const READ_ONLY: TablePermissions = { canRead: true, canWrite: false, canDelete: false };
 
-export const FULL_ACCESS: TablePermissions = {
-    canRead: true,
-    canWrite: true,
-    canDelete: true
-};
-
-export const READ_ONLY: TablePermissions = {
-    canRead: true,
-    canWrite: false,
-    canDelete: false
-};
-
-// Configurație generată pe baza politicilor RLS
+/**
+ * Matricea de permisiuni bazată pe rolurile Qwan Ki Do
+ */
 export const ROLE_PERMISSIONS: Record<string, PermissionMap> = {
-    'SUPER_ADMIN_FEDERATIE': {
-        '*': FULL_ACCESS
-    },
-    'ADMIN': {
-        '*': FULL_ACCESS
-    },
+    'SUPER_ADMIN_FEDERATIE': { '*': FULL_ACCESS },
+    'ADMIN': { '*': FULL_ACCESS },
     'ADMIN_CLUB': {
         'sportivi': FULL_ACCESS,
         'plati': FULL_ACCESS,
@@ -45,38 +33,22 @@ export const ROLE_PERMISSIONS: Record<string, PermissionMap> = {
         'inscrieri_examene': FULL_ACCESS,
         'evenimente': FULL_ACCESS,
         'notificari': FULL_ACCESS,
-        'cluburi': READ_ONLY // De obicei adminii de club nu șterg clubul
+        'cluburi': READ_ONLY
     },
     'INSTRUCTOR': {
-        'sportivi': {
-            canRead: true,
-            canWrite: true, // Poate edita date (conform politicilor de UPDATE)
-            canDelete: false // Dezactivat explicit conform cerinței
-        },
-        'prezenta_antrenament': {
-            canRead: true,
-            canWrite: true, // Activat explicit conform cerinței
-            canDelete: false // De obicei nu șterg, doar fac update la status
-        },
-        'program_antrenamente': READ_ONLY, // Văd orarul
-        'plati': READ_ONLY, // Văd dacă sportivii au plătit
+        'sportivi': { canRead: true, canWrite: true, canDelete: false },
+        'prezenta_antrenament': { canRead: true, canWrite: true, canDelete: false },
+        'program_antrenamente': READ_ONLY,
+        'plati': READ_ONLY,
         'grupe': READ_ONLY,
         'familii': READ_ONLY,
         'sesiuni_examene': READ_ONLY,
-        'inscrieri_examene': {
-            canRead: true,
-            canWrite: true, // Pot înscrie/nota sportivi
-            canDelete: false
-        },
+        'inscrieri_examene': { canRead: true, canWrite: true, canDelete: false },
         'evenimente': READ_ONLY,
         'notificari': READ_ONLY
     },
     'SPORTIV': {
-        'sportivi': {
-            canRead: true, // Propriul profil
-            canWrite: true, // Update limitat (avatar, etc)
-            canDelete: false
-        },
+        'sportivi': { canRead: true, canWrite: true, canDelete: false },
         'plati': READ_ONLY,
         'program_antrenamente': READ_ONLY,
         'prezenta_antrenament': READ_ONLY,
@@ -89,17 +61,30 @@ export const ROLE_PERMISSIONS: Record<string, PermissionMap> = {
     }
 };
 
-export const getPermissionsForRole = (roleName: string | undefined, tableName: string): TablePermissions => {
-    if (!roleName) return DEFAULT_PERMISSIONS;
-    
-    // Normalizare nume rol
-    const normalizedRole = roleName === 'Admin Club' ? 'ADMIN_CLUB' : roleName.toUpperCase();
-    
-    const roleConfig = ROLE_PERMISSIONS[normalizedRole];
-    if (!roleConfig) return DEFAULT_PERMISSIONS;
+/**
+ * Calculează permisiunile agregate pentru o listă de roluri.
+ * Dacă un utilizator are mai multe roluri, se aplică regula "Cea mai mare permisiune".
+ */
+export const getPermissionsForRoles = (roles: string[] | string | undefined, tableName: string): TablePermissions => {
+    if (!roles) return DEFAULT_PERMISSIONS;
 
-    // Super Admin are acces la toate (*)
-    if (roleConfig['*']) return roleConfig['*'];
+    // Convertim input-ul în array (pentru a suporta atât single role cât și multi-role)
+    const roleList = Array.isArray(roles) ? roles : [roles];
 
-    return roleConfig[tableName] || DEFAULT_PERMISSIONS;
+    return roleList.reduce((acc, role) => {
+        // Normalizare nume rol (ex: "Admin Club" -> "ADMIN_CLUB")
+        const normalizedRole = role.trim().toUpperCase().replace(/\s+/g, '_');
+        const roleConfig = ROLE_PERMISSIONS[normalizedRole];
+
+        if (!roleConfig) return acc;
+
+        // Dacă rolul are acces total via wildcard '*'
+        const tablePerms = roleConfig['*'] || roleConfig[tableName] || DEFAULT_PERMISSIONS;
+
+        return {
+            canRead: acc.canRead || tablePerms.canRead,
+            canWrite: acc.canWrite || tablePerms.canWrite,
+            canDelete: acc.canDelete || tablePerms.canDelete
+        };
+    }, { ...DEFAULT_PERMISSIONS });
 };

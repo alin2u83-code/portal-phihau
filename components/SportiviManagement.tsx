@@ -54,10 +54,12 @@ export const SportiviManagement: React.FC<{
         grade = [],
         allRoles = [], setAllRoles,
         loading,
-        filteredData
+        filteredData,
+        sportivi: rawSportivi,
     } = useData();
 
-    const sportivi = filteredData.sportivi;
+    const isGlobalAdmin = permissions.isFederationAdmin;
+    const sportivi = isGlobalAdmin ? rawSportivi : filteredData.sportivi;
     const grupe = filteredData.grupe;
     const familii = filteredData.familii;
     const plati = filteredData.plati;
@@ -105,6 +107,7 @@ export const SportiviManagement: React.FC<{
         grupaFilter: '',
         rolFilter: '',
         gradFilter: '',
+        clubFilter: '',
     });
     
     const handleFilterChange = (name: keyof typeof filters, value: string) => {
@@ -175,7 +178,8 @@ export const SportiviManagement: React.FC<{
             (filters.statusFilter ? s.status === filters.statusFilter : true) &&
             (filters.grupaFilter ? s.grupa_id === filters.grupaFilter : true) &&
             (filters.rolFilter ? (s.roluri || []).some(r => r.id === filters.rolFilter) : true) &&
-            (filters.gradFilter ? (filters.gradFilter === 'null' ? !s.grad_actual_id : s.grad_actual_id === filters.gradFilter) : true)
+            (filters.gradFilter ? (filters.gradFilter === 'null' ? !s.grad_actual_id : s.grad_actual_id === filters.gradFilter) : true) &&
+            (filters.clubFilter ? s.club_id === filters.clubFilter : true)
         );
     }, [sportivi, filters]);
     
@@ -326,6 +330,8 @@ export const SportiviManagement: React.FC<{
                 grupe={grupe}
                 allRoles={allRoles}
                 grade={grade}
+                clubs={clubs}
+                permissions={permissions}
             />
 
             {loading ? (

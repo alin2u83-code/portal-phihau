@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { Permissions } from '../types';
 
-const initialPermissions: Permissions = {
+const initialPermissions: Permissions & { checkMismatch: (id: string | undefined) => boolean } = {
     isSuperAdmin: false,
     isAdmin: false,
     isFederationAdmin: false,
@@ -17,17 +17,17 @@ const initialPermissions: Permissions = {
     canBeFederationAdmin: false,
     isMultiContextAdmin: false,
     hasClubFilter: false,
+    checkMismatch: () => false,
 };
 
-export const usePermissions = (activeRoleContext: any | null): Permissions => {
-    return useMemo((): Permissions => {
+export const usePermissions = (activeRoleContext: any | null) => {
+    return useMemo(() => {
         if (!activeRoleContext) {
             return initialPermissions;
         }
 
         const roleName = activeRoleContext.roluri?.nume || activeRoleContext.rol_denumire;
 
-        // --- Permissions based on the CURRENT ACTIVE role/context ---
         const isSuperAdmin = roleName === 'SUPER_ADMIN_FEDERATIE';
         const isAdmin = roleName === 'ADMIN';
         const isFederationAdmin = isSuperAdmin || isAdmin;
@@ -45,6 +45,13 @@ export const usePermissions = (activeRoleContext: any | null): Permissions => {
             : (activeRoleContext.club_id ? [activeRoleContext.club_id] : []);
 
         const hasClubFilter = visibleClubIds !== 'all';
+
+        // Logica mutată aici pentru a elimina fișierul separat
+        const checkMismatch = (targetId: string | undefined) => {
+            if (isFederationAdmin) return false; // Adminii de federație pot vedea orice
+            if (!activeRoleContext.club_id || !targetId) return false;
+            return activeRoleContext.club_id !== targetId;
+        };
         
         return {
             isSuperAdmin,
@@ -62,6 +69,7 @@ export const usePermissions = (activeRoleContext: any | null): Permissions => {
             canBeFederationAdmin: isSuperAdmin,
             isMultiContextAdmin: isFederationAdmin,
             hasClubFilter,
+            checkMismatch, // Exportăm funcția
         };
     }, [activeRoleContext]);
 };

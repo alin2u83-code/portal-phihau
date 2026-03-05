@@ -26,14 +26,18 @@ export const useExamManager = (
             };
 
             if (sesiuneToEdit) {
-                const { data, error } = await supabase.from('sesiuni_examene').update(dataToSave).eq('id', sesiuneToEdit.id).select().single();
+                const response = await supabase.from('sesiuni_examene').update(dataToSave).eq('id', sesiuneToEdit.id).select().single();
+                console.log('Supabase Update Response:', response);
+                const { data, error } = response;
                 if (error) throw error;
                 if (data) {
                     setSesiuni(prev => prev.map(e => e.id === data.id ? data as SesiuneExamen : e));
                     showSuccess("Succes", "Sesiunea a fost actualizată.");
                 }
             } else {
-                const { data, error } = await supabase.from('sesiuni_examene').insert(dataToSave).select().single();
+                const response = await supabase.from('sesiuni_examene').insert(dataToSave).select().single();
+                console.log('Supabase Insert Response:', response);
+                const { data, error } = response;
                 if (error) throw error;
                 if (data) {
                     setSesiuni(prev => [...prev, data as SesiuneExamen]);

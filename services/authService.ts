@@ -26,6 +26,7 @@ export const createAccount = async (params: CreateAccountParams): Promise<Create
                 data: {
                     nume: params.nume,
                     prenume: params.prenume,
+                    email: params.email,
                     full_name: `${params.prenume} ${params.nume}`
                 }
             }

@@ -35,7 +35,7 @@ export const ErrorProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         message = "Datele introduse sunt deja în sistem (duplicat).";
     }
     
-    const newNotification = { title, message, type: 'error' as const, id: Date.now() };
+    const newNotification = { title, message, type: 'error' as const, id: Date.now() + Math.random() };
     setNotifications(prev => [...prev, newNotification]);
 
     setTimeout(() => {
@@ -44,7 +44,7 @@ export const ErrorProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   }, []);
 
   const showSuccess = useCallback((title: string, message: string) => {
-    const newNotification = { title, message, type: 'success' as const, id: Date.now() };
+    const newNotification = { title, message, type: 'success' as const, id: Date.now() + Math.random() };
     setNotifications(prev => [...prev, newNotification]);
     setTimeout(() => {
       hideNotification(newNotification.id);

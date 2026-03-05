@@ -19,11 +19,25 @@ export const LoginPage: React.FC = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({});
+
+    const validate = () => {
+        const newErrors: { email?: string; password?: string } = {};
+        if (!email) newErrors.email = 'Email-ul este obligatoriu.';
+        else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = 'Email-ul nu este valid.';
+        
+        if (!password) newErrors.password = 'Parola este obligatorie.';
+        else if (password.length < 6) newErrors.password = 'Parola trebuie să aibă cel puțin 6 caractere.';
+        
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        setError(null);
+        if (!validate()) return;
+        
+        setErrors({});
         setLoading(true);
 
         try {
@@ -36,7 +50,8 @@ export const LoginPage: React.FC = () => {
 
             if (authError) {
                 if (authError.message === 'Invalid login credentials') {
-                    throw new Error('Email sau parolă incorectă.');
+                    setErrors({ general: 'Email sau parolă incorectă.' });
+                    return;
                 }
                 throw authError;
             }
@@ -45,7 +60,7 @@ export const LoginPage: React.FC = () => {
                 navigate('/');
             }
         } catch (err: any) {
-            setError(err.message || 'A apărut o eroare la autentificare.');
+            setErrors({ general: err.message || 'A apărut o eroare la autentificare.' });
         } finally {
             setLoading(false);
         }
@@ -63,17 +78,18 @@ export const LoginPage: React.FC = () => {
                             Autentificare
                         </h1>
                         <p className="text-slate-400 mt-2 font-medium italic">
-                            "Calea disciplinei începe aici."
+                            ”Drumul e lung, rădăcinile sunt amare, dar fructul este dulce.” 
+                            <br /> Pham Xuan Tong
                         </p>
                     </div>
 
-                    {error && (
+                    {errors.general && (
                         <div className="flex items-start gap-3 p-4 rounded-xl mb-6 border animate-in fade-in slide-in-from-top-2 duration-300 bg-red-500/10 border-red-500/20 text-red-400">
                             <div className="mt-0.5">
                                 <ShieldCheck className="w-5 h-5 shrink-0 opacity-70" />
                             </div>
                             <p className="text-sm font-medium leading-relaxed">
-                                {error}
+                                {errors.general}
                             </p>
                         </div>
                     )}
@@ -85,12 +101,13 @@ export const LoginPage: React.FC = () => {
                                 name="email" 
                                 type="email" 
                                 value={email} 
-                                onChange={(e) => setEmail(e.target.value)} 
+                                onChange={(e) => { setEmail(e.target.value); if(errors.email) setErrors(p => ({...p, email: undefined})); }} 
                                 required 
                                 placeholder="exemplu@email.com"
-                                className="pl-10"
+                                className={`pl-10 ${errors.email ? 'border-red-500 focus:ring-red-500' : ''}`}
                             />
                             <Mail className="absolute left-3 top-[34px] w-4 h-4 text-slate-500" />
+                            {errors.email && <p className="text-xs text-red-400 mt-1 ml-1">{errors.email}</p>}
                         </div>
 
                         <div className="relative">
@@ -99,12 +116,13 @@ export const LoginPage: React.FC = () => {
                                 name="password" 
                                 type="password" 
                                 value={password} 
-                                onChange={(e) => setPassword(e.target.value)} 
+                                onChange={(e) => { setPassword(e.target.value); if(errors.password) setErrors(p => ({...p, password: undefined})); }} 
                                 required 
                                 placeholder="••••••••"
-                                className="pl-10"
+                                className={`pl-10 ${errors.password ? 'border-red-500 focus:ring-red-500' : ''}`}
                             />
                             <Lock className="absolute left-3 top-[34px] w-4 h-4 text-slate-500" />
+                            {errors.password && <p className="text-xs text-red-400 mt-1 ml-1">{errors.password}</p>}
                         </div>
 
                         <div className="flex items-center justify-between pt-2">

@@ -24,24 +24,42 @@ export const RegisterPage: React.FC = () => {
     });
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState<{ type: 'error' | 'success', text: string } | null>(null);
+    const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+    const validate = () => {
+        const newErrors: { [key: string]: string } = {};
+        if (!formData.nume) newErrors.nume = 'Numele este obligatoriu.';
+        if (!formData.prenume) newErrors.prenume = 'Prenumele este obligatoriu.';
+        if (!formData.email) newErrors.email = 'Email-ul este obligatoriu.';
+        else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Email-ul nu este valid.';
+        
+        if (!formData.parola) newErrors.parola = 'Parola este obligatorie.';
+        else if (formData.parola.length < 6) newErrors.parola = 'Parola trebuie să aibă cel puțin 6 caractere.';
+        
+        if (formData.parola !== formData.confirmParola) {
+            newErrors.confirmParola = 'Parolele nu se potrivesc.';
+        }
+        
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
+        if (errors[e.target.name]) {
+            setErrors(prev => {
+                const next = { ...prev };
+                delete next[e.target.name];
+                return next;
+            });
+        }
     };
 
     const handleSignUp = async (e: React.FormEvent) => {
         e.preventDefault();
         setMessage(null);
 
-        if (formData.parola !== formData.confirmParola) {
-            setMessage({ type: 'error', text: 'Parolele nu se potrivesc.' });
-            return;
-        }
-
-        if (formData.parola.length < 6) {
-            setMessage({ type: 'error', text: 'Parola trebuie să aibă cel puțin 6 caractere.' });
-            return;
-        }
+        if (!validate()) return;
 
         setLoading(true);
 
@@ -122,9 +140,10 @@ export const RegisterPage: React.FC = () => {
                                     onChange={handleChange} 
                                     required 
                                     placeholder="Popescu"
-                                    className="pl-10"
+                                    className={`pl-10 ${errors.nume ? 'border-red-500 focus:ring-red-500' : ''}`}
                                 />
                                 <User className="absolute left-3 top-[34px] w-4 h-4 text-slate-500" />
+                                {errors.nume && <p className="text-xs text-red-400 mt-1 ml-1">{errors.nume}</p>}
                             </div>
                             <div className="relative">
                                 <Input 
@@ -135,9 +154,10 @@ export const RegisterPage: React.FC = () => {
                                     onChange={handleChange} 
                                     required 
                                     placeholder="Ion"
-                                    className="pl-10"
+                                    className={`pl-10 ${errors.prenume ? 'border-red-500 focus:ring-red-500' : ''}`}
                                 />
                                 <User className="absolute left-3 top-[34px] w-4 h-4 text-slate-500" />
+                                {errors.prenume && <p className="text-xs text-red-400 mt-1 ml-1">{errors.prenume}</p>}
                             </div>
                         </div>
 
@@ -150,9 +170,10 @@ export const RegisterPage: React.FC = () => {
                                 onChange={handleChange} 
                                 required 
                                 placeholder="exemplu@email.com"
-                                className="pl-10"
+                                className={`pl-10 ${errors.email ? 'border-red-500 focus:ring-red-500' : ''}`}
                             />
                             <Mail className="absolute left-3 top-[34px] w-4 h-4 text-slate-500" />
+                            {errors.email && <p className="text-xs text-red-400 mt-1 ml-1">{errors.email}</p>}
                         </div>
 
                         <div className="relative">
@@ -164,9 +185,10 @@ export const RegisterPage: React.FC = () => {
                                 onChange={handleChange} 
                                 required 
                                 placeholder="••••••••"
-                                className="pl-10"
+                                className={`pl-10 ${errors.parola ? 'border-red-500 focus:ring-red-500' : ''}`}
                             />
                             <Lock className="absolute left-3 top-[34px] w-4 h-4 text-slate-500" />
+                            {errors.parola && <p className="text-xs text-red-400 mt-1 ml-1">{errors.parola}</p>}
                         </div>
 
                         <div className="relative">
@@ -178,9 +200,10 @@ export const RegisterPage: React.FC = () => {
                                 onChange={handleChange} 
                                 required 
                                 placeholder="••••••••"
-                                className="pl-10"
+                                className={`pl-10 ${errors.confirmParola ? 'border-red-500 focus:ring-red-500' : ''}`}
                             />
                             <Lock className="absolute left-3 top-[34px] w-4 h-4 text-slate-500" />
+                            {errors.confirmParola && <p className="text-xs text-red-400 mt-1 ml-1">{errors.confirmParola}</p>}
                         </div>
 
                         <Button 

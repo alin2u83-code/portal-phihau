@@ -147,7 +147,7 @@ export const LoginPage: React.FC = () => {
 
                         <Button 
                             type="submit" 
-                            className="w-full py-6 text-lg font-bold bg-amber-600 hover:bg-amber-500 text-white border-b-4 border-amber-800 active:border-b-0 active:translate-y-1 transition-all mt-4" 
+                            className="w-full py-6 text-lg font-bold bg-amber-600 hover:bg-amber-500 text-white border-b-4 border-amber-800 active:border-b-0 active:translate-y-1 transition-all" 
                             isLoading={loading}
                         >
                             Intră în cont

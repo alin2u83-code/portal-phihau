@@ -172,7 +172,7 @@ export const useDataProvider = () => {
             
             const cleanedSupabase = withCleanUuidFilters(supabase as SupabaseClient<any, any>);
 
-            const cleanClubId = activeClubId;
+            const cleanClubId = activeCtx.club_id || activeClubId;
             const profile = activeCtx.sportiv;
             // We set currentUser here based on the active context
             const currentRoles = userRoles.map((r: any) => ({

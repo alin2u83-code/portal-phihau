@@ -6,11 +6,10 @@ export const useSportivi = (clubId: string | null) => {
     return useQuery<Sportiv[], Error>({
         queryKey: ['sportivi', clubId],
         queryFn: async () => {
-            let query = supabase.from('sportivi').select('*, cluburi(*), roluri:utilizator_roluri_multicont(rol_denumire)');
-            if (clubId) {
-                query = query.eq('club_id', clubId);
-            }
-            const { data, error } = await query;
+            const { data, error } = await supabase
+                .from('sportivi')
+                .select('*, cluburi(*), roluri:utilizator_roluri_multicont(rol_denumire)');
+            
             if (error) throw error;
             
             // Map the roles to the expected format

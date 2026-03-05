@@ -358,6 +358,8 @@ export const useDataProvider = () => {
         currentUser, 
         userRoles, 
         activeRoleContext, 
+        activeClubId,
+        setGlobalClubFilter,
         setCurrentUser,
         setSportivi: createSetter('sportivi'),
         setSesiuniExamene: createSetter('sesiuniExamene'),

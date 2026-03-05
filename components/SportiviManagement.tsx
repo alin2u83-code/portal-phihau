@@ -78,6 +78,21 @@ export const SportiviManagement: React.FC<{
     const [createAccountForm, setCreateAccountForm] = useState({ email: '', username: '', parola: '' });
     const [createAccountError, setCreateAccountError] = useState('');
     const [createAccountLoading, setCreateAccountLoading] = useState(false);
+
+    const handleOpenAddSportiv = () => {
+        setSportivToEdit(null);
+        setIsFormModalOpen(true);
+    };
+
+    const handleOpenEditSportiv = (sportiv: Sportiv) => {
+        setSportivToEdit(sportiv);
+        setIsFormModalOpen(true);
+    };
+
+    const handleCloseFormModal = () => {
+        setIsFormModalOpen(false);
+        setSportivToEdit(null);
+    };
     
     const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>({ key: 'nume', direction: 'asc' });
 
@@ -206,6 +221,7 @@ export const SportiviManagement: React.FC<{
     
                 setSportivi(prev => prev.map(s => s.id === sportivToEdit.id ? updatedSportiv : s));
                 showSuccess('Succes', 'Sportiv actualizat!');
+                handleCloseFormModal();
                 return { success: true, data: updatedSportiv };
             } else {
                 const { email, parola, roluri, cluburi, ...profileData } = formData;
@@ -229,6 +245,7 @@ export const SportiviManagement: React.FC<{
 
                 setSportivi(prev => [...prev, result.sportiv!]);
                 showSuccess('Succes', `Sportivul a fost adăugat cu succes. Username generat: ${result.sportiv?.username}`);
+                handleCloseFormModal();
                 return { success: true, data: result.sportiv! };
             }
         } catch (err: any) {
@@ -296,7 +313,7 @@ export const SportiviManagement: React.FC<{
                         <Button variant="secondary" onClick={() => setIsImportModalOpen(true)}>
                             <UploadCloudIcon className="w-5 h-5 mr-1"/> Import CSV
                         </Button>
-                        <Button variant="primary" onClick={() => { setSportivToEdit(null); setIsFormModalOpen(true); }}>
+                        <Button variant="primary" onClick={handleOpenAddSportiv}>
                             <PlusIcon className="w-5 h-5 mr-1"/> Adaugă Sportiv
                         </Button>
                     </div>
@@ -330,7 +347,7 @@ export const SportiviManagement: React.FC<{
                     grupe={grupe}
                     grade={grade}
                     onRowClick={handleRowClick}
-                    onEdit={(s) => { setSportivToEdit(s); setIsFormModalOpen(true); }}
+                    onEdit={handleOpenEditSportiv}
                     onOpenWallet={handleOpenWallet}
                     onOpenAccountSettings={setAccountSettingsSportiv}
                     onDelete={setSportivToDelete}
@@ -351,7 +368,7 @@ export const SportiviManagement: React.FC<{
 
             <SportivModals
                 isFormModalOpen={isFormModalOpen}
-                onCloseFormModal={() => setIsFormModalOpen(false)}
+                onCloseFormModal={handleCloseFormModal}
                 onSaveSportiv={handleSave}
                 sportivToEdit={sportivToEdit}
                 grupe={grupe}

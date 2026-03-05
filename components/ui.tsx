@@ -125,7 +125,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(({ label, id
 });
 
 interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
-    label: string;
+    label?: string;
 }
 
 export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(({ label, id, children, ...props }, ref) => (

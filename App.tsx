@@ -19,6 +19,7 @@ import { useIsMobile } from './hooks/useIsMobile';
 import { MartialArtsSkeleton } from './components/MartialArtsSkeleton';
 import { AppRouter } from './components/AppRouter';
 import { NotificationProvider } from './contexts/NotificationContext';
+import { ClubGuard } from './components/ClubGuard';
 
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { RegisterPage } from './components/RegisterPage';
@@ -219,24 +220,26 @@ function App() {
               <main className={`flex-1 transition-all duration-300 pt-16 ${isSidebarExpanded ? 'md:ml-64' : 'md:ml-20'}`}>
                 <div className="p-4 pb-24 md:p-8 max-w-7xl mx-auto">
                   <ErrorBoundary onNavigate={setActiveView}>
-                        <AppRouter
-                            activeView={activeView}
-                            setActiveView={setActiveView}
-                            currentUser={currentUser}
-                            userRoles={userRoles}
-                            activeRoleContext={activeRoleContext}
-                            permissions={permissions}
-                            activeRole={activeRole}
-                            selectedSportiv={selectedSportiv}
-                            setSelectedSportiv={setSelectedSportiv}
-                            platiPentruIncasare={platiPentruIncasare}
-                            setPlatiPentruIncasare={setPlatiPentruIncasare}
-                            handleBackToDashboard={handleBackToDashboard}
-                            handleSwitchRole={handleSwitchRole}
-                            isSwitchingRole={isSwitchingRole}
-                            canSwitchRoles={canSwitchRoles}
-                            isEmergencyAdmin={currentUser?.email === 'alin2u83@gmail.com'}
-                        />
+                        <ClubGuard>
+                            <AppRouter
+                                activeView={activeView}
+                                setActiveView={setActiveView}
+                                currentUser={currentUser}
+                                userRoles={userRoles}
+                                activeRoleContext={activeRoleContext}
+                                permissions={permissions}
+                                activeRole={activeRole}
+                                selectedSportiv={selectedSportiv}
+                                setSelectedSportiv={setSelectedSportiv}
+                                platiPentruIncasare={platiPentruIncasare}
+                                setPlatiPentruIncasare={setPlatiPentruIncasare}
+                                handleBackToDashboard={handleBackToDashboard}
+                                handleSwitchRole={handleSwitchRole}
+                                isSwitchingRole={isSwitchingRole}
+                                canSwitchRoles={canSwitchRoles}
+                                isEmergencyAdmin={currentUser?.email === 'alin2u83@gmail.com'}
+                            />
+                        </ClubGuard>
                   </ErrorBoundary>
                 </div>
               </main>

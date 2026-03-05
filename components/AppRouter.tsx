@@ -71,17 +71,11 @@ export interface AppRouterProps {
     isEmergencyAdmin: boolean;
 }
 
-import { useClubMismatch } from '../hooks/useClubMismatch';
-import { useClubSync } from '../hooks/useClubSync';
-
 export const AppRouter: React.FC<AppRouterProps> = ({
     activeView, setActiveView, currentUser, userRoles, activeRoleContext, permissions, activeRole,
     selectedSportiv, setSelectedSportiv, platiPentruIncasare, setPlatiPentruIncasare,
     handleBackToDashboard, handleSwitchRole, isSwitchingRole, canSwitchRoles, isEmergencyAdmin
 }) => {
-    useClubMismatch(selectedSportiv);
-    useClubSync(currentUser);
-
     const {
         loading, sportivi, sesiuniExamene, inscrieriExamene, grade, istoricGrade,
         grupe, plati, tranzactii, evenimente, rezultate, preturiConfig, tipuriAbonament,

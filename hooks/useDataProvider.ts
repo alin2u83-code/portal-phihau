@@ -125,10 +125,9 @@ export const useDataProvider = () => {
             .eq('sportiv_id', sportivId);
 
         // Add club_id filter if available in context
-        // RLS handles this now
-        // if (activeRoleContext?.club_id && activeRoleContext.club_id !== 'null') {
-        //    query = query.eq('club_id', activeRoleContext.club_id);
-        // }
+        if (activeRoleContext?.club_id && activeRoleContext.club_id !== 'null') {
+            query = query.eq('club_id', activeRoleContext.club_id);
+        }
 
         const { data, error } = await query.order('data', { ascending: false });
 
@@ -237,8 +236,6 @@ export const useDataProvider = () => {
 
                 // Apply club filter if NOT super admin. 
                 // Admin Club and Instructors SHOULD be filtered by their active context (cleanClubId).
-                // RLS handles this now.
-                /*
                 if (!isSuperAdmin && cleanClubId) {
                     const tablesToFilter = [
                         'tranzactii', 'evenimente', 
@@ -251,7 +248,6 @@ export const useDataProvider = () => {
                         }
                     });
                 }
-                */
 
                 const queryKeys = Object.keys(queries);
                 const settledResults = await Promise.allSettled(Object.values(queries)) as any;

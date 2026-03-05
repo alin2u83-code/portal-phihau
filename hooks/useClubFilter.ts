@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { Permissions, User } from '../types';
 import { useLocalStorage } from './useLocalStorage';
-import { useClubAccess } from './useClubAccess';
 
 interface UseClubFilterResult {
     activeClubId: string | null;
@@ -17,39 +16,33 @@ export const useClubFilter = (currentUser: User | null, permissions: Permissions
     const [loading, setLoading] = useState(true);
     
     const [globalClubFilter, setGlobalClubFilter] = useLocalStorage<string | null>('phi-hau-global-club-filter', null);
-    const { allowedClubs, loading: accessLoading } = useClubAccess();
 
     const canChangeClub = permissions.isFederationAdmin;
 
     useEffect(() => {
-        if (accessLoading) return;
         setLoading(true);
         if (!currentUser) {
             setLoading(false);
             return;
         }
 
-        const userClubId = currentUser.club_id;
-        
-        // Validation Logic: Check if the club is in the allowed list
-        let targetClubId = canChangeClub ? (globalClubFilter || userClubId) : userClubId;
-        
-        // If targetClubId is not in allowedClubs and user is not super admin, reset to first allowed or null
-        if (!canChangeClub && targetClubId && !allowedClubs.includes(targetClubId)) {
-            targetClubId = allowedClubs.length > 0 ? allowedClubs[0] : null;
-            setGlobalClubFilter(targetClubId);
-        }
-
-        setActiveClubId(targetClubId);
-        
-        // Ensure the global filter reflects this fixed context for UI consistency.
-        if (!canChangeClub && globalClubFilter !== targetClubId) {
-            setGlobalClubFilter(targetClubId);
+        // For federation-level admins, the active club is determined by the global filter they select.
+        if (canChangeClub) {
+            setActiveClubId(globalClubFilter);
+        } else {
+            // For club-level users, their context is fixed to their club.
+            const userClubId = currentUser.club_id;
+            setActiveClubId(userClubId);
+            
+            // Ensure the global filter reflects this fixed context for UI consistency.
+            if (globalClubFilter !== userClubId) {
+                setGlobalClubFilter(userClubId);
+            }
         }
         
         setLoading(false);
 
-    }, [currentUser, permissions.isFederationAdmin, globalClubFilter, setGlobalClubFilter, canChangeClub, allowedClubs, accessLoading]);
+    }, [currentUser, permissions.isFederationAdmin, globalClubFilter, setGlobalClubFilter, canChangeClub]);
 
     return {
         activeClubId,

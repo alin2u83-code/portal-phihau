@@ -51,17 +51,6 @@ function App() {
   const [platiPentruIncasare, setPlatiPentruIncasare] = useState<Plata[]>([]);
 
 
-  useEffect(() => {
-    if (currentUser && currentUser.club_id) {
-      const storedClub = localStorage.getItem('phi-hau-global-club-filter');
-      if (storedClub && storedClub !== currentUser.club_id) {
-        // Sync and reload
-        localStorage.setItem('phi-hau-global-club-filter', currentUser.club_id);
-        window.location.reload();
-      }
-    }
-  }, [currentUser]);
-
   const activeRole = useMemo((): Rol['nume'] | null => {
     const roleName = activeRoleContext?.roluri?.nume;
     return roleName || null;

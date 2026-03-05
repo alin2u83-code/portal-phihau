@@ -6,7 +6,11 @@ export const usePlati = (clubId: string | null) => {
     return useQuery<Plata[], Error>({
         queryKey: ['plati', clubId],
         queryFn: async () => {
-            const { data, error } = await supabase.from('plati').select('*');
+            let query = supabase.from('plati').select('*');
+            if (clubId) {
+                query = query.in('club_id', [clubId]);
+            }
+            const { data, error } = await query;
             if (error) throw error;
             return data as Plata[];
         },

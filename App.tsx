@@ -84,7 +84,7 @@ function App() {
     if (savedRole && savedRole !== 'undefined') {
       try {
         const role = JSON.parse(savedRole);
-        if (role && role.roluri?.nume === 'SUPER_ADMIN_FEDERATIE') {
+        if (role && role.roluri?.nume === 'SUPER_ADMIN_FEDERATIE' && activeView === 'dashboard') {
           setActiveView('federation-dashboard');
         }
       } catch (error) {
@@ -92,7 +92,7 @@ function App() {
         localStorage.removeItem('activeRole');
       }
     }
-  }, []);
+  }, [activeView, setActiveView]);
 
   useEffect(() => {
     const redirectView = localStorage.getItem('phi-hau-redirect-after-role-switch');
@@ -132,13 +132,8 @@ function App() {
     }
   }, [currentUser, permissions, activeView, setActiveView, activeRoleContext, showError, loading]);
 
-  useEffect(() => {
-    // Protection mechanism for SUPER_ADMIN_FEDERATIE
-    if (permissions.isFederationLevel && activeView !== 'federation-dashboard') {
-      console.warn('[Protection] Federation-level role is being redirected to the federation dashboard.');
-      setActiveView('federation-dashboard');
-    }
-  }, [activeView, permissions.isFederationLevel, setActiveView]);
+  // Removed restrictive protection mechanism for SUPER_ADMIN_FEDERATIE
+  // to allow them to access other admin views.
 
   const handleLogout = async () => {
     try {

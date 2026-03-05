@@ -37,3 +37,11 @@ Sets the initial primary context for a new user.
 ## 11. `get_my_club_ids()`
 Returns a UUID array of all club IDs where the current user has the 'INSTRUCTOR' role.
 - **Source**: `supabase/migrations/20260305_get_my_club_ids_and_rls.sql`
+
+## 12. `get_user_roles(user_id UUID)`
+Returns detailed information about all roles and contexts associated with a user.
+- **Source**: `supabase/migrations/20260305_comprehensive_rls_and_functions.sql`
+
+## 13. `switch_primary_context(target_context_id UUID)`
+Updates the database to set a specific context as the primary one for the current user.
+- **Source**: `supabase/migrations/20260305_comprehensive_rls_and_functions.sql`

@@ -2,17 +2,11 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { User, View, Club, Permissions, Rol, Grad } from '../types';
 import { useNavigation } from '../contexts/NavigationContext';
 import { adminMenu, instructorMenu, sportivMenu, MenuItem } from './menuConfig';
-import { ArrowRightOnRectangleIcon, Bars3Icon, ChevronDownIcon, ShieldCheckIcon, UserCircleIcon, UsersIcon } from './icons';
+import { ArrowRightOnRectangleIcon, Bars3Icon, ChevronDownIcon, ShieldCheckIcon, UserCircleIcon, UsersIcon, BuildingOfficeIcon } from './icons';
 import { RoleSwitcher } from './RoleSwitcher';
 import { NavMenu } from './NavMenu';
 import { Select } from './ui';
 import { FEDERATIE_ID, FEDERATIE_NAME, ROLES } from '../constants';
-
-
-
-
-
-
 
 interface SidebarProps {
     currentUser: User;
@@ -59,9 +53,15 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
 
         switch (normalizedRole) {
             case ROLES.SUPER_ADMIN_FEDERATIE:
+            case ROLES.ADMIN:
+                menu = adminMenu;
+                name = 'Federație';
+                border = 'border-amber-500';
+                icon = ShieldCheckIcon;
+                break;
             case ROLES.ADMIN_CLUB:
                 menu = adminMenu;
-                name = normalizedRole === ROLES.SUPER_ADMIN_FEDERATIE ? 'Federație' : currentUser.cluburi?.nume || 'Club';
+                name = currentUser.cluburi?.nume || 'Club';
                 border = 'border-[#4DBCE9]';
                 icon = ShieldCheckIcon;
                 break;
@@ -106,6 +106,26 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
                     iconColorClass={iconColorClass}
                 />
             </div>
+
+            {/* Club Selector for Federation Admins */}
+            {permissions.isFederationAdmin && isExpanded && (
+                <div className="px-4 py-2 border-b border-white/10 bg-black/10">
+                    <div className="flex items-center gap-2 mb-2 text-amber-300">
+                        <BuildingOfficeIcon className="w-4 h-4" />
+                        <span className="text-[10px] font-bold uppercase tracking-wider">Filtru Club</span>
+                    </div>
+                    <select 
+                        value={globalClubFilter || ''} 
+                        onChange={(e) => setGlobalClubFilter(e.target.value || null)}
+                        className="w-full bg-slate-800/50 border border-slate-700 rounded-md px-2 py-1.5 text-xs text-white focus:ring-1 focus:ring-amber-500 outline-none transition-all"
+                    >
+                        <option value="">Toate Cluburile</option>
+                        {clubs.map(club => (
+                            <option key={club.id} value={club.id}>{club.nume}</option>
+                        ))}
+                    </select>
+                </div>
+            )}
             
             <NavMenu
                 isExpanded={isExpanded}

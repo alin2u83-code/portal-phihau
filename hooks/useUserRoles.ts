@@ -72,6 +72,14 @@ export const useUserRoles = (userId: string | undefined) => {
                 setActiveRoleContext(null);
             } else {
                 const savedRoleId = localStorage.getItem('phi-hau-active-role-context-id')?.replace(/"/g, '');
+                
+                if (!savedRoleId && roles.length > 1) {
+                    setNeedsRoleSelection(true);
+                    setUserRoles(roles);
+                    setActiveRoleContext(null);
+                    return;
+                }
+
                 let activeCtx = (roles.find(r => r.id === savedRoleId) || roles.find(r => r.is_primary) || roles[0]) as any;
                 
                 if (!activeCtx) {

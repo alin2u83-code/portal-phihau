@@ -35,35 +35,12 @@ export const usePermissions = (activeRoleContext: any | null): Permissions => {
         const isInstructor = roleName === 'INSTRUCTOR';
         const isSportiv = roleName === 'SPORTIV';
 
-        // If the active role is SUPER_ADMIN_FEDERATIE, grant all administrative permissions
-        if (isSuperAdmin) {
-            return {
-                isSuperAdmin: true,
-                isAdmin: true, // Super Admin implies Admin
-                isFederationAdmin: true,
-                isAdminClub: true, // Super Admin implies Admin Club
-                isInstructor: true, // Super Admin implies Instructor
-                isSportiv: false, // Super Admin is not a regular sportiv in this context
-                hasAdminAccess: true,
-                isFederationLevel: true,
-                canManageFinances: true,
-                canGradeStudents: true,
-                visibleClubIds: 'all',
-                canBeClubAdmin: true,
-                canBeFederationAdmin: true,
-                isMultiContextAdmin: true,
-                hasClubFilter: false,
-            };
-        }
-
-        const hasAdminAccess = isFederationAdmin || isAdminClub;
-        const canManageFinances = hasAdminAccess;
-        const canGradeStudents = hasAdminAccess || isInstructor;
-
-        // --- Context-dependent flags ---
+        const hasAdminAccess = isFederationAdmin || isAdminClub || isInstructor;
+        const canManageFinances = isFederationAdmin || isAdminClub;
+        const canGradeStudents = isFederationAdmin || isAdminClub || isInstructor;
         const isFederationLevel = isFederationAdmin;
         
-        const visibleClubIds: 'all' | string[] = isSuperAdmin
+        const visibleClubIds: 'all' | string[] = isFederationAdmin
             ? 'all'
             : (activeRoleContext.club_id ? [activeRoleContext.club_id] : []);
 
@@ -81,9 +58,9 @@ export const usePermissions = (activeRoleContext: any | null): Permissions => {
             canManageFinances,
             canGradeStudents,
             visibleClubIds,
-            canBeClubAdmin: false, // These are context-specific now, might need adjustment if used globally
-            canBeFederationAdmin: false,
-            isMultiContextAdmin: false,
+            canBeClubAdmin: isFederationAdmin,
+            canBeFederationAdmin: isSuperAdmin,
+            isMultiContextAdmin: isFederationAdmin,
             hasClubFilter,
         };
     }, [activeRoleContext]);

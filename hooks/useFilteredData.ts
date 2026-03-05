@@ -50,7 +50,12 @@ export const useFilteredData = ({
             activeRole === 'SUPER_ADMIN_FEDERATIE' || 
             activeRole === 'ADMIN';
 
-        if (isGlobalAdmin) {
+        // LOGICA PENTRU FILTRARE
+        // Daca e admin global si NU are club selectat (activeClubId === null), vede tot.
+        // Daca e admin global si ARE club selectat, vede doar acel club.
+        // Daca NU e admin global, vede doar clubul sau (activeClubId ar trebui sa fie setat de useClubFilter).
+        
+        if (isGlobalAdmin && !activeClubId) {
             return {
                 sportivi,
                 sesiuniExamene,
@@ -72,10 +77,6 @@ export const useFilteredData = ({
             };
         }
 
-        // LOGICA PENTRU SPORTIVI / USERI NON-ADMIN (sau fallback daca nu e rol selectat)
-        // Aici pastram filtrarea pe baza de club pentru a nu arata date irelevante in UI
-        // desi RLS-ul ar trebui sa blocheze accesul oricum.
-        
         if (!activeClubId) {
             return {
                 sportivi: [], sesiuniExamene: [], inscrieriExamene: [], antrenamente: [], grupe: [], plati: [],

@@ -256,24 +256,25 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ onBa
 
     const generateDates = (start: string, end: string, ziua: ProgramItem['ziua'], frecventa: string): Date[] => {
         const dates: Date[] = [];
-        let current = new Date(start);
-        const endDate = new Date(end);
+        const [sY, sM, sD] = start.split('-').map(Number);
+        const [eY, eM, eD] = end.split('-').map(Number);
+        
+        let current = new Date(sY, sM - 1, sD);
+        const endDate = new Date(eY, eM - 1, eD);
+        endDate.setHours(23, 59, 59, 999);
+        
         const dayIndex = ZILE_INDEX[ziua];
 
-        // Normalizare la începutul zilei UTC pentru a evita problemele de fus orar
-        current.setUTCHours(0, 0, 0, 0);
-        endDate.setUTCHours(23, 59, 59, 999);
-
-        // Găsim prima zi care se potrivește cu ziua săptămânii selectată
-        while (current.getUTCDay() !== dayIndex) {
-            current.setUTCDate(current.getUTCDate() + 1);
+        // Găsim prima zi care se potrivește cu ziua săptămânii selectată în intervalul [start, end]
+        while (current.getDay() !== dayIndex) {
+            current.setDate(current.getDate() + 1);
         }
 
         const increment = (frecventa === 'bilunar') ? 14 : 7;
 
         while (current <= endDate) {
             dates.push(new Date(current));
-            current.setUTCDate(current.getUTCDate() + increment);
+            current.setDate(current.getDate() + increment);
         }
         return dates;
     };

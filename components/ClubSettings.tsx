@@ -85,7 +85,7 @@ export const ClubSettings: React.FC<ClubSettingsProps> = ({ onBack, currentUser,
                 })
                 .eq('id', activeClub.id)
                 .select()
-                .single();
+                .maybeSingle();
 
             if (error) throw error;
 

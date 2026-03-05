@@ -60,6 +60,7 @@ export interface Locatie {
   id: string;
   nume: string;
   adresa?: string | null;
+  club_id?: string | null;
 }
 
 // --- Domain: Sportivi ---
@@ -95,6 +96,12 @@ export interface Sportiv {
   foto_url?: string | null;
   cod_sportiv?: string | null;
   club_provenienta?: string | null;
+  status_aprobare?: 'asteptare' | 'aprobat' | 'respins' | null;
+  propunere_modificare?: {
+    nume?: string;
+    prenume?: string;
+    [key: string]: any;
+  } | null;
 }
 
 export interface SportivDetaliu {
@@ -402,6 +409,7 @@ export interface FilteredData {
     istoricGrade: IstoricGrade[];
     vizualizarePlati: VizualizarePlata[];
     istoricPlatiDetaliat: IstoricPlataDetaliat[];
+    locatii: Locatie[];
 }
 
 export interface RaportActivitateRecord {

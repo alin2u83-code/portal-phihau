@@ -37,7 +37,7 @@ const SingleTrainingAnunt: React.FC<SingleTrainingAnuntProps> = ({ training, cur
                     .update({ status, detalii })
                     .eq('id', existingAnunt.id)
                     .select()
-                    .single();
+                    .maybeSingle();
             } else {
                 // Insert new announcement
                 result = await supabase
@@ -49,7 +49,7 @@ const SingleTrainingAnunt: React.FC<SingleTrainingAnuntProps> = ({ training, cur
                         detalii
                     })
                     .select()
-                    .single();
+                    .maybeSingle();
             }
             
             const { data, error } = result;

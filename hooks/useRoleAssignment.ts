@@ -29,6 +29,15 @@ export const useRoleAssignment = (currentUser: User, allRoles: Rol[]) => {
         if (!supabase) {
             return { success: false, error: "Client Supabase neconfigurat." };
         }
+
+        // Validare club_id pentru roluri specifice clubului
+        const clubSpecificRoles = ['ADMIN_CLUB', 'INSTRUCTOR', 'SPORTIV'];
+        const needsClubId = rolesToAssign.some(r => clubSpecificRoles.includes(r.nume));
+        
+        if (needsClubId && !sportivData.club_id) {
+            return { success: false, error: "ID-ul clubului este obligatoriu pentru rolurile selectate." };
+        }
+
         setLoading(true);
         try {
             let authData, authError;

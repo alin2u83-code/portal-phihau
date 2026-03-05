@@ -95,7 +95,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                 .from('anunturi_prezenta')
                 .upsert(upsertData, { onConflict: 'antrenament_id, sportiv_id' })
                 .select()
-                .single();
+                .maybeSingle();
             
             if (error) throw error;
 

@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Sportiv, User, Rol, InscriereExamen, Examen, Grad, Antrenament, IstoricGrade, Plata, Familie, TipAbonament, Tranzactie, Reducere, Club, Grupa, VizualizarePlata } from '../types';
 import { Button, Card, Select, Modal, Input, RoleBadge, Skeleton } from './ui';
-import { ArrowLeftIcon, EditIcon, WalletIcon, TrashIcon, ShieldCheckIcon, PlusIcon, ChartBarIcon, TransferIcon, CheckCircleIcon, ExclamationTriangleIcon, UserPlusIcon, UserCircleIcon, ClipboardListIcon, TrophyIcon, BanknotesIcon, CalendarDaysIcon, UsersIcon } from './icons';
+import { ArrowLeftIcon, EditIcon, WalletIcon, TrashIcon, ShieldCheckIcon, PlusIcon, ChartBarIcon, TransferIcon, CheckCircleIcon, ExclamationTriangleIcon, UserPlusIcon, UserCircleIcon, ClipboardListIcon, TrophyIcon, BanknotesIcon, CalendarDaysIcon, UsersIcon, CheckIcon, XIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { SportivFormModal } from './Sportivi';
@@ -94,6 +94,8 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack }) => 
     const [plataToDelete, setPlataToDelete] = useState<Plata | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isApproving, setIsApproving] = useState(false);
+    const [isRejecting, setIsRejecting] = useState(false);
 
     useEffect(() => {
         setFeedbackData({
@@ -104,6 +106,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack }) => 
     }, [sportiv]);
 
     const isSuperAdmin = currentUser.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN');
+    const isClubAdmin = currentUser.roluri.some(r => r.nume === 'ADMIN_CLUB');
     const canViewSensitiveInfo = useMemo(() => {
         return currentUser.roluri.some(r => 
             ['SUPER_ADMIN_FEDERATIE', 'ADMIN', 'ADMIN_CLUB', 'INSTRUCTOR'].includes(r.nume)
@@ -290,11 +293,13 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack }) => 
             const { data: newGradeHistory, error } = await supabase.from('istoric_grade').insert({
                 sportiv_id: sportiv.id,
                 ...data
-            }).select().single();
+            }).select().maybeSingle();
             if (error) throw error;
-            setIstoricGrade(prev => [...prev, newGradeHistory]);
-            showSuccess("Succes", "Gradul a fost adăugat în istoric.");
-            setIsAddGradeModalOpen(false);
+            if (newGradeHistory) {
+                setIstoricGrade(prev => [...prev, newGradeHistory]);
+                showSuccess("Succes", "Gradul a fost adăugat în istoric.");
+                setIsAddGradeModalOpen(false);
+            }
         } catch (err: any) {
             showError("Eroare la adăugare", err.message);
         }
@@ -344,6 +349,56 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack }) => 
         setTimeout(() => window.location.reload(), 1500);
     };
 
+    const handleApproveName = async () => {
+        if (!supabase) return;
+        setIsApproving(true);
+        try {
+            const { error } = await supabase.rpc('aproba_modificare_sportiv', { p_sportiv_id: sportiv.id });
+            if (error) throw error;
+            
+            const updatedSportiv = {
+                ...sportiv,
+                nume: sportiv.propunere_modificare?.nume || sportiv.nume,
+                prenume: sportiv.propunere_modificare?.prenume || sportiv.prenume,
+                status_aprobare: 'aprobat' as const,
+                propunere_modificare: null
+            };
+            setSportivi(prev => prev.map(s => s.id === sportiv.id ? updatedSportiv : s));
+            showSuccess("Aprobat", "Modificarea numelui a fost aprobată.");
+        } catch (err: any) {
+            showError("Eroare", err.message);
+        } finally {
+            setIsApproving(false);
+        }
+    };
+
+    const handleRejectName = async () => {
+        if (!supabase) return;
+        setIsRejecting(true);
+        try {
+            const { error } = await supabase
+                .from('sportivi')
+                .update({ 
+                    status_aprobare: 'respins',
+                    propunere_modificare: null 
+                })
+                .eq('id', sportiv.id);
+                
+            if (error) throw error;
+            
+            setSportivi(prev => prev.map(s => s.id === sportiv.id ? { 
+                ...s, 
+                status_aprobare: 'respins', 
+                propunere_modificare: null 
+            } : s));
+            showSuccess("Respins", "Modificarea numelui a fost respinsă.");
+        } catch (err: any) {
+            showError("Eroare", err.message);
+        } finally {
+            setIsRejecting(false);
+        }
+    };
+
     return (
         <div className="space-y-6 animate-fade-in-down">
             {/* Header */}
@@ -366,7 +421,48 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack }) => 
                         )}
                     </div>
                     <div className="text-center md:text-left space-y-1">
-                        <h1 className="text-3xl font-bold text-white tracking-tight">{sportiv.nume} {sportiv.prenume}</h1>
+                        {sportiv.status_aprobare === 'asteptare' && sportiv.propunere_modificare ? (
+                            <div className="space-y-2 mb-2">
+                                <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4">
+                                    <h1 className="text-xl md:text-2xl font-bold text-slate-500 line-through decoration-red-500/50 decoration-2">
+                                        {sportiv.nume} {sportiv.prenume}
+                                    </h1>
+                                    <div className="flex items-center gap-2 bg-amber-500/10 px-3 py-1 rounded-lg border border-amber-500/20">
+                                        <h1 className="text-2xl md:text-3xl font-bold text-amber-400 tracking-tight italic">
+                                            {sportiv.propunere_modificare.nume || sportiv.nume} {sportiv.propunere_modificare.prenume || sportiv.prenume}
+                                        </h1>
+                                        <span className="ml-2 px-2 py-0.5 text-[10px] font-bold bg-amber-500 text-slate-900 rounded uppercase tracking-wider">
+                                            În așteptare
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                {isClubAdmin && (
+                                    <div className="flex items-center justify-center md:justify-start gap-2 animate-fade-in">
+                                        <Button 
+                                            size="sm" 
+                                            variant="success" 
+                                            onClick={handleApproveName}
+                                            isLoading={isApproving}
+                                            className="h-8 text-xs"
+                                        >
+                                            <CheckIcon className="w-3 h-3 mr-1" /> Aprobă Nume
+                                        </Button>
+                                        <Button 
+                                            size="sm" 
+                                            variant="danger" 
+                                            onClick={handleRejectName}
+                                            isLoading={isRejecting}
+                                            className="h-8 text-xs"
+                                        >
+                                            <XIcon className="w-3 h-3 mr-1" /> Respinge
+                                        </Button>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <h1 className="text-3xl font-bold text-white tracking-tight">{sportiv.nume} {sportiv.prenume}</h1>
+                        )}
                         <p className="text-lg text-slate-300 font-medium">{grupe.find(g => g.id === sportiv.grupa_id)?.denumire || 'Fără grupă'}</p>
                         <div className="flex items-center justify-center md:justify-start gap-2 mt-2">
                              <span className={`px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-full ${sportiv.status === 'Activ' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}`}>

@@ -14,6 +14,8 @@ import { useAttendanceData } from './useAttendanceData';
 import { useSportivi } from './useSportivi';
 import { usePlati } from './usePlati';
 import { useGrupe } from './useGrupe';
+import { useClubFilter } from './useClubFilter';
+import { usePermissions } from './usePermissions';
 
 export interface AppData {
     sportivi: Sportiv[];
@@ -72,7 +74,8 @@ export const useDataProvider = () => {
 
     // Derive active role and club for filtering
     const activeRole = activeRoleContext?.roluri?.nume || null;
-    const activeClubId = (activeRoleContext?.club_id && activeRoleContext.club_id !== 'null') ? activeRoleContext.club_id : null;
+    const permissions = usePermissions(activeRoleContext);
+    const { activeClubId, globalClubFilter, setGlobalClubFilter } = useClubFilter(currentUser, permissions);
 
     const attendanceData = useAttendanceData(activeClubId);
 
@@ -108,7 +111,8 @@ export const useDataProvider = () => {
         deconturiFederatie: data.deconturiFederatie,
         istoricGrade: data.istoricGrade,
         vizualizarePlati: data.vizualizarePlati,
-        istoricPlatiDetaliat: data.istoricPlatiDetaliat
+        istoricPlatiDetaliat: data.istoricPlatiDetaliat,
+        locatii: data.locatii
     });
 
     const fetchIstoricVedere = useCallback(async (sportivId: string, silent = false) => {
@@ -168,7 +172,7 @@ export const useDataProvider = () => {
             
             const cleanedSupabase = withCleanUuidFilters(supabase as SupabaseClient<any, any>);
 
-            const cleanClubId = (activeCtx.club_id && activeCtx.club_id !== 'null') ? activeCtx.club_id : null;
+            const cleanClubId = activeClubId;
             const profile = activeCtx.sportiv;
             // We set currentUser here based on the active context
             const currentRoles = userRoles.map((r: any) => ({
@@ -199,13 +203,9 @@ export const useDataProvider = () => {
                     clubs: cleanedSupabase.from('cluburi').select('*'),
                     allRoles: cleanedSupabase.from('roluri').select('*'),
                     grade: cleanedSupabase.from('grade').select('*'),
-                    grupe: cleanedSupabase.from('grupe').select('*, program:orar_saptamanal!grupa_id(*)'),
                     tipuriAbonament: cleanedSupabase.from('tipuri_abonament').select('*'),
                     tipuriPlati: cleanedSupabase.from('tipuri_plati').select('*'),
-                    sportiviRaw: cleanedSupabase.from('sportivi').select('*, cluburi(*)'),
-                    sportiviRoles: cleanedSupabase.from('utilizator_roluri_multicont').select('sportiv_id, rol_denumire'),
                     sesiuniExamene: cleanedSupabase.from('sesiuni_examene').select('*'),
-                    plati: cleanedSupabase.from('plati').select('*'),
                     tranzactii: cleanedSupabase.from('tranzactii').select('*'),
                     evenimente: cleanedSupabase.from('evenimente').select('*'),
                     rezultate: cleanedSupabase.from('rezultate').select('*'),
@@ -238,7 +238,7 @@ export const useDataProvider = () => {
                 // Admin Club and Instructors SHOULD be filtered by their active context (cleanClubId).
                 if (!isSuperAdmin && cleanClubId) {
                     const tablesToFilter = [
-                        'grupe', 'sportiviRaw', 'plati', 'tranzactii', 'evenimente', 
+                        'tranzactii', 'evenimente', 
                         'deconturiFederatie', 'vizualizarePlati',
                         'sesiuniExamene', 'tipuriAbonament'
                     ];
@@ -263,32 +263,23 @@ export const useDataProvider = () => {
                 }
 
                 const { 
-                    clubs: cData, allRoles: rData, grade: gData, grupe: grpData, tipuriAbonament: subData, 
-                    locatii: locData, tipuriPlati: pTypeData, reduceri: redData, sportiviRaw: sRaw, 
+                    clubs: cData, allRoles: rData, grade: gData, tipuriAbonament: subData, 
+                    locatii: locData, tipuriPlati: pTypeData, reduceri: redData, 
                     sesiuniExamene: sessData, inscrieriExamene: regData, 
-                    plati: payData, tranzactii: trData, evenimente: evData, rezultate: resData, 
+                    tranzactii: trData, evenimente: evData, rezultate: resData, 
                     familii: famData, preturiConfig: prcData, 
-                    vizualizarePlati: vPayData, istoricPlatiDetaliat: istPayData, deconturiFederatie: decData, istoricGrade: istGData,
-                    sportiviRoles: sRoles
+                    vizualizarePlati: vPayData, istoricPlatiDetaliat: istPayData, deconturiFederatie: decData, istoricGrade: istGData
                 } = processedData;
 
-                const allSportivi = (sRaw || []).map((s: any) => ({
-                    ...s,
-                    cluburi: s.cluburi || {},
-                    roluri: (sRoles || [])
-                        .filter((sr: any) => sr.sportiv_id === s.id)
-                        .map((sr: any) => rData.find((r: any) => r.nume === sr.rol_denumire))
-                        .filter(Boolean)
-                }));
-
-                setData({
-                    clubs: cData, allRoles: rData, grade: gData, grupe: grpData, tipuriAbonament: subData,
-                    locatii: locData, tipuriPlati: pTypeData, reduceri: redData, sportivi: allSportivi,
+                setData(prev => ({
+                    ...prev,
+                    clubs: cData, allRoles: rData, grade: gData, tipuriAbonament: subData,
+                    locatii: locData, tipuriPlati: pTypeData, reduceri: redData,
                     sesiuniExamene: sessData, inscrieriExamene: regData,
-                    plati: payData, tranzactii: trData, evenimente: evData, rezultate: resData,
+                    tranzactii: trData, evenimente: evData, rezultate: resData,
                     familii: famData, preturiConfig: prcData,
                     vizualizarePlati: vPayData, istoricPlatiDetaliat: istPayData, deconturiFederatie: decData, istoricGrade: istGData
-                } as AppData);
+                }));
             }
         } catch (err: any) {
             console.error("Critical Fetch Error:", err);
@@ -302,7 +293,7 @@ export const useDataProvider = () => {
         } finally {
             setLoadingData(false);
         }
-    }, [session?.user.id, session?.user.email, userRoles]);
+    }, [session?.user.id, session?.user.email, userRoles, activeClubId]);
 
     // Effect to trigger data fetch when active role context changes
     useEffect(() => {
@@ -312,7 +303,7 @@ export const useDataProvider = () => {
             // If roles loaded but no context (and not waiting for selection), stop loading
             setLoadingData(false);
         }
-    }, [activeRoleContext, rolesLoading, needsRoleSelection, fetchAppData]);
+    }, [activeRoleContext, rolesLoading, needsRoleSelection, fetchAppData, activeClubId]);
 
     const initializeAndFetchData = useCallback(async () => {
         try {

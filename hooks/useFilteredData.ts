@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Sportiv, Rol, SesiuneExamen, InscriereExamen, Antrenament, Grupa, Plata, Tranzactie, Eveniment, Rezultat, TipAbonament, Familie, AnuntPrezenta, Reducere, DecontFederatie, IstoricGrade, VizualizarePlata, IstoricPlataDetaliat } from '../types';
+import { Sportiv, Rol, SesiuneExamen, InscriereExamen, Antrenament, Grupa, Plata, Tranzactie, Eveniment, Rezultat, TipAbonament, Familie, AnuntPrezenta, Reducere, DecontFederatie, IstoricGrade, VizualizarePlata, IstoricPlataDetaliat, Locatie } from '../types';
 
 interface UseFilteredDataProps {
     activeRole: Rol['nume'] | null;
@@ -21,6 +21,7 @@ interface UseFilteredDataProps {
     istoricGrade: IstoricGrade[];
     vizualizarePlati: VizualizarePlata[];
     istoricPlatiDetaliat: IstoricPlataDetaliat[];
+    locatii: Locatie[];
 }
 
 export const useFilteredData = ({
@@ -42,7 +43,8 @@ export const useFilteredData = ({
     deconturiFederatie,
     istoricGrade,
     vizualizarePlati,
-    istoricPlatiDetaliat
+    istoricPlatiDetaliat,
+    locatii
 }: UseFilteredDataProps) => {
     return useMemo(() => {
         // LISTA ROLURILOR ADMINISTRATIVE CARE VAD TOT (Nivel Federatie)
@@ -74,6 +76,7 @@ export const useFilteredData = ({
                 istoricGrade,
                 vizualizarePlati,
                 istoricPlatiDetaliat,
+                locatii,
             };
         }
 
@@ -82,7 +85,7 @@ export const useFilteredData = ({
                 sportivi: [], sesiuniExamene: [], inscrieriExamene: [], antrenamente: [], grupe: [], plati: [],
                 tranzactii: [], evenimente: [], rezultate: [], tipuriAbonament: [], familii: [],
                 anunturiPrezenta: [], reduceri: [], deconturiFederatie: [], istoricGrade: [], vizualizarePlati: [],
-                istoricPlatiDetaliat: []
+                istoricPlatiDetaliat: [], locatii: []
             };
         }
 
@@ -103,6 +106,9 @@ export const useFilteredData = ({
         );
         const fVizualizarePlati = (vizualizarePlati || []).filter(
             (vp) => vp.club_id === activeClubId
+        );
+        const fLocatii = (locatii || []).filter(
+            (l) => l.club_id === activeClubId || l.club_id === null
         );
 
         const sportivIdsInClub = new Set(fSportivi.map((s) => s.id));
@@ -162,6 +168,7 @@ export const useFilteredData = ({
             istoricGrade: fIstoricGrade,
             vizualizarePlati: fVizualizarePlati,
             istoricPlatiDetaliat: fIstoricPlatiDetaliat,
+            locatii: fLocatii,
         };
     }, [
         activeRole,
@@ -182,6 +189,7 @@ export const useFilteredData = ({
         deconturiFederatie,
         istoricGrade,
         vizualizarePlati,
-        istoricPlatiDetaliat
+        istoricPlatiDetaliat,
+        locatii
     ]);
 };

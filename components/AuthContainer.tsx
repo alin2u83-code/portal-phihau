@@ -140,6 +140,12 @@ export const AuthContainer: React.FC = () => {
 
         dispatch({ type: 'SET_LOADING', payload: true });
 
+        const { data: existingSportiv } = await supabase
+            .from('sportivi')
+            .select('id, club_id')
+            .eq('email', form.email)
+            .maybeSingle();
+
         const { data: { user }, error: signUpError } = await supabase.auth.signUp({
             email: form.email,
             password: form.parola,
@@ -157,37 +163,42 @@ export const AuthContainer: React.FC = () => {
             return;
         }
 
-        const { data: newProfile, error: profileError } = await supabase
-            .from('sportivi')
-            .insert({
-                user_id: user.id,
-                nume: form.nume,
-                prenume: form.prenume,
-                email: form.email,
-                club_id: PHI_HAU_IASI_CLUB_ID,
-                data_nasterii: '1900-01-01',
-                data_inscrierii: new Date().toISOString().split('T')[0],
-                status: 'Activ',
-                trebuie_schimbata_parola: true,
-            }).select().maybeSingle();
+        let profileId = existingSportiv?.id;
+        let clubId = existingSportiv?.club_id || PHI_HAU_IASI_CLUB_ID;
 
-        if (profileError) {
-             dispatch({ type: 'SET_MESSAGE', payload: { type: 'error', text: `Contul a fost creat, dar profilul nu a putut fi salvat: ${profileError.message}` } });
-             dispatch({ type: 'SET_LOADING', payload: false });
-             return;
-        }
+        if (!existingSportiv) {
+            const { data: newProfile, error: profileError } = await supabase
+                .from('sportivi')
+                .insert({
+                    user_id: user.id,
+                    nume: form.nume,
+                    prenume: form.prenume,
+                    email: form.email,
+                    club_id: clubId,
+                    data_nasterii: '1900-01-01',
+                    data_inscrierii: new Date().toISOString().split('T')[0],
+                    status: 'Activ',
+                    trebuie_schimbata_parola: true,
+                }).select().maybeSingle();
 
-        if (!newProfile) {
-             dispatch({ type: 'SET_MESSAGE', payload: { type: 'error', text: 'Contul a fost creat, dar profilul nu a putut fi recuperat. Verificați permisiunile.' } });
-             dispatch({ type: 'SET_LOADING', payload: false });
-             return;
+            if (profileError) {
+                 dispatch({ type: 'SET_MESSAGE', payload: { type: 'error', text: `Contul a fost creat, dar profilul nu a putut fi salvat: ${profileError.message}` } });
+                 dispatch({ type: 'SET_LOADING', payload: false });
+                 return;
+            }
+            if (newProfile) {
+                profileId = newProfile.id;
+            }
+        } else {
+            // Update existing sportiv with user_id
+            await supabase.from('sportivi').update({ user_id: user.id }).eq('id', existingSportiv.id);
         }
         
         const { error: roleError } = await supabase.from('utilizator_roluri_multicont').insert({
             user_id: user.id,
             rol_denumire: 'Sportiv',
-            club_id: PHI_HAU_IASI_CLUB_ID,
-            sportiv_id: newProfile.id,
+            club_id: clubId,
+            sportiv_id: profileId,
             is_primary: true
         });
         

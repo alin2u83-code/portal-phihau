@@ -185,7 +185,8 @@ export const useDataProvider = () => {
                     prenume: 'Sistem',
                 }),
                 roluri: currentRoles,
-                club_id: cleanClubId
+                club_id: cleanClubId,
+                cluburi: activeCtx.club
             } as any);
 
             const activeRoleName = Array.isArray(activeCtx.roluri) ? activeCtx.roluri[0]?.nume : activeCtx.roluri?.nume;

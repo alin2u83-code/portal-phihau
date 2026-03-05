@@ -46,9 +46,9 @@ export const usePermissions = (activeRoleContext: any | null) => {
 
         const hasClubFilter = visibleClubIds !== 'all';
 
-        // Logica mutată aici pentru a elimina fișierul separat
+        // Funcția care elimină necesitatea fișierului extern
         const checkMismatch = (targetId: string | undefined) => {
-            if (isFederationAdmin) return false; // Adminii de federație pot vedea orice
+            if (isFederationAdmin) return false; 
             if (!activeRoleContext.club_id || !targetId) return false;
             return activeRoleContext.club_id !== targetId;
         };
@@ -69,7 +69,7 @@ export const usePermissions = (activeRoleContext: any | null) => {
             canBeFederationAdmin: isSuperAdmin,
             isMultiContextAdmin: isFederationAdmin,
             hasClubFilter,
-            checkMismatch, // Exportăm funcția
+            checkMismatch, 
         };
     }, [activeRoleContext]);
 };

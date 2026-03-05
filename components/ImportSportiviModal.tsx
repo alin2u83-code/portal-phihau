@@ -77,6 +77,22 @@ export const ImportSportiviModal: React.FC<ImportSportiviModalProps> = ({
         return null;
     };
 
+    const handleAddRow = () => {
+        const newId = Math.max(...importRows.map(r => r.id), -1) + 1;
+        const newRow: ImportRow = {
+            id: newId,
+            nume: '',
+            prenume: '',
+            data_nasterii: '',
+            gen: '',
+            club: isSuperAdmin ? '' : (clubs.find(c => c.id === currentUser.club_id)?.nume || ''),
+            selected: false,
+            isValid: false,
+            errors: ['Nume lipsă', 'Prenume lipsă', 'Data nașterii lipsă']
+        };
+        setImportRows(prev => [newRow, ...prev]);
+    };
+
     const downloadTemplate = () => {
         const headers = ['Nume', 'Prenume', 'Data Nasterii', 'Gen', 'Club'];
         const exampleRow = ['Popescu', 'Ion', '20/05/2010', 'M', isSuperAdmin ? 'Nume Club' : ''];
@@ -390,6 +406,9 @@ export const ImportSportiviModal: React.FC<ImportSportiviModalProps> = ({
                                 <div className="px-4 py-2 bg-slate-800 border-b border-slate-700 font-bold text-xs text-slate-300 uppercase flex justify-between items-center shrink-0">
                                     <span>Previzualizare și Editare ({importRows.filter(r => r.selected).length} selectați)</span>
                                     <div className="flex items-center space-x-2">
+                                        <Button variant="secondary" size="sm" onClick={handleAddRow} className="!py-0.5 !px-2 mr-2 !text-[10px]">
+                                            + Adaugă Rând
+                                        </Button>
                                         <input 
                                             type="checkbox" 
                                             checked={selectAll} 
@@ -454,23 +473,36 @@ export const ImportSportiviModal: React.FC<ImportSportiviModalProps> = ({
                                                         />
                                                     </td>
                                                     <td className="px-2 py-1">
-                                                        <input 
-                                                            type="text" 
+                                                        <select 
                                                             value={row.gen} 
                                                             onChange={(e) => handleRowChange(row.id, 'gen', e.target.value)}
-                                                            className="w-full bg-transparent border-b border-transparent focus:border-brand-primary focus:outline-none px-1 py-1"
-                                                            placeholder="Gen"
-                                                        />
+                                                            className="w-full bg-slate-800 border-none focus:ring-1 focus:ring-brand-primary rounded px-1 py-1 text-xs"
+                                                        >
+                                                            <option value="">Select</option>
+                                                            <option value="M">Masculin</option>
+                                                            <option value="F">Feminin</option>
+                                                        </select>
                                                     </td>
                                                     <td className="px-2 py-1">
-                                                        <input 
-                                                            type="text" 
-                                                            value={row.club} 
-                                                            onChange={(e) => handleRowChange(row.id, 'club', e.target.value)}
-                                                            className="w-full bg-transparent border-b border-transparent focus:border-brand-primary focus:outline-none px-1 py-1"
-                                                            placeholder="Club"
-                                                            disabled={!isSuperAdmin}
-                                                        />
+                                                        {isSuperAdmin ? (
+                                                            <select 
+                                                                value={row.club} 
+                                                                onChange={(e) => handleRowChange(row.id, 'club', e.target.value)}
+                                                                className={`w-full bg-slate-800 border-none focus:ring-1 focus:ring-brand-primary rounded px-1 py-1 text-xs ${!row.club ? 'border-red-500/50 bg-red-500/10' : ''}`}
+                                                            >
+                                                                <option value="">Selectează Club</option>
+                                                                {clubs.map(c => (
+                                                                    <option key={c.id} value={c.nume}>{c.nume}</option>
+                                                                ))}
+                                                            </select>
+                                                        ) : (
+                                                            <input 
+                                                                type="text" 
+                                                                value={row.club} 
+                                                                readOnly
+                                                                className="w-full bg-transparent border-none px-1 py-1 text-slate-500 cursor-not-allowed"
+                                                            />
+                                                        )}
                                                     </td>
                                                     <td className="px-2 py-2 text-center">
                                                         {row.isValid ? (

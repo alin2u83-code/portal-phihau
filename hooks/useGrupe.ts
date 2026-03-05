@@ -8,7 +8,7 @@ export const useGrupe = (clubId: string | null) => {
         queryFn: async () => {
             let query = supabase.from('grupe').select('*, program:orar_saptamanal!grupa_id(*)');
             if (clubId) {
-                query = query.eq('club_id', clubId);
+                query = query.in('club_id', [clubId]);
             }
             const { data, error } = await query;
             if (error) throw error;

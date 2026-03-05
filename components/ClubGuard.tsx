@@ -36,26 +36,5 @@ export const ClubGuard: React.FC<ClubGuardProps> = ({ children }) => {
         );
     }
 
-    return (
-        <>
-            {allowedClubs.length > 1 && (
-                <div className="fixed top-20 right-4 z-50 bg-slate-900/90 p-2 rounded-lg border border-slate-700 shadow-lg backdrop-blur-sm">
-                    <label className="block text-xs text-slate-400 mb-1 font-bold uppercase tracking-wider">Club Activ</label>
-                    <Select 
-                        value={activeClubId || ''} 
-                        onChange={(e) => setGlobalClubFilter(e.target.value)}
-                        className="!py-1 !text-sm min-w-[200px] bg-slate-800 border-slate-600 focus:ring-indigo-500"
-                    >
-                        {clubs
-                            .filter(c => allowedClubs.includes(c.id))
-                            .map(c => (
-                                <option key={c.id} value={c.id}>{c.nume}</option>
-                            ))
-                        }
-                    </Select>
-                </div>
-            )}
-            {children}
-        </>
-    );
+    return <>{children}</>;
 };

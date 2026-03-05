@@ -45,15 +45,12 @@ export const useFilteredData = ({
     istoricPlatiDetaliat
 }: UseFilteredDataProps) => {
     return useMemo(() => {
-        // LISTA ROLURILOR ADMINISTRATIVE CARE VAD TOT
-        // Modificat conform cerintei: "sa pot vedea toate tabelele in orice rol de administratie"
-        const isAdminRole = 
+        // LISTA ROLURILOR ADMINISTRATIVE CARE VAD TOT (Nivel Federatie)
+        const isGlobalAdmin = 
             activeRole === 'SUPER_ADMIN_FEDERATIE' || 
-            activeRole === 'ADMIN_CLUB' || 
-            activeRole === 'ADMIN' ||
-            activeRole === 'INSTRUCTOR';
+            activeRole === 'ADMIN';
 
-        if (isAdminRole) {
+        if (isGlobalAdmin) {
             return {
                 sportivi,
                 sesiuniExamene,

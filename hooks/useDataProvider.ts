@@ -238,9 +238,8 @@ export const useDataProvider = () => {
                 if (!isSuperAdmin && cleanClubId) {
                     const tablesToFilter = [
                         'grupe', 'sportiviRaw', 'plati', 'tranzactii', 'evenimente', 
-                        'familii', 'deconturiFederatie', 
-                        'istoricGrade', 'vizualizarePlati',
-                        'sesiuniExamene', 'inscrieriExamene', 'tipuriAbonament'
+                        'deconturiFederatie', 'vizualizarePlati',
+                        'sesiuniExamene', 'tipuriAbonament'
                     ];
                     tablesToFilter.forEach(key => {
                         if (queries[key]) {

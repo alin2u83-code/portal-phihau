@@ -23,14 +23,10 @@ const fallbackUser = (email: string): User => ({
 
 /**
  * Fetches the complete user profile, including all role contexts, in a single query.
- * @param supabase The Supabase client instance.
- * @returns An object containing the user profile, an array of role contexts, or an error.
  */
 export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promise<{ user: User | null; roles: any[] | null; error: any | null }> => {
     try {
         const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
-
-        console.log('Authenticated user:', authUser);
 
         if (authError) {
             console.error("Supabase auth error:", authError.message);
@@ -42,100 +38,59 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
             return { user: null, roles: null, error: null };
         }
 
-        console.log('Authenticated user:', authUser);
-
-        // Fetch all roles first to map rol_id
+        // Fetch all roles first to map rol_id (Nomenclator)
         const { data: allRolesNomenclator, error: allRolesError } = await supabase.from('roluri').select('id, nume');
         if(allRolesError) { console.warn("Eroare la preluarea nomenclatorului de roluri:", allRolesError.message); }
 
-        // Step 1: Try to fetch the primary role context using maybeSingle()
-        // We also check localStorage for a manually selected role
         const activeRoleContextId = localStorage.getItem('phi-hau-active-role-context-id');
 
         let initialContextData: any = null;
         let contextError: any = null;
 
-        // Prioritize activeRoleContext from localStorage
+        // Pasul 1: Încercăm contextul activ din localStorage SAU contextul Primary
+        // Adăugat filtrarea .eq('user_id', authUser.id) pentru siguranță RLS
         if (activeRoleContextId) {
             const { data, error } = await supabase
                 .from('utilizator_roluri_multicont')
                 .select(`
-                    id,
-                    rol_id,
-                    sportiv_id,
-                    club_id,
-                    is_primary,
+                    id, rol_id, sportiv_id, club_id, is_primary,
                     club:cluburi(nume),
-                    roluri:roluri(nume),
                     sportiv:sportiv_id(nume, prenume)
                 `)
                 .eq('id', activeRoleContextId)
+                .eq('user_id', authUser.id)
                 .maybeSingle();
             initialContextData = data;
             contextError = error;
         }
 
-        // If no activeRoleContext or not found, try primary context
         if (!initialContextData) {
             const { data, error } = await supabase
                 .from('utilizator_roluri_multicont')
                 .select(`
-                    id,
-                    rol_id,
-                    sportiv_id,
-                    club_id,
-                    is_primary,
+                    id, rol_id, sportiv_id, club_id, is_primary,
                     club:cluburi(nume),
-                    roluri:roluri(nume),
                     sportiv:sportiv_id(nume, prenume)
                 `)
                 .eq('is_primary', true)
+                .eq('user_id', authUser.id)
                 .maybeSingle();
             initialContextData = data;
             contextError = error;
         }
 
-        // If multiple rows returned, we must let the user choose
-        if (contextError && (contextError.code === 'PGRST116' || contextError.message.includes('multiple rows'))) {
-            const { data: allContexts } = await supabase
+        // Tratare cazuri multiple sau erori
+        if (contextError || !initialContextData) {
+            const { data: allContexts, error: fetchAllError } = await supabase
                 .from('utilizator_roluri_multicont')
                 .select(`
-                    id,
-                    rol_id,
-                    sportiv_id,
-                    club_id,
-                    is_primary,
+                    id, rol_id, sportiv_id, club_id, is_primary,
                     club:cluburi(nume),
                     sportiv:sportiv_id(nume, prenume)
-                `);
+                `)
+                .eq('user_id', authUser.id);
             
-            const mappedRoles = allContexts?.map(rc => {
-                const roleInfo = (allRolesNomenclator || []).find(r => r.id === rc.rol_id);
-                return { ...rc, roluri: roleInfo ? { nume: roleInfo.nume } : null };
-            }) || [];
-
-            return { user: null, roles: mappedRoles, error: null };
-        }
-
-        if (contextError) {
-            return { user: null, roles: null, error: contextError };
-        }
-
-        // If no primary context found, fetch all and let user choose
-        if (!initialContextData) {
-            const { data: allContexts, error: allContextsError } = await supabase
-                .from('utilizator_roluri_multicont')
-                .select(`
-                    id,
-                    rol_id,
-                    sportiv_id,
-                    club_id,
-                    is_primary,
-                    club:cluburi(nume),
-                    sportiv:sportiv_id(nume, prenume)
-                `);
-            
-            if (allContextsError) return { user: null, roles: null, error: allContextsError };
+            if (fetchAllError) return { user: null, roles: null, error: fetchAllError };
 
             const mappedRoles = allContexts?.map(rc => {
                 const roleInfo = (allRolesNomenclator || []).find(r => r.id === rc.rol_id);
@@ -143,24 +98,24 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
             }) || [];
 
             if (mappedRoles.length === 0) {
-                // Check if user has a bare profile
-                const { data: bareProfile } = await supabase.from('sportivi').select('*, cluburi(*)').maybeSingle();
+                const { data: bareProfile } = await supabase.from('sportivi').select('*, cluburi(*)').eq('user_id', authUser.id).maybeSingle();
                 if (bareProfile) {
                     return { user: { ...bareProfile, roluri: [] } as User, roles: [], error: null };
                 }
-                return { user: null, roles: null, error: new Error('Eroare: Contul de utilizator nu este legat de un profil de sportiv.') };
+                return { user: null, roles: null, error: new Error('Eroare: Contul nu este legat de un profil de sportiv.') };
             }
 
             return { user: null, roles: mappedRoles, error: null };
         }
 
-        // We have an initial context
+        // Mapăm rolul pentru contextul activ găsit
+        const roleInfoActive = (allRolesNomenclator || []).find(r => r.id === initialContextData.rol_id);
         const activeContext = {
             ...initialContextData,
-            roluri: (allRolesNomenclator || []).find(r => r.id === initialContextData.rol_id) ? { nume: (allRolesNomenclator || []).find(r => r.id === initialContextData.rol_id)?.nume } : null
+            roluri: roleInfoActive ? { nume: roleInfoActive.nume } : null
         };
 
-        // Fetch user profile for this context
+        // Fetch user profile pentru acest context
         const { data: userProfileData, error: profileError } = await supabase
             .from('sportivi')
             .select('*, cluburi(*)')
@@ -168,16 +123,21 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
             .maybeSingle();
 
         if (profileError) return { user: null, roles: null, error: profileError };
-        if (!userProfileData) return { user: null, roles: [activeContext], error: new Error("Profilul asociat rolului activ nu a putut fi găsit.") };
+        if (!userProfileData) return { user: null, roles: [activeContext], error: new Error("Profilul nu a putut fi găsit.") };
 
-        // Get all roles for the user to include in the profile object
-        const { data: allContexts } = await supabase.from('utilizator_roluri_multicont').select('rol_id');
-        const mappedRoles = (allContexts || []).map(rc => {
+        // Colectăm toate rolurile unice ale utilizatorului pentru obiectul User
+        const { data: userContexts } = await supabase
+            .from('utilizator_roluri_multicont')
+            .select('rol_id')
+            .eq('user_id', authUser.id);
+
+        const mappedRolesForUser = (userContexts || []).map(rc => {
             const roleInfo = (allRolesNomenclator || []).find(r => r.id === rc.rol_id);
             return roleInfo ? { id: roleInfo.id, nume: roleInfo.nume as Rol['nume'] } : null;
         }).filter((r): r is Rol => r !== null);
         
-        const uniqueRoles = Array.from(new Map(mappedRoles.map(item => [item.id, item])).values());
+        // Eliminare duplicate roluri
+        const uniqueRoles = Array.from(new Map(mappedRolesForUser.map(item => [item.id, item])).values());
 
         const formattedProfile = {
             ...userProfileData,
@@ -187,7 +147,7 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
         return { user: formattedProfile as User, roles: [activeContext], error: null };
 
     } catch (err: any) {
-        console.error("A apărut o eroare neașteptată în fetchUserWithPermissions:", err.message);
+        console.error("Eroare neașteptată:", err.message);
         return { user: null, roles: null, error: err };
     }
 };

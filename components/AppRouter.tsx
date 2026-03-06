@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { View, Sportiv, Plata } from '../types';
 import { SportiviManagement } from './SportiviManagement';
@@ -71,16 +71,18 @@ export interface AppRouterProps {
     isEmergencyAdmin: boolean;
 }
 
-import { useClubMismatch } from '../hooks/useClubMismatch';
-import { useClubSync } from '../hooks/useClubSync';
+// import { useClubSync } from '../hooks/useClubSync';
 
 export const AppRouter: React.FC<AppRouterProps> = ({
     activeView, setActiveView, currentUser, userRoles, activeRoleContext, permissions, activeRole,
     selectedSportiv, setSelectedSportiv, platiPentruIncasare, setPlatiPentruIncasare,
     handleBackToDashboard, handleSwitchRole, isSwitchingRole, canSwitchRoles, isEmergencyAdmin
 }) => {
-    useClubMismatch(selectedSportiv);
-    useClubSync(currentUser);
+    useEffect(() => {
+        if (selectedSportiv && permissions.checkMismatch) {
+            permissions.checkMismatch(selectedSportiv.club_id);
+        }
+    }, [selectedSportiv, permissions]);
 
     const {
         loading, sportivi, sesiuniExamene, inscrieriExamene, grade, istoricGrade,

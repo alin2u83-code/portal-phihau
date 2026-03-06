@@ -1,4 +1,19 @@
--- Comprehensive Migration for RLS and SQL Functions
+-- 0. REPARĂ FUNCȚIA HELPER (Sursa probabilă a erorii)
+CREATE OR REPLACE FUNCTION public.has_access_to_club(p_club_id UUID)
+RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER AS $$
+BEGIN
+    RETURN EXISTS (
+        SELECT 1 FROM public.utilizator_roluri_multicont
+        WHERE user_id = auth.uid() 
+        AND (
+            rol_denumire IN ('SUPER_ADMIN_FEDERATIE', 'ADMIN') -- Admini globali
+            OR (club_id = p_club_id AND rol_denumire = 'ADMIN_CLUB') -- Admin local
+            OR (club_id = p_club_id AND rol_denumire = 'INSTRUCTOR') -- Instructor local
+        )
+    );
+END;
+$$;
+
 -- 1. SQL Function: get_user_roles(user_id UUID)
 CREATE OR REPLACE FUNCTION public.get_user_roles(p_user_id UUID)
 RETURNS TABLE (
@@ -22,10 +37,10 @@ BEGIN
         urm.club_id,
         urm.is_primary,
         urm.rol_denumire,
-        r.nume as rol_nume,
-        c.nume as club_nume,
-        s.nume as sportiv_nume,
-        s.prenume as sportiv_prenume
+        r.nume::TEXT as rol_nume,
+        c.nume::TEXT as club_nume,
+        s.nume::TEXT as sportiv_nume,
+        s.prenume::TEXT as sportiv_prenume
     FROM public.utilizator_roluri_multicont urm
     LEFT JOIN public.roluri r ON urm.rol_id = r.id
     LEFT JOIN public.cluburi c ON urm.club_id = c.id
@@ -56,46 +71,37 @@ BEGIN
 END;
 $$;
 
--- 3. RLS Policies for requested tables
--- Helper function has_access_to_club(club_id) is already defined.
+-- 3. RLS Policies (Corectate pentru a evita dependenta de 'users')
 
 -- A. PLATI
 ALTER TABLE public.plati ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Staff - Full Access Plati" ON public.plati;
 CREATE POLICY "Staff - Full Access Plati" ON public.plati
-FOR ALL USING (public.has_access_to_club(club_id));
+FOR ALL TO authenticated USING (public.has_access_to_club(club_id));
 
 DROP POLICY IF EXISTS "Sportiv - View Own Plati" ON public.plati;
 CREATE POLICY "Sportiv - View Own Plati" ON public.plati
-FOR SELECT USING (
-    sportiv_id IN (SELECT id FROM public.sportivi WHERE user_id = auth.uid())
-    OR familie_id IN (SELECT familie_id FROM public.sportivi WHERE user_id = auth.uid() AND familie_id IS NOT NULL)
+FOR SELECT TO authenticated USING (
+    sportiv_id IN (SELECT sportiv_id FROM public.utilizator_roluri_multicont WHERE user_id = auth.uid())
 );
 
 -- B. TRANZACTII
 ALTER TABLE public.tranzactii ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Staff - Full Access Tranzactii" ON public.tranzactii;
 CREATE POLICY "Staff - Full Access Tranzactii" ON public.tranzactii
-FOR ALL USING (public.has_access_to_club(club_id));
-
-DROP POLICY IF EXISTS "Sportiv - View Own Tranzactii" ON public.tranzactii;
-CREATE POLICY "Sportiv - View Own Tranzactii" ON public.tranzactii
-FOR SELECT USING (
-    sportiv_id IN (SELECT id FROM public.sportivi WHERE user_id = auth.uid())
-    OR familie_id IN (SELECT familie_id FROM public.sportivi WHERE user_id = auth.uid() AND familie_id IS NOT NULL)
-);
+FOR ALL TO authenticated USING (public.has_access_to_club(club_id));
 
 -- C. PROGRAM_ANTRENAMENTE
 ALTER TABLE public.program_antrenamente ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Staff - Full Access Antrenamente" ON public.program_antrenamente;
 CREATE POLICY "Staff - Full Access Antrenamente" ON public.program_antrenamente
-FOR ALL USING (public.has_access_to_club(club_id));
+FOR ALL TO authenticated USING (public.has_access_to_club(club_id));
 
 -- D. PREZENTA_ANTRENAMENT
 ALTER TABLE public.prezenta_antrenament ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Staff - Full Access Prezenta" ON public.prezenta_antrenament;
 CREATE POLICY "Staff - Full Access Prezenta" ON public.prezenta_antrenament
-FOR ALL USING (
+FOR ALL TO authenticated USING (
     EXISTS (
         SELECT 1 FROM public.sportivi s
         WHERE s.id = prezenta_antrenament.sportiv_id
@@ -103,26 +109,19 @@ FOR ALL USING (
     )
 );
 
-DROP POLICY IF EXISTS "Sportiv - View Own Prezenta" ON public.prezenta_antrenament;
-CREATE POLICY "Sportiv - View Own Prezenta" ON public.prezenta_antrenament
-FOR SELECT USING (
-    sportiv_id IN (SELECT id FROM public.sportivi WHERE user_id = auth.uid())
-);
-
 -- E. SESIUNI_EXAMENE
 ALTER TABLE public.sesiuni_examene ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Staff - Full Access Sesiuni" ON public.sesiuni_examene;
 CREATE POLICY "Staff - Full Access Sesiuni" ON public.sesiuni_examene
-FOR ALL USING (
-    club_id IS NULL 
-    OR public.has_access_to_club(club_id)
+FOR ALL TO authenticated USING (
+    club_id IS NULL OR public.has_access_to_club(club_id)
 );
 
 -- F. INSCRIERI_EXAMENE
 ALTER TABLE public.inscrieri_examene ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Staff - Full Access Inscrieri" ON public.inscrieri_examene;
 CREATE POLICY "Staff - Full Access Inscrieri" ON public.inscrieri_examene
-FOR ALL USING (
+FOR ALL TO authenticated USING (
     EXISTS (
         SELECT 1 FROM public.sportivi s
         WHERE s.id = inscrieri_examene.sportiv_id
@@ -130,26 +129,19 @@ FOR ALL USING (
     )
 );
 
-DROP POLICY IF EXISTS "Sportiv - View Own Inscrieri" ON public.inscrieri_examene;
-CREATE POLICY "Sportiv - View Own Inscrieri" ON public.inscrieri_examene
-FOR SELECT USING (
-    sportiv_id IN (SELECT id FROM public.sportivi WHERE user_id = auth.uid())
-);
-
 -- G. EVENIMENTE
 ALTER TABLE public.evenimente ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Staff - Full Access Evenimente" ON public.evenimente;
 CREATE POLICY "Staff - Full Access Evenimente" ON public.evenimente
-FOR ALL USING (
-    club_id IS NULL 
-    OR public.has_access_to_club(club_id)
+FOR ALL TO authenticated USING (
+    club_id IS NULL OR public.has_access_to_club(club_id)
 );
 
 -- H. ANUNTURI_PREZENTA
 ALTER TABLE public.anunturi_prezenta ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Staff - Full Access Anunturi" ON public.anunturi_prezenta;
 CREATE POLICY "Staff - Full Access Anunturi" ON public.anunturi_prezenta
-FOR ALL USING (
+FOR ALL TO authenticated USING (
     EXISTS (
         SELECT 1 FROM public.sportivi s
         WHERE s.id = anunturi_prezenta.sportiv_id
@@ -157,42 +149,8 @@ FOR ALL USING (
     )
 );
 
--- I. FAMILII
-ALTER TABLE public.familii ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Staff - Full Access Familii" ON public.familii;
-CREATE POLICY "Staff - Full Access Familii" ON public.familii
-FOR ALL USING (
-    EXISTS (
-        SELECT 1 FROM public.sportivi s
-        WHERE s.familie_id = familii.id
-        AND public.has_access_to_club(s.club_id)
-    )
-);
-
-DROP POLICY IF EXISTS "Sportiv - View Own Familie" ON public.familii;
-CREATE POLICY "Sportiv - View Own Familie" ON public.familii
-FOR SELECT USING (
-    id IN (SELECT familie_id FROM public.sportivi WHERE user_id = auth.uid() AND familie_id IS NOT NULL)
-);
-
--- J. CLUBURI
+-- I. CLUBURI
 ALTER TABLE public.cluburi ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Staff - Full Access Cluburi" ON public.cluburi;
 CREATE POLICY "Staff - Full Access Cluburi" ON public.cluburi
-FOR ALL USING (public.has_access_to_club(id));
-
--- K. GRADE
-ALTER TABLE public.grade ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Global - View Grade" ON public.grade;
-CREATE POLICY "Global - View Grade" ON public.grade
-FOR SELECT USING (true); -- Gradele sunt nomenclatoare globale
-
-DROP POLICY IF EXISTS "SuperAdmin - Manage Grade" ON public.grade;
-CREATE POLICY "SuperAdmin - Manage Grade" ON public.grade
-FOR ALL USING (
-    EXISTS (
-        SELECT 1 FROM public.utilizator_roluri_multicont
-        WHERE user_id = auth.uid()
-        AND rol_denumire = 'SUPER_ADMIN_FEDERATIE'
-    )
-);
+FOR ALL TO authenticated USING (public.has_access_to_club(id));

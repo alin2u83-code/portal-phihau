@@ -260,19 +260,35 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
     
             try {
                 let plataId: string | null = null;
-                const taxaConfig = getPretProdus(preturiConfig, 'Taxa Examen', grad.nume, { dataReferinta: sesiune.data });
-    
-                if (taxaConfig) {
+                
+                // 1. Get registration details (fee and suggested grade) from RPC
+                const { data: regDetails, error: regError } = await supabase.rpc('get_registration_details', { 
+                    p_sportiv_id: sportiv.id 
+                });
+                
+                if (regError) throw new Error(`Eroare la calculul taxei: ${regError.message}`);
+                
+                const taxaSuma = regDetails?.[0]?.taxa_suma || 0;
+                const gradSugeratNume = regDetails?.[0]?.grad_sugerat_nume || grad.nume;
+
+                // 2. Generate automatic invoice
+                if (taxaSuma > 0) {
                     const plataData = {
-                        sportiv_id: sportiv.id, familie_id: sportiv.familie_id, suma: taxaConfig.suma, data: sesiune.data, status: 'Neachitat' as const,
-                        descriere: `Taxa examen ${grad.nume}`, tip: 'Taxa Examen' as const, observatii: `Generat automat la înscriere examen.`
+                        sportiv_id: sportiv.id, 
+                        familie_id: sportiv.familie_id, 
+                        suma: taxaSuma, 
+                        data: sesiune.data, 
+                        status: 'Neachitat' as const,
+                        descriere: `Taxa examen ${gradSugeratNume}`, 
+                        tip: 'Taxa Examen' as const, 
+                        observatii: `Generat automat la înscriere examen (Vârstă: ${getAgeOnDate(sportiv.data_nasterii, sesiune.data)} ani).`
                     };
                     const { data: pData, error: pError } = await supabase.from('plati').insert(plataData).select().single();
                     if (pError) throw new Error(`Factura pt ${sportiv.nume} nu a putut fi generată: ${pError.message}`);
                     plataId = pData.id;
                     newPlati.push(pData as Plata);
                 }
-    
+
                 const varstaLaExamen = getAgeOnDate(sportiv.data_nasterii, sesiune.data);
                 const inscriereData = {
                     sportiv_id: sportiv.id, sesiune_id: sesiune.id, plata_id: plataId,
@@ -282,15 +298,16 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 
                 const { data: iData, error: iError } = await supabase.from('inscrieri_examene').insert(inscriereData).select('*, sportivi:sportiv_id(*), grades:grad_vizat_id(*)').single();
                 if (iError) throw iError;
-    
+
                 newInscrieri.push(iData as InscriereExamen);
             } catch (err: any) {
                 errorCount++;
-                showError(`Eroare la înscrierea lui ${sportiv.nume}`, err.message);
+                showError(`Eroare la înscrierea lui ${sportiv.nume} ${sportiv.prenume}`, err.message);
                 // Rollback payment if enrollment fails
                 if (newPlati.length > 0) {
-                    const lastPlata = newPlati.pop();
-                    if (lastPlata) {
+                    const lastPlata = newPlati[newPlati.length - 1];
+                    if (lastPlata && lastPlata.sportiv_id === sportiv.id) {
+                        newPlati.pop();
                         await supabase.from('plati').delete().eq('id', lastPlata.id);
                     }
                 }

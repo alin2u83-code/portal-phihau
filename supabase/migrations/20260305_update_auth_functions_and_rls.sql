@@ -12,7 +12,7 @@ RETURNS TABLE(
     sportiv_id uuid
 ) 
 LANGUAGE plpgsql
-SECURITY DEFINER
+SECURITY DEFINER -- Permite citirea din auth.users fără erori de permisiuni
 AS $$
 BEGIN
     RETURN QUERY
@@ -21,10 +21,13 @@ BEGIN
         au.email::TEXT,
         EXISTS (
             SELECT 1 FROM public.utilizator_roluri_multicont 
-            WHERE user_id = au.id AND UPPER(rol_denumire) IN ('ADMIN', 'ADMIN_CLUB', 'SUPER_ADMIN_FEDERATIE')
+            WHERE utilizator_roluri_multicont.user_id = au.id 
+            AND UPPER(utilizator_roluri_multicont.rol_denumire) IN ('ADMIN', 'ADMIN_CLUB', 'SUPER_ADMIN_FEDERATIE')
         ) as is_admin,
         ARRAY(
-            SELECT UPPER(rol_denumire) FROM public.utilizator_roluri_multicont WHERE user_id = au.id
+            SELECT UPPER(urm.rol_denumire) 
+            FROM public.utilizator_roluri_multicont urm 
+            WHERE urm.user_id = au.id
         ) as roluri,
         (SELECT urm.club_id FROM public.utilizator_roluri_multicont urm WHERE urm.user_id = au.id AND urm.is_primary = true LIMIT 1),
         (SELECT urm.sportiv_id FROM public.utilizator_roluri_multicont urm WHERE urm.user_id = au.id AND urm.is_primary = true LIMIT 1)
@@ -60,78 +63,83 @@ END;
 $$;
 
 -- Pasul 4: Recreare politici RLS pentru program_antrenamente si prezenta_antrenament
--- Stergem politicile vechi
+-- Stergem politicile vechi (inclusiv variantele cu denumiri similare)
 DROP POLICY IF EXISTS "Admin Club Full Access Antrenamente" ON public.program_antrenamente;
 DROP POLICY IF EXISTS "Instructor Read Access Antrenamente" ON public.program_antrenamente;
 DROP POLICY IF EXISTS "Sportiv Read Access Antrenamente" ON public.program_antrenamente;
 DROP POLICY IF EXISTS "Admin - Vizualizare Antrenamente Club" ON public.program_antrenamente;
 DROP POLICY IF EXISTS "Staff - Management Antrenamente Club" ON public.program_antrenamente;
 DROP POLICY IF EXISTS "Staff - Full Access Antrenamente" ON public.program_antrenamente;
+DROP POLICY IF EXISTS "Admin Club - Full Access Antrenamente" ON public.program_antrenamente;
+DROP POLICY IF EXISTS "Instructor - Read Access Antrenamente" ON public.program_antrenamente;
+DROP POLICY IF EXISTS "Sportiv - Read Access Antrenamente" ON public.program_antrenamente;
 
 DROP POLICY IF EXISTS "Admin - Vizualizare Prezenta Club" ON public.prezenta_antrenament;
 DROP POLICY IF EXISTS "Staff - Management Prezenta Club" ON public.prezenta_antrenament;
 DROP POLICY IF EXISTS "Staff - Full Access Prezenta" ON public.prezenta_antrenament;
 DROP POLICY IF EXISTS "Sportiv - View Own Prezenta" ON public.prezenta_antrenament;
+DROP POLICY IF EXISTS "Admin Club - Full Access Prezenta" ON public.prezenta_antrenament;
+DROP POLICY IF EXISTS "Instructor - Management Prezenta" ON public.prezenta_antrenament;
 
 -- Recream politicile pentru program_antrenamente
 CREATE POLICY "Admin Club - Full Access Antrenamente" ON public.program_antrenamente
-FOR ALL USING (
+FOR ALL TO authenticated USING (
     EXISTS (
-        SELECT 1 FROM public.utilizator_roluri_multicont
-        WHERE user_id = auth.uid()
-        AND rol_denumire = 'ADMIN_CLUB'
-        AND club_id = public.program_antrenamente.club_id
+        SELECT 1 FROM public.utilizator_roluri_multicont urm
+        WHERE urm.user_id = auth.uid()
+        AND urm.rol_denumire = 'ADMIN_CLUB'
+        AND urm.club_id = public.program_antrenamente.club_id
     )
 );
 
 CREATE POLICY "Instructor - Read Access Antrenamente" ON public.program_antrenamente
-FOR SELECT USING (
+FOR SELECT TO authenticated USING (
     EXISTS (
-        SELECT 1 FROM public.utilizator_roluri_multicont
-        WHERE user_id = auth.uid()
-        AND rol_denumire = 'INSTRUCTOR'
-        AND club_id = public.program_antrenamente.club_id
+        SELECT 1 FROM public.utilizator_roluri_multicont urm
+        WHERE urm.user_id = auth.uid()
+        AND urm.rol_denumire = 'INSTRUCTOR'
+        AND urm.club_id = public.program_antrenamente.club_id
     )
 );
 
 CREATE POLICY "Sportiv - Read Access Antrenamente" ON public.program_antrenamente
-FOR SELECT USING (
+FOR SELECT TO authenticated USING (
     EXISTS (
-        SELECT 1 FROM public.utilizator_roluri_multicont
-        WHERE user_id = auth.uid()
-        AND rol_denumire = 'SPORTIV'
-        AND club_id = public.program_antrenamente.club_id
+        SELECT 1 FROM public.utilizator_roluri_multicont urm
+        WHERE urm.user_id = auth.uid()
+        AND urm.rol_denumire = 'SPORTIV'
+        AND urm.club_id = public.program_antrenamente.club_id
     )
 );
 
 -- Recream politicile pentru prezenta_antrenament
 CREATE POLICY "Admin Club - Full Access Prezenta" ON public.prezenta_antrenament
-FOR ALL USING (
+FOR ALL TO authenticated USING (
     EXISTS (
         SELECT 1 FROM public.program_antrenamente a
         JOIN public.utilizator_roluri_multicont urm ON urm.club_id = a.club_id
-        WHERE a.id = prezenta_antrenament.antrenament_id
+        WHERE a.id = public.prezenta_antrenament.antrenament_id
         AND urm.user_id = auth.uid()
         AND urm.rol_denumire = 'ADMIN_CLUB'
     )
 );
 
 CREATE POLICY "Instructor - Management Prezenta" ON public.prezenta_antrenament
-FOR ALL USING (
+FOR ALL TO authenticated USING (
     EXISTS (
         SELECT 1 FROM public.program_antrenamente a
         JOIN public.utilizator_roluri_multicont urm ON urm.club_id = a.club_id
-        WHERE a.id = prezenta_antrenament.antrenament_id
+        WHERE a.id = public.prezenta_antrenament.antrenament_id
         AND urm.user_id = auth.uid()
         AND urm.rol_denumire = 'INSTRUCTOR'
     )
 );
 
 CREATE POLICY "Sportiv - View Own Prezenta" ON public.prezenta_antrenament
-FOR SELECT USING (
+FOR SELECT TO authenticated USING (
     EXISTS (
         SELECT 1 FROM public.utilizator_roluri_multicont urm
         WHERE urm.user_id = auth.uid()
-        AND urm.sportiv_id = prezenta_antrenament.sportiv_id
+        AND urm.sportiv_id = public.prezenta_antrenament.sportiv_id
     )
 );

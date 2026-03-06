@@ -13,10 +13,10 @@ CREATE POLICY "Admin Club Full Access Sportivi" ON public.sportivi
 FOR ALL
 USING (
     EXISTS (
-        SELECT 1 FROM public.utilizator_roluri_multicont
-        WHERE user_id = auth.uid()
-        AND rol_denumire = 'ADMIN_CLUB'
-        AND club_id = public.sportivi.club_id
+        SELECT 1 FROM public.utilizator_roluri_multicont urm
+        WHERE urm.user_id = auth.uid()
+        AND urm.rol_denumire = 'ADMIN_CLUB'
+        AND urm.club_id = public.sportivi.club_id
     )
 );
 
@@ -26,10 +26,10 @@ CREATE POLICY "Instructor Read Access Sportivi" ON public.sportivi
 FOR SELECT
 USING (
     EXISTS (
-        SELECT 1 FROM public.utilizator_roluri_multicont
-        WHERE user_id = auth.uid()
-        AND rol_denumire = 'INSTRUCTOR'
-        AND club_id = public.sportivi.club_id
+        SELECT 1 FROM public.utilizator_roluri_multicont urm
+        WHERE urm.user_id = auth.uid()
+        AND urm.rol_denumire = 'INSTRUCTOR'
+        AND urm.club_id = public.sportivi.club_id
     )
 );
 
@@ -51,10 +51,10 @@ CREATE POLICY "Admin Club Full Access Plati" ON public.plati
 FOR ALL
 USING (
     EXISTS (
-        SELECT 1 FROM public.utilizator_roluri_multicont
-        WHERE user_id = auth.uid()
-        AND rol_denumire = 'ADMIN_CLUB'
-        AND club_id = public.plati.club_id
+        SELECT 1 FROM public.utilizator_roluri_multicont urm
+        WHERE urm.user_id = auth.uid()
+        AND urm.rol_denumire = 'ADMIN_CLUB'
+        AND urm.club_id = public.plati.club_id
     )
 );
 
@@ -64,9 +64,9 @@ CREATE POLICY "Sportiv Own Payments Access" ON public.plati
 FOR SELECT
 USING (
     EXISTS (
-        SELECT 1 FROM public.sportivi
-        WHERE id = public.plati.sportiv_id
-        AND user_id = auth.uid()
+        SELECT 1 FROM public.sportivi s
+        WHERE s.id = public.plati.sportiv_id
+        AND s.user_id = auth.uid()
     )
 );
 
@@ -80,10 +80,10 @@ CREATE POLICY "Admin Club Full Access Antrenamente" ON public.program_antrenamen
 FOR ALL
 USING (
     EXISTS (
-        SELECT 1 FROM public.utilizator_roluri_multicont
-        WHERE user_id = auth.uid()
-        AND rol_denumire = 'ADMIN_CLUB'
-        AND club_id = public.program_antrenamente.club_id
+        SELECT 1 FROM public.utilizator_roluri_multicont urm
+        WHERE urm.user_id = auth.uid()
+        AND urm.rol_denumire = 'ADMIN_CLUB'
+        AND urm.club_id = public.program_antrenamente.club_id
     )
 );
 
@@ -93,10 +93,10 @@ CREATE POLICY "Instructor Read Access Antrenamente" ON public.program_antrenamen
 FOR SELECT
 USING (
     EXISTS (
-        SELECT 1 FROM public.utilizator_roluri_multicont
-        WHERE user_id = auth.uid()
-        AND rol_denumire = 'INSTRUCTOR'
-        AND club_id = public.program_antrenamente.club_id
+        SELECT 1 FROM public.utilizator_roluri_multicont urm
+        WHERE urm.user_id = auth.uid()
+        AND urm.rol_denumire = 'INSTRUCTOR'
+        AND urm.club_id = public.program_antrenamente.club_id
     )
 );
 
@@ -106,9 +106,9 @@ CREATE POLICY "Sportiv Read Access Antrenamente" ON public.program_antrenamente
 FOR SELECT
 USING (
     EXISTS (
-        SELECT 1 FROM public.utilizator_roluri_multicont
-        WHERE user_id = auth.uid()
-        AND rol_denumire = 'SPORTIV'
-        AND club_id = public.program_antrenamente.club_id
+        SELECT 1 FROM public.utilizator_roluri_multicont urm
+        WHERE urm.user_id = auth.uid()
+        AND urm.rol_denumire = 'SPORTIV'
+        AND urm.club_id = public.program_antrenamente.club_id
     )
 );

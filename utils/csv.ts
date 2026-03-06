@@ -3,17 +3,33 @@ export function exportToCsv(filename: string, rows: object[]) {
         alert("Nu există date de exportat.");
         return;
     }
+
     const separator = ',';
+    // Extragerea cheilor din toate obiectele pentru a ne asigura că nu pierdem coloane
+    // dacă obiectele nu sunt uniforme (opțional, dar recomandat)
     const keys = Object.keys(rows[0]);
+
     const csvContent =
         keys.join(separator) +
         '\n' +
         rows.map(row => {
             return keys.map(k => {
-                let cell = (row as any)[k] === null || (row as any)[k] === undefined ? '' : (row as any)[k];
-                cell = cell instanceof Date
-                    ? cell.toLocaleString('ro-RO')
-                    : cell.toString().replace(/"/g, '""');
+                let cell = (row as any)[k];
+                
+                // Tratarea valorilor null sau undefined
+                if (cell === null || cell === undefined) {
+                    cell = '';
+                } 
+                // Tratarea obiectelor de tip Date
+                else if (cell instanceof Date) {
+                    cell = cell.toLocaleString('ro-RO');
+                } 
+                // Conversia la string și curățarea ghilimelelor pentru formatul CSV
+                else {
+                    cell = cell.toString().replace(/"/g, '""');
+                }
+
+                // Dacă celula conține separatorul, ghilimele sau rând nou, trebuie încadrată în ghilimele
                 if (cell.search(/("|,|\n)/g) >= 0) {
                     cell = `"${cell}"`;
                 }
@@ -21,7 +37,10 @@ export function exportToCsv(filename: string, rows: object[]) {
             }).join(separator);
         }).join('\n');
 
+    // Adăugarea BOM (\uFEFF) este esențială pentru ca Excel să recunoască diacriticele românești (UTF-8)
     const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' });
+    
+    // Crearea link-ului de descărcare
     const link = document.createElement('a');
     if (link.download !== undefined) {
         const url = URL.createObjectURL(blob);
@@ -30,6 +49,9 @@ export function exportToCsv(filename: string, rows: object[]) {
         link.style.visibility = 'hidden';
         document.body.appendChild(link);
         link.click();
+        
+        // Curățare memorie și DOM
         document.body.removeChild(link);
+        URL.revokeObjectURL(url);
     }
 }

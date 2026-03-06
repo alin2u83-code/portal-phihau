@@ -29,14 +29,14 @@ export const getRoleDescription = (role: any): string => {
     }
 };
 
-export const getRoleIcon = (roleName: Rol['nume']): React.ElementType => {
+export const getRoleIcon = (roleName: string): React.ElementType => {
     switch(roleName) {
         case 'SUPER_ADMIN_FEDERATIE':
         case 'ADMIN':
         case 'ADMIN_CLUB':
             return ShieldCheckIcon;
         case 'INSTRUCTOR':
-            return GraduationCapIcon || UsersIcon;
+            return GraduationCapIcon;
         case 'SPORTIV':
             return UserCircleIcon;
         default:
@@ -52,16 +52,29 @@ export const useUserRoles = (userId: string | undefined) => {
     const [needsRoleSelection, setNeedsRoleSelection] = useState(false);
 
     const fetchUserRoles = useCallback(async () => {
-        if (!userId) {
+        if (!userId || userId === 'undefined') {
             setLoading(false);
             return;
         }
 
+        setLoading(true);
+        setError(null);
+
         try {
-            setLoading(true);
             const { data: roles, error: rolesError } = await supabase
                 .from('utilizator_roluri_multicont')
-                .select(`id, rol_id, sportiv_id, club_id, is_primary, rol_denumire, nume_utilizator_cache, roluri:rol_id(nume), club:club_id(nume), sportiv:sportiv_id(*)`)
+                .select(`
+                    id, 
+                    rol_id, 
+                    sportiv_id, 
+                    club_id, 
+                    is_primary, 
+                    rol_denumire, 
+                    nume_utilizator_cache, 
+                    roluri:rol_id(nume), 
+                    club:club_id(id, nume), 
+                    sportiv:sportiv_id(id, nume, prenume, grad_actual_id)
+                `)
                 .eq('user_id', userId);
 
             if (rolesError) throw rolesError;
@@ -72,20 +85,16 @@ export const useUserRoles = (userId: string | undefined) => {
                 setActiveRoleContext(null);
             } else {
                 const savedRoleId = localStorage.getItem('phi-hau-active-role-context-id')?.replace(/"/g, '');
-                
+                let activeCtx = roles.find(r => r.id === savedRoleId) || roles.find(r => r.is_primary) || roles[0];
+
                 if (!savedRoleId && roles.length > 1) {
                     setNeedsRoleSelection(true);
-                    setUserRoles(roles);
                     setActiveRoleContext(null);
-                    return;
-                }
-
-                let activeCtx = (roles.find(r => r.id === savedRoleId) || roles.find(r => r.is_primary) || roles[0]) as any;
-                
-                if (!activeCtx) {
+                } else if (!activeCtx) {
                     setNeedsRoleSelection(true);
                 } else {
                     setActiveRoleContext(activeCtx);
+                    setNeedsRoleSelection(false);
                 }
                 setUserRoles(roles);
             }

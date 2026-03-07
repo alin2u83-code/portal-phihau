@@ -4,6 +4,7 @@ import { usePermissions } from '../hooks/usePermissions';
 import { useDataProvider } from '../hooks/useDataProvider';
 import { View } from '../types';
 import { Card } from './ui';
+import { UsersIcon, CreditCardIcon, BuildingOfficeIcon } from './icons';
 
 interface AdminDashboardProps {
     onNavigate: (view: View) => void;
@@ -46,31 +47,51 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
     }, [permissions.isFederationAdmin, onNavigate]);
 
     if (loading) {
-        return <Card className="p-4 text-center">Loading admin data...</Card>;
+        return <Card className="p-8 text-center bg-slate-900 border-slate-800 text-slate-400">Se încarcă datele administrative...</Card>;
     }
 
     if (!permissions.isFederationAdmin) {
         return (
-            <Card className="p-4 text-center bg-red-900/50 text-red-300">
+            <Card className="p-4 text-center bg-red-900/20 border-red-900/50 text-red-400">
                 <p>Acces restricționat. Redirecționare...</p>
             </Card>
         );
     }
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="p-4">
-                <h3 className="text-lg font-semibold">Sportivi</h3>
-                <p className="text-2xl">{counts?.sportivi}</p>
-            </Card>
-            <Card className="p-4">
-                <h3 className="text-lg font-semibold">Plăți</h3>
-                <p className="text-2xl">{counts?.plati}</p>
-            </Card>
-            <Card className="p-4">
-                <h3 className="text-lg font-semibold">Cluburi</h3>
-                <p className="text-2xl">{counts?.cluburi}</p>
-            </Card>
+        <div className="space-y-6">
+            <h1 className="text-2xl font-bold text-white mb-6">Panou Administrativ</h1>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card className="p-6 bg-slate-900 border-slate-800 hover:border-slate-700 transition-all group">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-medium text-slate-400">Sportivi Total</h3>
+                        <div className="p-2 bg-slate-800 rounded-lg group-hover:bg-slate-700 transition-colors">
+                            <UsersIcon className="w-6 h-6 text-sky-500" />
+                        </div>
+                    </div>
+                    <p className="text-3xl font-bold text-white">{counts?.sportivi}</p>
+                </Card>
+                
+                <Card className="p-6 bg-slate-900 border-slate-800 hover:border-slate-700 transition-all group">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-medium text-slate-400">Plăți Înregistrate</h3>
+                        <div className="p-2 bg-slate-800 rounded-lg group-hover:bg-slate-700 transition-colors">
+                            <CreditCardIcon className="w-6 h-6 text-emerald-500" />
+                        </div>
+                    </div>
+                    <p className="text-3xl font-bold text-white">{counts?.plati}</p>
+                </Card>
+                
+                <Card className="p-6 bg-slate-900 border-slate-800 hover:border-slate-700 transition-all group">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-medium text-slate-400">Cluburi Active</h3>
+                        <div className="p-2 bg-slate-800 rounded-lg group-hover:bg-slate-700 transition-colors">
+                            <BuildingOfficeIcon className="w-6 h-6 text-amber-500" />
+                        </div>
+                    </div>
+                    <p className="text-3xl font-bold text-white">{counts?.cluburi}</p>
+                </Card>
+            </div>
         </div>
     );
 };

@@ -76,7 +76,8 @@ function App() {
   const { switchRole, loading: isSwitchingRole } = useRoleManager(currentUser?.user_id || session?.user?.id);
 
   const permissions = usePermissions(activeRoleContext);
-  const { activeClubId, loading: clubFilterLoading, globalClubFilter, setGlobalClubFilter } = useClubFilter(currentUser, permissions);
+  const { allowedClubs } = dataProvider;
+  const { activeClubId, loading: clubFilterLoading, globalClubFilter, setGlobalClubFilter } = useClubFilter(currentUser, permissions, allowedClubs);
   
   const handleBackToDashboard = useCallback(() => {
     const dashboardView = permissions.hasAdminAccess && activeRole !== 'SPORTIV' ? 'dashboard' : 'my-portal';

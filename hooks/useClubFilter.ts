@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../supabaseClient';
 import { Permissions, User } from '../types';
 import { useLocalStorage } from './useLocalStorage';
-import { useClubAccess } from './useClubAccess';
 
 interface UseClubFilterResult {
     activeClubId: string | null;
@@ -12,12 +10,11 @@ interface UseClubFilterResult {
     setGlobalClubFilter: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
-export const useClubFilter = (currentUser: User | null, permissions: Permissions): UseClubFilterResult => {
+export const useClubFilter = (currentUser: User | null, permissions: Permissions, allowedClubs: string[] = [], accessLoading: boolean = false): UseClubFilterResult => {
     const [activeClubId, setActiveClubId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     
     const [globalClubFilter, setGlobalClubFilter] = useLocalStorage<string | null>('phi-hau-global-club-filter', null);
-    const { allowedClubs, loading: accessLoading } = useClubAccess();
 
     const canChangeClub = permissions.isFederationAdmin;
 

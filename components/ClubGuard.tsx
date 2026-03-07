@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { useClubAccess } from '../hooks/useClubAccess';
 import { useData } from '../contexts/DataContext';
 import { Select } from './ui';
 
@@ -8,8 +7,7 @@ interface ClubGuardProps {
 }
 
 export const ClubGuard: React.FC<ClubGuardProps> = ({ children }) => {
-    const { allowedClubs, loading } = useClubAccess();
-    const { activeClubId, setGlobalClubFilter, clubs } = useData();
+    const { activeClubId, setGlobalClubFilter, clubs, allowedClubs, loading } = useData();
 
     useEffect(() => {
         if (!loading && allowedClubs.length > 0 && !activeClubId) {

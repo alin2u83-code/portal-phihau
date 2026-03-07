@@ -1,37 +1,67 @@
--- Script to link a user to a sportiv profile
--- Replace 'USER_ID' with the actual user UUID from auth.users
--- Replace 'SPORTIV_ID' with the actual sportiv UUID from public.sportivi
-
--- 1. Check if the user exists in auth.users
--- 2. Check if the sportiv exists in public.sportivi
--- 3. Create the link in public.utilizator_roluri_multicont
-
-DO $$
+-- 1. Robust function to link User to Sportiv Profile
+CREATE OR REPLACE FUNCTION public.link_user_to_sportiv_profile(p_email TEXT)
+RETURNS JSONB LANGUAGE plpgsql SECURITY DEFINER AS $$
 DECLARE
-    v_user_id UUID := auth.uid(); -- If running as the user, or replace with '...'::uuid
-    v_sportiv_id UUID := '337c41e3-67d2-4aef-953e-b5fe190b0748'; -- Example sportiv ID from logs
-    v_rol_id UUID;
+    v_user_id UUID;
+    v_sportiv_id UUID;
     v_club_id UUID;
+    v_rol_sportiv_id UUID;
+    v_existing_link_id UUID;
 BEGIN
-    -- Get the SPORTIV role ID
-    SELECT id INTO v_rol_id FROM public.roluri WHERE nume = 'SPORTIV' LIMIT 1;
-    
-    -- Get the club ID from the sportiv profile
-    SELECT club_id INTO v_club_id FROM public.sportivi WHERE id = v_sportiv_id;
-
-    IF v_rol_id IS NULL THEN
-        RAISE EXCEPTION 'Role SPORTIV not found';
+    -- Find User ID
+    SELECT id INTO v_user_id FROM auth.users WHERE email = p_email LIMIT 1;
+    IF v_user_id IS NULL THEN
+        RETURN jsonb_build_object('success', false, 'message', 'User not found in auth.users');
     END IF;
 
-    IF v_club_id IS NULL THEN
-        RAISE EXCEPTION 'Sportiv not found or has no club';
+    -- Find Sportiv ID
+    SELECT id, club_id INTO v_sportiv_id, v_club_id FROM public.sportivi WHERE email = p_email LIMIT 1;
+    IF v_sportiv_id IS NULL THEN
+        RETURN jsonb_build_object('success', false, 'message', 'Sportiv profile not found');
     END IF;
 
-    -- Upsert the link
-    INSERT INTO public.utilizator_roluri_multicont (user_id, rol_id, sportiv_id, club_id, is_primary, rol_denumire)
-    VALUES (v_user_id, v_rol_id, v_sportiv_id, v_club_id, true, 'SPORTIV')
-    ON CONFLICT (user_id, rol_id, sportiv_id, club_id) 
-    DO UPDATE SET is_primary = true, rol_denumire = 'SPORTIV';
+    -- Get Role ID
+    SELECT id INTO v_rol_sportiv_id FROM public.roluri WHERE nume = 'SPORTIV' LIMIT 1;
+    IF v_rol_sportiv_id IS NULL THEN
+        RETURN jsonb_build_object('success', false, 'message', 'Role SPORTIV not found');
+    END IF;
 
-    RAISE NOTICE 'Linked user % to sportiv % in club %', v_user_id, v_sportiv_id, v_club_id;
-END $$;
+    -- Link User ID to Sportiv Profile
+    UPDATE public.sportivi 
+    SET user_id = v_user_id 
+    WHERE id = v_sportiv_id AND (user_id IS NULL OR user_id != v_user_id);
+
+    -- Create or Update Link in utilizator_roluri_multicont
+    SELECT id INTO v_existing_link_id 
+    FROM public.utilizator_roluri_multicont 
+    WHERE user_id = v_user_id AND rol_id = v_rol_sportiv_id AND sportiv_id = v_sportiv_id;
+
+    IF v_existing_link_id IS NOT NULL THEN
+        -- Update existing link
+        UPDATE public.utilizator_roluri_multicont
+        SET club_id = v_club_id,
+            rol_denumire = 'SPORTIV',
+            nume_utilizator_cache = (SELECT nume || ' ' || prenume FROM public.sportivi WHERE id = v_sportiv_id)
+        WHERE id = v_existing_link_id;
+    ELSE
+        -- Insert new link
+        -- Ensure is_primary is handled correctly (false if other roles exist)
+        INSERT INTO public.utilizator_roluri_multicont (
+            user_id, rol_id, sportiv_id, club_id, is_primary, rol_denumire, nume_utilizator_cache
+        ) VALUES (
+            v_user_id, 
+            v_rol_sportiv_id, 
+            v_sportiv_id, 
+            v_club_id, 
+            NOT EXISTS (SELECT 1 FROM public.utilizator_roluri_multicont WHERE user_id = v_user_id AND is_primary = true), 
+            'SPORTIV', 
+            (SELECT nume || ' ' || prenume FROM public.sportivi WHERE id = v_sportiv_id)
+        );
+    END IF;
+
+    RETURN jsonb_build_object('success', true, 'message', 'Link created successfully', 'user_id', v_user_id, 'sportiv_id', v_sportiv_id);
+END;
+$$;
+
+-- Example usage:
+-- SELECT public.link_user_to_sportiv_profile('email@example.com');

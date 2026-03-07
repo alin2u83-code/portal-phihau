@@ -185,9 +185,9 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
     return (
         <div className="space-y-4 md:space-y-6 pb-20 md:pb-0">
             {/* Mobile-first Header Profile Card */}
-            <Card className="relative overflow-hidden border-t-4 border-t-[#4DBCE9] bg-gradient-to-b from-slate-800 to-[var(--bg-card)]">
-                <div className="flex flex-col items-center text-center p-4">
-                    <div className="w-24 h-24 rounded-full bg-slate-700 border-4 border-slate-800 shadow-xl mb-4 flex items-center justify-center overflow-hidden">
+            <Card className="relative overflow-hidden border-t-4 border-t-sky-500 bg-gradient-to-b from-slate-800 to-[var(--bg-card)] shadow-lg">
+                <div className="flex flex-col items-center text-center p-6">
+                    <div className="w-24 h-24 rounded-full bg-slate-700 border-4 border-slate-800 shadow-xl mb-4 flex items-center justify-center overflow-hidden ring-2 ring-sky-500/20">
                         {viewedUser.foto_url ? (
                             <img src={viewedUser.foto_url} alt="Profile" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                         ) : (
@@ -195,7 +195,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                         )}
                     </div>
                     <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">{viewedUser.nume} {viewedUser.prenume}</h1>
-                    <p className="text-sm text-[#4DBCE9] font-medium mt-1 uppercase tracking-wider">
+                    <p className="text-sm text-sky-400 font-medium mt-1 uppercase tracking-wider">
                         {grupe.find(g => g.id === viewedUser.grupa_id)?.denumire || 'Fără grupă'}
                     </p>
                     <div className="mt-4 transform scale-110">
@@ -204,7 +204,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                     
                     {isViewingOwnProfile && (
                         <div className="mt-6 w-full flex flex-col sm:flex-row gap-3 justify-center">
-                            <Button variant="primary" onClick={() => onNavigate('istoric-plati')} className="w-full sm:w-auto bg-[#4DBCE9] hover:bg-[#3ba8d5] text-slate-900 font-bold border-none">
+                            <Button variant="primary" onClick={() => onNavigate('istoric-plati')} className="w-full sm:w-auto bg-sky-500 hover:bg-sky-600 text-white font-bold border-none shadow-lg shadow-sky-500/20">
                                 <WalletIcon className="w-5 h-5 mr-2"/> Portofelul Meu
                             </Button>
                         </div>
@@ -228,17 +228,17 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 {/* Attendance Summary Chart */}
-                <Card className="flex flex-col">
+                <Card className="flex flex-col border border-slate-800 bg-slate-900/50">
                     <div className="flex justify-between items-center mb-4">
                         <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                            <ChartBarIcon className="w-5 h-5 text-[#4DBCE9]" />
+                            <ChartBarIcon className="w-5 h-5 text-sky-400" />
                             Prezențe Recente
                         </h3>
-                        <span className="text-2xl font-black text-[#4DBCE9]">{attendanceStats.total}</span>
+                        <span className="text-2xl font-black text-sky-400">{attendanceStats.total}</span>
                     </div>
                     
                     {attendanceStats.loading ? (
-                        <div className="h-48 flex items-center justify-center"><Skeleton className="w-full h-full rounded-lg" /></div>
+                        <div className="h-48 flex items-center justify-center"><Skeleton className="w-full h-full rounded-lg bg-slate-800" /></div>
                     ) : attendanceStats.total === 0 ? (
                         <div className="h-48 flex flex-col items-center justify-center text-slate-500 bg-slate-800/30 rounded-lg border border-slate-700/50">
                             <CalendarDaysIcon className="w-8 h-8 mb-2 opacity-50" />
@@ -252,26 +252,26 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                                     <YAxis stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} allowDecimals={false} />
                                     <RechartsTooltip 
                                         cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                                        contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
+                                        contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '8px', color: '#fff' }}
                                         formatter={(value: number) => [`${value} prezențe`, 'Total']}
                                     />
                                     <Bar dataKey="count" radius={[4, 4, 0, 0]}>
                                         {attendanceStats.recent.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={index === attendanceStats.recent.length - 1 ? '#4DBCE9' : '#334155'} />
+                                            <Cell key={`cell-${index}`} fill={index === attendanceStats.recent.length - 1 ? '#0ea5e9' : '#334155'} />
                                         ))}
                                     </Bar>
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
                     )}
-                    <Button onClick={() => setIsHistoryOpen(true)} variant="secondary" size="sm" className="w-full mt-4">
+                    <Button onClick={() => setIsHistoryOpen(true)} variant="secondary" size="sm" className="w-full mt-4 bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700">
                         Vezi Istoric Detaliat
                     </Button>
                 </Card>
                 <HistoryModal isOpen={isHistoryOpen} onClose={() => setIsHistoryOpen(false)} istoric={istoricPrezenta || []} />
 
                 {/* Grade Evolution */}
-                <Card className="flex flex-col">
+                <Card className="flex flex-col border border-slate-800 bg-slate-900/50">
                     <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
                         <TrophyIcon className="w-5 h-5 text-amber-400" />
                         Evoluție Grade
@@ -283,7 +283,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
             </div>
 
             {/* Exam Attendance Stats */}
-            <Card className="flex flex-col">
+            <Card className="flex flex-col border border-slate-800 bg-slate-900/50">
                 <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
                     <ChartBarIcon className="w-5 h-5 text-emerald-400" />
                     Evoluție Prezență pe Grade
@@ -314,7 +314,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                     <VizaMedicalaCard plati={plati} sportivId={viewedUser.id} />
                     
                     {isViewingOwnProfile && (
-                        <Card>
+                        <Card className="border border-slate-800 bg-slate-900/50">
                             <h3 className="text-lg font-bold text-white mb-4">Setări Notificări</h3>
                             <NotificationPermissionWidget />
                         </Card>
@@ -323,7 +323,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
             </div>
 
             {canSwitchRoles && (
-                <Card className="animate-fade-in-down" style={{ animationDelay: '300ms' }}>
+                <Card className="animate-fade-in-down border border-slate-800 bg-slate-900/50" style={{ animationDelay: '300ms' }}>
                     <h3 className="text-lg font-bold text-white mb-4">Comută Rol Activ</h3>
                     <div className="flex flex-wrap gap-2">
                         {(currentUser.roluri || []).map((rol, idx) => (
@@ -332,7 +332,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                                 variant={activeRole === rol.nume ? 'primary' : 'secondary'}
                                 onClick={() => onSwitchRole(rol.nume)}
                                 disabled={isSwitchingRole}
-                                className={activeRole === rol.nume ? 'bg-[#4DBCE9] text-slate-900 border-none' : ''}
+                                className={activeRole === rol.nume ? 'bg-sky-500 hover:bg-sky-600 text-white border-none shadow-md shadow-sky-500/20' : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'}
                             >
                                 {rol.nume}
                             </Button>

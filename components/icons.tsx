@@ -6,7 +6,7 @@ import {
   ClipboardCheck, MessageCircleQuestion, Save, AlertTriangle, CheckCircle,
   ChevronLeft, ChevronRight, Printer, Check, ArrowRightLeft, Search, Bell, Network,
   UploadCloud, Mail, Lock, UserPlus, BookOpen, BookMarked, FileText, UserX, UserCheck, XCircle, Clock,
-  Camera, Upload, Building2, Paintbrush, MapPin
+  Camera, Upload, Building2, Paintbrush, MapPin, CreditCard
 } from 'lucide-react';
 
 export const PlusIcon = Plus;
@@ -18,6 +18,7 @@ export const CalendarDaysIcon = CalendarDays;
 export const TrophyIcon = Trophy;
 export const ClipboardListIcon = ClipboardList;
 export const BanknotesIcon = Landmark;
+export const CreditCardIcon = CreditCard;
 export const CogIcon = Settings;
 export const ShieldCheckIcon = ShieldCheck;
 export const HomeIcon = LayoutDashboard;

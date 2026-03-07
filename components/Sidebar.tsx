@@ -62,20 +62,20 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
             case ROLES.ADMIN_CLUB:
                 menu = adminMenu;
                 name = currentUser.cluburi?.nume || 'Club';
-                border = 'border-[#4DBCE9]';
+                border = 'border-sky-500';
                 icon = ShieldCheckIcon;
                 break;
             case ROLES.INSTRUCTOR:
                 menu = instructorMenu;
                 name = currentUser.cluburi?.nume || 'Club';
-                border = 'border-[#4DBCE9]';
+                border = 'border-emerald-500';
                 icon = ShieldCheckIcon;
                 break;
             case ROLES.SPORTIV:
             default:
                 menu = sportivMenu;
                 name = 'Portal Sportiv';
-                border = 'border-[#4DBCE9]';
+                border = 'border-indigo-500';
                 icon = UserCircleIcon;
                 break;
         }
@@ -84,13 +84,13 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
 
 
     const iconColorClass = useMemo(() => {
-        return 'text-[#4DBCE9]';
+        return 'text-sky-400';
     }, []);
     
     const activeRoleContext = useMemo(() => userRoles.find(r => r.is_primary), [userRoles]);
 
     const sidebarContent = (
-        <div className="flex flex-col h-full bg-[#3D3D99] text-white shadow-xl">
+        <div className="flex flex-col h-full bg-slate-900 text-slate-200 shadow-xl border-r border-slate-800">
             <div ref={roleSwitcherRef}>
                 <RoleSwitcher
                     isExpanded={isExpanded}
@@ -109,15 +109,15 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
 
             {/* Club Selector for Federation Admins */}
             {permissions.isFederationAdmin && isExpanded && (
-                <div className="px-4 py-2 border-b border-white/10 bg-black/10">
-                    <div className="flex items-center gap-2 mb-2 text-amber-300">
+                <div className="px-4 py-3 border-b border-slate-800 bg-slate-950/30">
+                    <div className="flex items-center gap-2 mb-2 text-amber-400">
                         <BuildingOfficeIcon className="w-4 h-4" />
                         <span className="text-[10px] font-bold uppercase tracking-wider">Filtru Club</span>
                     </div>
                     <select 
                         value={globalClubFilter || ''} 
                         onChange={(e) => setGlobalClubFilter(e.target.value || null)}
-                        className="w-full bg-slate-800/50 border border-slate-700 rounded-md px-2 py-1.5 text-xs text-white focus:ring-1 focus:ring-amber-500 outline-none transition-all"
+                        className="w-full bg-slate-800 border border-slate-700 rounded-md px-2 py-1.5 text-xs text-slate-200 focus:ring-1 focus:ring-amber-500 outline-none transition-all"
                     >
                         <option value="">Toate Cluburile</option>
                         {clubs.map(club => (
@@ -134,10 +134,10 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
                 onNavigate={handleNavigate}
             />
 
-             <div className="p-3 border-t border-white/10">
-                <button onClick={onLogout} title={!isExpanded ? "Deconectare" : ""} className="w-full flex items-center p-2.5 rounded-md transition-colors text-left text-red-400 hover:bg-red-600/20 hover:text-red-300">
-                    <ArrowRightOnRectangleIcon className={`h-6 w-6 shrink-0 ${isExpanded ? 'mr-3' : 'mx-auto'}`} />
-                    {isExpanded && <span className="text-sm font-semibold truncate">Deconectare</span>}
+             <div className="p-3 border-t border-slate-800 mt-auto">
+                <button onClick={onLogout} title={!isExpanded ? "Deconectare" : ""} className="w-full flex items-center p-2.5 rounded-md transition-colors text-left text-red-400 hover:bg-red-500/10 hover:text-red-300 group">
+                    <ArrowRightOnRectangleIcon className={`h-5 w-5 shrink-0 ${isExpanded ? 'mr-3' : 'mx-auto'} transition-transform group-hover:translate-x-1`} />
+                    {isExpanded && <span className="text-sm font-medium truncate">Deconectare</span>}
                 </button>
             </div>
         </div>
@@ -149,32 +149,32 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
         <>
             {/* Mobile Header/Hamburger - Only show if not using bottom nav or if we want it as a fallback */}
             {!isMobileNavEligible && (
-                <button className="md:hidden fixed top-3 left-3 z-50 p-2 bg-slate-800/50 rounded-md text-white" onClick={() => setIsMobileOpen(true)}>
+                <button className="md:hidden fixed top-3 left-3 z-50 p-2 bg-slate-800/80 backdrop-blur-md border border-slate-700 rounded-md text-slate-200 shadow-lg" onClick={() => setIsMobileOpen(true)}>
                     <Bars3Icon className="w-6 h-6" />
                 </button>
             )}
 
             {/* Mobile Sidebar Overlay */}
-            <div className={`fixed inset-0 z-40 bg-black/60 transition-opacity md:hidden ${isMobileOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={() => setIsMobileOpen(false)} />
+            <div className={`fixed inset-0 z-40 bg-slate-950/80 backdrop-blur-sm transition-opacity md:hidden ${isMobileOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={() => setIsMobileOpen(false)} />
             
             {/* Mobile Sidebar */}
-            <aside className={`fixed top-0 left-0 z-50 h-full w-64 transition-transform duration-300 ease-in-out md:hidden border-r-4 ${borderClass} ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+            <aside className={`fixed top-0 left-0 z-50 h-full w-72 transition-transform duration-300 ease-in-out md:hidden border-r border-slate-800 shadow-2xl ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                 {sidebarContent}
             </aside>
             
             {/* Desktop Sidebar */}
-            <aside className={`hidden md:block fixed top-0 left-0 h-full z-30 transition-all duration-300 border-r-4 ${borderClass} ${isExpanded ? 'w-64' : 'w-20'}`}>
+            <aside className={`hidden md:block fixed top-0 left-0 h-full z-30 transition-all duration-300 ${isExpanded ? 'w-64' : 'w-20'}`}>
                 {sidebarContent}
             </aside>
             
             {/* Desktop Toggle Button */}
-            <button className={`hidden md:block fixed top-4 z-40 p-1 bg-white/10 rounded-full text-white hover:bg-[var(--accent)] transition-all duration-300 ${isExpanded ? 'left-[15.2rem]' : 'left-[4.2rem]'}`} onClick={() => setIsExpanded(!isExpanded)} title={isExpanded ? "Restrânge meniul" : "Extinde meniul"}>
-                <ChevronDownIcon className={`w-5 h-5 transition-transform ${isExpanded ? 'rotate-90' : '-rotate-90'}`} />
+            <button className={`hidden md:flex items-center justify-center fixed top-6 z-40 w-6 h-6 bg-slate-800 border border-slate-700 rounded-full text-slate-400 hover:text-white hover:bg-slate-700 transition-all duration-300 shadow-md ${isExpanded ? 'left-[15.2rem]' : 'left-[4.2rem]'}`} onClick={() => setIsExpanded(!isExpanded)} title={isExpanded ? "Restrânge meniul" : "Extinde meniul"}>
+                <ChevronDownIcon className={`w-3 h-3 transition-transform ${isExpanded ? 'rotate-90' : '-rotate-90'}`} />
             </button>
 
             {/* Mobile Bottom Navigation */}
             {isMobileNavEligible && (
-                <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#3D3D99] border-t border-slate-700/50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] pb-safe">
+                <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.3)] pb-safe">
                     <div className="flex justify-around items-center h-16 px-2">
                         {menuToDisplay.slice(0, 4).map((item, idx) => {
                             const isActive = item.view === activeView;
@@ -182,7 +182,7 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
                                 <button
                                     key={idx}
                                     onClick={() => item.view && handleNavigate(item.view)}
-                                    className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${isActive ? 'text-[#4DBCE9]' : 'text-slate-400 hover:text-slate-200'}`}
+                                    className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${isActive ? 'text-sky-400' : 'text-slate-500 hover:text-slate-300'}`}
                                 >
                                     <item.icon className={`w-6 h-6 ${isActive ? 'scale-110' : ''} transition-transform`} />
                                     <span className="text-[10px] font-medium truncate w-full text-center px-1">{item.label}</span>
@@ -193,7 +193,7 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
                         {/* More Menu Button */}
                         <button
                             onClick={() => setIsMobileOpen(true)}
-                            className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors text-slate-400 hover:text-slate-200`}
+                            className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors text-slate-500 hover:text-slate-300`}
                         >
                             <Bars3Icon className="w-6 h-6" />
                             <span className="text-[10px] font-medium">Mai mult</span>

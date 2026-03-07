@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 
-export const useClubAccess = () => {
+export const useFetchAllowedClubs = () => {
     const [allowedClubs, setAllowedClubs] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
 

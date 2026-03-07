@@ -16,6 +16,7 @@ import { usePlati } from './usePlati';
 import { useGrupe } from './useGrupe';
 import { useClubFilter } from './useClubFilter';
 import { usePermissions } from './usePermissions';
+import { useFetchAllowedClubs } from './useClubAccess';
 
 export interface AppData {
     sportivi: Sportiv[];
@@ -41,6 +42,7 @@ export interface AppData {
     istoricPlatiDetaliat: IstoricPlataDetaliat[];
     istoricPrezenta: VederePrezentaSportiv[];
     filteredData?: FilteredData;
+    allowedClubs: string[];
 }
 
 const initialData: AppData = {
@@ -49,7 +51,7 @@ const initialData: AppData = {
     rezultate: [], preturiConfig: [], tipuriAbonament: [], familii: [], 
     allRoles: [], reduceri: [], tipuriPlati: [], 
     locatii: [], clubs: [], deconturiFederatie: [], vizualizarePlati: [],
-    istoricPlatiDetaliat: [], istoricPrezenta: []
+    istoricPlatiDetaliat: [], istoricPrezenta: [], allowedClubs: []
 };
 
 export const useDataProvider = () => {
@@ -77,7 +79,8 @@ export const useDataProvider = () => {
     // Derive active role and club for filtering
     const activeRole = activeRoleContext?.roluri?.nume || null;
     const permissions = usePermissions(activeRoleContext);
-    const { activeClubId, globalClubFilter, setGlobalClubFilter } = useClubFilter(currentUser, permissions);
+    const { allowedClubs, loading: accessLoading } = useFetchAllowedClubs();
+    const { activeClubId, globalClubFilter, setGlobalClubFilter } = useClubFilter(currentUser, permissions, allowedClubs, accessLoading);
 
     const attendanceData = useAttendanceData(activeClubId);
 
@@ -214,7 +217,7 @@ export const useDataProvider = () => {
             if (cleanClubId === 'null' || cleanClubId === 'undefined') {
                 cleanClubId = null;
             }
-            const profile = activeCtx.sportiv; // Ajustat conform structurii din useUserRoles (sportiv, nu sportivi)
+            const profile = activeCtx.sportiv || (userRoles || []).find(r => r.sportiv)?.sportiv;
 
             const currentRoles = (userRoles || []).map((r: any) => ({
                 ...r.roluri,
@@ -352,13 +355,14 @@ export const useDataProvider = () => {
             setData(prev => ({ ...prev, [key]: typeof value === 'function' ? (value as any)(prev[key]) : value }));
         }, []);
 
-    const loading = loadingData || rolesLoading || attendanceData.loading;
+    const loading = loadingData || rolesLoading || attendanceData.loading || accessLoading;
     const combinedError = error || rolesError || attendanceData.error;
 
     return { 
         ...data, 
         filteredData,
         ...attendanceData,
+        allowedClubs,
         loading, 
         error: combinedError, 
         needsRoleSelection, 

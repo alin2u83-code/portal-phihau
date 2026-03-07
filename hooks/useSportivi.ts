@@ -6,9 +6,15 @@ export const useSportivi = (clubId: string | null) => {
     return useQuery<Sportiv[], Error>({
         queryKey: ['sportivi', clubId],
         queryFn: async () => {
-            const { data, error } = await supabase
+            let query = supabase
                 .from('sportivi')
                 .select('*, cluburi(*), roluri:utilizator_roluri_multicont(rol_denumire)');
+            
+            if (clubId && clubId !== 'null' && clubId !== 'undefined') {
+                query = query.eq('club_id', clubId);
+            }
+
+            const { data, error } = await query;
             
             if (error) throw error;
             

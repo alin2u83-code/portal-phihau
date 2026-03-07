@@ -84,7 +84,10 @@ export const useUserRoles = (userId: string | undefined) => {
                 setUserRoles([]);
                 setActiveRoleContext(null);
             } else {
-                const savedRoleId = localStorage.getItem('phi-hau-active-role-context-id')?.replace(/"/g, '');
+                let savedRoleId = localStorage.getItem('phi-hau-active-role-context-id')?.replace(/"/g, '');
+                if (savedRoleId === 'null' || savedRoleId === 'undefined') {
+                    savedRoleId = undefined;
+                }
                 let activeCtx = roles.find(r => r.id === savedRoleId) || roles.find(r => r.is_primary) || roles[0];
 
                 if (!savedRoleId && roles.length > 1) {

@@ -35,6 +35,11 @@ export const useClubFilter = (currentUser: User | null, permissions: Permissions
         // If canChangeClub (Federation Admin), we respect the global filter, otherwise default to user's club
         let candidateClubId = canChangeClub ? (globalClubFilter || currentUser.club_id) : currentUser.club_id;
 
+        // Sanitize candidateClubId to avoid "null" string
+        if (candidateClubId === 'null' || candidateClubId === 'undefined') {
+            candidateClubId = null;
+        }
+
         // 2. Validate against allowedClubs
         // If candidateClubId is not in allowedClubs, force it to a valid one or null
         let finalClubId = candidateClubId;

@@ -1,5 +1,21 @@
 -- Script pentru configurarea RLS pe tabelele plati și tranzactii
 
+-- 0. Creăm funcția de acces dacă nu există
+CREATE OR REPLACE FUNCTION public.has_access_to_club(p_club_id UUID)
+RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER AS $$
+BEGIN
+    RETURN EXISTS (
+        SELECT 1 FROM public.utilizator_roluri_multicont
+        WHERE user_id = auth.uid() 
+        AND (
+            rol_denumire IN ('SUPER_ADMIN_FEDERATIE', 'ADMIN') -- Admini globali
+            OR (club_id = p_club_id AND rol_denumire = 'ADMIN_CLUB') -- Admin local
+            OR (club_id = p_club_id AND rol_denumire = 'INSTRUCTOR') -- Instructor local
+        )
+    );
+END;
+$$;
+
 DO $$
 BEGIN
     -- 1. Activăm RLS pe tabele (în caz că nu este deja activat)

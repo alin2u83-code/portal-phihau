@@ -176,7 +176,10 @@ export const useDataProvider = () => {
             if (!supabase) throw new Error("Clientul Supabase nu este configurat.");
             
             const cleanedSupabase = withCleanUuidFilters(supabase as SupabaseClient<any, any>);
-            const cleanClubId = activeCtx.club_id || activeClubId;
+            let cleanClubId = activeCtx.club_id || activeClubId;
+            if (cleanClubId === 'null' || cleanClubId === 'undefined') {
+                cleanClubId = null;
+            }
             const profile = activeCtx.sportivi; // Ajustat conform structurii posibile din activeCtx
 
             const currentRoles = (userRoles || []).map((r: any) => ({

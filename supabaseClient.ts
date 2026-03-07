@@ -8,7 +8,11 @@ let supabaseInstance: SupabaseClient | null = null;
 if (supabaseUrl && supabaseAnonKey) {
   const customFetch = async (url: RequestInfo | URL, options: RequestInit = {}) => {
     const activeClubId = localStorage.getItem('phi-hau-global-club-filter');
-    const cleanedClubId = activeClubId ? activeClubId.replace(/"/g, '') : '';
+    // Remove quotes and handle the string "null" or "undefined"
+    let cleanedClubId = activeClubId ? activeClubId.replace(/"/g, '') : '';
+    if (cleanedClubId === 'null' || cleanedClubId === 'undefined') {
+        cleanedClubId = '';
+    }
 
     const headers = new Headers(options?.headers);
     if (cleanedClubId) {

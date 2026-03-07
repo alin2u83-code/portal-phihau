@@ -22,7 +22,7 @@ export const useAttendanceData = (clubId?: string | null, skipFetch = false, fil
             let antrenamenteQuery = supabase.from('program_antrenamente').select('*, grupe(*), prezenta:prezenta_antrenament(sportiv_id, status)');
             let anunturiQuery = supabase.from('anunturi_prezenta').select('*');
 
-            if (clubId) {
+            if (clubId && clubId !== 'null' && clubId !== 'undefined') {
                 antrenamenteQuery = antrenamenteQuery.eq('club_id', clubId);
                 anunturiQuery = anunturiQuery.eq('club_id', clubId);
             }

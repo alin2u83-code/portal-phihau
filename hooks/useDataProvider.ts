@@ -126,18 +126,52 @@ export const useDataProvider = () => {
         if (!silent) setLoadingIstoric(true);
         
         try {
-            let query = supabase
+            // Încercăm să citim din view-ul optimizat
+            let { data: result, error: fetchErr } = await supabase
                 .from('vedere_prezenta_sportiv')
                 .select('*')
-                .eq('sportiv_id', sportivId);
+                .eq('sportiv_id', sportivId)
+                .order('data', { ascending: false });
 
-            if (activeRoleContext?.club_id && activeRoleContext.club_id !== 'null') {
-                query = query.eq('club_id', activeRoleContext.club_id);
-            }
+            // Dacă view-ul nu există (404) sau avem altă eroare, facem fallback pe tabelele de bază
+            if (fetchErr) {
+                console.warn("View 'vedere_prezenta_sportiv' not found or error, falling back to base tables:", fetchErr.message);
+                
+                const { data: fallbackData, error: fallbackErr } = await supabase
+                    .from('prezenta_antrenament')
+                    .select(`
+                        status,
+                        sportiv_id,
+                        antrenament:antrenament_id (
+                            id,
+                            data,
+                            ora_start,
+                            club_id,
+                            grupa:grupa_id (
+                                id,
+                                denumire
+                            )
+                        )
+                    `)
+                    .eq('sportiv_id', sportivId)
+                    .order('antrenament_id', { ascending: false });
 
-            const { data: result, error: fetchErr } = await query.order('data', { ascending: false });
-
-            if (!fetchErr && result) {
+                if (!fallbackErr && fallbackData) {
+                    // Mapăm datele pentru a respecta structura VederePrezentaSportiv
+                    const mappedData: VederePrezentaSportiv[] = fallbackData.map((row: any) => ({
+                        antrenament_id: row.antrenament?.id,
+                        id: row.antrenament?.id,
+                        sportiv_id: row.sportiv_id,
+                        data: row.antrenament?.data,
+                        status: row.status,
+                        club_id: row.antrenament?.club_id,
+                        grupa_id: row.antrenament?.grupa?.id,
+                        ora_start: row.antrenament?.ora_start,
+                        nume_grupa: row.antrenament?.grupa?.denumire
+                    }));
+                    setData(prev => ({ ...prev, istoricPrezenta: mappedData }));
+                }
+            } else if (result) {
                 setData(prev => ({ ...prev, istoricPrezenta: result }));
             }
         } finally {
@@ -180,7 +214,7 @@ export const useDataProvider = () => {
             if (cleanClubId === 'null' || cleanClubId === 'undefined') {
                 cleanClubId = null;
             }
-            const profile = activeCtx.sportivi; // Ajustat conform structurii posibile din activeCtx
+            const profile = activeCtx.sportiv; // Ajustat conform structurii din useUserRoles (sportiv, nu sportivi)
 
             const currentRoles = (userRoles || []).map((r: any) => ({
                 ...r.roluri,
@@ -228,8 +262,8 @@ export const useDataProvider = () => {
             }
 
             if (isSportiv && activeCtx.sportiv_id) {
-                queries.inscrieriExamene = cleanedSupabase.from('vedere_inscrieri_examene_sportiv').select('*, sportivi:sportiv_id(*), grades:grad_vizat_id(*)').eq('sportiv_id', activeCtx.sportiv_id);
-                queries.istoricGrade = cleanedSupabase.from('vedere_istoric_grade_sportiv').select('*').eq('sportiv_id', activeCtx.sportiv_id);
+                queries.inscrieriExamene = cleanedSupabase.from('inscrieri_examene').select('*, sportivi:sportiv_id(*), grades:grad_vizat_id(*)').eq('sportiv_id', activeCtx.sportiv_id);
+                queries.istoricGrade = cleanedSupabase.from('istoric_grade').select('*').eq('sportiv_id', activeCtx.sportiv_id);
             } else {
                 queries.inscrieriExamene = cleanedSupabase.from('inscrieri_examene').select('*, sportivi:sportiv_id(*), grades:grad_vizat_id(*)');
                 queries.istoricGrade = cleanedSupabase.from('istoric_grade').select('*');

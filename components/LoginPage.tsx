@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { supabase } from '../supabaseClient';
+import { useAuth } from '../hooks/useAuth';
 import { Button, Card, Input } from './ui';
 import { LogIn, Mail, Lock, ShieldCheck, ArrowRight } from 'lucide-react';
 
@@ -16,10 +16,10 @@ const QwanKiDoLogo: React.FC = () => (
 
 export const LoginPage: React.FC = () => {
     const navigate = useNavigate();
+    const { login, loading, error: authError, clearStates } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({});
+    const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
     const validate = () => {
         const newErrors: { email?: string; password?: string } = {};
@@ -38,31 +38,15 @@ export const LoginPage: React.FC = () => {
         if (!validate()) return;
         
         setErrors({});
-        setLoading(true);
+        clearStates();
 
         try {
-            if (!supabase) throw new Error('Clientul Supabase nu este inițializat.');
-
-            const { data, error: authError } = await supabase.auth.signInWithPassword({
-                email,
-                password,
-            });
-
-            if (authError) {
-                if (authError.message === 'Invalid login credentials') {
-                    setErrors({ general: 'Email sau parolă incorectă.' });
-                    return;
-                }
-                throw authError;
-            }
-
-            if (data.user) {
+            const data = await login(email, password);
+            if (data?.user) {
                 navigate('/');
             }
         } catch (err: any) {
-            setErrors({ general: err.message || 'A apărut o eroare la autentificare.' });
-        } finally {
-            setLoading(false);
+            // Eroarea este deja gestionată în useAuth și expusă prin `authError`
         }
     };
 
@@ -83,13 +67,13 @@ export const LoginPage: React.FC = () => {
                         </p>
                     </div>
 
-                    {errors.general && (
+                    {authError && (
                         <div className="flex items-start gap-3 p-4 rounded-xl mb-6 border animate-in fade-in slide-in-from-top-2 duration-300 bg-red-500/10 border-red-500/20 text-red-400">
                             <div className="mt-0.5">
                                 <ShieldCheck className="w-5 h-5 shrink-0 opacity-70" />
                             </div>
                             <p className="text-sm font-medium leading-relaxed">
-                                {errors.general}
+                                {authError}
                             </p>
                         </div>
                     )}
@@ -101,7 +85,7 @@ export const LoginPage: React.FC = () => {
                                 name="email" 
                                 type="email" 
                                 value={email} 
-                                onChange={(e) => { setEmail(e.target.value); if(errors.email) setErrors(p => ({...p, email: undefined})); }} 
+                                onChange={(e) => { setEmail(e.target.value); if(errors.email) setErrors(p => ({...p, email: undefined})); clearStates(); }} 
                                 required 
                                 placeholder="exemplu@email.com"
                                 className={`pl-10 ${errors.email ? 'border-red-500 focus:ring-red-500' : ''}`}
@@ -116,7 +100,7 @@ export const LoginPage: React.FC = () => {
                                 name="password" 
                                 type="password" 
                                 value={password} 
-                                onChange={(e) => { setPassword(e.target.value); if(errors.password) setErrors(p => ({...p, password: undefined})); }} 
+                                onChange={(e) => { setPassword(e.target.value); if(errors.password) setErrors(p => ({...p, password: undefined})); clearStates(); }} 
                                 required 
                                 placeholder="••••••••"
                                 className={`pl-10 ${errors.password ? 'border-red-500 focus:ring-red-500' : ''}`}

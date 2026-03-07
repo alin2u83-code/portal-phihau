@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { createAccount } from '../services/authService';
+import { useAuth } from '../hooks/useAuth';
 import { Button, Card, Input } from './ui';
 import { Link } from 'react-router-dom';
 import { UserPlus, Mail, Lock, User, ShieldCheck, ArrowRight } from 'lucide-react';
@@ -15,6 +15,7 @@ const QwanKiDoLogo: React.FC = () => (
 );
 
 export const RegisterPage: React.FC = () => {
+    const { register, loading, error: authError, success: authSuccess, clearStates } = useAuth();
     const [formData, setFormData] = useState({
         nume: '',
         prenume: '',
@@ -22,8 +23,6 @@ export const RegisterPage: React.FC = () => {
         parola: '',
         confirmParola: ''
     });
-    const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState<{ type: 'error' | 'success', text: string } | null>(null);
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
     const validate = () => {
@@ -53,32 +52,23 @@ export const RegisterPage: React.FC = () => {
                 return next;
             });
         }
+        clearStates();
     };
 
     const handleSignUp = async (e: React.FormEvent) => {
         e.preventDefault();
-        setMessage(null);
+        clearStates();
 
         if (!validate()) return;
 
-        setLoading(true);
-
         try {
-            const result = await createAccount({
+            await register({
                 email: formData.email,
                 parola: formData.parola,
                 nume: formData.nume,
                 prenume: formData.prenume
             });
 
-            if (!result.success) {
-                throw new Error(result.error);
-            }
-
-            setMessage({ 
-                type: 'success', 
-                text: 'Cont creat cu succes! Vă rugăm să verificați email-ul pentru confirmare.' 
-            });
             setFormData({
                 nume: '',
                 prenume: '',
@@ -88,9 +78,7 @@ export const RegisterPage: React.FC = () => {
             });
 
         } catch (error: any) {
-            setMessage({ type: 'error', text: error.message || 'A apărut o eroare la înregistrare.' });
-        } finally {
-            setLoading(false);
+            // Eroarea este deja gestionată de useAuth și accesibilă prin authError
         }
     };
 
@@ -110,21 +98,17 @@ export const RegisterPage: React.FC = () => {
                         </p>
                     </div>
 
-                    {message && (
+                    {(authError || authSuccess) && (
                         <div className={`flex items-start gap-3 p-4 rounded-xl mb-6 border animate-in fade-in slide-in-from-top-2 duration-300 ${
-                            message.type === 'error' 
+                            authError 
                                 ? 'bg-red-500/10 border-red-500/20 text-red-400' 
                                 : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
                         }`}>
                             <div className="mt-0.5">
-                                {message.type === 'error' ? (
-                                    <ShieldCheck className="w-5 h-5 shrink-0 opacity-70" />
-                                ) : (
-                                    <ShieldCheck className="w-5 h-5 shrink-0 opacity-70" />
-                                )}
+                                <ShieldCheck className="w-5 h-5 shrink-0 opacity-70" />
                             </div>
                             <p className="text-sm font-medium leading-relaxed">
-                                {message.text}
+                                {authError || authSuccess}
                             </p>
                         </div>
                     )}

@@ -1,7 +1,7 @@
 import React, { useEffect, useReducer } from 'react';
 import { supabase } from '../supabaseClient';
 import { Button, Card, Input } from './ui';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 
 const QwanKiDoLogo: React.FC = () => (
     <div className="mx-auto mb-6 h-20 w-20 flex items-center justify-center rounded-full bg-slate-700 border-2 border-slate-600">
@@ -74,6 +74,7 @@ export const AuthContainer: React.FC = () => {
     const [state, dispatch] = useReducer(authReducer, initialState);
     const { view, form, message, loading } = state;
     const [searchParams] = useSearchParams();
+    const navigate = useNavigate();
 
     useEffect(() => {
         const error = searchParams.get('error');
@@ -94,6 +95,14 @@ export const AuthContainer: React.FC = () => {
         dispatch({ type: 'UPDATE_FORM', payload: { name: e.target.name, value: e.target.value } });
     };
 
+    const getErrorMessage = (error: any): string => {
+        if (error.code === 'invalid_credentials') return 'Email sau parolă incorectă.';
+        if (error.code === 'user_already_exists') return 'Acest email este deja înregistrat.';
+        if (error.code === 'weak_password') return 'Parola este prea slabă.';
+        if (error.message) return error.message;
+        return 'A apărut o eroare neașteptată. Vă rugăm reîncercați.';
+    };
+
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         dispatch({ type: 'SET_MESSAGE', payload: null });
@@ -111,8 +120,10 @@ export const AuthContainer: React.FC = () => {
         });
 
         if (error) {
-            dispatch({ type: 'SET_MESSAGE', payload: { type: 'error', text: 'Date de autentificare invalide. Verificați email/utilizator și parola.' } });
+            dispatch({ type: 'SET_MESSAGE', payload: { type: 'error', text: getErrorMessage(error) } });
             dispatch({ type: 'SET_LOADING', payload: false });
+        } else {
+            navigate('/');
         }
     };
 
@@ -140,76 +151,86 @@ export const AuthContainer: React.FC = () => {
 
         dispatch({ type: 'SET_LOADING', payload: true });
 
-        const { data: existingSportiv } = await supabase
-            .from('sportivi')
-            .select('id, club_id')
-            .eq('email', form.email)
-            .maybeSingle();
-
-        const { data: { user }, error: signUpError } = await supabase.auth.signUp({
-            email: form.email,
-            password: form.parola,
-        });
-
-        if (signUpError) {
-            dispatch({ type: 'SET_MESSAGE', payload: { type: 'error', text: signUpError.message } });
-            dispatch({ type: 'SET_LOADING', payload: false });
-            return;
-        }
-
-        if (!user) {
-            dispatch({ type: 'SET_MESSAGE', payload: { type: 'error', text: 'Nu s-a putut crea contul. Vă rugăm reîncercați.' } });
-            dispatch({ type: 'SET_LOADING', payload: false });
-            return;
-        }
-
-        let profileId = existingSportiv?.id;
-        let clubId = existingSportiv?.club_id || PHI_HAU_IASI_CLUB_ID;
-
-        if (!existingSportiv) {
-            const { data: newProfile, error: profileError } = await supabase
+        try {
+            console.log('Începere proces înregistrare...');
+            const { data: existingSportiv, error: sportivError } = await supabase
                 .from('sportivi')
-                .insert({
-                    user_id: user.id,
-                    nume: form.nume,
-                    prenume: form.prenume,
-                    email: form.email,
-                    club_id: clubId,
-                    data_nasterii: '1900-01-01',
-                    data_inscrierii: new Date().toISOString().split('T')[0],
-                    status: 'Activ',
-                    trebuie_schimbata_parola: true,
-                }).select().maybeSingle();
+                .select('id, club_id')
+                .eq('email', form.email)
+                .maybeSingle();
+            
+            if (sportivError) {
+                console.error('Eroare la interogarea sportivilor:', sportivError);
+                throw sportivError;
+            }
+            console.log('Interogare sportivi reușită:', existingSportiv);
 
-            if (profileError) {
-                 dispatch({ type: 'SET_MESSAGE', payload: { type: 'error', text: `Contul a fost creat, dar profilul nu a putut fi salvat: ${profileError.message}` } });
-                 dispatch({ type: 'SET_LOADING', payload: false });
-                 return;
+            const { data: { user }, error: signUpError } = await supabase.auth.signUp({
+                email: form.email,
+                password: form.parola,
+            });
+
+            if (signUpError) {
+                console.error('Eroare la signUp:', signUpError);
+                throw signUpError;
             }
-            if (newProfile) {
-                profileId = newProfile.id;
+            console.log('signUp reușit:', user);
+
+            if (!user) {
+                throw new Error('Nu s-a putut crea contul. Vă rugăm reîncercați.');
             }
-        } else {
-            // Update existing sportiv with user_id
-            await supabase.from('sportivi').update({ user_id: user.id }).eq('id', existingSportiv.id);
+
+            let profileId = existingSportiv?.id;
+            let clubId = existingSportiv?.club_id || PHI_HAU_IASI_CLUB_ID;
+
+            if (!existingSportiv) {
+                const { data: newProfile, error: profileError } = await supabase
+                    .from('sportivi')
+                    .insert({
+                        user_id: user.id,
+                        nume: form.nume,
+                        prenume: form.prenume,
+                        email: form.email,
+                        club_id: clubId,
+                        data_nasterii: '1900-01-01',
+                        data_inscrierii: new Date().toISOString().split('T')[0],
+                        status: 'Activ',
+                        trebuie_schimbata_parola: true,
+                    }).select().maybeSingle();
+
+                if (profileError) throw profileError;
+                if (newProfile) {
+                    profileId = newProfile.id;
+                }
+            } else {
+                // Update existing sportiv with user_id
+                const { error: updateError } = await supabase.from('sportivi').update({ user_id: user.id }).eq('id', existingSportiv.id);
+                if (updateError) throw updateError;
+            }
+            
+            const { error: roleError } = await supabase.from('utilizator_roluri_multicont').insert({
+                user_id: user.id,
+                rol_denumire: 'Sportiv',
+                club_id: clubId,
+                sportiv_id: profileId,
+                is_primary: true
+            });
+            
+            if (roleError) throw roleError;
+            
+            dispatch({ type: 'SET_MESSAGE', payload: { type: 'success', text: 'Cont creat cu succes! Vă rugăm să verificați email-ul pentru a vă confirma contul.' } });
+            dispatch({ type: 'RESET_FORM' });
+        } catch (error: any) {
+            console.error('DEBUG: Eroare detaliată:', {
+                message: error.message,
+                stack: error.stack,
+                name: error.name,
+                cause: error.cause
+            });
+            dispatch({ type: 'SET_MESSAGE', payload: { type: 'error', text: getErrorMessage(error) } });
+        } finally {
+            dispatch({ type: 'SET_LOADING', payload: false });
         }
-        
-        const { error: roleError } = await supabase.from('utilizator_roluri_multicont').insert({
-            user_id: user.id,
-            rol_denumire: 'Sportiv',
-            club_id: clubId,
-            sportiv_id: profileId,
-            is_primary: true
-        });
-        
-        if (roleError) {
-             dispatch({ type: 'SET_MESSAGE', payload: { type: 'error', text: `Profilul a fost creat, dar rolul nu a putut fi atribuit: ${roleError.message}` } });
-             dispatch({ type: 'SET_LOADING', payload: false });
-             return;
-        }
-        
-        dispatch({ type: 'SET_MESSAGE', payload: { type: 'success', text: 'Cont creat cu succes! Vă rugăm să verificați email-ul pentru a vă confirma contul.' } });
-        dispatch({ type: 'SET_LOADING', payload: false });
     };
 
     const toggleView = (v: AuthView) => {

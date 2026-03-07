@@ -204,7 +204,17 @@ export const useRoleAssignment = (currentUser: User, allRoles: Rol[]) => {
             showSuccess("Succes", `Rolurile pentru ${sportiv.nume} au fost salvate!`);
             return allRoles.filter(r => finalRoleIds.includes(r.id));
         } catch (error: any) {
-            showError("Eroare la schimbarea rolului", error.message);
+            let errorMessage = "A apărut o eroare neașteptată la actualizarea rolurilor.";
+            
+            if (error.code === '23505') {
+                errorMessage = "Acest rol este deja asignat utilizatorului.";
+            } else if (error.code === '42501') {
+                errorMessage = "Nu aveți permisiunea necesară pentru a modifica aceste roluri.";
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+            
+            showError("Eroare la schimbarea rolului", errorMessage);
             return false;
         } finally {
             setLoading(false);

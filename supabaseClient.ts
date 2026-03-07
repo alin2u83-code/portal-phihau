@@ -25,4 +25,9 @@ if (supabaseUrl && supabaseAnonKey) {
   console.warn("Variabilele de mediu Supabase (VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY) nu sunt setate. Clientul Supabase nu a fost initializat.");
 }
 
+if (!supabaseInstance) {
+  throw new Error("Supabase client is not initialized. Please check your environment variables.");
+}
+
 export const supabase = supabaseInstance as SupabaseClient;
+

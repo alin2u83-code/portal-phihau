@@ -65,14 +65,7 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (currentUser && currentUser.club_id) {
-      const storedClub = localStorage.getItem('phi-hau-global-club-filter');
-      if (storedClub && storedClub !== currentUser.club_id) {
-        // Sync and reload
-        localStorage.setItem('phi-hau-global-club-filter', JSON.stringify(currentUser.club_id));
-        window.location.reload();
-      }
-    }
+    // No longer needed because supabaseClient uses global.fetch to dynamically inject the header
   }, [currentUser]);
 
   const activeRole = useMemo((): Rol['nume'] | null => {

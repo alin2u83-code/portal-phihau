@@ -6,16 +6,20 @@ const supabaseAnonKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY;
 let supabaseInstance: SupabaseClient | null = null;
 
 if (supabaseUrl && supabaseAnonKey) {
-  const activeClubId = localStorage.getItem('phi-hau-global-club-filter');
-  const cleanedClubId = activeClubId ? activeClubId.replace(/"/g, '') : '';
+  const customFetch = async (url: RequestInfo | URL, options: RequestInit = {}) => {
+    const activeClubId = localStorage.getItem('phi-hau-global-club-filter');
+    const cleanedClubId = activeClubId ? activeClubId.replace(/"/g, '') : '';
 
-  const headers: Record<string, string> = {};
-  
-  // Adăugăm header-ul DOAR dacă avem un ID valid. 
-  // Asta previne eroarea de Postgres: invalid input syntax for type uuid: ""
-  if (cleanedClubId) {
-    headers['active-role-context-id'] = cleanedClubId;
-  }
+    const headers = new Headers(options?.headers);
+    if (cleanedClubId) {
+      headers.set('active-role-context-id', cleanedClubId);
+    }
+
+    return fetch(url, {
+      ...options,
+      headers,
+    });
+  };
 
   supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
@@ -24,7 +28,7 @@ if (supabaseUrl && supabaseAnonKey) {
       detectSessionInUrl: true,
     },
     global: {
-      headers: headers,
+      fetch: customFetch,
     },
   });
 } else {

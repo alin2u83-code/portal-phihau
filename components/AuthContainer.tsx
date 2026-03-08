@@ -1,8 +1,8 @@
-import React, { useEffect, useReducer } from 'react';
+import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { Button, Card, Input } from './ui';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-
+import { useAuthForm } from '../hooks/useAuthForm';
 import { getAuthErrorMessage } from '../utils/error';
 
 const QwanKiDoLogo: React.FC = () => (
@@ -16,86 +16,26 @@ const QwanKiDoLogo: React.FC = () => (
 
 type AuthView = 'login' | 'signup';
 
-interface AuthState {
-    view: AuthView;
-    form: {
-        nume: string;
-        prenume: string;
-        email: string;
-        parola: string;
-        confirmParola: string;
-    };
-    message: { type: 'error' | 'success', text: string } | null;
-    loading: boolean;
-}
-
-type AuthAction =
-    | { type: 'SET_VIEW'; payload: AuthView }
-    | { type: 'UPDATE_FORM'; payload: { name: string; value: string } }
-    | { type: 'SET_MESSAGE'; payload: { type: 'error' | 'success'; text: string } | null }
-    | { type: 'SET_LOADING'; payload: boolean }
-    | { type: 'RESET_FORM' };
-
-const initialState: AuthState = {
-    view: 'login',
-    form: {
-        nume: '',
-        prenume: '',
-        email: '',
-        parola: '',
-        confirmParola: ''
-    },
-    message: null,
-    loading: false,
-};
-
-function authReducer(state: AuthState, action: AuthAction): AuthState {
-    switch (action.type) {
-        case 'SET_VIEW':
-            return {
-                ...initialState,
-                view: action.payload,
-            };
-        case 'UPDATE_FORM':
-            return {
-                ...state,
-                form: { ...state.form, [action.payload.name]: action.payload.value }
-            };
-        case 'SET_MESSAGE':
-            return { ...state, message: action.payload };
-        case 'SET_LOADING':
-            return { ...state, loading: action.payload };
-        case 'RESET_FORM':
-            return { ...state, form: initialState.form, message: null };
-        default:
-            return state;
-    }
-}
-
 export const AuthContainer: React.FC = () => {
-    const [state, dispatch] = useReducer(authReducer, initialState);
-    const { view, form, message, loading } = state;
+    const [view, setView] = useState<AuthView>('login');
+    const { formData, errors, handleChange, validate, resetForm, setErrors } = useAuthForm(view === 'login' ? 'login' : 'register');
+    const [message, setMessage] = useState<{ type: 'error' | 'success', text: string } | null>(null);
+    const [loading, setLoading] = useState(false);
+    
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
 
     useEffect(() => {
         const error = searchParams.get('error');
         if (error === 'no-roles') {
-            dispatch({
-                type: 'SET_MESSAGE',
-                payload: {
-                    type: 'error',
-                    text: 'Contul dumneavoastră a fost autentificat, dar nu are niciun rol asignat. Accesul a fost revocat. Vă rugăm contactați un administrator.'
-                }
+            setMessage({
+                type: 'error',
+                text: 'Contul dumneavoastră a fost autentificat, dar nu are niciun rol asignat. Accesul a fost revocat. Vă rugăm contactați un administrator.'
             });
         }
     }, [searchParams]);
 
     const PHI_HAU_IASI_CLUB_ID = 'cbb0b228-b3e0-4735-9658-70999eb256c6';
-    
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        dispatch({ type: 'UPDATE_FORM', payload: { name: e.target.name, value: e.target.value } });
-    };
 
     const [isResetModalOpen, setIsResetModalOpen] = React.useState(false);
     const [resetEmail, setResetEmail] = React.useState('');
@@ -109,32 +49,34 @@ export const AuthContainer: React.FC = () => {
         });
         setResetLoading(false);
         if (error) {
-            dispatch({ type: 'SET_MESSAGE', payload: { type: 'error', text: getAuthErrorMessage(error) } });
+            setMessage({ type: 'error', text: getAuthErrorMessage(error) });
         } else {
-            dispatch({ type: 'SET_MESSAGE', payload: { type: 'success', text: 'Email de resetare trimis!' } });
+            setMessage({ type: 'success', text: 'Email de resetare trimis!' });
             setIsResetModalOpen(false);
         }
     };
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        dispatch({ type: 'SET_MESSAGE', payload: null });
-        dispatch({ type: 'SET_LOADING', payload: true });
+        setMessage(null);
+        if (!validate()) return;
+        
+        setLoading(true);
 
         if (!supabase) {
-            dispatch({ type: 'SET_MESSAGE', payload: { type: 'error', text: 'Clientul bazei de date nu este configurat.' } });
-            dispatch({ type: 'SET_LOADING', payload: false });
+            setMessage({ type: 'error', text: 'Clientul bazei de date nu este configurat.' });
+            setLoading(false);
             return;
         }
 
         const { error } = await supabase.auth.signInWithPassword({
-            email: form.email,
-            password: form.parola,
+            email: formData.email || '',
+            password: formData.parola || '',
         });
 
         if (error) {
-            dispatch({ type: 'SET_MESSAGE', payload: { type: 'error', text: getAuthErrorMessage(error) } });
-            dispatch({ type: 'SET_LOADING', payload: false });
+            setMessage({ type: 'error', text: getAuthErrorMessage(error) });
+            setLoading(false);
         } else {
             navigate('/');
         }
@@ -142,34 +84,28 @@ export const AuthContainer: React.FC = () => {
 
     const handleSignUp = async (e: React.FormEvent) => {
         e.preventDefault();
-        dispatch({ type: 'SET_MESSAGE', payload: null });
+        setMessage(null);
+
+        if (!validate()) return;
 
         if (!supabase) {
-            dispatch({ type: 'SET_MESSAGE', payload: { type: 'error', text: 'Clientul bazei de date nu este configurat.' } });
+            setMessage({ type: 'error', text: 'Clientul bazei de date nu este configurat.' });
             return;
         }
 
-        if (form.parola.length < 6) {
-            dispatch({ type: 'SET_MESSAGE', payload: { type: 'error', text: 'Parola trebuie să aibă cel puțin 6 caractere.' } });
-            return;
-        }
-        if (form.parola !== form.confirmParola) {
-            dispatch({ type: 'SET_MESSAGE', payload: { type: 'error', text: 'Parolele nu se potrivesc.' } });
-            return;
-        }
         if (!PHI_HAU_IASI_CLUB_ID) {
-            dispatch({ type: 'SET_MESSAGE', payload: { type: 'error', text: 'Eroare de configurare a sistemului. Vă rugăm contactați administratorul.' } });
+            setMessage({ type: 'error', text: 'Eroare de configurare a sistemului. Vă rugăm contactați administratorul.' });
             return;
         }
 
-        dispatch({ type: 'SET_LOADING', payload: true });
+        setLoading(true);
 
         try {
             console.log('Începere proces înregistrare...');
             const { data: existingSportiv, error: sportivError } = await supabase
                 .from('sportivi')
                 .select('id, club_id')
-                .eq('email', form.email)
+                .eq('email', formData.email)
                 .maybeSingle();
             
             if (sportivError) {
@@ -179,8 +115,8 @@ export const AuthContainer: React.FC = () => {
             console.log('Interogare sportivi reușită:', existingSportiv);
 
             const { data: { user }, error: signUpError } = await supabase.auth.signUp({
-                email: form.email,
-                password: form.parola,
+                email: formData.email || '',
+                password: formData.parola || '',
             });
 
             if (signUpError) {
@@ -201,9 +137,9 @@ export const AuthContainer: React.FC = () => {
                     .from('sportivi')
                     .insert({
                         user_id: user.id,
-                        nume: form.nume,
-                        prenume: form.prenume,
-                        email: form.email,
+                        nume: formData.nume,
+                        prenume: formData.prenume,
+                        email: formData.email,
                         club_id: clubId,
                         data_nasterii: '1900-01-01',
                         data_inscrierii: new Date().toISOString().split('T')[0],
@@ -231,8 +167,8 @@ export const AuthContainer: React.FC = () => {
             
             if (roleError) throw roleError;
             
-            dispatch({ type: 'SET_MESSAGE', payload: { type: 'success', text: 'Cont creat cu succes! Vă rugăm să verificați email-ul pentru a vă confirma contul.' } });
-            dispatch({ type: 'RESET_FORM' });
+            setMessage({ type: 'success', text: 'Cont creat cu succes! Vă rugăm să verificați email-ul pentru a vă confirma contul.' });
+            resetForm();
         } catch (error: any) {
             console.error('DEBUG: Eroare detaliată:', {
                 message: error.message,
@@ -240,14 +176,16 @@ export const AuthContainer: React.FC = () => {
                 name: error.name,
                 cause: error.cause
             });
-            dispatch({ type: 'SET_MESSAGE', payload: { type: 'error', text: getAuthErrorMessage(error) } });
+            setMessage({ type: 'error', text: getAuthErrorMessage(error) });
         } finally {
-            dispatch({ type: 'SET_LOADING', payload: false });
+            setLoading(false);
         }
     };
 
     const toggleView = (v: AuthView) => {
-        dispatch({ type: 'SET_VIEW', payload: v });
+        setView(v);
+        resetForm();
+        setMessage(null);
     };
 
     return (
@@ -289,9 +227,18 @@ export const AuthContainer: React.FC = () => {
 
                     {view === 'login' ? (
                         <form onSubmit={handleLogin} className="space-y-4">
-                            <Input label="Email sau Nume Utilizator" name="email" type="text" value={form.email} onChange={handleChange} required autoComplete="username" />
-                            <Input label="Parolă" name="parola" type="password" value={form.parola} onChange={handleChange} required autoComplete="current-password" />
-                            <div className="flex justify-end">
+                            <div>
+                                <Input label="Email sau Nume Utilizator" name="email" type="text" value={formData.email || ''} onChange={(e) => { handleChange(e); setMessage(null); }} required autoComplete="username" className={errors.email ? 'border-red-500' : ''} />
+                                {errors.email && <p className="text-xs text-red-400 mt-1">{errors.email}</p>}
+                            </div>
+                            <div>
+                                <Input label="Parolă" name="parola" type="password" value={formData.parola || ''} onChange={(e) => { handleChange(e); setMessage(null); }} required autoComplete="current-password" className={errors.parola ? 'border-red-500' : ''} />
+                                {errors.parola && <p className="text-xs text-red-400 mt-1">{errors.parola}</p>}
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <button type="button" className="text-sm text-amber-400 hover:text-amber-300" onClick={() => toggleView('signup')}>
+                                    Creează cont
+                                </button>
                                 <button type="button" className="text-sm text-amber-400 hover:text-amber-300" onClick={() => setIsResetModalOpen(true)}>
                                     Am uitat parola
                                 </button>
@@ -301,12 +248,32 @@ export const AuthContainer: React.FC = () => {
                     ) : (
                         <form onSubmit={handleSignUp} className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
-                                <Input label="Nume" name="nume" type="text" value={form.nume} onChange={handleChange} required autoComplete="family-name" />
-                                <Input label="Prenume" name="prenume" type="text" value={form.prenume} onChange={handleChange} required autoComplete="given-name" />
+                                <div>
+                                    <Input label="Nume" name="nume" type="text" value={formData.nume || ''} onChange={(e) => { handleChange(e); setMessage(null); }} required autoComplete="family-name" className={errors.nume ? 'border-red-500' : ''} />
+                                    {errors.nume && <p className="text-xs text-red-400 mt-1">{errors.nume}</p>}
+                                </div>
+                                <div>
+                                    <Input label="Prenume" name="prenume" type="text" value={formData.prenume || ''} onChange={(e) => { handleChange(e); setMessage(null); }} required autoComplete="given-name" className={errors.prenume ? 'border-red-500' : ''} />
+                                    {errors.prenume && <p className="text-xs text-red-400 mt-1">{errors.prenume}</p>}
+                                </div>
                             </div>
-                            <Input label="Email" name="email" type="email" value={form.email} onChange={handleChange} required autoComplete="email" />
-                            <Input label="Parolă" name="parola" type="password" value={form.parola} onChange={handleChange} required autoComplete="new-password" />
-                            <Input label="Confirmă Parola" name="confirmParola" type="password" value={form.confirmParola} onChange={handleChange} required autoComplete="new-password" />
+                            <div>
+                                <Input label="Email" name="email" type="email" value={formData.email || ''} onChange={(e) => { handleChange(e); setMessage(null); }} required autoComplete="email" className={errors.email ? 'border-red-500' : ''} />
+                                {errors.email && <p className="text-xs text-red-400 mt-1">{errors.email}</p>}
+                            </div>
+                            <div>
+                                <Input label="Parolă" name="parola" type="password" value={formData.parola || ''} onChange={(e) => { handleChange(e); setMessage(null); }} required autoComplete="new-password" className={errors.parola ? 'border-red-500' : ''} />
+                                {errors.parola && <p className="text-xs text-red-400 mt-1">{errors.parola}</p>}
+                            </div>
+                            <div>
+                                <Input label="Confirmă Parola" name="confirmParola" type="password" value={formData.confirmParola || ''} onChange={(e) => { handleChange(e); setMessage(null); }} required autoComplete="new-password" className={errors.confirmParola ? 'border-red-500' : ''} />
+                                {errors.confirmParola && <p className="text-xs text-red-400 mt-1">{errors.confirmParola}</p>}
+                            </div>
+                            <div className="flex justify-end">
+                                <button type="button" className="text-sm text-amber-400 hover:text-amber-300" onClick={() => toggleView('login')}>
+                                    Înapoi la autentificare
+                                </button>
+                            </div>
                             <Button type="submit" className="w-full !mt-6" size="md" isLoading={loading} variant="primary">Creează Cont</Button>
                         </form>
                     )}

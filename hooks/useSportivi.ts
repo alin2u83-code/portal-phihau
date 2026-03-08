@@ -7,39 +7,93 @@ export interface SportiviFilters {
     status?: string;
     rolId?: string;
     gradId?: string;
+    searchTerm?: string;
+    grupaId?: string;
 }
 
-export const useSportivi = (filters: SportiviFilters = {}) => {
-    return useQuery<Sportiv[], Error>({
-        queryKey: ['sportivi', filters],
-        queryFn: async () => {
-            let query = supabase
-                .from('sportivi')
-                .select('*, cluburi(*), roluri:utilizator_roluri_multicont(id, rol_denumire)');
-            
-            if (filters.clubId && filters.clubId !== 'null' && filters.clubId !== 'undefined') {
-                query = query.eq('club_id', filters.clubId);
-            }
-            if (filters.status) {
-                query = query.eq('status', filters.status);
-            }
-            if (filters.gradId) {
-                query = query.eq('grad_actual_id', filters.gradId);
-            }
-            // Note: Filtering by role (rolId) might require a join or a different approach if roluri is a separate table. 
-            // Assuming roluri is a joined table, this might need adjustment based on schema.
+export interface PaginationOptions {
+    page: number;
+    pageSize: number;
+}
 
-            const { data, error } = await query;
-            
-            if (error) throw error;
-            
-            // Map the roles to the expected format
-            const formattedData = (data as any[]).map(s => ({
-                ...s,
-                roluri: s.roluri.map((r: any) => ({ id: r.id, nume: r.rol_denumire }))
-            }));
+export interface SortOptions {
+    column: string;
+    ascending: boolean;
+}
 
-            return formattedData as Sportiv[];
-        },
-    });
+export const fetchSportiviData = async (
+    filters: SportiviFilters = {},
+    pagination?: PaginationOptions,
+    sort?: SortOptions
+): Promise<{ data: Sportiv[], count: number }> => {
+    let selectString = '*, cluburi(*), roluri:utilizator_roluri_multicont(id, rol_id, rol_denumire)';
+    if (filters.rolId) {
+        selectString = '*, cluburi(*), roluri:utilizator_roluri_multicont!inner(id, rol_id, rol_denumire)';
+    }
+
+    let query = supabase
+        .from('sportivi')
+        .select(selectString, { count: 'exact' });
+    
+    if (filters.rolId) {
+        query = query.eq('roluri.rol_id', filters.rolId);
+    }
+    
+    if (filters.clubId && filters.clubId !== 'null' && filters.clubId !== 'undefined') {
+        query = query.eq('club_id', filters.clubId);
+    }
+    if (filters.status) {
+        query = query.eq('status', filters.status);
+    }
+    if (filters.gradId) {
+        query = query.eq('grad_actual_id', filters.gradId);
+    }
+    if (filters.grupaId) {
+        query = query.eq('grupa_id', filters.grupaId);
+    }
+    if (filters.searchTerm) {
+        query = query.or(`nume.ilike.%${filters.searchTerm}%,prenume.ilike.%${filters.searchTerm}%`);
+    }
+
+    if (sort) {
+        query = query.order(sort.column, { ascending: sort.ascending });
+    } else {
+        query = query.order('nume', { ascending: true });
+    }
+
+    if (pagination) {
+        const from = (pagination.page - 1) * pagination.pageSize;
+        const to = from + pagination.pageSize - 1;
+        query = query.range(from, to);
+    }
+
+    const { data, error, count } = await query;
+    
+    if (error) throw error;
+    
+    const formattedData = (data as any[]).map(s => ({
+        ...s,
+        roluri: s.roluri ? s.roluri.map((r: any) => ({ id: r.rol_id || r.id, nume: r.rol_denumire })) : []
+    }));
+
+    return { data: formattedData as Sportiv[], count: count || 0 };
 };
+
+export const useSportivi = (
+    filters: SportiviFilters = {},
+    pagination?: PaginationOptions,
+    sort?: SortOptions
+) => {
+    const queryResult = useQuery<{ data: Sportiv[], count: number }, Error>({
+        queryKey: ['sportivi', filters, pagination, sort],
+        queryFn: () => fetchSportiviData(filters, pagination, sort),
+    });
+
+    return {
+        ...queryResult,
+        data: queryResult.data?.data,
+        count: queryResult.data?.count || 0,
+        fetchSportiviData
+    };
+};
+

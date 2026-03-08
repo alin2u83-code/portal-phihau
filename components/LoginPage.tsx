@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useAuthForm } from '../hooks/useAuthForm';
 import { Button, Card, Input } from './ui';
 import { LogIn, Mail, Lock, ShieldCheck, ArrowRight } from 'lucide-react';
 
@@ -17,31 +18,16 @@ const QwanKiDoLogo: React.FC = () => (
 export const LoginPage: React.FC = () => {
     const navigate = useNavigate();
     const { login, loading, error: authError, clearStates } = useAuth();
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
-
-    const validate = () => {
-        const newErrors: { email?: string; password?: string } = {};
-        if (!email) newErrors.email = 'Email-ul este obligatoriu.';
-        else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = 'Email-ul nu este valid.';
-        
-        if (!password) newErrors.password = 'Parola este obligatorie.';
-        else if (password.length < 6) newErrors.password = 'Parola trebuie să aibă cel puțin 6 caractere.';
-        
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
+    const { formData, errors, handleChange, validate, resetForm } = useAuthForm('login');
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!validate()) return;
         
-        setErrors({});
         clearStates();
 
         try {
-            const data = await login(email, password);
+            const data = await login(formData.email || '', formData.parola || '');
             if (data?.user) {
                 navigate('/');
             }
@@ -84,8 +70,8 @@ export const LoginPage: React.FC = () => {
                                 label="Email" 
                                 name="email" 
                                 type="email" 
-                                value={email} 
-                                onChange={(e) => { setEmail(e.target.value); if(errors.email) setErrors(p => ({...p, email: undefined})); clearStates(); }} 
+                                value={formData.email || ''} 
+                                onChange={(e) => { handleChange(e); clearStates(); }} 
                                 required 
                                 placeholder="exemplu@email.com"
                                 className={`pl-10 ${errors.email ? 'border-red-500 focus:ring-red-500' : ''}`}
@@ -97,16 +83,16 @@ export const LoginPage: React.FC = () => {
                         <div className="relative">
                             <Input 
                                 label="Parolă" 
-                                name="password" 
+                                name="parola" 
                                 type="password" 
-                                value={password} 
-                                onChange={(e) => { setPassword(e.target.value); if(errors.password) setErrors(p => ({...p, password: undefined})); clearStates(); }} 
+                                value={formData.parola || ''} 
+                                onChange={(e) => { handleChange(e); clearStates(); }} 
                                 required 
                                 placeholder="••••••••"
-                                className={`pl-10 ${errors.password ? 'border-red-500 focus:ring-red-500' : ''}`}
+                                className={`pl-10 ${errors.parola ? 'border-red-500 focus:ring-red-500' : ''}`}
                             />
                             <Lock className="absolute left-3 top-[34px] w-4 h-4 text-slate-500" />
-                            {errors.password && <p className="text-xs text-red-400 mt-1 ml-1">{errors.password}</p>}
+                            {errors.parola && <p className="text-xs text-red-400 mt-1 ml-1">{errors.parola}</p>}
                         </div>
 
                         <div className="flex items-center justify-between pt-2">

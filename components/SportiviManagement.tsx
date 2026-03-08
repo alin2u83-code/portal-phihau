@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../supabaseClient';
 import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions, VizualizarePlata } from '../types';
 import { Button } from './ui';
@@ -110,16 +111,13 @@ export const SportiviManagement: React.FC<{
         clubId: filters.clubFilter || activeClubId,
         status: filters.statusFilter,
         gradId: filters.gradFilter !== 'null' ? filters.gradFilter : undefined,
-        rolId: filters.rolFilter
+        rolId: filters.rolFilter,
+        searchTerm: filters.searchTerm,
+        grupaId: filters.grupaFilter
     });
     
-    // Apply search term filtering locally
-    const sportivi = useMemo(() => {
-        if (!sportiviData) return [];
-        return sportiviData.filter((s: Sportiv) =>
-            (`${s.nume} ${s.prenume}`.toLowerCase().includes(filters.searchTerm.toLowerCase()))
-        );
-    }, [sportiviData, filters.searchTerm]);
+    // Apply search term filtering locally - no longer needed as it's done in the hook
+    const sportivi = sportiviData || [];
     
     const {
         loading: familyLoading,
@@ -169,6 +167,8 @@ export const SportiviManagement: React.FC<{
         onViewSportiv(sportiv);
     };
 
+    const queryClient = useQueryClient();
+
     const handleDeactivate = async (sportivToDeactivate: Sportiv) => {
         if (!sportivToDeactivate) return;
         const { error } = await supabase.from('sportivi').update({ status: 'Inactiv' }).eq('id', sportivToDeactivate.id);
@@ -176,6 +176,7 @@ export const SportiviManagement: React.FC<{
             showError("Eroare", error.message);
         } else {
             setSportivi(prev => prev.map(s => s.id === sportivToDeactivate.id ? { ...s, status: 'Inactiv'} : s));
+            queryClient.invalidateQueries({ queryKey: ['sportivi'] });
             showSuccess("Succes", "Sportivul a fost marcat ca inactiv.");
         }
     };
@@ -187,22 +188,13 @@ export const SportiviManagement: React.FC<{
             showError("Eroare", error.message);
         } else {
             setSportivi(prev => prev.filter(s => s.id !== sportivToDelete.id));
+            queryClient.invalidateQueries({ queryKey: ['sportivi'] });
             showSuccess("Succes", "Sportivul a fost șters definitiv.");
         }
     };
 
-    const filteredSportivi = useMemo(() => {
-        return (sportivi || []).filter((s: Sportiv) =>
-            (filters.statusFilter ? s.status === filters.statusFilter : true) &&
-            (filters.grupaFilter ? s.grupa_id === filters.grupaFilter : true) &&
-            (filters.rolFilter ? (s.roluri || []).some(r => r.id === filters.rolFilter) : true) &&
-            (filters.gradFilter ? (filters.gradFilter === 'null' ? !s.grad_actual_id : s.grad_actual_id === filters.gradFilter) : true) &&
-            (filters.clubFilter ? s.club_id === filters.clubFilter : true)
-        );
-    }, [sportivi, filters]);
-    
     const sortedAndFilteredSportivi = useMemo(() => {
-        let sortableItems = [...filteredSportivi];
+        let sortableItems = [...sportivi];
         if (sortConfig.length > 0) {
             sortableItems.sort((a, b) => {
                 for (const { key, direction } of sortConfig) {
@@ -225,7 +217,7 @@ export const SportiviManagement: React.FC<{
             });
         }
         return sortableItems;
-    }, [filteredSportivi, sortConfig, grade]);
+    }, [sportivi, sortConfig, grade]);
 
 
 
@@ -241,6 +233,7 @@ export const SportiviManagement: React.FC<{
                 const updatedSportiv = { ...result.data!, roluri: sportivToEdit.roluri };
     
                 setSportivi(prev => prev.map(s => s.id === sportivToEdit.id ? updatedSportiv : s));
+                queryClient.invalidateQueries({ queryKey: ['sportivi'] });
                 showSuccess('Succes', 'Sportiv actualizat!');
                 handleCloseFormModal();
                 return { success: true, data: updatedSportiv };
@@ -265,6 +258,7 @@ export const SportiviManagement: React.FC<{
                 }
 
                 setSportivi(prev => [...prev, result.sportiv!]);
+                queryClient.invalidateQueries({ queryKey: ['sportivi'] });
                 showSuccess('Succes', `Sportivul a fost adăugat cu succes. Username generat: ${result.sportiv?.username}`);
                 handleCloseFormModal();
                 return { success: true, data: result.sportiv! };

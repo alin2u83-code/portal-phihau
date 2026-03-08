@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useAuth } from '../hooks/useAuth';
+import { useAuthForm } from '../hooks/useAuthForm';
 import { Button, Card, Input } from './ui';
 import { Link } from 'react-router-dom';
 import { UserPlus, Mail, Lock, User, ShieldCheck, ArrowRight } from 'lucide-react';
@@ -16,44 +17,7 @@ const QwanKiDoLogo: React.FC = () => (
 
 export const RegisterPage: React.FC = () => {
     const { register, loading, error: authError, success: authSuccess, clearStates } = useAuth();
-    const [formData, setFormData] = useState({
-        nume: '',
-        prenume: '',
-        email: '',
-        parola: '',
-        confirmParola: ''
-    });
-    const [errors, setErrors] = useState<{ [key: string]: string }>({});
-
-    const validate = () => {
-        const newErrors: { [key: string]: string } = {};
-        if (!formData.nume) newErrors.nume = 'Numele este obligatoriu.';
-        if (!formData.prenume) newErrors.prenume = 'Prenumele este obligatoriu.';
-        if (!formData.email) newErrors.email = 'Email-ul este obligatoriu.';
-        else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Email-ul nu este valid.';
-        
-        if (!formData.parola) newErrors.parola = 'Parola este obligatorie.';
-        else if (formData.parola.length < 6) newErrors.parola = 'Parola trebuie să aibă cel puțin 6 caractere.';
-        
-        if (formData.parola !== formData.confirmParola) {
-            newErrors.confirmParola = 'Parolele nu se potrivesc.';
-        }
-        
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-        if (errors[e.target.name]) {
-            setErrors(prev => {
-                const next = { ...prev };
-                delete next[e.target.name];
-                return next;
-            });
-        }
-        clearStates();
-    };
+    const { formData, errors, handleChange, validate, resetForm } = useAuthForm('register');
 
     const handleSignUp = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -63,19 +27,13 @@ export const RegisterPage: React.FC = () => {
 
         try {
             await register({
-                email: formData.email,
-                parola: formData.parola,
-                nume: formData.nume,
-                prenume: formData.prenume
+                email: formData.email || '',
+                parola: formData.parola || '',
+                nume: formData.nume || '',
+                prenume: formData.prenume || ''
             });
 
-            setFormData({
-                nume: '',
-                prenume: '',
-                email: '',
-                parola: '',
-                confirmParola: ''
-            });
+            resetForm();
 
         } catch (error: any) {
             // Eroarea este deja gestionată de useAuth și accesibilă prin authError
@@ -120,8 +78,8 @@ export const RegisterPage: React.FC = () => {
                                     label="Nume" 
                                     name="nume" 
                                     type="text" 
-                                    value={formData.nume} 
-                                    onChange={handleChange} 
+                                    value={formData.nume || ''} 
+                                    onChange={(e) => { handleChange(e); clearStates(); }} 
                                     required 
                                     placeholder="Popescu"
                                     className={`pl-10 ${errors.nume ? 'border-red-500 focus:ring-red-500' : ''}`}
@@ -134,8 +92,8 @@ export const RegisterPage: React.FC = () => {
                                     label="Prenume" 
                                     name="prenume" 
                                     type="text" 
-                                    value={formData.prenume} 
-                                    onChange={handleChange} 
+                                    value={formData.prenume || ''} 
+                                    onChange={(e) => { handleChange(e); clearStates(); }} 
                                     required 
                                     placeholder="Ion"
                                     className={`pl-10 ${errors.prenume ? 'border-red-500 focus:ring-red-500' : ''}`}
@@ -150,8 +108,8 @@ export const RegisterPage: React.FC = () => {
                                 label="Email" 
                                 name="email" 
                                 type="email" 
-                                value={formData.email} 
-                                onChange={handleChange} 
+                                value={formData.email || ''} 
+                                onChange={(e) => { handleChange(e); clearStates(); }} 
                                 required 
                                 placeholder="exemplu@email.com"
                                 className={`pl-10 ${errors.email ? 'border-red-500 focus:ring-red-500' : ''}`}
@@ -165,8 +123,8 @@ export const RegisterPage: React.FC = () => {
                                 label="Parolă" 
                                 name="parola" 
                                 type="password" 
-                                value={formData.parola} 
-                                onChange={handleChange} 
+                                value={formData.parola || ''} 
+                                onChange={(e) => { handleChange(e); clearStates(); }} 
                                 required 
                                 placeholder="••••••••"
                                 className={`pl-10 ${errors.parola ? 'border-red-500 focus:ring-red-500' : ''}`}
@@ -180,8 +138,8 @@ export const RegisterPage: React.FC = () => {
                                 label="Confirmă Parola" 
                                 name="confirmParola" 
                                 type="password" 
-                                value={formData.confirmParola} 
-                                onChange={handleChange} 
+                                value={formData.confirmParola || ''} 
+                                onChange={(e) => { handleChange(e); clearStates(); }} 
                                 required 
                                 placeholder="••••••••"
                                 className={`pl-10 ${errors.confirmParola ? 'border-red-500 focus:ring-red-500' : ''}`}

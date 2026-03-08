@@ -58,7 +58,12 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
         }
     }, [viewedUser?.id, fetchIstoricVedere]);
 
-    const todayString = useMemo(() => new Date().toISOString().split('T')[0], []);
+    const todayString = useMemo(() => {
+        const d = new Date();
+        // Adjust for local timezone if necessary, but ISO string is usually UTC.
+        // Assuming the server/database uses local date strings.
+        return d.toLocaleDateString('en-CA'); // 'YYYY-MM-DD'
+    }, []);
 
     const todaysTrainings = useMemo(() => {
         return (antrenamente || [])

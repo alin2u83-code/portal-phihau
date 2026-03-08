@@ -49,11 +49,12 @@ export const AntrenamenteViitoare: React.FC<AntrenamenteViitoareProps> = ({ curr
         const statusMap = new Map<string, 'prezent' | 'absent' | 'viitor' | 'neanuntat'>();
         const today = new Date();
         today.setHours(0, 0, 0, 0);
+        const todayString = today.toLocaleDateString('en-CA');
 
         trainingsByDate.forEach((dayTrainings, dateKey) => {
             const date = new Date(dateKey + 'T00:00:00');
 
-            if (date >= today) {
+            if (dateKey >= todayString) {
                 statusMap.set(dateKey, 'viitor');
                 return;
             }
@@ -114,7 +115,7 @@ export const AntrenamenteViitoare: React.FC<AntrenamenteViitoareProps> = ({ curr
         });
     }, [selectedDate, trainingsByDate, anunturi]);
 
-    const todayString = new Date().toISOString().split('T')[0];
+    const todayString = useMemo(() => new Date().toLocaleDateString('en-CA'), []);
 
     return (
         <Card>

@@ -4,6 +4,7 @@ import { Antrenament, Sportiv, Grupa } from '../types';
 import { Card, Button, Modal, Input, Select } from './ui';
 import { ArrowLeftIcon, CheckCircleIcon, CalendarDaysIcon, UsersIcon, SearchIcon, PlusIcon } from './icons';
 import { useAttendanceData } from '../hooks/useAttendanceData';
+import { useAttendance } from '../hooks/useAttendance';
 import { useError } from './ErrorProvider';
 import { AntrenamentForm } from './AntrenamentForm';
 import { supabase } from '../supabaseClient';
@@ -296,7 +297,8 @@ export const FormularPrezenta: React.FC<{
 };
 
 export const ListaPrezentaAntrenament: React.FC<ListaPrezentaAntrenamentProps> = ({ grupa, onBack, onViewSportiv }) => {
-    const { allTrainings, loading, saveAttendance, refetch } = useAttendanceData(grupa.club_id);
+    const { allTrainings, loading, refetch } = useAttendanceData(grupa.club_id);
+    const { saveAttendance, loading: attendanceLoading } = useAttendance();
     const [selectedTraining, setSelectedTraining] = useState<(Antrenament & { grupe: Grupa & { sportivi: Sportiv[] }}) | null>(null);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const { showError, showSuccess } = useError();

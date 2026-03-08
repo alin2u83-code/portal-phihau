@@ -7,6 +7,7 @@ import { useError } from './ErrorProvider';
 import { ListaPrezentaAntrenament, FormularPrezenta } from './ListaPrezentaAntrenament';
 import { useCalendarView } from '../hooks/useCalendarView';
 import { AntrenamentForm } from './AntrenamentForm';
+import { useAttendance } from '../hooks/useAttendance';
 import { useAttendanceData } from '../hooks/useAttendanceData';
 import { GeneratorProgramMasiv } from './GeneratorProgramMasiv';
 import { useData } from '../contexts/DataContext';
@@ -609,7 +610,7 @@ export const Prezenta: React.FC<{ onBack: () => void; onViewSportiv?: (s: Sporti
     const [antrenamentDetaliu, setAntrenamentDetaliu] = useState<(Antrenament & { grupe: Grupa & { sportivi: Sportiv[] }}) | null>(null);
     const [loading, setLoading] = useState(true);
     const { showError } = useError();
-    const { saveAttendance } = useAttendanceData(currentUser.club_id, true);
+    const { saveAttendance } = useAttendance();
 
     useEffect(() => {
         const fetchGrupe = async () => {

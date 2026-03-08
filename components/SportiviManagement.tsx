@@ -57,51 +57,6 @@ export const SportiviManagement: React.FC<{
         activeClubId,
     } = useData();
 
-    const { data: sportiviData, isLoading: sportiviLoading, error: sportiviError } = useSportivi(activeClubId);
-    const sportivi = sportiviData || [];
-    const loading = sportiviLoading;
-
-    const grupe = filteredData.grupe;
-    const familii = filteredData.familii;
-    const plati = filteredData.plati;
-    const tranzactii = filteredData.tranzactii;
-    const vizualizarePlati = filteredData.vizualizarePlati;
-    const tipuriAbonament = filteredData.tipuriAbonament;
-    const [isFormModalOpen, setIsFormModalOpen] = useState(false);
-    const [sportivToEdit, setSportivToEdit] = useState<Sportiv | null>(null);
-    const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
-    const [sportivForWallet, setSportivForWallet] = useState<Sportiv | null>(null);
-    const [selectedSportivForHighlight, setSelectedSportivForHighlight] = useState<Sportiv | null>(null);
-    const [accountSettingsSportiv, setAccountSettingsSportiv] = useState<Sportiv | null>(null);
-    const [sportivToDelete, setSportivToDelete] = useState<Sportiv | null>(null);
-    const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-    
-    // Stări noi pentru modalul de creare cont
-    const [sportivForAccountCreation, setSportivForAccountCreation] = useState<Sportiv | null>(null);
-    const [createAccountForm, setCreateAccountForm] = useState({ email: '', username: '', parola: '' });
-    const [createAccountError, setCreateAccountError] = useState('');
-    const [createAccountLoading, setCreateAccountLoading] = useState(false);
-
-    const handleOpenAddSportiv = () => {
-        setSportivToEdit(null);
-        setIsFormModalOpen(true);
-    };
-
-    const handleOpenEditSportiv = (sportiv: Sportiv) => {
-        setSportivToEdit(sportiv);
-        setIsFormModalOpen(true);
-    };
-
-    const handleCloseFormModal = () => {
-        setIsFormModalOpen(false);
-        setSportivToEdit(null);
-    };
-    
-    const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }[]>([]);
-
-    const { showError, showSuccess } = useError();
-    const isMobile = useIsMobile();
-    
     const [filters, setFilters] = useLocalStorage('phi-hau-sportivi-filters', {
         searchTerm: '',
         statusFilter: 'Activ',
@@ -110,9 +65,30 @@ export const SportiviManagement: React.FC<{
         gradFilter: '',
         clubFilter: '',
     });
+
+    const { data: sportiviData, isLoading: sportiviLoading, error: sportiviError } = useSportivi({
+        clubId: filters.clubFilter || activeClubId,
+        status: filters.statusFilter,
+        gradId: filters.gradFilter !== 'null' ? filters.gradFilter : undefined,
+        rolId: filters.rolFilter
+    });
+    
+    // Apply search term filtering locally
+    const sportivi = useMemo(() => {
+        if (!sportiviData) return [];
+        return sportiviData.filter((s: Sportiv) =>
+            (`${s.nume} ${s.prenume}`.toLowerCase().includes(filters.searchTerm.toLowerCase()))
+        );
+    }, [sportiviData, filters.searchTerm]);
+    
+    const loading = sportiviLoading;
     
     const handleFilterChange = (name: keyof typeof filters, value: string) => {
         setFilters(prev => ({ ...prev, [name]: value }));
+    };
+    
+    const handleSearchChange = (value: string) => {
+        handleFilterChange('searchTerm', value);
     };
     
     const requestSort = (key: string) => {
@@ -182,7 +158,6 @@ export const SportiviManagement: React.FC<{
 
     const filteredSportivi = useMemo(() => {
         return (sportivi || []).filter((s: Sportiv) =>
-            (`${s.nume} ${s.prenume}`.toLowerCase().includes(filters.searchTerm.toLowerCase())) &&
             (filters.statusFilter ? s.status === filters.statusFilter : true) &&
             (filters.grupaFilter ? s.grupa_id === filters.grupaFilter : true) &&
             (filters.rolFilter ? (s.roluri || []).some(r => r.id === filters.rolFilter) : true) &&
@@ -369,7 +344,7 @@ export const SportiviManagement: React.FC<{
                     requestSort={requestSort}
                     sortConfig={sortConfig}
                     searchTerm={filters.searchTerm}
-                    onSearchChange={(value) => handleFilterChange('searchTerm', value)}
+                    onSearchChange={handleSearchChange}
                 />
             )}
 

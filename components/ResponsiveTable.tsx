@@ -6,7 +6,7 @@ import { useIsMobile } from '../hooks/useIsMobile';
 // --- TYPE DEFINITIONS ---
 
 export interface Column<T> {
-    key: keyof T | 'actions';
+    key: string;
     label: string;
     render?: (item: T) => React.ReactNode;
     headerClassName?: string;

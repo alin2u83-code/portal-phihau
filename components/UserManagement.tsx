@@ -23,10 +23,24 @@ const CreateStaffModal: React.FC<{
     allRoles: Rol[];
     setSportivi: React.Dispatch<React.SetStateAction<Sportiv[]>>;
     currentUser: User;
-}> = ({ isOpen, onClose, clubs, allRoles, setSportivi, currentUser }) => {
-    const [formData, setFormData] = useState(initialStaffFormState);
+    permissions: Permissions;
+}> = ({ isOpen, onClose, clubs, allRoles, setSportivi, currentUser, permissions }) => {
+    const [formData, setFormData] = useState({
+        ...initialStaffFormState,
+        club_id: permissions.isFederationAdmin ? '' : (currentUser.club_id || '')
+    });
     const [loading, setLoading] = useState(false);
     const { showError, showSuccess } = useError();
+
+    // Reset form when modal opens
+    React.useEffect(() => {
+        if (isOpen) {
+            setFormData({
+                ...initialStaffFormState,
+                club_id: permissions.isFederationAdmin ? '' : (currentUser.club_id || '')
+            });
+        }
+    }, [isOpen, permissions.isFederationAdmin, currentUser.club_id]);
 
     const staffRoles = useMemo(() => {
         return allRoles.filter(r => r.nume === 'INSTRUCTOR' || r.nume === 'ADMIN_CLUB' || r.nume === 'ADMIN' || r.nume === 'SUPER_ADMIN_FEDERATIE');
@@ -117,7 +131,14 @@ const CreateStaffModal: React.FC<{
                         <option value="">Alege un rol...</option>
                         {staffRoles.map(r => <option key={r.id} value={r.id}>{r.nume}</option>)}
                     </Select>
-                    <Select label="Club" name="club_id" value={formData.club_id} onChange={handleChange} required>
+                    <Select 
+                        label="Club" 
+                        name="club_id" 
+                        value={formData.club_id} 
+                        onChange={handleChange} 
+                        required 
+                        disabled={!permissions.isFederationAdmin}
+                    >
                         <option value="">Alege un club...</option>
                         {clubs.map(c => <option key={c.id} value={c.id}>{c.nume}</option>)}
                     </Select>
@@ -224,6 +245,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
     const [editingId, setEditingId] = useState<string | null>(null);
     const [newRoleIds, setNewRoleIds] = useState<string[]>([]);
     const [isCreateStaffModalOpen, setIsCreateStaffModalOpen] = useState(false);
+    const [selectedClubId, setSelectedClubId] = useState<string | null>(permissions.isFederationAdmin ? null : currentUser.club_id);
 
     const { showError, showSuccess } = useError();
     const { isFederationAdmin } = permissions;
@@ -257,7 +279,10 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
         [allRoles, currentUserMaxWeight, roleWeights]
     );
 
-    const usersToDisplay = useMemo(() => sportivi, [sportivi]);
+    const usersToDisplay = useMemo(() => {
+        if (!selectedClubId) return sportivi;
+        return sportivi.filter(s => s.club_id === selectedClubId);
+    }, [sportivi, selectedClubId]);
 
 
     const handleEdit = (user: User) => {
@@ -454,6 +479,14 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
             key: 'email',
             label: 'Email (Login)',
             render: (user) => <span className="text-slate-300">{user.email}</span>
+        },
+        {
+            key: 'club_id',
+            label: 'Club',
+            render: (user) => {
+                const club = clubs.find(c => c.id === user.club_id);
+                return <span className="text-xs text-slate-400">{club?.nume || 'N/A'}</span>;
+            }
         },
         {
             key: 'roluri',
@@ -658,9 +691,24 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                             <ShieldCheckIcon className="w-8 h-8 text-amber-400"/>
                             <h2 className="text-2xl font-bold text-white">Administrare Staff & Permisiuni</h2>
                         </div>
-                         <Button variant="info" onClick={() => setIsCreateStaffModalOpen(true)}>
-                            <PlusIcon className="w-5 h-5 mr-2" /> Adaugă Membru Staff
-                        </Button>
+                        <div className="flex items-center gap-4">
+                            {isFederationAdmin && (
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs text-slate-400 uppercase font-bold">Filtru Club:</span>
+                                    <select 
+                                        value={selectedClubId || ''} 
+                                        onChange={(e) => setSelectedClubId(e.target.value || null)}
+                                        className="bg-slate-800 border border-slate-700 rounded-md px-3 py-1.5 text-sm text-slate-200 focus:ring-1 focus:ring-amber-500 outline-none"
+                                    >
+                                        <option value="">Toate Cluburile</option>
+                                        {clubs.map(c => <option key={c.id} value={c.id}>{c.nume}</option>)}
+                                    </select>
+                                </div>
+                            )}
+                            <Button variant="info" onClick={() => setIsCreateStaffModalOpen(true)}>
+                                <PlusIcon className="w-5 h-5 mr-2" /> Adaugă Membru Staff
+                            </Button>
+                        </div>
                     </div>
                      <div className="p-3 mb-4 text-sm rounded-md bg-sky-900/50 text-sky-300 border border-sky-500/30">
                         <strong>Notă:</strong> La salvarea rolurilor, permisiunile de acces sunt actualizate automat. Un trigger SQL va sincroniza metadatele pentru a activa accesul multi-cont, dacă este cazul.
@@ -699,6 +747,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                 allRoles={allRoles}
                 setSportivi={setSportivi}
                 currentUser={currentUser}
+                permissions={permissions}
             />
         </div>
     );

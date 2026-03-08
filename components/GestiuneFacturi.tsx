@@ -320,7 +320,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
         },
         {
             key: 'suma',
-            label: 'Sumă',
+            label: 'Sumă / Rest',
             headerClassName: 'text-right',
             cellClassName: 'text-right',
             render: (p) => (
@@ -333,6 +333,20 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
                     )}
                 </div>
             )
+        },
+        {
+            key: 'incasat',
+            label: 'Încasat',
+            headerClassName: 'text-right',
+            cellClassName: 'text-right',
+            render: (p) => {
+                const incasat = (p.suma_initiala || p.suma) - p.suma;
+                return (
+                    <div className="text-right font-medium text-emerald-400">
+                        {incasat.toFixed(2)} lei
+                    </div>
+                );
+            }
         },
         {
             key: 'status',
@@ -387,9 +401,11 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
                 </span>
             </div>
             
-            <div className="mt-2 space-y-1">
+            <div className="mt-2 grid grid-cols-2 gap-2">
                 <p className="text-sm text-slate-300"><span className="text-slate-500">Descriere:</span> {p.descriere}</p>
-                <p className="text-sm font-bold text-white"><span className="text-slate-500 font-normal">Sumă:</span> {p.suma.toFixed(2)} lei</p>
+                <p className="text-sm font-bold text-white text-right"><span className="text-slate-500 font-normal">Rest:</span> {p.suma.toFixed(2)} lei</p>
+                <p className="text-sm text-slate-300"><span className="text-slate-500">Tip:</span> {p.tip}</p>
+                <p className="text-sm font-bold text-emerald-400 text-right"><span className="text-slate-500 font-normal">Încasat:</span> {((p.suma_initiala || p.suma) - p.suma).toFixed(2)} lei</p>
             </div>
 
             <div className="flex justify-end gap-2 mt-4 pt-2 border-t border-slate-700">

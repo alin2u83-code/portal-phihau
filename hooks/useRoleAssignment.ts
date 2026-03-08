@@ -30,7 +30,6 @@ export const useRoleAssignment = (currentUser: User, allRoles: Rol[]) => {
             return { success: false, error: "Client Supabase neconfigurat." };
         }
 
-        // Validare club_id pentru roluri specifice clubului
         const clubSpecificRoles = ['ADMIN_CLUB', 'INSTRUCTOR', 'SPORTIV'];
         const needsClubId = rolesToAssign.some(r => clubSpecificRoles.includes(r.nume));
         
@@ -40,10 +39,45 @@ export const useRoleAssignment = (currentUser: User, allRoles: Rol[]) => {
 
         setLoading(true);
         try {
-            // Notă: Crearea contului de autentificare (auth.users) este de obicei gestionată 
-            // printr-un Edge Function sau direct prin client.auth.signUp.
-            // Aici refactorizăm logica de bază de date pentru a fi atomică.
+            let userId = sportivData.user_id;
 
+            // 1. Dacă nu avem user_id, încercăm să creăm contul în auth.users
+            if (!userId) {
+                // Verificăm dacă există deja un user cu acest email (opțional, signUp va returna eroare dacă există)
+                const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+                    email,
+                    password: parola,
+                    options: {
+                        data: {
+                            full_name: `${sportivData.nume} ${sportivData.prenume}`,
+                            club_id: sportivData.club_id
+                        }
+                    }
+                });
+
+                if (signUpError) {
+                    // Dacă eroarea este că utilizatorul există deja, încercăm să-l recuperăm (dacă avem permisiuni)
+                    // Notă: În medii securizate, nu poți recupera ID-ul altui user fără service_role.
+                    // Dar dacă e propriul cont sau email-ul e deja în baza noastră publică, îl putem asocia.
+                    if (signUpError.message.includes('already registered')) {
+                         // Încercăm să vedem dacă avem deja acest email în tabela publică sportivi
+                         const { data: existingSportiv } = await supabase.from('sportivi').select('user_id').eq('email', email).single();
+                         userId = existingSportiv?.user_id;
+                         
+                         if (!userId) {
+                             throw new Error("Utilizatorul este deja înregistrat în sistemul de autentificare, dar nu este asociat niciunui profil de sportiv. Contactați suportul tehnic.");
+                         }
+                    } else {
+                        throw signUpError;
+                    }
+                } else {
+                    userId = signUpData.user?.id;
+                }
+            }
+
+            if (!userId) throw new Error("Nu s-a putut genera sau identifica ID-ul de utilizator.");
+
+            // 2. Apelăm RPC-ul pentru a crea/actualiza profilul și rolurile atomic
             const { data: newSportivId, error: rpcError } = await supabase.rpc('refactor_create_user_account', {
                 p_nume: sportivData.nume,
                 p_prenume: sportivData.prenume,
@@ -51,6 +85,7 @@ export const useRoleAssignment = (currentUser: User, allRoles: Rol[]) => {
                 p_username: sportivData.username || null,
                 p_club_id: sportivData.club_id || null,
                 p_roles: rolesToAssign.map(r => r.nume),
+                p_user_id: userId,
                 p_additional_data: {
                     data_nasterii: sportivData.data_nasterii,
                     cnp: sportivData.cnp,
@@ -62,23 +97,20 @@ export const useRoleAssignment = (currentUser: User, allRoles: Rol[]) => {
                 }
             });
 
-            if (rpcError) {
-                return { success: false, error: rpcError.message };
-            }
+            if (rpcError) throw rpcError;
 
-            // Recuperăm datele complete ale sportivului creat/actualizat
+            // 3. Recuperăm datele complete
             const { data: finalSportiv, error: fetchError } = await supabase
                 .from('sportivi')
                 .select('*, cluburi(*)')
                 .eq('id', newSportivId)
                 .single();
 
-            if (fetchError) {
-                return { success: false, error: "Cont creat, dar eroare la recuperare date: " + fetchError.message };
-            }
+            if (fetchError) throw fetchError;
 
             return { success: true, sportiv: { ...finalSportiv, roluri: rolesToAssign } };
         } catch (err: any) {
+            console.error('Account Creation Error:', err);
             return { success: false, error: err.message };
         } finally {
             setLoading(false);

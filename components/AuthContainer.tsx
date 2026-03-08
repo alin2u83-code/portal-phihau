@@ -3,6 +3,8 @@ import { supabase } from '../supabaseClient';
 import { Button, Card, Input } from './ui';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 
+import { getAuthErrorMessage } from '../utils/error';
+
 const QwanKiDoLogo: React.FC = () => (
     <div className="mx-auto mb-6 h-20 w-20 flex items-center justify-center rounded-full bg-slate-700 border-2 border-slate-600">
         <svg viewBox="0 0 100 100" className="w-12 h-12 text-amber-400">
@@ -95,14 +97,6 @@ export const AuthContainer: React.FC = () => {
         dispatch({ type: 'UPDATE_FORM', payload: { name: e.target.name, value: e.target.value } });
     };
 
-    const getErrorMessage = (error: any): string => {
-        if (error.code === 'invalid_credentials') return 'Email sau parolă incorectă.';
-        if (error.code === 'user_already_exists') return 'Acest email este deja înregistrat.';
-        if (error.code === 'weak_password') return 'Parola este prea slabă.';
-        if (error.message) return error.message;
-        return 'A apărut o eroare neașteptată. Vă rugăm reîncercați.';
-    };
-
     const [isResetModalOpen, setIsResetModalOpen] = React.useState(false);
     const [resetEmail, setResetEmail] = React.useState('');
     const [resetLoading, setResetLoading] = React.useState(false);
@@ -115,7 +109,7 @@ export const AuthContainer: React.FC = () => {
         });
         setResetLoading(false);
         if (error) {
-            dispatch({ type: 'SET_MESSAGE', payload: { type: 'error', text: getErrorMessage(error) } });
+            dispatch({ type: 'SET_MESSAGE', payload: { type: 'error', text: getAuthErrorMessage(error) } });
         } else {
             dispatch({ type: 'SET_MESSAGE', payload: { type: 'success', text: 'Email de resetare trimis!' } });
             setIsResetModalOpen(false);
@@ -139,7 +133,7 @@ export const AuthContainer: React.FC = () => {
         });
 
         if (error) {
-            dispatch({ type: 'SET_MESSAGE', payload: { type: 'error', text: getErrorMessage(error) } });
+            dispatch({ type: 'SET_MESSAGE', payload: { type: 'error', text: getAuthErrorMessage(error) } });
             dispatch({ type: 'SET_LOADING', payload: false });
         } else {
             navigate('/');
@@ -246,7 +240,7 @@ export const AuthContainer: React.FC = () => {
                 name: error.name,
                 cause: error.cause
             });
-            dispatch({ type: 'SET_MESSAGE', payload: { type: 'error', text: getErrorMessage(error) } });
+            dispatch({ type: 'SET_MESSAGE', payload: { type: 'error', text: getAuthErrorMessage(error) } });
         } finally {
             dispatch({ type: 'SET_LOADING', payload: false });
         }

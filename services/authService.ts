@@ -1,4 +1,5 @@
 import { supabase } from '../supabaseClient';
+import { getAuthErrorMessage } from '../utils/error';
 
 export interface CreateAccountParams {
     email: string;
@@ -33,7 +34,7 @@ export const createAccount = async (params: CreateAccountParams): Promise<Create
         });
 
         if (error) {
-            return { success: false, error: error.message };
+            return { success: false, error: getAuthErrorMessage(error) };
         }
 
         if (data.user) {
@@ -42,6 +43,6 @@ export const createAccount = async (params: CreateAccountParams): Promise<Create
 
         return { success: false, error: 'Nu s-a putut crea contul. Vă rugăm reîncercați.' };
     } catch (error: any) {
-        return { success: false, error: error.message || 'A apărut o eroare neașteptată la înregistrare.' };
+        return { success: false, error: getAuthErrorMessage(error) };
     }
 };

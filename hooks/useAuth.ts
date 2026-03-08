@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
 import { createAccount, CreateAccountParams } from '../services/authService';
+import { getAuthErrorMessage } from '../utils/error';
 
 export function useAuth() {
     const [loading, setLoading] = useState(false);
@@ -24,10 +25,7 @@ export function useAuth() {
             });
 
             if (authError) {
-                if (authError.message === 'Invalid login credentials') {
-                    throw new Error('Email sau parolă incorectă.');
-                }
-                throw authError;
+                throw new Error(getAuthErrorMessage(authError));
             }
 
             return data;

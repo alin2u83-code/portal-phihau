@@ -4,6 +4,7 @@ import { Button, Card, Input } from './ui';
 import { User } from '../types';
 import { useError } from './ErrorProvider';
 import { ShieldCheckIcon } from './icons';
+import { getAuthErrorMessage } from '../utils/error';
 
 interface MandatoryPasswordChangeProps {
     currentUser: User;
@@ -48,7 +49,7 @@ export const MandatoryPasswordChange: React.FC<MandatoryPasswordChangeProps> = (
             // 1. Update authentication user's password
             const { error: authError } = await supabase.auth.updateUser({ password: newPassword });
             if (authError) {
-                throw new Error(`Eroare la actualizarea parolei: ${authError.message}`);
+                throw authError;
             }
 
             // 2. Update the profile flag
@@ -71,7 +72,7 @@ export const MandatoryPasswordChange: React.FC<MandatoryPasswordChangeProps> = (
             }, 1500);
 
         } catch (err: any) {
-            showError("Eroare", err.message);
+            showError("Eroare", getAuthErrorMessage(err));
             setLoading(false);
         }
     };

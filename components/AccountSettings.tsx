@@ -5,6 +5,7 @@ import { useError } from './ErrorProvider';
 import { Button, Card, Input } from './ui';
 import { ArrowLeftIcon, MailIcon, LockIcon, CheckCircleIcon } from './icons';
 import { getRoleDisplayName, getRoleDescription, getRoleIcon } from '../hooks/useUserRoles';
+import { getAuthErrorMessage } from '../utils/error';
 
 interface AccountSettingsProps {
     currentUser: User;
@@ -70,7 +71,7 @@ export const AccountSettings: React.FC<AccountSettingsProps> = ({ currentUser, o
             showSuccess("Succes", "Profilul a fost actualizat.");
             setFormData(p => ({...p, parola: '', confirmParola: ''}));
         } catch (err: any) {
-            showError("Eroare la actualizare", err.message);
+            showError("Eroare la actualizare", getAuthErrorMessage(err));
         } finally {
             setLoading(false);
         }

@@ -14,6 +14,7 @@ import { SportivModals } from './SportivModals';
 import { ImportSportiviModal } from './ImportSportiviModal';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { useRoleAssignment } from '../hooks/useRoleAssignment';
+import { useSportivi } from '../hooks/useSportivi';
 import { useData } from '../contexts/DataContext';
 
 const getAge = (dateString: string | null | undefined): number => {
@@ -44,7 +45,6 @@ export const SportiviManagement: React.FC<{
     } = props;
 
     const {
-        setSportivi,
         setGrupe,
         setFamilii,
         currentUser,
@@ -53,13 +53,14 @@ export const SportiviManagement: React.FC<{
         clubs = [],
         grade = [],
         allRoles = [], setAllRoles,
-        loading,
         filteredData,
-        sportivi: rawSportivi,
+        activeClubId,
     } = useData();
 
-    const isGlobalAdmin = permissions.isFederationAdmin;
-    const sportivi = isGlobalAdmin ? rawSportivi : filteredData.sportivi;
+    const { data: sportiviData, isLoading: sportiviLoading, error: sportiviError } = useSportivi(activeClubId);
+    const sportivi = sportiviData || [];
+    const loading = sportiviLoading;
+
     const grupe = filteredData.grupe;
     const familii = filteredData.familii;
     const plati = filteredData.plati;
@@ -367,6 +368,8 @@ export const SportiviManagement: React.FC<{
                     onDelete={setSportivToDelete}
                     requestSort={requestSort}
                     sortConfig={sortConfig}
+                    searchTerm={filters.searchTerm}
+                    onSearchChange={(value) => handleFilterChange('searchTerm', value)}
                 />
             )}
 
@@ -396,7 +399,6 @@ export const SportiviManagement: React.FC<{
                 currentUser={currentUser}
                 accountSettingsSportiv={accountSettingsSportiv}
                 onCloseAccountSettings={() => setAccountSettingsSportiv(null)}
-                setSportivi={setSportivi}
                 allRoles={allRoles}
                 onOpenCreateAccount={(user) => {
                     setSportivForAccountCreation(user);

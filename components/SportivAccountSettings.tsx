@@ -8,14 +8,13 @@ interface SportivAccountSettingsModalProps {
     isOpen: boolean;
     onClose: () => void;
     sportiv: Sportiv | null;
-    setSportivi: React.Dispatch<React.SetStateAction<Sportiv[]>>;
     allRoles: Rol[];
     currentUser: User;
     onOpenCreateAccount?: (sportiv: Sportiv) => void;
 }
 
 export const SportivAccountSettingsModal: React.FC<SportivAccountSettingsModalProps> = ({
-    isOpen, onClose, sportiv, setSportivi, allRoles, currentUser, onOpenCreateAccount
+    isOpen, onClose, sportiv, allRoles, currentUser, onOpenCreateAccount
 }) => {
     const [newRoleIds, setNewRoleIds] = useState<string[]>([]);
     const { showError } = useError();
@@ -42,7 +41,6 @@ export const SportivAccountSettingsModal: React.FC<SportivAccountSettingsModalPr
 
         const updatedRoles = await updateRoles(sportiv, newRoleIds);
         if (updatedRoles) {
-            setSportivi(prev => prev.map(s => s.id === sportiv.id ? { ...s, roluri: updatedRoles } : s));
             onClose();
         }
     };

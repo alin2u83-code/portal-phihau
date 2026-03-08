@@ -16,6 +16,8 @@ interface SportiviTableProps {
   onDelete: (sportiv: Sportiv) => void;
   requestSort: (key: string) => void;
   sortConfig: { key: string; direction: 'asc' | 'desc' }[];
+  searchTerm?: string;
+  onSearchChange?: (value: string) => void;
 }
 
 const getAge = (dateString: string | null | undefined): number => {
@@ -30,7 +32,7 @@ const getAge = (dateString: string | null | undefined): number => {
 };
 
 export const SportiviTable: React.FC<SportiviTableProps> = (props) => {
-  const { sportivi, grupe, grade, onRowClick, onEdit, onOpenWallet, onOpenAccountSettings, onDelete, requestSort, sortConfig } = props;
+  const { sportivi, grupe, grade, onRowClick, onEdit, onOpenWallet, onOpenAccountSettings, onDelete, requestSort, sortConfig, searchTerm, onSearchChange } = props;
 
   const columns: Column<Sportiv>[] = [
     {
@@ -140,6 +142,9 @@ export const SportiviTable: React.FC<SportiviTableProps> = (props) => {
       onSort={requestSort}
       sortConfig={sortConfig}
       renderMobileItem={renderMobileItem}
+      searchTerm={searchTerm}
+      onSearchChange={onSearchChange}
+      pageSize={10}
     />
   );
 };

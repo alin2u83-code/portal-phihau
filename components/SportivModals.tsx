@@ -24,7 +24,6 @@ interface SportivModalsProps {
     // Account Settings Modal
     accountSettingsSportiv: Sportiv | null;
     onCloseAccountSettings: () => void;
-    setSportivi: React.Dispatch<React.SetStateAction<Sportiv[]>>;
     allRoles: Rol[];
     onOpenCreateAccount: (user: Sportiv) => void;
 
@@ -69,7 +68,6 @@ export const SportivModals: React.FC<SportivModalsProps> = ({
     currentUser,
     accountSettingsSportiv,
     onCloseAccountSettings,
-    setSportivi,
     allRoles,
     onOpenCreateAccount,
     sportivForAccountCreation,
@@ -115,7 +113,6 @@ export const SportivModals: React.FC<SportivModalsProps> = ({
                 isOpen={!!accountSettingsSportiv}
                 onClose={onCloseAccountSettings}
                 sportiv={accountSettingsSportiv}
-                setSportivi={setSportivi}
                 allRoles={allRoles}
                 currentUser={currentUser}
                 onOpenCreateAccount={onOpenCreateAccount}

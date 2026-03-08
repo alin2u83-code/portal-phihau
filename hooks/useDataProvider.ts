@@ -221,6 +221,7 @@ export const useDataProvider = () => {
 
             const currentRoles = (userRoles || []).map((r: any) => ({
                 ...r.roluri,
+                id: r.id, // Use assignment ID for uniqueness
                 assignment_id: r.id 
             })).filter(role => role && role.nume);
             

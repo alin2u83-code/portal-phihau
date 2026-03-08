@@ -1,6 +1,7 @@
 import React from 'react';
 import { Input } from './ui';
 import { SearchIcon } from './icons';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 // --- TYPE DEFINITIONS ---
 
@@ -21,16 +22,16 @@ interface ResponsiveTableProps<T> {
     selectedRowId?: string | null;
     rowClassName?: (item: T) => string;
     onSort?: (key: string) => void;
-    sortConfig?: { key: string; direction: 'asc' | 'desc' };
-    // FIX: Add missing props to support search functionality within the table component.
+    sortConfig?: { key: string; direction: 'asc' | 'desc' } | { key: string; direction: 'asc' | 'desc' }[];
     searchTerm?: string;
     onSearchChange?: (value: string) => void;
     searchPlaceholder?: string;
+    renderMobileItem?: (item: T) => React.ReactNode;
 }
 
 // --- MAIN COMPONENT ---
 
-export function ResponsiveTable<T extends { id: string }>({
+export function ResponsiveTable<T>({
     columns,
     data,
     onRowClick,
@@ -41,11 +42,14 @@ export function ResponsiveTable<T extends { id: string }>({
     searchTerm,
     onSearchChange,
     searchPlaceholder,
-}: ResponsiveTableProps<T>) {
+    renderMobileItem,
+    idKey = 'id' as keyof T,
+}: ResponsiveTableProps<T> & { idKey?: keyof T }) {
+    const isMobile = useIsMobile();
 
     return (
         <div className="bg-[var(--bg-card)] rounded-lg shadow-md overflow-hidden border border-[var(--border-color)]">
-            {/* FIX: Render search input if onSearchChange handler is provided. */}
+            {/* Render search input if onSearchChange handler is provided. */}
             {onSearchChange && (
                 <div className="p-4 border-b border-[var(--border-color)]">
                     <div className="relative w-full max-w-sm">
@@ -61,44 +65,64 @@ export function ResponsiveTable<T extends { id: string }>({
                     </div>
                 </div>
             )}
-            {/* Unified Responsive Table */}
-            <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left text-slate-300">
-                    <thead className="bg-[var(--bg-table-header)] text-xs text-[var(--brand-secondary)] uppercase">
-                        <tr>
-                            {columns.map(col => (
-                                <th 
-                                    key={String(col.key)} 
-                                    scope="col" 
-                                    className={`p-3 font-semibold ${col.headerClassName || ''} ${col.className || ''} ${onSort ? 'cursor-pointer' : ''}`}
-                                    title={col.tooltip}
-                                    onClick={() => onSort?.(String(col.key))}
-                                >
-                                    {col.label} {sortConfig && sortConfig.key === String(col.key) ? (sortConfig.direction === 'asc' ? '▲' : '▼') : ''}
-                                </th>
-                            ))}
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[var(--border-color)]">
-                        {data.map(item => (
-                            <tr 
-                                key={item.id} 
-                                className={`${onRowClick ? 'cursor-pointer hover:bg-[var(--bg-table-row-hover)]' : ''} ${item.id === selectedRowId ? 'selected-row-highlight' : ''} ${rowClassName ? rowClassName(item) : ''}`}
-                                onClick={() => onRowClick?.(item)}
-                            >
+            
+            {/* Mobile View */}
+            {isMobile && renderMobileItem ? (
+                <div className="divide-y divide-[var(--border-color)]">
+                    {data.map((item, index) => (
+                        <div key={String(item[idKey] || index)} onClick={() => onRowClick?.(item)}>
+                            {renderMobileItem(item)}
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                /* Desktop/Tablet View (or Mobile fallback) */
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left text-slate-300">
+                        <thead className="bg-[var(--bg-table-header)] text-xs text-[var(--brand-secondary)] uppercase">
+                            <tr>
                                 {columns.map(col => (
-                                    <td 
-                                        key={`${item.id}-${String(col.key)}`} 
-                                        className={`p-3 align-top text-white ${col.cellClassName || ''} ${col.className || ''}`}
+                                    <th 
+                                        key={String(col.key)} 
+                                        scope="col" 
+                                        className={`p-3 font-semibold ${col.headerClassName || ''} ${col.className || ''} ${onSort ? 'cursor-pointer' : ''}`}
+                                        title={col.tooltip}
+                                        onClick={() => onSort?.(String(col.key))}
                                     >
-                                        {col.render ? col.render(item) : (item[col.key as keyof T] as React.ReactNode) || '-'}
-                                    </td>
+                                        {col.label} {(() => {
+                                                if (!sortConfig) return '';
+                                                const configs = Array.isArray(sortConfig) ? sortConfig : [sortConfig];
+                                                const config = configs.find(c => c.key === String(col.key));
+                                                if (!config) return '';
+                                                const index = configs.indexOf(config);
+                                                const indicator = config.direction === 'asc' ? '▲' : '▼';
+                                                return configs.length > 1 ? `${indicator}${index + 1}` : indicator;
+                                            })()}
+                                    </th>
                                 ))}
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+                        </thead>
+                        <tbody className="divide-y divide-[var(--border-color)]">
+                            {data.map((item, index) => (
+                                <tr 
+                                    key={String(item[idKey] || index)} 
+                                    className={`${onRowClick ? 'cursor-pointer hover:bg-[var(--bg-table-row-hover)]' : ''} ${item[idKey] === selectedRowId ? 'selected-row-highlight' : ''} ${rowClassName ? rowClassName(item) : ''}`}
+                                    onClick={() => onRowClick?.(item)}
+                                >
+                                    {columns.map(col => (
+                                        <td 
+                                            key={`${String(item[idKey] || index)}-${String(col.key)}`} 
+                                            className={`p-3 align-top text-white ${col.cellClassName || ''} ${col.className || ''}`}
+                                        >
+                                            {col.render ? col.render(item) : (item[col.key as keyof T] as React.ReactNode) || '-'}
+                                        </td>
+                                    ))}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
             
             {data.length === 0 && (
                 <div className="p-12 text-center text-slate-500 italic">

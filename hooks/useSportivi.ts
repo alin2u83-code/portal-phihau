@@ -8,7 +8,7 @@ export const useSportivi = (clubId: string | null) => {
         queryFn: async () => {
             let query = supabase
                 .from('sportivi')
-                .select('*, cluburi(*), roluri:utilizator_roluri_multicont(rol_denumire)');
+                .select('*, cluburi(*), roluri:utilizator_roluri_multicont(id, rol_denumire)');
             
             if (clubId && clubId !== 'null' && clubId !== 'undefined') {
                 query = query.eq('club_id', clubId);
@@ -21,7 +21,7 @@ export const useSportivi = (clubId: string | null) => {
             // Map the roles to the expected format
             const formattedData = (data as any[]).map(s => ({
                 ...s,
-                roluri: s.roluri.map((r: any) => ({ nume: r.rol_denumire }))
+                roluri: s.roluri.map((r: any) => ({ id: r.id, nume: r.rol_denumire }))
             }));
 
             return formattedData as Sportiv[];

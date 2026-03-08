@@ -7,6 +7,7 @@ import { supabase } from '../supabaseClient';
 import { useRoleAssignment } from '../hooks/useRoleAssignment';
 import { useData } from '../contexts/DataContext';
 import { Club, User } from '../types';
+import { ResponsiveTable, Column } from './ResponsiveTable';
 
 interface ImportSportiviModalProps {
     isOpen: boolean;
@@ -233,6 +234,205 @@ export const ImportSportiviModal: React.FC<ImportSportiviModalProps> = ({
         })));
     };
 
+    const columns: Column<ImportRow>[] = [
+        {
+            key: 'select',
+            label: '#',
+            headerClassName: 'w-8 text-center',
+            cellClassName: 'text-center',
+            render: (row) => (
+                <input 
+                    type="checkbox" 
+                    checked={row.selected} 
+                    onChange={(e) => handleRowChange(row.id, 'selected', e.target.checked)}
+                    disabled={!row.isValid}
+                    className="rounded border-slate-600 bg-slate-700 text-brand-primary focus:ring-brand-primary disabled:opacity-50"
+                />
+            )
+        },
+        {
+            key: 'nume',
+            label: 'Nume',
+            render: (row) => (
+                <input 
+                    type="text" 
+                    value={row.nume} 
+                    onChange={(e) => handleRowChange(row.id, 'nume', e.target.value)}
+                    className={`w-full bg-transparent border-b border-transparent focus:border-brand-primary focus:outline-none px-1 py-1 ${!row.nume ? 'border-red-500/50 bg-red-500/10' : ''}`}
+                    placeholder="Nume"
+                />
+            )
+        },
+        {
+            key: 'prenume',
+            label: 'Prenume',
+            render: (row) => (
+                <input 
+                    type="text" 
+                    value={row.prenume} 
+                    onChange={(e) => handleRowChange(row.id, 'prenume', e.target.value)}
+                    className={`w-full bg-transparent border-b border-transparent focus:border-brand-primary focus:outline-none px-1 py-1 ${!row.prenume ? 'border-red-500/50 bg-red-500/10' : ''}`}
+                    placeholder="Prenume"
+                />
+            )
+        },
+        {
+            key: 'data_nasterii',
+            label: 'Data Nașterii',
+            render: (row) => (
+                <input 
+                    type="text" 
+                    value={row.data_nasterii} 
+                    onChange={(e) => handleRowChange(row.id, 'data_nasterii', e.target.value)}
+                    className={`w-full bg-transparent border-b border-transparent focus:border-brand-primary focus:outline-none px-1 py-1 ${!row.data_nasterii || !parseDate(row.data_nasterii) ? 'border-red-500/50 bg-red-500/10' : ''}`}
+                    placeholder="DD/MM/YYYY"
+                />
+            )
+        },
+        {
+            key: 'gen',
+            label: 'Gen',
+            render: (row) => (
+                <select 
+                    value={row.gen} 
+                    onChange={(e) => handleRowChange(row.id, 'gen', e.target.value)}
+                    className="w-full bg-slate-800 border-none focus:ring-1 focus:ring-brand-primary rounded px-1 py-1 text-xs"
+                >
+                    <option value="">Select</option>
+                    <option value="M">Masculin</option>
+                    <option value="F">Feminin</option>
+                </select>
+            )
+        },
+        {
+            key: 'club',
+            label: 'Club',
+            render: (row) => (
+                isSuperAdmin ? (
+                    <select 
+                        value={row.club} 
+                        onChange={(e) => handleRowChange(row.id, 'club', e.target.value)}
+                        className={`w-full bg-slate-800 border-none focus:ring-1 focus:ring-brand-primary rounded px-1 py-1 text-xs ${!row.club ? 'border-red-500/50 bg-red-500/10' : ''}`}
+                    >
+                        <option value="">Selectează Club</option>
+                        {clubs.map(c => (
+                            <option key={c.id} value={c.nume}>{c.nume}</option>
+                        ))}
+                    </select>
+                ) : (
+                    <input 
+                        type="text" 
+                        value={row.club} 
+                        readOnly
+                        className="w-full bg-transparent border-none px-1 py-1 text-slate-500 cursor-not-allowed"
+                    />
+                )
+            )
+        },
+        {
+            key: 'valid',
+            label: 'Valid',
+            headerClassName: 'w-8 text-center',
+            cellClassName: 'text-center',
+            render: (row) => (
+                row.isValid ? (
+                    <CheckCircleIcon className="w-4 h-4 text-green-500 mx-auto" />
+                ) : (
+                    <div className="group relative inline-block">
+                        <ExclamationTriangleIcon className="w-4 h-4 text-red-500 mx-auto cursor-help" />
+                        <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 w-48 bg-slate-900 border border-slate-700 p-2 rounded shadow-xl z-50 hidden group-hover:block pointer-events-none">
+                            <ul className="list-disc list-inside text-[10px] text-red-400 text-left">
+                                {row.errors.map((err, i) => <li key={i}>{err}</li>)}
+                            </ul>
+                        </div>
+                    </div>
+                )
+            )
+        }
+    ];
+
+    const renderMobileItem = (row: ImportRow) => (
+        <div className={`mb-4 p-4 rounded-lg border-l-4 bg-slate-800/50 ${row.isValid ? 'border-green-500' : 'border-red-500'}`}>
+            <div className="flex justify-between items-center mb-2">
+                <div className="flex items-center gap-2">
+                    <input 
+                        type="checkbox" 
+                        checked={row.selected} 
+                        onChange={(e) => handleRowChange(row.id, 'selected', e.target.checked)}
+                        disabled={!row.isValid}
+                        className="rounded border-slate-600 bg-slate-700 text-brand-primary focus:ring-brand-primary disabled:opacity-50"
+                    />
+                    <span className="font-bold text-white">#{row.id + 1}</span>
+                </div>
+                {row.isValid ? (
+                    <span className="text-xs text-green-400 flex items-center gap-1"><CheckCircleIcon className="w-3 h-3" /> Valid</span>
+                ) : (
+                    <span className="text-xs text-red-400 flex items-center gap-1"><ExclamationTriangleIcon className="w-3 h-3" /> Invalid</span>
+                )}
+            </div>
+
+            <div className="grid grid-cols-1 gap-2">
+                <Input 
+                    label="Nume" 
+                    value={row.nume} 
+                    onChange={(e) => handleRowChange(row.id, 'nume', e.target.value)} 
+                    className={!row.nume ? 'border-red-500/50 bg-red-500/10' : ''}
+                />
+                <Input 
+                    label="Prenume" 
+                    value={row.prenume} 
+                    onChange={(e) => handleRowChange(row.id, 'prenume', e.target.value)} 
+                    className={!row.prenume ? 'border-red-500/50 bg-red-500/10' : ''}
+                />
+                <Input 
+                    label="Data Nașterii" 
+                    value={row.data_nasterii} 
+                    onChange={(e) => handleRowChange(row.id, 'data_nasterii', e.target.value)} 
+                    className={!row.data_nasterii || !parseDate(row.data_nasterii) ? 'border-red-500/50 bg-red-500/10' : ''}
+                    placeholder="DD/MM/YYYY"
+                />
+                
+                <div>
+                    <label className="block text-xs font-medium text-slate-400 mb-1">Gen</label>
+                    <select 
+                        value={row.gen} 
+                        onChange={(e) => handleRowChange(row.id, 'gen', e.target.value)}
+                        className="w-full bg-slate-800 border border-slate-600 rounded px-3 py-2 text-sm focus:ring-1 focus:ring-brand-primary"
+                    >
+                        <option value="">Select</option>
+                        <option value="M">Masculin</option>
+                        <option value="F">Feminin</option>
+                    </select>
+                </div>
+
+                {isSuperAdmin && (
+                    <div>
+                        <label className="block text-xs font-medium text-slate-400 mb-1">Club</label>
+                        <select 
+                            value={row.club} 
+                            onChange={(e) => handleRowChange(row.id, 'club', e.target.value)}
+                            className={`w-full bg-slate-800 border border-slate-600 rounded px-3 py-2 text-sm focus:ring-1 focus:ring-brand-primary ${!row.club ? 'border-red-500/50 bg-red-500/10' : ''}`}
+                        >
+                            <option value="">Selectează Club</option>
+                            {clubs.map(c => (
+                                <option key={c.id} value={c.nume}>{c.nume}</option>
+                            ))}
+                        </select>
+                    </div>
+                )}
+            </div>
+
+            {!row.isValid && (
+                <div className="mt-2 p-2 bg-red-900/20 rounded border border-red-900/30">
+                    <p className="text-xs font-bold text-red-400 mb-1">Erori:</p>
+                    <ul className="list-disc list-inside text-[10px] text-red-300">
+                        {row.errors.map((err, i) => <li key={i}>{err}</li>)}
+                    </ul>
+                </div>
+            )}
+        </div>
+    );
+
     const processImport = async () => {
         const rowsToImport = importRows.filter(r => r.selected);
         if (!rowsToImport.length) return;
@@ -419,109 +619,11 @@ export const ImportSportiviModal: React.FC<ImportSportiviModalProps> = ({
                                     </div>
                                 </div>
                                 <div className="overflow-auto custom-scrollbar">
-                                    <table className="w-full text-left text-xs text-slate-400">
-                                        <thead className="bg-slate-800/50 text-slate-200 uppercase font-medium sticky top-0 z-10 backdrop-blur-sm">
-                                            <tr>
-                                                <th className="px-2 py-2 w-8 text-center">
-                                                    #
-                                                </th>
-                                                <th className="px-2 py-2 w-32">Nume</th>
-                                                <th className="px-2 py-2 w-32">Prenume</th>
-                                                <th className="px-2 py-2 w-28">Data Nașterii</th>
-                                                <th className="px-2 py-2 w-20">Gen</th>
-                                                <th className="px-2 py-2 w-32">Club</th>
-                                                <th className="px-2 py-2 w-8">Valid</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-slate-700">
-                                            {importRows.map((row) => (
-                                                <tr key={row.id} className={`hover:bg-slate-800/30 transition-colors ${!row.isValid ? 'bg-red-900/10' : ''}`}>
-                                                    <td className="px-2 py-2 text-center">
-                                                        <input 
-                                                            type="checkbox" 
-                                                            checked={row.selected} 
-                                                            onChange={(e) => handleRowChange(row.id, 'selected', e.target.checked)}
-                                                            disabled={!row.isValid}
-                                                            className="rounded border-slate-600 bg-slate-700 text-brand-primary focus:ring-brand-primary disabled:opacity-50"
-                                                        />
-                                                    </td>
-                                                    <td className="px-2 py-1">
-                                                        <input 
-                                                            type="text" 
-                                                            value={row.nume} 
-                                                            onChange={(e) => handleRowChange(row.id, 'nume', e.target.value)}
-                                                            className={`w-full bg-transparent border-b border-transparent focus:border-brand-primary focus:outline-none px-1 py-1 ${!row.nume ? 'border-red-500/50 bg-red-500/10' : ''}`}
-                                                            placeholder="Nume"
-                                                        />
-                                                    </td>
-                                                    <td className="px-2 py-1">
-                                                        <input 
-                                                            type="text" 
-                                                            value={row.prenume} 
-                                                            onChange={(e) => handleRowChange(row.id, 'prenume', e.target.value)}
-                                                            className={`w-full bg-transparent border-b border-transparent focus:border-brand-primary focus:outline-none px-1 py-1 ${!row.prenume ? 'border-red-500/50 bg-red-500/10' : ''}`}
-                                                            placeholder="Prenume"
-                                                        />
-                                                    </td>
-                                                    <td className="px-2 py-1">
-                                                        <input 
-                                                            type="text" 
-                                                            value={row.data_nasterii} 
-                                                            onChange={(e) => handleRowChange(row.id, 'data_nasterii', e.target.value)}
-                                                            className={`w-full bg-transparent border-b border-transparent focus:border-brand-primary focus:outline-none px-1 py-1 ${!row.data_nasterii || !parseDate(row.data_nasterii) ? 'border-red-500/50 bg-red-500/10' : ''}`}
-                                                            placeholder="DD/MM/YYYY"
-                                                        />
-                                                    </td>
-                                                    <td className="px-2 py-1">
-                                                        <select 
-                                                            value={row.gen} 
-                                                            onChange={(e) => handleRowChange(row.id, 'gen', e.target.value)}
-                                                            className="w-full bg-slate-800 border-none focus:ring-1 focus:ring-brand-primary rounded px-1 py-1 text-xs"
-                                                        >
-                                                            <option value="">Select</option>
-                                                            <option value="M">Masculin</option>
-                                                            <option value="F">Feminin</option>
-                                                        </select>
-                                                    </td>
-                                                    <td className="px-2 py-1">
-                                                        {isSuperAdmin ? (
-                                                            <select 
-                                                                value={row.club} 
-                                                                onChange={(e) => handleRowChange(row.id, 'club', e.target.value)}
-                                                                className={`w-full bg-slate-800 border-none focus:ring-1 focus:ring-brand-primary rounded px-1 py-1 text-xs ${!row.club ? 'border-red-500/50 bg-red-500/10' : ''}`}
-                                                            >
-                                                                <option value="">Selectează Club</option>
-                                                                {clubs.map(c => (
-                                                                    <option key={c.id} value={c.nume}>{c.nume}</option>
-                                                                ))}
-                                                            </select>
-                                                        ) : (
-                                                            <input 
-                                                                type="text" 
-                                                                value={row.club} 
-                                                                readOnly
-                                                                className="w-full bg-transparent border-none px-1 py-1 text-slate-500 cursor-not-allowed"
-                                                            />
-                                                        )}
-                                                    </td>
-                                                    <td className="px-2 py-2 text-center">
-                                                        {row.isValid ? (
-                                                            <CheckCircleIcon className="w-4 h-4 text-green-500 mx-auto" />
-                                                        ) : (
-                                                            <div className="group relative">
-                                                                <ExclamationTriangleIcon className="w-4 h-4 text-red-500 mx-auto cursor-help" />
-                                                                <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 w-48 bg-slate-900 border border-slate-700 p-2 rounded shadow-xl z-50 hidden group-hover:block">
-                                                                    <ul className="list-disc list-inside text-[10px] text-red-400 text-left">
-                                                                        {row.errors.map((err, i) => <li key={i}>{err}</li>)}
-                                                                    </ul>
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
+                                    <ResponsiveTable 
+                                        columns={columns}
+                                        data={importRows}
+                                        renderMobileItem={renderMobileItem}
+                                    />
                                 </div>
                             </div>
                         )}

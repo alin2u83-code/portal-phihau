@@ -96,7 +96,7 @@ export const SportiviManagement: React.FC<{
         setSportivToEdit(null);
     };
     
-    const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>({ key: 'nume', direction: 'asc' });
+    const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }[]>([]);
 
     const { showError, showSuccess } = useError();
     const isMobile = useIsMobile();
@@ -115,11 +115,18 @@ export const SportiviManagement: React.FC<{
     };
     
     const requestSort = (key: string) => {
-        let direction: 'asc' | 'desc' = 'asc';
-        if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
-            direction = 'desc';
-        }
-        setSortConfig({ key, direction });
+        setSortConfig(prev => {
+            const existing = prev.find(s => s.key === key);
+            if (existing) {
+                if (existing.direction === 'asc') {
+                    return prev.map(s => s.key === key ? { ...s, direction: 'desc' } : s);
+                } else {
+                    return prev.filter(s => s.key !== key);
+                }
+            } else {
+                return [...prev, { key, direction: 'asc' }];
+            }
+        });
     };
 
     const handleOpenWallet = (sportiv: Sportiv) => {
@@ -185,24 +192,23 @@ export const SportiviManagement: React.FC<{
     
     const sortedAndFilteredSportivi = useMemo(() => {
         let sortableItems = [...filteredSportivi];
-        if (sortConfig !== null) {
+        if (sortConfig.length > 0) {
             sortableItems.sort((a, b) => {
-                if (sortConfig.key === 'grad_actual_id') {
-                    const gradA = grade.find(g => g.id === a.grad_actual_id);
-                    const gradB = grade.find(g => g.id === b.grad_actual_id);
-                    const ordineA = gradA ? gradA.ordine : -1;
-                    const ordineB = gradB ? gradB.ordine : -1;
-                    if (ordineA < ordineB) return sortConfig.direction === 'asc' ? -1 : 1;
-                    if (ordineA > ordineB) return sortConfig.direction === 'asc' ? 1 : -1;
-                    return 0;
-                }
-                const aVal = a[sortConfig.key as keyof Sportiv] as any;
-                const bVal = b[sortConfig.key as keyof Sportiv] as any;
-                if (aVal < bVal) {
-                    return sortConfig.direction === 'asc' ? -1 : 1;
-                }
-                if (aVal > bVal) {
-                    return sortConfig.direction === 'asc' ? 1 : -1;
+                for (const { key, direction } of sortConfig) {
+                    let aVal: any, bVal: any;
+                    
+                    if (key === 'grad_actual_id') {
+                        const gradA = grade.find(g => g.id === a.grad_actual_id);
+                        const gradB = grade.find(g => g.id === b.grad_actual_id);
+                        aVal = gradA ? gradA.ordine : -1;
+                        bVal = gradB ? gradB.ordine : -1;
+                    } else {
+                        aVal = a[key as keyof Sportiv] as any;
+                        bVal = b[key as keyof Sportiv] as any;
+                    }
+
+                    if (aVal < bVal) return direction === 'asc' ? -1 : 1;
+                    if (aVal > bVal) return direction === 'asc' ? 1 : -1;
                 }
                 return 0;
             });
@@ -346,6 +352,8 @@ export const SportiviManagement: React.FC<{
                     individualBalances={individualBalances}
                     grupe={grupe}
                     grade={grade}
+                    requestSort={requestSort}
+                    sortConfig={sortConfig}
                 />
             ) : (
                 <SportiviTable
@@ -358,6 +366,7 @@ export const SportiviManagement: React.FC<{
                     onOpenAccountSettings={setAccountSettingsSportiv}
                     onDelete={setSportivToDelete}
                     requestSort={requestSort}
+                    sortConfig={sortConfig}
                 />
             )}
 

@@ -8,6 +8,7 @@ import { useError } from './ErrorProvider';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { useData } from '../contexts/DataContext';
 import { sendNotification } from '../utils/notifications';
+import { ResponsiveTable, Column } from './ResponsiveTable';
 
 const QuickAddTipPlataModal: React.FC<{ 
   isOpen: boolean; 
@@ -511,6 +512,64 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
 
     const sortedTranzactii = useMemo(() => [...tranzactii].sort((a,b) => new Date(b.data_platii).getTime() - new Date(a.data_platii).getTime()), [tranzactii]);
 
+    const columns: Column<Tranzactie>[] = [
+        {
+            key: 'data',
+            label: 'Data',
+            render: (t) => <span className="text-sm text-slate-300">{new Date(t.data_platii).toLocaleDateString('ro-RO')}</span>
+        },
+        {
+            key: 'platit_de',
+            label: 'Plătit de',
+            render: (t) => <span className="font-medium text-white">{getEntityName(t)}</span>
+        },
+        {
+            key: 'descriere',
+            label: 'Descriere',
+            render: (t) => <span className="text-sm text-slate-400">{getDescriereTranzactie(t)}</span>
+        },
+        {
+            key: 'suma',
+            label: 'Sumă',
+            headerClassName: 'text-right',
+            cellClassName: 'text-right',
+            render: (t) => <span className="font-bold text-green-400">{t.suma.toFixed(2)} RON</span>
+        },
+        {
+            key: 'actions',
+            label: 'Acțiuni',
+            headerClassName: 'text-right',
+            cellClassName: 'text-right',
+            render: (t) => (
+                <Button size="sm" variant="danger" onClick={() => setTranzactieToDelete(t)}>
+                    <TrashIcon className="w-4 h-4"/>
+                </Button>
+            )
+        }
+    ];
+
+    const renderMobileItem = (t: Tranzactie) => (
+        <Card className="mb-4 border-l-4 border-green-500">
+            <div className="flex justify-between items-start mb-2">
+                <div>
+                    <p className="font-bold text-white text-lg">{getEntityName(t)}</p>
+                    <p className="text-sm text-slate-400">{new Date(t.data_platii).toLocaleDateString('ro-RO')}</p>
+                </div>
+                <span className="font-bold text-green-400 text-lg">{t.suma.toFixed(2)} RON</span>
+            </div>
+            
+            <div className="mt-2 mb-4">
+                <p className="text-sm text-slate-300"><span className="text-slate-500">Descriere:</span> {getDescriereTranzactie(t)}</p>
+            </div>
+
+            <div className="flex justify-end pt-2 border-t border-slate-700">
+                <Button size="sm" variant="danger" onClick={() => setTranzactieToDelete(t)} className="w-full justify-center">
+                    <TrashIcon className="w-4 h-4 mr-2" /> Șterge Tranzacția
+                </Button>
+            </div>
+        </Card>
+    );
+
     return (
         <div className="space-y-6">
             <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi</Button>
@@ -604,7 +663,13 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
             </Card>
             <Card className="p-0 overflow-hidden">
                 <div className="bg-[var(--bg-table-header)] p-4 border-b border-[var(--border-color)] font-bold">Istoric Încasări Recente</div>
-                <div className="overflow-x-auto"><table className="w-full text-left"><thead className="bg-[var(--bg-table-header)] text-xs text-slate-400 uppercase"><tr><th className="p-4">Data</th><th className="p-4">Plătit de</th><th className="p-4">Descriere</th><th className="p-4 text-right">Sumă</th><th className="p-4 text-right">Acțiuni</th></tr></thead><tbody className="divide-y divide-[var(--border-color)]">{sortedTranzactii.slice(0, 10).map(t => (<tr key={t.id} className="hover:bg-[var(--bg-table-row-hover)]"><td className="p-4 text-sm">{new Date(t.data_platii).toLocaleDateString('ro-RO')}</td><td className="p-4 font-medium">{getEntityName(t)}</td><td className="p-4 text-sm text-slate-400">{getDescriereTranzactie(t)}</td><td className="p-4 text-right font-bold text-green-400">{t.suma.toFixed(2)} RON</td><td className="p-4 text-right"><Button size="sm" variant="danger" onClick={() => setTranzactieToDelete(t)}><TrashIcon className="w-4 h-4"/></Button></td></tr>))}</tbody></table></div>
+                <div className="overflow-x-auto">
+                    <ResponsiveTable 
+                        columns={columns}
+                        data={sortedTranzactii.slice(0, 10)}
+                        renderMobileItem={renderMobileItem}
+                    />
+                </div>
             </Card>
             <QuickAddTipPlataModal isOpen={isQuickAddOpen} onClose={() => setIsQuickAddOpen(false)} onSave={handleQuickAddTipPlata} />
             <ConfirmDeleteModal isOpen={!!tranzactieToDelete} onClose={() => setTranzactieToDelete(null)} onConfirm={handleDeleteTranzactie} tableName="Tranzacție" isLoading={loading} customMessage="Sunteți sigur că doriți să ștergeți această încasare? Statusul facturilor asociate va fi resetat." />

@@ -8,6 +8,7 @@ import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { getPretProdus } from '../utils/pricing';
 import { getEligibleGrade } from '../utils/eligibility';
 import { sendBulkNotifications } from '../utils/notifications';
+import { ResponsiveTable, Column } from './ResponsiveTable';
 
 // Helper functions
 const getAgeOnDate = (birthDateStr: string, onDateStr: string): number => {
@@ -513,6 +514,124 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
     };
 
 
+    const columns: Column<InscriereExamen>[] = [
+        {
+            key: 'sportiv_id',
+            label: 'Nume Sportiv',
+            render: (inscriere) => (
+                <p 
+                    className="font-medium text-white hover:text-brand-primary hover:underline cursor-pointer"
+                    onClick={(e) => { e.stopPropagation(); onViewSportiv(inscriere.sportivi); }}
+                >
+                    {inscriere.sportivi.nume} {inscriere.sportivi.prenume}
+                </p>
+            )
+        },
+        {
+            key: 'grad_vizat_id',
+            label: 'Grad Vizat',
+            render: (inscriere) => <span className="text-brand-secondary font-semibold">{inscriere.grades.nume}</span>
+        },
+        {
+            key: 'rezultat',
+            label: 'Rezultat',
+            headerClassName: 'text-center',
+            cellClassName: 'text-center',
+            render: (inscriere) => {
+                const rezultat = rezultateLocale[inscriere.id] || 'Neprezentat';
+                let statusColorClass = '';
+                if (rezultat === 'Admis') statusColorClass = 'bg-green-900/40 text-green-300';
+                else if (rezultat === 'Respins') statusColorClass = 'bg-red-900/40 text-red-300';
+
+                return (
+                    <Select 
+                        label="" 
+                        value={rezultat}
+                        onChange={(e) => handleResultChange(inscriere.id, e.target.value as any)}
+                        className={`!py-1 ${statusColorClass}`}
+                        disabled={isReadOnly}
+                    >
+                        <option value="Neprezentat">În așteptare</option>
+                        <option value="Admis">Admis</option>
+                        <option value="Respins">Respins</option>
+                    </Select>
+                );
+            }
+        },
+        {
+            key: 'actions',
+            label: 'Acțiuni',
+            headerClassName: 'text-right',
+            cellClassName: 'text-right',
+            render: (inscriere) => !isReadOnly && (
+                <div className="flex items-center justify-end gap-2">
+                    <Button size="sm" variant="secondary" onClick={() => handleOpenEditModal(inscriere)} title="Modifică gradul vizat">
+                        <EditIcon className="w-4 h-4" />
+                    </Button>
+                    <Button 
+                        size="sm" 
+                        variant='danger' 
+                        onClick={() => handleInitiateDelete(inscriere)} 
+                        title="Retrage înscriere"
+                        isLoading={false}
+                    >
+                        <TrashIcon className="w-4 h-4" />
+                    </Button>
+                </div>
+            )
+        }
+    ];
+
+    const renderMobileItem = (inscriere: InscriereExamen) => {
+        const rezultat = rezultateLocale[inscriere.id] || 'Neprezentat';
+        let statusColorClass = '';
+        if (rezultat === 'Admis') statusColorClass = 'bg-green-900/40 text-green-300';
+        else if (rezultat === 'Respins') statusColorClass = 'bg-red-900/40 text-red-300';
+
+        return (
+            <Card className="mb-4 border-l-4 border-brand-primary">
+                <div className="flex justify-between items-start mb-2">
+                    <div>
+                        <p className="font-bold text-white text-lg" onClick={() => onViewSportiv(inscriere.sportivi)}>
+                            {inscriere.sportivi.nume} {inscriere.sportivi.prenume}
+                        </p>
+                        <p className="text-sm text-brand-secondary font-semibold">
+                            Grad Vizat: {inscriere.grades.nume}
+                        </p>
+                    </div>
+                </div>
+                
+                <div className="mt-4 space-y-3">
+                    <div>
+                        <label className="text-xs text-slate-400 uppercase font-bold mb-1 block">Rezultat</label>
+                        <Select 
+                            label="" 
+                            value={rezultat}
+                            onChange={(e) => handleResultChange(inscriere.id, e.target.value as any)}
+                            className={`!py-2 w-full ${statusColorClass}`}
+                            disabled={isReadOnly}
+                        >
+                            <option value="Neprezentat">În așteptare</option>
+                            <option value="Admis">Admis</option>
+                            <option value="Respins">Respins</option>
+                        </Select>
+                    </div>
+
+                    {!isReadOnly && (
+                        <div className="flex justify-end gap-2 pt-2 border-t border-slate-700">
+                            <Button size="sm" variant="secondary" onClick={() => handleOpenEditModal(inscriere)} className="flex-1 justify-center">
+                                <EditIcon className="w-4 h-4 mr-2" /> Modifică
+                            </Button>
+                            <Button size="sm" variant="danger" onClick={() => handleInitiateDelete(inscriere)} className="flex-1 justify-center">
+                                <TrashIcon className="w-4 h-4 mr-2" /> Retrage
+                            </Button>
+                        </div>
+                    )}
+                </div>
+            </Card>
+        );
+    };
+
     return (
         <div className="space-y-6">
              {!isReadOnly && (
@@ -533,75 +652,11 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                         </Button>
                     )}
                 </div>
-                <div className="max-h-96 overflow-y-auto overflow-x-auto pr-2">
-                    {participantiInscrisi.length > 0 ? (
-                        <table className="w-full text-left text-sm min-w-[700px]">
-                            <thead className="bg-slate-700/50 sticky top-0">
-                                <tr>
-                                    <th className="p-2 font-semibold">Nume Sportiv</th>
-                                    <th className="p-2 font-semibold">Grad Vizat</th>
-                                    <th className="p-2 font-semibold w-56 text-center">Rezultat</th>
-                                    {!isReadOnly && <th className="p-2 font-semibold text-right">Acțiuni</th>}
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-700">
-                                {participantiInscrisi.map(inscriere => {
-                                    const rezultat = rezultateLocale[inscriere.id] || 'Neprezentat';
-                                    let statusColorClass = '';
-                                    if (rezultat === 'Admis') statusColorClass = 'bg-green-900/40 text-green-300';
-                                    else if (rezultat === 'Respins') statusColorClass = 'bg-red-900/40 text-red-300';
-
-                                    return (
-                                        <tr key={inscriere.id} className="hover:bg-slate-700/20">
-                                            <td className="p-2">
-                                                <p 
-                                                    className="font-medium text-white hover:text-brand-primary hover:underline cursor-pointer"
-                                                    onClick={(e) => { e.stopPropagation(); onViewSportiv(inscriere.sportivi); }}
-                                                >
-                                                    {inscriere.sportivi.nume} {inscriere.sportivi.prenume}
-                                                </p>
-                                            </td>
-                                            <td className="p-2 text-brand-secondary font-semibold">{inscriere.grades.nume}</td>
-                                            <td className="p-2 text-center">
-                                                <Select 
-                                                    label="" 
-                                                    value={rezultat}
-                                                    onChange={(e) => handleResultChange(inscriere.id, e.target.value as any)}
-                                                    className={`!py-1 ${statusColorClass}`}
-                                                    disabled={isReadOnly}
-                                                >
-                                                    <option value="Neprezentat">În așteptare</option>
-                                                    <option value="Admis">Admis</option>
-                                                    <option value="Respins">Respins</option>
-                                                </Select>
-                                            </td>
-                                            {!isReadOnly && (
-                                                <td className="p-2">
-                                                    <div className="flex items-center justify-end gap-2">
-                                                        <Button size="sm" variant="secondary" onClick={() => handleOpenEditModal(inscriere)} title="Modifică gradul vizat">
-                                                            <EditIcon className="w-4 h-4" />
-                                                        </Button>
-                                                        <Button 
-                                                            size="sm" 
-                                                            variant='danger' 
-                                                            onClick={() => handleInitiateDelete(inscriere)} 
-                                                            title="Retrage înscriere"
-                                                            isLoading={false}
-                                                        >
-                                                            <TrashIcon className="w-4 h-4" />
-                                                        </Button>
-                                                    </div>
-                                                </td>
-                                            )}
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                    ) : (
-                        <p className="p-4 text-center text-slate-500 italic">Niciun sportiv înscris la această sesiune.</p>
-                    )}
-                </div>
+                <ResponsiveTable 
+                    columns={columns}
+                    data={participantiInscrisi}
+                    renderMobileItem={renderMobileItem}
+                />
             </Card>
 
             {isEditModalOpen && inscriereToEdit && (

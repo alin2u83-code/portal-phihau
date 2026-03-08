@@ -10,6 +10,7 @@ import { AntrenamentForm } from './AntrenamentForm';
 import { useAttendanceData } from '../hooks/useAttendanceData';
 import { GeneratorProgramMasiv } from './GeneratorProgramMasiv';
 import { useData } from '../contexts/DataContext';
+import { ResponsiveTable, Column } from './ResponsiveTable';
 
 type View = 'grupe' | 'orar' | 'calendar' | 'prezenta' | 'istoric-global' | 'prezenta-azi' | 'prezenta-azi-global' | 'generator-masiv';
 interface ViewState { view: View; id: string | null; }
@@ -494,6 +495,72 @@ const IstoricPrezentaGlobal: React.FC<{ onBack: () => void, onViewSportiv?: (s: 
         }
     };
 
+    const columns: Column<any>[] = [
+        {
+            key: 'data',
+            label: 'Data',
+            render: (row) => <span className="text-slate-300">{new Date(row.data).toLocaleDateString('ro-RO')}</span>
+        },
+        {
+            key: 'ora_start',
+            label: 'Ora',
+            render: (row) => <span className="text-slate-500 font-mono">{row.ora_start}</span>
+        },
+        {
+            key: 'nume_sportiv',
+            label: 'Sportiv',
+            render: (row) => {
+                const sp = sportivi[row.sportiv_id];
+                return (
+                    <span 
+                        className="font-bold text-white cursor-pointer hover:text-indigo-400 hover:underline transition-colors"
+                        onClick={() => sp && onViewSportiv && onViewSportiv(sp)}
+                    >
+                        {sp ? `${sp.nume} ${sp.prenume}` : 'Necunoscut'}
+                    </span>
+                );
+            }
+        },
+        {
+            key: 'nume_grupa',
+            label: 'Grupa',
+            render: (row) => <span className="text-slate-400">{row.nume_grupa}</span>
+        },
+        {
+            key: 'status',
+            label: 'Status',
+            render: (row) => (
+                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${row.status?.toLowerCase() === 'prezent' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}`}>
+                    {row.status}
+                </span>
+            )
+        }
+    ];
+
+    const renderMobileItem = (row: any) => {
+        const sp = sportivi[row.sportiv_id];
+        return (
+            <Card className={`mb-4 border-l-4 ${row.status?.toLowerCase() === 'prezent' ? 'border-emerald-500' : 'border-rose-500'}`}>
+                <div className="flex justify-between items-start">
+                    <div>
+                        <p className="font-bold text-white text-lg mb-1" onClick={() => sp && onViewSportiv && onViewSportiv(sp)}>
+                            {sp ? `${sp.nume} ${sp.prenume}` : 'Necunoscut'}
+                        </p>
+                        <p className="text-sm text-slate-400 mb-2">{row.nume_grupa}</p>
+                        <div className="flex items-center gap-2 text-xs text-slate-500">
+                            <CalendarDaysIcon className="w-3 h-3" />
+                            <span>{new Date(row.data).toLocaleDateString('ro-RO')}</span>
+                            <span className="font-mono ml-2">{row.ora_start}</span>
+                        </div>
+                    </div>
+                    <span className={`px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${row.status?.toLowerCase() === 'prezent' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
+                        {row.status}
+                    </span>
+                </div>
+            </Card>
+        );
+    };
+
     return (
         <div className="space-y-6 animate-fade-in">
             <Button onClick={onBack} variant="secondary" size="sm">
@@ -521,56 +588,13 @@ const IstoricPrezentaGlobal: React.FC<{ onBack: () => void, onViewSportiv?: (s: 
                         <Input label="Până la" type="date" value={filterDataEnd} onChange={e => setFilterDataEnd(e.target.value)} />
                     </div>
 
-                    <div className="overflow-x-auto rounded-xl border border-slate-800">
-                        <table className="w-full text-left text-sm">
-                            <thead className="bg-slate-800/50 text-slate-400 uppercase text-[10px] font-black tracking-widest">
-                                <tr>
-                                    <th className="p-4 cursor-pointer hover:text-white transition-colors" onClick={() => handleSort('data')}>
-                                        Data {sortField === 'data' && (sortDirection === 'asc' ? '↑' : '↓')}
-                                    </th>
-                                    <th className="p-4">Ora</th>
-                                    <th className="p-4 cursor-pointer hover:text-white transition-colors" onClick={() => handleSort('nume_sportiv')}>
-                                        Sportiv {sortField === 'nume_sportiv' && (sortDirection === 'asc' ? '↑' : '↓')}
-                                    </th>
-                                    <th className="p-4 cursor-pointer hover:text-white transition-colors" onClick={() => handleSort('nume_grupa')}>
-                                        Grupa {sortField === 'nume_grupa' && (sortDirection === 'asc' ? '↑' : '↓')}
-                                    </th>
-                                    <th className="p-4">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-800">
-                                {loading ? (
-                                    <tr><td colSpan={5} className="p-12 text-center text-slate-500 italic">Se încarcă datele...</td></tr>
-                                ) : filteredAndSortedIstoric.length === 0 ? (
-                                    <tr><td colSpan={5} className="p-12 text-center text-slate-500 italic">Nu au fost găsite rezultate conform filtrelor.</td></tr>
-                                ) : (
-                                    filteredAndSortedIstoric.map((row, idx) => {
-                                        const sp = sportivi[row.sportiv_id];
-                                        return (
-                                            <tr key={idx} className="hover:bg-slate-800/30 transition-colors group">
-                                                <td className="p-4 text-slate-300">{new Date(row.data).toLocaleDateString('ro-RO')}</td>
-                                                <td className="p-4 text-slate-500 font-mono">{row.ora_start}</td>
-                                                <td className="p-4">
-                                                    <span 
-                                                        className="font-bold text-white cursor-pointer hover:text-indigo-400 hover:underline transition-colors"
-                                                        onClick={() => sp && onViewSportiv && onViewSportiv(sp)}
-                                                    >
-                                                        {sp ? `${sp.nume} ${sp.prenume}` : 'Necunoscut'}
-                                                    </span>
-                                                </td>
-                                                <td className="p-4 text-slate-400">{row.nume_grupa}</td>
-                                                <td className="p-4">
-                                                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${row.status?.toLowerCase() === 'prezent' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}`}>
-                                                        {row.status}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                    <ResponsiveTable
+                        columns={columns}
+                        data={filteredAndSortedIstoric}
+                        onSort={handleSort}
+                        sortConfig={{ key: sortField, direction: sortDirection }}
+                        renderMobileItem={renderMobileItem}
+                    />
                 </div>
             </Card>
         </div>

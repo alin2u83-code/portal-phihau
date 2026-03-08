@@ -5,6 +5,7 @@ import { ArrowLeftIcon, ExclamationTriangleIcon } from './icons';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell } from 'recharts';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useData } from '../contexts/DataContext';
+import { ResponsiveTable, Column } from './ResponsiveTable';
 
 interface RaportPrezentaProps {
     onBack: () => void;
@@ -106,6 +107,7 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
 
         const athleteSummary = Array.from(athleteStats.values()).map(stat => ({
             ...stat,
+            id: stat.sportiv.id,
             percentage: stat.total > 0 ? Math.round((stat.present / stat.total) * 100) : 0
         })).sort((a, b) => a.percentage - b.percentage);
 
@@ -131,6 +133,102 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
         return { groupChartData: data, activeGroups: groupNames };
     }, [filteredPresenceRecords, monthNames]);
     
+    // --- Columns for Summary Table ---
+    const columnsSummary: Column<typeof athleteSummary[0]>[] = [
+        {
+            key: 'sportivNume',
+            label: 'Nume Sportiv',
+            render: (stat) => (
+                <div className="flex items-center gap-2 font-medium text-white hover:text-brand-primary hover:underline cursor-pointer" onClick={() => onViewSportiv(stat.sportiv)}>
+                    {stat.percentage < 50 && <span title="Prezență sub 50%"><ExclamationTriangleIcon className="w-4 h-4 text-red-500" /></span>}
+                    {stat.sportivNume}
+                </div>
+            )
+        },
+        {
+            key: 'present',
+            label: 'Prezențe',
+            headerClassName: 'text-center',
+            cellClassName: 'text-center text-slate-300',
+            render: (stat) => <span>{stat.present} / {stat.total}</span>
+        },
+        {
+            key: 'percentage',
+            label: 'Procentaj',
+            headerClassName: 'text-center',
+            cellClassName: 'text-center',
+            render: (stat) => (
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${stat.percentage < 50 ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-green-500/20 text-green-400 border border-green-500/30'}`}>
+                    {stat.percentage}%
+                </span>
+            )
+        }
+    ];
+
+    const renderMobileItemSummary = (stat: typeof athleteSummary[0]) => (
+        <Card className={`mb-4 border-l-4 ${stat.percentage < 50 ? 'border-red-500 bg-red-900/10' : 'border-green-500'}`}>
+            <div className="flex justify-between items-start mb-2">
+                <div className="flex items-center gap-2">
+                    {stat.percentage < 50 && <ExclamationTriangleIcon className="w-4 h-4 text-red-500" />}
+                    <p className="font-bold text-white text-lg" onClick={() => onViewSportiv(stat.sportiv)}>{stat.sportivNume}</p>
+                </div>
+                <span className={`px-2 py-1 rounded-full text-xs font-bold ${stat.percentage < 50 ? 'bg-red-900/50 text-red-300' : 'bg-green-900/50 text-green-300'}`}>
+                    {stat.percentage}%
+                </span>
+            </div>
+            <div className="mt-2 text-sm text-slate-400">
+                Prezențe: <span className="text-white font-bold">{stat.present} / {stat.total}</span>
+            </div>
+        </Card>
+    );
+
+    // --- Columns for Detailed Log Table ---
+    const columnsLog: Column<typeof filteredDetailedLog[0]>[] = [
+        {
+            key: 'data',
+            label: 'Data',
+            render: (rec) => <span className="whitespace-nowrap">{new Date(rec.data + 'T00:00:00').toLocaleDateString('ro-RO')}</span>
+        },
+        {
+            key: 'sportivNume',
+            label: 'Nume Sportiv',
+            render: (rec) => (
+                <span className="font-medium text-white hover:text-brand-primary hover:underline cursor-pointer" onClick={() => rec.sportiv && onViewSportiv(rec.sportiv)}>
+                    {rec.sportivNume}
+                </span>
+            )
+        },
+        {
+            key: 'grupaNume',
+            label: 'Grupa',
+            render: (rec) => <span className="text-slate-400">{rec.grupaNume}</span>
+        },
+        {
+            key: 'status',
+            label: 'Status',
+            headerClassName: 'text-center',
+            cellClassName: 'text-center',
+            render: (rec) => (
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${rec.status === 'Prezent' ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}`}>
+                    {rec.status}
+                </span>
+            )
+        }
+    ];
+
+    const renderMobileItemLog = (rec: typeof filteredDetailedLog[0]) => (
+        <Card className={`mb-4 border-l-4 ${rec.status === 'Prezent' ? 'border-green-500' : 'border-red-500'}`}>
+            <div className="flex justify-between items-start mb-2">
+                <div>
+                    <p className="font-bold text-white text-lg" onClick={() => rec.sportiv && onViewSportiv(rec.sportiv)}>{rec.sportivNume}</p>
+                    <p className="text-sm text-slate-400">{new Date(rec.data + 'T00:00:00').toLocaleDateString('ro-RO')} - {rec.grupaNume}</p>
+                </div>
+                <span className={`px-2 py-1 rounded-full text-xs font-bold ${rec.status === 'Prezent' ? 'bg-green-900/50 text-green-300' : 'bg-red-900/50 text-red-300'}`}>
+                    {rec.status}
+                </span>
+            </div>
+        </Card>
+    );
 
     return (
         <div className="space-y-6">
@@ -183,31 +281,12 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
                 <Card className="p-0 overflow-hidden">
                     <div className="p-4 bg-slate-700/50 font-bold text-white">Sumar pe Sportiv (Atenție &lt; 50%)</div>
                     <div className="overflow-x-auto max-h-[600px]">
-                        <table className="w-full text-left text-sm min-w-[400px]">
-                            <thead className="bg-slate-800 text-slate-400 sticky top-0">
-                                <tr>
-                                    <th className="p-3 font-semibold">Nume Sportiv</th>
-                                    <th className="p-3 font-semibold text-center">Prezențe</th>
-                                    <th className="p-3 font-semibold text-center">Procentaj</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-700">
-                                {athleteSummary.map(stat => (
-                                    <tr key={stat.sportiv.id} className={`hover:bg-slate-700/30 ${stat.percentage < 50 ? 'bg-red-900/10' : ''}`}>
-                                        <td className="p-3 font-medium text-white hover:text-brand-primary hover:underline cursor-pointer flex items-center gap-2" onClick={() => onViewSportiv(stat.sportiv)}>
-                                            {stat.percentage < 50 && <span title="Prezență sub 50%"><ExclamationTriangleIcon className="w-4 h-4 text-red-500" /></span>}
-                                            {stat.sportivNume}
-                                        </td>
-                                        <td className="p-3 text-center text-slate-300">{stat.present} / {stat.total}</td>
-                                        <td className="p-3 text-center">
-                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${stat.percentage < 50 ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-green-500/20 text-green-400 border border-green-500/30'}`}>
-                                                {stat.percentage}%
-                                            </span>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                        <ResponsiveTable
+                            columns={columnsSummary}
+                            data={athleteSummary}
+                            renderMobileItem={renderMobileItemSummary}
+                            idKey="id"
+                        />
                         {athleteSummary.length === 0 && <p className="p-12 text-center text-slate-500 italic">Niciun rezultat conform filtrelor.</p>}
                     </div>
                 </Card>
@@ -215,32 +294,12 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
                 <Card className="p-0 overflow-hidden">
                     <div className="p-4 bg-slate-700/50 font-bold text-white">Jurnal Detaliat Prezențe</div>
                     <div className="overflow-x-auto max-h-[600px]">
-                        <table className="w-full text-left text-sm min-w-[500px]">
-                            <thead className="bg-slate-800 text-slate-400 sticky top-0">
-                                <tr>
-                                    <th className="p-3 font-semibold">Data</th>
-                                    <th className="p-3 font-semibold">Nume Sportiv</th>
-                                    <th className="p-3 font-semibold">Grupa</th>
-                                    <th className="p-3 font-semibold text-center">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-700">
-                                {filteredDetailedLog.map(rec => (
-                                    <tr key={rec.id} className="hover:bg-slate-700/30">
-                                        <td className="p-3 whitespace-nowrap">{new Date(rec.data + 'T00:00:00').toLocaleDateString('ro-RO')}</td>
-                                        <td className="p-3 font-medium text-white hover:text-brand-primary hover:underline cursor-pointer" onClick={() => rec.sportiv && onViewSportiv(rec.sportiv)}>
-                                            {rec.sportivNume}
-                                        </td>
-                                        <td className="p-3 text-slate-400">{rec.grupaNume}</td>
-                                        <td className="p-3 text-center">
-                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${rec.status === 'Prezent' ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}`}>
-                                                {rec.status}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                        <ResponsiveTable
+                            columns={columnsLog}
+                            data={filteredDetailedLog}
+                            renderMobileItem={renderMobileItemLog}
+                            idKey="id"
+                        />
                          {filteredDetailedLog.length === 0 && <p className="p-12 text-center text-slate-500 italic">Niciun rezultat conform filtrelor.</p>}
                     </div>
                 </Card>

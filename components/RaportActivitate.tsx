@@ -2,10 +2,11 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../supabaseClient';
 import { User, RaportActivitateRecord } from '../types';
 import { useError } from './ErrorProvider';
-import { Card, Button, Input, Switch } from './ui';
-import { ArrowLeftIcon, DocumentArrowDownIcon } from './icons';
+import { Card, Button, Switch } from './ui';
+import { DocumentArrowDownIcon } from './icons';
 import { exportToCsv } from '../utils/csv';
 import { useData } from '../contexts/DataContext';
+import { ResponsiveTable, Column } from './ResponsiveTable';
 
 type SortKey = keyof RaportActivitateRecord;
 
@@ -61,12 +62,13 @@ export const RaportActivitate: React.FC<{ onBack: () => void }> = ({ onBack }) =
         return sortableData;
     }, [data, sortConfig, showAtRiskOnly]);
 
-    const requestSort = (key: SortKey) => {
+    const requestSort = (key: string) => {
+        const sortKey = key as SortKey;
         let direction: 'asc' | 'desc' = 'asc';
-        if (sortConfig.key === key && sortConfig.direction === 'asc') {
+        if (sortConfig.key === sortKey && sortConfig.direction === 'asc') {
             direction = 'desc';
         }
-        setSortConfig({ key, direction });
+        setSortConfig({ key: sortKey, direction });
     };
     
     const handleExport = () => {
@@ -88,6 +90,62 @@ export const RaportActivitate: React.FC<{ onBack: () => void }> = ({ onBack }) =
         });
     };
 
+    const columns: Column<RaportActivitateRecord>[] = [
+        {
+            key: 'nume_complet',
+            label: 'Nume Sportiv',
+            render: (row) => <span className="font-medium text-white">{row.nume_complet}</span>
+        },
+        {
+            key: 'grad_actual',
+            label: 'Grad Actual',
+            render: (row) => <span>{row.grad_actual || 'Începător'}</span>
+        },
+        {
+            key: 'prezente_efective',
+            label: 'Prezențe',
+            render: (row) => <span className="font-bold">{row.prezente_efective} / {row.antrenamente_tinute}</span>
+        },
+        {
+            key: 'procentaj_prezenta',
+            label: 'Procentaj',
+            render: (row) => (
+                <span className={`font-bold ${row.procentaj_prezenta < 50 ? 'text-red-400' : 'text-green-400'}`}>
+                    {row.procentaj_prezenta}%
+                </span>
+            )
+        },
+        {
+            key: 'ultima_prezenta',
+            label: 'Ultima Prezență',
+            render: (row) => <span>{formatRoDate(row.ultima_prezenta)}</span>
+        }
+    ];
+
+    const renderMobileItem = (row: RaportActivitateRecord) => (
+        <Card className={`mb-4 border-l-4 ${row.procentaj_prezenta < 50 ? 'border-red-500 bg-red-900/10' : 'border-green-500'}`}>
+            <div className="flex justify-between items-start mb-2">
+                <div>
+                    <p className="font-bold text-white text-lg">{row.nume_complet}</p>
+                    <p className="text-sm text-slate-400">{row.grad_actual || 'Începător'}</p>
+                </div>
+                <span className={`px-2 py-1 rounded-full text-xs font-bold ${row.procentaj_prezenta < 50 ? 'bg-red-900/50 text-red-300' : 'bg-green-900/50 text-green-300'}`}>
+                    {row.procentaj_prezenta}%
+                </span>
+            </div>
+            <div className="mt-2 space-y-1 text-sm">
+                <div className="flex justify-between">
+                    <span className="text-slate-500">Prezențe:</span>
+                    <span className="text-white font-bold">{row.prezente_efective} / {row.antrenamente_tinute}</span>
+                </div>
+                <div className="flex justify-between">
+                    <span className="text-slate-500">Ultima Prezență:</span>
+                    <span className="text-white">{formatRoDate(row.ultima_prezenta)}</span>
+                </div>
+            </div>
+        </Card>
+    );
+
     if (loading) {
         return <div className="text-center p-8">Se încarcă raportul de activitate...</div>;
     }
@@ -99,49 +157,27 @@ export const RaportActivitate: React.FC<{ onBack: () => void }> = ({ onBack }) =
             </div>
             
             <Card>
-                <div className="flex justify-between items-center">
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                     <Switch 
                         label="Afișează doar sportivii la risc (prezență < 50%)"
                         name="atRisk"
                         checked={showAtRiskOnly}
                         onChange={(e) => setShowAtRiskOnly(e.target.checked)}
                     />
-                    <Button onClick={handleExport} variant="primary">
+                    <Button onClick={handleExport} variant="primary" className="w-full sm:w-auto">
                         <DocumentArrowDownIcon className="w-5 h-5 mr-2" /> Export CSV
                     </Button>
                 </div>
             </Card>
 
-            <Card className="p-0 overflow-hidden">
+            <Card className="p-0 overflow-hidden bg-transparent border-none shadow-none">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm min-w-[800px]">
-                        <thead className="bg-slate-700/50 text-sky-300 text-xs uppercase">
-                            <tr>
-                                {Object.entries({
-                                    nume_complet: 'Nume Sportiv',
-                                    grad_actual: 'Grad Actual',
-                                    prezente_efective: 'Prezențe',
-                                    procentaj_prezenta: 'Procentaj',
-                                    ultima_prezenta: 'Ultima Prezență'
-                                }).map(([key, label]) => (
-                                    <th key={key} className="p-3 font-semibold cursor-pointer" onClick={() => requestSort(key as SortKey)}>
-                                        {label} {sortConfig.key === key ? (sortConfig.direction === 'asc' ? '▲' : '▼') : ''}
-                                    </th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-700">
-                            {sortedAndFilteredData.map(item => (
-                                <tr key={item.sportiv_id} className={`hover:bg-slate-700/50 ${item.procentaj_prezenta < 50 ? 'bg-red-900/20' : ''}`}>
-                                    <td className="p-3 font-medium text-white">{item.nume_complet}</td>
-                                    <td className="p-3">{item.grad_actual || 'Începător'}</td>
-                                    <td className="p-3 font-bold">{item.prezente_efective} / {item.antrenamente_tinute}</td>
-                                    <td className={`p-3 font-bold ${item.procentaj_prezenta < 50 ? 'text-red-400' : 'text-green-400'}`}>{item.procentaj_prezenta}%</td>
-                                    <td className="p-3">{formatRoDate(item.ultima_prezenta)}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                    <ResponsiveTable
+                        columns={columns}
+                        data={sortedAndFilteredData}
+                        renderMobileItem={renderMobileItem}
+                        onSort={requestSort}
+                    />
                      {sortedAndFilteredData.length === 0 && <p className="p-12 text-center text-slate-500 italic">Niciun sportiv de afișat conform filtrelor.</p>}
                 </div>
             </Card>

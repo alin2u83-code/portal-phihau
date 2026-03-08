@@ -5,6 +5,7 @@ import { Grad, User, Sportiv, SesiuneExamen, Locatie } from '../types';
 import { ExclamationTriangleIcon, CheckCircleIcon, DocumentArrowDownIcon, XCircleIcon, UserPlusIcon, ChevronDownIcon } from './icons';
 import { useError } from './ErrorProvider';
 import { Modal, Button, Input, Select } from './ui';
+import { ResponsiveTable, Column } from './ResponsiveTable';
 
 interface ImportExamenModalProps {
     isOpen: boolean;
@@ -364,6 +365,62 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
         }));
     };
 
+    const columns: Column<PreviewRow>[] = [
+        {
+            key: 'nume',
+            label: 'Sportiv',
+            render: (row) => <span className="font-semibold text-white">{row.Nume} {row.Prenume}</span>
+        },
+        {
+            key: 'birthdate',
+            label: 'Data Nașterii',
+            render: (row) => <span className="text-xs text-slate-400">{row.birthdate || '-'}</span>
+        },
+        {
+            key: 'sesiune',
+            label: 'Sesiune',
+            render: (row) => <span className="text-xs text-slate-400">{row.Sesiune_Denumire}</span>
+        },
+        {
+            key: 'status',
+            label: 'Acțiune/Status',
+            render: (row) => (
+                row.status === 'conflict' ? (
+                    <ConflictResolver row={row} onResolve={handleResolution} />
+                ) : (
+                    <div className="flex items-center gap-2">
+                        {row.status === 'valid' || row.status === 'resolved' || row.status === 'create' ? <CheckCircleIcon className="w-5 h-5 text-green-400" /> : <XCircleIcon className="w-5 h-5 text-red-400" />}
+                        <span className="text-xs">{row.message}</span>
+                    </div>
+                )
+            )
+        }
+    ];
+
+    const renderMobileItem = (row: PreviewRow) => (
+        <div className={`mb-4 p-4 rounded-lg border-l-4 bg-slate-800/50 ${row.status === 'valid' || row.status === 'resolved' || row.status === 'create' ? 'border-green-500' : row.status === 'conflict' ? 'border-amber-500' : 'border-red-500'}`}>
+            <div className="flex justify-between items-start mb-2">
+                <div>
+                    <p className="font-bold text-white text-lg">{row.Nume} {row.Prenume}</p>
+                    <p className="text-sm text-slate-400">Data N.: {row.birthdate || '-'}</p>
+                </div>
+            </div>
+            <p className="text-sm text-slate-400 mb-2">Sesiune: {row.Sesiune_Denumire}</p>
+            
+            <div className="mt-2">
+                <label className="text-xs text-slate-500 uppercase font-bold mb-1 block">Status</label>
+                {row.status === 'conflict' ? (
+                    <ConflictResolver row={row} onResolve={handleResolution} />
+                ) : (
+                    <div className="flex items-center gap-2">
+                        {row.status === 'valid' || row.status === 'resolved' || row.status === 'create' ? <CheckCircleIcon className="w-5 h-5 text-green-400" /> : <XCircleIcon className="w-5 h-5 text-red-400" />}
+                        <span className="text-xs text-slate-300">{row.message}</span>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+
     const unresolvedConflicts = previewData.some(r => r.status === 'conflict');
     const importableRowsCount = previewData.filter(r => r.status === 'valid' || r.status === 'create' || r.status === 'resolved').length;
 
@@ -405,26 +462,11 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                     <div className="space-y-4 animate-fade-in-down">
                         <h2 className="text-xl font-bold">Pasul 3: Previzualizare și Confirmare</h2>
                         <div className="max-h-[45vh] overflow-y-auto border border-slate-700 rounded-lg">
-                            <table className="w-full text-left text-sm">
-                                <thead className="bg-slate-800 sticky top-0 z-10"><tr><th className="p-2">Sportiv</th><th className="p-2">Data Nașterii</th><th className="p-2">Sesiune</th><th className="p-2 w-1/3">Acțiune/Status</th></tr></thead>
-                                <tbody className="divide-y divide-slate-800">{previewData.map(row => (
-                                    <tr key={row.originalIndex}>
-                                        <td className="p-2 font-semibold text-white">{row.Nume} {row.Prenume}</td>
-                                        <td className="p-2 text-xs text-slate-400">{row.birthdate || '-'}</td>
-                                        <td className="p-2 text-xs text-slate-400">{row.Sesiune_Denumire}</td>
-                                        <td className="p-2">
-                                            {row.status === 'conflict' ? (
-                                                <ConflictResolver row={row} onResolve={handleResolution} />
-                                            ) : (
-                                                <div className="flex items-center gap-2">
-                                                    {row.status === 'valid' || row.status === 'resolved' || row.status === 'create' ? <CheckCircleIcon className="w-5 h-5 text-green-400" /> : <XCircleIcon className="w-5 h-5 text-red-400" />}
-                                                    <span className="text-xs">{row.message}</span>
-                                                </div>
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))}</tbody>
-                            </table>
+                            <ResponsiveTable 
+                                columns={columns}
+                                data={previewData}
+                                renderMobileItem={renderMobileItem}
+                            />
                         </div>
                     </div>
                 )}

@@ -5,6 +5,7 @@ import { ArrowLeftIcon, PlusIcon, EditIcon, TrashIcon, SearchIcon } from './icon
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
+import { ResponsiveTable, Column } from './ResponsiveTable';
 
 interface GestiuneFacturiProps {
     onBack: () => void;
@@ -152,6 +153,86 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
         }
     };
 
+    const columns: Column<Plata>[] = [
+        {
+            key: 'data',
+            label: 'Data',
+            render: (p) => <span className="text-slate-300">{new Date(p.data).toLocaleDateString('ro-RO')}</span>
+        },
+        {
+            key: 'entity',
+            label: 'Sportiv/Familie',
+            render: (p) => <span className="font-medium text-white">{getEntityName(p)}</span>
+        },
+        {
+            key: 'descriere',
+            label: 'Descriere',
+            render: (p) => <span className="text-slate-400">{p.descriere}</span>
+        },
+        {
+            key: 'suma',
+            label: 'Sumă',
+            headerClassName: 'text-right',
+            cellClassName: 'text-right',
+            render: (p) => <span className="font-bold text-white">{p.suma.toFixed(2)} lei</span>
+        },
+        {
+            key: 'status',
+            label: 'Status',
+            headerClassName: 'text-center',
+            cellClassName: 'text-center',
+            render: (p) => (
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                    p.status === 'Achitat' ? 'bg-green-600/20 text-green-400 border-green-600/50' : 
+                    p.status === 'Achitat Parțial' ? 'bg-amber-600/20 text-amber-400 border-amber-600/50' : 
+                    'bg-red-600/20 text-red-400 border-red-600/50'
+                }`}>
+                    {p.status}
+                </span>
+            )
+        },
+        {
+            key: 'actions',
+            label: 'Acțiuni',
+            headerClassName: 'text-right',
+            cellClassName: 'text-right',
+            render: (p) => (
+                <div className="flex justify-end gap-2">
+                    <Button size="sm" variant="secondary" onClick={() => handleOpenEdit(p)}><EditIcon className="w-4 h-4" /></Button>
+                    <Button size="sm" variant="danger" onClick={() => setPlataToDelete(p)}><TrashIcon className="w-4 h-4" /></Button>
+                </div>
+            )
+        }
+    ];
+
+    const renderMobileItem = (p: Plata) => (
+        <Card className="mb-4 border-l-4 border-indigo-500">
+            <div className="flex justify-between items-start mb-2">
+                <div>
+                    <p className="font-bold text-white text-lg">{getEntityName(p)}</p>
+                    <p className="text-sm text-slate-400">{new Date(p.data).toLocaleDateString('ro-RO')}</p>
+                </div>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                    p.status === 'Achitat' ? 'bg-green-600/20 text-green-400 border-green-600/50' : 
+                    p.status === 'Achitat Parțial' ? 'bg-amber-600/20 text-amber-400 border-amber-600/50' : 
+                    'bg-red-600/20 text-red-400 border-red-600/50'
+                }`}>
+                    {p.status}
+                </span>
+            </div>
+            
+            <div className="mt-2 space-y-1">
+                <p className="text-sm text-slate-300"><span className="text-slate-500">Descriere:</span> {p.descriere}</p>
+                <p className="text-sm font-bold text-white"><span className="text-slate-500 font-normal">Sumă:</span> {p.suma.toFixed(2)} lei</p>
+            </div>
+
+            <div className="flex justify-end gap-2 mt-4 pt-2 border-t border-slate-700">
+                <Button size="sm" variant="secondary" onClick={() => handleOpenEdit(p)} className="flex-1 justify-center"><EditIcon className="w-4 h-4 mr-2" /> Editează</Button>
+                <Button size="sm" variant="danger" onClick={() => setPlataToDelete(p)} className="flex-1 justify-center"><TrashIcon className="w-4 h-4 mr-2" /> Șterge</Button>
+            </div>
+        </Card>
+    );
+
     return (
         <div className="space-y-6">
             <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
@@ -194,43 +275,11 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
                     </div>
                 </div>
                 <div className="overflow-x-auto max-h-[60vh]">
-                    <table className="w-full text-left text-sm">
-                        <thead className="bg-slate-800 text-slate-400 sticky top-0">
-                            <tr>
-                                <th className="p-3">Data</th>
-                                <th className="p-3">Sportiv/Familie</th>
-                                <th className="p-3">Descriere</th>
-                                <th className="p-3 text-right">Sumă</th>
-                                <th className="p-3 text-center">Status</th>
-                                <th className="p-3 text-right">Acțiuni</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-700">
-                            {filteredPlati.map(p => (
-                                <tr key={p.id}>
-                                    <td className="p-3">{new Date(p.data).toLocaleDateString('ro-RO')}</td>
-                                    <td className="p-3 font-medium text-white">{getEntityName(p)}</td>
-                                    <td className="p-3">{p.descriere}</td>
-                                    <td className="p-3 text-right font-bold text-white">{p.suma.toFixed(2)} lei</td>
-                                    <td className="p-3 text-center">
-                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
-                                            p.status === 'Achitat' ? 'bg-green-600/20 text-green-400 border-green-600/50' : 
-                                            p.status === 'Achitat Parțial' ? 'bg-amber-600/20 text-amber-400 border-amber-600/50' : 
-                                            'bg-red-600/20 text-red-400 border-red-600/50'
-                                        }`}>
-                                            {p.status}
-                                        </span>
-                                    </td>
-                                    <td className="p-3 text-right">
-                                        <div className="flex justify-end gap-2">
-                                            <Button size="sm" variant="secondary" onClick={() => handleOpenEdit(p)}><EditIcon className="w-4 h-4" /></Button>
-                                            <Button size="sm" variant="danger" onClick={() => setPlataToDelete(p)}><TrashIcon className="w-4 h-4" /></Button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                    <ResponsiveTable 
+                        columns={columns}
+                        data={filteredPlati}
+                        renderMobileItem={renderMobileItem}
+                    />
                      {filteredPlati.length === 0 && <p className="p-12 text-center text-slate-500 italic">Nicio factură găsită.</p>}
                 </div>
             </Card>

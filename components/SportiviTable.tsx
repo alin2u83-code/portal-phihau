@@ -2,7 +2,7 @@ import React from 'react';
 import { Sportiv, Grupa, Grad } from '../types';
 import { ResponsiveTable, Column } from './ResponsiveTable';
 import { GradBadge } from '../utils/grades';
-import { Button } from './ui';
+import { Button, Card, RoleBadge } from './ui';
 import { EditIcon, WalletIcon, ShieldCheckIcon, TrashIcon } from './icons';
 
 interface SportiviTableProps {
@@ -15,6 +15,7 @@ interface SportiviTableProps {
   onOpenAccountSettings: (sportiv: Sportiv) => void;
   onDelete: (sportiv: Sportiv) => void;
   requestSort: (key: string) => void;
+  sortConfig: { key: string; direction: 'asc' | 'desc' }[];
 }
 
 const getAge = (dateString: string | null | undefined): number => {
@@ -29,7 +30,7 @@ const getAge = (dateString: string | null | undefined): number => {
 };
 
 export const SportiviTable: React.FC<SportiviTableProps> = (props) => {
-  const { sportivi, grupe, grade, onRowClick, onEdit, onOpenWallet, onOpenAccountSettings, onDelete, requestSort } = props;
+  const { sportivi, grupe, grade, onRowClick, onEdit, onOpenWallet, onOpenAccountSettings, onDelete, requestSort, sortConfig } = props;
 
   const columns: Column<Sportiv>[] = [
     {
@@ -89,12 +90,56 @@ export const SportiviTable: React.FC<SportiviTableProps> = (props) => {
     }
 ];
 
+  const renderMobileItem = (sportiv: Sportiv) => {
+      const grad = grade.find(g => g.id === sportiv.grad_actual_id);
+      const grupa = grupe.find(g => g.id === sportiv.grupa_id);
+
+      return (
+          <Card className={`mb-4 border-l-4 ${sportiv.status === 'Activ' ? 'border-green-500' : 'border-slate-600'}`}>
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="font-bold text-white text-lg mb-1">{sportiv.nume} {sportiv.prenume}</p>
+                <div className="flex items-center gap-2 mb-2">
+                    <GradBadge grad={grad} />
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${sportiv.status === 'Activ' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                        {sportiv.status}
+                    </span>
+                </div>
+                <p className="text-sm text-slate-400">{getAge(sportiv.data_nasterii)} ani - {grupa?.denumire || 'Fără grupă'}</p>
+              </div>
+              <div className="flex flex-wrap gap-1 justify-end max-w-[100px]">
+                {(sportiv.roluri || []).map(r => <RoleBadge key={r.id} role={r} />)}
+              </div>
+            </div>
+            
+            <div className="mt-4 pt-4 border-t border-slate-700 flex justify-between items-center">
+                <div className="flex gap-2">
+                     <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); onEdit(sportiv); }} className="!p-2">
+                        <EditIcon className="w-4 h-4" />
+                    </Button>
+                    <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); onOpenAccountSettings(sportiv); }} className="!p-2">
+                        <ShieldCheckIcon className="w-4 h-4" />
+                    </Button>
+                     <Button size="sm" variant="danger" onClick={(e) => { e.stopPropagation(); onDelete(sportiv); }} className="!p-2">
+                        <TrashIcon className="w-4 h-4" />
+                    </Button>
+                </div>
+                <Button size="sm" variant="info" onClick={(e) => { e.stopPropagation(); onOpenWallet(sportiv); }}>
+                    <WalletIcon className="w-4 h-4 mr-2" /> Portofel
+                </Button>
+            </div>
+          </Card>
+      );
+  };
+
   return (
     <ResponsiveTable
       columns={columns}
       data={sportivi}
       onRowClick={onRowClick}
       onSort={requestSort}
+      sortConfig={sortConfig}
+      renderMobileItem={renderMobileItem}
     />
   );
 };

@@ -148,6 +148,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ onBack, onNavigate, 
 
     const [currentDate, setCurrentDate] = useState(() => {
         const d = new Date();
+        // Set to the first of the current month to avoid issues with days in month
+        d.setDate(1);
         d.setHours(0, 0, 0, 0);
         return d;
     });
@@ -157,7 +159,6 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ onBack, onNavigate, 
     const changeMonth = (delta: number) => {
         setCurrentDate(prev => {
             const newDate = new Date(prev);
-            newDate.setDate(1);
             newDate.setMonth(newDate.getMonth() + delta);
             return newDate;
         });
@@ -315,7 +316,12 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ onBack, onNavigate, 
                     <h2 className="text-xl font-bold capitalize text-white">{monthName}</h2>
                     <div className="flex items-center gap-2">
                         <Button variant="secondary" size="sm" onClick={() => changeMonth(-1)} className="!p-1.5 h-auto"><ChevronLeftIcon className="w-5 h-5"/></Button>
-                        <Button variant="secondary" size="sm" onClick={() => setCurrentDate(new Date())} className="text-xs px-3">Azi</Button>
+                        <Button variant="secondary" size="sm" onClick={() => {
+                            const d = new Date();
+                            d.setDate(1);
+                            d.setHours(0, 0, 0, 0);
+                            setCurrentDate(d);
+                        }} className="text-xs px-3">Azi</Button>
                         <Button variant="secondary" size="sm" onClick={() => changeMonth(1)} className="!p-1.5 h-auto"><ChevronRightIcon className="w-5 h-5"/></Button>
                     </div>
                 </div>

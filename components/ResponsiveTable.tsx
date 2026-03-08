@@ -1,5 +1,5 @@
 import React from 'react';
-import { Input } from './ui';
+import { Input, Button } from './ui';
 import { SearchIcon } from './icons';
 import { useIsMobile } from '../hooks/useIsMobile';
 
@@ -15,7 +15,7 @@ export interface Column<T> {
     tooltip?: string;
 }
 
-interface ResponsiveTableProps<T> {
+export interface ResponsiveTableProps<T> {
     columns: Column<T>[];
     data: T[];
     onRowClick?: (item: T) => void;
@@ -27,6 +27,8 @@ interface ResponsiveTableProps<T> {
     onSearchChange?: (value: string) => void;
     searchPlaceholder?: string;
     renderMobileItem?: (item: T) => React.ReactNode;
+    pageSize?: number;
+    idKey?: keyof T;
 }
 
 // --- MAIN COMPONENT ---
@@ -44,8 +46,18 @@ export function ResponsiveTable<T>({
     searchPlaceholder,
     renderMobileItem,
     idKey = 'id' as keyof T,
-}: ResponsiveTableProps<T> & { idKey?: keyof T }) {
+    pageSize = 10,
+}: ResponsiveTableProps<T>) {
     const isMobile = useIsMobile();
+    const [currentPage, setCurrentPage] = React.useState(1);
+
+    const paginatedData = React.useMemo(() => {
+        if (!pageSize) return data;
+        const start = (currentPage - 1) * pageSize;
+        return data.slice(start, start + pageSize);
+    }, [data, currentPage, pageSize]);
+
+    const totalPages = Math.ceil(data.length / pageSize);
 
     return (
         <div className="bg-[var(--bg-card)] rounded-lg shadow-md overflow-hidden border border-[var(--border-color)]">
@@ -58,7 +70,10 @@ export function ResponsiveTable<T>({
                             label=""
                             type="text"
                             value={searchTerm || ''}
-                            onChange={(e) => onSearchChange(e.target.value)}
+                            onChange={(e) => {
+                                setCurrentPage(1);
+                                onSearchChange(e.target.value);
+                            }}
                             placeholder={searchPlaceholder || "Caută..."}
                             className="!pl-10"
                         />
@@ -69,7 +84,7 @@ export function ResponsiveTable<T>({
             {/* Mobile View */}
             {isMobile && renderMobileItem ? (
                 <div className="divide-y divide-[var(--border-color)]">
-                    {data.map((item, index) => (
+                    {paginatedData.map((item, index) => (
                         <div key={String(item[idKey] || index)} onClick={() => onRowClick?.(item)}>
                             {renderMobileItem(item)}
                         </div>
@@ -87,7 +102,10 @@ export function ResponsiveTable<T>({
                                         scope="col" 
                                         className={`p-3 font-semibold ${col.headerClassName || ''} ${col.className || ''} ${onSort ? 'cursor-pointer' : ''}`}
                                         title={col.tooltip}
-                                        onClick={() => onSort?.(String(col.key))}
+                                        onClick={() => {
+                                            setCurrentPage(1);
+                                            onSort?.(String(col.key));
+                                        }}
                                     >
                                         {col.label} {(() => {
                                                 if (!sortConfig) return '';
@@ -103,7 +121,7 @@ export function ResponsiveTable<T>({
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-[var(--border-color)]">
-                            {data.map((item, index) => (
+                            {paginatedData.map((item, index) => (
                                 <tr 
                                     key={String(item[idKey] || index)} 
                                     className={`${onRowClick ? 'cursor-pointer hover:bg-[var(--bg-table-row-hover)]' : ''} ${item[idKey] === selectedRowId ? 'selected-row-highlight' : ''} ${rowClassName ? rowClassName(item) : ''}`}
@@ -127,6 +145,29 @@ export function ResponsiveTable<T>({
             {data.length === 0 && (
                 <div className="p-12 text-center text-slate-500 italic">
                     Niciun rezultat găsit.
+                </div>
+            )}
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+                <div className="p-4 border-t border-[var(--border-color)] flex justify-between items-center">
+                    <Button 
+                        size="sm" 
+                        variant="secondary" 
+                        disabled={currentPage === 1} 
+                        onClick={() => setCurrentPage(prev => prev - 1)}
+                    >
+                        Anterior
+                    </Button>
+                    <span className="text-sm text-slate-400">Pagina {currentPage} din {totalPages}</span>
+                    <Button 
+                        size="sm" 
+                        variant="secondary" 
+                        disabled={currentPage === totalPages} 
+                        onClick={() => setCurrentPage(prev => prev + 1)}
+                    >
+                        Următor
+                    </Button>
                 </div>
             )}
         </div>

@@ -146,7 +146,11 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ onBack, onNavigate, 
     const sportivi = filteredData.sportivi;
     const rezultate = filteredData.rezultate;
 
-    const [currentDate, setCurrentDate] = useState(new Date());
+    const [currentDate, setCurrentDate] = useState(() => {
+        const d = new Date();
+        d.setHours(0, 0, 0, 0);
+        return d;
+    });
     const { showError, showSuccess } = useError();
     const [modalEvent, setModalEvent] = useState<Eveniment | null>(null);
 

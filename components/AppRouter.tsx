@@ -50,6 +50,7 @@ import { Card } from './ui';
 import { RaportLunarPrezenta } from './RaportLunarPrezenta';
 import { DebugPage } from './DebugPage';
 import { AdminDashboard } from './AdminDashboard';
+import { ReportsDashboard } from './ReportsDashboard';
 import { useData } from '../contexts/DataContext';
 
 export interface AppRouterProps {
@@ -177,6 +178,8 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                             return renderProtected(<RaportActivitate onBack={handleBackToDashboard} />, permissions.isInstructor);
                         case 'raport-lunar-prezenta':
                             return renderProtected(<RaportLunarPrezenta onBack={handleBackToDashboard} />, isAtLeastInstructor);
+                        case 'rapoarte':
+                            return renderProtected(<ReportsDashboard onNavigate={setActiveView} />, isAtLeastInstructor);
                         case 'grupe':
                             return renderProtected(<GrupeManagement onBack={handleBackToDashboard} />, isAtLeastInstructor);
                         case 'activitati':

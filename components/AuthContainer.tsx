@@ -103,6 +103,25 @@ export const AuthContainer: React.FC = () => {
         return 'A apărut o eroare neașteptată. Vă rugăm reîncercați.';
     };
 
+    const [isResetModalOpen, setIsResetModalOpen] = React.useState(false);
+    const [resetEmail, setResetEmail] = React.useState('');
+    const [resetLoading, setResetLoading] = React.useState(false);
+
+    const handleResetPassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setResetLoading(true);
+        const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+            redirectTo: `${window.location.origin}/reset-password`,
+        });
+        setResetLoading(false);
+        if (error) {
+            dispatch({ type: 'SET_MESSAGE', payload: { type: 'error', text: getErrorMessage(error) } });
+        } else {
+            dispatch({ type: 'SET_MESSAGE', payload: { type: 'success', text: 'Email de resetare trimis!' } });
+            setIsResetModalOpen(false);
+        }
+    };
+
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         dispatch({ type: 'SET_MESSAGE', payload: null });
@@ -278,6 +297,11 @@ export const AuthContainer: React.FC = () => {
                         <form onSubmit={handleLogin} className="space-y-4">
                             <Input label="Email sau Nume Utilizator" name="email" type="text" value={form.email} onChange={handleChange} required autoComplete="username" />
                             <Input label="Parolă" name="parola" type="password" value={form.parola} onChange={handleChange} required autoComplete="current-password" />
+                            <div className="flex justify-end">
+                                <button type="button" className="text-sm text-amber-400 hover:text-amber-300" onClick={() => setIsResetModalOpen(true)}>
+                                    Am uitat parola
+                                </button>
+                            </div>
                             <Button type="submit" className="w-full !mt-6" size="md" isLoading={loading} variant="primary">Autentificare</Button>
                         </form>
                     ) : (
@@ -291,6 +315,21 @@ export const AuthContainer: React.FC = () => {
                             <Input label="Confirmă Parola" name="confirmParola" type="password" value={form.confirmParola} onChange={handleChange} required autoComplete="new-password" />
                             <Button type="submit" className="w-full !mt-6" size="md" isLoading={loading} variant="primary">Creează Cont</Button>
                         </form>
+                    )}
+                    
+                    {isResetModalOpen && (
+                        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+                            <Card className="w-full max-w-sm">
+                                <h2 className="text-lg font-bold text-white mb-4">Resetare Parolă</h2>
+                                <form onSubmit={handleResetPassword} className="space-y-4">
+                                    <Input label="Email" type="email" value={resetEmail} onChange={(e) => setResetEmail(e.target.value)} required />
+                                    <div className="flex justify-end gap-2">
+                                        <Button type="button" variant="secondary" onClick={() => setIsResetModalOpen(false)}>Anulează</Button>
+                                        <Button type="submit" variant="primary" isLoading={resetLoading}>Trimite</Button>
+                                    </div>
+                                </form>
+                            </Card>
+                        </div>
                     )}
                     
 

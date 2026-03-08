@@ -7,6 +7,7 @@ import { useError } from './ErrorProvider';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
 import { useSportivForm } from '../hooks/useSportivForm';
 import { validateSportiv } from '../utils/validation';
+import { useFamilyManager } from '../hooks/useFamilyManager';
 
 // --- Modale de adăugare rapidă ---
 // FIX: Exported QuickAddModal to be used in other components.
@@ -335,6 +336,8 @@ export const SportivFormModal: React.FC<{
     const [isGrupaModalOpen, setIsGrupaModalOpen] = useState(false);
     const [isFamilieModalOpen, setIsFamilieModalOpen] = useState(false);
 
+    const { handleCreateFamily } = useFamilyManager(familii, setFamilii, [], () => {});
+
     useEffect(() => {
         if (isOpen) {
             if (sportivToEdit) {
@@ -439,10 +442,7 @@ export const SportivFormModal: React.FC<{
             </Modal>
             <QuickAddModal title="Adaugă Grupă" label="Nume Grupă" isOpen={isGrupaModalOpen} onClose={() => setIsGrupaModalOpen(false)} onSave={handleQuickAddGrupa} />
             <QuickAddModal title="Adaugă Familie" label="Nume Familie" isOpen={isFamilieModalOpen} onClose={() => setIsFamilieModalOpen(false)} onSave={async (n) => {
-                const { data, error } = await supabase.from('familii').insert({ nume: n }).select().maybeSingle();
-                if (error) throw error;
-                if (!data) throw new Error("Familia a fost creată, dar nu a putut fi recuperată. Verificați permisiunile.");
-                setFamilii(prev => [...prev, data]);
+                await handleCreateFamily(n);
             }} />
         </>
     );

@@ -16,6 +16,7 @@ import { useIsMobile } from '../hooks/useIsMobile';
 import { useRoleAssignment } from '../hooks/useRoleAssignment';
 import { useSportivi } from '../hooks/useSportivi';
 import { useData } from '../contexts/DataContext';
+import { useFamilyManager } from '../hooks/useFamilyManager';
 
 const getAge = (dateString: string | null | undefined): number => {
     if (!dateString) return 0;
@@ -50,12 +51,51 @@ export const SportiviManagement: React.FC<{
         currentUser,
         setPlati,
         setTranzactii,
+        setSportivi,
         clubs = [],
         grade = [],
         allRoles = [], setAllRoles,
         filteredData,
         activeClubId,
+        familii = [],
+        plati = [],
+        tranzactii = [],
+        tipuriAbonament = [],
+        vizualizarePlati = [],
     } = useData();
+
+    const { showError, showSuccess } = useError();
+    const isMobile = useIsMobile();
+    const grupe = filteredData?.grupe || [];
+
+    const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }[]>([]);
+    const [sportivForWallet, setSportivForWallet] = useState<Sportiv | null>(null);
+    const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
+    const [selectedSportivForHighlight, setSelectedSportivForHighlight] = useState<Sportiv | null>(null);
+    const [sportivToEdit, setSportivToEdit] = useState<Sportiv | null>(null);
+    const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+    const [sportivForAccountCreation, setSportivForAccountCreation] = useState<Sportiv | null>(null);
+    const [createAccountForm, setCreateAccountForm] = useState({ email: '', username: '', parola: '' });
+    const [createAccountLoading, setCreateAccountLoading] = useState(false);
+    const [createAccountError, setCreateAccountError] = useState('');
+    const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+    const [accountSettingsSportiv, setAccountSettingsSportiv] = useState<Sportiv | null>(null);
+    const [sportivToDelete, setSportivToDelete] = useState<Sportiv | null>(null);
+
+    const handleOpenAddSportiv = () => {
+        setSportivToEdit(null);
+        setIsFormModalOpen(true);
+    };
+
+    const handleOpenEditSportiv = (sportiv: Sportiv) => {
+        setSportivToEdit(sportiv);
+        setIsFormModalOpen(true);
+    };
+
+    const handleCloseFormModal = () => {
+        setIsFormModalOpen(false);
+        setSportivToEdit(null);
+    };
 
     const [filters, setFilters] = useLocalStorage('phi-hau-sportivi-filters', {
         searchTerm: '',
@@ -81,7 +121,20 @@ export const SportiviManagement: React.FC<{
         );
     }, [sportiviData, filters.searchTerm]);
     
-    const loading = sportiviLoading;
+    const {
+        loading: familyLoading,
+        familyBalances,
+        individualBalances,
+    } = useFamilyManager(
+        familii,
+        setFamilii,
+        sportiviData || [],
+        setSportivi,
+        plati,
+        tranzactii
+    );
+
+    const loading = sportiviLoading || familyLoading;
     
     const handleFilterChange = (name: keyof typeof filters, value: string) => {
         setFilters(prev => ({ ...prev, [name]: value }));
@@ -137,24 +190,6 @@ export const SportiviManagement: React.FC<{
             showSuccess("Succes", "Sportivul a fost șters definitiv.");
         }
     };
-
-    const familyBalances = useMemo(() => {
-        const balances = new Map<string, number>();
-        if (!familii || !plati || !tranzactii) return balances;
-        (familii || []).forEach(f => balances.set(f.id, 0));
-        (tranzactii || []).forEach(t => { if (t.familie_id) balances.set(t.familie_id, (balances.get(t.familie_id) || 0) + t.suma); });
-        (plati || []).forEach(p => { if (p.familie_id) balances.set(p.familie_id, (balances.get(p.familie_id) || 0) - p.suma); });
-        return balances;
-    }, [familii, plati, tranzactii]);
-    
-    const individualBalances = useMemo(() => {
-        const balances = new Map<string, number>();
-        if (!sportivi || !plati || !tranzactii) return balances;
-        (sportivi || []).forEach(s => { if (!s.familie_id) balances.set(s.id, 0); });
-        (tranzactii || []).forEach(t => { if (t.sportiv_id && !t.familie_id && balances.has(t.sportiv_id)) balances.set(t.sportiv_id, (balances.get(t.sportiv_id) || 0) + t.suma); });
-        (plati || []).forEach(p => { if (p.sportiv_id && !p.familie_id && balances.has(p.sportiv_id)) balances.set(p.sportiv_id, (balances.get(p.sportiv_id) || 0) - p.suma); });
-        return balances;
-    }, [sportivi, plati, tranzactii]);
 
     const filteredSportivi = useMemo(() => {
         return (sportivi || []).filter((s: Sportiv) =>

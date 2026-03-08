@@ -85,7 +85,7 @@ export const useDataProvider = () => {
     const attendanceData = useAttendanceData(activeClubId);
 
     // Use custom hooks for data fetching
-    const { data: sportiviData, isLoading: sportiviLoading, error: sportiviError } = useSportivi(activeClubId);
+    const { data: sportiviData, isLoading: sportiviLoading, error: sportiviError } = useSportivi({ clubId: activeClubId });
     const { data: platiData, isLoading: platiLoading, error: platiError } = usePlati(activeClubId);
     const { data: grupeData, isLoading: grupeLoading, error: grupeError } = useGrupe(activeClubId);
 

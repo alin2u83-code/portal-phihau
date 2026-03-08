@@ -5,6 +5,7 @@ import { PlusIcon, TrashIcon, ArrowLeftIcon, EditIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
+import { useFamilyManager } from '../hooks/useFamilyManager';
 
 interface FamiliiManagementProps {
     familii: Familie[];
@@ -25,10 +26,15 @@ export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({
     const [selectedSportiv1, setSelectedSportiv1] = useState('');
     const [selectedSportiv2, setSelectedSportiv2] = useState('');
     const [salaFilter, setSalaFilter] = useState('');
-    const [loading, setLoading] = useState(false);
     const [toDelete, setToDelete] = useState<Familie | null>(null);
-    const [isDeleting, setIsDeleting] = useState(false);
     const { showError, showSuccess } = useError();
+
+    const {
+        loading,
+        handleCreateFamily,
+        handleUpdateFamily,
+        handleDeleteFamily
+    } = useFamilyManager(familii, setFamilii, sportivi, setSportivi);
     
     const sali = useMemo(() => [...new Set(grupe.map(g => g.sala).filter(Boolean))], [grupe]);
 
@@ -47,59 +53,27 @@ export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({
     
     const handleCreateFamilyFromGroup = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!supabase) { showError("Eroare Configurare", "Baza de date nu este disponibilă."); return; }
         if (!newFamilyName.trim() || !selectedSportiv1 || !selectedSportiv2) {
             showError("Date Incomplete", "Vă rugăm selectați doi sportivi și introduceți un nume pentru familie."); return;
         }
 
-        setLoading(true);
-        try {
-            const { data: newFamily, error: familyError } = await supabase.from('familii').insert({ nume: newFamilyName.trim() }).select().single();
-            if (familyError) throw familyError;
-
-            const { data: updatedSportivi, error: sportiviError } = await supabase.from('sportivi').update({ familie_id: newFamily.id }).in('id', [selectedSportiv1, selectedSportiv2]).select();
-            if (sportiviError) throw sportiviError;
-
-            setFamilii(prev => [...prev, newFamily as Familie]);
-            setSportivi(prev => prev.map(s => {
-                const updated = updatedSportivi.find(u => u.id === s.id);
-                return updated ? { ...s, familie_id: newFamily.id } : s;
-            }));
-            
-            showSuccess("Succes!", `Familia "${newFamily.nume}" a fost creată.`);
+        const result = await handleCreateFamily(newFamilyName.trim(), [selectedSportiv1, selectedSportiv2]);
+        if (result.success) {
             setNewFamilyName('');
             setSelectedSportiv1('');
             setSelectedSportiv2('');
-        } catch (err: any) {
-            showError("Eroare la Creare", err);
-        } finally {
-            setLoading(false);
         }
     };
     
     const handleEdit = async (id: string, updates: Partial<Familie>) => {
-        if (!supabase) { showError("Eroare", "Baza de date nu este disponibilă."); return; }
-        const { error } = await supabase.from('familii').update(updates).eq('id', id);
-        if (error) { showError("Eroare la Salvare", error); } 
-        else { setFamilii(prev => prev.map(f => (f.id === id ? { ...f, ...updates } : f))); }
+        await handleUpdateFamily(id, updates);
     };
 
     const confirmDelete = async (id: string) => {
-        if (!supabase) return;
-        const membri = sportivi.filter(s => s.familie_id === id);
-        if (membri.length > 0) {
-            showError("Ștergere Blocată", `Nu puteți șterge familia deoarece conține ${membri.length} membri.`);
+        const result = await handleDeleteFamily(id);
+        if (result.success) {
             setToDelete(null);
-            return;
         }
-        setIsDeleting(true);
-        try {
-            const { error } = await supabase.from('familii').delete().eq('id', id);
-            if (error) throw error;
-            setFamilii(prev => prev.filter(f => f.id !== id));
-            showSuccess('Succes', 'Familia a fost ștearsă.');
-        } catch (err: any) { showError("Eroare la Ștergere", err); } 
-        finally { setIsDeleting(false); setToDelete(null); }
     };
 
     return (
@@ -179,7 +153,7 @@ export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({
                 </div>
             </div>
 
-            <ConfirmDeleteModal isOpen={!!toDelete} onClose={() => setToDelete(null)} onConfirm={() => { if(toDelete) confirmDelete(toDelete.id) }} tableName="Familii" isLoading={isDeleting} />
+            <ConfirmDeleteModal isOpen={!!toDelete} onClose={() => setToDelete(null)} onConfirm={() => { if(toDelete) confirmDelete(toDelete.id) }} tableName="Familii" isLoading={loading} />
         </div>
     );
 };

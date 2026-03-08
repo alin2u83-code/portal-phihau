@@ -58,10 +58,14 @@ export const useFamilyManager = (
         return balances;
     }, [sportivi, plati, tranzactii]);
 
-    const handleCreateFamily = useCallback(async (nume: string, sportivIds?: string[]) => {
+    const unassignedSportivi = useMemo(() => {
+        return sportivi.filter(s => !s.familie_id);
+    }, [sportivi]);
+
+    const handleCreateFamily = useCallback(async (nume: string, sportivIds?: string[], clubId?: string | null) => {
         setLoading(true);
         try {
-            const { data: newFamily, error } = await familieService.createFamilie(nume);
+            const { data: newFamily, error } = await familieService.createFamilie(nume, clubId);
             if (error) throw error;
             if (!newFamily) throw new Error("Familia a fost creată, dar nu a putut fi recuperată.");
 
@@ -154,14 +158,30 @@ export const useFamilyManager = (
         }
     }, [setSportivi, showError, showSuccess]);
 
+    const handleSetRepresentative = useCallback(async (familieId: string, sportivId: string | null) => {
+        try {
+            const { error } = await familieService.updateFamilie(familieId, { reprezentant_id: sportivId });
+            if (error) throw error;
+
+            setFamilii(prev => prev.map(f => f.id === familieId ? { ...f, reprezentant_id: sportivId } : f));
+            showSuccess("Succes", "Reprezentantul familiei a fost actualizat.");
+            return { success: true };
+        } catch (err) {
+            showError("Eroare la Setare Reprezentant", err);
+            return { success: false, error: err };
+        }
+    }, [setFamilii, showError, showSuccess]);
+
     return {
         loading,
         familyBalances,
         individualBalances,
+        unassignedSportivi,
         handleCreateFamily,
         handleUpdateFamily,
         handleDeleteFamily,
         handleAssignToFamily,
-        handleRemoveFromFamily
+        handleRemoveFromFamily,
+        handleSetRepresentative
     };
 };

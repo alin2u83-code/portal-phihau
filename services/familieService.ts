@@ -6,8 +6,8 @@ export const fetchFamilii = async (): Promise<{ data: Familie[]; error: any }> =
     return { data: data || [], error };
 };
 
-export const createFamilie = async (nume: string): Promise<{ data: Familie | null; error: any }> => {
-    const { data, error } = await supabase.from('familii').insert({ nume }).select().single();
+export const createFamilie = async (nume: string, clubId?: string | null): Promise<{ data: Familie | null; error: any }> => {
+    const { data, error } = await supabase.from('familii').insert({ nume, club_id: clubId }).select().single();
     return { data, error };
 };
 

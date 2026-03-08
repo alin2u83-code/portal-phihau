@@ -40,91 +40,41 @@ export const useRoleAssignment = (currentUser: User, allRoles: Rol[]) => {
 
         setLoading(true);
         try {
-            let authData, authError;
-            let authUser = null;
-            let edgeFunctionFailed = false;
+            // Notă: Crearea contului de autentificare (auth.users) este de obicei gestionată 
+            // printr-un Edge Function sau direct prin client.auth.signUp.
+            // Aici refactorizăm logica de bază de date pentru a fi atomică.
 
-            try {
-                // Edge functions are disabled in this environment to prevent "Failed to send a request to the Edge Function" errors.
-                // We skip auth user creation and proceed with database record creation.
-                edgeFunctionFailed = true;
-            } catch (invokeErr: any) {
-                edgeFunctionFailed = true;
-            }
-
-            if (!edgeFunctionFailed && (authError || authData?.error)) {
-                const errorMessage = authError?.message || authData?.error;
-                if (String(errorMessage).includes('User already exists')) {
-                    return { success: false, error: 'Un utilizator cu acest email există deja în sistem. Asociați-l manual.' };
+            const { data: newSportivId, error: rpcError } = await supabase.rpc('refactor_create_user_account', {
+                p_nume: sportivData.nume,
+                p_prenume: sportivData.prenume,
+                p_email: email,
+                p_username: sportivData.username || null,
+                p_club_id: sportivData.club_id || null,
+                p_roles: rolesToAssign.map(r => r.nume),
+                p_additional_data: {
+                    data_nasterii: sportivData.data_nasterii,
+                    cnp: sportivData.cnp,
+                    gen: sportivData.gen,
+                    telefon: sportivData.telefon,
+                    adresa: sportivData.adresa,
+                    grad_actual_id: sportivData.grad_actual_id,
+                    grupa_id: sportivData.grupa_id
                 }
-                return { success: false, error: errorMessage || 'Eroare la crearea contului de autentificare.' };
+            });
+
+            if (rpcError) {
+                return { success: false, error: rpcError.message };
             }
-            
-            if (!edgeFunctionFailed && !authUser) {
-                 return { success: false, error: "Contul de autentificare nu a putut fi creat." };
-            }
-            
-            let finalSportiv: Sportiv;
 
-            if (sportivData.id) {
-                // Update existing sportiv
-                const updatePayload: any = { email, username: sportivData.username };
-                if (authUser) updatePayload.user_id = authUser.id;
+            // Recuperăm datele complete ale sportivului creat/actualizat
+            const { data: finalSportiv, error: fetchError } = await supabase
+                .from('sportivi')
+                .select('*, cluburi(*)')
+                .eq('id', newSportivId)
+                .single();
 
-                const { data, error: updateError } = await supabase.from('sportivi').update(updatePayload).eq('id', sportivData.id).select('*, cluburi(*)').single();
-                if (updateError) return { success: false, error: updateError.message };
-                finalSportiv = data;
-            } else {
-                // Create new sportiv using RPC
-                const { data: newSportivId, error: rpcError } = await supabase.rpc('adauga_sportiv_complet', {
-                    p_nume: sportivData.nume,
-                    p_prenume: sportivData.prenume,
-                    p_data_nasterii: sportivData.data_nasterii,
-                    p_email: email,
-                    p_parola: parola,
-                    p_club_id: sportivData.club_id || null,
-                    p_cnp: sportivData.cnp || null,
-                    p_gen: sportivData.gen || 'Masculin',
-                    p_telefon: sportivData.telefon || null,
-                    p_adresa: sportivData.adresa || null,
-                    p_grad_actual_id: sportivData.grad_actual_id || null,
-                    p_grupa_id: sportivData.grupa_id || null
-                });
-
-                if (rpcError) {
-                    if (authUser) {
-                        // Edge functions are disabled in this environment.
-                    }
-                    return { success: false, error: rpcError.message };
-                }
-
-                // If we have an auth user, we need to link it to the sportiv
-                // The RPC doesn't take user_id, so we update it manually
-                if (authUser && newSportivId) {
-                     const { error: linkError } = await supabase.from('sportivi').update({ user_id: authUser.id }).eq('id', newSportivId);
-                     if (linkError) {
-                         return { success: false, error: "Sportiv creat, dar eroare la linkare cont utilizator: " + linkError.message };
-                     }
-                }
-
-                // Fetch the full sportiv object to return
-                const { data: fetchedSportiv, error: fetchError } = await supabase.from('sportivi').select('*, cluburi(*)').eq('id', newSportivId).single();
-                if (fetchError) return { success: false, error: "Sportiv creat, dar eroare la recuperare date: " + fetchError.message };
-                
-                finalSportiv = fetchedSportiv;
-            }
-            
-            if (authUser) {
-                const rolesToInsert = rolesToAssign.map(role => ({
-                    user_id: authUser.id,
-                    sportiv_id: finalSportiv.id,
-                    club_id: finalSportiv.club_id,
-                    rol_denumire: role.nume,
-                    is_primary: role.nume === 'SPORTIV'
-                }));
-
-                const { error: roleError } = await supabase.from('utilizator_roluri_multicont').insert(rolesToInsert);
-                if (roleError) return { success: false, error: roleError.message };
+            if (fetchError) {
+                return { success: false, error: "Cont creat, dar eroare la recuperare date: " + fetchError.message };
             }
 
             return { success: true, sportiv: { ...finalSportiv, roluri: rolesToAssign } };

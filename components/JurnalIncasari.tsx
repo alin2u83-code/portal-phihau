@@ -332,7 +332,15 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
                     throw new Error("Nu s-a putut identifica clubul sportivului. Asigurați-vă că sportivul este alocat unui club.");
                 }
                 
-                const { data: tx, error: txError } = await supabase.from('tranzactii').insert({ plata_ids: idsToUpdate, sportiv_id: formState.sportiv_id || platiInitiale[0]?.sportiv_id, familie_id: formState.familie_id || platiInitiale[0]?.familie_id, suma: sumaNum, data_platii: formState.data_platii!, metoda_plata: formState.metoda_plata!, club_id: clubId }).select().single();
+                const { data: tx, error: txError } = await supabase.from('tranzactii').insert({ 
+                    plata_ids: idsToUpdate, 
+                    sportiv_id: formState.sportiv_id || platiInitiale[0]?.sportiv_id, 
+                    familie_id: formState.familie_id || platiInitiale[0]?.familie_id, 
+                    suma: sumaNum, 
+                    data_platii: formState.data_platii!, 
+                    metoda_plata: formState.metoda_plata!, 
+                    club_id: clubId 
+                }).select().single();
                 
                 if (txError) {
                     console.error("Eroare Insert Tranzactie:", txError);
@@ -344,41 +352,19 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
 
                 tranzactieId = (tx as Tranzactie).id;
 
-                let amountToDistribute = sumaNum;
-                const platiUpdates: Partial<Plata>[] = [];
-                const sortedPlati = [...platiInitiale].sort((a,b) => new Date(a.data).getTime() - new Date(b.data).getTime());
-    
-                for (const plata of sortedPlati) {
-                    if (amountToDistribute <= 0.01) break;
-                    
-                    const paymentForThisPlata = Math.min(amountToDistribute, plata.suma);
-                    const remainingOnThisPlata = plata.suma - paymentForThisPlata;
-                    const newStatus: Plata['status'] = remainingOnThisPlata < 0.01 ? 'Achitat' : 'Achitat Parțial';
-
-                    platiUpdates.push({
-                        id: plata.id,
-                        suma: newStatus === 'Achitat' ? 0 : remainingOnThisPlata,
-                        status: newStatus
-                    });
-
-                    amountToDistribute -= paymentForThisPlata;
-                }
-
-                if (platiUpdates.length > 0) {
-                    const { error: updateError } = await supabase.from('plati').upsert(platiUpdates);
-                    if (updateError) {
-                         // Rollback transaction if update fails
-                         await supabase.from('tranzactii').delete().eq('id', tranzactieId);
-                         throw new Error(`Eroare la actualizarea facturilor: ${updateError.message}`);
-                    }
-                    
-                    setPlati(prevPlati => {
-                        const updatesMap = new Map(platiUpdates.map(p => [p.id, p]));
-                        return prevPlati.map(p => updatesMap.has(p.id!) ? { ...p, ...updatesMap.get(p.id!) } : p);
+                // The SQL trigger 'tranzactie_change_trigger' will automatically update the 'plati' records.
+                // We just need to refresh the local state for 'plati' and 'tranzactii'.
+                
+                // Fetch updated plati to ensure local state is in sync with DB trigger results
+                const { data: updatedPlati } = await supabase.from('plati').select('*').in('id', idsToUpdate);
+                if (updatedPlati) {
+                    setPlati(prev => {
+                        const updatedMap = new Map(updatedPlati.map(p => [p.id, p]));
+                        return prev.map(p => updatedMap.has(p.id) ? updatedMap.get(p.id)! : p);
                     });
                 }
 
-                setTranzactii(prev => [...prev, tx as Tranzactie]);
+                setTranzactii(prev => [tx as Tranzactie, ...prev]);
 
                 // Send notification to sportiv
                 const sportiv = sportivi.find(s => s.id === (formState.sportiv_id || platiInitiale[0]?.sportiv_id));
@@ -411,11 +397,11 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
                     familie_id: sportiv?.familie_id, 
                     club_id: clubId,
                     suma: sumaNum, 
-                    suma_initiala: formState.suma_initiala > 0 ? formState.suma_initiala : null, 
+                    suma_initiala: sumaNum, // Suma totală a facturii (după discount, dar înainte de încasare)
                     reducere_id: formState.reducere_id,
                     reducere_detalii: reducereAplicata?.nume || null,
                     data: formState.data_platii!, 
-                    status: 'Achitat', 
+                    status: 'Neachitat', // Va fi actualizat la 'Achitat' de trigger
                     descriere: formState.descriere, 
                     tip: formState.tip, 
                     observatii: formState.observatii 
@@ -426,7 +412,15 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
 
                 newPlataId = (newPlata as Plata).id;
                 
-                const { data: tx, error: txError } = await supabase.from('tranzactii').insert({ plata_ids: [newPlataId], sportiv_id: formState.sportiv_id, familie_id: sportiv?.familie_id, suma: sumaNum, data_platii: formState.data_platii!, metoda_plata: formState.metoda_plata!, club_id: clubId }).select().single();
+                const { data: tx, error: txError } = await supabase.from('tranzactii').insert({ 
+                    plata_ids: [newPlataId], 
+                    sportiv_id: formState.sportiv_id, 
+                    familie_id: sportiv?.familie_id, 
+                    suma: sumaNum, 
+                    data_platii: formState.data_platii!, 
+                    metoda_plata: formState.metoda_plata!, 
+                    club_id: clubId 
+                }).select().single();
                 
                 if (txError) {
                     // Rollback plata
@@ -439,8 +433,12 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
                 }
 
                 tranzactieId = (tx as Tranzactie).id;
-                setPlati(prev => [...prev, newPlata as Plata]);
-                setTranzactii(prev => [...prev, tx as Tranzactie]);
+
+                // Fetch updated plata to reflect trigger changes
+                const { data: updatedPlata } = await supabase.from('plati').select('*').eq('id', newPlataId).single();
+                
+                setPlati(prev => [...prev, (updatedPlata || newPlata) as Plata]);
+                setTranzactii(prev => [tx as Tranzactie, ...prev]);
 
                 // Send notification to sportiv
                 if (sportiv?.user_id) {
@@ -514,12 +512,12 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
 
     const columns: Column<Tranzactie>[] = [
         {
-            key: 'data',
+            key: 'data_platii',
             label: 'Data',
             render: (t) => <span className="text-sm text-slate-300">{new Date(t.data_platii).toLocaleDateString('ro-RO')}</span>
         },
         {
-            key: 'platit_de',
+            key: 'sportiv_id',
             label: 'Plătit de',
             render: (t) => <span className="font-medium text-white">{getEntityName(t)}</span>
         },

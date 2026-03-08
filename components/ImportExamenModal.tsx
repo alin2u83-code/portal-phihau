@@ -367,7 +367,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
 
     const columns: Column<PreviewRow>[] = [
         {
-            key: 'nume',
+            key: 'Nume',
             label: 'Sportiv',
             render: (row) => <span className="font-semibold text-white">{row.Nume} {row.Prenume}</span>
         },
@@ -377,7 +377,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
             render: (row) => <span className="text-xs text-slate-400">{row.birthdate || '-'}</span>
         },
         {
-            key: 'sesiune',
+            key: 'Sesiune_Denumire',
             label: 'Sesiune',
             render: (row) => <span className="text-xs text-slate-400">{row.Sesiune_Denumire}</span>
         },

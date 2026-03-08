@@ -31,25 +31,27 @@ export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({
 
     const {
         loading,
+        unassignedSportivi,
         handleCreateFamily,
         handleUpdateFamily,
-        handleDeleteFamily
+        handleDeleteFamily,
+        handleSetRepresentative
     } = useFamilyManager(familii, setFamilii, sportivi, setSportivi);
     
     const sali = useMemo(() => [...new Set(grupe.map(g => g.sala).filter(Boolean))], [grupe]);
 
-    const sportiviNeasignati = useMemo(() => {
-        let unassigned = sportivi.filter(s => !s.familie_id);
+    const filteredUnassigned = useMemo(() => {
+        let unassigned = unassignedSportivi;
         if (salaFilter) {
             const grupaIdsInSala = new Set(grupe.filter(g => g.sala === salaFilter).map(g => g.id));
             unassigned = unassigned.filter(s => s.grupa_id && grupaIdsInSala.has(s.grupa_id));
         }
         return unassigned;
-    }, [sportivi, salaFilter, grupe]);
+    }, [unassignedSportivi, salaFilter, grupe]);
 
     const sportiviSelect2 = useMemo(() => {
-        return sportiviNeasignati.filter(s => s.id !== selectedSportiv1);
-    }, [sportiviNeasignati, selectedSportiv1]);
+        return filteredUnassigned.filter(s => s.id !== selectedSportiv1);
+    }, [filteredUnassigned, selectedSportiv1]);
     
     const handleCreateFamilyFromGroup = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -57,7 +59,7 @@ export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({
             showError("Date Incomplete", "Vă rugăm selectați doi sportivi și introduceți un nume pentru familie."); return;
         }
 
-        const result = await handleCreateFamily(newFamilyName.trim(), [selectedSportiv1, selectedSportiv2]);
+        const result = await handleCreateFamily(newFamilyName.trim(), [selectedSportiv1, selectedSportiv2], currentUser.club_id);
         if (result.success) {
             setNewFamilyName('');
             setSelectedSportiv1('');
@@ -91,7 +93,7 @@ export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <Select label="Selectează Sportiv 1" value={selectedSportiv1} onChange={e => setSelectedSportiv1(e.target.value)} required>
                             <option value="">Alege...</option>
-                            {sportiviNeasignati.map(s => <option key={s.id} value={s.id}>{s.nume} {s.prenume}</option>)}
+                            {filteredUnassigned.map(s => <option key={s.id} value={s.id}>{s.nume} {s.prenume}</option>)}
                         </Select>
                         <Select label="Selectează Sportiv 2" value={selectedSportiv2} onChange={e => setSelectedSportiv2(e.target.value)} required disabled={!selectedSportiv1}>
                              <option value="">Alege...</option>
@@ -111,10 +113,12 @@ export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({
                     {familii.map(f => {
                         const membri = sportivi.filter(s => s.familie_id === f.id);
                         const abonament = tipuriAbonament.find(t => t.id === f.tip_abonament_id);
+                        const reprezentant = membri.find(m => m.id === f.reprezentant_id);
                         return (
                         <Card key={f.id}>
                             <h4 className="font-bold text-white text-lg">{f.nume}</h4>
                             <p className="text-sm text-slate-300">Abonament: <span className="font-semibold">{abonament?.denumire || 'Automat'}</span></p>
+                            <p className="text-sm text-slate-300">Reprezentant: <span className="font-semibold text-blue-400">{reprezentant ? `${reprezentant.nume} ${reprezentant.prenume}` : 'Nespecificat'}</span></p>
                             <div className="mt-3 pt-3 border-t border-[var(--border-color)]">
                                 <h5 className="text-xs uppercase font-bold text-slate-400 mb-1">Membri ({membri.length})</h5>
                                 <ul className="text-sm text-slate-200 list-disc list-inside">{membri.map(m => <li key={m.id}>{m.nume} {m.prenume}</li>)}</ul>
@@ -130,16 +134,28 @@ export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({
                 <div className="hidden md:block bg-[var(--bg-card)] rounded-lg overflow-hidden border border-[var(--border-color)]">
                     <table className="w-full text-left">
                         <thead className="bg-[var(--bg-table-header)] text-[var(--brand-secondary)] font-bold uppercase text-xs">
-                            <tr><th className="p-3">Nume Familie</th><th className="p-3">Membri</th><th className="p-3">Tip Abonament</th><th className="p-3 text-right">Acțiuni</th></tr>
+                            <tr>
+                                <th className="p-3">Nume Familie</th>
+                                <th className="p-3">Membri</th>
+                                <th className="p-3">Reprezentant</th>
+                                <th className="p-3">Tip Abonament</th>
+                                <th className="p-3 text-right">Acțiuni</th>
+                            </tr>
                         </thead>
                         <tbody className="divide-y divide-[var(--border-color)]">
                             {familii.map(f => {
                                 const membri = sportivi.filter(s => s.familie_id === f.id);
                                 return (
                                 <tr key={f.id} className="text-white">
-                                    <td className="p-2 w-1/3"><Input label="" defaultValue={f.nume} onBlur={e => handleEdit(f.id, { nume: e.target.value })} className="!bg-transparent"/></td>
+                                    <td className="p-2 w-1/4"><Input label="" defaultValue={f.nume} onBlur={e => handleEdit(f.id, { nume: e.target.value })} className="!bg-transparent"/></td>
                                     <td className="p-3 text-sm">{membri.map(m => `${m.nume} ${m.prenume}`).join(', ')}</td>
-                                    <td className="p-2 w-72">
+                                    <td className="p-2 w-1/4">
+                                        <Select label="" value={f.reprezentant_id || ''} onChange={(e) => handleSetRepresentative(f.id, e.target.value || null)} className="!bg-transparent text-sm">
+                                            <option value="">Alege reprezentant...</option>
+                                            {membri.map(m => <option key={m.id} value={m.id}>{m.nume} {m.prenume}</option>)}
+                                        </Select>
+                                    </td>
+                                    <td className="p-2 w-1/4">
                                         <Select label="" value={f.tip_abonament_id || ''} onChange={(e) => handleEdit(f.id, { tip_abonament_id: e.target.value || null })} className="!bg-transparent text-sm">
                                             <option value="">Automat (după nr. membri)</option>
                                             {tipuriAbonament.filter(t => t.numar_membri > 1).map(t => <option key={t.id} value={t.id}>{t.denumire} ({t.numar_membri} membri)</option>)}

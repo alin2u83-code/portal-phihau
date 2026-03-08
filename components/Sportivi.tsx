@@ -442,7 +442,7 @@ export const SportivFormModal: React.FC<{
             </Modal>
             <QuickAddModal title="Adaugă Grupă" label="Nume Grupă" isOpen={isGrupaModalOpen} onClose={() => setIsGrupaModalOpen(false)} onSave={handleQuickAddGrupa} />
             <QuickAddModal title="Adaugă Familie" label="Nume Familie" isOpen={isFamilieModalOpen} onClose={() => setIsFamilieModalOpen(false)} onSave={async (n) => {
-                await handleCreateFamily(n);
+                await handleCreateFamily(n, [], formData.club_id || currentUser?.club_id);
             }} />
         </>
     );

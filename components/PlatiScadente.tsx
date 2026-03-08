@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Plata, Sportiv, Permissions } from '../types';
 import { Button, Input, Select, Card, Modal } from './ui';
-import { EditIcon, ArrowLeftIcon, TrashIcon, BanknotesIcon, SearchIcon, BellIcon } from './icons';
+import { EditIcon, ArrowLeftIcon, TrashIcon, BanknotesIcon, SearchIcon, BellIcon, WalletIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { sendBulkNotifications } from '../utils/notifications';
@@ -37,6 +37,10 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
     const { showError, showSuccess } = useError();
     const [isGenerating, setIsGenerating] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [plataForPayment, setPlataForPayment] = useState<Plata | null>(null);
+    const [paymentAmount, setPaymentAmount] = useState('');
+    const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'Transfer Bancar'>('Cash');
+    const [isPaymentLoading, setIsPaymentLoading] = useState(false);
 
     const balances = useMemo(() => {
         const famBalances = new Map<string, number>();
@@ -181,6 +185,48 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
         else { setPlati(prev => prev.map(p => p.id === id ? editingPlata : p)); setEditingPlata(null); }
     };
     
+    const handleProcessPayment = async () => {
+        if (!plataForPayment || !supabase) return;
+        const amount = parseFloat(paymentAmount);
+        if (isNaN(amount) || amount <= 0) {
+            showError("Sumă Invalidă", "Vă rugăm introduceți o sumă validă.");
+            return;
+        }
+
+        setIsPaymentLoading(true);
+        try {
+            const { data, error } = await supabase.rpc('proceseaza_plata_factura', {
+                p_plata_id: plataForPayment.id,
+                p_suma_incasata: amount,
+                p_metoda_plata: paymentMethod,
+                p_data_plata: new Date().toISOString().split('T')[0]
+            });
+
+            if (error) throw error;
+            
+            const result = data as any;
+            if (result && result.success) {
+                showSuccess("Plată Procesată", "Plata a fost înregistrată cu succes.");
+                
+                // Update local plati state
+                setPlati(prev => prev.map(p => p.id === plataForPayment.id ? { ...p, status: result.status_nou } : p));
+                
+                // We don't have setTranzactii here directly, but DataContext will handle it on next refresh
+                // or we could use useData() to get setTranzactii if we really want to update it locally
+                
+                setPlataForPayment(null);
+                setPaymentAmount('');
+            } else {
+                showError("Eroare", result?.error || "A apărut o eroare necunoscută.");
+            }
+        } catch (err: any) {
+            console.error('DEBUG:', err);
+            showError("Eroare la procesare", err.message);
+        } finally {
+            setIsPaymentLoading(false);
+        }
+    };
+
     const confirmDelete = async (id: string) => {
         if(!supabase) return;
         setIsDeleting(true);
@@ -453,7 +499,20 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                                         )}
                                     </td>
                                     <td className="p-3 text-center"><span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${ p.status === 'Achitat' ? 'bg-green-100 text-green-800' : p.status === 'Achitat Parțial' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>{p.status}</span></td>
-                                    <td className="p-3 text-right"><div className="flex justify-end gap-2"><Button size="sm" variant="secondary" onClick={() => setEditingPlata(p)}><EditIcon className="w-4 h-4"/></Button><Button size="sm" variant="danger" onClick={() => setPlataToDelete(p)}><TrashIcon className="w-4 h-4"/></Button></div></td>
+                                    <td className="p-3 text-right">
+                                        <div className="flex justify-end gap-2">
+                                            {p.status !== 'Achitat' && (
+                                                <Button size="sm" variant="success" onClick={() => {
+                                                    setPlataForPayment(p);
+                                                    setPaymentAmount(p.suma.toString());
+                                                }} title="Încasează Rapid">
+                                                    <WalletIcon className="w-4 h-4" />
+                                                </Button>
+                                            )}
+                                            <Button size="sm" variant="secondary" onClick={() => setEditingPlata(p)}><EditIcon className="w-4 h-4"/></Button>
+                                            <Button size="sm" variant="danger" onClick={() => setPlataToDelete(p)}><TrashIcon className="w-4 h-4"/></Button>
+                                        </div>
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
@@ -467,6 +526,36 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                 </div>
             </Card>
             
+            {plataForPayment && (
+                <Modal isOpen={!!plataForPayment} onClose={() => setPlataForPayment(null)} title="Procesează Plată Factură">
+                    <div className="space-y-4">
+                        <div className="p-3 bg-slate-800 rounded-lg border border-slate-700">
+                            <p className="text-sm text-slate-400">Factură: <span className="text-white font-medium">{plataForPayment.descriere}</span></p>
+                            <p className="text-sm text-slate-400">Total de plată: <span className="text-white font-bold">{plataForPayment.suma.toFixed(2)} RON</span></p>
+                        </div>
+
+                        <Input 
+                            label="Sumă Încasată (RON)" 
+                            type="number" 
+                            step="0.01" 
+                            value={paymentAmount} 
+                            onChange={e => setPaymentAmount(e.target.value)} 
+                            required 
+                        />
+
+                        <Select label="Metodă Plată" value={paymentMethod} onChange={e => setPaymentMethod(e.target.value as any)}>
+                            <option value="Cash">Cash</option>
+                            <option value="Transfer Bancar">Transfer Bancar</option>
+                        </Select>
+
+                        <div className="flex justify-end pt-4 gap-2 border-t border-slate-700">
+                            <Button variant="secondary" onClick={() => setPlataForPayment(null)} disabled={isPaymentLoading}>Anulează</Button>
+                            <Button variant="success" onClick={handleProcessPayment} isLoading={isPaymentLoading}>Înregistrează Plata</Button>
+                        </div>
+                    </div>
+                </Modal>
+            )}
+
             {editingPlata && (
                 <Modal isOpen={!!editingPlata} onClose={() => setEditingPlata(null)} title="Editează Plată">
                     <div className="space-y-4"><Input label="Descriere" value={editingPlata.descriere} onChange={e => setEditingPlata({...editingPlata, descriere: e.target.value})} /><Input label="Sumă" type="number" value={editingPlata.suma} onChange={e => setEditingPlata({...editingPlata, suma: parseFloat(e.target.value) || 0})} /><div className="flex justify-end gap-2"><Button variant="secondary" onClick={() => setEditingPlata(null)}>Anulează</Button><Button variant="success" onClick={handleSaveEdit} isLoading={isSaving}>Salvează</Button></div></div>

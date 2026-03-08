@@ -236,7 +236,7 @@ export const ImportSportiviModal: React.FC<ImportSportiviModalProps> = ({
 
     const columns: Column<ImportRow>[] = [
         {
-            key: 'select',
+            key: 'selected',
             label: '#',
             headerClassName: 'w-8 text-center',
             cellClassName: 'text-center',
@@ -330,7 +330,7 @@ export const ImportSportiviModal: React.FC<ImportSportiviModalProps> = ({
             )
         },
         {
-            key: 'valid',
+            key: 'isValid',
             label: 'Valid',
             headerClassName: 'w-8 text-center',
             cellClassName: 'text-center',

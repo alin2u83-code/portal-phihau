@@ -122,6 +122,8 @@ export interface Familie {
   id: string;
   nume: string;
   tip_abonament_id?: string | null;
+  club_id?: string | null;
+  reprezentant_id?: string | null;
 }
 
 // --- Domain: Financiar ---

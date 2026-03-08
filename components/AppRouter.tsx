@@ -191,7 +191,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                         case 'financial-dashboard':
                             return renderProtected(<FinancialDashboard onBack={handleBackToDashboard} plati={filteredData.plati} tranzactii={filteredData.tranzactii} sportivi={filteredData.sportivi} familii={filteredData.familii} />, isAtLeastClubAdmin);
                         case 'gestiune-facturi':
-                            return renderProtected(<GestiuneFacturi onBack={handleBackToDashboard} currentUser={currentUser!} sportivi={filteredData.sportivi} plati={filteredData.plati} setPlati={setPlati} tipuriPlati={tipuriPlati} familii={filteredData.familii} />, canManageFinances);
+                            return renderProtected(<GestiuneFacturi onBack={handleBackToDashboard} currentUser={currentUser!} sportivi={filteredData.sportivi} plati={filteredData.plati} setPlati={setPlati} setTranzactii={setTranzactii} tipuriPlati={tipuriPlati} familii={filteredData.familii} />, canManageFinances);
                         case 'deconturi-federatie':
                             return renderProtected(<FederationInvoices onBack={handleBackToDashboard} deconturi={filteredData.deconturiFederatie} setDeconturi={setDeconturiFederatie} currentUser={currentUser!} permissions={permissions} />, isAtLeastClubAdmin);
                         case 'plati-scadente':

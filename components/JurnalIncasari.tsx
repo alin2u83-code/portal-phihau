@@ -313,10 +313,10 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
 
                 const idsToUpdate = platiInitiale.map(p => p.id);
 
-                const { data: currentPlati, error: fetchError } = await supabase.from('plati').select('id, descriere, status').in('id', idsToUpdate);
+                const { data: currentPlati, error: fetchError } = await supabase.from('plati').select('id, descriere, status, suma').in('id', idsToUpdate);
                 if (fetchError) throw new Error("Nu am putut verifica statusul curent al facturilor.");
 
-                const alreadyPaid = currentPlati?.filter(p => p.status === 'Achitat');
+                const alreadyPaid = currentPlati?.filter(p => p.status === 'Achitat' && p.suma <= 0.01);
                 if (alreadyPaid && alreadyPaid.length > 0) {
                     throw new Error(`Plată Blocată: Factura "${alreadyPaid[0].descriere}" este deja achitată.`);
                 }
@@ -331,26 +331,49 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
                 if (!clubId && !permissions.isSuperAdmin) {
                     throw new Error("Nu s-a putut identifica clubul sportivului. Asigurați-vă că sportivul este alocat unui club.");
                 }
+
+                // Distribute the payment amount across invoices
+                let remainingPayment = sumaNum;
+                const transactionsToInsert = [];
                 
-                const { data: tx, error: txError } = await supabase.from('tranzactii').insert({ 
-                    plata_ids: idsToUpdate, 
-                    sportiv_id: formState.sportiv_id || platiInitiale[0]?.sportiv_id, 
-                    familie_id: formState.familie_id || platiInitiale[0]?.familie_id, 
-                    suma: sumaNum, 
-                    data_platii: formState.data_platii!, 
-                    metoda_plata: formState.metoda_plata!, 
-                    club_id: clubId 
-                }).select().single();
-                
-                if (txError) {
-                    console.error("Eroare Insert Tranzactie:", txError);
-                    throw new Error(`Eroare la salvarea tranzacției: ${txError.message}`);
+                // Sort invoices by date (oldest first) to pay off debts in order
+                const sortedInvoices = [...platiInitiale].sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());
+
+                for (const invoice of sortedInvoices) {
+                    if (remainingPayment <= 0.001) break;
+
+                    // Determine how much to pay for this invoice
+                    // We pay up to the remaining amount of the invoice
+                    const amountForThisInvoice = Math.min(invoice.suma, remainingPayment);
+                    
+                    if (amountForThisInvoice > 0) {
+                        transactionsToInsert.push({
+                            plata_ids: [invoice.id],
+                            sportiv_id: formState.sportiv_id || invoice.sportiv_id,
+                            familie_id: formState.familie_id || invoice.familie_id,
+                            suma: amountForThisInvoice,
+                            data_platii: formState.data_platii!,
+                            metoda_plata: formState.metoda_plata!,
+                            club_id: clubId,
+                            descriere: `Plată parțială din total ${sumaNum.toFixed(2)} RON: ${invoice.descriere}`
+                        });
+                        remainingPayment -= amountForThisInvoice;
+                    }
                 }
-                if (!tx) {
-                    throw new Error("Tranzacția nu a putut fi salvată (niciun răspuns de la baza de date).");
+                
+                if (transactionsToInsert.length === 0) {
+                     throw new Error("Nu s-a putut distribui suma pe facturi. Verificați sumele.");
                 }
 
-                tranzactieId = (tx as Tranzactie).id;
+                const { data: txs, error: txError } = await supabase.from('tranzactii').insert(transactionsToInsert).select();
+                
+                if (txError) {
+                    console.error("Eroare Insert Tranzactii:", txError);
+                    throw new Error(`Eroare la salvarea tranzacțiilor: ${txError.message}`);
+                }
+                if (!txs) {
+                    throw new Error("Tranzacțiile nu au putut fi salvate (niciun răspuns de la baza de date).");
+                }
 
                 // The SQL trigger 'tranzactie_change_trigger' will automatically update the 'plati' records.
                 // We just need to refresh the local state for 'plati' and 'tranzactii'.
@@ -364,7 +387,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
                     });
                 }
 
-                setTranzactii(prev => [tx as Tranzactie, ...prev]);
+                setTranzactii(prev => [...(txs as Tranzactie[]), ...prev]);
 
                 // Send notification to sportiv
                 const sportiv = sportivi.find(s => s.id === (formState.sportiv_id || platiInitiale[0]?.sportiv_id));
@@ -372,9 +395,9 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
                     await sendNotification({
                         recipient_user_id: sportiv.user_id,
                         title: 'Plată Înregistrată',
-                        body: `Suma de ${sumaNum.toFixed(2)} RON a fost înregistrată pentru ${formState.descriere || 'plată'}.`,
+                        body: `Suma totală de ${sumaNum.toFixed(2)} RON a fost înregistrată pentru ${transactionsToInsert.length} facturi.`,
                         type: 'plata',
-                        metadata: { tranzactie_id: tranzactieId }
+                        metadata: { tranzactie_ids: txs.map(t => t.id) }
                     });
                 }
 

@@ -21,6 +21,8 @@ export interface SubMenuItem {
 export const adminMenu: MenuItem[] = [
     { label: 'Dashboard', icon: HomeIcon, view: 'dashboard' },
     { label: 'Sportivi', icon: UsersIcon, view: 'sportivi' },
+    { label: 'Stagii', icon: TrophyIcon, view: 'stagii' },
+    { label: 'Competiții', icon: TrophyIcon, view: 'competitii' },
     { label: 'Examene', icon: TrophyIcon, view: 'examene' },
     { label: 'Grupe', icon: ArchiveBoxIcon, view: 'grupe' },
     { label: 'Plăți', icon: BanknotesIcon, view: 'plati-scadente' },
@@ -39,6 +41,8 @@ export const adminMenu: MenuItem[] = [
 export const instructorMenu: MenuItem[] = [
     { label: 'Dashboard', icon: HomeIcon, view: 'dashboard' },
     { label: 'Sportivi', icon: UsersIcon, view: 'sportivi' },
+    { label: 'Stagii', icon: TrophyIcon, view: 'stagii' },
+    { label: 'Competiții', icon: TrophyIcon, view: 'competitii' },
     { label: 'Prezență', icon: ClipboardCheckIcon, view: 'prezenta-instructor' },
     { label: 'Rapoarte', icon: ChartBarIcon, view: 'rapoarte' },
     { label: 'Notificări', icon: ClipboardCheckIcon, view: 'notificari' },

@@ -333,49 +333,42 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
 
                 // Distribute the payment amount across invoices
                 let remainingPayment = sumaNum;
-                const transactionsToInsert = [];
-                
-                // Sort invoices by date (oldest first) to pay off debts in order
                 const sortedInvoices = [...platiInitiale].sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());
+                const processedTransactions = [];
 
                 for (const invoice of sortedInvoices) {
                     if (remainingPayment <= 0.001) break;
 
-                    // Determine how much to pay for this invoice
-                    // We pay up to the remaining amount of the invoice
                     const amountForThisInvoice = Math.min(invoice.suma, remainingPayment);
                     
                     if (amountForThisInvoice > 0) {
-                        transactionsToInsert.push({
-                            plata_ids: [invoice.id],
+                        const p_tranzactie = {
                             sportiv_id: formState.sportiv_id || invoice.sportiv_id,
                             familie_id: formState.familie_id || invoice.familie_id,
                             suma: amountForThisInvoice,
                             data_platii: formState.data_platii!,
                             metoda_plata: formState.metoda_plata!,
                             club_id: clubId
-                        });
+                        };
+                        const p_plati = [{ plata_id: invoice.id, suma_alocata: amountForThisInvoice }];
+
+                        const { data: txId, error: txError } = await supabase.rpc('proceseaza_incasare_normalizata', { p_tranzactie, p_plati });
+                        
+                        if (txError) throw new Error(`Eroare la salvarea tranzacției: ${txError.message}`);
+                        
+                        // Fetch the created transaction
+                        const { data: tx, error: fetchError } = await supabase.from('tranzactii').select('*').eq('id', txId).single();
+                        if (fetchError) throw fetchError;
+                        processedTransactions.push(tx);
+
                         remainingPayment -= amountForThisInvoice;
                     }
                 }
                 
-                if (transactionsToInsert.length === 0) {
+                if (processedTransactions.length === 0) {
                      throw new Error("Nu s-a putut distribui suma pe facturi. Verificați sumele.");
                 }
 
-                const { data: txs, error: txError } = await supabase.from('tranzactii').insert(transactionsToInsert).select();
-                
-                if (txError) {
-                    console.error("Eroare Insert Tranzactii:", txError);
-                    throw new Error(`Eroare la salvarea tranzacțiilor: ${txError.message}`);
-                }
-                if (!txs) {
-                    throw new Error("Tranzacțiile nu au putut fi salvate (niciun răspuns de la baza de date).");
-                }
-
-                // The SQL trigger 'tranzactie_change_trigger' will automatically update the 'plati' records.
-                // We just need to refresh the local state for 'plati' and 'tranzactii'.
-                
                 // Fetch updated plati to ensure local state is in sync with DB trigger results
                 const { data: updatedPlati } = await supabase.from('plati').select('*').in('id', idsToUpdate);
                 if (updatedPlati) {
@@ -385,7 +378,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
                     });
                 }
 
-                setTranzactii(prev => [...(txs as Tranzactie[]), ...prev]);
+                setTranzactii(prev => [...(processedTransactions as Tranzactie[]), ...prev]);
 
                 // Send notification to sportiv
                 const sportiv = sportivi.find(s => s.id === (formState.sportiv_id || platiInitiale[0]?.sportiv_id));
@@ -393,7 +386,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
                     await sendNotification({
                         recipient_user_id: sportiv.user_id,
                         title: 'Plată Înregistrată',
-                        body: `Suma totală de ${sumaNum.toFixed(2)} RON a fost înregistrată pentru ${transactionsToInsert.length} facturi.`,
+                        body: `Suma totală de ${sumaNum.toFixed(2)} RON a fost înregistrată pentru ${processedTransactions.length} facturi.`,
                         type: 'plata'
                     });
                 }
@@ -417,11 +410,11 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
                     familie_id: sportiv?.familie_id, 
                     club_id: clubId,
                     suma: sumaNum, 
-                    suma_initiala: sumaNum, // Suma totală a facturii (după discount, dar înainte de încasare)
+                    suma_initiala: sumaNum,
                     reducere_id: formState.reducere_id,
                     reducere_detalii: reducereAplicata?.nume || null,
                     data: formState.data_platii!, 
-                    status: 'Neachitat', // Va fi actualizat la 'Achitat' de trigger
+                    status: 'Neachitat',
                     descriere: formState.descriere, 
                     tip: formState.tip, 
                     observatii: formState.observatii 
@@ -432,24 +425,29 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
 
                 newPlataId = (newPlata as Plata).id;
                 
-                const { data: tx, error: txError } = await supabase.from('tranzactii').insert({ 
-                    plata_ids: [newPlataId], 
-                    sportiv_id: formState.sportiv_id, 
-                    familie_id: sportiv?.familie_id, 
-                    suma: sumaNum, 
-                    data_platii: formState.data_platii!, 
-                    metoda_plata: formState.metoda_plata!, 
-                    club_id: clubId 
-                }).select().single();
+                const p_tranzactie = {
+                    sportiv_id: formState.sportiv_id,
+                    familie_id: sportiv?.familie_id,
+                    suma: sumaNum,
+                    data_platii: formState.data_platii!,
+                    metoda_plata: formState.metoda_plata!,
+                    club_id: clubId
+                };
+                const p_plati = [{ plata_id: newPlataId, suma_alocata: sumaNum }];
+
+                const { data: txId, error: txError } = await supabase.rpc('proceseaza_incasare_normalizata', { p_tranzactie, p_plati });
                 
                 if (txError) {
                     // Rollback plata
                     await supabase.from('plati').delete().eq('id', newPlataId);
                     throw new Error(`Eroare la salvarea tranzacției: ${txError.message}`);
                 }
-                if (!tx) {
+                
+                // Fetch the created transaction
+                const { data: tx, error: fetchError } = await supabase.from('tranzactii').select('*').eq('id', txId).single();
+                if (fetchError) {
                      await supabase.from('plati').delete().eq('id', newPlataId);
-                     throw new Error("Tranzacția nu a putut fi salvată.");
+                     throw fetchError;
                 }
 
                 tranzactieId = (tx as Tranzactie).id;

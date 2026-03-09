@@ -4,7 +4,7 @@ import { usePermissions } from '../hooks/usePermissions';
 import { useDataProvider } from '../hooks/useDataProvider';
 import { View } from '../types';
 import { Card } from './ui';
-import { UsersIcon, CreditCardIcon, BuildingOfficeIcon } from './icons';
+import { UsersIcon, CreditCardIcon, BuildingOfficeIcon, TrophyIcon } from './icons';
 
 interface AdminDashboardProps {
     onNavigate: (view: View) => void;
@@ -90,6 +90,24 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
                         </div>
                     </div>
                     <p className="text-3xl font-bold text-white">{counts?.cluburi}</p>
+                </Card>
+
+                <Card className="p-6 bg-slate-900 border-slate-800 hover:border-slate-700 transition-all group cursor-pointer" onClick={() => onNavigate('stagii')}>
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-medium text-slate-400">Stagii</h3>
+                        <div className="p-2 bg-slate-800 rounded-lg group-hover:bg-slate-700 transition-colors">
+                            <TrophyIcon className="w-6 h-6 text-indigo-500" />
+                        </div>
+                    </div>
+                </Card>
+
+                <Card className="p-6 bg-slate-900 border-slate-800 hover:border-slate-700 transition-all group cursor-pointer" onClick={() => onNavigate('competitii')}>
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-medium text-slate-400">Competiții</h3>
+                        <div className="p-2 bg-slate-800 rounded-lg group-hover:bg-slate-700 transition-colors">
+                            <TrophyIcon className="w-6 h-6 text-rose-500" />
+                        </div>
+                    </div>
                 </Card>
             </div>
         </div>

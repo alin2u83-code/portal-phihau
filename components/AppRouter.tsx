@@ -8,7 +8,8 @@ import { GradeManagement } from './Grade';
 import { PrezentaManagement } from './PrezentaManagement';
 import { GrupeManagement } from './Grupe';
 import { RaportPrezenta } from './RaportPrezenta';
-import { StagiiCompetitiiManagement } from './StagiiCompetitii';
+import { StagiiManagement } from './StagiiManagement';
+import { CompetitiiManagement } from './CompetitiiManagement';
 import { PlatiScadente } from './PlatiScadente';
 import { JurnalIncasari } from './JurnalIncasari';
 import { TipuriAbonamentManagement } from './TipuriAbonament';
@@ -166,8 +167,10 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                             const canManageExams = permissions.canGradeStudents;
                             return <GestiuneExamene onBack={handleBackToDashboard} onNavigate={(view) => setActiveView(view)} onViewSportiv={onViewSportiv} isReadOnly={!canManageExams} />;
                         }
-                        case 'stagii': case 'competitii':
-                            return renderProtected(<StagiiCompetitiiManagement onBack={handleBackToDashboard} type={activeView === 'stagii' ? 'Stagiu' : 'Competitie'} permissions={permissions}/>, permissions.isInstructor);
+                        case 'stagii':
+                            return renderProtected(<StagiiManagement onBack={handleBackToDashboard} permissions={permissions}/>, permissions.isInstructor || permissions.isFederationAdmin || permissions.isSuperAdmin);
+                        case 'competitii':
+                            return renderProtected(<CompetitiiManagement onBack={handleBackToDashboard} permissions={permissions}/>, permissions.isInstructor || permissions.isFederationAdmin || permissions.isSuperAdmin);
                         case 'prezenta':
                             return renderProtected(<PrezentaManagement onBack={handleBackToDashboard} onViewSportiv={onViewSportiv} />, isAtLeastInstructor);
                         case 'prezenta-instructor':

@@ -304,7 +304,8 @@ export interface AnuntPrezenta {
 export interface Eveniment {
   id: string;
   denumire: string;
-  data: string;
+  data: string; // data_inceput
+  data_sfarsit: string;
   locatie: string;
   organizator: string;
   tip: 'Stagiu' | 'Competitie';

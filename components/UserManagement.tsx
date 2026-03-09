@@ -246,6 +246,9 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
     const [newRoleIds, setNewRoleIds] = useState<string[]>([]);
     const [isCreateStaffModalOpen, setIsCreateStaffModalOpen] = useState(false);
     const [selectedClubId, setSelectedClubId] = useState<string | null>(permissions.isFederationAdmin ? null : currentUser.club_id);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [filterNoRole, setFilterNoRole] = useState(false);
+    const [filterNoAccount, setFilterNoAccount] = useState(false);
 
     const { showError, showSuccess } = useError();
     const { isFederationAdmin } = permissions;
@@ -280,9 +283,26 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
     );
 
     const usersToDisplay = useMemo(() => {
-        if (!selectedClubId) return sportivi;
-        return sportivi.filter(s => s.club_id === selectedClubId);
-    }, [sportivi, selectedClubId]);
+        let filtered = sportivi;
+        if (selectedClubId) {
+            filtered = filtered.filter(s => s.club_id === selectedClubId);
+        }
+        if (searchQuery) {
+            const query = searchQuery.toLowerCase();
+            filtered = filtered.filter(s => 
+                s.nume.toLowerCase().includes(query) || 
+                s.prenume.toLowerCase().includes(query) ||
+                (s.email && s.email.toLowerCase().includes(query))
+            );
+        }
+        if (filterNoRole) {
+            filtered = filtered.filter(s => !s.roluri || s.roluri.length === 0);
+        }
+        if (filterNoAccount) {
+            filtered = filtered.filter(s => !s.user_id);
+        }
+        return filtered;
+    }, [sportivi, selectedClubId, searchQuery, filterNoRole, filterNoAccount]);
 
 
     const handleEdit = (user: User) => {
@@ -691,23 +711,42 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                             <ShieldCheckIcon className="w-8 h-8 text-amber-400"/>
                             <h2 className="text-2xl font-bold text-white">Administrare Staff & Permisiuni</h2>
                         </div>
-                        <div className="flex items-center gap-4">
-                            {isFederationAdmin && (
-                                <div className="flex items-center gap-2">
-                                    <span className="text-xs text-slate-400 uppercase font-bold">Filtru Club:</span>
-                                    <select 
-                                        value={selectedClubId || ''} 
-                                        onChange={(e) => setSelectedClubId(e.target.value || null)}
-                                        className="bg-slate-800 border border-slate-700 rounded-md px-3 py-1.5 text-sm text-slate-200 focus:ring-1 focus:ring-amber-500 outline-none"
-                                    >
-                                        <option value="">Toate Cluburile</option>
-                                        {clubs.map(c => <option key={c.id} value={c.id}>{c.nume}</option>)}
-                                    </select>
-                                </div>
-                            )}
-                            <Button variant="info" onClick={() => setIsCreateStaffModalOpen(true)}>
-                                <PlusIcon className="w-5 h-5 mr-2" /> Adaugă Membru Staff
-                            </Button>
+                        <div className="flex flex-col gap-4">
+                            <div className="flex items-center gap-4">
+                                <Input 
+                                    label=""
+                                    placeholder="Caută după nume sau email..." 
+                                    value={searchQuery} 
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-64"
+                                />
+                                {isFederationAdmin && (
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs text-slate-400 uppercase font-bold">Filtru Club:</span>
+                                        <select 
+                                            value={selectedClubId || ''} 
+                                            onChange={(e) => setSelectedClubId(e.target.value || null)}
+                                            className="bg-slate-800 border border-slate-700 rounded-md px-3 py-1.5 text-sm text-slate-200 focus:ring-1 focus:ring-amber-500 outline-none"
+                                        >
+                                            <option value="">Toate Cluburile</option>
+                                            {clubs.map(c => <option key={c.id} value={c.id}>{c.nume}</option>)}
+                                        </select>
+                                    </div>
+                                )}
+                                <Button variant="info" onClick={() => setIsCreateStaffModalOpen(true)}>
+                                    <PlusIcon className="w-5 h-5 mr-2" /> Adaugă Membru Staff
+                                </Button>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
+                                    <input type="checkbox" checked={filterNoRole} onChange={(e) => setFilterNoRole(e.target.checked)} />
+                                    Fără roluri asignate
+                                </label>
+                                <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
+                                    <input type="checkbox" checked={filterNoAccount} onChange={(e) => setFilterNoAccount(e.target.checked)} />
+                                    Fără cont de utilizator
+                                </label>
+                            </div>
                         </div>
                     </div>
                      <div className="p-3 mb-4 text-sm rounded-md bg-sky-900/50 text-sky-300 border border-sky-500/30">

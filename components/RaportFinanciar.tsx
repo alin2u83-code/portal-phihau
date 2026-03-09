@@ -33,7 +33,6 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({ plati, sportiv
     };
 
     const getDescriereTranzactie = (tranzactie: Tranzactie): string => {
-        if (tranzactie.descriere) return tranzactie.descriere;
         if (tranzactie.plata_ids.length === 0) return 'Încasare goală';
         const primaPlata = plati.find(p => p.id === tranzactie.plata_ids[0]);
         if (tranzactie.plata_ids.length > 1) {

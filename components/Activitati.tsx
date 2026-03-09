@@ -209,8 +209,7 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ onBa
                             recipient_user_id: s.user_id!,
                             title: 'Antrenament Anulat',
                             body: `Antrenamentul din data de ${new Date(antrenament.data).toLocaleDateString('ro-RO')} (${antrenament.ora_start}) a fost anulat.`,
-                            type: 'antrenament',
-                            metadata: { antrenament_id: id }
+                            type: 'antrenament'
                         }));
                     
                     if (notifications.length > 0) {

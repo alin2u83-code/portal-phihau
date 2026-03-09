@@ -122,7 +122,6 @@ const AdaugaAvans: React.FC<{
             suma: +suma,
             data_platii: dataPlatii,
             metoda_plata: metodaPlata,
-            descriere: `Plată în avans Familia ${familieSelectata.nume}`,
             club_id: clubId
         };
 
@@ -354,8 +353,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
                             suma: amountForThisInvoice,
                             data_platii: formState.data_platii!,
                             metoda_plata: formState.metoda_plata!,
-                            club_id: clubId,
-                            descriere: `Plată parțială din total ${sumaNum.toFixed(2)} RON: ${invoice.descriere}`
+                            club_id: clubId
                         });
                         remainingPayment -= amountForThisInvoice;
                     }
@@ -396,8 +394,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
                         recipient_user_id: sportiv.user_id,
                         title: 'Plată Înregistrată',
                         body: `Suma totală de ${sumaNum.toFixed(2)} RON a fost înregistrată pentru ${transactionsToInsert.length} facturi.`,
-                        type: 'plata',
-                        metadata: { tranzactie_ids: txs.map(t => t.id) }
+                        type: 'plata'
                     });
                 }
 
@@ -469,8 +466,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
                         recipient_user_id: sportiv.user_id,
                         title: 'Plată Înregistrată',
                         body: `Suma de ${sumaNum.toFixed(2)} RON a fost înregistrată pentru ${formState.descriere}.`,
-                        type: 'plata',
-                        metadata: { tranzactie_id: tranzactieId, plata_id: newPlataId }
+                        type: 'plata'
                     });
                 }
 
@@ -524,7 +520,6 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
     };
 
     const getDescriereTranzactie = (tranzactie: Tranzactie) => {
-        if (tranzactie.descriere) return tranzactie.descriere;
         if (tranzactie.plata_ids.length === 0) return 'Încasare goală';
         const primaPlata = plati.find(p => p.id === tranzactie.plata_ids[0]);
         if (tranzactie.plata_ids.length > 1) { return `${primaPlata?.descriere || 'Plată'} (+${tranzactie.plata_ids.length - 1} altele)`; }

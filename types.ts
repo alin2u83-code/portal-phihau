@@ -135,7 +135,6 @@ export interface Tranzactie {
   suma: number;
   data_platii: string;
   metoda_plata: 'Cash' | 'Transfer Bancar';
-  descriere?: string;
 }
 
 export interface Plata {

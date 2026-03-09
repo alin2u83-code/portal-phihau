@@ -7,7 +7,6 @@ export interface NotificationPayload {
     sent_by?: string;
     sender_sportiv_id?: string;
     type?: string;
-    metadata?: any;
 }
 
 export const sendNotification = async (payload: NotificationPayload) => {
@@ -20,8 +19,7 @@ export const sendNotification = async (payload: NotificationPayload) => {
             body: payload.body,
             sent_by: payload.sent_by || null,
             sender_sportiv_id: payload.sender_sportiv_id || null,
-            type: payload.type || 'system',
-            metadata: payload.metadata || {}
+            type: payload.type || 'system'
         });
 
         if (error) throw error;
@@ -47,8 +45,7 @@ export const sendBulkNotifications = async (payloads: NotificationPayload[]) => 
             body: p.body,
             sent_by: p.sent_by || null,
             sender_sportiv_id: p.sender_sportiv_id || null,
-            type: p.type || 'system',
-            metadata: p.metadata || {}
+            type: p.type || 'system'
         })));
 
         if (error) throw error;

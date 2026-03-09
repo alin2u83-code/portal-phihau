@@ -1,5 +1,6 @@
 export const FEDERATIE_ID = '00000000-0000-0000-0000-000000000000';
 export const FEDERATIE_NAME = 'Secretariatul General';
+export const PHI_HAU_IASI_CLUB_ID = 'cbb0b228-b3e0-4735-9658-70999eb256c6';
 
 // Role IDs for permission checks
 export const SUPER_ADMIN_ROLE_ID = '379f605c-dd61-4f6f-9d9a-c7001c830474';

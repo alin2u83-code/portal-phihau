@@ -20,6 +20,7 @@ interface SportivModalsProps {
     tipuriAbonament: TipAbonament[];
     clubs: Club[];
     currentUser: User;
+    clubFilter?: string;
 
     // Account Settings Modal
     accountSettingsSportiv: Sportiv | null;
@@ -66,6 +67,7 @@ export const SportivModals: React.FC<SportivModalsProps> = ({
     tipuriAbonament,
     clubs,
     currentUser,
+    clubFilter,
     accountSettingsSportiv,
     onCloseAccountSettings,
     allRoles,
@@ -106,6 +108,7 @@ export const SportivModals: React.FC<SportivModalsProps> = ({
                     tipuriAbonament={tipuriAbonament}
                     clubs={clubs}
                     currentUser={currentUser}
+                    clubFilter={clubFilter}
                 />
             )}
 

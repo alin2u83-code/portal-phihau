@@ -104,7 +104,7 @@ export const AuthContainer: React.FC = () => {
             console.log('Începere proces înregistrare...');
             const { data: existingSportiv, error: sportivError } = await supabase
                 .from('sportivi')
-                .select('id, club_id')
+                .select('id, club_id, user_id')
                 .eq('email', formData.email)
                 .maybeSingle();
             
@@ -114,46 +114,91 @@ export const AuthContainer: React.FC = () => {
             }
             console.log('Interogare sportivi reușită:', existingSportiv);
 
+            if (existingSportiv && existingSportiv.user_id) {
+                throw new Error('Acest email este deja asociat unui cont activ.');
+            }
+
+            let clubId = existingSportiv?.club_id || PHI_HAU_IASI_CLUB_ID;
+            let finalEmail = formData.email || '';
+
+            if (existingSportiv) {
+                // Temporary email trick to avoid unique constraint violation if trigger inserts
+                const tempEmail = `temp_${Date.now()}_${finalEmail}`;
+                await supabase.from('sportivi').update({ email: tempEmail }).eq('id', existingSportiv.id);
+            }
+
             const { data: { user }, error: signUpError } = await supabase.auth.signUp({
-                email: formData.email || '',
+                email: finalEmail,
                 password: formData.parola || '',
+                options: {
+                    data: {
+                        full_name: `${formData.nume} ${formData.prenume}`,
+                        first_name: formData.nume,
+                        last_name: formData.prenume,
+                        nume: formData.nume,
+                        prenume: formData.prenume,
+                        username: finalEmail.split('@')[0],
+                        club_id: clubId,
+                        data_nasterii: '1900-01-01',
+                        status: 'Activ',
+                        data_inscrierii: new Date().toISOString().split('T')[0],
+                        gen: 'Masculin'
+                    }
+                }
             });
 
             if (signUpError) {
+                if (existingSportiv) {
+                    // Revert email
+                    await supabase.from('sportivi').update({ email: finalEmail }).eq('id', existingSportiv.id);
+                }
                 console.error('Eroare la signUp:', signUpError);
                 throw signUpError;
             }
             console.log('signUp reușit:', user);
 
             if (!user) {
+                if (existingSportiv) {
+                    await supabase.from('sportivi').update({ email: finalEmail }).eq('id', existingSportiv.id);
+                }
                 throw new Error('Nu s-a putut crea contul. Vă rugăm reîncercați.');
             }
 
             let profileId = existingSportiv?.id;
-            let clubId = existingSportiv?.club_id || PHI_HAU_IASI_CLUB_ID;
 
             if (!existingSportiv) {
-                const { data: newProfile, error: profileError } = await supabase
+                // Check if trigger already created the profile
+                const { data: triggerProfile } = await supabase
                     .from('sportivi')
-                    .insert({
-                        user_id: user.id,
-                        nume: formData.nume,
-                        prenume: formData.prenume,
-                        email: formData.email,
-                        club_id: clubId,
-                        data_nasterii: '1900-01-01',
-                        data_inscrierii: new Date().toISOString().split('T')[0],
-                        status: 'Activ',
-                        trebuie_schimbata_parola: true,
-                    }).select().maybeSingle();
+                    .select('id')
+                    .eq('user_id', user.id)
+                    .maybeSingle();
 
-                if (profileError) throw profileError;
-                if (newProfile) {
-                    profileId = newProfile.id;
+                if (triggerProfile) {
+                    profileId = triggerProfile.id;
+                } else {
+                    const { data: newProfile, error: profileError } = await supabase
+                        .from('sportivi')
+                        .insert({
+                            user_id: user.id,
+                            nume: formData.nume,
+                            prenume: formData.prenume,
+                            email: finalEmail,
+                            club_id: clubId,
+                            data_nasterii: '1900-01-01',
+                            data_inscrierii: new Date().toISOString().split('T')[0],
+                            status: 'Activ',
+                            trebuie_schimbata_parola: true,
+                        }).select().maybeSingle();
+
+                    if (profileError) throw profileError;
+                    if (newProfile) {
+                        profileId = newProfile.id;
+                    }
                 }
             } else {
-                // Update existing sportiv with user_id
-                const { error: updateError } = await supabase.from('sportivi').update({ user_id: user.id }).eq('id', existingSportiv.id);
+                // Update existing sportiv with user_id and revert email
+                const { error: updateError } = await supabase.from('sportivi').update({ user_id: user.id, email: finalEmail }).eq('id', existingSportiv.id);
                 if (updateError) throw updateError;
             }
             

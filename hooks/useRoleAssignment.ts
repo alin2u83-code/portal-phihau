@@ -3,6 +3,7 @@ import { supabase } from '../supabaseClient';
 import { useError } from '../components/ErrorProvider';
 import { Rol, Sportiv, User } from '../types';
 import { getAuthErrorMessage } from '../utils/error';
+import { PHI_HAU_IASI_CLUB_ID } from '../constants';
 
 export const useRoleAssignment = (currentUser: User, allRoles: Rol[]) => {
     const { showError, showSuccess } = useError();
@@ -44,35 +45,87 @@ export const useRoleAssignment = (currentUser: User, allRoles: Rol[]) => {
 
             // 1. Dacă nu avem user_id, încercăm să creăm contul în auth.users
             if (!userId) {
-                // Verificăm dacă există deja un user cu acest email (opțional, signUp va returna eroare dacă există)
-                const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-                    email,
-                    password: parola,
-                    options: {
-                        data: {
-                            full_name: `${sportivData.nume} ${sportivData.prenume}`,
-                            club_id: sportivData.club_id
-                        }
-                    }
-                });
+                // Verificăm dacă există deja un sportiv cu acest email în baza de date publică
+                const { data: existingSportiv, error: checkError } = await supabase
+                    .from('sportivi')
+                    .select('id, user_id')
+                    .eq('email', email)
+                    .maybeSingle();
 
-                if (signUpError) {
-                    // Dacă eroarea este că utilizatorul există deja, încercăm să-l recuperăm (dacă avem permisiuni)
-                    // Notă: În medii securizate, nu poți recupera ID-ul altui user fără service_role.
-                    // Dar dacă e propriul cont sau email-ul e deja în baza noastră publică, îl putem asocia.
-                    if (signUpError.message.includes('already registered')) {
-                         // Încercăm să vedem dacă avem deja acest email în tabela publică sportivi
-                         const { data: existingSportiv } = await supabase.from('sportivi').select('user_id').eq('email', email).single();
-                         userId = existingSportiv?.user_id;
-                         
-                         if (!userId) {
-                             throw new Error("Utilizatorul este deja înregistrat în sistemul de autentificare, dar nu este asociat niciunui profil de sportiv. Contactați suportul tehnic.");
-                         }
+                if (checkError) {
+                    throw new Error("Eroare la verificarea existenței emailului.");
+                }
+
+                if (existingSportiv) {
+                    if (existingSportiv.user_id) {
+                        throw new Error("Acest email este deja asociat unui cont activ.");
                     } else {
-                        throw signUpError;
+                        // Sportivul există dar nu are cont (user_id e null).
+                        // Dacă trigger-ul încearcă să insereze, va eșua din cauza constrângerii unice pe email.
+                        // Pentru a evita asta, putem încerca să facem signUp, dar trigger-ul va pica oricum dacă nu e scris să facă UPDATE.
+                        // Soluția ideală e să folosim un RPC care creează user-ul, dar nu putem din client.
+                        // O soluție temporară: schimbăm email-ul sportivului existent la un email temporar, facem signUp, apoi RPC-ul va face UPDATE și va pune email-ul corect înapoi.
+                        const tempEmail = `temp_${Date.now()}_${email}`;
+                        await supabase.from('sportivi').update({ email: tempEmail }).eq('id', existingSportiv.id);
+                        
+                        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+                            email,
+                            password: parola,
+                            options: {
+                                data: {
+                                    full_name: `${sportivData.nume} ${sportivData.prenume}`,
+                                    first_name: sportivData.nume,
+                                    last_name: sportivData.prenume,
+                                    nume: sportivData.nume,
+                                    prenume: sportivData.prenume,
+                                    username: sportivData.username || email.split('@')[0],
+                                    club_id: sportivData.club_id || PHI_HAU_IASI_CLUB_ID,
+                                    data_nasterii: sportivData.data_nasterii || '1900-01-01',
+                                    status: sportivData.status || 'Activ',
+                                    data_inscrierii: sportivData.data_inscrierii || new Date().toISOString().split('T')[0],
+                                    gen: sportivData.gen || 'Masculin'
+                                }
+                            }
+                        });
+
+                        if (signUpError) {
+                            // Revert email if signUp fails
+                            await supabase.from('sportivi').update({ email }).eq('id', existingSportiv.id);
+                            throw signUpError;
+                        }
+                        userId = signUpData.user?.id;
                     }
                 } else {
-                    userId = signUpData.user?.id;
+                    // Nu există sportiv cu acest email, putem face signUp normal
+                    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+                        email,
+                        password: parola,
+                        options: {
+                            data: {
+                                full_name: `${sportivData.nume} ${sportivData.prenume}`,
+                                first_name: sportivData.nume,
+                                last_name: sportivData.prenume,
+                                nume: sportivData.nume,
+                                prenume: sportivData.prenume,
+                                username: sportivData.username || email.split('@')[0],
+                                club_id: sportivData.club_id || PHI_HAU_IASI_CLUB_ID,
+                                data_nasterii: sportivData.data_nasterii || '1900-01-01',
+                                status: sportivData.status || 'Activ',
+                                data_inscrierii: sportivData.data_inscrierii || new Date().toISOString().split('T')[0],
+                                gen: sportivData.gen || 'Masculin'
+                            }
+                        }
+                    });
+
+                    if (signUpError) {
+                        if (signUpError.message.includes('already registered')) {
+                             throw new Error("Utilizatorul este deja înregistrat în sistemul de autentificare, dar nu este asociat niciunui profil de sportiv. Contactați suportul tehnic.");
+                        } else {
+                            throw signUpError;
+                        }
+                    } else {
+                        userId = signUpData.user?.id;
+                    }
                 }
             }
 

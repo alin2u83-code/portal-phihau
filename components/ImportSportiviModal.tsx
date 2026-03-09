@@ -15,6 +15,7 @@ interface ImportSportiviModalProps {
     onImportComplete: () => void;
     currentUser: User;
     clubs: Club[];
+    clubFilter?: string;
 }
 
 export const ImportSportiviModal: React.FC<ImportSportiviModalProps> = ({ 
@@ -22,7 +23,8 @@ export const ImportSportiviModal: React.FC<ImportSportiviModalProps> = ({
     onClose, 
     onImportComplete, 
     currentUser, 
-    clubs 
+    clubs,
+    clubFilter
 }) => {
     const [file, setFile] = useState<File | null>(null);
     const [previewData, setPreviewData] = useState<any[]>([]);
@@ -78,6 +80,16 @@ export const ImportSportiviModal: React.FC<ImportSportiviModalProps> = ({
         return null;
     };
 
+    const getDefaultClubName = () => {
+        if (!isSuperAdmin) {
+            return clubs.find(c => c.id === currentUser.club_id)?.nume || '';
+        }
+        if (clubFilter) {
+            return clubs.find(c => c.id === clubFilter)?.nume || '';
+        }
+        return '';
+    };
+
     const handleAddRow = () => {
         const newId = Math.max(...importRows.map(r => r.id), -1) + 1;
         const newRow: ImportRow = {
@@ -86,7 +98,7 @@ export const ImportSportiviModal: React.FC<ImportSportiviModalProps> = ({
             prenume: '',
             data_nasterii: '',
             gen: '',
-            club: isSuperAdmin ? '' : (clubs.find(c => c.id === currentUser.club_id)?.nume || ''),
+            club: getDefaultClubName(),
             selected: false,
             isValid: false,
             errors: ['Nume lipsă', 'Prenume lipsă', 'Data nașterii lipsă']
@@ -96,7 +108,7 @@ export const ImportSportiviModal: React.FC<ImportSportiviModalProps> = ({
 
     const downloadTemplate = () => {
         const headers = ['Nume', 'Prenume', 'Data Nasterii', 'Gen', 'Club'];
-        const exampleRow = ['Popescu', 'Ion', '20/05/2010', 'M', isSuperAdmin ? 'Nume Club' : ''];
+        const exampleRow = ['Popescu', 'Ion', '20/05/2010', 'M', getDefaultClubName() || 'Nume Club'];
         const csvContent = "data:text/csv;charset=utf-8," + 
             headers.join(",") + "\n" + 
             exampleRow.join(",");

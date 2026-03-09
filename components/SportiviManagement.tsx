@@ -240,7 +240,7 @@ export const SportiviManagement: React.FC<{
             } else {
                 const { email, parola, roluri, cluburi, ...profileData } = formData;
                 if (!email || !parola) throw new Error("Emailul și parola sunt obligatorii pentru crearea unui cont nou.");
-                if (!profileData.club_id) { profileData.club_id = currentUser?.club_id; }
+                if (!profileData.club_id) { profileData.club_id = filters.clubFilter || activeClubId || currentUser?.club_id; }
                 if (!profileData.club_id) throw new Error("Clubul este obligatoriu la adăugarea unui sportiv nou.");
 
                 const sportivRole = allRoles.find(r => r.nume === 'SPORTIV');
@@ -386,6 +386,7 @@ export const SportiviManagement: React.FC<{
                 }}
                 currentUser={currentUser!}
                 clubs={clubs}
+                clubFilter={filters.clubFilter}
             />
 
             <SportivModals
@@ -401,6 +402,7 @@ export const SportiviManagement: React.FC<{
                 tipuriAbonament={tipuriAbonament}
                 clubs={clubs}
                 currentUser={currentUser}
+                clubFilter={filters.clubFilter}
                 accountSettingsSportiv={accountSettingsSportiv}
                 onCloseAccountSettings={() => setAccountSettingsSportiv(null)}
                 allRoles={allRoles}

@@ -326,8 +326,9 @@ export const SportivFormModal: React.FC<{
     tipuriAbonament: TipAbonament[];
     clubs: Club[];
     currentUser: User | null;
+    clubFilter?: string;
 }> = ({ 
-  isOpen, onClose, onSave, sportivToEdit, grupe, setGrupe, grade, familii, setFamilii, tipuriAbonament, clubs, currentUser
+  isOpen, onClose, onSave, sportivToEdit, grupe, setGrupe, grade, familii, setFamilii, tipuriAbonament, clubs, currentUser, clubFilter
 }) => {
     const { showError } = useError();
     const [loading, setLoading] = useState(false);
@@ -345,7 +346,7 @@ export const SportivFormModal: React.FC<{
                 setIsFormValid(true); 
             } else {
                 const isSuperAdmin = currentUser?.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN');
-                const defaultClubId = !isSuperAdmin && currentUser?.club_id ? currentUser.club_id : null;
+                const defaultClubId = !isSuperAdmin && currentUser?.club_id ? currentUser.club_id : (clubFilter || null);
                 
                 let defaultGradeId = null;
                 if (grade.length > 0) {

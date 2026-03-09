@@ -274,7 +274,7 @@ export const useDataProvider = () => {
             }
 
             if (!isSuperAdmin && cleanClubId) {
-                const tablesToFilter = ['tranzactii', 'evenimente', 'deconturiFederatie', 'vizualizarePlati', 'sesiuniExamene', 'tipuriAbonament'];
+                const tablesToFilter = ['sportivi', 'grupe', 'tranzactii', 'evenimente', 'deconturiFederatie', 'vizualizarePlati', 'sesiuniExamene', 'tipuriAbonament'];
                 tablesToFilter.forEach(key => {
                     if (queries[key]) queries[key] = queries[key].eq('club_id', cleanClubId);
                 });

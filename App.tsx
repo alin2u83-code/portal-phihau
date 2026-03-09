@@ -196,7 +196,7 @@ function App() {
     return needsRoleSelection || (session && !loading && !activeRole);
   }, [needsRoleSelection, session, loading, activeRole]);
 
-  if ((loading || clubFilterLoading) && isMobile) {
+  if (loading || clubFilterLoading) {
       return <MartialArtsSkeleton />;
   }
 

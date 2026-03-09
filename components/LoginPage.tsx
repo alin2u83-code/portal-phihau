@@ -109,9 +109,9 @@ export const LoginPage: React.FC = () => {
                             </div>
 
                             <div className="text-sm">
-                                <a href="#" className="font-medium text-amber-500 hover:text-amber-400 transition-colors">
+                                <Link to="/forgot-password" className="font-medium text-amber-500 hover:text-amber-400 transition-colors">
                                     Ai uitat parola?
-                                </a>
+                                </Link>
                             </div>
                         </div>
 

@@ -104,8 +104,15 @@ export const SportiviManagement: React.FC<{
         grupaFilter: '',
         rolFilter: '',
         gradFilter: '',
-        clubFilter: '',
+        clubFilter: permissions.isFederationAdmin ? '' : (currentUser.club_id || ''),
     });
+
+    // Ensure clubFilter is correct if user is not admin
+    React.useEffect(() => {
+        if (!permissions.isFederationAdmin && filters.clubFilter !== currentUser.club_id) {
+            setFilters(prev => ({ ...prev, clubFilter: currentUser.club_id || '' }));
+        }
+    }, [permissions.isFederationAdmin, currentUser.club_id, filters.clubFilter, setFilters]);
 
     const { data: sportiviData, isLoading: sportiviLoading, error: sportiviError } = useSportivi({
         clubId: filters.clubFilter || activeClubId,

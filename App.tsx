@@ -24,6 +24,8 @@ import { ClubGuard } from './components/ClubGuard';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { RegisterPage } from './components/RegisterPage';
 import { LoginPage } from './components/LoginPage';
+import { ForgotPasswordPage } from './components/ForgotPasswordPage';
+import { ResetPasswordPage } from './components/ResetPasswordPage';
 
 function App() {
   const { showError } = useError();
@@ -217,6 +219,8 @@ function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       ) :

@@ -115,7 +115,7 @@ export const SportivAvatarEditor: React.FC<SportivAvatarEditorProps> = ({ sporti
             setIsModalOpen(false);
             setImage(null);
         } catch (error: any) {
-            console.error('DEBUG:', error);
+            console.error('DETALII EROARE:', JSON.stringify(error, null, 2));
             showError('Eroare la încărcare', error.message);
         } finally {
             setUploading(false);

@@ -108,7 +108,7 @@ const CreateStaffModal: React.FC<{
             onClose();
 
         } catch (err: any) {
-            console.error('DEBUG:', err);
+            console.error('DETALII EROARE:', JSON.stringify(err, null, 2));
             showError("Operațiune eșuată", err.message);
         } finally {
             setLoading(false);
@@ -400,7 +400,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
             showSuccess("Succes", `Rolurile pentru ${targetUser.nume} au fost salvate!`);
             setEditingId(null);
         } catch (error: any) {
-            console.error('DEBUG:', error);
+            console.error('DETALII EROARE:', JSON.stringify(error, null, 2));
             if (error.code === '23505') {
                 showError("Eroare de Conflict", "Există deja un rol principal pentru acest utilizator. Vă rugăm să faceți un 'Reset Context' sau să contactați un administrator.");
             } else {
@@ -464,7 +464,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
             showSuccess("Cont Creat", `Contul pentru ${selectedUserForAccount.nume} a fost creat cu succes.`);
     
         } catch (err: any) {
-            console.error('DEBUG:', err);
+            console.error('DETALII EROARE:', JSON.stringify(err, null, 2));
             setCreateAccountError(err.message);
         } finally {
             setCreateAccountLoading(false);
@@ -485,7 +485,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
         
         const { data, error } = await supabase.from('roluri').insert({ nume: trimmedName }).select().single();
         if (error) {
-            console.error('DEBUG:', error);
+            console.error('DETALII EROARE:', JSON.stringify(error, null, 2));
             setRoleCreationFeedback({type: 'error', message: `Eroare: ${error.message}`});
         } else if (data) {
             setAllRoles(prev => [...prev, data as Rol]);

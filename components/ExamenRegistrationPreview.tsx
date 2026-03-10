@@ -37,7 +37,7 @@ export const ExamenRegistrationPreview: React.FC<ExamenRegistrationPreviewProps>
             showSuccess("Succes", "Înregistrarea la examen a fost salvată.");
             onConfirm();
         } catch (err: any) {
-            console.error('DEBUG:', err);
+            console.error('DETALII EROARE:', JSON.stringify(err, null, 2));
             showError("Eroare", err.message);
         } finally {
             setSubmitting(false);

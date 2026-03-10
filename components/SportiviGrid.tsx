@@ -20,7 +20,7 @@ export const SportiviGrid: React.FC<SportiviGridProps> = ({ sportivi }) => {
     const sportiviAfisati = useMemo(() => {
         // DEBUG: Dacă ești Super Admin, ignoră orice filtru dacă lista e goală
         if (sportivi && sportivi.length === 0) {
-           console.log("DEBUG: Lista de sportivi e goală. Verifică RLS.");
+           console.error('DETALII EROARE:', "Lista de sportivi e goală. Verifică RLS.");
         }
         return sportivi || []; 
     }, [sportivi]);

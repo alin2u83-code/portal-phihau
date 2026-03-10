@@ -155,7 +155,7 @@ export const GrupeManagement: React.FC<GrupeManagementProps> = ({ onBack }) => {
         if (grupaToEdit) { // UPDATE
             const { data: updatedGrupa, error: grupaError } = await supabase.from('grupe').update(grupaDbPayload).eq('id', grupaToEdit.id).select().single();
             if (grupaError) { 
-                console.error('DEBUG:', grupaError);
+                console.error('DETALII EROARE:', JSON.stringify(grupaError, null, 2));
                 showError("Eroare la actualizarea grupei", grupaError); 
                 return; 
             }
@@ -164,7 +164,7 @@ export const GrupeManagement: React.FC<GrupeManagementProps> = ({ onBack }) => {
                 const programToInsert = program.map(({ id, ...rest }) => ({ ...rest, grupa_id: grupaToEdit.id }));
                 const { error: insertError } = await supabase.from('orar_saptamanal').insert(programToInsert);
                 if (insertError) { 
-                    console.error('DEBUG:', insertError);
+                    console.error('DETALII EROARE:', JSON.stringify(insertError, null, 2));
                     showError("Eroare la sincronizarea programului", insertError); 
                     return; 
                 }
@@ -175,7 +175,7 @@ export const GrupeManagement: React.FC<GrupeManagementProps> = ({ onBack }) => {
         } else { // CREATE
             const { data: newGrupa, error: grupaError } = await supabase.from('grupe').insert(grupaDbPayload).select().single();
             if (grupaError) { 
-                console.error('DEBUG:', grupaError);
+                console.error('DETALII EROARE:', JSON.stringify(grupaError, null, 2));
                 showError("Eroare la adăugarea grupei", grupaError); 
                 return; 
             }
@@ -205,7 +205,7 @@ export const GrupeManagement: React.FC<GrupeManagementProps> = ({ onBack }) => {
         await supabase.from('orar_saptamanal').delete().eq('grupa_id', grupaId);
         const { error: grupaError } = await supabase.from('grupe').delete().eq('id', grupaId);
         if (grupaError) { 
-            console.error('DEBUG:', grupaError);
+            console.error('DETALII EROARE:', JSON.stringify(grupaError, null, 2));
             showError("Eroare la ștergerea grupei", grupaError); 
         }
         else { setGrupe(prev => (prev as GrupaWithDetails[]).filter(g => g.id !== grupaId)); showSuccess("Succes", "Grupa a fost ștearsă."); }

@@ -122,7 +122,7 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
             showSuccess("Succes", `Sportivul a fost înscris${taxaConfig ? ' și taxa generată' : ''}.`);
             setFormState({ sportivId: '', rezultat: 'Participare', probe: [] });
         } catch (err) {
-            console.error('DEBUG:', err);
+            console.error('DETALII EROARE:', JSON.stringify(err, null, 2));
             showError("Eroare la înscriere", err);
         }
     };
@@ -131,7 +131,7 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
         setIsDeletingRezultat(true);
         const { error } = await supabase.from('rezultate').delete().eq('id', rezultatId);
         if (error) {
-            console.error('DEBUG:', error);
+            console.error('DETALII EROARE:', JSON.stringify(error, null, 2));
             showError("Eroare la ștergere", error);
         }
         else { setRezultate(prev => prev.filter(r => r.id !== rezultatId)); showSuccess("Succes", "Înscrierea a fost ștearsă."); }
@@ -195,13 +195,13 @@ export const StagiiCompetitiiManagement: React.FC<StagiiCompetitiiProps> = ({ ty
         if (evToEdit) {
             const { data, error } = await supabase.from('evenimente').update(evData).eq('id', evToEdit.id).select().single();
             if (error) { 
-                console.error('DEBUG:', error);
+                console.error('DETALII EROARE:', JSON.stringify(error, null, 2));
                 showError("Eroare la actualizare", error); 
             } else if (data) { setEvenimente(prev => prev.map(e => e.id === data.id ? data : e)); showSuccess("Succes", `${type} actualizat.`); }
         } else {
             const { data, error } = await supabase.from('evenimente').insert(evData).select().single();
             if (error) { 
-                console.error('DEBUG:', error);
+                console.error('DETALII EROARE:', JSON.stringify(error, null, 2));
                 showError("Eroare la adăugare", error); 
             } else if (data) { setEvenimente(prev => [...prev, data]); showSuccess("Succes", `${type} adăugat.`); }
         }
@@ -216,7 +216,7 @@ export const StagiiCompetitiiManagement: React.FC<StagiiCompetitiiProps> = ({ ty
             if (selectedEvenimentId === id) setSelectedEvenimentId(null);
             showSuccess("Succes", `${type} și înscrierile asociate au fost șterse.`);
         } catch(err) { 
-            console.error('DEBUG:', err);
+            console.error('DETALII EROARE:', JSON.stringify(err, null, 2));
             showError("Eroare la ștergere", err); 
         }
         finally { setIsDeleting(false); setEvToDelete(null); }

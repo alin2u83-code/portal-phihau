@@ -183,7 +183,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ onBack, onNavigate, 
             }
             showSuccess("Înscriere reușită!", `Te-ai înscris la ${event.denumire}.`);
         } catch (err) {
-            console.error('DEBUG:', err);
+            console.error('DETALII EROARE:', JSON.stringify(err, null, 2));
             showError("Eroare la înscriere", err);
         }
     };
@@ -212,7 +212,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ onBack, onNavigate, 
                     newPlati.push(pData as Plata);
                 }
             } catch (err) {
-                console.error('DEBUG:', err);
+                console.error('DETALII EROARE:', JSON.stringify(err, null, 2));
                 errorCount++;
                 showError(`Eroare la înscrierea lui ${sportiv.nume}`, err);
             }

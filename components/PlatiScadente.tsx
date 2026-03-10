@@ -90,7 +90,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                 .eq('status', 'Activ');
 
             if (error) {
-                console.error('DEBUG:', error);
+                console.error('DETALII EROARE:', JSON.stringify(error, null, 2));
                 throw error;
             }
             
@@ -165,7 +165,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
             }
     
         } catch (err: any) {
-            console.error('DEBUG:', err);
+            console.error('DETALII EROARE:', JSON.stringify(err, null, 2));
             showError("Eroare la generare", err.message);
         } finally {
             setIsGenerating(false);
@@ -179,7 +179,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
         const { error } = await supabase.from('plati').update(updates).eq('id', id);
         setIsSaving(false);
         if(error) { 
-            console.error('DEBUG:', error);
+            console.error('DETALII EROARE:', JSON.stringify(error, null, 2));
             showError("Eroare la Salvare", error.message); 
         }
         else { setPlati(prev => prev.map(p => p.id === id ? editingPlata : p)); setEditingPlata(null); }
@@ -220,7 +220,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                 showError("Eroare", result?.error || "A apărut o eroare necunoscută.");
             }
         } catch (err: any) {
-            console.error('DEBUG:', err);
+            console.error('DETALII EROARE:', JSON.stringify(err, null, 2));
             showError("Eroare la procesare", err.message);
         } finally {
             setIsPaymentLoading(false);
@@ -233,7 +233,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
         const { error } = await supabase.from('plati').delete().eq('id', id);
         setIsDeleting(false);
         if(error) { 
-            console.error('DEBUG:', error);
+            console.error('DETALII EROARE:', JSON.stringify(error, null, 2));
             showError("Eroare la Ștergere", error.message); 
         }
         else { setPlati(prev => prev.filter(p => p.id !== id)); }

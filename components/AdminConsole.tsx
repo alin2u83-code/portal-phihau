@@ -76,7 +76,7 @@ const DevRoleImpersonation: React.FC<{ userRoles: any[] }> = ({ userRoles }) => 
         });
 
         if (error) {
-            console.error('DEBUG:', error);
+            console.error('DETALII EROARE:', JSON.stringify(error, null, 2));
             showError("Ereare la comutarea rolului", error.message);
             setLoadingRole(null);
         } else {
@@ -141,7 +141,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ currentUser, userRol
         });
 
         if (error) {
-            console.error('DEBUG:', error);
+            console.error('DETALII EROARE:', JSON.stringify(error, null, 2));
             showError("Eroare la comutarea rolului", error.message);
             setIsSwitchingRole(false);
         } else {

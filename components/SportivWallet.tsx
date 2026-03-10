@@ -142,7 +142,7 @@ export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, 
             setShowPaymentForm(false);
             setPaymentAmount('');
         } catch (err: any) {
-            console.error('DEBUG:', err);
+            console.error('DETALII EROARE:', JSON.stringify(err, null, 2));
             showError("Eroare la procesarea încasării", err.message);
         } finally {
             setIsSaving(false);

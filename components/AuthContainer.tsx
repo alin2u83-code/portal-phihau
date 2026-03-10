@@ -214,12 +214,12 @@ export const AuthContainer: React.FC = () => {
             setMessage({ type: 'success', text: 'Cont creat cu succes! Vă rugăm să verificați email-ul pentru a vă confirma contul.' });
             resetForm();
         } catch (error: any) {
-            console.error('DEBUG: Eroare detaliată:', {
+            console.error('DETALII EROARE:', JSON.stringify({
                 message: error.message,
                 stack: error.stack,
                 name: error.name,
                 cause: error.cause
-            });
+            }, null, 2));
             setMessage({ type: 'error', text: getAuthErrorMessage(error) });
         } finally {
             setLoading(false);

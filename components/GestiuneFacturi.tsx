@@ -210,7 +210,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
             setSelectedMarimeId('');
             showSuccess("Succes", formState.isDirectPayment ? "Factura a fost emisă și încasată." : "Factura a fost adăugată.");
         } catch (error: any) {
-            console.error('DEBUG:', error);
+            console.error('DETALII EROARE:', JSON.stringify(error, null, 2));
             showError("Eroare", error.message);
         } finally {
             setLoading(false);
@@ -229,7 +229,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
         setIsEditLoading(false);
 
         if (error) {
-            console.error('DEBUG:', error);
+            console.error('DETALII EROARE:', JSON.stringify(error, null, 2));
             showError("Eroare la modificare", error.message);
         } else if (data) {
             setPlati(prev => prev.map(p => p.id === data.id ? data : p));
@@ -245,7 +245,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
         setIsDeleting(false);
 
         if (error) {
-            console.error('DEBUG:', error);
+            console.error('DETALII EROARE:', JSON.stringify(error, null, 2));
             showError("Eroare la ștergere", error.message);
         } else {
             setPlati(prev => prev.filter(p => p.id !== plataToDelete.id));
@@ -295,7 +295,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
                 showError("Eroare", result?.error || "A apărut o eroare necunoscută.");
             }
         } catch (err: any) {
-            console.error('DEBUG:', err);
+            console.error('DETALII EROARE:', JSON.stringify(err, null, 2));
             showError("Eroare la procesare", err.message);
         } finally {
             setIsPaymentLoading(false);

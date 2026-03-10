@@ -45,7 +45,7 @@ export const useExamManager = (
                 }
             }
         } catch (err: any) {
-            console.error('DEBUG:', err);
+            console.error('DETALII EROARE:', JSON.stringify(err, null, 2));
             showError(sesiuneToEdit ? "Eroare la actualizare" : "Eroare la adăugare", err.message || err);
         } finally {
             setLoading(false);
@@ -66,7 +66,7 @@ export const useExamManager = (
             showSuccess("Succes", "Sesiunea și înscrierile asociate au fost șterse.");
             return true;
         } catch (err: any) {
-            console.error('DEBUG:', err);
+            console.error('DETALII EROARE:', JSON.stringify(err, null, 2));
             showError("Eroare la ștergere", err.message || err);
             return false;
         } finally {
@@ -89,7 +89,7 @@ export const useExamManager = (
             showSuccess("Examen Finalizat", "Decontul a fost generat și trimis către federație.");
             return true;
         } catch (err: any) {
-            console.error('DEBUG:', err);
+            console.error('DETALII EROARE:', JSON.stringify(err, null, 2));
             showError("Eroare la finalizare", `Funcția RPC 'finalizeaza_examen' nu a putut fi executată. Detalii: ${err.message}`);
             return false;
         } finally {

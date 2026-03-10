@@ -47,7 +47,7 @@ export const SesiuneForm: React.FC<SesiuneFormProps> = ({ isOpen, onClose, onSav
         if (!supabase) { showError("Eroare", "Client Supabase neconfigurat."); return; }
         const { data, error } = await supabase.from('nom_locatii').insert(locatieData).select().single();
         if (error) { 
-            console.error('DEBUG:', error);
+            console.error('DETALII EROARE:', JSON.stringify(error, null, 2));
             showError("Eroare la salvare locație", error); 
         } 
         else if (data) {

@@ -19,19 +19,32 @@ if (!rootElement) {
   throw new Error("Could not find root element to mount to");
 }
 
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
 const root = ReactDOM.createRoot(rootElement);
-root.render(
-  <ErrorProvider>
-    <QueryClientProvider client={queryClient}>
-      <DataProvider>
-        <NavigationProvider>
-          <React.StrictMode>
-            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-              <App />
-            </BrowserRouter>
-          </React.StrictMode>
-        </NavigationProvider>
-      </DataProvider>
-    </QueryClientProvider>
-  </ErrorProvider>
-);
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  root.render(
+    <div style={{ padding: '20px', color: 'white', backgroundColor: '#1e293b', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+      <h1 style={{ color: '#ef4444', fontSize: '2rem', marginBottom: '1rem' }}>Lipsește configurarea Vercel</h1>
+      <p>Variabilele de mediu VITE_SUPABASE_URL și/sau VITE_SUPABASE_ANON_KEY nu sunt definite.</p>
+    </div>
+  );
+} else {
+  root.render(
+    <ErrorProvider>
+      <QueryClientProvider client={queryClient}>
+        <DataProvider>
+          <NavigationProvider>
+            <React.StrictMode>
+              <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                <App />
+              </BrowserRouter>
+            </React.StrictMode>
+          </NavigationProvider>
+        </DataProvider>
+      </QueryClientProvider>
+    </ErrorProvider>
+  );
+}

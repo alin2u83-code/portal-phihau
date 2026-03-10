@@ -122,7 +122,7 @@ export const FederationInvoices: React.FC<FederationInvoicesProps> = ({ decontur
             setSelectedDecont(null);
 
         } catch (err: any) {
-            console.error('DEBUG:', err);
+            console.error('DETALII EROARE:', JSON.stringify(err, null, 2));
             showError("Eroare la Confirmare", err.message);
         }
     };

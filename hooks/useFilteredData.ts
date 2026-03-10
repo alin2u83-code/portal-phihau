@@ -89,7 +89,14 @@ export const useFilteredData = ({
             };
         }
 
-        const fSportivi = (sportivi || []).filter((s) => s.club_id === activeClubId);
+        const fSportivi = (sportivi || []).filter((s) => {
+            const isInClub = s.club_id === activeClubId;
+            const isInFederationEvent = (rezultate || []).some(r => 
+                r.sportiv_id === s.id && 
+                (evenimente || []).some(e => e.id === r.eveniment_id && e.club_id === null)
+            );
+            return isInClub || isInFederationEvent;
+        });
         const fGrupe = (grupe || []).filter((g) => g.club_id === activeClubId);
 
         const fSesiuniExamene = (sesiuniExamene || []).filter(
@@ -140,9 +147,11 @@ export const useFilteredData = ({
         const fInscrieriExamene = (inscrieriExamene || []).filter((i) =>
             sportivIdsInClub.has(i.sportiv_id)
         );
-        const fRezultate = (rezultate || []).filter((r) =>
-            sportivIdsInClub.has(r.sportiv_id)
-        );
+        const fRezultate = (rezultate || []).filter((r) => {
+            const isSportivInClub = sportivIdsInClub.has(r.sportiv_id);
+            const isFederationEvent = (evenimente || []).some(e => e.id === r.eveniment_id && e.club_id === null);
+            return isSportivInClub || isFederationEvent;
+        });
         const fAnunturiPrezenta = (anunturiPrezenta || []).filter((a) =>
             sportivIdsInClub.has(a.sportiv_id)
         );

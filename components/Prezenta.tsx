@@ -89,10 +89,10 @@ const DashboardPrezentaAzi: React.FC<{
                                                     <span className="text-sm font-bold">{a.ora_start}</span>
                                                 </div>
                                                 <div>
-                                                    <h3 className="text-lg font-bold text-white leading-tight">{(a as any).grupe?.denumire || 'Grupă necunoscută'}</h3>
+                                                    <h3 className="text-lg font-bold text-white leading-tight">{a.nume_grupa || 'Grupă necunoscută'}</h3>
                                                     <p className="text-xs text-slate-500 flex items-center gap-1 mt-1">
                                                         <UsersIcon className="w-3 h-3" />
-                                                        {(a as any).grupe?.sala || 'Sală nespecificată'}
+                                                        {a.sala || 'Sală nespecificată'}
                                                     </p>
                                                 </div>
                                             </div>
@@ -117,7 +117,7 @@ const DashboardPrezentaAzi: React.FC<{
                             <div className="p-4 bg-slate-800/40 rounded-2xl border border-slate-700/50">
                                 <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Total Sportivi Așteptați</p>
                                 <p className="text-3xl font-black text-white">
-                                    {todaysTrainings.reduce((acc, a) => acc + ((a as any).grupe?.sportivi_count?.[0]?.count || 0), 0)}
+                                    {todaysTrainings.reduce((acc, a) => acc + (a.sportivi_count || 0), 0)}
                                 </p>
                             </div>
                             <div className="p-4 bg-slate-800/40 rounded-2xl border border-slate-700/50">

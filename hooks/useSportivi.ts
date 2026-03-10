@@ -32,16 +32,13 @@ export const fetchSportiviData = async (
     }
 
     let query = supabase
-        .from('sportivi')
+        .from('vedere_cluburi_sportivi')
         .select(selectString, { count: 'exact' });
     
     if (filters.rolId) {
         query = query.eq('roluri.rol_id', filters.rolId);
     }
     
-    if (filters.clubId && filters.clubId !== 'null' && filters.clubId !== 'undefined') {
-        query = query.eq('club_id', filters.clubId);
-    }
     if (filters.status) {
         query = query.eq('status', filters.status);
     }

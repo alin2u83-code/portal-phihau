@@ -247,41 +247,30 @@ export const useDataProvider = () => {
                 clubs: cleanedSupabase.from('cluburi').select('*'),
                 allRoles: cleanedSupabase.from('roluri').select('*'),
                 grade: cleanedSupabase.from('grade').select('*'),
-                tipuriAbonament: cleanedSupabase.from('tipuri_abonament').select('*'),
+                tipuriAbonament: cleanedSupabase.from('vedere_cluburi_tipuri_abonament').select('*'),
                 tipuriPlati: cleanedSupabase.from('tipuri_plati').select('*'),
-                sesiuniExamene: cleanedSupabase.from('sesiuni_examene').select('*'),
-                tranzactii: cleanedSupabase.from('tranzactii').select('*'),
-                evenimente: cleanedSupabase.from('evenimente').select('*'),
-                rezultate: cleanedSupabase.from('rezultate').select('*'),
-                familii: cleanedSupabase.from('familii').select('*'),
-                vizualizarePlati: cleanedSupabase.from('view_plata_sportiv').select('*'),
+                sesiuniExamene: cleanedSupabase.from('vedere_cluburi_sesiuni_examene').select('*'),
+                tranzactii: cleanedSupabase.from('vedere_cluburi_tranzactii').select('*'),
+                evenimente: cleanedSupabase.from('vedere_cluburi_evenimente').select('*'),
+                rezultate: cleanedSupabase.from('vedere_cluburi_rezultate').select('*'),
+                familii: cleanedSupabase.from('vedere_cluburi_familii').select('*'),
+                vizualizarePlati: cleanedSupabase.from('vedere_cluburi_vizualizare_plati').select('*'),
             };
 
             if (!isSportiv) {
-                queries.locatii = cleanedSupabase.from('nom_locatii').select('*');
+                queries.locatii = cleanedSupabase.from('vedere_cluburi_locatii').select('*');
                 queries.reduceri = cleanedSupabase.from('reduceri').select('*');
-                queries.preturiConfig = cleanedSupabase.from('preturi_config').select('*');
-                queries.istoricPlatiDetaliat = cleanedSupabase.from('view_istoric_plati_detaliat').select('*');
-                queries.deconturiFederatie = cleanedSupabase.from('deconturi_federatie').select('*');
+                queries.preturiConfig = cleanedSupabase.from('vedere_cluburi_preturi_config').select('*');
+                queries.istoricPlatiDetaliat = cleanedSupabase.from('vedere_cluburi_istoric_plati_detaliat').select('*');
+                queries.deconturiFederatie = cleanedSupabase.from('vedere_cluburi_deconturi_federatie').select('*');
             }
 
             if (isSportiv && activeCtx.sportiv_id) {
-                queries.inscrieriExamene = cleanedSupabase.from('inscrieri_examene').select('*, sportivi:sportiv_id(*), grades:grad_vizat_id(*)').eq('sportiv_id', activeCtx.sportiv_id);
+                queries.inscrieriExamene = cleanedSupabase.from('vedere_cluburi_inscrieri_examene').select('*, sportivi:sportiv_id(*), grades:grad_vizat_id(*)').eq('sportiv_id', activeCtx.sportiv_id);
                 queries.istoricGrade = cleanedSupabase.from('istoric_grade').select('*').eq('sportiv_id', activeCtx.sportiv_id);
             } else {
-                queries.inscrieriExamene = cleanedSupabase.from('inscrieri_examene').select('*, sportivi:sportiv_id(*), grades:grad_vizat_id(*)');
+                queries.inscrieriExamene = cleanedSupabase.from('vedere_cluburi_inscrieri_examene').select('*, sportivi:sportiv_id(*), grades:grad_vizat_id(*)');
                 queries.istoricGrade = cleanedSupabase.from('istoric_grade').select('*');
-            }
-
-            if (!isSuperAdmin && cleanClubId) {
-                const tablesToFilter = ['sportivi', 'grupe', 'tranzactii', 'deconturiFederatie', 'vizualizarePlati', 'sesiuniExamene', 'tipuriAbonament'];
-                tablesToFilter.forEach(key => {
-                    if (queries[key]) queries[key] = queries[key].eq('club_id', cleanClubId);
-                });
-                
-                if (queries.evenimente) {
-                    queries.evenimente = queries.evenimente.or(`club_id.eq.${cleanClubId},tip_eveniment.eq.FEDERATIE`);
-                }
             }
 
             const queryKeys = Object.keys(queries);

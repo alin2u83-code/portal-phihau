@@ -6,11 +6,7 @@ export const usePlati = (clubId: string | null) => {
     return useQuery<Plata[], Error>({
         queryKey: ['plati', clubId],
         queryFn: async () => {
-            let query = supabase.from('plati').select('*');
-            if (clubId && clubId !== 'null' && clubId !== 'undefined') {
-                query = query.eq('club_id', clubId);
-            }
-            const { data, error } = await query;
+            const { data, error } = await supabase.from('vedere_cluburi_plati').select('*');
             if (error) throw error;
             return data as Plata[];
         },

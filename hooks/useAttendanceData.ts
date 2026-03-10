@@ -18,14 +18,9 @@ export const useAttendanceData = (clubId?: string | null, skipFetch = false, fil
         setLoading(true);
         setError(null);
         try {
-            // Join with grupe and prezenta_antrenament
-            let antrenamenteQuery = supabase.from('program_antrenamente').select('*, grupe(*), prezenta:prezenta_antrenament(sportiv_id, status)');
-            let anunturiQuery = supabase.from('anunturi_prezenta').select('*');
-
-            if (clubId && clubId !== 'null' && clubId !== 'undefined') {
-                antrenamenteQuery = antrenamenteQuery.eq('club_id', clubId);
-                anunturiQuery = anunturiQuery.eq('club_id', clubId);
-            }
+            // Join with prezenta_antrenament
+            let antrenamenteQuery = supabase.from('vedere_cluburi_program_antrenamente').select('*, prezenta:prezenta_antrenament(sportiv_id, status)');
+            let anunturiQuery = supabase.from('vedere_cluburi_anunturi_prezenta').select('*');
 
             // Apply date filters if provided
             if (filters?.date) {

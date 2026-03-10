@@ -70,6 +70,7 @@ export const AdminMasterMap: React.FC<AdminMasterMapProps> = ({ onNavigate, deco
 
             <Group title="Activitate Sală">
                 <ItemCard title="Grupe & Orar" view="grupe" icon={ArchiveBoxIcon} onNavigate={onNavigate} />
+                <ItemCard title="Program Antrenamente" view="program-antrenamente" icon={CalendarDaysIcon} onNavigate={onNavigate} />
                 <ItemCard title="Generator Program" view="activitati" icon={CalendarDaysIcon} onNavigate={onNavigate} />
                 <ItemCard title="Înregistrare Prezențe" view="prezenta" icon={ClipboardCheckIcon} onNavigate={onNavigate} />
                 <ItemCard title="Raport Prezențe" view="raport-prezenta" icon={ChartBarIcon} onNavigate={onNavigate} />

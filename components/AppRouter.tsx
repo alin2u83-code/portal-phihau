@@ -45,6 +45,7 @@ import { BackdoorCheck } from './BackdoorCheck';
 import { BackdoorTest } from './BackdoorTest';
 import { AdminConsole } from './AdminConsole';
 import { ArhivaPrezente } from './ArhivaPrezente';
+import { ProgramAntrenamenteManagement } from './ProgramAntrenamenteManagement';
 import { AdminMasterMap } from './AdminMasterMap';
 import { SportivDashboard } from './SportivDashboard';
 import { Card } from './ui';
@@ -168,9 +169,9 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                             return <GestiuneExamene onBack={handleBackToDashboard} onNavigate={(view) => setActiveView(view)} onViewSportiv={onViewSportiv} isReadOnly={!canManageExams} />;
                         }
                         case 'stagii':
-                            return renderProtected(<StagiiManagement onBack={handleBackToDashboard} permissions={permissions}/>, permissions.isInstructor || permissions.isFederationAdmin || permissions.isSuperAdmin);
+                            return renderProtected(<StagiiManagement onBack={handleBackToDashboard} permissions={permissions}/>, permissions.isAdminClub || permissions.isInstructor || permissions.isFederationAdmin || permissions.isSuperAdmin);
                         case 'competitii':
-                            return renderProtected(<CompetitiiManagement onBack={handleBackToDashboard} permissions={permissions}/>, permissions.isInstructor || permissions.isFederationAdmin || permissions.isSuperAdmin);
+                            return renderProtected(<CompetitiiManagement onBack={handleBackToDashboard} permissions={permissions}/>, permissions.isAdminClub || permissions.isInstructor || permissions.isFederationAdmin || permissions.isSuperAdmin);
                         case 'prezenta':
                             return renderProtected(<PrezentaManagement onBack={handleBackToDashboard} onViewSportiv={onViewSportiv} />, isAtLeastInstructor);
                         case 'prezenta-instructor':
@@ -181,6 +182,8 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                             return renderProtected(<RaportActivitate onBack={handleBackToDashboard} />, permissions.isInstructor);
                         case 'raport-lunar-prezenta':
                             return renderProtected(<RaportLunarPrezenta onBack={handleBackToDashboard} />, isAtLeastInstructor);
+                        case 'program-antrenamente':
+                            return renderProtected(<ProgramAntrenamenteManagement onBack={handleBackToDashboard} />, isAtLeastInstructor);
                         case 'rapoarte':
                             return renderProtected(<ReportsDashboard onNavigate={setActiveView} />, isAtLeastInstructor);
                         case 'grupe':

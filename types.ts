@@ -289,6 +289,13 @@ export interface Antrenament {
   is_activ?: boolean;
   prezenta: { sportiv_id: string; status: string | null }[];
   orar_id?: string | null;
+  // New fields from view
+  nume_grupa?: string;
+  sala?: string;
+  durata_minute?: number;
+  tip_antrenament?: 'regular' | 'stagiu' | 'examen';
+  ziua_saptamanii?: string;
+  sportivi_count?: number;
 }
 
 export interface AnuntPrezenta {
@@ -381,7 +388,7 @@ export interface Permissions {
   hasClubFilter: boolean;
 }
 
-export type View = 'dashboard' | 'sportivi' | 'examene' | 'grade' | 'prezenta' | 'grupe' | 'raport-prezenta' | 'stagii' | 'competitii' | 'plati-scadente' | 'jurnal-incasari' | 'raport-financiar' | 'configurare-preturi' | 'tipuri-abonament' | 'familii' | 'user-management' | 'editare-profil-personal' | 'evenimentele-mele' | 'data-maintenance' | 'activitati' | 'my-portal' | 'setari-club' | 'data-inspector' | 'profil-sportiv' | 'reduceri' | 'notificari' | 'taxe-anuale' | 'nomenclatoare' | 'financial-dashboard' | 'istoric-examene' | 'istoric-plati' | 'finalizare-examen' | 'calendar' | 'rapoarte-examen' | 'cluburi' | 'structura-federatie' | 'deconturi-federatie' | 'istoric-prezenta' | 'account-settings' | 'federation-dashboard' | 'gestiune-facturi' | 'fisa-digitala' | 'fisa-competitie' | 'prezenta-instructor' | 'arhiva-prezente' | 'raport-activitate' | 'backdoor-check' | 'backdoor-test' | 'admin-console' | 'raport-lunar-prezenta' | 'portal-sportiv-admin' | 'debug' | 'admin-dashboard' | 'rapoarte';
+export type View = 'dashboard' | 'sportivi' | 'examene' | 'grade' | 'prezenta' | 'grupe' | 'raport-prezenta' | 'stagii' | 'competitii' | 'plati-scadente' | 'jurnal-incasari' | 'raport-financiar' | 'configurare-preturi' | 'tipuri-abonament' | 'familii' | 'user-management' | 'editare-profil-personal' | 'evenimentele-mele' | 'data-maintenance' | 'activitati' | 'my-portal' | 'setari-club' | 'data-inspector' | 'profil-sportiv' | 'reduceri' | 'notificari' | 'taxe-anuale' | 'nomenclatoare' | 'financial-dashboard' | 'istoric-examene' | 'istoric-plati' | 'finalizare-examen' | 'calendar' | 'rapoarte-examen' | 'cluburi' | 'structura-federatie' | 'deconturi-federatie' | 'istoric-prezenta' | 'account-settings' | 'federation-dashboard' | 'gestiune-facturi' | 'fisa-digitala' | 'fisa-competitie' | 'prezenta-instructor' | 'arhiva-prezente' | 'raport-activitate' | 'backdoor-check' | 'backdoor-test' | 'admin-console' | 'raport-lunar-prezenta' | 'portal-sportiv-admin' | 'debug' | 'admin-dashboard' | 'rapoarte' | 'program-antrenamente';
 
 export interface VederePrezentaSportiv {
   id: string;

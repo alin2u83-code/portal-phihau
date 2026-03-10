@@ -14,8 +14,6 @@ interface SidebarProps {
     isExpanded: boolean;
     setIsExpanded: React.Dispatch<React.SetStateAction<boolean>>;
     clubs: Club[];
-    globalClubFilter: string | null;
-    setGlobalClubFilter: React.Dispatch<React.SetStateAction<string | null>>;
     permissions: Permissions;
     activeRole: Rol['nume'];
     canSwitchRoles: boolean;
@@ -26,7 +24,7 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = (props) => {
-    const { currentUser, onLogout, isExpanded, setIsExpanded, clubs, globalClubFilter, setGlobalClubFilter, permissions, activeRole, canSwitchRoles, onSwitchRole, isSwitchingRole, userRoles } = props;
+    const { currentUser, onLogout, isExpanded, setIsExpanded, clubs, permissions, activeRole, canSwitchRoles, onSwitchRole, isSwitchingRole, userRoles } = props;
     const { activeView, setActiveView } = useNavigation();
     const [isMobileOpen, setIsMobileOpen] = useState(false);
     const [isRoleSwitcherOpen, setIsRoleSwitcherOpen] = useState(false);
@@ -108,24 +106,6 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
             </div>
 
             {/* Club Selector for Federation Admins */}
-            {permissions.isFederationAdmin && isExpanded && (
-                <div className="px-4 py-3 border-b border-slate-800 bg-slate-950/30">
-                    <div className="flex items-center gap-2 mb-2 text-amber-400">
-                        <BuildingOfficeIcon className="w-4 h-4" />
-                        <span className="text-[10px] font-bold uppercase tracking-wider">Filtru Club</span>
-                    </div>
-                    <select 
-                        value={globalClubFilter || ''} 
-                        onChange={(e) => setGlobalClubFilter(e.target.value || null)}
-                        className="w-full bg-slate-800 border border-slate-700 rounded-md px-2 py-1.5 text-xs text-slate-200 focus:ring-1 focus:ring-amber-500 outline-none transition-all"
-                    >
-                        <option value="">Toate Cluburile</option>
-                        {clubs.map(club => (
-                            <option key={club.id} value={club.id}>{club.nume}</option>
-                        ))}
-                    </select>
-                </div>
-            )}
             
             <NavMenu
                 isExpanded={isExpanded}

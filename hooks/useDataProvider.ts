@@ -14,7 +14,6 @@ import { useAttendanceData } from './useAttendanceData';
 import { useSportivi } from './useSportivi';
 import { usePlati } from './usePlati';
 import { useGrupe } from './useGrupe';
-import { useClubFilter } from './useClubFilter';
 import { usePermissions } from './usePermissions';
 import { useFetchAllowedClubs } from './useClubAccess';
 
@@ -76,18 +75,17 @@ export const useDataProvider = () => {
         setActiveRoleContext
     } = useUserRoles(session?.user?.id);
 
-    // Derive active role and club for filtering
+    // Derive active role for filtering
     const activeRole = activeRoleContext?.roluri?.nume || null;
     const permissions = usePermissions(activeRoleContext);
     const { allowedClubs, loading: accessLoading } = useFetchAllowedClubs();
-    const { activeClubId, globalClubFilter, setGlobalClubFilter } = useClubFilter(currentUser, permissions, allowedClubs, accessLoading);
 
-    const attendanceData = useAttendanceData(activeClubId);
+    const attendanceData = useAttendanceData();
 
     // Use custom hooks for data fetching
-    const { data: sportiviData, isLoading: sportiviLoading, error: sportiviError } = useSportivi({ clubId: activeClubId });
-    const { data: platiData, isLoading: platiLoading, error: platiError } = usePlati(activeClubId);
-    const { data: grupeData, isLoading: grupeLoading, error: grupeError } = useGrupe(activeClubId);
+    const { data: sportiviData, isLoading: sportiviLoading, error: sportiviError } = useSportivi();
+    const { data: platiData, isLoading: platiLoading, error: platiError } = usePlati(null);
+    const { data: grupeData, isLoading: grupeLoading, error: grupeError } = useGrupe(null);
 
     // Update state when data changes de la hook-urile secundare
     useEffect(() => {
@@ -102,7 +100,6 @@ export const useDataProvider = () => {
     // Use the filtering hook internally
     const filteredData = useFilteredData({
         activeRole,
-        activeClubId,
         sportivi: data.sportivi,
         sesiuniExamene: data.sesiuniExamene,
         inscrieriExamene: data.inscrieriExamene,
@@ -213,10 +210,6 @@ export const useDataProvider = () => {
             if (!supabase) throw new Error("Clientul Supabase nu este configurat.");
             
             const cleanedSupabase = withCleanUuidFilters(supabase as SupabaseClient<any, any>);
-            let cleanClubId = activeCtx.club_id || activeClubId;
-            if (cleanClubId === 'null' || cleanClubId === 'undefined') {
-                cleanClubId = null;
-            }
             const profile = activeCtx.sportiv || (userRoles || []).find(r => r.sportiv)?.sportiv;
 
             const currentRoles = (userRoles || []).map((r: any) => ({
@@ -234,7 +227,6 @@ export const useDataProvider = () => {
                     prenume: 'Sistem',
                 }),
                 roluri: currentRoles,
-                club_id: cleanClubId,
                 cluburi: activeCtx.cluburi
             } as any);
 
@@ -256,14 +248,6 @@ export const useDataProvider = () => {
                 familii: cleanedSupabase.from('vedere_cluburi_familii').select('*'),
                 vizualizarePlati: cleanedSupabase.from('vedere_cluburi_vizualizare_plati').select('*'),
             };
-
-            if (!isSportiv) {
-                queries.locatii = cleanedSupabase.from('vedere_cluburi_locatii').select('*');
-                queries.reduceri = cleanedSupabase.from('reduceri').select('*');
-                queries.preturiConfig = cleanedSupabase.from('vedere_cluburi_preturi_config').select('*');
-                queries.istoricPlatiDetaliat = cleanedSupabase.from('vedere_cluburi_istoric_plati_detaliat').select('*');
-                queries.deconturiFederatie = cleanedSupabase.from('vedere_cluburi_deconturi_federatie').select('*');
-            }
 
             if (isSportiv && activeCtx.sportiv_id) {
                 queries.inscrieriExamene = cleanedSupabase.from('vedere_cluburi_inscrieri_examene').select('*, sportivi:sportiv_id(*), grades:grad_vizat_id(*)').eq('sportiv_id', activeCtx.sportiv_id);
@@ -312,7 +296,7 @@ export const useDataProvider = () => {
         } finally {
             setLoadingData(false);
         }
-    }, [session?.user.id, userRoles, activeClubId]);
+    }, [session?.user.id, userRoles]);
 
     useEffect(() => {
         if (activeRoleContext) {
@@ -364,8 +348,6 @@ export const useDataProvider = () => {
         currentUser, 
         userRoles, 
         activeRoleContext, 
-        activeClubId,
-        setGlobalClubFilter,
         setCurrentUser,
         setSportivi: createSetter('sportivi'),
         setSesiuniExamene: createSetter('sesiuniExamene'),

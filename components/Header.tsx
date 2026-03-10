@@ -32,7 +32,6 @@ export const Header: React.FC<HeaderProps> = ({
     const { activeView, setActiveView } = useNavigation();
     const isRootView = ROOT_VIEWS.includes(activeView);
     const isMobile = useIsMobile();
-    const { activeClubId, setGlobalClubFilter, clubs, allowedClubs } = useData();
 
     return (
         <header 
@@ -49,24 +48,6 @@ export const Header: React.FC<HeaderProps> = ({
                         <ArrowLeftIcon className="w-4 h-4" />
                         <span>Înapoi</span>
                     </Button>
-                )}
-                
-                {allowedClubs.length > 1 && (
-                    <div className="hidden md:flex items-center gap-2">
-                         <span className="text-xs font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap">Club Activ:</span>
-                         <Select 
-                            value={activeClubId || ''} 
-                            onChange={(e) => setGlobalClubFilter(e.target.value)}
-                            className="!py-1.5 !text-sm w-48 bg-slate-800 border-slate-700 focus:ring-indigo-500 text-slate-200"
-                        >
-                            {clubs
-                                .filter(c => allowedClubs.includes(c.id))
-                                .map(c => (
-                                    <option key={c.id} value={c.id}>{c.nume}</option>
-                                ))
-                            }
-                        </Select>
-                    </div>
                 )}
             </div>
 

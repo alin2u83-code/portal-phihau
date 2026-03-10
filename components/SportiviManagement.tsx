@@ -12,7 +12,8 @@ import { SportiviFilter } from './SportiviFilter';
 import { SportiviTable } from './SportiviTable';
 import { SportiviMobileList } from './SportiviMobileList';
 import { SportivModals } from './SportivModals';
-import { ImportSportiviModal } from './ImportSportiviModal';
+import { ImportCsvModal } from './ImportCsvModal';
+import { AddSportivModal } from './AddSportivModal';
 import { ExportSportiviTable } from './ExportSportiviTable';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { useRoleAssignment } from '../hooks/useRoleAssignment';
@@ -58,7 +59,6 @@ export const SportiviManagement: React.FC<{
         grade = [],
         allRoles = [], setAllRoles,
         filteredData,
-        activeClubId,
         familii = [],
         plati = [],
         tranzactii = [],
@@ -117,7 +117,7 @@ export const SportiviManagement: React.FC<{
     }, [permissions.isFederationAdmin, currentUser.club_id, filters.clubFilter, setFilters]);
 
     const { data: sportiviData, isLoading: sportiviLoading, error: sportiviError } = useSportivi({
-        clubId: filters.clubFilter || activeClubId,
+        clubId: filters.clubFilter,
         status: filters.statusFilter,
         gradId: filters.gradFilter !== 'null' ? filters.gradFilter : undefined,
         rolId: filters.rolFilter,
@@ -259,7 +259,7 @@ export const SportiviManagement: React.FC<{
                 
                 if (checkError) throw checkError;
 
-                let targetClubId = profileData.club_id || filters.clubFilter || activeClubId || currentUser?.club_id;
+                let targetClubId = profileData.club_id || filters.clubFilter || currentUser?.club_id;
                 if (!targetClubId) throw new Error("Clubul este obligatoriu la adăugarea unui sportiv nou.");
 
                 if (existingSportiv) {
@@ -432,20 +432,23 @@ export const SportiviManagement: React.FC<{
                 />
             )}
 
-            <ImportSportiviModal
+            <ImportCsvModal
                 isOpen={isImportModalOpen}
                 onClose={() => setIsImportModalOpen(false)}
                 onImportComplete={() => {
                     setIsImportModalOpen(false);
                     window.location.reload();
                 }}
-                currentUser={currentUser!}
-                clubs={clubs}
-                clubFilter={filters.clubFilter}
+            />
+
+            <AddSportivModal
+                isOpen={isFormModalOpen}
+                onClose={handleCloseFormModal}
+                onSave={handleSave}
             />
 
             <SportivModals
-                isFormModalOpen={isFormModalOpen}
+                isFormModalOpen={false} // Disabled, using AddSportivModal instead
                 onCloseFormModal={handleCloseFormModal}
                 onSaveSportiv={handleSave}
                 sportivToEdit={sportivToEdit}

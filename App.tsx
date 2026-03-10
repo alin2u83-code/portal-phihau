@@ -77,8 +77,6 @@ function App() {
   const { switchRole, loading: isSwitchingRole } = useRoleManager(currentUser?.user_id || session?.user?.id);
 
   const permissions = usePermissions(activeRoleContext);
-  const { allowedClubs } = dataProvider;
-  const { activeClubId, loading: clubFilterLoading, globalClubFilter, setGlobalClubFilter } = useClubFilter(currentUser, permissions, allowedClubs);
   
   const handleBackToDashboard = useCallback(() => {
     const dashboardView = permissions.hasAdminAccess && activeRole !== 'SPORTIV' ? 'dashboard' : 'my-portal';
@@ -195,13 +193,13 @@ function App() {
     return needsRoleSelection || (session && !loading && !activeRole);
   }, [needsRoleSelection, session, loading, activeRole]);
 
-  if (loading || clubFilterLoading) {
+  if (loading) {
       return <MartialArtsSkeleton />;
   }
 
   return (
     <SystemGuardian 
-        isLoading={loading || clubFilterLoading} 
+        isLoading={loading} 
         currentUser={currentUser} 
         permissions={permissions} 
         error={error}
@@ -225,7 +223,7 @@ function App() {
        effectiveNeedsRoleSelection ? <RoleSelectionPage user={session.user} onSelect={handleSelectRole} loading={isSwitchingRole} onLogout={handleLogout} /> :
        currentUser ? (
             <div className="flex min-h-screen bg-[var(--bg-main)]">
-              <Sidebar currentUser={currentUser} onLogout={handleLogout} isExpanded={isSidebarExpanded} setIsExpanded={setIsSidebarExpanded} clubs={clubs} globalClubFilter={globalClubFilter} setGlobalClubFilter={setGlobalClubFilter} permissions={permissions} activeRole={activeRole!} canSwitchRoles={canSwitchRoles} onSwitchRole={handleSwitchRole} isSwitchingRole={isSwitchingRole} grade={grade} userRoles={userRoles} />
+              <Sidebar currentUser={currentUser} onLogout={handleLogout} isExpanded={isSidebarExpanded} setIsExpanded={setIsSidebarExpanded} clubs={clubs} permissions={permissions} activeRole={activeRole!} canSwitchRoles={canSwitchRoles} onSwitchRole={handleSwitchRole} isSwitchingRole={isSwitchingRole} grade={grade} userRoles={userRoles} />
               
               <Header 
                 activeView={activeView}

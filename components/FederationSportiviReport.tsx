@@ -44,8 +44,16 @@ export const FederationSportiviReport: React.FC = () => {
             <h1 className="text-2xl font-bold text-white">Raport Național Sportivi</h1>
             <Card className="p-4 bg-zinc-900 border-zinc-800 flex gap-4 items-end">
                 <Input label="Club" value={filters.nume_club} onChange={e => setFilters({...filters, nume_club: e.target.value})} />
-                <Select label="Status" value={filters.status} onChange={e => setFilters({...filters, status: e.target.value})} options={[{label: 'Activ', value: 'Activ'}, {label: 'Inactiv', value: 'Inactiv'}]} />
-                <Select label="Gen" value={filters.gen} onChange={e => setFilters({...filters, gen: e.target.value})} options={[{label: 'Masculin', value: 'Masculin'}, {label: 'Feminin', value: 'Feminin'}]} />
+                <Select label="Status" value={filters.status} onChange={e => setFilters({...filters, status: e.target.value})}>
+                    <option value="">Toate</option>
+                    <option value="Activ">Activ</option>
+                    <option value="Inactiv">Inactiv</option>
+                </Select>
+                <Select label="Gen" value={filters.gen} onChange={e => setFilters({...filters, gen: e.target.value})}>
+                    <option value="">Toate</option>
+                    <option value="Masculin">Masculin</option>
+                    <option value="Feminin">Feminin</option>
+                </Select>
                 <Button onClick={fetchSportivi}>Filtrează</Button>
                 <Button onClick={handleExport} disabled={sportivi.length === 0}><Download className="w-4 h-4 mr-2" /> Export CSV</Button>
             </Card>

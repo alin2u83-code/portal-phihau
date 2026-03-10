@@ -7,21 +7,8 @@ let supabaseInstance: SupabaseClient | null = null;
 
 if (supabaseUrl && supabaseAnonKey) {
   const customFetch = async (url: RequestInfo | URL, options: RequestInit = {}) => {
-    const activeClubId = localStorage.getItem('phi-hau-global-club-filter');
-    // Remove quotes and handle the string "null" or "undefined"
-    let cleanedClubId = activeClubId ? activeClubId.replace(/"/g, '') : '';
-    if (cleanedClubId === 'null' || cleanedClubId === 'undefined') {
-        cleanedClubId = '';
-    }
-
-    const headers = new Headers(options?.headers);
-    if (cleanedClubId) {
-      headers.set('active-role-context-id', cleanedClubId);
-    }
-
     return fetch(url, {
       ...options,
-      headers,
     });
   };
 

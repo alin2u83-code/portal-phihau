@@ -23,7 +23,7 @@ export const RoleSelectionPage: React.FC<RoleSelectionPageProps> = ({ user, onSe
             if (user) {
                 setIsLoading(true);
                 const { data, error } = await supabase
-                    .from('utilizator_roluri_multicont') // REPARAT: Tabelul corect
+                    .from('utilizator_roluri_multicont')
                     .select(`
                         *,
                         roluri:rol_id (id, nume),
@@ -36,7 +36,13 @@ export const RoleSelectionPage: React.FC<RoleSelectionPageProps> = ({ user, onSe
                 if (error) {
                     console.error('Error fetching profiles:', error.message);
                 } else {
-                    setProfiles(data || []);
+                    const profilesData = data || [];
+                    setProfiles(profilesData);
+                    
+                    // Auto-Select: Dacă utilizatorul are un singur rol, loghează-l direct
+                    if (profilesData.length === 1) {
+                        handleRoleSelection(profilesData[0]);
+                    }
                 }
                 setIsLoading(false);
             }
@@ -45,10 +51,18 @@ export const RoleSelectionPage: React.FC<RoleSelectionPageProps> = ({ user, onSe
         fetchProfiles();
     }, [user]);
 
-    const handleRoleSelection = (role: any) => {
+    const handleRoleSelection = async (role: any) => {
         if (navigator.vibrate) {
             navigator.vibrate(100);
         }
+        
+        // Curățare la Activare: Setează is_primary = true
+        // Trigger-ul SQL se va ocupa să dezactiveze restul și să lege sportiv_id
+        await supabase
+            .from('utilizator_roluri_multicont')
+            .update({ is_primary: true })
+            .eq('id', role.id);
+            
         onSelect(role);
     };
 

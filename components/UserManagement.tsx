@@ -391,6 +391,9 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
             const { error: deleteError } = await deleteQuery;
             if (deleteError) throw deleteError;
 
+            // Sincronizare metadate după modificare
+            await supabase.rpc('sync_user_metadata');
+
             const updatedRoles = allRoles.filter(r => finalRoleIds.includes(r.id));
             setSportivi(prev => prev.map(s => s.id === userId ? { ...s, roluri: updatedRoles } : s));
             
@@ -398,7 +401,11 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
             setEditingId(null);
         } catch (error: any) {
             console.error('DEBUG:', error);
-            showError("Eroare la schimbarea rolului", error.message);
+            if (error.code === '23505') {
+                showError("Eroare de Conflict", "Există deja un rol principal pentru acest utilizator. Vă rugăm să faceți un 'Reset Context' sau să contactați un administrator.");
+            } else {
+                showError("Eroare la schimbarea rolului", error.message);
+            }
         } finally {
             setRoleSaveLoading(prev => ({ ...prev, [userId]: false }));
         }

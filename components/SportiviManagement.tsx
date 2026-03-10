@@ -249,8 +249,35 @@ export const SportiviManagement: React.FC<{
             } else {
                 const { email, parola, roluri, cluburi, ...profileData } = formData;
                 if (!email || !parola) throw new Error("Emailul și parola sunt obligatorii pentru crearea unui cont nou.");
-                if (!profileData.club_id) { profileData.club_id = filters.clubFilter || activeClubId || currentUser?.club_id; }
-                if (!profileData.club_id) throw new Error("Clubul este obligatoriu la adăugarea unui sportiv nou.");
+                
+                // 1. Verificare prealabilă: Caută după email
+                const { data: existingSportiv, error: checkError } = await supabase
+                    .from('sportivi')
+                    .select('id, club_id')
+                    .eq('email', email)
+                    .maybeSingle();
+                
+                if (checkError) throw checkError;
+
+                let targetClubId = profileData.club_id || filters.clubFilter || activeClubId || currentUser?.club_id;
+                if (!targetClubId) throw new Error("Clubul este obligatoriu la adăugarea unui sportiv nou.");
+
+                if (existingSportiv) {
+                    if (existingSportiv.club_id !== targetClubId) {
+                        const confirmTransfer = window.confirm("Acest sportiv este înregistrat la un alt club. Doriți să îl transferați în clubul dumneavoastră?");
+                        if (!confirmTransfer) return { success: false, error: "Transfer anulat." };
+                        
+                        // Transfer logic: update club_id
+                        const { error: updateError } = await supabase
+                            .from('sportivi')
+                            .update({ club_id: targetClubId })
+                            .eq('id', existingSportiv.id);
+                        if (updateError) throw updateError;
+                    }
+                    // For existing sportiv, we skip the account creation if it already has a user_id
+                    // Or we just assign the role if it doesn't have one
+                    // This is handled by createAccountAndAssignRole or a separate logic
+                }
 
                 const sportivRole = allRoles.find(r => r.nume === 'SPORTIV');
                 if (!sportivRole) throw new Error("Rolul de bază 'SPORTIV' nu a fost găsit.");
@@ -338,13 +365,25 @@ export const SportiviManagement: React.FC<{
                 <h1 className="text-2xl font-bold text-white uppercase tracking-tight">Management Sportivi</h1>
                 {permissions.hasAdminAccess && (
                     <div className="flex gap-2">
-                        <Button variant="secondary" onClick={() => setIsExportTableOpen(true)}>
+                        <Button 
+                            variant="secondary" 
+                            onClick={() => setIsExportTableOpen(true)}
+                            style={{ backgroundColor: currentUser?.cluburi?.theme_config?.bg_card, color: currentUser?.cluburi?.theme_config?.accent_color }}
+                        >
                             Export / Editare
                         </Button>
-                        <Button variant="secondary" onClick={() => setIsImportModalOpen(true)}>
+                        <Button 
+                            variant="secondary" 
+                            onClick={() => setIsImportModalOpen(true)}
+                            style={{ backgroundColor: currentUser?.cluburi?.theme_config?.bg_card, color: currentUser?.cluburi?.theme_config?.accent_color }}
+                        >
                             <UploadCloudIcon className="w-5 h-5 mr-1"/> Import CSV
                         </Button>
-                        <Button variant="primary" onClick={handleOpenAddSportiv}>
+                        <Button 
+                            variant="primary" 
+                            onClick={handleOpenAddSportiv}
+                            style={{ backgroundColor: currentUser?.cluburi?.theme_config?.accent_color, color: '#ffffff' }}
+                        >
                             <PlusIcon className="w-5 h-5 mr-1"/> Adaugă Sportiv
                         </Button>
                     </div>

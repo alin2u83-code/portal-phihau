@@ -206,8 +206,7 @@ export const AuthContainer: React.FC = () => {
                 user_id: user.id,
                 rol_denumire: 'Sportiv',
                 club_id: clubId,
-                sportiv_id: profileId,
-                is_primary: true
+                sportiv_id: profileId
             });
             
             if (roleError) throw roleError;

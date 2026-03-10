@@ -112,41 +112,35 @@ export const useRoleAssignment = (currentUser: User, allRoles: Rol[]) => {
 
         setLoading(true);
         try {
-            const { data: currentRoles, error: fetchError } = await supabase
+            // 1. Ștergem rolurile vechi pentru a permite trigger-ului să gestioneze is_primary
+            const { error: deleteError } = await supabase
                 .from('utilizator_roluri_multicont')
-                .select('*')
+                .delete()
                 .eq('sportiv_id', sportiv.id);
-                
-            if (fetchError) throw fetchError;
+            if (deleteError) throw deleteError;
 
-            const rolesToDelete = currentRoles?.filter(cr => !finalRoleIds.some(id => allRoles.find(r => r.id === id)?.nume === cr.rol_denumire)) || [];
-            if (rolesToDelete.length > 0) {
-                const { error: deleteError } = await supabase
-                    .from('utilizator_roluri_multicont')
-                    .delete()
-                    .in('id', rolesToDelete.map(r => r.id));
-                if (deleteError) throw deleteError;
-            }
-
-            const rolesToUpsert = finalRoleIds.map(roleId => {
+            // 2. Inserăm noile roluri (trigger-ul va seta is_primary corect)
+            const rolesToInsert = finalRoleIds.map(roleId => {
                 const role = allRoles.find(r => r.id === roleId);
                 if (!role) return null;
-                const existingRole = currentRoles?.find(cr => cr.rol_denumire === role.nume);
                 return {
-                    id: existingRole?.id,
                     user_id: sportiv.user_id,
                     rol_denumire: role.nume,
                     club_id: sportiv.club_id,
                     sportiv_id: sportiv.id,
+                    is_primary: false // Trigger-ul va seta unul singur ca true
                 };
             }).filter(Boolean);
 
-            if (rolesToUpsert.length > 0) {
+            if (rolesToInsert.length > 0) {
                 const { error: upsertError } = await supabase
                     .from('utilizator_roluri_multicont')
-                    .upsert(rolesToUpsert as any[], { onConflict: 'user_id,rol_denumire,club_id' });
+                    .upsert(rolesToInsert as any[], { onConflict: 'user_id,rol_denumire,sportiv_id' });
                 if (upsertError) throw upsertError;
             }
+
+            // 3. Sincronizare metadate
+            await supabase.rpc('sync_user_metadata');
 
             showSuccess("Succes", `Rolurile pentru ${sportiv.nume} au fost salvate!`);
             return allRoles.filter(r => finalRoleIds.includes(r.id));
@@ -154,14 +148,14 @@ export const useRoleAssignment = (currentUser: User, allRoles: Rol[]) => {
             let errorMessage = "A apărut o eroare neașteptată la actualizarea rolurilor.";
             
             if (error.code === '23505') {
-                errorMessage = "Acest rol este deja asignat utilizatorului.";
+                errorMessage = "Conflict de unicitate. Vă rugăm să faceți un 'Reset Context' sau să contactați un administrator.";
             } else if (error.code === '42501') {
                 errorMessage = "Nu aveți permisiunea necesară pentru a modifica aceste roluri.";
             } else if (error.message) {
                 errorMessage = error.message;
             }
             
-            showError("Eroare la schimbarea rolului", getAuthErrorMessage(error));
+            showError("Eroare la schimbarea rolului", errorMessage);
             return false;
         } finally {
             setLoading(false);

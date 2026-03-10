@@ -126,9 +126,8 @@ export const LoginPage: React.FC = () => {
 
                     <div className="mt-8 pt-6 border-t border-slate-800 text-center">
                         <p className="text-slate-500 text-sm">
-                            Nu ai un cont încă?{' '}
-                            <Link to="/register" className="text-amber-500 hover:text-amber-400 font-bold inline-flex items-center gap-1 transition-colors">
-                                Înregistrează-te acum <ArrowRight className="w-3 h-3" />
+                            <Link to="/forgot-password" className="text-amber-500 hover:text-amber-400 font-bold inline-flex items-center gap-1 transition-colors">
+                                Ai uitat parola?
                             </Link>
                         </p>
                     </div>

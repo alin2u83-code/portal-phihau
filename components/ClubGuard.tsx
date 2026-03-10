@@ -1,26 +1,27 @@
 import React, { useEffect } from 'react';
 import { useData } from '../contexts/DataContext';
-import { Select } from './ui';
+import { usePermissions } from '../hooks/usePermissions';
 
 interface ClubGuardProps {
     children: React.ReactNode;
 }
 
 export const ClubGuard: React.FC<ClubGuardProps> = ({ children }) => {
-    const { activeClubId, setGlobalClubFilter, clubs, allowedClubs, loading } = useData();
+    const { activeClubId, setGlobalClubFilter, allowedClubs, loading, activeRoleContext } = useData();
+    const permissions = usePermissions(activeRoleContext);
 
     useEffect(() => {
-        if (!loading && allowedClubs.length > 0 && !activeClubId) {
+        if (!loading && allowedClubs.length > 0 && !activeClubId && !permissions.isFederationAdmin) {
             // Default to first allowed club if none selected
             setGlobalClubFilter(allowedClubs[0]);
         }
-    }, [allowedClubs, loading, activeClubId, setGlobalClubFilter]);
+    }, [allowedClubs, loading, activeClubId, setGlobalClubFilter, permissions.isFederationAdmin]);
 
     if (loading) {
         return <div className="flex items-center justify-center h-screen text-white">Se încarcă permisiunile...</div>;
     }
 
-    if (allowedClubs.length === 0) {
+    if (!permissions.isFederationAdmin && allowedClubs.length === 0) {
         return (
             <div className="flex items-center justify-center h-screen text-white p-4">
                 <div className="bg-slate-800 p-8 rounded-lg shadow-xl text-center max-w-md border border-red-500/30">

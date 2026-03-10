@@ -42,9 +42,12 @@ const EvenimentForm: React.FC<EvenimentFormProps> = ({ isOpen, onClose, onSave, 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
+        const isFed = permissions.isFederationAdmin && isFederationEvent;
         const eventData: Partial<Eveniment> = {
             ...formState,
-            club_id: (permissions.isFederationAdmin && isFederationEvent) ? null : currentUser.club_id,
+            club_id: isFed ? null : currentUser.club_id,
+            tip_eveniment: isFed ? 'FEDERATIE' : 'CLUB',
+            vizibilitate_globala: isFed,
             ...(type === 'Competitie' && { probe_disponibile: probeStr.split(',').map(p => p.trim()).filter(Boolean) })
         };
         await onSave(eventData as Omit<Eveniment, 'id'>);
@@ -73,9 +76,12 @@ const EvenimentForm: React.FC<EvenimentFormProps> = ({ isOpen, onClose, onSave, 
 
 interface EvenimentDetailProps { eveniment: Eveniment; }
 const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
-    const { filteredData, setRezultate, setPlati, preturiConfig, grade } = useData();
-    const rezultate = filteredData.rezultate.filter(r => r.eveniment_id === eveniment.id);
+    const { filteredData, setRezultate, setPlati, preturiConfig, grade, currentUser } = useData();
     const sportivi = filteredData.sportivi;
+    const rezultate = filteredData.rezultate.filter(r => 
+        r.eveniment_id === eveniment.id && 
+        sportivi.some(s => s.id === r.sportiv_id)
+    );
     const inscrieriExamene = filteredData.inscrieriExamene;
     const examene = filteredData.sesiuniExamene;
 
@@ -219,7 +225,16 @@ export const StagiiCompetitiiManagement: React.FC<StagiiCompetitiiProps> = ({ ty
     if (selectedEveniment) { return ( <div><Button onClick={() => setSelectedEvenimentId(null)} className="mb-4" variant="secondary"><ArrowLeftIcon /> Înapoi la listă</Button><EvenimentDetail eveniment={selectedEveniment} /></div> ); }
     const sortedEvenimente = [...filteredEvenimente].sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime());
 
-    return ( <div><Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-white">Gestiune {type === 'Stagiu' ? 'Stagii' : 'Competiții'}</h1><Button onClick={() => { setEvToEdit(null); setIsFormOpen(true); }} variant="info"><PlusIcon className="w-5 h-5 mr-2" /> Adaugă {type}</Button></div><div className="bg-slate-800 rounded-lg shadow-lg overflow-hidden"><table className="w-full text-left"><thead className="bg-slate-700"><tr><th className="p-4 font-semibold">Perioadă</th><th className="p-4 font-semibold">Denumire</th><th className="p-4 font-semibold">Înscriși</th><th className="p-4 font-semibold text-right">Acțiuni</th></tr></thead><tbody className="divide-y divide-slate-700">{sortedEvenimente.map(ev => ( <tr key={ev.id} className="hover:bg-slate-700/50"><td className="p-4 font-medium cursor-pointer" onClick={() => setSelectedEvenimentId(ev.id)}>{formatDateRange(ev.data)} - {formatDateRange(ev.data_sfarsit)}</td><td className="p-4 cursor-pointer" onClick={() => setSelectedEvenimentId(ev.id)}>{ev.denumire}</td><td className="p-4">{rezultate.filter(r => r.eveniment_id === ev.id).length}</td><td className="p-4 w-32"><div className="flex items-center justify-end space-x-2"><Button onClick={() => { setEvToEdit(ev); setIsFormOpen(true); }} variant="primary" size="sm"><EditIcon /></Button><Button onClick={() => setEvToDelete(ev)} variant="danger" size="sm"><TrashIcon /></Button></div></td></tr> ))}{sortedEvenimente.length === 0 && <tr><td colSpan={4}><p className="p-4 text-center text-slate-400">Niciun eveniment de tipul '{type}' programat.</p></td></tr>}</tbody></table>
+    const sportivi = filteredData.sportivi;
+
+    return ( <div><Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-white">Gestiune {type === 'Stagiu' ? 'Stagii' : 'Competiții'}</h1><Button onClick={() => { setEvToEdit(null); setIsFormOpen(true); }} variant="info"><PlusIcon className="w-5 h-5 mr-2" /> Adaugă {type}</Button></div><div className="bg-slate-800 rounded-lg shadow-lg overflow-hidden"><table className="w-full text-left"><thead className="bg-slate-700"><tr><th className="p-4 font-semibold">Perioadă</th><th className="p-4 font-semibold">Denumire</th><th className="p-4 font-semibold">Înscriși (Clubul tău)</th><th className="p-4 font-semibold text-right">Acțiuni</th></tr></thead><tbody className="divide-y divide-slate-700">{sortedEvenimente.map(ev => ( <tr key={ev.id} className="hover:bg-slate-700/50"><td className="p-4 font-medium cursor-pointer" onClick={() => setSelectedEvenimentId(ev.id)}>{formatDateRange(ev.data)} - {formatDateRange(ev.data_sfarsit)}</td><td className="p-4 cursor-pointer" onClick={() => setSelectedEvenimentId(ev.id)}>{ev.denumire}</td><td className="p-4">{rezultate.filter(r => r.eveniment_id === ev.id && sportivi.some(s => s.id === r.sportiv_id)).length}</td><td className="p-4 w-32"><div className="flex items-center justify-end space-x-2">
+    {(permissions.isFederationAdmin || ev.club_id === currentUser.club_id) && (
+        <>
+            <Button onClick={() => { setEvToEdit(ev); setIsFormOpen(true); }} variant="primary" size="sm"><EditIcon /></Button>
+            <Button onClick={() => setEvToDelete(ev)} variant="danger" size="sm"><TrashIcon /></Button>
+        </>
+    )}
+</div></td></tr> ))}{sortedEvenimente.length === 0 && <tr><td colSpan={4}><p className="p-4 text-center text-slate-400">Niciun eveniment de tipul '{type}' programat.</p></td></tr>}</tbody></table>
 </div><EvenimentForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} onSave={handleSave} evToEdit={evToEdit} type={type} currentUser={currentUser} permissions={permissions} locatii={locatii} />
 <ConfirmDeleteModal isOpen={!!evToDelete} onClose={() => setEvToDelete(null)} onConfirm={() => { if(evToDelete) confirmDelete(evToDelete.id) }} tableName={type} isLoading={isDeleting} /></div> );
 };

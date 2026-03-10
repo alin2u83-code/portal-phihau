@@ -4,22 +4,26 @@ import { Card, Button } from './ui';
 import { TrophyIcon, CalendarDaysIcon } from './icons';
 import { Eveniment } from '../types';
 
-interface EvenimenteWidgetProps { sportivId: string; }
+interface EvenimenteWidgetProps { sportivId: string; clubId: string | null; }
 
-export const EvenimenteWidget: React.FC<EvenimenteWidgetProps> = ({ sportivId }) => {
+export const EvenimenteWidget: React.FC<EvenimenteWidgetProps> = ({ sportivId, clubId }) => {
     const [evenimente, setEvenimente] = useState<Eveniment[]>([]);
     const [inscrieri, setInscrieri] = useState<string[]>([]);
 
     useEffect(() => {
         const fetchData = async () => {
-            const { data: evData } = await supabase.from('evenimente').select('*').gte('data', new Date().toISOString());
+            let query = supabase.from('evenimente').select('*').gte('data', new Date().toISOString());
+            if (clubId) {
+                query = query.or(`club_id.eq.${clubId},tip_eveniment.eq.FEDERATIE`);
+            }
+            const { data: evData } = await query;
             const { data: insData } = await supabase.from('inscrieri_evenimente').select('eveniment_id').eq('sportiv_id', sportivId);
             
             setEvenimente(evData || []);
             setInscrieri(insData?.map(i => i.eveniment_id) || []);
         };
         fetchData();
-    }, [sportivId]);
+    }, [sportivId, clubId]);
 
     const handleInscriere = async (evenimentId: string) => {
         await supabase.from('inscrieri_evenimente').insert({ eveniment_id: evenimentId, sportiv_id: sportivId });

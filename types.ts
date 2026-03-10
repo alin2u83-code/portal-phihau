@@ -311,6 +311,8 @@ export interface Eveniment {
   tip: 'Stagiu' | 'Competitie';
   probe_disponibile?: string[];
   club_id?: string | null;
+  tip_eveniment?: 'CLUB' | 'FEDERATIE' | null;
+  vizibilitate_globala?: boolean | null;
 }
 
 export interface Rezultat {

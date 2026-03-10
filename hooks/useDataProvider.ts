@@ -274,10 +274,14 @@ export const useDataProvider = () => {
             }
 
             if (!isSuperAdmin && cleanClubId) {
-                const tablesToFilter = ['sportivi', 'grupe', 'tranzactii', 'evenimente', 'deconturiFederatie', 'vizualizarePlati', 'sesiuniExamene', 'tipuriAbonament'];
+                const tablesToFilter = ['sportivi', 'grupe', 'tranzactii', 'deconturiFederatie', 'vizualizarePlati', 'sesiuniExamene', 'tipuriAbonament'];
                 tablesToFilter.forEach(key => {
                     if (queries[key]) queries[key] = queries[key].eq('club_id', cleanClubId);
                 });
+                
+                if (queries.evenimente) {
+                    queries.evenimente = queries.evenimente.or(`club_id.eq.${cleanClubId},tip_eveniment.eq.FEDERATIE`);
+                }
             }
 
             const queryKeys = Object.keys(queries);

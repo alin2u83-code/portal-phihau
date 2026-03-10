@@ -15,6 +15,7 @@ import { useAttendanceStats } from '../hooks/useAttendanceStats';
 import { useDashboardPermissions } from '../hooks/useDashboardPermissions';
 import { VizaMedicalaCard } from './SportivDashboard/VizaMedicalaCard';
 import { TrainingActionCard, AnuntStatus } from './SportivDashboard/TrainingActionCard';
+import { HistoryModal } from './SportivDashboard/HistoryModal';
 import { EvenimenteWidget } from './EvenimenteWidget';
 
 const getGrad = (gradId: string | null, allGrades: Grad[]) => gradId ? allGrades.find(g => g.id === gradId) : null;
@@ -273,7 +274,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                         Vezi Istoric Detaliat
                     </Button>
                 </Card>
-                <EvenimenteWidget sportivId={viewedUser.id} />
+                <EvenimenteWidget sportivId={viewedUser.id} clubId={viewedUser.club_id} />
                 <HistoryModal isOpen={isHistoryOpen} onClose={() => setIsHistoryOpen(false)} istoric={istoricPrezenta || []} />
 
                 {/* Grade Evolution */}

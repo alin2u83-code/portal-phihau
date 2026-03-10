@@ -13,6 +13,7 @@ import { SportiviTable } from './SportiviTable';
 import { SportiviMobileList } from './SportiviMobileList';
 import { SportivModals } from './SportivModals';
 import { ImportSportiviModal } from './ImportSportiviModal';
+import { ExportSportiviTable } from './ExportSportiviTable';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { useRoleAssignment } from '../hooks/useRoleAssignment';
 import { useSportivi } from '../hooks/useSportivi';
@@ -80,6 +81,7 @@ export const SportiviManagement: React.FC<{
     const [createAccountLoading, setCreateAccountLoading] = useState(false);
     const [createAccountError, setCreateAccountError] = useState('');
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+    const [isExportTableOpen, setIsExportTableOpen] = useState(false);
     const [accountSettingsSportiv, setAccountSettingsSportiv] = useState<Sportiv | null>(null);
     const [sportivToDelete, setSportivToDelete] = useState<Sportiv | null>(null);
 
@@ -326,12 +328,19 @@ export const SportiviManagement: React.FC<{
     };
 
 
+    if (isExportTableOpen) {
+        return <ExportSportiviTable onClose={() => setIsExportTableOpen(false)} />;
+    }
+
     return (
         <div className="space-y-4">
             <div className="flex justify-between items-center gap-4">
                 <h1 className="text-2xl font-bold text-white uppercase tracking-tight">Management Sportivi</h1>
                 {permissions.hasAdminAccess && (
                     <div className="flex gap-2">
+                        <Button variant="secondary" onClick={() => setIsExportTableOpen(true)}>
+                            Export / Editare
+                        </Button>
                         <Button variant="secondary" onClick={() => setIsImportModalOpen(true)}>
                             <UploadCloudIcon className="w-5 h-5 mr-1"/> Import CSV
                         </Button>

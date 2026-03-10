@@ -85,6 +85,10 @@ async function startServer() {
   } else {
     // In production, serve static files
     app.use(express.static("dist"));
+    // Fallback for SPA routing
+    app.get("*", (req, res) => {
+      res.sendFile("index.html", { root: "dist" });
+    });
   }
 
   app.listen(PORT, "0.0.0.0", () => {

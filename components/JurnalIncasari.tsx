@@ -166,7 +166,7 @@ const AdaugaAvans: React.FC<{
 };
 
 
-export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, permissions, plati, setPlati, sportivi, familii, preturiConfig, tipuriAbonament, tipuriPlati, setTipuriPlati, tranzactii, setTranzactii, reduceri, platiInitiale, onIncasareProcesata, onBack }) => {
+export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, permissions, plati, setPlati, sportivi, familii, preturiConfig, tipuriAbonament, tipuriPlati, setTipuriPlati, tranzactii, setTranzactii, reduceri, platiInitiale = [], onIncasareProcesata, onBack }) => {
     const [formState, setFormState] = useState(emptyIncasareState);
     const [selectedEchipament, setSelectedEchipament] = useState('');
     const [selectedMarimeId, setSelectedMarimeId] = useState('');
@@ -518,13 +518,17 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
     };
 
     const getDescriereTranzactie = (tranzactie: Tranzactie) => {
-        if (tranzactie.plata_ids.length === 0) return 'Încasare goală';
-        const primaPlata = plati.find(p => p.id === tranzactie.plata_ids[0]);
-        if (tranzactie.plata_ids.length > 1) { return `${primaPlata?.descriere || 'Plată'} (+${tranzactie.plata_ids.length - 1} altele)`; }
+        const safePlataIds = tranzactie.plata_ids || [];
+        if (safePlataIds.length === 0) return 'Încasare goală';
+        const primaPlata = plati.find(p => p.id === safePlataIds[0]);
+        if (safePlataIds.length > 1) { return `${primaPlata?.descriere || 'Plată'} (+${safePlataIds.length - 1} altele)`; }
         return primaPlata?.descriere || 'N/A';
     };
 
-    const sortedTranzactii = useMemo(() => [...tranzactii].sort((a,b) => new Date(b.data_platii).getTime() - new Date(a.data_platii).getTime()), [tranzactii]);
+    const sortedTranzactii = useMemo(() => {
+        if (!tranzactii) return [];
+        return [...tranzactii].sort((a,b) => new Date(b.data_platii).getTime() - new Date(a.data_platii).getTime());
+    }, [tranzactii]);
 
     const columns: Column<Tranzactie>[] = [
         {

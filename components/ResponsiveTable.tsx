@@ -52,12 +52,14 @@ export function ResponsiveTable<T>({
     const [currentPage, setCurrentPage] = React.useState(1);
 
     const paginatedData = React.useMemo(() => {
+        if (!data) return [];
         if (!pageSize) return data;
         const start = (currentPage - 1) * pageSize;
         return data.slice(start, start + pageSize);
     }, [data, currentPage, pageSize]);
 
-    const totalPages = Math.ceil(data.length / pageSize);
+    const safeData = data || [];
+    const totalPages = Math.ceil(safeData.length / pageSize);
 
     return (
         <div className="bg-[var(--bg-card)] rounded-lg shadow-md overflow-hidden border border-[var(--border-color)]">
@@ -142,7 +144,7 @@ export function ResponsiveTable<T>({
                 </div>
             )}
             
-            {data.length === 0 && (
+            {safeData.length === 0 && (
                 <div className="p-12 text-center text-slate-500 italic">
                     Niciun rezultat găsit.
                 </div>

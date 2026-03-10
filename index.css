@@ -1,0 +1,124 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  color-scheme: dark;
+}
+:root {
+  --bg-main: #020617; /* slate-950 */
+  --bg-card: #0f172a; /* slate-900 */
+  --bg-card-hover: #1e293b; /* slate-800 */
+  --bg-input: #1e293b; /* slate-800 */
+  --bg-table-header: #0f172a; /* slate-900 */
+  --bg-table-row-hover: #1e293b; /* slate-800 */
+  
+  --text-primary: #f8fafc; /* slate-50 */
+  --text-secondary: #94a3b8; /* slate-400 */
+  --text-muted: #64748b; /* slate-500 */
+  
+  --border-color: #1e293b; /* slate-800 */
+  
+  --brand-primary: #3b82f6; /* blue-500 */
+  --brand-secondary: #0ea5e9; /* sky-500 */
+  --accent: #3b82f6;
+}
+body {
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 0.01em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-primary);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* Modern Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-main);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+.glass-panel {
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+.selected-row-highlight {
+  outline: 2px solid var(--brand-secondary);
+  outline-offset: -2px;
+  background-color: rgba(77, 188, 233, 0.1);
+}
+
+.sesiune-card {
+  transition: all 0.3s ease-in-out;
+}
+.sesiune-card:hover {
+  border-color: rgba(251, 191, 36, 0.5); /* amber-400/50 */
+  transform: translateY(-4px);
+  box-shadow: 0 0 15px 2px rgba(251, 146, 60, 0.4);
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #printable-area, #printable-area *, #lista-prezenta-print-area, #lista-prezenta-print-area * {
+    visibility: visible;
+  }
+  #printable-area, #lista-prezenta-print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: auto;
+    padding: 1rem;
+    color: black !important;
+    background-color: white !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  #printable-area table, #lista-prezenta-print-area table {
+    width: 100%;
+    border-collapse: collapse;
+    -webkit-print-color-adjust: exact; 
+    print-color-adjust: exact;
+  }
+  #printable-area th, #printable-area td, #lista-prezenta-print-area th, #lista-prezenta-print-area td {
+    border: 1px solid #333;
+    padding: 8px;
+    font-size: 10pt;
+  }
+  #printable-area th, #lista-prezenta-print-area th {
+    background-color: #f2f2f2 !important;
+  }
+  #printable-area h1, #printable-area h2, #printable-area h3, #printable-area p,
+  #lista-prezenta-print-area h1, #lista-prezenta-print-area h2, #lista-prezenta-print-area h3, #lista-prezenta-print-area p {
+      color: black !important;
+  }
+
+  /* Stiluri specifice pentru lista de prezență */
+  #lista-prezenta-print-area {
+      padding: 2rem;
+  }
+  #lista-prezenta-print-area h1 { font-size: 20pt; font-weight: bold; text-align: center; margin-bottom: 0.5rem; }
+  #lista-prezenta-print-area .details { text-align: center; margin-bottom: 2rem; font-size: 12pt; }
+  #lista-prezenta-print-area .group-header td { background-color: #e0e0e0 !important; font-weight: bold; text-align: center; }
+  #lista-prezenta-print-area .signature-col { width: 30%; }
+  #lista-prezenta-print-area .signature-area { margin-top: 4rem; padding-top: 1rem; border-top: 1px solid #ccc; display: flex; justify-content: space-between; font-size: 11pt; }
+}

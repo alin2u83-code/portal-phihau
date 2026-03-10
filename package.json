@@ -6,6 +6,7 @@
   "description": "An admin dashboard for managing athletes, exams, and rank progression for a Qwan Ki Do club. It allows for creating, viewing, updating, and deleting records for athletes and exams.",
   "scripts": {
     "dev": "tsx server.ts",
+    "start": "node server.ts",
     "build": "vite build",
     "preview": "vite preview",
     "lint": "tsc --noEmit"
@@ -33,6 +34,7 @@
     "@types/papaparse": "^5.3.14",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
+    "@vercel/node": "^5.6.12",
     "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.19",
     "postcss": "^8.4.39",

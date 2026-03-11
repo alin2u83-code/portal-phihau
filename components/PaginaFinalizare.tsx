@@ -29,7 +29,8 @@ export const ExamenPhiHauSimplu: React.FC<ExamenPhiHauSimpluProps> = ({ sesiune,
     }, [inscrieriInitiale]);
 
     const handleToggleResult = useCallback(async (inscriere: InscriereExamen, toggledResult: 'Admis' | 'Respins') => {
-        console.log(`[PHI HAU DEBUG] Click event declanșat pentru: ${inscriere.sportivi.nume}, Decizie: ${toggledResult}`);
+        const sportivNume = inscriere.sportiv_nume || (inscriere.sportivi?.nume + ' ' + inscriere.sportivi?.prenume) || 'Necunoscut';
+        console.log(`[PHI HAU DEBUG] Click event declanșat pentru: ${sportivNume}, Decizie: ${toggledResult}`);
         if (!supabase) {
             showError("Eroare Configurare", "Client Supabase neinițializat.");
             return;
@@ -51,7 +52,7 @@ export const ExamenPhiHauSimplu: React.FC<ExamenPhiHauSimpluProps> = ({ sesiune,
                 promises.push(supabase.from('istoric_grade').insert({
                     sportiv_id: inscriere.sportiv_id,
                     grad_id: inscriere.grad_vizat_id,
-                    data_obtinere: sesiune.data,
+                    data_obtinere: (sesiune.data || sesiune.data_examen || '').toString().slice(0, 10),
                     sesiune_examen_id: sesiune.id
                 }));
                 sportivGradUpdate = inscriere.grad_vizat_id;
@@ -73,14 +74,14 @@ export const ExamenPhiHauSimplu: React.FC<ExamenPhiHauSimpluProps> = ({ sesiune,
                 setSportiviGlobal(prev => prev.map(s => s.id === inscriere.sportiv_id ? { ...s, grad_actual_id: sportivGradUpdate } : s));
             }
             
-            showSuccess("Succes", `Rezultatul pentru ${inscriere.sportivi.nume} a fost salvat.`);
+            showSuccess("Succes", `Rezultatul pentru ${sportivNume} a fost salvat.`);
         } catch (err: any) {
             setError(err.message);
             showError("Eroare la Salvare", err.message);
         } finally {
             setLoadingStates(prev => ({ ...prev, [inscriere.id]: false }));
         }
-    }, [participanti, sesiune.id, sesiune.data, setInscrieriSesiune, setSportiviGlobal, showError, showSuccess]);
+    }, [participanti, sesiune.id, sesiune.data, sesiune.data_examen, setInscrieriSesiune, setSportiviGlobal, showError, showSuccess]);
 
     if (error) {
         return <div className="p-10 text-center font-bold text-red-500 bg-red-900/20 rounded-lg">{error}</div>
@@ -101,8 +102,8 @@ export const ExamenPhiHauSimplu: React.FC<ExamenPhiHauSimpluProps> = ({ sesiune,
                         const isLoading = loadingStates[item.id];
                         return (
                             <tr key={item.id} className="border-b border-slate-700 hover:bg-brand-secondary/10 transition-colors">
-                                <td className="p-4 font-medium">{item.sportivi?.nume} {item.sportivi?.prenume}</td>
-                                <td className="p-4 text-brand-secondary font-bold">{item.grades?.nume}</td>
+                                <td className="p-4 font-medium">{item.sportiv_nume || (item.sportivi?.nume + ' ' + item.sportivi?.prenume) || 'Necunoscut'}</td>
+                                <td className="p-4 text-brand-secondary font-bold">{item.grad_vizat_nume || item.grades?.nume || 'Necunoscut'}</td>
                                 <td className="p-4">
                                     <div className="flex justify-center gap-3">
                                         <Button

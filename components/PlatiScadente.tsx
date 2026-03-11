@@ -430,7 +430,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                 </Select>
                 <Select label="Tip Plată" name="tip" value={filter.tip} onChange={e => setFilter(p => ({...p, tip: e.target.value}))}>
                      <option value="">Toate Tipurile</option>
-                     {[...new Set((plati || []).map(p=>p.tip))].sort().map(tip => <option key={tip} value={tip}>{tip}</option>)}
+                     {[...new Set((plati || []).map(p=>p.tip))].sort().map(tip => <option key={tip || 'fara-tip'} value={tip || ''}>{tip || 'Fără tip'}</option>)}
                 </Select>
                 
                 <div className="w-full">

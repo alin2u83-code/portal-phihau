@@ -297,10 +297,13 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                     varsta_la_examen: varstaLaExamen, rezultat: 'Neprezentat' as const
                 };
                 
-                const { data: iData, error: iError } = await supabase.from('inscrieri_examene').insert(inscriereData).select('*, sportivi:sportiv_id(*), grades:grad_vizat_id(*)').single();
+                const { data: iData, error: iError } = await supabase.from('inscrieri_examene').insert(inscriereData).select().single();
                 if (iError) throw iError;
 
-                newInscrieri.push(iData as InscriereExamen);
+                const { data: viewData, error: viewError } = await supabase.from('vedere_cluburi_inscrieri_examene').select('*').eq('id', iData.id).single();
+                if (viewError) throw viewError;
+
+                newInscrieri.push(viewData as InscriereExamen);
             } catch (err: any) {
                 errorCount++;
                 showError(`Eroare la înscrierea lui ${sportiv.nume} ${sportiv.prenume}`, err.message);
@@ -375,8 +378,9 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                     plataResult = { action: 'update', data: pData as Plata };
                     facturaMessage = ' și factura a fost actualizată';
                 } else {
+                    const sportiv = sportivi.find(s => s.id === inscriereToEdit.sportiv_id);
                     const plataData: Omit<Plata, 'id'> = {
-                        sportiv_id: inscriereToEdit.sportiv_id, familie_id: inscriereToEdit.sportivi.familie_id, suma: taxaConfig.suma, data: sesiune.data, status: 'Neachitat',
+                        sportiv_id: inscriereToEdit.sportiv_id, familie_id: sportiv?.familie_id || null, suma: taxaConfig.suma, data: sesiune.data, status: 'Neachitat',
                         descriere: descriereFactura, tip: 'Taxa Examen', observatii: 'Generat automat la modificare înscriere.'
                     };
                     const { data: pData, error: pError } = await supabase.from('plati').insert(plataData).select().single();
@@ -397,11 +401,14 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 }
             }
 
-            const { data: updatedInscriere, error: updateError } = await supabase.from('inscrieri_examene').update({ grad_vizat_id: gradSustinutId, plata_id: newPlataId }).eq('id', inscriereToEdit.id).select('*, sportivi:sportiv_id(*), grades:grad_vizat_id(*)').single();
+            const { data: updatedInscriere, error: updateError } = await supabase.from('inscrieri_examene').update({ grad_vizat_id: gradSustinutId, plata_id: newPlataId }).eq('id', inscriereToEdit.id).select().single();
             if (updateError) throw updateError;
             
-            if (updatedInscriere) {
-                setInscrieri(prev => prev.map(i => i.id === updatedInscriere.id ? updatedInscriere as InscriereExamen : i));
+            const { data: viewData, error: viewError } = await supabase.from('vedere_cluburi_inscrieri_examene').select('*').eq('id', updatedInscriere.id).single();
+            if (viewError) throw viewError;
+            
+            if (viewData) {
+                setInscrieri(prev => prev.map(i => i.id === viewData.id ? viewData as InscriereExamen : i));
             }
             
             if (plataResult) {
@@ -419,7 +426,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
     };
 
     const handleInitiateDelete = (inscriere: InscriereExamen) => {
-        setDeleteMessage(`Sunteți sigur că doriți să retrageți înscrierea sportivului ${inscriere.sportivi?.nume} ${inscriere.sportivi?.prenume}? Factura asociată (dacă există și este neachitată) va fi de asemenea ștearsă.`);
+        setDeleteMessage(`Sunteți sigur că doriți să retrageți înscrierea sportivului ${inscriere.sportiv_nume || (inscriere.sportivi?.nume + ' ' + inscriere.sportivi?.prenume)}? Factura asociată (dacă există și este neachitată) va fi de asemenea ștearsă.`);
         setInscriereToDelete(inscriere);
     };
 
@@ -530,19 +537,22 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         {
             key: 'sportiv_id',
             label: 'Nume Sportiv',
-            render: (inscriere) => (
-                <p 
-                    className="font-medium text-white hover:text-brand-primary hover:underline cursor-pointer"
-                    onClick={(e) => { e.stopPropagation(); onViewSportiv(inscriere.sportivi); }}
-                >
-                    {inscriere.sportivi.nume} {inscriere.sportivi.prenume}
-                </p>
-            )
+            render: (inscriere) => {
+                const sportiv = sportivi.find(s => s.id === inscriere.sportiv_id);
+                return (
+                    <p 
+                        className="font-medium text-white hover:text-brand-primary hover:underline cursor-pointer"
+                        onClick={(e) => { e.stopPropagation(); if(sportiv) onViewSportiv(sportiv); }}
+                    >
+                        {inscriere.sportiv_nume || (inscriere.sportivi?.nume + ' ' + inscriere.sportivi?.prenume) || 'Necunoscut'}
+                    </p>
+                );
+            }
         },
         {
             key: 'grad_vizat_id',
             label: 'Grad Vizat',
-            render: (inscriere) => <span className="text-brand-secondary font-semibold">{inscriere.grades.nume}</span>
+            render: (inscriere) => <span className="text-brand-secondary font-semibold">{inscriere.grad_vizat_nume || inscriere.grades?.nume || 'Necunoscut'}</span>
         },
         {
             key: 'status_inscriere',
@@ -618,15 +628,17 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         if (rezultat === 'Admis') statusColorClass = 'bg-green-900/40 text-green-300';
         else if (rezultat === 'Respins') statusColorClass = 'bg-red-900/40 text-red-300';
 
+        const sportiv = sportivi.find(s => s.id === inscriere.sportiv_id);
+
         return (
             <Card className="mb-4 border-l-4 border-brand-primary">
                 <div className="flex justify-between items-start mb-2">
                     <div>
-                        <p className="font-bold text-white text-lg" onClick={() => onViewSportiv(inscriere.sportivi)}>
-                            {inscriere.sportivi.nume} {inscriere.sportivi.prenume}
+                        <p className="font-bold text-white text-lg" onClick={() => { if(sportiv) onViewSportiv(sportiv); }}>
+                            {inscriere.sportiv_nume || (inscriere.sportivi?.nume + ' ' + inscriere.sportivi?.prenume) || 'Necunoscut'}
                         </p>
                         <p className="text-sm text-brand-secondary font-semibold">
-                            Grad Vizat: {inscriere.grades.nume}
+                            Grad Vizat: {inscriere.grad_vizat_nume || inscriere.grades?.nume || 'Necunoscut'}
                         </p>
                     </div>
                 </div>
@@ -693,7 +705,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 <Modal 
                     isOpen={isEditModalOpen} 
                     onClose={handleCloseEditModal} 
-                    title={`Modifică Grad Vizat: ${inscriereToEdit.sportivi.nume} ${inscriereToEdit.sportivi.prenume}`}
+                    title={`Modifică Grad Vizat: ${inscriereToEdit.sportiv_nume || (inscriereToEdit.sportivi?.nume + ' ' + inscriereToEdit.sportivi?.prenume) || 'Necunoscut'}`}
                 >
                     <div className="space-y-4">
                         <Select label="Selectează gradul vizat pentru examen" value={gradSustinutId} onChange={(e) => setGradSustinutId(e.target.value)} required>

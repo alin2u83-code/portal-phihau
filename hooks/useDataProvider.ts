@@ -16,6 +16,7 @@ import { usePlati } from './usePlati';
 import { useGrupe } from './useGrupe';
 import { usePermissions } from './usePermissions';
 import { useFetchAllowedClubs } from './useClubAccess';
+import { getCachedData, setCachedData } from '../utils/cache';
 
 export interface AppData {
     sportivi: Sportiv[];
@@ -235,12 +236,20 @@ export const useDataProvider = () => {
             const isAdminClub = activeRoleName === 'ADMIN_CLUB';
             const isSportiv = activeRoleName === 'SPORTIV';
 
+            const cacheKeys: Record<string, string> = {
+                clubs: 'cache_clubs',
+                allRoles: 'cache_allRoles',
+                grade: 'cache_grade',
+                tipuriAbonament: 'cache_tipuriAbonament',
+                tipuriPlati: 'cache_tipuriPlati',
+            };
+
             const queries: Record<string, any> = {
-                clubs: cleanedSupabase.from('cluburi').select('*'),
-                allRoles: cleanedSupabase.from('roluri').select('*'),
-                grade: cleanedSupabase.from('grade').select('*'),
-                tipuriAbonament: cleanedSupabase.from('vedere_cluburi_tipuri_abonament').select('*'),
-                tipuriPlati: cleanedSupabase.from('tipuri_plati').select('*'),
+                clubs: cleanedSupabase.from('cluburi').select('id, nume, theme_config'),
+                allRoles: cleanedSupabase.from('roluri').select('id, nume'),
+                grade: cleanedSupabase.from('grade').select('id, nume, nivel'),
+                tipuriAbonament: cleanedSupabase.from('vedere_cluburi_tipuri_abonament').select('id, denumire, pret, numar_membri'),
+                tipuriPlati: cleanedSupabase.from('tipuri_plati').select('id, nume'),
                 sesiuniExamene: cleanedSupabase.from('vedere_cluburi_sesiuni_examene').select('*'),
                 tranzactii: cleanedSupabase.from('vedere_cluburi_tranzactii').select('*'),
                 evenimente: cleanedSupabase.from('vedere_cluburi_evenimente').select('*'),
@@ -249,19 +258,43 @@ export const useDataProvider = () => {
                 vizualizarePlati: cleanedSupabase.from('vedere_cluburi_vizualizare_plati').select('*'),
                 istoricPlatiDetaliat: cleanedSupabase.from('view_istoric_plati_detaliat').select('*'),
                 locatii: cleanedSupabase.from('nom_locatii').select('*'),
+                reduceri: cleanedSupabase.from('reduceri').select('*'),
+                deconturiFederatie: cleanedSupabase.from('deconturi_federatie').select('*'),
             };
 
+            // Check cache for static data
+            const cachedResults: Record<string, any> = {};
+            for (const [key, cacheKey] of Object.entries(cacheKeys)) {
+                const cached = getCachedData(cacheKey);
+                if (cached) {
+                    cachedResults[key] = cached;
+                    delete queries[key]; // Don't fetch if cached
+                }
+            }
+
             if (isSportiv && activeCtx.sportiv_id) {
-                queries.inscrieriExamene = cleanedSupabase.from('vedere_cluburi_inscrieri_examene').select('*, sportivi:sportiv_id(*), grades:grad_vizat_id(*)').eq('sportiv_id', activeCtx.sportiv_id);
+                queries.inscrieriExamene = cleanedSupabase.from('vedere_cluburi_inscrieri_examene').select('*').eq('sportiv_id', activeCtx.sportiv_id);
                 queries.istoricGrade = cleanedSupabase.from('istoric_grade').select('*').eq('sportiv_id', activeCtx.sportiv_id);
             } else {
-                queries.inscrieriExamene = cleanedSupabase.from('vedere_cluburi_inscrieri_examene').select('*, sportivi:sportiv_id(*), grades:grad_vizat_id(*)');
+                queries.inscrieriExamene = cleanedSupabase.from('vedere_cluburi_inscrieri_examene').select('*');
                 queries.istoricGrade = cleanedSupabase.from('istoric_grade').select('*');
             }
 
             const queryKeys = Object.keys(queries);
             const settledResults = await Promise.allSettled(Object.values(queries)) as SettledQuery[];
+            
             const { data: processedData, rlsErrors } = processSettledQueries(settledResults, queryKeys);
+            
+            // Merge cached results
+            const finalData = { ...processedData, ...cachedResults };
+            
+            // Update cache for newly fetched data
+            settledResults.forEach((result, index) => {
+                const key = queryKeys[index];
+                if (result.status === 'fulfilled' && cacheKeys[key]) {
+                    setCachedData(cacheKeys[key], result.value.data);
+                }
+            });
 
             const criticalRlsErrors = isSportiv 
                 ? rlsErrors.filter(err => !['locatii', 'reduceri', 'preturiConfig', 'istoricPlatiDetaliat', 'deconturiFederatie'].includes(err))
@@ -273,24 +306,23 @@ export const useDataProvider = () => {
 
             setData(prev => ({
                 ...prev,
-                clubs: processedData.clubs || prev.clubs,
-                allRoles: processedData.allRoles || prev.allRoles,
-                grade: processedData.grade || prev.grade,
-                tipuriAbonament: processedData.tipuriAbonament || prev.tipuriAbonament,
-                locatii: processedData.locatii || prev.locatii,
-                tipuriPlati: processedData.tipuriPlati || prev.tipuriPlati,
-                reduceri: processedData.reduceri || prev.reduceri,
-                sesiuniExamene: processedData.sesiuniExamene || prev.sesiuniExamene,
-                inscrieriExamene: processedData.inscrieriExamene || prev.inscrieriExamene,
-                tranzactii: processedData.tranzactii || prev.tranzactii,
-                evenimente: processedData.evenimente || prev.evenimente,
-                rezultate: processedData.rezultate || prev.rezultate,
-                familii: processedData.familii || prev.familii,
-                preturiConfig: processedData.preturiConfig || prev.preturiConfig,
-                vizualizarePlati: processedData.vizualizarePlati || prev.vizualizarePlati,
-                istoricPlatiDetaliat: processedData.istoricPlatiDetaliat || prev.istoricPlatiDetaliat,
-                deconturiFederatie: processedData.deconturiFederatie || prev.deconturiFederatie,
-                istoricGrade: processedData.istoricGrade || prev.istoricGrade
+                clubs: finalData.clubs || prev.clubs,
+                allRoles: finalData.allRoles || prev.allRoles,
+                grade: finalData.grade || prev.grade,
+                tipuriAbonament: finalData.tipuriAbonament || prev.tipuriAbonament,
+                locatii: finalData.locatii || prev.locatii,
+                tipuriPlati: finalData.tipuriPlati || prev.tipuriPlati,
+                sesiuniExamene: finalData.sesiuniExamene || prev.sesiuniExamene,
+                tranzactii: finalData.tranzactii || prev.tranzactii,
+                evenimente: finalData.evenimente || prev.evenimente,
+                rezultate: finalData.rezultate || prev.rezultate,
+                familii: finalData.familii || prev.familii,
+                vizualizarePlati: finalData.vizualizarePlati || prev.vizualizarePlati,
+                istoricPlatiDetaliat: finalData.istoricPlatiDetaliat || prev.istoricPlatiDetaliat,
+                reduceri: finalData.reduceri || prev.reduceri,
+                deconturiFederatie: finalData.deconturiFederatie || prev.deconturiFederatie,
+                inscrieriExamene: finalData.inscrieriExamene || prev.inscrieriExamene,
+                istoricGrade: finalData.istoricGrade || prev.istoricGrade
             }));
 
         } catch (err: any) {

@@ -114,19 +114,23 @@ export const Sportivi: React.FC<{
         if (!permissions.isFederationAdmin && currentUser?.club_id && filters.clubFilter !== currentUser.club_id) {
             setFilters(prev => ({ ...prev, clubFilter: currentUser.club_id || '' }));
         }
-    }, [permissions.isFederationAdmin, currentUser?.club_id, filters.clubFilter, setFilters]);
+        setPage(1); // Reset page on filter change
+    }, [permissions.isFederationAdmin, currentUser?.club_id, filters.clubFilter, setFilters, filters.searchTerm, filters.statusFilter, filters.grupaFilter, filters.rolFilter, filters.gradFilter]);
 
-    const { data: sportiviData, isLoading: sportiviLoading, error: sportiviError } = useSportivi({
+    const [page, setPage] = useState(1);
+    const pageSize = 50;
+
+    const { data: sportiviData, isLoading: sportiviLoading, error: sportiviError, count: totalSportivi } = useSportivi({
         clubId: filters.clubFilter,
         status: filters.statusFilter,
         gradId: filters.gradFilter !== 'null' ? filters.gradFilter : undefined,
         rolId: filters.rolFilter,
         searchTerm: filters.searchTerm,
         grupaId: filters.grupaFilter
-    });
+    }, { page, pageSize });
     
-    // Apply search term filtering locally - no longer needed as it's done in the hook
     const sportivi = sportiviData || [];
+    const hasMore = sportivi.length < totalSportivi;
     
     const {
         loading: familyLoading,
@@ -430,6 +434,14 @@ export const Sportivi: React.FC<{
                     searchTerm={filters.searchTerm}
                     onSearchChange={handleSearchChange}
                 />
+            )}
+
+            {hasMore && (
+                <div className="flex justify-center mt-4">
+                    <Button variant="secondary" onClick={() => setPage(p => p + 1)} isLoading={sportiviLoading}>
+                        Încarcă mai mult
+                    </Button>
+                </div>
             )}
 
             <ImportCsvModal

@@ -231,6 +231,9 @@ export interface SesiuneExamen {
   comisia: string[];
   club_id?: string | null;
   status?: 'Programat' | 'Finalizat';
+  locatie_nume?: string;
+  club_nume?: string;
+  data_examen?: string;
 }
 
 export interface InscriereExamen {
@@ -248,8 +251,14 @@ export interface InscriereExamen {
   nota_atitudine: number | null;
   rezultat?: 'Admis' | 'Respins' | 'Neprezentat' | null;
   status_inscriere?: 'Validat' | 'In asteptare' | null;
-  sportivi: Sportiv;
-  grades: Grad;
+  sportivi?: Sportiv;
+  grades?: Grad;
+  sportiv_nume?: string;
+  grad_vizat_nume?: string;
+  grad_actual_nume?: string;
+  club_nume?: string;
+  locatie_nume?: string;
+  data_examen?: string;
 }
 
 export interface IstoricGrade {

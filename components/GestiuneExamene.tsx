@@ -69,7 +69,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
     let filtered = [...(sesiuni || [])];
 
     if (dateFilter) {
-      filtered = filtered.filter(s => s.data === dateFilter);
+      filtered = filtered.filter(s => (s.data || s.data_examen || '').toString().slice(0, 10) === dateFilter);
     }
     if (locationFilter) {
       filtered = filtered.filter(s => s.locatie_id === locationFilter);
@@ -81,7 +81,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
       filtered = filtered.filter(s => s.status === statusFilter);
     }
 
-    return filtered.sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+    return filtered.sort((a, b) => new Date((b.data || b.data_examen || '').toString().slice(0, 10)).getTime() - new Date((a.data || a.data_examen || '').toString().slice(0, 10)).getTime());
   }, [sesiuni, dateFilter, locationFilter, clubFilter, statusFilter]);
 
   const handleBackToList = () => setSelectedSesiuneId(null);
@@ -200,10 +200,10 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
                                 <span className={`px-2 py-1 text-xs font-bold rounded-full ${s.status === 'Finalizat' ? 'bg-green-600/30 text-green-300' : 'bg-sky-600/30 text-sky-300'}`}>
                                     {s.status || 'Programat'}
                                 </span>
-                                <span className="text-sm font-bold text-slate-300">{new Date(s.data+'T00:00:00').toLocaleDateString('ro-RO')}</span>
+                                <span className="text-sm font-bold text-slate-300">{new Date((s.data || s.data_examen || '').toString().slice(0, 10) + 'T00:00:00').toLocaleDateString('ro-RO')}</span>
                             </div>
-                            <h3 className="text-lg font-bold text-white mt-3 group-hover:text-brand-secondary transition-colors">{(locatii || []).find(l => l.id === s.locatie_id)?.nume || 'Locație Nespecificată'}</h3>
-                            <p className="text-xs text-slate-400">{s.club_id ? (((clubs || []).find(c => c.id === s.club_id))?.nume || 'Club Necunoscut') : 'Eveniment Federație'}</p>
+                            <h3 className="text-lg font-bold text-white mt-3 group-hover:text-brand-secondary transition-colors">{s.locatie_nume || (locatii || []).find(l => l.id === s.locatie_id)?.nume || 'Locație Nespecificată'}</h3>
+                            <p className="text-xs text-slate-400">{s.club_nume || (s.club_id ? (((clubs || []).find(c => c.id === s.club_id))?.nume || 'Club Necunoscut') : 'Eveniment Federație')}</p>
                         </div>
                         <div className="mt-4 pt-4 border-t border-[var(--border-color)] flex justify-between items-center">
                             <div className="text-sm">

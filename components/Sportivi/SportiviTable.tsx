@@ -1,9 +1,9 @@
 import React from 'react';
-import { Sportiv, Grupa, Grad } from '../types';
-import { ResponsiveTable, Column } from './ResponsiveTable';
-import { GradBadge } from '../utils/grades';
-import { Button, Card, RoleBadge } from './ui';
-import { EditIcon, WalletIcon, ShieldCheckIcon, TrashIcon } from './icons';
+import { Sportiv, Grupa, Grad } from '../../types';
+import { ResponsiveTable, Column } from '../ResponsiveTable';
+import { GradBadge } from '../../utils/grades';
+import { Button, Card, RoleBadge } from '../ui';
+import { EditIcon, WalletIcon, ShieldCheckIcon, TrashIcon } from '../icons';
 
 interface SportiviTableProps {
   sportivi: Sportiv[];

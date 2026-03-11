@@ -1,8 +1,8 @@
 import React from 'react';
-import { Sportiv, Familie, Grupa, Grad } from '../types';
-import { Card, Button, RoleBadge } from './ui';
-import { WalletIcon } from './icons';
-import { GradBadge } from '../utils/grades';
+import { Sportiv, Familie, Grupa, Grad } from '../../types';
+import { Card, Button, RoleBadge } from '../ui';
+import { WalletIcon } from '../icons';
+import { GradBadge } from '../../utils/grades';
 
 interface SportiviMobileListProps {
   sportivi: Sportiv[];

@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import { Sportiv, Familie, Plata, Tranzactie, VizualizarePlata } from '../types';
-import { Modal, Button, Input, Select, Card } from './ui';
-import { BanknotesIcon, BookOpenIcon, TrophyIcon, WalletIcon, PlusIcon } from './icons';
-import { useError } from './ErrorProvider';
-import { supabase } from '../supabaseClient';
+import { Sportiv, Familie, Plata, Tranzactie, VizualizarePlata } from '../../types';
+import { Modal, Button, Input, Select, Card } from '../ui';
+import { BanknotesIcon, BookOpenIcon, TrophyIcon, WalletIcon, PlusIcon } from '../icons';
+import { useError } from '../ErrorProvider';
+import { supabase } from '../../supabaseClient';
 
 interface SportivWalletProps {
     sportiv: Sportiv;

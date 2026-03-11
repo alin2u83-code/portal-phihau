@@ -1,7 +1,7 @@
 import React from 'react';
-import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, VizualizarePlata } from '../types';
-import { Button, Input, Modal } from './ui';
-import { SportivFormModal } from './Sportivi';
+import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, VizualizarePlata } from '../../types';
+import { Button, Input, Modal } from '../ui';
+import { SportivFormModal } from './SportivFormModal';
 import { SportivWallet } from './SportivWallet';
 import { SportivAccountSettingsModal } from './SportivAccountSettings';
 import { DeleteAuditModal } from './DeleteAuditModal';

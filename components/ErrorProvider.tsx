@@ -26,7 +26,12 @@ export const ErrorProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [notifications, setNotifications] = useState<(NotificationInfo & { id: number })[]>([]);
 
   const showError = useCallback((title: string, errorObj: any) => {
-    console.error('DETALII EROARE:', JSON.stringify(errorObj, null, 2));
+    // Properly stringify Error objects which have non-enumerable properties
+    const errorToLog = errorObj instanceof Error 
+      ? { message: errorObj.message, stack: errorObj.stack, ...errorObj }
+      : errorObj;
+      
+    console.error('DETALII EROARE:', JSON.stringify(errorToLog, null, 2));
     let message = errorObj?.message || (typeof errorObj === 'string' ? errorObj : 'O eroare necunoscută a apărut.');
     
     if (errorObj?.status === 403 || message.includes('403')) {

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Sportiv } from '../types';
-import { supabase } from '../supabaseClient';
-import { Modal, Button } from './ui';
-import { ShieldCheckIcon, TrashIcon } from './icons';
+import { Sportiv } from '../../types';
+import { supabase } from '../../supabaseClient';
+import { Modal, Button } from '../ui';
+import { ShieldCheckIcon, TrashIcon } from '../icons';
 
 interface DeleteAuditModalProps {
     isOpen: boolean;

@@ -107,12 +107,6 @@ export const LoginPage: React.FC = () => {
                                     Ține-mă minte
                                 </label>
                             </div>
-
-                            <div className="text-sm">
-                                <Link to="/forgot-password" className="font-medium text-amber-500 hover:text-amber-400 transition-colors">
-                                    Ai uitat parola?
-                                </Link>
-                            </div>
                         </div>
 
                         <Button 
@@ -124,13 +118,6 @@ export const LoginPage: React.FC = () => {
                         </Button>
                     </form>
 
-                    <div className="mt-8 pt-6 border-t border-slate-800 text-center">
-                        <p className="text-slate-500 text-sm">
-                            <Link to="/forgot-password" className="text-amber-500 hover:text-amber-400 font-bold inline-flex items-center gap-1 transition-colors">
-                                Ai uitat parola?
-                            </Link>
-                        </p>
-                    </div>
                 </Card>
                 
                 <div className="mt-8 text-center">

@@ -1,450 +1,509 @@
-import React, { useState, useCallback, useEffect, useMemo, useReducer } from 'react';
-import { Sportiv, Grupa, Familie, TipAbonament, Club, User, Grad } from '../types';
-import { Button, Modal, Input, Select, FormSection, Switch } from './ui';
-import { PlusIcon, ExclamationTriangleIcon } from './icons';
+import React, { useState, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../supabaseClient';
+import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions, VizualizarePlata } from '../types';
+import { Button } from './ui';
+import { PlusIcon, UploadCloudIcon } from './icons';
+import { adaugaSportiv, actualizeazaSportiv } from '../services/sportivService';
 import { useError } from './ErrorProvider';
-import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
-import { useSportivForm } from '../hooks/useSportivForm';
-import { validateSportiv } from '../utils/validation';
+import { useLocalStorage } from '../hooks/useLocalStorage';
+import { MartialArtsSkeleton } from './MartialArtsSkeleton';
+import { SportiviFilter } from './Sportivi/SportiviFilter';
+import { SportiviTable } from './Sportivi/SportiviTable';
+import { SportiviMobileList } from './Sportivi/SportiviMobileList';
+import { SportivModals } from './Sportivi/SportivModals';
+import { ImportCsvModal } from './Sportivi/ImportCsvModal';
+import { SportivFormModal } from './Sportivi/SportivFormModal';
+import { ExportSportiviTable } from './Sportivi/ExportSportiviTable';
+import { useIsMobile } from '../hooks/useIsMobile';
+import { useRoleAssignment } from '../hooks/useRoleAssignment';
+import { useSportivi } from '../hooks/useSportivi';
+import { useData } from '../contexts/DataContext';
 import { useFamilyManager } from '../hooks/useFamilyManager';
 
-// --- Modale de adăugare rapidă ---
-// FIX: Exported QuickAddModal to be used in other components.
-export const QuickAddModal: React.FC<{ 
-  title: string;
-  label: string;
-  isOpen: boolean;
-  onClose: () => void; 
-  onSave: (name: string) => Promise<any>; 
-}> = ({ title, label, isOpen, onClose, onSave }) => {
-    const [name, setName] = useState('');
-    const [loading, setLoading] = useState(false);
-    const { showError } = useError();
+const getAge = (dateString: string | null | undefined): number => {
+    if (!dateString) return 0;
+    const today = new Date();
+    const birthDate = new Date(dateString.includes('T') ? dateString : dateString + 'T00:00:00');
+    if (isNaN(birthDate.getTime())) { return 0; }
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; }
+    return age;
+};
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        const trimmed = name.trim();
-        if (!trimmed) return;
-        setLoading(true);
-        try {
-            await onSave(trimmed);
-            setName('');
-            onClose();
-        } catch (err) {
-            showError("Eroare Adăugare", err);
-        } finally {
-            setLoading(false);
-        }
+
+
+
+
+// --- Componenta Management Principală ---
+export const Sportivi: React.FC<{
+    onViewSportiv: (sportiv: Sportiv) => void;
+    permissions: Permissions;
+    onBack: () => void;
+}> = (props) => {
+    const { 
+        onViewSportiv, 
+        permissions, 
+        onBack 
+    } = props;
+
+    const {
+        setGrupe,
+        setFamilii,
+        currentUser,
+        setPlati,
+        setTranzactii,
+        setSportivi,
+        clubs = [],
+        grade = [],
+        allRoles = [], setAllRoles,
+        filteredData,
+        familii = [],
+        plati = [],
+        tranzactii = [],
+        tipuriAbonament = [],
+        vizualizarePlati = [],
+    } = useData();
+
+    const { showError, showSuccess } = useError();
+    const isMobile = useIsMobile();
+    const grupe = filteredData?.grupe || [];
+
+    const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }[]>([]);
+    const [sportivForWallet, setSportivForWallet] = useState<Sportiv | null>(null);
+    const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
+    const [selectedSportivForHighlight, setSelectedSportivForHighlight] = useState<Sportiv | null>(null);
+    const [sportivToEdit, setSportivToEdit] = useState<Sportiv | null>(null);
+    const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+    const [sportivForAccountCreation, setSportivForAccountCreation] = useState<Sportiv | null>(null);
+    const [createAccountForm, setCreateAccountForm] = useState({ email: '', username: '', parola: '' });
+    const [createAccountLoading, setCreateAccountLoading] = useState(false);
+    const [createAccountError, setCreateAccountError] = useState('');
+    const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+    const [isExportTableOpen, setIsExportTableOpen] = useState(false);
+    const [accountSettingsSportiv, setAccountSettingsSportiv] = useState<Sportiv | null>(null);
+    const [sportivToDelete, setSportivToDelete] = useState<Sportiv | null>(null);
+
+    const handleOpenAddSportiv = () => {
+        setSportivToEdit(null);
+        setIsFormModalOpen(true);
     };
 
-    return (
-        <Modal isOpen={isOpen} onClose={onClose} title={title}>
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <Input label={label} value={name} onChange={e => setName(e.target.value)} required disabled={loading} />
-                <div className="flex justify-end pt-2 gap-2">
-                    <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button>
-                    <Button type="submit" variant="primary" isLoading={loading}>Adaugă</Button>
-                </div>
-            </form>
-        </Modal>
-    );
-};
+    const handleOpenEditSportiv = (sportiv: Sportiv) => {
+        setSportivToEdit(sportiv);
+        setIsFormModalOpen(true);
+    };
 
-const initialFormState: Partial<Sportiv> = {
-    nume: '', prenume: '', status: 'Activ', 
-    data_inscrierii: new Date().toISOString().split('T')[0],
-    participa_vacanta: false,
-    data_nasterii: '',
-    gen: null,
-};
+    const handleCloseFormModal = () => {
+        setIsFormModalOpen(false);
+        setSportivToEdit(null);
+    };
 
-interface SportivFormFieldsProps {
-    initialData: Partial<Sportiv>;
-    onFormChange: (data: Partial<Sportiv>, isValid: boolean) => void;
-    loading: boolean;
-    grupe: Grupa[];
-    grade: Grad[];
-    familii: Familie[];
-    tipuriAbonament: TipAbonament[];
-    clubs: Club[];
-    currentUser: User | null;
-    onQuickAddGrupa: () => void;
-    onQuickAddFamilie: () => void;
-}
+    const [filters, setFilters] = useLocalStorage('phi-hau-sportivi-filters', {
+        searchTerm: '',
+        statusFilter: 'Activ',
+        grupaFilter: '',
+        rolFilter: '',
+        gradFilter: '',
+        clubFilter: permissions.isFederationAdmin ? '' : (currentUser.club_id || ''),
+    });
 
-const formReducer = (state: any, action: any) => {
-    switch (action.type) {
-        case 'SET_FIELD':
-            return { ...state, [action.field]: action.value };
-        case 'SET_FORM_DATA':
-            return action.payload;
-        case 'RESET':
-            return action.payload;
-        default:
-            return state;
-    }
-};
+    // Ensure clubFilter is correct if user is not admin
+    React.useEffect(() => {
+        if (!permissions.isFederationAdmin && filters.clubFilter !== currentUser.club_id) {
+            setFilters(prev => ({ ...prev, clubFilter: currentUser.club_id || '' }));
+        }
+    }, [permissions.isFederationAdmin, currentUser.club_id, filters.clubFilter, setFilters]);
 
-// FIX: Exported SportivFormFields to be used in other components.
-export const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
-    initialData,
-    onFormChange,
-    loading,
-    grupe,
-    grade,
-    familii,
-    tipuriAbonament,
-    clubs,
-    currentUser,
-    onQuickAddGrupa,
-    onQuickAddFamilie,
-}) => {
-    const formData = initialData;
-    const [errors, setErrors] = useState<Record<string, string>>({});
-
-    // Memoize validate to avoid dependency cycles
-    const validate = useCallback((data: Partial<Sportiv>) => {
-        return validateSportiv(data);
-    }, []);
-
-    const isSuperAdmin = useMemo(() => 
-        currentUser?.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN'), 
-        [currentUser]
+    const { data: sportiviData, isLoading: sportiviLoading, error: sportiviError } = useSportivi({
+        clubId: filters.clubFilter,
+        status: filters.statusFilter,
+        gradId: filters.gradFilter !== 'null' ? filters.gradFilter : undefined,
+        rolId: filters.rolFilter,
+        searchTerm: filters.searchTerm,
+        grupaId: filters.grupaFilter
+    });
+    
+    // Apply search term filtering locally - no longer needed as it's done in the hook
+    const sportivi = sportiviData || [];
+    
+    const {
+        loading: familyLoading,
+        familyBalances,
+        individualBalances,
+    } = useFamilyManager(
+        familii,
+        setFamilii,
+        sportiviData || [],
+        setSportivi,
+        plati,
+        tranzactii
     );
 
-    // Validate on mount and when data changes
-    useEffect(() => {
-        const currentErrors = validate(formData);
-        // Only update state if errors changed to avoid loops
-        setErrors(prev => {
-            if (JSON.stringify(prev) !== JSON.stringify(currentErrors)) {
-                return currentErrors;
+    const loading = sportiviLoading || familyLoading;
+    
+    const handleFilterChange = (name: keyof typeof filters, value: string) => {
+        setFilters(prev => ({ ...prev, [name]: value }));
+    };
+    
+    const handleSearchChange = (value: string) => {
+        handleFilterChange('searchTerm', value);
+    };
+    
+    const requestSort = (key: string) => {
+        setSortConfig(prev => {
+            const existing = prev.find(s => s.key === key);
+            if (existing) {
+                if (existing.direction === 'asc') {
+                    return prev.map(s => s.key === key ? { ...s, direction: 'desc' } : s);
+                } else {
+                    return prev.filter(s => s.key !== key);
+                }
+            } else {
+                return [...prev, { key, direction: 'asc' }];
             }
-            return prev;
         });
-        // We don't call onFormChange here to avoid loops. 
-        // The parent should check validity when trying to save or we rely on handleChange to trigger updates.
-    }, [formData, validate]);
+    };
 
+    const handleOpenWallet = (sportiv: Sportiv) => {
+        setSportivForWallet(sportiv);
+        setIsWalletModalOpen(true);
+    };
 
-    const handleChange = (e: any) => {
-        const { name, value, type, checked } = e.target;
-        let updatedData: Partial<Sportiv> = { ...formData };
-        let finalValue: any;
+    const handleRowClick = (sportiv: Sportiv) => {
+        setSelectedSportivForHighlight(sportiv);
+        onViewSportiv(sportiv);
+    };
 
-        if (type === 'checkbox') {
-            finalValue = checked;
-        } else if (name === 'inaltime') {
-            const num = parseInt(value, 10);
-            finalValue = isNaN(num) ? null : num;
-        } else if (['familie_id', 'grupa_id', 'tip_abonament_id', 'club_id', 'gen', 'grad_actual_id'].includes(name)) {
-            finalValue = value === '' ? null : value;
+    const queryClient = useQueryClient();
+
+    const handleDeactivate = async (sportivToDeactivate: Sportiv) => {
+        if (!sportivToDeactivate) return;
+        const { error } = await supabase.from('sportivi').update({ status: 'Inactiv' }).eq('id', sportivToDeactivate.id);
+        if(error) {
+            showError("Eroare", error.message);
         } else {
-            finalValue = value;
+            setSportivi(prev => prev.map(s => s.id === sportivToDeactivate.id ? { ...s, status: 'Inactiv'} : s));
+            queryClient.invalidateQueries({ queryKey: ['sportivi'] });
+            showSuccess("Succes", "Sportivul a fost marcat ca inactiv.");
         }
-
-        (updatedData as any)[name] = finalValue;
-        
-        if (name === 'club_id') {
-            const currentGroup = grupe.find(g => g.id === updatedData.grupa_id);
-            if (currentGroup && currentGroup.club_id !== finalValue) {
-                updatedData.grupa_id = null;
-            }
-        }
-        
-        if (!formData.id && (name === 'nume' || name === 'prenume')) {
-            const sanitize = (str: string) => (str || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, '');
-            const nume = sanitize(name === 'nume' ? value : updatedData.nume || '');
-            const prenume = sanitize(name === 'prenume' ? value : updatedData.prenume || '');
-            
-            if (nume && prenume) {
-                const targetClubId = updatedData.club_id || currentUser?.club_id;
-                const club = clubs.find(c => c.id === targetClubId);
-                const domain = club ? club.nume.toLowerCase().replace(/[^a-z0-9]/g, '') + '.ro' : 'phihau.ro';
-                updatedData.email = `${nume}.${prenume}@${domain}`;
-                updatedData.parola = `${nume}.1234!`;
-                // Username is generated by the backend function 'adauga_sportiv_complet'
-            }
-        }
-
-        const newErrors = validate(updatedData);
-        setErrors(newErrors);
-        onFormChange(updatedData, Object.keys(newErrors).length === 0);
     };
     
-    const [activeTab, setActiveTab] = useState<'general' | 'contact' | 'club'>('general');
+    const handleDelete = async (sportivToDelete: Sportiv) => {
+        if (!sportivToDelete) return;
+        const { error } = await supabase.from('sportivi').delete().eq('id', sportivToDelete.id);
+        if(error) {
+            showError("Eroare", error.message);
+        } else {
+            setSportivi(prev => prev.filter(s => s.id !== sportivToDelete.id));
+            queryClient.invalidateQueries({ queryKey: ['sportivi'] });
+            showSuccess("Succes", "Sportivul a fost șters definitiv.");
+        }
+    };
+
+    const sortedAndFilteredSportivi = useMemo(() => {
+        let sortableItems = [...sportivi];
+        if (sortConfig.length > 0) {
+            sortableItems.sort((a, b) => {
+                for (const { key, direction } of sortConfig) {
+                    let aVal: any, bVal: any;
+                    
+                    if (key === 'grad_actual_id') {
+                        const gradA = grade.find(g => g.id === a.grad_actual_id);
+                        const gradB = grade.find(g => g.id === b.grad_actual_id);
+                        aVal = gradA ? gradA.ordine : -1;
+                        bVal = gradB ? gradB.ordine : -1;
+                    } else {
+                        aVal = a[key as keyof Sportiv] as any;
+                        bVal = b[key as keyof Sportiv] as any;
+                    }
+
+                    if (aVal < bVal) return direction === 'asc' ? -1 : 1;
+                    if (aVal > bVal) return direction === 'asc' ? 1 : -1;
+                }
+                return 0;
+            });
+        }
+        return sortableItems;
+    }, [sportivi, sortConfig, grade]);
+
+
+
+    const { createAccountAndAssignRole } = useRoleAssignment(currentUser, allRoles);
+
+    const handleSave = async (formData: Partial<Sportiv>): Promise<{ success: boolean; error?: any; data?: Sportiv; }> => {
+        try {
+            if (sportivToEdit) {
+                const result = await actualizeazaSportiv(sportivToEdit.id, formData);
+                if (!result.success) throw result.error;
     
-    // Removed custom inputStyle to rely on the optimized UI components
-    // const inputStyle = "!text-lg !py-2.5 h-12"; 
+                // Preserve existing roles since we don't update them here yet
+                const updatedSportiv = { ...result.data!, roluri: sportivToEdit.roluri };
+    
+                setSportivi(prev => prev.map(s => s.id === sportivToEdit.id ? updatedSportiv : s));
+                queryClient.invalidateQueries({ queryKey: ['sportivi'] });
+                showSuccess('Succes', 'Sportiv actualizat!');
+                handleCloseFormModal();
+                return { success: true, data: updatedSportiv };
+            } else {
+                const { email, parola, roluri, cluburi, ...profileData } = formData;
+                if (!email || !parola) throw new Error("Emailul și parola sunt obligatorii pentru crearea unui cont nou.");
+                
+                // 1. Verificare prealabilă: Caută după email
+                const { data: existingSportiv, error: checkError } = await supabase
+                    .from('sportivi')
+                    .select('id, club_id')
+                    .eq('email', email)
+                    .maybeSingle();
+                
+                if (checkError) throw checkError;
+
+                let targetClubId = profileData.club_id || filters.clubFilter || currentUser?.club_id;
+                if (!targetClubId) throw new Error("Clubul este obligatoriu la adăugarea unui sportiv nou.");
+
+                if (existingSportiv) {
+                    if (existingSportiv.club_id !== targetClubId) {
+                        const confirmTransfer = window.confirm("Acest sportiv este înregistrat la un alt club. Doriți să îl transferați în clubul dumneavoastră?");
+                        if (!confirmTransfer) return { success: false, error: "Transfer anulat." };
+                        
+                        // Transfer logic: update club_id
+                        const { error: updateError } = await supabase
+                            .from('sportivi')
+                            .update({ club_id: targetClubId })
+                            .eq('id', existingSportiv.id);
+                        if (updateError) throw updateError;
+                    }
+                    // For existing sportiv, we skip the account creation if it already has a user_id
+                    // Or we just assign the role if it doesn't have one
+                    // This is handled by createAccountAndAssignRole or a separate logic
+                }
+
+                const sportivRole = allRoles.find(r => r.nume === 'SPORTIV');
+                if (!sportivRole) throw new Error("Rolul de bază 'SPORTIV' nu a fost găsit.");
+
+                const result = await createAccountAndAssignRole(
+                    email,
+                    parola,
+                    profileData,
+                    [sportivRole]
+                );
+
+                if (!result.success || !result.sportiv) {
+                    throw new Error(result.error || "A apărut o eroare la crearea contului.");
+                }
+
+                setSportivi(prev => [...prev, result.sportiv!]);
+                queryClient.invalidateQueries({ queryKey: ['sportivi'] });
+                showSuccess('Succes', `Sportivul a fost adăugat cu succes. Username generat: ${result.sportiv?.username}`);
+                handleCloseFormModal();
+                return { success: true, data: result.sportiv! };
+            }
+        } catch (err: any) {
+            // ErrorProvider handles the error message formatting, but we can pass it here
+            showError("Eroare la Salvare", err);
+            return { success: false, error: err };
+        }
+    };
+
+    const handleOpenCreateAccountModal = (user: Sportiv) => {
+        setSportivForAccountCreation(user);
+        const sanitize = (str: string) => str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '');
+        const emailPrefix = `${sanitize(user.nume)}.${sanitize(user.prenume)}`;
+        setCreateAccountForm({
+            email: user.email || `${emailPrefix}@phihau.ro`,
+            username: user.username || emailPrefix,
+            parola: 'Parola123!'
+        });
+        setCreateAccountError('');
+        setIsFormModalOpen(true); // Re-use the form modal for this purpose. Let's make a dedicated one.
+    };
+
+    const handleCreateAccountFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setCreateAccountForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    };
+
+    const handleCreateAccount = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!supabase || !sportivForAccountCreation) return;
+        setCreateAccountLoading(true);
+        setCreateAccountError('');
+        
+        try {
+            const sportivRole = allRoles.find(r => r.nume === 'SPORTIV');
+            if (!sportivRole) throw new Error("Rolul 'SPORTIV' nu a fost găsit.");
+
+            const result = await createAccountAndAssignRole(
+                createAccountForm.email,
+                createAccountForm.parola,
+                { ...sportivForAccountCreation, username: createAccountForm.username },
+                [sportivRole]
+            );
+
+            if (!result.success || !result.sportiv) {
+                throw new Error(result.error || 'A apărut o eroare la crearea contului.');
+            }
+    
+            showSuccess("Cont Creat", `Contul pentru ${sportivForAccountCreation.nume} a fost creat cu succes. Reîncărcați pagina.`);
+            setTimeout(() => window.location.reload(), 1500);
+    
+        } catch (err: any) {
+            setCreateAccountError(err.message);
+        } finally {
+            setCreateAccountLoading(false);
+        }
+    };
+
+
+    if (isExportTableOpen) {
+        return <ExportSportiviTable onClose={() => setIsExportTableOpen(false)} />;
+    }
 
     return (
         <div className="space-y-4">
-            {/* Tabs Navigation - Scrollable on mobile */}
-            <div className="flex border-b border-slate-700 mb-4 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 no-scrollbar">
-                <button
-                    type="button"
-                    onClick={() => setActiveTab('general')}
-                    className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap flex-shrink-0 ${
-                        activeTab === 'general' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'
-                    }`}
-                >
-                    Date Personale
-                </button>
-                <button
-                    type="button"
-                    onClick={() => setActiveTab('contact')}
-                    className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap flex-shrink-0 ${
-                        activeTab === 'contact' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'
-                    }`}
-                >
-                    Contact & Acces
-                </button>
-                <button
-                    type="button"
-                    onClick={() => setActiveTab('club')}
-                    className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap flex-shrink-0 ${
-                        activeTab === 'club' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'
-                    }`}
-                >
-                    Club & Status
-                </button>
-            </div>
-
-            {activeTab === 'general' && (
-                <div className="space-y-4 animate-fade-in">
-                    <FormSection title="Date Personale">
-                        <Input label="Nume" name="nume" value={formData.nume || ''} onChange={handleChange} required disabled={loading} error={errors.nume} />
-                        <Input label="Prenume" name="prenume" value={formData.prenume || ''} onChange={handleChange} required disabled={loading} error={errors.prenume} />
-                        <Input label="Data Nașterii" name="data_nasterii" type="date" value={formData.data_nasterii || ''} onChange={handleChange} required disabled={loading} error={errors.data_nasterii} />
-                        <Input label="CNP" name="cnp" value={formData.cnp || ''} onChange={handleChange} disabled={loading} maxLength={13} />
-                        <Input label="Înălțime (cm)" name="inaltime" type="number" value={formData.inaltime || ''} onChange={handleChange} disabled={loading} />
-                        <Select label="Gen" name="gen" value={formData.gen || ''} onChange={handleChange} disabled={loading}>
-                            <option value="">Nespecificat</option>
-                            <option value="Masculin">Masculin</option>
-                            <option value="Feminin">Feminin</option>
-                        </Select>
-                    </FormSection>
-                </div>
-            )}
-
-            {activeTab === 'contact' && (
-                <div className="space-y-4 animate-fade-in">
-                    <FormSection title="Date Contact">
-                        <Input label="Telefon" name="telefon" value={formData.telefon || ''} onChange={handleChange} disabled={loading} />
-                        <Input label="Adresă" name="adresa" value={formData.adresa || ''} onChange={handleChange} disabled={loading} />
-                    </FormSection>
-
-                    {!initialData.id && (
-                        <FormSection title="Detalii Cont Acces (Opțional)">
-                            <p className="text-xs text-slate-400 col-span-full -mt-1">La salvare, se va crea automat un cont de acces cu email și parolă generate. Username-ul va fi generat automat (ex: nume.prenume).</p>
-                            <Input label="Email (Login)" name="email" type="email" value={formData.email || ''} onChange={handleChange} disabled={loading} required={!initialData.id} error={errors.email} />
-                            <Input 
-                                label="Username (Auto-generat)" 
-                                name="username" 
-                                value={formData.username || '(generat automat)'} 
-                                onChange={handleChange} 
-                                disabled={true} 
-                                className="opacity-60 cursor-not-allowed" 
-                            />
-                            <Input label="Parolă" name="parola" value={formData.parola || ''} onChange={handleChange} disabled={loading} required error={errors.parola} />
-                        </FormSection>
-                    )}
-                </div>
-            )}
-
-            {activeTab === 'club' && (
-                <div className="space-y-4 animate-fade-in">
-                    <FormSection title="Club & Antrenament">
-                        <Input label="Data Înscrierii" name="data_inscrierii" type="date" value={formData.data_inscrierii?.split('T')[0] || ''} onChange={handleChange} disabled={loading} />
-                        {isSuperAdmin && (
-                            <div className="col-span-full">
-                                <label className="block text-xs font-bold text-slate-400 mb-2 uppercase">Club</label>
-                                <div className="flex flex-col gap-2 max-h-60 overflow-y-auto custom-scrollbar p-1">
-                                    {clubs.map(c => (
-                                        <button
-                                            key={c.id}
-                                            type="button"
-                                            onClick={() => handleChange({ target: { name: 'club_id', value: c.id } })}
-                                            className={`p-4 rounded-xl border text-left transition-all active:scale-95 touch-manipulation ${
-                                                formData.club_id === c.id
-                                                    ? 'bg-indigo-600 border-indigo-500 text-white shadow-md'
-                                                    : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
-                                            }`}
-                                        >
-                                            <span className="font-bold text-lg block">{c.nume}</span>
-                                            {c.id === FEDERATIE_ID && <span className="text-xs opacity-75">Federație</span>}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                        <Select label="Grad Inițial/Actual" name="grad_actual_id" value={formData.grad_actual_id || ''} onChange={handleChange} disabled={loading}>
-                            <option value="">Începător (fără grad)</option>
-                            {grade.sort((a,b) => a.ordine - b.ordine).map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}
-                        </Select>
-                        <div className="flex gap-2 items-end">
-                            <Select label="Grupă" name="grupa_id" value={formData.grupa_id || ''} onChange={handleChange} disabled={loading} className="flex-grow">
-                                <option value="">Fără grupă</option>
-                                {grupe.filter(g => !formData.club_id || g.club_id === formData.club_id).map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
-                            </Select>
-                            <Button type="button" variant="secondary" size="md" onClick={onQuickAddGrupa} className="h-[50px] w-[50px] !p-0 flex items-center justify-center flex-shrink-0"><PlusIcon className="w-6 h-6"/></Button>
-                        </div>
-                        <div className="flex gap-2 items-end">
-                            <Select label="Familie" name="familie_id" value={formData.familie_id || ''} onChange={handleChange} disabled={loading} className="flex-grow">
-                                <option value="">Individual</option>
-                                {familii.map(f => <option key={f.id} value={f.id}>{f.nume}</option>)}
-                            </Select>
-                            <Button type="button" variant="secondary" size="md" onClick={onQuickAddFamilie} className="h-[50px] w-[50px] !p-0 flex items-center justify-center flex-shrink-0"><PlusIcon className="w-6 h-6"/></Button>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <Select label="Status" name="status" value={formData.status || 'Activ'} onChange={handleChange} disabled={loading}>
-                                <option value="Activ">Activ</option>
-                                <option value="Inactiv">Inactiv</option>
-                            </Select>
-                            <div className="pt-2 sm:pt-5">
-                                <Switch label="Participă la antrenamentele din vacanță" name="participa_vacanta" checked={formData.participa_vacanta || false} onChange={handleChange} />
-                            </div>
-                        </div>
-                    </FormSection>
-                </div>
-            )}
-        </div>
-    );
-};
-
-export const SportivFormModal: React.FC<{
-    isOpen: boolean;
-    onClose: (savedSportiv?: Sportiv) => void;
-    onSave: (formData: Partial<Sportiv>) => Promise<{ success: boolean; error?: any; data?: Sportiv }>;
-    sportivToEdit: Partial<Sportiv> | null;
-    grupe: Grupa[];
-    setGrupe: React.Dispatch<React.SetStateAction<Grupa[]>>;
-    grade: Grad[];
-    familii: Familie[];
-    setFamilii: React.Dispatch<React.SetStateAction<Familie[]>>;
-    tipuriAbonament: TipAbonament[];
-    clubs: Club[];
-    currentUser: User | null;
-    clubFilter?: string;
-}> = ({ 
-  isOpen, onClose, onSave, sportivToEdit, grupe, setGrupe, grade, familii, setFamilii, tipuriAbonament, clubs, currentUser, clubFilter
-}) => {
-    const { showError } = useError();
-    const [loading, setLoading] = useState(false);
-    const { formData, setFormData, errors, validate, handleChange } = useSportivForm(initialFormState);
-    const [isFormValid, setIsFormValid] = useState(false);
-    const [isGrupaModalOpen, setIsGrupaModalOpen] = useState(false);
-    const [isFamilieModalOpen, setIsFamilieModalOpen] = useState(false);
-
-    const { handleCreateFamily } = useFamilyManager(familii, setFamilii, [], () => {});
-
-    useEffect(() => {
-        if (isOpen) {
-            if (sportivToEdit) {
-                setFormData(sportivToEdit);
-                setIsFormValid(true); 
-            } else {
-                const isSuperAdmin = currentUser?.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN');
-                const defaultClubId = !isSuperAdmin && currentUser?.club_id ? currentUser.club_id : (clubFilter || null);
-                
-                let defaultGradeId = null;
-                if (grade.length > 0) {
-                    const debutantGrade = grade.find(g => g.ordine === 1 || g.nume === 'Debutant');
-                    if (debutantGrade) defaultGradeId = debutantGrade.id;
-                }
-
-                setFormData({
-                    ...initialFormState,
-                    club_id: defaultClubId || undefined,
-                    grad_actual_id: defaultGradeId || undefined
-                });
-                setIsFormValid(false);
-            }
-        }
-    }, [isOpen, sportivToEdit, currentUser, grade, setFormData]);
-    
-    const handleFormChange = useCallback((data: Partial<Sportiv>, isValid: boolean) => {
-        setFormData(data);
-        setIsFormValid(isValid);
-    }, [setFormData]);
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        const isSuperAdmin = currentUser?.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN');
-        
-        if (!isSuperAdmin && formData.club_id && formData.club_id !== currentUser?.club_id) {
-            showError("Eroare de Securitate", "Tentativă de modificare neautorizată! Nu aveți drepturi de administrare pentru clubul selectat.");
-            return;
-        }
-
-        if (!isFormValid) {
-            showError("Formular Invalid", "Vă rugăm corectați erorile înainte de a salva.");
-            return;
-        }
-
-        setLoading(true);
-        try {
-            const result = await onSave(formData);
-            if (result.success) {
-                onClose(result.data);
-            } 
-            // If result.error exists, onSave (parent) has already shown the error via showError, 
-            // so we don't need to do anything here except stop loading.
-        } catch (err: any) {
-            showError("Eroare", err.message || "A apărut o eroare neașteptată.");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleQuickAddGrupa = async (nume: string) => {
-        const isSuperAdmin = currentUser?.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN');
-        const { data, error } = await supabase.from('grupe').insert({ 
-            denumire: nume, 
-            sala: 'N/A', 
-            club_id: isSuperAdmin ? null : currentUser?.club_id 
-        }).select().maybeSingle();
-        if (error) throw error;
-        if (!data) throw new Error("Grupa a fost creată, dar nu a putut fi recuperată. Verificați permisiunile.");
-        setGrupe(prev => [...prev, { ...data, program: [] }]);
-    };
-
-    return (
-        <>
-            <Modal isOpen={isOpen} onClose={() => onClose()} title={sportivToEdit ? "Editează Sportiv" : "Adaugă Sportiv"} persistent>
-                <form onSubmit={handleSubmit}>
-                    <SportivFormFields
-                        initialData={formData}
-                        onFormChange={handleFormChange}
-                        loading={loading}
-                        grupe={grupe}
-                        grade={grade}
-                        familii={familii}
-                        tipuriAbonament={tipuriAbonament}
-                        clubs={clubs}
-                        currentUser={currentUser}
-                        onQuickAddGrupa={() => setIsGrupaModalOpen(true)}
-                        onQuickAddFamilie={() => setIsFamilieModalOpen(true)}
-                    />
-                    <div className="flex justify-end pt-4 mt-4 gap-2 border-t border-slate-700">
-                        <Button type="button" variant="secondary" onClick={() => onClose()} disabled={loading}>Închide</Button>
-                        <Button
-                            type="submit"
-                            variant={sportivToEdit ? 'success' : 'primary'}
-                            isLoading={loading}
-                            disabled={!isFormValid || loading}
+            <div className="flex justify-between items-center gap-4">
+                <h1 className="text-2xl font-bold text-white uppercase tracking-tight">Management Sportivi</h1>
+                {permissions.hasAdminAccess && (
+                    <div className="flex gap-2">
+                        <Button 
+                            variant="secondary" 
+                            onClick={() => setIsExportTableOpen(true)}
+                            style={{ backgroundColor: currentUser?.cluburi?.theme_config?.bg_card, color: currentUser?.cluburi?.theme_config?.accent_color }}
                         >
-                            {sportivToEdit ? 'Salvează Modificările' : 'Adaugă Practicant'}
+                            Export / Editare
+                        </Button>
+                        <Button 
+                            variant="secondary" 
+                            onClick={() => setIsImportModalOpen(true)}
+                            style={{ backgroundColor: currentUser?.cluburi?.theme_config?.bg_card, color: currentUser?.cluburi?.theme_config?.accent_color }}
+                        >
+                            <UploadCloudIcon className="w-5 h-5 mr-1"/> Import CSV
+                        </Button>
+                        <Button 
+                            variant="primary" 
+                            onClick={handleOpenAddSportiv}
+                            style={{ backgroundColor: currentUser?.cluburi?.theme_config?.accent_color, color: '#ffffff' }}
+                        >
+                            <PlusIcon className="w-5 h-5 mr-1"/> Adaugă Sportiv
                         </Button>
                     </div>
-                </form>
-            </Modal>
-            <QuickAddModal title="Adaugă Grupă" label="Nume Grupă" isOpen={isGrupaModalOpen} onClose={() => setIsGrupaModalOpen(false)} onSave={handleQuickAddGrupa} />
-            <QuickAddModal title="Adaugă Familie" label="Nume Familie" isOpen={isFamilieModalOpen} onClose={() => setIsFamilieModalOpen(false)} onSave={async (n) => {
-                await handleCreateFamily(n, [], formData.club_id || currentUser?.club_id);
-            }} />
-        </>
+                )}
+            </div>
+
+            <SportiviFilter 
+                filters={filters}
+                onFilterChange={handleFilterChange}
+                grupe={grupe}
+                allRoles={allRoles}
+                grade={grade}
+                clubs={clubs}
+                permissions={permissions}
+            />
+
+            {loading ? (
+                <MartialArtsSkeleton count={8} />
+            ) : isMobile ? (
+                <SportiviMobileList
+                    sportivi={sortedAndFilteredSportivi}
+                    onRowClick={handleRowClick}
+                    onOpenWallet={handleOpenWallet}
+                    families={familii}
+                    familyBalances={familyBalances}
+                    individualBalances={individualBalances}
+                    grupe={grupe}
+                    grade={grade}
+                    requestSort={requestSort}
+                    sortConfig={sortConfig}
+                />
+            ) : (
+                <SportiviTable
+                    sportivi={sortedAndFilteredSportivi}
+                    grupe={grupe}
+                    grade={grade}
+                    onRowClick={handleRowClick}
+                    onEdit={handleOpenEditSportiv}
+                    onOpenWallet={handleOpenWallet}
+                    onOpenAccountSettings={setAccountSettingsSportiv}
+                    onDelete={setSportivToDelete}
+                    requestSort={requestSort}
+                    sortConfig={sortConfig}
+                    searchTerm={filters.searchTerm}
+                    onSearchChange={handleSearchChange}
+                />
+            )}
+
+            <ImportCsvModal
+                isOpen={isImportModalOpen}
+                onClose={() => setIsImportModalOpen(false)}
+                onImportComplete={() => {
+                    setIsImportModalOpen(false);
+                    window.location.reload();
+                }}
+            />
+
+            <SportivFormModal
+                isOpen={isFormModalOpen}
+                onClose={handleCloseFormModal}
+                onSave={handleSave}
+                sportivToEdit={sportivToEdit}
+                grupe={grupe}
+                setGrupe={setGrupe}
+                grade={grade}
+                familii={familii}
+                setFamilii={setFamilii}
+                tipuriAbonament={tipuriAbonament}
+                clubs={clubs}
+                currentUser={currentUser}
+                clubFilter={filters.clubFilter}
+            />
+
+            <SportivModals
+                isFormModalOpen={false}
+                onCloseFormModal={handleCloseFormModal}
+                onSaveSportiv={handleSave}
+                sportivToEdit={sportivToEdit}
+                grupe={grupe}
+                setGrupe={setGrupe}
+                grade={grade}
+                familii={familii}
+                setFamilii={setFamilii}
+                tipuriAbonament={tipuriAbonament}
+                clubs={clubs}
+                currentUser={currentUser}
+                clubFilter={filters.clubFilter}
+                accountSettingsSportiv={accountSettingsSportiv}
+                onCloseAccountSettings={() => setAccountSettingsSportiv(null)}
+                allRoles={allRoles}
+                onOpenCreateAccount={(user) => {
+                    setSportivForAccountCreation(user);
+                    const sanitize = (str: string) => str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '');
+                    const emailPrefix = `${sanitize(user.nume)}.${sanitize(user.prenume)}`;
+                    setCreateAccountForm({ email: user.email || `${emailPrefix}@phihau.ro`, username: user.username || emailPrefix, parola: 'Parola123!' });
+                    setCreateAccountError('');
+                }}
+                sportivForAccountCreation={sportivForAccountCreation}
+                onCloseCreateAccount={() => setSportivForAccountCreation(null)}
+                createAccountForm={createAccountForm}
+                onCreateAccountFormChange={handleCreateAccountFormChange}
+                onCreateAccount={handleCreateAccount}
+                createAccountError={createAccountError}
+                createAccountLoading={createAccountLoading}
+                isWalletModalOpen={isWalletModalOpen}
+                onCloseWalletModal={() => {
+                    setIsWalletModalOpen(false);
+                    setSportivForWallet(null);
+                }}
+                sportivForWallet={sportivForWallet}
+                allSportivi={sportivi}
+                vizualizarePlati={vizualizarePlati}
+                plati={plati}
+                setPlati={setPlati}
+                setTranzactii={setTranzactii}
+                sportivToDelete={sportivToDelete}
+                onCloseDeleteModal={() => setSportivToDelete(null)}
+                onDeactivate={handleDeactivate}
+                onDelete={handleDelete}
+            />
+        </div>
     );
 };

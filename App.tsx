@@ -1,13 +1,11 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useCallback, useMemo, useEffect, Suspense } from 'react';
 import { supabase } from './supabaseClient';
-import { Sportiv, View, Rol, Plata } from './types';
-import { AuthContainer } from './components/AuthContainer';
+import { View, Rol, Plata } from './types';
 import { Sidebar } from './components/Sidebar';
 import { useError } from './components/ErrorProvider';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useNavigation } from './contexts/NavigationContext';
 import { usePermissions } from './hooks/usePermissions';
-import { useClubFilter } from './hooks/useClubFilter';
 import ErrorBoundary from './components/ErrorBoundary';
 import { SystemGuardian } from './components/SystemGuardian';
 import { AdminDebugFloatingPanel } from './components/AdminDebugFloatingPanel';
@@ -20,36 +18,30 @@ import { MartialArtsSkeleton } from './components/MartialArtsSkeleton';
 import { AppRouter } from './components/AppRouter';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { ClubGuard } from './components/ClubGuard';
+import { useAppStore } from './src/store/useAppStore';
 
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { LoginPage } from './components/LoginPage';
-import { ForgotPasswordPage } from './components/ForgotPasswordPage';
 import { ResetPasswordPage } from './components/ResetPasswordPage';
 
 function App() {
   const { showError } = useError();
-  const isMobile = useIsMobile();
   const dataProvider = useData();
 
   const { activeView, setActiveView } = useNavigation();
-  const [selectedSportiv, setSelectedSportiv] = useState<Sportiv | null>(null);
-  const [isSidebarExpanded, setIsSidebarExpanded] = useLocalStorage('phi-hau-sidebar-expanded', true);
-  const [adminContext, setAdminContext] = useLocalStorage<'club' | 'federation'>('phi-hau-admin-context', 'club');
-  const [switchingToRole, setSwitchingToRole] = useState<string>('');
+  const { isSidebarExpanded, setIsSidebarExpanded } = useAppStore();
+  
+  const [selectedSportiv, setSelectedSportiv] = React.useState<any>(null);
+  const [switchingToRole, setSwitchingToRole] = React.useState<string>('');
   
   const {
       loading, error, needsRoleSelection, session, currentUser, userRoles, activeRoleContext,
-      setCurrentUser, sportivi, sesiuniExamene, inscrieriExamene, grade, istoricGrade,
-      grupe, plati, tranzactii, evenimente, rezultate, preturiConfig, tipuriAbonament,
-      familii, allRoles, reduceri, tipuriPlati, locatii, clubs,
-      deconturiFederatie, vizualizarePlati, istoricPlatiDetaliat, setPlati, setSportivi, setSesiuniExamene, setInscrieriExamene,
-      setGrupe, setTranzactii, setEvenimente, setRezultate, setFamilii,
-      setAllRoles, setReduceri, setTipuriPlati, setLocatii, setClubs,
-      setGrade, setTipuriAbonament, setDeconturiFederatie, setIstoricGrade, initializeAndFetchData,
-      filteredData, antrenamente, setAntrenamente, anunturiPrezenta, setAnunturiPrezenta
+      setCurrentUser, sportivi, sesiuniExamene, grade,
+      clubs, setSportivi, setGrade, initializeAndFetchData,
+      anunturiPrezenta, setAnunturiPrezenta
   } = dataProvider;
 
-  const [platiPentruIncasare, setPlatiPentruIncasare] = useState<Plata[]>([]);
+  const [platiPentruIncasare, setPlatiPentruIncasare] = React.useState<Plata[]>([]);
 
 
   useEffect(() => {
@@ -215,7 +207,6 @@ function App() {
       {!session ? (
         <Routes>
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>

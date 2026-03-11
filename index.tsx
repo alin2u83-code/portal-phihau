@@ -33,18 +33,18 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 } else {
   root.render(
-    <ErrorProvider>
-      <QueryClientProvider client={queryClient}>
-        <DataProvider>
-          <NavigationProvider>
-            <React.StrictMode>
+    <React.StrictMode>
+      <ErrorProvider>
+        <QueryClientProvider client={queryClient}>
+          <DataProvider>
+            <NavigationProvider>
               <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <App />
               </BrowserRouter>
-            </React.StrictMode>
-          </NavigationProvider>
-        </DataProvider>
-      </QueryClientProvider>
-    </ErrorProvider>
+            </NavigationProvider>
+          </DataProvider>
+        </QueryClientProvider>
+      </ErrorProvider>
+    </React.StrictMode>
   );
 }

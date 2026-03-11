@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Sportiv, User, Rol } from '../types';
-import { Button, Modal } from './ui';
-import { useError } from './ErrorProvider';
-import { useRoleAssignment } from '../hooks/useRoleAssignment';
+import { Sportiv, User, Rol } from '../../types';
+import { Button, Modal } from '../ui';
+import { useError } from '../ErrorProvider';
+import { useRoleAssignment } from '../../hooks/useRoleAssignment';
 
 interface SportivAccountSettingsModalProps {
     isOpen: boolean;

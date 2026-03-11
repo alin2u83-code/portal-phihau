@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { supabase } from '../supabaseClient';
-import { Button, Card, Input } from './ui';
-import { DownloadIcon, XIcon } from './icons';
-import { useError } from './ErrorProvider';
+import { supabase } from '../../supabaseClient';
+import { Button, Card, Input } from '../ui';
+import { DownloadIcon, XIcon } from '../icons';
+import { useError } from '../ErrorProvider';
 
 export const ExportSportiviTable: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const [sportivi, setSportivi] = useState<any[]>([]);

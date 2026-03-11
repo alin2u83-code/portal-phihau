@@ -1,7 +1,7 @@
 import React from 'react';
-import { Input, Select } from './ui';
-import { SearchIcon } from './icons';
-import { Grupa, Rol, Grad, Club, Permissions } from '../types';
+import { Input, Select } from '../ui';
+import { SearchIcon } from '../icons';
+import { Grupa, Rol, Grad, Club, Permissions } from '../../types';
 
 interface SportiviFilterProps {
   filters: {

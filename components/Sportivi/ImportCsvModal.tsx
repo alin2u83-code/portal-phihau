@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Card, Button } from './ui';
+import { Card, Button } from '../ui';
 import { X, Upload, FileText, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 import Papa from 'papaparse';
-import { useError } from './ErrorProvider';
+import { useError } from '../ErrorProvider';
 
 interface ImportCsvModalProps {
     isOpen: boolean;

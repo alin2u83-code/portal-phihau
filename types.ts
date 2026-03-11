@@ -171,7 +171,7 @@ export interface IstoricPlataDetaliat {
   plata_id: string;
   sportiv_id: string | null;
   familie_id: string | null;
-  nume_complet: string;
+  nume_complet_sportiv: string | null;
   descriere: string;
   suma_datorata: number;
   status: 'Achitat' | 'Neachitat' | 'Achitat Parțial';
@@ -179,7 +179,7 @@ export interface IstoricPlataDetaliat {
   total_incasat: number;
   rest_de_plata: number;
   tranzactie_id: string | null;
-  data_plata: string | null;
+  data_plata_string: string | null;
   suma_incasata: number | null;
   metoda_plata: 'Cash' | 'Transfer Bancar' | null;
 }
@@ -247,6 +247,7 @@ export interface InscriereExamen {
   nota_viteza: number | null;
   nota_atitudine: number | null;
   rezultat?: 'Admis' | 'Respins' | 'Neprezentat' | null;
+  status_inscriere?: 'Validat' | 'In asteptare' | null;
   sportivi: Sportiv;
   grades: Grad;
 }

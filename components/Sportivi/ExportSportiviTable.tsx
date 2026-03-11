@@ -21,6 +21,7 @@ export const ExportSportiviTable: React.FC<{ onClose: () => void }> = ({ onClose
     // State for inline editing
     const [editingCell, setEditingCell] = useState<{ id: string, field: string } | null>(null);
     const [editValue, setEditValue] = useState('');
+    const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
         fetchSportivi();
@@ -29,7 +30,7 @@ export const ExportSportiviTable: React.FC<{ onClose: () => void }> = ({ onClose
     const fetchSportivi = async () => {
         setLoading(true);
         const { data, error } = await supabase
-            .from('vedere_sportivi_complet')
+            .from('vedere_federatie_sportivi')
             .select('*')
             .order('nume', { ascending: true });
 
@@ -65,14 +66,29 @@ export const ExportSportiviTable: React.FC<{ onClose: () => void }> = ({ onClose
     };
 
     const startEditing = (id: string, field: string, value: string) => {
+        if (!id) {
+            showError("Eroare", "Sportivul nu are un ID valid.");
+            return;
+        }
         setEditingCell({ id, field });
         setEditValue(value || '');
     };
 
     const saveEdit = async () => {
-        if (!editingCell) return;
+        if (!editingCell || isSaving) return;
         const { id, field } = editingCell;
+        
+        console.log("Saving edit for:", { id, field, editValue });
+        
+        const sportiv = sportivi.find(s => s.id === id);
+        console.log("Found sportiv:", sportiv);
 
+        if (!id) {
+            showError("Eroare", "ID-ul sportivului este nedefinit.");
+            return;
+        }
+
+        setIsSaving(true);
         // Optimistic update
         setSportivi(prev => prev.map(s => s.id === id ? { ...s, [field]: editValue } : s));
         setEditingCell(null);
@@ -123,6 +139,8 @@ export const ExportSportiviTable: React.FC<{ onClose: () => void }> = ({ onClose
             console.error("Save Edit Error:", error);
             showError("Eroare", `Nu s-a putut salva modificarea pentru ${field}. ${error.message}`);
             fetchSportivi(); // Revert on error
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -337,7 +355,7 @@ export const ExportSportiviTable: React.FC<{ onClose: () => void }> = ({ onClose
                             ) : filteredSportivi.length === 0 ? (
                                 <tr><td colSpan={fields.length + 2} className="p-8 text-center text-slate-500 italic">Niciun sportiv găsit.</td></tr>
                             ) : filteredSportivi.map((s, index) => (
-                                <tr key={s.id} className="hover:bg-slate-800/50 transition-colors whitespace-nowrap">
+                                <tr key={s.id || index} className="hover:bg-slate-800/50 transition-colors whitespace-nowrap">
                                     <td className="p-2 text-center sticky left-0 bg-slate-900 group-hover:bg-slate-800/50">
                                         <input 
                                             type="checkbox" 

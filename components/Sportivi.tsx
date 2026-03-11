@@ -111,10 +111,10 @@ export const Sportivi: React.FC<{
 
     // Ensure clubFilter is correct if user is not admin
     React.useEffect(() => {
-        if (!permissions.isFederationAdmin && filters.clubFilter !== currentUser.club_id) {
+        if (!permissions.isFederationAdmin && currentUser?.club_id && filters.clubFilter !== currentUser.club_id) {
             setFilters(prev => ({ ...prev, clubFilter: currentUser.club_id || '' }));
         }
-    }, [permissions.isFederationAdmin, currentUser.club_id, filters.clubFilter, setFilters]);
+    }, [permissions.isFederationAdmin, currentUser?.club_id, filters.clubFilter, setFilters]);
 
     const { data: sportiviData, isLoading: sportiviLoading, error: sportiviError } = useSportivi({
         clubId: filters.clubFilter,

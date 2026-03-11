@@ -512,29 +512,43 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
     };
     
     const getEntityName = (transactie: Pick<Tranzactie, 'sportiv_id' | 'familie_id'>) => {
-        if (transactie.familie_id) { const familie = familii.find(f => f.id === transactie.familie_id); return familie ? `Familia ${familie.nume}` : 'Familie N/A'; }
-        if (transactie.sportiv_id) {  const s = sportivi.find(s=>s.id === transactie.sportiv_id); return s ? `${s.nume} ${s.prenume}` : 'Sportiv N/A'; }
+        if (transactie.familie_id) { 
+            const familie = familii?.find(f => f.id === transactie.familie_id); 
+            return familie ? `Familia ${familie.nume}` : `Familie (${transactie.familie_id.substring(0, 4)}...)`; 
+        }
+        if (transactie.sportiv_id) {  
+            const s = sportivi?.find(s=>s.id === transactie.sportiv_id); 
+            return s ? `${s.nume || ''} ${s.prenume || ''}`.trim() : `Sportiv (${transactie.sportiv_id.substring(0, 4)}...)`; 
+        }
         return 'N/A';
     };
 
     const getDescriereTranzactie = (tranzactie: Tranzactie) => {
         const safePlataIds = tranzactie.plata_ids || [];
-        if (safePlataIds.length === 0) return 'Încasare goală';
-        const primaPlata = plati.find(p => p.id === safePlataIds[0]);
+        if (safePlataIds.length === 0) return 'Încasare fără factură';
+        const primaPlata = plati?.find(p => p.id === safePlataIds[0]);
         if (safePlataIds.length > 1) { return `${primaPlata?.descriere || 'Plată'} (+${safePlataIds.length - 1} altele)`; }
-        return primaPlata?.descriere || 'N/A';
+        return primaPlata?.descriere || 'Plată fără descriere';
     };
 
     const sortedTranzactii = useMemo(() => {
         if (!tranzactii) return [];
-        return [...tranzactii].sort((a,b) => new Date(b.data_platii).getTime() - new Date(a.data_platii).getTime());
+        return [...tranzactii].sort((a,b) => {
+            const dateA = a.data_platii ? new Date(a.data_platii).getTime() : 0;
+            const dateB = b.data_platii ? new Date(b.data_platii).getTime() : 0;
+            return dateB - dateA;
+        });
     }, [tranzactii]);
 
     const columns: Column<Tranzactie>[] = [
         {
             key: 'data_platii',
             label: 'Data',
-            render: (t) => <span className="text-sm text-slate-300">{new Date(t.data_platii).toLocaleDateString('ro-RO')}</span>
+            render: (t) => {
+                const date = t.data_platii ? new Date(t.data_platii) : null;
+                const dateString = date && !isNaN(date.getTime()) ? date.toLocaleDateString('ro-RO') : 'Dată invalidă';
+                return <span className="text-sm text-slate-300">{dateString}</span>;
+            }
         },
         {
             key: 'sportiv_id',

@@ -1,16 +1,13 @@
 
 
 import React, { useMemo, useState } from 'react';
-import { Plata, Sportiv, Familie, Tranzactie } from '../types';
+import { IstoricPlataDetaliat } from '../types';
 import { Card, Input, Select, Button } from './ui';
 import { ArrowLeftIcon, ChartBarIcon, BanknotesIcon, FileTextIcon } from './icons';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 
 interface RaportFinanciarProps {
-    plati: Plata[];
-    sportivi: Sportiv[];
-    familii: Familie[];
-    tranzactii: Tranzactie[];
+    istoricPlatiDetaliat: IstoricPlataDetaliat[];
     onBack: () => void;
 }
 
@@ -23,7 +20,7 @@ const initialFilters = {
     tip: '',
 };
 
-export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({ plati, sportivi, familii, tranzactii, onBack }) => {
+export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({ istoricPlatiDetaliat, onBack }) => {
     const [filters, setFilters] = useLocalStorage('phi-hau-raport-financiar-filters', initialFilters);
     const [activeTab, setActiveTab] = useState<'incasari' | 'lunar' | 'taxe_anuale'>('incasari');
     const [selectedMonth, setSelectedMonth] = useState<string>('');
@@ -32,98 +29,79 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({ plati, sportiv
         setFilters(prev => ({ ...prev, [e.target.name]: e.target.value }));
     };
 
-    const getDescriereTranzactie = (tranzactie: Tranzactie): string => {
-        if (tranzactie.plata_ids.length === 0) return 'Încasare goală';
-        const primaPlata = plati.find(p => p.id === tranzactie.plata_ids[0]);
-        if (tranzactie.plata_ids.length > 1) {
-            return `${primaPlata?.descriere || 'Plată'} (+${tranzactie.plata_ids.length - 1} altele)`;
-        }
-        return primaPlata?.descriere || 'N/A';
-    };
-
-    const filteredTranzactii = useMemo(() => {
-        return tranzactii.filter(t => {
-            const dataPlatii = new Date(t.data_platii);
+    const filteredIstoric = useMemo(() => {
+        if (!istoricPlatiDetaliat) return [];
+        return istoricPlatiDetaliat.filter(t => {
+            const dataPlata = t.data_plata_string ? new Date(t.data_plata_string) : null;
             
             const startDate = filters.startDate ? new Date(filters.startDate) : null;
             const endDate = filters.endDate ? new Date(filters.endDate) : null;
 
-            if (startDate && dataPlatii < startDate) return false;
-            if (endDate) {
-                endDate.setHours(23, 59, 59, 999); // Include toata ziua
-                if (dataPlatii > endDate) return false;
+            if (startDate && dataPlata && dataPlata < startDate) return false;
+            if (endDate && dataPlata) {
+                endDate.setHours(23, 59, 59, 999);
+                if (dataPlata > endDate) return false;
             }
+            
+            // Note: We might need sportiv_id/familie_id in the view to filter by them
+            // Assuming they are available in IstoricPlataDetaliat
             if (filters.sportivId && t.sportiv_id !== filters.sportivId) return false;
             if (filters.familieId && t.familie_id !== filters.familieId) return false;
             if (filters.metodaPlata && t.metoda_plata !== filters.metodaPlata) return false;
             
-            // Filter by type requires looking at the original Plata objects
-            if (filters.tip) {
-                if (t.plata_ids.length > 0) {
-                    const areTipulCerut = t.plata_ids.some(plataId => {
-                        const plataOriginala = plati.find(p => p.id === plataId);
-                        return plataOriginala?.tip === filters.tip;
-                    });
-                    if (!areTipulCerut) return false;
-                } else {
-                    // Tranzacție fără plată (ex: Avans), nu se poate filtra după tipul de plată
-                    return false;
-                }
-            }
-
             return true;
         });
-    }, [tranzactii, plati, filters]);
+    }, [istoricPlatiDetaliat, filters]);
 
     const totalIncasari = useMemo(() => {
-        return filteredTranzactii.reduce((acc, t) => acc + t.suma, 0);
-    }, [filteredTranzactii]);
+        return (filteredIstoric || []).reduce((acc, t) => acc + (t.suma_incasata || 0), 0);
+    }, [filteredIstoric]);
     
-    const getSportivName = (id: string | null) => { if(!id) return 'N/A'; const s = sportivi.find(s=>s.id === id); return s ? `${s.nume} ${s.prenume}` : 'N/A'; };
-    const getFamilieName = (id: string | null) => { if(!id) return 'N/A'; return familii.find(f => f.id === id)?.nume || 'N/A'; };
-
     // --- Date pentru Raport Lunar ---
     const luniDisponibile = useMemo(() => {
+        if (!istoricPlatiDetaliat) return [];
         const luniSet = new Set<string>();
-        tranzactii.forEach(t => luniSet.add(t.data_platii.substring(0, 7)));
-        plati.forEach(p => luniSet.add(p.data.substring(0, 7)));
+        istoricPlatiDetaliat.forEach(t => {
+            const luna = (t.data_plata_string || '').toString().substring(0, 7);
+            if (luna) luniSet.add(luna);
+        });
         return Array.from(luniSet).sort().reverse();
-    }, [tranzactii, plati]);
+    }, [istoricPlatiDetaliat]);
 
     const raportLunarData = useMemo(() => {
         const luna = selectedMonth || (luniDisponibile.length > 0 ? luniDisponibile[0] : '');
-        if (!luna) return { incasari: 0, restante: [] };
+        if (!luna || !istoricPlatiDetaliat) return { incasari: 0, restante: [], luna: luna || '' };
 
-        const incasariLuna = tranzactii
-            .filter(t => t.data_platii.startsWith(luna))
-            .reduce((sum, t) => sum + t.suma, 0);
+        const incasariLuna = istoricPlatiDetaliat
+            .filter(t => (t.data_plata_string || '').toString().startsWith(luna))
+            .reduce((sum, t) => sum + (t.suma_incasata || 0), 0);
 
-        const restanteLuna = plati.filter(p => p.data.startsWith(luna) && p.status !== 'Achitat');
+        const restanteLuna = istoricPlatiDetaliat.filter(p => (p.data_emitere || '').toString().startsWith(luna) && p.status !== 'Achitat');
 
         return { incasari: incasariLuna, restante: restanteLuna, luna };
-    }, [selectedMonth, luniDisponibile, tranzactii, plati]);
+    }, [selectedMonth, luniDisponibile, istoricPlatiDetaliat]);
 
     // --- Date pentru Raport Taxe Anuale ---
     const taxeAnualeData = useMemo(() => {
-        // Găsim toate tipurile de plată care par a fi taxe anuale (conțin FRAM, FRQKD sau sunt setate ca Taxa Anuala)
+        if (!istoricPlatiDetaliat) return {};
         const tipuriTaxe = new Set<string>();
-        plati.forEach(p => {
-            const tipLower = p.tip.toLowerCase();
+        istoricPlatiDetaliat.forEach(p => {
+            const tipLower = (p.descriere || '').toString().toLowerCase();
             if (tipLower.includes('fram') || tipLower.includes('frqkd') || tipLower === 'taxa anuala' || tipLower === 'taxa anuală') {
-                tipuriTaxe.add(p.tip);
+                tipuriTaxe.add(p.descriere);
             }
         });
 
-        const raport: Record<string, { achitat: Plata[], neachitat: Plata[] }> = {};
+        const raport: Record<string, { achitat: IstoricPlataDetaliat[], neachitat: IstoricPlataDetaliat[] }> = {};
         Array.from(tipuriTaxe).forEach(tip => {
             raport[tip] = {
-                achitat: plati.filter(p => p.tip === tip && p.status === 'Achitat'),
-                neachitat: plati.filter(p => p.tip === tip && p.status !== 'Achitat')
+                achitat: istoricPlatiDetaliat.filter(p => p.descriere === tip && p.status === 'Achitat'),
+                neachitat: istoricPlatiDetaliat.filter(p => p.descriere === tip && p.status !== 'Achitat')
             };
         });
 
         return raport;
-    }, [plati]);
+    }, [istoricPlatiDetaliat]);
 
 
     const totalRestanteLuna = useMemo(() => {
@@ -197,15 +175,19 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({ plati, sportiv
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredTranzactii.sort((a,b) => new Date(b.data_platii).getTime() - new Date(a.data_platii).getTime()).map(tranzactie => (
-                                    <tr key={tranzactie.id} className="border-b border-slate-700">
-                                        <td className="p-4">{new Date(tranzactie.data_platii).toLocaleDateString('ro-RO')}</td>
-                                        <td className="p-4 font-bold text-white">{tranzactie.familie_id ? `Familia ${getFamilieName(tranzactie.familie_id)}` : getSportivName(tranzactie.sportiv_id)}</td>
-                                        <td className="p-4">{getDescriereTranzactie(tranzactie)}</td>
-                                        <td className="p-4">{tranzactie.metoda_plata}</td>
-                                        <td className="p-4 text-right font-bold text-white">{tranzactie.suma.toFixed(2)} RON</td>
-                                    </tr>
-                                ))}
+                                {filteredIstoric.sort((a,b) => (b.data_plata_string ? new Date(b.data_plata_string).getTime() : 0) - (a.data_plata_string ? new Date(a.data_plata_string).getTime() : 0)).map(tranzactie => {
+                                    const date = tranzactie.data_plata_string ? new Date(tranzactie.data_plata_string) : null;
+                                    const dateString = date && !isNaN(date.getTime()) ? date.toLocaleDateString('ro-RO') : 'Dată invalidă';
+                                    return (
+                                        <tr key={tranzactie.tranzactie_id || tranzactie.plata_id} className="border-b border-slate-700">
+                                            <td className="p-4">{dateString}</td>
+                                            <td className="p-4 font-bold text-white">{tranzactie.nume_complet_sportiv || 'N/A'}</td>
+                                            <td className="p-4">{tranzactie.descriere}</td>
+                                            <td className="p-4">{tranzactie.metoda_plata}</td>
+                                            <td className="p-4 text-right font-bold text-white">{(tranzactie.suma_incasata || 0).toFixed(2)} RON</td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                         {filteredTranzactii.length === 0 && <p className="p-4 text-center text-slate-400">Nicio încasare conform filtrelor.</p>}
@@ -254,17 +236,17 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({ plati, sportiv
                                 </tr>
                             </thead>
                             <tbody>
-                                {raportLunarData.restante.sort((a,b) => new Date(a.data).getTime() - new Date(b.data).getTime()).map(plata => (
-                                    <tr key={plata.id} className="border-b border-slate-700">
-                                        <td className="p-4">{new Date(plata.data).toLocaleDateString('ro-RO')}</td>
-                                        <td className="p-4 font-bold text-white">{plata.familie_id ? `Familia ${getFamilieName(plata.familie_id)}` : getSportivName(plata.sportiv_id)}</td>
+                                {raportLunarData.restante.sort((a,b) => new Date(a.data_emitere).getTime() - new Date(b.data_emitere).getTime()).map(plata => (
+                                    <tr key={plata.plata_id} className="border-b border-slate-700">
+                                        <td className="p-4">{new Date(plata.data_emitere).toLocaleDateString('ro-RO')}</td>
+                                        <td className="p-4 font-bold text-white">{plata.nume_complet_sportiv || 'N/A'}</td>
                                         <td className="p-4">{plata.descriere}</td>
                                         <td className="p-4">
                                             <span className={`px-2 py-1 rounded text-xs font-bold ${plata.status === 'Achitat Parțial' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-red-500/20 text-red-400'}`}>
                                                 {plata.status}
                                             </span>
                                         </td>
-                                        <td className="p-4 text-right font-bold text-red-400">{plata.suma.toFixed(2)} RON</td>
+                                        <td className="p-4 text-right font-bold text-red-400">{plata.suma_datorata.toFixed(2)} RON</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -294,8 +276,8 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({ plati, sportiv
                                             {date.achitat.length === 0 ? <p className="text-slate-500 italic">Niciun sportiv nu a achitat.</p> : (
                                                 <ul className="space-y-2">
                                                     {date.achitat.map(p => (
-                                                        <li key={p.id} className="flex justify-between items-center border-b border-slate-700 pb-2">
-                                                            <span className="text-white">{p.familie_id ? `Familia ${getFamilieName(p.familie_id)}` : getSportivName(p.sportiv_id)}</span>
+                                                        <li key={p.plata_id} className="flex justify-between items-center border-b border-slate-700 pb-2">
+                                                            <span className="text-white">{p.nume_complet_sportiv || 'N/A'}</span>
                                                             <span className="text-xs text-slate-400">{p.descriere}</span>
                                                         </li>
                                                     ))}
@@ -314,8 +296,8 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({ plati, sportiv
                                             {date.neachitat.length === 0 ? <p className="text-slate-500 italic">Nu există restanțieri.</p> : (
                                                 <ul className="space-y-2">
                                                     {date.neachitat.map(p => (
-                                                        <li key={p.id} className="flex justify-between items-center border-b border-slate-700 pb-2">
-                                                            <span className="text-white">{p.familie_id ? `Familia ${getFamilieName(p.familie_id)}` : getSportivName(p.sportiv_id)}</span>
+                                                        <li key={p.plata_id} className="flex justify-between items-center border-b border-slate-700 pb-2">
+                                                            <span className="text-white">{p.nume_complet_sportiv || 'N/A'}</span>
                                                             <span className="text-xs text-slate-400">{p.descriere}</span>
                                                         </li>
                                                     ))}

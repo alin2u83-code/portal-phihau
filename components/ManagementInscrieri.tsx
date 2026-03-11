@@ -459,6 +459,18 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         }
     };
 
+    const handleUpdateStatus = async (inscriereId: string, status: 'Validat' | 'In asteptare') => {
+        if (!supabase) return;
+        try {
+            const { error } = await supabase.from('inscrieri_examene').update({ status_inscriere: status }).eq('id', inscriereId);
+            if (error) throw error;
+            setInscrieri(prev => prev.map(i => i.id === inscriereId ? { ...i, status_inscriere: status } : i));
+            showSuccess("Succes", `Statusul înscrierii a fost actualizat la ${status}.`);
+        } catch (err: any) {
+            showError("Eroare la Actualizare Status", err.message);
+        }
+    };
+
     const handleResultChange = (inscriereId: string, newResult: 'Admis' | 'Respins' | 'Neprezentat') => {
         setRezultateLocale(prev => ({ ...prev, [inscriereId]: newResult }));
     };
@@ -531,6 +543,24 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             key: 'grad_vizat_id',
             label: 'Grad Vizat',
             render: (inscriere) => <span className="text-brand-secondary font-semibold">{inscriere.grades.nume}</span>
+        },
+        {
+            key: 'status_inscriere',
+            label: 'Status Validare',
+            headerClassName: 'text-center',
+            cellClassName: 'text-center',
+            render: (inscriere) => (
+                <Select 
+                    label="" 
+                    value={inscriere.status_inscriere || 'In asteptare'}
+                    onChange={(e) => handleUpdateStatus(inscriere.id, e.target.value as any)}
+                    className={`!py-1 ${inscriere.status_inscriere === 'Validat' ? 'bg-green-900/40 text-green-300' : 'bg-amber-900/40 text-amber-300'}`}
+                    disabled={isReadOnly}
+                >
+                    <option value="In asteptare">În așteptare</option>
+                    <option value="Validat">Validat</option>
+                </Select>
+            )
         },
         {
             key: 'rezultat',

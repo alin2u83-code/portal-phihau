@@ -247,6 +247,8 @@ export const useDataProvider = () => {
                 rezultate: cleanedSupabase.from('vedere_cluburi_rezultate').select('*'),
                 familii: cleanedSupabase.from('vedere_cluburi_familii').select('*'),
                 vizualizarePlati: cleanedSupabase.from('vedere_cluburi_vizualizare_plati').select('*'),
+                istoricPlatiDetaliat: cleanedSupabase.from('view_istoric_plati_detaliat').select('*'),
+                locatii: cleanedSupabase.from('nom_locatii').select('*'),
             };
 
             if (isSportiv && activeCtx.sportiv_id) {

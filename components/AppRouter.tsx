@@ -88,6 +88,8 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                         switch (activeView) {
                             case 'legitimatii':
                                 return renderProtected(<Lazy.LegitimatiiPage />, isAtLeastClubAdmin);
+                            case 'import-sportivi':
+                                return renderProtected(<Lazy.ImportSportiviPage onBack={handleBackToDashboard} />, isAtLeastClubAdmin);
                             case 'admin-console':
                                 return renderProtected(<Lazy.AdminConsole onBack={handleBackToDashboard} currentUser={currentUser!} userRoles={userRoles} activeRoleContext={activeRoleContext} sportivi={filteredData.sportivi} allRoles={allRoles} clubs={clubs} permissions={permissions} />, permissions.hasAdminAccess || isEmergencyAdmin);
                             case 'federation-dashboard':

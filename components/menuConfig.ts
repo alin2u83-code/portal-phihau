@@ -21,6 +21,7 @@ export interface SubMenuItem {
 export const adminMenu: MenuItem[] = [
     { label: 'Dashboard', icon: HomeIcon, view: 'dashboard' },
     { label: 'Sportivi', icon: UsersIcon, view: 'sportivi' },
+    { label: 'Import Sportivi', icon: UsersIcon, view: 'import-sportivi' },
     { label: 'Legitimații', icon: FileTextIcon, view: 'legitimatii' },
     { label: 'Stagii', icon: TrophyIcon, view: 'stagii' },
     { label: 'Competiții', icon: TrophyIcon, view: 'competitii' },

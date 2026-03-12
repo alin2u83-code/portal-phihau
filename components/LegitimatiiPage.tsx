@@ -78,8 +78,8 @@ export const LegitimatiiPage: React.FC = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredLegitimatii.map(l => (
-                            <tr key={l.sportiv_id} className="border-b border-slate-700/50">
+                        {filteredLegitimatii.map((l, index) => (
+                            <tr key={`${l.sportiv_id}-${index}`} className="border-b border-slate-700/50">
                                 <td className="py-2">{l.nume}</td>
                                 <td className="py-2">{l.prenume}</td>
                                 <td className="py-2">{l.grad}</td>
@@ -101,8 +101,8 @@ export const LegitimatiiPage: React.FC = () => {
 
             {/* Mobile Cards */}
             <div className="md:hidden space-y-4">
-                {filteredLegitimatii.map(l => (
-                    <Card key={l.sportiv_id} className="p-4 bg-slate-800">
+                {filteredLegitimatii.map((l, index) => (
+                    <Card key={`${l.sportiv_id}-${index}`} className="p-4 bg-slate-800">
                         <div className="font-bold text-lg">{l.nume} {l.prenume}</div>
                         <div className="text-slate-400 mb-2">Grad: {l.grad}</div>
                         <Input 

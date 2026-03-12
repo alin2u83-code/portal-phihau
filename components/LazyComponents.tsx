@@ -51,3 +51,4 @@ export const RaportLunarPrezenta = lazy(() => import('./RaportLunarPrezenta').th
 export const DebugPage = lazy(() => import('./DebugPage').then(m => ({ default: m.DebugPage })));
 export const AdminDashboard = lazy(() => import('./AdminDashboard').then(m => ({ default: m.AdminDashboard })));
 export const ReportsDashboard = lazy(() => import('./ReportsDashboard').then(m => ({ default: m.ReportsDashboard })));
+export const LegitimatiiPage = lazy(() => import('./LegitimatiiPage').then(m => ({ default: m.LegitimatiiPage })));

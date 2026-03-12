@@ -86,6 +86,8 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                 <Suspense fallback={<MartialArtsSkeleton count={5} />}>
                     {(() => {
                         switch (activeView) {
+                            case 'legitimatii':
+                                return renderProtected(<Lazy.LegitimatiiPage />, isAtLeastClubAdmin);
                             case 'admin-console':
                                 return renderProtected(<Lazy.AdminConsole onBack={handleBackToDashboard} currentUser={currentUser!} userRoles={userRoles} activeRoleContext={activeRoleContext} sportivi={filteredData.sportivi} allRoles={allRoles} clubs={clubs} permissions={permissions} />, permissions.hasAdminAccess || isEmergencyAdmin);
                             case 'federation-dashboard':

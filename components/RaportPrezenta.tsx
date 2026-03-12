@@ -51,7 +51,7 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
         
         let filteredTrainings = (antrenamente || []);
         if (filters.yearFilter) {
-            filteredTrainings = filteredTrainings.filter(a => new Date(a.data).getFullYear() === year);
+            filteredTrainings = filteredTrainings.filter(a => new Date((a.data || '').toString().slice(0, 10)).getFullYear() === year);
         }
         if (filters.tipFilter) {
             filteredTrainings = filteredTrainings.filter(a => (a.grupa_id ? 'Normal' : 'Vacanta') === filters.tipFilter);
@@ -70,7 +70,7 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
                 const sportiv = sportivi.find(s => s.id === p.sportiv_id);
                 const tip = a.grupa_id ? 'Normal' : 'Vacanta';
                 return {
-                    id: `${a.id}-${p.sportiv_id}`, data: a.data, ora: a.ora_start, tip: tip,
+                    id: `${a.id}-${p.sportiv_id}`, data: (a.data || '').toString().slice(0, 10), ora: a.ora_start, tip: tip,
                     sportiv: sportiv, sportivNume: sportiv ? `${sportiv.nume} ${sportiv.prenume}` : 'N/A',
                     grupaNume: a.grupe?.denumire || (tip === 'Vacanta' ? 'Vacanță' : 'N/A'), grupaId: a.grupa_id,
                 };
@@ -84,7 +84,7 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
                 : (sportivi || []).filter(s => s.participa_vacanta && s.status === 'Activ');
 
             return sportiviAsteptati.map(sportiv => ({
-                id: `${a.id}-${sportiv.id}`, data: a.data, sportiv: sportiv,
+                id: `${a.id}-${sportiv.id}`, data: (a.data || '').toString().slice(0, 10), sportiv: sportiv,
                 sportivNume: `${sportiv.nume} ${sportiv.prenume}`,
                 grupaNume: a.grupe?.denumire || 'Vacanță',
                 status: (a.prezenta || []).some(p => p.sportiv_id === sportiv.id) ? 'Prezent' : 'Absent'
@@ -93,7 +93,7 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
 
         const finalFilteredLog = detailedLog.filter(rec =>
             filters.searchTerm === '' || rec.sportivNume.toLowerCase().includes(filters.searchTerm.toLowerCase())
-        ).sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+        ).sort((a,b) => new Date((b.data || '').toString().slice(0, 10)).getTime() - new Date((a.data || '').toString().slice(0, 10)).getTime());
 
         const athleteStats = new Map<string, { total: number, present: number, sportivNume: string, sportiv: Sportiv }>();
         finalFilteredLog.forEach(rec => {
@@ -124,7 +124,7 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
         });
 
         filteredPresenceRecords.forEach(rec => {
-            const monthIndex = new Date(rec.data).getMonth();
+            const monthIndex = new Date((rec.data || '').toString().slice(0, 10)).getMonth();
             if (data[monthIndex] && typeof data[monthIndex][rec.grupaNume] === 'number') {
                 data[monthIndex][rec.grupaNume] = (data[monthIndex][rec.grupaNume] as number) + 1;
             }
@@ -187,7 +187,7 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
         {
             key: 'data',
             label: 'Data',
-            render: (rec) => <span className="whitespace-nowrap">{new Date(rec.data + 'T00:00:00').toLocaleDateString('ro-RO')}</span>
+            render: (rec) => <span className="whitespace-nowrap">{new Date((rec.data || '').toString().slice(0, 10) + 'T00:00:00').toLocaleDateString('ro-RO')}</span>
         },
         {
             key: 'sportivNume',
@@ -221,7 +221,7 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
             <div className="flex justify-between items-start mb-2">
                 <div>
                     <p className="font-bold text-white text-lg" onClick={() => rec.sportiv && onViewSportiv(rec.sportiv)}>{rec.sportivNume}</p>
-                    <p className="text-sm text-slate-400">{new Date(rec.data + 'T00:00:00').toLocaleDateString('ro-RO')} - {rec.grupaNume}</p>
+                    <p className="text-sm text-slate-400">{new Date((rec.data || '').toString().slice(0, 10) + 'T00:00:00').toLocaleDateString('ro-RO')} - {rec.grupaNume}</p>
                 </div>
                 <span className={`px-2 py-1 rounded-full text-xs font-bold ${rec.status === 'Prezent' ? 'bg-green-900/50 text-green-300' : 'bg-red-900/50 text-red-300'}`}>
                     {rec.status}

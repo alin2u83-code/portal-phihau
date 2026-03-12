@@ -44,7 +44,7 @@ export const IstoricPrezentaGlobal: React.FC<{ onBack: () => void, onViewSportiv
     useEffect(() => {
         const loadInitial = async () => {
             setLoading(true);
-            const { data } = await supabase.from('sportivi').select('*');
+            const { data } = await supabase.from('vedere_cluburi_sportivi').select('*');
             if (data) {
                 const spMap: Record<string, Sportiv> = {};
                 data.forEach(s => spMap[s.id] = s);
@@ -76,8 +76,8 @@ export const IstoricPrezentaGlobal: React.FC<{ onBack: () => void, onViewSportiv
             let valB: any = '';
 
             if (sortField === 'data') {
-                valA = new Date(a.data).getTime();
-                valB = new Date(b.data).getTime();
+                valA = new Date((a.data || '').toString().slice(0, 10)).getTime();
+                valB = new Date((b.data || '').toString().slice(0, 10)).getTime();
             } else if (sortField === 'nume_sportiv') {
                 const spA = sportivi[a.sportiv_id];
                 const spB = sportivi[b.sportiv_id];
@@ -109,7 +109,7 @@ export const IstoricPrezentaGlobal: React.FC<{ onBack: () => void, onViewSportiv
         {
             key: 'data',
             label: 'Data',
-            render: (row) => <span className="text-slate-300">{new Date(row.data).toLocaleDateString('ro-RO')}</span>
+            render: (row) => <span className="text-slate-300">{new Date((row.data || '').toString().slice(0, 10)).toLocaleDateString('ro-RO')}</span>
         },
         {
             key: 'ora_start',
@@ -159,7 +159,7 @@ export const IstoricPrezentaGlobal: React.FC<{ onBack: () => void, onViewSportiv
                         <p className="text-sm text-slate-400 mb-2">{row.nume_grupa}</p>
                         <div className="flex items-center gap-2 text-xs text-slate-500">
                             <CalendarDaysIcon className="w-3 h-3" />
-                            <span>{new Date(row.data).toLocaleDateString('ro-RO')}</span>
+                            <span>{new Date((row.data || '').toString().slice(0, 10)).toLocaleDateString('ro-RO')}</span>
                             <span className="font-mono ml-2">{row.ora_start}</span>
                         </div>
                     </div>

@@ -26,9 +26,9 @@ export const fetchSportiviData = async (
     pagination?: PaginationOptions,
     sort?: SortOptions
 ): Promise<{ data: Sportiv[], count: number }> => {
-    let selectString = 'id, nume, prenume, status, familie_id, club_id, grupa_id, grad_actual_id, cluburi(id, nume), roluri:utilizator_roluri_multicont(id, rol_id, rol_denumire)';
+    let selectString = 'id, user_id, nume, prenume, email, username, status, familie_id, club_id, grupa_id, grad_actual_id, grad_actual, cluburi(id, nume), roluri:utilizator_roluri_multicont(id, rol_id, rol_denumire)';
     if (filters.rolId) {
-        selectString = 'id, nume, prenume, status, familie_id, club_id, grupa_id, grad_actual_id, cluburi(id, nume), roluri:utilizator_roluri_multicont!inner(id, rol_id, rol_denumire)';
+        selectString = 'id, user_id, nume, prenume, email, username, status, familie_id, club_id, grupa_id, grad_actual_id, grad_actual, cluburi(id, nume), roluri:utilizator_roluri_multicont!inner(id, rol_id, rol_denumire)';
     }
 
     let query = supabase

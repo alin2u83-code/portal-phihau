@@ -237,7 +237,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ onBack, onNavigate, 
         ];
 
         allEvents.forEach(e => {
-            const eventDate = new Date(e.data);
+            const eventDate = new Date((e.data || '').toString().slice(0, 10));
             const event: CalendarEvent = {
                 id: e.id,
                 title: e.denumire,

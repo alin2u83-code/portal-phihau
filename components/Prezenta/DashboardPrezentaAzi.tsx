@@ -10,7 +10,7 @@ export const DashboardPrezentaAzi: React.FC<{
     onMassGenerator: () => void;
     clubId: string | null;
 }> = ({ onSelectAntrenament, onViewGrupe, onGlobalHistory, onMassGenerator, clubId }) => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
     const { todaysTrainings, loading } = useAttendanceData(clubId, false, { date: today });
 
     return (

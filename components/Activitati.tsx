@@ -71,12 +71,12 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ onBa
             const nowTime = now.getTime();
             
             if (perioada === 'viitoare') {
-                result = result.filter(a => new Date(a.data).getTime() >= nowTime);
+                result = result.filter(a => new Date((a.data || '').toString().slice(0, 10)).getTime() >= nowTime);
             } else if (perioada === 'luna-curenta') {
                 const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
                 const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getTime();
                 result = result.filter(a => {
-                    const d = new Date(a.data).getTime();
+                    const d = new Date((a.data || '').toString().slice(0, 10)).getTime();
                     return d >= startOfMonth && d <= endOfMonth;
                 });
             }
@@ -133,7 +133,7 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ onBa
         };
 
         const previewInstances = dates.map(date => {
-            const dateString = date.toISOString().split('T')[0];
+            const dateString = new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().split('T')[0];
             const hasConflict = checkOverlap(dateString, ora_start, ora_sfarsit, formState.grupaId);
             return {
                 data: date,
@@ -155,7 +155,7 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ onBa
             
             // Re-check conflict if data or time changed
             if (field === 'data' || field === 'ora_start' || field === 'ora_sfarsit') {
-                const dateString = next[index].data.toISOString().split('T')[0];
+                const dateString = new Date(next[index].data.getTime() - next[index].data.getTimezoneOffset() * 60000).toISOString().split('T')[0];
                 const start = next[index].ora_start;
                 const end = next[index].ora_sfarsit;
                 
@@ -208,7 +208,7 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ onBa
                         .map(s => ({
                             recipient_user_id: s.user_id!,
                             title: 'Antrenament Anulat',
-                            body: `Antrenamentul din data de ${new Date(antrenament.data).toLocaleDateString('ro-RO')} (${antrenament.ora_start}) a fost anulat.`,
+                            body: `Antrenamentul din data de ${new Date((antrenament.data || '').toString().slice(0, 10)).toLocaleDateString('ro-RO')} (${antrenament.ora_start}) a fost anulat.`,
                             type: 'antrenament'
                         }));
                     
@@ -586,7 +586,7 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ onBa
                                     <div className="flex items-center gap-4 text-slate-400 text-sm font-medium">
                                         <div className="flex items-center gap-1">
                                             <CalendarDaysIcon className="w-4 h-4 text-slate-500" />
-                                            {new Date(a.data).toLocaleDateString('ro-RO')}
+                                            {new Date((a.data || '').toString().slice(0, 10)).toLocaleDateString('ro-RO')}
                                             <span className="text-[10px] text-slate-600 ml-1">({a.ziua})</span>
                                         </div>
                                         <div className="flex items-center gap-1">

@@ -32,7 +32,7 @@ export const ProgramAntrenamenteManagement: React.FC<ProgramAntrenamenteManageme
             return matchesDay && matchesGroup;
         }).sort((a, b) => {
             // Sort by date then by start time
-            const dateCompare = new Date(b.data).getTime() - new Date(a.data).getTime();
+            const dateCompare = new Date((b.data || '').toString().slice(0, 10)).getTime() - new Date((a.data || '').toString().slice(0, 10)).getTime();
             if (dateCompare !== 0) return dateCompare;
             return (a.ora_start || '').localeCompare(b.ora_start || '');
         });
@@ -124,7 +124,7 @@ export const ProgramAntrenamenteManagement: React.FC<ProgramAntrenamenteManageme
                                     </div>
                                     <div className="text-right">
                                         <p className="text-xs font-bold text-slate-500 uppercase tracking-tighter">{a.ziua_saptamanii}</p>
-                                        <p className="text-sm font-black text-white">{new Date(a.data).toLocaleDateString('ro-RO')}</p>
+                                        <p className="text-sm font-black text-white">{new Date((a.data || '').toString().slice(0, 10)).toLocaleDateString('ro-RO')}</p>
                                     </div>
                                 </div>
 

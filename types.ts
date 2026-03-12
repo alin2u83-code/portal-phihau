@@ -285,6 +285,7 @@ export interface Grupa {
   program: ProgramItem[];
   sala: string | null;
   club_id?: string | null;
+  locatie_id?: string | null;
 }
 
 export interface Antrenament {

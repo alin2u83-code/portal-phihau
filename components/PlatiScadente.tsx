@@ -113,8 +113,8 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                 const exists = (plati || []).some(p => 
                     p.familie_id === familie.id && 
                     p.tip === 'Abonament' && 
-                    new Date(p.data).getMonth() === lunaCurentaIdx && 
-                    new Date(p.data).getFullYear() === anulCurent
+                    new Date((p.data || '').toString().slice(0, 10)).getMonth() === lunaCurentaIdx && 
+                    new Date((p.data || '').toString().slice(0, 10)).getFullYear() === anulCurent
                 );
                 if (exists) {
                     membriActiviInFamilie.forEach(m => sportiviProcesati.add(m.id));
@@ -142,7 +142,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
     
             sportiviActivi.forEach(sportiv => {
                 if (sportiviProcesati.has(sportiv.id) || sportiv.familie_id) return;
-                const exists = (plati || []).some(p => p.sportiv_id === sportiv.id && p.tip === 'Abonament' && new Date(p.data).getMonth() === lunaCurentaIdx && new Date(p.data).getFullYear() === anulCurent);
+                const exists = (plati || []).some(p => p.sportiv_id === sportiv.id && p.tip === 'Abonament' && new Date((p.data || '').toString().slice(0, 10)).getMonth() === lunaCurentaIdx && new Date((p.data || '').toString().slice(0, 10)).getFullYear() === anulCurent);
                 if (exists) return;
                 const abonamentConfig = (tipuriAbonament || []).find(ab => ab.numar_membri === 1);
                 if (abonamentConfig) {
@@ -298,7 +298,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
             }
 
             return true;
-        }).sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+        }).sort((a,b) => new Date((b.data || '').toString().slice(0, 10)).getTime() - new Date((a.data || '').toString().slice(0, 10)).getTime());
     }, [plati, sportivi, familii, filter]);
 
     const platiCuDetalii = useMemo(() => {
@@ -486,7 +486,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                             {platiCuDetalii.map(p => (
                                 <tr key={p.id} className={`${selectedIds.has(p.id) ? 'bg-brand-primary/20' : ''}`}>
                                     <td className="p-3"><input type="checkbox" checked={selectedIds.has(p.id)} onChange={() => handleSelectRow(p.id)} className="h-4 w-4 rounded border-slate-500 bg-slate-800 text-brand-secondary focus:ring-brand-secondary" /></td>
-                                    <td className="p-3">{new Date(p.data).toLocaleDateString('ro-RO')}</td>
+                                    <td className="p-3">{new Date((p.data || '').toString().slice(0, 10)).toLocaleDateString('ro-RO')}</td>
                                     <td className="p-3 font-medium text-white hover:text-brand-primary hover:underline cursor-pointer" onClick={() => { if(p.sportiv_id) onViewSportiv(sportivi.find(s=>s.id === p.sportiv_id)!) }}>{getEntityName(p)}</td>
                                     <td className="p-3"><div className="font-medium text-white">{p.descriereDetaliata}</div>{p.reducereDetalii && <div className="text-xs text-slate-400">Aplicat: {p.reducereDetalii.nume}</div>}</td>
                                     <td className="p-3 text-right">

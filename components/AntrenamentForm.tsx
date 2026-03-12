@@ -55,21 +55,21 @@ export const AntrenamentForm: React.FC<{
             
             foundConflicts = allTrainings.filter(a => {
                 if (a.grupa_id !== formState.grupa_id) return false;
-                const aDate = new Date(a.data);
+                const aDate = new Date((a.data || '').toString().slice(0, 10));
                 if (aDate.getDay() !== targetDay) return false;
                 
                 // Check time overlap
-                return (formState.ora_start < a.ora_sfarsit && formState.ora_sfarsit > a.ora_start);
+                return (formState.ora_start < (a.ora_sfarsit || '23:59') && formState.ora_sfarsit > a.ora_start);
             });
 
         } else {
             // For custom, check specific date and time
             foundConflicts = allTrainings.filter(a => {
                 if (a.grupa_id !== formState.grupa_id) return false;
-                if (a.data !== formState.data) return false;
+                if ((a.data || '').toString().slice(0, 10) !== formState.data) return false;
                 
                 // Check time overlap
-                return (formState.ora_start < a.ora_sfarsit && formState.ora_sfarsit > a.ora_start);
+                return (formState.ora_start < (a.ora_sfarsit || '23:59') && formState.ora_sfarsit > a.ora_start);
             });
         }
 
@@ -147,7 +147,7 @@ export const AntrenamentForm: React.FC<{
                         <ul className="text-xs text-rose-300 space-y-1">
                             {conflicts.slice(0, 3).map(c => (
                                 <li key={c.id}>
-                                    • {c.data} ({c.ora_start} - {c.ora_sfarsit})
+                                    • {(c.data || '').toString().slice(0, 10)} ({c.ora_start} - {c.ora_sfarsit})
                                 </li>
                             ))}
                             {conflicts.length > 3 && <li>...și încă {conflicts.length - 3}</li>}

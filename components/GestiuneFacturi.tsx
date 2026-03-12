@@ -57,7 +57,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
     const clubSportivi = useMemo(() => [...sportivi].sort((a, b) => a.nume.localeCompare(b.nume)), [sportivi]);
     
     const clubPlati = useMemo(() => {
-        return [...plati].sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+        return [...plati].sort((a, b) => new Date((b.data || '').toString().slice(0, 10)).getTime() - new Date((a.data || '').toString().slice(0, 10)).getTime());
     }, [plati]);
 
     const echipamenteDisponibile = useMemo(() => [...new Set(preturiConfig.filter(p => p.categorie === 'Echipament').map(p => p.denumire_serviciu))], [preturiConfig]);
@@ -306,7 +306,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
         {
             key: 'data',
             label: 'Data',
-            render: (p) => <span className="text-slate-300">{new Date(p.data).toLocaleDateString('ro-RO')}</span>
+            render: (p) => <span className="text-slate-300">{new Date((p.data || '').toString().slice(0, 10)).toLocaleDateString('ro-RO')}</span>
         },
         {
             key: 'sportiv_id',
@@ -390,7 +390,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
             <div className="flex justify-between items-start mb-2">
                 <div>
                     <p className="font-bold text-white text-lg">{getEntityName(p)}</p>
-                    <p className="text-sm text-slate-400">{new Date(p.data).toLocaleDateString('ro-RO')}</p>
+                    <p className="text-sm text-slate-400">{new Date((p.data || '').toString().slice(0, 10)).toLocaleDateString('ro-RO')}</p>
                 </div>
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
                     p.status === 'Achitat' ? 'bg-green-600/20 text-green-400 border-green-600/50' : 

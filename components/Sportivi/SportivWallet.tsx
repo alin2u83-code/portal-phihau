@@ -84,7 +84,7 @@ export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, 
         const currentSold = totalPaidOverall - totalBilledOverall;
         const dueAmount = Array.from(invoices.values()).reduce((sum, inv) => sum + Math.max(0, inv.remaining || 0), 0);
         
-        const sortedHistory = Array.from(invoices.values()).sort((a,b) => new Date(b.details.data_emitere).getTime() - new Date(a.details.data_emitere).getTime());
+        const sortedHistory = Array.from(invoices.values()).sort((a,b) => new Date((b.details.data_emitere || '').toString().slice(0, 10)).getTime() - new Date((a.details.data_emitere || '').toString().slice(0, 10)).getTime());
 
         return { sold: currentSold, totalDue: dueAmount, invoiceHistory: sortedHistory };
 
@@ -97,7 +97,7 @@ export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, 
                 const isForEntity = isFamilyWallet ? p.familie_id === sportiv.familie_id : p.sportiv_id === sportiv.id;
                 return isForEntity && (p.status === 'Neachitat' || p.status === 'Achitat Parțial');
             })
-            .sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());
+            .sort((a, b) => new Date((a.data || '').toString().slice(0, 10)).getTime() - new Date((b.data || '').toString().slice(0, 10)).getTime());
 
         let amountToSettle = parseFloat(paymentAmount);
         if (isNaN(amountToSettle) || amountToSettle <= 0) {
@@ -196,7 +196,7 @@ export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, 
                                                 <p className="font-semibold text-white text-sm">{invoice.details.descriere}</p>
                                                 <p className="text-xs text-slate-400">
                                                     {(invoice.details.data_plata || invoice.details.data_emitere) 
-                                                        ? new Date(invoice.details.data_plata || invoice.details.data_emitere).toLocaleDateString('ro-RO') 
+                                                        ? new Date(((invoice.details.data_plata || invoice.details.data_emitere) || '').toString().slice(0, 10)).toLocaleDateString('ro-RO') 
                                                         : 'Fără dată'}
                                                 </p>
                                             </div>
@@ -208,7 +208,7 @@ export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, 
                                             <div className="pl-10 mt-2 space-y-1">
                                                 {invoice.payments.map(p => (
                                                     <div key={p.tranzactie_id} className="text-xs flex justify-between items-center text-green-400">
-                                                        <span>&#8627; Încasat la {p.data_plata ? new Date(p.data_plata).toLocaleDateString('ro-RO') : 'Fără dată'}</span>
+                                                        <span>&#8627; Încasat la {p.data_plata ? new Date((p.data_plata || '').toString().slice(0, 10)).toLocaleDateString('ro-RO') : 'Fără dată'}</span>
                                                         <span className="font-bold">+{((p.suma_incasata || 0)).toFixed(2)}</span>
                                                     </div>
                                                 ))}

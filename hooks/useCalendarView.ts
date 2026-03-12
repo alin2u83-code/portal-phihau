@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { useError } from '../components/ErrorProvider';
 import { Antrenament, Grupa } from '../types';
+import { generateTrainingsFromSchedule } from '../utils/trainingGenerator';
 
 export const useCalendarView = (grupaId: string, initialDate?: string) => {
    // Calculăm data curentă folosind ora locală, nu UTC, pentru a evita decalajul de o zi
@@ -35,25 +36,19 @@ export const useCalendarView = (grupaId: string, initialDate?: string) => {
 
     const handleGenerate = async () => {
         setLoading(true);
-        const { error } = await supabase.rpc('genereaza_antrenamente_din_orar', { 
-            p_zile_in_avans: daysToGenerate,
-            p_grupa_id: grupaId 
-        });
-        
-        if (error) {
-            // Fallback to global generation if group-specific fails (legacy support)
-            const { error: error2 } = await supabase.rpc('genereaza_antrenamente_din_orar', { 
-                p_zile_in_avans: daysToGenerate 
-            });
-            if (error2) {
-                showError("Eroare RPC", error2.message);
-            } else { 
-                showSuccess("Succes", `Calendarul a fost populat pentru următoarele ${daysToGenerate} zile (Global).`); 
-                await fetchAntrenamente(); 
-            }
-        } else { 
+        try {
+            await generateTrainingsFromSchedule(daysToGenerate, grupaId);
             showSuccess("Succes", `Calendarul a fost populat pentru următoarele ${daysToGenerate} zile.`); 
             await fetchAntrenamente(); 
+        } catch (error: any) {
+            // Fallback to global generation if group-specific fails (legacy support)
+            try {
+                await generateTrainingsFromSchedule(daysToGenerate);
+                showSuccess("Succes", `Calendarul a fost populat pentru următoarele ${daysToGenerate} zile (Global).`); 
+                await fetchAntrenamente(); 
+            } catch (error2: any) {
+                showError("Eroare generare", error2.message);
+            }
         }
         setLoading(false);
     };

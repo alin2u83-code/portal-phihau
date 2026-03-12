@@ -11,7 +11,7 @@ export const useAttendanceData = (clubId?: string | null, skipFetch = false, fil
     const [error, setError] = useState<string | null>(null);
     const { showError, showSuccess } = useError();
 
-    const getTodayString = () => new Date().toISOString().split('T')[0];
+    const getTodayString = () => new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
 
     const fetchAttendanceData = useCallback(async () => {
         if (!supabase || skipFetch) return;
@@ -19,7 +19,7 @@ export const useAttendanceData = (clubId?: string | null, skipFetch = false, fil
         setError(null);
         try {
             // Join with prezenta_antrenament
-            let antrenamenteQuery = supabase.from('vedere_cluburi_program_antrenamente').select('*, prezenta:prezenta_antrenament(sportiv_id, status)');
+            let antrenamenteQuery = supabase.from('vedere_program_complet').select('*, prezenta:prezenta_antrenament(sportiv_id, status)');
             let anunturiQuery = supabase.from('vedere_cluburi_anunturi_prezenta').select('*');
 
             // Apply date filters if provided
@@ -45,7 +45,7 @@ export const useAttendanceData = (clubId?: string | null, skipFetch = false, fil
             // Filter today's trainings (if not already filtered by query)
             const today = getTodayString();
             const todayFiltered = allTrainings
-                .filter(a => a.data === today)
+                .filter(a => (a.data || '').toString().slice(0, 10) === today)
                 .sort((a, b) => a.ora_start.localeCompare(b.ora_start));
             setTodaysTrainings(todayFiltered);
 

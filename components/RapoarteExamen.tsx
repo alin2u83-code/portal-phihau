@@ -276,10 +276,20 @@ export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ currentUser, clu
 
     if (sesiuneToEdit) {
         const { data, error } = await supabase.from('sesiuni_examene').update(dataToSave).eq('id', sesiuneToEdit.id).select().single();
-        if (error) { showError("Eroare la actualizare", error); } else if (data) { setSesiuni(prev => prev.map(e => e.id === data.id ? data as SesiuneExamen : e)); showSuccess("Succes", "Sesiunea a fost actualizată."); }
+        if (error) { showError("Eroare la actualizare", error); } else if (data) { 
+            const { data: viewData, error: viewError } = await supabase.from('vedere_cluburi_sesiuni_examene').select('*').eq('id', data.id).single();
+            if (viewError) { showError("Eroare la actualizare", viewError); } else {
+                setSesiuni(prev => prev.map(e => e.id === viewData.id ? viewData as SesiuneExamen : e)); showSuccess("Succes", "Sesiunea a fost actualizată."); 
+            }
+        }
     } else {
         const { data, error } = await supabase.from('sesiuni_examene').insert(dataToSave).select().single();
-        if (error) { showError("Eroare la adăugare", error); } else if (data) { setSesiuni(prev => [...prev, data as SesiuneExamen]); showSuccess("Succes", "Sesiunea a fost creată."); }
+        if (error) { showError("Eroare la adăugare", error); } else if (data) { 
+            const { data: viewData, error: viewError } = await supabase.from('vedere_cluburi_sesiuni_examene').select('*').eq('id', data.id).single();
+            if (viewError) { showError("Eroare la adăugare", viewError); } else {
+                setSesiuni(prev => [...prev, viewData as SesiuneExamen]); showSuccess("Succes", "Sesiunea a fost creată."); 
+            }
+        }
     }
   };
 

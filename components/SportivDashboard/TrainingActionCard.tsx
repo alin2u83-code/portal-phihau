@@ -71,7 +71,7 @@ export const TrainingActionCard: React.FC<TrainingActionCardProps> = ({ training
                 </div>
                 <div>
                     <h3 className="text-lg font-bold text-white">Antrenament Azi</h3>
-                    <p className="text-sm text-slate-400">Ora: {new Date(training.data + 'T' + training.ora_start).toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' })}</p>
+                    <p className="text-sm text-slate-400">Ora: {new Date((training.data || '').toString().slice(0, 10) + 'T' + training.ora_start).toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' })}</p>
                 </div>
             </div>
             <div className="flex flex-row gap-2">

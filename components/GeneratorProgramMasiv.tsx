@@ -124,10 +124,16 @@ export const GeneratorProgramMasiv: React.FC<GeneratorProgramMasivProps> = ({ on
         const instances: GeneratedInstance[] = [];
         const itemsToGenerate = schedulableItems.filter(i => selectedItems.has(i.id));
 
+        // Generate a unique group ID for each schedule item selected
+        const groupIds: Record<string, string> = {};
+        itemsToGenerate.forEach(item => {
+            groupIds[item.id] = crypto.randomUUID();
+        });
+
         // Iterate through each day in range
         for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
             const dayIndex = d.getDay(); // 0 = Sunday
-            const dateStr = d.toISOString().split('T')[0];
+            const dateStr = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('T')[0];
 
             // Find matching schedule items for this day of week
             itemsToGenerate.forEach(item => {
@@ -140,8 +146,9 @@ export const GeneratorProgramMasiv: React.FC<GeneratorProgramMasivProps> = ({ on
                         ora_start: item.oraStart,
                         ora_sfarsit: item.oraSfarsit,
                         is_recurent: true,
-                        grupaNume: item.grupaNume
-                    });
+                        grupaNume: item.grupaNume,
+                        recurent_group_id: groupIds[item.id]
+                    } as any);
                 }
             });
         }

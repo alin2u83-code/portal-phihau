@@ -1,13 +1,15 @@
 
 
 import React, { useMemo, useState } from 'react';
-import { IstoricPlataDetaliat } from '../types';
+import { IstoricPlataDetaliat, Sportiv, Familie, Plata, Tranzactie } from '../types';
 import { Card, Input, Select, Button } from './ui';
 import { ArrowLeftIcon, ChartBarIcon, BanknotesIcon, FileTextIcon } from './icons';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 
 interface RaportFinanciarProps {
     istoricPlatiDetaliat: IstoricPlataDetaliat[];
+    sportivi: Sportiv[];
+    familii: Familie[];
     onBack: () => void;
 }
 
@@ -20,7 +22,7 @@ const initialFilters = {
     tip: '',
 };
 
-export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({ istoricPlatiDetaliat, onBack }) => {
+export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({ istoricPlatiDetaliat, sportivi, familii, onBack }) => {
     const [filters, setFilters] = useLocalStorage('phi-hau-raport-financiar-filters', initialFilters);
     const [activeTab, setActiveTab] = useState<'incasari' | 'lunar' | 'taxe_anuale'>('incasari');
     const [selectedMonth, setSelectedMonth] = useState<string>('');
@@ -32,10 +34,10 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({ istoricPlatiDe
     const filteredIstoric = useMemo(() => {
         if (!istoricPlatiDetaliat) return [];
         return istoricPlatiDetaliat.filter(t => {
-            const dataPlata = t.data_plata_string ? new Date(t.data_plata_string) : null;
+            const dataPlata = t.data_plata_string ? new Date((t.data_plata_string || '').toString().slice(0, 10)) : null;
             
-            const startDate = filters.startDate ? new Date(filters.startDate) : null;
-            const endDate = filters.endDate ? new Date(filters.endDate) : null;
+            const startDate = filters.startDate ? new Date((filters.startDate || '').toString().slice(0, 10)) : null;
+            const endDate = filters.endDate ? new Date((filters.endDate || '').toString().slice(0, 10)) : null;
 
             if (startDate && dataPlata && dataPlata < startDate) return false;
             if (endDate && dataPlata) {
@@ -107,7 +109,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({ istoricPlatiDe
     const totalRestanteLuna = useMemo(() => {
         let sum = 0;
         for (const p of raportLunarData.restante) {
-            sum += p.suma || 0;
+            sum += p.suma_datorata || 0;
         }
         return sum;
     }, [raportLunarData.restante]);
@@ -175,8 +177,8 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({ istoricPlatiDe
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredIstoric.sort((a,b) => (b.data_plata_string ? new Date(b.data_plata_string).getTime() : 0) - (a.data_plata_string ? new Date(a.data_plata_string).getTime() : 0)).map(tranzactie => {
-                                    const date = tranzactie.data_plata_string ? new Date(tranzactie.data_plata_string) : null;
+                                {filteredIstoric.sort((a,b) => (b.data_plata_string ? new Date((b.data_plata_string || '').toString().slice(0, 10)).getTime() : 0) - (a.data_plata_string ? new Date((a.data_plata_string || '').toString().slice(0, 10)).getTime() : 0)).map(tranzactie => {
+                                    const date = tranzactie.data_plata_string ? new Date((tranzactie.data_plata_string || '').toString().slice(0, 10)) : null;
                                     const dateString = date && !isNaN(date.getTime()) ? date.toLocaleDateString('ro-RO') : 'Dată invalidă';
                                     return (
                                         <tr key={tranzactie.tranzactie_id || tranzactie.plata_id} className="border-b border-slate-700">
@@ -190,7 +192,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({ istoricPlatiDe
                                 })}
                             </tbody>
                         </table>
-                        {filteredTranzactii.length === 0 && <p className="p-4 text-center text-slate-400">Nicio încasare conform filtrelor.</p>}
+                        {filteredIstoric.length === 0 && <p className="p-4 text-center text-slate-400">Nicio încasare conform filtrelor.</p>}
                     </div>
                 </Card>
             )}
@@ -236,9 +238,9 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({ istoricPlatiDe
                                 </tr>
                             </thead>
                             <tbody>
-                                {raportLunarData.restante.sort((a,b) => new Date(a.data_emitere).getTime() - new Date(b.data_emitere).getTime()).map(plata => (
+                                {raportLunarData.restante.sort((a,b) => new Date((a.data_emitere || '').toString().slice(0, 10)).getTime() - new Date((b.data_emitere || '').toString().slice(0, 10)).getTime()).map(plata => (
                                     <tr key={plata.plata_id} className="border-b border-slate-700">
-                                        <td className="p-4">{new Date(plata.data_emitere).toLocaleDateString('ro-RO')}</td>
+                                        <td className="p-4">{new Date((plata.data_emitere || '').toString().slice(0, 10)).toLocaleDateString('ro-RO')}</td>
                                         <td className="p-4 font-bold text-white">{plata.nume_complet_sportiv || 'N/A'}</td>
                                         <td className="p-4">{plata.descriere}</td>
                                         <td className="p-4">

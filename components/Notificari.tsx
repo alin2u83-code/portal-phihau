@@ -160,7 +160,7 @@ export const Notificari: React.FC<NotificariProps> = ({ onBack, currentUser, clu
                         <div key={anunt.id} className="bg-slate-700/50 p-3 rounded-md">
                             <p className="font-bold text-white">{anunt.title || (anunt as any).titlu}</p>
                             <p className="text-sm text-slate-300">{anunt.body}</p>
-                            <p className="text-xs text-slate-500 mt-1">Trimis la: {new Date(anunt.created_at).toLocaleString('ro-RO')}</p>
+                            <p className="text-xs text-slate-500 mt-1">Trimis la: {new Date((anunt.created_at || '').toString().slice(0, 19)).toLocaleString('ro-RO')}</p>
                         </div>
                     )) : (
                         <p className="text-slate-400 italic">Niciun anunț trimis recent.</p>

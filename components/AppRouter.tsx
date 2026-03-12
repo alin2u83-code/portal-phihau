@@ -157,7 +157,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                             case 'jurnal-incasari':
                                 return renderProtected(<Lazy.JurnalIncasari currentUser={currentUser!} permissions={permissions} plati={filteredData.plati} setPlati={setPlati} sportivi={filteredData.sportivi} familii={filteredData.familii} preturiConfig={preturiConfig} tipuriAbonament={filteredData.tipuriAbonament} tipuriPlati={tipuriPlati} setTipuriPlati={setTipuriPlati} tranzactii={filteredData.tranzactii} setTranzactii={setTranzactii} platiInitiale={platiPentruIncasare} onIncasareProcesata={handleIncasareProcesata} onBack={handleJurnalBack} reduceri={reduceri} />, canManageFinances);
                             case 'raport-financiar':
-                                return renderProtected(<Lazy.RaportFinanciar onBack={handleBackToDashboard} plati={filteredData.plati} sportivi={filteredData.sportivi} familii={filteredData.familii} tranzactii={filteredData.tranzactii} />, isAtLeastClubAdmin);
+                                return renderProtected(<Lazy.RaportFinanciar onBack={handleBackToDashboard} istoricPlatiDetaliat={filteredData.istoricPlatiDetaliat} sportivi={filteredData.sportivi} familii={filteredData.familii} />, isAtLeastClubAdmin);
                             case 'user-management':
                                 return renderProtected(<Lazy.UserManagement onBack={handleBackToDashboard} sportivi={filteredData.sportivi} setSportivi={setSportivi} currentUser={currentUser!} allRoles={allRoles} setAllRoles={setAllRoles} clubs={clubs} permissions={permissions} />, isAtLeastClubAdmin);
                             case 'cluburi':

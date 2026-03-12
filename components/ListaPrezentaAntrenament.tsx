@@ -8,6 +8,7 @@ import { useAttendance } from '../hooks/useAttendance';
 import { useError } from './ErrorProvider';
 import { AntrenamentForm } from './AntrenamentForm';
 import { supabase } from '../supabaseClient';
+import { generateTrainingsFromSchedule } from '../utils/trainingGenerator';
 
 interface ListaPrezentaAntrenamentProps {
     grupa: Grupa;
@@ -73,7 +74,7 @@ const SportivInfoModal: React.FC<{
                             {history.map((h, i) => (
                                 <div key={i} className="flex justify-between items-center p-3 bg-slate-800/30 rounded-lg border border-slate-700/30">
                                     <div>
-                                        <p className="text-sm font-bold text-white">{new Date(h.data).toLocaleDateString('ro-RO')}</p>
+                                        <p className="text-sm font-bold text-white">{new Date((h.data || '').toString().slice(0, 10)).toLocaleDateString('ro-RO')}</p>
                                         <p className="text-[10px] text-slate-500">{h.nume_grupa}</p>
                                     </div>
                                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${h.status === 'prezent' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
@@ -195,7 +196,7 @@ export const FormularPrezenta: React.FC<{
                     <h2 className="text-2xl font-black text-white tracking-tight">{antrenament.grupe?.denumire}</h2>
                     <p className="text-sm font-medium text-slate-400 flex items-center justify-end gap-2">
                         <CalendarDaysIcon className="w-4 h-4" />
-                        {new Date(antrenament.data).toLocaleDateString('ro-RO', { day: 'numeric', month: 'long' })} • {antrenament.ora_start}
+                        {new Date((antrenament.data || '').toString().slice(0, 10)).toLocaleDateString('ro-RO', { day: 'numeric', month: 'long' })} • {antrenament.ora_start}
                     </p>
                 </div>
             </div>
@@ -311,18 +312,18 @@ export const ListaPrezentaAntrenament: React.FC<ListaPrezentaAntrenamentProps> =
     const filteredTrainings = useMemo(() => {
         let result = allTrainings.filter(a => a.grupa_id === grupa.id);
 
-        const today = new Date().toISOString().split('T')[0];
+        const today = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
         const oneWeekAgo = new Date();
         oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
         const oneMonthAgo = new Date();
         oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
 
         if (perioada === 'azi') {
-            result = result.filter(a => a.data === today);
+            result = result.filter(a => (a.data || '').toString().slice(0, 10) === today);
         } else if (perioada === 'saptamana') {
-            result = result.filter(a => new Date(a.data) >= oneWeekAgo);
+            result = result.filter(a => new Date((a.data || '').toString().slice(0, 10)) >= oneWeekAgo);
         } else if (perioada === 'luna') {
-            result = result.filter(a => new Date(a.data) >= oneMonthAgo);
+            result = result.filter(a => new Date((a.data || '').toString().slice(0, 10)) >= oneMonthAgo);
         }
 
         if (filterSportivId) {
@@ -334,8 +335,8 @@ export const ListaPrezentaAntrenament: React.FC<ListaPrezentaAntrenamentProps> =
         }
 
         return result.sort((a, b) => {
-            const dateA = new Date(a.data + 'T' + a.ora_start).getTime();
-            const dateB = new Date(b.data + 'T' + b.ora_start).getTime();
+            const dateA = new Date((a.data || '').toString().slice(0, 10) + 'T' + a.ora_start).getTime();
+            const dateB = new Date((b.data || '').toString().slice(0, 10) + 'T' + b.ora_start).getTime();
             return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
         });
     }, [allTrainings, grupa.id, perioada, sortOrder, filterSportivId]);
@@ -363,18 +364,17 @@ export const ListaPrezentaAntrenament: React.FC<ListaPrezentaAntrenamentProps> =
             else {
                 showSuccess("Succes", "Antrenamentul recurent a fost adăugat în orar.");
                 // Trigger generation
-                const { error: genError } = await supabase.rpc('genereaza_antrenamente_din_orar', { 
-                    p_zile_in_avans: 30,
-                    p_grupa_id: grupa.id
-                });
-                
-                if (genError) {
-                    // Fallback
-                    const { error: genError2 } = await supabase.rpc('genereaza_antrenamente_din_orar', { p_zile_in_avans: 30 });
-                    if (genError2) showError("Eroare generare", genError2.message);
-                    else await refetch();
-                } else {
+                try {
+                    await generateTrainingsFromSchedule(30, grupa.id);
                     await refetch();
+                } catch (genError: any) {
+                    // Fallback
+                    try {
+                        await generateTrainingsFromSchedule(30);
+                        await refetch();
+                    } catch (genError2: any) {
+                        showError("Eroare generare", genError2.message);
+                    }
                 }
             }
         } else {
@@ -465,14 +465,14 @@ export const ListaPrezentaAntrenament: React.FC<ListaPrezentaAntrenamentProps> =
                     ) : (
                         <div className="space-y-3">
                             {filteredTrainings.map(a => {
-                                const isToday = a.data === new Date().toISOString().split('T')[0];
+                                const isToday = (a.data || '').toString().slice(0, 10) === new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
                                 const sportivPresence = filterSportivId ? a.prezenta?.find(p => p.sportiv_id === filterSportivId) : null;
 
                                 return (
                                     <div key={a.id} className={`group p-4 rounded-2xl border transition-all flex flex-col sm:flex-row justify-between items-center gap-4 ${isToday ? 'bg-indigo-500/5 border-indigo-500/30' : 'bg-slate-800/30 border-slate-700/50 hover:bg-slate-800/50'}`}>
                                         <div className="flex items-center gap-4 w-full sm:w-auto">
                                             <div className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center border ${isToday ? 'bg-indigo-500/20 border-indigo-500/30 text-indigo-400' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>
-                                                <span className="text-[10px] font-black uppercase leading-none mb-1">{new Date(a.data).toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' })}</span>
+                                                <span className="text-[10px] font-black uppercase leading-none mb-1">{new Date((a.data || '').toString().slice(0, 10)).toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' })}</span>
                                                 <span className="text-xs font-bold">{a.ora_start}</span>
                                             </div>
                                             <div>

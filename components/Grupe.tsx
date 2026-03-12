@@ -21,7 +21,7 @@ interface GrupeManagementProps {
     onBack: () => void; 
 }
 export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
-    const { currentUser, clubs, grupe, setGrupe } = useData();
+    const { currentUser, clubs, grupe, setGrupe, locatii } = useData();
     const [loading, setLoading] = useState(false); // Keep loading state if needed, or use loading from useData
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [grupaToEdit, setGrupaToEdit] = useState<GrupaWithDetails | null>(null);
@@ -116,7 +116,7 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
                 </Card>
             )}
 
-            <GrupaFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSave} grupaToEdit={grupaToEdit} currentUser={currentUser} clubs={clubs} />
+            <GrupaFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSave} grupaToEdit={grupaToEdit} currentUser={currentUser} clubs={clubs} locatii={locatii} />
             <ConfirmDeleteModal isOpen={!!grupaToDelete} onClose={() => setGrupaToDelete(null)} onConfirm={() => { if(grupaToDelete) confirmDelete(grupaToDelete.id) }} tableName="Grupe" isLoading={isDeleting} />
         </div>
     );

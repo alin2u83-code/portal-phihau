@@ -31,6 +31,137 @@ const getDefaultNextGradeId = (sportiv: Sportiv, allGrades: Grad[]): string => {
     return nextGrade ? nextGrade.id : '';
 };
 
+const getAgeBasedSuggestion = (sportiv: Sportiv, sesiuneData: string, grade: Grad[]): string | null => {
+    const age = getAgeOnDate(sportiv.data_nasterii, sesiuneData);
+    if (age >= 13) {
+        const albastru = grade.find(g => g.nume.toLowerCase().includes('albastru'));
+        return albastru ? albastru.id : null;
+    } else if (age >= 7) {
+        const rosu = grade.find(g => g.nume.toLowerCase().includes('roșu') || g.nume.toLowerCase().includes('rosu'));
+        return rosu ? rosu.id : null;
+    }
+    return null;
+};
+
+interface SingleAddInscriereModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    onSave: (selections: { sportiv_id: string; grad_vizat_id: string }[]) => Promise<void>;
+    sportivi: Sportiv[];
+    grade: Grad[];
+    sesiuneData: string;
+    inscrisiIds: Set<string>;
+}
+
+const SingleAddInscriereModal: React.FC<SingleAddInscriereModalProps> = ({ isOpen, onClose, onSave, sportivi, grade, sesiuneData, inscrisiIds }) => {
+    const [selectedSportivId, setSelectedSportivId] = useState('');
+    const [gradVizatId, setGradVizatId] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [suggesting, setSuggesting] = useState(false);
+    const { showError } = useError();
+
+    const selectedSportiv = useMemo(() => sportivi.find(s => s.id === selectedSportivId), [sportivi, selectedSportivId]);
+
+    const ageAtExam = useMemo(() => {
+        if (!selectedSportiv || !sesiuneData) return null;
+        return getAgeOnDate(selectedSportiv.data_nasterii, sesiuneData);
+    }, [selectedSportiv, sesiuneData]);
+
+    useEffect(() => {
+        const fetchSuggestion = async () => {
+            if (!selectedSportivId || !sesiuneData) return;
+            setSuggesting(true);
+            try {
+                // 1. Check age-based suggestion first
+                const ageSuggestion = getAgeBasedSuggestion(selectedSportiv!, sesiuneData, grade);
+                
+                // 2. If no age-based suggestion, call RPC
+                if (ageSuggestion) {
+                    setGradVizatId(ageSuggestion);
+                } else {
+                    const { data, error } = await supabase.rpc('sugereaza_grad_examen', {
+                        p_sportiv_id: selectedSportivId,
+                        p_data_examen: sesiuneData
+                    });
+                    if (error) throw error;
+                    setGradVizatId(data || getDefaultNextGradeId(selectedSportiv!, grade));
+                }
+            } catch (err: any) {
+                console.error("Error suggesting grade:", err);
+                setGradVizatId(getDefaultNextGradeId(selectedSportiv!, grade));
+            } finally {
+                setSuggesting(false);
+            }
+        };
+
+        if (isOpen && selectedSportivId) {
+            fetchSuggestion();
+        }
+    }, [selectedSportivId, sesiuneData, isOpen, grade, selectedSportiv]);
+
+    const handleSave = async () => {
+        if (!selectedSportivId || !gradVizatId) return;
+        setLoading(true);
+        await onSave([{ sportiv_id: selectedSportivId, grad_vizat_id: gradVizatId }]);
+        setLoading(false);
+        onClose();
+    };
+
+    const availableSportivi = useMemo(() => {
+        return (sportivi || []).filter(s => s.status === 'Activ' && !inscrisiIds.has(s.id));
+    }, [sportivi, inscrisiIds]);
+
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title="Înscriere Individuală la Examen">
+            <div className="space-y-4">
+                <Select
+                    label="Selectează Sportiv"
+                    value={selectedSportivId}
+                    onChange={(e) => setSelectedSportivId(e.target.value)}
+                    required
+                >
+                    <option value="">Alege sportiv...</option>
+                    {availableSportivi.map(s => (
+                        <option key={s.id} value={s.id}>{s.nume} {s.prenume}</option>
+                    ))}
+                </Select>
+
+                {selectedSportiv && (
+                    <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700 space-y-2">
+                        <p className="text-sm text-slate-300">
+                            <span className="font-bold">Vârsta la examen:</span> {ageAtExam} ani
+                        </p>
+                        <p className="text-sm text-slate-300">
+                            <span className="font-bold">Grad actual:</span> {selectedSportiv.grad_actual || 'Începător'}
+                        </p>
+                    </div>
+                )}
+
+                <Select
+                    label="Grad Vizat"
+                    value={gradVizatId}
+                    onChange={(e) => setGradVizatId(e.target.value)}
+                    required
+                    disabled={suggesting}
+                >
+                    <option value="">{suggesting ? 'Se calculează sugestia...' : 'Alege grad...'}</option>
+                    {grade.sort((a,b) => a.ordine - b.ordine).map(g => (
+                        <option key={g.id} value={g.id}>{g.nume}</option>
+                    ))}
+                </Select>
+
+                <div className="flex justify-end pt-4 gap-2 border-t border-slate-700">
+                    <Button variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button>
+                    <Button variant="primary" onClick={handleSave} isLoading={loading} disabled={!selectedSportivId || !gradVizatId}>
+                        Înscrie Sportiv
+                    </Button>
+                </div>
+            </div>
+        </Modal>
+    );
+};
+
+
 interface BulkAddSportiviModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -41,16 +172,17 @@ interface BulkAddSportiviModalProps {
     inscrisiIds: Set<string>;
 }
 
-const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps> = ({ isOpen, onClose, onSave, sportivi, grade, istoricGrade, inscrisiIds }) => {
+const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps & { sesiuneData: string }> = ({ isOpen, onClose, onSave, sportivi, grade, istoricGrade, inscrisiIds, sesiuneData }) => {
     const [selections, setSelections] = useState<Map<string, string>>(new Map());
+    const [suggestions, setSuggestions] = useState<Map<string, string>>(new Map());
     const [filterTerm, setFilterTerm] = useState('');
     const [loading, setLoading] = useState(false);
+    const [fetchingSuggestions, setFetchingSuggestions] = useState(false);
 
     const availableSportivi = useMemo(() => {
         return (sportivi || [])
             .filter(s => s.status === 'Activ' && !inscrisiIds.has(s.id))
             .map(s => {
-                // Eligibility check logic
                 const lastPromotion = (istoricGrade || [])
                     .filter(ig => ig.sportiv_id === s.id)
                     .sort((a, b) => new Date(b.data_obtinere).getTime() - new Date(a.data_obtinere).getTime())[0];
@@ -75,26 +207,47 @@ const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps> = ({ isOpen, onC
         );
     }, [availableSportivi, filterTerm]);
 
-    const handleSelect = (sportivId: string, gradVizatId: string, isChecked: boolean) => {
-        setSelections(prev => {
-            const next = new Map(prev);
-            if (isChecked) {
-                next.set(sportivId, gradVizatId);
-            } else {
-                next.delete(sportivId);
+    const handleSelect = async (sportivId: string, isChecked: boolean) => {
+        if (isChecked) {
+            let gradVizatId = suggestions.get(sportivId);
+            if (!gradVizatId) {
+                setFetchingSuggestions(true);
+                try {
+                    const sportiv = availableSportivi.find(s => s.id === sportivId);
+                    // 1. Check age-based suggestion first
+                    const ageSuggestion = sportiv ? getAgeBasedSuggestion(sportiv, sesiuneData, grade) : null;
+                    
+                    if (ageSuggestion) {
+                        gradVizatId = ageSuggestion;
+                    } else {
+                        // 2. If no age-based suggestion, call RPC
+                        const { data, error } = await supabase.rpc('sugereaza_grad_examen', {
+                            p_sportiv_id: sportivId,
+                            p_data_examen: sesiuneData
+                        });
+                        if (error) throw error;
+                        gradVizatId = data || sportiv?.defaultNextGradeId || '';
+                    }
+                    setSuggestions(prev => new Map(prev.set(sportivId, gradVizatId!)));
+                } catch (err) {
+                    console.error("Error suggesting grade:", err);
+                    gradVizatId = availableSportivi.find(s => s.id === sportivId)?.defaultNextGradeId || '';
+                } finally {
+                    setFetchingSuggestions(false);
+                }
             }
-            return next;
-        });
+            setSelections(prev => new Map(prev.set(sportivId, gradVizatId!)));
+        } else {
+            setSelections(prev => {
+                const next = new Map(prev);
+                next.delete(sportivId);
+                return next;
+            });
+        }
     };
 
     const handleGradeChange = (sportivId: string, newGradId: string) => {
-        setSelections(prev => {
-            const next = new Map(prev);
-            if (next.has(sportivId)) {
-                next.set(sportivId, newGradId);
-            }
-            return next;
-        });
+        setSelections(prev => new Map(prev.set(sportivId, newGradId)));
     };
     
     const handleSaveClick = async () => {
@@ -127,23 +280,26 @@ const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps> = ({ isOpen, onC
                                        <input
                                            type="checkbox"
                                            checked={isSelected}
-                                           onChange={(e) => handleSelect(s.id, selections.get(s.id) || s.defaultNextGradeId, e.target.checked)}
+                                           onChange={(e) => handleSelect(s.id, e.target.checked)}
                                            className="h-5 w-5 rounded border-slate-500 bg-slate-900 text-brand-secondary focus:ring-brand-secondary focus:ring-offset-slate-800 flex-shrink-0"
-                                           disabled={!isEligible}
+                                           disabled={!isEligible || fetchingSuggestions}
                                        />
                                        <div className="flex-grow">
                                            <p className={`font-medium ${!isEligible ? 'text-slate-400' : 'text-white'}`}>{s.nume} {s.prenume}</p>
-                                           {!isEligible ? (
-                                                <p className="text-xs text-red-400">Ineligibil (Ultima promovare: {lastPromotionDate})</p>
-                                           ) : (
-                                                <p className="text-xs text-slate-400">Grad actual: {(grade || []).find(g=>g.id === s.grad_actual_id)?.nume || 'Începător'}</p>
-                                           )}
+                                           <div className="flex flex-wrap gap-x-4 gap-y-1">
+                                               {!isEligible ? (
+                                                    <p className="text-xs text-red-400">Ineligibil (Ultima promovare: {lastPromotionDate})</p>
+                                               ) : (
+                                                    <p className="text-xs text-slate-400">Grad actual: {s.grad_actual || 'Începător'}</p>
+                                               )}
+                                               <p className="text-xs text-brand-secondary font-bold">Vârstă la examen: {getAgeOnDate(s.data_nasterii, sesiuneData)} ani</p>
+                                           </div>
                                        </div>
                                    </div>
                                    <div className="w-full sm:w-48 pl-8 sm:pl-0">
                                        <Select
                                            label=""
-                                           value={selections.get(s.id) || s.defaultNextGradeId}
+                                           value={selections.get(s.id) || ''}
                                            onChange={(e) => handleGradeChange(s.id, e.target.value)}
                                            disabled={!isSelected || !isEligible}
                                            className="!py-2 text-sm w-full"
@@ -159,7 +315,7 @@ const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps> = ({ isOpen, onC
                 </div>
                 <div className="flex justify-end pt-4 gap-2 border-t border-slate-700">
                     <Button variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button>
-                    <Button variant="primary" onClick={handleSaveClick} isLoading={loading} disabled={selections.size === 0}>
+                    <Button variant="primary" onClick={handleSaveClick} isLoading={loading} disabled={selections.size === 0 || fetchingSuggestions}>
                         Adaugă {selections.size > 0 ? `${selections.size} Participanți` : ''}
                     </Button>
                 </div>
@@ -187,6 +343,7 @@ interface ManagementInscrieriProps {
 export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiune, sportivi, setSportivi, allInscrieri, grade, istoricGrade, setInscrieri, plati, setPlati, preturiConfig, onViewSportiv, isReadOnly = false }) => {
     const { showError, showSuccess } = useError();
     const [isBulkAddModalOpen, setIsBulkAddModalOpen] = useState(false);
+    const [isSingleAddModalOpen, setIsSingleAddModalOpen] = useState(false);
 
     // State for EDIT modal
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -231,10 +388,22 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
 
     const sortedGrades = useMemo(() => [...(grade || [])].sort((a,b) => a.ordine - b.ordine), [grade]);
 
-    const handleOpenEditModal = (inscriere: InscriereExamen) => {
+    const handleOpenEditModal = async (inscriere: InscriereExamen) => {
         setInscriereToEdit(inscriere);
-        setGradSustinutId(inscriere.grad_vizat_id);
         setIsEditModalOpen(true);
+        
+        // Fetch suggestion for the current sportiv and exam date
+        try {
+            const { data, error } = await supabase.rpc('sugereaza_grad_examen', {
+                p_sportiv_id: inscriere.sportiv_id,
+                p_data_examen: sesiune.data
+            });
+            if (error) throw error;
+            setGradSustinutId(data || inscriere.grad_vizat_id);
+        } catch (err) {
+            console.error("Error fetching suggestion:", err);
+            setGradSustinutId(inscriere.grad_vizat_id);
+        }
     };
 
     const handleCloseEditModal = () => {
@@ -679,9 +848,14 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
              {!isReadOnly && (
                 <Card>
                     <h3 className="text-lg font-bold text-white mb-2">Înscriere Participanți</h3>
-                    <Button onClick={() => setIsBulkAddModalOpen(true)} variant="info" className="w-full">
-                        <PlusIcon className="w-5 h-5 mr-2" /> Adaugă Participanți (Bulk)
-                    </Button>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <Button onClick={() => setIsSingleAddModalOpen(true)} variant="primary" className="w-full">
+                            <PlusIcon className="w-5 h-5 mr-2" /> Înscriere Individuală
+                        </Button>
+                        <Button onClick={() => setIsBulkAddModalOpen(true)} variant="info" className="w-full">
+                            <PlusIcon className="w-5 h-5 mr-2" /> Adaugă Participanți (Bulk)
+                        </Button>
+                    </div>
                 </Card>
              )}
 
@@ -738,6 +912,17 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 sportivi={sportivi}
                 grade={grade}
                 istoricGrade={istoricGrade}
+                inscrisiIds={inscrisiInSesiuneIds}
+                sesiuneData={sesiune.data}
+            />
+
+            <SingleAddInscriereModal
+                isOpen={isSingleAddModalOpen}
+                onClose={() => setIsSingleAddModalOpen(false)}
+                onSave={handleBulkSave}
+                sportivi={sportivi}
+                grade={grade}
+                sesiuneData={sesiune.data}
                 inscrisiIds={inscrisiInSesiuneIds}
             />
         </div>

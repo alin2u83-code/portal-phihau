@@ -61,7 +61,7 @@ export const useUserRoles = (userId: string | undefined) => {
         setError(null);
 
         try {
-            const { data: roles, error: rolesError } = await supabase
+            const { data: rolesData, error: rolesError } = await supabase
                 .from('utilizator_roluri_multicont')
                 .select(`
                     id, 
@@ -72,12 +72,33 @@ export const useUserRoles = (userId: string | undefined) => {
                     rol_denumire, 
                     nume_utilizator_cache, 
                     roluri:rol_id(nume), 
-                    club:club_id(id, nume), 
-                    sportiv:sportiv_id(id, nume, prenume, grad_actual_id)
+                    club:club_id(id, nume)
                 `)
                 .eq('user_id', userId);
 
             if (rolesError) throw rolesError;
+
+            // Fetch sportiv details from the view for all roles
+            const sportivIds = rolesData?.map(r => r.sportiv_id).filter(Boolean) || [];
+            let sportiviMap: Record<string, any> = {};
+            
+            if (sportivIds.length > 0) {
+                const { data: sportiviData, error: sportiviError } = await supabase
+                    .from('vedere_cluburi_sportivi')
+                    .select('id, nume, prenume, user_id, email, username, club_id, familie_id, grad_actual_id, grad_actual')
+                    .in('id', sportivIds);
+                
+                if (!sportiviError && sportiviData) {
+                    sportiviData.forEach(s => {
+                        sportiviMap[s.id] = s;
+                    });
+                }
+            }
+
+            const roles = rolesData?.map(r => ({
+                ...r,
+                sportiv: sportiviMap[r.sportiv_id] || null
+            })) || [];
 
             if (!roles || roles.length === 0) {
                 setNeedsRoleSelection(true);

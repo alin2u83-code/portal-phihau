@@ -4,7 +4,7 @@ import { BellIcon } from './icons';
 import { useNotifications } from '../contexts/NotificationContext';
 
 function timeAgo(date: string) {
-    const seconds = Math.floor((new Date().getTime() - new Date(date).getTime()) / 1000);
+    const seconds = Math.floor((new Date().getTime() - new Date((date || '').toString().slice(0, 19)).getTime()) / 1000);
     let interval = seconds / 31536000;
     if (interval > 1) return `${Math.floor(interval)} ani`;
     interval = seconds / 2592000;

@@ -79,7 +79,7 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
         const sportiviFiltrati = sportivi.filter(s => s.status === 'Activ' && (grupaId ? s.grupa_id === String(grupaId) : true));
         
         const antrenamenteInLuna = antrenamente.filter(a => {
-            const date = new Date(a.data);
+            const date = new Date((a.data || '').toString().slice(0, 10));
             return date.getFullYear() === year && date.getMonth() === month;
         });
 

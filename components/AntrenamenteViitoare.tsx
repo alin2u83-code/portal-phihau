@@ -31,7 +31,7 @@ export const AntrenamenteViitoare: React.FC<AntrenamenteViitoareProps> = ({ curr
             const isInGroup = a.grupa_id === currentUser.grupa_id;
             const isVacationTraining = currentUser.participa_vacanta && a.grupa_id === null;
             if (isInGroup || isVacationTraining) {
-                const dateKey = a.data;
+                const dateKey = (a.data || '').toString().slice(0, 10);
                 const existing = events.get(dateKey) || [];
                 const groupName = a.grupa_id ? (grupe.find(g => g.id === a.grupa_id)?.denumire || 'Grupă') : 'Liber (Vacanță)';
                 events.set(dateKey, [...existing, { time: `${a.ora_start} - ${a.ora_sfarsit}`, groupName, antrenament: a }]);
@@ -49,7 +49,7 @@ export const AntrenamenteViitoare: React.FC<AntrenamenteViitoareProps> = ({ curr
         const statusMap = new Map<string, 'prezent' | 'absent' | 'viitor' | 'neanuntat'>();
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        const todayString = today.toLocaleDateString('en-CA');
+        const todayString = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().split('T')[0];
 
         trainingsByDate.forEach((dayTrainings, dateKey) => {
             const date = new Date(dateKey + 'T00:00:00');
@@ -95,7 +95,7 @@ export const AntrenamenteViitoare: React.FC<AntrenamenteViitoareProps> = ({ curr
     }, [displayDate]);
 
     const selectedDayEvents = useMemo(() => {
-        const dateKey = selectedDate.toISOString().split('T')[0];
+        const dateKey = new Date(selectedDate.getTime() - selectedDate.getTimezoneOffset() * 60000).toISOString().split('T')[0];
         const events = trainingsByDate.get(dateKey) || [];
         const today = new Date(); today.setHours(0,0,0,0);
         const isPast = selectedDate < today;
@@ -115,7 +115,7 @@ export const AntrenamenteViitoare: React.FC<AntrenamenteViitoareProps> = ({ curr
         });
     }, [selectedDate, trainingsByDate, anunturi]);
 
-    const todayString = useMemo(() => new Date().toLocaleDateString('en-CA'), []);
+    const todayString = useMemo(() => new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0], []);
 
     return (
         <Card>
@@ -137,10 +137,10 @@ export const AntrenamenteViitoare: React.FC<AntrenamenteViitoareProps> = ({ curr
                 {days.map((day, index) => {
                     if (!day) return <div key={`pad-${index}`} className="w-full h-10"></div>;
                     
-                    const dateString = day.toISOString().split('T')[0];
+                    const dateString = new Date(day.getTime() - day.getTimezoneOffset() * 60000).toISOString().split('T')[0];
                     const status = dayStatusMap.get(dateString);
                     const isToday = dateString === todayString;
-                    const isSelected = dateString === selectedDate.toISOString().split('T')[0];
+                    const isSelected = dateString === new Date(selectedDate.getTime() - selectedDate.getTimezoneOffset() * 60000).toISOString().split('T')[0];
                     
                     const statusColorClass = {
                         prezent: 'bg-green-500',

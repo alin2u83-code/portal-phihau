@@ -76,7 +76,7 @@ export const EvenimenteWidget: React.FC<EvenimenteWidgetProps> = ({ sportivId, c
                                     <div>
                                         <p className="font-medium text-white text-sm">{ev.denumire}</p>
                                         <p className="text-[10px] text-slate-400 flex items-center gap-1">
-                                            <CalendarDaysIcon className="w-3 h-3" /> {new Date(ev.data).toLocaleDateString('ro-RO')}
+                                            <CalendarDaysIcon className="w-3 h-3" /> {new Date((ev.data || '').toString().slice(0, 10)).toLocaleDateString('ro-RO')}
                                             <span className={`ml-1 px-1.5 py-0.5 rounded-sm ${ev.tip === 'Stagiu' ? 'bg-amber-500/10 text-amber-500' : 'bg-sky-500/10 text-sky-500'}`}>
                                                 {ev.tip}
                                             </span>
@@ -103,7 +103,7 @@ export const EvenimenteWidget: React.FC<EvenimenteWidgetProps> = ({ sportivId, c
                                     <div>
                                         <p className="font-medium text-white text-sm">Examen {locatie?.nume || ex.localitate || ''}</p>
                                         <p className="text-[10px] text-slate-400 flex items-center gap-1">
-                                            <CalendarDaysIcon className="w-3 h-3" /> {new Date(ex.data).toLocaleDateString('ro-RO')}
+                                            <CalendarDaysIcon className="w-3 h-3" /> {new Date((ex.data || '').toString().slice(0, 10)).toLocaleDateString('ro-RO')}
                                         </p>
                                     </div>
                                     {isEnrolled ? 

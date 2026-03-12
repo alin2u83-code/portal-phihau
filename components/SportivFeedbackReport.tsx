@@ -56,12 +56,12 @@ export const SportivFeedbackReport: React.FC<SportivFeedbackReportProps> = ({ is
         // Trainings for the sportiv's group in the last 90 days
         const ninetyDaysAgo = new Date();
         ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
-        const relevantTrainings = antrenamente.filter(a => a.grupa_id === sportiv.grupa_id && new Date(a.data) >= ninetyDaysAgo);
+        const relevantTrainings = antrenamente.filter(a => a.grupa_id === sportiv.grupa_id && new Date((a.data || '').toString().slice(0, 10)) >= ninetyDaysAgo);
 
         // 1. Attendance Rate (last 30 days)
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        const lastMonthTrainings = relevantTrainings.filter(a => new Date(a.data) >= thirtyDaysAgo);
+        const lastMonthTrainings = relevantTrainings.filter(a => new Date((a.data || '').toString().slice(0, 10)) >= thirtyDaysAgo);
         const attendedLastMonth = lastMonthTrainings.filter(a => a.prezenta.some(p => p.sportiv_id === sportiv.id)).length;
         const attendanceRate = lastMonthTrainings.length > 0 ? Math.round((attendedLastMonth / lastMonthTrainings.length) * 100) : 0;
 
@@ -74,7 +74,7 @@ export const SportivFeedbackReport: React.FC<SportivFeedbackReportProps> = ({ is
             weekEnd.setDate(weekEnd.getDate() + 7);
             
             const count = relevantTrainings.filter(a => {
-                const trainDate = new Date(a.data);
+                const trainDate = new Date((a.data || '').toString().slice(0, 10));
                 return trainDate >= weekStart && trainDate < weekEnd && a.prezenta.some(p => p.sportiv_id === sportiv.id);
             }).length;
             return { name: `S${i+1}`, prezente: count };
@@ -83,7 +83,7 @@ export const SportivFeedbackReport: React.FC<SportivFeedbackReportProps> = ({ is
         // 3. Badge Calculations
         const now = new Date();
         const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const trainingsThisMonth = antrenamente.filter(a => a.grupa_id === sportiv.grupa_id && new Date(a.data) >= firstDayOfMonth);
+        const trainingsThisMonth = antrenamente.filter(a => a.grupa_id === sportiv.grupa_id && new Date((a.data || '').toString().slice(0, 10)) >= firstDayOfMonth);
         const attendedThisMonth = trainingsThisMonth.filter(a => a.prezenta.some(p => p.sportiv_id === sportiv.id)).length;
         const dragonPerseverent = trainingsThisMonth.length > 0 && attendedThisMonth === trainingsThisMonth.length;
         
@@ -91,13 +91,13 @@ export const SportivFeedbackReport: React.FC<SportivFeedbackReportProps> = ({ is
         const vointaDeFier = weeklyPresenceFlags.slice(0, -1).join('').includes('false,false,true');
 
         // 4. Eligibility Message
-        const admitted = participari.filter(p => p.sportiv_id === sportiv.id && p.rezultat === 'Admis').sort((a,b) => new Date(examene.find(e=>e.id===b.sesiune_id)!.data).getTime() - new Date(examene.find(e=>e.id===a.sesiune_id)!.data).getTime());
+        const admitted = participari.filter(p => p.sportiv_id === sportiv.id && p.rezultat === 'Admis').sort((a,b) => new Date((examene.find(e=>e.id===b.sesiune_id)?.data || '').toString().slice(0, 10)).getTime() - new Date((examene.find(e=>e.id===a.sesiune_id)?.data || '').toString().slice(0, 10)).getTime());
         const currentGrad = grade.find(g => g.id === admitted[0]?.grad_vizat_id);
         const sortedGrades = [...grade].sort((a, b) => a.ordine - b.ordine);
         const nextGrad = currentGrad ? sortedGrades.find(g => g.ordine === currentGrad.ordine + 1) : sortedGrades[0];
         let eligibilityMsg = "Felicitări pentru progresul de până acum!";
         if (nextGrad) {
-            const lastExamDate = admitted[0] ? new Date(examene.find(e=>e.id===admitted[0].sesiune_id)!.data) : new Date(sportiv.data_inscrierii);
+            const lastExamDate = admitted[0] ? new Date((examene.find(e=>e.id===admitted[0].sesiune_id)?.data || '').toString().slice(0, 10)) : new Date((sportiv.data_inscrierii || '').toString().slice(0, 10));
             const monthsToWait = parseDurationToMonths(nextGrad.timp_asteptare);
             const eligibilityDate = new Date(lastExamDate);
             eligibilityDate.setMonth(eligibilityDate.getMonth() + monthsToWait);

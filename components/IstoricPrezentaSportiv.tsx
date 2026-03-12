@@ -58,7 +58,7 @@ export const IstoricPrezentaSportiv: React.FC<IstoricPrezentaSportivProps> = ({ 
         const groups: Record<string, VederePrezentaSportiv[]> = {};
         
         filteredPrezente.forEach(p => {
-            const date = new Date(p.data);
+            const date = new Date((p.data || '').toString().slice(0, 10));
             const monthYear = date.toLocaleDateString('ro-RO', { month: 'long', year: 'numeric' });
             // Capitalize first letter
             const formattedMonthYear = monthYear.charAt(0).toUpperCase() + monthYear.slice(1);
@@ -115,7 +115,7 @@ export const IstoricPrezentaSportiv: React.FC<IstoricPrezentaSportivProps> = ({ 
                             <div className="flex flex-col gap-3">
                                 {records.map((record, idx) => {
                                     const isPresent = record.status?.toLowerCase() === 'prezent';
-                                    const dateObj = new Date(record.data);
+                                    const dateObj = new Date((record.data || '').toString().slice(0, 10));
                                     
                                     return (
                                         <div 

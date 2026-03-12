@@ -51,7 +51,7 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ plati, t
 
         const totalIncasatLuna = tranzactii
             .filter(t => {
-                const dataPlatii = new Date(t.data_platii);
+                const dataPlatii = new Date((t.data_platii || '').toString().slice(0, 10));
                 return dataPlatii >= firstDayOfMonth && dataPlatii <= lastDayOfMonth;
             })
             .reduce((sum, t) => sum + t.suma, 0);
@@ -79,7 +79,7 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ plati, t
         }
 
         const filteredTranzactii = tranzactii.filter(t => {
-            const dataPlatii = new Date(t.data_platii);
+            const dataPlatii = new Date((t.data_platii || '').toString().slice(0, 10));
             return dataPlatii >= startDate && dataPlatii <= endDate;
         });
 
@@ -193,7 +193,7 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ plati, t
                         <tbody className="divide-y divide-slate-700">
                             {filteredPlati.map(p => (
                                 <tr key={p.id}>
-                                    <td className="p-2">{new Date(p.data).toLocaleDateString('ro-RO')}</td>
+                                    <td className="p-2">{new Date((p.data || '').toString().slice(0, 10)).toLocaleDateString('ro-RO')}</td>
                                     <td className="p-2 font-medium">{getEntityName(p)}</td>
                                     <td className="p-2 text-right font-bold">{p.suma.toFixed(2)} RON</td>
                                     <td className="p-2">{p.tip}</td>

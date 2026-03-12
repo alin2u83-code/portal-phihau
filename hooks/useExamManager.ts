@@ -31,7 +31,9 @@ export const useExamManager = (
                 const { data, error } = response;
                 if (error) throw error;
                 if (data) {
-                    setSesiuni(prev => prev.map(e => e.id === data.id ? data as SesiuneExamen : e));
+                    const { data: viewData, error: viewError } = await supabase.from('vedere_cluburi_sesiuni_examene').select('*').eq('id', data.id).single();
+                    if (viewError) throw viewError;
+                    setSesiuni(prev => prev.map(e => e.id === viewData.id ? viewData as SesiuneExamen : e));
                     showSuccess("Succes", "Sesiunea a fost actualizată.");
                 }
             } else {
@@ -40,7 +42,9 @@ export const useExamManager = (
                 const { data, error } = response;
                 if (error) throw error;
                 if (data) {
-                    setSesiuni(prev => [...prev, data as SesiuneExamen]);
+                    const { data: viewData, error: viewError } = await supabase.from('vedere_cluburi_sesiuni_examene').select('*').eq('id', data.id).single();
+                    if (viewError) throw viewError;
+                    setSesiuni(prev => [...prev, viewData as SesiuneExamen]);
                     showSuccess("Succes", "Sesiunea a fost creată.");
                 }
             }

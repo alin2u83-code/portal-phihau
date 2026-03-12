@@ -333,7 +333,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
 
                 // Distribute the payment amount across invoices
                 let remainingPayment = sumaNum;
-                const sortedInvoices = [...platiInitiale].sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());
+                const sortedInvoices = [...platiInitiale].sort((a, b) => new Date((a.data || '').toString().slice(0, 10)).getTime() - new Date((b.data || '').toString().slice(0, 10)).getTime());
                 const processedTransactions = [];
 
                 for (const invoice of sortedInvoices) {
@@ -534,8 +534,8 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
     const sortedTranzactii = useMemo(() => {
         if (!tranzactii) return [];
         return [...tranzactii].sort((a,b) => {
-            const dateA = a.data_platii ? new Date(a.data_platii).getTime() : 0;
-            const dateB = b.data_platii ? new Date(b.data_platii).getTime() : 0;
+            const dateA = a.data_platii ? new Date((a.data_platii || '').toString().slice(0, 10)).getTime() : 0;
+            const dateB = b.data_platii ? new Date((b.data_platii || '').toString().slice(0, 10)).getTime() : 0;
             return dateB - dateA;
         });
     }, [tranzactii]);
@@ -545,7 +545,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
             key: 'data_platii',
             label: 'Data',
             render: (t) => {
-                const date = t.data_platii ? new Date(t.data_platii) : null;
+                const date = t.data_platii ? new Date((t.data_platii || '').toString().slice(0, 10)) : null;
                 const dateString = date && !isNaN(date.getTime()) ? date.toLocaleDateString('ro-RO') : 'Dată invalidă';
                 return <span className="text-sm text-slate-300">{dateString}</span>;
             }
@@ -585,7 +585,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
             <div className="flex justify-between items-start mb-2">
                 <div>
                     <p className="font-bold text-white text-lg">{getEntityName(t)}</p>
-                    <p className="text-sm text-slate-400">{new Date(t.data_platii).toLocaleDateString('ro-RO')}</p>
+                    <p className="text-sm text-slate-400">{new Date((t.data_platii || '').toString().slice(0, 10)).toLocaleDateString('ro-RO')}</p>
                 </div>
                 <span className="font-bold text-green-400 text-lg">{t.suma.toFixed(2)} RON</span>
             </div>

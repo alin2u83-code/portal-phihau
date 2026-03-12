@@ -51,7 +51,7 @@ export const SportiviTable: React.FC<SportiviTableProps> = (props) => {
         tooltip: "Gradul actual al sportivului.",
         render: (s) => {
             const gradObj = grade.find(g => g.id === s.grad_actual_id);
-            return <GradBadge grad={gradObj} />;
+            return <GradBadge grad={gradObj} gradName={s.grad_actual} />;
         }
     },
     { 
@@ -102,7 +102,7 @@ export const SportiviTable: React.FC<SportiviTableProps> = (props) => {
               <div>
                 <p className="font-bold text-white text-lg mb-1">{sportiv.nume} {sportiv.prenume}</p>
                 <div className="flex items-center gap-2 mb-2">
-                    <GradBadge grad={grad} />
+                    <GradBadge grad={grad} gradName={sportiv.grad_actual} />
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${sportiv.status === 'Activ' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                         {sportiv.status}
                     </span>

@@ -23,7 +23,7 @@ export const useAttendanceStats = (
             month: month,
             count: (istoricPrezenta || []).filter(p => 
                 p.status?.toLowerCase() === 'prezent' && 
-                new Date(p.data).toLocaleString('ro-RO', { month: 'short' }) === month
+                new Date((p.data || '').toString().slice(0, 10)).toLocaleString('ro-RO', { month: 'short' }) === month
             ).length
         }));
 
@@ -33,15 +33,15 @@ export const useAttendanceStats = (
     const gradeStats = useMemo(() => {
         if (!istoricPrezenta || !istoricGrade || !grade) return [];
 
-        const sortedGrades = [...istoricGrade].sort((a, b) => new Date(a.data_obtinere).getTime() - new Date(b.data_obtinere).getTime());
+        const sortedGrades = [...istoricGrade].sort((a, b) => new Date((a.data_obtinere || '').toString().slice(0, 10)).getTime() - new Date((b.data_obtinere || '').toString().slice(0, 10)).getTime());
         const stats = [];
 
         // 1. Start -> First Exam
         if (sortedGrades.length > 0) {
-            const firstExamDate = new Date(sortedGrades[0].data_obtinere);
+            const firstExamDate = new Date((sortedGrades[0].data_obtinere || '').toString().slice(0, 10));
             const count = istoricPrezenta.filter(p => 
                 p.status?.toLowerCase() === 'prezent' && 
-                new Date(p.data) < firstExamDate
+                new Date((p.data || '').toString().slice(0, 10)) < firstExamDate
             ).length;
             
             const gradName = grade.find(g => g.id === sortedGrades[0].grad_id)?.nume || 'Primul Examen';
@@ -54,11 +54,11 @@ export const useAttendanceStats = (
 
         // 2. Between Exams
         for (let i = 0; i < sortedGrades.length - 1; i++) {
-            const currentExamDate = new Date(sortedGrades[i].data_obtinere);
-            const nextExamDate = new Date(sortedGrades[i+1].data_obtinere);
+            const currentExamDate = new Date((sortedGrades[i].data_obtinere || '').toString().slice(0, 10));
+            const nextExamDate = new Date((sortedGrades[i+1].data_obtinere || '').toString().slice(0, 10));
             
             const count = istoricPrezenta.filter(p => {
-                const d = new Date(p.data);
+                const d = new Date((p.data || '').toString().slice(0, 10));
                 return p.status?.toLowerCase() === 'prezent' && d >= currentExamDate && d < nextExamDate;
             }).length;
 
@@ -74,9 +74,9 @@ export const useAttendanceStats = (
 
         // 3. Last Exam -> Now
         if (sortedGrades.length > 0) {
-            const lastExamDate = new Date(sortedGrades[sortedGrades.length - 1].data_obtinere);
+            const lastExamDate = new Date((sortedGrades[sortedGrades.length - 1].data_obtinere || '').toString().slice(0, 10));
             const count = istoricPrezenta.filter(p => {
-                const d = new Date(p.data);
+                const d = new Date((p.data || '').toString().slice(0, 10));
                 return p.status?.toLowerCase() === 'prezent' && d >= lastExamDate;
             }).length;
 

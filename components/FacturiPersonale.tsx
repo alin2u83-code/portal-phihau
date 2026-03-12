@@ -53,7 +53,7 @@ export const IstoricPlati: React.FC<IstoricPlatiProps> = ({ viewedUser, plati, t
                     plata_id: plata.id,
                     sportiv_id: plata.sportiv_id,
                     familie_id: plata.familie_id,
-                    nume_complet: `${viewedUser.nume} ${viewedUser.prenume}`, // Simplified
+                    nume_complet_sportiv: `${viewedUser.nume} ${viewedUser.prenume}`, // Simplified
                     descriere: plata.descriere,
                     suma_datorata: plata.suma,
                     status: plata.status,
@@ -61,7 +61,7 @@ export const IstoricPlati: React.FC<IstoricPlatiProps> = ({ viewedUser, plati, t
                     total_incasat: 0,
                     rest_de_plata: plata.status === 'Achitat' ? 0 : plata.suma,
                     tranzactie_id: null,
-                    data_plata: null,
+                    data_plata_string: null,
                     suma_incasata: null,
                     metoda_plata: null
                 });
@@ -94,7 +94,7 @@ export const IstoricPlati: React.FC<IstoricPlatiProps> = ({ viewedUser, plati, t
                         plata_id: plata.id,
                         sportiv_id: plata.sportiv_id,
                         familie_id: plata.familie_id,
-                        nume_complet: `${viewedUser.nume} ${viewedUser.prenume}`,
+                        nume_complet_sportiv: `${viewedUser.nume} ${viewedUser.prenume}`,
                         descriere: plata.descriere,
                         suma_datorata: plata.suma,
                         status: plata.status,
@@ -102,7 +102,7 @@ export const IstoricPlati: React.FC<IstoricPlatiProps> = ({ viewedUser, plati, t
                         total_incasat: 0, // Calculated later or ignored in UI for individual rows
                         rest_de_plata: plata.status === 'Achitat' ? 0 : (plata.suma - paymentTotalPaid), // Approximation
                         tranzactie_id: t.id,
-                        data_plata: t.data_platii,
+                        data_plata_string: t.data_platii,
                         suma_incasata: t.suma, // This shows the FULL transaction amount, which might be confusing if bulk.
                         metoda_plata: t.metoda_plata
                     });
@@ -118,7 +118,7 @@ export const IstoricPlati: React.FC<IstoricPlatiProps> = ({ viewedUser, plati, t
             }
         });
 
-        return history.sort((a, b) => new Date(b.data_emitere).getTime() - new Date(a.data_emitere).getTime());
+        return history.sort((a, b) => new Date((b.data_emitere || '').toString().slice(0, 10)).getTime() - new Date((a.data_emitere || '').toString().slice(0, 10)).getTime());
     }, [viewedUser, plati, tranzactii]);
 
     const totalRestant = useMemo(() => {
@@ -225,12 +225,12 @@ export const IstoricPlati: React.FC<IstoricPlatiProps> = ({ viewedUser, plati, t
                         <div className="flex justify-between items-start mb-3">
                             <div>
                                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                                    {new Date(p.data_emitere).toLocaleDateString('ro-RO', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                    {new Date((p.data_emitere || '').toString().slice(0, 10)).toLocaleDateString('ro-RO', { day: '2-digit', month: 'short', year: 'numeric' })}
                                 </span>
                                 <h4 className="text-lg font-bold text-white leading-tight mt-1">
                                     {formatDescription(p.descriere)}
                                 </h4>
-                                <p className="text-xs text-slate-400 mt-1">{p.nume_complet}</p>
+                                <p className="text-xs text-slate-400 mt-1">{p.nume_complet_sportiv}</p>
                             </div>
                             <div className="text-right">
                                 <p className="text-lg font-black text-white">
@@ -267,10 +267,10 @@ export const IstoricPlati: React.FC<IstoricPlatiProps> = ({ viewedUser, plati, t
                             )}
                         </div>
 
-                        {p.data_plata && (
+                        {p.data_plata_string && (
                             <div className="mt-2 text-[10px] text-slate-400 italic flex items-center gap-1">
                                 <span>Ultima încasare:</span>
-                                <span className="text-slate-300 font-medium">{new Date(p.data_plata).toLocaleDateString('ro-RO')}</span>
+                                <span className="text-slate-300 font-medium">{new Date((p.data_plata_string || '').toString().slice(0, 10)).toLocaleDateString('ro-RO')}</span>
                                 <span className="mx-1">•</span>
                                 <span className="text-slate-300 font-medium">{p.suma_incasata?.toFixed(2)} RON</span>
                                 <span className="mx-1">•</span>

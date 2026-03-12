@@ -63,13 +63,13 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
         const d = new Date();
         // Adjust for local timezone if necessary, but ISO string is usually UTC.
         // Assuming the server/database uses local date strings.
-        return d.toLocaleDateString('en-CA'); // 'YYYY-MM-DD'
+        return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('T')[0]; // 'YYYY-MM-DD'
     }, []);
 
     const todaysTrainings = useMemo(() => {
         return (antrenamente || [])
             .filter(a => 
-                a.data === todayString &&
+                (a.data || '').toString().slice(0, 10) === todayString &&
                 (a.grupa_id === currentUser.grupa_id || (currentUser.participa_vacanta && a.grupa_id === null))
             )
             .sort((a, b) => a.ora_start.localeCompare(b.ora_start));
@@ -134,7 +134,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
         const admittedParticipations = (participari || [])
             .filter(p => p.sportiv_id === viewedUser.id && p.rezultat === 'Admis')
             .map(p => ({ ...p, examen: (examene || []).find(e => e.id === p.sesiune_id) }))
-            .sort((a, b) => new Date(b.examen?.data || 0).getTime() - new Date(a.examen?.data || 0).getTime());
+            .sort((a, b) => new Date((b.examen?.data || '').toString().slice(0, 10) || 0).getTime() - new Date((a.examen?.data || '').toString().slice(0, 10) || 0).getTime());
         
         return getGrad(admittedParticipations[0]?.grad_vizat_id || null, grade);
     }, [participari, viewedUser.grad_actual_id, viewedUser.id, grade, examene]);
@@ -151,7 +151,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                 if (!examen || !grad) return null;
                 return {
                     source: 'examen',
-                    date: new Date(examen.data).getTime(),
+                    date: new Date((examen.data || '').toString().slice(0, 10)).getTime(),
                     grad_id: grad.id,
                     rankName: grad.nume,
                     rank: grad.ordine
@@ -166,7 +166,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                 if (!grad) return null;
                 return {
                     source: 'manual',
-                    date: new Date(hg.data_obtinere).getTime(),
+                    date: new Date((hg.data_obtinere || '').toString().slice(0, 10)).getTime(),
                     grad_id: hg.grad_id,
                     rankName: grad.nume,
                     rank: grad.ordine
@@ -205,7 +205,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                         {grupe.find(g => g.id === viewedUser.grupa_id)?.denumire || 'Fără grupă'}
                     </p>
                     <div className="mt-4 transform scale-110">
-                       <GradBadge grad={currentGrad} isLarge />
+                       <GradBadge grad={currentGrad} gradName={viewedUser.grad_actual} isLarge />
                     </div>
                     
                     {isViewingOwnProfile && (

@@ -124,7 +124,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack }) => 
                 if (!examen || !grad) return null;
                 return {
                     source: 'examen',
-                    date: new Date(examen.data).getTime(),
+                    date: new Date((examen.data || '').toString().slice(0, 10)).getTime(),
                     grad_id: grad.id,
                     rankName: grad.nume,
                     rank: grad.ordine
@@ -139,7 +139,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack }) => 
                 if (!grad) return null;
                 return {
                     source: 'manual',
-                    date: new Date(hg.data_obtinere).getTime(),
+                    date: new Date((hg.data_obtinere || '').toString().slice(0, 10)).getTime(),
                     grad_id: grad.id,
                     rankName: grad.nume,
                     rank: grad.ordine
@@ -205,7 +205,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack }) => 
 
         return { 
             totalRestante: restante, 
-            istoricFacturi: facturiProcesate.sort((a, b) => new Date(b.detalii.data_emitere).getTime() - new Date(a.detalii.data_emitere).getTime())
+            istoricFacturi: facturiProcesate.sort((a, b) => new Date((b.detalii.data_emitere || '').toString().slice(0, 10)).getTime() - new Date((a.detalii.data_emitere || '').toString().slice(0, 10)).getTime())
         };
     }, [sportiv, vizualizarePlati, sportivi]);
 
@@ -218,7 +218,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack }) => 
         const now = new Date();
         const relevantTrainings = (antrenamente || [])
             .filter(a => {
-                const trainingDate = new Date(`${a.data}T${a.ora_start || '00:00'}`);
+                const trainingDate = new Date(`${(a.data || '').toString().slice(0, 10)}T${a.ora_start || '00:00'}`);
                 if (trainingDate > now) return false;
                 
                 const isInGroup = a.grupa_id === sportiv.grupa_id;
@@ -226,7 +226,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack }) => 
                 
                 return isInGroup || isVacationTraining;
             })
-            .sort((a, b) => new Date(`${b.data}T${b.ora_start || '00:00'}`).getTime() - new Date(`${a.data}T${a.ora_start || '00:00'}`).getTime())
+            .sort((a, b) => new Date(`${(b.data || '').toString().slice(0, 10)}T${b.ora_start || '00:00'}`).getTime() - new Date(`${(a.data || '').toString().slice(0, 10)}T${a.ora_start || '00:00'}`).getTime())
             .slice(0, 3);
         
         return relevantTrainings.map(a => ({

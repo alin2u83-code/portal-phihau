@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Grupa as GrupaType, ProgramItem, User, Club } from '../../types';
+import { Grupa as GrupaType, ProgramItem, User, Club, Locatie } from '../../types';
 import { Modal, Button, Input, Select } from '../ui';
 import { useError } from '../ErrorProvider';
 import { ProgramEditor } from './ProgramEditor';
@@ -16,8 +16,9 @@ export const GrupaFormModal: React.FC<{
     grupaToEdit: GrupaWithDetails | null; 
     currentUser: User; 
     clubs: Club[]; 
-}> = ({ isOpen, onClose, onSave, grupaToEdit, currentUser, clubs }) => {
-    const [formState, setFormState] = useState({ denumire: '', sala: '', club_id: '' });
+    locatii: Locatie[];
+}> = ({ isOpen, onClose, onSave, grupaToEdit, currentUser, clubs, locatii }) => {
+    const [formState, setFormState] = useState({ denumire: '', sala: '', club_id: '', locatie_id: '' });
     const [program, setProgram] = useState<ProgramItem[]>([]);
     const [loading, setLoading] = useState(false);
     const { showError } = useError();
@@ -28,7 +29,8 @@ export const GrupaFormModal: React.FC<{
             setFormState({ 
                 denumire: grupaToEdit?.denumire || '', 
                 sala: grupaToEdit?.sala || '',
-                club_id: grupaToEdit?.club_id || (isFederationAdmin ? '' : currentUser.club_id || '')
+                club_id: grupaToEdit?.club_id || (isFederationAdmin ? '' : currentUser.club_id || ''),
+                locatie_id: (grupaToEdit as any)?.locatie_id || ''
             });
             setProgram(grupaToEdit?.program || []);
         }
@@ -45,8 +47,9 @@ export const GrupaFormModal: React.FC<{
             sala: formState.sala,
             program: program,
             club_id: formState.club_id || null,
-            sportivi: grupaToEdit?.sportivi || [{ count: 0 }]
-        };
+            sportivi: grupaToEdit?.sportivi || [{ count: 0 }],
+            locatie_id: formState.locatie_id || null
+        } as any;
         await onSave(finalGrupa);
         setLoading(false);
         onClose();
@@ -62,7 +65,10 @@ export const GrupaFormModal: React.FC<{
                         {clubs.map(c => <option key={c.id} value={c.id}>{c.nume}</option>)} 
                     </Select> 
                 )}
-                <Input label="Sala" name="sala" value={formState.sala || ''} onChange={handleChange} /> 
+                <Select label="Locație (Sala)" name="locatie_id" value={formState.locatie_id} onChange={handleChange}>
+                    <option value="">Selectează locație...</option>
+                    {locatii.map(l => <option key={l.id} value={l.id}>{l.nume}</option>)}
+                </Select>
                 <ProgramEditor program={program} setProgram={setProgram} /> 
                 <div className="flex justify-end pt-4 space-x-2">
                     <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button>

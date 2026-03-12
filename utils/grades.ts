@@ -134,9 +134,9 @@ export const generateGradeBadgeHtml = (sportiv: { nume: string; prenume: string;
  * O componentă reutilizabilă pentru afișarea unui badge de grad,
  * cu suport pentru dimensiuni diferite și stilizare conform ierarhiei.
  */
-export const GradBadge: React.FC<{ grad: Grad | null | undefined; isLarge?: boolean; className?: string }> = ({ grad, isLarge, className }) => {
-    const gradName = grad ? grad.nume : 'Începător';
-    const style = getInlineGradeStyle(gradName);
+export const GradBadge: React.FC<{ grad?: Grad | null; gradName?: string | null; isLarge?: boolean; className?: string }> = ({ grad, gradName, isLarge, className }) => {
+    const name = gradName || (grad ? grad.nume : 'Începător');
+    const style = getInlineGradeStyle(name);
     
     const sizeStyle: React.CSSProperties = isLarge 
         ? { padding: '8px 24px', fontSize: '1.875rem', fontWeight: 900 } 
@@ -148,6 +148,6 @@ export const GradBadge: React.FC<{ grad: Grad | null | undefined; isLarge?: bool
             className: `inline-block rounded-full whitespace-nowrap text-center ${className || ''}`.trim(),
             style: { ...style, ...sizeStyle }
         },
-        gradName
+        name
     );
 };

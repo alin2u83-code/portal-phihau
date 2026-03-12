@@ -4,8 +4,12 @@ import { Sportiv } from '../types';
 export const adaugaSportiv = async (formData: Partial<Sportiv>): Promise<{ success: boolean; data?: Sportiv; error?: any }> => {
     try {
         const { roluri, cluburi, ...sportivData } = formData;
-        const { data, error } = await supabase.from('sportivi').insert(sportivData).select('*, cluburi(*)').single();
+        const { data: inserted, error: insertError } = await supabase.from('sportivi').insert(sportivData).select('id').single();
+        if (insertError) throw insertError;
+        
+        const { data, error } = await supabase.from('vedere_cluburi_sportivi').select('*, cluburi(id, nume)').eq('id', inserted.id).single();
         if (error) throw error;
+        
         return { success: true, data: data as Sportiv };
     } catch (error) {
         return { success: false, error };
@@ -21,7 +25,6 @@ export const actualizeazaSportiv = async (id: string, formData: Partial<Sportiv>
         if (fetchError) throw fetchError;
 
         let nameChanged = false;
-        // Check if name/prenume changed (case insensitive comparison might be better but strict is safer for now)
         if (nume !== undefined && nume !== currentSportiv.nume) nameChanged = true;
         if (prenume !== undefined && prenume !== currentSportiv.prenume) nameChanged = true;
 
@@ -29,7 +32,7 @@ export const actualizeazaSportiv = async (id: string, formData: Partial<Sportiv>
              const newNume = nume !== undefined ? nume : currentSportiv.nume;
              const newPrenume = prenume !== undefined ? prenume : currentSportiv.prenume;
 
-             const { data: rpcData, error: rpcError } = await supabase.rpc('actualizeaza_nume_sportiv', {
+             const { error: rpcError } = await supabase.rpc('actualizeaza_nume_sportiv', {
                  p_sportiv_id: id,
                  p_nume_nou: newNume,
                  p_prenume_nou: newPrenume
@@ -38,21 +41,17 @@ export const actualizeazaSportiv = async (id: string, formData: Partial<Sportiv>
              if (rpcError) throw rpcError;
         }
 
-        let updatedSportiv: Sportiv;
-
         // Update other fields if any
         if (Object.keys(otherData).length > 0) {
-            const { data, error } = await supabase.from('sportivi').update(otherData).eq('id', id).select('*, cluburi(*)').single();
-            if (error) throw error;
-            updatedSportiv = data as Sportiv;
-        } else {
-            // Fetch updated record
-            const { data, error } = await supabase.from('sportivi').select('*, cluburi(*)').eq('id', id).single();
-            if (error) throw error;
-            updatedSportiv = data as Sportiv;
+            const { error: updateError } = await supabase.from('sportivi').update(otherData).eq('id', id);
+            if (updateError) throw updateError;
         }
 
-        return { success: true, data: updatedSportiv };
+        // Always fetch from the view to get the latest calculated/joined fields
+        const { data, error } = await supabase.from('vedere_cluburi_sportivi').select('*, cluburi(id, nume)').eq('id', id).single();
+        if (error) throw error;
+
+        return { success: true, data: data as Sportiv };
     } catch (error) {
         return { success: false, error };
     }

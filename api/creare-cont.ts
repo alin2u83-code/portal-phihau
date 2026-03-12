@@ -32,6 +32,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (authError) throw authError;
 
     // 2. Assign roles via RPC
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (userData.familie_id && !uuidRegex.test(userData.familie_id)) {
+        return res.status(400).json({ error: 'familie_id invalid.' });
+    }
+
     const { error: rpcError } = await supabaseAdmin.rpc('refactor_create_user_account', {
       p_nume: userData.nume,
       p_prenume: userData.prenume,

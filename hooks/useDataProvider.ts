@@ -129,14 +129,14 @@ export const useDataProvider = () => {
         try {
             // Încercăm să citim din view-ul optimizat
             let { data: result, error: fetchErr } = await supabase
-                .from('vedere_prezenta_sportiv')
+                .from('vedere_prezenta_detaliata')
                 .select('*')
                 .eq('sportiv_id', sportivId)
                 .order('data', { ascending: false });
 
             // Dacă view-ul nu există (404) sau avem altă eroare, facem fallback pe tabelele de bază
             if (fetchErr) {
-                console.warn("View 'vedere_prezenta_sportiv' not found or error, falling back to base tables:", fetchErr.message);
+                console.warn("View 'vedere_prezenta_detaliata' not found or error, falling back to base tables:", fetchErr.message);
                 
                 const { data: fallbackData, error: fallbackErr } = await supabase
                     .from('prezenta_antrenament')
@@ -163,7 +163,7 @@ export const useDataProvider = () => {
                         antrenament_id: row.antrenament?.id,
                         id: row.antrenament?.id,
                         sportiv_id: row.sportiv_id,
-                        data: row.antrenament?.data,
+                        data: (row.antrenament?.data || '').toString().slice(0, 10),
                         status: row.status,
                         club_id: row.antrenament?.club_id,
                         grupa_id: row.antrenament?.grupa?.id,
@@ -247,7 +247,7 @@ export const useDataProvider = () => {
             const queries: Record<string, any> = {
                 clubs: cleanedSupabase.from('cluburi').select('id, nume, theme_config'),
                 allRoles: cleanedSupabase.from('roluri').select('id, nume'),
-                grade: cleanedSupabase.from('grade').select('id, nume, nivel'),
+                grade: cleanedSupabase.from('grade').select('id, nume, nivel, ordine'),
                 tipuriAbonament: cleanedSupabase.from('vedere_cluburi_tipuri_abonament').select('id, denumire, pret, numar_membri'),
                 tipuriPlati: cleanedSupabase.from('tipuri_plati').select('id, nume'),
                 sesiuniExamene: cleanedSupabase.from('vedere_cluburi_sesiuni_examene').select('*'),

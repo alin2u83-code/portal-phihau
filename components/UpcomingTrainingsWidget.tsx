@@ -16,20 +16,22 @@ export const UpcomingTrainingsWidget: React.FC<UpcomingTrainingsWidgetProps> = (
 
         return (antrenamente || [])
             .filter(a => {
-                const trainingDate = new Date(a.data + 'T00:00:00');
+                const trainingDate = new Date((a.data || '').toString().slice(0, 10) + 'T00:00:00');
                 const isInGroup = a.grupa_id === currentUser.grupa_id;
                 const isVacationTraining = currentUser.participa_vacanta && a.grupa_id === null;
                 return trainingDate >= today && (isInGroup || isVacationTraining);
             })
             .sort((a, b) => {
-                if (a.data !== b.data) return a.data.localeCompare(b.data);
+                const dataA = (a.data || '').toString().slice(0, 10);
+                const dataB = (b.data || '').toString().slice(0, 10);
+                if (dataA !== dataB) return dataA.localeCompare(dataB);
                 return a.ora_start.localeCompare(b.ora_start);
             })
             .slice(0, 5); // Show next 5
     }, [antrenamente, currentUser]);
 
     const formatDate = (dateStr: string) => {
-        const date = new Date(dateStr + 'T00:00:00');
+        const date = new Date((dateStr || '').toString().slice(0, 10) + 'T00:00:00');
         return date.toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'short' });
     };
 

@@ -9,7 +9,6 @@ export const LegitimatiiPage: React.FC = () => {
     const [legitimatii, setLegitimatii] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
-    const [savingId, setSavingId] = useState<string | null>(null);
 
     React.useEffect(() => {
         const fetchLegitimatii = async () => {
@@ -31,23 +30,6 @@ export const LegitimatiiPage: React.FC = () => {
             l.prenume.toLowerCase().includes(searchTerm.toLowerCase())
         );
     }, [legitimatii, searchTerm]);
-
-    const handleSave = async (sportivId: string, nrLegitimatie: string) => {
-        setSavingId(sportivId);
-        const { error } = await supabase
-            .from('sportivi')
-            .update({ nr_legitimatie: nrLegitimatie })
-            .eq('id', sportivId);
-
-        if (error) {
-            toast.error("Eroare la salvarea numărului de legitimație");
-            console.error(error);
-        } else {
-            toast.success("Numărul de legitimație a fost salvat!");
-            setLegitimatii(prev => prev.map(l => l.sportiv_id === sportivId ? { ...l, nr_legitimatie: nrLegitimatie } : l));
-        }
-        setSavingId(null);
-    };
 
     if (loading) return <div>Se încarcă...</div>;
 
@@ -74,26 +56,11 @@ export const LegitimatiiPage: React.FC = () => {
                             <th className="text-left py-2">Prenume</th>
                             <th className="text-left py-2">Grad</th>
                             <th className="text-left py-2">Nr. Legitimație</th>
-                            <th className="text-left py-2">Acțiuni</th>
                         </tr>
                     </thead>
                     <tbody>
                         {filteredLegitimatii.map((l, index) => (
-                            <tr key={`${l.sportiv_id}-${index}`} className="border-b border-slate-700/50">
-                                <td className="py-2">{l.nume}</td>
-                                <td className="py-2">{l.prenume}</td>
-                                <td className="py-2">{l.grad}</td>
-                                <td className="py-2">
-                                    <Input 
-                                        label="Nr. Legitimație"
-                                        value={l.nr_legitimatie || ''} 
-                                        onChange={(e) => setLegitimatii(prev => prev.map(item => item.sportiv_id === l.sportiv_id ? {...item, nr_legitimatie: e.target.value} : item))}
-                                    />
-                                </td>
-                                <td className="py-2">
-                                    <Button size="sm" onClick={() => handleSave(l.sportiv_id, l.nr_legitimatie)} isLoading={savingId === l.sportiv_id}>Salvare</Button>
-                                </td>
-                            </tr>
+                            <LegitimatieRow key={l.sportiv_id || l.id || index} legitimatie={l} />
                         ))}
                     </tbody>
                 </table>
@@ -102,18 +69,85 @@ export const LegitimatiiPage: React.FC = () => {
             {/* Mobile Cards */}
             <div className="md:hidden space-y-4">
                 {filteredLegitimatii.map((l, index) => (
-                    <Card key={`${l.sportiv_id}-${index}`} className="p-4 bg-slate-800">
-                        <div className="font-bold text-lg">{l.nume} {l.prenume}</div>
-                        <div className="text-slate-400 mb-2">Grad: {l.grad}</div>
-                        <Input 
-                            label="Număr Legitimație"
-                            value={l.nr_legitimatie || ''} 
-                            onChange={(e) => setLegitimatii(prev => prev.map(item => item.sportiv_id === l.sportiv_id ? {...item, nr_legitimatie: e.target.value} : item))}
-                            onBlur={() => handleSave(l.sportiv_id, l.nr_legitimatie)}
-                        />
-                    </Card>
+                    <LegitimatieCard key={l.sportiv_id || l.id || index} legitimatie={l} />
                 ))}
             </div>
+        </Card>
+    );
+};
+
+const LegitimatieRow: React.FC<{ legitimatie: any }> = ({ legitimatie }) => {
+    const [value, setValue] = useState(legitimatie.nr_legitimatie || '');
+    const [saving, setSaving] = useState(false);
+
+    const handleSave = async () => {
+        if (value === legitimatie.nr_legitimatie) return;
+        setSaving(true);
+        const { error } = await supabase
+            .from('sportivi')
+            .update({ nr_legitimatie: value })
+            .eq('id', legitimatie.id || legitimatie.sportiv_id);
+
+        if (error) {
+            toast.error("Eroare la salvare");
+            console.error(error);
+        } else {
+            toast.success("Salvat!");
+        }
+        setSaving(false);
+    };
+
+    return (
+        <tr className="border-b border-slate-700/50">
+            <td className="py-2">{legitimatie.nume}</td>
+            <td className="py-2">{legitimatie.prenume}</td>
+            <td className="py-2">{legitimatie.grad}</td>
+            <td className="py-2 flex items-center gap-2">
+                <Input 
+                    label=""
+                    value={value} 
+                    onChange={(e) => setValue(e.target.value)}
+                    disabled={saving}
+                />
+                <Button size="sm" onClick={handleSave} isLoading={saving}>Salvare</Button>
+            </td>
+        </tr>
+    );
+};
+
+const LegitimatieCard: React.FC<{ legitimatie: any }> = ({ legitimatie }) => {
+    const [value, setValue] = useState(legitimatie.nr_legitimatie || '');
+    const [saving, setSaving] = useState(false);
+
+    const handleSave = async () => {
+        if (value === legitimatie.nr_legitimatie) return;
+        setSaving(true);
+        const { error } = await supabase
+            .from('sportivi')
+            .update({ nr_legitimatie: value })
+            .eq('id', legitimatie.id || legitimatie.sportiv_id);
+
+        if (error) {
+            toast.error("Eroare la salvare");
+            console.error(error);
+        } else {
+            toast.success("Salvat!");
+        }
+        setSaving(false);
+    };
+
+    return (
+        <Card className="p-4 bg-slate-800">
+            <div className="font-bold text-lg">{legitimatie.nume} {legitimatie.prenume}</div>
+            <div className="text-slate-400 mb-2">Grad: {legitimatie.grad}</div>
+            <Input 
+                label="Număr Legitimație"
+                value={value} 
+                onChange={(e) => setValue(e.target.value)}
+                onBlur={handleSave}
+                disabled={saving}
+                className="w-full"
+            />
         </Card>
     );
 };

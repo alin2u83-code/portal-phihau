@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import toast, { Toaster } from 'react-hot-toast';
 import { supabase } from '../supabaseClient';
 import { 
     Sportiv, SesiuneExamen, Grad, InscriereExamen, Antrenament, Grupa, Plata, 
@@ -196,12 +197,27 @@ export const useDataProvider = () => {
                     }
                 )
                 .subscribe();
+            
+            const anunturiSubscription = supabase
+                .channel('anunturi_prezenta_changes')
+                .on(
+                    'postgres_changes',
+                    { event: 'INSERT', schema: 'public', table: 'anunturi_prezenta' },
+                    (payload) => {
+                        if (activeRole === 'INSTRUCTOR') {
+                            const { sportiv_nume, data_antrenament } = payload.new as any;
+                            toast.success(`${sportiv_nume} a confirmat prezența la antrenamentul din data de ${data_antrenament}`);
+                        }
+                    }
+                )
+                .subscribe();
 
             return () => {
                 supabase.removeChannel(subscription);
+                supabase.removeChannel(anunturiSubscription);
             };
         }
-    }, [currentUser?.id, fetchIstoricVedere]);
+    }, [currentUser?.id, fetchIstoricVedere, activeRole]);
 
     const fetchAppData = useCallback(async (activeCtx: any) => {
         try {

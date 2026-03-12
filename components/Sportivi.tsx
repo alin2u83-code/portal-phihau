@@ -109,19 +109,15 @@ export const Sportivi: React.FC<{
         clubFilter: permissions.isFederationAdmin ? '' : (currentUser.club_id || ''),
     });
 
-    // Ensure clubFilter is correct if user is not admin
+    // Reset page on filter change
     React.useEffect(() => {
-        if (!permissions.isFederationAdmin && currentUser?.club_id && filters.clubFilter !== currentUser.club_id) {
-            setFilters(prev => ({ ...prev, clubFilter: currentUser.club_id || '' }));
-        }
-        setPage(1); // Reset page on filter change
-    }, [permissions.isFederationAdmin, currentUser?.club_id, filters.clubFilter, setFilters, filters.searchTerm, filters.statusFilter, filters.grupaFilter, filters.rolFilter, filters.gradFilter]);
+        setPage(1);
+    }, [filters.searchTerm, filters.statusFilter, filters.grupaFilter, filters.rolFilter, filters.gradFilter, setFilters]);
 
     const [page, setPage] = useState(1);
     const pageSize = 50;
 
     const { data: sportiviData, isLoading: sportiviLoading, error: sportiviError, count: totalSportivi } = useSportivi({
-        clubId: filters.clubFilter,
         status: filters.statusFilter,
         gradId: filters.gradFilter !== 'null' ? filters.gradFilter : undefined,
         rolId: filters.rolFilter,
@@ -400,8 +396,6 @@ export const Sportivi: React.FC<{
                 grupe={grupe}
                 allRoles={allRoles}
                 grade={grade}
-                clubs={clubs}
-                permissions={permissions}
             />
 
             {loading ? (

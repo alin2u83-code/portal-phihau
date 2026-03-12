@@ -247,11 +247,17 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
                 ...Array.from(uiPresentIds)
             ]);
             
-            const recordsToUpsert = Array.from(allInvolvedIds).map(sportivId => ({
-                antrenament_id: antrenamentId,
-                sportiv_id: sportivId,
-                status: uiPresentIds.has(sportivId) ? 'Prezent' : 'Absent'
-            }));
+            const recordsToUpsert = Array.from(allInvolvedIds).map(sportivId => {
+                const sportiv = allClubSportivi.find(s => s.id === sportivId);
+                return {
+                    antrenament_id: antrenamentId,
+                    sportiv_id: sportivId,
+                    status: uiPresentIds.has(sportivId) ? 'Prezent' : 'Absent',
+                    club_id: sportiv?.club_id
+                };
+            });
+
+            console.log("Saving attendance records:", recordsToUpsert);
 
             if (recordsToUpsert.length > 0) {
                 const { error } = await supabase.from('prezenta_antrenament').upsert(recordsToUpsert, { onConflict: 'antrenament_id, sportiv_id' });

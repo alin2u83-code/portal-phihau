@@ -3,7 +3,6 @@ import { supabase } from '../supabaseClient';
 import { Sportiv } from '../types';
 
 export interface SportiviFilters {
-    clubId?: string | null;
     status?: string;
     rolId?: string;
     gradId?: string;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Sportiv, Grupa, Grad, Familie, TipAbonament, Club, User } from '../../types';
+import { Sportiv, Grupa, Grad, Familie, TipAbonament, Club, User, Rol } from '../../types';
 import { Modal, Button } from '../ui';
 import { useError } from '../ErrorProvider';
 import { useSportivForm } from '../../hooks/useSportivForm';
@@ -30,8 +30,9 @@ export const SportivFormModal: React.FC<{
     clubs: Club[];
     currentUser: User | null;
     clubFilter?: string;
+    allRoles: Rol[];
 }> = ({ 
-  isOpen, onClose, onSave, sportivToEdit, grupe, setGrupe, grade, familii, setFamilii, tipuriAbonament, clubs, currentUser, clubFilter
+  isOpen, onClose, onSave, sportivToEdit, grupe, setGrupe, grade, familii, setFamilii, tipuriAbonament, clubs, currentUser, clubFilter, allRoles
 }) => {
     const { showError } = useError();
     const [loading, setLoading] = useState(false);
@@ -128,6 +129,7 @@ export const SportivFormModal: React.FC<{
                         currentUser={currentUser}
                         onQuickAddGrupa={() => setIsGrupaModalOpen(true)}
                         onQuickAddFamilie={() => setIsFamilieModalOpen(true)}
+                        allRoles={allRoles}
                     />
                     <div className="flex justify-end pt-4 mt-4 gap-2 border-t border-slate-700">
                         <Button type="button" variant="secondary" onClick={() => onClose()} disabled={loading}>Închide</Button>

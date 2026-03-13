@@ -85,9 +85,9 @@ export const useDataProvider = () => {
     const attendanceData = useAttendanceData();
 
     // Use custom hooks for data fetching
-    const { data: sportiviData, isLoading: sportiviLoading, error: sportiviError } = useSportivi();
-    const { data: platiData, isLoading: platiLoading, error: platiError } = usePlati(null);
-    const { data: grupeData, isLoading: grupeLoading, error: grupeError } = useGrupe(null);
+    const { data: sportiviData, isLoading: sportiviLoading, error: sportiviError } = useSportivi({}, undefined, undefined, activeRoleContext?.id);
+    const { data: platiData, isLoading: platiLoading, error: platiError } = usePlati(activeRoleContext?.id);
+    const { data: grupeData, isLoading: grupeLoading, error: grupeError } = useGrupe(activeRoleContext?.id);
 
     // Update state when data changes de la hook-urile secundare
     useEffect(() => {
@@ -263,7 +263,7 @@ export const useDataProvider = () => {
             const queries: Record<string, any> = {
                 clubs: cleanedSupabase.from('cluburi').select('id, nume, theme_config'),
                 allRoles: cleanedSupabase.from('roluri').select('id, nume'),
-                grade: cleanedSupabase.from('grade').select('id, nume, nivel, ordine'),
+                grade: cleanedSupabase.from('grade').select('*'),
                 tipuriAbonament: cleanedSupabase.from('vedere_cluburi_tipuri_abonament').select('id, denumire, pret, numar_membri'),
                 tipuriPlati: cleanedSupabase.from('tipuri_plati').select('id, nume'),
                 sesiuniExamene: cleanedSupabase.from('vedere_cluburi_sesiuni_examene').select('*'),

@@ -21,6 +21,18 @@ class ErrorBoundary extends Component<Props, State> {
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("Uncaught error:", error, errorInfo);
+    
+    // Auto-reload on dynamic import failure (common after server restarts)
+    if (error.message.includes('Failed to fetch dynamically imported module')) {
+        const lastReload = sessionStorage.getItem('last-dynamic-import-reload');
+        const now = Date.now();
+        
+        // Only auto-reload if we haven't reloaded in the last 10 seconds to avoid loops
+        if (!lastReload || now - parseInt(lastReload) > 10000) {
+            sessionStorage.setItem('last-dynamic-import-reload', now.toString());
+            window.location.reload();
+        }
+    }
   }
 
   public render() {

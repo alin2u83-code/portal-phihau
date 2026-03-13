@@ -44,7 +44,7 @@ export const SportiviFilter: React.FC<SportiviFilterProps> = ({ filters, onFilte
         onChange={(e) => onFilterChange('grupaFilter', e.target.value)}
       >
         <option value="">Toate Grupele</option>
-        {(grupe || []).map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
+        {(grupe || []).map(g => <option key={g.id} value={g.id}>{g.denumire || 'Fără denumire'}</option>)}
       </Select>
       <Select
         label="Rol"
@@ -60,8 +60,7 @@ export const SportiviFilter: React.FC<SportiviFilterProps> = ({ filters, onFilte
         onChange={(e) => onFilterChange('gradFilter', e.target.value)}
       >
         <option value="">Toate Gradele</option>
-        <option value="null">Fără Grad</option>
-        {(grade || []).map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}
+        {[...(grade || [])].sort((a,b) => a.ordine - b.ordine).map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}
       </Select>
     </div>
   );

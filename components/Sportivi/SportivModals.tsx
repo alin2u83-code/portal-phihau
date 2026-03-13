@@ -109,6 +109,7 @@ export const SportivModals: React.FC<SportivModalsProps> = ({
                     clubs={clubs}
                     currentUser={currentUser}
                     clubFilter={clubFilter}
+                    allRoles={allRoles}
                 />
             )}
 

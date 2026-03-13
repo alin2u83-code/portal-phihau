@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
-import { Sportiv, Grupa, Familie, TipAbonament, Club, User, Grad } from '../../types';
+import { Sportiv, Grupa, Familie, TipAbonament, Club, User, Grad, Rol } from '../../types';
 import { Button, Input, Select, FormSection, Switch } from '../ui';
 import { PlusIcon } from '../icons';
 import { FEDERATIE_ID } from '../../constants';
@@ -17,6 +17,7 @@ interface SportivFormFieldsProps {
     currentUser: User | null;
     onQuickAddGrupa: () => void;
     onQuickAddFamilie: () => void;
+    allRoles: Rol[];
 }
 
 export const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
@@ -31,6 +32,7 @@ export const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
     currentUser,
     onQuickAddGrupa,
     onQuickAddFamilie,
+    allRoles,
 }) => {
     const formData = initialData;
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -72,6 +74,21 @@ export const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
 
         (updatedData as any)[name] = finalValue;
         
+        if (name === 'roluri') {
+            // Handle role selection (array of Rol objects)
+            const roleId = value;
+            const isChecked = checked;
+            const currentRoles = updatedData.roluri || [];
+            if (isChecked) {
+                const roleToAdd = allRoles.find(r => r.id === roleId);
+                if (roleToAdd && !currentRoles.some(r => r.id === roleId)) {
+                    updatedData.roluri = [...currentRoles, roleToAdd];
+                }
+            } else {
+                updatedData.roluri = currentRoles.filter(r => r.id !== roleId);
+            }
+        }
+
         if (name === 'club_id') {
             const currentGroup = grupe.find(g => g.id === updatedData.grupa_id);
             if (currentGroup && currentGroup.club_id !== finalValue) {
@@ -171,6 +188,28 @@ export const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
                             <Input label="Parolă" name="parola" value={formData.parola || ''} onChange={handleChange} disabled={loading} required error={errors.parola} />
                         </FormSection>
                     )}
+
+                    <FormSection title="Roluri Utilizator">
+                        <div className="col-span-full">
+                            <p className="text-xs text-slate-400 mb-3">Selectați rolurile de acces pentru acest sportiv. Rolul 'SPORTIV' este implicit.</p>
+                            <div className="flex flex-wrap gap-4">
+                                {allRoles.map(role => (
+                                    <label key={role.id} className="flex items-center space-x-2 text-sm cursor-pointer bg-slate-800/50 p-2 rounded-lg border border-slate-700 hover:bg-slate-700 transition-colors">
+                                        <input
+                                            type="checkbox"
+                                            name="roluri"
+                                            value={role.id}
+                                            className="h-4 w-4 rounded border-slate-500 bg-slate-800 text-indigo-600 focus:ring-indigo-500"
+                                            checked={(formData.roluri || []).some(r => r.id === role.id)}
+                                            onChange={handleChange}
+                                            disabled={loading || (role.nume === 'SPORTIV' && !formData.id)}
+                                        />
+                                        <span className="text-slate-200">{role.nume}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+                    </FormSection>
                 </div>
             )}
 

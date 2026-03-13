@@ -39,12 +39,12 @@ export interface SportivProgramPersonalizat {
 }
 
 // --- Domain: Club & Organization ---
-export interface Categorie {
+export interface NomCategorieCompetitie {
   id: string;
   denumire: string;
   varsta_min: number;
   varsta_max: number;
-  ordine_afisare: number;
+  ordine_afisare: number | null;
 }
 
 export interface Club {

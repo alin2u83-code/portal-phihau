@@ -20,17 +20,7 @@ import { useRoleAssignment } from '../hooks/useRoleAssignment';
 import { useSportivi } from '../hooks/useSportivi';
 import { useData } from '../contexts/DataContext';
 import { useFamilyManager } from '../hooks/useFamilyManager';
-
-const getAge = (dateString: string | null | undefined): number => {
-    if (!dateString) return 0;
-    const today = new Date();
-    const birthDate = new Date(dateString.includes('T') ? dateString : dateString + 'T00:00:00');
-    if (isNaN(birthDate.getTime())) { return 0; }
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const m = today.getMonth() - birthDate.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; }
-    return age;
-};
+import { getAge } from '../utils/date';
 
 
 
@@ -64,6 +54,7 @@ export const Sportivi: React.FC<{
         tranzactii = [],
         tipuriAbonament = [],
         vizualizarePlati = [],
+        activeRoleContext,
     } = useData();
 
     const { showError, showSuccess } = useError();
@@ -123,7 +114,7 @@ export const Sportivi: React.FC<{
         rolId: filters.rolFilter,
         searchTerm: filters.searchTerm,
         grupaId: filters.grupaFilter
-    }, { page, pageSize });
+    }, { page, pageSize }, undefined, activeRoleContext?.id);
     
     const sportivi = sportiviData || [];
     const hasMore = sportivi.length < totalSportivi;
@@ -230,7 +221,7 @@ export const Sportivi: React.FC<{
 
 
 
-    const { createAccountAndAssignRole } = useRoleAssignment(currentUser, allRoles);
+    const { createAccountAndAssignRole, updateRoles } = useRoleAssignment(currentUser, allRoles);
 
     const handleSave = async (formData: Partial<Sportiv>): Promise<{ success: boolean; error?: any; data?: Sportiv; }> => {
         try {
@@ -238,8 +229,20 @@ export const Sportivi: React.FC<{
                 const result = await actualizeazaSportiv(sportivToEdit.id, formData);
                 if (!result.success) throw result.error;
     
-                // Preserve existing roles since we don't update them here yet
-                const updatedSportiv = { ...result.data!, roluri: sportivToEdit.roluri };
+                // Update roles if they changed
+                const currentRoleIds = (sportivToEdit.roluri || []).map(r => r.id).sort().join(',');
+                const newRoleIds = (formData.roluri || []).map(r => r.id).sort().join(',');
+                
+                let finalRoles = sportivToEdit.roluri;
+                if (currentRoleIds !== newRoleIds) {
+                    const roleIds = (formData.roluri || []).map(r => r.id);
+                    const updatedRoles = await updateRoles(sportivToEdit, roleIds);
+                    if (updatedRoles) {
+                        finalRoles = updatedRoles;
+                    }
+                }
+    
+                const updatedSportiv = { ...result.data!, roluri: finalRoles };
     
                 setSportivi(prev => prev.map(s => s.id === sportivToEdit.id ? updatedSportiv : s));
                 queryClient.invalidateQueries({ queryKey: ['sportivi'] });
@@ -274,19 +277,22 @@ export const Sportivi: React.FC<{
                             .eq('id', existingSportiv.id);
                         if (updateError) throw updateError;
                     }
-                    // For existing sportiv, we skip the account creation if it already has a user_id
-                    // Or we just assign the role if it doesn't have one
-                    // This is handled by createAccountAndAssignRole or a separate logic
                 }
 
-                const sportivRole = allRoles.find(r => r.nume === 'SPORTIV');
-                if (!sportivRole) throw new Error("Rolul de bază 'SPORTIV' nu a fost găsit.");
+                // Use selected roles or default to SPORTIV
+                let rolesToAssign = roluri || [];
+                if (rolesToAssign.length === 0) {
+                    const sportivRole = allRoles.find(r => r.nume === 'SPORTIV');
+                    if (sportivRole) rolesToAssign = [sportivRole];
+                }
+
+                if (rolesToAssign.length === 0) throw new Error("Rolul de bază 'SPORTIV' nu a fost găsit.");
 
                 const result = await createAccountAndAssignRole(
                     email,
                     parola,
                     profileData,
-                    [sportivRole]
+                    rolesToAssign
                 );
 
                 if (!result.success || !result.sportiv) {
@@ -461,6 +467,7 @@ export const Sportivi: React.FC<{
                 clubs={clubs}
                 currentUser={currentUser}
                 clubFilter={filters.clubFilter}
+                allRoles={allRoles}
             />
 
             <SportivModals

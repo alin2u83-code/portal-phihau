@@ -25,9 +25,9 @@ export const fetchSportiviData = async (
     pagination?: PaginationOptions,
     sort?: SortOptions
 ): Promise<{ data: Sportiv[], count: number }> => {
-    let selectString = 'id, user_id, nume, prenume, email, username, status, familie_id, club_id, grupa_id, grad_actual_id, grad_actual, cluburi(id, nume), roluri:utilizator_roluri_multicont(id, rol_id, rol_denumire)';
+    let selectString = 'id, user_id, nume, prenume, email, username, status, familie_id, club_id, grupa_id, grad_actual_id, grad_actual, data_nasterii, data_inscrierii, cnp, telefon, adresa, gen, cluburi(id, nume), roluri:utilizator_roluri_multicont(id, rol_id, rol_denumire)';
     if (filters.rolId) {
-        selectString = 'id, user_id, nume, prenume, email, username, status, familie_id, club_id, grupa_id, grad_actual_id, grad_actual, cluburi(id, nume), roluri:utilizator_roluri_multicont!inner(id, rol_id, rol_denumire)';
+        selectString = 'id, user_id, nume, prenume, email, username, status, familie_id, club_id, grupa_id, grad_actual_id, grad_actual, data_nasterii, data_inscrierii, cnp, telefon, adresa, gen, cluburi(id, nume), roluri:utilizator_roluri_multicont!inner(id, rol_id, rol_denumire)';
     }
 
     let query = supabase
@@ -78,10 +78,11 @@ export const fetchSportiviData = async (
 export const useSportivi = (
     filters: SportiviFilters = {},
     pagination?: PaginationOptions,
-    sort?: SortOptions
+    sort?: SortOptions,
+    contextId?: string
 ) => {
     const queryResult = useQuery<{ data: Sportiv[], count: number }, Error>({
-        queryKey: ['sportivi', filters, pagination, sort],
+        queryKey: ['sportivi', filters, pagination, sort, contextId],
         queryFn: () => fetchSportiviData(filters, pagination, sort),
     });
 

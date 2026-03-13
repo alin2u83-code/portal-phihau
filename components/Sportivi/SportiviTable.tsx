@@ -4,6 +4,7 @@ import { ResponsiveTable, Column } from '../ResponsiveTable';
 import { GradBadge } from '../../utils/grades';
 import { Button, Card, RoleBadge } from '../ui';
 import { EditIcon, WalletIcon, ShieldCheckIcon, TrashIcon } from '../icons';
+import { getAge } from '../../utils/date';
 
 interface SportiviTableProps {
   sportivi: Sportiv[];
@@ -20,17 +21,6 @@ interface SportiviTableProps {
   onSearchChange?: (value: string) => void;
 }
 
-const getAge = (dateString: string | null | undefined): number => {
-    if (!dateString) return 0;
-    const today = new Date();
-    const birthDate = new Date(dateString.includes('T') ? dateString : dateString + 'T00:00:00');
-    if (isNaN(birthDate.getTime())) { return 0; }
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const m = today.getMonth() - birthDate.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; }
-    return age;
-};
-
 export const SportiviTable: React.FC<SportiviTableProps> = (props) => {
   const { sportivi, grupe, grade, onRowClick, onEdit, onOpenWallet, onOpenAccountSettings, onDelete, requestSort, sortConfig, searchTerm, onSearchChange } = props;
 
@@ -40,8 +30,14 @@ export const SportiviTable: React.FC<SportiviTableProps> = (props) => {
         label: 'Nume Complet',
         tooltip: "Numele complet al sportivului.",
         render: (s) => (
-            <div>
-                <div className="font-bold text-white hover:text-brand-primary">{s.nume} {s.prenume} <span className="text-slate-400 font-normal">({getAge(s.data_nasterii)} ani)</span></div>
+            <div className="flex flex-col">
+                <div className="font-bold text-white hover:text-brand-primary">
+                    {s.nume} {s.prenume} 
+                    <span className="ml-2 text-slate-400 font-normal">({getAge(s.data_nasterii)} ani)</span>
+                </div>
+                <div className="text-[10px] text-slate-500 uppercase tracking-wider font-mono">
+                    {s.username || s.email || 'Fără cont'}
+                </div>
             </div>
         ),
     },
@@ -53,6 +49,17 @@ export const SportiviTable: React.FC<SportiviTableProps> = (props) => {
             const gradObj = grade.find(g => g.id === s.grad_actual_id);
             return <GradBadge grad={gradObj} gradName={s.grad_actual} />;
         }
+    },
+    {
+        key: 'roluri',
+        label: 'Roluri',
+        tooltip: "Rolurile de acces în platformă.",
+        className: 'hidden lg:table-cell',
+        render: (s) => (
+            <div className="flex flex-wrap gap-1">
+                {(s.roluri || []).map(r => <RoleBadge key={r.id} role={r} />)}
+            </div>
+        )
     },
     { 
         key: 'status', 

@@ -44,6 +44,7 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ onBa
         grupaId: '',
         tip: 'toate', // toate, recurent, personalizat
         perioada: 'viitoare', // toate, viitoare, luna-curenta
+        isActiv: 'true', // 'true', 'false', 'toate'
     });
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editForm, setEditForm] = useState<Partial<Antrenament>>({});
@@ -52,7 +53,7 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ onBa
     const selectedGrupa = useMemo(() => grupe.find(g => g.id === formState.grupaId), [grupe, formState.grupaId]);
 
     const filteredAntrenamente = useMemo(() => {
-        const { grupaId, tip, perioada } = filters;
+        const { grupaId, tip, perioada, isActiv } = filters;
         let result = antrenamente;
 
         if (grupaId) {
@@ -63,6 +64,12 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ onBa
             result = result.filter(a => a.is_recurent);
         } else if (tip === 'personalizat') {
             result = result.filter(a => !a.is_recurent);
+        }
+
+        if (isActiv === 'true') {
+            result = result.filter(a => a.is_activ !== false);
+        } else if (isActiv === 'false') {
+            result = result.filter(a => a.is_activ === false);
         }
         
         if (perioada !== 'toate') {
@@ -479,6 +486,15 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ onBa
                             <option value="viitoare">Doar Viitoare</option>
                             <option value="luna-curenta">Luna Curentă</option>
                             <option value="toate">Toate (Istoric)</option>
+                        </Select>
+                        <Select 
+                            label="" 
+                            value={filters.isActiv} 
+                            onChange={e => setFilters(f => ({ ...f, isActiv: e.target.value }))}
+                        >
+                            <option value="true">Doar Active</option>
+                            <option value="false">Doar Inactive</option>
+                            <option value="toate">Toate</option>
                         </Select>
                     </div>
                 </div>

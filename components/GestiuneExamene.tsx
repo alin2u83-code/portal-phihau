@@ -65,7 +65,21 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
       ),
   [currentUser.roluri]);
 
+  useEffect(() => {
+    setLocationFilter('');
+  }, [clubFilter]);
+
   const isFederationAdmin = currentUser.roluri.some(r => ['SUPER_ADMIN_FEDERATIE', 'ADMIN'].includes(r.nume.toUpperCase().replace(/\s+/g, '_')));
+
+  const filteredLocatii = useMemo(() => {
+    if (isFederationAdmin) {
+      if (clubFilter) {
+        return (locatii || []).filter(l => l.club_id === clubFilter);
+      }
+      return (locatii || []);
+    }
+    return (locatii || []).filter(l => l.club_id === currentUser.club_id);
+  }, [locatii, isFederationAdmin, clubFilter, currentUser.club_id]);
 
   const filteredSesiuni = useMemo(() => {
     let filtered = [...(sesiuni || [])];
@@ -173,7 +187,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
         <Input label="Filtrează după dată" type="date" value={dateFilter} onChange={e => setDateFilter(e.target.value)} />
         <Select label="Filtrează după locație" value={locationFilter} onChange={e => setLocationFilter(e.target.value)}>
           <option value="">Toate locațiile</option>
-          {(locatii || []).map(l => <option key={l.id} value={l.id}>{l.nume}</option>)}
+          {filteredLocatii.map(l => <option key={l.id} value={l.id}>{l.nume}</option>)}
         </Select>
         {isFederationAdmin && (
           <Select label="Filtrează după club" value={clubFilter} onChange={e => setClubFilter(e.target.value)}>

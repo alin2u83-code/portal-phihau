@@ -402,6 +402,8 @@ export const Sportivi: React.FC<{
                 grupe={grupe}
                 allRoles={allRoles}
                 grade={grade}
+                clubs={clubs}
+                permissions={permissions}
             />
 
             {loading ? (

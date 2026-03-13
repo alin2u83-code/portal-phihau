@@ -20,7 +20,7 @@ interface SportiviFilterProps {
   permissions?: Permissions;
 }
 
-export const SportiviFilter: React.FC<SportiviFilterProps> = ({ filters, onFilterChange, grupe, allRoles, grade }) => {
+export const SportiviFilter: React.FC<SportiviFilterProps> = ({ filters, onFilterChange, grupe, allRoles, grade, clubs, permissions }) => {
   const currentClubId = filters.clubFilter;
   const grupeClub = grupe.filter(g => !currentClubId || g.club_id === currentClubId);
 
@@ -69,6 +69,16 @@ export const SportiviFilter: React.FC<SportiviFilterProps> = ({ filters, onFilte
         <option value="">Toate Gradele</option>
         {[...(grade || [])].sort((a,b) => a.ordine - b.ordine).map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}
       </Select>
+      {permissions?.isFederationAdmin && clubs && (
+        <Select
+          label="Club"
+          value={filters.clubFilter || ''}
+          onChange={(e) => onFilterChange('clubFilter', e.target.value)}
+        >
+          <option value="">Toate Cluburile</option>
+          {clubs.map(c => <option key={c.id} value={c.id}>{c.nume}</option>)}
+        </Select>
+      )}
     </div>
   );
 };

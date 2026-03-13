@@ -65,6 +65,8 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
       ),
   [currentUser.roluri]);
 
+  const isFederationAdmin = currentUser.roluri.some(r => ['SUPER_ADMIN_FEDERATIE', 'ADMIN'].includes(r.nume.toUpperCase().replace(/\s+/g, '_')));
+
   const filteredSesiuni = useMemo(() => {
     let filtered = [...(sesiuni || [])];
 
@@ -74,15 +76,17 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
     if (locationFilter) {
       filtered = filtered.filter(s => s.locatie_id === locationFilter);
     }
-    if (clubFilter) {
+    if (isFederationAdmin && clubFilter) {
       filtered = filtered.filter(s => s.club_id === clubFilter);
+    } else if (!isFederationAdmin && currentUser.club_id) {
+      filtered = filtered.filter(s => s.club_id === currentUser.club_id);
     }
     if (statusFilter) {
       filtered = filtered.filter(s => s.status === statusFilter);
     }
 
     return filtered.sort((a, b) => new Date((b.data || b.data_examen || '').toString().slice(0, 10)).getTime() - new Date((a.data || a.data_examen || '').toString().slice(0, 10)).getTime());
-  }, [sesiuni, dateFilter, locationFilter, clubFilter, statusFilter]);
+  }, [sesiuni, dateFilter, locationFilter, clubFilter, statusFilter, isFederationAdmin, currentUser.club_id]);
 
   const handleBackToList = () => setSelectedSesiuneId(null);
   
@@ -171,10 +175,12 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
           <option value="">Toate locațiile</option>
           {(locatii || []).map(l => <option key={l.id} value={l.id}>{l.nume}</option>)}
         </Select>
-        <Select label="Filtrează după club" value={clubFilter} onChange={e => setClubFilter(e.target.value)}>
-          <option value="">Toate cluburile</option>
-          {(clubs || []).map(c => <option key={c.id} value={c.id}>{c.nume}</option>)}
-        </Select>
+        {isFederationAdmin && (
+          <Select label="Filtrează după club" value={clubFilter} onChange={e => setClubFilter(e.target.value)}>
+            <option value="">Toate cluburile</option>
+            {(clubs || []).map(c => <option key={c.id} value={c.id}>{c.nume}</option>)}
+          </Select>
+        )}
         <Select label="Filtrează după status" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
           <option value="">Toate statusurile</option>
           <option value="Programat">Programat</option>

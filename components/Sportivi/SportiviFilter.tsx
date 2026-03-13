@@ -21,6 +21,9 @@ interface SportiviFilterProps {
 }
 
 export const SportiviFilter: React.FC<SportiviFilterProps> = ({ filters, onFilterChange, grupe, allRoles, grade }) => {
+  const currentClubId = filters.clubFilter;
+  const grupeClub = grupe.filter(g => !currentClubId || g.club_id === currentClubId);
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4 p-4 rounded-lg bg-slate-800/50">
       <Input
@@ -44,7 +47,11 @@ export const SportiviFilter: React.FC<SportiviFilterProps> = ({ filters, onFilte
         onChange={(e) => onFilterChange('grupaFilter', e.target.value)}
       >
         <option value="">Toate Grupele</option>
-        {(grupe || []).map(g => <option key={g.id} value={g.id}>{g.denumire || 'Fără denumire'}</option>)}
+        {grupeClub.map(g => (
+          <option key={g.id} value={g.id}>
+            {g.denumire || 'Fără denumire'}
+          </option>
+        ))}
       </Select>
       <Select
         label="Rol"

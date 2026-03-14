@@ -22,7 +22,7 @@ export interface DetaliiSesiuneProps {
     onViewSportiv: (sportiv: Sportiv) => void;
     onEdit: () => void;
     currentUser: User;
-    onFinalize: (id: string) => Promise<boolean | undefined>;
+    onFinalize: (id: string, inscrieri: InscriereExamen[], sesiune: SesiuneExamen) => Promise<boolean | undefined>;
     isFinalizing: boolean;
     isReadOnly?: boolean;
 }
@@ -32,7 +32,7 @@ export const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
         if (!window.confirm("Această acțiune este ireversibilă. Se va marca examenul ca finalizat și se va genera decontul pentru federație. Doriți să continuați?")) {
             return;
         }
-        await props.onFinalize(props.sesiune.id);
+        await props.onFinalize(props.sesiune.id, props.inscrieri, props.sesiune);
     };
     
     return (

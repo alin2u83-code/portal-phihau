@@ -189,18 +189,83 @@ const DetaliiSesiune: React.FC<{
         }
         setIsFinalizing(true);
         try {
-            // Presupunem că RPC-ul 'finalizeaza_examen' există și a fost creat în baza de date.
-            const { data, error } = await supabase.rpc('finalizeaza_examen', { p_sesiune_id: props.sesiune.id });
-            if (error) throw error;
+            const sesiuneId = props.sesiune.id;
+            
+            // 1. Update sesiuni_examene status
+            const { error: updateSesiuneError } = await supabase
+                .from('sesiuni_examene')
+                .update({ status: 'Finalizat' })
+                .eq('id', sesiuneId);
+            
+            if (updateSesiuneError) throw updateSesiuneError;
+
+            let totalSportivi = 0;
+            
+            // 2. Process each inscriere
+            for (const inscriere of props.inscrieri) {
+                if (inscriere.rezultat === 'Admis') {
+                    // Update sportiv grad_actual_id
+                    const { error: updateSportivError } = await supabase
+                        .from('sportivi')
+                        .update({ grad_actual_id: inscriere.grad_vizat_id })
+                        .eq('id', inscriere.sportiv_id);
+                    
+                    if (updateSportivError) throw updateSportivError;
+
+                    // Check if istoric_grade exists
+                    const { data: existingIstoric } = await supabase
+                        .from('istoric_grade')
+                        .select('id')
+                        .eq('sportiv_id', inscriere.sportiv_id)
+                        .eq('grad_id', inscriere.grad_vizat_id)
+                        .eq('sesiune_examen_id', sesiuneId)
+                        .maybeSingle();
+                    
+                    if (!existingIstoric) {
+                        // Insert istoric_grade
+                        const { error: insertIstoricError } = await supabase
+                            .from('istoric_grade')
+                            .insert({
+                                sportiv_id: inscriere.sportiv_id,
+                                grad_id: inscriere.grad_vizat_id,
+                                data_obtinere: props.sesiune.data || props.sesiune.data_examen || new Date().toISOString().split('T')[0],
+                                sesiune_examen_id: sesiuneId
+                            });
+                        
+                        if (insertIstoricError) throw insertIstoricError;
+                    }
+                }
+                totalSportivi++;
+            }
+
+            // 3. Create decont_federatie
+            let newDecont = null;
+            if (props.sesiune.club_id) {
+                const { data: decontData, error: decontError } = await supabase
+                    .from('deconturi_federatie')
+                    .insert({
+                        club_id: props.sesiune.club_id,
+                        activitate: 'Examen ' + (props.sesiune.data || props.sesiune.data_examen || new Date().toISOString().split('T')[0]),
+                        data_activitate: props.sesiune.data || props.sesiune.data_examen || new Date().toISOString().split('T')[0],
+                        numar_sportivi: totalSportivi,
+                        suma_totala: 0,
+                        status: 'In asteptare'
+                    })
+                    .select()
+                    .single();
+                
+                if (decontError) throw decontError;
+                newDecont = decontData;
+            }
 
             props.setSesiuni(prev => prev.map(s => s.id === props.sesiune.id ? { ...s, status: 'Finalizat' } : s));
             
-            if(data) {
-                props.setDeconturiFederatie(prev => [...prev, data]);
+            if(newDecont) {
+                props.setDeconturiFederatie(prev => [...prev, newDecont]);
             }
-            showSuccess("Examen Finalizat", "Decontul a fost generat și trimis către federație.");
+            showSuccess("Examen Finalizat", "Examenul a fost finalizat și decontul a fost generat.");
         } catch (err: any) {
-            showError("Eroare la finalizare", `Funcția RPC 'finalizeaza_examen' nu a putut fi executată. Asigurați-vă că există în baza de date. Detalii: ${err.message}`);
+            showError("Eroare la finalizare", `A apărut o eroare la finalizarea examenului. Detalii: ${err.message || err}`);
         } finally {
             setIsFinalizing(false);
         }

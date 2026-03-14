@@ -182,18 +182,33 @@ const DetaliiSesiune: React.FC<{
 }> = (props) => {
     const { showError, showSuccess } = useError();
     const [isFinalizing, setIsFinalizing] = useState(false);
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [confirmConfig, setConfirmConfig] = useState<{ title: string; message: string; variant: 'warning' | 'info' }>({
+        title: '',
+        message: '',
+        variant: 'info'
+    });
 
-    const handleFinalizeExam = async () => {
+    const handleFinalizeClick = () => {
         const admisiCount = props.inscrieri.filter(i => i.rezultat === 'Admis').length;
         if (admisiCount === 0) {
-            if (!window.confirm("Atenție: Niciun sportiv nu este marcat ca 'Admis'. Dacă nu ați salvat rezultatele, vă rugăm să o faceți înainte de a finaliza examenul. Doriți să continuați finalizarea oricum?")) {
-                return;
-            }
+            setConfirmConfig({
+                title: 'Atenție: Niciun sportiv Admis',
+                message: "Niciun sportiv nu este marcat ca 'Admis'. Dacă nu ați salvat rezultatele, vă rugăm să o faceți înainte de a finaliza examenul. Doriți să continuați finalizarea oricum?",
+                variant: 'warning'
+            });
         } else {
-            if (!window.confirm("Această acțiune este ireversibilă. Se va marca examenul ca finalizat și se va genera decontul pentru federație. Doriți să continuați?")) {
-                return;
-            }
+            setConfirmConfig({
+                title: 'Confirmare Finalizare Examen',
+                message: "Această acțiune este ireversibilă. Se va marca examenul ca finalizat și se va genera decontul pentru federație. Doriți să continuați?",
+                variant: 'info'
+            });
         }
+        setShowConfirmModal(true);
+    };
+
+    const handleFinalizeExam = async () => {
+        setShowConfirmModal(false);
         setIsFinalizing(true);
         try {
             const sesiuneId = props.sesiune.id;
@@ -316,13 +331,47 @@ const DetaliiSesiune: React.FC<{
                     )}
                 </div>
                 {props.sesiune.status !== 'Finalizat' && (
-                    <Button variant="success" onClick={handleFinalizeExam} isLoading={isFinalizing}>
+                    <Button variant="success" onClick={handleFinalizeClick} isLoading={isFinalizing}>
                         Finalizează & Generează Decont
                     </Button>
                 )}
             </div>
             
             <ManagementInscrieri {...props} />
+
+            <Modal 
+                isOpen={showConfirmModal} 
+                onClose={() => setShowConfirmModal(false)} 
+                title={confirmConfig.title}
+            >
+                <div className="space-y-6">
+                    <div className={`p-4 rounded-xl border ${confirmConfig.variant === 'warning' ? 'bg-amber-900/20 border-amber-700/50 text-amber-200' : 'bg-sky-900/20 border-sky-700/50 text-sky-200'}`}>
+                        <div className="flex items-start gap-3">
+                            <span className="text-2xl">{confirmConfig.variant === 'warning' ? '⚠️' : 'ℹ️'}</span>
+                            <p className="text-sm leading-relaxed font-medium">
+                                {confirmConfig.message}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                        <Button 
+                            variant="secondary" 
+                            onClick={() => setShowConfirmModal(false)}
+                            className="flex-1"
+                        >
+                            Anulează
+                        </Button>
+                        <Button 
+                            variant={confirmConfig.variant === 'warning' ? 'warning' : 'success'} 
+                            onClick={handleFinalizeExam}
+                            className="flex-1 shadow-lg shadow-emerald-900/20"
+                        >
+                            Confirmă Finalizarea
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
         </Card>
     );
 };

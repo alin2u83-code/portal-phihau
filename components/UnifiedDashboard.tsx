@@ -43,10 +43,10 @@ const NavCard: React.FC<{ title: string; description: string; icon: React.Elemen
 
 const AdminFederationCard: React.FC<{ deconturi: DecontFederatie[] }> = ({ deconturi }) => {
     const { total, count } = React.useMemo(() => {
-        const pending = deconturi.filter(d => d.status === 'In asteptare');
+        const pending = deconturi.filter(d => d.status_plata === 'In asteptare');
         return {
-            total: pending.reduce((sum, d) => sum + d.suma_totala, 0),
-            count: pending.reduce((sum, d) => sum + d.numar_sportivi, 0),
+            total: pending.reduce((sum, d) => sum + (d.suma_totala || 0), 0),
+            count: pending.reduce((sum, d) => sum + (d.nr_participanti || 0), 0),
         };
     }, [deconturi]);
 

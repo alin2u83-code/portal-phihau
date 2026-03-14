@@ -164,11 +164,10 @@ export const useExamManager = (
                     .from('deconturi_federatie')
                     .insert({
                         club_id: sesiuneData.club_id,
-                        activitate: 'Examen ' + (sesiuneData.data || sesiuneData.data_examen || new Date().toISOString().split('T')[0]),
-                        data_activitate: sesiuneData.data || sesiuneData.data_examen || new Date().toISOString().split('T')[0],
-                        numar_sportivi: totalSportivi,
+                        tip_activitate: 'Examen ' + (sesiuneData.data || sesiuneData.data_examen || new Date().toISOString().split('T')[0]),
+                        nr_participanti: totalSportivi,
                         suma_totala: 0,
-                        status: 'In asteptare'
+                        status_plata: 'In asteptare'
                     })
                     .select()
                     .single();

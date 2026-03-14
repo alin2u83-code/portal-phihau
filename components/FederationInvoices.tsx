@@ -38,9 +38,9 @@ const PaymentConfirmationModal: React.FC<PaymentConfirmationModalProps> = ({ dec
     };
 
     return (
-        <Modal isOpen={true} onClose={onClose} title={`Confirmă Plata: ${decont.activitate}`}>
+        <Modal isOpen={true} onClose={onClose} title={`Confirmă Plata: ${decont.tip_activitate}`}>
             <div className="space-y-4">
-                <p>Pentru a confirma plata sumei de <strong>{decont.suma_totala.toFixed(2)} RON</strong>, vă rugăm să încărcați o dovadă (chitanță, ordin de plată).</p>
+                <p>Pentru a confirma plata sumei de <strong>{(decont.suma_totala || 0).toFixed(2)} RON</strong>, vă rugăm să încărcați o dovadă (chitanță, ordin de plată).</p>
                 
                 <label htmlFor="file-upload" className="cursor-pointer block">
                     <div className={`p-6 border-2 border-dashed rounded-lg text-center transition-colors ${preview ? 'border-green-500 bg-green-900/20' : 'border-slate-600 hover:border-brand-primary hover:bg-brand-primary/10'}`}>
@@ -84,7 +84,11 @@ export const FederationInvoices: React.FC<FederationInvoicesProps> = ({ decontur
     const [selectedDecont, setSelectedDecont] = useState<DecontFederatie | null>(null);
 
     const filteredDeconturi = useMemo(() => {
-        const sorted = [...deconturi].sort((a, b) => new Date(b.data_activitate).getTime() - new Date(a.data_activitate).getTime());
+        const sorted = [...deconturi].sort((a, b) => {
+            const dateA = a.data_generare ? new Date(a.data_generare).getTime() : 0;
+            const dateB = b.data_generare ? new Date(b.data_generare).getTime() : 0;
+            return dateB - dateA;
+        });
         if (isFederationAdmin) {
             return sorted;
         }
@@ -93,8 +97,8 @@ export const FederationInvoices: React.FC<FederationInvoicesProps> = ({ decontur
 
     const totalDePlata = useMemo(() => {
         return filteredDeconturi
-            .filter(d => d.status === 'In asteptare')
-            .reduce((sum, d) => sum + d.suma_totala, 0);
+            .filter(d => d.status_plata === 'In asteptare')
+            .reduce((sum, d) => sum + (d.suma_totala || 0), 0);
     }, [filteredDeconturi]);
     
     const handleConfirmPayment = async (decont: DecontFederatie, file: File) => {
@@ -107,10 +111,10 @@ export const FederationInvoices: React.FC<FederationInvoicesProps> = ({ decontur
             const { error: uploadError } = await supabase.storage.from('chitante_deconturi').upload(filePath, file);
             if (uploadError) throw uploadError;
 
-            const { data: urlData } = supabase.storage.from('chitante_deconturi').getPublicUrl(filePath);
-            
+            // Note: chitanta_url is not in the schema provided by the user. 
+            // We only update the status for now.
             const { data, error } = await supabase.from('deconturi_federatie')
-                .update({ status: 'Platit', chitanta_url: urlData.publicUrl })
+                .update({ status_plata: 'Platit' })
                 .eq('id', decont.id)
                 .select()
                 .single();
@@ -118,7 +122,7 @@ export const FederationInvoices: React.FC<FederationInvoicesProps> = ({ decontur
             if (error) throw error;
             
             setDeconturi(prev => prev.map(d => d.id === decont.id ? data : d));
-            showSuccess("Succes", "Plata a fost confirmată și dovada a fost încărcată.");
+            showSuccess("Succes", "Plata a fost confirmată.");
             setSelectedDecont(null);
 
         } catch (err: any) {
@@ -161,22 +165,20 @@ export const FederationInvoices: React.FC<FederationInvoicesProps> = ({ decontur
                         <tbody className="divide-y divide-slate-700">
                             {filteredDeconturi.map(d => (
                                 <tr key={d.id}>
-                                    <td className="p-3 font-semibold">{d.activitate}</td>
-                                    <td className="p-3">{new Date(d.data_activitate).toLocaleDateString('ro-RO')}</td>
-                                    <td className="p-3 text-center">{d.numar_sportivi}</td>
-                                    <td className="p-3 text-right font-bold text-white">{d.suma_totala.toFixed(2)} RON</td>
+                                    <td className="p-3 font-semibold">{d.tip_activitate}</td>
+                                    <td className="p-3">{d.data_generare ? new Date(d.data_generare).toLocaleDateString('ro-RO') : '-'}</td>
+                                    <td className="p-3 text-center">{d.nr_participanti}</td>
+                                    <td className="p-3 text-right font-bold text-white">{(d.suma_totala || 0).toFixed(2)} RON</td>
                                     <td className="p-3 text-center">
-                                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${d.status === 'Platit' ? 'bg-green-600/30 text-green-300' : 'bg-red-600/30 text-red-300'}`}>
-                                            {d.status === 'Platit' ? 'ACHITAT' : 'NEACHITAT'}
+                                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${d.status_plata === 'Platit' ? 'bg-green-600/30 text-green-300' : 'bg-red-600/30 text-red-300'}`}>
+                                            {d.status_plata === 'Platit' ? 'ACHITAT' : 'NEACHITAT'}
                                         </span>
                                     </td>
                                     <td className="p-3 text-right">
-                                        {d.status === 'In asteptare' && isAdminClub ? (
+                                        {d.status_plata === 'In asteptare' && isAdminClub ? (
                                             <Button size="sm" variant="success" onClick={() => setSelectedDecont(d)}>Confirmă Plată</Button>
                                         ) : (
-                                            <a href={d.chitanta_url || '#'} target="_blank" rel="noopener noreferrer" className={`inline-block px-2 py-0.5 text-xs font-semibold rounded-md ${d.chitanta_url ? 'bg-sky-600/50 text-sky-300 hover:bg-sky-600/70' : 'bg-slate-600 text-slate-400 cursor-not-allowed'}`}>
-                                                Vezi Dovada
-                                            </a>
+                                            <span className="text-xs text-slate-500 italic">Fără dovadă</span>
                                         )}
                                     </td>
                                 </tr>

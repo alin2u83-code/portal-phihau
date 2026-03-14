@@ -278,11 +278,10 @@ const DetaliiSesiune: React.FC<{
                     .from('deconturi_federatie')
                     .insert({
                         club_id: props.sesiune.club_id,
-                        activitate: 'Examen ' + (props.sesiune.data || props.sesiune.data_examen || new Date().toISOString().split('T')[0]),
-                        data_activitate: props.sesiune.data || props.sesiune.data_examen || new Date().toISOString().split('T')[0],
-                        numar_sportivi: totalSportivi,
+                        tip_activitate: 'Examen ' + (props.sesiune.data || props.sesiune.data_examen || new Date().toISOString().split('T')[0]),
+                        nr_participanti: totalSportivi,
                         suma_totala: 0,
-                        status: 'In asteptare'
+                        status_plata: 'In asteptare'
                     })
                     .select()
                     .single();

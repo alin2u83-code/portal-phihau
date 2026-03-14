@@ -361,13 +361,11 @@ export interface AnuntGeneral {
 export interface DecontFederatie {
   id: string;
   club_id: string;
-  activitate: string;
-  data_activitate: string;
-  numar_sportivi: number;
-  suma_totala: number;
-  status: 'In asteptare' | 'Platit';
-  chitanta_url: string | null;
-  created_at: string;
+  tip_activitate: string | null;
+  nr_participanti: number | null;
+  suma_totala: number | null;
+  status_plata: string | null;
+  data_generare: string | null;
 }
 
 export interface TipAbonament {

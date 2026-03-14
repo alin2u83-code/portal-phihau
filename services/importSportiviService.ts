@@ -1,4 +1,5 @@
 import { supabase } from '../supabaseClient';
+import { Grad } from '../types';
 
 export interface ImportReport {
   succes: number;
@@ -12,9 +13,17 @@ const validateCNP = (cnp: string) => /^\d{13}$/.test(cnp);
 export const importSportivi = async (
   dateSportivi: any[],
   activeClubId: string,
-  defaultGrupaId: string
+  defaultGrupaId: string,
+  grade: Grad[]
 ): Promise<ImportReport> => {
   const report: ImportReport = { succes: 0, erori: 0, detalii_erori: [] };
+
+  // Helper to find grade ID
+  const findGradeId = (gradNume: string | null | undefined): string | null => {
+    if (!gradNume) return grade.find(g => g.ordine === 0)?.id || null;
+    const found = grade.find(g => g.nume.toLowerCase() === gradNume.trim().toLowerCase());
+    return found ? found.id : (grade.find(g => g.ordine === 0)?.id || null);
+  };
 
   for (let i = 0; i < dateSportivi.length; i++) {
     const row = dateSportivi[i];
@@ -37,21 +46,29 @@ export const importSportivi = async (
         }
       }
 
+      const normalizeGen = (gen: string | null | undefined): 'Masculin' | 'Feminin' | null => {
+        if (!gen) return null;
+        const g = gen.trim().toLowerCase();
+        if (['m', 'masculin', 'masc'].includes(g)) return 'Masculin';
+        if (['f', 'feminin', 'fem'].includes(g)) return 'Feminin';
+        return null;
+      };
+
       // 3. Pregătire date
       const sportivData = {
-        nume: row.nume.trim(),
-        prenume: row.prenume.trim(),
+        nume: row.nume.trim().replace(/[?]/g, ''),
+        prenume: row.prenume.trim().replace(/[?]/g, ''),
         email: row.email?.toLowerCase().trim() || null,
         cnp: row.cnp?.trim() || null,
         data_nasterii: dataNasterii,
         telefon: row.telefon?.trim() || null,
         adresa: row.adresa?.trim() || null,
-        gen: row.gen || null,
+        gen: normalizeGen(row.gen),
         data_inscrierii: row.data_inscrierii || new Date().toISOString().split('T')[0],
         club_id: row.club_id || activeClubId,
         status: row.status || 'Activ',
         grupa_id: row.grupa_id || defaultGrupaId,
-        grad_actual_id: row.grad_actual_id || null,
+        grad_actual_id: findGradeId(row.grad_actual),
       };
 
       // 4. Upsert logic

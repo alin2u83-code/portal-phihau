@@ -113,6 +113,7 @@ export const SportivModals: React.FC<SportivModalsProps> = ({
                 onImportComplete={onImportComplete}
                 activeClubId={activeClubId}
                 defaultGrupaId={defaultGrupaId}
+                grade={grade}
             />
 
             {isFormModalOpen && (

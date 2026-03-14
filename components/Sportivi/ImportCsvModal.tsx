@@ -4,6 +4,7 @@ import { X, Upload, FileText, AlertCircle, CheckCircle2, Loader2 } from 'lucide-
 import Papa from 'papaparse';
 import { useError } from '../ErrorProvider';
 import { importSportivi, ImportReport } from '../../services/importSportiviService';
+import { Grad } from '../../types';
 
 interface ImportCsvModalProps {
     isOpen: boolean;
@@ -11,9 +12,10 @@ interface ImportCsvModalProps {
     onImportComplete: () => void;
     activeClubId: string;
     defaultGrupaId: string;
+    grade: Grad[];
 }
 
-export const ImportCsvModal: React.FC<ImportCsvModalProps> = ({ isOpen, onClose, onImportComplete, activeClubId, defaultGrupaId }) => {
+export const ImportCsvModal: React.FC<ImportCsvModalProps> = ({ isOpen, onClose, onImportComplete, activeClubId, defaultGrupaId, grade }) => {
     const [file, setFile] = useState<File | null>(null);
     const [previewData, setPreviewData] = useState<any[]>([]);
     const [status, setStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
@@ -49,7 +51,7 @@ export const ImportCsvModal: React.FC<ImportCsvModalProps> = ({ isOpen, onClose,
             header: true,
             complete: async (results) => {
                 try {
-                    const report = await importSportivi(results.data, activeClubId, defaultGrupaId);
+                    const report = await importSportivi(results.data, activeClubId, defaultGrupaId, grade);
                     setReport(report);
                     
                     if (report.erori > 0) {

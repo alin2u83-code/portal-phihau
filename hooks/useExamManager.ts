@@ -157,31 +157,9 @@ export const useExamManager = (
                 setIstoricGrade(prev => [...prev, ...newIstoricEntries]);
             }
 
-            // 3. Create decont_federatie
-            let newDecont = null;
-            if (sesiuneData.club_id) {
-                const { data: decontData, error: decontError } = await supabase
-                    .from('deconturi_federatie')
-                    .insert({
-                        club_id: sesiuneData.club_id,
-                        tip_activitate: 'Examen ' + (sesiuneData.data || sesiuneData.data_examen || new Date().toISOString().split('T')[0]),
-                        nr_participanti: totalSportivi,
-                        suma_totala: 0,
-                        status_plata: 'In asteptare'
-                    })
-                    .select()
-                    .single();
-                
-                if (decontError) throw decontError;
-                newDecont = decontData;
-            }
-
             setSesiuni(prev => prev.map(s => s.id === sesiuneId ? { ...s, status: 'Finalizat' } : s));
 
-            if (newDecont) {
-                setDeconturiFederatie(prev => [...prev, newDecont]);
-            }
-            showSuccess("Examen Finalizat", "Examenul a fost finalizat și decontul a fost generat.");
+            showSuccess("Examen Finalizat", "Examenul a fost finalizat și gradele au fost actualizate.");
             return true;
         } catch (err: any) {
             console.error('DETALII EROARE:', JSON.stringify(err, null, 2));

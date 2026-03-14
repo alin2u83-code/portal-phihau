@@ -200,7 +200,7 @@ const DetaliiSesiune: React.FC<{
         } else {
             setConfirmConfig({
                 title: 'Confirmare Finalizare Examen',
-                message: "Această acțiune este ireversibilă. Se va marca examenul ca finalizat și se va genera decontul pentru federație. Doriți să continuați?",
+                message: "Această acțiune este ireversibilă. Se va marca examenul ca finalizat și se vor actualiza gradele sportivilor admiși. Doriți să continuați?",
                 variant: 'info'
             });
         }
@@ -286,31 +286,9 @@ const DetaliiSesiune: React.FC<{
                 props.setIstoricGrade(prev => [...prev, ...newIstoricEntries]);
             }
 
-            // 3. Create decont_federatie
-            let newDecont = null;
-            if (props.sesiune.club_id) {
-                const { data: decontData, error: decontError } = await supabase
-                    .from('deconturi_federatie')
-                    .insert({
-                        club_id: props.sesiune.club_id,
-                        tip_activitate: 'Examen ' + (props.sesiune.data || props.sesiune.data_examen || new Date().toISOString().split('T')[0]),
-                        nr_participanti: totalSportivi,
-                        suma_totala: 0,
-                        status_plata: 'In asteptare'
-                    })
-                    .select()
-                    .single();
-                
-                if (decontError) throw decontError;
-                newDecont = decontData;
-            }
-
             props.setSesiuni(prev => prev.map(s => s.id === props.sesiune.id ? { ...s, status: 'Finalizat' } : s));
             
-            if(newDecont) {
-                props.setDeconturiFederatie(prev => [...prev, newDecont]);
-            }
-            showSuccess("Examen Finalizat", "Examenul a fost finalizat și decontul a fost generat.");
+            showSuccess("Examen Finalizat", "Examenul a fost finalizat și gradele au fost actualizate.");
         } catch (err: any) {
             showError("Eroare la finalizare", `A apărut o eroare la finalizarea examenului. Detalii: ${err.message || err}`);
         } finally {
@@ -332,7 +310,7 @@ const DetaliiSesiune: React.FC<{
                 </div>
                 {props.sesiune.status !== 'Finalizat' && (
                     <Button variant="success" onClick={handleFinalizeClick} isLoading={isFinalizing}>
-                        Finalizează & Generează Decont
+                        Finalizează Examen
                     </Button>
                 )}
             </div>

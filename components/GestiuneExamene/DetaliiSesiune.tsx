@@ -35,7 +35,7 @@ export const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
                 return;
             }
         } else {
-            if (!window.confirm("Această acțiune este ireversibilă. Se va marca examenul ca finalizat și se va genera decontul pentru federație. Doriți să continuați?")) {
+            if (!window.confirm("Această acțiune este ireversibilă. Se va marca examenul ca finalizat și se vor actualiza gradele sportivilor admiși. Doriți să continuați?")) {
                 return;
             }
         }
@@ -60,7 +60,7 @@ export const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
                             <EditIcon className="w-4 h-4 mr-2" /> Editează
                         </Button>
                         <Button variant="success" onClick={handleFinalizeExam} isLoading={props.isFinalizing}>
-                            Finalizează & Generează Decont
+                            Finalizează Examen
                         </Button>
                     </div>
                 )}

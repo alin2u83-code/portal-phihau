@@ -228,10 +228,18 @@ const DetaliiSesiune: React.FC<{
             // 2. Process each inscriere
             for (const inscriere of props.inscrieri) {
                 if (inscriere.rezultat === 'Admis') {
+                    // VALIDARE STRICTĂ grad_id (grad_vizat_id)
+                    const targetGradId = inscriere.grad_vizat_id;
+                    
+                    if (!targetGradId || targetGradId === 'undefined' || targetGradId === 'null') {
+                        showError("Atenție", `Grad invalid pentru sportivul ${inscriere.sportiv_nume || inscriere.sportiv_id}. Se sare peste actualizarea gradului.`);
+                        continue; // Skip this record
+                    }
+
                     // Update sportiv grad_actual_id
                     const { error: updateSportivError } = await supabase
                         .from('sportivi')
-                        .update({ grad_actual_id: inscriere.grad_vizat_id })
+                        .update({ grad_actual_id: targetGradId })
                         .eq('id', inscriere.sportiv_id);
                     
                     if (updateSportivError) throw updateSportivError;
@@ -242,7 +250,7 @@ const DetaliiSesiune: React.FC<{
                         .from('istoric_grade')
                         .select('id')
                         .eq('sportiv_id', inscriere.sportiv_id)
-                        .eq('grad_id', inscriere.grad_vizat_id)
+                        .eq('grad_id', targetGradId)
                         .eq('sesiune_examen_id', sesiuneId)
                         .maybeSingle();
                     
@@ -252,7 +260,7 @@ const DetaliiSesiune: React.FC<{
                             .from('istoric_grade')
                             .insert({
                                 sportiv_id: inscriere.sportiv_id,
-                                grad_id: inscriere.grad_vizat_id,
+                                grad_id: targetGradId,
                                 data_obtinere: props.sesiune.data || props.sesiune.data_examen || new Date().toISOString().split('T')[0],
                                 sesiune_examen_id: sesiuneId
                             })

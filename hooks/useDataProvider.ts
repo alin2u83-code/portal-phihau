@@ -264,7 +264,7 @@ export const useDataProvider = () => {
                 clubs: cleanedSupabase.from('cluburi').select('id, nume, theme_config'),
                 allRoles: cleanedSupabase.from('roluri').select('id, nume'),
                 grade: cleanedSupabase.from('grade').select('*'),
-                tipuriAbonament: cleanedSupabase.from('vedere_cluburi_tipuri_abonament').select('id, denumire, pret, numar_membri'),
+                tipuriAbonament: cleanedSupabase.from('vedere_cluburi_tipuri_abonament').select('id, denumire, pret, club_id, numar_membri'),
                 tipuriPlati: cleanedSupabase.from('tipuri_plati').select('id, nume'),
                 sesiuniExamene: cleanedSupabase.from('vedere_cluburi_sesiuni_examene').select('*'),
                 tranzactii: cleanedSupabase.from('vedere_cluburi_tranzactii').select('*'),

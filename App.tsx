@@ -113,35 +113,8 @@ function App() {
     }
   }, [setActiveView]);
 
-  useEffect(() => {
-    if (loading) return; // Wait until dataProvider has finished loading
-
-    if (currentUser && activeRoleContext) {
-        const isInstructorOrAbove = permissions.isFederationAdmin || permissions.isAdminClub || permissions.isInstructor;
-        const isAdminOrAbove = permissions.isFederationAdmin || permissions.isAdminClub;
-
-        const strictlyAdminViews: View[] = [
-            'user-management', 'data-maintenance', 'setari-club', 'cluburi', 'structura-federatie', 
-            'configurare-preturi', 'tipuri-abonament', 'reduceri', 'nomenclatoare', 'data-inspector',
-            'taxe-anuale', 'financial-dashboard', 'gestiune-facturi', 'plati-scadente', 'jurnal-incasari',
-            'raport-financiar', 'deconturi-federatie', 'federation-dashboard', 'admin-console'
-        ];
-        
-        const instructorViews: View[] = [
-            'sportivi', 'grade', 'prezenta', 'grupe', 'raport-prezenta', 'raport-lunar-prezenta',
-            'stagii', 'competitii', 'familii', 'activitati', 'notificari',
-            'finalizare-examen', 'rapoarte-examen', 'prezenta-instructor', 'raport-activitate', 'examene'
-        ];
-
-        if (!isInstructorOrAbove && (strictlyAdminViews.includes(activeView) || instructorViews.includes(activeView))) {
-            setActiveView('my-portal');
-            showError('Acces Neautorizat', 'Nu aveți permisiunile necesare pentru a accesa această pagină.');
-        } else if (!isAdminOrAbove && strictlyAdminViews.includes(activeView)) {
-            setActiveView('dashboard');
-            showError('Acces Neautorizat', 'Această pagină este rezervată administratorilor.');
-        }
-    }
-  }, [currentUser, permissions, activeView, setActiveView, activeRoleContext, showError, loading]);
+  // Removed redundant and restrictive permission check useEffect here.
+  // AppRouter now handles all permission checks via renderProtected.
 
   // Removed restrictive protection mechanism for SUPER_ADMIN_FEDERATIE
   // to allow them to access other admin views.

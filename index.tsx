@@ -12,7 +12,14 @@ import { DataProvider } from './contexts/DataContext';
 import { NavigationProvider } from './contexts/NavigationContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false, // Disable refetch on window focus
+      staleTime: 1000 * 60 * 5,    // Consider data fresh for 5 minutes
+    },
+  },
+});
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {

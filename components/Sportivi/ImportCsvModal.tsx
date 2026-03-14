@@ -15,6 +15,7 @@ interface ImportCsvModalProps {
 
 export const ImportCsvModal: React.FC<ImportCsvModalProps> = ({ isOpen, onClose, onImportComplete, activeClubId, defaultGrupaId }) => {
     const [file, setFile] = useState<File | null>(null);
+    const [previewData, setPreviewData] = useState<any[]>([]);
     const [status, setStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
     const [report, setReport] = useState<ImportReport | null>(null);
@@ -24,10 +25,20 @@ export const ImportCsvModal: React.FC<ImportCsvModalProps> = ({ isOpen, onClose,
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
-            setFile(e.target.files[0]);
+            const selectedFile = e.target.files[0];
+            setFile(selectedFile);
             setStatus('idle');
             setMessage('');
             setReport(null);
+            
+            // Generate preview
+            Papa.parse(selectedFile, {
+                header: true,
+                preview: 5,
+                complete: (results) => {
+                    setPreviewData(results.data);
+                }
+            });
         }
     };
 
@@ -80,6 +91,28 @@ export const ImportCsvModal: React.FC<ImportCsvModalProps> = ({ isOpen, onClose,
                         <span className="text-xs text-zinc-500">Format acceptat: .csv</span>
                     </label>
                 </div>
+
+                {previewData.length > 0 && (
+                    <div className="mt-4">
+                        <h3 className="text-sm font-medium text-zinc-400 mb-2">Previzualizare (primele 5 rânduri):</h3>
+                        <div className="overflow-x-auto border border-zinc-800 rounded-lg">
+                            <table className="w-full text-xs text-zinc-300">
+                                <thead className="bg-zinc-800">
+                                    <tr>
+                                        {Object.keys(previewData[0]).map(key => <th key={key} className="p-2 text-left">{key}</th>)}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {previewData.map((row, i) => (
+                                        <tr key={i} className="border-t border-zinc-800">
+                                            {Object.values(row).map((val: any, j) => <td key={j} className="p-2">{val}</td>)}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
 
                 {status === 'uploading' && (
                     <div className="mt-4 flex items-center justify-center gap-2 text-amber-500">

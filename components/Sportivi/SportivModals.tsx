@@ -5,8 +5,16 @@ import { SportivFormModal } from './SportivFormModal';
 import { SportivWallet } from './SportivWallet';
 import { SportivAccountSettingsModal } from './SportivAccountSettings';
 import { DeleteAuditModal } from './DeleteAuditModal';
+import { ImportCsvModal } from './ImportCsvModal';
 
 interface SportivModalsProps {
+    // Import Modal
+    isImportModalOpen: boolean;
+    onCloseImportModal: () => void;
+    onImportComplete: () => void;
+    activeClubId: string;
+    defaultGrupaId: string;
+
     // Form Modal (Add/Edit)
     isFormModalOpen: boolean;
     onCloseFormModal: () => void;
@@ -55,6 +63,11 @@ interface SportivModalsProps {
 }
 
 export const SportivModals: React.FC<SportivModalsProps> = ({
+    isImportModalOpen,
+    onCloseImportModal,
+    onImportComplete,
+    activeClubId,
+    defaultGrupaId,
     isFormModalOpen,
     onCloseFormModal,
     onSaveSportiv,
@@ -94,6 +107,14 @@ export const SportivModals: React.FC<SportivModalsProps> = ({
 }) => {
     return (
         <>
+            <ImportCsvModal
+                isOpen={isImportModalOpen}
+                onClose={onCloseImportModal}
+                onImportComplete={onImportComplete}
+                activeClubId={activeClubId}
+                defaultGrupaId={defaultGrupaId}
+            />
+
             {isFormModalOpen && (
                  <SportivFormModal 
                     isOpen={isFormModalOpen}

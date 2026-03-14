@@ -446,36 +446,16 @@ export const Sportivi: React.FC<{
                 </div>
             )}
 
-            <ImportCsvModal
-                isOpen={isImportModalOpen}
-                onClose={() => setIsImportModalOpen(false)}
+            <SportivModals
+                isImportModalOpen={isImportModalOpen}
+                onCloseImportModal={() => setIsImportModalOpen(false)}
                 onImportComplete={() => {
                     setIsImportModalOpen(false);
                     window.location.reload();
                 }}
                 activeClubId={currentUser?.club_id || ''}
                 defaultGrupaId={grupe[0]?.id || ''}
-            />
-
-            <SportivFormModal
-                isOpen={isFormModalOpen}
-                onClose={handleCloseFormModal}
-                onSave={handleSave}
-                sportivToEdit={sportivToEdit}
-                grupe={grupe}
-                setGrupe={setGrupe}
-                grade={grade}
-                familii={familii}
-                setFamilii={setFamilii}
-                tipuriAbonament={tipuriAbonament}
-                clubs={clubs}
-                currentUser={currentUser}
-                clubFilter={filters.clubFilter}
-                allRoles={allRoles}
-            />
-
-            <SportivModals
-                isFormModalOpen={false}
+                isFormModalOpen={isFormModalOpen}
                 onCloseFormModal={handleCloseFormModal}
                 onSaveSportiv={handleSave}
                 sportivToEdit={sportivToEdit}

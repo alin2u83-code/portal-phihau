@@ -453,6 +453,8 @@ export const Sportivi: React.FC<{
                     setIsImportModalOpen(false);
                     window.location.reload();
                 }}
+                activeClubId={currentUser?.club_id || ''}
+                defaultGrupaId={grupe[0]?.id || ''}
             />
 
             <SportivFormModal

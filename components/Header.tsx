@@ -37,8 +37,9 @@ export const Header: React.FC<HeaderProps> = ({
         <header 
             className={`fixed top-0 right-0 h-16 flex items-center justify-between px-4 border-b border-slate-800 bg-slate-900/90 backdrop-blur-md transition-all duration-300 ${isSidebarExpanded ? 'md:left-64' : 'md:left-20'} left-0 z-40 shadow-sm`}
         >
-            <div className="flex-1 flex items-center gap-4">
-                {!isRootView && !isMobile && (
+            {/* Left: Logo/Title & Back Button */}
+            <div className="flex items-center gap-4">
+                {!isRootView && (
                     <Button 
                         onClick={onBack} 
                         variant="secondary" 
@@ -46,11 +47,15 @@ export const Header: React.FC<HeaderProps> = ({
                         className="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 shadow-sm flex items-center gap-2 transition-all"
                     >
                         <ArrowLeftIcon className="w-4 h-4" />
-                        <span>Înapoi</span>
+                        <span className="hidden md:inline">Înapoi</span>
                     </Button>
                 )}
+                <div className="font-bold text-white tracking-tight text-lg">
+                    {isMobile ? 'Portal' : 'Qwan Ki Do Club'}
+                </div>
             </div>
 
+            {/* Right: Notifications & User Menu */}
             <div className="flex items-center gap-3 md:gap-4">
                 {currentUser && <NotificationBell currentUser={currentUser} />}
                 

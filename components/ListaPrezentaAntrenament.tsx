@@ -10,6 +10,8 @@ import { AntrenamentForm } from './AntrenamentForm';
 import { supabase } from '../supabaseClient';
 import { generateTrainingsFromSchedule } from '../utils/trainingGenerator';
 
+import { useData } from '../contexts/DataContext';
+
 interface ListaPrezentaAntrenamentProps {
     grupa: Grupa;
     onBack: () => void;
@@ -22,6 +24,7 @@ const SportivInfoModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
 }> = ({ sportiv, isOpen, onClose }) => {
+    const { grade } = useData();
     const [history, setHistory] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
 
@@ -44,13 +47,15 @@ const SportivInfoModal: React.FC<{
 
     if (!sportiv) return null;
 
+    const gradName = sportiv.grad_actual_id ? grade.find(g => g.id === sportiv.grad_actual_id)?.nume : 'Fără grad';
+
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={`Profil Sportiv: ${sportiv.nume} ${sportiv.prenume}`}>
             <div className="space-y-6">
                 <div className="grid grid-cols-2 gap-4">
                     <div className="p-4 bg-slate-800/50 rounded-xl border border-slate-700/50">
                         <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Grad Actual</p>
-                        <p className="text-lg font-bold text-white">{sportiv.grad_actual || 'Fără grad'}</p>
+                        <p className="text-lg font-bold text-white">{gradName || 'Fără grad'}</p>
                     </div>
                     <div className="p-4 bg-slate-800/50 rounded-xl border border-slate-700/50">
                         <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Status</p>

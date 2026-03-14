@@ -101,7 +101,7 @@ export const FisaDigitalaSportiv: React.FC<FisaDigitalaSportivProps> = ({ curren
                     <div className="text-center sm:text-left">
                         <h2 className="text-2xl font-bold text-white">{currentUser.nume} {currentUser.prenume}</h2>
                         <p className="text-slate-400">{currentUser.cluburi?.nume || 'Club neasociat'}</p>
-                        <p className="mt-2 font-bold text-lg text-brand-secondary">{currentUser.grad_actual || 'Începător'}</p>
+                        <p className="mt-2 font-bold text-lg text-brand-secondary">{currentGrad?.nume || 'Începător'}</p>
                     </div>
                 </div>
             </Card>

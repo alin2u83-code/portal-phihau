@@ -132,7 +132,7 @@ const SingleAddInscriereModal: React.FC<SingleAddInscriereModalProps> = ({ isOpe
                             <span className="font-bold">Vârsta la examen:</span> {ageAtExam} ani
                         </p>
                         <p className="text-sm text-slate-300">
-                            <span className="font-bold">Grad actual:</span> {selectedSportiv.grad_actual || 'Începător'}
+                            <span className="font-bold">Grad actual:</span> {grade.find(g => g.id === selectedSportiv.grad_actual_id)?.nume || 'Începător'}
                         </p>
                     </div>
                 )}
@@ -290,7 +290,7 @@ const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps & { sesiuneData: 
                                                {!isEligible ? (
                                                     <p className="text-xs text-red-400">Ineligibil (Ultima promovare: {lastPromotionDate})</p>
                                                ) : (
-                                                    <p className="text-xs text-slate-400">Grad actual: {s.grad_actual || 'Începător'}</p>
+                                                    <p className="text-xs text-slate-400">Grad actual: {grade.find(g => g.id === s.grad_actual_id)?.nume || 'Începător'}</p>
                                                )}
                                                <p className="text-xs text-brand-secondary font-bold">Vârstă la examen: {getAgeOnDate(s.data_nasterii, sesiuneData)} ani</p>
                                            </div>
@@ -687,7 +687,10 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 return prev.map(sportiv => {
                     const update = updatesMap.get(sportiv.id);
                     if (update) {
-                        return { ...sportiv, ...update };
+                        return { 
+                            ...sportiv, 
+                            ...update
+                        };
                     }
                     return sportiv;
                 });

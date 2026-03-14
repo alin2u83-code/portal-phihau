@@ -19,10 +19,21 @@ export const importSportivi = async (
   const report: ImportReport = { succes: 0, erori: 0, detalii_erori: [] };
 
   // Helper to find grade ID
-  const findGradeId = (gradNume: string | null | undefined): string | null => {
-    if (!gradNume) return grade.find(g => g.ordine === 0)?.id || null;
-    const found = grade.find(g => g.nume.toLowerCase() === gradNume.trim().toLowerCase());
-    return found ? found.id : (grade.find(g => g.ordine === 0)?.id || null);
+  const findGradeId = (gradNume: string | null | undefined): string => {
+    const debutantGrade = grade.find(g => g.ordine === 0 || g.nume.toLowerCase() === 'debutant');
+    const defaultId = debutantGrade ? debutantGrade.id : '1';
+
+    if (!gradNume || gradNume.trim() === '' || gradNume.trim().toLowerCase() === 'debutant') {
+      return defaultId;
+    }
+    
+    const trimmed = gradNume.trim();
+    // Check if it's already a valid UUID
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(trimmed);
+    if (isUuid) return trimmed;
+
+    const found = grade.find(g => g.nume.toLowerCase() === trimmed.toLowerCase());
+    return found ? found.id : defaultId;
   };
 
   for (let i = 0; i < dateSportivi.length; i++) {
@@ -54,7 +65,9 @@ export const importSportivi = async (
         return null;
       };
 
-      // 3. Pregătire date
+      // 3. Pregătire date - Eliminăm cheile care nu există în schema bazei de date (grad_actual)
+      const gradId = findGradeId(row.grad_actual || row.grad_actual_id);
+      
       const sportivData = {
         nume: row.nume.trim().replace(/[?]/g, ''),
         prenume: row.prenume.trim().replace(/[?]/g, ''),
@@ -68,7 +81,7 @@ export const importSportivi = async (
         club_id: row.club_id || activeClubId,
         status: row.status || 'Activ',
         grupa_id: row.grupa_id || defaultGrupaId,
-        grad_actual_id: findGradeId(row.grad_actual),
+        grad_actual_id: gradId || '1',
       };
 
       // 4. Upsert logic

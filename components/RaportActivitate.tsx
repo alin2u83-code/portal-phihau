@@ -11,7 +11,7 @@ import { ResponsiveTable, Column } from './ResponsiveTable';
 type SortKey = keyof RaportActivitateRecord;
 
 export const RaportActivitate: React.FC<{ onBack: () => void }> = ({ onBack }) => {
-    const { currentUser } = useData();
+    const { currentUser, grade } = useData();
     const [data, setData] = useState<RaportActivitateRecord[]>([]);
     const [loading, setLoading] = useState(true);
     const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: 'asc' | 'desc' }>({ key: 'nume_complet', direction: 'asc' });
@@ -37,6 +37,11 @@ export const RaportActivitate: React.FC<{ onBack: () => void }> = ({ onBack }) =
         };
         fetchData();
     }, [currentUser.id, showError]);
+
+    const getGradName = (gradId: string | null) => {
+        if (!gradId) return 'Începător';
+        return grade.find(g => g.id === gradId)?.nume || 'Începător';
+    };
 
     const sortedAndFilteredData = useMemo(() => {
         let sortableData = [...data];
@@ -74,7 +79,7 @@ export const RaportActivitate: React.FC<{ onBack: () => void }> = ({ onBack }) =
     const handleExport = () => {
         const dataToExport = sortedAndFilteredData.map(d => ({
             "Nume Complet": d.nume_complet,
-            "Grad Actual": d.grad_actual,
+            "Grad Actual": getGradName(d.grad_actual_id),
             "Antrenamente Club": d.antrenamente_tinute,
             "Prezente Efective": d.prezente_efective,
             "Procentaj Prezenta (%)": d.procentaj_prezenta,
@@ -97,9 +102,9 @@ export const RaportActivitate: React.FC<{ onBack: () => void }> = ({ onBack }) =
             render: (row) => <span className="font-medium text-white">{row.nume_complet}</span>
         },
         {
-            key: 'grad_actual',
+            key: 'grad_actual_id',
             label: 'Grad Actual',
-            render: (row) => <span>{row.grad_actual || 'Începător'}</span>
+            render: (row) => <span>{getGradName(row.grad_actual_id)}</span>
         },
         {
             key: 'prezente_efective',
@@ -127,7 +132,7 @@ export const RaportActivitate: React.FC<{ onBack: () => void }> = ({ onBack }) =
             <div className="flex justify-between items-start mb-2">
                 <div>
                     <p className="font-bold text-white text-lg">{row.nume_complet}</p>
-                    <p className="text-sm text-slate-400">{row.grad_actual || 'Începător'}</p>
+                    <p className="text-sm text-slate-400">{getGradName(row.grad_actual_id)}</p>
                 </div>
                 <span className={`px-2 py-1 rounded-full text-xs font-bold ${row.procentaj_prezenta < 50 ? 'bg-red-900/50 text-red-300' : 'bg-green-900/50 text-green-300'}`}>
                     {row.procentaj_prezenta}%

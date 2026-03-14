@@ -33,6 +33,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
       setPlati,
       preturiConfig,
       setDeconturiFederatie,
+      setIstoricGrade,
       loading,
       filteredData
   } = useData();
@@ -55,7 +56,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
   const [selectedSesiuneId, setSelectedSesiuneId] = useLocalStorage<string | null>('phi-hau-selected-sesiune-id', null);
   const { showError, showSuccess } = useError();
   
-  const { saveSesiune, deleteSesiune, finalizeExamen, loading: managerLoading } = useExamManager(setSesiuni, setInscrieri, setDeconturiFederatie);
+  const { saveSesiune, deleteSesiune, finalizeExamen, loading: managerLoading } = useExamManager(setSesiuni, setInscrieri, setDeconturiFederatie, setSportivi, setIstoricGrade);
   
   const selectedSesiune = useMemo(() => selectedSesiuneId ? (sesiuni || []).find(e => e.id === selectedSesiuneId) || null : null, [selectedSesiuneId, sesiuni]);
   

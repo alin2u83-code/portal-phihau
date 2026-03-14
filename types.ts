@@ -18,7 +18,6 @@ export interface User {
   participa_vacanta?: boolean;
   familie_id?: string | null;
   grad_actual_id?: string | null;
-  grad_actual?: string | null;
   data_nasterii?: string;
   data_inscrierii?: string;
   status?: 'Activ' | 'Inactiv';
@@ -90,7 +89,6 @@ export interface Sportiv {
   club_id?: string | null;
   cluburi?: Club | null;
   grad_actual_id?: string | null;
-  grad_actual?: string | null;
   familie_id: string | null;
   tip_abonament_id: string | null;
   participa_vacanta: boolean;
@@ -124,7 +122,6 @@ export interface SportivDetaliu {
   club_nume: string;
   grupa_id: string | null;
   grupa_denumire: string | null;
-  grad_actual: string | null;
   ultima_prezenta: string | null;
   total_prezente: number;
 }
@@ -266,7 +263,6 @@ export interface InscriereExamen {
   grades?: Grad;
   sportiv_nume?: string;
   grad_vizat_nume?: string;
-  grad_actual_nume?: string;
   club_nume?: string;
   locatie_nume?: string;
   data_examen?: string;
@@ -448,7 +444,7 @@ export interface FilteredData {
 export interface RaportActivitateRecord {
   sportiv_id: string;
   nume_complet: string;
-  grad_actual: string | null;
+  grad_actual_id: string | null;
   antrenamente_tinute: number;
   prezente_efective: number;
   procentaj_prezenta: number;

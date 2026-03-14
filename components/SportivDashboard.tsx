@@ -205,7 +205,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                         {grupe.find(g => g.id === viewedUser.grupa_id)?.denumire || 'Fără grupă'}
                     </p>
                     <div className="mt-4 transform scale-110">
-                       <GradBadge grad={currentGrad} gradName={viewedUser.grad_actual} isLarge />
+                       <GradBadge grad={currentGrad} gradName={currentGrad?.nume} isLarge />
                     </div>
                     
                     {isViewingOwnProfile && (

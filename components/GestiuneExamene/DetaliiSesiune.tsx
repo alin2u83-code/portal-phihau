@@ -22,17 +22,24 @@ export interface DetaliiSesiuneProps {
     onViewSportiv: (sportiv: Sportiv) => void;
     onEdit: () => void;
     currentUser: User;
-    onFinalize: (id: string, inscrieri: InscriereExamen[], sesiune: SesiuneExamen) => Promise<boolean | undefined>;
+    onFinalize: (id: string, inscrieri: InscriereExamen[], sesiune: SesiuneExamen, grade: Grad[]) => Promise<boolean | undefined>;
     isFinalizing: boolean;
     isReadOnly?: boolean;
 }
 
 export const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
     const handleFinalizeExam = async () => {
-        if (!window.confirm("Această acțiune este ireversibilă. Se va marca examenul ca finalizat și se va genera decontul pentru federație. Doriți să continuați?")) {
-            return;
+        const admisiCount = props.inscrieri.filter(i => i.rezultat === 'Admis').length;
+        if (admisiCount === 0) {
+            if (!window.confirm("Atenție: Niciun sportiv nu este marcat ca 'Admis'. Dacă nu ați salvat rezultatele, vă rugăm să o faceți înainte de a finaliza examenul. Doriți să continuați finalizarea oricum?")) {
+                return;
+            }
+        } else {
+            if (!window.confirm("Această acțiune este ireversibilă. Se va marca examenul ca finalizat și se va genera decontul pentru federație. Doriți să continuați?")) {
+                return;
+            }
         }
-        await props.onFinalize(props.sesiune.id, props.inscrieri, props.sesiune);
+        await props.onFinalize(props.sesiune.id, props.inscrieri, props.sesiune, props.grade);
     };
     
     return (

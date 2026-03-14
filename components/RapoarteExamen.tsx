@@ -184,8 +184,15 @@ const DetaliiSesiune: React.FC<{
     const [isFinalizing, setIsFinalizing] = useState(false);
 
     const handleFinalizeExam = async () => {
-        if (!window.confirm("Această acțiune este ireversibilă. Se va marca examenul ca finalizat și se va genera decontul pentru federație. Doriți să continuați?")) {
-            return;
+        const admisiCount = props.inscrieri.filter(i => i.rezultat === 'Admis').length;
+        if (admisiCount === 0) {
+            if (!window.confirm("Atenție: Niciun sportiv nu este marcat ca 'Admis'. Dacă nu ați salvat rezultatele, vă rugăm să o faceți înainte de a finaliza examenul. Doriți să continuați finalizarea oricum?")) {
+                return;
+            }
+        } else {
+            if (!window.confirm("Această acțiune este ireversibilă. Se va marca examenul ca finalizat și se va genera decontul pentru federație. Doriți să continuați?")) {
+                return;
+            }
         }
         setIsFinalizing(true);
         try {
@@ -200,6 +207,8 @@ const DetaliiSesiune: React.FC<{
             if (updateSesiuneError) throw updateSesiuneError;
 
             let totalSportivi = 0;
+            const updatedSportiviIds = new Set<string>();
+            const newIstoricEntries: IstoricGrade[] = [];
             
             // 2. Process each inscriere
             for (const inscriere of props.inscrieri) {
@@ -211,6 +220,7 @@ const DetaliiSesiune: React.FC<{
                         .eq('id', inscriere.sportiv_id);
                     
                     if (updateSportivError) throw updateSportivError;
+                    updatedSportiviIds.add(inscriere.sportiv_id);
 
                     // Check if istoric_grade exists
                     const { data: existingIstoric } = await supabase
@@ -223,19 +233,42 @@ const DetaliiSesiune: React.FC<{
                     
                     if (!existingIstoric) {
                         // Insert istoric_grade
-                        const { error: insertIstoricError } = await supabase
+                        const { data: newIstoricData, error: insertIstoricError } = await supabase
                             .from('istoric_grade')
                             .insert({
                                 sportiv_id: inscriere.sportiv_id,
                                 grad_id: inscriere.grad_vizat_id,
                                 data_obtinere: props.sesiune.data || props.sesiune.data_examen || new Date().toISOString().split('T')[0],
                                 sesiune_examen_id: sesiuneId
-                            });
+                            })
+                            .select()
+                            .single();
                         
                         if (insertIstoricError) throw insertIstoricError;
+                        if (newIstoricData) newIstoricEntries.push(newIstoricData as IstoricGrade);
                     }
                 }
                 totalSportivi++;
+            }
+
+            // Update local state
+            if (updatedSportiviIds.size > 0) {
+                props.setSportivi(prev => prev.map(s => {
+                    if (updatedSportiviIds.has(s.id)) {
+                        const inscriere = props.inscrieri.find(i => i.sportiv_id === s.id && i.rezultat === 'Admis');
+                        if (inscriere) {
+                            const newGrad = props.grade.find(g => g.id === inscriere.grad_vizat_id);
+                            return { 
+                                ...s, 
+                                grad_actual_id: inscriere.grad_vizat_id
+                            };
+                        }
+                    }
+                    return s;
+                }));
+            }
+            if (newIstoricEntries.length > 0) {
+                props.setIstoricGrade(prev => [...prev, ...newIstoricEntries]);
             }
 
             // 3. Create decont_federatie

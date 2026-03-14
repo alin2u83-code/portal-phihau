@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { useError } from '../components/ErrorProvider';
-import { SesiuneExamen, InscriereExamen, DecontFederatie } from '../types';
+import { SesiuneExamen, InscriereExamen, DecontFederatie, Sportiv, IstoricGrade, Grad } from '../types';
 
 export const useExamManager = (
     setSesiuni: React.Dispatch<React.SetStateAction<SesiuneExamen[]>>,
     setInscrieri: React.Dispatch<React.SetStateAction<InscriereExamen[]>>,
-    setDeconturiFederatie: React.Dispatch<React.SetStateAction<DecontFederatie[]>>
+    setDeconturiFederatie: React.Dispatch<React.SetStateAction<DecontFederatie[]>>,
+    setSportivi?: React.Dispatch<React.SetStateAction<Sportiv[]>>,
+    setIstoricGrade?: React.Dispatch<React.SetStateAction<IstoricGrade[]>>
 ) => {
     const { showError, showSuccess } = useError();
     const [loading, setLoading] = useState(false);
@@ -78,7 +80,7 @@ export const useExamManager = (
         }
     };
 
-    const finalizeExamen = async (sesiuneId: string, inscrieriSesiune: InscriereExamen[], sesiuneData: SesiuneExamen) => {
+    const finalizeExamen = async (sesiuneId: string, inscrieriSesiune: InscriereExamen[], sesiuneData: SesiuneExamen, grade: Grad[] = []) => {
         if (!supabase) return false;
         setLoading(true);
         try {
@@ -91,6 +93,8 @@ export const useExamManager = (
             if (updateSesiuneError) throw updateSesiuneError;
 
             let totalSportivi = 0;
+            const updatedSportiviIds = new Set<string>();
+            const newIstoricEntries: IstoricGrade[] = [];
             
             // 2. Process each inscriere
             for (const inscriere of inscrieriSesiune) {
@@ -102,6 +106,7 @@ export const useExamManager = (
                         .eq('id', inscriere.sportiv_id);
                     
                     if (updateSportivError) throw updateSportivError;
+                    updatedSportiviIds.add(inscriere.sportiv_id);
 
                     // Check if istoric_grade exists
                     const { data: existingIstoric } = await supabase
@@ -114,19 +119,42 @@ export const useExamManager = (
                     
                     if (!existingIstoric) {
                         // Insert istoric_grade
-                        const { error: insertIstoricError } = await supabase
+                        const { data: newIstoricData, error: insertIstoricError } = await supabase
                             .from('istoric_grade')
                             .insert({
                                 sportiv_id: inscriere.sportiv_id,
                                 grad_id: inscriere.grad_vizat_id,
                                 data_obtinere: sesiuneData.data || sesiuneData.data_examen || new Date().toISOString().split('T')[0],
                                 sesiune_examen_id: sesiuneId
-                            });
+                            })
+                            .select()
+                            .single();
                         
                         if (insertIstoricError) throw insertIstoricError;
+                        if (newIstoricData) newIstoricEntries.push(newIstoricData as IstoricGrade);
                     }
                 }
                 totalSportivi++;
+            }
+
+            // Update local state
+            if (setSportivi && updatedSportiviIds.size > 0) {
+                setSportivi(prev => prev.map(s => {
+                    if (updatedSportiviIds.has(s.id)) {
+                        const inscriere = inscrieriSesiune.find(i => i.sportiv_id === s.id && i.rezultat === 'Admis');
+                        if (inscriere) {
+                            const newGrad = grade.find(g => g.id === inscriere.grad_vizat_id);
+                            return { 
+                                ...s, 
+                                grad_actual_id: inscriere.grad_vizat_id
+                            };
+                        }
+                    }
+                    return s;
+                }));
+            }
+            if (setIstoricGrade && newIstoricEntries.length > 0) {
+                setIstoricGrade(prev => [...prev, ...newIstoricEntries]);
             }
 
             // 3. Create decont_federatie

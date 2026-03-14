@@ -57,7 +57,7 @@ export const SportivFormModal: React.FC<{
                 
                 let defaultGradeId = null;
                 if (grade.length > 0) {
-                    const debutantGrade = grade.find(g => g.ordine === 1 || g.nume === 'Debutant');
+                    const debutantGrade = grade.find(g => g.ordine === 0 || g.nume.toLowerCase() === 'debutant');
                     if (debutantGrade) defaultGradeId = debutantGrade.id;
                 }
 

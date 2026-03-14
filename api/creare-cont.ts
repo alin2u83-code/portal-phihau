@@ -9,8 +9,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const supabaseUrl = process.env.VITE_SUPABASE_URL;
   const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!supabaseUrl || !supabaseServiceRoleKey) {
-    return res.status(500).json({ error: "Serverul nu este configurat corect." });
+  if (!supabaseUrl) {
+    return res.status(500).json({ error: "Serverul nu este configurat corect: VITE_SUPABASE_URL lipsește." });
+  }
+  if (!supabaseServiceRoleKey) {
+    return res.status(500).json({ error: "Serverul nu este configurat corect: SUPABASE_SERVICE_ROLE_KEY lipsește." });
   }
 
   const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {

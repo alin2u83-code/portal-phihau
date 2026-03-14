@@ -5,6 +5,7 @@ import { ArrowLeftIcon, ShieldCheckIcon, CheckCircleIcon } from './icons';
 import { useError } from './ErrorProvider';
 import { supabase } from '../supabaseClient';
 import { getRoleDisplayName, getRoleDescription, getRoleIcon } from '../hooks/useUserRoles';
+import { RLSTester } from './RLSTester';
 
 // --- Re-implemented IdentitySwitcher component ---
 const IdentitySwitcher: React.FC<{
@@ -157,7 +158,10 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ currentUser, userRol
             </header>
 
             {currentUser.email === 'alin2u83@gmail.com' && (
-                <DevRoleImpersonation userRoles={userRoles} />
+                <div className="space-y-8">
+                    <DevRoleImpersonation userRoles={userRoles} />
+                    <RLSTester />
+                </div>
             )}
 
             <IdentitySwitcher 

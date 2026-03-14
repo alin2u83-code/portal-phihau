@@ -3,6 +3,7 @@ import { Sportiv, Grupa, Grad, Familie, TipAbonament, Club, User, Rol } from '..
 import { Modal, Button } from '../ui';
 import { useError } from '../ErrorProvider';
 import { useSportivForm } from '../../hooks/useSportivForm';
+import { useUnsavedChanges } from '../../hooks/useUnsavedChanges';
 import { useFamilyManager } from '../../hooks/useFamilyManager';
 import { supabase } from '../../supabaseClient';
 import { SportivFormFields } from './SportivFormFields';
@@ -36,7 +37,8 @@ export const SportivFormModal: React.FC<{
 }) => {
     const { showError } = useError();
     const [loading, setLoading] = useState(false);
-    const { formData, setFormData, errors, validate, handleChange } = useSportivForm(initialFormState);
+    const { formData, setFormData, errors, validate, handleChange, isDirty, setIsDirty } = useSportivForm(initialFormState);
+    useUnsavedChanges(isDirty);
     const [isFormValid, setIsFormValid] = useState(false);
     const [isGrupaModalOpen, setIsGrupaModalOpen] = useState(false);
     const [isFamilieModalOpen, setIsFamilieModalOpen] = useState(false);
@@ -47,7 +49,8 @@ export const SportivFormModal: React.FC<{
         if (isOpen) {
             if (sportivToEdit) {
                 setFormData(sportivToEdit);
-                setIsFormValid(true); 
+                setIsFormValid(true);
+                setIsDirty(false);
             } else {
                 const isSuperAdmin = currentUser?.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN');
                 const defaultClubId = !isSuperAdmin && currentUser?.club_id ? currentUser.club_id : (clubFilter || null);
@@ -64,14 +67,23 @@ export const SportivFormModal: React.FC<{
                     grad_actual_id: defaultGradeId || undefined
                 });
                 setIsFormValid(false);
+                setIsDirty(false);
             }
         }
-    }, [isOpen, sportivToEdit, currentUser, grade, setFormData, clubFilter]);
+    }, [isOpen, sportivToEdit, currentUser, grade, setFormData, clubFilter, setIsDirty]);
     
     const handleFormChange = useCallback((data: Partial<Sportiv>, isValid: boolean) => {
         setFormData(data);
         setIsFormValid(isValid);
-    }, [setFormData]);
+        setIsDirty(true);
+    }, [setFormData, setIsDirty]);
+
+    const handleClose = () => {
+        if (isDirty && !window.confirm("Ai modificări nesalvate. Ești sigur că vrei să închizi?")) {
+            return;
+        }
+        onClose();
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -92,6 +104,7 @@ export const SportivFormModal: React.FC<{
         try {
             const result = await onSave(formData);
             if (result.success) {
+                setIsDirty(false);
                 onClose(result.data);
             } 
         } catch (err: any) {
@@ -115,7 +128,7 @@ export const SportivFormModal: React.FC<{
 
     return (
         <>
-            <Modal isOpen={isOpen} onClose={() => onClose()} title={sportivToEdit ? "Editează Sportiv" : "Adaugă Sportiv"} persistent>
+            <Modal isOpen={isOpen} onClose={handleClose} title={sportivToEdit ? "Editează Sportiv" : "Adaugă Sportiv"} persistent>
                 <form onSubmit={handleSubmit}>
                     <SportivFormFields
                         initialData={formData}
@@ -132,7 +145,7 @@ export const SportivFormModal: React.FC<{
                         allRoles={allRoles}
                     />
                     <div className="flex justify-end pt-4 mt-4 gap-2 border-t border-slate-700">
-                        <Button type="button" variant="secondary" onClick={() => onClose()} disabled={loading}>Închide</Button>
+                        <Button type="button" variant="secondary" onClick={handleClose} disabled={loading}>Închide</Button>
                         <Button
                             type="submit"
                             variant={sportivToEdit ? 'success' : 'primary'}

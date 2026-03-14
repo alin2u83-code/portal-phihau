@@ -14,7 +14,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
     const { currentUser, activeRoleContext } = useDataProvider();
     const permissions = usePermissions(activeRoleContext);
 
-    const [counts, setCounts] = useState<{ sportivi: number; plati: number; cluburi: number } | null>(null);
+    const [counts, setCounts] = useState<{ sportivi: number; plati: number; cluburi: number; utilizatori: number } | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -25,16 +25,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
 
         const fetchCounts = async () => {
             try {
-                const [sportiviCount, platiCount, cluburiCount] = await Promise.all([
+                const [sportiviCount, platiCount, cluburiCount, utilizatoriCount] = await Promise.all([
                     supabase.from('sportivi').select('*', { count: 'exact', head: true }),
                     supabase.from('plati').select('*', { count: 'exact', head: true }),
-                    supabase.from('cluburi').select('*', { count: 'exact', head: true })
+                    supabase.from('cluburi').select('*', { count: 'exact', head: true }),
+                    supabase.from('user_roles').select('*', { count: 'exact', head: true })
                 ]);
 
                 setCounts({
                     sportivi: sportiviCount.count || 0,
                     plati: platiCount.count || 0,
-                    cluburi: cluburiCount.count || 0
+                    cluburi: cluburiCount.count || 0,
+                    utilizatori: utilizatoriCount.count || 0
                 });
             } catch (error) {
                 console.error('Error fetching admin counts:', error);
@@ -61,7 +63,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
     return (
         <div className="space-y-6">
             <h1 className="text-2xl font-bold text-white mb-6">Panou Administrativ</h1>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <Card className="p-6 bg-slate-900 border-slate-800 hover:border-slate-700 transition-all group">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-medium text-slate-400">Sportivi Total</h3>
@@ -92,6 +94,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
                     <p className="text-3xl font-bold text-white">{counts?.cluburi}</p>
                 </Card>
 
+                <Card className="p-6 bg-slate-900 border-slate-800 hover:border-slate-700 transition-all group">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-medium text-slate-400">Utilizatori</h3>
+                        <div className="p-2 bg-slate-800 rounded-lg group-hover:bg-slate-700 transition-colors">
+                            <UsersIcon className="w-6 h-6 text-violet-500" />
+                        </div>
+                    </div>
+                    <p className="text-3xl font-bold text-white">{counts?.utilizatori}</p>
+                </Card>
+            </div>
+
+            <h2 className="text-xl font-bold text-white mt-8 mb-4">Acțiuni Rapide</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card className="p-6 bg-slate-900 border-slate-800 hover:border-slate-700 transition-all group cursor-pointer" onClick={() => onNavigate('stagii')}>
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-medium text-slate-400">Stagii</h3>

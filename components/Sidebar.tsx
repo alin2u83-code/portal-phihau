@@ -14,8 +14,8 @@ interface SidebarProps {
     isExpanded: boolean;
     setIsExpanded: React.Dispatch<React.SetStateAction<boolean>>;
     clubs: Club[];
-    permissions: Permissions;
-    activeRole: Rol['nume'];
+    permissions?: Permissions;
+    activeRole: string;
     canSwitchRoles: boolean;
     onSwitchRole: (context: any) => void;
     isSwitchingRole: boolean;

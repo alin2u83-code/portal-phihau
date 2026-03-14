@@ -7,7 +7,7 @@ import { useNotifications } from '../contexts/NotificationContext';
 
 interface NavMenuProps {
   isExpanded: boolean;
-  permissions: Permissions;
+  permissions?: Permissions;
   menuToDisplay: MenuItem[];
   onNavigate: (view: View) => void;
 }
@@ -72,7 +72,7 @@ export const NavMenu: React.FC<NavMenuProps> = (props) => {
             />
         );
       })}
-      {permissions.isFederationAdmin && (
+      {permissions?.isFederationAdmin && (
         <NavItem 
             item={{ label: 'Admin Dashboard', view: 'admin-dashboard', icon: ShieldCheckIcon }}
             isExpanded={isExpanded} 

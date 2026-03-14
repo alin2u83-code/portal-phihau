@@ -64,7 +64,7 @@ interface SystemGuardianProps {
     children: React.ReactNode;
     isLoading: boolean;
     currentUser: User | null;
-    permissions: Permissions;
+    permissions?: Permissions;
     error: string | null;
     onRetry?: () => void;
 }
@@ -80,7 +80,7 @@ export const SystemGuardian: React.FC<SystemGuardianProps> = ({ children, isLoad
                 applyTheme(currentUser.cluburi.theme_config as Partial<Theme>);
             }
             // Fallback: Federation theme for federation users
-            else if (permissions.isFederationAdmin || currentUser.club_id === FEDERATIE_ID) {
+            else if (permissions?.isFederationAdmin || currentUser.club_id === FEDERATIE_ID) {
                 applyTheme(federationTheme);
             }
             // Fallback: Default club theme for others
@@ -108,7 +108,7 @@ export const SystemGuardian: React.FC<SystemGuardianProps> = ({ children, isLoad
             clearTimeout(timer);
             clearTimeout(timeoutTimer);
         };
-    }, [isLoading, currentUser, permissions.isFederationAdmin]);
+    }, [isLoading, currentUser, permissions?.isFederationAdmin]);
 
     if (error) {
         if (error.includes('Contul de utilizator nu este legat')) {

@@ -1,14 +1,14 @@
 import React, { useCallback, useMemo, useEffect, Suspense } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import { supabase } from './supabaseClient';
-import { View, Rol, Plata } from './types';
+import { View, Rol, Plata, Sportiv } from './types';
 import { Sidebar } from './components/Sidebar';
 import { useError } from './components/ErrorProvider';
-import { useLocalStorage } from './hooks/useLocalStorage';
 import { useNavigation } from './contexts/NavigationContext';
 import { usePermissions } from './hooks/usePermissions';
 import ErrorBoundary from './components/ErrorBoundary';
 import { SystemGuardian } from './components/SystemGuardian';
-import { AdminDebugFloatingPanel } from './components/AdminDebugFloatingPanel';
 import { useRoleManager } from './hooks/useRoleManager';
 import { RoleSelectionPage } from './components/RoleSelectionPage';
 import { Header } from './components/Header';
@@ -17,147 +17,33 @@ import { useIsMobile } from './hooks/useIsMobile';
 import { MartialArtsSkeleton } from './components/MartialArtsSkeleton';
 import { AppRouter } from './components/AppRouter';
 import { NotificationProvider } from './contexts/NotificationContext';
-import { Toaster } from 'react-hot-toast';
 import { ClubGuard } from './components/ClubGuard';
 import { useAppStore } from './src/store/useAppStore';
-
-import { Routes, Route, Navigate } from 'react-router-dom';
 import { LoginPage } from './components/LoginPage';
 import { ResetPasswordPage } from './components/ResetPasswordPage';
+import { useAppLogic } from './hooks/useAppLogic';
+import { AppLayout } from './components/AppLayout';
 
 function App() {
-  const { showError } = useError();
-  const dataProvider = useData();
+  const {
+    session, currentUser, userRoles, activeRoleContext, loading, error,
+    activeRole, canSwitchRoles, isSwitchingRole, effectiveNeedsRoleSelection,
+    clubs, grade,
+    handleLogout, handleSwitchRole, handleSelectRole, initializeAndFetchData
+  } = useAppLogic();
+
+  const permissions = usePermissions(activeRoleContext);
 
   const { activeView, setActiveView } = useNavigation();
   const { isSidebarExpanded, setIsSidebarExpanded } = useAppStore();
   
-  const [selectedSportiv, setSelectedSportiv] = React.useState<any>(null);
-  const [switchingToRole, setSwitchingToRole] = React.useState<string>('');
-  
-  const {
-      loading, error, needsRoleSelection, session, currentUser, userRoles, activeRoleContext,
-      setCurrentUser, sportivi, sesiuniExamene, grade,
-      clubs, setSportivi, setGrade, initializeAndFetchData,
-      anunturiPrezenta, setAnunturiPrezenta
-  } = dataProvider;
-
+  const [selectedSportiv, setSelectedSportiv] = React.useState<Sportiv | null>(null);
   const [platiPentruIncasare, setPlatiPentruIncasare] = React.useState<Plata[]>([]);
 
-
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT') {
-        localStorage.clear();
-        window.location.reload();
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  useEffect(() => {
-    // No longer needed because supabaseClient uses global.fetch to dynamically inject the header
-  }, [currentUser]);
-
-  const activeRole = useMemo((): Rol['nume'] | null => {
-    const roleName = activeRoleContext?.roluri?.nume;
-    return roleName || null;
-  }, [activeRoleContext]);
-
-  const { switchRole, loading: isSwitchingRole } = useRoleManager(currentUser?.user_id || session?.user?.id);
-
-  const permissions = usePermissions(activeRoleContext);
-  
-  const handleBackToDashboard = useCallback(() => {
-    const dashboardView = permissions.hasAdminAccess && activeRole !== 'SPORTIV' ? 'dashboard' : 'my-portal';
+  const handleBackToDashboard = React.useCallback(() => {
+    const dashboardView = (permissions?.hasAdminAccess && activeRole !== 'SPORTIV') ? 'dashboard' : 'my-portal';
     setActiveView(dashboardView);
-  }, [permissions.hasAdminAccess, activeRole, setActiveView]);
-
-   const canSwitchRoles = useMemo(() => {
-        if (!currentUser || !userRoles || userRoles.length <= 1) return false;
-        return true;
-    }, [currentUser, userRoles]);
-    
-  // NOUA funcție de comutare a rolului: atomică și cu hard refresh conform cerinței
-  const handleSwitchRole = useCallback(async (targetContext: any) => {
-      if (!targetContext?.id) {
-          showError("Eroare la comutare", "Contextul selectat este invalid.");
-          return;
-      }
-      await switchRole(targetContext.id);
-  }, [switchRole, showError]);
-
-  useEffect(() => {
-    const savedRole = localStorage.getItem('activeRole');
-    if (savedRole && savedRole !== 'undefined') {
-      try {
-        const role = JSON.parse(savedRole);
-        if (role && role.roluri?.nume === 'SUPER_ADMIN_FEDERATIE' && activeView === 'dashboard') {
-          setActiveView('federation-dashboard');
-        }
-      } catch (error) {
-        console.error('Failed to parse activeRole from localStorage', error);
-        localStorage.removeItem('activeRole');
-      }
-    }
-  }, [activeView, setActiveView]);
-
-  useEffect(() => {
-    const redirectView = localStorage.getItem('phi-hau-redirect-after-role-switch');
-    if (redirectView) {
-        setActiveView(redirectView as View);
-        localStorage.removeItem('phi-hau-redirect-after-role-switch');
-    }
-  }, [setActiveView]);
-
-  // Removed redundant and restrictive permission check useEffect here.
-  // AppRouter now handles all permission checks via renderProtected.
-
-  // Removed restrictive protection mechanism for SUPER_ADMIN_FEDERATIE
-  // to allow them to access other admin views.
-
-  const handleLogout = async () => {
-    try {
-        // Clear local storage first to ensure a clean state
-        localStorage.removeItem('phi-hau-active-role-context-id');
-        localStorage.removeItem('phi-hau-active-view');
-        localStorage.removeItem('activeRole');
-        
-        if (supabase) {
-            await supabase.auth.signOut();
-        }
-        
-        // Force a full page reload to clear all React states
-        window.location.href = '/';
-    } catch (error) {
-        console.error('Logout error:', error);
-        // Fallback reload
-        window.location.href = '/';
-    }
-  };
-
-  const handleSelectRole = async (role: any) => {
-    // Salvăm imediat în storage pentru a "convinge" providerul de date
-    localStorage.setItem('activeRole', JSON.stringify(role));
-    localStorage.setItem('phi-hau-active-role-context-id', JSON.stringify(role.id));
-    
-    // Save club_id for global filter
-    if (role.club_id) {
-        localStorage.setItem('phi-hau-global-club-filter', JSON.stringify(role.club_id));
-    } else {
-        localStorage.removeItem('phi-hau-global-club-filter');
-    }
-    
-    // Reload to reinitialize supabaseClient with new header
-    window.location.reload();
-  };
-  
-  const effectiveNeedsRoleSelection = useMemo(() => {
-    return needsRoleSelection || (session && !loading && !activeRole);
-  }, [needsRoleSelection, session, loading, activeRole]);
+  }, [permissions?.hasAdminAccess, activeRole, setActiveView]);
 
   if (loading) {
       return <MartialArtsSkeleton />;
@@ -174,65 +60,43 @@ function App() {
       <NotificationProvider currentUser={currentUser}>
         <Toaster />
         {isSwitchingRole && (
-        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[10000] flex flex-col items-center justify-center animate-fade-in-down">
-            <svg className="animate-spin h-10 w-10 text-violet-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-            <p className="text-white text-lg font-bold">Se comută contextul pe {switchingToRole}...</p>
-        </div>
-      )}
-      {!session ? (
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
-          <Route path="*" element={<Navigate to="/login" replace />} />
-        </Routes>
-      ) :
-       effectiveNeedsRoleSelection ? <RoleSelectionPage user={session.user} onSelect={handleSelectRole} loading={isSwitchingRole} onLogout={handleLogout} /> :
-       currentUser ? (
-            <div className="flex min-h-screen bg-[var(--bg-main)]">
-              <Sidebar currentUser={currentUser} onLogout={handleLogout} isExpanded={isSidebarExpanded} setIsExpanded={setIsSidebarExpanded} clubs={clubs} permissions={permissions} activeRole={activeRole!} canSwitchRoles={canSwitchRoles} onSwitchRole={handleSwitchRole} isSwitchingRole={isSwitchingRole} grade={grade} userRoles={userRoles} />
-              
-              <Header 
-                activeView={activeView}
-                onBack={handleBackToDashboard}
-                currentUser={currentUser}
-                permissions={permissions}
-                onNavigate={setActiveView}
-                onLogout={handleLogout}
-                isSidebarExpanded={isSidebarExpanded}
-                userRoles={userRoles}
-                onSwitchRole={handleSwitchRole}
-              />
-
-              <main className={`flex-1 transition-all duration-300 pt-16 ${isSidebarExpanded ? 'md:ml-64' : 'md:ml-20'}`}>
-                <div className="p-4 pb-24 md:p-8 max-w-7xl mx-auto">
-                  <ErrorBoundary onNavigate={setActiveView}>
-                        <ClubGuard>
-                            <AppRouter
-                                activeView={activeView}
-                                setActiveView={setActiveView}
-                                currentUser={currentUser}
-                                userRoles={userRoles}
-                                activeRoleContext={activeRoleContext}
-                                permissions={permissions}
-                                activeRole={activeRole}
-                                selectedSportiv={selectedSportiv}
-                                setSelectedSportiv={setSelectedSportiv}
-                                platiPentruIncasare={platiPentruIncasare}
-                                setPlatiPentruIncasare={setPlatiPentruIncasare}
-                                handleBackToDashboard={handleBackToDashboard}
-                                handleSwitchRole={handleSwitchRole}
-                                isSwitchingRole={isSwitchingRole}
-                                canSwitchRoles={canSwitchRoles}
-                                isEmergencyAdmin={currentUser?.email === 'alin2u83@gmail.com'}
-                            />
-                        </ClubGuard>
-                  </ErrorBoundary>
-                </div>
-              </main>
-
-              {(import.meta as any).env.DEV && currentUser && (<AdminDebugFloatingPanel currentUser={currentUser} userRoles={userRoles} onNavigate={(view) => setActiveView(view)} />)}
+            <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[10000] flex flex-col items-center justify-center animate-fade-in-down">
+                <svg className="animate-spin h-10 w-10 text-violet-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                <p className="text-white text-lg font-bold">Se comută contextul...</p>
             </div>
-      ) : null}
+        )}
+        {!session ? (
+            <Routes>
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
+                <Route path="*" element={<Navigate to="/login" replace />} />
+            </Routes>
+        ) : effectiveNeedsRoleSelection ? (
+            <RoleSelectionPage user={session.user} onSelect={handleSelectRole} loading={isSwitchingRole} onLogout={handleLogout} />
+        ) : currentUser ? (
+            <AppLayout
+                currentUser={currentUser}
+                isSidebarExpanded={isSidebarExpanded}
+                setIsSidebarExpanded={setIsSidebarExpanded}
+                clubs={clubs}
+                permissions={permissions}
+                activeRole={activeRole || ''}
+                canSwitchRoles={canSwitchRoles}
+                onSwitchRole={handleSwitchRole}
+                isSwitchingRole={isSwitchingRole}
+                grade={grade}
+                userRoles={userRoles}
+                activeView={activeView}
+                setActiveView={setActiveView}
+                handleBackToDashboard={handleBackToDashboard}
+                handleLogout={handleLogout}
+                selectedSportiv={selectedSportiv}
+                setSelectedSportiv={setSelectedSportiv}
+                platiPentruIncasare={platiPentruIncasare}
+                setPlatiPentruIncasare={setPlatiPentruIncasare}
+                activeRoleContext={activeRoleContext}
+            />
+        ) : null}
       </NotificationProvider>
     </SystemGuardian>
   );

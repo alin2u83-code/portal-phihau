@@ -4,6 +4,7 @@ import { Sportiv } from '../types';
 export const useSportivForm = (initialData: Partial<Sportiv> = {}) => {
     const [formData, setFormData] = useState<Partial<Sportiv>>(initialData);
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const [isDirty, setIsDirty] = useState(false);
 
     const validate = () => {
         const newErrors: Record<string, string> = {};
@@ -19,10 +20,11 @@ export const useSportivForm = (initialData: Partial<Sportiv> = {}) => {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+        setIsDirty(true);
         if (errors[name]) {
             setErrors(prev => ({ ...prev, [name]: '' }));
         }
     };
 
-    return { formData, setFormData, errors, validate, handleChange };
+    return { formData, setFormData, errors, validate, handleChange, isDirty, setIsDirty };
 };

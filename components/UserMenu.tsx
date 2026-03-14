@@ -4,14 +4,15 @@ import { ChevronDownIcon, CogIcon, ArrowRightOnRectangleIcon, HomeIcon, SitemapI
 
 interface UserMenuProps {
   currentUser: User;
-  permissions: Permissions;
+  permissions?: Permissions;
   onNavigate: (view: View) => void;
   onLogout: () => void;
   userRoles?: any[];
   onSwitchRole?: (context: any) => void;
 }
 
-const getPrimaryRoleName = (permissions: Permissions): string => {
+const getPrimaryRoleName = (permissions?: Permissions): string => {
+    if (!permissions) return 'Utilizator';
     if (permissions.isSuperAdmin) return 'Super Admin';
     if (permissions.isAdmin) return 'Admin';
     if (permissions.isAdminClub) return 'Admin Club';
@@ -32,7 +33,7 @@ export const UserMenu: React.FC<UserMenuProps> = ({ currentUser, permissions, on
   const dropdownRef = useRef<HTMLDivElement>(null);
   const initials = `${currentUser.prenume?.[0] || ''}${currentUser.nume?.[0] || ''}`.toUpperCase();
   const primaryRole = getPrimaryRoleName(permissions);
-  const isAdminContext = permissions.isSuperAdmin || permissions.isAdmin || permissions.isAdminClub;
+  const isAdminContext = permissions?.isSuperAdmin || permissions?.isAdmin || permissions?.isAdminClub;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -106,13 +107,13 @@ export const UserMenu: React.FC<UserMenuProps> = ({ currentUser, permissions, on
           )}
 
           <div className="p-2 space-y-1">
-            {permissions.isSportiv && (
+            {permissions?.isSportiv && (
               <MenuItem label="Portalul Meu" icon={UserCircleIcon} onClick={() => handleNavigate('my-portal')} />
             )}
-            {permissions.hasAdminAccess && (
+            {permissions?.hasAdminAccess && (
               <MenuItem label="Dashboard Admin" icon={HomeIcon} onClick={() => handleNavigate('dashboard')} />
             )}
-            {permissions.isMultiContextAdmin && (
+            {permissions?.isMultiContextAdmin && (
               <MenuItem label="Schimbă Context" icon={SitemapIcon} onClick={() => handleNavigate('admin-console')} />
             )}
             <MenuItem label="Setări Cont" icon={CogIcon} onClick={() => handleNavigate('account-settings')} />

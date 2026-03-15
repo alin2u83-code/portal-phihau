@@ -1,9 +1,16 @@
 import { supabase } from '../supabaseClient';
 import { Sportiv } from '../types';
+import { DEBUTANT_GRAD_ID } from '../constants';
 
 export const adaugaSportiv = async (formData: Partial<Sportiv>): Promise<{ success: boolean; data?: Sportiv; error?: any }> => {
     try {
         const { roluri, cluburi, ...sportivData } = formData;
+        
+        // Asigură-te că sportivul are un grad (implicit Debutant dacă lipsește)
+        if (!sportivData.grad_actual_id) {
+            sportivData.grad_actual_id = DEBUTANT_GRAD_ID;
+        }
+
         const { data: inserted, error: insertError } = await supabase.from('sportivi').insert(sportivData).select('id').single();
         if (insertError) throw insertError;
         

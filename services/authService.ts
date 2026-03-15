@@ -1,6 +1,6 @@
 import { supabase } from '../supabaseClient';
 import { getAuthErrorMessage } from '../utils/error';
-import { PHI_HAU_IASI_CLUB_ID } from '../constants';
+import { PHI_HAU_IASI_CLUB_ID, DEBUTANT_GRAD_ID } from '../constants';
 
 export interface CreateAccountParams {
     email: string;
@@ -88,6 +88,7 @@ export const createAccount = async (params: CreateAccountParams): Promise<Create
                         prenume: params.prenume,
                         email: finalEmail,
                         club_id: clubId,
+                        grad_actual_id: DEBUTANT_GRAD_ID,
                         data_nasterii: '1900-01-01',
                         data_inscrierii: new Date().toISOString().split('T')[0],
                         status: 'Activ',

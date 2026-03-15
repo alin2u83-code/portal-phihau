@@ -394,15 +394,18 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         
         // Fetch suggestion for the current sportiv and exam date
         try {
+            // Use grad_sustinut_id if present, otherwise use grad_actual_id to suggest
+            const baseGradId = inscriere.grad_sustinut_id || inscriere.grad_actual_id;
+            
             const { data, error } = await supabase.rpc('sugereaza_grad_examen', {
                 p_sportiv_id: inscriere.sportiv_id,
                 p_data_examen: sesiune.data
             });
             if (error) throw error;
-            setGradSustinutId(data || inscriere.grad_vizat_id);
+            setGradSustinutId(data || inscriere.grad_sustinut_id || inscriere.grad_vizat_id);
         } catch (err) {
             console.error("Error fetching suggestion:", err);
-            setGradSustinutId(inscriere.grad_vizat_id);
+            setGradSustinutId(inscriere.grad_sustinut_id || inscriere.grad_vizat_id);
         }
     };
 
@@ -469,7 +472,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 const { data: iData, error: iError } = await supabase.from('inscrieri_examene').insert(inscriereData).select().single();
                 if (iError) throw iError;
 
-                const { data: viewData, error: viewError } = await supabase.from('vedere_cluburi_inscrieri_examene').select('*').eq('id', iData.id).single();
+                const { data: viewData, error: viewError } = await supabase.from('vedere_detalii_examen').select('*').eq('inscriere_id', iData.id).single();
                 if (viewError) throw viewError;
 
                 newInscrieri.push(viewData as InscriereExamen);
@@ -570,10 +573,10 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 }
             }
 
-            const { data: updatedInscriere, error: updateError } = await supabase.from('inscrieri_examene').update({ grad_vizat_id: gradSustinutId, plata_id: newPlataId }).eq('id', inscriereToEdit.id).select().single();
+            const { data: updatedInscriere, error: updateError } = await supabase.from('inscrieri_examene').update({ grad_vizat_id: gradSustinutId, plata_id: newPlataId }).eq('id', inscriereToEdit.inscriere_id || inscriereToEdit.id).select().single();
             if (updateError) throw updateError;
             
-            const { data: viewData, error: viewError } = await supabase.from('vedere_cluburi_inscrieri_examene').select('*').eq('id', updatedInscriere.id).single();
+            const { data: viewData, error: viewError } = await supabase.from('vedere_detalii_examen').select('*').eq('inscriere_id', updatedInscriere.id).single();
             if (viewError) throw viewError;
             
             if (viewData) {
@@ -662,13 +665,15 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         const sportiviUpdatesLocal: Partial<Sportiv>[] = [];
 
         for (const [id, rezultat] of changes) {
-            const inscriere = participantiInscrisi.find(i => i.id === id);
+            const inscriere = participantiInscrisi.find(i => i.id === id || i.inscriere_id === id);
             if (!inscriere) continue;
-            allPromises.push(supabase.from('inscrieri_examene').update({ rezultat }).eq('id', id));
+            const targetId = inscriere.inscriere_id || inscriere.id;
+            allPromises.push(supabase.from('inscrieri_examene').update({ rezultat }).eq('id', targetId));
             if (rezultat === 'Admis') {
-                allPromises.push(supabase.from('sportivi').update({ grad_actual_id: inscriere.grad_vizat_id }).eq('id', inscriere.sportiv_id));
-                allPromises.push(supabase.from('istoric_grade').insert({ sportiv_id: inscriere.sportiv_id, grad_id: inscriere.grad_vizat_id, data_obtinere: sesiune.data, sesiune_examen_id: sesiune.id }));
-                sportiviUpdatesLocal.push({ id: inscriere.sportiv_id, grad_actual_id: inscriere.grad_vizat_id });
+                const newGradId = inscriere.grad_sustinut_id || inscriere.grad_vizat_id;
+                allPromises.push(supabase.from('sportivi').update({ grad_actual_id: newGradId }).eq('id', inscriere.sportiv_id));
+                allPromises.push(supabase.from('istoric_grade').insert({ sportiv_id: inscriere.sportiv_id, grad_id: newGradId, data_obtinere: sesiune.data, sesiune_examen_id: sesiune.id }));
+                sportiviUpdatesLocal.push({ id: inscriere.sportiv_id, grad_actual_id: newGradId });
             } else if (initialRezultate[id] === 'Admis') {
                 allPromises.push(supabase.from('sportivi').update({ grad_actual_id: inscriere.grad_actual_id }).eq('id', inscriere.sportiv_id));
                 allPromises.push(supabase.from('istoric_grade').delete().match({ sportiv_id: inscriere.sportiv_id, sesiune_examen_id: sesiune.id }));
@@ -720,6 +725,11 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                     </p>
                 );
             }
+        },
+        {
+            key: 'grad_actual_id',
+            label: 'Grad Actual',
+            render: (inscriere) => <span className="text-slate-400 text-sm">{inscriere.nume_grad_actual || 'N/A'}</span>
         },
         {
             key: 'grad_vizat_id',

@@ -266,6 +266,9 @@ export interface InscriereExamen {
   club_nume?: string;
   locatie_nume?: string;
   data_examen?: string;
+  nume_grad_actual?: string;
+  grad_sustinut_id?: string;
+  inscriere_id?: string;
 }
 
 export interface IstoricGrade {

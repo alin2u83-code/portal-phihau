@@ -289,10 +289,10 @@ export const useDataProvider = () => {
             }
 
             if (isSportiv && activeCtx.sportiv_id) {
-                queries.inscrieriExamene = cleanedSupabase.from('vedere_cluburi_inscrieri_examene').select('*').eq('sportiv_id', activeCtx.sportiv_id);
+                queries.inscrieriExamene = cleanedSupabase.from('vedere_detalii_examen').select('*, id:inscriere_id').eq('sportiv_id', activeCtx.sportiv_id);
                 queries.istoricGrade = cleanedSupabase.from('istoric_grade').select('*').eq('sportiv_id', activeCtx.sportiv_id);
             } else {
-                queries.inscrieriExamene = cleanedSupabase.from('vedere_cluburi_inscrieri_examene').select('*');
+                queries.inscrieriExamene = cleanedSupabase.from('vedere_detalii_examen').select('*, id:inscriere_id');
                 queries.istoricGrade = cleanedSupabase.from('istoric_grade').select('*');
             }
 

@@ -229,11 +229,16 @@ const DetaliiSesiune: React.FC<{
             for (const inscriere of props.inscrieri) {
                 if (inscriere.rezultat === 'Admis') {
                     // VALIDARE STRICTĂ grad_id (grad_vizat_id)
-                    const targetGradId = inscriere.grad_vizat_id;
+                    let targetGradId = inscriere.grad_sustinut_id || inscriere.grad_vizat_id;
                     
                     if (!targetGradId || targetGradId === 'undefined' || targetGradId === 'null') {
-                        showError("Atenție", `Grad invalid pentru sportivul ${inscriere.sportiv_nume || inscriere.sportiv_id}. Se sare peste actualizarea gradului.`);
-                        continue; // Skip this record
+                        // Fallback to current grade if available
+                        if (inscriere.grad_actual_id) {
+                            targetGradId = inscriere.grad_actual_id;
+                        } else {
+                            showError("Atenție", `Grad invalid pentru sportivul ${inscriere.sportiv_nume || inscriere.sportiv_id}. Se sare peste actualizarea gradului.`);
+                            continue; // Skip this record
+                        }
                     }
 
                     // Update sportiv grad_actual_id

@@ -295,10 +295,10 @@ export const useDataProvider = () => {
 
             if (isSportiv && activeCtx.sportiv_id) {
                 queries.inscrieriExamene = cleanedSupabase.from('vedere_detalii_examen').select('*, id:inscriere_id').eq('sportiv_id', activeCtx.sportiv_id);
-                queries.istoricGrade = cleanedSupabase.from('istoric_grade').select('*').eq('sportiv_id', activeCtx.sportiv_id);
+                queries.istoricGrade = cleanedSupabase.from('vedere_istoric_grade_sportiv').select('*').eq('sportiv_id', activeCtx.sportiv_id);
             } else {
                 queries.inscrieriExamene = cleanedSupabase.from('vedere_detalii_examen').select('*, id:inscriere_id');
-                queries.istoricGrade = cleanedSupabase.from('istoric_grade').select('*');
+                queries.istoricGrade = cleanedSupabase.from('vedere_istoric_grade_sportiv').select('*');
             }
 
             const queryKeys = Object.keys(queries);

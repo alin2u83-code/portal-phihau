@@ -294,6 +294,10 @@ export interface IstoricGrade {
   observatii?: string;
 }
 
+export interface VedereIstoricGradeSportiv extends IstoricGrade {
+  grad_nume: string;
+}
+
 // --- Domain: Antrenamente ---
 export interface ProgramItem {
   id: string;

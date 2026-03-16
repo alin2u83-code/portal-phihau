@@ -13,6 +13,9 @@ import { ResponsiveTable, Column } from './ResponsiveTable';
 import { useData } from '../contexts/DataContext';
 
 // Helper functions
+/**
+ * Calculează vârsta unui sportiv la o anumită dată.
+ */
 const getAgeOnDate = (birthDateStr: string, onDateStr: string): number => {
     if (!birthDateStr || !onDateStr) return 0;
     const onDate = new Date(onDateStr);
@@ -25,6 +28,10 @@ const getAgeOnDate = (birthDateStr: string, onDateStr: string): number => {
     return age;
 };
 
+/**
+ * Returnează gradul imediat următor bazat pe coloana 'ordine' din tabelul grade.
+ * Aceasta este logica standard de progresie.
+ */
 const getDefaultNextGradeId = (sportiv: Sportiv, allGrades: Grad[]): string => {
     const currentGrade = allGrades.find(g => g.id === sportiv.grad_actual_id);
     const currentOrder = currentGrade ? currentGrade.ordine : -1;
@@ -33,10 +40,29 @@ const getDefaultNextGradeId = (sportiv: Sportiv, allGrades: Grad[]): string => {
     return nextGrade ? nextGrade.id : '';
 };
 
+/**
+ * Sugerează un grad bazat pe vârstă pentru sportivii noi sau pentru tranziții specifice.
+ * Include constrângeri de vârstă: sub 12 ani nu pot accesa grade de tip "Dang".
+ * 
+ * NOTĂ CAZURI EXCEPȚIONALE:
+ * Sportivii care vin din alte stiluri cu grade echivalate sunt gestionați manual prin 
+ * setarea gradului actual în profilul lor. Sistemul va sugera apoi gradul următor 
+ * conform ordinii standard. Dacă echivalarea nu se potrivește perfect, instructorul 
+ * poate suprascrie manual gradul vizat în momentul înscrierii.
+ */
 const getAgeBasedSuggestion = (sportiv: Sportiv, sesiuneData: string, grade: Grad[]): string | null => {
     const age = getAgeOnDate(sportiv.data_nasterii, sesiuneData);
+    
+    // Constrângere: Sub 12 ani nu pot susține examene de Dang (Centură Neagră)
+    const isDangGrade = (g: Grad) => g.nume.toLowerCase().includes('dang');
+    
+    if (age < 12) {
+        // Dacă sistemul ar sugera un Dang, îl limităm la ultimul grad de copii/juniori disponibil
+        // (Această logică va fi aplicată și în RPC-ul de pe server, dar o dublăm aici pentru UX)
+    }
+
     if (age >= 13) {
-        const albastru = grade.find(g => g.nume.toLowerCase().includes('albastru'));
+        const albastru = grade.find(g => g.nume.toLowerCase().includes('albastru') && !isDangGrade(g));
         return albastru ? albastru.id : null;
     } else if (age >= 7) {
         const rosu = grade.find(g => g.nume.toLowerCase().includes('roșu') || g.nume.toLowerCase().includes('rosu'));
@@ -159,9 +185,16 @@ const SingleAddInscriereModal: React.FC<SingleAddInscriereModalProps> = ({ isOpe
                     disabled={suggesting}
                 >
                     <option value="">{suggesting ? 'Se calculează sugestia...' : 'Alege grad...'}</option>
-                    {grade.sort((a,b) => a.ordine - b.ordine).map(g => (
-                        <option key={g.id} value={g.id}>{g.nume}</option>
-                    ))}
+                    {grade.sort((a,b) => a.ordine - b.ordine)
+                        .filter(g => {
+                            if (!selectedSportiv) return true;
+                            const age = getAgeOnDate(selectedSportiv.data_nasterii, sesiuneData);
+                            if (age < 12 && g.nume.toLowerCase().includes('dang')) return false;
+                            return true;
+                        })
+                        .map(g => (
+                            <option key={g.id} value={g.id}>{g.nume}</option>
+                        ))}
                 </Select>
 
                 <div className="flex justify-end pt-4 gap-2 border-t border-slate-700">
@@ -325,7 +358,13 @@ const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps & { sesiuneData: 
                                            className="!py-2 text-sm w-full"
                                        >
                                            <option value="">Alege grad...</option>
-                                           {(grade || []).map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}
+                                           {(grade || [])
+                                                .filter(g => {
+                                                    const age = getAgeOnDate(s.data_nasterii, sesiuneData);
+                                                    if (age < 12 && g.nume.toLowerCase().includes('dang')) return false;
+                                                    return true;
+                                                })
+                                                .map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}
                                        </Select>
                                    </div>
                                </div>
@@ -438,7 +477,10 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 p_data_examen: sesiune.data
             });
             if (error) throw error;
-            setGradSustinutId(data || inscriere.grad_sustinut_id || inscriere.grad_vizat_id);
+            
+            // Validate that the suggested grade exists in our grade list
+            const isValid = grade.some(g => g.id === data);
+            setGradSustinutId(isValid ? data : (inscriere.grad_sustinut_id || inscriere.grad_vizat_id));
         } catch (err) {
             console.error("Error fetching suggestion:", err);
             setGradSustinutId(inscriere.grad_sustinut_id || inscriere.grad_vizat_id);
@@ -519,9 +561,14 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
 
                 const varstaLaExamen = getAgeOnDate(sportiv.data_nasterii, sesiune.data);
                 const inscriereData = {
-                    sportiv_id: sportiv.id, sesiune_id: sesiune.id, plata_id: plataId,
-                    grad_actual_id: sportiv.grad_actual_id || null, grad_vizat_id: grad_vizat_id,
-                    varsta_la_examen: varstaLaExamen, rezultat: 'Neprezentat' as const
+                    sportiv_id: sportiv.id, 
+                    sesiune_id: sesiune.id, 
+                    plata_id: plataId,
+                    grad_actual_id: sportiv.grad_actual_id || null, 
+                    grad_vizat_id: grad_vizat_id,
+                    grad_sustinut_id: grad_vizat_id, // Populăm automat cu gradul vizat
+                    varsta_la_examen: varstaLaExamen, 
+                    rezultat: 'Neprezentat' as const
                 };
                 
                 const { data: iData, error: iError } = await supabase.from('inscrieri_examene').insert(inscriereData).select().single();

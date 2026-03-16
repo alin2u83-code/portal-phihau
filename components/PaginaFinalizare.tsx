@@ -49,16 +49,9 @@ export const ExamenPhiHauSimplu: React.FC<ExamenPhiHauSimpluProps> = ({ sesiune,
 
             if (newResult === 'Admis') {
                 promises.push(supabase.from('sportivi').update({ grad_actual_id: inscriere.grad_vizat_id }).eq('id', inscriere.sportiv_id));
-                promises.push(supabase.from('istoric_grade').insert({
-                    sportiv_id: inscriere.sportiv_id,
-                    grad_id: inscriere.grad_vizat_id,
-                    data_obtinere: (sesiune.data || sesiune.data_examen || '').toString().slice(0, 10),
-                    sesiune_examen_id: sesiune.id
-                }));
                 sportivGradUpdate = inscriere.grad_vizat_id;
             } else if (oldResult === 'Admis') {
                 promises.push(supabase.from('sportivi').update({ grad_actual_id: inscriere.grad_actual_id }).eq('id', inscriere.sportiv_id));
-                promises.push(supabase.from('istoric_grade').delete().match({ sportiv_id: inscriere.sportiv_id, sesiune_examen_id: sesiune.id }));
                 sportivGradUpdate = inscriere.grad_actual_id;
             }
 
@@ -74,7 +67,7 @@ export const ExamenPhiHauSimplu: React.FC<ExamenPhiHauSimpluProps> = ({ sesiune,
                 setSportiviGlobal(prev => prev.map(s => s.id === inscriere.sportiv_id ? { ...s, grad_actual_id: sportivGradUpdate } : s));
             }
             
-            showSuccess("Succes", `Rezultatul pentru ${sportivNume} a fost salvat.`);
+            showSuccess("Succes", `Gradul a fost actualizat și arhivat în istoric.`);
         } catch (err: any) {
             setError(err.message);
             showError("Eroare la Salvare", err.message);

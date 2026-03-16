@@ -269,6 +269,7 @@ export interface InscriereExamen {
   data_examen?: string;
   nume_grad_actual?: string;
   grad_sustinut_id?: string;
+  club_id?: string;
   inscriere_id?: string;
   are_viza_platita?: boolean;
 }

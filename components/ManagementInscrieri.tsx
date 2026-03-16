@@ -608,6 +608,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                     grad_actual_id: sportiv.grad_actual_id || null, 
                     grad_vizat_id: grad_vizat_id,
                     grad_sustinut_id: grad_vizat_id, // Populăm automat cu gradul vizat
+                    club_id: sportiv.club_id, // Adăugat club_id conform cerințelor
                     varsta_la_examen: varstaLaExamen, 
                     rezultat: 'Neprezentat' as const
                 };

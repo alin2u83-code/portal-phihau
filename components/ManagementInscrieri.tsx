@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { SesiuneExamen, Sportiv, InscriereExamen, Grad, Plata, PretConfig, IstoricGrade } from '../types';
 import { Button, Input, Modal, Select, Card } from './ui';
 import { TrashIcon, PlusIcon, EditIcon, XCircleIcon, CheckCircleIcon } from './icons';
+import { AlertTriangle, Loader2, Save } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
@@ -818,8 +819,71 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         setRezultateLocale(prev => ({ ...prev, [inscriereId]: newResult }));
     };
 
+    const desyncedInscrieri = useMemo(() => {
+        return participantiInscrisi.filter(i => {
+            const rezultat = rezultateLocale[i.id] || i.rezultat;
+            if (rezultat !== 'Admis') return false;
+            
+            const sportiv = sportivi.find(s => s.id === i.sportiv_id);
+            if (!sportiv) return false;
+            
+            const expectedGradId = i.grad_sustinut_id || i.grad_vizat_id;
+            return sportiv.grad_actual_id !== expectedGradId;
+        });
+    }, [participantiInscrisi, sportivi, rezultateLocale]);
+
+    const handleForceSync = async () => {
+        if (!supabase) return;
+        if (!sesiune.id || !sesiune.data) {
+            showError("Eroare Validare", "Sesiunea curentă nu are un ID sau o dată validă setată.");
+            return;
+        }
+
+        setIsSavingResults(true);
+        const syncPromises: any[] = [];
+        const sportiviUpdatesLocal: Partial<Sportiv>[] = [];
+
+        for (const inscriere of desyncedInscrieri) {
+            const newGradId = inscriere.grad_sustinut_id || inscriere.grad_vizat_id;
+            syncPromises.push(supabase.from('sportivi').update({ grad_actual_id: newGradId }).eq('id', inscriere.sportiv_id));
+            syncPromises.push(
+                supabase.from('istoric_grade').upsert(
+                    { sportiv_id: inscriere.sportiv_id, grad_id: newGradId, data_obtinere: sesiune.data, sesiune_examen_id: sesiune.id },
+                    { onConflict: 'sportiv_id,grad_id', ignoreDuplicates: true }
+                )
+            );
+            sportiviUpdatesLocal.push({ id: inscriere.sportiv_id, grad_actual_id: newGradId });
+        }
+
+        try {
+            const results = await Promise.all(syncPromises);
+            const anyError = results.find(res => res.error);
+            if (anyError) throw anyError.error;
+
+            setSportivi(prev => {
+                const updatesMap = new Map(sportiviUpdatesLocal.map(u => [u.id, u]));
+                return prev.map(sportiv => {
+                    const update = updatesMap.get(sportiv.id);
+                    if (update) return { ...sportiv, ...update };
+                    return sportiv;
+                });
+            });
+            showSuccess("Sincronizare Reușită", `${desyncedInscrieri.length} sportivi au fost sincronizați.`);
+        } catch (err: any) {
+            showError("Eroare Sincronizare", err.message);
+        } finally {
+            setIsSavingResults(false);
+        }
+    };
+
     const handleSaveResults = async () => {
         if (!supabase) { showError("Eroare de configurare", "Clientul Supabase nu este inițializat."); return; }
+        
+        if (!sesiune.id || !sesiune.data) {
+            showError("Eroare Validare", "Sesiunea curentă nu are un ID sau o dată validă setată. Salvarea a fost anulată.");
+            return;
+        }
+
         setIsSavingResults(true);
         const changes = Object.entries(rezultateLocale).filter(([id, rezultat]) => rezultat !== initialRezultate[id]);
 
@@ -836,7 +900,12 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             if (rezultat === 'Admis') {
                 const newGradId = inscriere.grad_sustinut_id || inscriere.grad_vizat_id;
                 allPromises.push(supabase.from('sportivi').update({ grad_actual_id: newGradId }).eq('id', inscriere.sportiv_id));
-                allPromises.push(supabase.from('istoric_grade').insert({ sportiv_id: inscriere.sportiv_id, grad_id: newGradId, data_obtinere: sesiune.data, sesiune_examen_id: sesiune.id }));
+                allPromises.push(
+                    supabase.from('istoric_grade').upsert(
+                        { sportiv_id: inscriere.sportiv_id, grad_id: newGradId, data_obtinere: sesiune.data, sesiune_examen_id: sesiune.id },
+                        { onConflict: 'sportiv_id,grad_id', ignoreDuplicates: true }
+                    )
+                );
                 sportiviUpdatesLocal.push({ id: inscriere.sportiv_id, grad_actual_id: newGradId });
             } else if (initialRezultate[id] === 'Admis') {
                 allPromises.push(supabase.from('sportivi').update({ grad_actual_id: inscriere.grad_actual_id }).eq('id', inscriere.sportiv_id));
@@ -1050,9 +1119,23 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                  <div className="flex justify-between items-center mb-2">
                     <h3 className="text-lg font-bold text-white">Participanți Înscriși ({participantiInscrisi.length})</h3>
                     {!isReadOnly && (
-                        <Button onClick={handleSaveResults} variant="success" size="sm" isLoading={isSavingResults} disabled={Object.entries(rezultateLocale).every(([id, res]) => res === initialRezultate[id])}>
-                            Salvează Rezultate
-                        </Button>
+                        <div className="flex flex-col sm:flex-row gap-3">
+                            {desyncedInscrieri.length > 0 && (
+                                <Button 
+                                    variant="outline" 
+                                    className="border-amber-500 text-amber-500 hover:bg-amber-500/10"
+                                    onClick={handleForceSync}
+                                    disabled={isSavingResults}
+                                >
+                                    <AlertTriangle className="w-4 h-4 mr-2" />
+                                    Sincronizare Forțată ({desyncedInscrieri.length})
+                                </Button>
+                            )}
+                            <Button onClick={handleSaveResults} variant="success" size="sm" isLoading={isSavingResults} disabled={Object.entries(rezultateLocale).every(([id, res]) => res === initialRezultate[id])}>
+                                {isSavingResults ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                                Salvează Rezultate
+                            </Button>
+                        </div>
                     )}
                 </div>
                 <ResponsiveTable 

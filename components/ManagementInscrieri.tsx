@@ -759,7 +759,10 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
     };
 
     const handleInitiateDelete = (inscriere: InscriereExamen) => {
-        setDeleteMessage(`Sunteți sigur că doriți să retrageți înscrierea sportivului ${inscriere.sportiv_nume || (inscriere.sportivi?.nume + ' ' + inscriere.sportivi?.prenume)}? Factura asociată (dacă există și este neachitată) va fi de asemenea ștearsă.`);
+        const nume = inscriere.sportiv_nume || inscriere.sportivi?.nume || '';
+        const prenume = inscriere.sportiv_prenume || inscriere.sportivi?.prenume || '';
+        const fullName = `${nume} ${prenume}`.trim() || 'Necunoscut';
+        setDeleteMessage(`Sunteți sigur că doriți să retrageți înscrierea sportivului ${fullName}? Factura asociată (dacă există și este neachitată) va fi de asemenea ștearsă.`);
         setInscriereToDelete(inscriere);
     };
 
@@ -877,12 +880,15 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             label: 'Nume Sportiv',
             render: (inscriere) => {
                 const sportiv = sportivi.find(s => s.id === inscriere.sportiv_id);
+                const nume = inscriere.sportiv_nume || inscriere.sportivi?.nume || '';
+                const prenume = inscriere.sportiv_prenume || inscriere.sportivi?.prenume || '';
+                const fullName = `${nume} ${prenume}`.trim() || 'Necunoscut';
                 return (
                     <p 
                         className="font-medium text-white hover:text-brand-primary hover:underline cursor-pointer"
                         onClick={(e) => { e.stopPropagation(); if(sportiv) onViewSportiv(sportiv); }}
                     >
-                        {inscriere.sportiv_nume || (inscriere.sportivi?.nume + ' ' + inscriere.sportivi?.prenume) || 'Necunoscut'}
+                        {fullName}
                     </p>
                 );
             }
@@ -890,48 +896,28 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         {
             key: 'grad_actual_id',
             label: 'Grad Actual',
-            render: (inscriere) => <span className="text-slate-400 text-sm">{inscriere.nume_grad_actual || 'N/A'}</span>
+            render: (inscriere) => {
+                const sportiv = sportivi.find(s => s.id === inscriere.sportiv_id);
+                const gradActual = grade.find(g => g.id === sportiv?.grad_actual_id);
+                return <span className="text-slate-400 text-sm">{inscriere.nume_grad_actual || gradActual?.nume || 'N/A'}</span>;
+            }
         },
         {
             key: 'grad_vizat_id',
             label: 'Grad Vizat',
-            render: (inscriere) => <span className="text-brand-secondary font-semibold">{inscriere.grad_vizat_nume || inscriere.grades?.nume || 'Necunoscut'}</span>
+            render: (inscriere) => <span className="text-brand-secondary font-semibold">{inscriere.grad_sustinut || inscriere.grad_vizat_nume || inscriere.grades?.nume || 'Necunoscut'}</span>
         },
         {
-            key: 'are_viza_platita',
-            label: 'Viză',
+            key: 'status_plata',
+            label: 'Status Plată',
             headerClassName: 'text-center',
             cellClassName: 'text-center',
             render: (inscriere) => (
                 <div className="flex justify-center">
-                    {inscriere.are_viza_platita ? (
-                        <span className="px-2 py-0.5 rounded-full bg-green-900/40 text-green-400 text-xs font-bold border border-green-700/50">
-                            OK
-                        </span>
-                    ) : (
-                        <span className="px-2 py-0.5 rounded-full bg-red-900/40 text-red-400 text-xs font-bold border border-red-700/50" title="Viza anuală neplătită">
-                            LIPSĂ
-                        </span>
-                    )}
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-bold border ${inscriere.status_plata === 'Achitat' ? 'bg-green-900/40 text-green-400 border-green-700/50' : 'bg-amber-900/40 text-amber-400 border-amber-700/50'}`}>
+                        {inscriere.status_plata || 'Necunoscut'}
+                    </span>
                 </div>
-            )
-        },
-        {
-            key: 'status_inscriere',
-            label: 'Status Validare',
-            headerClassName: 'text-center',
-            cellClassName: 'text-center',
-            render: (inscriere) => (
-                <Select 
-                    label="" 
-                    value={inscriere.status_inscriere || 'In asteptare'}
-                    onChange={(e) => handleUpdateStatus(inscriere.id, e.target.value as any)}
-                    className={`!py-1 ${inscriere.status_inscriere === 'Validat' ? 'bg-green-900/40 text-green-300' : 'bg-amber-900/40 text-amber-300'}`}
-                    disabled={isReadOnly}
-                >
-                    <option value="In asteptare">În așteptare</option>
-                    <option value="Validat">Validat</option>
-                </Select>
             )
         },
         {
@@ -940,7 +926,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             headerClassName: 'text-center',
             cellClassName: 'text-center',
             render: (inscriere) => {
-                const rezultat = rezultateLocale[inscriere.id] || 'Neprezentat';
+                const rezultat = rezultateLocale[inscriere.id] || inscriere.rezultat || 'Neprezentat';
                 let statusColorClass = '';
                 if (rezultat === 'Admis') statusColorClass = 'bg-green-900/40 text-green-300';
                 else if (rezultat === 'Respins') statusColorClass = 'bg-red-900/40 text-red-300';
@@ -985,33 +971,30 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
     ];
 
     const renderMobileItem = (inscriere: InscriereExamen) => {
-        const rezultat = rezultateLocale[inscriere.id] || 'Neprezentat';
+        const rezultat = rezultateLocale[inscriere.id] || inscriere.rezultat || 'Neprezentat';
         let statusColorClass = '';
         if (rezultat === 'Admis') statusColorClass = 'bg-green-900/40 text-green-300';
         else if (rezultat === 'Respins') statusColorClass = 'bg-red-900/40 text-red-300';
 
         const sportiv = sportivi.find(s => s.id === inscriere.sportiv_id);
+        const nume = inscriere.sportiv_nume || inscriere.sportivi?.nume || '';
+        const prenume = inscriere.sportiv_prenume || inscriere.sportivi?.prenume || '';
+        const fullName = `${nume} ${prenume}`.trim() || 'Necunoscut';
 
         return (
             <Card className="mb-4 border-l-4 border-brand-primary">
                 <div className="flex justify-between items-start mb-2">
                     <div>
                         <p className="font-bold text-white text-lg" onClick={() => { if(sportiv) onViewSportiv(sportiv); }}>
-                            {inscriere.sportiv_nume || (inscriere.sportivi?.nume + ' ' + inscriere.sportivi?.prenume) || 'Necunoscut'}
+                            {fullName}
                         </p>
                         <p className="text-sm text-brand-secondary font-semibold">
-                            Grad Vizat: {inscriere.grad_vizat_nume || inscriere.grades?.nume || 'Necunoscut'}
+                            Grad Vizat: {inscriere.grad_sustinut || inscriere.grad_vizat_nume || inscriere.grades?.nume || 'Necunoscut'}
                         </p>
                         <div className="mt-1">
-                            {inscriere.are_viza_platita ? (
-                                <span className="text-[10px] px-2 py-0.5 rounded bg-green-900/40 text-green-400 font-bold border border-green-700/50">
-                                    VIZĂ OK
-                                </span>
-                            ) : (
-                                <span className="text-[10px] px-2 py-0.5 rounded bg-red-900/40 text-red-400 font-bold border border-red-700/50">
-                                    VIZĂ LIPSĂ
-                                </span>
-                            )}
+                            <span className={`text-[10px] px-2 py-0.5 rounded font-bold border ${inscriere.status_plata === 'Achitat' ? 'bg-green-900/40 text-green-400 border-green-700/50' : 'bg-amber-900/40 text-amber-400 border-amber-700/50'}`}>
+                                STATUS PLATĂ: {inscriere.status_plata || 'Necunoscut'}
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -1083,7 +1066,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 <Modal 
                     isOpen={isEditModalOpen} 
                     onClose={handleCloseEditModal} 
-                    title={`Evaluare: ${inscriereToEdit.sportiv_nume || (inscriereToEdit.sportivi?.nume + ' ' + inscriereToEdit.sportivi?.prenume) || 'Necunoscut'}`}
+                    title={`Evaluare: ${((inscriereToEdit.sportiv_nume || inscriereToEdit.sportivi?.nume || '') + ' ' + (inscriereToEdit.sportiv_prenume || inscriereToEdit.sportivi?.prenume || '')).trim() || 'Necunoscut'}`}
                 >
                     <div className="space-y-6">
                         <div className="grid grid-cols-1 gap-4">

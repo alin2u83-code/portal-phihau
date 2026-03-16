@@ -272,6 +272,13 @@ export interface InscriereExamen {
   club_id?: string;
   inscriere_id?: string;
   are_viza_platita?: boolean;
+  nume_club?: string;
+  sportiv_prenume?: string;
+  nr_legitimatie?: string;
+  grad_sustinut?: string;
+  medie_generala?: number;
+  status_plata?: string;
+  este_promovabil_automat?: boolean;
 }
 
 export interface VizaMedicala {

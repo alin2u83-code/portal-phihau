@@ -270,6 +270,7 @@ export interface InscriereExamen {
   nume_grad_actual?: string;
   grad_sustinut_id?: string;
   inscriere_id?: string;
+  are_viza_platita?: boolean;
 }
 
 export interface VizaMedicala {
@@ -382,6 +383,26 @@ export interface DecontFederatie {
   suma_totala: number | null;
   status_plata: string | null;
   data_generare: string | null;
+}
+
+export interface TaxaAnualeConfig {
+  id: string;
+  an: number;
+  suma: number;
+  descriere: string | null;
+  club_id: string | null;
+  created_at?: string;
+}
+
+export interface VizaSportiv {
+  id: string;
+  sportiv_id: string;
+  an: number;
+  plata_id: string | null;
+  data_platii: string;
+  status_viza: 'Activ' | 'Inactiv' | 'Suspendat';
+  observatii?: string | null;
+  created_at?: string;
 }
 
 export interface TipAbonament {

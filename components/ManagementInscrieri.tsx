@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { SesiuneExamen, Sportiv, InscriereExamen, Grad, Plata, PretConfig, IstoricGrade } from '../types';
 import { Button, Input, Modal, Select, Card } from './ui';
-import { TrashIcon, PlusIcon, EditIcon } from './icons';
+import { TrashIcon, PlusIcon, EditIcon, XCircleIcon, CheckCircleIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
@@ -9,6 +9,8 @@ import { getPretProdus } from '../utils/pricing';
 import { getEligibleGrade } from '../utils/eligibility';
 import { sendBulkNotifications } from '../utils/notifications';
 import { ResponsiveTable, Column } from './ResponsiveTable';
+
+import { useData } from '../contexts/DataContext';
 
 // Helper functions
 const getAgeOnDate = (birthDateStr: string, onDateStr: string): number => {
@@ -54,6 +56,7 @@ interface SingleAddInscriereModalProps {
 }
 
 const SingleAddInscriereModal: React.FC<SingleAddInscriereModalProps> = ({ isOpen, onClose, onSave, sportivi, grade, sesiuneData, inscrisiIds }) => {
+    const { vizeSportivi } = useData();
     const [selectedSportivId, setSelectedSportivId] = useState('');
     const [gradVizatId, setGradVizatId] = useState('');
     const [loading, setLoading] = useState(false);
@@ -66,6 +69,12 @@ const SingleAddInscriereModal: React.FC<SingleAddInscriereModalProps> = ({ isOpe
         if (!selectedSportiv || !sesiuneData) return null;
         return getAgeOnDate(selectedSportiv.data_nasterii, sesiuneData);
     }, [selectedSportiv, sesiuneData]);
+
+    const hasVisa = useMemo(() => {
+        if (!selectedSportivId || !sesiuneData) return false;
+        const year = new Date(sesiuneData).getFullYear();
+        return vizeSportivi.some(v => v.sportiv_id === selectedSportivId && v.an === year && v.status_viza === 'Activ');
+    }, [selectedSportivId, sesiuneData, vizeSportivi]);
 
     useEffect(() => {
         const fetchSuggestion = async () => {
@@ -134,6 +143,11 @@ const SingleAddInscriereModal: React.FC<SingleAddInscriereModalProps> = ({ isOpe
                         <p className="text-sm text-slate-300">
                             <span className="font-bold">Grad actual:</span> {grade.find(g => g.id === selectedSportiv.grad_actual_id)?.nume || 'Începător'}
                         </p>
+                        {!hasVisa && (
+                            <div className="mt-2 p-2 bg-red-900/30 border border-red-700/50 rounded text-red-400 text-xs font-bold flex items-center gap-2">
+                                <XCircleIcon className="w-4 h-4" /> LIPSĂ VIZĂ ANUALĂ {new Date(sesiuneData).getFullYear()}
+                            </div>
+                        )}
                     </div>
                 )}
 
@@ -152,7 +166,7 @@ const SingleAddInscriereModal: React.FC<SingleAddInscriereModalProps> = ({ isOpe
 
                 <div className="flex justify-end pt-4 gap-2 border-t border-slate-700">
                     <Button variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button>
-                    <Button variant="primary" onClick={handleSave} isLoading={loading} disabled={!selectedSportivId || !gradVizatId}>
+                    <Button variant="primary" onClick={handleSave} isLoading={loading} disabled={!selectedSportivId || !gradVizatId || !hasVisa}>
                         Înscrie Sportiv
                     </Button>
                 </div>
@@ -173,11 +187,14 @@ interface BulkAddSportiviModalProps {
 }
 
 const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps & { sesiuneData: string }> = ({ isOpen, onClose, onSave, sportivi, grade, istoricGrade, inscrisiIds, sesiuneData }) => {
+    const { vizeSportivi } = useData();
     const [selections, setSelections] = useState<Map<string, string>>(new Map());
     const [suggestions, setSuggestions] = useState<Map<string, string>>(new Map());
     const [filterTerm, setFilterTerm] = useState('');
     const [loading, setLoading] = useState(false);
     const [fetchingSuggestions, setFetchingSuggestions] = useState(false);
+
+    const sesiuneYear = useMemo(() => new Date(sesiuneData).getFullYear(), [sesiuneData]);
 
     const availableSportivi = useMemo(() => {
         return (sportivi || [])
@@ -188,17 +205,21 @@ const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps & { sesiuneData: 
                     .sort((a, b) => new Date(b.data_obtinere).getTime() - new Date(a.data_obtinere).getTime())[0];
 
                 const lastPromotionDate = lastPromotion ? new Date(lastPromotion.data_obtinere) : new Date(s.data_inscrierii);
-                const isEligible = true;
+                
+                // Check for valid visa
+                const hasVisa = vizeSportivi.some(v => v.sportiv_id === s.id && v.an === sesiuneYear && v.status_viza === 'Activ');
+                const isEligible = hasVisa; // In the future we might add more eligibility checks
 
                 return {
                     ...s,
                     defaultNextGradeId: getDefaultNextGradeId(s, grade),
                     isEligible: isEligible,
+                    hasVisa: hasVisa,
                     lastPromotionDate: lastPromotionDate.toLocaleDateString('ro-RO')
                 };
             })
             .sort((a, b) => a.nume.localeCompare(b.nume));
-    }, [sportivi, grade, inscrisiIds, istoricGrade]);
+    }, [sportivi, grade, inscrisiIds, istoricGrade, vizeSportivi, sesiuneYear]);
     
     const filteredSportivi = useMemo(() => {
         if (!filterTerm) return availableSportivi;
@@ -272,7 +293,7 @@ const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps & { sesiuneData: 
                 <div className="max-h-96 overflow-y-auto space-y-2 p-2 bg-slate-900/50 rounded-lg border border-slate-700">
                    {(filteredSportivi || []).map(s => {
                        const isSelected = selections.has(s.id);
-                       const { isEligible, lastPromotionDate } = s;
+                       const { isEligible, lastPromotionDate, hasVisa } = s;
                        return (
                            <div key={s.id} className={`p-3 rounded-md transition-colors ${isSelected ? 'bg-brand-secondary/20' : (isEligible ? 'bg-slate-700/50' : 'bg-red-900/20 opacity-70')}`}>
                                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
@@ -287,11 +308,10 @@ const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps & { sesiuneData: 
                                        <div className="flex-grow">
                                            <p className={`font-medium ${!isEligible ? 'text-slate-400' : 'text-white'}`}>{s.nume} {s.prenume}</p>
                                            <div className="flex flex-wrap gap-x-4 gap-y-1">
-                                               {!isEligible ? (
-                                                    <p className="text-xs text-red-400">Ineligibil (Ultima promovare: {lastPromotionDate})</p>
-                                               ) : (
-                                                    <p className="text-xs text-slate-400">Grad actual: {grade.find(g => g.id === s.grad_actual_id)?.nume || 'Începător'}</p>
+                                               {!hasVisa && (
+                                                    <p className="text-xs text-red-400 font-bold">LIPSĂ VIZĂ ANUALĂ {sesiuneYear}</p>
                                                )}
+                                               <p className="text-xs text-slate-400">Grad actual: {grade.find(g => g.id === s.grad_actual_id)?.nume || 'Începător'}</p>
                                                <p className="text-xs text-brand-secondary font-bold">Vârstă la examen: {getAgeOnDate(s.data_nasterii, sesiuneData)} ani</p>
                                            </div>
                                        </div>
@@ -789,6 +809,25 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             render: (inscriere) => <span className="text-brand-secondary font-semibold">{inscriere.grad_vizat_nume || inscriere.grades?.nume || 'Necunoscut'}</span>
         },
         {
+            key: 'are_viza_platita',
+            label: 'Viză',
+            headerClassName: 'text-center',
+            cellClassName: 'text-center',
+            render: (inscriere) => (
+                <div className="flex justify-center">
+                    {inscriere.are_viza_platita ? (
+                        <span className="px-2 py-0.5 rounded-full bg-green-900/40 text-green-400 text-xs font-bold border border-green-700/50">
+                            OK
+                        </span>
+                    ) : (
+                        <span className="px-2 py-0.5 rounded-full bg-red-900/40 text-red-400 text-xs font-bold border border-red-700/50" title="Viza anuală neplătită">
+                            LIPSĂ
+                        </span>
+                    )}
+                </div>
+            )
+        },
+        {
             key: 'status_inscriere',
             label: 'Status Validare',
             headerClassName: 'text-center',
@@ -874,6 +913,17 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                         <p className="text-sm text-brand-secondary font-semibold">
                             Grad Vizat: {inscriere.grad_vizat_nume || inscriere.grades?.nume || 'Necunoscut'}
                         </p>
+                        <div className="mt-1">
+                            {inscriere.are_viza_platita ? (
+                                <span className="text-[10px] px-2 py-0.5 rounded bg-green-900/40 text-green-400 font-bold border border-green-700/50">
+                                    VIZĂ OK
+                                </span>
+                            ) : (
+                                <span className="text-[10px] px-2 py-0.5 rounded bg-red-900/40 text-red-400 font-bold border border-red-700/50">
+                                    VIZĂ LIPSĂ
+                                </span>
+                            )}
+                        </div>
                     </div>
                 </div>
                 

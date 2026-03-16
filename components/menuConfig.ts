@@ -28,6 +28,7 @@ export const adminMenu: MenuItem[] = [
     { label: 'Examene', icon: TrophyIcon, view: 'examene' },
     { label: 'Grupe', icon: ArchiveBoxIcon, view: 'grupe' },
     { label: 'Plăți', icon: BanknotesIcon, view: 'plati-scadente' },
+    { label: 'Taxe Anuale', icon: BanknotesIcon, view: 'taxe-anuale' },
     { label: 'Rapoarte', icon: ChartBarIcon, view: 'rapoarte' },
     { label: 'Raport Financiar', icon: ChartBarIcon, view: 'raport-financiar' },
     { label: 'Prezență', icon: CalendarDaysIcon, view: 'prezenta' },

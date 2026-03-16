@@ -1,5 +1,5 @@
 {
-  "name": "Qwan Ki Do - Înregistrare",
-  "description": "Pagina de înregistrare pentru aplicația Qwan Ki Do, utilizând Supabase Auth cu metadata personalizată.",
+  "name": "Qwan Ki Do Federation Management",
+  "description": "Platformă multi-tenant pentru managementul cluburilor și sportivilor din cadrul Federației de Qwan Ki Do, incluzând module de examinare, financiar și vize federale.",
   "requestFramePermissions": []
 }

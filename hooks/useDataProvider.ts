@@ -4,7 +4,8 @@ import { supabase } from '../supabaseClient';
 import { 
     Sportiv, SesiuneExamen, Grad, InscriereExamen, Antrenament, Grupa, Plata, 
     Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, 
-    Rol, AnuntPrezenta, Reducere, TipPlata, Locatie, Club, DecontFederatie, IstoricGrade, VizualizarePlata, IstoricPlataDetaliat, VederePrezentaSportiv, FilteredData
+    Rol, AnuntPrezenta, Reducere, TipPlata, Locatie, Club, DecontFederatie, IstoricGrade, VizualizarePlata, IstoricPlataDetaliat, VederePrezentaSportiv, FilteredData,
+    TaxaAnualeConfig, VizaSportiv
 } from '../types';
 import { Session, SupabaseClient } from '@supabase/supabase-js';
 import { withCleanUuidFilters } from '../utils/supabaseFilters';
@@ -42,6 +43,8 @@ export interface AppData {
     vizualizarePlati: VizualizarePlata[];
     istoricPlatiDetaliat: IstoricPlataDetaliat[];
     istoricPrezenta: VederePrezentaSportiv[];
+    taxeAnualeConfig: TaxaAnualeConfig[];
+    vizeSportivi: VizaSportiv[];
     filteredData?: FilteredData;
     allowedClubs: string[];
 }
@@ -52,7 +55,7 @@ const initialData: AppData = {
     rezultate: [], preturiConfig: [], tipuriAbonament: [], familii: [], 
     allRoles: [], reduceri: [], tipuriPlati: [], 
     locatii: [], clubs: [], deconturiFederatie: [], vizualizarePlati: [],
-    istoricPlatiDetaliat: [], istoricPrezenta: [], allowedClubs: []
+    istoricPlatiDetaliat: [], istoricPrezenta: [], taxeAnualeConfig: [], vizeSportivi: [], allowedClubs: []
 };
 
 export const useDataProvider = () => {
@@ -276,6 +279,8 @@ export const useDataProvider = () => {
                 locatii: cleanedSupabase.from('nom_locatii').select('*'),
                 reduceri: cleanedSupabase.from('reduceri').select('*'),
                 deconturiFederatie: cleanedSupabase.from('deconturi_federatie').select('*'),
+                taxeAnualeConfig: cleanedSupabase.from('taxe_anuale_config').select('*'),
+                vizeSportivi: cleanedSupabase.from('vize_sportivi').select('*'),
             };
 
             // Check cache for static data
@@ -338,7 +343,9 @@ export const useDataProvider = () => {
                 reduceri: finalData.reduceri || prev.reduceri,
                 deconturiFederatie: finalData.deconturiFederatie || prev.deconturiFederatie,
                 inscrieriExamene: finalData.inscrieriExamene || prev.inscrieriExamene,
-                istoricGrade: finalData.istoricGrade || prev.istoricGrade
+                istoricGrade: finalData.istoricGrade || prev.istoricGrade,
+                taxeAnualeConfig: finalData.taxeAnualeConfig || prev.taxeAnualeConfig,
+                vizeSportivi: finalData.vizeSportivi || prev.vizeSportivi
             }));
 
         } catch (err: any) {
@@ -419,6 +426,8 @@ export const useDataProvider = () => {
         setReduceri: createSetter('reduceri'),
         setDeconturiFederatie: createSetter('deconturiFederatie'),
         setVizualizarePlati: createSetter('vizualizarePlati'),
+        setTaxeAnualeConfig: createSetter('taxeAnualeConfig'),
+        setVizeSportivi: createSetter('vizeSportivi'),
         loadingIstoric,
         fetchIstoricVedere,
         initializeAndFetchData 

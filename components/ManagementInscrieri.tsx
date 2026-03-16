@@ -103,6 +103,14 @@ const SingleAddInscriereModal: React.FC<SingleAddInscriereModalProps> = ({ isOpe
     }, [selectedSportivId, sesiuneData, vizeSportivi]);
 
     useEffect(() => {
+        if (isOpen) {
+            setSearchTerm('');
+            setSelectedSportivId('');
+            setGradVizatId('');
+        }
+    }, [isOpen]);
+
+    useEffect(() => {
         const fetchSuggestion = async () => {
             if (!selectedSportivId || !sesiuneData) return;
             setSuggesting(true);
@@ -146,20 +154,53 @@ const SingleAddInscriereModal: React.FC<SingleAddInscriereModalProps> = ({ isOpe
         return (sportivi || []).filter(s => s.status === 'Activ' && !inscrisiIds.has(s.id));
     }, [sportivi, inscrisiIds]);
 
+    const [searchTerm, setSearchTerm] = useState('');
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+    const filteredSportivi = useMemo(() => {
+        if (!searchTerm) return availableSportivi;
+        const term = searchTerm.toLowerCase();
+        return availableSportivi.filter(s => 
+            s.nume.toLowerCase().includes(term) || s.prenume.toLowerCase().includes(term)
+        );
+    }, [availableSportivi, searchTerm]);
+
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Înscriere Individuală la Examen">
             <div className="space-y-4">
-                <Select
-                    label="Selectează Sportiv"
-                    value={selectedSportivId}
-                    onChange={(e) => setSelectedSportivId(e.target.value)}
-                    required
-                >
-                    <option value="">Alege sportiv...</option>
-                    {availableSportivi.map(s => (
-                        <option key={s.id} value={s.id}>{s.nume} {s.prenume}</option>
-                    ))}
-                </Select>
+                <div className="relative">
+                    <Input
+                        label="Caută Sportiv"
+                        value={searchTerm}
+                        onChange={(e) => {
+                            setSearchTerm(e.target.value);
+                            setIsDropdownOpen(true);
+                        }}
+                        onFocus={() => setIsDropdownOpen(true)}
+                        placeholder="Nume sau prenume..."
+                    />
+                    {isDropdownOpen && searchTerm && (
+                        <div className="absolute z-10 w-full mt-1 bg-slate-900 border border-slate-700 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                            {filteredSportivi.length > 0 ? (
+                                filteredSportivi.map(s => (
+                                    <button
+                                        key={s.id}
+                                        className="w-full text-left px-4 py-2 hover:bg-slate-800 text-white"
+                                        onClick={() => {
+                                            setSelectedSportivId(s.id);
+                                            setSearchTerm(`${s.nume} ${s.prenume}`);
+                                            setIsDropdownOpen(false);
+                                        }}
+                                    >
+                                        {s.nume} {s.prenume}
+                                    </button>
+                                ))
+                            ) : (
+                                <div className="px-4 py-2 text-slate-500">Nu am găsit sportivi.</div>
+                            )}
+                        </div>
+                    )}
+                </div>
 
                 {selectedSportiv && (
                     <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700 space-y-2">
@@ -241,7 +282,7 @@ const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps & { sesiuneData: 
                 
                 // Check for valid visa
                 const hasVisa = vizeSportivi.some(v => v.sportiv_id === s.id && v.an === sesiuneYear && v.status_viza === 'Activ');
-                const isEligible = hasVisa; // In the future we might add more eligibility checks
+                const isEligible = true; // Restricțiile au fost eliminate conform cerinței
 
                 return {
                     ...s,

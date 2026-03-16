@@ -349,7 +349,16 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [inscriereToEdit, setInscriereToEdit] = useState<InscriereExamen | null>(null);
     const [gradSustinutId, setGradSustinutId] = useState<string>('');
+    const [noteLocale, setNoteLocale] = useState<Record<string, number>>({});
+    const [rezultatEdit, setRezultatEdit] = useState<'Admis' | 'Respins' | 'Neprezentat'>('Neprezentat');
+    const [overrideManual, setOverrideManual] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+
+    const valideazaPromovare = (note: Record<string, number>): boolean => {
+        const values = Object.values(note);
+        if (values.length === 0) return false;
+        return values.every(v => v >= 7);
+    };
     
     // State for deletion confirmation
     const [inscriereToDelete, setInscriereToDelete] = useState<InscriereExamen | null>(null);
@@ -390,13 +399,20 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
 
     const handleOpenEditModal = async (inscriere: InscriereExamen) => {
         setInscriereToEdit(inscriere);
+        setRezultatEdit(inscriere.rezultat || 'Neprezentat');
+        setOverrideManual(false);
+        
+        // Initialize notes from inscriere or defaults for Phi Hau
+        const initialNotes = inscriere.note_detaliate || {
+            "tehnica": 0,
+            "thao_quyen": 0,
+            "song_doi": 0
+        };
+        setNoteLocale(initialNotes);
         setIsEditModalOpen(true);
         
         // Fetch suggestion for the current sportiv and exam date
         try {
-            // Use grad_sustinut_id if present, otherwise use grad_actual_id to suggest
-            const baseGradId = inscriere.grad_sustinut_id || inscriere.grad_actual_id;
-            
             const { data, error } = await supabase.rpc('sugereaza_grad_examen', {
                 p_sportiv_id: inscriere.sportiv_id,
                 p_data_examen: sesiune.data
@@ -406,6 +422,25 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         } catch (err) {
             console.error("Error fetching suggestion:", err);
             setGradSustinutId(inscriere.grad_sustinut_id || inscriere.grad_vizat_id);
+        }
+    };
+
+    const handleNoteChange = (key: string, value: string) => {
+        const numValue = parseFloat(value) || 0;
+        const updatedNotes = { ...noteLocale, [key]: numValue };
+        setNoteLocale(updatedNotes);
+        
+        if (!overrideManual) {
+            const isPromovat = valideazaPromovare(updatedNotes);
+            setRezultatEdit(isPromovat ? 'Admis' : 'Respins');
+        }
+    };
+
+    const handleOverrideChange = (checked: boolean) => {
+        setOverrideManual(checked);
+        if (!checked) {
+            const isPromovat = valideazaPromovare(noteLocale);
+            setRezultatEdit(isPromovat ? 'Admis' : 'Respins');
         }
     };
 
@@ -527,11 +562,19 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
     
         setIsSaving(true);
         try {
-            if (gradSustinutId === inscriereToEdit.grad_vizat_id) { showSuccess("Info", "Nicio modificare detectată."); handleCloseEditModal(); return; }
+            const notesChanged = JSON.stringify(noteLocale) !== JSON.stringify(inscriereToEdit.note_detaliate || {});
+            const resultChanged = rezultatEdit !== inscriereToEdit.rezultat;
+            const gradChanged = gradSustinutId !== inscriereToEdit.grad_vizat_id;
+
+            if (!gradChanged && !notesChanged && !resultChanged) { 
+                showSuccess("Info", "Nicio modificare detectată."); 
+                handleCloseEditModal(); 
+                return; 
+            }
 
             const plataAsociata = (plati || []).find(p => p.id === inscriereToEdit.plata_id);
 
-            if (plataAsociata && plataAsociata.status !== 'Neachitat') {
+            if (gradChanged && plataAsociata && plataAsociata.status !== 'Neachitat') {
                 throw new Error("Nu se poate modifica gradul deoarece factura asociată a fost deja achitată. Retrageți înscrierea și adăugați-o din nou.");
             }
             
@@ -539,44 +582,53 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             let facturaMessage = '';
             let plataResult: { action: 'add' | 'update' | 'delete', data: Plata } | null = null;
 
-            const gradSustinut = (grade || []).find(g => g.id === gradSustinutId);
-            const taxaConfig = getPretProdus(preturiConfig, 'Taxa Examen', gradSustinut?.nume || '', { dataReferinta: sesiune.data });
+            if (gradChanged) {
+                const gradSustinut = (grade || []).find(g => g.id === gradSustinutId);
+                const taxaConfig = getPretProdus(preturiConfig, 'Taxa Examen', gradSustinut?.nume || '', { dataReferinta: sesiune.data });
 
-            if (taxaConfig) {
-                const descriereFactura = `Taxa examen ${gradSustinut?.nume}`;
-                if (plataAsociata) {
-                    const { data: pData, error: pError } = await supabase.from('plati').update({ suma: taxaConfig.suma, descriere: descriereFactura }).eq('id', plataAsociata.id).select().single();
-                    if (pError) throw pError;
-                    plataResult = { action: 'update', data: pData as Plata };
-                    facturaMessage = ' și factura a fost actualizată';
+                if (taxaConfig) {
+                    const descriereFactura = `Taxa examen ${gradSustinut?.nume}`;
+                    if (plataAsociata) {
+                        const { data: pData, error: pError } = await supabase.from('plati').update({ suma: taxaConfig.suma, descriere: descriereFactura }).eq('id', plataAsociata.id).select().single();
+                        if (pError) throw pError;
+                        plataResult = { action: 'update', data: pData as Plata };
+                        facturaMessage = ' și factura a fost actualizată';
+                    } else {
+                        const sportiv = sportivi.find(s => s.id === inscriereToEdit.sportiv_id);
+                        const plataData: Omit<Plata, 'id'> = {
+                            sportiv_id: inscriereToEdit.sportiv_id, familie_id: sportiv?.familie_id || null, suma: taxaConfig.suma, data: sesiune.data, status: 'Neachitat',
+                            descriere: descriereFactura, tip: 'Taxa Examen', observatii: 'Generat automat la modificare înscriere.'
+                        };
+                        const { data: pData, error: pError } = await supabase.from('plati').insert(plataData).select().single();
+                        if (pError) throw pError;
+                        plataResult = { action: 'add', data: pData as Plata };
+                        newPlataId = pData.id;
+                        facturaMessage = ' și o factură nouă a fost generată';
+                    }
                 } else {
-                    const sportiv = sportivi.find(s => s.id === inscriereToEdit.sportiv_id);
-                    const plataData: Omit<Plata, 'id'> = {
-                        sportiv_id: inscriereToEdit.sportiv_id, familie_id: sportiv?.familie_id || null, suma: taxaConfig.suma, data: sesiune.data, status: 'Neachitat',
-                        descriere: descriereFactura, tip: 'Taxa Examen', observatii: 'Generat automat la modificare înscriere.'
-                    };
-                    const { data: pData, error: pError } = await supabase.from('plati').insert(plataData).select().single();
-                    if (pError) throw pError;
-                    plataResult = { action: 'add', data: pData as Plata };
-                    newPlataId = pData.id;
-                    facturaMessage = ' și o factură nouă a fost generată';
-                }
-            } else {
-                if (plataAsociata) {
-                    const { error: pError } = await supabase.from('plati').delete().eq('id', plataAsociata.id);
-                    if (pError) throw pError;
-                    plataResult = { action: 'delete', data: plataAsociata };
-                    newPlataId = null;
-                    facturaMessage = ' și factura asociată a fost ștearsă (noul grad nu are taxă)';
-                } else {
-                    facturaMessage = ', iar noul grad selectat nu are o taxă configurată';
+                    if (plataAsociata) {
+                        const { error: pError } = await supabase.from('plati').delete().eq('id', plataAsociata.id);
+                        if (pError) throw pError;
+                        plataResult = { action: 'delete', data: plataAsociata };
+                        newPlataId = null;
+                        facturaMessage = ' și factura asociată a fost ștearsă (noul grad nu are taxă)';
+                    } else {
+                        facturaMessage = ', iar noul grad selectat nu are o taxă configurată';
+                    }
                 }
             }
 
-            const { data: updatedInscriere, error: updateError } = await supabase.from('inscrieri_examene').update({ grad_vizat_id: gradSustinutId, plata_id: newPlataId }).eq('id', inscriereToEdit.inscriere_id || inscriereToEdit.id).select().single();
+            const updatePayload = { 
+                grad_vizat_id: gradSustinutId, 
+                plata_id: newPlataId,
+                note_detaliate: noteLocale,
+                rezultat: rezultatEdit
+            };
+
+            const { data: updatedInscriere, error: updateError } = await supabase.from('inscrieri_examene').update(updatePayload).eq('id', inscriereToEdit.inscriere_id || inscriereToEdit.id).select().single();
             if (updateError) throw updateError;
             
-            const { data: viewData, error: viewError } = await supabase.from('vedere_detalii_examen').select('*').eq('inscriere_id', updatedInscriere.id).single();
+            const { data: viewData, error: viewError } = await supabase.from('vedere_detalii_examen').select('*, id:inscriere_id').eq('inscriere_id', updatedInscriere.id).single();
             if (viewError) throw viewError;
             
             if (viewData) {
@@ -892,16 +944,70 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 <Modal 
                     isOpen={isEditModalOpen} 
                     onClose={handleCloseEditModal} 
-                    title={`Modifică Grad Vizat: ${inscriereToEdit.sportiv_nume || (inscriereToEdit.sportivi?.nume + ' ' + inscriereToEdit.sportivi?.prenume) || 'Necunoscut'}`}
+                    title={`Evaluare: ${inscriereToEdit.sportiv_nume || (inscriereToEdit.sportivi?.nume + ' ' + inscriereToEdit.sportivi?.prenume) || 'Necunoscut'}`}
                 >
-                    <div className="space-y-4">
-                        <Select label="Selectează gradul vizat pentru examen" value={gradSustinutId} onChange={(e) => setGradSustinutId(e.target.value)} required>
-                            <option value="">Alege un grad...</option>
-                            {sortedGrades.map(g => (<option key={g.id} value={g.id}>{g.nume}</option>))}
-                        </Select>
+                    <div className="space-y-6">
+                        <div className="grid grid-cols-1 gap-4">
+                            <Select label="Grad Vizat" value={gradSustinutId} onChange={(e) => setGradSustinutId(e.target.value)} required>
+                                <option value="">Alege un grad...</option>
+                                {sortedGrades.map(g => (<option key={g.id} value={g.id}>{g.nume}</option>))}
+                            </Select>
+                        </div>
+
+                        <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700 space-y-4">
+                            <h4 className="text-sm font-bold text-brand-secondary uppercase tracking-wider">Note Detaliate</h4>
+                            <div className="grid grid-cols-2 gap-4">
+                                {Object.entries(noteLocale).map(([key, value]) => (
+                                    <div key={key}>
+                                        <label className="text-xs text-slate-400 mb-1 block capitalize">{key.replace(/_/g, ' ')}</label>
+                                        <Input 
+                                            label=""
+                                            type="number" 
+                                            step="0.5" 
+                                            min="0" 
+                                            max="10" 
+                                            value={value} 
+                                            onChange={(e) => handleNoteChange(key, e.target.value)}
+                                            className="!py-1.5"
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col gap-4">
+                            <div className="flex items-center gap-3 bg-slate-800/30 p-3 rounded-lg border border-slate-700/50">
+                                <input 
+                                    type="checkbox" 
+                                    id="override" 
+                                    checked={overrideManual} 
+                                    onChange={(e) => handleOverrideChange(e.target.checked)}
+                                    className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-brand-primary focus:ring-brand-primary"
+                                />
+                                <label htmlFor="override" className="text-sm text-slate-300 cursor-pointer">
+                                    Override Manual (Ignoră validarea automată)
+                                </label>
+                            </div>
+
+                            <div className="flex items-center justify-between">
+                                <label className="text-sm font-bold text-white">Rezultat Final</label>
+                                <Select 
+                                    label="" 
+                                    value={rezultatEdit} 
+                                    onChange={(e) => setRezultatEdit(e.target.value as any)}
+                                    disabled={!overrideManual}
+                                    className={`!py-1.5 min-w-[120px] ${rezultatEdit === 'Admis' ? 'text-green-400' : rezultatEdit === 'Respins' ? 'text-red-400' : ''}`}
+                                >
+                                    <option value="Neprezentat">În așteptare</option>
+                                    <option value="Admis">Admis</option>
+                                    <option value="Respins">Respins</option>
+                                </Select>
+                            </div>
+                        </div>
+
                         <div className="flex justify-end pt-4 gap-2 border-t border-slate-700">
                             <Button variant="secondary" onClick={handleCloseEditModal} disabled={isSaving}>Anulează</Button>
-                            <Button variant="primary" onClick={handleSaveInscriereEdit} isLoading={isSaving} disabled={!gradSustinutId}>Salvează</Button>
+                            <Button variant="primary" onClick={handleSaveInscriereEdit} isLoading={isSaving} disabled={!gradSustinutId}>Salvează Modificări</Button>
                         </div>
                     </div>
                 </Modal>

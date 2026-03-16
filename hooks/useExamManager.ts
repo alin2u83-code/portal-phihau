@@ -131,6 +131,11 @@ export const useExamManager = (
                         .maybeSingle();
                     
                     if (!existingIstoric) {
+                        // Arhivare note în observații
+                        const notesStr = inscriere.note_detaliate 
+                            ? Object.entries(inscriere.note_detaliate).map(([k, v]) => `${k}: ${v}`).join(', ')
+                            : '';
+
                         // Insert istoric_grade
                         const { data: newIstoricData, error: insertIstoricError } = await supabase
                             .from('istoric_grade')
@@ -138,7 +143,8 @@ export const useExamManager = (
                                 sportiv_id: inscriere.sportiv_id,
                                 grad_id: targetGradId,
                                 data_obtinere: sesiuneData.data || sesiuneData.data_examen || new Date().toISOString().split('T')[0],
-                                sesiune_examen_id: sesiuneId
+                                sesiune_examen_id: sesiuneId,
+                                observatii: notesStr ? `Note examen: ${notesStr}` : 'Promovat prin examen'
                             })
                             .select()
                             .single();

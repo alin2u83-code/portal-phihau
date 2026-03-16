@@ -207,3 +207,18 @@ export const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
         </span>
     );
 };
+
+export const Badge: React.FC<{ children: React.ReactNode, variant?: 'green' | 'red' | 'amber' | 'blue' | 'slate', className?: string }> = ({ children, variant = 'slate', className = '' }) => {
+  const variants = {
+    green: 'bg-emerald-900/30 text-emerald-400 border-emerald-800/50',
+    red: 'bg-rose-900/30 text-rose-400 border-rose-800/50',
+    amber: 'bg-amber-900/30 text-amber-400 border-amber-800/50',
+    blue: 'bg-sky-900/30 text-sky-400 border-sky-800/50',
+    slate: 'bg-slate-800 text-slate-400 border-slate-700'
+  };
+  return (
+    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${variants[variant]} ${className}`}>
+      {children}
+    </span>
+  );
+};

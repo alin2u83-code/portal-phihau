@@ -8,7 +8,7 @@ import { BirthDateInput } from './BirthDateInput';
 import { getPretProdus } from '../utils/pricing';
 import { DataIntegrityCheck } from './DataIntegrityCheck';
 
-const TABLES_TO_MANAGE = ['roluri', 'grade', 'familii', 'grupe', 'tipuri_abonament', 'examene', 'evenimente', 'preturi_config', 'grade_preturi_config', 'reduceri', 'sportivi', 'program_antrenamente', 'sportivi_roluri', 'participari', 'rezultate', 'plati', 'prezenta_antrenament', 'anunturi_prezenta', 'tranzactii', 'notificari'];
+const TABLES_TO_MANAGE = ['roluri', 'grade', 'familii', 'grupe', 'tipuri_abonament', 'examene', 'evenimente', 'preturi_config', 'grade_preturi_config', 'reduceri', 'sportivi', 'program_antrenamente', 'sportivi_roluri', 'inscrieri_examene', 'rezultate', 'plati', 'prezenta_antrenament', 'anunturi_prezenta', 'tranzactii', 'notificari'];
 
 // --- Sub-componente ---
 const QuickEditModal: React.FC<{
@@ -82,7 +82,7 @@ export const DataMaintenancePage: React.FC<DataMaintenanceProps> = ({ onBack, on
      const handleExportData = async () => {
         if (!supabase) { showError("Eroare Configurare", "Clientul Supabase nu este inițializat."); return; }
 
-        const tablesToExport = ['sportivi', 'plati', 'participari', 'examene', 'grade', 'grupe', 'familii'];
+        const tablesToExport = ['sportivi', 'plati', 'inscrieri_examene', 'examene', 'grade', 'grupe', 'familii'];
         
         setLoading(p => ({ ...p, exporting: true }));
         setProgressMessage('Se exportă datele...');
@@ -196,7 +196,7 @@ export const DataMaintenancePage: React.FC<DataMaintenanceProps> = ({ onBack, on
         setLoading(p => ({ ...p, restoring: true }));
         setProgressMessage('Se pregătește restaurarea...');
 
-        const deletionOrder = ['tranzactii', 'anunturi_prezenta', 'prezenta_antrenament', 'rezultate', 'participari', 'plati', 'sportivi_roluri', 'program_antrenamente', 'sportivi', 'grade_preturi_config', 'preturi_config', 'examene', 'evenimente', 'grupe', 'familii', 'tipuri_abonament', 'reduceri', 'grade', 'roluri', 'notificari'];
+        const deletionOrder = ['tranzactii', 'anunturi_prezenta', 'prezenta_antrenament', 'rezultate', 'inscrieri_examene', 'plati', 'sportivi_roluri', 'program_antrenamente', 'sportivi', 'grade_preturi_config', 'preturi_config', 'examene', 'evenimente', 'grupe', 'familii', 'tipuri_abonament', 'reduceri', 'grade', 'roluri', 'notificari'];
         const insertionOrder = [...deletionOrder].reverse();
 
         try {

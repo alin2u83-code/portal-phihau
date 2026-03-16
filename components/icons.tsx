@@ -6,7 +6,7 @@ import {
   ClipboardCheck, MessageCircleQuestion, Save, AlertTriangle, CheckCircle,
   ChevronLeft, ChevronRight, Printer, Check, ArrowRightLeft, Search, Bell, Network,
   UploadCloud, Mail, Lock, UserPlus, BookOpen, BookMarked, FileText, UserX, UserCheck, XCircle, Clock,
-  Camera, Upload, Building2, Paintbrush, MapPin, CreditCard
+  Camera, Upload, Building2, Paintbrush, MapPin, CreditCard, Calendar, AlertCircle
 } from 'lucide-react';
 
 export const PlusIcon = Plus;
@@ -14,6 +14,7 @@ export const TrashIcon = Trash2;
 export const EditIcon = FilePenLine;
 export const ArrowLeftIcon = ArrowLeft;
 export const UsersIcon = Users;
+export const CalendarIcon = Calendar;
 export const CalendarDaysIcon = CalendarDays;
 export const TrophyIcon = Trophy;
 export const ClipboardListIcon = ClipboardList;
@@ -42,6 +43,7 @@ export const ChevronRightIcon = ChevronRight;
 export const PrinterIcon = Printer;
 export const TransferIcon = ArrowRightLeft;
 export const ExclamationTriangleIcon = AlertTriangle;
+export const AlertCircleIcon = AlertCircle;
 export const SearchIcon = Search;
 export const BellIcon = Bell;
 export const SitemapIcon = Network;

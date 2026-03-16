@@ -259,6 +259,7 @@ export interface InscriereExamen {
   nota_atitudine: number | null;
   rezultat?: 'Admis' | 'Respins' | 'Neprezentat' | null;
   status_inscriere?: 'Validat' | 'In asteptare' | null;
+  note_detaliate?: Record<string, number> | null;
   sportivi?: Sportiv;
   grades?: Grad;
   sportiv_nume?: string;
@@ -269,6 +270,18 @@ export interface InscriereExamen {
   nume_grad_actual?: string;
   grad_sustinut_id?: string;
   inscriere_id?: string;
+}
+
+export interface VizaMedicala {
+  id: string;
+  sportiv_id: string;
+  data_emitere: string;
+  data_expirare: string;
+  status: 'Valid' | 'Expirat' | 'În așteptare';
+  document_url?: string | null;
+  observatii?: string | null;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface IstoricGrade {

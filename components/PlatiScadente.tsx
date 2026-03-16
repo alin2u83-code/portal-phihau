@@ -309,7 +309,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
 
             if (plata.tip === 'Taxa Examen') {
                 const inscriere = (inscrieriExamene || []).find(i => i.plata_id === plata.id);
-                const grad = inscriere ? (grade || []).find(g => g.id === inscriere.grad_vizat_id) : null;
+                const grad = inscriere ? (grade || []).find(g => g.id === inscriere.grad_sustinut_id) : null;
                 if (grad) {
                     descriereDetaliata = `Taxă Examen - ${grad.nume}`;
                 }

@@ -48,8 +48,8 @@ export const ExamenPhiHauSimplu: React.FC<ExamenPhiHauSimpluProps> = ({ sesiune,
             promises.push(supabase.from('inscrieri_examene').update({ rezultat: newResult }).eq('id', inscriere.id));
 
             if (newResult === 'Admis') {
-                promises.push(supabase.from('sportivi').update({ grad_actual_id: inscriere.grad_vizat_id }).eq('id', inscriere.sportiv_id));
-                sportivGradUpdate = inscriere.grad_vizat_id;
+                promises.push(supabase.from('sportivi').update({ grad_actual_id: inscriere.grad_sustinut_id }).eq('id', inscriere.sportiv_id));
+                sportivGradUpdate = inscriere.grad_sustinut_id;
             } else if (oldResult === 'Admis') {
                 promises.push(supabase.from('sportivi').update({ grad_actual_id: inscriere.grad_actual_id }).eq('id', inscriere.sportiv_id));
                 sportivGradUpdate = inscriere.grad_actual_id;
@@ -96,7 +96,7 @@ export const ExamenPhiHauSimplu: React.FC<ExamenPhiHauSimpluProps> = ({ sesiune,
                         return (
                             <tr key={item.id} className="border-b border-slate-700 hover:bg-brand-secondary/10 transition-colors">
                                 <td className="p-4 font-medium">{item.sportiv_nume || (item.sportivi?.nume + ' ' + item.sportivi?.prenume) || 'Necunoscut'}</td>
-                                <td className="p-4 text-brand-secondary font-bold">{item.grad_vizat_nume || item.grades?.nume || 'Necunoscut'}</td>
+                                <td className="p-4 text-brand-secondary font-bold">{item.grad_sustinut || item.grades?.nume || 'Necunoscut'}</td>
                                 <td className="p-4">
                                     <div className="flex justify-center gap-3">
                                         <Button

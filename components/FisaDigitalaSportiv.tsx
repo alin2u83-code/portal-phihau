@@ -42,7 +42,7 @@ export const FisaDigitalaSportiv: React.FC<FisaDigitalaSportivProps> = ({ curren
             });
         
         const lastParticipation = admittedParticipations[0];
-        const historyGrad = lastParticipation ? getGrad(lastParticipation.grad_vizat_id, grade) : null;
+        const historyGrad = lastParticipation ? getGrad(lastParticipation.grad_sustinut_id, grade) : null;
         
         const gradActual = officialGrad || historyGrad;
 

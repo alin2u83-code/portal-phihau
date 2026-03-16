@@ -120,7 +120,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack }) => 
             .filter(p => p.sportiv_id === sportiv.id && p.rezultat === 'Admis')
             .map(p => {
                 const examen = (examene || []).find(e => e.id === p.sesiune_id);
-                const grad = (grade || []).find(g => g.id === p.grad_vizat_id);
+                const grad = (grade || []).find(g => g.id === p.grad_sustinut_id);
                 if (!examen || !grad) return null;
                 return {
                     source: 'examen',

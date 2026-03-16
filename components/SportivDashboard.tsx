@@ -136,7 +136,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
             .map(p => ({ ...p, examen: (examene || []).find(e => e.id === p.sesiune_id) }))
             .sort((a, b) => new Date((b.examen?.data || '').toString().slice(0, 10) || 0).getTime() - new Date((a.examen?.data || '').toString().slice(0, 10) || 0).getTime());
         
-        return getGrad(admittedParticipations[0]?.grad_vizat_id || null, grade);
+        return getGrad(admittedParticipations[0]?.grad_sustinut_id || null, grade);
     }, [participari, viewedUser.grad_actual_id, viewedUser.id, grade, examene]);
 
     // --- Grade Evolution Data ---
@@ -147,7 +147,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
             .filter(p => p.sportiv_id === viewedUser.id && p.rezultat === 'Admis')
             .map(p => {
                 const examen = (examene || []).find(e => e.id === p.sesiune_id);
-                const grad = (grade || []).find(g => g.id === p.grad_vizat_id);
+                const grad = (grade || []).find(g => g.id === p.grad_sustinut_id);
                 if (!examen || !grad) return null;
                 return {
                     source: 'examen',

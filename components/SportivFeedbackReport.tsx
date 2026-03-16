@@ -92,7 +92,7 @@ export const SportivFeedbackReport: React.FC<SportivFeedbackReportProps> = ({ is
 
         // 4. Eligibility Message
         const admitted = participari.filter(p => p.sportiv_id === sportiv.id && p.rezultat === 'Admis').sort((a,b) => new Date((examene.find(e=>e.id===b.sesiune_id)?.data || '').toString().slice(0, 10)).getTime() - new Date((examene.find(e=>e.id===a.sesiune_id)?.data || '').toString().slice(0, 10)).getTime());
-        const currentGrad = grade.find(g => g.id === admitted[0]?.grad_vizat_id);
+        const currentGrad = grade.find(g => g.id === admitted[0]?.grad_sustinut_id);
         const sortedGrades = [...grade].sort((a, b) => a.ordine - b.ordine);
         const nextGrad = currentGrad ? sortedGrades.find(g => g.ordine === currentGrad.ordine + 1) : sortedGrades[0];
         let eligibilityMsg = "Felicitări pentru progresul de până acum!";

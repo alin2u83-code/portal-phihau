@@ -10,7 +10,7 @@ SELECT
     g.nume as grad_nume
 FROM public.inscrieri_examene ie
 LEFT JOIN public.sportivi s ON ie.sportiv_id = s.id
-LEFT JOIN public.grade g ON ie.grad_vizat_id = g.id;
+LEFT JOIN public.grade g ON ie.grad_sustinut_id = g.id;
 
 DROP VIEW IF EXISTS public.vedere_istoric_grade_sportiv CASCADE;
 CREATE OR REPLACE VIEW public.vedere_istoric_grade_sportiv AS

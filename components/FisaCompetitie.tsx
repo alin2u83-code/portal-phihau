@@ -48,7 +48,7 @@ export const FisaCompetitie: React.FC<FisaCompetitieProps> = ({ currentUser, gra
         
         const currentGrad = currentUser.grad_actual_id
             ? grade.find(g => g.id === currentUser.grad_actual_id)
-            : lastParticipation ? grade.find(g => g.id === lastParticipation.grad_vizat_id) : null;
+            : lastParticipation ? grade.find(g => g.id === lastParticipation.grad_sustinut_id) : null;
 
         const age = getAge(currentUser.data_nasterii);
         

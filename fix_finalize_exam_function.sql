@@ -8,7 +8,7 @@ DECLARE
     v_sesiune RECORD;
     v_decont_id UUID;
     v_total_sportivi INTEGER := 0;
-    v_grad_vizat_nume TEXT;
+    v_grad_sustinut_nume TEXT;
 BEGIN
     -- Obține detalii despre sesiune
     SELECT * INTO v_sesiune FROM sesiuni_examene WHERE id = p_sesiune_id;
@@ -23,25 +23,25 @@ BEGIN
     FOR v_inscriere IN 
         SELECT ie.*, g.nume as grad_nume 
         FROM inscrieri_examene ie
-        JOIN grade g ON g.id = ie.grad_vizat_id
+        JOIN grade g ON g.id = ie.grad_sustinut_id
         WHERE ie.sesiune_id = p_sesiune_id
     LOOP
         -- Dacă sportivul a fost admis
         IF v_inscriere.rezultat = 'Admis' THEN
             -- Actualizează gradul curent al sportivului
             UPDATE sportivi 
-            SET grad_actual_id = v_inscriere.grad_vizat_id 
+            SET grad_actual_id = v_inscriere.grad_sustinut_id 
             WHERE id = v_inscriere.sportiv_id;
 
             -- Adaugă în istoric grade (verifică duplicat)
             IF NOT EXISTS (
                 SELECT 1 FROM istoric_grade 
                 WHERE sportiv_id = v_inscriere.sportiv_id 
-                AND grad_id = v_inscriere.grad_vizat_id 
+                AND grad_id = v_inscriere.grad_sustinut_id 
                 AND data_obtinere = v_sesiune.data
             ) THEN
                 INSERT INTO istoric_grade (sportiv_id, grad_id, data_obtinere, sesiune_examen_id)
-                VALUES (v_inscriere.sportiv_id, v_inscriere.grad_vizat_id, v_sesiune.data, p_sesiune_id);
+                VALUES (v_inscriere.sportiv_id, v_inscriere.grad_sustinut_id, v_sesiune.data, p_sesiune_id);
             END IF;
         END IF;
 

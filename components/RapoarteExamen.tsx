@@ -228,8 +228,8 @@ const DetaliiSesiune: React.FC<{
             // 2. Process each inscriere
             for (const inscriere of props.inscrieri) {
                 if (inscriere.rezultat === 'Admis') {
-                    // VALIDARE STRICTĂ grad_id (grad_vizat_id)
-                    let targetGradId = inscriere.grad_sustinut_id || inscriere.grad_vizat_id;
+                    // VALIDARE STRICTĂ grad_id (grad_sustinut_id)
+                    let targetGradId = inscriere.grad_sustinut_id;
                     
                     if (!targetGradId || targetGradId === 'undefined' || targetGradId === 'null') {
                         // Fallback to current grade if available
@@ -291,10 +291,10 @@ const DetaliiSesiune: React.FC<{
                     if (updatedSportiviIds.has(s.id)) {
                         const inscriere = props.inscrieri.find(i => i.sportiv_id === s.id && i.rezultat === 'Admis');
                         if (inscriere) {
-                            const newGrad = props.grade.find(g => g.id === inscriere.grad_vizat_id);
+                            const newGrad = props.grade.find(g => g.id === inscriere.grad_sustinut_id);
                             return { 
                                 ...s, 
-                                grad_actual_id: inscriere.grad_vizat_id
+                                grad_actual_id: inscriere.grad_sustinut_id
                             };
                         }
                     }

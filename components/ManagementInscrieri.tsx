@@ -75,7 +75,7 @@ const getAgeBasedSuggestion = (sportiv: Sportiv, sesiuneData: string, grade: Gra
 interface SingleAddInscriereModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSave: (selections: { sportiv_id: string; grad_vizat_id: string }[]) => Promise<void>;
+    onSave: (selections: { sportiv_id: string; grad_sustinut_id: string }[]) => Promise<void>;
     sportivi: Sportiv[];
     grade: Grad[];
     sesiuneData: string;
@@ -146,7 +146,7 @@ const SingleAddInscriereModal: React.FC<SingleAddInscriereModalProps> = ({ isOpe
     const handleSave = async () => {
         if (!selectedSportivId || !gradVizatId) return;
         setLoading(true);
-        await onSave([{ sportiv_id: selectedSportivId, grad_vizat_id: gradVizatId }]);
+        await onSave([{ sportiv_id: selectedSportivId, grad_sustinut_id: gradVizatId }]);
         setLoading(false);
         onClose();
     };
@@ -254,7 +254,7 @@ const SingleAddInscriereModal: React.FC<SingleAddInscriereModalProps> = ({ isOpe
 interface BulkAddSportiviModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSave: (selections: { sportiv_id: string; grad_vizat_id: string }[]) => Promise<void>;
+    onSave: (selections: { sportiv_id: string; grad_sustinut_id: string }[]) => Promise<void>;
     sportivi: Sportiv[];
     grade: Grad[];
     istoricGrade: IstoricGrade[];
@@ -348,9 +348,9 @@ const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps & { sesiuneData: 
     
     const handleSaveClick = async () => {
         setLoading(true);
-        const selectionsArray = Array.from(selections.entries()).map(([sportiv_id, grad_vizat_id]) => ({
+        const selectionsArray = Array.from(selections.entries()).map(([sportiv_id, grad_sustinut_id]) => ({
             sportiv_id,
-            grad_vizat_id,
+            grad_sustinut_id,
         }));
         await onSave(selectionsArray);
         setLoading(false);
@@ -522,10 +522,10 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             
             // Validate that the suggested grade exists in our grade list
             const isValid = grade.some(g => g.id === data);
-            setGradSustinutId(isValid ? data : (inscriere.grad_sustinut_id || inscriere.grad_vizat_id));
+            setGradSustinutId(isValid ? data : inscriere.grad_sustinut_id);
         } catch (err) {
             console.error("Error fetching suggestion:", err);
-            setGradSustinutId(inscriere.grad_sustinut_id || inscriere.grad_vizat_id);
+            setGradSustinutId(inscriere.grad_sustinut_id);
         }
     };
 
@@ -554,16 +554,16 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         setGradSustinutId('');
     };
     
-    const handleBulkSave = async (selections: { sportiv_id: string; grad_vizat_id: string }[]) => {
+    const handleBulkSave = async (selections: { sportiv_id: string; grad_sustinut_id: string }[]) => {
         setIsSaving(true);
         let newPlati: Plata[] = [];
         let newInscrieri: InscriereExamen[] = [];
         let errorCount = 0;
     
         for (const selection of selections) {
-            const { sportiv_id, grad_vizat_id } = selection;
+            const { sportiv_id, grad_sustinut_id } = selection;
             const sportiv = (sportivi || []).find(s => s.id === sportiv_id);
-            const grad = (grade || []).find(g => g.id === grad_vizat_id);
+            const grad = (grade || []).find(g => g.id === grad_sustinut_id);
     
             if (!sportiv || !grad) {
                 errorCount++;
@@ -607,8 +607,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                     sesiune_id: sesiune.id, 
                     plata_id: plataId,
                     grad_actual_id: sportiv.grad_actual_id || null, 
-                    grad_vizat_id: grad_vizat_id,
-                    grad_sustinut_id: grad_vizat_id, // Populăm automat cu gradul vizat
+                    grad_sustinut_id: grad_sustinut_id, // Populăm automat cu gradul vizat
                     club_id: sportiv.club_id, // Adăugat club_id conform cerințelor
                     varsta_la_examen: varstaLaExamen, 
                     rezultat: 'Neprezentat' as const
@@ -641,7 +640,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         // Send notifications to sportivi
         const notifications = newInscrieri.map(inscriere => {
             const sportiv = sportivi.find(s => s.id === inscriere.sportiv_id);
-            const grad = grade.find(g => g.id === inscriere.grad_vizat_id);
+            const grad = grade.find(g => g.id === inscriere.grad_sustinut_id);
             if (!sportiv?.user_id) return null;
             return {
                 recipient_user_id: sportiv.user_id,
@@ -674,7 +673,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         try {
             const notesChanged = JSON.stringify(noteLocale) !== JSON.stringify(inscriereToEdit.note_detaliate || {});
             const resultChanged = rezultatEdit !== inscriereToEdit.rezultat;
-            const gradChanged = gradSustinutId !== inscriereToEdit.grad_vizat_id;
+            const gradChanged = gradSustinutId !== inscriereToEdit.grad_sustinut_id;
 
             if (!gradChanged && !notesChanged && !resultChanged) { 
                 showSuccess("Info", "Nicio modificare detectată."); 
@@ -729,7 +728,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             }
 
             const updatePayload = { 
-                grad_vizat_id: gradSustinutId, 
+                grad_sustinut_id: gradSustinutId, 
                 plata_id: newPlataId,
                 note_detaliate: noteLocale,
                 rezultat: rezultatEdit
@@ -827,7 +826,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             const sportiv = sportivi.find(s => s.id === i.sportiv_id);
             if (!sportiv) return false;
             
-            const expectedGradId = i.grad_sustinut_id || i.grad_vizat_id;
+            const expectedGradId = i.grad_sustinut_id;
             return sportiv.grad_actual_id !== expectedGradId;
         });
     }, [participantiInscrisi, sportivi, rezultateLocale]);
@@ -844,7 +843,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         const sportiviUpdatesLocal: Partial<Sportiv>[] = [];
 
         for (const inscriere of desyncedInscrieri) {
-            const newGradId = inscriere.grad_sustinut_id || inscriere.grad_vizat_id;
+            const newGradId = inscriere.grad_sustinut_id;
             syncPromises.push(supabase.from('sportivi').update({ grad_actual_id: newGradId }).eq('id', inscriere.sportiv_id));
             syncPromises.push(
                 supabase.from('istoric_grade').upsert(
@@ -898,7 +897,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             const targetId = inscriere.inscriere_id || inscriere.id;
             allPromises.push(supabase.from('inscrieri_examene').update({ rezultat }).eq('id', targetId));
             if (rezultat === 'Admis') {
-                const newGradId = inscriere.grad_sustinut_id || inscriere.grad_vizat_id;
+                const newGradId = inscriere.grad_sustinut_id;
                 allPromises.push(supabase.from('sportivi').update({ grad_actual_id: newGradId }).eq('id', inscriere.sportiv_id));
                 allPromises.push(
                     supabase.from('istoric_grade').upsert(
@@ -972,9 +971,9 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             }
         },
         {
-            key: 'grad_vizat_id',
+            key: 'grad_sustinut_id',
             label: 'Grad Vizat',
-            render: (inscriere) => <span className="text-brand-secondary font-semibold">{inscriere.grad_sustinut || inscriere.grad_vizat_nume || inscriere.grades?.nume || 'Necunoscut'}</span>
+            render: (inscriere) => <span className="text-brand-secondary font-semibold">{inscriere.grad_sustinut || inscriere.grades?.nume || 'Necunoscut'}</span>
         },
         {
             key: 'status_plata',
@@ -1058,7 +1057,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                             {fullName}
                         </p>
                         <p className="text-sm text-brand-secondary font-semibold">
-                            Grad Vizat: {inscriere.grad_sustinut || inscriere.grad_vizat_nume || inscriere.grades?.nume || 'Necunoscut'}
+                            Grad Vizat: {inscriere.grad_sustinut || inscriere.grades?.nume || 'Necunoscut'}
                         </p>
                         <div className="mt-1">
                             <span className={`text-[10px] px-2 py-0.5 rounded font-bold border ${inscriere.status_plata === 'Achitat' ? 'bg-green-900/40 text-green-400 border-green-700/50' : 'bg-amber-900/40 text-amber-400 border-amber-700/50'}`}>
@@ -1122,7 +1121,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                         <div className="flex flex-col sm:flex-row gap-3">
                             {desyncedInscrieri.length > 0 && (
                                 <Button 
-                                    variant="outline" 
+                                    variant="secondary" 
                                     className="border-amber-500 text-amber-500 hover:bg-amber-500/10"
                                     onClick={handleForceSync}
                                     disabled={isSavingResults}

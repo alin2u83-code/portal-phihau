@@ -80,7 +80,7 @@ export const getEligibleGrade = (
     }
 
     const lastAdmittedParticipation = historicParticipari
-        .filter(p => p.sportiv_id === sportiv.id && p.rezultat === 'Admis' && p.grad_vizat_id === currentGrade.id)
+        .filter(p => p.sportiv_id === sportiv.id && p.rezultat === 'Admis' && p.grad_sustinut_id === currentGrade.id)
         .sort((a,b) => {
             const dateA = allExamene.find(e => e.id === a.sesiune_id)?.data || '1970-01-01';
             const dateB = allExamene.find(e => e.id === b.sesiune_id)?.data || '1970-01-01';

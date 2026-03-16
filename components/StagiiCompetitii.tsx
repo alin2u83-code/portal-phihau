@@ -149,7 +149,7 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
                 const dateB = examene.find(e => e.id === b.sesiune_id)?.data || '1970-01-01';
                 return new Date(dateB).getTime() - new Date(dateA).getTime();
             });
-        return grade.find(g => g.id === admittedParticipations[0]?.grad_vizat_id);
+        return grade.find(g => g.id === admittedParticipations[0]?.grad_sustinut_id);
     };
 
     return ( <Card> <h3 className="text-2xl font-bold text-white">{eveniment.denumire}</h3> <p className="text-slate-400">{formatDateRange(eveniment.data)} - {eveniment.locatie}</p> <div className="mt-6 border-t border-slate-700 pt-6"> <h4 className="text-xl font-semibold mb-4 text-white">Participanți Înscriși ({rezultate.length})</h4>

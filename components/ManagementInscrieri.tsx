@@ -506,7 +506,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
     };
 
     const participantiInscrisi = useMemo(() => {
-        let data = (allInscrieri || []).filter(i => i.sesiune_id === sesiune.id);
+        let data = (allInscrieri || []).filter(i => i.sesiune_id === sesiune.id && (i.grades?.ordine ?? 0) > 0);
         
         if (sortConfigs.length > 0) {
             data.sort((a, b) => {
@@ -521,8 +521,9 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                         aVal = a.nume_grad_actual || '';
                         bVal = b.nume_grad_actual || '';
                     } else if (sort.key === 'grad_vizat') {
-                        aVal = a.grad_sustinut || a.grades?.nume || '';
-                        bVal = b.grad_sustinut || b.grades?.nume || '';
+                        // Folosim ordinea numerică a gradelor pentru o sortare logică, nu alfabetică
+                        aVal = a.grades?.ordine ?? 0;
+                        bVal = b.grades?.ordine ?? 0;
                     } else {
                         aVal = a[sort.key as keyof InscriereExamen];
                         bVal = b[sort.key as keyof InscriereExamen];
@@ -531,13 +532,19 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                     if (aVal < bVal) return sort.direction === 'asc' ? -1 : 1;
                     if (aVal > bVal) return sort.direction === 'asc' ? 1 : -1;
                 }
-                return 0;
+
+                // --- MODIFICARE AICI: Tie-breaker alfabetic ---
+                // Dacă execuția ajunge aici, înseamnă că criteriile de sortare de mai sus sunt egale
+                const numeA = (a.sportiv_nume || a.sportivi?.nume || '').toLowerCase();
+                const numeB = (b.sportiv_nume || b.sportivi?.nume || '').toLowerCase();
+                return numeA.localeCompare(numeB);
             });
         } else {
+            // Sortarea implicită (deja include tie-breaker)
             data.sort((a, b) => {
                 const gradeA = a.grades?.ordine ?? 0;
                 const gradeB = b.grades?.ordine ?? 0;
-                if (gradeA !== gradeB) return gradeA - gradeB; // Ascending grade order
+                if (gradeA !== gradeB) return gradeB - gradeA;
                 const numeA = (a.sportiv_nume || a.sportivi?.nume || '').toLowerCase();
                 const numeB = (b.sportiv_nume || b.sportivi?.nume || '').toLowerCase();
                 return numeA.localeCompare(numeB);

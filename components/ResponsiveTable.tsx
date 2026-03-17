@@ -21,7 +21,7 @@ export interface ResponsiveTableProps<T> {
     onRowClick?: (item: T) => void;
     selectedRowId?: string | null;
     rowClassName?: (item: T) => string;
-    onSort?: (key: string) => void;
+    onSort?: (key: any, shiftKey: boolean) => void;
     sortConfig?: { key: string; direction: 'asc' | 'desc' } | { key: string; direction: 'asc' | 'desc' }[];
     searchTerm?: string;
     onSearchChange?: (value: string) => void;

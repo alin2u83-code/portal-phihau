@@ -40,6 +40,7 @@ export const getEligibleGrade = (
     
     const ageAtExam = getAgeOnDate(sportiv.data_nasterii, sesiune.data);
     const sortedGrades = [...allGrades].sort((a,b) => a.ordine - b.ordine);
+    // Gradul actual este acum sincronizat automat prin triggerul tr_promovare_automata_grad
     const currentGrade = sportiv.grad_actual_id ? allGrades.find(g => g.id === sportiv.grad_actual_id) : null;
     
     // Logic for Beginners

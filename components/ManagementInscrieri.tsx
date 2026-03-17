@@ -474,15 +474,51 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         return new Set((allInscrieri || []).filter(i => i.sesiune_id === sesiune.id).map(i => i.sportiv_id));
     }, [allInscrieri, sesiune.id]);
     
+    const [sortConfig, setSortConfig] = useState<{ key: keyof InscriereExamen | 'nume_sportiv' | 'grad_actual' | 'grad_vizat', direction: 'asc' | 'desc' } | null>(null);
+
+    const requestSort = (key: keyof InscriereExamen | 'nume_sportiv' | 'grad_actual' | 'grad_vizat') => {
+        let direction: 'asc' | 'desc' = 'asc';
+        if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+            direction = 'desc';
+        }
+        setSortConfig({ key, direction });
+    };
+
     const participantiInscrisi = useMemo(() => {
-        return (allInscrieri || [])
-            .filter(i => i.sesiune_id === sesiune.id)
-            .sort((a, b) => {
+        let data = (allInscrieri || []).filter(i => i.sesiune_id === sesiune.id);
+        
+        if (sortConfig) {
+            data.sort((a, b) => {
+                let aVal: any;
+                let bVal: any;
+
+                if (sortConfig.key === 'nume_sportiv') {
+                    aVal = (a.sportiv_nume || a.sportivi?.nume || '') + ' ' + (a.sportiv_prenume || a.sportivi?.prenume || '');
+                    bVal = (b.sportiv_nume || b.sportivi?.nume || '') + ' ' + (b.sportiv_prenume || b.sportivi?.prenume || '');
+                } else if (sortConfig.key === 'grad_actual') {
+                    aVal = a.nume_grad_actual || '';
+                    bVal = b.nume_grad_actual || '';
+                } else if (sortConfig.key === 'grad_vizat') {
+                    aVal = a.grad_sustinut || a.grades?.nume || '';
+                    bVal = b.grad_sustinut || b.grades?.nume || '';
+                } else {
+                    aVal = a[sortConfig.key as keyof InscriereExamen];
+                    bVal = b[sortConfig.key as keyof InscriereExamen];
+                }
+
+                if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+                if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+        } else {
+            data.sort((a, b) => {
                 const gradesOrderDiff = (b.grades?.ordine ?? 0) - (a.grades?.ordine ?? 0);
                 if (gradesOrderDiff !== 0) return gradesOrderDiff;
                 return (a.sportivi?.nume || '').localeCompare(b.sportivi?.nume || '');
             });
-    }, [allInscrieri, sesiune.id]);
+        }
+        return data;
+    }, [allInscrieri, sesiune.id, sortConfig]);
 
     const initialRezultate = useMemo(() => {
         const initial: Record<string, 'Admis' | 'Respins' | 'Neprezentat'> = {};
@@ -949,7 +985,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
 
     const columns: Column<InscriereExamen>[] = [
         {
-            key: 'sportiv_id',
+            key: 'nume_sportiv',
             label: 'Nume Sportiv',
             render: (inscriere) => {
                 const sportiv = sportivi.find(s => s.id === inscriere.sportiv_id);
@@ -967,7 +1003,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             }
         },
         {
-            key: 'grad_actual_id',
+            key: 'grad_actual',
             label: 'Grad Actual',
             render: (inscriere) => {
                 const sportiv = sportivi.find(s => s.id === inscriere.sportiv_id);
@@ -976,7 +1012,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             }
         },
         {
-            key: 'grad_sustinut_id',
+            key: 'grad_vizat',
             label: 'Grad Vizat',
             render: (inscriere) => <span className="text-brand-secondary font-semibold">{inscriere.grad_sustinut || inscriere.grades?.nume || 'Necunoscut'}</span>
         },
@@ -1142,6 +1178,8 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                     columns={columns}
                     data={participantiInscrisi}
                     renderMobileItem={renderMobileItem}
+                    onSort={requestSort}
+                    sortConfig={sortConfig ? { key: sortConfig.key, direction: sortConfig.direction } : undefined}
                 />
             </Card>
 

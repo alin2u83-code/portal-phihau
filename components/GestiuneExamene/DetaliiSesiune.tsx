@@ -43,8 +43,8 @@ export const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
     };
     
     return (
-        <Card>
-            <div className="flex justify-between items-start mb-6">
+        <Card className="sticky top-0 z-20">
+            <div className="flex justify-between items-start mb-6 bg-slate-800 p-4 -m-4 rounded-t-xl border-b border-slate-700">
                 <div>
                     <h3 className="text-2xl font-bold text-white">{props.sesiune.locatie_nume || (props.locatii || []).find(l => l.id === props.sesiune.locatie_id)?.nume} - {new Date((props.sesiune.data || props.sesiune.data_examen || '').toString().slice(0, 10) + 'T00:00:00').toLocaleDateString('ro-RO')}</h3>
                     <p className="text-slate-400 mb-2">Comisia: {Array.isArray(props.sesiune.comisia) ? props.sesiune.comisia.join(', ') : props.sesiune.comisia}</p>

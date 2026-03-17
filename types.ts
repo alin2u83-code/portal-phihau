@@ -89,6 +89,7 @@ export interface Sportiv {
   club_id?: string | null;
   cluburi?: Club | null;
   grad_actual_id?: string | null;
+  metoda_selectie_grad?: 'automat' | 'manual' | null;
   familie_id: string | null;
   tip_abonament_id: string | null;
   participa_vacanta: boolean;

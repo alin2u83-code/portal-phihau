@@ -48,10 +48,23 @@ export const ExamenPhiHauSimplu: React.FC<ExamenPhiHauSimpluProps> = ({ sesiune,
             promises.push(supabase.from('inscrieri_examene').update({ rezultat: newResult }).eq('id', inscriere.id));
 
             if (newResult === 'Admis') {
-                promises.push(supabase.from('sportivi').update({ grad_actual_id: inscriere.grad_sustinut_id }).eq('id', inscriere.sportiv_id));
+                // Insert into istoric_grade to trigger automatic update on sportivi
+                promises.push(supabase.from('istoric_grade').upsert({
+                    sportiv_id: inscriere.sportiv_id,
+                    grad_id: inscriere.grad_sustinut_id,
+                    data_obtinere: sesiune.data || sesiune.data_examen || new Date().toISOString().split('T')[0],
+                    sesiune_examen_id: sesiune.id,
+                    observatii: 'Promovat prin examen (Phi Hau)'
+                }, { onConflict: 'sportiv_id,grad_id', ignoreDuplicates: true }));
                 sportivGradUpdate = inscriere.grad_sustinut_id;
             } else if (oldResult === 'Admis') {
-                promises.push(supabase.from('sportivi').update({ grad_actual_id: inscriere.grad_actual_id }).eq('id', inscriere.sportiv_id));
+                // Delete from istoric_grade to trigger automatic update on sportivi
+                promises.push(supabase.from('istoric_grade').delete().match({
+                    sportiv_id: inscriere.sportiv_id,
+                    sesiune_examen_id: sesiune.id
+                }));
+                // We don't know the previous grade easily here, but the trigger will find it
+                // For local state, we might need to be careful, but we'll use the one from inscriere
                 sportivGradUpdate = inscriere.grad_actual_id;
             }
 

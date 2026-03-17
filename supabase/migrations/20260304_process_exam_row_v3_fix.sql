@@ -64,5 +64,12 @@ BEGIN
     ) VALUES (
         v_sportiv_id, p_sesiune_id, v_grad_id, p_rezultat, p_data_examen, p_contributie
     );
+
+    -- If Admis, also update istoric_grade
+    IF p_rezultat = 'Admis' THEN
+        INSERT INTO public.istoric_grade (sportiv_id, grad_id, data_obtinere, sesiune_examen_id)
+        VALUES (v_sportiv_id, v_grad_id, p_data_examen, p_sesiune_id)
+        ON CONFLICT (sportiv_id, grad_id) DO NOTHING;
+    END IF;
 END;
 $$ LANGUAGE plpgsql;

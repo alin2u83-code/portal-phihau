@@ -171,15 +171,15 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ onBack, onNavigate, 
         const newRezultat: Omit<Rezultat, 'id'> = { sportiv_id: currentUser.id, eveniment_id: event.id, rezultat: 'Participare' };
 
         try {
-            const { data: rData, error: rError } = await supabase.from('rezultate').insert(newRezultat).select().single();
+            const { data: rData, error: rError } = await supabase.from('rezultate').insert(newRezultat).select().maybeSingle();
             if (rError) throw rError;
-            setRezultate(prev => [...prev, rData as Rezultat]);
+            if (rData) setRezultate(prev => [...prev, rData as Rezultat]);
 
             if (taxaConfig) {
                 const newPlata: Omit<Plata, 'id'> = { sportiv_id: currentUser.id, familie_id: currentUser.familie_id, suma: taxaConfig.suma, data: event.data, status: 'Neachitat', descriere: `Taxa ${event.tip}: ${event.denumire}`, tip: event.tip === 'Stagiu' ? 'Taxa Stagiu' : 'Taxa Competitie', observatii: 'Generat automat la înscriere.' };
-                const { data: pData, error: pError } = await supabase.from('plati').insert(newPlata).select().single();
+                const { data: pData, error: pError } = await supabase.from('plati').insert(newPlata).select().maybeSingle();
                 if (pError) throw pError;
-                setPlati(prev => [...prev, pData as Plata]);
+                if (pData) setPlati(prev => [...prev, pData as Plata]);
             }
             showSuccess("Înscriere reușită!", `Te-ai înscris la ${event.denumire}.`);
         } catch (err) {

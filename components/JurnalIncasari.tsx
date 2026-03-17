@@ -125,7 +125,7 @@ const AdaugaAvans: React.FC<{
             club_id: clubId
         };
 
-        const { data, error } = await supabase.from('tranzactii').insert(newTranzactie).select().single();
+        const { data, error } = await supabase.from('tranzactii').insert(newTranzactie).select().maybeSingle();
         setLoading(false);
 
         if (error) {
@@ -208,13 +208,15 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
     };
 
     const handleQuickAddTipPlata = async (nume: string) => {
-        const { data, error } = await supabase.from('tipuri_plati').insert({ nume, is_system_type: false }).select().single();
+        const { data, error } = await supabase.from('tipuri_plati').insert({ nume, is_system_type: false }).select().maybeSingle();
         if (error) {
             console.error('DETALII EROARE:', JSON.stringify(error, null, 2));
             throw error;
         }
-        setTipuriPlati(prev => [...prev, data as TipPlata]);
-        setFormState(p => ({ ...p, tip: data.nume }));
+        if (data) {
+            setTipuriPlati(prev => [...prev, data as TipPlata]);
+            setFormState(p => ({ ...p, tip: data.nume }));
+        }
     };
 
     useEffect(() => {
@@ -357,9 +359,9 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
                         if (txError) throw new Error(`Eroare la salvarea tranzacției: ${txError.message}`);
                         
                         // Fetch the created transaction
-                        const { data: tx, error: fetchError } = await supabase.from('tranzactii').select('*').eq('id', txId).single();
+                        const { data: tx, error: fetchError } = await supabase.from('tranzactii').select('*').eq('id', txId).maybeSingle();
                         if (fetchError) throw fetchError;
-                        processedTransactions.push(tx);
+                        if (tx) processedTransactions.push(tx);
 
                         remainingPayment -= amountForThisInvoice;
                     }
@@ -418,7 +420,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
                     descriere: formState.descriere, 
                     tip: formState.tip, 
                     observatii: formState.observatii 
-                }).select().single();
+                }).select().maybeSingle();
                 
                 if (plataError) throw new Error(`Eroare la crearea facturii: ${plataError.message}`);
                 if (!newPlata) throw new Error("Factura nu a putut fi creată.");
@@ -444,16 +446,20 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
                 }
                 
                 // Fetch the created transaction
-                const { data: tx, error: fetchError } = await supabase.from('tranzactii').select('*').eq('id', txId).single();
+                const { data: tx, error: fetchError } = await supabase.from('tranzactii').select('*').eq('id', txId).maybeSingle();
                 if (fetchError) {
                      await supabase.from('plati').delete().eq('id', newPlataId);
                      throw fetchError;
+                }
+                if (!tx) {
+                     await supabase.from('plati').delete().eq('id', newPlataId);
+                     throw new Error("Tranzacția nu a putut fi recuperată.");
                 }
 
                 tranzactieId = (tx as Tranzactie).id;
 
                 // Fetch updated plata to reflect trigger changes
-                const { data: updatedPlata } = await supabase.from('plati').select('*').eq('id', newPlataId).single();
+                const { data: updatedPlata } = await supabase.from('plati').select('*').eq('id', newPlataId).maybeSingle();
                 
                 setPlati(prev => [...prev, (updatedPlata || newPlata) as Plata]);
                 setTranzactii(prev => [tx as Tranzactie, ...prev]);

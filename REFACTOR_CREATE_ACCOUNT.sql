@@ -72,6 +72,12 @@ BEGIN
             (p_additional_data->>'grupa_id')::UUID
         )
         RETURNING id INTO v_sportiv_id;
+
+        -- Inserăm în istoric_grade dacă avem un grad
+        IF (p_additional_data->>'grad_actual_id') IS NOT NULL THEN
+            INSERT INTO public.istoric_grade (sportiv_id, grad_id, data_obtinere, observatii)
+            VALUES (v_sportiv_id, (p_additional_data->>'grad_actual_id')::UUID, CURRENT_DATE, 'Înregistrare inițială');
+        END IF;
     END IF;
 
     -- 2. Gestionăm rolurile

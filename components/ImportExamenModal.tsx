@@ -291,13 +291,15 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
             for (const [key, sessionInfo] of newSessionsToCreate.entries()) {
                 let locatie = localLocatii.find(l => l.nume.toLowerCase() === sessionInfo.localitate.toLowerCase());
                 if (!locatie) {
-                    const { data: newLoc, error: locError } = await supabase.from('nom_locatii').insert({ nume: sessionInfo.localitate }).select().single();
+                    const { data: newLoc, error: locError } = await supabase.from('nom_locatii').insert({ nume: sessionInfo.localitate }).select().maybeSingle();
                     if (locError) throw new Error(`Nu s-a putut crea locația '${sessionInfo.localitate}': ${locError.message}`);
+                    if (!newLoc) throw new Error(`Nu s-a putut crea locația '${sessionInfo.localitate}'.`);
                     locatie = newLoc;
                     localLocatii.push(newLoc);
                 }
-                const { data: newSes, error: sesError } = await supabase.from('sesiuni_examene').insert({ data: sessionInfo.dataExamen, locatie_id: locatie.id, club_id: currentUser.club_id, comisia: [], status: 'Finalizat' }).select().single();
+                const { data: newSes, error: sesError } = await supabase.from('sesiuni_examene').insert({ data: sessionInfo.dataExamen, locatie_id: locatie.id, club_id: currentUser.club_id, comisia: [], status: 'Finalizat' }).select().maybeSingle();
                 if (sesError) throw new Error(`Nu s-a putut crea sesiunea '${sessionInfo.sesiuneDenumire}': ${sesError.message}`);
+                if (!newSes) throw new Error(`Nu s-a putut crea sesiunea '${sessionInfo.sesiuneDenumire}'.`);
                 createdSessionIds.set(key, newSes.id);
                 localSesiuni.push(newSes);
             }

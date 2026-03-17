@@ -234,6 +234,7 @@ export interface Grad {
 export interface SesiuneExamen {
   id: string;
   data: string;
+  nume: 'Vara' | 'Iarna';
   locatie_id: string;
   localitate?: string;
   comisia: string[];

@@ -271,12 +271,27 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
             // Using upsert with 'onConflict' on 'id' if present. 
             // For new records (no id), it will insert.
             // For duplicates (with id), it will update only the provided fields.
-            const { error } = await supabase.from('sportivi').upsert(finalToImport, { onConflict: 'id' });
+            const { data: insertedData, error } = await supabase
+                .from('sportivi')
+                .upsert(finalToImport, { onConflict: 'id' })
+                .select('id, grad_actual_id, data_inscrierii');
             
             if (error) {
                 console.error("Eroare Supabase la upsert:", error);
                 toast.error(`Eroare la import: ${error.message}`, { id: processingToastId });
             } else {
+                // Sincronizăm istoricul de grade pentru toți sportivii importați/actualizați
+                if (insertedData && insertedData.length > 0) {
+                    const historyEntries = insertedData.map(s => ({
+                        sportiv_id: s.id,
+                        grad_id: s.grad_actual_id,
+                        data_obtinere: s.data_inscrierii || new Date().toISOString().split('T')[0],
+                        observatii: 'Import CSV'
+                    }));
+
+                    await supabase.from('istoric_grade').upsert(historyEntries, { onConflict: 'sportiv_id,grad_id' });
+                }
+
                 console.log("Import finalizat cu succes.");
                 let successMsg = `Import finalizat cu succes! ${finalToImport.length} sportivi procesați.`;
                 if (invalidUniques.length > 0) {

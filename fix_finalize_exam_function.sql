@@ -28,11 +28,6 @@ BEGIN
     LOOP
         -- Dacă sportivul a fost admis
         IF v_inscriere.rezultat = 'Admis' THEN
-            -- Actualizează gradul curent al sportivului
-            UPDATE sportivi 
-            SET grad_actual_id = v_inscriere.grad_sustinut_id 
-            WHERE id = v_inscriere.sportiv_id;
-
             -- Adaugă în istoric grade (verifică duplicat)
             IF NOT EXISTS (
                 SELECT 1 FROM istoric_grade 

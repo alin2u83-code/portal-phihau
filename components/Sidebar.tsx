@@ -8,6 +8,8 @@ import { NavMenu } from './NavMenu';
 import { Select } from './ui';
 import { FEDERATIE_ID, FEDERATIE_NAME, ROLES } from '../constants';
 
+import { QwanKiDoLogo } from './Logo';
+
 interface SidebarProps {
     currentUser: User;
     onLogout: () => void;
@@ -89,6 +91,20 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
 
     const sidebarContent = (
         <div className="flex flex-col h-full bg-slate-900 text-slate-200 shadow-xl border-r border-slate-800">
+            {/* App Logo & Name */}
+            <div 
+                className={`p-4 flex items-center gap-3 border-b border-slate-800/50 cursor-pointer hover:bg-white/5 transition-colors ${!isExpanded ? 'justify-center' : ''}`}
+                onClick={() => handleNavigate('dashboard')}
+            >
+                <QwanKiDoLogo className="h-10 w-10 shrink-0" iconClassName="w-6 h-6" />
+                {isExpanded && (
+                    <div className="flex flex-col overflow-hidden">
+                        <span className="font-bold text-white text-sm tracking-tight truncate">Qwan Ki Do</span>
+                        <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wider truncate">Management</span>
+                    </div>
+                )}
+            </div>
+
             <div ref={roleSwitcherRef}>
                 <RoleSwitcher
                     isExpanded={isExpanded}
@@ -114,9 +130,15 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
                 onNavigate={handleNavigate}
             />
 
-             <div className="p-3 border-t border-slate-800 mt-auto">
-                <button onClick={onLogout} title={!isExpanded ? "Deconectare" : ""} className="w-full flex items-center p-2.5 rounded-md transition-colors text-left text-red-400 hover:bg-red-500/10 hover:text-red-300 group">
-                    <ArrowRightOnRectangleIcon className={`h-5 w-5 shrink-0 ${isExpanded ? 'mr-3' : 'mx-auto'} transition-transform group-hover:translate-x-1`} />
+             <div className="p-3 border-t border-slate-800/50 mt-auto">
+                <button 
+                    onClick={onLogout} 
+                    title={!isExpanded ? "Deconectare" : ""} 
+                    className={`w-full flex items-center p-2.5 rounded-md transition-all duration-200 text-left group ${
+                        isExpanded ? 'hover:bg-red-500/10 text-slate-400 hover:text-red-400' : 'text-red-400 hover:bg-red-500/10'
+                    }`}
+                >
+                    <ArrowRightOnRectangleIcon className={`h-5 w-5 shrink-0 transition-transform duration-200 ${isExpanded ? 'mr-3' : 'mx-auto'} group-hover:translate-x-1`} />
                     {isExpanded && <span className="text-sm font-medium truncate">Deconectare</span>}
                 </button>
             </div>

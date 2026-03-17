@@ -23,18 +23,20 @@ export const RoleSwitcher: React.FC<RoleSwitcherProps> = (props) => {
   return (
     <div className="relative p-2">
       <button
-        className={`w-full p-3 bg-black/30 rounded-lg border-2 border-amber-400/50 hover:border-amber-400 flex items-center text-left transition-all duration-300 shadow-lg ${!canSwitchRoles && 'cursor-default'}`}
+        className={`w-full p-3 bg-slate-800/50 rounded-lg border border-slate-700/50 hover:border-amber-500/50 flex items-center text-left transition-all duration-300 group ${!canSwitchRoles && 'cursor-default'}`}
         onClick={() => canSwitchRoles && setIsRoleSwitcherOpen(!isRoleSwitcherOpen)}
         disabled={!canSwitchRoles || isSwitchingRole}
       >
-        <HeaderIcon className={`w-8 h-8 shrink-0 ${iconColorClass}`} />
+        <div className={`p-1.5 rounded-md bg-slate-900/80 border border-slate-800 shadow-inner transition-colors ${isRoleSwitcherOpen ? 'border-amber-500/50' : 'group-hover:border-amber-500/30'}`}>
+            <HeaderIcon className={`w-6 h-6 shrink-0 ${iconColorClass}`} />
+        </div>
         {isExpanded && (
           <div className="flex-grow ml-3 overflow-hidden">
-            <p className="text-xs text-amber-300 font-bold uppercase">Context Activ</p>
-            <p className="text-md font-bold text-white truncate w-full">{contextName}</p>
+            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Context Activ</p>
+            <p className="text-sm font-bold text-white truncate w-full">{contextName}</p>
           </div>
         )}
-        {isExpanded && canSwitchRoles && <ChevronDownIcon className={`w-5 h-5 text-slate-400 transition-transform shrink-0 ${isRoleSwitcherOpen ? 'rotate-180' : ''}`} />}
+        {isExpanded && canSwitchRoles && <ChevronDownIcon className={`w-4 h-4 text-slate-500 transition-transform shrink-0 ${isRoleSwitcherOpen ? 'rotate-180' : ''}`} />}
       </button>
       {isRoleSwitcherOpen && canSwitchRoles && (
         <div className="absolute top-full left-2 right-2 z-10 mt-1 bg-slate-900 border border-slate-700 rounded-lg shadow-lg p-2 animate-fade-in-down">

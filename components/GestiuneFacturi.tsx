@@ -185,9 +185,10 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
                 observatii: formState.isDirectPayment ? 'Încasat direct la emitere' : 'Generat manual de admin'
             };
 
-            const { data: plataData, error: plataError } = await supabase.from('plati').insert(newPlata).select().single();
+            const { data: plataData, error: plataError } = await supabase.from('plati').insert(newPlata).select().maybeSingle();
             
             if (plataError) throw plataError;
+            if (!plataData) throw new Error("Nu s-a putut crea factura.");
 
             if (formState.isDirectPayment && plataData) {
                 // Create transaction as well
@@ -225,7 +226,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
     const handleSaveEdit = async () => {
         if (!plataToEdit || !supabase) return;
         setIsEditLoading(true);
-        const { data, error } = await supabase.from('plati').update({ status: editStatus }).eq('id', plataToEdit.id).select().single();
+        const { data, error } = await supabase.from('plati').update({ status: editStatus }).eq('id', plataToEdit.id).select().maybeSingle();
         setIsEditLoading(false);
 
         if (error) {
@@ -283,7 +284,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
                 // Update local tranzactii state if setter is provided
                 if (setTranzactii && result.tranzactie_id) {
                     // We need to fetch the full transaction or construct it
-                    const { data: newTranzactie } = await supabase.from('tranzactii').select('*').eq('id', result.tranzactie_id).single();
+                    const { data: newTranzactie } = await supabase.from('tranzactii').select('*').eq('id', result.tranzactie_id).maybeSingle();
                     if (newTranzactie) {
                         setTranzactii(prev => [newTranzactie, ...prev]);
                     }

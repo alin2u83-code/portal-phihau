@@ -82,7 +82,7 @@ export const createAccount = async (params: CreateAccountParams): Promise<Create
                     .maybeSingle();
 
                 if (!triggerProfile) {
-                    await supabase.from('sportivi').insert({
+                    const { data: inserted, error: insertError } = await supabase.from('sportivi').insert({
                         user_id: data.user.id,
                         nume: params.nume,
                         prenume: params.prenume,
@@ -93,7 +93,16 @@ export const createAccount = async (params: CreateAccountParams): Promise<Create
                         data_inscrierii: new Date().toISOString().split('T')[0],
                         status: 'Activ',
                         trebuie_schimbata_parola: true,
-                    });
+                    }).select('id').single();
+
+                    if (!insertError && inserted) {
+                        await supabase.from('istoric_grade').insert({
+                            sportiv_id: inserted.id,
+                            grad_id: DEBUTANT_GRAD_ID,
+                            data_obtinere: new Date().toISOString().split('T')[0],
+                            observatii: 'Înregistrare cont'
+                        });
+                    }
                 }
             }
             return { success: true, user: data.user };

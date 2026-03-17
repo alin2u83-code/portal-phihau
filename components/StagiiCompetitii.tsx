@@ -193,13 +193,13 @@ export const StagiiCompetitiiManagement: React.FC<StagiiCompetitiiProps> = ({ ty
 
     const handleSave = async (evData: Omit<Eveniment, 'id'>) => {
         if (evToEdit) {
-            const { data, error } = await supabase.from('evenimente').update(evData).eq('id', evToEdit.id).select().single();
+            const { data, error } = await supabase.from('evenimente').update(evData).eq('id', evToEdit.id).select().maybeSingle();
             if (error) { 
                 console.error('DETALII EROARE:', JSON.stringify(error, null, 2));
                 showError("Eroare la actualizare", error); 
             } else if (data) { setEvenimente(prev => prev.map(e => e.id === data.id ? data : e)); showSuccess("Succes", `${type} actualizat.`); }
         } else {
-            const { data, error } = await supabase.from('evenimente').insert(evData).select().single();
+            const { data, error } = await supabase.from('evenimente').insert(evData).select().maybeSingle();
             if (error) { 
                 console.error('DETALII EROARE:', JSON.stringify(error, null, 2));
                 showError("Eroare la adăugare", error); 

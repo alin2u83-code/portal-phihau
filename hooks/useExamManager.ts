@@ -112,15 +112,6 @@ export const useExamManager = (
                         }
                     }
 
-                    // Update sportiv grad_actual_id
-                    const { error: updateSportivError } = await supabase
-                        .from('sportivi')
-                        .update({ grad_actual_id: targetGradId })
-                        .eq('id', inscriere.sportiv_id);
-                    
-                    if (updateSportivError) throw updateSportivError;
-                    updatedSportiviIds.add(inscriere.sportiv_id);
-
                     // Check if istoric_grade exists
                     const { data: existingIstoric } = await supabase
                         .from('istoric_grade')
@@ -151,18 +142,19 @@ export const useExamManager = (
                         
                         if (insertIstoricError) throw insertIstoricError;
                         if (newIstoricData) newIstoricEntries.push(newIstoricData as IstoricGrade);
+                        updatedSportiviIds.add(inscriere.sportiv_id);
                     }
                 }
                 totalSportivi++;
             }
 
-            // Update local state
+            // Update local state for sportivi - the trigger will handle the DB update, 
+            // but we update local state for immediate feedback
             if (setSportivi && updatedSportiviIds.size > 0) {
                 setSportivi(prev => prev.map(s => {
                     if (updatedSportiviIds.has(s.id)) {
                         const inscriere = inscrieriSesiune.find(i => i.sportiv_id === s.id && i.rezultat === 'Admis');
                         if (inscriere) {
-                            const newGrad = grade.find(g => g.id === inscriere.grad_sustinut_id);
                             return { 
                                 ...s, 
                                 grad_actual_id: inscriere.grad_sustinut_id

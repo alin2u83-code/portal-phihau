@@ -5,15 +5,7 @@ import { useAuthForm } from '../hooks/useAuthForm';
 import { Button, Card, Input } from './ui';
 import { LogIn, Mail, Lock, ShieldCheck, ArrowRight } from 'lucide-react';
 
-const QwanKiDoLogo: React.FC = () => (
-    <div className="mx-auto mb-6 h-24 w-24 flex items-center justify-center rounded-full bg-slate-800 border-2 border-amber-500 shadow-lg shadow-amber-500/20">
-        <svg viewBox="0 0 100 100" className="w-14 h-14 text-amber-500">
-            <path d="M50 10 L90 50 L50 90 L10 50 Z" stroke="currentColor" strokeWidth="6" fill="none" />
-            <circle cx="50" cy="50" r="12" fill="currentColor" />
-            <path d="M30 50 L70 50 M50 30 L50 70" stroke="rgba(0,0,0,0.3)" strokeWidth="2" />
-        </svg>
-    </div>
-);
+import { QwanKiDoLogo } from './Logo';
 
 export const LoginPage: React.FC = () => {
     const navigate = useNavigate();
@@ -40,7 +32,7 @@ export const LoginPage: React.FC = () => {
         <div className="min-h-screen flex items-center justify-center p-4 bg-[#0f172a] bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black">
             <div className="w-full max-w-md">
                 <Card className="border-t-4 border-amber-500 bg-slate-900/80 backdrop-blur-xl shadow-2xl">
-                    <QwanKiDoLogo />
+                    <QwanKiDoLogo className="mx-auto mb-6 h-24 w-24 border-2" iconClassName="w-14 h-14" />
                     
                     <div className="text-center mb-8">
                         <h1 className="text-3xl font-bold text-white tracking-tight flex items-center justify-center gap-2">

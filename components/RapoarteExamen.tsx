@@ -98,7 +98,7 @@ const LocatieFormModal: React.FC<LocatieFormProps> = ({ isOpen, onClose, onSave 
 
 interface SesiuneFormProps { isOpen: boolean; onClose: () => void; onSave: (sesiune: Partial<SesiuneExamen>) => Promise<void>; sesiuneToEdit: SesiuneExamen | null; locatii: Locatie[]; setLocatii: React.Dispatch<React.SetStateAction<Locatie[]>>; clubs: Club[]; currentUser: User; }
 const SesiuneForm: React.FC<SesiuneFormProps> = ({ isOpen, onClose, onSave, sesiuneToEdit, locatii, setLocatii, clubs, currentUser }) => {
-  const [formState, setFormState] = useState<Partial<SesiuneExamen>>({ data: new Date().toISOString().split('T')[0], locatie_id: '', comisia: [] });
+  const [formState, setFormState] = useState<Partial<SesiuneExamen>>({ data: new Date().toISOString().split('T')[0], nume: 'Vara', locatie_id: '', comisia: [] });
   const [loading, setLoading] = useState(false);
   const [isLocatieModalOpen, setIsLocatieModalOpen] = useState(false);
   const { showError, showSuccess } = useError();
@@ -112,6 +112,7 @@ const SesiuneForm: React.FC<SesiuneFormProps> = ({ isOpen, onClose, onSave, sesi
       } else {
           setFormState({ 
               data: new Date().toISOString().split('T')[0], 
+              nume: 'Vara',
               locatie_id: '', 
               comisia: [],
               club_id: isSuperAdmin ? '' : currentUser.club_id
@@ -124,7 +125,7 @@ const SesiuneForm: React.FC<SesiuneFormProps> = ({ isOpen, onClose, onSave, sesi
 
   const handleSaveLocatie = async (locatieData: { nume: string, adresa: string }) => {
         if (!supabase) { showError("Eroare", "Client Supabase neconfigurat."); return; }
-        const { data, error } = await supabase.from('nom_locatii').insert(locatieData).select().single();
+        const { data, error } = await supabase.from('nom_locatii').insert(locatieData).select().maybeSingle();
         if (error) { showError("Eroare la salvare locație", error); } 
         else if (data) {
             setLocatii(prev => [...prev, data]);
@@ -137,7 +138,13 @@ const SesiuneForm: React.FC<SesiuneFormProps> = ({ isOpen, onClose, onSave, sesi
   return ( <>
   <Modal isOpen={isOpen} onClose={onClose} title={sesiuneToEdit ? "Editează Sesiune Examen" : "Adaugă Sesiune Nouă"}>
     <form onSubmit={handleSubmit} className="space-y-4">
-        <Input label="Data Examenului" name="data" type="date" value={formState.data} onChange={handleChange} required />
+        <div className="grid grid-cols-2 gap-4">
+            <Input label="Data Examenului" name="data" type="date" value={formState.data} onChange={handleChange} required />
+            <Select label="Sesiune" name="nume" value={formState.nume || 'Vara'} onChange={handleChange} required>
+                <option value="Vara">Vara</option>
+                <option value="Iarna">Iarna</option>
+            </Select>
+        </div>
         {isSuperAdmin && (
             <Select label="Club Organizator" name="club_id" value={formState.club_id || ''} onChange={handleChange}>
                 <option value="">Federație (eveniment central)</option>
@@ -241,15 +248,6 @@ const DetaliiSesiune: React.FC<{
                         }
                     }
 
-                    // Update sportiv grad_actual_id
-                    const { error: updateSportivError } = await supabase
-                        .from('sportivi')
-                        .update({ grad_actual_id: targetGradId })
-                        .eq('id', inscriere.sportiv_id);
-                    
-                    if (updateSportivError) throw updateSportivError;
-                    updatedSportiviIds.add(inscriere.sportiv_id);
-
                     // Check if istoric_grade exists
                     const { data: existingIstoric } = await supabase
                         .from('istoric_grade')
@@ -276,22 +274,23 @@ const DetaliiSesiune: React.FC<{
                                 observatii: notesStr ? `Note examen: ${notesStr}` : 'Promovat prin examen'
                             })
                             .select()
-                            .single();
+                            .maybeSingle();
                         
                         if (insertIstoricError) throw insertIstoricError;
                         if (newIstoricData) newIstoricEntries.push(newIstoricData as IstoricGrade);
+                        updatedSportiviIds.add(inscriere.sportiv_id);
                     }
                 }
                 totalSportivi++;
             }
 
-            // Update local state
+            // Update local state for sportivi - the trigger will handle the DB update, 
+            // but we update local state for immediate feedback
             if (updatedSportiviIds.size > 0) {
                 props.setSportivi(prev => prev.map(s => {
                     if (updatedSportiviIds.has(s.id)) {
                         const inscriere = props.inscrieri.find(i => i.sportiv_id === s.id && i.rezultat === 'Admis');
                         if (inscriere) {
-                            const newGrad = props.grade.find(g => g.id === inscriere.grad_sustinut_id);
                             return { 
                                 ...s, 
                                 grad_actual_id: inscriere.grad_sustinut_id
@@ -418,18 +417,18 @@ export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ currentUser, clu
     };
 
     if (sesiuneToEdit) {
-        const { data, error } = await supabase.from('sesiuni_examene').update(dataToSave).eq('id', sesiuneToEdit.id).select().single();
+        const { data, error } = await supabase.from('sesiuni_examene').update(dataToSave).eq('id', sesiuneToEdit.id).select().maybeSingle();
         if (error) { showError("Eroare la actualizare", error); } else if (data) { 
-            const { data: viewData, error: viewError } = await supabase.from('vedere_cluburi_sesiuni_examene').select('*').eq('id', data.id).single();
-            if (viewError) { showError("Eroare la actualizare", viewError); } else {
+            const { data: viewData, error: viewError } = await supabase.from('vedere_cluburi_sesiuni_examene').select('*').eq('id', data.id).maybeSingle();
+            if (viewError) { showError("Eroare la actualizare", viewError); } else if (viewData) {
                 setSesiuni(prev => prev.map(e => e.id === viewData.id ? viewData as SesiuneExamen : e)); showSuccess("Succes", "Sesiunea a fost actualizată."); 
             }
         }
     } else {
-        const { data, error } = await supabase.from('sesiuni_examene').insert(dataToSave).select().single();
+        const { data, error } = await supabase.from('sesiuni_examene').insert(dataToSave).select().maybeSingle();
         if (error) { showError("Eroare la adăugare", error); } else if (data) { 
-            const { data: viewData, error: viewError } = await supabase.from('vedere_cluburi_sesiuni_examene').select('*').eq('id', data.id).single();
-            if (viewError) { showError("Eroare la adăugare", viewError); } else {
+            const { data: viewData, error: viewError } = await supabase.from('vedere_cluburi_sesiuni_examene').select('*').eq('id', data.id).maybeSingle();
+            if (viewError) { showError("Eroare la adăugare", viewError); } else if (viewData) {
                 setSesiuni(prev => [...prev, viewData as SesiuneExamen]); showSuccess("Succes", "Sesiunea a fost creată."); 
             }
         }

@@ -595,8 +595,9 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                         tip: 'Taxa Examen' as const, 
                         observatii: `Generat automat la înscriere examen (Vârstă: ${getAgeOnDate(sportiv.data_nasterii, sesiune.data)} ani).`
                     };
-                    const { data: pData, error: pError } = await supabase.from('plati').insert(plataData).select().single();
+                    const { data: pData, error: pError } = await supabase.from('plati').insert(plataData).select().maybeSingle();
                     if (pError) throw new Error(`Factura pt ${sportiv.nume} nu a putut fi generată: ${pError.message}`);
+                    if (!pData) throw new Error(`Factura pt ${sportiv.nume} nu a putut fi generată (nicio dată returnată).`);
                     plataId = pData.id;
                     newPlati.push(pData as Plata);
                 }
@@ -613,11 +614,13 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                     rezultat: 'Neprezentat' as const
                 };
                 
-                const { data: iData, error: iError } = await supabase.from('inscrieri_examene').insert(inscriereData).select().single();
+                const { data: iData, error: iError } = await supabase.from('inscrieri_examene').insert(inscriereData).select().maybeSingle();
                 if (iError) throw iError;
+                if (!iData) throw new Error("Înscrierea nu a returnat date.");
 
-                const { data: viewData, error: viewError } = await supabase.from('vedere_detalii_examen').select('*').eq('inscriere_id', iData.id).single();
+                const { data: viewData, error: viewError } = await supabase.from('vedere_detalii_examen').select('*').eq('inscriere_id', iData.id).maybeSingle();
                 if (viewError) throw viewError;
+                if (!viewData) throw new Error("Nu s-au putut prelua detaliile înscrierii din vedere.");
 
                 newInscrieri.push(viewData as InscriereExamen);
             } catch (err: any) {
@@ -698,8 +701,9 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 if (taxaConfig) {
                     const descriereFactura = `Taxa examen ${gradSustinut?.nume}`;
                     if (plataAsociata) {
-                        const { data: pData, error: pError } = await supabase.from('plati').update({ suma: taxaConfig.suma, descriere: descriereFactura }).eq('id', plataAsociata.id).select().single();
+                        const { data: pData, error: pError } = await supabase.from('plati').update({ suma: taxaConfig.suma, descriere: descriereFactura }).eq('id', plataAsociata.id).select().maybeSingle();
                         if (pError) throw pError;
+                        if (!pData) throw new Error("Factura nu a putut fi actualizată.");
                         plataResult = { action: 'update', data: pData as Plata };
                         facturaMessage = ' și factura a fost actualizată';
                     } else {
@@ -708,8 +712,9 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                             sportiv_id: inscriereToEdit.sportiv_id, familie_id: sportiv?.familie_id || null, suma: taxaConfig.suma, data: sesiune.data, status: 'Neachitat',
                             descriere: descriereFactura, tip: 'Taxa Examen', observatii: 'Generat automat la modificare înscriere.'
                         };
-                        const { data: pData, error: pError } = await supabase.from('plati').insert(plataData).select().single();
+                        const { data: pData, error: pError } = await supabase.from('plati').insert(plataData).select().maybeSingle();
                         if (pError) throw pError;
+                        if (!pData) throw new Error("Factura nouă nu a putut fi generată.");
                         plataResult = { action: 'add', data: pData as Plata };
                         newPlataId = pData.id;
                         facturaMessage = ' și o factură nouă a fost generată';
@@ -734,11 +739,13 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 rezultat: rezultatEdit
             };
 
-            const { data: updatedInscriere, error: updateError } = await supabase.from('inscrieri_examene').update(updatePayload).eq('id', inscriereToEdit.inscriere_id || inscriereToEdit.id).select().single();
+            const { data: updatedInscriere, error: updateError } = await supabase.from('inscrieri_examene').update(updatePayload).eq('id', inscriereToEdit.inscriere_id || inscriereToEdit.id).select().maybeSingle();
             if (updateError) throw updateError;
+            if (!updatedInscriere) throw new Error("Înscrierea nu a putut fi actualizată.");
             
-            const { data: viewData, error: viewError } = await supabase.from('vedere_detalii_examen').select('*, id:inscriere_id').eq('inscriere_id', updatedInscriere.id).single();
+            const { data: viewData, error: viewError } = await supabase.from('vedere_detalii_examen').select('*, id:inscriere_id').eq('inscriere_id', updatedInscriere.id).maybeSingle();
             if (viewError) throw viewError;
+            if (!viewData) throw new Error("Nu s-au putut prelua detaliile actualizate din vedere.");
             
             if (viewData) {
                 setInscrieri(prev => prev.map(i => i.id === viewData.id ? viewData as InscriereExamen : i));
@@ -845,7 +852,6 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             // 2. Handle grade promotion if Admis
             if (newResult === 'Admis') {
                 const newGradId = inscriere.grad_sustinut_id;
-                allPromises.push(supabase.from('sportivi').update({ grad_actual_id: newGradId }).eq('id', inscriere.sportiv_id));
                 allPromises.push(
                     supabase.from('istoric_grade').upsert(
                         { sportiv_id: inscriere.sportiv_id, grad_id: newGradId, data_obtinere: sesiune.data, sesiune_examen_id: sesiune.id },
@@ -856,7 +862,6 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             } 
             // 3. Revert if it was previously Admis and now it's not
             else if (oldResult === 'Admis') {
-                allPromises.push(supabase.from('sportivi').update({ grad_actual_id: inscriere.grad_actual_id }).eq('id', inscriere.sportiv_id));
                 allPromises.push(supabase.from('istoric_grade').delete().match({ sportiv_id: inscriere.sportiv_id, sesiune_examen_id: sesiune.id }));
                 sportiviUpdatesLocal.push({ id: inscriere.sportiv_id, grad_actual_id: inscriere.grad_actual_id });
             }
@@ -912,7 +917,6 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
 
         for (const inscriere of desyncedInscrieri) {
             const newGradId = inscriere.grad_sustinut_id;
-            syncPromises.push(supabase.from('sportivi').update({ grad_actual_id: newGradId }).eq('id', inscriere.sportiv_id));
             syncPromises.push(
                 supabase.from('istoric_grade').upsert(
                     { sportiv_id: inscriere.sportiv_id, grad_id: newGradId, data_obtinere: sesiune.data, sesiune_examen_id: sesiune.id },

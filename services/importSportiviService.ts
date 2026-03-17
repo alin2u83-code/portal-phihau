@@ -99,11 +99,36 @@ export const importSportivi = async (
           .update(sportivData)
           .eq('id', existing.id);
         if (updateError) throw updateError;
+        
+        // Ensure istoric_grade exists for this grade
+        const { error: istoricError } = await supabase
+          .from('istoric_grade')
+          .upsert({
+            sportiv_id: existing.id,
+            grad_id: gradId,
+            data_obtinere: sportivData.data_inscrierii,
+            observatii: 'Import inițial'
+          }, { onConflict: 'sportiv_id,grad_id', ignoreDuplicates: true });
+        if (istoricError) throw istoricError;
       } else {
-        const { error: insertError } = await supabase
+        const { data: inserted, error: insertError } = await supabase
           .from('sportivi')
-          .insert(sportivData);
+          .insert(sportivData)
+          .select('id')
+          .single();
         if (insertError) throw insertError;
+        
+        if (inserted) {
+          const { error: istoricError } = await supabase
+            .from('istoric_grade')
+            .insert({
+              sportiv_id: inserted.id,
+              grad_id: gradId,
+              data_obtinere: sportivData.data_inscrierii,
+              observatii: 'Import inițial'
+            });
+          if (istoricError) throw istoricError;
+        }
       }
 
       report.succes++;

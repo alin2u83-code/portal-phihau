@@ -13,6 +13,16 @@ export const adaugaSportiv = async (formData: Partial<Sportiv>): Promise<{ succe
 
         const { data: inserted, error: insertError } = await supabase.from('sportivi').insert(sportivData).select('id').single();
         if (insertError) throw insertError;
+
+        // Inserăm în istoric_grade pentru a stabili gradul inițial
+        if (sportivData.grad_actual_id) {
+            await supabase.from('istoric_grade').insert({
+                sportiv_id: inserted.id,
+                grad_id: sportivData.grad_actual_id,
+                data_obtinere: new Date().toISOString().split('T')[0],
+                observatii: 'Înregistrare inițială'
+            });
+        }
         
         const { data, error } = await supabase.from('vedere_cluburi_sportivi').select('*, cluburi(id, nume)').eq('id', inserted.id).single();
         if (error) throw error;
@@ -50,8 +60,23 @@ export const actualizeazaSportiv = async (id: string, formData: Partial<Sportiv>
 
         // Update other fields if any
         if (Object.keys(otherData).length > 0) {
-            const { error: updateError } = await supabase.from('sportivi').update(otherData).eq('id', id);
-            if (updateError) throw updateError;
+            const { grad_actual_id, ...restData } = otherData as any;
+            
+            if (Object.keys(restData).length > 0) {
+                const { error: updateError } = await supabase.from('sportivi').update(restData).eq('id', id);
+                if (updateError) throw updateError;
+            }
+
+            // Dacă gradul s-a schimbat manual din interfață, îl adăugăm în istoric
+            if (grad_actual_id) {
+                const { error: historyError } = await supabase.from('istoric_grade').upsert({
+                    sportiv_id: id,
+                    grad_id: grad_actual_id,
+                    data_obtinere: new Date().toISOString().split('T')[0],
+                    observatii: 'Actualizare manuală din profil'
+                }, { onConflict: 'sportiv_id,grad_id' });
+                if (historyError) throw historyError;
+            }
         }
 
         // Always fetch from the view to get the latest calculated/joined fields

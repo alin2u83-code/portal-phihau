@@ -66,13 +66,12 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
             setLoading(true);
             setError(null);
             const { data, error } = await supabase
-                .from('vedere_sportivi_detaliat_mv')
+                .from('vw_dashboard_complet_sportiv')
                 .select('*')
-                .eq('user_id', viewedUser.id)
                 .single();
             
             if (error) {
-                console.error("Error fetching from MV:", error);
+                console.error("Error fetching from view:", error);
                 setError("Nu am putut încărca datele curente.");
             } else {
                 setSportivData(data);
@@ -82,7 +81,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
             setLoading(false);
         };
         fetchInitial();
-    }, [viewedUser.id]);
+    }, []); // No dependencies needed as it's filtered server-side
 
     const handleRefresh = async () => {
         setLoading(true);
@@ -275,7 +274,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                     </div>
                     <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">{viewedUser.nume} {viewedUser.prenume}</h1>
                     <p className="text-sm text-sky-400 font-medium mt-1 uppercase tracking-wider">
-                        {grupe.find(g => g.id === viewedUser.grupa_id)?.denumire || 'Fără grupă'}
+                        {sportivData?.nume_grupa || 'Grupa nealocată'}
                     </p>
                     <div className="mt-4 transform scale-110">
                        <GradBadge grad={currentGrad} gradName={currentGrad?.nume} isLarge />
@@ -313,12 +312,12 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                             <ChartBarIcon className="w-5 h-5 text-sky-400" />
                             Prezențe Recente
                         </h3>
-                        <span className="text-2xl font-black text-sky-400">{attendanceStats.total}</span>
+                        <span className="text-2xl font-black text-sky-400">{sportivData?.statistici_prezenta?.total_prezente || 0}</span>
                     </div>
                     
-                    {attendanceStats.loading ? (
+                    {loading ? (
                         <div className="h-48 flex items-center justify-center"><Skeleton className="w-full h-full rounded-lg bg-slate-800" /></div>
-                    ) : attendanceStats.total === 0 ? (
+                    ) : (sportivData?.statistici_prezenta?.total_prezente || 0) === 0 ? (
                         <div className="h-48 flex flex-col items-center justify-center text-slate-500 bg-slate-800/30 rounded-lg border border-slate-700/50">
                             <CalendarDaysIcon className="w-8 h-8 mb-2 opacity-50" />
                             <p className="text-sm">Nicio prezență înregistrată.</p>
@@ -348,6 +347,18 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                     </Button>
                 </Card>
                 <EvenimenteWidget sportivId={viewedUser.id} clubId={viewedUser.club_id} />
+                {/* Payment Status Widget */}
+                <Card className={`flex flex-col border ${sportivData?.date_financiare?.status_recent === 'RESTANTA' ? 'border-red-500 bg-red-900/20' : 'border-slate-800 bg-slate-900/50'}`}>
+                    <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                        <WalletIcon className={`w-5 h-5 ${sportivData?.date_financiare?.status_recent === 'RESTANTA' ? 'text-red-400' : 'text-emerald-400'}`} />
+                        Status Plăți
+                    </h3>
+                    <div className="flex items-center justify-between">
+                        <span className={`text-xl font-bold ${sportivData?.date_financiare?.status_recent === 'RESTANTA' ? 'text-red-400' : 'text-emerald-400'}`}>
+                            {sportivData?.date_financiare?.status_recent || 'N/A'}
+                        </span>
+                    </div>
+                </Card>
                 <HistoryModal isOpen={isHistoryOpen} onClose={() => setIsHistoryOpen(false)} istoric={istoricPrezenta || []} />
 
                 {/* Grade Evolution */}

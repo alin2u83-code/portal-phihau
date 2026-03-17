@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, Button } from '../ui';
 import { EditIcon } from '../icons';
 import { ManagementInscrieri } from '../ManagementInscrieri';

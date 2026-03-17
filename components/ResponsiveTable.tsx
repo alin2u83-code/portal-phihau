@@ -96,15 +96,26 @@ export function ResponsiveTable<T>({
                 </div>
             ) : (
                 /* Desktop/Tablet View (or Mobile fallback) */
-                <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left text-slate-300">
-                        <thead className="bg-[var(--bg-table-header)] text-xs text-[var(--brand-secondary)] uppercase sticky z-10" style={{ top: `${detailsHeight}px` }}>
+                <div className="overflow-x-auto relative">
+                    <table className="w-full text-sm text-left text-slate-300 border-separate border-spacing-0">
+                        <thead>
                             <tr>
                                 {columns.map(col => (
                                     <th 
                                         key={String(col.key)} 
                                         scope="col" 
-                                        className={`p-3 font-semibold ${col.headerClassName || ''} ${col.className || ''} ${onSort ? 'cursor-pointer' : ''}`}
+                                        className={`
+                                            p-3 font-semibold 
+                                            sticky z-20 bg-[var(--bg-table-header)] 
+                                            border-b border-[var(--border-color)]
+                                            ${col.headerClassName || ''} 
+                                            ${col.className || ''} 
+                                            ${onSort ? 'cursor-pointer' : ''}
+                                        `}
+                                        style={{ 
+                                            top: `${detailsHeight}px`,
+                                            boxShadow: 'inset 0 -1px 0 var(--border-color)' 
+                                        }}
                                         title={col.tooltip}
                                         onClick={(e) => {
                                             setCurrentPage(1);

@@ -5,6 +5,7 @@ import { NotificationPermissionWidget } from './NotificationPermissionWidget';
 import { useError } from './ErrorProvider';
 import { supabase } from '../supabaseClient';
 import { CheckIcon, ExclamationTriangleIcon, TrophyIcon, CalendarDaysIcon, ChartBarIcon, WalletIcon } from './icons';
+import { RefreshCw, Loader2 } from 'lucide-react';
 import { GradBadge } from '../utils/grades';
 import { AntrenamenteViitoare } from './AntrenamenteViitoare';
 import { UpcomingTrainingsWidget } from './UpcomingTrainingsWidget';
@@ -52,6 +53,60 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
     const { istoricPrezenta, fetchIstoricVedere, loadingIstoric } = useDataProvider();
     const { isViewingOwnProfile } = useDashboardPermissions(currentUser, viewedUser, permissions);
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+    
+    // Hybrid Data Fetching State
+    const [sportivData, setSportivData] = useState<any>(null);
+    const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [isFresh, setIsFresh] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchInitial = async () => {
+            setLoading(true);
+            setError(null);
+            const { data, error } = await supabase
+                .from('vedere_sportivi_detaliat_mv')
+                .select('*')
+                .eq('user_id', viewedUser.id)
+                .single();
+            
+            if (error) {
+                console.error("Error fetching from MV:", error);
+                setError("Nu am putut încărca datele curente.");
+            } else {
+                setSportivData(data);
+                setLastUpdated(new Date());
+                setIsFresh(false);
+            }
+            setLoading(false);
+        };
+        fetchInitial();
+    }, [viewedUser.id]);
+
+    const handleRefresh = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const { data: fresh, error } = await supabase
+                .rpc('get_sportiv_data_fresh', { p_user_id: viewedUser.id });
+            
+            if (error) throw error;
+            
+            if (fresh && fresh.length > 0) {
+                setSportivData(fresh[0]);
+                setIsFresh(true);
+                setLastUpdated(new Date());
+                showSuccess("Date actualizate", "Datele au fost sincronizate cu baza de date.");
+            }
+        } catch (err: any) {
+            console.error("Error refreshing data:", err);
+            setError("Eroare la actualizarea datelor.");
+            showError("Eroare", "Nu am putut actualiza datele.");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
         if (viewedUser?.id) {
@@ -190,6 +245,24 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
 
     return (
         <div className="space-y-4 md:space-y-6 pb-20 md:pb-0">
+            <div className="flex items-center justify-between text-xs text-slate-500 mb-2 px-1">
+                <div className="flex items-center gap-2">
+                    <span>Ultima actualizare: {lastUpdated ? lastUpdated.toLocaleTimeString() : '--:--'}</span>
+                    {isFresh && (
+                        <span className="px-2 py-0.5 bg-emerald-900/50 text-emerald-400 border border-emerald-700/50 rounded-full text-[10px] uppercase font-bold">
+                            Date Live
+                        </span>
+                    )}
+                </div>
+                <button 
+                    onClick={handleRefresh} 
+                    disabled={loading}
+                    className="flex items-center gap-1 hover:text-sky-400 transition-colors"
+                >
+                    {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+                    {loading ? 'Se actualizează...' : 'Force Refresh'}
+                </button>
+            </div>
             {/* Mobile-first Header Profile Card */}
             <Card className="relative overflow-hidden border-t-4 border-t-sky-500 bg-gradient-to-b from-slate-800 to-[var(--bg-card)] shadow-lg">
                 <div className="flex flex-col items-center text-center p-6">

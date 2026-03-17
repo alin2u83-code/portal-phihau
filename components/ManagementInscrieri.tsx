@@ -535,9 +535,12 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             });
         } else {
             data.sort((a, b) => {
-                const gradesOrderDiff = (b.grades?.ordine ?? 0) - (a.grades?.ordine ?? 0);
-                if (gradesOrderDiff !== 0) return gradesOrderDiff;
-                return (a.sportivi?.nume || '').localeCompare(b.sportivi?.nume || '');
+                const gradeA = a.grades?.ordine ?? 0;
+                const gradeB = b.grades?.ordine ?? 0;
+                if (gradeA !== gradeB) return gradeA - gradeB; // Ascending grade order
+                const numeA = (a.sportiv_nume || a.sportivi?.nume || '').toLowerCase();
+                const numeB = (b.sportiv_nume || b.sportivi?.nume || '').toLowerCase();
+                return numeA.localeCompare(numeB);
             });
         }
         return data;

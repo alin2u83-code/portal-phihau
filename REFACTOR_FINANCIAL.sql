@@ -11,8 +11,13 @@ DECLARE
     v_status_nou TEXT;
 BEGIN
     -- Determinăm suma totală a facturii (după reduceri, dar înainte de încasări)
-    -- Folosim suma_initiala ca fiind suma totală a facturii (după discount)
-    SELECT COALESCE(suma_initiala, suma) INTO v_suma_totala FROM public.plati WHERE id = p_plata_id;
+    -- Dacă suma_initiala este null, înseamnă că factura nu a fost încă procesată, deci suma curentă este suma totală.
+    SELECT suma_initiala, suma INTO v_suma_totala, v_rest_de_plata FROM public.plati WHERE id = p_plata_id;
+    
+    IF v_suma_totala IS NULL THEN
+        v_suma_totala := v_rest_de_plata;
+        UPDATE public.plati SET suma_initiala = v_suma_totala WHERE id = p_plata_id;
+    END IF;
     
     -- Calculăm totalul încasat din tranzacții
     SELECT COALESCE(SUM(suma), 0) INTO v_total_incasat 

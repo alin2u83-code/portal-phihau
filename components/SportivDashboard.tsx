@@ -359,7 +359,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                         </span>
                     </div>
                 </Card>
-                <HistoryModal isOpen={isHistoryOpen} onClose={() => setIsHistoryOpen(false)} istoric={istoricPrezenta || []} />
+                <HistoryModal isOpen={isHistoryOpen} onClose={() => setIsHistoryOpen(false)} istoric={sportivData?.istoric_prezenta || []} />
 
                 {/* Grade Evolution */}
                 <Card className="flex flex-col border border-slate-800 bg-slate-900/50">
@@ -402,7 +402,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                 
                 <div className="space-y-4 md:space-y-6">
                     <UpcomingTrainingsWidget currentUser={viewedUser} grupe={grupe} />
-                    <VizaMedicalaCard plati={plati} sportivId={viewedUser.id} />
+                    <VizaMedicalaCard plati={sportivData?.istoric_plati || plati} sportivId={viewedUser.id} />
                     
                     {isViewingOwnProfile && (
                         <Card className="border border-slate-800 bg-slate-900/50">

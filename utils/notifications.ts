@@ -18,8 +18,7 @@ export const sendNotification = async (payload: NotificationPayload) => {
             title: payload.title,
             body: payload.body,
             sent_by: payload.sent_by || null,
-            sender_sportiv_id: payload.sender_sportiv_id || null,
-            type: payload.type || 'system'
+            sender_sportiv_id: payload.sender_sportiv_id || null
         });
 
         if (error) throw error;
@@ -44,8 +43,7 @@ export const sendBulkNotifications = async (payloads: NotificationPayload[]) => 
             title: p.title,
             body: p.body,
             sent_by: p.sent_by || null,
-            sender_sportiv_id: p.sender_sportiv_id || null,
-            type: p.type || 'system'
+            sender_sportiv_id: p.sender_sportiv_id || null
         })));
 
         if (error) throw error;

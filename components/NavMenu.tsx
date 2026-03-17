@@ -61,13 +61,12 @@ const NavItem: React.FC<{
 export const NavMenu: React.FC<NavMenuProps> = (props) => {
   const { isExpanded, permissions, menuToDisplay, onNavigate } = props;
   const { activeView } = useNavigation();
-  const { unreadByType } = useNotifications();
+  const { unreadCount } = useNotifications();
 
   return (
     <nav className="flex-1 px-2 py-4 space-y-1.5 overflow-y-auto">
       {menuToDisplay.map(item => {
-        const notifType = item.view ? VIEW_TO_NOTIF_TYPE[item.view] : undefined;
-        const badgeCount = notifType ? unreadByType[notifType] : undefined;
+        const badgeCount = item.view === 'notificari' ? unreadCount : undefined;
         
         return (
             <NavItem 

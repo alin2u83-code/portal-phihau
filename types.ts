@@ -243,6 +243,7 @@ export interface SesiuneExamen {
   locatie_nume?: string;
   club_nume?: string;
   data_examen?: string;
+  nr_inscrisi?: number;
 }
 
 export interface InscriereExamen {

@@ -6,7 +6,6 @@ export interface Notification {
     id: string;
     title: string;
     body: string;
-    type: string;
     is_read: boolean;
     created_at: string;
     metadata?: any;
@@ -16,9 +15,7 @@ export interface Notification {
 interface NotificationContextType {
     notifications: Notification[];
     unreadCount: number;
-    unreadByType: Record<string, number>;
     markAsRead: (id: string) => Promise<void>;
-    markTypeAsRead: (type: string) => Promise<void>;
     addNotification: (notification: Partial<Notification>) => void;
 }
 
@@ -98,45 +95,17 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode; current
         }
     };
 
-    const markTypeAsRead = async (type: string) => {
-        if (!supabase || !currentUser?.user_id) return;
-        
-        const unreadIds = notifications
-            .filter(n => n.type === type && !n.is_read)
-            .map(n => n.id);
-            
-        if (unreadIds.length === 0) return;
-
-        const { error } = await supabase
-            .from('notificari')
-            .update({ is_read: true })
-            .in('id', unreadIds);
-        
-        if (!error) {
-            setNotifications(prev => prev.map(n => unreadIds.includes(n.id) ? { ...n, is_read: true } : n));
-        }
-    };
-
     const addNotification = (notification: Partial<Notification>) => {
         // This is for optimistic updates if needed, but we mostly rely on Supabase Realtime
     };
 
     const unreadCount = notifications.filter(n => !n.is_read).length;
-    
-    const unreadByType = notifications.reduce((acc, n) => {
-        if (!n.is_read) {
-            acc[n.type] = (acc[n.type] || 0) + 1;
-        }
-        return acc;
-    }, {} as Record<string, number>);
 
     return (
         <NotificationContext.Provider value={{ 
             notifications, 
             unreadCount, 
-            unreadByType, 
             markAsRead, 
-            markTypeAsRead,
             addNotification 
         }}>
             {children}

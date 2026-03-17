@@ -48,8 +48,11 @@ WHERE s.club_id = public.get_active_club_id() OR public.is_super_admin();
 
 -- Sesiuni Examene
 CREATE OR REPLACE VIEW public.vedere_cluburi_sesiuni_examene AS
-SELECT * FROM public.sesiuni_examene
-WHERE club_id = public.get_active_club_id() OR club_id IS NULL OR public.is_super_admin();
+SELECT 
+    s.*,
+    (SELECT count(*) FROM public.inscrieri_examene i WHERE i.sesiune_id = s.id) as nr_inscrisi
+FROM public.sesiuni_examene s
+WHERE s.club_id = public.get_active_club_id() OR s.club_id IS NULL OR public.is_super_admin();
 
 -- Inscrieri Examene
 CREATE OR REPLACE VIEW public.vedere_cluburi_inscrieri_examene AS

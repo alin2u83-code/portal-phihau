@@ -113,8 +113,8 @@ export function ResponsiveTable<T>({
                                             ${onSort ? 'cursor-pointer' : ''}
                                         `}
                                         style={{ 
-                                            top: `${detailsHeight}px`,
-                                            boxShadow: 'inset 0 -1px 0 var(--border-color)' 
+                                            top: `${detailsHeight - 90}px`, // Modifică aici valoarea (ex: -10, -20)
+    boxShadow: 'inset 0 -1px 0 var(--border-color)' 
                                         }}
                                         title={col.tooltip}
                                         onClick={(e) => {

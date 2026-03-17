@@ -4,6 +4,7 @@ import { Card, Button, Input } from '../ui';
 import { ShieldCheckIcon, UserPlusIcon, ChartBarIcon, ClipboardListIcon, EditIcon } from '../icons';
 import { AttendanceIndicator } from './AttendanceIndicator';
 import { TrainingHistory } from './TrainingHistory';
+import { AttendanceStats } from './AttendanceStats';
 
 interface ProfilTabProps {
     sportiv: Sportiv;
@@ -80,15 +81,18 @@ export const ProfilTab: React.FC<ProfilTabProps> = ({
                 </Card>
 
                 {canViewSensitiveInfo && (
-                    <Card>
-                        <AttendanceIndicator attendances={lastThreeAttendances} />
-                    </Card>
+                    <>
+                        <AttendanceStats sportiv={sportiv} antrenamente={antrenamente} />
+                        <Card>
+                            <AttendanceIndicator attendances={lastThreeAttendances} />
+                        </Card>
+                    </>
                 )}
             </div>
 
             {/* Right Column: Training & Feedback */}
             <div className="lg:col-span-2 space-y-6">
-                {canViewSensitiveInfo && <TrainingHistory sportivId={sportiv.id} antrenamente={antrenamente} grupe={grupe} />}
+                {canViewSensitiveInfo && <TrainingHistory sportiv={sportiv} antrenamente={antrenamente} grupe={grupe} />}
                 
                 <Card>
                     <div className="flex justify-between items-center mb-4">

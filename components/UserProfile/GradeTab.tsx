@@ -2,26 +2,45 @@ import React from 'react';
 import { Card, Button } from '../ui';
 import { PlusIcon } from '../icons';
 import { SportivProgressChart, ChartDataPoint } from '../SportivProgressChart';
+import { ExamHistory } from './ExamHistory';
+import { Sportiv, InscriereExamen, SesiuneExamen, Grad } from '../../types';
 
 interface GradeTabProps {
     chartData: ChartDataPoint[];
     primaryColor: string;
     setIsAddGradeModalOpen: (val: boolean) => void;
     gradeHistory: { date: number; rankName: string; source: string }[];
+    sportiv: Sportiv;
+    participari: InscriereExamen[];
+    examene: SesiuneExamen[];
+    grade: Grad[];
 }
 
 export const GradeTab: React.FC<GradeTabProps> = ({
     chartData,
     primaryColor,
     setIsAddGradeModalOpen,
-    gradeHistory
+    gradeHistory,
+    sportiv,
+    participari,
+    examene,
+    grade
 }) => {
     return (
         <div className="space-y-6">
-            <Card>
-                <h3 className="text-lg font-bold text-white mb-4">Evoluție în Timp</h3>
-                <SportivProgressChart data={chartData} themeColor={primaryColor} />
-            </Card>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                    <h3 className="text-lg font-bold text-white mb-4">Evoluție în Timp</h3>
+                    <SportivProgressChart data={chartData} themeColor={primaryColor} />
+                </Card>
+
+                <ExamHistory 
+                    sportiv={sportiv} 
+                    participari={participari} 
+                    examene={examene} 
+                    grade={grade} 
+                />
+            </div>
 
             <Card>
                 <div className="flex justify-between items-center mb-4">

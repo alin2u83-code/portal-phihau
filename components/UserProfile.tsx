@@ -550,6 +550,10 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack }) => 
                         primaryColor={primaryColor}
                         setIsAddGradeModalOpen={setIsAddGradeModalOpen}
                         gradeHistory={gradeHistory}
+                        sportiv={sportiv}
+                        participari={participari}
+                        examene={examene}
+                        grade={grade}
                     />
                 )}
 

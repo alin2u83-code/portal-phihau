@@ -332,11 +332,10 @@ export const ListaPrezentaAntrenament: React.FC<ListaPrezentaAntrenamentProps> =
         }
 
         if (filterSportivId) {
-            // Filter trainings where this sportiv attended or is expected
-            // Since it's group-based, all sportivi in group are expected.
-            // But maybe we want to see only those where they were actually marked?
-            // For now, let's just show all trainings for the group if a sportiv is selected,
-            // but we could highlight their presence.
+            // Filter trainings where this sportiv was marked present or absent
+            result = result.filter(a => {
+                return (a.prezenta || []).some(p => p.sportiv_id === filterSportivId);
+            });
         }
 
         return result.sort((a, b) => {

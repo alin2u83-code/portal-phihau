@@ -814,8 +814,76 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         }
     };
 
-    const handleResultChange = (inscriereId: string, newResult: 'Admis' | 'Respins' | 'Neprezentat') => {
+    const handleResultChange = async (inscriereId: string, newResult: 'Admis' | 'Respins' | 'Neprezentat') => {
+        if (!supabase) return;
+        
+        // Optimistic update
+        const oldResult = rezultateLocale[inscriereId];
         setRezultateLocale(prev => ({ ...prev, [inscriereId]: newResult }));
+        
+        const inscriere = participantiInscrisi.find(i => i.id === inscriereId || i.inscriere_id === inscriereId);
+        if (!inscriere) return;
+        
+        const targetId = inscriere.inscriere_id || inscriere.id;
+        
+        try {
+            const allPromises: any[] = [];
+            const sportiviUpdatesLocal: Partial<Sportiv>[] = [];
+
+            // 1. Upsert the result in inscrieri_examene
+            allPromises.push(
+                supabase.from('inscrieri_examene').upsert({
+                    sportiv_id: inscriere.sportiv_id,
+                    sesiune_id: sesiune.id,
+                    grad_sustinut_id: inscriere.grad_sustinut_id,
+                    data_eveniment: sesiune.data,
+                    rezultat: newResult,
+                    status_inscriere: 'Validat' // Default to Validat if it's a new entry from result change
+                }, { onConflict: 'sportiv_id,sesiune_id' })
+            );
+            
+            // 2. Handle grade promotion if Admis
+            if (newResult === 'Admis') {
+                const newGradId = inscriere.grad_sustinut_id;
+                allPromises.push(supabase.from('sportivi').update({ grad_actual_id: newGradId }).eq('id', inscriere.sportiv_id));
+                allPromises.push(
+                    supabase.from('istoric_grade').upsert(
+                        { sportiv_id: inscriere.sportiv_id, grad_id: newGradId, data_obtinere: sesiune.data, sesiune_examen_id: sesiune.id },
+                        { onConflict: 'sportiv_id,grad_id', ignoreDuplicates: true }
+                    )
+                );
+                sportiviUpdatesLocal.push({ id: inscriere.sportiv_id, grad_actual_id: newGradId });
+            } 
+            // 3. Revert if it was previously Admis and now it's not
+            else if (oldResult === 'Admis') {
+                allPromises.push(supabase.from('sportivi').update({ grad_actual_id: inscriere.grad_actual_id }).eq('id', inscriere.sportiv_id));
+                allPromises.push(supabase.from('istoric_grade').delete().match({ sportiv_id: inscriere.sportiv_id, sesiune_examen_id: sesiune.id }));
+                sportiviUpdatesLocal.push({ id: inscriere.sportiv_id, grad_actual_id: inscriere.grad_actual_id });
+            }
+
+            const results = await Promise.all(allPromises);
+            const anyError = results.find(res => res.error);
+            if (anyError) throw anyError.error;
+
+            // Update local state
+            setInscrieri(prev => prev.map(i => i.id === inscriereId ? { ...i, rezultat: newResult } : i));
+            if (sportiviUpdatesLocal.length > 0) {
+                setSportivi(prev => {
+                    const updatesMap = new Map(sportiviUpdatesLocal.map(u => [u.id, u]));
+                    return prev.map(sportiv => {
+                        const update = updatesMap.get(sportiv.id);
+                        if (update) return { ...sportiv, ...update };
+                        return sportiv;
+                    });
+                });
+            }
+            
+            showSuccess("Rezultat Salvat", "Modificarea a fost salvată automat.");
+        } catch (err: any) {
+            // Revert optimistic update
+            setRezultateLocale(prev => ({ ...prev, [inscriereId]: oldResult }));
+            showError("Eroare la Salvare", err.message);
+        }
     };
 
     const desyncedInscrieri = useMemo(() => {
@@ -874,73 +942,6 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             setIsSavingResults(false);
         }
     };
-
-    const handleSaveResults = async () => {
-        if (!supabase) { showError("Eroare de configurare", "Clientul Supabase nu este inițializat."); return; }
-        
-        if (!sesiune.id || !sesiune.data) {
-            showError("Eroare Validare", "Sesiunea curentă nu are un ID sau o dată validă setată. Salvarea a fost anulată.");
-            return;
-        }
-
-        setIsSavingResults(true);
-        const changes = Object.entries(rezultateLocale).filter(([id, rezultat]) => rezultat !== initialRezultate[id]);
-
-        if (changes.length === 0) { showSuccess("Info", "Nicio modificare de salvat."); setIsSavingResults(false); return; }
-        
-        const allPromises: any[] = [];
-        const sportiviUpdatesLocal: Partial<Sportiv>[] = [];
-
-        for (const [id, rezultat] of changes) {
-            const inscriere = participantiInscrisi.find(i => i.id === id || i.inscriere_id === id);
-            if (!inscriere) continue;
-            const targetId = inscriere.inscriere_id || inscriere.id;
-            allPromises.push(supabase.from('inscrieri_examene').update({ rezultat }).eq('id', targetId));
-            if (rezultat === 'Admis') {
-                const newGradId = inscriere.grad_sustinut_id;
-                allPromises.push(supabase.from('sportivi').update({ grad_actual_id: newGradId }).eq('id', inscriere.sportiv_id));
-                allPromises.push(
-                    supabase.from('istoric_grade').upsert(
-                        { sportiv_id: inscriere.sportiv_id, grad_id: newGradId, data_obtinere: sesiune.data, sesiune_examen_id: sesiune.id },
-                        { onConflict: 'sportiv_id,grad_id', ignoreDuplicates: true }
-                    )
-                );
-                sportiviUpdatesLocal.push({ id: inscriere.sportiv_id, grad_actual_id: newGradId });
-            } else if (initialRezultate[id] === 'Admis') {
-                allPromises.push(supabase.from('sportivi').update({ grad_actual_id: inscriere.grad_actual_id }).eq('id', inscriere.sportiv_id));
-                allPromises.push(supabase.from('istoric_grade').delete().match({ sportiv_id: inscriere.sportiv_id, sesiune_examen_id: sesiune.id }));
-                sportiviUpdatesLocal.push({ id: inscriere.sportiv_id, grad_actual_id: inscriere.grad_actual_id });
-            }
-        }
-
-        try {
-            const results = await Promise.all(allPromises);
-            const anyError = results.find(res => res.error);
-            if (anyError) throw anyError.error;
-
-            setInscrieri(prev => { const changesMap = new Map(changes); return prev.map(i => changesMap.has(i.id) ? { ...i, rezultat: changesMap.get(i.id) as any } : i); });
-            setSportivi(prev => {
-                const updatesMap = new Map(sportiviUpdatesLocal.map(u => [u.id, u]));
-                return prev.map(sportiv => {
-                    const update = updatesMap.get(sportiv.id);
-                    if (update) {
-                        return { 
-                            ...sportiv, 
-                            ...update
-                        };
-                    }
-                    return sportiv;
-                });
-            });
-
-            showSuccess("Succes", `${changes.length} rezultate au fost salvate!`);
-        } catch (err: any) {
-            showError("Eroare la Salvare", `Una sau mai multe operațiuni au eșuat. Detalii: ${err.message}`);
-        } finally {
-            setIsSavingResults(false);
-        }
-    };
-
 
     const columns: Column<InscriereExamen>[] = [
         {
@@ -1130,10 +1131,6 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                                     Sincronizare Forțată ({desyncedInscrieri.length})
                                 </Button>
                             )}
-                            <Button onClick={handleSaveResults} variant="success" size="sm" isLoading={isSavingResults} disabled={Object.entries(rezultateLocale).every(([id, res]) => res === initialRezultate[id])}>
-                                {isSavingResults ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-                                Salvează Rezultate
-                            </Button>
                         </div>
                     )}
                 </div>

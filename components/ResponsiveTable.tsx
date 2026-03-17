@@ -29,6 +29,7 @@ export interface ResponsiveTableProps<T> {
     renderMobileItem?: (item: T) => React.ReactNode;
     pageSize?: number;
     idKey?: keyof T;
+    detailsHeight?: number;
 }
 
 // --- MAIN COMPONENT ---
@@ -47,6 +48,7 @@ export function ResponsiveTable<T>({
     renderMobileItem,
     idKey = 'id' as keyof T,
     pageSize = 10,
+    detailsHeight = 0,
 }: ResponsiveTableProps<T>) {
     const isMobile = useIsMobile();
     const [currentPage, setCurrentPage] = React.useState(1);
@@ -96,7 +98,7 @@ export function ResponsiveTable<T>({
                 /* Desktop/Tablet View (or Mobile fallback) */
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left text-slate-300">
-                        <thead className="bg-[var(--bg-table-header)] text-xs text-[var(--brand-secondary)] uppercase">
+                        <thead className="bg-[var(--bg-table-header)] text-xs text-[var(--brand-secondary)] uppercase sticky z-10" style={{ top: `${detailsHeight}px` }}>
                             <tr>
                                 {columns.map(col => (
                                     <th 
@@ -104,9 +106,9 @@ export function ResponsiveTable<T>({
                                         scope="col" 
                                         className={`p-3 font-semibold ${col.headerClassName || ''} ${col.className || ''} ${onSort ? 'cursor-pointer' : ''}`}
                                         title={col.tooltip}
-                                        onClick={() => {
+                                        onClick={(e) => {
                                             setCurrentPage(1);
-                                            onSort?.(String(col.key));
+                                            onSort?.(String(col.key), e.shiftKey);
                                         }}
                                     >
                                         {col.label} {(() => {

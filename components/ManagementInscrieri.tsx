@@ -439,9 +439,10 @@ interface ManagementInscrieriProps {
     preturiConfig: PretConfig[];
     onViewSportiv: (sportiv: Sportiv) => void;
     isReadOnly?: boolean;
+    detailsHeight?: number;
 }
 
-export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiune, sportivi, setSportivi, allInscrieri, grade, istoricGrade, setInscrieri, plati, setPlati, preturiConfig, onViewSportiv, isReadOnly = false }) => {
+export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiune, sportivi, setSportivi, allInscrieri, grade, istoricGrade, setInscrieri, plati, setPlati, preturiConfig, onViewSportiv, isReadOnly = false, detailsHeight = 0 }) => {
     const { showError, showSuccess } = useError();
     const [isBulkAddModalOpen, setIsBulkAddModalOpen] = useState(false);
     const [isSingleAddModalOpen, setIsSingleAddModalOpen] = useState(false);
@@ -474,40 +475,62 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         return new Set((allInscrieri || []).filter(i => i.sesiune_id === sesiune.id).map(i => i.sportiv_id));
     }, [allInscrieri, sesiune.id]);
     
-    const [sortConfig, setSortConfig] = useState<{ key: keyof InscriereExamen | 'nume_sportiv' | 'grad_actual' | 'grad_vizat', direction: 'asc' | 'desc' } | null>(null);
+    const [sortConfigs, setSortConfigs] = useState<Array<{ key: keyof InscriereExamen | 'nume_sportiv' | 'grad_actual' | 'grad_vizat', direction: 'asc' | 'desc' }>>([]);
 
-    const requestSort = (key: keyof InscriereExamen | 'nume_sportiv' | 'grad_actual' | 'grad_vizat') => {
-        let direction: 'asc' | 'desc' = 'asc';
-        if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
-            direction = 'desc';
-        }
-        setSortConfig({ key, direction });
+    const requestSort = (key: keyof InscriereExamen | 'nume_sportiv' | 'grad_actual' | 'grad_vizat', shiftKey: boolean) => {
+        setSortConfigs(prev => {
+            const existing = prev.find(c => c.key === key);
+            let next: Array<{ key: keyof InscriereExamen | 'nume_sportiv' | 'grad_actual' | 'grad_vizat', direction: 'asc' | 'desc' }> = [];
+            
+            if (shiftKey) {
+                // Multi-sort
+                if (existing) {
+                    if (existing.direction === 'asc') {
+                        next = prev.map(c => c.key === key ? { ...c, direction: 'desc' } : c);
+                    } else {
+                        next = prev.filter(c => c.key !== key);
+                    }
+                } else {
+                    next = [...prev, { key, direction: 'asc' }];
+                }
+            } else {
+                // Single sort
+                if (existing && existing.direction === 'asc') {
+                    next = [{ key, direction: 'desc' }];
+                } else {
+                    next = [{ key, direction: 'asc' }];
+                }
+            }
+            return next;
+        });
     };
 
     const participantiInscrisi = useMemo(() => {
         let data = (allInscrieri || []).filter(i => i.sesiune_id === sesiune.id);
         
-        if (sortConfig) {
+        if (sortConfigs.length > 0) {
             data.sort((a, b) => {
-                let aVal: any;
-                let bVal: any;
+                for (const sort of sortConfigs) {
+                    let aVal: any;
+                    let bVal: any;
 
-                if (sortConfig.key === 'nume_sportiv') {
-                    aVal = (a.sportiv_nume || a.sportivi?.nume || '') + ' ' + (a.sportiv_prenume || a.sportivi?.prenume || '');
-                    bVal = (b.sportiv_nume || b.sportivi?.nume || '') + ' ' + (b.sportiv_prenume || b.sportivi?.prenume || '');
-                } else if (sortConfig.key === 'grad_actual') {
-                    aVal = a.nume_grad_actual || '';
-                    bVal = b.nume_grad_actual || '';
-                } else if (sortConfig.key === 'grad_vizat') {
-                    aVal = a.grad_sustinut || a.grades?.nume || '';
-                    bVal = b.grad_sustinut || b.grades?.nume || '';
-                } else {
-                    aVal = a[sortConfig.key as keyof InscriereExamen];
-                    bVal = b[sortConfig.key as keyof InscriereExamen];
+                    if (sort.key === 'nume_sportiv') {
+                        aVal = (a.sportiv_nume || a.sportivi?.nume || '') + ' ' + (a.sportiv_prenume || a.sportivi?.prenume || '');
+                        bVal = (b.sportiv_nume || b.sportivi?.nume || '') + ' ' + (b.sportiv_prenume || b.sportivi?.prenume || '');
+                    } else if (sort.key === 'grad_actual') {
+                        aVal = a.nume_grad_actual || '';
+                        bVal = b.nume_grad_actual || '';
+                    } else if (sort.key === 'grad_vizat') {
+                        aVal = a.grad_sustinut || a.grades?.nume || '';
+                        bVal = b.grad_sustinut || b.grades?.nume || '';
+                    } else {
+                        aVal = a[sort.key as keyof InscriereExamen];
+                        bVal = b[sort.key as keyof InscriereExamen];
+                    }
+
+                    if (aVal < bVal) return sort.direction === 'asc' ? -1 : 1;
+                    if (aVal > bVal) return sort.direction === 'asc' ? 1 : -1;
                 }
-
-                if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
-                if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
                 return 0;
             });
         } else {
@@ -518,7 +541,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             });
         }
         return data;
-    }, [allInscrieri, sesiune.id, sortConfig]);
+    }, [allInscrieri, sesiune.id, sortConfigs]);
 
     const initialRezultate = useMemo(() => {
         const initial: Record<string, 'Admis' | 'Respins' | 'Neprezentat'> = {};
@@ -1179,7 +1202,8 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                     data={participantiInscrisi}
                     renderMobileItem={renderMobileItem}
                     onSort={requestSort}
-                    sortConfig={sortConfig ? { key: sortConfig.key, direction: sortConfig.direction } : undefined}
+                    sortConfig={sortConfigs}
+                    detailsHeight={detailsHeight}
                 />
             </Card>
 

@@ -1,34 +1,36 @@
-import React, { useMemo } from 'react';
-import { Antrenament, Grupa, User } from '../types';
+import React, { useState, useEffect } from 'react';
+import { Grupa, User } from '../types';
 import { Card } from './ui';
-import { CalendarDaysIcon, ClockIcon, MapPinIcon } from './icons';
+import { CalendarDaysIcon, ClockIcon } from './icons';
+import { MapPin, Loader2 } from 'lucide-react';
+import { supabase } from '../supabaseClient';
 
 interface UpcomingTrainingsWidgetProps {
     currentUser: User;
-    antrenamente: Antrenament[];
     grupe: Grupa[];
 }
 
-export const UpcomingTrainingsWidget: React.FC<UpcomingTrainingsWidgetProps> = ({ currentUser, antrenamente, grupe }) => {
-    const upcoming = useMemo(() => {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+export const UpcomingTrainingsWidget: React.FC<UpcomingTrainingsWidgetProps> = ({ currentUser, grupe }) => {
+    const [upcoming, setUpcoming] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
 
-        return (antrenamente || [])
-            .filter(a => {
-                const trainingDate = new Date((a.data || '').toString().slice(0, 10) + 'T00:00:00');
-                const isInGroup = a.grupa_id === currentUser.grupa_id;
-                const isVacationTraining = currentUser.participa_vacanta && a.grupa_id === null;
-                return trainingDate >= today && (isInGroup || isVacationTraining);
-            })
-            .sort((a, b) => {
-                const dataA = (a.data || '').toString().slice(0, 10);
-                const dataB = (b.data || '').toString().slice(0, 10);
-                if (dataA !== dataB) return dataA.localeCompare(dataB);
-                return a.ora_start.localeCompare(b.ora_start);
-            })
-            .slice(0, 5); // Show next 5
-    }, [antrenamente, currentUser]);
+    useEffect(() => {
+        const fetchTrainings = async () => {
+            setLoading(true);
+            const { data, error } = await supabase
+                .from('vw_antrenamente_viitoare_sportiv')
+                .select('*')
+                .order('data', { ascending: true })
+                .order('ora_start', { ascending: true })
+                .limit(5);
+
+            if (data) {
+                setUpcoming(data);
+            }
+            setLoading(false);
+        };
+        fetchTrainings();
+    }, []);
 
     const formatDate = (dateStr: string) => {
         const date = new Date((dateStr || '').toString().slice(0, 10) + 'T00:00:00');
@@ -44,7 +46,11 @@ export const UpcomingTrainingsWidget: React.FC<UpcomingTrainingsWidgetProps> = (
                 </h3>
             </div>
 
-            {upcoming.length > 0 ? (
+            {loading ? (
+                <div className="flex justify-center py-8">
+                    <Loader2 className="w-6 h-6 animate-spin text-violet-400" />
+                </div>
+            ) : upcoming.length > 0 ? (
                 <div className="space-y-3">
                     {upcoming.map((training) => {
                         const grupa = grupe.find(g => g.id === training.grupa_id);
@@ -64,10 +70,10 @@ export const UpcomingTrainingsWidget: React.FC<UpcomingTrainingsWidgetProps> = (
                                         <span className="text-sm font-semibold text-slate-200">
                                             {grupa?.denumire || 'Antrenament Individual'}
                                         </span>
-                                        {grupa?.sala && (
+                                        {training.nume_locatie && (
                                             <span className="text-[10px] text-slate-500 flex items-center gap-1 mt-0.5">
-                                                <MapPinIcon className="w-3 h-3" />
-                                                {grupa.sala}
+                                                <MapPin className="w-3 h-3 text-violet-500" />
+                                                {training.nume_locatie}
                                             </span>
                                         )}
                                     </div>
@@ -80,9 +86,9 @@ export const UpcomingTrainingsWidget: React.FC<UpcomingTrainingsWidgetProps> = (
                     })}
                 </div>
             ) : (
-                <div className="flex flex-col items-center justify-center py-8 text-slate-500 italic text-sm">
+                <div className="flex flex-col items-center justify-center py-8 text-slate-500 italic text-sm text-center">
                     <CalendarDaysIcon className="w-10 h-10 mb-2 opacity-20" />
-                    <p>Nu sunt antrenamente programate.</p>
+                    <p>Nu sunt antrenamente programate pentru grupa ta în perioada următoare.</p>
                 </div>
             )}
         </Card>

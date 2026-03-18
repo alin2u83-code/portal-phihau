@@ -5,6 +5,8 @@ import ErrorBoundary from './ErrorBoundary';
 import { ClubGuard } from './ClubGuard';
 import { AppRouter } from './AppRouter';
 import { View, Sportiv, Plata, User, Permissions } from '../types';
+import { AIAssistantWidget } from './AIAssistant';
+import { TutorialOverlay } from './Tutorial';
 
 interface AppLayoutProps {
     currentUser: User;
@@ -38,22 +40,22 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
 }) => {
     return (
         <div className="flex min-h-screen bg-[var(--bg-main)]">
-            <Sidebar 
-                currentUser={currentUser} 
-                onLogout={handleLogout} 
-                isExpanded={isSidebarExpanded} 
-                setIsExpanded={setIsSidebarExpanded} 
-                clubs={clubs} 
-                permissions={permissions} 
-                activeRole={activeRole} 
-                canSwitchRoles={canSwitchRoles} 
-                onSwitchRole={onSwitchRole} 
-                isSwitchingRole={isSwitchingRole} 
-                grade={grade} 
-                userRoles={userRoles} 
+            <Sidebar
+                currentUser={currentUser}
+                onLogout={handleLogout}
+                isExpanded={isSidebarExpanded}
+                setIsExpanded={setIsSidebarExpanded}
+                clubs={clubs}
+                permissions={permissions}
+                activeRole={activeRole}
+                canSwitchRoles={canSwitchRoles}
+                onSwitchRole={onSwitchRole}
+                isSwitchingRole={isSwitchingRole}
+                grade={grade}
+                userRoles={userRoles}
             />
-            
-            <Header 
+
+            <Header
                 onBack={handleBackToDashboard}
                 currentUser={currentUser}
                 permissions={permissions}
@@ -89,6 +91,12 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                     </ErrorBoundary>
                 </div>
             </main>
+
+            {/* AI Assistant - floating widget, always visible */}
+            <AIAssistantWidget activeRole={activeRole} />
+
+            {/* Tutorial overlay - shown on first login for admin roles */}
+            <TutorialOverlay />
         </div>
     );
 };

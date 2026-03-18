@@ -33,7 +33,8 @@ export const Header: React.FC<HeaderProps> = ({
     const isMobile = useIsMobile();
 
     return (
-        <header 
+        <header
+            data-tutorial="header"
             className={`fixed top-0 right-0 h-16 flex items-center justify-between px-4 border-b border-slate-800 bg-slate-900/90 backdrop-blur-md transition-all duration-300 ${isSidebarExpanded ? 'md:left-64' : 'md:left-20'} left-0 z-40 shadow-sm`}
         >
             {/* Left: Logo/Title & Back Button */}

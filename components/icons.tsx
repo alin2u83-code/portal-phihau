@@ -6,7 +6,8 @@ import {
   ClipboardCheck, MessageCircleQuestion, Save, AlertTriangle, CheckCircle,
   ChevronLeft, ChevronRight, Printer, Check, ArrowRightLeft, Search, Bell, Network,
   UploadCloud, Mail, Lock, UserPlus, BookOpen, BookMarked, FileText, UserX, UserCheck, XCircle, Clock,
-  Camera, Upload, Building2, Paintbrush, MapPin, CreditCard, Calendar, AlertCircle
+  Camera, Upload, Building2, Paintbrush, MapPin, CreditCard, Calendar, AlertCircle,
+  Bot, Send, Sparkles, ChevronUp, HelpCircle, MessageSquare, GraduationCap, Minimize2
 } from 'lucide-react';
 
 export const PlusIcon = Plus;
@@ -64,4 +65,11 @@ export const UploadIcon = Upload;
 export const BuildingOfficeIcon = Building2;
 export const PaintBrushIcon = Paintbrush;
 export const MapPinIcon = MapPin;
-export const GraduationCapIcon = BookOpen;
+export const GraduationCapIcon = GraduationCap;
+export const BotIcon = Bot;
+export const SendIcon = Send;
+export const SparklesIcon = Sparkles;
+export const ChevronUpIcon = ChevronUp;
+export const HelpCircleIcon = HelpCircle;
+export const MessageSquareIcon = MessageSquare;
+export const Minimize2Icon = Minimize2;

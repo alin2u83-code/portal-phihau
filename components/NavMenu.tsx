@@ -29,14 +29,21 @@ const NavItem: React.FC<{
     badgeCount?: number;
 }> = ({ item, isExpanded, isActive, onNavigate, badgeCount }) => {
     if (!item.view) return null;
+    const tutorialAttr = item.view === 'sportivi' ? 'nav-sportivi'
+      : item.view === 'examene' ? 'nav-examene'
+      : item.view === 'prezenta' || item.view === 'prezenta-instructor' ? 'nav-prezenta'
+      : item.view === 'plati-scadente' ? 'nav-plati'
+      : undefined;
+
     return (
-        <div 
-            onClick={() => onNavigate(item.view!)} 
+        <div
+            data-tutorial={tutorialAttr}
+            onClick={() => onNavigate(item.view!)}
             className={`flex items-center p-2.5 rounded-md cursor-pointer transition-all duration-200 w-full relative group ${
-                isActive 
-                ? "bg-sky-500/10 text-sky-400 border-l-2 border-sky-500 shadow-[0_0_15px_-5px_rgba(14,165,233,0.3)]" 
+                isActive
+                ? "bg-sky-500/10 text-sky-400 border-l-2 border-sky-500 shadow-[0_0_15px_-5px_rgba(14,165,233,0.3)]"
                 : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
-            }`} 
+            }`}
             title={!isExpanded ? item.label : ''}
         >
             <div className="relative">

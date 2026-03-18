@@ -23,6 +23,7 @@ import { LoginPage } from './components/LoginPage';
 import { ResetPasswordPage } from './components/ResetPasswordPage';
 import { useAppLogic } from './hooks/useAppLogic';
 import { AppLayout } from './components/AppLayout';
+import { AIAssistantProvider } from './contexts/AIAssistantContext';
 
 function App() {
   const {
@@ -74,28 +75,35 @@ function App() {
         ) : effectiveNeedsRoleSelection ? (
             <RoleSelectionPage user={session.user} onSelect={handleSelectRole} loading={isSwitchingRole} onLogout={handleLogout} />
         ) : currentUser ? (
-            <AppLayout
+            <AIAssistantProvider
                 currentUser={currentUser}
-                isSidebarExpanded={isSidebarExpanded}
-                setIsSidebarExpanded={setIsSidebarExpanded}
-                clubs={clubs}
-                permissions={permissions}
                 activeRole={activeRole || ''}
-                canSwitchRoles={canSwitchRoles}
-                onSwitchRole={handleSwitchRole}
-                isSwitchingRole={isSwitchingRole}
-                grade={grade}
-                userRoles={userRoles}
-                activeView={activeView}
-                setActiveView={setActiveView}
-                handleBackToDashboard={handleBackToDashboard}
-                handleLogout={handleLogout}
-                selectedSportiv={selectedSportiv}
-                setSelectedSportiv={setSelectedSportiv}
-                platiPentruIncasare={platiPentruIncasare}
-                setPlatiPentruIncasare={setPlatiPentruIncasare}
-                activeRoleContext={activeRoleContext}
-            />
+                permissions={permissions}
+                clubs={clubs}
+            >
+                <AppLayout
+                    currentUser={currentUser}
+                    isSidebarExpanded={isSidebarExpanded}
+                    setIsSidebarExpanded={setIsSidebarExpanded}
+                    clubs={clubs}
+                    permissions={permissions}
+                    activeRole={activeRole || ''}
+                    canSwitchRoles={canSwitchRoles}
+                    onSwitchRole={handleSwitchRole}
+                    isSwitchingRole={isSwitchingRole}
+                    grade={grade}
+                    userRoles={userRoles}
+                    activeView={activeView}
+                    setActiveView={setActiveView}
+                    handleBackToDashboard={handleBackToDashboard}
+                    handleLogout={handleLogout}
+                    selectedSportiv={selectedSportiv}
+                    setSelectedSportiv={setSelectedSportiv}
+                    platiPentruIncasare={platiPentruIncasare}
+                    setPlatiPentruIncasare={setPlatiPentruIncasare}
+                    activeRoleContext={activeRoleContext}
+                />
+            </AIAssistantProvider>
         ) : null}
       </NotificationProvider>
     </SystemGuardian>

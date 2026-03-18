@@ -90,7 +90,7 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
     const activeRoleContext = useMemo(() => userRoles.find(r => r.is_primary), [userRoles]);
 
     const sidebarContent = (
-        <div className="flex flex-col h-full bg-slate-900 text-slate-200 shadow-xl border-r border-slate-800">
+        <div data-tutorial="sidebar" className="flex flex-col h-full bg-slate-900 text-slate-200 shadow-xl border-r border-slate-800">
             {/* App Logo & Name */}
             <div 
                 className={`p-4 flex items-center gap-3 border-b border-slate-800/50 cursor-pointer hover:bg-white/5 transition-colors ${!isExpanded ? 'justify-center' : ''}`}

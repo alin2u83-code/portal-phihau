@@ -22,7 +22,7 @@ CREATE POLICY "Staff - Full Access Plati" ON public.plati
 FOR ALL 
 TO authenticated
 USING (
-    club_id ANY (public.get_my_club_ids()) -- Mult mai rapid decât EXISTS
+    club_id = ANY (public.get_my_club_ids()) -- Mult mai rapid decât EXISTS
     OR 
     public.is_super_admin() -- Folosim funcția helper existentă
 );

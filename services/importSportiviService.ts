@@ -19,21 +19,19 @@ export const importSportivi = async (
   const report: ImportReport = { succes: 0, erori: 0, detalii_erori: [] };
 
   // Helper to find grade ID
-  const findGradeId = (gradNume: string | null | undefined): string => {
+  const findGradeId = (gradNume: string | null | undefined): string | null => {
     const debutantGrade = grade.find(g => g.ordine === 0 || g.nume.toLowerCase() === 'debutant');
-    const defaultId = debutantGrade ? debutantGrade.id : '1';
 
     if (!gradNume || gradNume.trim() === '' || gradNume.trim().toLowerCase() === 'debutant') {
-      return defaultId;
+      return debutantGrade ? debutantGrade.id : null;
     }
-    
+
     const trimmed = gradNume.trim();
-    // Check if it's already a valid UUID
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(trimmed);
     if (isUuid) return trimmed;
 
     const found = grade.find(g => g.nume.toLowerCase() === trimmed.toLowerCase());
-    return found ? found.id : defaultId;
+    return found ? found.id : (debutantGrade ? debutantGrade.id : null);
   };
 
   for (let i = 0; i < dateSportivi.length; i++) {
@@ -60,14 +58,15 @@ export const importSportivi = async (
       const normalizeGen = (gen: string | null | undefined): 'Masculin' | 'Feminin' | null => {
         if (!gen) return null;
         const g = gen.trim().toLowerCase();
-        if (['m', 'masculin', 'masc'].includes(g)) return 'Masculin';
-        if (['f', 'feminin', 'fem'].includes(g)) return 'Feminin';
+        if (['m', 'masculin', 'masc', 'barbat', 'bărbat', 'b'].includes(g)) return 'Masculin';
+        if (['f', 'feminin', 'fem', 'femeie', 'f'].includes(g)) return 'Feminin';
         return null;
       };
 
       // 3. Pregătire date - Eliminăm cheile care nu există în schema bazei de date (grad_actual)
       const gradId = findGradeId(row.grad_actual || row.grad_actual_id);
-      
+      if (!gradId) throw new Error("Nu s-a găsit gradul specificat și nu există grad implicit (Debutant)");
+
       const sportivData = {
         nume: row.nume.trim().replace(/[?]/g, ''),
         prenume: row.prenume.trim().replace(/[?]/g, ''),
@@ -81,15 +80,21 @@ export const importSportivi = async (
         club_id: row.club_id || activeClubId,
         status: row.status || 'Activ',
         grupa_id: row.grupa_id || defaultGrupaId,
-        grad_actual_id: gradId || '1',
+        grad_actual_id: gradId,
       };
 
-      // 4. Upsert logic
-      const { data: existing, error: fetchError } = await supabase
-        .from('sportivi')
-        .select('id')
-        .or(`email.eq.${sportivData.email},cnp.eq.${sportivData.cnp}`)
-        .maybeSingle();
+      // 4. Upsert logic — construim query-ul conditional pentru a evita OR cu null
+      let existingQuery = supabase.from('sportivi').select('id');
+      if (sportivData.email && sportivData.cnp) {
+        existingQuery = existingQuery.or(`email.eq.${sportivData.email},cnp.eq.${sportivData.cnp}`);
+      } else if (sportivData.email) {
+        existingQuery = existingQuery.eq('email', sportivData.email);
+      } else if (sportivData.cnp) {
+        existingQuery = existingQuery.eq('cnp', sportivData.cnp);
+      } else {
+        throw new Error("Lipsesc email și CNP — nu se poate verifica duplicatul");
+      }
+      const { data: existing, error: fetchError } = await existingQuery.maybeSingle();
 
       if (fetchError) throw fetchError;
 

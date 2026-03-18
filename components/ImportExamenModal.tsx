@@ -120,7 +120,11 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
     };
 
     const handleProcessFiles = async () => {
-        if (!examFile || grades.length === 0) return;
+        if (!examFile) return;
+        if (grades.length === 0) {
+            showError("Grade indisponibile", "Lista de grade nu a putut fi încărcată. Reîncarcă pagina și încearcă din nou.");
+            return;
+        }
         
         setIsProcessing(true);
         setPreviewData([]);
@@ -297,7 +301,8 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                     locatie = newLoc;
                     localLocatii.push(newLoc);
                 }
-                const { data: newSes, error: sesError } = await supabase.from('sesiuni_examene').insert({ data: sessionInfo.dataExamen, locatie_id: locatie.id, club_id: currentUser.club_id, comisia: [], status: 'Finalizat' }).select().maybeSingle();
+                const clubId = currentUser.club_id || null;
+                const { data: newSes, error: sesError } = await supabase.from('sesiuni_examene').insert({ data: sessionInfo.dataExamen, locatie_id: locatie.id, club_id: clubId, comisia: [], status: 'Programat', nume: sessionInfo.sesiuneDenumire?.includes('Iarna') ? 'Iarna' : 'Vara' }).select().maybeSingle();
                 if (sesError) throw new Error(`Nu s-a putut crea sesiunea '${sessionInfo.sesiuneDenumire}': ${sesError.message}`);
                 if (!newSes) throw new Error(`Nu s-a putut crea sesiunea '${sessionInfo.sesiuneDenumire}'.`);
                 createdSessionIds.set(key, newSes.id);
@@ -315,20 +320,21 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
 
                 try {
                     // Use v3 which supports birthdate
+                    const gradOrdine = parseInt(row.Grad_Nou_Ordine);
+                    if (isNaN(gradOrdine)) throw new Error(`Grad_Nou_Ordine invalid: "${row.Grad_Nou_Ordine}"`);
                     const { error: rpcError } = await supabase.rpc('process_exam_row_v3', {
                         p_nume: row.Nume,
                         p_prenume: row.Prenume,
                         p_cnp: (row.CNP || '').trim(),
-                        // p_cod_sportiv removed as column does not exist
-                        p_cod_sportiv: null, 
+                        p_cod_sportiv: null,
                         p_existing_sportiv_id: sportivId,
-                        p_club_id: currentUser.club_id,
-                        p_ordine_grad: parseInt(row.Grad_Nou_Ordine),
+                        p_club_id: currentUser.club_id || null,
+                        p_ordine_grad: gradOrdine,
                         p_rezultat: row.Rezultat,
                         p_contributie: parseFloat(row.Contributie) || 0,
                         p_data_examen: row.Data_Examen,
                         p_sesiune_id: sessionId,
-                        p_data_nasterii: row.birthdate || null // Pass birthdate
+                        p_data_nasterii: row.birthdate || null
                     });
                     if (rpcError) throw rpcError;
                     successCount++;

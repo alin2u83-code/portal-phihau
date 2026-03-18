@@ -19,7 +19,7 @@ export const useAttendanceData = (clubId?: string | null, skipFetch = false, fil
         setError(null);
         try {
             // Join with prezenta_antrenament
-            let antrenamenteQuery = supabase.from('vedere_program_complet').select('*, prezenta:prezenta_antrenament(sportiv_id, status)');
+            let antrenamenteQuery = supabase.from('program_antrenamente').select('*, prezenta:prezenta_antrenament(sportiv_id, status)');
             let anunturiQuery = supabase.from('vedere_cluburi_anunturi_prezenta').select('*');
 
             // Apply date filters if provided

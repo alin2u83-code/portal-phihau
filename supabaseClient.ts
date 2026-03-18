@@ -9,7 +9,8 @@ if (supabaseUrl && supabaseAnonKey) {
   const customFetch = async (url: RequestInfo | URL, options: RequestInit = {}) => {
     const headers = new Headers(options.headers || {});
     const activeRoleContextId = localStorage.getItem('phi-hau-active-role-context-id')?.replace(/"/g, '');
-    if (activeRoleContextId) {
+    const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (activeRoleContextId && UUID_REGEX.test(activeRoleContextId)) {
       headers.set('active-role-context-id', activeRoleContextId);
     }
     return fetch(url, {

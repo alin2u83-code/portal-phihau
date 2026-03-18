@@ -280,7 +280,7 @@ export const useDataProvider = () => {
                 reduceri: cleanedSupabase.from('reduceri').select('*'),
                 deconturiFederatie: cleanedSupabase.from('deconturi_federatie').select('*'),
                 taxeAnualeConfig: cleanedSupabase.from('taxe_anuale_config').select('*'),
-                vizeSportivi: cleanedSupabase.from('vize_sportivi').select('*'),
+                vizeSportivi: cleanedSupabase.from('vize_medicale').select('*'),
             };
 
             // Check cache for static data

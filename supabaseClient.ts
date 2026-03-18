@@ -8,7 +8,7 @@ let supabaseInstance: SupabaseClient | null = null;
 if (supabaseUrl && supabaseAnonKey) {
   const customFetch = async (url: RequestInfo | URL, options: RequestInit = {}) => {
     const headers = new Headers(options.headers || {});
-    const activeRoleContextId = localStorage.getItem('active-role-context-id');
+    const activeRoleContextId = localStorage.getItem('phi-hau-active-role-context-id')?.replace(/"/g, '');
     if (activeRoleContextId) {
       headers.set('active-role-context-id', activeRoleContextId);
     }

@@ -88,14 +88,14 @@ export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({ session, cur
     }
 
     const navItems = [
-        { title: 'Sportivi', description: 'Administrează sportivii, grupele și familiile.', icon: UsersIcon, view: 'sportivi' as View, category: 'Gestiune', roles: ['Admin', 'Admin Club', 'Instructor', 'SUPER_ADMIN_FEDERATIE'], imageSeed: 'martial-arts-group' },
-        { title: 'Evenimente', description: 'Creează și gestionează examene, stagii, competiții.', icon: TrophyIcon, view: 'examene' as View, category: 'Gestiune', roles: ['Admin', 'Admin Club', 'Instructor', 'SUPER_ADMIN_FEDERATIE'], imageSeed: 'tournament' },
-        { title: 'Staff & Roluri', description: 'Gestionează conturile de acces și permisiunile.', icon: CogIcon, view: 'user-management' as View, category: 'Gestiune', roles: ['Admin', 'Admin Club', 'SUPER_ADMIN_FEDERATIE'], imageSeed: 'team-meeting' },
-        { title: 'Dashboard Financiar', description: 'Vizualizează rapoarte și statistici financiare.', icon: BanknotesIcon, view: 'financial-dashboard' as View, category: 'Financiar', roles: ['Admin', 'Admin Club', 'SUPER_ADMIN_FEDERATIE'], imageSeed: 'financial-chart' },
-        { title: 'Facturi & Plăți', description: 'Generează facturi și înregistrează încasări.', icon: WalletIcon, view: 'plati-scadente' as View, category: 'Financiar', roles: ['Admin', 'Admin Club', 'SUPER_ADMIN_FEDERATIE'], imageSeed: 'invoice' },
-        { title: 'Deconturi Federație', description: 'Vezi și achită datoriile către federație.', icon: BanknotesIcon, view: 'deconturi-federatie' as View, category: 'Financiar', roles: ['Admin', 'Admin Club', 'SUPER_ADMIN_FEDERATIE'], imageSeed: 'accounting' },
-        { title: 'Prezență', description: 'Înregistrează prezența la antrenamente.', icon: ClipboardCheckIcon, view: 'prezenta' as View, category: 'Tehnic', roles: ['Admin', 'Admin Club', 'Instructor', 'SUPER_ADMIN_FEDERATIE'], imageSeed: 'checklist' },
-        { title: 'Orar & Grupe', description: 'Definește programul de antrenament și grupele.', icon: ArchiveBoxIcon, view: 'grupe' as View, category: 'Tehnic', roles: ['Admin', 'Admin Club', 'Instructor', 'SUPER_ADMIN_FEDERATIE'], imageSeed: 'schedule' },
+        { title: 'Sportivi', description: 'Administrează sportivii, grupele și familiile.', icon: UsersIcon, view: 'sportivi' as View, category: 'Gestiune', roles: ['ADMIN', 'ADMIN_CLUB', 'INSTRUCTOR', 'SUPER_ADMIN_FEDERATIE'], imageSeed: 'martial-arts-group' },
+        { title: 'Evenimente', description: 'Creează și gestionează examene, stagii, competiții.', icon: TrophyIcon, view: 'examene' as View, category: 'Gestiune', roles: ['ADMIN', 'ADMIN_CLUB', 'INSTRUCTOR', 'SUPER_ADMIN_FEDERATIE'], imageSeed: 'tournament' },
+        { title: 'Staff & Roluri', description: 'Gestionează conturile de acces și permisiunile.', icon: CogIcon, view: 'user-management' as View, category: 'Gestiune', roles: ['ADMIN', 'ADMIN_CLUB', 'SUPER_ADMIN_FEDERATIE'], imageSeed: 'team-meeting' },
+        { title: 'Dashboard Financiar', description: 'Vizualizează rapoarte și statistici financiare.', icon: BanknotesIcon, view: 'financial-dashboard' as View, category: 'Financiar', roles: ['ADMIN', 'ADMIN_CLUB', 'SUPER_ADMIN_FEDERATIE'], imageSeed: 'financial-chart' },
+        { title: 'Facturi & Plăți', description: 'Generează facturi și înregistrează încasări.', icon: WalletIcon, view: 'plati-scadente' as View, category: 'Financiar', roles: ['ADMIN', 'ADMIN_CLUB', 'SUPER_ADMIN_FEDERATIE'], imageSeed: 'invoice' },
+        { title: 'Deconturi Federație', description: 'Vezi și achită datoriile către federație.', icon: BanknotesIcon, view: 'deconturi-federatie' as View, category: 'Financiar', roles: ['ADMIN', 'ADMIN_CLUB', 'SUPER_ADMIN_FEDERATIE'], imageSeed: 'accounting' },
+        { title: 'Prezență', description: 'Înregistrează prezența la antrenamente.', icon: ClipboardCheckIcon, view: 'prezenta' as View, category: 'Tehnic', roles: ['ADMIN', 'ADMIN_CLUB', 'INSTRUCTOR', 'SUPER_ADMIN_FEDERATIE'], imageSeed: 'checklist' },
+        { title: 'Orar & Grupe', description: 'Definește programul de antrenament și grupele.', icon: ArchiveBoxIcon, view: 'grupe' as View, category: 'Tehnic', roles: ['ADMIN', 'ADMIN_CLUB', 'INSTRUCTOR', 'SUPER_ADMIN_FEDERATIE'], imageSeed: 'schedule' },
     ];
     
     const userRole = currentUser.rol || (currentUser.roluri && currentUser.roluri.length > 0 ? currentUser.roluri[0].nume : 'SPORTIV');

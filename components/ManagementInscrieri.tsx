@@ -506,7 +506,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
     };
 
     const participantiInscrisi = useMemo(() => {
-        let data = (allInscrieri || []).filter(i => i.sesiune_id === sesiune.id);
+        let data = (allInscrieri || []).filter(i => i.sesiune_id === sesiune.id && (i.grades?.ordine ?? 0) > 0);
         
         if (sortConfigs.length > 0) {
             data.sort((a, b) => {
@@ -544,7 +544,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             data.sort((a, b) => {
                 const gradeA = a.grades?.ordine ?? 0;
                 const gradeB = b.grades?.ordine ?? 0;
-                if (gradeA !== gradeB) return gradeA - gradeB;
+                if (gradeA !== gradeB) return gradeB - gradeA;
                 const numeA = (a.sportiv_nume || a.sportivi?.nume || '').toLowerCase();
                 const numeB = (b.sportiv_nume || b.sportivi?.nume || '').toLowerCase();
                 return numeA.localeCompare(numeB);

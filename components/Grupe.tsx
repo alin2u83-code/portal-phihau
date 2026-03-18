@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Grupa as GrupaType, ProgramItem, User, Club, Sportiv } from '../types';
 import { Button, Modal, Input, Select, Card } from './ui';
 import { PlusIcon, TrashIcon, EditIcon, ArrowLeftIcon, UsersIcon } from './icons';
@@ -21,13 +22,14 @@ interface GrupeManagementProps {
     onBack: () => void; 
 }
 export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
-    const { currentUser, clubs, grupe, setGrupe, locatii } = useData();
+    const { currentUser, clubs, grupe, setGrupe, locatii, activeRoleContext } = useData();
     const [loading, setLoading] = useState(false); // Keep loading state if needed, or use loading from useData
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [grupaToEdit, setGrupaToEdit] = useState<GrupaWithDetails | null>(null);
     const [grupaToDelete, setGrupaToDelete] = useState<GrupaWithDetails | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const { showError, showSuccess } = useError();
+    const queryClient = useQueryClient();
 
     // Remove useEffect for fetching grupe, as it's now in DataContext
 
@@ -54,6 +56,7 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
             }
             const { data: newProgramItems } = await supabase.from('orar_saptamanal').select('*').eq('grupa_id', grupaToEdit.id);
             if (updatedGrupa) setGrupe(prev => (prev as GrupaWithDetails[]).map(g => g.id === grupaToEdit.id ? { ...g, ...updatedGrupa, program: newProgramItems || [] } : g));
+            queryClient.invalidateQueries({ queryKey: ['grupe', activeRoleContext?.id] });
             showSuccess("Succes", "Grupa a fost actualizată.");
         } else { // CREATE
             const { data: newGrupa, error: grupaError } = await supabase.from('grupe').insert(grupaDbPayload).select().single();
@@ -69,6 +72,7 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
             if (newGrupa) {
                 const { data: finalGrupa } = await supabase.from('grupe').select('*, sportivi(count), program:orar_saptamanal!grupa_id(*)').eq('id', newGrupa.id).single();
                 setGrupe(prev => [...(prev as GrupaWithDetails[]), finalGrupa as GrupaWithDetails]);
+                queryClient.invalidateQueries({ queryKey: ['grupe', activeRoleContext?.id] });
                 showSuccess("Succes", "Grupa a fost creată.");
             }
         }
@@ -91,7 +95,11 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
             console.error('DETALII EROARE:', JSON.stringify(grupaError, null, 2));
             showError("Eroare la ștergerea grupei", grupaError); 
         }
-        else { setGrupe(prev => (prev as GrupaWithDetails[]).filter(g => g.id !== grupaId)); showSuccess("Succes", "Grupa a fost ștearsă."); }
+        else { 
+            setGrupe(prev => (prev as GrupaWithDetails[]).filter(g => g.id !== grupaId)); 
+            queryClient.invalidateQueries({ queryKey: ['grupe', activeRoleContext?.id] });
+            showSuccess("Succes", "Grupa a fost ștearsă."); 
+        }
         setIsDeleting(false);
         setGrupaToDelete(null);
     };

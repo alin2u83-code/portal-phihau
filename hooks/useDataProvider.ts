@@ -80,8 +80,8 @@ export const useDataProvider = () => {
         setActiveRoleContext
     } = useUserRoles(session?.user?.id);
 
-    // Derive active role for filtering
-    const activeRole = activeRoleContext?.roluri?.nume || null;
+    // Derive active role for filtering (fallback to rol_denumire if rol_id was not set)
+    const activeRole = activeRoleContext?.roluri?.nume || activeRoleContext?.rol_denumire || null;
     const permissions = usePermissions(activeRoleContext);
     const { allowedClubs, loading: accessLoading } = useFetchAllowedClubs();
 
@@ -250,7 +250,7 @@ export const useDataProvider = () => {
                 cluburi: activeCtx.cluburi
             } as any);
 
-            const activeRoleName = activeCtx.roluri?.nume;
+            const activeRoleName = activeCtx.roluri?.nume || activeCtx.rol_denumire;
             const isSuperAdmin = activeRoleName === 'SUPER_ADMIN_FEDERATIE';
             const isAdminClub = activeRoleName === 'ADMIN_CLUB';
             const isSportiv = activeRoleName === 'SPORTIV';

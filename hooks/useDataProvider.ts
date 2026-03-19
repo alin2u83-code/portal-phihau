@@ -378,9 +378,14 @@ export const useDataProvider = () => {
 
     useEffect(() => {
         initializeAndFetchData();
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, sess) => {
-            setSession(sess);
-            if (sess) refreshRoles();
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, sess) => {
+            if (event === 'SIGNED_IN') {
+                setSession(sess);
+                refreshRoles();
+            } else if (event === 'SIGNED_OUT') {
+                setSession(null);
+            }
+            // TOKEN_REFRESHED si alte evenimente nu declanseaza refetch
         });
         return () => subscription.unsubscribe();
     }, [initializeAndFetchData, refreshRoles]);

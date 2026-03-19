@@ -20,7 +20,14 @@ GRANT SELECT ON public.vedere_cluburi_deconturi_federatie   TO authenticated;
 GRANT SELECT ON public.vedere_cluburi_program_antrenamente  TO authenticated;
 GRANT SELECT ON public.vedere_cluburi_anunturi_prezenta     TO authenticated;
 GRANT SELECT ON public.vedere_cluburi_vizualizare_plati     TO authenticated;
-GRANT SELECT ON public.vedere_cluburi_istoric_plati_detaliat TO authenticated;
+
+-- Grant condiționat pentru views care pot lipsi
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.views WHERE table_schema = 'public' AND table_name = 'vedere_cluburi_istoric_plati_detaliat') THEN
+        EXECUTE 'GRANT SELECT ON public.vedere_cluburi_istoric_plati_detaliat TO authenticated';
+    END IF;
+END $$;
 
 NOTIFY pgrst, 'reload schema';
 

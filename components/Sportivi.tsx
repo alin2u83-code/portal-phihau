@@ -62,6 +62,9 @@ export const Sportivi: React.FC<{
     const grupe = filteredData?.grupe || [];
 
     const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }[]>([]);
+    const [selectedSportivIds, setSelectedSportivIds] = useState<Set<string>>(new Set());
+    const [bulkGrupaId, setBulkGrupaId] = useState('');
+    const [bulkLoading, setBulkLoading] = useState(false);
     const [sportivForWallet, setSportivForWallet] = useState<Sportiv | null>(null);
     const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
     const [selectedSportivForHighlight, setSelectedSportivForHighlight] = useState<Sportiv | null>(null);
@@ -155,6 +158,24 @@ export const Sportivi: React.FC<{
                 return [...prev, { key, direction: 'asc' }];
             }
         });
+    };
+
+    const handleBulkAssignGroup = async () => {
+        if (!supabase || selectedSportivIds.size === 0) return;
+        setBulkLoading(true);
+        const ids = Array.from(selectedSportivIds);
+        const newGrupaId = bulkGrupaId || null;
+        const { error } = await supabase.from('sportivi').update({ grupa_id: newGrupaId }).in('id', ids);
+        setBulkLoading(false);
+        if (error) {
+            showError('Eroare', error.message);
+        } else {
+            queryClient.invalidateQueries({ queryKey: ['sportivi'] });
+            const grupaName = newGrupaId ? grupe.find(g => g.id === newGrupaId)?.denumire || 'grupă' : 'fără grupă';
+            showSuccess('Succes', `${ids.length} sportivi mutați în ${grupaName}.`);
+            setSelectedSportivIds(new Set());
+            setBulkGrupaId('');
+        }
     };
 
     const handleOpenWallet = (sportiv: Sportiv) => {
@@ -402,7 +423,7 @@ export const Sportivi: React.FC<{
                 )}
             </div>
 
-            <SportiviFilter 
+            <SportiviFilter
                 filters={filters}
                 onFilterChange={handleFilterChange}
                 grupe={grupe}
@@ -411,6 +432,26 @@ export const Sportivi: React.FC<{
                 clubs={clubs}
                 permissions={permissions}
             />
+
+            {selectedSportivIds.size > 0 && (
+                <div className="flex items-center gap-3 p-3 bg-brand-primary/10 border border-brand-primary/30 rounded-lg">
+                    <span className="text-sm font-semibold text-brand-primary">{selectedSportivIds.size} selectați</span>
+                    <select
+                        value={bulkGrupaId}
+                        onChange={e => setBulkGrupaId(e.target.value)}
+                        className="flex-1 max-w-xs bg-slate-800 border border-slate-600 text-white rounded-lg px-3 py-2 text-sm"
+                    >
+                        <option value="">Fără grupă</option>
+                        {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
+                    </select>
+                    <Button variant="primary" size="sm" onClick={handleBulkAssignGroup} isLoading={bulkLoading}>
+                        Mută în grupă
+                    </Button>
+                    <Button variant="secondary" size="sm" onClick={() => setSelectedSportivIds(new Set())}>
+                        Anulează selecția
+                    </Button>
+                </div>
+            )}
 
             {loading ? (
                 <MartialArtsSkeleton count={8} />
@@ -441,6 +482,8 @@ export const Sportivi: React.FC<{
                     sortConfig={sortConfig}
                     searchTerm={filters.searchTerm}
                     onSearchChange={handleSearchChange}
+                    selectedIds={selectedSportivIds}
+                    onSelectionChange={setSelectedSportivIds}
                 />
             )}
 

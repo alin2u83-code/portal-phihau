@@ -19,12 +19,49 @@ interface SportiviTableProps {
   sortConfig: { key: string; direction: 'asc' | 'desc' }[];
   searchTerm?: string;
   onSearchChange?: (value: string) => void;
+  selectedIds?: Set<string>;
+  onSelectionChange?: (ids: Set<string>) => void;
 }
 
 export const SportiviTable: React.FC<SportiviTableProps> = (props) => {
-  const { sportivi, grupe, grade, onRowClick, onEdit, onOpenWallet, onOpenAccountSettings, onDelete, requestSort, sortConfig, searchTerm, onSearchChange } = props;
+  const { sportivi, grupe, grade, onRowClick, onEdit, onOpenWallet, onOpenAccountSettings, onDelete, requestSort, sortConfig, searchTerm, onSearchChange, selectedIds, onSelectionChange } = props;
+
+  const allSelected = sportivi.length > 0 && sportivi.every(s => selectedIds?.has(s.id));
+
+  const toggleAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!onSelectionChange) return;
+    if (e.target.checked) {
+      onSelectionChange(new Set(sportivi.map(s => s.id)));
+    } else {
+      onSelectionChange(new Set());
+    }
+  };
+
+  const toggleOne = (id: string, checked: boolean) => {
+    if (!onSelectionChange || !selectedIds) return;
+    const next = new Set(selectedIds);
+    if (checked) next.add(id); else next.delete(id);
+    onSelectionChange(next);
+  };
 
   const columns: Column<Sportiv>[] = [
+    ...(onSelectionChange ? [{
+        key: 'select',
+        label: '',
+        headerClassName: 'w-10',
+        cellClassName: 'w-10',
+        renderHeader: () => (
+            <input type="checkbox" checked={allSelected} onChange={toggleAll}
+                className="w-4 h-4 rounded border-slate-600 bg-slate-700 text-brand-primary cursor-pointer" />
+        ),
+        render: (s: Sportiv) => (
+            <div onClick={e => e.stopPropagation()}>
+                <input type="checkbox" checked={selectedIds?.has(s.id) ?? false}
+                    onChange={e => toggleOne(s.id, e.target.checked)}
+                    className="w-4 h-4 rounded border-slate-600 bg-slate-700 text-brand-primary cursor-pointer" />
+            </div>
+        ),
+    } as Column<Sportiv>] : []),
     {
         key: 'nume',
         label: 'Nume Complet',

@@ -9,6 +9,7 @@ export interface Column<T> {
     key: string;
     label: string;
     render?: (item: T) => React.ReactNode;
+    renderHeader?: () => React.ReactNode;
     headerClassName?: string;
     cellClassName?: string;
     className?: string; // For responsive utilities
@@ -122,7 +123,7 @@ export function ResponsiveTable<T>({
                                             onSort?.(String(col.key), e.shiftKey);
                                         }}
                                     >
-                                        {col.label} {(() => {
+                                        {col.renderHeader ? col.renderHeader() : col.label} {!col.renderHeader && (() => {
                                                 if (!sortConfig) return '';
                                                 const configs = Array.isArray(sortConfig) ? sortConfig : [sortConfig];
                                                 const config = configs.find(c => c.key === String(col.key));

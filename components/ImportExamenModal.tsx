@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Papa from 'papaparse';
 import { supabase } from '../supabaseClient';
 import { Grad, User, Sportiv, SesiuneExamen, Locatie } from '../types';
-import { ExclamationTriangleIcon, CheckCircleIcon, DocumentArrowDownIcon, XCircleIcon, UserPlusIcon, ChevronDownIcon } from './icons';
+import { ExclamationTriangleIcon, CheckCircleIcon, DocumentArrowDownIcon, XCircleIcon, UserPlusIcon, ChevronDownIcon, BookOpenIcon, ClipboardCheckIcon } from './icons';
 import { useError } from './ErrorProvider';
 import { Modal, Button, Input, Select } from './ui';
 import { ResponsiveTable, Column } from './ResponsiveTable';
@@ -18,16 +18,42 @@ interface ImportExamenModalProps {
     setSesiuni: React.Dispatch<React.SetStateAction<SesiuneExamen[]>>;
 }
 
+type CsvFormat = 'own' | 'grila' | 'federatie';
+
 interface CsvRow {
     Nume: string;
     Prenume: string;
-    CNP: string;
     Grad_Nou_Ordine: string;
     Rezultat: 'Admis' | 'Respins' | 'Neprezentat';
     Contributie: string;
     Data_Examen: string;
     Sesiune_Denumire: string;
     Localitate: string;
+}
+
+interface GrilaRow {
+    Nr?: string;
+    NUME: string;
+    PRENUME: string;
+    Club?: string;
+    'Grad sustinut': string;
+    Tehnica?: string;
+    'Doc/Luyen'?: string;
+    'Song/Doi'?: string;
+    'Thao/Quyen'?: string;
+    'Nota generala'?: string;
+    [key: string]: string | undefined;
+}
+
+interface FederatieRow {
+    Nr?: string;
+    NUME: string;
+    PRENUME: string;
+    'Gradul sustinut': string;
+    'Admis/Respins': string;
+    Contributia?: string;
+    Obs?: string;
+    [key: string]: string | undefined;
 }
 
 interface BirthdateRow {
@@ -69,6 +95,18 @@ const stringSimilarity = (a: string, b: string): number => {
     return union.size === 0 ? 0 : intersection.size / union.size;
 };
 
+// Normalizează orice format de dată la yyyy-mm-dd
+// Acceptă: yyyy-mm-dd, dd/mm/yyyy, d/m/yyyy, dd-mm-yyyy
+const parseDateToISO = (raw: string): string => {
+    if (!raw) return '';
+    const s = raw.trim();
+    // Deja ISO
+    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+    // dd/mm/yyyy sau d/m/yyyy sau dd-mm-yyyy
+    const m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+    if (m) return `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+    return s.slice(0, 10);
+};
 
 export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, onClose, onImportComplete, currentUser, locatii: initialLocatii, setLocatii, sesiuni: initialSesiuni, setSesiuni }) => {
     const [previewData, setPreviewData] = useState<PreviewRow[]>([]);
@@ -79,6 +117,12 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
     
     const [examFile, setExamFile] = useState<File | null>(null);
     const [birthdateFile, setBirthdateFile] = useState<File | null>(null);
+    const [csvFormat, setCsvFormat] = useState<CsvFormat>('own');
+    const [sessionOverride, setSessionOverride] = useState({ data: '', sesiune_denumire: '', localitate: '' });
+    const [ghidOpen, setGhidOpen] = useState(true);
+    const [downloadingRef, setDownloadingRef] = useState(false);
+    const [copiedFormula, setCopiedFormula] = useState(false);
+    const [importProgress, setImportProgress] = useState<{ done: number; total: number } | null>(null);
 
     useEffect(() => {
         if (isOpen) {
@@ -93,30 +137,103 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
             setErrorLog(null);
             setExamFile(null);
             setBirthdateFile(null);
+            setImportProgress(null);
         }
     }, [isOpen, showError]);
 
-    const downloadTemplate = () => {
-        const csvData = Papa.unparse([{ Nume: "Popescu", Prenume: "Ion", CNP: "1800101123456", Grad_Nou_Ordine: "2", Rezultat: "Admis", Contributie: "100", Data_Examen: new Date().toISOString().split('T')[0], Sesiune_Denumire: "Examen Iarna", Localitate: "Iasi" }]);
-        const blob = new Blob([`\uFEFF${csvData}`], { type: 'text/csv;charset=utf-8;' });
+    const downloadReferenceFile = async () => {
+        if (!supabase) return;
+        setDownloadingRef(true);
+        const { data, error } = await supabase
+            .from('vedere_cluburi_sportivi')
+            .select('id, nume, prenume, data_nasterii, grad_actual_id')
+            .order('nume');
+        setDownloadingRef(false);
+        if (error) { showError('Eroare', error.message); return; }
+        const rows = (data || []).map(s => {
+            const grad = grades.find(g => g.id === s.grad_actual_id);
+            return {
+                ID: s.id,
+                Nume: s.nume,
+                Prenume: s.prenume,
+                Data_Nasterii: s.data_nasterii ? String(s.data_nasterii).slice(0, 10) : '',
+                Grad_Actual: grad?.nume || '',
+            };
+        });
+        const csv = Papa.unparse(rows);
+        const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
+        const link = document.createElement('a');
         link.href = url;
-        link.setAttribute("download", "model_import_bulk_examen.csv");
+        link.setAttribute('download', 'referinta_sportivi.csv');
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        
-        // Template for birthdates
-        const birthCsv = Papa.unparse([{ Nume: "Popescu", Prenume: "Ion", Data_Nasterii: "2010-05-20" }]);
-        const bBlob = new Blob([`\uFEFF${birthCsv}`], { type: 'text/csv;charset=utf-8;' });
-        const bUrl = URL.createObjectURL(bBlob);
-        const bLink = document.createElement("a");
-        bLink.href = bUrl;
-        bLink.setAttribute("download", "model_date_nastere.csv");
-        document.body.appendChild(bLink);
-        bLink.click();
-        document.body.removeChild(bLink);
+        URL.revokeObjectURL(url);
+    };
+
+    // Matches a grade name/level string to a grade ordine number
+    const findGradeOrdine = (gradName: string): string => {
+        if (!gradName) return '';
+        const normalized = gradName.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        // Try exact match first
+        const exact = grades.find(g => g.nume.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") === normalized);
+        if (exact) return String(exact.ordine);
+        // Try numeric ordine directly (e.g. "3")
+        const asNum = parseInt(gradName.trim(), 10);
+        if (!isNaN(asNum) && grades.some(g => g.ordine === asNum)) return String(asNum);
+        // Fuzzy: find best similarity
+        let best = { score: 0, ordine: '' };
+        for (const g of grades) {
+            const score = stringSimilarity(normalized, g.nume.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""));
+            if (score > best.score) best = { score, ordine: String(g.ordine) };
+        }
+        return best.score > 0.5 ? best.ordine : '';
+    };
+
+    const NOTA_PROMOVARE = 7;
+    const PROBE_GRILA = ['Tehnica', 'Doc/Luyen', 'Song/Doi', 'Thao/Quyen', 'Nota generala'] as const;
+
+    const mapGrilaToCsvRow = (row: GrilaRow): CsvRow => {
+        // Verifică fiecare probă: dacă nu e introdusă, se consideră nota de promovare (7)
+        // Dacă orice probă introdusă < 7 → Respins
+        let rezultat: CsvRow['Rezultat'] = 'Admis';
+        for (const proba of PROBE_GRILA) {
+            const raw = row[proba];
+            if (raw !== undefined && raw.trim() !== '') {
+                const nota = parseFloat(raw);
+                if (!isNaN(nota) && nota < NOTA_PROMOVARE) {
+                    rezultat = 'Respins';
+                    break;
+                }
+            }
+            // dacă e goală → 7 implicit → trece
+        }
+        return {
+            Nume: row.NUME || '',
+            Prenume: row.PRENUME || '',
+            Grad_Nou_Ordine: findGradeOrdine(row['Grad sustinut'] || ''),
+            Rezultat: rezultat,
+            Contributie: '0',
+            Data_Examen: sessionOverride.data,
+            Sesiune_Denumire: sessionOverride.sesiune_denumire,
+            Localitate: sessionOverride.localitate,
+        };
+    };
+
+    const mapFederatieToCsvRow = (row: FederatieRow): CsvRow => {
+        const admisRaw = (row['Admis/Respins'] || '').trim().toLowerCase();
+        const rezultat: CsvRow['Rezultat'] = admisRaw === 'admis' ? 'Admis' : admisRaw === 'respins' ? 'Respins' : 'Neprezentat';
+        return {
+            Nume: row.NUME || '',
+            Prenume: row.PRENUME || '',
+            Grad_Nou_Ordine: findGradeOrdine(row['Gradul sustinut'] || ''),
+            Rezultat: rezultat,
+            Contributie: (row.Contributia || '0').replace(/[^0-9.]/g, ''),
+            Data_Examen: sessionOverride.data,
+            Sesiune_Denumire: sessionOverride.sesiune_denumire,
+            Localitate: sessionOverride.localitate,
+        };
     };
 
     const handleProcessFiles = async () => {
@@ -125,7 +242,13 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
             showError("Grade indisponibile", "Lista de grade nu a putut fi încărcată. Reîncarcă pagina și încearcă din nou.");
             return;
         }
-        
+        if (csvFormat !== 'own') {
+            if (!sessionOverride.data || !sessionOverride.sesiune_denumire || !sessionOverride.localitate) {
+                showError("Date sesiune lipsă", "Pentru acest format trebuie să completezi Data, Denumirea sesiunii și Localitatea.");
+                return;
+            }
+        }
+
         setIsProcessing(true);
         setPreviewData([]);
         setErrorLog(null);
@@ -147,7 +270,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                                 birthdateRecords.push({
                                     normalizedName: normalized,
                                     originalName: fullName,
-                                    birthdate: row.Data_Nasterii.trim()
+                                    birthdate: parseDateToISO(row.Data_Nasterii)
                                 });
                             }
                         });
@@ -158,11 +281,23 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
         }
 
         // 2. Parse Exam File
-        Papa.parse<CsvRow>(examFile, {
+        Papa.parse<any>(examFile, {
             header: true,
             skipEmptyLines: true,
             complete: async (results) => {
-                const processed = await validateData(results.data, birthdateRecords);
+                let rows: CsvRow[];
+                if (csvFormat === 'grila') {
+                    rows = (results.data as GrilaRow[])
+                        .filter(r => r.NUME && r.PRENUME)
+                        .map(mapGrilaToCsvRow);
+                } else if (csvFormat === 'federatie') {
+                    rows = (results.data as FederatieRow[])
+                        .filter(r => r.NUME && r.PRENUME)
+                        .map(mapFederatieToCsvRow);
+                } else {
+                    rows = results.data as CsvRow[];
+                }
+                const processed = await validateData(rows, birthdateRecords);
                 setPreviewData(processed);
                 setIsProcessing(false);
             }
@@ -232,15 +367,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                 return { ...baseRow, status: 'error', message: `Cod Grad invalid: ${row.Grad_Nou_Ordine}`, sessionInfo, birthdate };
             }
 
-            const providedCnp = String(row.CNP || '').trim();
-            if (providedCnp) {
-                const cnpMatch = (allSportivi || []).find(s => s.cnp && String(s.cnp).trim() === providedCnp);
-                if (cnpMatch) {
-                    return { ...baseRow, status: 'valid', message: `Găsit (CNP): ${cnpMatch.nume} ${cnpMatch.prenume}`, existingSportiv: cnpMatch, sessionInfo, birthdate };
-                }
-            }
-            
-            // Fuzzy match if CNP fails or is missing
+            // Potrivire după Nume + Prenume (+ Data Nașterii dacă e disponibilă)
             const fullNameCsv = `${row.Nume} ${row.Prenume}`;
             const potentialMatches = (allSportivi || [])
                 .map(s => ({ ...s, similarity: stringSimilarity(fullNameCsv, `${s.nume} ${s.prenume}`) }))
@@ -249,65 +376,106 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                 .slice(0, 3);
             
             if (potentialMatches.length > 0) {
-                // Check for exact birthdate match if available
-                const exactBirthdateMatch = birthdate ? potentialMatches.find(s => s.data_nasterii === birthdate) : null;
-                
-                if (exactBirthdateMatch) {
-                     return { 
-                        ...baseRow, 
-                        status: 'conflict', 
-                        message: 'Potrivire Nume + Data Nașterii', 
-                        conflicts: [exactBirthdateMatch, ...potentialMatches.filter(p => p.id !== exactBirthdateMatch.id)], 
-                        sessionInfo, 
-                        birthdate 
+                const exactBirthdateMatch = birthdate
+                    ? potentialMatches.find(s => parseDateToISO(String(s.data_nasterii || '')) === parseDateToISO(birthdate))
+                    : null;
+
+                // Auto-resolve: nume similar + data nașterii identică → valid fără intervenție manuală
+                if (exactBirthdateMatch && exactBirthdateMatch.similarity >= 0.7) {
+                    return {
+                        ...baseRow,
+                        status: 'valid',
+                        message: `Auto-potrivit (Nume + Data Nașterii): ${exactBirthdateMatch.nume} ${exactBirthdateMatch.prenume}`,
+                        existingSportiv: exactBirthdateMatch,
+                        sessionInfo,
+                        birthdate,
                     };
                 }
 
-                return { ...baseRow, status: 'conflict', message: 'Potriviri nume găsite', conflicts: potentialMatches, sessionInfo, birthdate };
-            }
-            
-            // Create new sportiv - generate a fallback code in case the RPC doesn't exist
-            let generatedCode = `${new Date(row.Data_Examen).getFullYear()}-${(row.Nume || '').substring(0, 3).toUpperCase()}${(row.Prenume || '').substring(0, 3).toUpperCase()}-${Math.floor(Math.random() * 1000)}`;
-            try {
-                const { data: codeData, error: codeError } = await supabase.rpc('generate_sportiv_code', { p_an: new Date(row.Data_Examen).getFullYear(), p_nume: row.Nume, p_prenume: row.Prenume });
-                if (!codeError && codeData) generatedCode = codeData;
-            } catch (e) {
-                // Use fallback generatedCode
+                // Potrivire exactă de nume (similarity = 1) fără dată → valid automat
+                if (potentialMatches[0].similarity === 1) {
+                    return {
+                        ...baseRow,
+                        status: 'valid',
+                        message: `Găsit (Nume exact): ${potentialMatches[0].nume} ${potentialMatches[0].prenume}`,
+                        existingSportiv: potentialMatches[0],
+                        sessionInfo,
+                        birthdate,
+                    };
+                }
+
+                // Altfel → conflict manual
+                return { ...baseRow, status: 'conflict', message: 'Potriviri similare — alege sportivul corect', conflicts: potentialMatches, sessionInfo, birthdate };
             }
 
-            return { ...baseRow, status: 'create', message: `Va fi creat (Cod: ${generatedCode})`, generatedCode, sessionInfo, birthdate };
+            // Niciun sportiv găsit → va fi creat automat
+            return { ...baseRow, status: 'create', message: `Sportiv nou — va fi creat și înregistrat la examen`, generatedCode: undefined, sessionInfo, birthdate };
         });
 
         return Promise.all(validationPromises);
     }, [grades, showError, initialSesiuni]);
 
+    const BATCH_SIZE = 10; // cereri paralele simultane
+
     const confirmImport = async () => {
         setIsProcessing(true);
         setErrorLog(null);
+        setImportProgress(null);
         let localLocatii = [...initialLocatii];
         let localSesiuni = [...initialSesiuni];
         const createdSessionIds = new Map<string, string>();
-        let successCount = 0, errorCount = 0;
-        const errorDetails: { row: number, name: string, error: string }[] = [];
+        let successCount = 0;
+        const errorDetails: { row: number; name: string; error: string }[] = [];
 
-        const rowsToProcess = previewData.filter(r => r.status === 'valid' || r.status === 'create' || r.status === 'resolved');
+        const rowsToProcess = previewData.filter(
+            r => r.status === 'valid' || r.status === 'create' || r.status === 'resolved'
+        );
+        setImportProgress({ done: 0, total: rowsToProcess.length });
 
         try {
-            // Pas 1: Creare Sesiuni & Locatii
+            // ── Pas 1: Creare sesiuni & locații ──────────────────────────────
             const newSessionsToCreate = new Map<string, PreviewRow['sessionInfo']>();
-            rowsToProcess.forEach(row => { if (row.sessionInfo.isNew && !newSessionsToCreate.has(row.sessionInfo.key)) newSessionsToCreate.set(row.sessionInfo.key, row.sessionInfo); });
+            rowsToProcess.forEach(row => {
+                if (row.sessionInfo.isNew && !newSessionsToCreate.has(row.sessionInfo.key))
+                    newSessionsToCreate.set(row.sessionInfo.key, row.sessionInfo);
+            });
 
             for (const [key, sessionInfo] of newSessionsToCreate.entries()) {
-                let locatie = localLocatii.find(l => l.nume.toLowerCase() === sessionInfo.localitate.toLowerCase());
+                // Locație
+                let locatie = localLocatii.find(
+                    l => l.nume.toLowerCase() === sessionInfo.localitate.toLowerCase()
+                );
                 if (!locatie) {
-                    const { data: newLoc, error: locError } = await supabase.from('nom_locatii').insert({ nume: sessionInfo.localitate }).select().maybeSingle();
+                    const { data: newLoc, error: locError } = await supabase
+                        .from('nom_locatii')
+                        .insert({ nume: sessionInfo.localitate })
+                        .select()
+                        .maybeSingle();
                     if (locError) throw new Error(`Nu s-a putut crea locația '${sessionInfo.localitate}': ${locError.message}`);
                     if (!newLoc) throw new Error(`Nu s-a putut crea locația '${sessionInfo.localitate}'.`);
                     locatie = newLoc;
                     localLocatii.push(newLoc);
                 }
-                const clubId = currentUser.club_id || null;
-                const { data: newSes, error: sesError } = await supabase.from('sesiuni_examene').insert({ data: sessionInfo.dataExamen, locatie_id: locatie.id, club_id: clubId, comisia: [], status: 'Programat', nume: sessionInfo.sesiuneDenumire?.includes('Iarna') ? 'Iarna' : 'Vara' }).select().maybeSingle();
+                // Sesiune — verifică din nou în DB după dată + denumire (fix: nu doar dată)
+                const existingCheck = localSesiuni.find(
+                    s => s.data === sessionInfo.dataExamen && s.nume === sessionInfo.sesiuneDenumire
+                );
+                if (existingCheck) {
+                    createdSessionIds.set(key, existingCheck.id);
+                    continue;
+                }
+                const { data: newSes, error: sesError } = await supabase
+                    .from('sesiuni_examene')
+                    .insert({
+                        data: sessionInfo.dataExamen,
+                        locatie_id: locatie.id,
+                        club_id: currentUser.club_id || null,
+                        comisia: [],
+                        status: 'Programat',
+                        nume: sessionInfo.sesiuneDenumire,
+                    })
+                    .select()
+                    .maybeSingle();
                 if (sesError) throw new Error(`Nu s-a putut crea sesiunea '${sessionInfo.sesiuneDenumire}': ${sesError.message}`);
                 if (!newSes) throw new Error(`Nu s-a putut crea sesiunea '${sessionInfo.sesiuneDenumire}'.`);
                 createdSessionIds.set(key, newSes.id);
@@ -316,53 +484,64 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
             setLocatii(localLocatii);
             setSesiuni(localSesiuni);
 
-            // Pas 2: Procesare Rânduri
-            for (const row of rowsToProcess) {
-                const action = row.resolution?.action || (row.status === 'valid' ? 'use_existing' : 'create');
-                const sportivId = action === 'use_existing' ? ((row.resolution as any)?.sportivId || row.existingSportiv?.id) : null;
-                const sessionId = row.sessionInfo.existingSessionId || createdSessionIds.get(row.sessionInfo.key);
-                if (!sessionId) throw new Error(`ID-ul sesiunii pentru ${row.Nume} ${row.Prenume} nu a putut fi determinat.`);
+            // ── Pas 2: Procesare în batch-uri paralele ────────────────────────
+            let done = 0;
+            for (let i = 0; i < rowsToProcess.length; i += BATCH_SIZE) {
+                const batch = rowsToProcess.slice(i, i + BATCH_SIZE);
 
-                try {
-                    // Use v3 which supports birthdate
-                    const gradOrdine = parseInt(row.Grad_Nou_Ordine);
-                    if (isNaN(gradOrdine)) throw new Error(`Grad_Nou_Ordine invalid: "${row.Grad_Nou_Ordine}"`);
-                    const { error: rpcError } = await supabase.rpc('process_exam_row_v3', {
-                        p_nume: row.Nume,
-                        p_prenume: row.Prenume,
-                        p_cnp: (row.CNP || '').trim(),
-                        p_cod_sportiv: null,
-                        p_existing_sportiv_id: sportivId,
-                        p_club_id: currentUser.club_id || null,
-                        p_ordine_grad: gradOrdine,
-                        p_rezultat: row.Rezultat,
-                        p_contributie: parseFloat(row.Contributie) || 0,
-                        p_data_examen: row.Data_Examen,
-                        p_sesiune_id: sessionId,
-                        p_data_nasterii: row.birthdate || null
-                    });
-                    if (rpcError) throw rpcError;
-                    successCount++;
-                } catch (err: unknown) {
-                    errorCount++;
-                    const errorMessage = err instanceof Error ? err.message : String(err);
-                    errorDetails.push({ row: row.originalIndex + 1, name: `${row.Nume} ${row.Prenume}`, error: errorMessage });
-                }
+                await Promise.all(batch.map(async (row) => {
+                    const action = row.resolution?.action || (row.status === 'valid' ? 'use_existing' : 'create');
+                    const sportivId = action === 'use_existing'
+                        ? ((row.resolution as any)?.sportivId || row.existingSportiv?.id)
+                        : null;
+                    const sessionId = row.sessionInfo.existingSessionId || createdSessionIds.get(row.sessionInfo.key);
+                    if (!sessionId) {
+                        errorDetails.push({ row: row.originalIndex + 1, name: `${row.Nume} ${row.Prenume}`, error: 'ID sesiune nedeterminat.' });
+                        return;
+                    }
+                    try {
+                        const gradOrdine = parseInt(row.Grad_Nou_Ordine);
+                        if (isNaN(gradOrdine)) throw new Error(`Grad invalid: "${row.Grad_Nou_Ordine}"`);
+                        const { error: rpcError } = await supabase.rpc('process_exam_row_v4', {
+                            p_nume: row.Nume,
+                            p_prenume: row.Prenume,
+                            p_cnp: '',
+                            p_existing_sportiv_id: sportivId,
+                            p_club_id: currentUser.club_id || null,
+                            p_ordine_grad: gradOrdine,
+                            p_rezultat: row.Rezultat,
+                            p_contributie: parseFloat(row.Contributie) || 0,
+                            p_data_examen: row.Data_Examen,
+                            p_sesiune_id: sessionId,
+                            p_data_nasterii: row.birthdate || null,
+                        });
+                        if (rpcError) throw rpcError;
+                        successCount++;
+                    } catch (err: unknown) {
+                        const msg = err instanceof Error ? err.message : String(err);
+                        errorDetails.push({ row: row.originalIndex + 1, name: `${row.Nume} ${row.Prenume}`, error: msg });
+                    }
+                }));
+
+                done += batch.length;
+                setImportProgress({ done, total: rowsToProcess.length });
             }
+
         } catch (err: unknown) {
-            const errorMessage = err instanceof Error ? err.message : String(err);
-            setErrorLog({ general: errorMessage });
-            showError("Eroare Critică de Import", errorMessage);
+            const msg = err instanceof Error ? err.message : String(err);
+            setErrorLog({ general: msg });
+            showError('Eroare Critică de Import', msg);
         } finally {
             setIsProcessing(false);
-            if (errorCount > 0) {
-                setErrorLog({ general: "Erori la procesarea rândurilor.", details: errorDetails });
-                showError(`Import finalizat cu ${errorCount} erori`, `${successCount} procesate. Verificați panoul de debug.`);
-            } else if (!errorLog) {
+            setImportProgress(null);
+            if (errorDetails.length > 0) {
+                setErrorLog({ general: 'Erori la procesarea unor rânduri.', details: errorDetails });
+                showError(`Import finalizat cu ${errorDetails.length} erori`, `${successCount} procesate cu succes.`);
+            } else {
                 showSuccess('Import Finalizat', `${successCount} înregistrări procesate cu succes.`);
+                onImportComplete();
+                onClose();
             }
-            onImportComplete();
-            if (errorCount === 0 && !errorLog) onClose();
         }
     };
 
@@ -390,6 +569,23 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
             render: (row) => <span className="text-xs text-slate-400">{row.birthdate || '-'}</span>
         },
         {
+            key: 'Grad_Nou_Ordine',
+            label: 'Grad',
+            render: (row) => {
+                const grad = grades.find(g => String(g.ordine) === String(row.Grad_Nou_Ordine));
+                return <span className="text-xs text-slate-300">{grad ? `${grad.nume} (${grad.ordine})` : <span className="text-red-400">Negăsit: {row.Grad_Nou_Ordine}</span>}</span>;
+            }
+        },
+        {
+            key: 'Rezultat',
+            label: 'Rezultat',
+            render: (row) => (
+                <span className={`text-xs font-bold ${row.Rezultat === 'Admis' ? 'text-green-400' : row.Rezultat === 'Respins' ? 'text-red-400' : 'text-slate-400'}`}>
+                    {row.Rezultat}
+                </span>
+            )
+        },
+        {
             key: 'Sesiune_Denumire',
             label: 'Sesiune',
             render: (row) => <span className="text-xs text-slate-400">{row.Sesiune_Denumire}</span>
@@ -410,14 +606,22 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
         }
     ];
 
-    const renderMobileItem = (row: PreviewRow) => (
+    const renderMobileItem = (row: PreviewRow) => {
+        const grad = grades.find(g => String(g.ordine) === String(row.Grad_Nou_Ordine));
+        return (
         <div className={`mb-4 p-4 rounded-lg border-l-4 bg-slate-800/50 ${row.status === 'valid' || row.status === 'resolved' || row.status === 'create' ? 'border-green-500' : row.status === 'conflict' ? 'border-amber-500' : 'border-red-500'}`}>
             <div className="flex justify-between items-start mb-2">
                 <div>
                     <p className="font-bold text-white text-lg">{row.Nume} {row.Prenume}</p>
                     <p className="text-sm text-slate-400">Data N.: {row.birthdate || '-'}</p>
                 </div>
+                <span className={`text-xs font-bold px-2 py-0.5 rounded ${row.Rezultat === 'Admis' ? 'bg-green-900/50 text-green-400' : row.Rezultat === 'Respins' ? 'bg-red-900/50 text-red-400' : 'bg-slate-700 text-slate-400'}`}>
+                    {row.Rezultat}
+                </span>
             </div>
+            <p className="text-xs text-slate-300 mb-1">
+                Grad: {grad ? <strong>{grad.nume}</strong> : <span className="text-red-400">Negăsit ({row.Grad_Nou_Ordine})</span>}
+            </p>
             <p className="text-sm text-slate-400 mb-2">Sesiune: {row.Sesiune_Denumire}</p>
             
             <div className="mt-2">
@@ -432,7 +636,8 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                 )}
             </div>
         </div>
-    );
+        );
+    };
 
     const unresolvedConflicts = previewData.some(r => r.status === 'conflict');
     const importableRowsCount = previewData.filter(r => r.status === 'valid' || r.status === 'create' || r.status === 'resolved').length;
@@ -440,24 +645,140 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Import Bulk Rezultate Examen">
             <div className="space-y-6">
-                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                    <h2 className="text-xl font-bold">Pasul 1: Pregătește fișierele</h2>
-                    <Button onClick={downloadTemplate} variant="secondary" size="sm"><DocumentArrowDownIcon size={18} className="mr-2"/> Modele CSV</Button>
+
+                {/* ── Ghid de import ── */}
+                <div className="border border-slate-700 rounded-lg overflow-hidden">
+                    <button
+                        type="button"
+                        onClick={() => setGhidOpen(p => !p)}
+                        className="w-full flex items-center justify-between px-4 py-3 bg-slate-800 hover:bg-slate-700 text-left"
+                    >
+                        <span className="flex items-center gap-2 font-semibold text-brand-secondary">
+                            <BookOpenIcon className="w-5 h-5" /> Ghid de pregătire import
+                        </span>
+                        <ChevronDownIcon className={`w-4 h-4 text-slate-400 transition-transform ${ghidOpen ? 'rotate-180' : ''}`} />
+                    </button>
+
+                    {ghidOpen && (
+                        <div className="p-5 space-y-5 bg-slate-900/50 text-sm">
+
+                            {/* Pași */}
+                            <div>
+                                <h3 className="font-bold text-white mb-2">Cum pregătești fișierul CSV</h3>
+                                <ol className="space-y-1 list-decimal pl-5 text-slate-300">
+                                    <li>Descarcă <strong>Lista de referință sportivi</strong> (butonul de mai jos) — conține ID, Nume, Prenume, Data Nașterii și Grad Actual.</li>
+                                    <li>Deschide lista în Excel. Salvează foaia ca <code className="bg-slate-800 px-1 rounded">Referinta</code> în același fișier cu grila de examen.</li>
+                                    <li>În coloana <strong>ID</strong> din grilă, lipește formula de mai jos — caută automat ID-ul după <em>Nume + Prenume + Data Nașterii</em>.</li>
+                                    <li>Coloana <strong>Data Nașterii</strong> trebuie să fie în format <code className="bg-slate-800 px-1 rounded">yyyy-mm-dd</code> (ex: <code className="bg-slate-800 px-1 rounded">2010-05-20</code>). Dacă Excel o afișează altfel, formatează coloana ca <strong>Text</strong> înainte de export CSV.</li>
+                                    <li>Gradul trebuie scris <strong>exact ca în tabelul de mai jos</strong> — sau folosește numărul de ordine.</li>
+                                    <li>Exportă ca <code className="bg-slate-800 px-1 rounded">.csv</code> și încarcă mai jos.</li>
+                                </ol>
+                            </div>
+
+                            {/* Referință sportivi */}
+                            <div className="flex items-center justify-between bg-slate-800 rounded-lg p-3">
+                                <div>
+                                    <p className="font-semibold text-white">Lista de referință sportivi</p>
+                                    <p className="text-xs text-slate-400">CSV cu: ID, Nume, Prenume, Data_Nasterii, Grad_Actual</p>
+                                </div>
+                                <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    onClick={downloadReferenceFile}
+                                    isLoading={downloadingRef}
+                                    disabled={grades.length === 0}
+                                >
+                                    <DocumentArrowDownIcon className="w-4 h-4 mr-1" /> Descarcă
+                                </Button>
+                            </div>
+
+                            {/* Formula Excel */}
+                            <div>
+                                <h3 className="font-bold text-white mb-1">Formula Excel pentru extragerea ID-ului</h3>
+                                <p className="text-xs text-slate-400 mb-2">
+                                    Dacă în grila ta <strong>A2=Nume, B2=Prenume, C2=Data_Nasterii</strong>, pune formula în coloana ID:
+                                </p>
+                                <div className="flex items-start gap-2">
+                                    <pre className="flex-1 bg-slate-950 border border-slate-700 rounded p-3 text-xs text-green-400 font-mono whitespace-pre-wrap overflow-x-auto">
+{`=IFERROR(
+  INDEX(Referinta!$A:$A,
+    MATCH(A2&"|"&B2&"|"&TEXT(C2,"YYYY-MM-DD"),
+          Referinta!$B:$B&"|"&Referinta!$C:$C&"|"&TEXT(Referinta!$D:$D,"YYYY-MM-DD"),
+          0)
+  ),
+  "NEGĂSIT"
+)`}
+                                    </pre>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            navigator.clipboard.writeText(
+                                                `=IFERROR(INDEX(Referinta!$A:$A,MATCH(A2&"|"&B2&"|"&TEXT(C2,"YYYY-MM-DD"),Referinta!$B:$B&"|"&Referinta!$C:$C&"|"&TEXT(Referinta!$D:$D,"YYYY-MM-DD"),0)),"NEGĂSIT")`
+                                            );
+                                            setCopiedFormula(true);
+                                            setTimeout(() => setCopiedFormula(false), 2000);
+                                        }}
+                                        className="flex-shrink-0 flex items-center gap-1 px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white"
+                                        title="Copiază formula"
+                                    >
+                                        <ClipboardCheckIcon className="w-4 h-4" />
+                                        {copiedFormula ? 'Copiat!' : 'Copiază'}
+                                    </button>
+                                </div>
+                                <p className="text-xs text-slate-500 mt-1">
+                                    ⚠️ În Excel 365 apasă <kbd className="bg-slate-700 px-1 rounded">Enter</kbd> direct. În Excel mai vechi (pre-2019) apasă <kbd className="bg-slate-700 px-1 rounded">Ctrl+Shift+Enter</kbd>.
+                                </p>
+                            </div>
+
+                            {/* Tabel grade */}
+                            <div>
+                                <h3 className="font-bold text-white mb-2">Grade valide (scrieți exact această denumire în CSV)</h3>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                                    {grades.map(g => (
+                                        <div key={g.id} className="flex items-center gap-2 bg-slate-800 rounded px-3 py-1.5">
+                                            <span className="text-xs font-mono text-brand-secondary w-4 text-right">{g.ordine}</span>
+                                            <span className="text-xs text-white">{g.nume}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                                <p className="text-xs text-slate-500 mt-2">Coloana din CSV: <code className="bg-slate-800 px-1 rounded">Grad sustinut</code> (Format Grilă) sau <code className="bg-slate-800 px-1 rounded">Gradul sustinut</code> (Format Federație). Numărul din coloana <strong>Ord.</strong> poate fi folosit direct în loc de denumire.</p>
+                            </div>
+
+                        </div>
+                    )}
                 </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Input 
-                        type="file" 
-                        onChange={(e) => setExamFile(e.target.files?.[0] || null)} 
-                        accept=".csv" 
-                        label="Pasul 2a: Fișier Examen (Obligatoriu)" 
-                    />
-                    <Input 
-                        type="file" 
-                        onChange={(e) => setBirthdateFile(e.target.files?.[0] || null)} 
-                        accept=".csv" 
-                        label="Pasul 2b: Fișier Date Naștere (Opțional)" 
-                    />
+
+                <div className="space-y-4">
+                    <Select
+                        label="Format fișier CSV"
+                        value={csvFormat}
+                        onChange={e => { setCsvFormat(e.target.value as CsvFormat); setExamFile(null); setPreviewData([]); }}
+                    >
+                        <option value="own">Format Propriu</option>
+                        <option value="grila">Format Grilă Examen</option>
+                        <option value="federatie">Format Tabel Federație</option>
+                    </Select>
+
+                    {csvFormat !== 'own' && (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+                            <p className="md:col-span-3 text-xs text-slate-400 font-semibold">Detalii sesiune (nu sunt în CSV-ul extern):</p>
+                            <Input label="Data Examenului *" type="date" value={sessionOverride.data}
+                                onChange={e => setSessionOverride(p => ({ ...p, data: e.target.value }))} />
+                            <Input label="Denumire Sesiune *" value={sessionOverride.sesiune_denumire}
+                                onChange={e => setSessionOverride(p => ({ ...p, sesiune_denumire: e.target.value }))}
+                                placeholder="ex: Examen Iarnă 2026" />
+                            <Input label="Localitate *" value={sessionOverride.localitate}
+                                onChange={e => setSessionOverride(p => ({ ...p, localitate: e.target.value }))}
+                                placeholder="ex: Iași" />
+                        </div>
+                    )}
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <Input type="file" accept=".csv" label="Fișier Examen (Obligatoriu)"
+                            onChange={(e) => setExamFile(e.target.files?.[0] || null)} />
+                        <Input type="file" accept=".csv" label="Fișier Date Naștere (Opțional)"
+                            onChange={(e) => setBirthdateFile(e.target.files?.[0] || null)} />
+                    </div>
                 </div>
 
                 <div className="flex justify-end">
@@ -473,7 +794,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                 
                 {previewData.length > 0 && (
                     <div className="space-y-4 animate-fade-in-down">
-                        <h2 className="text-xl font-bold">Pasul 3: Previzualizare și Confirmare</h2>
+                        <h2 className="text-xl font-bold">Previzualizare și Confirmare</h2>
 
                         {/* Debug Stats Panel */}
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -483,7 +804,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                             </div>
                             <div className="bg-green-900/30 rounded-lg p-3 text-center border border-green-800">
                                 <p className="text-2xl font-bold text-green-400">{previewData.filter(r => r.status === 'valid').length}</p>
-                                <p className="text-xs text-slate-400">Găsiți (CNP/Exact)</p>
+                                <p className="text-xs text-slate-400">Găsiți (Exact)</p>
                             </div>
                             <div className="bg-amber-900/30 rounded-lg p-3 text-center border border-amber-800">
                                 <p className="text-2xl font-bold text-amber-400">{previewData.filter(r => r.status === 'conflict').length}</p>
@@ -491,7 +812,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                             </div>
                             <div className="bg-blue-900/30 rounded-lg p-3 text-center border border-blue-800">
                                 <p className="text-2xl font-bold text-blue-400">{previewData.filter(r => r.status === 'create').length}</p>
-                                <p className="text-xs text-slate-400">Sportivi Noi</p>
+                                <p className="text-xs text-slate-400">Sportivi Noi (creați automat)</p>
                             </div>
                             {previewData.filter(r => r.status === 'error').length > 0 && (
                                 <div className="bg-red-900/30 rounded-lg p-3 text-center border border-red-800 col-span-2 md:col-span-1">
@@ -518,10 +839,26 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                 )}
                 
                 {previewData.length > 0 && (
-                    <div className="flex justify-end pt-4 border-t border-slate-700">
-                        <Button onClick={confirmImport} variant="primary" size="md" isLoading={isProcessing} disabled={isProcessing || unresolvedConflicts || importableRowsCount === 0}>
-                            Importă {importableRowsCount} Înregistrări
-                        </Button>
+                    <div className="pt-4 border-t border-slate-700 space-y-3">
+                        {importProgress && (
+                            <div className="space-y-1">
+                                <div className="flex justify-between text-xs text-slate-400">
+                                    <span>Se procesează... {importProgress.done} / {importProgress.total}</span>
+                                    <span>{Math.round((importProgress.done / importProgress.total) * 100)}%</span>
+                                </div>
+                                <div className="w-full bg-slate-700 rounded-full h-2.5 overflow-hidden">
+                                    <div
+                                        className="bg-brand-primary h-2.5 rounded-full transition-all duration-300"
+                                        style={{ width: `${(importProgress.done / importProgress.total) * 100}%` }}
+                                    />
+                                </div>
+                            </div>
+                        )}
+                        <div className="flex justify-end">
+                            <Button onClick={confirmImport} variant="primary" size="md" isLoading={isProcessing && !importProgress} disabled={isProcessing || unresolvedConflicts || importableRowsCount === 0}>
+                                Importă {importableRowsCount} Înregistrări
+                            </Button>
+                        </div>
                     </div>
                 )}
 

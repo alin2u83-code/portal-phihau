@@ -33,7 +33,7 @@ export const useExamManager = (
                 const { data, error } = response;
                 if (error) throw error;
                 if (data) {
-                    const { data: viewData, error: viewError } = await supabase.from('vedere_cluburi_sesiuni_examene').select('*').eq('id', data.id).maybeSingle();
+                    const { data: viewData, error: viewError } = await supabase.from('sesiuni_examene').select('*').eq('id', data.id).maybeSingle();
                     // Fallback to inserted data if view filters it out (e.g. different club context)
                     const finalData = viewData || data;
                     setSesiuni(prev => prev.map(e => e.id === finalData.id ? finalData as SesiuneExamen : e));
@@ -45,7 +45,7 @@ export const useExamManager = (
                 const { data, error } = response;
                 if (error) throw error;
                 if (data) {
-                    const { data: viewData, error: viewError } = await supabase.from('vedere_cluburi_sesiuni_examene').select('*').eq('id', data.id).maybeSingle();
+                    const { data: viewData, error: viewError } = await supabase.from('sesiuni_examene').select('*').eq('id', data.id).maybeSingle();
                     // Fallback to inserted data if view filters it out
                     const finalData = viewData || data;
                     setSesiuni(prev => [...prev, finalData as SesiuneExamen]);

@@ -76,7 +76,7 @@ export const CalendarActivitati: React.FC<{
     const [evenimente, setEvenimente] = useState<Eveniment[]>([]);
     useEffect(() => {
         supabase
-            .from('vedere_cluburi_evenimente')
+            .from('evenimente')
             .select('*')
             .gte('data', startOfMonth)
             .lte('data', endOfMonth)

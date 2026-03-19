@@ -13,7 +13,7 @@ export const useGrupe = (contextId: string | null | undefined) => {
             const cached = getCachedData<Grupa[]>(cacheKey, 10);
             if (cached) return cached;
 
-            const { data, error } = await supabase.from('vedere_cluburi_grupe').select('*, sportivi(count), program:orar_saptamanal!grupa_id(*)');
+            const { data, error } = await supabase.from('grupe').select('*, sportivi(count), program:orar_saptamanal!grupa_id(*)');
             if (error) throw error;
             
             const result = data as Grupa[];

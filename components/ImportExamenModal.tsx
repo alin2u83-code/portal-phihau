@@ -145,7 +145,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
         if (!supabase) return;
         setDownloadingRef(true);
         const { data, error } = await supabase
-            .from('vedere_cluburi_sportivi')
+            .from('sportivi')
             .select('id, nume, prenume, data_nasterii, grad_actual_id')
             .order('nume');
         setDownloadingRef(false);
@@ -305,7 +305,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
     };
 
     const validateData = useCallback(async (data: CsvRow[], birthdateRecords: { normalizedName: string; originalName: string; birthdate: string }[]): Promise<PreviewRow[]> => {
-        const { data: allSportivi, error } = await supabase.from('vedere_cluburi_sportivi').select('*');
+        const { data: allSportivi, error } = await supabase.from('sportivi').select('*');
         if (error) { showError("Eroare la validare", error.message); return []; }
 
         const validationPromises = data.map(async (row, index): Promise<PreviewRow> => {

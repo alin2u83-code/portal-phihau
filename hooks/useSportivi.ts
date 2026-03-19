@@ -31,7 +31,7 @@ export const fetchSportiviData = async (
     }
 
     let query = supabase
-        .from('vedere_cluburi_sportivi')
+        .from('sportivi')
         .select(selectString, { count: 'exact' });
     
     if (filters.rolId) {

@@ -56,7 +56,7 @@ export const GeneralAttendanceWidget: React.FC<GeneralAttendanceWidgetProps> = (
                 }
                 
                 // RLS va filtra automat sportivii pentru clubul curent.
-                const { data: sportivi, error: sportiviError } = await supabase.from('vedere_cluburi_sportivi').select('id, grupa_id, status');
+                const { data: sportivi, error: sportiviError } = await supabase.from('sportivi').select('id, grupa_id, status');
                 if (sportiviError) throw sportiviError;
 
                 const presentIds = new Set<string>();

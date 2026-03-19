@@ -44,7 +44,7 @@ export const IstoricPrezentaGlobal: React.FC<{ onBack: () => void, onViewSportiv
     useEffect(() => {
         const loadInitial = async () => {
             setLoading(true);
-            const { data } = await supabase.from('vedere_cluburi_sportivi').select('*');
+            const { data } = await supabase.from('sportivi').select('*');
             if (data) {
                 const spMap: Record<string, Sportiv> = {};
                 data.forEach(s => spMap[s.id] = s);

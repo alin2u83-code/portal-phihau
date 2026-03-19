@@ -84,7 +84,7 @@ export const useUserRoles = (userId: string | undefined) => {
             
             if (sportivIds.length > 0) {
                 const { data: sportiviData, error: sportiviError } = await supabase
-                    .from('vedere_cluburi_sportivi')
+                    .from('sportivi')
                     .select('id, nume, prenume, user_id, email, username, club_id, familie_id, grad_actual_id')
                     .in('id', sportivIds);
                 

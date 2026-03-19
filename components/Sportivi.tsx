@@ -394,7 +394,7 @@ export const Sportivi: React.FC<{
                         <ArrowLeftIcon className="w-5 h-5 mr-2" />
                         Înapoi
                     </Button>
-                    <h1 className="text-2xl font-bold text-white uppercase tracking-tight">Management Sportivi</h1>
+                    <h1 className="text-xl md:text-2xl font-bold text-white uppercase tracking-tight">Management Sportivi</h1>
                 </div>
                 {permissions.hasAdminAccess && (
                     <div className="flex gap-2">

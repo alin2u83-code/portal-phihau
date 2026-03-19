@@ -130,15 +130,15 @@ export const CalendarActivitati: React.FC<{
 
             <Card className="overflow-hidden border-none shadow-xl bg-slate-900/40 backdrop-blur-sm">
                 {/* header */}
-                <div className="p-6 border-b border-slate-800 bg-slate-800/30">
-                    <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                <div className="p-4 md:p-6 border-b border-slate-800 bg-slate-800/30">
+                    <h2 className="text-xl md:text-2xl font-bold text-white flex items-center gap-3">
                         <CalendarDaysIcon className="w-6 h-6 text-indigo-400" />
                         Calendar Activități: <span className="text-indigo-300">{grupa.denumire}</span>
                     </h2>
                     <p className="text-slate-400 mt-1">Gestionează instanțele reale de antrenament și prezența.</p>
                 </div>
 
-                <div className="p-6 space-y-6">
+                <div className="p-4 md:p-6 space-y-6">
                     {/* controls row */}
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end p-4 bg-slate-800/20 rounded-2xl border border-slate-700/30">
                         <Input

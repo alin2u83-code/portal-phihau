@@ -62,9 +62,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
 
     return (
         <div className="space-y-6">
-            <h1 className="text-2xl font-bold text-white mb-6">Panou Administrativ</h1>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <Card className="p-6 bg-slate-900 border-slate-800 hover:border-slate-700 transition-all group">
+            <h1 className="text-xl md:text-2xl font-bold text-white mb-6">Panou Administrativ</h1>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+                <Card className="p-4 md:p-6 bg-slate-900 border-slate-800 hover:border-slate-700 transition-all group">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-medium text-slate-400">Sportivi Total</h3>
                         <div className="p-2 bg-slate-800 rounded-lg group-hover:bg-slate-700 transition-colors">
@@ -74,7 +74,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
                     <p className="text-3xl font-bold text-white">{counts?.sportivi}</p>
                 </Card>
                 
-                <Card className="p-6 bg-slate-900 border-slate-800 hover:border-slate-700 transition-all group">
+                <Card className="p-4 md:p-6 bg-slate-900 border-slate-800 hover:border-slate-700 transition-all group">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-medium text-slate-400">Plăți Înregistrate</h3>
                         <div className="p-2 bg-slate-800 rounded-lg group-hover:bg-slate-700 transition-colors">
@@ -84,7 +84,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
                     <p className="text-3xl font-bold text-white">{counts?.plati}</p>
                 </Card>
                 
-                <Card className="p-6 bg-slate-900 border-slate-800 hover:border-slate-700 transition-all group">
+                <Card className="p-4 md:p-6 bg-slate-900 border-slate-800 hover:border-slate-700 transition-all group">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-medium text-slate-400">Cluburi Active</h3>
                         <div className="p-2 bg-slate-800 rounded-lg group-hover:bg-slate-700 transition-colors">
@@ -94,7 +94,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
                     <p className="text-3xl font-bold text-white">{counts?.cluburi}</p>
                 </Card>
 
-                <Card className="p-6 bg-slate-900 border-slate-800 hover:border-slate-700 transition-all group">
+                <Card className="p-4 md:p-6 bg-slate-900 border-slate-800 hover:border-slate-700 transition-all group">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-medium text-slate-400">Utilizatori</h3>
                         <div className="p-2 bg-slate-800 rounded-lg group-hover:bg-slate-700 transition-colors">
@@ -106,8 +106,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
             </div>
 
             <h2 className="text-xl font-bold text-white mt-8 mb-4">Acțiuni Rapide</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card className="p-6 bg-slate-900 border-slate-800 hover:border-slate-700 transition-all group cursor-pointer" onClick={() => onNavigate('stagii')}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                <Card className="p-4 md:p-6 bg-slate-900 border-slate-800 hover:border-slate-700 transition-all group cursor-pointer" onClick={() => onNavigate('stagii')}>
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-medium text-slate-400">Stagii</h3>
                         <div className="p-2 bg-slate-800 rounded-lg group-hover:bg-slate-700 transition-colors">
@@ -116,7 +116,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
                     </div>
                 </Card>
 
-                <Card className="p-6 bg-slate-900 border-slate-800 hover:border-slate-700 transition-all group cursor-pointer" onClick={() => onNavigate('competitii')}>
+                <Card className="p-4 md:p-6 bg-slate-900 border-slate-800 hover:border-slate-700 transition-all group cursor-pointer" onClick={() => onNavigate('competitii')}>
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-medium text-slate-400">Competiții</h3>
                         <div className="p-2 bg-slate-800 rounded-lg group-hover:bg-slate-700 transition-colors">

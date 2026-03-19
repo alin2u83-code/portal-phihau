@@ -117,7 +117,7 @@ export const ClubSettings: React.FC<ClubSettingsProps> = ({ onBack, currentUser,
         <div className="max-w-4xl mx-auto space-y-6 animate-fade-in-down">
             <div className="flex items-center justify-between">
                 <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Dashboard</Button>
-                <h1 className="text-2xl font-bold text-white">Setări Club: {activeClub.nume}</h1>
+                <h1 className="text-lg md:text-2xl font-bold text-white">Setări Club: {activeClub.nume}</h1>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

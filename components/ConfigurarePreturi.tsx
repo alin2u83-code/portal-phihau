@@ -174,7 +174,7 @@ export const ConfigurarePreturi: React.FC<ConfigurarePreturiProps> = ({ grade, o
     return (
         <div className="space-y-6" style={{fontSize: '13px'}}>
             <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
-            <h1 className="text-3xl font-bold text-white">Configurare Prețuri Grade</h1>
+            <h1 className="text-xl md:text-3xl font-bold text-white">Configurare Prețuri Grade</h1>
             
             {error && (
                 <div className="p-3 mb-4 text-center font-semibold text-white bg-red-600/50 border border-red-500 rounded-lg">

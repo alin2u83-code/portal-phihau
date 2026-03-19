@@ -39,7 +39,7 @@ export const AdminSportivPortal: React.FC<AdminSportivPortalProps> = (props) => 
     return (
         <div className="space-y-6">
             <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="mr-2 w-5 h-5"/> Meniu</Button>
-            <h1 className="text-3xl font-bold text-white">Portal Sportiv (Mod Administrator)</h1>
+            <h1 className="text-xl md:text-3xl font-bold text-white">Portal Sportiv (Mod Administrator)</h1>
             
             <Card>
                 <h2 className="text-xl font-bold text-white mb-2">Selectează un Sportiv</h2>

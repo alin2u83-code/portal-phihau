@@ -153,7 +153,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ currentUser, userRol
     return (
         <div className="space-y-8 animate-fade-in-down">
             <header className="text-center">
-                <h1 className="text-4xl font-black text-white">Consola de Administrare</h1>
+                <h1 className="text-2xl md:text-4xl font-black text-white">Consola de Administrare</h1>
                 <p className="text-slate-400 mt-2">Comută rapid între contextele de rol disponibile pentru contul tău.</p>
             </header>
 

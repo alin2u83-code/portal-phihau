@@ -178,10 +178,10 @@ export const IstoricPrezentaGlobal: React.FC<{ onBack: () => void, onViewSportiv
             </Button>
 
             <Card className="overflow-hidden border-none shadow-xl bg-slate-900/40 backdrop-blur-sm">
-                <div className="p-6 border-b border-slate-800 bg-slate-800/30">
+                <div className="p-4 md:p-6 border-b border-slate-800 bg-slate-800/30">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
-                            <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                            <h2 className="text-xl md:text-2xl font-bold text-white flex items-center gap-3">
                                 <CalendarDaysIcon className="w-6 h-6 text-indigo-400" />
                                 Istoric Global Prezențe
                             </h2>
@@ -190,7 +190,7 @@ export const IstoricPrezentaGlobal: React.FC<{ onBack: () => void, onViewSportiv
                     </div>
                 </div>
 
-                <div className="p-6">
+                <div className="p-4 md:p-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 p-4 bg-slate-800/20 rounded-2xl border border-slate-700/30">
                         <Input label="Caută Sportiv" placeholder="Nume..." value={filterNume} onChange={e => setFilterNume(e.target.value)} />
                         <Input label="Caută Grupă" placeholder="Grupă..." value={filterGrupa} onChange={e => setFilterGrupa(e.target.value)} />

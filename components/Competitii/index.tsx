@@ -209,7 +209,7 @@ const CompetitieForm: React.FC<CompetitieFormProps> = ({ isOpen, onClose, onSave
     <Modal isOpen={isOpen} onClose={onClose} title={comp ? 'Editează Competiție' : 'Adaugă Competiție Nouă'}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input label="Denumire" value={form.denumire} onChange={f('denumire')} required />
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Select label="Tip Competiție" value={form.tip} onChange={f('tip')}>
             {Object.entries(TIP_COMPETITIE_LABELS).map(([k, v]) => (
               <option key={k} value={k}>{v}</option>
@@ -221,16 +221,16 @@ const CompetitieForm: React.FC<CompetitieFormProps> = ({ isOpen, onClose, onSave
             ))}
           </Select>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input label="Data Început" type="date" value={form.data_inceput} onChange={f('data_inceput')} required />
           <Input label="Data Sfârșit" type="date" value={form.data_sfarsit} onChange={f('data_sfarsit')} required />
         </div>
         <Input label="Deadline Înscrieri" type="date" value={form.deadline_inscrieri} onChange={f('deadline_inscrieri')} />
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input label="Locație" value={form.locatie} onChange={f('locatie')} />
           <Input label="Organizator" value={form.organizator} onChange={f('organizator')} />
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input label="Taxă Individual (lei)" type="number" value={form.taxa_individual} onChange={f('taxa_individual')} />
           <Input label="Taxă Echipă (lei)" type="number" value={form.taxa_echipa} onChange={f('taxa_echipa')} />
         </div>
@@ -850,7 +850,7 @@ const FuzionariPanel: React.FC<{
   return (
     <div className="space-y-4">
       {/* Sumar */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className={`rounded-lg p-3 border ${subMinim.length > 0 ? 'bg-red-900/20 border-red-700/50' : 'bg-slate-800 border-slate-700'}`}>
           <div className={`text-2xl font-bold ${subMinim.length > 0 ? 'text-red-400' : 'text-green-400'}`}>{subMinim.length}</div>
           <div className="text-xs text-slate-400 mt-0.5">Sub minim (au inscrisi)</div>
@@ -1339,7 +1339,7 @@ const CategorieForm: React.FC<CategorieFormProps> = ({ competitieId, probe, cate
   return (
     <Modal isOpen={true} onClose={onClose} title={categorie ? 'Editează Categorie' : 'Adaugă Categorie'}>
       <div className="space-y-3 max-h-[70vh] overflow-y-auto pr-1">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Input label="Nr. Categorie" type="number" value={form.numar_categorie} onChange={f('numar_categorie')} />
           <Select label="Probă" value={form.proba_id} onChange={f('proba_id')}>
             <option value="">Fără probă</option>
@@ -1347,7 +1347,7 @@ const CategorieForm: React.FC<CategorieFormProps> = ({ competitieId, probe, cate
           </Select>
         </div>
         <Input label="Denumire (auto sau personalizată)" value={form.denumire} onChange={f('denumire')} />
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <Input label="Vârstă Min" type="number" value={form.varsta_min} onChange={f('varsta_min')} />
           <Input label="Vârstă Max (gol = fără limită)" type="number" value={form.varsta_max} onChange={f('varsta_max')} />
           <Select label="Gen" value={form.gen} onChange={f('gen')}>
@@ -1356,12 +1356,12 @@ const CategorieForm: React.FC<CategorieFormProps> = ({ competitieId, probe, cate
             <option value="Mixt">Mixt</option>
           </Select>
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Input label="Grad Min (ordine, gol = orice)" type="number" value={form.grad_min_ordine} onChange={f('grad_min_ordine')} />
           <Input label="Grad Max (ordine, gol = orice)" type="number" value={form.grad_max_ordine} onChange={f('grad_max_ordine')} />
         </div>
         <Input label="Armă (pentru CVD, ex: Bong)" value={form.arma} onChange={f('arma')} />
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Select label="Tip Participare" value={form.tip_participare} onChange={f('tip_participare')}>
             <option value="individual">Individual</option>
             <option value="pereche">Pereche</option>
@@ -1370,7 +1370,7 @@ const CategorieForm: React.FC<CategorieFormProps> = ({ competitieId, probe, cate
           <Input label="Min. participanți start" type="number" value={form.min_participanti_start} onChange={f('min_participanti_start')} />
         </div>
         {form.tip_participare !== 'individual' && (
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <Input label="Sportivi/echipă min" type="number" value={form.sportivi_per_echipa_min} onChange={f('sportivi_per_echipa_min')} />
             <Input label="Sportivi/echipă max" type="number" value={form.sportivi_per_echipa_max} onChange={f('sportivi_per_echipa_max')} />
             <Input label="Rezerve max" type="number" value={form.rezerve_max} onChange={f('rezerve_max')} />

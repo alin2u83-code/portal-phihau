@@ -45,7 +45,7 @@ const ClubFormModal: React.FC<ClubFormModalProps> = ({ isOpen, onClose, onSave, 
         <Modal isOpen={isOpen} onClose={onClose} title={clubToEdit ? "Editează Club" : "Adaugă Club Nou"}>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <Input label="Nume Club" name="nume" value={formData.nume} onChange={handleChange} required />
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Input label="CIF / CUI (Opțional)" name="cif" value={formData.cif} onChange={handleChange} />
                     <Input label="Oraș (Opțional)" name="oras" value={formData.oras} onChange={handleChange} />
                 </div>
@@ -127,7 +127,7 @@ export const CluburiManagement: React.FC<CluburiManagementProps> = ({ clubs, set
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold text-white">Gestiune Cluburi</h1>
+                <h1 className="text-xl md:text-3xl font-bold text-white">Gestiune Cluburi</h1>
                 {permissions.isSuperAdmin && (
                     <Button onClick={() => { setClubToEdit(null); setIsModalOpen(true); }} variant="info">
                         <PlusIcon className="w-5 h-5 mr-2" /> Adaugă Club

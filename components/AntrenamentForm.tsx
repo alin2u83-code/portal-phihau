@@ -132,7 +132,7 @@ export const AntrenamentForm: React.FC<{
                     <Input label="Data" type="date" name="data" value={formState.data} onChange={handleChange} required />
                 )}
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Input label="Ora Start" type="time" name="ora_start" value={formState.ora_start} onChange={handleChange} required />
                     <Input label="Ora Sfârșit" type="time" name="ora_sfarsit" value={formState.ora_sfarsit} onChange={handleChange} required />
                 </div>

@@ -70,7 +70,11 @@
       "Bash(find /c/Users/lungu -maxdepth 3 -iname *rubis* -o -iname *arena* -o -iname *cube*)",
       "Bash(ls:*)",
       "Bash(cat \"/c/Users/lungu/Downloads/remix_-wca-arena_-speedcubing-competitions \\(1\\)/types.ts\")",
-      "Bash(vercel --version)"
+      "Bash(vercel --version)",
+      "Bash(find C:Userslunguportal-phihau/components -maxdepth 1 -name *.tsx -type f)",
+      "Bash(find C:Userslunguportal-phihau/components -name *.tsx -exec grep -l \"grid-cols\\\\|table\\\\|overflow\" {})",
+      "Bash(2)",
+      "Bash(find C:Userslunguportal-phihau/components/Sportivi -name *.tsx)"
     ]
   }
 }

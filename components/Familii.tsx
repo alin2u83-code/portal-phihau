@@ -82,7 +82,7 @@ export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({
     return (
         <div className="space-y-6">
             {!isEmbedded && onBack && <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>}
-            {!isEmbedded && <h1 className="text-3xl font-bold text-white">Management Familii</h1>}
+            {!isEmbedded && <h1 className="text-2xl md:text-3xl font-bold text-white">Management Familii</h1>}
 
             <Card>
                 <h3 className="text-xl font-bold text-white mb-4">Creează Familie prin Grupare</h3>

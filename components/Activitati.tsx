@@ -339,7 +339,7 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ onBa
                 <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
             </div>
             
-            <h1 className="text-3xl font-bold text-white">Generator Program Recurent</h1>
+            <h1 className="text-xl md:text-3xl font-bold text-white">Generator Program Recurent</h1>
             
             <Card className="border-l-4 border-brand-secondary">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
@@ -457,7 +457,7 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ onBa
             <div className="pt-8 border-t border-slate-800">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                     <div>
-                        <h2 className="text-2xl font-black text-white tracking-tight uppercase">Management Program Existent</h2>
+                        <h2 className="text-xl md:text-2xl font-black text-white tracking-tight uppercase">Management Program Existent</h2>
                         <p className="text-slate-400 text-sm">Vizualizează și gestionează antrenamentele deja create.</p>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full md:w-auto">

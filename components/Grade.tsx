@@ -105,7 +105,7 @@ export const GradeManagement: React.FC<GradeManagementProps> = ({ grade, setGrad
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-white">Management Grade</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-white">Management Grade</h1>
         {canEdit && <Button onClick={handleOpenAdd} variant="info"><PlusIcon className="w-5 h-5 mr-2" />Adaugă Grad</Button>}
       </div>
       <div className="bg-slate-800 rounded-lg shadow-lg overflow-x-auto">

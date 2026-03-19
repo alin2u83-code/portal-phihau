@@ -100,13 +100,13 @@ export const AccountSettings: React.FC<AccountSettingsProps> = ({ currentUser, o
     return (
         <div className="space-y-8 animate-fade-in-down">
             <header>
-                <h1 className="text-4xl font-black text-white">Setări Cont & Profiluri</h1>
+                <h1 className="text-2xl md:text-4xl font-black text-white">Setări Cont & Profiluri</h1>
                 <p className="text-slate-400">Actualizează-ți datele de securitate și gestionează profilurile de lucru.</p>
             </header>
 
             <Card className="bg-zinc-900 border-zinc-800">
                 <form onSubmit={handleSaveProfile} className="space-y-6">
-                    <h2 className="text-2xl font-bold text-white mb-4">Date Personale & Securitate</h2>
+                    <h2 className="text-xl md:text-2xl font-bold text-white mb-4">Date Personale & Securitate</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <Input label="Nume" name="nume" value={formData.nume} onChange={handleFormChange} required className="bg-black border-zinc-700"/>
                         <Input label="Prenume" name="prenume" value={formData.prenume} onChange={handleFormChange} required className="bg-black border-zinc-700"/>
@@ -123,7 +123,7 @@ export const AccountSettings: React.FC<AccountSettingsProps> = ({ currentUser, o
             </Card>
 
             <Card className="bg-zinc-900 border-zinc-800">
-                <h2 className="text-2xl font-bold text-white mb-4">Profilurile Mele</h2>
+                <h2 className="text-xl md:text-2xl font-bold text-white mb-4">Profilurile Mele</h2>
                 <p className="text-sm text-slate-400 mb-6">Alege profilul principal pe care dorești să-l folosești la următoarea autentificare. Acesta va determina permisiunile și datele vizibile la pornirea aplicației.</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {(userRoles || []).map((role, index) => {

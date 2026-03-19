@@ -128,12 +128,13 @@ export const AntrenamenteViitoare: React.FC<AntrenamenteViitoareProps> = ({ curr
                     <Button variant="secondary" size="sm" onClick={() => changeMonth(1)} className="!p-1.5 h-auto"><ChevronRightIcon className="w-5 h-5"/></Button>
                 </div>
             </div>
-            <div className="grid grid-cols-7 gap-1 text-center text-xs font-bold text-slate-400">
+            <div className="overflow-x-auto -mx-2 px-2">
+            <div className="grid grid-cols-7 gap-1 text-center text-xs font-bold text-slate-400 min-w-[320px]">
                 {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((day, i) => (
                     <div key={i} className="py-1">{day}</div>
                 ))}
             </div>
-            <div className="grid grid-cols-7 gap-1 mt-1">
+            <div className="grid grid-cols-7 gap-1 mt-1 min-w-[320px]">
                 {days.map((day, index) => {
                     if (!day) return <div key={`pad-${index}`} className="w-full h-10"></div>;
                     
@@ -166,6 +167,7 @@ export const AntrenamenteViitoare: React.FC<AntrenamenteViitoareProps> = ({ curr
                         </div>
                     );
                 })}
+            </div>
             </div>
 
             <div className="mt-6 pt-4 border-t border-slate-700 animate-fade-in-down">

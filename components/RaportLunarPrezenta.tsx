@@ -125,7 +125,10 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
 
     return (
         <div className="space-y-6">
-            <h1 className="text-3xl font-bold text-white">Raport Lunar de Prezență</h1>
+            <div className="flex items-center gap-3">
+                <Button variant="secondary" onClick={onBack}><ArrowLeftIcon className="w-5 h-5 mr-2" />Înapoi</Button>
+                <h1 className="text-3xl font-bold text-white">Raport Lunar de Prezență</h1>
+            </div>
             
             <Card className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Select label="An" name="year" value={String(filters.year)} onChange={handleFilterChange}>

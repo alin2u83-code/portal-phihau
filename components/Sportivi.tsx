@@ -3,7 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../supabaseClient';
 import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions, VizualizarePlata } from '../types';
 import { Button } from './ui';
-import { PlusIcon, UploadCloudIcon } from './icons';
+import { PlusIcon, UploadCloudIcon, ArrowLeftIcon } from './icons';
 import { adaugaSportiv, actualizeazaSportiv } from '../services/sportivService';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
@@ -368,7 +368,13 @@ export const Sportivi: React.FC<{
     return (
         <div className="space-y-4">
             <div className="flex justify-between items-center gap-4">
-                <h1 className="text-2xl font-bold text-white uppercase tracking-tight">Management Sportivi</h1>
+                <div className="flex items-center gap-3">
+                    <Button variant="secondary" onClick={onBack}>
+                        <ArrowLeftIcon className="w-5 h-5 mr-2" />
+                        Înapoi
+                    </Button>
+                    <h1 className="text-2xl font-bold text-white uppercase tracking-tight">Management Sportivi</h1>
+                </div>
                 {permissions.hasAdminAccess && (
                     <div className="flex gap-2">
                         <Button 

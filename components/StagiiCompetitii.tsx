@@ -91,9 +91,16 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
     const [isDeletingRezultat, setIsDeletingRezultat] = useState(false);
     
     const [formState, setFormState] = useState({ sportivId: '', rezultat: 'Participare', probe: [] as string[] });
+    const [searchSportiv, setSearchSportiv] = useState('');
+    const [isSportivDropdownOpen, setIsSportivDropdownOpen] = useState(false);
 
     const participantiIds = useMemo(() => new Set((rezultate || []).map(r => r.sportiv_id)), [rezultate]);
     const sportiviDisponibili = useMemo(() => (sportivi || []).filter(s => s.status === 'Activ' && !participantiIds.has(s.id)), [sportivi, participantiIds]);
+    const sportiviFiltered = useMemo(() => {
+        if (!searchSportiv) return sportiviDisponibili;
+        const term = searchSportiv.toLowerCase();
+        return sportiviDisponibili.filter(s => s.nume.toLowerCase().includes(term) || s.prenume.toLowerCase().includes(term));
+    }, [sportiviDisponibili, searchSportiv]);
     
     const handleAddParticipant = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -157,7 +164,27 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
     <Card className="bg-slate-900/50">
         <h5 className="text-lg font-semibold mb-4 text-white">Înscrie Participant</h5>
         <form onSubmit={handleAddParticipant} className="space-y-4">
-            <Select label="Sportiv" value={formState.sportivId} onChange={e => setFormState(p => ({ ...p, sportivId: e.target.value }))}><option value="">Selectează...</option>{sportiviDisponibili.map(s => <option key={s.id} value={s.id}>{s.nume} {s.prenume}</option>)}</Select>
+            <div className="relative">
+                <Input
+                    label="Caută Sportiv"
+                    value={searchSportiv}
+                    onChange={e => { setSearchSportiv(e.target.value); setIsSportivDropdownOpen(true); if (!e.target.value) setFormState(p => ({ ...p, sportivId: '' })); }}
+                    onFocus={() => setIsSportivDropdownOpen(true)}
+                    placeholder="Nume sau prenume..."
+                />
+                {isSportivDropdownOpen && searchSportiv && (
+                    <div className="absolute z-10 w-full mt-1 bg-slate-900 border border-slate-700 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                        {sportiviFiltered.length > 0 ? sportiviFiltered.map(s => (
+                            <button key={s.id} type="button" className="w-full text-left px-4 py-2 hover:bg-slate-800 text-white"
+                                onClick={() => { setFormState(p => ({ ...p, sportivId: s.id })); setSearchSportiv(`${s.nume} ${s.prenume}`); setIsSportivDropdownOpen(false); }}>
+                                {s.nume} {s.prenume}
+                            </button>
+                        )) : (
+                            <div className="px-4 py-2 text-slate-500">Nu am găsit sportivi.</div>
+                        )}
+                    </div>
+                )}
+            </div>
             <Input label="Rezultat (ex: Participare, Locul 1)" name="rezultat" value={formState.rezultat} onChange={e => setFormState(p => ({ ...p, rezultat: e.target.value }))} />
             {eveniment.tip === 'Competitie' && eveniment.probe_disponibile && eveniment.probe_disponibile.length > 0 && (
                 <div><label className="block text-sm font-medium text-slate-300 mb-2">Probe</label><div className="flex flex-wrap gap-x-4 gap-y-2">{(eveniment.probe_disponibile || []).map(proba => (<label key={proba} className="flex items-center space-x-2 text-sm"><input type="checkbox" checked={formState.probe.includes(proba)} onChange={e => handleProbeChange(proba, e.target.checked)} className="h-4 w-4 rounded" /><span>{proba}</span></label>))}</div></div>

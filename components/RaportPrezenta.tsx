@@ -46,8 +46,7 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
     const sali = useMemo(() => [...new Set((grupe || []).map(g => g.sala).filter(Boolean))], [grupe]);
 
     const { filteredPresenceRecords, filteredDetailedLog, athleteSummary } = useMemo(() => {
-        const [type, yearStr] = filters.yearFilter.split('_');
-        const year = parseInt(yearStr, 10);
+        const year = parseInt(filters.yearFilter, 10);
         
         let filteredTrainings = (antrenamente || []);
         if (filters.yearFilter) {
@@ -236,7 +235,7 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
             <h1 className="text-3xl font-bold text-white">Analiză Prezențe</h1>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <Card className="lg:col-span-2">
-                    <h3 className="text-xl font-bold text-white mb-4">Prezențe Lunare pe Grupe ({filters.yearFilter})</h3>
+                    <h3 className="text-xl font-bold text-white mb-4">Prezențe Lunare pe Grupe ({parseInt(filters.yearFilter, 10)})</h3>
                     <div className="h-64 w-full">
                         {groupChartData.length > 0 && activeGroups.length > 0 ? (
                             <ResponsiveContainer width="100%" height="100%">

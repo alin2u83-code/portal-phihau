@@ -109,7 +109,10 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <h1 className="text-2xl sm:text-3xl font-bold text-white">Management Grupe & Orar</h1>
+                <div className="flex items-center gap-3">
+                    <Button variant="secondary" onClick={onBack}><ArrowLeftIcon className="w-5 h-5 mr-2" />Înapoi</Button>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-white">Management Grupe & Orar</h1>
+                </div>
                 <Button onClick={handleOpenAdd} variant="info" className="w-full sm:w-auto"><PlusIcon className="w-5 h-5 mr-2" />Adaugă Grupă</Button>
             </div>
             {grupe.length > 0 ? (

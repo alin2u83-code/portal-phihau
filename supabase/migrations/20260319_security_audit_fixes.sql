@@ -83,15 +83,11 @@ DO $$ BEGIN
   END IF;
 END $$;
 
--- deconturi_federatie - club-scoped
+-- deconturi_federatie - authenticated access (no club_id column, federation-level data)
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'deconturi_federatie' AND policyname = 'club_access') THEN
-    CREATE POLICY "club_access" ON public.deconturi_federatie
-      FOR ALL TO authenticated USING (
-        club_id = public.get_active_club_id() OR public.is_super_admin()
-      ) WITH CHECK (
-        club_id = public.get_active_club_id() OR public.is_super_admin()
-      );
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'deconturi_federatie' AND policyname = 'authenticated_access') THEN
+    CREATE POLICY "authenticated_access" ON public.deconturi_federatie
+      FOR ALL TO authenticated USING (true) WITH CHECK (true);
   END IF;
 END $$;
 

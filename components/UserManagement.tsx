@@ -657,16 +657,16 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
     };
 
     return (
-        <div className="space-y-8">
-            {onBack && <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>}
-            
-            <header className="mb-8">
-                <div className="flex justify-between items-start">
+        <div className="space-y-4 md:space-y-8">
+            {onBack && <Button onClick={onBack} variant="secondary" className="mb-4"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>}
+
+            <header className="mb-4 md:mb-8">
+                <div className="flex flex-col sm:flex-row justify-between items-start gap-3">
                     <div>
-                        <h1 className="text-3xl font-bold text-white">Administrare Utilizatori & Roluri</h1>
-                        <p className="text-slate-400">Gestionează conturile de acces și permisiunile pentru staff și sportivi.</p>
+                        <h1 className="text-xl md:text-3xl font-bold text-white">Administrare Utilizatori & Roluri</h1>
+                        <p className="text-slate-400 text-sm">Gestionează conturile de acces și permisiunile pentru staff și sportivi.</p>
                     </div>
-                    <div className="flex bg-slate-800/50 p-1 rounded-lg border border-slate-700">
+                    <div className="flex bg-slate-800/50 p-1 rounded-lg border border-slate-700 shrink-0">
                         <button 
                             onClick={() => setActiveTab('users')}
                             className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${activeTab === 'users' ? 'bg-[#3D3D99] text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'}`}
@@ -704,56 +704,53 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                     {permissions.hasAdminAccess && (
                 <>
                 <Card>
-                     <h3 className="text-xl font-bold text-white mb-4">Adaugă Rol Nou în Nomenclator</h3>
-                     <div className="flex items-end gap-2">
-                        <Input label="Nume Rol" value={newRoleName} onChange={e => setNewRoleName(e.target.value)} placeholder="ex: Antrenor Copii" />
-                        <Button onClick={handleAddNewRole} variant="info"><PlusIcon className="w-5 h-5 mr-2" /> Adaugă Rol</Button>
+                     <h3 className="text-lg md:text-xl font-bold text-white mb-4">Adaugă Rol Nou în Nomenclator</h3>
+                     <div className="flex flex-col sm:flex-row items-start sm:items-end gap-2">
+                        <div className="flex-1 w-full"><Input label="Nume Rol" value={newRoleName} onChange={e => setNewRoleName(e.target.value)} placeholder="ex: Antrenor Copii" /></div>
+                        <Button onClick={handleAddNewRole} variant="info" size="sm" className="w-full sm:w-auto justify-center"><PlusIcon className="w-4 h-4 mr-2" /> Adaugă Rol</Button>
                      </div>
                       {roleCreationFeedback && <p className={`mt-2 text-sm ${roleCreationFeedback.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>{roleCreationFeedback.message}</p>}
                 </Card>
 
                 <Card>
-                    <div className="flex justify-between items-center gap-2 mb-4">
-                        <div className="flex items-center gap-2">
-                            <ShieldCheckIcon className="w-8 h-8 text-amber-400"/>
-                            <h2 className="text-2xl font-bold text-white">Administrare Staff & Permisiuni</h2>
+                    <div className="flex flex-col gap-4 mb-4">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                            <div className="flex items-center gap-2">
+                                <ShieldCheckIcon className="w-6 h-6 text-amber-400"/>
+                                <h2 className="text-xl md:text-2xl font-bold text-white">Administrare Staff & Permisiuni</h2>
+                            </div>
+                            <Button variant="info" size="sm" onClick={() => setIsCreateStaffModalOpen(true)} className="w-full sm:w-auto justify-center">
+                                <PlusIcon className="w-4 h-4 mr-2" /> Adaugă Membru Staff
+                            </Button>
                         </div>
-                        <div className="flex flex-col gap-4">
-                            <div className="flex items-center gap-4">
-                                <Input 
-                                    label=""
-                                    placeholder="Caută după nume sau email..." 
-                                    value={searchQuery} 
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-64"
-                                />
-                                {isFederationAdmin && (
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-xs text-slate-400 uppercase font-bold">Filtru Club:</span>
-                                        <select 
-                                            value={selectedClubId || ''} 
-                                            onChange={(e) => setSelectedClubId(e.target.value || null)}
-                                            className="bg-slate-800 border border-slate-700 rounded-md px-3 py-1.5 text-sm text-slate-200 focus:ring-1 focus:ring-amber-500 outline-none"
-                                        >
-                                            <option value="">Toate Cluburile</option>
-                                            {clubs.map(c => <option key={c.id} value={c.id}>{c.nume}</option>)}
-                                        </select>
-                                    </div>
-                                )}
-                                <Button variant="info" onClick={() => setIsCreateStaffModalOpen(true)}>
-                                    <PlusIcon className="w-5 h-5 mr-2" /> Adaugă Membru Staff
-                                </Button>
-                            </div>
-                            <div className="flex items-center gap-4">
-                                <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
-                                    <input type="checkbox" checked={filterNoRole} onChange={(e) => setFilterNoRole(e.target.checked)} />
-                                    Fără roluri asignate
-                                </label>
-                                <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
-                                    <input type="checkbox" checked={filterNoAccount} onChange={(e) => setFilterNoAccount(e.target.checked)} />
-                                    Fără cont de utilizator
-                                </label>
-                            </div>
+                        <div className="flex flex-col sm:flex-row gap-2">
+                            <Input
+                                label=""
+                                placeholder="Caută după nume sau email..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="flex-1"
+                            />
+                            {isFederationAdmin && (
+                                <select
+                                    value={selectedClubId || ''}
+                                    onChange={(e) => setSelectedClubId(e.target.value || null)}
+                                    className="bg-slate-800 border border-slate-700 rounded-md px-3 py-1.5 text-sm text-slate-200 focus:ring-1 focus:ring-amber-500 outline-none w-full sm:w-auto"
+                                >
+                                    <option value="">Toate Cluburile</option>
+                                    {clubs.map(c => <option key={c.id} value={c.id}>{c.nume}</option>)}
+                                </select>
+                            )}
+                        </div>
+                        <div className="flex flex-wrap items-center gap-4">
+                            <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
+                                <input type="checkbox" checked={filterNoRole} onChange={(e) => setFilterNoRole(e.target.checked)} />
+                                Fără roluri asignate
+                            </label>
+                            <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
+                                <input type="checkbox" checked={filterNoAccount} onChange={(e) => setFilterNoAccount(e.target.checked)} />
+                                Fără cont de utilizator
+                            </label>
                         </div>
                     </div>
                      <div className="p-3 mb-4 text-sm rounded-md bg-sky-900/50 text-sky-300 border border-sky-500/30">

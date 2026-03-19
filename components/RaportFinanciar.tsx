@@ -116,19 +116,19 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({ istoricPlatiDe
     }, [raportLunarData.restante]);
 
     return (
-        <div>
-            <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
-            <h1 className="text-3xl font-bold text-white mb-6">Raport Financiar Club</h1>
+        <div className="space-y-4 md:space-y-6">
+            <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
+            <h1 className="text-xl md:text-3xl font-bold text-white">Raport Financiar Club</h1>
 
-            <div className="flex space-x-2 mb-6 overflow-x-auto pb-2">
-                <Button variant={activeTab === 'incasari' ? 'primary' : 'secondary'} onClick={() => setActiveTab('incasari')}>
-                    <FileTextIcon className="w-5 h-5 mr-2" /> Încasări Detaliate
+            <div className="flex flex-wrap gap-2 overflow-x-auto pb-1">
+                <Button size="sm" variant={activeTab === 'incasari' ? 'primary' : 'secondary'} onClick={() => setActiveTab('incasari')}>
+                    <FileTextIcon className="w-4 h-4 mr-1" /> Încasări
                 </Button>
-                <Button variant={activeTab === 'lunar' ? 'primary' : 'secondary'} onClick={() => setActiveTab('lunar')}>
-                    <ChartBarIcon className="w-5 h-5 mr-2" /> Situație Lunară
+                <Button size="sm" variant={activeTab === 'lunar' ? 'primary' : 'secondary'} onClick={() => setActiveTab('lunar')}>
+                    <ChartBarIcon className="w-4 h-4 mr-1" /> Lunar
                 </Button>
-                <Button variant={activeTab === 'taxe_anuale' ? 'primary' : 'secondary'} onClick={() => setActiveTab('taxe_anuale')}>
-                    <BanknotesIcon className="w-5 h-5 mr-2" /> Situație Taxe Anuale (FRAM/FRQKD)
+                <Button size="sm" variant={activeTab === 'taxe_anuale' ? 'primary' : 'secondary'} onClick={() => setActiveTab('taxe_anuale')}>
+                    <BanknotesIcon className="w-4 h-4 mr-1" /> Taxe Anuale
                 </Button>
             </div>
 

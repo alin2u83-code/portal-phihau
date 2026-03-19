@@ -410,11 +410,11 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6">
             <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
-            <h1 className="text-2xl font-bold text-white uppercase tracking-tight">Management Facturi & Plăți</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-white uppercase tracking-tight">Management Facturi & Plăți</h1>
 
-             <Card className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+             <Card className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {permissions.isSuperAdmin && (
                     <Select label="Filtrează Club" name="clubId" value={filter.clubId} onChange={e => setFilter(p => ({...p, clubId: e.target.value}))}>
                         <option value="">Toate Cluburile</option>
@@ -454,18 +454,18 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                 </div>
             </Card>
 
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-                <div className="flex gap-2">
-                    {permissions.canManageFinances && <Button onClick={handleGenerateSubscriptions} variant="info" isLoading={isGenerating}>Generează Abonamente Luna Curentă</Button>}
+            <div className="flex flex-col gap-2">
+                <div className="flex flex-wrap gap-2">
+                    {permissions.canManageFinances && <Button onClick={handleGenerateSubscriptions} variant="info" size="sm" isLoading={isGenerating} className="flex-1 sm:flex-none justify-center">Generează Abonamente</Button>}
                     {permissions.canManageFinances && selectedIds.size > 0 && (
-                        <Button onClick={handleNotifyOverdue} variant="warning" isLoading={isGenerating}>
-                            <BellIcon className="w-5 h-5 mr-2"/>
+                        <Button onClick={handleNotifyOverdue} variant="warning" size="sm" isLoading={isGenerating} className="flex-1 sm:flex-none justify-center">
+                            <BellIcon className="w-4 h-4 mr-1"/>
                             Notifică {selectedIds.size} debitori
                         </Button>
                     )}
                 </div>
                 {permissions.canManageFinances && selectedIds.size > 0 && (
-                    <Button onClick={handleIncasareClick} variant="success" className="p-4 font-bold bg-green-800 hover:bg-green-700">
+                    <Button onClick={handleIncasareClick} variant="success" className="w-full sm:w-auto justify-center font-bold bg-green-800 hover:bg-green-700">
                         <BanknotesIcon className="w-5 h-5 mr-2"/>
                         Încasează {selectedIds.size} facturi selectate
                     </Button>

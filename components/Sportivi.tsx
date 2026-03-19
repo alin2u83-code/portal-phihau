@@ -388,36 +388,40 @@ export const Sportivi: React.FC<{
 
     return (
         <div className="space-y-4">
-            <div className="flex justify-between items-center gap-4">
+            {/* Header */}
+            <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-3">
-                    <Button variant="secondary" onClick={onBack}>
-                        <ArrowLeftIcon className="w-5 h-5 mr-2" />
+                    <Button variant="secondary" size="sm" onClick={onBack}>
+                        <ArrowLeftIcon className="w-4 h-4 mr-1" />
                         Înapoi
                     </Button>
-                    <h1 className="text-xl md:text-2xl font-bold text-white uppercase tracking-tight">Management Sportivi</h1>
+                    <h1 className="text-lg md:text-2xl font-bold text-white uppercase tracking-tight">Management Sportivi</h1>
                 </div>
                 {permissions.hasAdminAccess && (
-                    <div className="flex gap-2">
-                        <Button 
-                            variant="secondary" 
+                    <div className="flex flex-wrap gap-2">
+                        <Button
+                            variant="secondary"
+                            size="sm"
                             onClick={() => setIsExportTableOpen(true)}
                             style={{ backgroundColor: currentUser?.cluburi?.theme_config?.bg_card, color: currentUser?.cluburi?.theme_config?.accent_color }}
                         >
                             Export / Editare
                         </Button>
-                        <Button 
-                            variant="secondary" 
+                        <Button
+                            variant="secondary"
+                            size="sm"
                             onClick={() => setIsImportModalOpen(true)}
                             style={{ backgroundColor: currentUser?.cluburi?.theme_config?.bg_card, color: currentUser?.cluburi?.theme_config?.accent_color }}
                         >
-                            <UploadCloudIcon className="w-5 h-5 mr-1"/> Import CSV
+                            <UploadCloudIcon className="w-4 h-4 mr-1"/> Import CSV
                         </Button>
-                        <Button 
-                            variant="primary" 
+                        <Button
+                            variant="primary"
+                            size="sm"
                             onClick={handleOpenAddSportiv}
                             style={{ backgroundColor: currentUser?.cluburi?.theme_config?.accent_color, color: '#ffffff' }}
                         >
-                            <PlusIcon className="w-5 h-5 mr-1"/> Adaugă Sportiv
+                            <PlusIcon className="w-4 h-4 mr-1"/> Adaugă Sportiv
                         </Button>
                     </div>
                 )}
@@ -434,22 +438,24 @@ export const Sportivi: React.FC<{
             />
 
             {selectedSportivIds.size > 0 && (
-                <div className="flex items-center gap-3 p-3 bg-brand-primary/10 border border-brand-primary/30 rounded-lg">
-                    <span className="text-sm font-semibold text-brand-primary">{selectedSportivIds.size} selectați</span>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 p-3 bg-brand-primary/10 border border-brand-primary/30 rounded-lg">
+                    <span className="text-sm font-semibold text-brand-primary shrink-0">{selectedSportivIds.size} selectați</span>
                     <select
                         value={bulkGrupaId}
                         onChange={e => setBulkGrupaId(e.target.value)}
-                        className="flex-1 max-w-xs bg-slate-800 border border-slate-600 text-white rounded-lg px-3 py-2 text-sm"
+                        className="w-full sm:flex-1 sm:max-w-xs bg-slate-800 border border-slate-600 text-white rounded-lg px-3 py-2 text-sm"
                     >
                         <option value="">Fără grupă</option>
                         {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
                     </select>
-                    <Button variant="primary" size="sm" onClick={handleBulkAssignGroup} isLoading={bulkLoading}>
-                        Mută în grupă
-                    </Button>
-                    <Button variant="secondary" size="sm" onClick={() => setSelectedSportivIds(new Set())}>
-                        Anulează selecția
-                    </Button>
+                    <div className="flex gap-2 w-full sm:w-auto">
+                        <Button variant="primary" size="sm" onClick={handleBulkAssignGroup} isLoading={bulkLoading} className="flex-1 sm:flex-none">
+                            Mută în grupă
+                        </Button>
+                        <Button variant="secondary" size="sm" onClick={() => setSelectedSportivIds(new Set())} className="flex-1 sm:flex-none">
+                            Anulează
+                        </Button>
+                    </div>
                 </div>
             )}
 

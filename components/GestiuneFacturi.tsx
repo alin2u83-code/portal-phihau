@@ -440,9 +440,9 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
     );
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6">
             <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
-            <h1 className="text-2xl font-bold text-white uppercase tracking-tight">Gestiune Facturi Manuale</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-white uppercase tracking-tight">Gestiune Facturi Manuale</h1>
 
             <Card className="p-6 border-brand-primary/20 bg-slate-800/50">
                 <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">

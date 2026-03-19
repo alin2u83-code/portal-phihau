@@ -23,6 +23,13 @@ const ADMIN_STEPS: TutorialStep[] = [
     position: 'right',
   },
   {
+    id: 'sportivi-assign-group',
+    targetSelector: '[data-tutorial="sportivi-filter"]',
+    title: 'Atribuire Grupă la Sportivi',
+    content: 'Pentru a muta sportivi într-o grupă: (1) Filtrează după "Fără Grupă" ca să îi identifici pe cei nealocați. (2) Apasă butonul de editare ✏️ pe fiecare sportiv. (3) Schimbă câmpul "Grupă" și salvează. Poți de asemenea să editezi un sportiv din lista normală pentru a-i schimba grupa.',
+    position: 'bottom',
+  },
+  {
     id: 'nav-examene',
     targetSelector: '[data-tutorial="nav-examene"]',
     title: 'Sesiuni de Examene',

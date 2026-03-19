@@ -25,7 +25,7 @@ export const SportiviFilter: React.FC<SportiviFilterProps> = ({ filters, onFilte
   const grupeClub = grupe.filter(g => !currentClubId || g.club_id === currentClubId);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4 p-4 rounded-lg bg-slate-800/50">
+    <div data-tutorial="sportivi-filter" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4 p-4 rounded-lg bg-slate-800/50">
       <Input
         label="Caută sportiv"
         placeholder="Nume, prenume..."

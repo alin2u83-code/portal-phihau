@@ -11,6 +11,30 @@ import {
   DEFAULT_PROBE_PER_TIP, TemplateCategorieInput
 } from '../../utils/competitiiTemplates';
 import { filtreazaSportiviEligibili, calculeazaVarstaLaData } from '../../utils/eligibilitateCompetitie';
+import { VizaSportiv } from '../../types';
+
+// -----------------------------------------------
+// HELPER: verifică dacă sportivul are viza FRAM activă pentru un an dat
+// -----------------------------------------------
+function areVizaFRAM(sportivId: string, an: number, vizeSportivi: VizaSportiv[]): boolean {
+  return vizeSportivi.some(v => v.sportiv_id === sportivId && v.an === an && v.status_viza === 'Activ');
+}
+
+const WarningVizaFRAM: React.FC<{ show: boolean; inline?: boolean }> = ({ show, inline }) => {
+  if (!show) return null;
+  if (inline) return (
+    <span title="Viza FRAM neachitată pentru anul curent"
+      className="inline-flex items-center gap-0.5 text-[10px] font-bold text-yellow-400 bg-yellow-900/40 border border-yellow-700/50 rounded px-1.5 py-0.5 ml-1 shrink-0">
+      ⚠ FRAM
+    </span>
+  );
+  return (
+    <div className="flex items-start gap-2 bg-yellow-900/30 border border-yellow-700/50 rounded-lg p-2.5 text-xs text-yellow-300">
+      <span className="text-base leading-none shrink-0">⚠</span>
+      <span>Viza FRAM <strong>neachitată</strong> pentru anul curent. Sportivul nu va fi acceptat în competiție fără această viză.</span>
+    </div>
+  );
+};
 
 interface CompetitiiProps {
   permissions: Permissions;
@@ -250,7 +274,7 @@ interface CompetitieDetailProps {
 }
 
 const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permissions, onBack, onUpdated }) => {
-  const { filteredData, grade, currentUser } = useData();
+  const { filteredData, grade, currentUser, vizeSportivi } = useData();
   const { showError } = useError();
   const [probe, setProbe] = useState<ProbaCompetitie[]>([]);
   const [categorii, setCategorii] = useState<CategorieCompetitie[]>([]);
@@ -450,6 +474,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
               grade={grade}
               isAdmin={isAdmin}
               myClubId={myClubId || null}
+              vizeSportivi={vizeSportivi}
               onRefresh={fetchData}
             />
           )}
@@ -464,6 +489,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
               setCategorii={setCategorii}
               inscrieri={inscrieri}
               echipe={echipe}
+              vizeSportivi={vizeSportivi}
               catFormOpen={catFormOpen}
               setCatFormOpen={setCatFormOpen}
               catToEdit={catToEdit}
@@ -486,6 +512,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
           inscrieri={inscrieri}
           echipe={echipe}
           clubId={myClubId || ''}
+          vizeSportivi={vizeSportivi}
           onClose={() => setInscriereModal(null)}
           onSaved={() => { setInscriereModal(null); fetchData(); }}
         />
@@ -505,6 +532,7 @@ interface AdminPanelProps {
   setCategorii: React.Dispatch<React.SetStateAction<CategorieCompetitie[]>>;
   inscrieri: InscriereCompetitie[];
   echipe: EchipaCompetitie[];
+  vizeSportivi: VizaSportiv[];
   catFormOpen: boolean;
   setCatFormOpen: (v: boolean) => void;
   catToEdit: CategorieCompetitie | null;
@@ -516,11 +544,12 @@ interface AdminPanelProps {
 
 const AdminPanel: React.FC<AdminPanelProps> = ({
   competitie, probe, setProbe, categorii, setCategorii,
-  inscrieri, echipe, catFormOpen, setCatFormOpen, catToEdit, setCatToEdit,
+  inscrieri, echipe, vizeSportivi, catFormOpen, setCatFormOpen, catToEdit, setCatToEdit,
   probaFormOpen, setProbaFormOpen, onRefresh,
 }) => {
   const { showError } = useError();
   const [adminSection, setAdminSection] = useState<'stats' | 'probe' | 'categorii'>('stats');
+  const anCompetitie = new Date(competitie.data_inceput).getFullYear();
 
   const inscrieriCount = (catId: string) =>
     inscrieri.filter(i => i.categorie_id === catId).length +
@@ -531,6 +560,12 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
   const categoriiInsuficiente = categorii.filter(c => {
     const cnt = inscrieriCount(c.id);
     return cnt > 0 && cnt < c.min_participanti_start;
+  }).length;
+
+  // Sportivi înscriși fără viza FRAM activă
+  const sportivifaraViza = inscrieri.filter(i => {
+    const sportiv = (i as any).sportiv;
+    return sportiv && !areVizaFRAM(sportiv.id, anCompetitie, vizeSportivi);
   }).length;
 
   const handleDeleteCategorie = async (id: string) => {
@@ -582,11 +617,17 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
               <div className="text-2xl font-bold text-green-400">{categoriiActive}</div>
               <div className="text-xs text-slate-400 mt-0.5">Categorii cu minim atins</div>
             </div>
-            <div className="bg-slate-800 rounded-lg p-3 border border-yellow-800">
-              <div className="text-2xl font-bold text-yellow-400">{categoriiInsuficiente}</div>
-              <div className="text-xs text-slate-400 mt-0.5">Categorii sub minim</div>
+            <div className={`rounded-lg p-3 border ${sportivifaraViza > 0 ? 'bg-yellow-900/30 border-yellow-700' : 'bg-slate-800 border-slate-700'}`}>
+              <div className={`text-2xl font-bold ${sportivifaraViza > 0 ? 'text-yellow-400' : 'text-green-400'}`}>{sportivifaraViza}</div>
+              <div className="text-xs text-slate-400 mt-0.5">Fără viză FRAM {anCompetitie}</div>
             </div>
           </div>
+          {sportivifaraViza > 0 && (
+            <div className="flex items-start gap-2 bg-yellow-900/30 border border-yellow-700/50 rounded-lg p-3 text-sm text-yellow-300">
+              <span className="text-base shrink-0">⚠</span>
+              <span><strong>{sportivifaraViza} sportivi înscriși</strong> nu au viza FRAM achitată pentru {anCompetitie}. Aceștia nu vor putea participa în competiție fără vizarea legitimației FRAM.</span>
+            </div>
+          )}
 
           {/* Per probe stats */}
           {catByProba.map(({ proba, cats }) => {
@@ -919,13 +960,15 @@ interface InscrieriViewProps {
   grade: Grad[];
   isAdmin: boolean;
   myClubId: string | null;
+  vizeSportivi: VizaSportiv[];
   onRefresh: () => void;
 }
 
 const InscrieriView: React.FC<InscrieriViewProps> = ({
-  competitie, categorii, probe, inscrieri, echipe, grade, isAdmin, myClubId, onRefresh
+  competitie, categorii, probe, inscrieri, echipe, grade, isAdmin, myClubId, vizeSportivi, onRefresh
 }) => {
   const { showError } = useError();
+  const anCompetitie = new Date(competitie.data_inceput).getFullYear();
 
   const filteredInscrieri = isAdmin ? inscrieri : inscrieri.filter(i => i.club_id === myClubId);
   const filteredEchipe = isAdmin ? echipe : echipe.filter(e => e.club_id === myClubId);
@@ -960,12 +1003,16 @@ const InscrieriView: React.FC<InscrieriViewProps> = ({
                 {filteredInscrieri.map(ins => {
                   const cat = categorii.find(c => c.id === ins.categorie_id);
                   const sportiv = ins.sportiv as any;
+                  const farаViza = sportiv && !areVizaFRAM(sportiv.id, anCompetitie, vizeSportivi);
                   return (
-                    <tr key={ins.id}>
+                    <tr key={ins.id} className={farаViza ? 'bg-yellow-900/10' : ''}>
                       <td className="p-2">
-                        <span className="font-medium text-white">
-                          {sportiv?.nume} {sportiv?.prenume}
-                        </span>
+                        <div className="flex items-center gap-1 flex-wrap">
+                          <span className="font-medium text-white">
+                            {sportiv?.nume} {sportiv?.prenume}
+                          </span>
+                          <WarningVizaFRAM show={farаViza} inline />
+                        </div>
                       </td>
                       <td className="p-2 hidden md:table-cell text-xs text-slate-400">
                         {cat?.denumire || '-'}
@@ -1025,12 +1072,16 @@ const InscrieriView: React.FC<InscrieriViewProps> = ({
                       </div>
                       <div className="text-xs text-slate-400 mt-0.5">{cat?.denumire}</div>
                       <div className="flex flex-wrap gap-1 mt-1">
-                        {sportivi.map((ms: any) => (
-                          <span key={ms.sportiv_id} className="text-xs bg-slate-700 text-slate-300 px-2 py-0.5 rounded">
-                            {ms.sportiv?.nume} {ms.sportiv?.prenume}
-                            {ms.rol === 'rezerva' && <span className="text-slate-500 ml-1">(R)</span>}
-                          </span>
-                        ))}
+                        {sportivi.map((ms: any) => {
+                          const faraViza = ms.sportiv && !areVizaFRAM(ms.sportiv.id, anCompetitie, vizeSportivi);
+                          return (
+                            <span key={ms.sportiv_id} className={`text-xs px-2 py-0.5 rounded flex items-center gap-1 ${faraViza ? 'bg-yellow-900/40 text-yellow-200 border border-yellow-700/50' : 'bg-slate-700 text-slate-300'}`}>
+                              {ms.sportiv?.nume} {ms.sportiv?.prenume}
+                              {ms.rol === 'rezerva' && <span className="text-slate-500 ml-1">(R)</span>}
+                              {faraViza && <span title="Fără viză FRAM">⚠</span>}
+                            </span>
+                          );
+                        })}
                       </div>
                     </div>
                     <div className="flex items-center gap-2 ml-4">
@@ -1072,13 +1123,15 @@ interface InscriereModalProps {
   inscrieri: InscriereCompetitie[];
   echipe: EchipaCompetitie[];
   clubId: string;
+  vizeSportivi: VizaSportiv[];
   onClose: () => void;
   onSaved: () => void;
 }
 
 const InscriereModal: React.FC<InscriereModalProps> = ({
-  competitie, categorie, sportivi, grade, inscrieri, echipe, clubId, onClose, onSaved
+  competitie, categorie, sportivi, grade, inscrieri, echipe, clubId, vizeSportivi, onClose, onSaved
 }) => {
+  const anCompetitie = new Date(competitie.data_inceput).getFullYear();
   const { showError } = useError();
   const [loading, setLoading] = useState(false);
   const isTeam = categorie.tip_participare !== 'individual';
@@ -1191,6 +1244,7 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
                   : null;
                 const grad = grade.find(g => g.id === sportiv.grad_actual_id);
                 const deja = alreadyInscris(sportiv.id);
+                const faraViza = !areVizaFRAM(sportiv.id, anCompetitie, vizeSportivi);
                 return (
                   <label
                     key={sportiv.id}
@@ -1210,7 +1264,10 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
                       className="w-4 h-4"
                     />
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm text-white font-medium">{sportiv.nume} {sportiv.prenume}</div>
+                      <div className="flex items-center gap-1 flex-wrap">
+                        <span className="text-sm text-white font-medium">{sportiv.nume} {sportiv.prenume}</span>
+                        <WarningVizaFRAM show={faraViza} inline />
+                      </div>
                       <div className="text-xs text-slate-400">
                         {varsta !== null ? `${varsta} ani` : ''} · {grad?.nume || 'Fără grad'}
                         {deja && <span className="text-yellow-400 ml-2">· Deja înscris</span>}
@@ -1255,6 +1312,7 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
                   const grad = grade.find(g => g.id === sportiv.grad_actual_id);
                   const deja = alreadyInscris(sportiv.id);
                   const isRezerva = selectedRezerve.includes(sportiv.id);
+                  const faraViza = !areVizaFRAM(sportiv.id, anCompetitie, vizeSportivi);
                   return (
                     <label key={sportiv.id} className={`flex items-center gap-3 p-2 rounded cursor-pointer border transition-colors ${
                       deja || isRezerva ? 'opacity-40 cursor-not-allowed border-transparent' :
@@ -1266,7 +1324,10 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
                         onChange={() => toggleTitular(sportiv.id)}
                         className="w-4 h-4" />
                       <div className="flex-1">
-                        <div className="text-sm text-white">{sportiv.nume} {sportiv.prenume}</div>
+                        <div className="flex items-center gap-1 flex-wrap">
+                          <span className="text-sm text-white">{sportiv.nume} {sportiv.prenume}</span>
+                          <WarningVizaFRAM show={faraViza} inline />
+                        </div>
                         <div className="text-xs text-slate-400">{varsta !== null ? `${varsta} ani` : ''} · {grad?.nume || '-'}</div>
                       </div>
                     </label>
@@ -1301,6 +1362,17 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
             )}
           </div>
         )}
+
+        {/* Warning FRAM pentru selecția curentă */}
+        {(() => {
+          const selectedIds = isTeam
+            ? [...selectedTitulari, ...selectedRezerve]
+            : selectedSportivId ? [selectedSportivId] : [];
+          const faraVizaCount = selectedIds.filter(id => !areVizaFRAM(id, anCompetitie, vizeSportivi)).length;
+          return faraVizaCount > 0 ? (
+            <WarningVizaFRAM show={true} />
+          ) : null;
+        })()}
 
         <div className="flex justify-end gap-2 pt-2 border-t border-slate-700">
           <Button variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button>

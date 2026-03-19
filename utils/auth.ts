@@ -98,7 +98,7 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
             }) || [];
 
             if (mappedRoles.length === 0) {
-                const { data: bareProfile } = await supabase.from('vedere_cluburi_sportivi').select('*, cluburi(*)').eq('user_id', authUser.id).maybeSingle();
+                const { data: bareProfile } = await supabase.from('sportivi').select('*, cluburi(*)').eq('user_id', authUser.id).maybeSingle();
                 if (bareProfile) {
                     return { user: { ...bareProfile, roluri: [] } as User, roles: [], error: null };
                 }
@@ -117,7 +117,7 @@ export const fetchUserWithPermissions = async (supabase: SupabaseClient): Promis
 
         // Fetch user profile pentru acest context
         const { data: userProfileData, error: profileError } = await supabase
-            .from('vedere_cluburi_sportivi')
+            .from('sportivi')
             .select('*, cluburi(*)')
             .eq('id', activeContext.sportiv_id)
             .maybeSingle();

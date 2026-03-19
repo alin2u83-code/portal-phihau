@@ -1388,9 +1388,20 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
 // -----------------------------------------------
 // MAIN COMPONENT
 // -----------------------------------------------
+interface EvenimentLegacy {
+  id: string;
+  denumire: string;
+  data: string;
+  data_sfarsit?: string;
+  locatie?: string;
+  organizator?: string;
+  probe_disponibile?: string[];
+}
+
 export const CompetitiiManagement: React.FC<CompetitiiProps> = ({ permissions, onBack }) => {
   const { showError } = useError();
   const [competitii, setCompetitii] = useState<Competitie[]>([]);
+  const [legacyEvents, setLegacyEvents] = useState<EvenimentLegacy[]>([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<View>('list');
   const [selectedComp, setSelectedComp] = useState<Competitie | null>(null);
@@ -1402,12 +1413,13 @@ export const CompetitiiManagement: React.FC<CompetitiiProps> = ({ permissions, o
 
   const fetchCompetitii = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('competitii')
-      .select()
-      .order('data_inceput', { ascending: false });
+    const [{ data, error }, { data: legacyData }] = await Promise.all([
+      supabase.from('competitii').select().order('data_inceput', { ascending: false }),
+      supabase.from('evenimente').select('id,denumire,data,data_sfarsit,locatie,organizator,probe_disponibile').eq('tip', 'Competitie').order('data', { ascending: false }),
+    ]);
     if (error) { showError("Eroare", error.message); }
     else setCompetitii((data || []) as Competitie[]);
+    setLegacyEvents((legacyData || []) as EvenimentLegacy[]);
     setLoading(false);
   }, [showError]);
 
@@ -1416,6 +1428,11 @@ export const CompetitiiManagement: React.FC<CompetitiiProps> = ({ permissions, o
   const filteredCompetitii = competitii.filter(c =>
     c.denumire.toLowerCase().includes(search.toLowerCase()) ||
     (c.locatie || '').toLowerCase().includes(search.toLowerCase())
+  );
+
+  const filteredLegacy = legacyEvents.filter(e =>
+    e.denumire.toLowerCase().includes(search.toLowerCase()) ||
+    (e.locatie || '').toLowerCase().includes(search.toLowerCase())
   );
 
   const handleDelete = async (id: string) => {
@@ -1475,6 +1492,12 @@ export const CompetitiiManagement: React.FC<CompetitiiProps> = ({ permissions, o
             <div className={`text-xs mt-0.5 px-1.5 py-0.5 rounded-full inline-block ${color}`}>{label}</div>
           </div>
         ))}
+        {legacyEvents.length > 0 && (
+          <div className="bg-slate-800 rounded-lg p-3 border border-slate-700">
+            <div className="text-xl font-bold text-white">{legacyEvents.length}</div>
+            <div className="text-xs mt-0.5 px-1.5 py-0.5 rounded-full inline-block bg-slate-700 text-slate-300">Legacy</div>
+          </div>
+        )}
       </div>
 
       {/* List */}
@@ -1523,7 +1546,29 @@ export const CompetitiiManagement: React.FC<CompetitiiProps> = ({ permissions, o
               )}
             </Card>
           ))}
-          {filteredCompetitii.length === 0 && !loading && (
+          {filteredLegacy.map(ev => (
+            <Card key={`legacy-${ev.id}`} className="p-4 border-dashed border-slate-600">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="font-bold text-white">{ev.denumire}</h3>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-slate-700 text-slate-300 border border-slate-600">
+                      Legacy
+                    </span>
+                  </div>
+                  <div className="text-sm text-slate-400 mt-1">
+                    {fmtDate(ev.data)}{ev.data_sfarsit && ev.data_sfarsit !== ev.data ? ` – ${fmtDate(ev.data_sfarsit)}` : ''}
+                    {ev.locatie && ` · ${ev.locatie}`}
+                    {ev.organizator && ` · ${ev.organizator}`}
+                  </div>
+                  {ev.probe_disponibile && ev.probe_disponibile.length > 0 && (
+                    <div className="text-xs text-slate-500 mt-1">Probe: {ev.probe_disponibile.join(', ')}</div>
+                  )}
+                </div>
+              </div>
+            </Card>
+          ))}
+          {filteredCompetitii.length === 0 && filteredLegacy.length === 0 && !loading && (
             <div className="text-center text-slate-500 py-16 italic">
               {isAdmin
                 ? 'Nicio competiție creată. Apasă "Adaugă Competiție" pentru a începe.'

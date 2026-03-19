@@ -128,7 +128,7 @@ SELECT
     p.suma,
     p.suma_initiala,
     p.reducere_id,
-    p.reducere_detalii,
+    p."reducereDetalii",
     p.data,
     p.status,
     p.descriere,
@@ -155,7 +155,7 @@ SELECT
     p.suma,
     p.suma_initiala,
     p.reducere_id,
-    p.reducere_detalii,
+    p."reducereDetalii",
     p.data,
     p.status,
     p.descriere,
@@ -190,7 +190,6 @@ SELECT
     s.cnp,
     s.data_nasterii,
     s.gen,
-    s.cod_sportiv,
     c.nume AS club_nume,
     c.nume AS nume_club,
     g.nume AS grad_sustinut,
@@ -353,3 +352,34 @@ DO $$
 BEGIN
     RAISE NOTICE 'Migration 20260319_create_missing_views applied successfully.';
 END $$;
+
+-- =====================================================
+-- PART 7: vw_antrenamente_viitoare_sportiv
+-- Folosit de UpcomingTrainingsWidget pe dashboard-ul sportivului
+-- =====================================================
+
+DROP VIEW IF EXISTS public.vw_antrenamente_viitoare_sportiv CASCADE;
+CREATE OR REPLACE VIEW public.vw_antrenamente_viitoare_sportiv
+WITH (security_invoker = false) AS
+SELECT
+    pa.id,
+    pa.data,
+    pa.ora_start,
+    pa.ora_sfarsit,
+    pa.grupa_id,
+    pa.club_id,
+    l.nume AS nume_locatie
+FROM public.program_antrenamente pa
+LEFT JOIN public.nom_locatii l ON pa.locatie_id = l.id
+WHERE pa.data >= CURRENT_DATE
+  AND pa.grupa_id IN (
+      SELECT s.grupa_id
+      FROM public.sportivi s
+      WHERE s.user_id = auth.uid()
+        AND s.grupa_id IS NOT NULL
+  );
+
+GRANT SELECT ON public.vw_antrenamente_viitoare_sportiv TO authenticated;
+REVOKE ALL ON public.vw_antrenamente_viitoare_sportiv FROM anon;
+
+NOTIFY pgrst, 'reload schema';

@@ -716,7 +716,7 @@ BEGIN
     SELECT 1 FROM public.utilizator_roluri_multicont
     WHERE user_id = auth.uid()
     AND club_id = p_club_id
-    AND rol IN ('super_admin', 'admin', 'club_admin', 'SuperAdmin', 'ClubAdmin')
+    AND rol_denumire IN ('SUPER_ADMIN_FEDERATIE', 'ADMIN', 'ADMIN_CLUB')
   ) OR public.is_super_admin();
 END;
 $$;

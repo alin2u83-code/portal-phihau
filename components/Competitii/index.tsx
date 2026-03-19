@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Permissions, Competitie, ProbaCompetitie, CategorieCompetitie, InscriereCompetitie, EchipaCompetitie, Sportiv, Grad } from '../../types';
+import { Permissions, Competitie, ProbaCompetitie, CategorieCompetitie, InscriereCompetitie, EchipaCompetitie, Sportiv, Grad, TipProba } from '../../types';
 import { supabase } from '../../supabaseClient';
 import { useData } from '../../contexts/DataContext';
 import { Button, Modal, Input, Select, Card } from '../ui';
@@ -257,9 +257,12 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
   const [inscrieri, setInscrieri] = useState<InscriereCompetitie[]>([]);
   const [echipe, setEchipe] = useState<EchipaCompetitie[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'categorii' | 'inscrieri'>('categorii');
+  const [activeTab, setActiveTab] = useState<'categorii' | 'inscrieri' | 'admin'>('categorii');
   const [selectedProbaId, setSelectedProbaId] = useState<string>('');
   const [inscriereModal, setInscriereModal] = useState<CategorieCompetitie | null>(null);
+  const [catFormOpen, setCatFormOpen] = useState(false);
+  const [catToEdit, setCatToEdit] = useState<CategorieCompetitie | null>(null);
+  const [probaFormOpen, setProbaFormOpen] = useState(false);
 
   const isAdmin = permissions.isSuperAdmin || permissions.isFederationAdmin;
   const isClubAdmin = permissions.isAdminClub;
@@ -333,17 +336,20 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
 
       {/* Tabs */}
       <div className="flex gap-2 border-b border-slate-700 pb-0">
-        {(['categorii', 'inscrieri'] as const).map(tab => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === tab
-              ? 'border-brand-primary text-brand-primary'
-              : 'border-transparent text-slate-400 hover:text-white'}`}
-          >
-            {tab === 'categorii' ? `Categorii (${categorii.length})` : `Înscrieri (${inscrieri.length + echipe.length})`}
+        <button onClick={() => setActiveTab('categorii')}
+          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'categorii' ? 'border-brand-primary text-brand-primary' : 'border-transparent text-slate-400 hover:text-white'}`}>
+          Categorii ({categorii.length})
+        </button>
+        <button onClick={() => setActiveTab('inscrieri')}
+          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'inscrieri' ? 'border-brand-primary text-brand-primary' : 'border-transparent text-slate-400 hover:text-white'}`}>
+          Înscrieri ({inscrieri.length + echipe.length})
+        </button>
+        {isAdmin && (
+          <button onClick={() => setActiveTab('admin')}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'admin' ? 'border-yellow-400 text-yellow-400' : 'border-transparent text-slate-400 hover:text-white'}`}>
+            ⚙ Admin
           </button>
-        ))}
+        )}
       </div>
 
       {loading ? (
@@ -447,6 +453,26 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
               onRefresh={fetchData}
             />
           )}
+
+          {/* ADMIN TAB */}
+          {activeTab === 'admin' && isAdmin && (
+            <AdminPanel
+              competitie={competitie}
+              probe={probe}
+              setProbe={setProbe}
+              categorii={categorii}
+              setCategorii={setCategorii}
+              inscrieri={inscrieri}
+              echipe={echipe}
+              catFormOpen={catFormOpen}
+              setCatFormOpen={setCatFormOpen}
+              catToEdit={catToEdit}
+              setCatToEdit={setCatToEdit}
+              probaFormOpen={probaFormOpen}
+              setProbaFormOpen={setProbaFormOpen}
+              onRefresh={fetchData}
+            />
+          )}
         </>
       )}
 
@@ -465,6 +491,419 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
         />
       )}
     </div>
+  );
+};
+
+// -----------------------------------------------
+// ADMIN PANEL — category + probe management + statistics
+// -----------------------------------------------
+interface AdminPanelProps {
+  competitie: Competitie;
+  probe: ProbaCompetitie[];
+  setProbe: React.Dispatch<React.SetStateAction<ProbaCompetitie[]>>;
+  categorii: CategorieCompetitie[];
+  setCategorii: React.Dispatch<React.SetStateAction<CategorieCompetitie[]>>;
+  inscrieri: InscriereCompetitie[];
+  echipe: EchipaCompetitie[];
+  catFormOpen: boolean;
+  setCatFormOpen: (v: boolean) => void;
+  catToEdit: CategorieCompetitie | null;
+  setCatToEdit: (c: CategorieCompetitie | null) => void;
+  probaFormOpen: boolean;
+  setProbaFormOpen: (v: boolean) => void;
+  onRefresh: () => void;
+}
+
+const AdminPanel: React.FC<AdminPanelProps> = ({
+  competitie, probe, setProbe, categorii, setCategorii,
+  inscrieri, echipe, catFormOpen, setCatFormOpen, catToEdit, setCatToEdit,
+  probaFormOpen, setProbaFormOpen, onRefresh,
+}) => {
+  const { showError } = useError();
+  const [adminSection, setAdminSection] = useState<'stats' | 'probe' | 'categorii'>('stats');
+
+  const inscrieriCount = (catId: string) =>
+    inscrieri.filter(i => i.categorie_id === catId).length +
+    echipe.filter(e => e.categorie_id === catId).length;
+
+  const totalInscrisi = inscrieri.length + echipe.length;
+  const categoriiActive = categorii.filter(c => inscrieriCount(c.id) >= c.min_participanti_start).length;
+  const categoriiInsuficiente = categorii.filter(c => {
+    const cnt = inscrieriCount(c.id);
+    return cnt > 0 && cnt < c.min_participanti_start;
+  }).length;
+
+  const handleDeleteCategorie = async (id: string) => {
+    if (!window.confirm('Ștergi această categorie? Toate înscrierile aferente vor fi șterse.')) return;
+    const { error } = await supabase.from('categorii_competitie').delete().eq('id', id);
+    if (error) { showError('Eroare', error.message); return; }
+    setCategorii(prev => prev.filter(c => c.id !== id));
+  };
+
+  const handleDeleteProba = async (id: string) => {
+    if (!window.confirm('Ștergi această probă? Categoriile asociate vor rămâne fără probă.')) return;
+    const { error } = await supabase.from('probe_competitie').delete().eq('id', id);
+    if (error) { showError('Eroare', error.message); return; }
+    setProbe(prev => prev.filter(p => p.id !== id));
+  };
+
+  // Group categorii by proba for stats
+  const catByProba = probe.map(p => ({
+    proba: p,
+    cats: categorii.filter(c => c.proba_id === p.id),
+  }));
+  const catFaraProba = categorii.filter(c => !c.proba_id);
+
+  return (
+    <div className="space-y-4">
+      {/* Sub-nav */}
+      <div className="flex gap-2">
+        {(['stats', 'probe', 'categorii'] as const).map(s => (
+          <button key={s} onClick={() => setAdminSection(s)}
+            className={`px-3 py-1.5 text-xs rounded font-medium transition-colors ${adminSection === s ? 'bg-yellow-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}>
+            {s === 'stats' ? 'Statistici' : s === 'probe' ? `Probe (${probe.length})` : `Categorii (${categorii.length})`}
+          </button>
+        ))}
+      </div>
+
+      {/* STATISTICI */}
+      {adminSection === 'stats' && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="bg-slate-800 rounded-lg p-3 border border-slate-700">
+              <div className="text-2xl font-bold text-white">{categorii.length}</div>
+              <div className="text-xs text-slate-400 mt-0.5">Total categorii</div>
+            </div>
+            <div className="bg-slate-800 rounded-lg p-3 border border-slate-700">
+              <div className="text-2xl font-bold text-white">{totalInscrisi}</div>
+              <div className="text-xs text-slate-400 mt-0.5">Total înscrieri</div>
+            </div>
+            <div className="bg-slate-800 rounded-lg p-3 border border-green-800">
+              <div className="text-2xl font-bold text-green-400">{categoriiActive}</div>
+              <div className="text-xs text-slate-400 mt-0.5">Categorii cu minim atins</div>
+            </div>
+            <div className="bg-slate-800 rounded-lg p-3 border border-yellow-800">
+              <div className="text-2xl font-bold text-yellow-400">{categoriiInsuficiente}</div>
+              <div className="text-xs text-slate-400 mt-0.5">Categorii sub minim</div>
+            </div>
+          </div>
+
+          {/* Per probe stats */}
+          {catByProba.map(({ proba, cats }) => {
+            const total = cats.reduce((s, c) => s + inscrieriCount(c.id), 0);
+            return (
+              <div key={proba.id} className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
+                <div className="px-4 py-2 bg-slate-700 flex justify-between items-center">
+                  <span className="font-medium text-white text-sm">{proba.denumire}</span>
+                  <span className="text-xs text-slate-400">{cats.length} categorii · {total} înscriși</span>
+                </div>
+                <div className="divide-y divide-slate-700/50">
+                  {cats.filter(c => inscrieriCount(c.id) > 0).map(cat => {
+                    const cnt = inscrieriCount(cat.id);
+                    const ok = cnt >= cat.min_participanti_start;
+                    return (
+                      <div key={cat.id} className="px-4 py-2 flex items-center justify-between text-sm">
+                        <span className="text-slate-300 truncate flex-1 mr-2">{cat.denumire}</span>
+                        <span className={`text-xs font-bold shrink-0 ${ok ? 'text-green-400' : 'text-yellow-400'}`}>
+                          {cnt}/{cat.min_participanti_start} {ok ? '✓' : '⚠'}
+                        </span>
+                      </div>
+                    );
+                  })}
+                  {cats.filter(c => inscrieriCount(c.id) === 0).length > 0 && (
+                    <div className="px-4 py-2 text-xs text-slate-500 italic">
+                      {cats.filter(c => inscrieriCount(c.id) === 0).length} categorii fără înscrieri
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* PROBE */}
+      {adminSection === 'probe' && (
+        <div className="space-y-3">
+          <Button variant="success" size="sm" onClick={() => setProbaFormOpen(true)}>
+            <PlusIcon className="w-4 h-4 mr-1" /> Adaugă Probă
+          </Button>
+          <div className="space-y-2">
+            {probe.map(p => (
+              <div key={p.id} className="flex items-center justify-between p-3 bg-slate-800 rounded-lg border border-slate-700">
+                <div>
+                  <div className="font-medium text-white text-sm">{p.denumire}</div>
+                  <div className="text-xs text-slate-400">{TIP_PROBA_LABELS[p.tip_proba]} · {categorii.filter(c => c.proba_id === p.id).length} categorii</div>
+                </div>
+                <Button size="sm" variant="danger" className="!p-2" onClick={() => handleDeleteProba(p.id)}>
+                  <TrashIcon className="w-3 h-3" />
+                </Button>
+              </div>
+            ))}
+            {probe.length === 0 && <div className="text-slate-500 italic text-sm text-center py-4">Nicio probă definită.</div>}
+          </div>
+          {probaFormOpen && (
+            <ProbaForm
+              competitieId={competitie.id}
+              onClose={() => setProbaFormOpen(false)}
+              onSaved={(p) => { setProbe(prev => [...prev, p]); setProbaFormOpen(false); }}
+            />
+          )}
+        </div>
+      )}
+
+      {/* CATEGORII */}
+      {adminSection === 'categorii' && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-slate-400">{categorii.length} categorii definite</span>
+            <Button variant="success" size="sm" onClick={() => { setCatToEdit(null); setCatFormOpen(true); }}>
+              <PlusIcon className="w-4 h-4 mr-1" /> Adaugă Categorie
+            </Button>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-slate-300">
+              <thead>
+                <tr className="border-b border-slate-700">
+                  <th className="p-2 text-left w-10">#</th>
+                  <th className="p-2 text-left">Categorie</th>
+                  <th className="p-2 text-left hidden md:table-cell">Probă</th>
+                  <th className="p-2 text-center hidden md:table-cell">Tip</th>
+                  <th className="p-2 text-center">Înscriși</th>
+                  <th className="p-2 text-right">Acțiuni</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800">
+                {categorii.map(cat => {
+                  const proba = probe.find(p => p.id === cat.proba_id);
+                  const cnt = inscrieriCount(cat.id);
+                  return (
+                    <tr key={cat.id} className="hover:bg-slate-800/50">
+                      <td className="p-2 text-slate-500 text-xs">{cat.numar_categorie}</td>
+                      <td className="p-2">
+                        <div className="text-white text-xs font-medium">{cat.denumire}</div>
+                        {cat.arma && <div className="text-orange-400 text-[11px]">{cat.arma}</div>}
+                      </td>
+                      <td className="p-2 hidden md:table-cell text-xs text-slate-400">
+                        {proba ? TIP_PROBA_LABELS[proba.tip_proba] : <span className="text-red-400">Fără probă</span>}
+                      </td>
+                      <td className="p-2 hidden md:table-cell text-center text-xs text-slate-400">
+                        {cat.tip_participare}
+                      </td>
+                      <td className="p-2 text-center">
+                        <span className={`text-xs font-bold ${cnt >= cat.min_participanti_start ? 'text-green-400' : cnt > 0 ? 'text-yellow-400' : 'text-slate-600'}`}>
+                          {cnt}
+                        </span>
+                      </td>
+                      <td className="p-2 text-right">
+                        <div className="flex gap-1 justify-end">
+                          <Button size="sm" variant="secondary" className="!p-1.5" onClick={() => { setCatToEdit(cat); setCatFormOpen(true); }}>
+                            <EditIcon className="w-3 h-3" />
+                          </Button>
+                          {cnt === 0 && (
+                            <Button size="sm" variant="danger" className="!p-1.5" onClick={() => handleDeleteCategorie(cat.id)}>
+                              <TrashIcon className="w-3 h-3" />
+                            </Button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          {catFormOpen && (
+            <CategorieForm
+              competitieId={competitie.id}
+              probe={probe}
+              categorie={catToEdit}
+              onClose={() => { setCatFormOpen(false); setCatToEdit(null); }}
+              onSaved={(cat) => {
+                if (catToEdit) {
+                  setCategorii(prev => prev.map(c => c.id === cat.id ? cat : c));
+                } else {
+                  setCategorii(prev => [...prev, cat]);
+                }
+                setCatFormOpen(false); setCatToEdit(null);
+              }}
+            />
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// -----------------------------------------------
+// PROBA FORM
+// -----------------------------------------------
+interface ProbaFormProps {
+  competitieId: string;
+  onClose: () => void;
+  onSaved: (p: ProbaCompetitie) => void;
+}
+const ProbaForm: React.FC<ProbaFormProps> = ({ competitieId, onClose, onSaved }) => {
+  const { showError } = useError();
+  const [tipProba, setTipProba] = useState<TipProba>('thao_quyen_individual');
+  const [denumire, setDenumire] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSave = async () => {
+    if (!denumire.trim()) return;
+    setLoading(true);
+    const { data, error } = await supabase.from('probe_competitie').insert({
+      competitie_id: competitieId,
+      tip_proba: tipProba,
+      denumire: denumire.trim(),
+      ordine_afisare: 0,
+    }).select().single();
+    if (error) { showError('Eroare', error.message); setLoading(false); return; }
+    onSaved(data as ProbaCompetitie);
+  };
+
+  return (
+    <div className="bg-slate-800 border border-slate-600 rounded-lg p-4 space-y-3">
+      <h4 className="text-sm font-bold text-white">Adaugă Probă Nouă</h4>
+      <Select label="Tip Probă" value={tipProba} onChange={e => {
+        const t = e.target.value as TipProba;
+        setTipProba(t);
+        setDenumire(TIP_PROBA_LABELS[t]);
+      }}>
+        {Object.entries(TIP_PROBA_LABELS).map(([k, v]) => (
+          <option key={k} value={k}>{v}</option>
+        ))}
+      </Select>
+      <Input label="Denumire" value={denumire} onChange={e => setDenumire(e.target.value)} />
+      <div className="flex gap-2 justify-end">
+        <Button variant="secondary" size="sm" onClick={onClose} disabled={loading}>Anulează</Button>
+        <Button variant="success" size="sm" onClick={handleSave} disabled={loading}>Salvează</Button>
+      </div>
+    </div>
+  );
+};
+
+// -----------------------------------------------
+// CATEGORIE FORM (add / edit)
+// -----------------------------------------------
+interface CategorieFormProps {
+  competitieId: string;
+  probe: ProbaCompetitie[];
+  categorie: CategorieCompetitie | null;
+  onClose: () => void;
+  onSaved: (c: CategorieCompetitie) => void;
+}
+
+const CategorieForm: React.FC<CategorieFormProps> = ({ competitieId, probe, categorie, onClose, onSaved }) => {
+  const { showError } = useError();
+  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({
+    proba_id: categorie?.proba_id || probe[0]?.id || '',
+    numar_categorie: String(categorie?.numar_categorie ?? ''),
+    denumire: categorie?.denumire || '',
+    varsta_min: String(categorie?.varsta_min ?? '7'),
+    varsta_max: String(categorie?.varsta_max ?? ''),
+    gen: (categorie?.gen ?? 'Feminin') as 'Feminin' | 'Masculin' | 'Mixt',
+    grad_min_ordine: String(categorie?.grad_min_ordine ?? ''),
+    grad_max_ordine: String(categorie?.grad_max_ordine ?? ''),
+    arma: categorie?.arma || '',
+    tip_participare: (categorie?.tip_participare ?? 'individual') as 'individual' | 'pereche' | 'echipa',
+    sportivi_per_echipa_min: String(categorie?.sportivi_per_echipa_min ?? '1'),
+    sportivi_per_echipa_max: String(categorie?.sportivi_per_echipa_max ?? '1'),
+    rezerve_max: String(categorie?.rezerve_max ?? '0'),
+    max_echipe_per_club: String(categorie?.max_echipe_per_club ?? '1'),
+    min_participanti_start: String(categorie?.min_participanti_start ?? '3'),
+  });
+
+  const f = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+    setForm(p => ({ ...p, [field]: e.target.value }));
+
+  const handleSave = async () => {
+    setLoading(true);
+    const payload = {
+      competitie_id: competitieId,
+      proba_id: form.proba_id || null,
+      numar_categorie: parseInt(form.numar_categorie) || null,
+      denumire: form.denumire.trim() || null,
+      varsta_min: parseInt(form.varsta_min) || 0,
+      varsta_max: parseInt(form.varsta_max) || null,
+      gen: form.gen,
+      grad_min_ordine: parseInt(form.grad_min_ordine) || null,
+      grad_max_ordine: parseInt(form.grad_max_ordine) || null,
+      arma: form.arma.trim() || null,
+      tip_participare: form.tip_participare,
+      sportivi_per_echipa_min: parseInt(form.sportivi_per_echipa_min) || 1,
+      sportivi_per_echipa_max: parseInt(form.sportivi_per_echipa_max) || 1,
+      rezerve_max: parseInt(form.rezerve_max) || 0,
+      max_echipe_per_club: parseInt(form.max_echipe_per_club) || 1,
+      min_participanti_start: parseInt(form.min_participanti_start) || 3,
+    };
+    try {
+      if (categorie) {
+        const { data, error } = await supabase.from('categorii_competitie').update(payload).eq('id', categorie.id).select().single();
+        if (error) throw error;
+        onSaved(data as CategorieCompetitie);
+      } else {
+        const { data, error } = await supabase.from('categorii_competitie').insert(payload).select().single();
+        if (error) throw error;
+        onSaved(data as CategorieCompetitie);
+      }
+    } catch (err: any) {
+      showError('Eroare', err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Modal isOpen={true} onClose={onClose} title={categorie ? 'Editează Categorie' : 'Adaugă Categorie'}>
+      <div className="space-y-3 max-h-[70vh] overflow-y-auto pr-1">
+        <div className="grid grid-cols-2 gap-3">
+          <Input label="Nr. Categorie" type="number" value={form.numar_categorie} onChange={f('numar_categorie')} />
+          <Select label="Probă" value={form.proba_id} onChange={f('proba_id')}>
+            <option value="">Fără probă</option>
+            {probe.map(p => <option key={p.id} value={p.id}>{p.denumire}</option>)}
+          </Select>
+        </div>
+        <Input label="Denumire (auto sau personalizată)" value={form.denumire} onChange={f('denumire')} />
+        <div className="grid grid-cols-3 gap-3">
+          <Input label="Vârstă Min" type="number" value={form.varsta_min} onChange={f('varsta_min')} />
+          <Input label="Vârstă Max (gol = fără limită)" type="number" value={form.varsta_max} onChange={f('varsta_max')} />
+          <Select label="Gen" value={form.gen} onChange={f('gen')}>
+            <option value="Feminin">Feminin</option>
+            <option value="Masculin">Masculin</option>
+            <option value="Mixt">Mixt</option>
+          </Select>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <Input label="Grad Min (ordine, gol = orice)" type="number" value={form.grad_min_ordine} onChange={f('grad_min_ordine')} />
+          <Input label="Grad Max (ordine, gol = orice)" type="number" value={form.grad_max_ordine} onChange={f('grad_max_ordine')} />
+        </div>
+        <Input label="Armă (pentru CVD, ex: Bong)" value={form.arma} onChange={f('arma')} />
+        <div className="grid grid-cols-2 gap-3">
+          <Select label="Tip Participare" value={form.tip_participare} onChange={f('tip_participare')}>
+            <option value="individual">Individual</option>
+            <option value="pereche">Pereche</option>
+            <option value="echipa">Echipă</option>
+          </Select>
+          <Input label="Min. participanți start" type="number" value={form.min_participanti_start} onChange={f('min_participanti_start')} />
+        </div>
+        {form.tip_participare !== 'individual' && (
+          <div className="grid grid-cols-3 gap-3">
+            <Input label="Sportivi/echipă min" type="number" value={form.sportivi_per_echipa_min} onChange={f('sportivi_per_echipa_min')} />
+            <Input label="Sportivi/echipă max" type="number" value={form.sportivi_per_echipa_max} onChange={f('sportivi_per_echipa_max')} />
+            <Input label="Rezerve max" type="number" value={form.rezerve_max} onChange={f('rezerve_max')} />
+          </div>
+        )}
+        <Input label="Max echipe/club" type="number" value={form.max_echipe_per_club} onChange={f('max_echipe_per_club')} />
+        <div className="flex justify-end gap-2 pt-2">
+          <Button variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button>
+          <Button variant="success" onClick={handleSave} disabled={loading}>
+            {loading ? 'Se salvează...' : (categorie ? 'Actualizează' : 'Adaugă')}
+          </Button>
+        </div>
+      </div>
+    </Modal>
   );
 };
 

@@ -49,7 +49,7 @@ export const ProgramAntrenamenteManagement: React.FC<ProgramAntrenamenteManageme
 
         setIsSaving(true);
         try {
-            const { id, nume_grupa, sala, durata_minute, ziua_saptamanii, grupe, prezenta, ...dataToUpdate } = editingAntrenament;
+            const { id, nume_grupa, sala, durata_minute, ziua_saptamanii, grupe, prezenta, sportivi_count, ...dataToUpdate } = editingAntrenament as any;
             
             const { error } = await supabase
                 .from('program_antrenamente')

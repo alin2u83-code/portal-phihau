@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { User, View, Club, Permissions, Rol, Grad } from '../types';
 import { useNavigation } from '../contexts/NavigationContext';
-import { adminMenu, instructorMenu, sportivMenu, MenuItem } from './menuConfig';
+import { adminMenu, adminClubMenu, instructorMenu, sportivMenu, MenuItem } from './menuConfig';
 import { ArrowRightOnRectangleIcon, Bars3Icon, ChevronDownIcon, ShieldCheckIcon, UserCircleIcon, UsersIcon, BuildingOfficeIcon } from './icons';
 import { RoleSwitcher } from './RoleSwitcher';
 import { NavMenu } from './NavMenu';
@@ -60,7 +60,7 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
                 icon = ShieldCheckIcon;
                 break;
             case ROLES.ADMIN_CLUB:
-                menu = adminMenu;
+                menu = adminClubMenu;
                 name = currentUser.cluburi?.nume || 'Club';
                 border = 'border-sky-500';
                 icon = ShieldCheckIcon;

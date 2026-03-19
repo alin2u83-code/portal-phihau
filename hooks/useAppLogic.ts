@@ -19,7 +19,7 @@ export const useAppLogic = () => {
 
     const { switchRole, loading: isSwitchingRole } = useRoleManager(currentUser?.user_id || session?.user?.id);
 
-    const activeRole = useMemo(() => activeRoleContext?.roluri?.nume || null, [activeRoleContext]);
+    const activeRole = useMemo(() => activeRoleContext?.roluri?.nume || activeRoleContext?.rol_denumire || null, [activeRoleContext]);
 
     const canSwitchRoles = useMemo(() => {
         return !!(currentUser && userRoles && userRoles.length > 1);

@@ -18,7 +18,7 @@ export const ClubSettings: React.FC<ClubSettingsProps> = ({ onBack, currentUser,
     
     // Determine active club based on user role
     const activeClubId = currentUser.club_id;
-    const activeClub = clubs.find(c => c.id === activeClubId);
+    const activeClub = clubs.find(c => c?.id === activeClubId);
 
     const [formData, setFormData] = useState<{
         nume: string;

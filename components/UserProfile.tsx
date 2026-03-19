@@ -35,9 +35,10 @@ const parseDurationToMonths = (durationStr: string): number => { const parts = d
 interface UserProfileProps {
     sportiv: Sportiv;
     onBack: () => void;
+    onNavigate?: (view: import('../types').View) => void;
 }
 
-export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack }) => {
+export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNavigate }) => {
     const {
         currentUser,
         setIstoricGrade,
@@ -483,6 +484,16 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack }) => 
                     <Button variant="primary" onClick={() => setIsWalletModalOpen(true)} className="shadow-sm hover:shadow-md transition-all bg-indigo-600 hover:bg-indigo-500 border-none">
                         <WalletIcon className="w-4 h-4 mr-2"/> Portofel
                     </Button>
+                    {onNavigate && (
+                        <>
+                            <Button variant="secondary" onClick={() => onNavigate('plati-scadente')} className="shadow-sm hover:shadow-md transition-all" title="Vezi plățile acestui sportiv">
+                                <BanknotesIcon className="w-4 h-4 mr-2"/> Plăți
+                            </Button>
+                            <Button variant="secondary" onClick={() => onNavigate('examene')} className="shadow-sm hover:shadow-md transition-all" title="Vezi examenele acestui sportiv">
+                                <TrophyIcon className="w-4 h-4 mr-2"/> Examene
+                            </Button>
+                        </>
+                    )}
                     {isSuperAdmin && (
                         <Button variant="danger" onClick={() => setIsDeleteModalOpen(true)} className="shadow-sm hover:shadow-md transition-all">
                             <TrashIcon className="w-4 h-4 mr-2"/> Șterge

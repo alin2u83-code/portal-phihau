@@ -66,6 +66,7 @@ interface JurnalIncasariProps {
     onIncasareProcesata: () => void;
     onBack: () => void;
     reduceri: Reducere[];
+    onViewSportiv?: (sportiv: Sportiv) => void;
 }
 
 const emptyIncasareState = {
@@ -166,7 +167,7 @@ const AdaugaAvans: React.FC<{
 };
 
 
-export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, permissions, plati, setPlati, sportivi, familii, preturiConfig, tipuriAbonament, tipuriPlati, setTipuriPlati, tranzactii, setTranzactii, reduceri, platiInitiale = [], onIncasareProcesata, onBack }) => {
+export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, permissions, plati, setPlati, sportivi, familii, preturiConfig, tipuriAbonament, tipuriPlati, setTipuriPlati, tranzactii, setTranzactii, reduceri, platiInitiale = [], onIncasareProcesata, onBack, onViewSportiv }) => {
     const [formState, setFormState] = useState(emptyIncasareState);
     const [selectedEchipament, setSelectedEchipament] = useState('');
     const [selectedMarimeId, setSelectedMarimeId] = useState('');
@@ -559,7 +560,17 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
         {
             key: 'sportiv_id',
             label: 'Plătit de',
-            render: (t) => <span className="font-medium text-white">{getEntityName(t)}</span>
+            render: (t) => {
+                if (t.sportiv_id && onViewSportiv) {
+                    const s = sportivi?.find(sp => sp.id === t.sportiv_id);
+                    return (
+                        <button type="button" className="font-medium text-white hover:text-brand-primary hover:underline cursor-pointer text-left" onClick={() => { if (s) onViewSportiv(s); }}>
+                            {getEntityName(t)}
+                        </button>
+                    );
+                }
+                return <span className="font-medium text-white">{getEntityName(t)}</span>;
+            }
         },
         {
             key: 'descriere',
@@ -590,7 +601,11 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
         <Card className="mb-4 border-l-4 border-green-500">
             <div className="flex justify-between items-start mb-2">
                 <div>
-                    <p className="font-bold text-white text-lg">{getEntityName(t)}</p>
+                    {t.sportiv_id && onViewSportiv ? (
+                        <button type="button" className="font-bold text-white text-lg hover:text-brand-primary hover:underline cursor-pointer text-left" onClick={() => { const s = sportivi?.find(sp => sp.id === t.sportiv_id); if (s) onViewSportiv(s); }}>{getEntityName(t)}</button>
+                    ) : (
+                        <p className="font-bold text-white text-lg">{getEntityName(t)}</p>
+                    )}
                     <p className="text-sm text-slate-400">{new Date((t.data_platii || '').toString().slice(0, 10)).toLocaleDateString('ro-RO')}</p>
                 </div>
                 <span className="font-bold text-green-400 text-lg">{t.suma.toFixed(2)} RON</span>

@@ -251,7 +251,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ onBack, onNavigate, 
             if(e.type === 'Antrenament') event.scope = 'club';
             if(e.type === 'Examen') event.scope = 'club';
 
-            const dateKey = e.data;
+            const dateKey = (e.data || '').toString().slice(0, 10);
             const existing = eventMap.get(dateKey) || [];
             eventMap.set(dateKey, [...existing, event]);
         });

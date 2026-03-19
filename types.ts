@@ -150,6 +150,7 @@ export interface Plata {
   id: string;
   sportiv_id: string | null;
   familie_id: string | null;
+  club_id?: string | null;
   suma_initiala?: number | null;
   reducere_id?: string | null;
   reducere_detalii?: string | null;

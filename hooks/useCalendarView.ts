@@ -8,6 +8,7 @@ export const useCalendarView = (grupaId: string, initialDate?: string) => {
    // Calculăm data curentă folosind ora locală, nu UTC, pentru a evita decalajul de o zi
     const todayLocal = new Date().toLocaleDateString('sv-SE'); // 'sv-SE' returnează formatul YYYY-MM-DD
     const [date, setDate] = useState(initialDate || todayLocal);
+    const [selectedDate, setSelectedDate] = useState<string | null>(initialDate || todayLocal);
     const [daysToGenerate, setDaysToGenerate] = useState(30);
     const [antrenamente, setAntrenamente] = useState<Antrenament[]>([]);
     const [loading, setLoading] = useState(true);
@@ -16,12 +17,19 @@ export const useCalendarView = (grupaId: string, initialDate?: string) => {
 
     const fetchAntrenamente = useCallback(async () => {
         setLoading(true);
+        // Fetch the full month range based on the current `date` (month navigation)
+        const startOfMonth = date.substring(0, 7) + '-01';
+        const d = new Date(date);
+        const endOfMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0).toLocaleDateString('sv-SE');
+
         const { data, error } = await supabase.from('program_antrenamente')
             .select('*, grupe(*), prezenta:prezenta_antrenament(sportiv_id, status)')
             .eq('grupa_id', grupaId)
-            .eq('data', date)
+            .gte('data', startOfMonth)
+            .lte('data', endOfMonth)
+            .order('data')
             .order('ora_start');
-        
+
         if (error) {
             showError("Eroare la încărcarea calendarului", error.message);
         } else {
@@ -38,14 +46,14 @@ export const useCalendarView = (grupaId: string, initialDate?: string) => {
         setLoading(true);
         try {
             await generateTrainingsFromSchedule(daysToGenerate, grupaId);
-            showSuccess("Succes", `Calendarul a fost populat pentru următoarele ${daysToGenerate} zile.`); 
-            await fetchAntrenamente(); 
+            showSuccess("Succes", `Calendarul a fost populat pentru următoarele ${daysToGenerate} zile.`);
+            await fetchAntrenamente();
         } catch (error: any) {
             // Fallback to global generation if group-specific fails (legacy support)
             try {
                 await generateTrainingsFromSchedule(daysToGenerate);
-                showSuccess("Succes", `Calendarul a fost populat pentru următoarele ${daysToGenerate} zile (Global).`); 
-                await fetchAntrenamente(); 
+                showSuccess("Succes", `Calendarul a fost populat pentru următoarele ${daysToGenerate} zile (Global).`);
+                await fetchAntrenamente();
             } catch (error2: any) {
                 showError("Eroare generare", error2.message);
             }
@@ -74,7 +82,7 @@ export const useCalendarView = (grupaId: string, initialDate?: string) => {
                 .insert(data)
                 .select('*, grupe(*), prezenta:prezenta_antrenament(sportiv_id, status)')
                 .single();
-            
+
             if (error) {
                 showError("Eroare", error.message);
             } else if (newAntrenament) {
@@ -87,6 +95,8 @@ export const useCalendarView = (grupaId: string, initialDate?: string) => {
     return {
         date,
         setDate,
+        selectedDate,
+        setSelectedDate,
         todayLocal, // Trimitem și data de azi pentru a fi folosită în UI la evidențiere
         daysToGenerate,
         setDaysToGenerate,

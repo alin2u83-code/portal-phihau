@@ -8,6 +8,7 @@ import { useError } from './ErrorProvider';
 interface GeneratorProgramMasivProps {
     onBack: () => void;
     clubId?: string | null;
+    onNavigateToGrupe?: () => void;
 }
 
 interface SchedulableItem {
@@ -33,7 +34,7 @@ interface GeneratedInstance {
 
 const ZILE_INDEX: Record<string, number> = { 'Luni': 1, 'Marți': 2, 'Miercuri': 3, 'Joi': 4, 'Vineri': 5, 'Sâmbătă': 6, 'Duminică': 0 };
 
-export const GeneratorProgramMasiv: React.FC<GeneratorProgramMasivProps> = ({ onBack, clubId }) => {
+export const GeneratorProgramMasiv: React.FC<GeneratorProgramMasivProps> = ({ onBack, clubId, onNavigateToGrupe }) => {
     const [step, setStep] = useState<'selection' | 'preview'>('selection');
     const [loading, setLoading] = useState(false);
     const [grupe, setGrupe] = useState<(Grupa & { program: ProgramItem[] })[]>([]);
@@ -220,6 +221,15 @@ export const GeneratorProgramMasiv: React.FC<GeneratorProgramMasivProps> = ({ on
 
                         {loading ? (
                             <p className="text-center py-8 text-slate-400">Se încarcă orarul...</p>
+                        ) : schedulableItems.length === 0 ? (
+                            <div className="text-center py-12 space-y-3">
+                                <p className="text-slate-400">Nu există grupe cu orar configurat.</p>
+                                {onNavigateToGrupe && (
+                                    <Button onClick={onNavigateToGrupe} variant="primary">
+                                        Mergi la Gestionare Grupe
+                                    </Button>
+                                )}
+                            </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[500px] overflow-y-auto custom-scrollbar pr-2">
                                 {schedulableItems.map(item => (

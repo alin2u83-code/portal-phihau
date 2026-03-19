@@ -4,8 +4,8 @@ import { Card, Button, Skeleton, Modal } from './ui';
 import { NotificationPermissionWidget } from './NotificationPermissionWidget';
 import { useError } from './ErrorProvider';
 import { supabase } from '../supabaseClient';
-import { CheckIcon, ExclamationTriangleIcon, TrophyIcon, CalendarDaysIcon, ChartBarIcon, WalletIcon } from './icons';
-import { RefreshCw, Loader2 } from 'lucide-react';
+import { TrophyIcon, CalendarDaysIcon, ChartBarIcon, WalletIcon } from './icons';
+import { Loader2 } from 'lucide-react';
 import { GradBadge } from '../utils/grades';
 import { AntrenamenteViitoare } from './AntrenamenteViitoare';
 import { UpcomingTrainingsWidget } from './UpcomingTrainingsWidget';
@@ -53,59 +53,6 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
     const { istoricPrezenta, fetchIstoricVedere, loadingIstoric } = useDataProvider();
     const { isViewingOwnProfile } = useDashboardPermissions(currentUser, viewedUser, permissions);
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-    
-    // Hybrid Data Fetching State
-    const [sportivData, setSportivData] = useState<any>(null);
-    const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-    const [loading, setLoading] = useState(false);
-    const [isFresh, setIsFresh] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        const fetchInitial = async () => {
-            setLoading(true);
-            setError(null);
-            const { data, error } = await supabase
-                .from('vw_dashboard_complet_sportiv')
-                .select('*')
-                .single();
-            
-            if (error) {
-                console.error("Error fetching from view:", error);
-                setError("Nu am putut încărca datele curente.");
-            } else {
-                setSportivData(data);
-                setLastUpdated(new Date());
-                setIsFresh(false);
-            }
-            setLoading(false);
-        };
-        fetchInitial();
-    }, []); // No dependencies needed as it's filtered server-side
-
-    const handleRefresh = async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const { data: fresh, error } = await supabase
-                .rpc('get_sportiv_data_fresh', { p_user_id: viewedUser.id });
-            
-            if (error) throw error;
-            
-            if (fresh && fresh.length > 0) {
-                setSportivData(fresh[0]);
-                setIsFresh(true);
-                setLastUpdated(new Date());
-                showSuccess("Date actualizate", "Datele au fost sincronizate cu baza de date.");
-            }
-        } catch (err: any) {
-            console.error("Error refreshing data:", err);
-            setError("Eroare la actualizarea datelor.");
-            showError("Eroare", "Nu am putut actualiza datele.");
-        } finally {
-            setLoading(false);
-        }
-    };
 
     useEffect(() => {
         if (viewedUser?.id) {
@@ -239,28 +186,27 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
         }));
     }, [participari, examene, grade, istoricGrade, viewedUser.id]);
 
+    // Derived from props — no extra fetch needed
+    const numeGrupa = useMemo(() => {
+        if (!viewedUser.grupa_id) return 'Grupa nealocată';
+        return grupe.find(g => g.id === viewedUser.grupa_id)?.denumire || 'Grupa nealocată';
+    }, [viewedUser.grupa_id, grupe]);
+
+    const totalPrezente = useMemo(() => istoricPrezenta.filter(p => p.status?.toLowerCase() === 'prezent').length, [istoricPrezenta]);
+
+    const statusPlati = useMemo(() => {
+        const neachitate = (plati || []).filter(p => p.sportiv_id === viewedUser.id && p.status === 'Neachitat');
+        return neachitate.length > 0 ? 'RESTANTA' : 'LA ZI';
+    }, [plati, viewedUser.id]);
+
     // --- Attendance Stats Data ---
     const { attendanceStats, gradeStats } = useAttendanceStats(istoricPrezenta, istoricGrade, grade);
 
     return (
         <div className="space-y-4 md:space-y-6 pb-20 md:pb-0">
             <div className="flex items-center justify-between text-xs text-slate-500 mb-2 px-1">
-                <div className="flex items-center gap-2">
-                    <span>Ultima actualizare: {lastUpdated ? lastUpdated.toLocaleTimeString() : '--:--'}</span>
-                    {isFresh && (
-                        <span className="px-2 py-0.5 bg-emerald-900/50 text-emerald-400 border border-emerald-700/50 rounded-full text-[10px] uppercase font-bold">
-                            Date Live
-                        </span>
-                    )}
-                </div>
-                <button 
-                    onClick={handleRefresh} 
-                    disabled={loading}
-                    className="flex items-center gap-1 hover:text-sky-400 transition-colors"
-                >
-                    {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
-                    {loading ? 'Se actualizează...' : 'Force Refresh'}
-                </button>
+                <span>{loadingIstoric ? 'Se încarcă datele...' : `${totalPrezente} prezențe înregistrate`}</span>
+                {loadingIstoric && <Loader2 className="w-3 h-3 animate-spin" />}
             </div>
             {/* Mobile-first Header Profile Card */}
             <Card className="relative overflow-hidden border-t-4 border-t-sky-500 bg-gradient-to-b from-slate-800 to-[var(--bg-card)] shadow-lg">
@@ -274,7 +220,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                     </div>
                     <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">{viewedUser.nume} {viewedUser.prenume}</h1>
                     <p className="text-sm text-sky-400 font-medium mt-1 uppercase tracking-wider">
-                        {sportivData?.nume_grupa || 'Grupa nealocată'}
+                        {numeGrupa}
                     </p>
                     <div className="mt-4 transform scale-110">
                        <GradBadge grad={currentGrad} gradName={currentGrad?.nume} isLarge />
@@ -312,12 +258,12 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                             <ChartBarIcon className="w-5 h-5 text-sky-400" />
                             Prezențe Recente
                         </h3>
-                        <span className="text-2xl font-black text-sky-400">{sportivData?.statistici_prezenta?.total_prezente || 0}</span>
+                        <span className="text-2xl font-black text-sky-400">{totalPrezente}</span>
                     </div>
                     
-                    {loading ? (
+                    {loadingIstoric ? (
                         <div className="h-48 flex items-center justify-center"><Skeleton className="w-full h-full rounded-lg bg-slate-800" /></div>
-                    ) : (sportivData?.statistici_prezenta?.total_prezente || 0) === 0 ? (
+                    ) : totalPrezente === 0 ? (
                         <div className="h-48 flex flex-col items-center justify-center text-slate-500 bg-slate-800/30 rounded-lg border border-slate-700/50">
                             <CalendarDaysIcon className="w-8 h-8 mb-2 opacity-50" />
                             <p className="text-sm">Nicio prezență înregistrată.</p>
@@ -328,7 +274,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                                 <BarChart data={attendanceStats.recent} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                     <XAxis dataKey="month" stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} />
                                     <YAxis stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} allowDecimals={false} />
-                                    <RechartsTooltip 
+                                    <RechartsTooltip
                                         cursor={{ fill: 'rgba(255,255,255,0.05)' }}
                                         contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '8px', color: '#fff' }}
                                         formatter={(value: number) => [`${value} prezențe`, 'Total']}
@@ -348,18 +294,18 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                 </Card>
                 <EvenimenteWidget sportivId={viewedUser.id} clubId={viewedUser.club_id} />
                 {/* Payment Status Widget */}
-                <Card className={`flex flex-col border ${sportivData?.date_financiare?.status_recent === 'RESTANTA' ? 'border-red-500 bg-red-900/20' : 'border-slate-800 bg-slate-900/50'}`}>
+                <Card className={`flex flex-col border ${statusPlati === 'RESTANTA' ? 'border-red-500 bg-red-900/20' : 'border-slate-800 bg-slate-900/50'}`}>
                     <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                        <WalletIcon className={`w-5 h-5 ${sportivData?.date_financiare?.status_recent === 'RESTANTA' ? 'text-red-400' : 'text-emerald-400'}`} />
+                        <WalletIcon className={`w-5 h-5 ${statusPlati === 'RESTANTA' ? 'text-red-400' : 'text-emerald-400'}`} />
                         Status Plăți
                     </h3>
                     <div className="flex items-center justify-between">
-                        <span className={`text-xl font-bold ${sportivData?.date_financiare?.status_recent === 'RESTANTA' ? 'text-red-400' : 'text-emerald-400'}`}>
-                            {sportivData?.date_financiare?.status_recent || 'N/A'}
+                        <span className={`text-xl font-bold ${statusPlati === 'RESTANTA' ? 'text-red-400' : 'text-emerald-400'}`}>
+                            {statusPlati}
                         </span>
                     </div>
                 </Card>
-                <HistoryModal isOpen={isHistoryOpen} onClose={() => setIsHistoryOpen(false)} istoric={sportivData?.istoric_prezenta || []} />
+                <HistoryModal isOpen={isHistoryOpen} onClose={() => setIsHistoryOpen(false)} istoric={istoricPrezenta} />
 
                 {/* Grade Evolution */}
                 <Card className="flex flex-col border border-slate-800 bg-slate-900/50">
@@ -402,7 +348,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                 
                 <div className="space-y-4 md:space-y-6">
                     <UpcomingTrainingsWidget currentUser={viewedUser} grupe={grupe} />
-                    <VizaMedicalaCard plati={sportivData?.istoric_plati || plati} sportivId={viewedUser.id} />
+                    <VizaMedicalaCard plati={plati} sportivId={viewedUser.id} />
                     
                     {isViewingOwnProfile && (
                         <Card className="border border-slate-800 bg-slate-900/50">

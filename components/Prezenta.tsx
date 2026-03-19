@@ -90,7 +90,7 @@ export const Prezenta: React.FC<{ onBack: () => void; onViewSportiv?: (s: Sporti
             case 'prezenta': return antrenamentDetaliu ? <FormularPrezenta antrenament={antrenamentDetaliu} onBack={navigateBack} saveAttendance={saveAttendance} onViewSportiv={onViewSportiv}/> : <p>Antrenament negăsit.</p>;
             case 'prezenta-azi': return selectedGrupa ? <ListaPrezentaAntrenament grupa={selectedGrupa} onBack={navigateBack} onViewSportiv={onViewSportiv} /> : <p>Grupă negăsită.</p>;
             case 'istoric-global': return <IstoricPrezentaGlobal onBack={navigateBack} onViewSportiv={onViewSportiv} />;
-            case 'generator-masiv': return <GeneratorProgramMasiv onBack={navigateBack} clubId={currentUser.club_id} />;
+            case 'generator-masiv': return <GeneratorProgramMasiv onBack={navigateBack} clubId={currentUser.club_id} onNavigateToGrupe={() => navigateTo('grupe', null)} />;
             default: return null;
         }
     };

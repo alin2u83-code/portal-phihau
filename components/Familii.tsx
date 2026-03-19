@@ -17,10 +17,11 @@ interface FamiliiManagementProps {
     tipuriAbonament: TipAbonament[];
     grupe: Grupa[];
     currentUser: User;
+    onViewSportiv?: (sportiv: Sportiv) => void;
 }
 
 export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({
-    familii, setFamilii, sportivi, setSportivi, onBack, isEmbedded = false, tipuriAbonament, grupe, currentUser
+    familii, setFamilii, sportivi, setSportivi, onBack, isEmbedded = false, tipuriAbonament, grupe, currentUser, onViewSportiv
 }) => {
     const [newFamilyName, setNewFamilyName] = useState('');
     const [selectedSportiv1, setSelectedSportiv1] = useState('');
@@ -121,7 +122,7 @@ export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({
                             <p className="text-sm text-slate-300">Reprezentant: <span className="font-semibold text-blue-400">{reprezentant ? `${reprezentant.nume} ${reprezentant.prenume}` : 'Nespecificat'}</span></p>
                             <div className="mt-3 pt-3 border-t border-[var(--border-color)]">
                                 <h5 className="text-xs uppercase font-bold text-slate-400 mb-1">Membri ({membri.length})</h5>
-                                <ul className="text-sm text-slate-200 list-disc list-inside">{membri.map(m => <li key={m.id}>{m.nume} {m.prenume}</li>)}</ul>
+                                <ul className="text-sm text-slate-200 list-disc list-inside">{membri.map(m => <li key={m.id}>{onViewSportiv ? <button type="button" className="hover:text-brand-primary hover:underline" onClick={() => onViewSportiv(m)}>{m.nume} {m.prenume}</button> : <>{m.nume} {m.prenume}</>}</li>)}</ul>
                             </div>
                              <div className="mt-4 flex gap-2">
                                 <Button size="sm" variant="danger" onClick={() => setToDelete(f)} className="min-h-[44px]"><TrashIcon className="w-4 h-4"/></Button>
@@ -148,7 +149,18 @@ export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({
                                 return (
                                 <tr key={f.id} className="text-white">
                                     <td className="p-2 w-1/4"><Input label="" defaultValue={f.nume} onBlur={e => handleEdit(f.id, { nume: e.target.value })} className="!bg-transparent"/></td>
-                                    <td className="p-3 text-sm">{membri.map(m => `${m.nume} ${m.prenume}`).join(', ')}</td>
+                                    <td className="p-3 text-sm">
+                                        {membri.map((m, idx) => (
+                                            <span key={m.id}>
+                                                {idx > 0 && ', '}
+                                                {onViewSportiv ? (
+                                                    <button type="button" className="hover:text-brand-primary hover:underline" onClick={() => onViewSportiv(m)}>{m.nume} {m.prenume}</button>
+                                                ) : (
+                                                    <>{m.nume} {m.prenume}</>
+                                                )}
+                                            </span>
+                                        ))}
+                                    </td>
                                     <td className="p-2 w-1/4">
                                         <Select label="" value={f.reprezentant_id || ''} onChange={(e) => handleSetRepresentative(f.id, e.target.value || null)} className="!bg-transparent text-sm">
                                             <option value="">Alege reprezentant...</option>

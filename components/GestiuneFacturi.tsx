@@ -18,6 +18,7 @@ interface GestiuneFacturiProps {
     setTranzactii?: React.Dispatch<React.SetStateAction<Tranzactie[]>>;
     tipuriPlati: TipPlata[];
     familii: Familie[];
+    onViewSportiv?: (sportiv: Sportiv) => void;
 }
 
 const initialFormState = {
@@ -32,7 +33,7 @@ const initialFormState = {
     metoda_plata: 'Cash' as 'Cash' | 'Transfer Bancar',
 };
 
-export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, currentUser, sportivi, plati, setPlati, setTranzactii, tipuriPlati, familii }) => {
+export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, currentUser, sportivi, plati, setPlati, setTranzactii, tipuriPlati, familii, onViewSportiv }) => {
     const { showError, showSuccess } = useError();
     const { preturiConfig, tipuriAbonament, reduceri } = useData();
     const [formState, setFormState] = useState(initialFormState);
@@ -312,7 +313,17 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
         {
             key: 'sportiv_id',
             label: 'Sportiv/Familie',
-            render: (p) => <span className="font-medium text-white">{getEntityName(p)}</span>
+            render: (p) => {
+                if (p.sportiv_id && onViewSportiv) {
+                    const s = sportivi.find(sp => sp.id === p.sportiv_id);
+                    return (
+                        <button type="button" className="font-medium text-white hover:text-brand-primary hover:underline cursor-pointer text-left" onClick={() => { if (s) onViewSportiv(s); }}>
+                            {getEntityName(p)}
+                        </button>
+                    );
+                }
+                return <span className="font-medium text-white">{getEntityName(p)}</span>;
+            }
         },
         {
             key: 'descriere',
@@ -390,7 +401,11 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
         <Card className="mb-4 border-l-4 border-indigo-500">
             <div className="flex justify-between items-start mb-2">
                 <div>
-                    <p className="font-bold text-white text-lg">{getEntityName(p)}</p>
+                    {p.sportiv_id && onViewSportiv ? (
+                        <button type="button" className="font-bold text-white text-lg hover:text-brand-primary hover:underline cursor-pointer text-left" onClick={() => { const s = sportivi.find(sp => sp.id === p.sportiv_id); if (s) onViewSportiv(s); }}>{getEntityName(p)}</button>
+                    ) : (
+                        <p className="font-bold text-white text-lg">{getEntityName(p)}</p>
+                    )}
                     <p className="text-sm text-slate-400">{new Date((p.data || '').toString().slice(0, 10)).toLocaleDateString('ro-RO')}</p>
                 </div>
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${

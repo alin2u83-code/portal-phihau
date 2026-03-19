@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { SesiuneExamen, InscriereExamen, Sportiv, Grad, Locatie, Plata, PretConfig, User, Club, DecontFederatie, View, IstoricGrade } from '../types';
 import { Button, Modal, Input, Select, Card } from './ui';
-import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon, FileTextIcon, UploadCloudIcon } from './icons';
+import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon, FileTextIcon, UploadCloudIcon, BookOpenIcon } from './icons';
 import { MartialArtsSkeleton } from './MartialArtsSkeleton';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
@@ -9,6 +9,7 @@ import { useLocalStorage } from '../hooks/useLocalStorage';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { ManagementInscrieri } from './ManagementInscrieri';
 import { ImportExamenModal } from './ImportExamenModal';
+import { ImportTutorial } from './ImportTutorial';
 import { SesiuneForm } from './GestiuneExamene/SesiuneForm';
 import { DetaliiSesiune } from './GestiuneExamene/DetaliiSesiune';
 import { useExamManager } from '../hooks/useExamManager';
@@ -51,6 +52,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
   const [statusFilter, setStatusFilter] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isBulkImportModalOpen, setIsBulkImportModalOpen] = useState(false);
+  const [showImportTutorial, setShowImportTutorial] = useState(false);
   const [sesiuneToEdit, setSesiuneToEdit] = useState<SesiuneExamen | null>(null);
   const [sesiuneToDelete, setSesiuneToDelete] = useState<SesiuneExamen | null>(null);
   const [selectedSesiuneId, setSelectedSesiuneId] = useLocalStorage<string | null>('phi-hau-selected-sesiune-id', null);
@@ -132,6 +134,10 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
         }, 2000);
     };
 
+  if (showImportTutorial) {
+    return <ImportTutorial onBack={() => setShowImportTutorial(false)} />;
+  }
+
   if (selectedSesiune) {
      return (
         <div>
@@ -175,6 +181,9 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
                         <FileTextIcon className="w-4 h-4 mr-2" /> Generează Factură Examen
                     </Button>
                 )}
+                <Button onClick={() => setShowImportTutorial(true)} variant="secondary" className="w-full sm:w-auto justify-center">
+                    <BookOpenIcon className="w-4 h-4 mr-2" /> Ghid Import
+                </Button>
                  <Button onClick={() => setIsBulkImportModalOpen(true)} variant="info" className="w-full sm:w-auto justify-center">
                     <UploadCloudIcon className="w-5 h-5 mr-2" /> Import Bulk Examen
                 </Button>

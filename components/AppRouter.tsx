@@ -117,7 +117,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                             case 'sportivi':
                                 return renderProtected(<Lazy.SportiviManagement onBack={handleBackToDashboard} onViewSportiv={onViewSportiv} permissions={permissions} />, isAtLeastInstructor);
                             case 'profil-sportiv':
-                                return renderProtected(selectedSportiv ? <Lazy.UserProfile sportiv={selectedSportiv} onBack={() => setActiveView('sportivi')} /> : null, isAtLeastInstructor);
+                                return renderProtected(selectedSportiv ? <Lazy.UserProfile sportiv={selectedSportiv} onBack={() => setActiveView('sportivi')} onNavigate={setActiveView} /> : null, isAtLeastInstructor);
                             case 'structura-federatie':
                                 return renderProtected(<Lazy.FederationStructure clubs={clubs} sportivi={sportivi} grupe={grupe} onBack={handleBackToDashboard} onNavigate={(view) => setActiveView(view)} />, isFederationAdmin);
                             case 'examene': {
@@ -153,15 +153,15 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                             case 'financial-dashboard':
                                 return renderProtected(<Lazy.FinancialDashboard onBack={handleBackToDashboard} plati={filteredData.plati} tranzactii={filteredData.tranzactii} sportivi={filteredData.sportivi} familii={filteredData.familii} />, isAtLeastClubAdmin);
                             case 'gestiune-facturi':
-                                return renderProtected(<Lazy.GestiuneFacturi onBack={handleBackToDashboard} currentUser={currentUser!} sportivi={filteredData.sportivi} plati={filteredData.plati} setPlati={setPlati} setTranzactii={setTranzactii} tipuriPlati={tipuriPlati} familii={filteredData.familii} />, canManageFinances);
+                                return renderProtected(<Lazy.GestiuneFacturi onBack={handleBackToDashboard} currentUser={currentUser!} sportivi={filteredData.sportivi} plati={filteredData.plati} setPlati={setPlati} setTranzactii={setTranzactii} tipuriPlati={tipuriPlati} familii={filteredData.familii} onViewSportiv={onViewSportiv} />, canManageFinances);
                             case 'deconturi-federatie':
                                 return renderProtected(<Lazy.FederationInvoices onBack={handleBackToDashboard} deconturi={filteredData.deconturiFederatie} setDeconturi={setDeconturiFederatie} currentUser={currentUser!} permissions={permissions} />, isAtLeastClubAdmin);
                             case 'plati-scadente':
                                 return renderProtected(<Lazy.PlatiScadente onIncaseazaMultiple={handleIncaseazaMultiple} onViewSportiv={onViewSportiv} permissions={permissions} onBack={handleBackToDashboard} />, canManageFinances);
                             case 'jurnal-incasari':
-                                return renderProtected(<Lazy.JurnalIncasari currentUser={currentUser!} permissions={permissions} plati={filteredData.plati} setPlati={setPlati} sportivi={filteredData.sportivi} familii={filteredData.familii} preturiConfig={preturiConfig} tipuriAbonament={filteredData.tipuriAbonament} tipuriPlati={tipuriPlati} setTipuriPlati={setTipuriPlati} tranzactii={filteredData.tranzactii} setTranzactii={setTranzactii} platiInitiale={platiPentruIncasare} onIncasareProcesata={handleIncasareProcesata} onBack={handleJurnalBack} reduceri={reduceri} />, canManageFinances);
+                                return renderProtected(<Lazy.JurnalIncasari currentUser={currentUser!} permissions={permissions} plati={filteredData.plati} setPlati={setPlati} sportivi={filteredData.sportivi} familii={filteredData.familii} preturiConfig={preturiConfig} tipuriAbonament={filteredData.tipuriAbonament} tipuriPlati={tipuriPlati} setTipuriPlati={setTipuriPlati} tranzactii={filteredData.tranzactii} setTranzactii={setTranzactii} platiInitiale={platiPentruIncasare} onIncasareProcesata={handleIncasareProcesata} onBack={handleJurnalBack} reduceri={reduceri} onViewSportiv={onViewSportiv} />, canManageFinances);
                             case 'raport-financiar':
-                                return renderProtected(<Lazy.RaportFinanciar onBack={handleBackToDashboard} istoricPlatiDetaliat={filteredData.istoricPlatiDetaliat} sportivi={filteredData.sportivi} familii={filteredData.familii} />, isAtLeastClubAdmin);
+                                return renderProtected(<Lazy.RaportFinanciar onBack={handleBackToDashboard} istoricPlatiDetaliat={filteredData.istoricPlatiDetaliat} sportivi={filteredData.sportivi} familii={filteredData.familii} onViewSportiv={onViewSportiv} />, isAtLeastClubAdmin);
                             case 'user-management':
                                 return renderProtected(<Lazy.UserManagement onBack={handleBackToDashboard} sportivi={filteredData.sportivi} setSportivi={setSportivi} currentUser={currentUser!} allRoles={allRoles} setAllRoles={setAllRoles} clubs={clubs} permissions={permissions} />, isAtLeastClubAdmin);
                             case 'cluburi':
@@ -175,19 +175,19 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                             case 'tipuri-abonament':
                                 return renderProtected(<Lazy.TipuriAbonamentManagement onBack={handleBackToDashboard} tipuriAbonament={filteredData.tipuriAbonament} setTipuriAbonament={setTipuriAbonament} currentUser={currentUser!} clubs={clubs}/>, isAtLeastClubAdmin);
                             case 'configurare-preturi':
-                                return renderProtected(<Lazy.ConfigurarePreturi grade={grade} onBack={handleBackToDashboard} />, isAtLeastClubAdmin);
+                                return renderProtected(<Lazy.ConfigurarePreturi grade={grade} onBack={handleBackToDashboard} />, permissions.isSuperAdmin);
                             case 'grade':
-                                return renderProtected(<Lazy.GradeManagement grade={grade} setGrade={setGrade} onBack={handleBackToDashboard} />, isAtLeastClubAdmin);
+                                return renderProtected(<Lazy.GradeManagement grade={grade} setGrade={setGrade} onBack={handleBackToDashboard} canEdit={permissions.isSuperAdmin} />, isAtLeastClubAdmin);
                             case 'reduceri':
                                 return renderProtected(<Lazy.ReduceriManagement onBack={handleBackToDashboard} reduceri={reduceri} setReduceri={setReduceri} />, isAtLeastClubAdmin);
                             case 'nomenclatoare':
                                 return renderProtected(<Lazy.GestionareNomenclatoare onBack={handleBackToDashboard} tipuriPlati={tipuriPlati} setTipuriPlati={setTipuriPlati} plati={plati} />, isAtLeastClubAdmin);
                             case 'familii':
-                                return renderProtected(<Lazy.FamiliiManagement onBack={handleBackToDashboard} familii={filteredData.familii} setFamilii={setFamilii} sportivi={filteredData.sportivi} setSportivi={setSportivi} tipuriAbonament={filteredData.tipuriAbonament} grupe={filteredData.grupe} currentUser={currentUser!} />, isAtLeastInstructor);
+                                return renderProtected(<Lazy.FamiliiManagement onBack={handleBackToDashboard} familii={filteredData.familii} setFamilii={setFamilii} sportivi={filteredData.sportivi} setSportivi={setSportivi} tipuriAbonament={filteredData.tipuriAbonament} grupe={filteredData.grupe} currentUser={currentUser!} onViewSportiv={onViewSportiv} />, isAtLeastInstructor);
                             case 'notificari':
                                 return renderProtected(<Lazy.Notificari onBack={handleBackToDashboard} currentUser={currentUser!} clubs={clubs} grupe={filteredData.grupe} />, isAtLeastInstructor);
                             case 'taxe-anuale':
-                                return renderProtected(<Lazy.TaxeAnuale onBack={handleBackToDashboard} currentUser={currentUser!} sportivi={filteredData.sportivi} plati={filteredData.plati} setPlati={setPlati} />, isAtLeastClubAdmin);
+                                return renderProtected(<Lazy.TaxeAnuale onBack={handleBackToDashboard} currentUser={currentUser!} sportivi={filteredData.sportivi} plati={filteredData.plati} setPlati={setPlati} />, permissions.isSuperAdmin);
                             case 'istoric-prezenta':
                                 return <Lazy.MartialAttendance onBack={handleBackToDashboard} currentUser={currentUser!} />;
                             case 'istoric-plati':

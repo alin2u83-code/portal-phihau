@@ -266,11 +266,16 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                 return { ...baseRow, status: 'conflict', message: 'Potriviri nume găsite', conflicts: potentialMatches, sessionInfo, birthdate };
             }
             
-            // Create new sportiv
-            const { data: codeData, error: codeError } = await supabase.rpc('generate_sportiv_code', { p_an: new Date(row.Data_Examen).getFullYear(), p_nume: row.Nume, p_prenume: row.Prenume });
-            if (codeError) return { ...baseRow, status: 'error', message: `Eroare generare cod: ${codeError.message}`, sessionInfo, birthdate };
-            
-            return { ...baseRow, status: 'create', message: `Va fi creat (Cod: ${codeData})`, generatedCode: codeData, sessionInfo, birthdate };
+            // Create new sportiv - generate a fallback code in case the RPC doesn't exist
+            let generatedCode = `${new Date(row.Data_Examen).getFullYear()}-${(row.Nume || '').substring(0, 3).toUpperCase()}${(row.Prenume || '').substring(0, 3).toUpperCase()}-${Math.floor(Math.random() * 1000)}`;
+            try {
+                const { data: codeData, error: codeError } = await supabase.rpc('generate_sportiv_code', { p_an: new Date(row.Data_Examen).getFullYear(), p_nume: row.Nume, p_prenume: row.Prenume });
+                if (!codeError && codeData) generatedCode = codeData;
+            } catch (e) {
+                // Use fallback generatedCode
+            }
+
+            return { ...baseRow, status: 'create', message: `Va fi creat (Cod: ${generatedCode})`, generatedCode, sessionInfo, birthdate };
         });
 
         return Promise.all(validationPromises);
@@ -469,8 +474,41 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                 {previewData.length > 0 && (
                     <div className="space-y-4 animate-fade-in-down">
                         <h2 className="text-xl font-bold">Pasul 3: Previzualizare și Confirmare</h2>
+
+                        {/* Debug Stats Panel */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            <div className="bg-slate-800 rounded-lg p-3 text-center">
+                                <p className="text-2xl font-bold text-white">{previewData.length}</p>
+                                <p className="text-xs text-slate-400">Total Rânduri</p>
+                            </div>
+                            <div className="bg-green-900/30 rounded-lg p-3 text-center border border-green-800">
+                                <p className="text-2xl font-bold text-green-400">{previewData.filter(r => r.status === 'valid').length}</p>
+                                <p className="text-xs text-slate-400">Găsiți (CNP/Exact)</p>
+                            </div>
+                            <div className="bg-amber-900/30 rounded-lg p-3 text-center border border-amber-800">
+                                <p className="text-2xl font-bold text-amber-400">{previewData.filter(r => r.status === 'conflict').length}</p>
+                                <p className="text-xs text-slate-400">Conflicte de Rezolvat</p>
+                            </div>
+                            <div className="bg-blue-900/30 rounded-lg p-3 text-center border border-blue-800">
+                                <p className="text-2xl font-bold text-blue-400">{previewData.filter(r => r.status === 'create').length}</p>
+                                <p className="text-xs text-slate-400">Sportivi Noi</p>
+                            </div>
+                            {previewData.filter(r => r.status === 'error').length > 0 && (
+                                <div className="bg-red-900/30 rounded-lg p-3 text-center border border-red-800 col-span-2 md:col-span-1">
+                                    <p className="text-2xl font-bold text-red-400">{previewData.filter(r => r.status === 'error').length}</p>
+                                    <p className="text-xs text-slate-400">Erori CSV</p>
+                                </div>
+                            )}
+                            {previewData.filter(r => r.status === 'resolved').length > 0 && (
+                                <div className="bg-purple-900/30 rounded-lg p-3 text-center border border-purple-800 col-span-2 md:col-span-1">
+                                    <p className="text-2xl font-bold text-purple-400">{previewData.filter(r => r.status === 'resolved').length}</p>
+                                    <p className="text-xs text-slate-400">Conflicte Rezolvate</p>
+                                </div>
+                            )}
+                        </div>
+
                         <div className="max-h-[45vh] overflow-y-auto border border-slate-700 rounded-lg">
-                            <ResponsiveTable 
+                            <ResponsiveTable
                                 columns={columns}
                                 data={previewData}
                                 renderMobileItem={renderMobileItem}

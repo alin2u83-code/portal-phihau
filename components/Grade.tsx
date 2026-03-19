@@ -71,8 +71,8 @@ const GradFormModal: React.FC<GradFormProps> = ({ isOpen, onClose, onSave, grade
   );
 };
 
-interface GradeManagementProps { grade: Grad[]; setGrade: React.Dispatch<React.SetStateAction<Grad[]>>; onBack: () => void; }
-export const GradeManagement: React.FC<GradeManagementProps> = ({ grade, setGrade, onBack }) => {
+interface GradeManagementProps { grade: Grad[]; setGrade: React.Dispatch<React.SetStateAction<Grad[]>>; onBack: () => void; canEdit?: boolean; }
+export const GradeManagement: React.FC<GradeManagementProps> = ({ grade, setGrade, onBack, canEdit = false }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [gradToEdit, setGradToEdit] = useState<Grad | null>(null);
   const [gradToDelete, setGradToDelete] = useState<Grad | null>(null);
@@ -106,7 +106,7 @@ export const GradeManagement: React.FC<GradeManagementProps> = ({ grade, setGrad
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-white">Management Grade</h1>
-        <Button onClick={handleOpenAdd} variant="info"><PlusIcon className="w-5 h-5 mr-2" />Adaugă Grad</Button>
+        {canEdit && <Button onClick={handleOpenAdd} variant="info"><PlusIcon className="w-5 h-5 mr-2" />Adaugă Grad</Button>}
       </div>
       <div className="bg-slate-800 rounded-lg shadow-lg overflow-x-auto">
         <table className="w-full text-left min-w-[800px]">
@@ -120,10 +120,12 @@ export const GradeManagement: React.FC<GradeManagementProps> = ({ grade, setGrad
                 <td className="p-4">{grad.timp_asteptare}</td>
                 <td className="p-4">{grade.find(g => g.id === grad.grad_start_id)?.nume || 'N/A'}</td>
                 <td className="p-4 text-right w-32">
-                    <div className="flex items-center justify-end space-x-2">
-                       <Button onClick={() => handleOpenEdit(grad)} variant="primary" size="sm"><EditIcon /></Button>
-                       <Button onClick={() => setGradToDelete(grad)} variant="danger" size="sm"><TrashIcon /></Button>
-                    </div>
+                    {canEdit && (
+                        <div className="flex items-center justify-end space-x-2">
+                            <Button onClick={() => handleOpenEdit(grad)} variant="primary" size="sm"><EditIcon /></Button>
+                            <Button onClick={() => setGradToDelete(grad)} variant="danger" size="sm"><TrashIcon /></Button>
+                        </div>
+                    )}
                 </td>
               </tr>
             ))}

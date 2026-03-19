@@ -11,6 +11,7 @@ interface RaportFinanciarProps {
     sportivi: Sportiv[];
     familii: Familie[];
     onBack: () => void;
+    onViewSportiv?: (sportiv: Sportiv) => void;
 }
 
 const initialFilters = {
@@ -22,7 +23,7 @@ const initialFilters = {
     tip: '',
 };
 
-export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({ istoricPlatiDetaliat, sportivi, familii, onBack }) => {
+export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({ istoricPlatiDetaliat, sportivi, familii, onBack, onViewSportiv }) => {
     const [filters, setFilters] = useLocalStorage('phi-hau-raport-financiar-filters', initialFilters);
     const [activeTab, setActiveTab] = useState<'incasari' | 'lunar' | 'taxe_anuale'>('incasari');
     const [selectedMonth, setSelectedMonth] = useState<string>('');
@@ -183,7 +184,19 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({ istoricPlatiDe
                                     return (
                                         <tr key={tranzactie.tranzactie_id || tranzactie.plata_id} className="border-b border-slate-700">
                                             <td className="p-4">{dateString}</td>
-                                            <td className="p-4 font-bold text-white">{tranzactie.nume_complet_sportiv || 'N/A'}</td>
+                                            <td className="p-4 font-bold text-white">
+                                                {tranzactie.sportiv_id && onViewSportiv ? (
+                                                    <button
+                                                        type="button"
+                                                        className="hover:text-brand-primary hover:underline cursor-pointer text-left"
+                                                        onClick={() => { const s = sportivi.find(sp => sp.id === tranzactie.sportiv_id); if (s) onViewSportiv(s); }}
+                                                    >
+                                                        {tranzactie.nume_complet_sportiv || 'N/A'}
+                                                    </button>
+                                                ) : (
+                                                    tranzactie.nume_complet_sportiv || 'N/A'
+                                                )}
+                                            </td>
                                             <td className="p-4">{tranzactie.descriere}</td>
                                             <td className="p-4">{tranzactie.metoda_plata}</td>
                                             <td className="p-4 text-right font-bold text-white">{(tranzactie.suma_incasata || 0).toFixed(2)} RON</td>
@@ -241,7 +254,19 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({ istoricPlatiDe
                                 {raportLunarData.restante.sort((a,b) => new Date((a.data_emitere || '').toString().slice(0, 10)).getTime() - new Date((b.data_emitere || '').toString().slice(0, 10)).getTime()).map(plata => (
                                     <tr key={plata.plata_id} className="border-b border-slate-700">
                                         <td className="p-4">{new Date((plata.data_emitere || '').toString().slice(0, 10)).toLocaleDateString('ro-RO')}</td>
-                                        <td className="p-4 font-bold text-white">{plata.nume_complet_sportiv || 'N/A'}</td>
+                                        <td className="p-4 font-bold text-white">
+                                            {plata.sportiv_id && onViewSportiv ? (
+                                                <button
+                                                    type="button"
+                                                    className="hover:text-brand-primary hover:underline cursor-pointer text-left"
+                                                    onClick={() => { const s = sportivi.find(sp => sp.id === plata.sportiv_id); if (s) onViewSportiv(s); }}
+                                                >
+                                                    {plata.nume_complet_sportiv || 'N/A'}
+                                                </button>
+                                            ) : (
+                                                plata.nume_complet_sportiv || 'N/A'
+                                            )}
+                                        </td>
                                         <td className="p-4">{plata.descriere}</td>
                                         <td className="p-4">
                                             <span className={`px-2 py-1 rounded text-xs font-bold ${plata.status === 'Achitat Parțial' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-red-500/20 text-red-400'}`}>
@@ -279,7 +304,11 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({ istoricPlatiDe
                                                 <ul className="space-y-2">
                                                     {date.achitat.map(p => (
                                                         <li key={p.plata_id} className="flex justify-between items-center border-b border-slate-700 pb-2">
-                                                            <span className="text-white">{p.nume_complet_sportiv || 'N/A'}</span>
+                                                            {p.sportiv_id && onViewSportiv ? (
+                                                                <button type="button" className="text-white hover:text-brand-primary hover:underline cursor-pointer text-left" onClick={() => { const s = sportivi.find(sp => sp.id === p.sportiv_id); if (s) onViewSportiv(s); }}>{p.nume_complet_sportiv || 'N/A'}</button>
+                                                            ) : (
+                                                                <span className="text-white">{p.nume_complet_sportiv || 'N/A'}</span>
+                                                            )}
                                                             <span className="text-xs text-slate-400">{p.descriere}</span>
                                                         </li>
                                                     ))}
@@ -299,7 +328,11 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({ istoricPlatiDe
                                                 <ul className="space-y-2">
                                                     {date.neachitat.map(p => (
                                                         <li key={p.plata_id} className="flex justify-between items-center border-b border-slate-700 pb-2">
-                                                            <span className="text-white">{p.nume_complet_sportiv || 'N/A'}</span>
+                                                            {p.sportiv_id && onViewSportiv ? (
+                                                                <button type="button" className="text-white hover:text-brand-primary hover:underline cursor-pointer text-left" onClick={() => { const s = sportivi.find(sp => sp.id === p.sportiv_id); if (s) onViewSportiv(s); }}>{p.nume_complet_sportiv || 'N/A'}</button>
+                                                            ) : (
+                                                                <span className="text-white">{p.nume_complet_sportiv || 'N/A'}</span>
+                                                            )}
                                                             <span className="text-xs text-slate-400">{p.descriere}</span>
                                                         </li>
                                                     ))}

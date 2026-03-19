@@ -281,7 +281,9 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
   const [inscrieri, setInscrieri] = useState<InscriereCompetitie[]>([]);
   const [echipe, setEchipe] = useState<EchipaCompetitie[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'categorii' | 'inscrieri' | 'admin'>('categorii');
+  const [activeTab, setActiveTab] = useState<'categorii' | 'inscrieri' | 'admin' | 'rezultate_legacy'>('categorii');
+  const [rezultateLegacy, setRezultateLegacy] = useState<Array<{ id: string; rezultat: string; probe?: string; sportiv?: { id: string; nume: string; prenume: string } }>>([]);
+  const [loadingLegacy, setLoadingLegacy] = useState(false);
   const [selectedProbaId, setSelectedProbaId] = useState<string>('');
   const [inscriereModal, setInscriereModal] = useState<CategorieCompetitie | null>(null);
   const [catFormOpen, setCatFormOpen] = useState(false);
@@ -307,6 +309,20 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
   }, [competitie.id]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  useEffect(() => {
+    if (!competitie.legacy_eveniment_id) return;
+    setLoadingLegacy(true);
+    supabase
+      .from('rezultate')
+      .select('id, rezultat, probe, sportiv:sportivi(id, nume, prenume)')
+      .eq('eveniment_id', competitie.legacy_eveniment_id)
+      .order('created_at')
+      .then(({ data }) => {
+        setRezultateLegacy((data || []) as unknown as typeof rezultateLegacy);
+        setLoadingLegacy(false);
+      });
+  }, [competitie.legacy_eveniment_id]);
 
   const filteredCategorii = selectedProbaId
     ? categorii.filter(c => c.proba_id === selectedProbaId)
@@ -372,6 +388,12 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
           <button onClick={() => setActiveTab('admin')}
             className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'admin' ? 'border-yellow-400 text-yellow-400' : 'border-transparent text-slate-400 hover:text-white'}`}>
             ⚙ Admin
+          </button>
+        )}
+        {competitie.legacy_eveniment_id && (
+          <button onClick={() => setActiveTab('rezultate_legacy')}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'rezultate_legacy' ? 'border-amber-400 text-amber-400' : 'border-transparent text-slate-400 hover:text-white'}`}>
+            Rezultate Vechi
           </button>
         )}
       </div>
@@ -477,6 +499,49 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
               vizeSportivi={vizeSportivi}
               onRefresh={fetchData}
             />
+          )}
+
+          {/* REZULTATE LEGACY TAB */}
+          {activeTab === 'rezultate_legacy' && competitie.legacy_eveniment_id && (
+            <div className="space-y-3">
+              <p className="text-xs text-slate-500">
+                Rezultate înregistrate în sistemul vechi pentru această competiție.
+              </p>
+              {loadingLegacy ? (
+                <div className="text-center text-slate-400 py-8">Se încarcă...</div>
+              ) : rezultateLegacy.length === 0 ? (
+                <div className="text-center text-slate-500 py-8 italic">Nicio înregistrare găsită în sistemul vechi.</div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm text-slate-300">
+                    <thead>
+                      <tr className="border-b border-slate-700 text-slate-500 text-xs uppercase">
+                        <th className="p-2 text-left">#</th>
+                        <th className="p-2 text-left">Sportiv</th>
+                        <th className="p-2 text-left">Probe</th>
+                        <th className="p-2 text-left">Rezultat</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rezultateLegacy.map((r, idx) => (
+                        <tr key={r.id} className="border-b border-slate-800 hover:bg-slate-800/40">
+                          <td className="p-2 text-slate-500">{idx + 1}</td>
+                          <td className="p-2 font-medium text-white">
+                            {r.sportiv ? `${r.sportiv.prenume} ${r.sportiv.nume}` : '—'}
+                          </td>
+                          <td className="p-2 text-slate-400">{r.probe || '—'}</td>
+                          <td className="p-2">
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${r.rezultat === 'Participare' ? 'bg-slate-700 text-slate-300' : 'bg-amber-900/40 text-amber-300'}`}>
+                              {r.rezultat}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
           )}
 
           {/* ADMIN TAB */}

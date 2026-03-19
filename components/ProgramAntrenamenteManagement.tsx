@@ -142,7 +142,7 @@ export const ProgramAntrenamenteManagement: React.FC<ProgramAntrenamenteManageme
                                             <span className="text-xs font-normal text-slate-500 ml-2">({a.durata_minute} min)</span>
                                         </span>
                                     </div>
-                                    <Button size="sm" variant="secondary" onClick={() => handleEdit(a)} className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Button size="sm" variant="secondary" onClick={() => handleEdit(a)}>
                                         <EditIcon className="w-4 h-4" />
                                     </Button>
                                 </div>

@@ -361,7 +361,7 @@ END $$;
 DROP VIEW IF EXISTS public.vw_antrenamente_viitoare_sportiv CASCADE;
 CREATE OR REPLACE VIEW public.vw_antrenamente_viitoare_sportiv
 WITH (security_invoker = false) AS
-SELECT
+SELECT DISTINCT ON (pa.id)
     pa.id,
     pa.data,
     pa.ora_start,

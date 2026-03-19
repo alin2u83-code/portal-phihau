@@ -125,64 +125,64 @@ END $$;
 
 -- 4. Recreare view-uri
 
-CREATE VIEW public.vedere_cluburi_sportivi AS
+CREATE OR REPLACE VIEW public.vedere_cluburi_sportivi AS
 SELECT * FROM public.sportivi
 WHERE club_id = public.get_active_club_id() OR public.is_super_admin();
 
-CREATE VIEW public.vedere_cluburi_grupe AS
+CREATE OR REPLACE VIEW public.vedere_cluburi_grupe AS
 SELECT * FROM public.grupe
 WHERE club_id = public.get_active_club_id() OR public.is_super_admin();
 
-CREATE VIEW public.vedere_cluburi_plati AS
+CREATE OR REPLACE VIEW public.vedere_cluburi_plati AS
 SELECT p.* FROM public.plati p
 LEFT JOIN public.sportivi s ON p.sportiv_id = s.id
 WHERE COALESCE(p.club_id, s.club_id) = public.get_active_club_id() OR public.is_super_admin();
 
-CREATE VIEW public.vedere_cluburi_tranzactii AS
+CREATE OR REPLACE VIEW public.vedere_cluburi_tranzactii AS
 SELECT * FROM public.tranzactii
 WHERE club_id = public.get_active_club_id() OR public.is_super_admin();
 
-CREATE VIEW public.vedere_cluburi_evenimente AS
+CREATE OR REPLACE VIEW public.vedere_cluburi_evenimente AS
 SELECT * FROM public.evenimente;
 
-CREATE VIEW public.vedere_cluburi_rezultate AS
+CREATE OR REPLACE VIEW public.vedere_cluburi_rezultate AS
 SELECT r.* FROM public.rezultate r
 JOIN public.sportivi s ON r.sportiv_id = s.id
 WHERE s.club_id = public.get_active_club_id() OR public.is_super_admin();
 
-CREATE VIEW public.vedere_cluburi_sesiuni_examene AS
+CREATE OR REPLACE VIEW public.vedere_cluburi_sesiuni_examene AS
 SELECT
     s.*,
     (SELECT count(*) FROM public.inscrieri_examene i WHERE i.sesiune_id = s.id) as nr_inscrisi
 FROM public.sesiuni_examene s
 WHERE s.club_id = public.get_active_club_id() OR s.club_id IS NULL OR public.is_super_admin();
 
-CREATE VIEW public.vedere_cluburi_inscrieri_examene AS
+CREATE OR REPLACE VIEW public.vedere_cluburi_inscrieri_examene AS
 SELECT i.* FROM public.inscrieri_examene i
 JOIN public.sportivi s ON i.sportiv_id = s.id
 WHERE s.club_id = public.get_active_club_id() OR public.is_super_admin();
 
-CREATE VIEW public.vedere_cluburi_familii AS
+CREATE OR REPLACE VIEW public.vedere_cluburi_familii AS
 SELECT DISTINCT f.* FROM public.familii f
 JOIN public.sportivi s ON s.familie_id = f.id
 WHERE s.club_id = public.get_active_club_id() OR public.is_super_admin();
 
-CREATE VIEW public.vedere_cluburi_tipuri_abonament AS
+CREATE OR REPLACE VIEW public.vedere_cluburi_tipuri_abonament AS
 SELECT * FROM public.tipuri_abonament;
 
-CREATE VIEW public.vedere_cluburi_locatii AS
+CREATE OR REPLACE VIEW public.vedere_cluburi_locatii AS
 SELECT * FROM public.nom_locatii;
 
-CREATE VIEW public.vedere_cluburi_preturi_config AS
+CREATE OR REPLACE VIEW public.vedere_cluburi_preturi_config AS
 SELECT * FROM public.preturi_config;
 
-CREATE VIEW public.vedere_cluburi_deconturi_federatie AS
+CREATE OR REPLACE VIEW public.vedere_cluburi_deconturi_federatie AS
 SELECT * FROM public.deconturi_federatie;
 
-CREATE VIEW public.vedere_cluburi_anunturi_prezenta AS
+CREATE OR REPLACE VIEW public.vedere_cluburi_anunturi_prezenta AS
 SELECT * FROM public.anunturi_prezenta;
 
-CREATE VIEW public.vedere_cluburi_program_antrenamente AS
+CREATE OR REPLACE VIEW public.vedere_cluburi_program_antrenamente AS
 SELECT
     pa.*,
     g.denumire as nume_grupa,
@@ -194,7 +194,7 @@ WHERE pa.club_id = public.get_active_club_id() OR public.is_super_admin();
 
 -- View detalii examen (folosit pentru inscrieri examene)
 DROP VIEW IF EXISTS public.vedere_detalii_examen CASCADE;
-CREATE VIEW public.vedere_detalii_examen AS
+CREATE OR REPLACE VIEW public.vedere_detalii_examen AS
 SELECT
     ie.id AS inscriere_id,
     ie.sportiv_id,
@@ -204,15 +204,9 @@ SELECT
     ie.grad_actual_id,
     ie.varsta_la_examen,
     ie.observatii,
-    ie.nota_tehnica,
-    ie.nota_forta,
-    ie.nota_viteza,
-    ie.nota_atitudine,
     ie.rezultat,
     ie.status_inscriere,
     ie.note_detaliate,
-    ie.are_viza_platita,
-    ie.nr_legitimatie,
     s.nume AS sportiv_nume,
     s.prenume AS sportiv_prenume,
     s.club_id,
@@ -238,7 +232,7 @@ LEFT JOIN public.nom_locatii l ON se.locatie_id = l.id;
 
 GRANT SELECT ON public.vedere_detalii_examen TO authenticated;
 
-CREATE VIEW public.vedere_sportivi_detaliat AS
+CREATE OR REPLACE VIEW public.vedere_sportivi_detaliat AS
 SELECT
     s.*,
     c.nume as club_nume,
@@ -307,14 +301,14 @@ END $$;
 
 -- vedere_cluburi_vizualizare_plati (folosit in useDataProvider pentru facturi/plati)
 DROP VIEW IF EXISTS public.vedere_cluburi_vizualizare_plati CASCADE;
-CREATE VIEW public.vedere_cluburi_vizualizare_plati AS
+CREATE OR REPLACE VIEW public.vedere_cluburi_vizualizare_plati AS
 SELECT
     p.*,
     s.nume AS sportiv_nume,
     s.prenume AS sportiv_prenume,
     COALESCE(p.club_id, s.club_id) AS club_id,
     c.nume AS club_nume,
-    f.denumire AS familie_denumire
+    f.nume AS familie_denumire
 FROM public.plati p
 LEFT JOIN public.sportivi s ON p.sportiv_id = s.id
 LEFT JOIN public.cluburi c ON COALESCE(p.club_id, s.club_id) = c.id
@@ -325,7 +319,7 @@ GRANT SELECT ON public.vedere_cluburi_vizualizare_plati TO authenticated;
 
 -- vedere_gestiune_legitimatii (folosit in LegitimatiiPage)
 DROP VIEW IF EXISTS public.vedere_gestiune_legitimatii CASCADE;
-CREATE VIEW public.vedere_gestiune_legitimatii AS
+CREATE OR REPLACE VIEW public.vedere_gestiune_legitimatii AS
 SELECT
     s.id,
     s.nume,
@@ -348,7 +342,7 @@ GRANT SELECT ON public.vedere_gestiune_legitimatii TO authenticated;
 
 -- vedere_prezenta_sportiv (folosit in IstoricPrezentaSportiv si ListaPrezentaAntrenament)
 DROP VIEW IF EXISTS public.vedere_prezenta_sportiv CASCADE;
-CREATE VIEW public.vedere_prezenta_sportiv AS
+CREATE OR REPLACE VIEW public.vedere_prezenta_sportiv AS
 SELECT
     pa.id AS antrenament_id,
     pa.id,
@@ -370,7 +364,7 @@ GRANT SELECT ON public.vedere_prezenta_sportiv TO authenticated;
 
 -- vedere_prezenta_detaliata (fallback folosit in useDataProvider)
 DROP VIEW IF EXISTS public.vedere_prezenta_detaliata CASCADE;
-CREATE VIEW public.vedere_prezenta_detaliata AS
+CREATE OR REPLACE VIEW public.vedere_prezenta_detaliata AS
 SELECT
     pa.id AS antrenament_id,
     pa.id,
@@ -392,7 +386,7 @@ GRANT SELECT ON public.vedere_prezenta_detaliata TO authenticated;
 
 -- view_istoric_plati_detaliat (folosit in useDataProvider)
 DROP VIEW IF EXISTS public.view_istoric_plati_detaliat CASCADE;
-CREATE VIEW public.view_istoric_plati_detaliat AS
+CREATE OR REPLACE VIEW public.view_istoric_plati_detaliat AS
 SELECT
     p.*,
     s.nume AS sportiv_nume,
@@ -422,7 +416,7 @@ CREATE POLICY "Club admin manage taxe" ON public.taxe_anuale_config
 
 -- 8. Fix vedere_cluburi_tipuri_abonament - filtrat pe club
 DROP VIEW IF EXISTS public.vedere_cluburi_tipuri_abonament CASCADE;
-CREATE VIEW public.vedere_cluburi_tipuri_abonament AS
+CREATE OR REPLACE VIEW public.vedere_cluburi_tipuri_abonament AS
 SELECT * FROM public.tipuri_abonament
 WHERE club_id = public.get_active_club_id() OR public.is_super_admin();
 
@@ -430,7 +424,7 @@ GRANT SELECT ON public.vedere_cluburi_tipuri_abonament TO authenticated;
 
 -- 9. Fix vedere_cluburi_anunturi_prezenta - filtrat pe club
 DROP VIEW IF EXISTS public.vedere_cluburi_anunturi_prezenta CASCADE;
-CREATE VIEW public.vedere_cluburi_anunturi_prezenta AS
+CREATE OR REPLACE VIEW public.vedere_cluburi_anunturi_prezenta AS
 SELECT * FROM public.anunturi_prezenta
 WHERE club_id = public.get_active_club_id() OR public.is_super_admin();
 

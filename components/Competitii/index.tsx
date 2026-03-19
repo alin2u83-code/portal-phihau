@@ -1413,7 +1413,7 @@ const MigrareModal: React.FC<{
 
   const handleMigrate = async () => {
     setLoading(true);
-    // 1. Insert in competitii
+    // 1. Insert in competitii (păstrăm legacy_eveniment_id pentru a nu pierde rezultatele)
     const payload: Record<string, unknown> = {
       denumire: ev.denumire,
       tip,
@@ -1423,6 +1423,7 @@ const MigrareModal: React.FC<{
       organizator: ev.organizator || null,
       status: 'finalizata',
       club_id: ev.club_id || null,
+      legacy_eveniment_id: ev.id,
     };
     const { data: compData, error: compErr } = await supabase
       .from('competitii').insert(payload).select().single();
@@ -1468,9 +1469,9 @@ const MigrareModal: React.FC<{
       }
     }
 
-    // 3. Delete from evenimente
-    const { error: delErr } = await supabase.from('evenimente').delete().eq('id', ev.id);
-    if (delErr) { showError("Avertisment", `Migrat, dar nu s-a putut șterge din legacy: ${delErr.message}`); }
+    // 3. NU ștergem din evenimente — rezultatele sportivilor (tabela rezultate)
+    // sunt legate de eveniment_id cu ON DELETE CASCADE și s-ar pierde.
+    // legacy_eveniment_id din competitii permite filtrarea din lista legacy.
 
     onMigrated(newComp, ev.id);
     setLoading(false);
@@ -1494,8 +1495,8 @@ const MigrareModal: React.FC<{
             className="rounded border-slate-600 bg-slate-700" />
           Generează categorii automat
         </label>
-        <p className="text-xs text-slate-500">
-          Competiția va fi creată cu status <strong>Finalizată</strong> și înregistrarea va fi ștearsă din sistemul vechi.
+        <p className="text-xs text-slate-400 bg-green-900/20 border border-green-700/30 rounded p-2">
+          Competiția va fi creată cu status <strong>Finalizată</strong>. Evenimentul vechi <strong>nu se șterge</strong> — rezultatele sportivilor înregistrați rămân păstrate și pot fi consultate din secțiunea Rezultate.
         </p>
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="secondary" onClick={onClose}>Anulează</Button>
@@ -1533,8 +1534,11 @@ export const CompetitiiManagement: React.FC<CompetitiiProps> = ({ permissions, o
       supabase.from('evenimente').select('id,denumire,data,data_sfarsit,locatie,organizator,probe_disponibile,club_id').eq('tip', 'Competitie').order('data', { ascending: false }),
     ]);
     if (error) { showError("Eroare", error.message); }
-    else setCompetitii((data || []) as Competitie[]);
-    setLegacyEvents((legacyData || []) as EvenimentLegacy[]);
+    const competitiiData = (data || []) as Competitie[];
+    setCompetitii(competitiiData);
+    // Exclude evenimentele deja migrate (au legacy_eveniment_id setat în competitii)
+    const migratedIds = new Set(competitiiData.map(c => c.legacy_eveniment_id).filter(Boolean));
+    setLegacyEvents(((legacyData || []) as EvenimentLegacy[]).filter(e => !migratedIds.has(e.id)));
     setLoading(false);
   }, [showError]);
 

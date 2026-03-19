@@ -535,6 +535,7 @@ export interface Competitie {
   taxa_individual: number;
   taxa_echipa: number;
   observatii: string | null;
+  legacy_eveniment_id: string | null;
   created_at: string;
 }
 

@@ -511,3 +511,90 @@ export interface GradeHistoryEntry {
   rank: number;
   rankName: string;
 }
+
+// -----------------------------------------------
+// Domain: Competiții
+// -----------------------------------------------
+
+export type TipCompetitie = 'tehnica' | 'giao_dau' | 'cvd';
+export type StatusCompetitie = 'draft' | 'inscrieri_deschise' | 'inscrieri_inchise' | 'finalizata';
+export type TipProba = 'thao_quyen_individual' | 'sincron' | 'song_luyen' | 'giao_dau' | 'thao_lo_individual';
+export type TipParticipare = 'individual' | 'pereche' | 'echipa';
+
+export interface Competitie {
+  id: string;
+  denumire: string;
+  tip: TipCompetitie;
+  data_inceput: string;
+  data_sfarsit: string;
+  locatie: string | null;
+  organizator: string | null;
+  status: StatusCompetitie;
+  deadline_inscrieri: string | null;
+  club_id: string | null;
+  taxa_individual: number;
+  taxa_echipa: number;
+  observatii: string | null;
+  created_at: string;
+}
+
+export interface ProbaCompetitie {
+  id: string;
+  competitie_id: string;
+  tip_proba: TipProba;
+  denumire: string;
+  ordine_afisare: number;
+}
+
+export interface CategorieCompetitie {
+  id: string;
+  competitie_id: string;
+  proba_id: string | null;
+  numar_categorie: number | null;
+  denumire: string | null;
+  varsta_min: number;
+  varsta_max: number | null;
+  gen: 'Feminin' | 'Masculin' | 'Mixt';
+  grad_min_ordine: number | null;
+  grad_max_ordine: number | null;
+  arma: string | null;
+  tip_participare: TipParticipare;
+  sportivi_per_echipa_min: number;
+  sportivi_per_echipa_max: number;
+  rezerve_max: number;
+  max_echipe_per_club: number;
+  min_participanti_start: number;
+  ordine_afisare: number;
+  // joined
+  proba?: ProbaCompetitie;
+}
+
+export interface InscriereCompetitie {
+  id: string;
+  competitie_id: string;
+  categorie_id: string;
+  club_id: string;
+  sportiv_id: string;
+  status: 'inscris' | 'confirmat' | 'retras' | 'descalificat';
+  taxa_achitata: boolean;
+  observatii: string | null;
+  created_at: string;
+  // joined
+  sportiv?: Sportiv;
+  categorie?: CategorieCompetitie;
+}
+
+export interface EchipaCompetitie {
+  id: string;
+  competitie_id: string;
+  categorie_id: string;
+  club_id: string;
+  denumire_echipa: string | null;
+  status: 'inscrisa' | 'confirmata' | 'retrasa' | 'descalificata';
+  taxa_achitata: boolean;
+  observatii: string | null;
+  created_at: string;
+  // joined
+  sportivi?: Array<{ sportiv_id: string; rol: 'titular' | 'rezerva'; sportiv?: Sportiv }>;
+  categorie?: CategorieCompetitie;
+}

@@ -44,7 +44,9 @@ export const fetchSportiviData = async (
     if (filters.gradId) {
         query = query.eq('grad_actual_id', filters.gradId);
     }
-    if (filters.grupaId) {
+    if (filters.grupaId === 'fara-grupa') {
+        query = query.is('grupa_id', null);
+    } else if (filters.grupaId) {
         query = query.eq('grupa_id', filters.grupaId);
     }
     if (filters.searchTerm) {

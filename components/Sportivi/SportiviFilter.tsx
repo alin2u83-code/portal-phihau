@@ -47,6 +47,7 @@ export const SportiviFilter: React.FC<SportiviFilterProps> = ({ filters, onFilte
         onChange={(e) => onFilterChange('grupaFilter', e.target.value)}
       >
         <option value="">Toate Grupele</option>
+        <option value="fara-grupa">Fără Grupă</option>
         {grupeClub.map(g => (
           <option key={g.id} value={g.id}>
             {g.denumire || 'Fără denumire'}

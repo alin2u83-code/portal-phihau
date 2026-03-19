@@ -23,12 +23,23 @@ export const ProgramAntrenamenteManagement: React.FC<ProgramAntrenamenteManageme
 
     const zileSaptamana = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'];
 
+    const getDayOfWeek = (dateStr: string): string => {
+        const days = ['Duminică', 'Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă'];
+        const d = new Date((dateStr || '').toString().slice(0, 10) + 'T12:00:00');
+        return days[d.getDay()] || '';
+    };
+
     const antrenamente = filteredData.antrenamente || [];
+
+    const grupeDisponibile = useMemo(() => {
+        const unique = new Set(antrenamente.map(a => a.nume_grupa).filter(Boolean));
+        return Array.from(unique).sort();
+    }, [antrenamente]);
 
     const filteredAntrenamente = useMemo(() => {
         return antrenamente.filter(a => {
-            const matchesDay = !dayFilter || a.ziua_saptamanii === dayFilter;
-            const matchesGroup = !groupFilter || a.nume_grupa?.toLowerCase().includes(groupFilter.toLowerCase());
+            const matchesDay = !dayFilter || getDayOfWeek((a.data || '').toString()) === dayFilter;
+            const matchesGroup = !groupFilter || a.nume_grupa === groupFilter;
             return matchesDay && matchesGroup;
         }).sort((a, b) => {
             // Sort by date then by start time
@@ -95,12 +106,10 @@ export const ProgramAntrenamenteManagement: React.FC<ProgramAntrenamenteManageme
                         <option value="">Toate zilele</option>
                         {zileSaptamana.map(zi => <option key={zi} value={zi}>{zi}</option>)}
                     </Select>
-                    <Input 
-                        label="Caută după grupă" 
-                        placeholder="Nume grupă..." 
-                        value={groupFilter} 
-                        onChange={e => setGroupFilter(e.target.value)} 
-                    />
+                    <Select label="Filtrează după grupă" value={groupFilter} onChange={e => setGroupFilter(e.target.value)}>
+                        <option value="">Toate grupele</option>
+                        {grupeDisponibile.map(g => <option key={g} value={g}>{g}</option>)}
+                    </Select>
                 </div>
             </Card>
 
@@ -123,7 +132,7 @@ export const ProgramAntrenamenteManagement: React.FC<ProgramAntrenamenteManageme
                                         {a.tip_antrenament || 'regular'}
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-xs font-bold text-slate-500 uppercase tracking-tighter">{a.ziua_saptamanii}</p>
+                                        <p className="text-xs font-bold text-slate-500 uppercase tracking-tighter">{getDayOfWeek((a.data || '').toString())}</p>
                                         <p className="text-sm font-black text-white">{new Date((a.data || '').toString().slice(0, 10)).toLocaleDateString('ro-RO')}</p>
                                     </div>
                                 </div>

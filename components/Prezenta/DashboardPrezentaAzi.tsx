@@ -109,7 +109,7 @@ export const DashboardPrezentaAzi: React.FC<{
                             <div className="p-4 bg-slate-800/40 rounded-2xl border border-slate-700/50">
                                 <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Prezențe Înregistrate</p>
                                 <p className="text-3xl font-black text-emerald-400">
-                                    {todaysTrainings.reduce((acc, a) => acc + (a.prezenta?.length || 0), 0)}
+                                    {todaysTrainings.reduce((acc, a) => acc + (a.prezenta?.filter((p: any) => p.status === 'prezent').length || 0), 0)}
                                 </p>
                             </div>
                         </div>

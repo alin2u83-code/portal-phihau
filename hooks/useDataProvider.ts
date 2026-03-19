@@ -66,6 +66,7 @@ export const useDataProvider = () => {
     const [currentUser, setCurrentUser] = useState<User | null>(null);
     const [loadingIstoric, setLoadingIstoric] = useState(false);
     const lastFetchedSportivId = React.useRef<string | null>(null);
+    const currentSessionUserIdRef = React.useRef<string | null>(null);
     const [isAuthInitialized, setIsAuthInitialized] = useState(false);
     const canFetch = !!session?.user && isAuthInitialized;
 
@@ -368,7 +369,10 @@ export const useDataProvider = () => {
             setLoadingData(true);
             const { data: { session: currentSession } } = await supabase.auth.getSession();
             setSession(currentSession);
-            if (currentSession) refreshRoles();
+            if (currentSession) {
+                currentSessionUserIdRef.current = currentSession.user.id;
+                refreshRoles();
+            }
             else setLoadingData(false);
         } catch (err: any) {
             setError(err.message);
@@ -380,9 +384,18 @@ export const useDataProvider = () => {
         initializeAndFetchData();
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, sess) => {
             if (event === 'SIGNED_IN') {
+                const incomingUserId = sess?.user?.id ?? null;
                 setSession(sess);
-                refreshRoles();
+                // Refresh roles only if this is a genuinely new user session.
+                // If the user ID matches what we already have loaded, this is a
+                // session recovery or token refresh event – skip re-fetching to
+                // prevent unwanted page reloads when returning to the tab.
+                if (incomingUserId && incomingUserId !== currentSessionUserIdRef.current) {
+                    currentSessionUserIdRef.current = incomingUserId;
+                    refreshRoles();
+                }
             } else if (event === 'SIGNED_OUT') {
+                currentSessionUserIdRef.current = null;
                 setSession(null);
             }
             // TOKEN_REFRESHED si alte evenimente nu declanseaza refetch

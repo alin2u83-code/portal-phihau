@@ -173,7 +173,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                             case 'setari-club':
                                 return renderProtected(<Lazy.ClubSettings onBack={handleBackToDashboard} currentUser={currentUser!} clubs={clubs} setClubs={setClubs} />, isAtLeastClubAdmin);
                             case 'tipuri-abonament':
-                                return renderProtected(<Lazy.TipuriAbonamentManagement onBack={handleBackToDashboard} tipuriAbonament={filteredData.tipuriAbonament} setTipuriAbonament={setTipuriAbonament} currentUser={currentUser!} clubs={clubs}/>, isAtLeastClubAdmin);
+                                return renderProtected(<Lazy.TipuriAbonamentManagement onBack={handleBackToDashboard} tipuriAbonament={filteredData.tipuriAbonament} setTipuriAbonament={setTipuriAbonament} currentUser={currentUser!} clubs={clubs} activeRoleContext={activeRoleContext} permissions={permissions}/>, isAtLeastClubAdmin);
                             case 'configurare-preturi':
                                 return renderProtected(<Lazy.ConfigurarePreturi grade={grade} onBack={handleBackToDashboard} />, permissions.isSuperAdmin);
                             case 'grade':

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TipAbonament, User, Club } from '../types';
+import { TipAbonament, User, Club, Permissions } from '../types';
 import { Button, Input, Card, Select } from './ui';
 import { PlusIcon, TrashIcon, ArrowLeftIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -12,9 +12,11 @@ interface TipuriAbonamentManagementProps {
     onBack: () => void;
     currentUser: User | null;
     clubs: Club[];
+    activeRoleContext?: any;
+    permissions?: Permissions;
 }
 
-export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps> = ({ tipuriAbonament, setTipuriAbonament, onBack, currentUser, clubs }) => {
+export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps> = ({ tipuriAbonament, setTipuriAbonament, onBack, currentUser, clubs, activeRoleContext, permissions }) => {
     const [newDenumire, setNewDenumire] = useState('');
     const [newPret, setNewPret] = useState<number | string>('');
     const [newNrMembri, setNewNrMembri] = useState<number | string>(1);
@@ -24,7 +26,9 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
     const [isDeleting, setIsDeleting] = useState(false);
     const { showError, showSuccess } = useError();
 
-    const isFederationAdmin = currentUser?.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN');
+    const isFederationAdmin = permissions?.isFederationAdmin ?? currentUser?.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN');
+    // Club ID for club admins: from activeRoleContext or currentUser
+    const effectiveClubId = activeRoleContext?.club_id || activeRoleContext?.club?.id || currentUser?.club_id;
 
     const handleAdd = async () => {
         if(!supabase) { showError("Eroare Configurare", "Client Supabase neinițializat."); return; }
@@ -45,8 +49,8 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
 
         if (isFederationAdmin) {
             newAbonament.club_id = newClubId || null;
-        } else if (currentUser?.club_id) {
-            newAbonament.club_id = currentUser.club_id;
+        } else if (effectiveClubId) {
+            newAbonament.club_id = effectiveClubId;
         }
         
         setLoading(true);

@@ -90,8 +90,8 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
             const antrenamenteGrupa = antrenamenteInLuna.filter(a => a.grupa_id === sportiv.grupa_id);
             const totalTrainings = antrenamenteGrupa.length;
             
-            const attendedTrainings = antrenamenteGrupa.filter(a => 
-                a.prezenta.some(p => p.sportiv_id === sportiv.id)
+            const attendedTrainings = antrenamenteGrupa.filter(a =>
+                (a.prezenta || []).some((p: any) => p.sportiv_id === sportiv.id && p.status === 'prezent')
             ).length;
             
             const gradActual = grade.find(g => g.id === sportiv.grad_actual_id)?.nume || 'Începător';

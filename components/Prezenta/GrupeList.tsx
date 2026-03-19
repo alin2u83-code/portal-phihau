@@ -9,25 +9,25 @@ export const GrupeList: React.FC<{
     onGlobalHistory: () => void; 
     grupe: (Grupa & {sportivi_count: {count: number}[]})[] 
 }> = ({ onSelect, onSelectToday, onGlobalHistory, grupe }) => (
-    <div className="space-y-8 animate-fade-in">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="space-y-4 md:space-y-8 animate-fade-in">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div>
-                <h1 className="text-4xl font-black text-white tracking-tight">Management Prezență</h1>
-                <p className="text-slate-400 mt-1">Gestionează orarul, calendarul și prezența sportivilor pe grupe.</p>
+                <h1 className="text-2xl md:text-4xl font-black text-white tracking-tight">Management Prezență</h1>
+                <p className="text-slate-400 mt-1 text-sm">Gestionează orarul, calendarul și prezența sportivilor pe grupe.</p>
             </div>
-            <Button variant="secondary" onClick={onGlobalHistory} className="shadow-lg hover:shadow-indigo-500/10">
-                <CalendarDaysIcon className="w-5 h-5 mr-2 text-indigo-400" />
-                Istoric Global Prezențe
+            <Button variant="secondary" size="sm" onClick={onGlobalHistory} className="shrink-0">
+                <CalendarDaysIcon className="w-4 h-4 mr-2 text-indigo-400" />
+                Istoric Global
             </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
             {grupe.map(g => (
                 <Card key={g.id} className="group relative flex flex-col overflow-hidden border-none shadow-xl hover:shadow-2xl transition-all duration-300 bg-slate-900/40 backdrop-blur-sm">
                     {/* Decorative accent */}
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 to-purple-500 opacity-50 group-hover:opacity-100 transition-opacity"></div>
                     
-                    <div className="p-6 flex-grow">
+                    <div className="p-4 md:p-6 flex-grow">
                         <div className="flex justify-between items-start mb-4">
                             <div className="p-3 bg-indigo-500/10 rounded-2xl">
                                 <UsersIcon className="w-6 h-6 text-indigo-400" />
@@ -53,7 +53,7 @@ export const GrupeList: React.FC<{
                         </div>
                     </div>
 
-                    <div className="p-6 pt-0 mt-auto space-y-3">
+                    <div className="p-4 md:p-6 pt-0 mt-auto space-y-3">
                         <Button 
                             variant="success" 
                             className="w-full justify-between group/btn shadow-lg shadow-emerald-900/20" 

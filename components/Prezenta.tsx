@@ -95,5 +95,19 @@ export const Prezenta: React.FC<{ onBack: () => void; onViewSportiv?: (s: Sporti
         }
     };
 
-    return <div>{renderContent()}</div>;
+    return (
+        <div>
+            {/* Buton Înapoi persistent pe mobil */}
+            <div className="flex items-center gap-2 mb-4">
+                <button
+                    onClick={navigateBack}
+                    className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-white transition-colors px-2 py-1.5 rounded-md hover:bg-slate-800"
+                >
+                    <ArrowLeftIcon className="w-4 h-4" />
+                    <span>Înapoi</span>
+                </button>
+            </div>
+            {renderContent()}
+        </div>
+    );
 };

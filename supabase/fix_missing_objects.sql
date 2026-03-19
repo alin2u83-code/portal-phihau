@@ -303,10 +303,21 @@ END $$;
 DROP VIEW IF EXISTS public.vedere_cluburi_vizualizare_plati CASCADE;
 CREATE OR REPLACE VIEW public.vedere_cluburi_vizualizare_plati AS
 SELECT
-    p.*,
+    p.id,
+    p.sportiv_id,
+    p.familie_id,
+    p.suma,
+    p.suma_initiala,
+    p.reducere_id,
+    p.reducere_detalii,
+    p.data,
+    p.status,
+    p.descriere,
+    p.tip,
+    p.observatii,
+    COALESCE(p.club_id, s.club_id) AS club_id,
     s.nume AS sportiv_nume,
     s.prenume AS sportiv_prenume,
-    COALESCE(p.club_id, s.club_id) AS club_id,
     c.nume AS club_nume,
     f.nume AS familie_denumire
 FROM public.plati p
@@ -388,10 +399,22 @@ GRANT SELECT ON public.vedere_prezenta_detaliata TO authenticated;
 DROP VIEW IF EXISTS public.view_istoric_plati_detaliat CASCADE;
 CREATE OR REPLACE VIEW public.view_istoric_plati_detaliat AS
 SELECT
-    p.*,
+    p.id,
+    p.sportiv_id,
+    p.familie_id,
+    p.suma,
+    p.suma_initiala,
+    p.reducere_id,
+    p.reducere_detalii,
+    p.data,
+    p.status,
+    p.descriere,
+    p.tip,
+    p.observatii,
+    COALESCE(p.club_id, s.club_id) AS club_id,
+    p.data AS data_plata_string,
     s.nume AS sportiv_nume,
-    s.prenume AS sportiv_prenume,
-    COALESCE(p.club_id, s.club_id) AS club_id
+    s.prenume AS sportiv_prenume
 FROM public.plati p
 LEFT JOIN public.sportivi s ON p.sportiv_id = s.id
 WHERE COALESCE(p.club_id, s.club_id) = public.get_active_club_id() OR public.is_super_admin();

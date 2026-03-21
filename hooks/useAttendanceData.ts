@@ -19,7 +19,7 @@ export const useAttendanceData = (clubId?: string | null, skipFetch = false, fil
         setError(null);
         try {
             // Join with prezenta_antrenament
-            let antrenamenteQuery = supabase.from('program_antrenamente').select('*, prezenta:prezenta_antrenament(sportiv_id, status)');
+            let antrenamenteQuery = supabase.from('program_antrenamente').select('*, prezenta:prezenta_antrenament(sportiv_id, status_id, status:statuse_prezenta(este_prezent, denumire))');
             let anunturiQuery = supabase.from('anunturi_prezenta').select('*');
 
             // Apply date filters if provided
@@ -58,7 +58,7 @@ export const useAttendanceData = (clubId?: string | null, skipFetch = false, fil
         }
     }, [clubId, showError, skipFetch, JSON.stringify(filters)]);
 
-    const saveAttendance = useCallback(async (antrenamentId: string, records: { sportiv_id: string; status: 'prezent' | 'absent' }[]) => {
+    const saveAttendance = useCallback(async (antrenamentId: string, records: { sportiv_id: string; status_id: string }[]) => {
         if (!antrenamentId) {
             showError("Eroare", "ID antrenament lipsă.");
             return false;
@@ -68,7 +68,7 @@ export const useAttendanceData = (clubId?: string | null, skipFetch = false, fil
             const recordsToUpsert = records.map(r => ({
                 antrenament_id: antrenamentId,
                 sportiv_id: r.sportiv_id,
-                status: r.status
+                status_id: r.status_id,
             }));
 
             const { error } = await supabase.from('prezenta_antrenament').upsert(recordsToUpsert, { onConflict: 'antrenament_id, sportiv_id' });

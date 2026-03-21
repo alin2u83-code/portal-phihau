@@ -20,8 +20,8 @@ export const TrainingHistory: React.FC<TrainingHistoryProps> = ({ sportiv, antre
             const trainingDate = new Date(`${(antr.data || '').toString().slice(0, 10)}T${antr.ora_start || '00:00'}`);
             if (trainingDate > now) return; // Don't show future trainings
 
-            const isPresent = (antr.prezenta || []).some(p => p.sportiv_id === sportiv.id && p.status === 'prezent');
-            const isMarkedAbsent = (antr.prezenta || []).some(p => p.sportiv_id === sportiv.id && p.status === 'absent');
+            const isPresent = (antr.prezenta || []).some(p => p.sportiv_id === sportiv.id && p.status?.este_prezent === true);
+            const isMarkedAbsent = (antr.prezenta || []).some(p => p.sportiv_id === sportiv.id && p.status?.este_prezent === false);
             const isInGroup = antr.grupa_id === sportiv.grupa_id;
             const isVacationTraining = sportiv.participa_vacanta && antr.grupa_id === null;
             

@@ -9,6 +9,7 @@ import { useError } from './ErrorProvider';
 import { AntrenamentForm } from './AntrenamentForm';
 import { supabase } from '../supabaseClient';
 import { generateTrainingsFromSchedule } from '../utils/trainingGenerator';
+import { useStatusePrezenta } from '../hooks/useStatusePrezenta';
 
 import { useData } from '../contexts/DataContext';
 
@@ -82,7 +83,7 @@ const SportivInfoModal: React.FC<{
                                         <p className="text-sm font-bold text-white">{new Date((h.data || '').toString().slice(0, 10)).toLocaleDateString('ro-RO')}</p>
                                         <p className="text-[10px] text-slate-500">{h.nume_grupa}</p>
                                     </div>
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${h.status === 'prezent' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
+                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${h.status?.toLowerCase() === 'prezent' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
                                         {h.status}
                                     </span>
                                 </div>
@@ -104,8 +105,9 @@ export const FormularPrezenta: React.FC<{
     antrenament: Antrenament & { grupe: Grupa & { sportivi: Sportiv[] }};
     onBack: () => void;
     onViewSportiv?: (s: Sportiv) => void;
-    saveAttendance: (id: string, records: { sportiv_id: string; status: 'prezent' | 'absent' }[]) => Promise<boolean>;
+    saveAttendance: (id: string, records: { sportiv_id: string; status_id: string }[]) => Promise<boolean>;
 }> = ({ antrenament, onBack, onViewSportiv, saveAttendance }) => {
+    const { prezentId, absentId } = useStatusePrezenta();
     const [presentIds, setPresentIds] = useState<Set<string>>(new Set());
     const [loading, setLoading] = useState(false);
     const [saved, setSaved] = useState(false);
@@ -117,7 +119,7 @@ export const FormularPrezenta: React.FC<{
         const populateInitialData = () => {
             const initialPresent = new Set(
                 (antrenament.prezenta || [])
-                    .filter(p => p.status === 'prezent')
+                    .filter(p => p.status?.este_prezent === true)
                     .map(p => p.sportiv_id)
             );
             setPresentIds(initialPresent);
@@ -162,12 +164,13 @@ export const FormularPrezenta: React.FC<{
 
     // 3. Save Logic
     const handleSaveAttendance = async () => {
+        if (!prezentId || !absentId) return;
         setLoading(true);
         setSaved(false);
-        
+
         const records = sportiviInGrupa.map(s => ({
             sportiv_id: s.id,
-            status: presentIds.has(s.id) ? 'prezent' as const : 'absent' as const,
+            status_id: presentIds.has(s.id) ? prezentId : absentId,
         }));
 
         const success = await saveAttendance(antrenament.id, records);
@@ -486,8 +489,8 @@ export const ListaPrezentaAntrenament: React.FC<ListaPrezentaAntrenamentProps> =
                                                     </span>
                                                     {isToday && <span className="px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-full bg-emerald-500/10 text-emerald-400">Azi</span>}
                                                     {sportivPresence && (
-                                                        <span className={`px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-full ${sportivPresence.status === 'prezent' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}`}>
-                                                            {sportivPresence.status === 'prezent' ? 'Prezent' : 'Absent'}
+                                                        <span className={`px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-full ${sportivPresence.status?.este_prezent ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}`}>
+                                                            {sportivPresence.status?.este_prezent ? 'Prezent' : 'Absent'}
                                                         </span>
                                                     )}
                                                 </div>

@@ -6,7 +6,10 @@ export const useAttendance = () => {
     const [loading, setLoading] = useState(false);
     const { showError, showSuccess } = useError();
 
-    const saveAttendance = useCallback(async (antrenamentId: string, records: { sportiv_id: string; status: 'prezent' | 'absent' }[]) => {
+    const saveAttendance = useCallback(async (
+        antrenamentId: string,
+        records: { sportiv_id: string; status_id: string }[]
+    ) => {
         if (!antrenamentId) {
             showError("Eroare", "ID antrenament lipsă.");
             return false;
@@ -16,11 +19,13 @@ export const useAttendance = () => {
             const recordsToUpsert = records.map(r => ({
                 antrenament_id: antrenamentId,
                 sportiv_id: r.sportiv_id,
-                status: r.status
+                status_id: r.status_id,
             }));
 
-            const { error } = await supabase.from('prezenta_antrenament').upsert(recordsToUpsert, { onConflict: 'antrenament_id, sportiv_id' });
-            
+            const { error } = await supabase
+                .from('prezenta_antrenament')
+                .upsert(recordsToUpsert, { onConflict: 'antrenament_id, sportiv_id' });
+
             if (error) throw error;
 
             showSuccess("Succes", "Prezența a fost salvată cu succes.");
@@ -28,7 +33,6 @@ export const useAttendance = () => {
         } catch (err: any) {
             console.error("Error saving attendance:", err);
             let userMessage = "A apărut o eroare la salvarea datelor în baza de date.";
-            
             if (err.code === '42501') {
                 userMessage = "Nu aveți permisiunea de a modifica prezența pentru acest antrenament.";
             } else if (err.code === '23505') {
@@ -36,7 +40,6 @@ export const useAttendance = () => {
             } else if (err.message) {
                 userMessage = err.message;
             }
-
             showError("Eroare salvare prezență", userMessage);
             return false;
         } finally {

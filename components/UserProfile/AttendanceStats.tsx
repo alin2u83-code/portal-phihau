@@ -24,12 +24,12 @@ export const AttendanceStats: React.FC<AttendanceStatsProps> = ({ sportiv, antre
         });
 
         const totalSessions = relevantTrainings.length;
-        const presences = relevantTrainings.filter(a => 
-            (a.prezenta || []).some(p => p.sportiv_id === sportiv.id && p.status === 'prezent')
+        const presences = relevantTrainings.filter(a =>
+            (a.prezenta || []).some(p => p.sportiv_id === sportiv.id && p.status?.este_prezent === true)
         ).length;
-        
-        const absences = relevantTrainings.filter(a => 
-            (a.prezenta || []).some(p => p.sportiv_id === sportiv.id && p.status === 'absent')
+
+        const absences = relevantTrainings.filter(a =>
+            (a.prezenta || []).some(p => p.sportiv_id === sportiv.id && p.status?.este_prezent === false)
         ).length;
 
         // Attendance by month for the last 6 months
@@ -48,7 +48,7 @@ export const AttendanceStats: React.FC<AttendanceStatsProps> = ({ sportiv, antre
             const key = `${d.getFullYear()}-${d.getMonth() + 1}`;
             if (monthlyData[key]) {
                 monthlyData[key].total++;
-                if ((a.prezenta || []).some(p => p.sportiv_id === sportiv.id && p.status === 'prezent')) {
+                if ((a.prezenta || []).some(p => p.sportiv_id === sportiv.id && p.status?.este_prezent === true)) {
                     monthlyData[key].present++;
                 }
             }

@@ -402,8 +402,17 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
 
     return (
         <div className="space-y-6 animate-fade-in-down">
+            {/* Back button */}
+            <button
+                onClick={onBack}
+                className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-white transition-colors px-2 py-1.5 rounded-md hover:bg-slate-800"
+            >
+                <ArrowLeftIcon className="w-4 h-4" />
+                <span>Management Sportivi</span>
+            </button>
+
             {/* Header */}
-            <header 
+            <header
                 className="bg-[var(--bg-card)] p-6 rounded-xl shadow-lg border border-[var(--border-color)] flex flex-col md:flex-row items-center gap-6 relative overflow-hidden"
                 style={{ borderTop: `4px solid ${primaryColor}` }}
             >

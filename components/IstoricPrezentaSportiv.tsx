@@ -7,7 +7,7 @@ interface VederePrezentaSportiv {
     sportiv_id: string;
     data: string;
     ora_start: string;
-    status: 'prezent' | 'absent' | string;
+    status: 'Prezent' | 'Absent' | string;
     nume_grupa: string;
 }
 

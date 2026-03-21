@@ -32,8 +32,10 @@ SET status_id = sp.id
 FROM public.statuse_prezenta sp
 WHERE LOWER(pa.status) = sp.cod;
 
--- 6. Sterge coloana text veche
-ALTER TABLE public.prezenta_antrenament DROP COLUMN IF EXISTS status;
+-- 6. Coloana text veche (status) este pastrata intentionat
+-- View-urile dependente (sumar_prezenta_astazi, vedere_prezenta_club,
+-- vedere_prezenta_sportiv, vedere_prezenta_detaliata) sunt actualizate
+-- in migratia 20260321_fix_views_status_id.sql sa foloseasca status_id.
 
 -- 7. Grant select pe tabel nomenclator
 GRANT SELECT ON public.statuse_prezenta TO authenticated;

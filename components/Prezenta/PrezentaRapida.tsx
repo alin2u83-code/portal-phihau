@@ -25,7 +25,7 @@ interface TrainingSection {
 }
 
 export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> = ({ onSelectFull }) => {
-    const { prezentId, absentId } = useStatusePrezenta();
+    const { prezentId } = useStatusePrezenta();
     const { saveAttendance } = useAttendance();
     const { showError } = useError();
     const [sections, setSections] = useState<TrainingSection[]>([]);
@@ -95,16 +95,16 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
     };
 
     const handleSave = async (trainingId: string) => {
-        if (!prezentId || !absentId) return;
+        if (!prezentId) return;
         const section = sections.find(s => s.id === trainingId);
         if (!section) return;
 
         setSavingId(trainingId);
-        const records = section.athletes.map(a => ({
-            sportiv_id: a.id,
-            status_id: a.isPresent ? prezentId : absentId,
-        }));
-        const ok = await saveAttendance(trainingId, records);
+        const allSportivIds = section.athletes.map(a => a.id);
+        const records = section.athletes
+            .filter(a => a.isPresent)
+            .map(a => ({ sportiv_id: a.id, status_id: prezentId }));
+        const ok = await saveAttendance(trainingId, records, allSportivIds);
         if (ok) setSavedIds(prev => new Set(prev).add(trainingId));
         setSavingId(null);
     };

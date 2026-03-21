@@ -27,7 +27,7 @@ export const IstoricPrezentaSportiv: React.FC<IstoricPrezentaSportivProps> = ({ 
             setLoading(true);
             try {
                 const { data, error } = await supabase
-                    .from('vedere_prezenta_sportiv')
+                    .from('vw_istoricprezenta_sportiv')
                     .select('*')
                     .eq('sportiv_id', sportivId)
                     .order('data', { ascending: false })

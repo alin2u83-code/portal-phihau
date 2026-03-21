@@ -34,7 +34,7 @@ const SportivInfoModal: React.FC<{
             const fetchHistory = async () => {
                 setLoading(true);
                 const { data } = await supabase
-                    .from('vedere_prezenta_sportiv')
+                    .from('vw_istoricprezenta_sportiv')
                     .select('*')
                     .eq('sportiv_id', sportiv.id)
                     .order('data', { ascending: false })
@@ -164,16 +164,16 @@ export const FormularPrezenta: React.FC<{
 
     // 3. Save Logic
     const handleSaveAttendance = async () => {
-        if (!prezentId || !absentId) return;
+        if (!prezentId) return;
         setLoading(true);
         setSaved(false);
 
-        const records = sportiviInGrupa.map(s => ({
-            sportiv_id: s.id,
-            status_id: presentIds.has(s.id) ? prezentId : absentId,
-        }));
+        const allSportivIds = sportiviInGrupa.map(s => s.id);
+        const records = sportiviInGrupa
+            .filter(s => presentIds.has(s.id))
+            .map(s => ({ sportiv_id: s.id, status_id: prezentId }));
 
-        const success = await saveAttendance(antrenament.id, records);
+        const success = await saveAttendance(antrenament.id, records, allSportivIds);
         
         setLoading(false);
         if (success) {

@@ -8,7 +8,8 @@ export const useAttendance = () => {
 
     const saveAttendance = useCallback(async (
         antrenamentId: string,
-        records: { sportiv_id: string; status_id: string }[]
+        records: { sportiv_id: string; status_id: string }[],
+        allSportivIds?: string[]
     ) => {
         if (!antrenamentId) {
             showError("Eroare", "ID antrenament lipsă.");
@@ -16,17 +17,32 @@ export const useAttendance = () => {
         }
         setLoading(true);
         try {
-            const recordsToUpsert = records.map(r => ({
-                antrenament_id: antrenamentId,
-                sportiv_id: r.sportiv_id,
-                status_id: r.status_id,
-            }));
+            // Șterge recordurile existente pentru toți sportivii din grupă
+            const idsToDelete = allSportivIds && allSportivIds.length > 0
+                ? allSportivIds
+                : records.map(r => r.sportiv_id);
 
-            const { error } = await supabase
-                .from('prezenta_antrenament')
-                .upsert(recordsToUpsert, { onConflict: 'antrenament_id, sportiv_id' });
+            if (idsToDelete.length > 0) {
+                const { error: delError } = await supabase
+                    .from('prezenta_antrenament')
+                    .delete()
+                    .eq('antrenament_id', antrenamentId)
+                    .in('sportiv_id', idsToDelete);
+                if (delError) throw delError;
+            }
 
-            if (error) throw error;
+            // Inserează doar prezenții
+            if (records.length > 0) {
+                const recordsToInsert = records.map(r => ({
+                    antrenament_id: antrenamentId,
+                    sportiv_id: r.sportiv_id,
+                    status_id: r.status_id,
+                }));
+                const { error } = await supabase
+                    .from('prezenta_antrenament')
+                    .insert(recordsToInsert);
+                if (error) throw error;
+            }
 
             showSuccess("Succes", "Prezența a fost salvată cu succes.");
             return true;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AnuntGeneral, User, Club, Grupa } from '../types';
+import { AnuntGeneral, User, Club, Grupa, Permissions } from '../types';
 import { Button, Card, Input, Select } from './ui';
 import { ArrowLeftIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -10,18 +10,27 @@ interface NotificariProps {
     currentUser: User;
     clubs: Club[];
     grupe: Grupa[];
+    permissions: Permissions;
 }
 
 type TargetType = 'all' | 'club' | 'grupa';
 
-export const Notificari: React.FC<NotificariProps> = ({ onBack, currentUser, clubs, grupe }) => {
+export const Notificari: React.FC<NotificariProps> = ({ onBack, currentUser, clubs, grupe, permissions }) => {
     const [title, setTitle] = useState('');
     const [body, setBody] = useState('');
-    const [targetType, setTargetType] = useState<TargetType>('all');
-    const [targetId, setTargetId] = useState('');
+    // Non-super-admins can only send to their club or specific group — default to 'club'
+    const canSendToAll = permissions.isFederationAdmin || permissions.isSuperAdmin;
+    const [targetType, setTargetType] = useState<TargetType>(canSendToAll ? 'all' : 'club');
+    // For non-super-admin, pre-select own club
+    const [targetId, setTargetId] = useState(canSendToAll ? '' : (currentUser.club_id || ''));
     const [history, setHistory] = useState<AnuntGeneral[]>([]);
     const [loading, setLoading] = useState(false);
     const { showError, showSuccess } = useError();
+
+    // Clubs available for selection: all clubs for super admin, own club only for others
+    const availableClubs = canSendToAll ? clubs : clubs.filter(c => c.id === currentUser.club_id);
+    // Grupe available: all for super admin, only from own club for others
+    const availableGrupe = canSendToAll ? grupe : grupe.filter(g => g.club_id === currentUser.club_id);
 
     useEffect(() => {
         const fetchHistory = async () => {
@@ -31,82 +40,53 @@ export const Notificari: React.FC<NotificariProps> = ({ onBack, currentUser, clu
                 .select('*')
                 .order('created_at', { ascending: false })
                 .limit(20);
-            
-            if (error) {
-                showError("Eroare la preluarea istoricului", error);
-            } else {
-                setHistory(data as AnuntGeneral[]);
-            }
+            if (error) showError("Eroare la preluarea istoricului", error);
+            else setHistory(data as AnuntGeneral[]);
         };
         fetchHistory();
     }, [showError]);
 
     const handleSend = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!supabase) {
-             showError("Eroare Configurare", "Clientul Supabase nu este inițializat.");
-             return;
-        }
-        if (!title.trim() || !body.trim()) {
-            showError("Date Incomplete", "Titlul și mesajul sunt obligatorii.");
-            return;
-        }
-        
-        if (targetType !== 'all' && !targetId) {
-            showError("Destinatar Lipsă", "Vă rugăm selectați clubul sau grupa destinatară.");
-            return;
-        }
-
-        if (!currentUser?.user_id) {
-            showError("Eroare de Autentificare", "ID-ul de utilizator nu a fost găsit în sesiune. Notificarea nu poate fi trimisă.");
-            return;
-        }
+        if (!supabase) { showError("Eroare Configurare", "Clientul Supabase nu este inițializat."); return; }
+        if (!title.trim() || !body.trim()) { showError("Date Incomplete", "Titlul și mesajul sunt obligatorii."); return; }
+        if (targetType !== 'all' && !targetId) { showError("Destinatar Lipsă", "Vă rugăm selectați clubul sau grupa destinatară."); return; }
+        if (!currentUser?.user_id) { showError("Eroare de Autentificare", "ID-ul de utilizator nu a fost găsit."); return; }
 
         setLoading(true);
-
         try {
-            // Pasul 1: Salvează notificarea în baza de date (pentru istoric și in-app bell)
             let query = supabase.from('sportivi').select('user_id').not('user_id', 'is', null);
-            
-            if (targetType === 'club') {
-                query = query.eq('club_id', targetId);
-            } else if (targetType === 'grupa') {
-                query = query.eq('grupa_id', targetId);
-            }
+            if (targetType === 'club') query = query.eq('club_id', targetId);
+            else if (targetType === 'grupa') query = query.eq('grupa_id', targetId);
+            // For non-super-admin sending to 'club', always restrict to own club
+            else if (!canSendToAll) query = query.eq('club_id', currentUser.club_id);
 
             const { data: sportivi, error: sportiviError } = await query;
             if (sportiviError) throw sportiviError;
-            
+
             const recipientIds = sportivi.map(s => s.user_id).filter(Boolean);
+            if (recipientIds.length === 0) { showError("Niciun Destinatar", "Nu s-au găsit utilizatori în segmentul selectat."); setLoading(false); return; }
 
-            if (recipientIds.length === 0) {
-                showError("Niciun Destinatar", "Nu s-au găsit utilizatori în segmentul selectat.");
-                setLoading(false);
-                return;
-            }
-
+            const senderName = `${currentUser.nume || ''} ${currentUser.prenume || ''}`.trim();
             const notificationsToInsert = recipientIds.map(userId => ({
                 recipient_user_id: userId,
-                title: title,
-                body: body,
+                title,
+                body,
                 sent_by: currentUser.user_id,
-                sender_sportiv_id: currentUser.id
+                sender_sportiv_id: currentUser.id,
+                metadata: { sender_name: senderName }
             }));
 
             const { error: dbError } = await supabase.from('notificari').insert(notificationsToInsert);
+            if (dbError) throw dbError;
 
-            if (dbError) {
-                throw dbError;
-            } else {
-                showSuccess("Succes", `Anunțul a fost trimis către ${recipientIds.length} utilizatori!`);
-                // Adăugăm o singură instanță în istoric pentru a nu supraîncărca UI-ul
-                const historyEntry = { ...notificationsToInsert[0], id: `temp-${Date.now()}`, created_at: new Date().toISOString() };
-                setHistory(prev => [historyEntry as unknown as AnuntGeneral, ...prev]);
-                setTitle('');
-                setBody('');
-            }
+            showSuccess("Succes", `Anunțul a fost trimis către ${recipientIds.length} utilizatori!`);
+            const historyEntry = { ...notificationsToInsert[0], id: `temp-${Date.now()}`, created_at: new Date().toISOString() };
+            setHistory(prev => [historyEntry as unknown as AnuntGeneral, ...prev]);
+            setTitle('');
+            setBody('');
         } catch (error: any) {
-             showError("Eroare la trimitere", `Asigurați-vă că rolul dumneavoastră are permisiunea de a insera în tabelul 'notificari'. Detalii: ${error.message}`);
+            showError("Eroare la trimitere", error.message);
         } finally {
             setLoading(false);
         }
@@ -115,38 +95,48 @@ export const Notificari: React.FC<NotificariProps> = ({ onBack, currentUser, clu
     return (
         <div className="space-y-6">
             <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
-            <h1 className="text-3xl font-bold text-white">Trimite Anunțuri (Notificări)</h1>
-            
+            <h1 className="text-3xl font-bold text-white">Trimite Anunțuri</h1>
+
             <Card>
                 <form onSubmit={handleSend} className="space-y-4">
                     <p className="text-sm text-slate-400">
-                        Anunțurile trimise aici vor apărea ca o notificare pe ecran pentru toți utilizatorii care au aplicația deschisă și au permis notificările în browser.
+                        {canSendToAll
+                            ? 'Ca administrator federație, poți trimite anunțuri către toți utilizatorii, un club specific sau o grupă.'
+                            : 'Anunțurile tale vor fi trimise sportivilor din clubul tău.'}
                     </p>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <Select label="Destinatari" value={targetType} onChange={e => { setTargetType(e.target.value as TargetType); setTargetId(''); }}>
-                            <option value="all">Toți Utilizatorii</option>
-                            <option value="club">Un Anumit Club</option>
-                            <option value="grupa">O Anumită Grupă</option>
+                        <Select label="Destinatari" value={targetType} onChange={e => { setTargetType(e.target.value as TargetType); setTargetId(canSendToAll ? '' : (currentUser.club_id || '')); }}>
+                            {canSendToAll && <option value="all">Toți Utilizatorii</option>}
+                            <option value="club">{canSendToAll ? 'Un Anumit Club' : 'Clubul Meu'}</option>
+                            <option value="grupa">{canSendToAll ? 'O Anumită Grupă' : 'O Grupă din Clubul Meu'}</option>
                         </Select>
 
-                        {targetType === 'club' && (
+                        {targetType === 'club' && canSendToAll && (
                             <Select label="Alege Clubul" value={targetId} onChange={e => setTargetId(e.target.value)} required>
                                 <option value="">Selectează club...</option>
-                                {clubs.map(c => <option key={c.id} value={c.id}>{c.nume}</option>)}
+                                {availableClubs.map(c => <option key={c.id} value={c.id}>{c.nume}</option>)}
                             </Select>
+                        )}
+
+                        {targetType === 'club' && !canSendToAll && (
+                            <div className="flex items-end">
+                                <p className="text-sm text-slate-300 pb-2">
+                                    {availableClubs.find(c => c.id === currentUser.club_id)?.nume || 'Clubul tău'}
+                                </p>
+                            </div>
                         )}
 
                         {targetType === 'grupa' && (
                             <Select label="Alege Grupa" value={targetId} onChange={e => setTargetId(e.target.value)} required>
                                 <option value="">Selectează grupa...</option>
-                                {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire} ({clubs.find(c => c.id === g.club_id)?.nume || 'Club Necunoscut'})</option>)}
+                                {availableGrupe.map(g => <option key={g.id} value={g.id}>{g.denumire}{canSendToAll ? ` (${clubs.find(c => c.id === g.club_id)?.nume || 'Club Necunoscut'})` : ''}</option>)}
                             </Select>
                         )}
                     </div>
 
-                    <Input label="Titlu Notificare" value={title} onChange={e => setTitle(e.target.value)} required />
-                    <Input label="Mesaj Notificare" value={body} onChange={e => setBody(e.target.value)} required />
+                    <Input label="Titlu Anunț" value={title} onChange={e => setTitle(e.target.value)} required />
+                    <Input label="Mesaj" value={body} onChange={e => setBody(e.target.value)} required />
                     <div className="flex justify-end">
                         <Button type="submit" variant="primary" isLoading={loading}>Trimite Anunțul</Button>
                     </div>
@@ -160,7 +150,10 @@ export const Notificari: React.FC<NotificariProps> = ({ onBack, currentUser, clu
                         <div key={anunt.id} className="bg-slate-700/50 p-3 rounded-md">
                             <p className="font-bold text-white">{anunt.title || (anunt as any).titlu}</p>
                             <p className="text-sm text-slate-300">{anunt.body}</p>
-                            <p className="text-xs text-slate-500 mt-1">Trimis la: {new Date((anunt.created_at || '').toString().slice(0, 19)).toLocaleString('ro-RO')}</p>
+                            <p className="text-xs text-slate-500 mt-1">
+                                {(anunt as any).metadata?.sender_name && <span className="mr-2">De la: {(anunt as any).metadata.sender_name}</span>}
+                                Trimis la: {new Date((anunt.created_at || '').toString().slice(0, 19)).toLocaleString('ro-RO')}
+                            </p>
                         </div>
                     )) : (
                         <p className="text-slate-400 italic">Niciun anunț trimis recent.</p>

@@ -505,9 +505,11 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         });
     };
 
+    const getGradOrdine = (i: InscriereExamen) => i.grades?.ordine ?? (i as any).grad_ordine ?? 0;
+
     const participantiInscrisi = useMemo(() => {
-        let data = (allInscrieri || []).filter(i => i.sesiune_id === sesiune.id && (i.grades?.ordine ?? 0) > 0);
-        
+        let data = (allInscrieri || []).filter(i => i.sesiune_id === sesiune.id && getGradOrdine(i) > 0);
+
         if (sortConfigs.length > 0) {
             data.sort((a, b) => {
                 for (const sort of sortConfigs) {
@@ -521,9 +523,8 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                         aVal = a.nume_grad_actual || '';
                         bVal = b.nume_grad_actual || '';
                     } else if (sort.key === 'grad_vizat') {
-                        // Folosim ordinea numerică a gradelor pentru o sortare logică, nu alfabetică
-                        aVal = a.grades?.ordine ?? 0;
-                        bVal = b.grades?.ordine ?? 0;
+                        aVal = getGradOrdine(a);
+                        bVal = getGradOrdine(b);
                     } else {
                         aVal = a[sort.key as keyof InscriereExamen];
                         bVal = b[sort.key as keyof InscriereExamen];
@@ -542,8 +543,8 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         } else {
             // Sortarea implicită (deja include tie-breaker)
             data.sort((a, b) => {
-                const gradeA = a.grades?.ordine ?? 0;
-                const gradeB = b.grades?.ordine ?? 0;
+                const gradeA = getGradOrdine(a);
+                const gradeB = getGradOrdine(b);
                 if (gradeA !== gradeB) return gradeB - gradeA;
                 const numeA = (a.sportiv_nume || a.sportivi?.nume || '').toLowerCase();
                 const numeB = (b.sportiv_nume || b.sportivi?.nume || '').toLowerCase();

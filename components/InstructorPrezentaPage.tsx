@@ -7,6 +7,7 @@ import { ArrowLeftIcon, CalendarDaysIcon, SparklesIcon } from './icons';
 import { useAttendance } from '../hooks/useAttendance';
 import { FormularPrezenta } from './ListaPrezentaAntrenament';
 import { PrezentaRapida } from './Prezenta/PrezentaRapida';
+import { useStatusePrezenta } from '../hooks/useStatusePrezenta';
 
 interface TrainingWithGroupAndAthletes extends Omit<Antrenament, 'grupe' | 'prezenta'> {
     grupe: (Grupa & { sportivi: Sportiv[] }) | null;
@@ -23,6 +24,7 @@ type Mode = 'lista' | 'rapid';
 
 export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ onBack, onViewSportiv }) => {
     const { saveAttendance } = useAttendance();
+    const { byId: statusById } = useStatusePrezenta();
     const [mode, setMode] = useState<Mode>('rapid');
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [trainings, setTrainings] = useState<TrainingWithGroupAndAthletes[]>([]);
@@ -46,7 +48,7 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
                 setLoading(true);
                 const { data, error } = await supabase
                     .from('program_antrenamente')
-                    .select('*, grupe(*, sportivi(id, nume, prenume, status, grad_actual_id)), prezenta:prezenta_antrenament(sportiv_id, status_id, status:statuse_prezenta(este_prezent, denumire))')
+                    .select('*, grupe(*, sportivi(id, nume, prenume, status, grad_actual_id)), prezenta:prezenta_antrenament(sportiv_id, status_id)')
                     .eq('data', selectedDateString);
                 if (error) { showError("Eroare la încărcarea antrenamentelor", error.message); setLoading(false); return; }
                 const processed = (data || []).map(t => ({
@@ -69,11 +71,15 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
         setLoading(true);
         const { data, error } = await supabase
             .from('program_antrenamente')
-            .select('*, grupe(*, sportivi(id, nume, prenume, status, grad_actual_id)), prezenta:prezenta_antrenament(sportiv_id, status_id, status:statuse_prezenta(este_prezent, denumire))')
+            .select('*, grupe(*, sportivi(id, nume, prenume, status, grad_actual_id)), prezenta:prezenta_antrenament(sportiv_id, status_id)')
             .eq('id', id).single();
         if (error) { showError("Eroare", error.message); setLoading(false); return; }
         if (data) {
-            const processed = { ...data, grupe: data.grupe ? { ...data.grupe, sportivi: (data.grupe.sportivi || []).filter((s: any) => s.status === 'Activ').sort((a: any, b: any) => a.nume.localeCompare(b.nume)) } : null };
+            const processed = {
+                ...data,
+                grupe: data.grupe ? { ...data.grupe, sportivi: (data.grupe.sportivi || []).filter((s: any) => s.status === 'Activ').sort((a: any, b: any) => a.nume.localeCompare(b.nume)) } : null,
+                prezenta: (data.prezenta || []).map((p: any) => ({ ...p, status: p.status_id ? (statusById[p.status_id] ?? null) : null })),
+            };
             setSelectedTraining(processed as any);
         }
         setLoading(false);

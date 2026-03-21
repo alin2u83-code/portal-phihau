@@ -37,11 +37,18 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
 
     const fetchTrainings = useCallback(async () => {
         setLoading(true);
-        const { data, error } = await supabase
-            .from('program_antrenamente')
-            .select('id, ora_start, ora_sfarsit, grupe(denumire, sportivi(id, nume, prenume, status)), prezenta:prezenta_antrenament(sportiv_id, status:statuse_prezenta(este_prezent))')
-            .eq('data', today)
-            .order('ora_start');
+        const [trainingRes, statusRes] = await Promise.all([
+            supabase
+                .from('program_antrenamente')
+                .select('id, ora_start, ora_sfarsit, grupe(denumire, sportivi(id, nume, prenume, status)), prezenta:prezenta_antrenament(sportiv_id, status_id)')
+                .eq('data', today)
+                .order('ora_start'),
+            supabase.from('statuse_prezenta').select('id, este_prezent, denumire'),
+        ]);
+        const { data, error } = trainingRes;
+        const statusById: Record<string, { este_prezent: boolean }> = Object.fromEntries(
+            (statusRes.data || []).map(s => [s.id, { este_prezent: s.este_prezent }])
+        );
 
         if (error) { showError("Eroare", error.message); setLoading(false); return; }
 
@@ -50,7 +57,7 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
                 .filter((s: any) => s.status === 'Activ')
                 .sort((a: any, b: any) => a.nume.localeCompare(b.nume));
             const initialPresent = new Set<string>(
-                (t.prezenta || []).filter((p: any) => p.status?.este_prezent === true).map((p: any) => p.sportiv_id)
+                (t.prezenta || []).filter((p: any) => p.status_id && statusById[p.status_id]?.este_prezent === true).map((p: any) => p.sportiv_id)
             );
             return {
                 id: t.id,

@@ -23,7 +23,7 @@ export const useCalendarView = (grupaId: string, initialDate?: string) => {
         const endOfMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0).toLocaleDateString('sv-SE');
 
         const { data, error } = await supabase.from('program_antrenamente')
-            .select('*, grupe(*), prezenta:prezenta_antrenament(sportiv_id, status_id, status:statuse_prezenta(este_prezent, denumire))')
+            .select('*, grupe(*), prezenta:prezenta_antrenament(sportiv_id, status_id)')
             .eq('grupa_id', grupaId)
             .gte('data', startOfMonth)
             .lte('data', endOfMonth)
@@ -80,7 +80,7 @@ export const useCalendarView = (grupaId: string, initialDate?: string) => {
         } else {
             const { data: newAntrenament, error } = await supabase.from('program_antrenamente')
                 .insert(data)
-                .select('*, grupe(*), prezenta:prezenta_antrenament(sportiv_id, status_id, status:statuse_prezenta(este_prezent, denumire))')
+                .select('*, grupe(*), prezenta:prezenta_antrenament(sportiv_id, status_id)')
                 .single();
 
             if (error) {

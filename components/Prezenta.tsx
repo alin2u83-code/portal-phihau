@@ -6,6 +6,7 @@ import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { ListaPrezentaAntrenament, FormularPrezenta } from './ListaPrezentaAntrenament';
 import { useAttendance } from '../hooks/useAttendance';
+import { useStatusePrezenta } from '../hooks/useStatusePrezenta';
 import { GeneratorProgramMasiv } from './GeneratorProgramMasiv';
 import { useData } from '../contexts/DataContext';
 
@@ -30,6 +31,7 @@ const TAB_ROOTS: Record<Tab, View> = {
 // --- Componenta Principală de Navigare ---
 export const Prezenta: React.FC<{ onBack: () => void; onViewSportiv?: (s: Sportiv) => void }> = ({ onBack, onViewSportiv }) => {
     const { currentUser } = useData();
+    const { byId: statusById } = useStatusePrezenta();
     const [activeTab, setActiveTab] = useState<Tab>('azi');
     const [viewStack, setViewStack] = useState<ViewState[]>([{ view: 'azi', id: null }]);
     const [grupe, setGrupe] = useState<(Grupa & { program: ProgramItem[], sportivi_count: {count: number}[] })[]>([]);
@@ -67,13 +69,19 @@ export const Prezenta: React.FC<{ onBack: () => void; onViewSportiv?: (s: Sporti
     const handleSelectAntrenament = async (id: string) => {
         setLoading(true);
         const { data, error } = await supabase.from('program_antrenamente')
-            .select('*, grupe(*, sportivi(id, nume, prenume, status, grad_actual_id)), prezenta:prezenta_antrenament(sportiv_id, status_id, status:statuse_prezenta(este_prezent, denumire))')
+            .select('*, grupe(*, sportivi(id, nume, prenume, status, grad_actual_id)), prezenta:prezenta_antrenament(sportiv_id, status_id)')
             .eq('id', id).single();
         if (error) { showError("Eroare", error.message); }
         else if (data) {
-            setAntrenamentDetaliu(data as any);
+            const enriched = {
+                ...data,
+                prezenta: (data.prezenta || []).map((p: any) => ({
+                    ...p,
+                    status: p.status_id ? (statusById[p.status_id] ?? null) : null,
+                })),
+            };
+            setAntrenamentDetaliu(enriched as any);
             navigateTo('prezenta', id);
-            // Switch to azi tab if coming from rapid so back button works
             if (activeTab === 'rapid') setActiveTab('azi');
         }
         setLoading(false);

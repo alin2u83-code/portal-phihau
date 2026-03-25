@@ -68,10 +68,56 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export const Card: React.FC<CardProps> = ({ children, className, ...props }) => (
-  <div className={`bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-sm ${className}`} {...props}>
+  <div className={`bg-slate-800/80 border border-slate-700/80 rounded-xl p-4 shadow-lg backdrop-blur-sm ${className}`} {...props}>
     {children}
   </div>
 );
+
+interface StatCardProps {
+  label: string;
+  value: React.ReactNode;
+  icon?: React.ElementType;
+  accentColor?: string;
+  trend?: { value: number; label: string };
+  className?: string;
+  onClick?: () => void;
+}
+
+export const StatCard: React.FC<StatCardProps> = ({ label, value, icon: Icon, accentColor = 'amber', trend, className = '', onClick }) => {
+  const colorMap: Record<string, { bg: string; text: string; border: string; iconBg: string }> = {
+    amber: { bg: 'from-amber-500/5', text: 'text-amber-400', border: 'border-amber-500/20', iconBg: 'bg-amber-500/10' },
+    emerald: { bg: 'from-emerald-500/5', text: 'text-emerald-400', border: 'border-emerald-500/20', iconBg: 'bg-emerald-500/10' },
+    sky: { bg: 'from-sky-500/5', text: 'text-sky-400', border: 'border-sky-500/20', iconBg: 'bg-sky-500/10' },
+    indigo: { bg: 'from-indigo-500/5', text: 'text-indigo-400', border: 'border-indigo-500/20', iconBg: 'bg-indigo-500/10' },
+    rose: { bg: 'from-rose-500/5', text: 'text-rose-400', border: 'border-rose-500/20', iconBg: 'bg-rose-500/10' },
+    slate: { bg: 'from-slate-700/20', text: 'text-slate-400', border: 'border-slate-700/50', iconBg: 'bg-slate-700/50' },
+  };
+  const c = colorMap[accentColor] || colorMap.amber;
+
+  return (
+    <div
+      onClick={onClick}
+      className={`relative overflow-hidden rounded-xl border ${c.border} bg-gradient-to-br ${c.bg} to-slate-800/80 p-4 shadow-lg backdrop-blur-sm transition-all duration-200 ${onClick ? 'cursor-pointer hover:scale-[1.02] hover:shadow-xl' : ''} ${className}`}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">{label}</p>
+          <p className={`text-2xl font-black ${c.text} leading-none`}>{value}</p>
+          {trend && (
+            <p className={`text-xs mt-1.5 ${trend.value >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+              {trend.value >= 0 ? '▲' : '▼'} {Math.abs(trend.value)}% {trend.label}
+            </p>
+          )}
+        </div>
+        {Icon && (
+          <div className={`p-2.5 rounded-lg ${c.iconBg} shrink-0`}>
+            <Icon className={`w-5 h-5 ${c.text}`} />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 interface ModalProps {
   isOpen: boolean;
@@ -86,12 +132,12 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
   const titleId = React.useId();
 
   return (
-    <div className="fixed inset-0 bg-black/80 z-50 flex items-end sm:items-center sm:justify-center sm:p-4 backdrop-blur-sm" onClick={() => !persistent && onClose()} role="dialog" aria-modal="true" aria-labelledby={titleId}>
-      <div className="bg-slate-900 border-t sm:border border-slate-700 w-full h-[90vh] sm:h-auto sm:max-h-[90vh] sm:max-w-2xl rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col transition-transform transform translate-y-0" onClick={(e) => e.stopPropagation()}>
-        <div className="flex justify-between items-center p-4 sm:p-6 border-b border-slate-700 bg-slate-800/50 rounded-t-2xl sticky top-0 z-10 backdrop-blur-md">
-          <h2 id={titleId} className="text-lg sm:text-xl font-bold text-white uppercase tracking-tight truncate pr-4">{title}</h2>
-          <button onClick={onClose} className="p-2 -mr-2 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-full transition-colors active:scale-95 touch-manipulation">
-            <XIcon className="w-6 h-6" />
+    <div className="fixed inset-0 bg-black/80 z-50 flex items-end sm:items-center sm:justify-center sm:p-4 backdrop-blur-sm animate-fade-in" onClick={() => !persistent && onClose()} role="dialog" aria-modal="true" aria-labelledby={titleId}>
+      <div className="bg-slate-900 border-t sm:border border-slate-700/80 w-full h-[90vh] sm:h-auto sm:max-h-[90vh] sm:max-w-2xl rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col" onClick={(e) => e.stopPropagation()} style={{ boxShadow: '0 25px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04)' }}>
+        <div className="flex justify-between items-center p-4 sm:p-5 border-b border-slate-700/80 bg-slate-800/60 rounded-t-2xl sticky top-0 z-10 backdrop-blur-md">
+          <h2 id={titleId} className="text-base sm:text-lg font-bold text-white tracking-tight truncate pr-4">{title}</h2>
+          <button onClick={onClose} className="p-2 -mr-1 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-xl transition-colors active:scale-95 touch-manipulation">
+            <XIcon className="w-5 h-5" />
           </button>
         </div>
         <div className="p-4 sm:p-6 overflow-y-auto custom-scrollbar flex-1 overscroll-contain">

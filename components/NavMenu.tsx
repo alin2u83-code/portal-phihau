@@ -28,10 +28,10 @@ const NavItem: React.FC<{
     onNavigate: (view: View) => void;
     badgeCount?: number;
     activeView: View | string;
-}> = ({ item, isExpanded, isActive, onNavigate, badgeCount, activeView }) => {
-    const [isSubmenuOpen, setIsSubmenuOpen] = useState(() =>
-        !!item.submenu?.some(s => s.view === activeView)
-    );
+    openSubmenu: string | null;
+    setOpenSubmenu: (label: string | null) => void;
+}> = ({ item, isExpanded, isActive, onNavigate, badgeCount, activeView, openSubmenu, setOpenSubmenu }) => {
+    const isSubmenuOpen = openSubmenu === item.label;
 
     // Item cu submeniu
     if (item.submenu && item.submenu.length > 0) {
@@ -40,7 +40,7 @@ const NavItem: React.FC<{
             <div>
                 {/* Group header — același stil ca în AdminMasterMap */}
                 <div
-                    onClick={() => isExpanded && setIsSubmenuOpen(o => !o)}
+                    onClick={() => isExpanded && setOpenSubmenu(isSubmenuOpen ? null : item.label)}
                     className={`flex items-center p-2.5 rounded-lg cursor-pointer transition-all duration-200 w-full relative group border ${
                         hasActiveChild
                         ? "bg-amber-500/10 text-amber-400 border-amber-500/30"
@@ -127,6 +127,9 @@ export const NavMenu: React.FC<NavMenuProps> = (props) => {
   const { activeView } = useNavigation();
   const { unreadCount } = useNotifications();
 
+  const initialOpen = menuToDisplay.find(item => item.submenu?.some(s => s.view === activeView))?.label ?? null;
+  const [openSubmenu, setOpenSubmenu] = useState<string | null>(initialOpen);
+
   return (
     <nav className="flex-1 px-2 py-4 space-y-1.5 overflow-y-auto">
       {menuToDisplay.map(item => {
@@ -142,6 +145,8 @@ export const NavMenu: React.FC<NavMenuProps> = (props) => {
                 onNavigate={onNavigate}
                 badgeCount={badgeCount}
                 activeView={activeView}
+                openSubmenu={openSubmenu}
+                setOpenSubmenu={setOpenSubmenu}
             />
         );
       })}
@@ -152,6 +157,8 @@ export const NavMenu: React.FC<NavMenuProps> = (props) => {
             isActive={'admin-dashboard' === activeView}
             onNavigate={onNavigate}
             activeView={activeView}
+            openSubmenu={openSubmenu}
+            setOpenSubmenu={setOpenSubmenu}
         />
       )}
       {permissions?.isSuperAdmin && (

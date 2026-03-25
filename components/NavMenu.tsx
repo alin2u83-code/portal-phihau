@@ -38,36 +38,47 @@ const NavItem: React.FC<{
         const hasActiveChild = item.submenu.some(s => s.view === activeView);
         return (
             <div>
+                {/* Group header — același stil ca în AdminMasterMap */}
                 <div
                     onClick={() => isExpanded && setIsSubmenuOpen(o => !o)}
-                    className={`flex items-center p-2.5 rounded-md cursor-pointer transition-all duration-200 w-full relative group ${
+                    className={`flex items-center p-2.5 rounded-lg cursor-pointer transition-all duration-200 w-full relative group border ${
                         hasActiveChild
-                        ? "bg-sky-500/10 text-sky-400"
-                        : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
+                        ? "bg-amber-500/10 text-amber-400 border-amber-500/30"
+                        : "bg-slate-800/40 text-slate-400 border-slate-700/50 hover:bg-slate-800/70 hover:text-slate-200 hover:border-amber-400/20"
                     }`}
                     title={!isExpanded ? item.label : ''}
                 >
-                    <item.icon className={`h-5 w-5 shrink-0 ${isExpanded ? 'mr-3' : 'mx-auto'}`} />
+                    <item.icon className={`h-5 w-5 shrink-0 text-amber-400 ${isExpanded ? 'mr-3' : 'mx-auto'}`} />
                     {isExpanded && <>
                         <span className="flex-1 font-semibold text-sm">{item.label}</span>
                         <ChevronDownIcon className={`w-4 h-4 transition-transform duration-200 ${isSubmenuOpen ? 'rotate-180' : ''}`} />
                     </>}
                 </div>
+
+                {/* Submeniu — card-uri compacte identice cu dashboard */}
                 {isExpanded && isSubmenuOpen && (
-                    <div className="ml-4 mt-0.5 space-y-0.5 border-l border-slate-700 pl-3">
-                        {item.submenu.map(sub => (
-                            <div
-                                key={sub.view}
-                                onClick={() => onNavigate(sub.view)}
-                                className={`flex items-center p-2 rounded-md cursor-pointer text-sm transition-all duration-150 ${
-                                    activeView === sub.view
-                                    ? "text-sky-400 bg-sky-500/10"
-                                    : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
-                                }`}
-                            >
-                                {sub.label}
-                            </div>
-                        ))}
+                    <div className="mt-1 space-y-1 pl-1">
+                        {item.submenu.map(sub => {
+                            const isSubActive = activeView === sub.view;
+                            return (
+                                <div
+                                    key={sub.view}
+                                    onClick={() => onNavigate(sub.view)}
+                                    className={`relative flex items-center gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-150 border text-sm ${
+                                        isSubActive
+                                        ? "bg-amber-500/15 border-amber-500/40 text-amber-300 font-semibold"
+                                        : "bg-slate-800/50 border-slate-700/40 text-slate-300 hover:bg-slate-700/60 hover:border-amber-400/30 hover:text-slate-100"
+                                    }`}
+                                >
+                                    {/* Indicator activ */}
+                                    {isSubActive && (
+                                        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4/5 bg-amber-400 rounded-r-full" />
+                                    )}
+                                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isSubActive ? 'bg-amber-400' : 'bg-slate-600'}`} />
+                                    {sub.label}
+                                </div>
+                            );
+                        })}
                     </div>
                 )}
             </div>
@@ -85,15 +96,15 @@ const NavItem: React.FC<{
         <div
             data-tutorial={tutorialAttr}
             onClick={() => onNavigate(item.view!)}
-            className={`flex items-center p-2.5 rounded-md cursor-pointer transition-all duration-200 w-full relative group ${
+            className={`flex items-center p-2.5 rounded-lg cursor-pointer transition-all duration-200 w-full relative group border ${
                 isActive
-                ? "bg-sky-500/10 text-sky-400 border-l-2 border-sky-500 shadow-[0_0_15px_-5px_rgba(14,165,233,0.3)]"
-                : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
+                ? "bg-amber-500/15 text-amber-300 border-amber-500/40"
+                : "bg-slate-800/40 text-slate-400 border-slate-700/50 hover:bg-slate-800/70 hover:text-slate-200 hover:border-amber-400/20"
             }`}
             title={!isExpanded ? item.label : ''}
         >
             <div className="relative">
-                <item.icon className={`h-5 w-5 shrink-0 transition-transform duration-200 ${isExpanded ? 'mr-3' : 'mx-auto'} ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} />
+                <item.icon className={`h-5 w-5 shrink-0 text-amber-400 transition-transform duration-200 ${isExpanded ? 'mr-3' : 'mx-auto'} ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} />
                 {badgeCount !== undefined && badgeCount > 0 && !isExpanded && (
                     <span className="absolute -top-1 -right-1 flex h-3 w-3">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
@@ -146,14 +157,14 @@ export const NavMenu: React.FC<NavMenuProps> = (props) => {
       {permissions?.isSuperAdmin && (
         <div
           onClick={() => onNavigate('debug')}
-          className={`flex items-center p-2.5 rounded-md cursor-pointer transition-all duration-200 w-full group ${
+          className={`flex items-center p-2.5 rounded-lg cursor-pointer transition-all duration-200 w-full group border ${
               'debug' === activeView
-              ? "bg-sky-500/10 text-sky-400 border-l-2 border-sky-500 shadow-[0_0_15px_-5px_rgba(14,165,233,0.3)]"
-              : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
+              ? "bg-amber-500/15 text-amber-300 border-amber-500/40"
+              : "bg-slate-800/40 text-slate-400 border-slate-700/50 hover:bg-slate-800/70 hover:text-slate-200 hover:border-amber-400/20"
           }`}
           title={!isExpanded ? 'Debug' : ''}
         >
-            <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 shrink-0 transition-transform duration-200 ${isExpanded ? 'mr-3' : 'mx-auto'} ${'debug' === activeView ? 'scale-110' : 'group-hover:scale-110'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 shrink-0 text-amber-400 transition-transform duration-200 ${isExpanded ? 'mr-3' : 'mx-auto'} ${'debug' === activeView ? 'scale-110' : 'group-hover:scale-110'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             {isExpanded && <span className="flex-1 font-semibold text-sm">Debug</span>}
         </div>
       )}

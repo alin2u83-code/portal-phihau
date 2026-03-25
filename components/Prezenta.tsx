@@ -32,7 +32,7 @@ const TAB_ROOTS: Record<Tab, View> = {
 export const Prezenta: React.FC<{ onBack: () => void; onViewSportiv?: (s: Sportiv) => void }> = ({ onBack, onViewSportiv }) => {
     const { currentUser } = useData();
     const { byId: statusById } = useStatusePrezenta();
-    const [activeTab, setActiveTab] = useState<Tab>('azi');
+    const [activeTab, setActiveTab] = useState<Tab>('rapid');
     const [viewStack, setViewStack] = useState<ViewState[]>([{ view: 'azi', id: null }]);
     const [grupe, setGrupe] = useState<(Grupa & { program: ProgramItem[], sportivi_count: {count: number}[] })[]>([]);
     const [antrenamentDetaliu, setAntrenamentDetaliu] = useState<(Antrenament & { grupe: Grupa & { sportivi: Sportiv[] }}) | null>(null);

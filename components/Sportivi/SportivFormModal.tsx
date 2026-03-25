@@ -106,7 +106,9 @@ export const SportivFormModal: React.FC<{
             if (result.success) {
                 setIsDirty(false);
                 onClose(result.data);
-            } 
+            } else {
+                showError("Eroare la salvare", result.error?.message || "Nu s-au putut salva modificările. Verificați câmpurile și încercați din nou.");
+            }
         } catch (err: any) {
             showError("Eroare", err.message || "A apărut o eroare neașteptată.");
         } finally {

@@ -60,10 +60,15 @@ export const actualizeazaSportiv = async (id: string, formData: Partial<Sportiv>
 
         // Update other fields if any
         if (Object.keys(otherData).length > 0) {
-            const { grad_actual_id, ...restData } = otherData as any;
-            
-            if (Object.keys(restData).length > 0) {
-                const { error: updateError } = await supabase.from('sportivi').update(restData).eq('id', id);
+            const { grad_actual_id, grupe, familie, sportivi_count, username, parola, ...restData } = otherData as any;
+
+            // Strip any remaining object/array values (join fields) that can't be written to DB
+            const safeData = Object.fromEntries(
+                Object.entries(restData).filter(([, v]) => v === null || typeof v !== 'object')
+            );
+
+            if (Object.keys(safeData).length > 0) {
+                const { error: updateError } = await supabase.from('sportivi').update(safeData).eq('id', id);
                 if (updateError) throw updateError;
             }
 

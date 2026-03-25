@@ -1,17 +1,19 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../../supabaseClient';
 import { Sportiv } from '../../types';
 import { Card, Button } from '../ui';
-import { CheckCircleIcon, CalendarDaysIcon, SparklesIcon } from '../icons';
+import { CheckCircleIcon, CalendarDaysIcon, SparklesIcon, PlusIcon, SearchIcon, XIcon } from '../icons';
 import { useStatusePrezenta } from '../../hooks/useStatusePrezenta';
 import { useAttendance } from '../../hooks/useAttendance';
 import { useError } from '../ErrorProvider';
+import { useData } from '../../contexts/DataContext';
 
 interface AthletePill {
     id: string;
     nume: string;
     prenume: string;
     isPresent: boolean;
+    isExtra?: boolean; // sportiv adăugat manual (nu din grupă)
 }
 
 interface TrainingSection {
@@ -24,6 +26,62 @@ interface TrainingSection {
     hasSavedData: boolean;
 }
 
+// Modal pentru adăugat sportiv din altă grupă
+const AddExternalAthleteModal: React.FC<{
+    trainingId: string;
+    existingIds: Set<string>;
+    onAdd: (athlete: AthletePill) => void;
+    onClose: () => void;
+}> = ({ trainingId, existingIds, onAdd, onClose }) => {
+    const { filteredData } = useData();
+    const [search, setSearch] = useState('');
+
+    const candidates = useMemo(() => {
+        const q = search.toLowerCase().trim();
+        return (filteredData.sportivi || [])
+            .filter(s => s.status === 'Activ' && !existingIds.has(s.id))
+            .filter(s => !q || `${s.nume} ${s.prenume}`.toLowerCase().includes(q))
+            .slice(0, 20);
+    }, [filteredData.sportivi, existingIds, search]);
+
+    return (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
+            <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-sm shadow-2xl" onClick={e => e.stopPropagation()}>
+                <div className="flex items-center justify-between p-4 border-b border-slate-800">
+                    <h3 className="font-bold text-white text-sm">Adaugă sportiv din altă grupă</h3>
+                    <button onClick={onClose} className="text-slate-400 hover:text-white"><XIcon className="w-4 h-4" /></button>
+                </div>
+                <div className="p-4">
+                    <div className="relative mb-3">
+                        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                        <input
+                            autoFocus
+                            type="text"
+                            placeholder="Caută sportiv..."
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
+                            className="w-full pl-9 pr-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+                        />
+                    </div>
+                    <div className="max-h-64 overflow-y-auto space-y-1">
+                        {candidates.length === 0 ? (
+                            <p className="text-slate-500 text-sm text-center py-4 italic">Niciun sportiv găsit.</p>
+                        ) : candidates.map(s => (
+                            <button
+                                key={s.id}
+                                onClick={() => { onAdd({ id: s.id, nume: s.nume, prenume: s.prenume, isPresent: true, isExtra: true }); onClose(); }}
+                                className="w-full text-left px-3 py-2.5 rounded-lg bg-slate-800/50 hover:bg-amber-500/10 border border-transparent hover:border-amber-500/30 text-sm text-slate-200 transition-colors"
+                            >
+                                <span className="font-medium">{s.nume} {s.prenume}</span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> = ({ onSelectFull }) => {
     const { prezentId } = useStatusePrezenta();
     const { saveAttendance } = useAttendance();
@@ -32,6 +90,7 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
     const [loading, setLoading] = useState(true);
     const [savingId, setSavingId] = useState<string | null>(null);
     const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+    const [addingToTrainingId, setAddingToTrainingId] = useState<string | null>(null);
 
     const today = new Date().toLocaleDateString('sv-SE');
 
@@ -59,19 +118,28 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
             const initialPresent = new Set<string>(
                 (t.prezenta || []).filter((p: any) => p.status_id && statusById[p.status_id]?.este_prezent === true).map((p: any) => p.sportiv_id)
             );
+            // Include athletes already in prezenta but NOT in group (were added manually before)
+            const extraIds = [...initialPresent].filter(id => !sportivi.some((s: any) => s.id === id));
+            const extraAthletes: AthletePill[] = extraIds.map(id => {
+                const rec = (t.prezenta || []).find((p: any) => p.sportiv_id === id);
+                return { id, nume: '...', prenume: '(extra)', isPresent: true, isExtra: true };
+            });
+
             return {
                 id: t.id,
                 ora_start: t.ora_start,
                 ora_sfarsit: t.ora_sfarsit,
                 grup: (t.grupe as any)?.denumire || 'Antrenament',
-                athletes: sportivi.map((s: any) => ({ id: s.id, nume: s.nume, prenume: s.prenume, isPresent: initialPresent.has(s.id) })),
+                athletes: [
+                    ...sportivi.map((s: any) => ({ id: s.id, nume: s.nume, prenume: s.prenume, isPresent: initialPresent.has(s.id) })),
+                    ...extraAthletes,
+                ],
                 initialPresent,
                 hasSavedData: (t.prezenta || []).length > 0,
             };
         });
 
         setSections(built);
-        // Mark already-saved trainings
         setSavedIds(new Set(built.filter(s => s.hasSavedData).map(s => s.id)));
         setLoading(false);
     }, [today, showError]);
@@ -90,6 +158,15 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
         setSections(prev => prev.map(s => {
             if (s.id !== trainingId) return s;
             return { ...s, athletes: s.athletes.map(a => ({ ...a, isPresent: present })) };
+        }));
+        setSavedIds(prev => { const n = new Set(prev); n.delete(trainingId); return n; });
+    };
+
+    const addExternalAthlete = (trainingId: string, athlete: AthletePill) => {
+        setSections(prev => prev.map(s => {
+            if (s.id !== trainingId) return s;
+            if (s.athletes.some(a => a.id === athlete.id)) return s; // deja există
+            return { ...s, athletes: [...s.athletes, athlete] };
         }));
         setSavedIds(prev => { const n = new Set(prev); n.delete(trainingId); return n; });
     };
@@ -134,6 +211,7 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
                 const isSaved = savedIds.has(section.id);
                 const isSaving = savingId === section.id;
                 const pct = section.athletes.length > 0 ? Math.round((presentCount / section.athletes.length) * 100) : 0;
+                const existingIds = new Set(section.athletes.map(a => a.id));
 
                 return (
                     <Card key={section.id} className={`transition-all duration-300 ${isSaved ? 'ring-1 ring-emerald-500/40' : ''}`}>
@@ -155,22 +233,26 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
                         </div>
 
                         {/* Quick mark all */}
-                        {section.athletes.length > 0 && (
-                            <div className="flex gap-2 mb-3">
-                                <button
-                                    onClick={() => markAll(section.id, true)}
-                                    className="text-xs px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-colors font-medium"
-                                >
-                                    Toți prezenți
-                                </button>
-                                <button
-                                    onClick={() => markAll(section.id, false)}
-                                    className="text-xs px-2.5 py-1 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition-colors font-medium"
-                                >
-                                    Toți absenți
-                                </button>
-                            </div>
-                        )}
+                        <div className="flex gap-2 mb-3">
+                            <button
+                                onClick={() => markAll(section.id, true)}
+                                className="text-xs px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-colors font-medium"
+                            >
+                                Toți prezenți
+                            </button>
+                            <button
+                                onClick={() => markAll(section.id, false)}
+                                className="text-xs px-2.5 py-1 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition-colors font-medium"
+                            >
+                                Toți absenți
+                            </button>
+                            <button
+                                onClick={() => setAddingToTrainingId(section.id)}
+                                className="ml-auto text-xs px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-colors font-medium flex items-center gap-1"
+                            >
+                                <PlusIcon className="w-3 h-3" /> Alt sportiv
+                            </button>
+                        </div>
 
                         {/* Athlete pills */}
                         {section.athletes.length === 0 ? (
@@ -185,10 +267,11 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
                                             a.isPresent
                                                 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 shadow-sm'
                                                 : 'bg-slate-800 text-slate-400 border border-slate-700 hover:border-slate-500'
-                                        }`}
+                                        } ${a.isExtra ? 'border-dashed' : ''}`}
                                     >
                                         <span className="mr-1 text-xs">{a.isPresent ? '✓' : '–'}</span>
                                         {a.nume} {a.prenume}
+                                        {a.isExtra && <span className="ml-1 text-[10px] opacity-60">↗</span>}
                                     </button>
                                 ))}
                             </div>
@@ -219,6 +302,16 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
                     </Card>
                 );
             })}
+
+            {/* Modal adăugare sportiv extern */}
+            {addingToTrainingId && (
+                <AddExternalAthleteModal
+                    trainingId={addingToTrainingId}
+                    existingIds={new Set(sections.find(s => s.id === addingToTrainingId)?.athletes.map(a => a.id) || [])}
+                    onAdd={(athlete) => addExternalAthlete(addingToTrainingId, athlete)}
+                    onClose={() => setAddingToTrainingId(null)}
+                />
+            )}
         </div>
     );
 };

@@ -509,7 +509,7 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ onBa
                                         <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${a.is_recurent ? 'bg-indigo-500/10 text-indigo-400' : 'bg-amber-500/10 text-amber-400'}`}>
                                             {a.is_recurent ? 'Recurent' : 'Personalizat'}
                                         </span>
-                                        <h4 className="text-lg font-bold text-white mt-1">{(a as any).grupe?.denumire || 'Grupă'}</h4>
+                                        <h4 className="text-lg font-bold text-white mt-1">{a.nume_grupa || (a as any).grupe?.denumire || 'Grupă nespecificată'}</h4>
                                     </div>
                                     <div className="flex gap-1">
                                         {editingId === a.id ? (

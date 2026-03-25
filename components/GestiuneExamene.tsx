@@ -237,7 +237,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
                         </div>
                         <div className="mt-4 pt-4 border-t border-[var(--border-color)] flex justify-between items-center">
                             <div className="text-sm">
-                                <span className="font-bold text-white">{s.nr_inscrisi || 0}</span>
+                                <span className="font-bold text-white">{(inscrieri || []).filter(i => i.sesiune_id === s.id).length || s.nr_inscrisi || 0}</span>
                                 <span className="text-slate-400"> participanți</span>
                             </div>
                             <div className="flex items-center gap-2">

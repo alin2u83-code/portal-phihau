@@ -1040,9 +1040,8 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             key: 'grad_actual',
             label: 'Grad Actual',
             render: (inscriere) => {
-                const sportiv = sportivi.find(s => s.id === inscriere.sportiv_id);
-                const gradActual = grade.find(g => g.id === sportiv?.grad_actual_id);
-                return <span className="text-slate-400 text-sm">{inscriere.nume_grad_actual || gradActual?.nume || 'N/A'}</span>;
+                const gradAnterior = grade.find(g => g.id === inscriere.grad_actual_id);
+                return <span className="text-slate-400 text-sm">{inscriere.nume_grad_actual || gradAnterior?.nume || 'Fără grad'}</span>;
             }
         },
         {

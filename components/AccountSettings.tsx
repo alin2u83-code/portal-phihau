@@ -6,6 +6,7 @@ import { Button, Card, Input } from './ui';
 import { ArrowLeftIcon, MailIcon, LockIcon, CheckCircleIcon } from './icons';
 import { getRoleDisplayName, getRoleDescription, getRoleIcon } from '../hooks/useUserRoles';
 import { getAuthErrorMessage } from '../utils/error';
+import { checkLeakedPassword } from '../utils/checkLeakedPassword';
 
 interface AccountSettingsProps {
     currentUser: User;
@@ -38,11 +39,20 @@ export const AccountSettings: React.FC<AccountSettingsProps> = ({ currentUser, o
         e.preventDefault();
         if (!supabase) { showError("Eroare", "Client Supabase neinițializat."); return; }
         if (formData.parola && formData.parola !== formData.confirmParola) { showError("Eroare", "Parolele nu se potrivesc."); return; }
-        if (formData.parola && formData.parola.length < 6) { showError("Eroare", "Parola trebuie să aibă cel puțin 6 caractere."); return; }
-        
+        if (formData.parola && formData.parola.length < 8) { showError("Eroare", "Parola trebuie să aibă cel puțin 8 caractere."); return; }
+
         setLoading(true);
 
         try {
+            if (formData.parola) {
+                const { leaked, count } = await checkLeakedPassword(formData.parola);
+                if (leaked) {
+                    showError("Parolă Compromisă", `Această parolă a apărut în ${count.toLocaleString()} breșe de securitate cunoscute. Te rugăm să alegi o altă parolă.`);
+                    setLoading(false);
+                    return;
+                }
+            }
+
             // Pas 1: Actualizează datele de autentificare dacă este necesar
             const authUpdates: any = {};
             if (formData.email !== currentUser.email) authUpdates.email = formData.email;

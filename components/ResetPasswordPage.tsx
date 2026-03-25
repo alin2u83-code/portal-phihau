@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import { Button, Card, Input } from './ui';
 import { useError } from './ErrorProvider';
+import { checkLeakedPassword } from '../utils/checkLeakedPassword';
 
 export const ResetPasswordPage: React.FC = () => {
     const [password, setPassword] = useState('');
@@ -12,7 +13,18 @@ export const ResetPasswordPage: React.FC = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (password.length < 8) {
+            showError("Parolă Invalidă", "Parola trebuie să conțină cel puțin 8 caractere.");
+            return;
+        }
         setLoading(true);
+
+        const { leaked, count } = await checkLeakedPassword(password);
+        if (leaked) {
+            showError("Parolă Compromisă", `Această parolă a apărut în ${count.toLocaleString()} breșe de securitate cunoscute. Te rugăm să alegi o altă parolă.`);
+            setLoading(false);
+            return;
+        }
 
         const { error } = await supabase.auth.updateUser({
             password: password

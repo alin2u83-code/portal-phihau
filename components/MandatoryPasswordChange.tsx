@@ -5,6 +5,7 @@ import { User } from '../types';
 import { useError } from './ErrorProvider';
 import { ShieldCheckIcon } from './icons';
 import { getAuthErrorMessage } from '../utils/error';
+import { checkLeakedPassword } from '../utils/checkLeakedPassword';
 
 interface MandatoryPasswordChangeProps {
     currentUser: User;
@@ -46,6 +47,13 @@ export const MandatoryPasswordChange: React.FC<MandatoryPasswordChangeProps> = (
         setLoading(true);
 
         try {
+            const { leaked, count } = await checkLeakedPassword(newPassword);
+            if (leaked) {
+                showError("Parolă Compromisă", `Această parolă a apărut în ${count.toLocaleString()} breșe de securitate cunoscute. Te rugăm să alegi o altă parolă.`);
+                setLoading(false);
+                return;
+            }
+
             // 1. Update authentication user's password
             const { error: authError } = await supabase.auth.updateUser({ password: newPassword });
             if (authError) {

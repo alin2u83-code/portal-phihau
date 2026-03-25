@@ -85,6 +85,25 @@ export const AdminMasterMap: React.FC<AdminMasterMapProps> = ({ onNavigate, deco
 
     return (
         <div className="space-y-6">
+            {/* Hero: Analiză Agenți AI */}
+            <div
+                onClick={() => onNavigate('agenti-workflow')}
+                className="group relative overflow-hidden rounded-xl border border-indigo-500/30 bg-gradient-to-r from-indigo-950/60 via-slate-800/60 to-slate-900 p-4 cursor-pointer hover:border-indigo-400/60 transition-all duration-200"
+            >
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2.5 bg-indigo-500/20 rounded-xl border border-indigo-500/30 group-hover:bg-indigo-500/30 transition-colors">
+                            <SparklesIcon className="w-5 h-5 text-indigo-400" />
+                        </div>
+                        <div>
+                            <p className="font-bold text-white text-sm">Analiză Orchestrată Multi-Agent</p>
+                            <p className="text-xs text-indigo-300/70">5 agenți · prezență, examene, financiar, sportivi, risc</p>
+                        </div>
+                    </div>
+                    <ChevronRightIcon className="w-4 h-4 text-indigo-400 group-hover:translate-x-1 transition-transform" />
+                </div>
+            </div>
+
             {/* Hero: Prezență Rapidă */}
             <div
                 onClick={() => onNavigate('prezenta')}

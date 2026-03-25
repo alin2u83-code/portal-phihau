@@ -53,3 +53,4 @@ export const AdminDashboard = lazy(() => import('./AdminDashboard').then(m => ({
 export const ReportsDashboard = lazy(() => import('./ReportsDashboard').then(m => ({ default: m.ReportsDashboard })));
 export const LegitimatiiPage = lazy(() => import('./LegitimatiiPage').then(m => ({ default: m.LegitimatiiPage })));
 export const ImportSportiviPage = lazy(() => import('./ImportSportiviPage').then(m => ({ default: m.ImportSportiviPage })));
+export const AgentiWorkflow = lazy(() => import('./AgentiWorkflow').then(m => ({ default: m.AgentiWorkflow })));

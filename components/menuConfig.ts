@@ -4,7 +4,6 @@ import {
     HomeIcon, UsersIcon, TrophyIcon, BanknotesIcon, CalendarDaysIcon,
     ClipboardCheckIcon, CogIcon, SitemapIcon, ArchiveBoxIcon, FileTextIcon,
     ChartBarIcon, UserPlusIcon, BookOpenIcon, BookMarkedIcon, WalletIcon,
-    SparklesIcon
 } from './icons';
 
 export interface MenuItem {
@@ -42,7 +41,6 @@ export const adminMenu: MenuItem[] = [
             { label: 'Înregistrare Prezențe', view: 'prezenta' },
             { label: 'Raport Prezențe', view: 'raport-prezenta' },
             { label: 'Raport Lunar Prezențe', view: 'raport-lunar-prezenta' },
-            { label: 'Analiză Agenți AI', view: 'agenti-workflow' },
         ]
     },
     {
@@ -101,7 +99,6 @@ export const adminClubMenu: MenuItem[] = [
             { label: 'Înregistrare Prezențe', view: 'prezenta' },
             { label: 'Raport Prezențe', view: 'raport-prezenta' },
             { label: 'Raport Lunar Prezențe', view: 'raport-lunar-prezenta' },
-            { label: 'Analiză Agenți AI', view: 'agenti-workflow' },
         ]
     },
     {

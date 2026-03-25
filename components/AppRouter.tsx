@@ -106,8 +106,11 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                                         return <Card className="text-center p-8"><p className="text-slate-400 italic">Așteptare autorizare date sau nu există date pentru contextul selectat...</p></Card>
                                     }
                                     return (
-                                        <div className="space-y-8 animate-fade-in-down">
-                                            <header><h1 className="text-3xl font-bold text-white">Panou de Control Principal</h1><p className="text-slate-400">Selectează un modul pentru a începe.</p></header>
+                                        <div className="space-y-6 animate-fade-in-down">
+                                            <header>
+                                                <h1 className="text-2xl font-bold text-white">Bună ziua{currentUser?.nume ? `, ${currentUser.nume}` : ''}!</h1>
+                                                <p className="text-slate-400 text-sm">Ce facem azi?</p>
+                                            </header>
                                             <Lazy.AdminMasterMap onNavigate={setActiveView} deconturiFederatie={filteredData.deconturiFederatie} inscrieriExamene={filteredData.inscrieriExamene} plati={filteredData.plati} />
                                         </div>
                                     );

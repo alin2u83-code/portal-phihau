@@ -508,7 +508,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
     const getGradOrdine = (i: InscriereExamen) => i.grades?.ordine ?? (i as any).grad_ordine ?? 0;
 
     const participantiInscrisi = useMemo(() => {
-        let data = (allInscrieri || []).filter(i => i.sesiune_id === sesiune.id && getGradOrdine(i) > 0);
+        let data = (allInscrieri || []).filter(i => i.sesiune_id === sesiune.id && i.grad_sustinut_id != null);
 
         if (sortConfigs.length > 0) {
             data.sort((a, b) => {

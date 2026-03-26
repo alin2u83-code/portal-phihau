@@ -119,6 +119,7 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
     const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
     const [addingToTrainingId, setAddingToTrainingId] = useState<string | null>(null);
     const [sortBy, setSortBy] = useState<SortBy>('nume');
+    const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 
     const gradeById = useMemo(() => Object.fromEntries((grade || []).map(g => [g.id, g])), [grade]);
 
@@ -229,24 +230,21 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
     };
 
     const sortAthletes = useCallback((athletes: AthletePill[]) => {
+        const dir = sortDir === 'asc' ? 1 : -1;
         return [...athletes].sort((a, b) => {
+            let cmp = 0;
             if (sortBy === 'grade') {
                 const oa = a.gradOrdine ?? 9999;
                 const ob = b.gradOrdine ?? 9999;
-                if (oa !== ob) return oa - ob;
-                return a.nume.localeCompare(b.nume);
+                cmp = oa !== ob ? oa - ob : a.nume.localeCompare(b.nume);
+            } else if (sortBy === 'prenume') {
+                cmp = a.prenume.localeCompare(b.prenume) || a.nume.localeCompare(b.nume);
+            } else {
+                cmp = a.nume.localeCompare(b.nume) || a.prenume.localeCompare(b.prenume);
             }
-            if (sortBy === 'prenume') {
-                const cp = a.prenume.localeCompare(b.prenume);
-                if (cp !== 0) return cp;
-                return a.nume.localeCompare(b.nume);
-            }
-            // sortBy === 'nume' (default)
-            const cn = a.nume.localeCompare(b.nume);
-            if (cn !== 0) return cn;
-            return a.prenume.localeCompare(b.prenume);
+            return cmp * dir;
         });
-    }, [sortBy]);
+    }, [sortBy, sortDir]);
 
     if (loading) return (
         <div className="flex justify-center py-16">
@@ -269,16 +267,28 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
                     <SparklesIcon className="w-4 h-4 text-amber-400 shrink-0" />
                     <p className="text-xs text-slate-400">Apasă pe un sportiv pentru a comuta prezența.</p>
                 </div>
-                <div className="flex items-center gap-1 bg-slate-800/60 rounded-lg p-0.5 border border-slate-700/50">
-                    {(['nume', 'prenume', 'grade'] as SortBy[]).map(opt => (
-                        <button
-                            key={opt}
-                            onClick={() => setSortBy(opt)}
-                            className={`text-xs px-2.5 py-1 rounded-md transition-colors font-medium ${sortBy === opt ? 'bg-amber-500/20 text-amber-300' : 'text-slate-400 hover:text-slate-200'}`}
-                        >
-                            {opt === 'nume' ? 'Nume' : opt === 'prenume' ? 'Prenume' : 'Grad'}
-                        </button>
-                    ))}
+                <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 bg-slate-800/60 rounded-lg p-0.5 border border-slate-700/50">
+                        {(['nume', 'prenume', 'grade'] as SortBy[]).map(opt => (
+                            <button
+                                key={opt}
+                                onClick={() => setSortBy(opt)}
+                                className={`text-xs px-2.5 py-1 rounded-md transition-colors font-medium ${sortBy === opt ? 'bg-amber-500/20 text-amber-300' : 'text-slate-400 hover:text-slate-200'}`}
+                            >
+                                {opt === 'nume' ? 'Nume' : opt === 'prenume' ? 'Prenume' : 'Grad'}
+                            </button>
+                        ))}
+                    </div>
+                    <button
+                        onClick={() => setSortDir(d => d === 'asc' ? 'desc' : 'asc')}
+                        className="p-1.5 rounded-lg bg-slate-800/60 border border-slate-700/50 text-slate-400 hover:text-amber-300 transition-colors"
+                        title={sortDir === 'asc' ? 'A → Z  (apasă pentru Z → A)' : 'Z → A  (apasă pentru A → Z)'}
+                    >
+                        {sortDir === 'asc'
+                            ? <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"/></svg>
+                            : <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clipRule="evenodd"/></svg>
+                        }
+                    </button>
                 </div>
             </div>
 

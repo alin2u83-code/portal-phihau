@@ -364,6 +364,11 @@ export const useDataProvider = () => {
         }
     }, [activeRoleContext, rolesLoading, needsRoleSelection, fetchAppData]);
 
+    // Ref stabil pentru refreshRoles — previne re-rularea efectului de auth
+    // când useUserRoles recreează funcția după ce rolurile sunt încărcate
+    const refreshRolesRef = React.useRef(refreshRoles);
+    useEffect(() => { refreshRolesRef.current = refreshRoles; }, [refreshRoles]);
+
     const initializeAndFetchData = useCallback(async () => {
         try {
             setLoadingData(true);
@@ -371,14 +376,14 @@ export const useDataProvider = () => {
             setSession(currentSession);
             if (currentSession) {
                 currentSessionUserIdRef.current = currentSession.user.id;
-                refreshRoles();
+                refreshRolesRef.current();
             }
-            else setLoadingData(false);
+            setLoadingData(false);
         } catch (err: any) {
             setError(err.message);
             setLoadingData(false);
         }
-    }, [refreshRoles]);
+    }, []); // stabil — nu depinde de refreshRoles direct
 
     useEffect(() => {
         initializeAndFetchData();
@@ -392,16 +397,15 @@ export const useDataProvider = () => {
                 // prevent unwanted page reloads when returning to the tab.
                 if (incomingUserId && incomingUserId !== currentSessionUserIdRef.current) {
                     currentSessionUserIdRef.current = incomingUserId;
-                    refreshRoles();
+                    refreshRolesRef.current();
                 }
             } else if (event === 'SIGNED_OUT') {
                 currentSessionUserIdRef.current = null;
                 setSession(null);
             }
-            // TOKEN_REFRESHED si alte evenimente nu declanseaza refetch
         });
         return () => subscription.unsubscribe();
-    }, [initializeAndFetchData, refreshRoles]);
+    }, []); // rulat o singură dată — ref-ul asigură că refreshRoles e mereu curent
 
     const createSetter = <K extends keyof AppData>(key: K) => 
         useCallback((value: React.SetStateAction<AppData[K]>) => {

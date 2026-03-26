@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useTransition } from 'react';
 import { Sportiv, User, Rol, InscriereExamen, Examen, Grad, Antrenament, IstoricGrade, Plata, Familie, TipAbonament, Tranzactie, Reducere, Club, Grupa, VizualizarePlata } from '../types';
 import { Button, Card, Select, Modal, Input, RoleBadge, Skeleton } from './ui';
 import { ArrowLeftIcon, EditIcon, WalletIcon, TrashIcon, ShieldCheckIcon, PlusIcon, ChartBarIcon, TransferIcon, CheckCircleIcon, ExclamationTriangleIcon, UserPlusIcon, UserCircleIcon, ClipboardListIcon, TrophyIcon, BanknotesIcon, CalendarDaysIcon, UsersIcon, CheckIcon, XIcon } from './icons';
@@ -66,6 +66,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
     
     const { showError, showSuccess } = useError();
     
+    const [, startTransition] = useTransition();
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -490,7 +491,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
                     <Button variant="secondary" onClick={() => setIsEditModalOpen(true)} className="shadow-sm hover:shadow-md transition-all">
                         <EditIcon className="w-4 h-4 mr-2"/> Editare
                     </Button>
-                    <Button variant="primary" onClick={() => setIsWalletModalOpen(true)} className="shadow-sm hover:shadow-md transition-all bg-indigo-600 hover:bg-indigo-500 border-none">
+                    <Button variant="primary" onClick={() => startTransition(() => setIsWalletModalOpen(true))} className="shadow-sm hover:shadow-md transition-all bg-indigo-600 hover:bg-indigo-500 border-none">
                         <WalletIcon className="w-4 h-4 mr-2"/> Portofel
                     </Button>
                     {onNavigate && (

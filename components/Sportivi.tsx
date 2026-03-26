@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useTransition } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../supabaseClient';
 import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions, VizualizarePlata } from '../types';
@@ -61,6 +61,7 @@ export const Sportivi: React.FC<{
     const isMobile = useIsMobile();
     const grupe = filteredData?.grupe || [];
 
+    const [, startTransition] = useTransition();
     const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }[]>([]);
     const [selectedSportivIds, setSelectedSportivIds] = useState<Set<string>>(new Set());
     const [bulkGrupaId, setBulkGrupaId] = useState('');
@@ -179,8 +180,12 @@ export const Sportivi: React.FC<{
     };
 
     const handleOpenWallet = (sportiv: Sportiv) => {
-        setSportivForWallet(sportiv);
-        setIsWalletModalOpen(true);
+        // startTransition defers the heavy render (SportivWallet useMemo on vizualizarePlati)
+        // so the browser can paint the button press before React renders the modal
+        startTransition(() => {
+            setSportivForWallet(sportiv);
+            setIsWalletModalOpen(true);
+        });
     };
 
     const handleRowClick = (sportiv: Sportiv) => {

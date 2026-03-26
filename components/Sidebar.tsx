@@ -214,11 +214,11 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
         <>
             <div className={`fixed inset-0 z-40 bg-slate-950/80 backdrop-blur-sm transition-opacity md:hidden ${isMobileOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={() => setIsMobileOpen(false)} />
 
-            <aside className={`fixed top-0 left-0 z-50 h-full w-72 transition-transform duration-300 ease-in-out md:hidden shadow-2xl relative overflow-hidden ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+            <aside className={`fixed top-0 left-0 z-50 h-full w-72 transition-transform duration-300 ease-in-out md:hidden shadow-2xl overflow-hidden ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                 {buildSidebarContent(true)}
             </aside>
 
-            <aside className={`hidden md:block fixed top-0 left-0 h-full z-30 transition-all duration-300 relative overflow-hidden ${isExpanded ? 'w-64' : 'w-20'}`}>
+            <aside className={`hidden md:block fixed top-0 left-0 h-full z-30 transition-all duration-300 overflow-hidden ${isExpanded ? 'w-64' : 'w-20'}`}>
                 {buildSidebarContent(isExpanded)}
             </aside>
 

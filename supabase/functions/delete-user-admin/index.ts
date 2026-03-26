@@ -12,10 +12,13 @@ serve(async (req) => {
   }
 
   try {
-    const { user_id } = await req.json()
-
-    if (!user_id) {
-      throw new Error('user_id este obligatoriu.')
+    // Verificare autentificare
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Lipsește header-ul de autorizare.' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 401,
+      })
     }
 
     const supabaseAdmin = createClient(
@@ -23,6 +26,40 @@ serve(async (req) => {
       (globalThis as any).Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
       { auth: { autoRefreshToken: false, persistSession: false } }
     )
+
+    // Verificare JWT și identitate caller
+    const supabaseClient = createClient(
+      (globalThis as any).Deno.env.get('SUPABASE_URL') ?? '',
+      (globalThis as any).Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    )
+    const { data: { user: callerUser }, error: authError } = await supabaseClient.auth.getUser()
+    if (authError || !callerUser) {
+      return new Response(JSON.stringify({ error: 'Token invalid sau expirat.' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 401,
+      })
+    }
+
+    // Verificare rol SUPER_ADMIN_FEDERATIE
+    const { data: roleCheck } = await supabaseAdmin
+      .from('utilizator_roluri_multicont')
+      .select('id')
+      .eq('user_id', callerUser.id)
+      .eq('rol_denumire', 'SUPER_ADMIN_FEDERATIE')
+      .maybeSingle()
+    if (!roleCheck) {
+      return new Response(JSON.stringify({ error: 'Acces interzis. Necesită rol SUPER_ADMIN_FEDERATIE.' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 403,
+      })
+    }
+
+    const { user_id } = await req.json()
+
+    if (!user_id) {
+      throw new Error('user_id este obligatoriu.')
+    }
 
     const { error } = await supabaseAdmin.auth.admin.deleteUser(user_id)
 

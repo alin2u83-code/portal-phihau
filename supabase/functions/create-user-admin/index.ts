@@ -16,12 +16,13 @@ serve(async (req) => {
   }
 
   try {
-    // Extragem doar câmpurile necesare conform cerințelor
-    const { email, nume, prenume, data_nasterii, gen, club_id } = await req.json()
-
-    // Validare câmpuri obligatorii
-    if (!email || !nume || !prenume || !data_nasterii || !gen) {
-      throw new Error('Toate câmpurile sunt obligatorii: email, nume, prenume, data_nasterii, gen.')
+    // Verificare autentificare
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Lipsește header-ul de autorizare.' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 401,
+      })
     }
 
     // Crearea unui client Supabase cu rol de administrator (folosind cheia de serviciu)
@@ -31,10 +32,46 @@ serve(async (req) => {
       { auth: { autoRefreshToken: false, persistSession: false } }
     )
 
-    // Generare parolă standard (sau aleatorie dacă se dorește)
-    // Pentru simplitate și consistență în acest exemplu, folosim o parolă default complexă
-    // Într-o aplicație reală, s-ar putea trimite un email de resetare parolă
-    const generatedPassword = `QwanKiDo${new Date().getFullYear()}!`;
+    // Verificare JWT și identitate caller
+    const supabaseClient = createClient(
+      (globalThis as any).Deno.env.get('SUPABASE_URL') ?? '',
+      (globalThis as any).Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    )
+    const { data: { user: callerUser }, error: authError } = await supabaseClient.auth.getUser()
+    if (authError || !callerUser) {
+      return new Response(JSON.stringify({ error: 'Token invalid sau expirat.' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 401,
+      })
+    }
+
+    // Verificare rol SUPER_ADMIN_FEDERATIE
+    const { data: roleCheck } = await supabaseAdmin
+      .from('utilizator_roluri_multicont')
+      .select('id')
+      .eq('user_id', callerUser.id)
+      .eq('rol_denumire', 'SUPER_ADMIN_FEDERATIE')
+      .maybeSingle()
+    if (!roleCheck) {
+      return new Response(JSON.stringify({ error: 'Acces interzis. Necesită rol SUPER_ADMIN_FEDERATIE.' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 403,
+      })
+    }
+
+    // Extragem doar câmpurile necesare conform cerințelor
+    const { email, nume, prenume, data_nasterii, gen, club_id } = await req.json()
+
+    // Validare câmpuri obligatorii
+    if (!email || !nume || !prenume || !data_nasterii || !gen) {
+      throw new Error('Toate câmpurile sunt obligatorii: email, nume, prenume, data_nasterii, gen.')
+    }
+
+    // Generare parolă aleatorie securizată
+    const randomBytes = new Uint8Array(12)
+    crypto.getRandomValues(randomBytes)
+    const generatedPassword = btoa(String.fromCharCode(...randomBytes)).replace(/[+/=]/g, (c) => ({ '+': 'A', '/': 'B', '=': '' }[c] ?? c)) + '1!'
 
     // Crearea noului utilizator folosind metoda de admin
     const { data, error } = await supabaseAdmin.auth.admin.createUser({

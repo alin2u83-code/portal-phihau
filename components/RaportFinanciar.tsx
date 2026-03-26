@@ -1,13 +1,19 @@
 import React, { useMemo, useState } from 'react';
-import { IstoricPlataDetaliat, Sportiv, Familie } from '../types';
+import { IstoricPlataDetaliat, Sportiv, Familie, Plata, Tranzactie } from '../types';
 import { Card, Input, Select, Button } from './ui';
 import { ChartBarIcon, BanknotesIcon, FileTextIcon, ChevronDownIcon } from './icons';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { supabase } from '../supabaseClient';
+import { useData } from '../contexts/DataContext';
+import { useError } from './ErrorProvider';
 
 interface RaportFinanciarProps {
     istoricPlatiDetaliat: IstoricPlataDetaliat[];
     sportivi: Sportiv[];
     familii: Familie[];
+    plati: Plata[];
+    setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
+    setTranzactii: React.Dispatch<React.SetStateAction<Tranzactie[]>>;
     onBack: () => void;
     onViewSportiv?: (sportiv: Sportiv) => void;
 }
@@ -31,12 +37,64 @@ const formatSum = (n?: number | null) =>
     (n ?? 0).toLocaleString('ro-RO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' RON';
 
 export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
-    istoricPlatiDetaliat, sportivi, familii, onBack, onViewSportiv
+    istoricPlatiDetaliat, sportivi, familii, plati, setPlati, setTranzactii, onBack, onViewSportiv
 }) => {
+    const { currentUser } = useData();
+    const { showError, showSuccess } = useError();
     const [filters, setFilters] = useLocalStorage('phi-hau-raport-financiar-filters', initialFilters);
     const [activeTab, setActiveTab] = useState<'incasari' | 'lunar' | 'taxe_anuale'>('incasari');
     const [selectedMonth, setSelectedMonth] = useState('');
     const [filtersOpen, setFiltersOpen] = useState(false);
+
+    // Payment modal state
+    const [plataToIncaseze, setPlataToIncaseze] = useState<IstoricPlataDetaliat | null>(null);
+    const [paymentAmount, setPaymentAmount] = useState('');
+    const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'Transfer Bancar'>('Cash');
+    const [isSaving, setIsSaving] = useState(false);
+
+    const openIncasareModal = (p: IstoricPlataDetaliat) => {
+        const rest = p.rest_de_plata ?? p.suma_datorata;
+        setPaymentAmount(rest.toFixed(2));
+        setPaymentMethod('Cash');
+        setPlataToIncaseze(p);
+    };
+
+    const handleIncaseaza = async () => {
+        if (!plataToIncaseze) return;
+        const suma = parseFloat(paymentAmount.replace(',', '.'));
+        if (isNaN(suma) || suma <= 0) { showError('Sumă invalidă', 'Suma introdusă nu este validă.'); return; }
+
+        setIsSaving(true);
+        try {
+            const sportiv = sportivi.find(s => s.id === plataToIncaseze.sportiv_id);
+            const clubId = sportiv?.club_id || (currentUser as any)?.club_id;
+            const p_tranzactie = {
+                sportiv_id: plataToIncaseze.sportiv_id,
+                familie_id: plataToIncaseze.familie_id,
+                suma,
+                data_platii: new Date().toISOString().split('T')[0],
+                metoda_plata: paymentMethod,
+                club_id: clubId,
+            };
+            const p_plati = [{ plata_id: plataToIncaseze.plata_id, suma_alocata: suma }];
+
+            const { data: txId, error: txError } = await supabase.rpc('proceseaza_incasare_normalizata', { p_tranzactie, p_plati });
+            if (txError) throw new Error(txError.message);
+
+            const { data: tx } = await supabase.from('tranzactii').select('*').eq('id', txId).maybeSingle();
+            if (tx) setTranzactii(prev => [tx as Tranzactie, ...prev]);
+
+            const { data: updatedPlata } = await supabase.from('plati').select('*').eq('id', plataToIncaseze.plata_id).maybeSingle();
+            if (updatedPlata) setPlati(prev => prev.map(p => p.id === updatedPlata.id ? updatedPlata as Plata : p));
+
+            showSuccess('Succes', 'Încasarea a fost înregistrată cu succes!');
+            setPlataToIncaseze(null);
+        } catch (e: any) {
+            showError('Eroare încasare', e.message || 'Eroare la înregistrarea încasării.');
+        } finally {
+            setIsSaving(false);
+        }
+    };
 
     const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
         setFilters(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -311,6 +369,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                                             <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-400">Descriere</th>
                                             <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-400">Status</th>
                                             <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-400 text-right">Restant</th>
+                                            <th className="px-4 py-3"></th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-800/60">
@@ -327,7 +386,15 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                                                         {p.status}
                                                     </span>
                                                 </td>
-                                                <td className="px-4 py-3 text-right font-bold text-rose-400 whitespace-nowrap">{formatSum(p.suma_datorata)}</td>
+                                                <td className="px-4 py-3 text-right font-bold text-rose-400 whitespace-nowrap">{formatSum(p.rest_de_plata ?? p.suma_datorata)}</td>
+                                                <td className="px-4 py-3 text-right">
+                                                    <button
+                                                        onClick={() => openIncasareModal(p)}
+                                                        className="text-xs font-bold px-3 py-1.5 rounded-lg bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600 hover:text-white transition-colors whitespace-nowrap"
+                                                    >
+                                                        Încasează
+                                                    </button>
+                                                </td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -342,11 +409,19 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                                                 <p className="text-white font-semibold text-sm truncate"><SportivLink row={p} /></p>
                                                 <p className="text-slate-400 text-xs mt-0.5 truncate">{p.descriere || '—'}</p>
                                             </div>
-                                            <p className="text-rose-400 font-bold text-sm whitespace-nowrap shrink-0">{formatSum(p.suma_datorata)}</p>
+                                            <p className="text-rose-400 font-bold text-sm whitespace-nowrap shrink-0">{formatSum(p.rest_de_plata ?? p.suma_datorata)}</p>
                                         </div>
-                                        <div className="flex items-center gap-3 mt-2">
-                                            <span className="text-xs text-slate-500">{formatDate(p.data_emitere)}</span>
-                                            <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full ${p.status === 'Achitat Parțial' ? 'bg-amber-500/15 text-amber-400' : 'bg-rose-500/15 text-rose-400'}`}>{p.status}</span>
+                                        <div className="flex items-center justify-between mt-2">
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-xs text-slate-500">{formatDate(p.data_emitere)}</span>
+                                                <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full ${p.status === 'Achitat Parțial' ? 'bg-amber-500/15 text-amber-400' : 'bg-rose-500/15 text-rose-400'}`}>{p.status}</span>
+                                            </div>
+                                            <button
+                                                onClick={() => openIncasareModal(p)}
+                                                className="text-xs font-bold px-3 py-1.5 rounded-lg bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600 hover:text-white transition-colors"
+                                            >
+                                                Încasează
+                                            </button>
                                         </div>
                                     </div>
                                 ))}
@@ -381,9 +456,19 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                                             {list.length === 0
                                                 ? <p className="text-slate-500 italic text-sm p-4">Nicio înregistrare.</p>
                                                 : list.map(p => (
-                                                    <div key={p.plata_id} className="flex items-center justify-between px-3 py-2.5">
-                                                        <span className="text-sm text-white"><SportivLink row={p} /></span>
-                                                        <span className="text-xs text-slate-500 ml-2 shrink-0">{p.descriere}</span>
+                                                    <div key={p.plata_id} className="flex items-center justify-between px-3 py-2.5 gap-2">
+                                                        <span className="text-sm text-white min-w-0 truncate"><SportivLink row={p} /></span>
+                                                        <div className="flex items-center gap-2 shrink-0">
+                                                            {label === 'Restanțieri' && (
+                                                                <button
+                                                                    onClick={() => openIncasareModal(p)}
+                                                                    className="text-xs font-bold px-2.5 py-1 rounded-lg bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600 hover:text-white transition-colors"
+                                                                >
+                                                                    Încasează
+                                                                </button>
+                                                            )}
+                                                            <span className="text-xs text-slate-500">{formatSum(p.suma_datorata)}</span>
+                                                        </div>
                                                     </div>
                                                 ))
                                             }
@@ -393,6 +478,55 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                             </div>
                         </Card>
                     ))}
+                </div>
+            )}
+            {/* ─── MODAL ÎNCASARE ─── */}
+            {plataToIncaseze && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+                    <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-sm shadow-2xl">
+                        <div className="px-5 pt-5 pb-4 border-b border-slate-800">
+                            <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1">Înregistrare Încasare</p>
+                            <p className="text-white font-bold text-base">{plataToIncaseze.nume_complet_sportiv || '—'}</p>
+                            <p className="text-slate-400 text-sm mt-0.5">{plataToIncaseze.descriere}</p>
+                            <div className="flex items-center gap-3 mt-2">
+                                <span className="text-xs text-slate-500">De plată:</span>
+                                <span className="text-rose-400 font-bold text-sm">{formatSum(plataToIncaseze.rest_de_plata ?? plataToIncaseze.suma_datorata)}</span>
+                            </div>
+                        </div>
+                        <div className="px-5 py-4 space-y-3">
+                            <Input
+                                label="Sumă încasată (RON)"
+                                type="number"
+                                min="0.01"
+                                step="0.01"
+                                value={paymentAmount}
+                                onChange={e => setPaymentAmount(e.target.value)}
+                            />
+                            <Select
+                                label="Metodă plată"
+                                value={paymentMethod}
+                                onChange={e => setPaymentMethod(e.target.value as 'Cash' | 'Transfer Bancar')}
+                            >
+                                <option value="Cash">Cash</option>
+                                <option value="Transfer Bancar">Transfer Bancar</option>
+                            </Select>
+                        </div>
+                        <div className="px-5 pb-5 flex gap-2">
+                            <button
+                                onClick={() => setPlataToIncaseze(null)}
+                                className="flex-1 py-2.5 text-sm text-slate-400 hover:text-white border border-slate-700 hover:border-slate-600 rounded-xl transition-colors font-medium"
+                            >
+                                Anulează
+                            </button>
+                            <button
+                                onClick={handleIncaseaza}
+                                disabled={isSaving}
+                                className="flex-1 py-2.5 text-sm bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-xl transition-colors font-bold"
+                            >
+                                {isSaving ? 'Se salvează...' : 'Confirmă'}
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

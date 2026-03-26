@@ -133,13 +133,32 @@ export const generateGradeBadgeHtml = (sportiv: { nume: string; prenume: string;
 /**
  * O componentă reutilizabilă pentru afișarea unui badge de grad,
  * cu suport pentru dimensiuni diferite și stilizare conform ierarhiei.
+ * Când grad și gradName lipsesc, afișează un badge de avertisment portocaliu
+ * în loc să arate "Începător" — pentru a face lipsa gradului vizibilă.
  */
 export const GradBadge: React.FC<{ grad?: Grad | null; gradName?: string | null; isLarge?: boolean; className?: string }> = ({ grad, gradName, isLarge, className }) => {
-    const name = gradName || (grad ? grad.nume : 'Începător');
+    const noGrade = !grad && !gradName;
+
+    if (noGrade) {
+        const sizeStyle: React.CSSProperties = isLarge
+            ? { padding: '8px 24px', fontSize: '1.875rem', fontWeight: 900 }
+            : { padding: '2px 8px', fontSize: '0.75rem', fontWeight: 700 };
+        return React.createElement(
+            'span',
+            {
+                title: 'Gradul actual nu este setat',
+                className: `inline-block rounded-full whitespace-nowrap text-center ${className || ''}`.trim(),
+                style: { backgroundColor: '#f97316', color: '#fff', border: '2px solid #ea580c', ...sizeStyle },
+            },
+            '⚠ Fără grad'
+        );
+    }
+
+    const name = gradName || (grad ? grad.nume : '');
     const style = getInlineGradeStyle(name);
-    
-    const sizeStyle: React.CSSProperties = isLarge 
-        ? { padding: '8px 24px', fontSize: '1.875rem', fontWeight: 900 } 
+
+    const sizeStyle: React.CSSProperties = isLarge
+        ? { padding: '8px 24px', fontSize: '1.875rem', fontWeight: 900 }
         : { padding: '2px 8px', fontSize: '0.75rem', fontWeight: 700 };
 
     return React.createElement(

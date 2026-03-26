@@ -27,7 +27,7 @@ interface TrainingSection {
     hasSavedData: boolean;
 }
 
-type SortBy = 'name' | 'grade';
+type SortBy = 'nume' | 'prenume' | 'grade';
 
 const CheckIcon: React.FC<{ className?: string }> = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className={className}>
@@ -96,7 +96,7 @@ const AddExternalAthleteModal: React.FC<{
                                     }}
                                     className="w-full text-left px-3 py-2.5 rounded-lg bg-slate-800/50 hover:bg-amber-500/10 border border-transparent hover:border-amber-500/30 text-sm text-slate-200 transition-colors flex items-center justify-between"
                                 >
-                                    <span className="font-medium">{s.prenume} {s.nume}</span>
+                                    <span className="font-medium">{s.nume} {s.prenume}</span>
                                     {grad && <span className="text-xs text-slate-500 ml-2 shrink-0">{grad.nume}</span>}
                                 </button>
                             );
@@ -118,7 +118,7 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
     const [savingId, setSavingId] = useState<string | null>(null);
     const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
     const [addingToTrainingId, setAddingToTrainingId] = useState<string | null>(null);
-    const [sortBy, setSortBy] = useState<SortBy>('name');
+    const [sortBy, setSortBy] = useState<SortBy>('nume');
 
     const gradeById = useMemo(() => Object.fromEntries((grade || []).map(g => [g.id, g])), [grade]);
 
@@ -234,8 +234,17 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
                 const oa = a.gradOrdine ?? 9999;
                 const ob = b.gradOrdine ?? 9999;
                 if (oa !== ob) return oa - ob;
+                return a.nume.localeCompare(b.nume);
             }
-            return `${a.nume} ${a.prenume}`.localeCompare(`${b.nume} ${b.prenume}`);
+            if (sortBy === 'prenume') {
+                const cp = a.prenume.localeCompare(b.prenume);
+                if (cp !== 0) return cp;
+                return a.nume.localeCompare(b.nume);
+            }
+            // sortBy === 'nume' (default)
+            const cn = a.nume.localeCompare(b.nume);
+            if (cn !== 0) return cn;
+            return a.prenume.localeCompare(b.prenume);
         });
     }, [sortBy]);
 
@@ -261,18 +270,15 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
                     <p className="text-xs text-slate-400">Apasă pe un sportiv pentru a comuta prezența.</p>
                 </div>
                 <div className="flex items-center gap-1 bg-slate-800/60 rounded-lg p-0.5 border border-slate-700/50">
-                    <button
-                        onClick={() => setSortBy('name')}
-                        className={`text-xs px-2.5 py-1 rounded-md transition-colors font-medium ${sortBy === 'name' ? 'bg-amber-500/20 text-amber-300' : 'text-slate-400 hover:text-slate-200'}`}
-                    >
-                        Nume
-                    </button>
-                    <button
-                        onClick={() => setSortBy('grade')}
-                        className={`text-xs px-2.5 py-1 rounded-md transition-colors font-medium ${sortBy === 'grade' ? 'bg-amber-500/20 text-amber-300' : 'text-slate-400 hover:text-slate-200'}`}
-                    >
-                        Grad
-                    </button>
+                    {(['nume', 'prenume', 'grade'] as SortBy[]).map(opt => (
+                        <button
+                            key={opt}
+                            onClick={() => setSortBy(opt)}
+                            className={`text-xs px-2.5 py-1 rounded-md transition-colors font-medium ${sortBy === opt ? 'bg-amber-500/20 text-amber-300' : 'text-slate-400 hover:text-slate-200'}`}
+                        >
+                            {opt === 'nume' ? 'Nume' : opt === 'prenume' ? 'Prenume' : 'Grad'}
+                        </button>
+                    ))}
                 </div>
             </div>
 
@@ -353,7 +359,7 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
                                                 {a.isPresent && <CheckIcon className="w-3 h-3 text-white" />}
                                             </span>
                                             <span className={`flex-1 text-sm font-medium transition-colors ${a.isPresent ? 'text-white' : 'text-slate-400'}`}>
-                                                {a.prenume} {a.nume}
+                                                {a.nume} {a.prenume}
                                                 {a.isExtra && <span className="ml-1.5 text-[10px] text-slate-500 font-normal">↗ extern</span>}
                                             </span>
                                             <span className="text-xs text-slate-500 w-28 text-right shrink-0 truncate">

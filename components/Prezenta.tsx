@@ -17,12 +17,11 @@ import { GrupeList } from './Prezenta/GrupeList';
 import { IstoricPrezentaGlobal } from './Prezenta/IstoricPrezentaGlobal';
 import { PrezentaRapida } from './Prezenta/PrezentaRapida';
 
-type Tab = 'azi' | 'rapid' | 'grupe' | 'istoric';
+type Tab = 'rapid' | 'grupe' | 'istoric';
 type View = 'azi' | 'rapid' | 'grupe' | 'orar' | 'calendar' | 'prezenta' | 'prezenta-grupe' | 'istoric' | 'generator';
 interface ViewState { view: View; id: string | null; }
 
 const TAB_ROOTS: Record<Tab, View> = {
-    azi: 'azi',
     rapid: 'rapid',
     grupe: 'grupe',
     istoric: 'istoric',
@@ -82,7 +81,6 @@ export const Prezenta: React.FC<{ onBack: () => void; onViewSportiv?: (s: Sporti
             };
             setAntrenamentDetaliu(enriched as any);
             navigateTo('prezenta', id);
-            if (activeTab === 'rapid') setActiveTab('azi');
         }
         setLoading(false);
     };
@@ -140,7 +138,6 @@ export const Prezenta: React.FC<{ onBack: () => void; onViewSportiv?: (s: Sporti
     };
 
     const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
-        { id: 'azi', label: 'Azi', icon: <CalendarDaysIcon className="w-4 h-4" /> },
         { id: 'rapid', label: 'Rapid', icon: <SparklesIcon className="w-4 h-4" /> },
         { id: 'grupe', label: 'Grupe', icon: <UsersIcon className="w-4 h-4" /> },
         { id: 'istoric', label: 'Istoric', icon: <ClockIcon className="w-4 h-4" /> },

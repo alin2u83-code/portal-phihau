@@ -22,6 +22,8 @@ interface SidebarProps {
     isSwitchingRole: boolean;
     grade: Grad[];
     userRoles: any[];
+    isMobileOpen: boolean;
+    setIsMobileOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const UserAvatar: React.FC<{ user: User; size?: 'sm' | 'md' }> = ({ user, size = 'md' }) => {
@@ -44,9 +46,8 @@ const UserAvatar: React.FC<{ user: User; size?: 'sm' | 'md' }> = ({ user, size =
 };
 
 export const Sidebar: React.FC<SidebarProps> = (props) => {
-    const { currentUser, onLogout, isExpanded, setIsExpanded, clubs, permissions, activeRole, canSwitchRoles, onSwitchRole, isSwitchingRole, userRoles } = props;
+    const { currentUser, onLogout, isExpanded, setIsExpanded, clubs, permissions, activeRole, canSwitchRoles, onSwitchRole, isSwitchingRole, userRoles, isMobileOpen, setIsMobileOpen } = props;
     const { activeView, setActiveView } = useNavigation();
-    const [isMobileOpen, setIsMobileOpen] = useState(false);
     const [isRoleSwitcherOpen, setIsRoleSwitcherOpen] = useState(false);
     const roleSwitcherRef = useRef<HTMLDivElement>(null);
 
@@ -123,7 +124,7 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
         return map[norm] || 'text-slate-400 bg-slate-700/50';
     }, [activeRole]);
 
-    const sidebarContent = (
+    const buildSidebarContent = (effectiveExpanded: boolean) => (
         <div data-tutorial="sidebar" className="flex flex-col h-full text-slate-200 shadow-2xl">
             {/* Background */}
             <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 pointer-events-none" />
@@ -131,14 +132,14 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
 
             {/* App Logo & Name */}
             <div
-                className={`relative p-4 flex items-center gap-3 cursor-pointer hover:bg-white/5 transition-colors ${!isExpanded ? 'justify-center' : ''}`}
+                className={`relative p-4 flex items-center gap-3 cursor-pointer hover:bg-white/5 transition-colors ${!effectiveExpanded ? 'justify-center' : ''}`}
                 onClick={() => handleNavigate('dashboard')}
             >
                 <div className="relative shrink-0">
                     <QwanKiDoLogo className="h-10 w-10" iconClassName="w-6 h-6" />
                     <span className="absolute bottom-0 right-0 h-2.5 w-2.5 bg-emerald-500 rounded-full border-2 border-slate-900" />
                 </div>
-                {isExpanded && (
+                {effectiveExpanded && (
                     <div className="flex flex-col overflow-hidden">
                         <span className="font-bold text-white text-sm tracking-tight truncate">Qwan Ki Do</span>
                         <span className="text-[10px] text-amber-400/70 font-semibold uppercase tracking-widest truncate">Management</span>
@@ -150,7 +151,7 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
 
             <div ref={roleSwitcherRef} className="relative">
                 <RoleSwitcher
-                    isExpanded={isExpanded}
+                    isExpanded={effectiveExpanded}
                     canSwitchRoles={canSwitchRoles}
                     isSwitchingRole={isSwitchingRole}
                     isRoleSwitcherOpen={isRoleSwitcherOpen}
@@ -165,7 +166,7 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
             </div>
 
             <NavMenu
-                isExpanded={isExpanded}
+                isExpanded={effectiveExpanded}
                 permissions={permissions}
                 menuToDisplay={menuToDisplay}
                 onNavigate={handleNavigate}
@@ -174,15 +175,15 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
             {/* User profile + logout at bottom */}
             <div className="relative mt-auto">
                 <div className="h-px bg-gradient-to-r from-transparent via-slate-700/60 to-transparent mx-2 mb-2" />
-                <div className={`mx-2 mb-2 p-2 rounded-xl bg-slate-800/40 border border-slate-700/40 flex items-center gap-2.5 ${isExpanded ? '' : 'justify-center'}`}>
+                <div className={`mx-2 mb-2 p-2 rounded-xl bg-slate-800/40 border border-slate-700/40 flex items-center gap-2.5 ${effectiveExpanded ? '' : 'justify-center'}`}>
                     <UserAvatar user={currentUser} size="md" />
-                    {isExpanded && (
+                    {effectiveExpanded && (
                         <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold text-white truncate">{currentUser.prenume} {currentUser.nume}</p>
                             <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${roleColor}`}>{roleLabel}</span>
                         </div>
                     )}
-                    {isExpanded && (
+                    {effectiveExpanded && (
                         <button
                             onClick={onLogout}
                             title="Deconectare"
@@ -192,7 +193,7 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
                         </button>
                     )}
                 </div>
-                {!isExpanded && (
+                {!effectiveExpanded && (
                     <div className="px-2 mb-2">
                         <button
                             onClick={onLogout}
@@ -211,20 +212,14 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
 
     return (
         <>
-            {!isMobileNavEligible && (
-                <button className="md:hidden fixed top-3 left-3 z-50 p-2 bg-slate-800/90 backdrop-blur-md border border-slate-700 rounded-lg text-slate-200 shadow-lg" onClick={() => setIsMobileOpen(true)}>
-                    <Bars3Icon className="w-6 h-6" />
-                </button>
-            )}
-
             <div className={`fixed inset-0 z-40 bg-slate-950/80 backdrop-blur-sm transition-opacity md:hidden ${isMobileOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={() => setIsMobileOpen(false)} />
 
             <aside className={`fixed top-0 left-0 z-50 h-full w-72 transition-transform duration-300 ease-in-out md:hidden shadow-2xl relative overflow-hidden ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-                {sidebarContent}
+                {buildSidebarContent(true)}
             </aside>
 
             <aside className={`hidden md:block fixed top-0 left-0 h-full z-30 transition-all duration-300 relative overflow-hidden ${isExpanded ? 'w-64' : 'w-20'}`}>
-                {sidebarContent}
+                {buildSidebarContent(isExpanded)}
             </aside>
 
             {/* Desktop Toggle Button */}

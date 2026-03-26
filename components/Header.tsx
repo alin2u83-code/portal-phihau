@@ -2,7 +2,7 @@ import React from 'react';
 import { View, User, Permissions } from '../types';
 import { useNavigation } from '../contexts/NavigationContext';
 import { Button } from './ui';
-import { ArrowLeftIcon } from './icons';
+import { ArrowLeftIcon, Bars3Icon } from './icons';
 import { NotificationBell } from './NotificationBell';
 import { UserMenu } from './UserMenu';
 import { useIsMobile } from '../hooks/useIsMobile';
@@ -15,6 +15,7 @@ interface HeaderProps {
     isSidebarExpanded: boolean;
     userRoles?: any[];
     onSwitchRole?: (context: any) => void;
+    onOpenMobileSidebar?: () => void;
 }
 
 const ROOT_VIEWS: View[] = ['dashboard', 'my-portal', 'federation-dashboard', 'admin-dashboard'];
@@ -62,7 +63,8 @@ export const Header: React.FC<HeaderProps> = ({
     onLogout,
     isSidebarExpanded,
     userRoles,
-    onSwitchRole
+    onSwitchRole,
+    onOpenMobileSidebar,
 }) => {
     const { activeView, setActiveView } = useNavigation();
     const isRootView = ROOT_VIEWS.includes(activeView);
@@ -76,8 +78,17 @@ export const Header: React.FC<HeaderProps> = ({
             className={`fixed top-0 right-0 h-16 flex items-center justify-between px-4 bg-slate-900/95 backdrop-blur-md transition-all duration-300 ${isSidebarExpanded ? 'md:left-64' : 'md:left-20'} left-0 z-40`}
             style={{ borderBottom: '1px solid rgba(30,41,59,0.9)', boxShadow: '0 1px 20px rgba(0,0,0,0.3)' }}
         >
-            {/* Left: Back Button + Page Title */}
-            <div className="flex items-center gap-3 flex-shrink-0 min-w-0">
+            {/* Left: Hamburger (mobile) + Back Button + Page Title */}
+            <div className="flex items-center gap-2 flex-shrink-0 min-w-0">
+                {onOpenMobileSidebar && (
+                    <button
+                        className="md:hidden flex items-center justify-center w-9 h-9 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition-colors shrink-0"
+                        onClick={onOpenMobileSidebar}
+                        aria-label="Deschide meniu"
+                    >
+                        <Bars3Icon className="w-5 h-5" />
+                    </button>
+                )}
                 {!isRootView && (
                     <Button
                         onClick={onBack}

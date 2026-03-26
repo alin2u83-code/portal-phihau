@@ -55,25 +55,21 @@ const NavItem: React.FC<{
                     </>}
                 </div>
 
-                {/* Submeniu — card-uri compacte identice cu dashboard */}
+                {/* Submeniu — indentate cu linie verticală de legătură */}
                 {isExpanded && isSubmenuOpen && (
-                    <div className="mt-1 space-y-1 pl-1">
+                    <div className="mt-1 ml-4 pl-3 border-l-2 border-amber-500/25 space-y-0.5">
                         {item.submenu.map(sub => {
                             const isSubActive = activeView === sub.view;
                             return (
                                 <div
                                     key={sub.view}
                                     onClick={() => onNavigate(sub.view)}
-                                    className={`relative flex items-center gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-150 border text-sm ${
+                                    className={`relative flex items-center gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer transition-all duration-150 text-sm ${
                                         isSubActive
-                                        ? "bg-amber-500/15 border-amber-500/40 text-amber-300 font-semibold"
-                                        : "bg-slate-800/50 border-slate-700/40 text-slate-300 hover:bg-slate-700/60 hover:border-amber-400/30 hover:text-slate-100"
+                                        ? "bg-amber-500/15 text-amber-300 font-semibold"
+                                        : "text-slate-400 hover:bg-slate-800/60 hover:text-slate-200"
                                     }`}
                                 >
-                                    {/* Indicator activ */}
-                                    {isSubActive && (
-                                        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4/5 bg-amber-400 rounded-r-full" />
-                                    )}
                                     <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isSubActive ? 'bg-amber-400' : 'bg-slate-600'}`} />
                                     {sub.label}
                                 </div>

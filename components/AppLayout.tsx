@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import ErrorBoundary from './ErrorBoundary';
@@ -38,6 +38,8 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
     selectedSportiv, setSelectedSportiv, platiPentruIncasare, setPlatiPentruIncasare,
     activeRoleContext
 }) => {
+    const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
     return (
         <div className="flex min-h-screen bg-[var(--bg-main)]">
             <Sidebar
@@ -53,6 +55,8 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                 isSwitchingRole={isSwitchingRole}
                 grade={grade}
                 userRoles={userRoles}
+                isMobileOpen={isMobileSidebarOpen}
+                setIsMobileOpen={setIsMobileSidebarOpen}
             />
 
             <Header
@@ -63,10 +67,11 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                 isSidebarExpanded={isSidebarExpanded}
                 userRoles={userRoles}
                 onSwitchRole={onSwitchRole}
+                onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
             />
 
             <main className={`flex-1 transition-all duration-300 pt-16 ${isSidebarExpanded ? 'md:ml-64' : 'md:ml-20'} min-h-screen`}>
-                <div className="p-4 pb-24 md:p-6 lg:p-8 max-w-7xl mx-auto animate-fade-in">
+                <div className="p-4 pb-24 md:p-6 lg:p-8 max-w-7xl animate-fade-in">
                     <ErrorBoundary onNavigate={setActiveView}>
                         <ClubGuard>
                             <AppRouter

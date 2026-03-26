@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../../supabaseClient';
-import { Sportiv } from '../../types';
 import { Card, Button } from '../ui';
-import { CheckCircleIcon, CalendarDaysIcon, SparklesIcon, PlusIcon, SearchIcon, XIcon } from '../icons';
+import { CheckCircleIcon, CalendarDaysIcon, SparklesIcon, PlusIcon, SearchIcon, XIcon, ChevronDownIcon } from '../icons';
 import { useStatusePrezenta } from '../../hooks/useStatusePrezenta';
 import { useAttendance } from '../../hooks/useAttendance';
 import { useError } from '../ErrorProvider';
@@ -13,7 +12,9 @@ interface AthletePill {
     nume: string;
     prenume: string;
     isPresent: boolean;
-    isExtra?: boolean; // sportiv adăugat manual (nu din grupă)
+    isExtra?: boolean;
+    gradNume?: string;
+    gradOrdine?: number;
 }
 
 interface TrainingSection {
@@ -26,6 +27,14 @@ interface TrainingSection {
     hasSavedData: boolean;
 }
 
+type SortBy = 'name' | 'grade';
+
+const CheckIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className={className}>
+        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+    </svg>
+);
+
 // Modal pentru adăugat sportiv din altă grupă
 const AddExternalAthleteModal: React.FC<{
     trainingId: string;
@@ -33,7 +42,7 @@ const AddExternalAthleteModal: React.FC<{
     onAdd: (athlete: AthletePill) => void;
     onClose: () => void;
 }> = ({ trainingId, existingIds, onAdd, onClose }) => {
-    const { filteredData } = useData();
+    const { filteredData, grade } = useData();
     const [search, setSearch] = useState('');
 
     const candidates = useMemo(() => {
@@ -43,6 +52,8 @@ const AddExternalAthleteModal: React.FC<{
             .filter(s => !q || `${s.nume} ${s.prenume}`.toLowerCase().includes(q))
             .slice(0, 20);
     }, [filteredData.sportivi, existingIds, search]);
+
+    const gradeById = useMemo(() => Object.fromEntries((grade || []).map(g => [g.id, g])), [grade]);
 
     return (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
@@ -66,15 +77,30 @@ const AddExternalAthleteModal: React.FC<{
                     <div className="max-h-64 overflow-y-auto space-y-1">
                         {candidates.length === 0 ? (
                             <p className="text-slate-500 text-sm text-center py-4 italic">Niciun sportiv găsit.</p>
-                        ) : candidates.map(s => (
-                            <button
-                                key={s.id}
-                                onClick={() => { onAdd({ id: s.id, nume: s.nume, prenume: s.prenume, isPresent: true, isExtra: true }); onClose(); }}
-                                className="w-full text-left px-3 py-2.5 rounded-lg bg-slate-800/50 hover:bg-amber-500/10 border border-transparent hover:border-amber-500/30 text-sm text-slate-200 transition-colors"
-                            >
-                                <span className="font-medium">{s.nume} {s.prenume}</span>
-                            </button>
-                        ))}
+                        ) : candidates.map(s => {
+                            const grad = s.grad_actual_id ? gradeById[s.grad_actual_id] : null;
+                            return (
+                                <button
+                                    key={s.id}
+                                    onClick={() => {
+                                        onAdd({
+                                            id: s.id,
+                                            nume: s.nume,
+                                            prenume: s.prenume,
+                                            isPresent: true,
+                                            isExtra: true,
+                                            gradNume: grad?.nume,
+                                            gradOrdine: grad?.ordine,
+                                        });
+                                        onClose();
+                                    }}
+                                    className="w-full text-left px-3 py-2.5 rounded-lg bg-slate-800/50 hover:bg-amber-500/10 border border-transparent hover:border-amber-500/30 text-sm text-slate-200 transition-colors flex items-center justify-between"
+                                >
+                                    <span className="font-medium">{s.prenume} {s.nume}</span>
+                                    {grad && <span className="text-xs text-slate-500 ml-2 shrink-0">{grad.nume}</span>}
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
             </div>
@@ -86,11 +112,15 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
     const { prezentId } = useStatusePrezenta();
     const { saveAttendance } = useAttendance();
     const { showError } = useError();
+    const { grade } = useData();
     const [sections, setSections] = useState<TrainingSection[]>([]);
     const [loading, setLoading] = useState(true);
     const [savingId, setSavingId] = useState<string | null>(null);
     const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
     const [addingToTrainingId, setAddingToTrainingId] = useState<string | null>(null);
+    const [sortBy, setSortBy] = useState<SortBy>('name');
+
+    const gradeById = useMemo(() => Object.fromEntries((grade || []).map(g => [g.id, g])), [grade]);
 
     const today = new Date().toLocaleDateString('sv-SE');
 
@@ -99,7 +129,7 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
         const [trainingRes, statusRes] = await Promise.all([
             supabase
                 .from('program_antrenamente')
-                .select('id, ora_start, ora_sfarsit, grupe(denumire, sportivi(id, nume, prenume, status)), prezenta:prezenta_antrenament(sportiv_id, status_id)')
+                .select('id, ora_start, ora_sfarsit, grupe(denumire, sportivi(id, nume, prenume, status, grad_actual_id)), prezenta:prezenta_antrenament(sportiv_id, status_id)')
                 .eq('data', today)
                 .order('ora_start'),
             supabase.from('statuse_prezenta').select('id, este_prezent, denumire'),
@@ -118,12 +148,14 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
             const initialPresent = new Set<string>(
                 (t.prezenta || []).filter((p: any) => p.status_id && statusById[p.status_id]?.este_prezent === true).map((p: any) => p.sportiv_id)
             );
-            // Include athletes already in prezenta but NOT in group (were added manually before)
             const extraIds = [...initialPresent].filter(id => !sportivi.some((s: any) => s.id === id));
-            const extraAthletes: AthletePill[] = extraIds.map(id => {
-                const rec = (t.prezenta || []).find((p: any) => p.sportiv_id === id);
-                return { id, nume: '...', prenume: '(extra)', isPresent: true, isExtra: true };
-            });
+            const extraAthletes: AthletePill[] = extraIds.map(id => ({
+                id,
+                nume: '...',
+                prenume: '(extra)',
+                isPresent: true,
+                isExtra: true,
+            }));
 
             return {
                 id: t.id,
@@ -131,7 +163,17 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
                 ora_sfarsit: t.ora_sfarsit,
                 grup: (t.grupe as any)?.denumire || 'Antrenament',
                 athletes: [
-                    ...sportivi.map((s: any) => ({ id: s.id, nume: s.nume, prenume: s.prenume, isPresent: initialPresent.has(s.id) })),
+                    ...sportivi.map((s: any) => {
+                        const grad = s.grad_actual_id ? gradeById[s.grad_actual_id] : null;
+                        return {
+                            id: s.id,
+                            nume: s.nume,
+                            prenume: s.prenume,
+                            isPresent: initialPresent.has(s.id),
+                            gradNume: grad?.nume,
+                            gradOrdine: grad?.ordine,
+                        };
+                    }),
                     ...extraAthletes,
                 ],
                 initialPresent,
@@ -142,7 +184,7 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
         setSections(built);
         setSavedIds(new Set(built.filter(s => s.hasSavedData).map(s => s.id)));
         setLoading(false);
-    }, [today, showError]);
+    }, [today, showError, gradeById]);
 
     useEffect(() => { fetchTrainings(); }, [fetchTrainings]);
 
@@ -165,7 +207,7 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
     const addExternalAthlete = (trainingId: string, athlete: AthletePill) => {
         setSections(prev => prev.map(s => {
             if (s.id !== trainingId) return s;
-            if (s.athletes.some(a => a.id === athlete.id)) return s; // deja există
+            if (s.athletes.some(a => a.id === athlete.id)) return s;
             return { ...s, athletes: [...s.athletes, athlete] };
         }));
         setSavedIds(prev => { const n = new Set(prev); n.delete(trainingId); return n; });
@@ -186,6 +228,17 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
         setSavingId(null);
     };
 
+    const sortAthletes = useCallback((athletes: AthletePill[]) => {
+        return [...athletes].sort((a, b) => {
+            if (sortBy === 'grade') {
+                const oa = a.gradOrdine ?? 9999;
+                const ob = b.gradOrdine ?? 9999;
+                if (oa !== ob) return oa - ob;
+            }
+            return `${a.nume} ${a.prenume}`.localeCompare(`${b.nume} ${b.prenume}`);
+        });
+    }, [sortBy]);
+
     if (loading) return (
         <div className="flex justify-center py-16">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500" />
@@ -201,12 +254,30 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
 
     return (
         <div className="space-y-4">
-            <div className="flex items-center gap-2 mb-2">
-                <SparklesIcon className="w-4 h-4 text-amber-400" />
-                <p className="text-xs text-slate-400">Apasă pe un sportiv pentru a comuta prezența, apoi salvează.</p>
+            {/* Controls row */}
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <SparklesIcon className="w-4 h-4 text-amber-400 shrink-0" />
+                    <p className="text-xs text-slate-400">Apasă pe un sportiv pentru a comuta prezența.</p>
+                </div>
+                <div className="flex items-center gap-1 bg-slate-800/60 rounded-lg p-0.5 border border-slate-700/50">
+                    <button
+                        onClick={() => setSortBy('name')}
+                        className={`text-xs px-2.5 py-1 rounded-md transition-colors font-medium ${sortBy === 'name' ? 'bg-amber-500/20 text-amber-300' : 'text-slate-400 hover:text-slate-200'}`}
+                    >
+                        Nume
+                    </button>
+                    <button
+                        onClick={() => setSortBy('grade')}
+                        className={`text-xs px-2.5 py-1 rounded-md transition-colors font-medium ${sortBy === 'grade' ? 'bg-amber-500/20 text-amber-300' : 'text-slate-400 hover:text-slate-200'}`}
+                    >
+                        Grad
+                    </button>
+                </div>
             </div>
 
             {sections.map(section => {
+                const sortedAthletes = sortAthletes(section.athletes);
                 const presentCount = section.athletes.filter(a => a.isPresent).length;
                 const isSaved = savedIds.has(section.id);
                 const isSaving = savingId === section.id;
@@ -214,9 +285,9 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
                 const existingIds = new Set(section.athletes.map(a => a.id));
 
                 return (
-                    <Card key={section.id} className={`transition-all duration-300 ${isSaved ? 'ring-1 ring-emerald-500/40' : ''}`}>
+                    <Card key={section.id} className={`transition-all duration-300 !p-0 overflow-hidden ${isSaved ? 'ring-1 ring-emerald-500/40' : ''}`}>
                         {/* Header */}
-                        <div className="flex justify-between items-center mb-3">
+                        <div className="flex justify-between items-center p-4 pb-3">
                             <div>
                                 <h3 className="text-base font-bold text-white">{section.grup}</h3>
                                 <p className="text-xs text-slate-500">{section.ora_start} – {section.ora_sfarsit}</p>
@@ -233,7 +304,7 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
                         </div>
 
                         {/* Quick mark all */}
-                        <div className="flex gap-2 mb-3">
+                        <div className="flex gap-2 px-4 pb-3">
                             <button
                                 onClick={() => markAll(section.id, true)}
                                 className="text-xs px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-colors font-medium"
@@ -254,31 +325,48 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
                             </button>
                         </div>
 
-                        {/* Athlete pills */}
+                        {/* Athlete list — tabular */}
                         {section.athletes.length === 0 ? (
-                            <p className="text-sm text-slate-500 italic py-2">Niciun sportiv activ în această grupă.</p>
+                            <p className="text-sm text-slate-500 italic px-4 pb-4">Niciun sportiv activ în această grupă.</p>
                         ) : (
-                            <div className="flex flex-wrap gap-2 mb-4">
-                                {section.athletes.map(a => (
-                                    <button
-                                        key={a.id}
-                                        onClick={() => toggleAthlete(section.id, a.id)}
-                                        className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all select-none active:scale-95 ${
-                                            a.isPresent
-                                                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 shadow-sm'
-                                                : 'bg-slate-800 text-slate-400 border border-slate-700 hover:border-slate-500'
-                                        } ${a.isExtra ? 'border-dashed' : ''}`}
-                                    >
-                                        <span className="mr-1 text-xs">{a.isPresent ? '✓' : '–'}</span>
-                                        {a.nume} {a.prenume}
-                                        {a.isExtra && <span className="ml-1 text-[10px] opacity-60">↗</span>}
-                                    </button>
-                                ))}
+                            <div className="border-t border-slate-800/60">
+                                {/* Column headers */}
+                                <div className="flex items-center gap-3 px-4 py-1.5 bg-slate-800/30">
+                                    <span className="w-5 shrink-0" />
+                                    <span className="flex-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">Sportiv</span>
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 w-28 text-right shrink-0">Grad</span>
+                                </div>
+                                <div className="divide-y divide-slate-800/40">
+                                    {sortedAthletes.map(a => (
+                                        <button
+                                            key={a.id}
+                                            onClick={() => toggleAthlete(section.id, a.id)}
+                                            className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors select-none active:scale-[0.99] ${
+                                                a.isPresent ? 'bg-emerald-500/5 hover:bg-emerald-500/10' : 'hover:bg-slate-800/40'
+                                            }`}
+                                        >
+                                            <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
+                                                a.isPresent
+                                                    ? 'bg-emerald-500 border-emerald-500'
+                                                    : 'border-slate-600 bg-transparent'
+                                            }`}>
+                                                {a.isPresent && <CheckIcon className="w-3 h-3 text-white" />}
+                                            </span>
+                                            <span className={`flex-1 text-sm font-medium transition-colors ${a.isPresent ? 'text-white' : 'text-slate-400'}`}>
+                                                {a.prenume} {a.nume}
+                                                {a.isExtra && <span className="ml-1.5 text-[10px] text-slate-500 font-normal">↗ extern</span>}
+                                            </span>
+                                            <span className="text-xs text-slate-500 w-28 text-right shrink-0 truncate">
+                                                {a.gradNume || <span className="text-slate-700">—</span>}
+                                            </span>
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         )}
 
-                        {/* Footer actions */}
-                        <div className="flex gap-2 items-center pt-3 border-t border-slate-800">
+                        {/* Footer */}
+                        <div className="flex gap-2 items-center p-4 pt-3 border-t border-slate-800">
                             <Button
                                 onClick={() => handleSave(section.id)}
                                 isLoading={isSaving}
@@ -303,7 +391,6 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
                 );
             })}
 
-            {/* Modal adăugare sportiv extern */}
             {addingToTrainingId && (
                 <AddExternalAthleteModal
                     trainingId={addingToTrainingId}

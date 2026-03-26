@@ -37,7 +37,6 @@ export const adminMenu: MenuItem[] = [
         submenu: [
             { label: 'Grupe & Orar', view: 'grupe' },
             { label: 'Program Antrenamente', view: 'program-antrenamente' },
-            { label: 'Generator Program', view: 'activitati' },
             { label: 'Înregistrare Prezențe', view: 'prezenta' },
             { label: 'Raport Prezențe', view: 'raport-prezenta' },
             { label: 'Raport Lunar Prezențe', view: 'raport-lunar-prezenta' },
@@ -95,7 +94,6 @@ export const adminClubMenu: MenuItem[] = [
         submenu: [
             { label: 'Grupe & Orar', view: 'grupe' },
             { label: 'Program Antrenamente', view: 'program-antrenamente' },
-            { label: 'Generator Program', view: 'activitati' },
             { label: 'Înregistrare Prezențe', view: 'prezenta' },
             { label: 'Raport Prezențe', view: 'raport-prezenta' },
             { label: 'Raport Lunar Prezențe', view: 'raport-lunar-prezenta' },

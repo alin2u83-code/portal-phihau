@@ -538,18 +538,35 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                                 .is('data_nasterii', null);
                         }
 
-                        // 3. Înregistrează rezultatul examenului
-                        const { error: examError } = await supabase
-                            .from('istoric_examene')
-                            .upsert({
-                                sportiv_id: finalSportivId,
-                                sesiune_id: sessionId,
-                                grad_id: gradId,
-                                rezultat: row.Rezultat,
-                                data_examen: dataExamen,
-                                contributie_achitata: contributie,
-                            }, { onConflict: 'sportiv_id,sesiune_id,grad_id' });
-                        if (examError) throw examError;
+                        // 3. Înregistrează înscrierea la examen
+                        const { data: existingInscriere } = await supabase
+                            .from('inscrieri_examene')
+                            .select('id')
+                            .eq('sportiv_id', finalSportivId)
+                            .eq('sesiune_id', sessionId)
+                            .maybeSingle();
+
+                        if (existingInscriere) {
+                            const { error: updateError } = await supabase
+                                .from('inscrieri_examene')
+                                .update({ rezultat: row.Rezultat, grad_sustinut_id: gradId })
+                                .eq('id', existingInscriere.id);
+                            if (updateError) throw updateError;
+                        } else {
+                            const { error: insertError } = await supabase
+                                .from('inscrieri_examene')
+                                .insert({
+                                    sportiv_id: finalSportivId,
+                                    sesiune_id: sessionId,
+                                    grad_sustinut_id: gradId,
+                                    grad_actual_id: row.Rezultat === 'Admis' ? gradId : null,
+                                    club_id: currentUser.club_id || null,
+                                    varsta_la_examen: 0,
+                                    rezultat: row.Rezultat,
+                                    status_inscriere: 'Validat',
+                                });
+                            if (insertError) throw insertError;
+                        }
 
                         // 4. Dacă Admis: actualizează gradul și istoricul de grade
                         if (row.Rezultat === 'Admis') {
@@ -570,6 +587,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                                     grad_id: gradId,
                                     data_obtinere: dataExamen,
                                     sesiune_examen_id: sessionId,
+                                    club_id: currentUser.club_id || null,
                                 }, { onConflict: 'sportiv_id,grad_id' });
                         }
 

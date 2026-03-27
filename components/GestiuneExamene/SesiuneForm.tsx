@@ -19,24 +19,32 @@ export interface SesiuneFormProps {
 }
 
 export const SesiuneForm: React.FC<SesiuneFormProps> = ({ isOpen, onClose, onSave, sesiuneToEdit, locatii, setLocatii, clubs, currentUser }) => {
-  const [formState, setFormState] = useState<Partial<SesiuneExamen>>({ data: new Date().toISOString().split('T')[0], locatie_id: '', comisia: [] });
+  const [formState, setFormState] = useState<Partial<SesiuneExamen>>({ data: new Date().toISOString().split('T')[0], locatie_id: '', comisia: [], nume: 'Vara' });
   const [loading, setLoading] = useState(false);
   const [isLocatieModalOpen, setIsLocatieModalOpen] = useState(false);
   const { showError, showSuccess } = useError();
   const isSuperAdmin = useMemo(() => currentUser.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN'), [currentUser]);
 
   useEffect(() => {
-      if (sesiuneToEdit) {
-          const comisiaAsAny = sesiuneToEdit.comisia as any;
-          const comisieArray = Array.isArray(comisiaAsAny) ? comisiaAsAny : (typeof comisiaAsAny === 'string' ? comisiaAsAny.split(',').map(s => s.trim()).filter(Boolean) : []);
-          setFormState({ ...sesiuneToEdit, comisia: comisieArray });
-      } else {
-          setFormState({ 
-              data: new Date().toISOString().split('T')[0], 
-              locatie_id: '', 
-              comisia: [],
-              club_id: isSuperAdmin ? '' : currentUser.club_id
-          });
+      if (isOpen) {
+          if (sesiuneToEdit) {
+              const comisiaAsAny = sesiuneToEdit.comisia as any;
+              const comisieArray = Array.isArray(comisiaAsAny) ? comisiaAsAny : (typeof comisiaAsAny === 'string' ? comisiaAsAny.split(',').map(s => s.trim()).filter(Boolean) : []);
+              let normalizedData = sesiuneToEdit.data;
+              if (normalizedData && /^\d{2}\/\d{2}\/\d{4}$/.test(normalizedData)) {
+                  const [d, m, y] = normalizedData.split('/');
+                  normalizedData = `${y}-${m}-${d}`;
+              }
+              setFormState({ ...sesiuneToEdit, data: normalizedData, comisia: comisieArray });
+          } else {
+              setFormState({
+                  data: new Date().toISOString().split('T')[0],
+                  locatie_id: '',
+                  comisia: [],
+                  nume: 'Vara',
+                  club_id: isSuperAdmin ? '' : currentUser.club_id
+              });
+          }
       }
   }, [sesiuneToEdit, isOpen, isSuperAdmin, currentUser.club_id]);
   
@@ -62,6 +70,10 @@ export const SesiuneForm: React.FC<SesiuneFormProps> = ({ isOpen, onClose, onSav
   <Modal isOpen={isOpen} onClose={onClose} title={sesiuneToEdit ? "Editează Sesiune Examen" : "Adaugă Sesiune Nouă"}>
     <form onSubmit={handleSubmit} className="space-y-4">
         <Input label="Data Examenului" name="data" type="date" value={formState.data} onChange={handleChange} required />
+        <Select label="Sesiunea" name="nume" value={formState.nume || 'Vara'} onChange={handleChange} required>
+            <option value="Vara">Vara</option>
+            <option value="Iarna">Iarna</option>
+        </Select>
         {isSuperAdmin && (
             <Select label="Club Organizator" name="club_id" value={formState.club_id || ''} onChange={handleChange}>
                 <option value="">Federație (eveniment central)</option>

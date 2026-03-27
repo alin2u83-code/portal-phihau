@@ -529,7 +529,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                                     data_nasterii: row.birthdate || null,
                                 })
                                 .select('id').single();
-                            if (sportivError || !newSportiv) throw sportivError || new Error('Nu s-a putut crea sportivul');
+                            if (sportivError || !newSportiv) throw new Error(sportivError?.message || 'Nu s-a putut crea sportivul');
                             finalSportivId = newSportiv.id;
                         } else if (row.birthdate) {
                             await supabase.from('sportivi')
@@ -593,7 +593,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
 
                         successCount++;
                     } catch (err: unknown) {
-                        const msg = err instanceof Error ? err.message : String(err);
+                        const msg = err instanceof Error ? err.message : (err as any)?.message || JSON.stringify(err);
                         errorDetails.push({ row: row.originalIndex + 1, name: `${row.Nume} ${row.Prenume}`, error: msg });
                     }
                 }));

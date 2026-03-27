@@ -349,12 +349,13 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
             }
             // -----------------------------------------
             
-            const existingSession = (initialSesiuni || []).find(s => s.data === row.Data_Examen?.trim());
+            const normalizedDataExamen = parseDateToISO(row.Data_Examen?.trim() || '');
+            const existingSession = (initialSesiuni || []).find(s => s.data === normalizedDataExamen);
             const sessionInfo = {
-                key: `${row.Sesiune_Denumire?.trim()}-${row.Data_Examen?.trim()}`,
+                key: `${row.Sesiune_Denumire?.trim()}-${normalizedDataExamen}`,
                 isNew: !existingSession,
                 sesiuneDenumire: row.Sesiune_Denumire?.trim(),
-                dataExamen: row.Data_Examen?.trim(),
+                dataExamen: normalizedDataExamen,
                 localitate: row.Localitate?.trim(),
                 existingSessionId: existingSession?.id
             };
@@ -511,7 +512,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                             p_ordine_grad: gradOrdine,
                             p_rezultat: row.Rezultat,
                             p_contributie: parseFloat(row.Contributie) || 0,
-                            p_data_examen: row.Data_Examen,
+                            p_data_examen: parseDateToISO(row.Data_Examen),
                             p_sesiune_id: sessionId,
                             p_data_nasterii: row.birthdate || null,
                         });

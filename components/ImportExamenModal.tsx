@@ -470,6 +470,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                     .insert({
                         data: sessionInfo.dataExamen,
                         locatie_id: locatie.id,
+                        localitate: locatie.nume,
                         club_id: currentUser.club_id || null,
                         comisia: [],
                         status: 'Programat',

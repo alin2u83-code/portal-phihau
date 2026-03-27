@@ -402,12 +402,11 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
     const [filterDataPana, setFilterDataPana] = useState('');
     const [sortField, setSortField] = useState<SortField>('data');
     const [sortDir, setSortDir] = useState<SortDir>('desc');
-    const { showError } = useError();
-    const { showSuccess } = useError();
+    const { showError, showSuccess } = useError();
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingRow, setEditingRow] = useState<RaportRow | null>(null);
     const [isAdding, setIsAdding] = useState(false);
-    const [formState, setFormState] = useState<{ sesiune_id: string; grad_sustinut_id: string; rezultat: string }>({ sesiune_id: '', grad_sustinut_id: '', rezultat: 'Neprezentat' });
+    const [formState, setFormState] = useState<{ sesiune_id: string; grad_sustinut_id: string; rezultat: string; status_inscriere: string }>({ sesiune_id: '', grad_sustinut_id: '', rezultat: 'Neprezentat', status_inscriere: 'Validat' });
     const [savingForm, setSavingForm] = useState(false);
     const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
     const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -496,14 +495,14 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
     const handleEdit = (row: RaportRow) => {
         const grad = grade.find(g => g.nume === row.grad_sustinut);
         setEditingRow(row);
-        setFormState({ sesiune_id: row.sesiune_id, grad_sustinut_id: grad?.id || '', rezultat: row.rezultat || 'Neprezentat' });
+        setFormState({ sesiune_id: row.sesiune_id, grad_sustinut_id: grad?.id || '', rezultat: row.rezultat || 'Neprezentat', status_inscriere: row.status_inscriere || 'Validat' });
         setIsAdding(false);
         setIsFormOpen(true);
     };
 
     const handleAdd = () => {
         setEditingRow(null);
-        setFormState({ sesiune_id: '', grad_sustinut_id: '', rezultat: 'Neprezentat' });
+        setFormState({ sesiune_id: '', grad_sustinut_id: '', rezultat: 'Neprezentat', status_inscriere: 'Validat' });
         setIsAdding(true);
         setIsFormOpen(true);
     };
@@ -514,7 +513,7 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
         try {
             if (editingRow) {
                 const { error } = await supabase.from('inscrieri_examene')
-                    .update({ grad_sustinut_id: formState.grad_sustinut_id, rezultat: formState.rezultat, sesiune_id: formState.sesiune_id })
+                    .update({ grad_sustinut_id: formState.grad_sustinut_id, rezultat: formState.rezultat, sesiune_id: formState.sesiune_id, status_inscriere: formState.status_inscriere })
                     .eq('id', editingRow.inscriere_id);
                 if (error) throw new Error(error.message);
             } else {
@@ -606,9 +605,14 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
                                         <td className="p-3 text-slate-300">{r.club_nume || '—'}</td>
                                         <td className="p-3 text-slate-300">{r.grad_sustinut || '—'}</td>
                                         <td className="p-3">
-                                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${r.rezultat === 'Admis' ? 'bg-green-500/20 text-green-400' : r.rezultat === 'Respins' ? 'bg-red-500/20 text-red-400' : 'bg-slate-600 text-slate-300'}`}>
-                                                {r.rezultat || '—'}
-                                            </span>
+                                            {(() => {
+                                                const val = r.rezultat || r.status_inscriere;
+                                                const cls = r.rezultat === 'Admis' ? 'bg-green-500/20 text-green-400'
+                                                    : r.rezultat === 'Respins' ? 'bg-red-500/20 text-red-400'
+                                                    : r.status_inscriere === 'In asteptare' ? 'bg-yellow-500/20 text-yellow-400'
+                                                    : 'bg-slate-600 text-slate-300';
+                                                return <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${cls}`}>{val || '—'}</span>;
+                                            })()}
                                         </td>
                                         <td className="p-3 text-slate-300">{r.data_examen ? new Date(r.data_examen + 'T00:00:00').toLocaleDateString('ro-RO') : '—'}</td>
                                         <td className="p-3 text-slate-300 hidden md:table-cell">{r.sesiune_nume || '—'}</td>
@@ -641,6 +645,10 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
                         <option value="Admis">Admis</option>
                         <option value="Respins">Respins</option>
                         <option value="Neprezentat">Neprezentat</option>
+                    </Select>
+                    <Select label="Status Înregistrare" name="status_inscriere" value={formState.status_inscriere} onChange={e => setFormState(p => ({ ...p, status_inscriere: e.target.value }))}>
+                        <option value="Validat">Validat</option>
+                        <option value="In asteptare">In asteptare</option>
                     </Select>
                     <div className="flex justify-end gap-2 pt-2">
                         <Button variant="secondary" onClick={() => setIsFormOpen(false)} disabled={savingForm}>Anulează</Button>

@@ -36,9 +36,10 @@ interface UserProfileProps {
     sportiv: Sportiv;
     onBack: () => void;
     onNavigate?: (view: import('../types').View) => void;
+    onViewExameneRaport?: (sportivId: string) => void;
 }
 
-export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNavigate }) => {
+export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNavigate, onViewExameneRaport }) => {
     const {
         currentUser,
         setIstoricGrade,
@@ -499,7 +500,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
                             <Button variant="secondary" onClick={() => onNavigate('plati-scadente')} className="shadow-sm hover:shadow-md transition-all" title="Vezi plățile acestui sportiv">
                                 <BanknotesIcon className="w-4 h-4 mr-2"/> Plăți
                             </Button>
-                            <Button variant="secondary" onClick={() => onNavigate('examene')} className="shadow-sm hover:shadow-md transition-all" title="Vezi examenele acestui sportiv">
+                            <Button variant="secondary" onClick={() => onViewExameneRaport ? onViewExameneRaport(sportiv.id) : onNavigate?.('examene')} className="shadow-sm hover:shadow-md transition-all" title="Raport examene sportiv">
                                 <TrophyIcon className="w-4 h-4 mr-2"/> Examene
                             </Button>
                         </>

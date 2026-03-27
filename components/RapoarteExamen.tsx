@@ -392,7 +392,7 @@ interface RaportRow {
 type SortField = 'sportiv' | 'grad' | 'data' | 'rezultat' | 'club';
 type SortDir = 'asc' | 'desc';
 
-const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; currentUser: User }> = ({ sesiuni, grade, currentUser }) => {
+const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; currentUser: User; initialSportivId?: string | null }> = ({ sesiuni, grade, currentUser, initialSportivId }) => {
     const [rows, setRows] = useState<RaportRow[]>([]);
     const [loading, setLoading] = useState(false);
     const [filterNume, setFilterNume] = useState('');
@@ -403,6 +403,14 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
     const [sortField, setSortField] = useState<SortField>('data');
     const [sortDir, setSortDir] = useState<SortDir>('desc');
     const { showError } = useError();
+    const { showSuccess } = useError();
+    const [isFormOpen, setIsFormOpen] = useState(false);
+    const [editingRow, setEditingRow] = useState<RaportRow | null>(null);
+    const [isAdding, setIsAdding] = useState(false);
+    const [formState, setFormState] = useState<{ sesiune_id: string; grad_sustinut_id: string; rezultat: string }>({ sesiune_id: '', grad_sustinut_id: '', rezultat: 'Neprezentat' });
+    const [savingForm, setSavingForm] = useState(false);
+    const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
 
     useEffect(() => {
         const fetch = async () => {
@@ -421,6 +429,10 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
         fetch();
     }, [sesiuni, showError]);
 
+    useEffect(() => {
+        if (initialSportivId) setFilterNume('__sportiv_id__' + initialSportivId);
+    }, [initialSportivId]);
+
     const handleSort = (field: SortField) => {
         if (sortField === field) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
         else { setSortField(field); setSortDir('asc'); }
@@ -428,7 +440,10 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
 
     const filtered = useMemo(() => {
         let r = rows;
-        if (filterNume) {
+        if (filterNume.startsWith('__sportiv_id__')) {
+            const id = filterNume.replace('__sportiv_id__', '');
+            r = r.filter(x => x.sportiv_id === id);
+        } else if (filterNume) {
             const q = filterNume.toLowerCase();
             r = r.filter(x => `${x.sportiv_nume} ${x.sportiv_prenume}`.toLowerCase().includes(q));
         }
@@ -471,10 +486,81 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
         URL.revokeObjectURL(url);
     };
 
+    const refreshRows = async () => {
+        const { data, error } = await supabase
+            .from('vedere_detalii_examen')
+            .select('inscriere_id, sportiv_id, sportiv_nume, sportiv_prenume, club_nume, grad_sustinut, grad_ordine, rezultat, data_examen, locatie_nume, sesiune_id, status_inscriere');
+        if (!error) setRows((data || []).map(r => ({ ...r, sesiune_nume: sesiuni.find(s => s.id === r.sesiune_id)?.nume || '' })));
+    };
+
+    const handleEdit = (row: RaportRow) => {
+        const grad = grade.find(g => g.nume === row.grad_sustinut);
+        setEditingRow(row);
+        setFormState({ sesiune_id: row.sesiune_id, grad_sustinut_id: grad?.id || '', rezultat: row.rezultat || 'Neprezentat' });
+        setIsAdding(false);
+        setIsFormOpen(true);
+    };
+
+    const handleAdd = () => {
+        setEditingRow(null);
+        setFormState({ sesiune_id: '', grad_sustinut_id: '', rezultat: 'Neprezentat' });
+        setIsAdding(true);
+        setIsFormOpen(true);
+    };
+
+    const handleSave = async () => {
+        if (!formState.sesiune_id || !formState.grad_sustinut_id) { showError('Validare', 'Selectează sesiunea și gradul.'); return; }
+        setSavingForm(true);
+        try {
+            if (editingRow) {
+                const { error } = await supabase.from('inscrieri_examene')
+                    .update({ grad_sustinut_id: formState.grad_sustinut_id, rezultat: formState.rezultat, sesiune_id: formState.sesiune_id })
+                    .eq('id', editingRow.inscriere_id);
+                if (error) throw new Error(error.message);
+            } else {
+                if (!initialSportivId) { showError('Eroare', 'Sportivul nu e identificat.'); return; }
+                const { error } = await supabase.from('inscrieri_examene').insert({
+                    sportiv_id: initialSportivId,
+                    sesiune_id: formState.sesiune_id,
+                    grad_sustinut_id: formState.grad_sustinut_id,
+                    grad_actual_id: null,
+                    club_id: currentUser.club_id || null,
+                    varsta_la_examen: 0,
+                    rezultat: formState.rezultat,
+                    status_inscriere: 'Validat',
+                });
+                if (error) throw new Error(error.message);
+            }
+            await refreshRows();
+            setIsFormOpen(false);
+            showSuccess('Succes', 'Examenul a fost salvat.');
+        } catch (err: any) {
+            showError('Eroare', err.message);
+        } finally {
+            setSavingForm(false);
+        }
+    };
+
+    const handleDelete = async (id: string) => {
+        setDeletingId(id);
+        const { error } = await supabase.from('inscrieri_examene').delete().eq('id', id);
+        setDeletingId(null);
+        setConfirmDeleteId(null);
+        if (error) { showError('Eroare', error.message); return; }
+        setRows(prev => prev.filter(r => r.inscriere_id !== id));
+        showSuccess('Succes', 'Examenul a fost șters.');
+    };
+
     return (
         <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                <Input label="Caută sportiv" value={filterNume} onChange={e => setFilterNume(e.target.value)} placeholder="Nume sau prenume..." />
+                {initialSportivId ? (
+                    <div className="text-sm text-blue-300 font-medium py-2 col-span-full">
+                        Filtrat pe sportiv selectat
+                    </div>
+                ) : (
+                    <Input label="Caută sportiv" value={filterNume} onChange={e => setFilterNume(e.target.value)} placeholder="Nume sau prenume..." />
+                )}
                 <Select label="Grad" value={filterGrad} onChange={e => setFilterGrad(e.target.value)}>
                     <option value="">Toate gradele</option>
                     {grade.map(g => <option key={g.id} value={String(g.ordine)}>{g.nume}</option>)}
@@ -490,7 +576,10 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
             </div>
             <div className="flex justify-between items-center">
                 <p className="text-sm text-slate-400">{filtered.length} înregistrări</p>
-                <Button variant="secondary" onClick={handleExport} size="sm">Export CSV</Button>
+                <div className="flex gap-2">
+                    {initialSportivId && <Button variant="info" onClick={handleAdd} size="sm"><PlusIcon className="w-4 h-4 mr-1" />Adaugă examen</Button>}
+                    <Button variant="secondary" onClick={handleExport} size="sm">Export CSV</Button>
+                </div>
             </div>
             {loading ? (
                 <p className="text-center text-slate-400 py-8">Se încarcă...</p>
@@ -507,6 +596,7 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
                                     <th className="p-3"><SortBtn field="data" label="Data" /></th>
                                     <th className="p-3 hidden md:table-cell">Sesiune</th>
                                     <th className="p-3 hidden lg:table-cell">Locație</th>
+                                    <th className="p-3 text-right">Acțiuni</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-700">
@@ -523,14 +613,48 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
                                         <td className="p-3 text-slate-300">{r.data_examen ? new Date(r.data_examen + 'T00:00:00').toLocaleDateString('ro-RO') : '—'}</td>
                                         <td className="p-3 text-slate-300 hidden md:table-cell">{r.sesiune_nume || '—'}</td>
                                         <td className="p-3 text-slate-400 hidden lg:table-cell">{r.locatie_nume || '—'}</td>
+                                        <td className="p-3 text-right">
+                                            <div className="flex justify-end gap-1">
+                                                <Button variant="primary" size="sm" onClick={() => handleEdit(r)} title="Editează"><EditIcon className="w-3.5 h-3.5" /></Button>
+                                                <Button variant="danger" size="sm" onClick={() => setConfirmDeleteId(r.inscriere_id)} isLoading={deletingId === r.inscriere_id} title="Șterge"><TrashIcon className="w-3.5 h-3.5" /></Button>
+                                            </div>
+                                        </td>
                                     </tr>
                                 ))}
-                                {filtered.length === 0 && <tr><td colSpan={7} className="p-6 text-center text-slate-400">Nicio înregistrare găsită.</td></tr>}
+                                {filtered.length === 0 && <tr><td colSpan={8} className="p-6 text-center text-slate-400">Nicio înregistrare găsită.</td></tr>}
                             </tbody>
                         </table>
                     </div>
                 </div>
             )}
+            <Modal isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} title={isAdding ? 'Adaugă Examen' : 'Editează Examen'}>
+                <div className="space-y-4">
+                    <Select label="Sesiunea" name="sesiune_id" value={formState.sesiune_id} onChange={e => setFormState(p => ({ ...p, sesiune_id: e.target.value }))} required>
+                        <option value="">Selectează sesiunea...</option>
+                        {sesiuni.map(s => <option key={s.id} value={s.id}>{s.data ? new Date(s.data + 'T00:00:00').toLocaleDateString('ro-RO') : ''} — {s.nume} {s.locatie_nume || ''}</option>)}
+                    </Select>
+                    <Select label="Grad" name="grad_sustinut_id" value={formState.grad_sustinut_id} onChange={e => setFormState(p => ({ ...p, grad_sustinut_id: e.target.value }))} required>
+                        <option value="">Selectează gradul...</option>
+                        {grade.map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}
+                    </Select>
+                    <Select label="Rezultat" name="rezultat" value={formState.rezultat} onChange={e => setFormState(p => ({ ...p, rezultat: e.target.value }))}>
+                        <option value="Admis">Admis</option>
+                        <option value="Respins">Respins</option>
+                        <option value="Neprezentat">Neprezentat</option>
+                    </Select>
+                    <div className="flex justify-end gap-2 pt-2">
+                        <Button variant="secondary" onClick={() => setIsFormOpen(false)} disabled={savingForm}>Anulează</Button>
+                        <Button variant="success" onClick={handleSave} isLoading={savingForm}>Salvează</Button>
+                    </div>
+                </div>
+            </Modal>
+            <ConfirmDeleteModal
+                isOpen={!!confirmDeleteId}
+                onClose={() => setConfirmDeleteId(null)}
+                onConfirm={() => { if (confirmDeleteId) handleDelete(confirmDeleteId); }}
+                tableName="înregistrarea examenului"
+                isLoading={!!deletingId}
+            />
         </div>
     );
 };
@@ -557,9 +681,10 @@ interface RapoarteExamenProps {
     istoricGrade: IstoricGrade[];
     setIstoricGrade: React.Dispatch<React.SetStateAction<IstoricGrade[]>>;
     onViewSportiv: (sportiv: Sportiv) => void;
+    initialSportivId?: string | null;
 }
 
-export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ currentUser, clubs, onBack, sesiuni, setSesiuni, inscrieri, setInscrieri, sportivi, setSportivi, grade, locatii, setLocatii, plati, setPlati, preturiConfig, deconturiFederatie, setDeconturiFederatie, istoricGrade, setIstoricGrade, onViewSportiv }) => {
+export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ currentUser, clubs, onBack, sesiuni, setSesiuni, inscrieri, setInscrieri, sportivi, setSportivi, grade, locatii, setLocatii, plati, setPlati, preturiConfig, deconturiFederatie, setDeconturiFederatie, istoricGrade, setIstoricGrade, onViewSportiv, initialSportivId }) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [sesiuneToEdit, setSesiuneToEdit] = useState<SesiuneExamen | null>(null);
   const [sesiuneToDelete, setSesiuneToDelete] = useState<SesiuneExamen | null>(null);
@@ -567,7 +692,11 @@ export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ currentUser, clu
   const [selectedSesiuneId, setSelectedSesiuneId] = useLocalStorage<string | null>('phi-hau-selected-sesiune-id', null);
   const [activeTab, setActiveTab] = useState<'sesiuni' | 'raport'>('sesiuni');
   const { showError, showSuccess } = useError();
-  
+
+  useEffect(() => {
+      if (initialSportivId) setActiveTab('raport');
+  }, [initialSportivId]);
+
   const selectedSesiune = useMemo(() => selectedSesiuneId ? sesiuni.find(e => e.id === selectedSesiuneId) || null : null, [selectedSesiuneId, sesiuni]);
 
   const handleBackToList = () => setSelectedSesiuneId(null);
@@ -675,7 +804,7 @@ export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ currentUser, clu
         </div>
       )}
       {activeTab === 'raport' && (
-          <RaportInscrieri sesiuni={sesiuni} grade={grade} currentUser={currentUser} />
+          <RaportInscrieri sesiuni={sesiuni} grade={grade} currentUser={currentUser} initialSportivId={initialSportivId} />
       )}
     </div>
   );

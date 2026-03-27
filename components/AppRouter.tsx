@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { View, Sportiv, Plata } from '../types';
 import * as Lazy from './LazyComponents';
@@ -68,6 +68,8 @@ export const AppRouter: React.FC<AppRouterProps> = ({
         return hasAccess ? view : <AccessDenied onBack={() => setActiveView('dashboard')} />;
     };
 
+    const [sportivIdPentruRaport, setSportivIdPentruRaport] = useState<string | null>(null);
+
     const isAtLeastInstructor = permissions.isFederationAdmin || permissions.isAdminClub || permissions.isInstructor;
     const isAtLeastClubAdmin = permissions.isAdminClub || permissions.isFederationAdmin;
     const isFederationAdmin = permissions.isFederationAdmin;
@@ -120,7 +122,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                             case 'sportivi':
                                 return renderProtected(<Lazy.SportiviManagement onBack={handleBackToDashboard} onViewSportiv={onViewSportiv} permissions={permissions} />, isAtLeastInstructor);
                             case 'profil-sportiv':
-                                return renderProtected(selectedSportiv ? <Lazy.UserProfile sportiv={selectedSportiv} onBack={() => setActiveView('sportivi')} onNavigate={setActiveView} /> : null, isAtLeastInstructor);
+                                return renderProtected(selectedSportiv ? <Lazy.UserProfile sportiv={selectedSportiv} onBack={() => setActiveView('sportivi')} onNavigate={setActiveView} onViewExameneRaport={(id) => { setSportivIdPentruRaport(id); setActiveView('rapoarte-examen'); }} /> : null, isAtLeastInstructor);
                             case 'structura-federatie':
                                 return renderProtected(<Lazy.FederationStructure clubs={clubs} sportivi={sportivi} grupe={grupe} onBack={handleBackToDashboard} onNavigate={(view) => setActiveView(view)} />, isFederationAdmin);
                             case 'examene': {
@@ -172,7 +174,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                             case 'data-maintenance':
                                 return renderProtected(<Lazy.BackupManager onBack={handleBackToDashboard} onDataRestored={() => window.location.reload()} sportivi={sportivi} setSportivi={setSportivi} grade={grade} preturiConfig={preturiConfig} participari={inscrieriExamene} examene={sesiuniExamene} plati={plati} setPlati={setPlati} familii={familii} onNavigate={(view) => setActiveView(view)} currentUser={currentUser!} />, isFederationAdmin);
                             case 'rapoarte-examen':
-                                return renderProtected(<Lazy.RapoarteExamen onBack={() => setActiveView('rapoarte')} currentUser={currentUser!} clubs={clubs} sesiuni={filteredData.sesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={filteredData.inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={filteredData.sportivi} setSportivi={setSportivi} grade={grade} locatii={locatii} setLocatii={setLocatii} plati={filteredData.plati} setPlati={setPlati} preturiConfig={preturiConfig} deconturiFederatie={filteredData.deconturiFederatie} setDeconturiFederatie={setDeconturiFederatie} istoricGrade={filteredData.istoricGrade} setIstoricGrade={setIstoricGrade} onViewSportiv={onViewSportiv} />, isAtLeastInstructor);
+                                return renderProtected(<Lazy.RapoarteExamen onBack={() => { setSportivIdPentruRaport(null); setActiveView('rapoarte'); }} currentUser={currentUser!} clubs={clubs} sesiuni={filteredData.sesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={filteredData.inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={filteredData.sportivi} setSportivi={setSportivi} grade={grade} locatii={locatii} setLocatii={setLocatii} plati={filteredData.plati} setPlati={setPlati} preturiConfig={preturiConfig} deconturiFederatie={filteredData.deconturiFederatie} setDeconturiFederatie={setDeconturiFederatie} istoricGrade={filteredData.istoricGrade} setIstoricGrade={setIstoricGrade} onViewSportiv={onViewSportiv} initialSportivId={sportivIdPentruRaport} />, isAtLeastInstructor);
                             case 'setari-club':
                                 return renderProtected(<Lazy.ClubSettings onBack={handleBackToDashboard} currentUser={currentUser!} clubs={clubs} setClubs={setClubs} />, isAtLeastClubAdmin);
                             case 'tipuri-abonament':

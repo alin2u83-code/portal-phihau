@@ -504,20 +504,75 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                     try {
                         const gradOrdine = parseInt(row.Grad_Nou_Ordine);
                         if (isNaN(gradOrdine)) throw new Error(`Grad invalid: "${row.Grad_Nou_Ordine}"`);
-                        const { error: rpcError } = await supabase.rpc('process_exam_row_v4', {
-                            p_nume: row.Nume,
-                            p_prenume: row.Prenume,
-                            p_cnp: '',
-                            p_existing_sportiv_id: sportivId,
-                            p_club_id: currentUser.club_id || null,
-                            p_ordine_grad: gradOrdine,
-                            p_rezultat: row.Rezultat,
-                            p_contributie: parseFloat(row.Contributie) || 0,
-                            p_data_examen: parseDateToISO(row.Data_Examen),
-                            p_sesiune_id: sessionId,
-                            p_data_nasterii: row.birthdate || null,
-                        });
-                        if (rpcError) throw rpcError;
+
+                        // 1. Găsește gradul
+                        const { data: gradData, error: gradError } = await supabase
+                            .from('grade').select('id, ordine').eq('ordine', gradOrdine).single();
+                        if (gradError || !gradData) throw new Error(`Grad invalid (ordine=${gradOrdine})`);
+                        const gradId = gradData.id;
+
+                        const dataExamen = parseDateToISO(row.Data_Examen);
+                        const contributie = parseFloat(row.Contributie) || 0;
+
+                        // 2. Creează sau folosește sportivul existent
+                        let finalSportivId = sportivId;
+                        if (!finalSportivId) {
+                            const { data: newSportiv, error: sportivError } = await supabase
+                                .from('sportivi')
+                                .insert({
+                                    nume: row.Nume,
+                                    prenume: row.Prenume,
+                                    club_id: currentUser.club_id || null,
+                                    grad_actual_id: row.Rezultat === 'Admis' ? gradId : null,
+                                    status: 'Activ',
+                                    data_inscrierii: new Date().toISOString().split('T')[0],
+                                    data_nasterii: row.birthdate || null,
+                                })
+                                .select('id').single();
+                            if (sportivError || !newSportiv) throw sportivError || new Error('Nu s-a putut crea sportivul');
+                            finalSportivId = newSportiv.id;
+                        } else if (row.birthdate) {
+                            await supabase.from('sportivi')
+                                .update({ data_nasterii: row.birthdate })
+                                .eq('id', finalSportivId)
+                                .is('data_nasterii', null);
+                        }
+
+                        // 3. Înregistrează rezultatul examenului
+                        const { error: examError } = await supabase
+                            .from('istoric_examene')
+                            .upsert({
+                                sportiv_id: finalSportivId,
+                                sesiune_id: sessionId,
+                                grad_id: gradId,
+                                rezultat: row.Rezultat,
+                                data_examen: dataExamen,
+                                contributie_achitata: contributie,
+                            }, { onConflict: 'sportiv_id,sesiune_id,grad_id' });
+                        if (examError) throw examError;
+
+                        // 4. Dacă Admis: actualizează gradul și istoricul de grade
+                        if (row.Rezultat === 'Admis') {
+                            const { data: sportivCurent } = await supabase
+                                .from('sportivi')
+                                .select('grad_actual_id, grade(ordine)')
+                                .eq('id', finalSportivId)
+                                .single();
+                            const currentOrdine = (sportivCurent?.grade as any)?.ordine ?? -1;
+                            if (gradOrdine > currentOrdine) {
+                                await supabase.from('sportivi')
+                                    .update({ grad_actual_id: gradId })
+                                    .eq('id', finalSportivId);
+                            }
+                            await supabase.from('istoric_grade')
+                                .upsert({
+                                    sportiv_id: finalSportivId,
+                                    grad_id: gradId,
+                                    data_obtinere: dataExamen,
+                                    sesiune_examen_id: sessionId,
+                                }, { onConflict: 'sportiv_id,grad_id' });
+                        }
+
                         successCount++;
                     } catch (err: unknown) {
                         const msg = err instanceof Error ? err.message : String(err);

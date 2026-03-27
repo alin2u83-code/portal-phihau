@@ -372,6 +372,169 @@ const DetaliiSesiune: React.FC<{
     );
 };
 
+// --- RAPORT SPORTIVI ---
+interface RaportRow {
+    inscriere_id: string;
+    sportiv_id: string;
+    sportiv_nume: string;
+    sportiv_prenume: string;
+    club_nume: string | null;
+    grad_sustinut: string | null;
+    grad_ordine: number | null;
+    rezultat: string | null;
+    data_examen: string | null;
+    locatie_nume: string | null;
+    sesiune_id: string;
+    status_inscriere: string | null;
+    sesiune_nume?: string;
+}
+
+type SortField = 'sportiv' | 'grad' | 'data' | 'rezultat' | 'club';
+type SortDir = 'asc' | 'desc';
+
+const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; currentUser: User }> = ({ sesiuni, grade, currentUser }) => {
+    const [rows, setRows] = useState<RaportRow[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [filterNume, setFilterNume] = useState('');
+    const [filterGrad, setFilterGrad] = useState('');
+    const [filterRezultat, setFilterRezultat] = useState('');
+    const [filterDataDe, setFilterDataDe] = useState('');
+    const [filterDataPana, setFilterDataPana] = useState('');
+    const [sortField, setSortField] = useState<SortField>('data');
+    const [sortDir, setSortDir] = useState<SortDir>('desc');
+    const { showError } = useError();
+
+    useEffect(() => {
+        const fetch = async () => {
+            setLoading(true);
+            const { data, error } = await supabase
+                .from('vedere_detalii_examen')
+                .select('inscriere_id, sportiv_id, sportiv_nume, sportiv_prenume, club_nume, grad_sustinut, grad_ordine, rezultat, data_examen, locatie_nume, sesiune_id, status_inscriere');
+            if (error) { showError('Eroare la raport', error.message); setLoading(false); return; }
+            const withSesiune = (data || []).map(r => ({
+                ...r,
+                sesiune_nume: sesiuni.find(s => s.id === r.sesiune_id)?.nume || '',
+            }));
+            setRows(withSesiune);
+            setLoading(false);
+        };
+        fetch();
+    }, [sesiuni, showError]);
+
+    const handleSort = (field: SortField) => {
+        if (sortField === field) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+        else { setSortField(field); setSortDir('asc'); }
+    };
+
+    const filtered = useMemo(() => {
+        let r = rows;
+        if (filterNume) {
+            const q = filterNume.toLowerCase();
+            r = r.filter(x => `${x.sportiv_nume} ${x.sportiv_prenume}`.toLowerCase().includes(q));
+        }
+        if (filterGrad) r = r.filter(x => String(x.grad_ordine) === filterGrad);
+        if (filterRezultat) r = r.filter(x => x.rezultat === filterRezultat);
+        if (filterDataDe) r = r.filter(x => x.data_examen && x.data_examen >= filterDataDe);
+        if (filterDataPana) r = r.filter(x => x.data_examen && x.data_examen <= filterDataPana);
+        return [...r].sort((a, b) => {
+            let va: string, vb: string;
+            if (sortField === 'sportiv') { va = `${a.sportiv_nume} ${a.sportiv_prenume}`; vb = `${b.sportiv_nume} ${b.sportiv_prenume}`; }
+            else if (sortField === 'grad') { va = String(a.grad_ordine ?? 999); vb = String(b.grad_ordine ?? 999); }
+            else if (sortField === 'data') { va = a.data_examen || ''; vb = b.data_examen || ''; }
+            else if (sortField === 'rezultat') { va = a.rezultat || ''; vb = b.rezultat || ''; }
+            else { va = a.club_nume || ''; vb = b.club_nume || ''; }
+            return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+        });
+    }, [rows, filterNume, filterGrad, filterRezultat, filterDataDe, filterDataPana, sortField, sortDir]);
+
+    const SortBtn: React.FC<{ field: SortField; label: string }> = ({ field, label }) => (
+        <button onClick={() => handleSort(field)} className="flex items-center gap-1 font-semibold hover:text-blue-300 transition-colors">
+            {label}
+            <span className="text-xs">{sortField === field ? (sortDir === 'asc' ? '↑' : '↓') : '↕'}</span>
+        </button>
+    );
+
+    const handleExport = () => {
+        const header = 'Nume,Prenume,Club,Grad,Rezultat,Data,Sesiune,Locatie\n';
+        const csvRows = filtered.map(r =>
+            [r.sportiv_nume, r.sportiv_prenume, r.club_nume || '', r.grad_sustinut || '', r.rezultat || '', r.data_examen || '', r.sesiune_nume || '', r.locatie_nume || '']
+            .map(v => `"${v}"`).join(',')
+        );
+        const blob = new Blob(['\uFEFF' + header + csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'raport_examene.csv');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    };
+
+    return (
+        <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                <Input label="Caută sportiv" value={filterNume} onChange={e => setFilterNume(e.target.value)} placeholder="Nume sau prenume..." />
+                <Select label="Grad" value={filterGrad} onChange={e => setFilterGrad(e.target.value)}>
+                    <option value="">Toate gradele</option>
+                    {grade.map(g => <option key={g.id} value={String(g.ordine)}>{g.nume}</option>)}
+                </Select>
+                <Select label="Rezultat" value={filterRezultat} onChange={e => setFilterRezultat(e.target.value)}>
+                    <option value="">Toate rezultatele</option>
+                    <option value="Admis">Admis</option>
+                    <option value="Respins">Respins</option>
+                    <option value="Neprezentat">Neprezentat</option>
+                </Select>
+                <Input label="Data de la" type="date" value={filterDataDe} onChange={e => setFilterDataDe(e.target.value)} />
+                <Input label="Data până la" type="date" value={filterDataPana} onChange={e => setFilterDataPana(e.target.value)} />
+            </div>
+            <div className="flex justify-between items-center">
+                <p className="text-sm text-slate-400">{filtered.length} înregistrări</p>
+                <Button variant="secondary" onClick={handleExport} size="sm">Export CSV</Button>
+            </div>
+            {loading ? (
+                <p className="text-center text-slate-400 py-8">Se încarcă...</p>
+            ) : (
+                <div className="bg-slate-800 rounded-lg overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left text-sm min-w-[700px]">
+                            <thead className="bg-slate-700 text-slate-300">
+                                <tr>
+                                    <th className="p-3"><SortBtn field="sportiv" label="Sportiv" /></th>
+                                    <th className="p-3"><SortBtn field="club" label="Club" /></th>
+                                    <th className="p-3"><SortBtn field="grad" label="Grad" /></th>
+                                    <th className="p-3"><SortBtn field="rezultat" label="Rezultat" /></th>
+                                    <th className="p-3"><SortBtn field="data" label="Data" /></th>
+                                    <th className="p-3 hidden md:table-cell">Sesiune</th>
+                                    <th className="p-3 hidden lg:table-cell">Locație</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-700">
+                                {filtered.map(r => (
+                                    <tr key={r.inscriere_id} className="hover:bg-slate-700/40">
+                                        <td className="p-3 font-medium text-white">{r.sportiv_nume} {r.sportiv_prenume}</td>
+                                        <td className="p-3 text-slate-300">{r.club_nume || '—'}</td>
+                                        <td className="p-3 text-slate-300">{r.grad_sustinut || '—'}</td>
+                                        <td className="p-3">
+                                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${r.rezultat === 'Admis' ? 'bg-green-500/20 text-green-400' : r.rezultat === 'Respins' ? 'bg-red-500/20 text-red-400' : 'bg-slate-600 text-slate-300'}`}>
+                                                {r.rezultat || '—'}
+                                            </span>
+                                        </td>
+                                        <td className="p-3 text-slate-300">{r.data_examen ? new Date(r.data_examen + 'T00:00:00').toLocaleDateString('ro-RO') : '—'}</td>
+                                        <td className="p-3 text-slate-300 hidden md:table-cell">{r.sesiune_nume || '—'}</td>
+                                        <td className="p-3 text-slate-400 hidden lg:table-cell">{r.locatie_nume || '—'}</td>
+                                    </tr>
+                                ))}
+                                {filtered.length === 0 && <tr><td colSpan={7} className="p-6 text-center text-slate-400">Nicio înregistrare găsită.</td></tr>}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
 // --- COMPONENTA PRINCIPALĂ (REFActorizată) ---
 interface RapoarteExamenProps { 
     currentUser: User;
@@ -402,6 +565,7 @@ export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ currentUser, clu
   const [sesiuneToDelete, setSesiuneToDelete] = useState<SesiuneExamen | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedSesiuneId, setSelectedSesiuneId] = useLocalStorage<string | null>('phi-hau-selected-sesiune-id', null);
+  const [activeTab, setActiveTab] = useState<'sesiuni' | 'raport'>('sesiuni');
   const { showError, showSuccess } = useError();
   
   const selectedSesiune = useMemo(() => selectedSesiuneId ? sesiuni.find(e => e.id === selectedSesiuneId) || null : null, [selectedSesiuneId, sesiuni]);
@@ -482,26 +646,37 @@ export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ currentUser, clu
   }
 
   const sortedSesiuni = [...sesiuni].sort((a,b) => new Date((b.data || b.data_examen || '').toString().slice(0, 10)).getTime() - new Date((a.data || a.data_examen || '').toString().slice(0, 10)).getTime());
-  return ( 
+  return (
     <div>
       <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
-      <div className="flex justify-between items-center mb-6"><h1 className="text-2xl md:text-3xl font-bold text-white">Rapoarte Examen</h1><Button onClick={() => { setSesiuneToEdit(null); setIsFormOpen(true); }} variant="info"><PlusIcon className="w-5 h-5 mr-2" />Adaugă Sesiune</Button></div>
-      
-      <HartaExamene />
-      
-      <div className="bg-slate-800 rounded-lg shadow-lg overflow-hidden mt-6">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left min-w-[600px]">
-              <thead className="bg-slate-700"><tr><th className="p-4 font-semibold">Data</th><th className="p-4 font-semibold">Locația</th><th className="p-4 font-semibold">Înscriși</th><th className="p-4 font-semibold text-right">Acțiuni</th></tr></thead>
-              <tbody className="divide-y divide-slate-700">
-                  {sortedSesiuni.map(s => ( <tr key={s.id} className="hover:bg-slate-700/50"><td className="p-4 font-medium cursor-pointer" onClick={() => setSelectedSesiuneId(s.id)}>{new Date((s.data || s.data_examen || '').toString().slice(0, 10)+'T00:00:00').toLocaleDateString('ro-RO')}</td><td className="p-4 cursor-pointer" onClick={() => setSelectedSesiuneId(s.id)}>{s.locatie_nume || locatii.find(l => l.id === s.locatie_id)?.nume || 'N/A'}</td><td className="p-4">{inscrieri.filter(p => p.sesiune_id === s.id).length}</td><td className="p-4 w-32"><div className="flex items-center justify-end space-x-2"><Button onClick={() => { setSesiuneToEdit(s); setIsFormOpen(true); }} variant="primary" size="sm"><EditIcon /></Button><Button onClick={() => setSesiuneToDelete(s)} variant="danger" size="sm"><TrashIcon /></Button></div></td></tr> ))}
-                  {sortedSesiuni.length === 0 && <tr><td colSpan={4}><p className="p-4 text-center text-slate-400">Nicio sesiune programată.</p></td></tr>}
-              </tbody>
-          </table>
-        </div>
+      <div className="flex gap-2 mb-6 border-b border-slate-700">
+          <button onClick={() => setActiveTab('sesiuni')} className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'sesiuni' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-white'}`}>Sesiuni</button>
+          <button onClick={() => setActiveTab('raport')} className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'raport' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-white'}`}>Raport Sportivi</button>
       </div>
-      <SesiuneForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} onSave={handleSaveSesiune} sesiuneToEdit={sesiuneToEdit} locatii={locatii} setLocatii={setLocatii} clubs={clubs} currentUser={currentUser} />
-      <ConfirmDeleteModal isOpen={!!sesiuneToDelete} onClose={() => setSesiuneToDelete(null)} onConfirm={() => { if(sesiuneToDelete) confirmDeleteSesiune(sesiuneToDelete.id) }} tableName="Sesiuni (și toate înscrierile asociate)" isLoading={isDeleting} />
-    </div> 
+      {activeTab === 'sesiuni' && (
+        <div>
+          <div className="flex justify-between items-center mb-6"><h1 className="text-2xl md:text-3xl font-bold text-white">Rapoarte Examen</h1><Button onClick={() => { setSesiuneToEdit(null); setIsFormOpen(true); }} variant="info"><PlusIcon className="w-5 h-5 mr-2" />Adaugă Sesiune</Button></div>
+
+          <HartaExamene />
+
+          <div className="bg-slate-800 rounded-lg shadow-lg overflow-hidden mt-6">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left min-w-[600px]">
+                  <thead className="bg-slate-700"><tr><th className="p-4 font-semibold">Data</th><th className="p-4 font-semibold">Locația</th><th className="p-4 font-semibold">Înscriși</th><th className="p-4 font-semibold text-right">Acțiuni</th></tr></thead>
+                  <tbody className="divide-y divide-slate-700">
+                      {sortedSesiuni.map(s => ( <tr key={s.id} className="hover:bg-slate-700/50"><td className="p-4 font-medium cursor-pointer" onClick={() => setSelectedSesiuneId(s.id)}>{new Date((s.data || s.data_examen || '').toString().slice(0, 10)+'T00:00:00').toLocaleDateString('ro-RO')}</td><td className="p-4 cursor-pointer" onClick={() => setSelectedSesiuneId(s.id)}>{s.locatie_nume || locatii.find(l => l.id === s.locatie_id)?.nume || 'N/A'}</td><td className="p-4">{inscrieri.filter(p => p.sesiune_id === s.id).length}</td><td className="p-4 w-32"><div className="flex items-center justify-end space-x-2"><Button onClick={() => { setSesiuneToEdit(s); setIsFormOpen(true); }} variant="primary" size="sm"><EditIcon /></Button><Button onClick={() => setSesiuneToDelete(s)} variant="danger" size="sm"><TrashIcon /></Button></div></td></tr> ))}
+                      {sortedSesiuni.length === 0 && <tr><td colSpan={4}><p className="p-4 text-center text-slate-400">Nicio sesiune programată.</p></td></tr>}
+                  </tbody>
+              </table>
+            </div>
+          </div>
+          <SesiuneForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} onSave={handleSaveSesiune} sesiuneToEdit={sesiuneToEdit} locatii={locatii} setLocatii={setLocatii} clubs={clubs} currentUser={currentUser} />
+          <ConfirmDeleteModal isOpen={!!sesiuneToDelete} onClose={() => setSesiuneToDelete(null)} onConfirm={() => { if(sesiuneToDelete) confirmDeleteSesiune(sesiuneToDelete.id) }} tableName="Sesiuni (și toate înscrierile asociate)" isLoading={isDeleting} />
+        </div>
+      )}
+      {activeTab === 'raport' && (
+          <RaportInscrieri sesiuni={sesiuni} grade={grade} currentUser={currentUser} />
+      )}
+    </div>
   );
 };

@@ -308,6 +308,9 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
         const { data: allSportivi, error } = await supabase.from('sportivi').select('*');
         if (error) { showError("Eroare la validare", error.message); return []; }
 
+        const { data: existingInscrieri } = await supabase.from('inscrieri_examene').select('sportiv_id, sesiune_id');
+        const inscrieriSet = new Set((existingInscrieri || []).map(i => `${i.sportiv_id}_${i.sesiune_id}`));
+
         const validationPromises = data.map(async (row, index): Promise<PreviewRow> => {
             const baseRow: Omit<PreviewRow, 'sessionInfo' | 'status' | 'message'> = { ...row, originalIndex: index };
             
@@ -383,6 +386,11 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
 
                 // Auto-resolve: nume similar + data nașterii identică → valid fără intervenție manuală
                 if (exactBirthdateMatch && exactBirthdateMatch.similarity >= 0.7) {
+                    const sportivId = exactBirthdateMatch.id;
+                    const existingSessionId = sessionInfo.existingSessionId;
+                    if (existingSessionId && inscrieriSet.has(`${sportivId}_${existingSessionId}`)) {
+                        return { ...baseRow, status: 'error', message: 'Deja înscris la această sesiune — sărit (există în baza de date)', existingSportiv: exactBirthdateMatch, sessionInfo, birthdate };
+                    }
                     return {
                         ...baseRow,
                         status: 'valid',
@@ -395,6 +403,11 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
 
                 // Potrivire exactă de nume (similarity = 1) fără dată → valid automat
                 if (potentialMatches[0].similarity === 1) {
+                    const sportivId = potentialMatches[0].id;
+                    const existingSessionId = sessionInfo.existingSessionId;
+                    if (existingSessionId && inscrieriSet.has(`${sportivId}_${existingSessionId}`)) {
+                        return { ...baseRow, status: 'error', message: 'Deja înscris la această sesiune — sărit (există în baza de date)', existingSportiv: potentialMatches[0], sessionInfo, birthdate };
+                    }
                     return {
                         ...baseRow,
                         status: 'valid',

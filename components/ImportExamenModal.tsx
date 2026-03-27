@@ -504,10 +504,11 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                     try {
                         const gradOrdine = parseInt(row.Grad_Nou_Ordine);
                         if (isNaN(gradOrdine)) throw new Error(`Grad invalid: "${row.Grad_Nou_Ordine}"`);
-                        const { error: rpcError } = await supabase.rpc('process_exam_row_v4', {
+                        const { error: rpcError } = await supabase.rpc('process_exam_row_v3', {
                             p_nume: row.Nume,
                             p_prenume: row.Prenume,
                             p_cnp: '',
+                            p_cod_sportiv: '',
                             p_existing_sportiv_id: sportivId,
                             p_club_id: currentUser.club_id || null,
                             p_ordine_grad: gradOrdine,

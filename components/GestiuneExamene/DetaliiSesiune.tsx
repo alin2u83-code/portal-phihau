@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, Button } from '../ui';
-import { EditIcon, UploadCloudIcon } from '../icons';
+import { EditIcon, UploadCloudIcon, BookOpenIcon } from '../icons';
 import { ManagementInscrieri } from '../ManagementInscrieri';
 import { SesiuneExamen, InscriereExamen, Sportiv, Grad, Locatie, Plata, PretConfig, User, DecontFederatie, IstoricGrade } from '../../types';
 import { ImportExcelExamen } from './ImportExcelExamen';
+import { ImportTutorial } from '../ImportTutorial';
 
 export interface DetaliiSesiuneProps {
     sesiune: SesiuneExamen;
@@ -33,6 +34,7 @@ export const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
     const detailsRef = useRef<HTMLDivElement>(null);
     const [detailsHeight, setDetailsHeight] = useState(0);
     const [isImportOpen, setIsImportOpen] = useState(false);
+    const [isTutorialOpen, setIsTutorialOpen] = useState(false);
 
     useEffect(() => {
         if (detailsRef.current) {
@@ -80,6 +82,9 @@ export const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
 
                 {!props.isReadOnly && (
                     <div className="flex flex-col sm:flex-row gap-2">
+                        <Button variant="secondary" onClick={() => setIsTutorialOpen(true)} title="Ghid import XLS">
+                            <BookOpenIcon className="w-4 h-4" />
+                        </Button>
                         <Button variant="secondary" onClick={() => setIsImportOpen(true)} title="Import din fișier XLS (Ex. Local sau Examen de Grad)">
                             <UploadCloudIcon className="w-4 h-4 mr-2" /> Import XLS
                         </Button>
@@ -96,6 +101,8 @@ export const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
             </div>
 
             <ManagementInscrieri {...props} detailsHeight={detailsHeight} />
+
+            <ImportTutorial asModal isOpen={isTutorialOpen} onClose={() => setIsTutorialOpen(false)} />
 
             <ImportExcelExamen
                 isOpen={isImportOpen}

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, useTransition } from 'react';
 import { SesiuneExamen, Sportiv, InscriereExamen, Grad, Plata, PretConfig, IstoricGrade } from '../types';
 import { Button, Input, Modal, Select, Card } from './ui';
 import { TrashIcon, PlusIcon, EditIcon, XCircleIcon, CheckCircleIcon } from './icons';
@@ -470,6 +470,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
     // State for results
     const [rezultateLocale, setRezultateLocale] = useState<Record<string, 'Admis' | 'Respins' | 'Neprezentat'>>({});
     const [isSavingResults, setIsSavingResults] = useState(false);
+    const [, startTransition] = useTransition();
     
     const inscrisiInSesiuneIds = useMemo(() => {
         return new Set((allInscrieri || []).filter(i => i.sesiune_id === sesiune.id).map(i => i.sportiv_id));
@@ -971,37 +972,40 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         if (!confirm(`Ești sigur că vrei să marchezi toți cei ${neadmisi.length} participanți neadmiși ca ADMIȘI?`)) return;
 
         setIsSavingResults(true);
-        const optimisticUpdate: Record<string, 'Admis' | 'Respins' | 'Neprezentat'> = {};
-        neadmisi.forEach(i => { optimisticUpdate[i.id] = 'Admis'; });
-        setRezultateLocale(prev => ({ ...prev, ...optimisticUpdate }));
+
+        // Porneste DB operations imediat (async) - nu blocheaza UI
+        const sportiviUpdates: { id: string; grad_actual_id: string }[] = [];
+        const allPromises: any[] = [];
+        for (const inscriere of neadmisi) {
+            allPromises.push(
+                supabase.from('inscrieri_examene').upsert({
+                    sportiv_id: inscriere.sportiv_id,
+                    sesiune_id: sesiune.id,
+                    grad_sustinut_id: inscriere.grad_sustinut_id,
+                    data_eveniment: sesiune.data,
+                    rezultat: 'Admis',
+                    status_inscriere: 'Validat'
+                }, { onConflict: 'sportiv_id,sesiune_id' })
+            );
+            if (inscriere.grad_sustinut_id) {
+                allPromises.push(
+                    supabase.from('istoric_grade').upsert(
+                        { sportiv_id: inscriere.sportiv_id, grad_id: inscriere.grad_sustinut_id, data_obtinere: sesiune.data, sesiune_examen_id: sesiune.id },
+                        { onConflict: 'sportiv_id,grad_id', ignoreDuplicates: true }
+                    )
+                );
+                sportiviUpdates.push({ id: inscriere.sportiv_id, grad_actual_id: inscriere.grad_sustinut_id });
+            }
+        }
+
+        // Defer re-render-ul costisitor al tabelului ca sa nu blocheze UI-ul
+        startTransition(() => {
+            const optimisticUpdate: Record<string, 'Admis' | 'Respins' | 'Neprezentat'> = {};
+            neadmisi.forEach(i => { optimisticUpdate[i.id] = 'Admis'; });
+            setRezultateLocale(prev => ({ ...prev, ...optimisticUpdate }));
+        });
 
         try {
-            const allPromises: any[] = [];
-            const sportiviUpdates: { id: string; grad_actual_id: string }[] = [];
-
-            for (const inscriere of neadmisi) {
-                const targetId = inscriere.inscriere_id || inscriere.id;
-                allPromises.push(
-                    supabase.from('inscrieri_examene').upsert({
-                        sportiv_id: inscriere.sportiv_id,
-                        sesiune_id: sesiune.id,
-                        grad_sustinut_id: inscriere.grad_sustinut_id,
-                        data_eveniment: sesiune.data,
-                        rezultat: 'Admis',
-                        status_inscriere: 'Validat'
-                    }, { onConflict: 'sportiv_id,sesiune_id' })
-                );
-                if (inscriere.grad_sustinut_id) {
-                    allPromises.push(
-                        supabase.from('istoric_grade').upsert(
-                            { sportiv_id: inscriere.sportiv_id, grad_id: inscriere.grad_sustinut_id, data_obtinere: sesiune.data, sesiune_examen_id: sesiune.id },
-                            { onConflict: 'sportiv_id,grad_id', ignoreDuplicates: true }
-                        )
-                    );
-                    sportiviUpdates.push({ id: inscriere.sportiv_id, grad_actual_id: inscriere.grad_sustinut_id });
-                }
-            }
-
             const results = await Promise.all(allPromises);
             const anyError = results.find(r => r.error);
             if (anyError) throw anyError.error;
@@ -1016,10 +1020,12 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             });
             showSuccess("Admis Toți", `${neadmisi.length} participanți marcați ca Admiși.`);
         } catch (err: any) {
-            setRezultateLocale(prev => {
-                const reverted = { ...prev };
-                neadmisi.forEach(i => { reverted[i.id] = i.rezultat || 'Neprezentat'; });
-                return reverted;
+            startTransition(() => {
+                setRezultateLocale(prev => {
+                    const reverted = { ...prev };
+                    neadmisi.forEach(i => { reverted[i.id] = i.rezultat || 'Neprezentat'; });
+                    return reverted;
+                });
             });
             showError("Eroare la Salvare", err.message);
         } finally {

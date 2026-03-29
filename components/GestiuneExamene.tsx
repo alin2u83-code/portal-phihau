@@ -142,14 +142,15 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
      return (
         <div>
             <Button onClick={handleBackToList} className="mb-4" variant="secondary"><ArrowLeftIcon /> Înapoi la listă</Button>
-            <DetaliiSesiune 
-                sesiune={selectedSesiune} 
-                inscrieri={(inscrieri || []).filter(p => p.sesiune_id === selectedSesiune.id)} 
-                setInscrieri={setInscrieri} 
-                sportivi={sportivi} 
+            <DetaliiSesiune
+                sesiune={selectedSesiune}
+                inscrieri={(inscrieri || []).filter(p => p.sesiune_id === selectedSesiune.id)}
+                setInscrieri={setInscrieri}
+                sportivi={sportivi}
                 setSportivi={setSportivi}
-                grade={grade} 
+                grade={grade}
                 istoricGrade={istoricGrade}
+                setIstoricGrade={setIstoricGrade}
                 allInscrieri={inscrieri}
                 locatii={locatii}
                 plati={plati}
@@ -160,7 +161,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
                 onViewSportiv={onViewSportiv}
                 onEdit={handleEditSelected}
                 currentUser={currentUser}
-                onFinalize={finalizeExamen} // Pass finalize function
+                onFinalize={finalizeExamen}
                 isFinalizing={managerLoading}
                 isReadOnly={isReadOnly}
             />

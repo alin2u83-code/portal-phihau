@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, Button } from '../ui';
-import { EditIcon } from '../icons';
+import { EditIcon, UploadCloudIcon } from '../icons';
 import { ManagementInscrieri } from '../ManagementInscrieri';
 import { SesiuneExamen, InscriereExamen, Sportiv, Grad, Locatie, Plata, PretConfig, User, DecontFederatie, IstoricGrade } from '../../types';
+import { ImportExcelExamen } from './ImportExcelExamen';
 
 export interface DetaliiSesiuneProps {
     sesiune: SesiuneExamen;
@@ -19,6 +20,7 @@ export interface DetaliiSesiuneProps {
     preturiConfig: PretConfig[];
     setSesiuni: React.Dispatch<React.SetStateAction<SesiuneExamen[]>>;
     setDeconturiFederatie: React.Dispatch<React.SetStateAction<DecontFederatie[]>>;
+    setIstoricGrade: React.Dispatch<React.SetStateAction<IstoricGrade[]>>;
     onViewSportiv: (sportiv: Sportiv) => void;
     onEdit: () => void;
     currentUser: User;
@@ -30,6 +32,7 @@ export interface DetaliiSesiuneProps {
 export const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
     const detailsRef = useRef<HTMLDivElement>(null);
     const [detailsHeight, setDetailsHeight] = useState(0);
+    const [isImportOpen, setIsImportOpen] = useState(false);
 
     useEffect(() => {
         if (detailsRef.current) {
@@ -56,32 +59,54 @@ export const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
         }
         await props.onFinalize(props.sesiune.id, props.inscrieri, props.sesiune, props.grade);
     };
-    
+
     return (
         <div style={{ '--details-height': `${detailsHeight}px` } as React.CSSProperties}>
             <div ref={detailsRef} className="sticky top-0 z-20 bg-slate-800 p-4 rounded-t-xl border-b border-slate-700 mb-6 flex justify-between items-start">
                 <div>
-                    <h3 className="text-2xl font-bold text-white">{props.sesiune.locatie_nume || (props.locatii || []).find(l => l.id === props.sesiune.locatie_id)?.nume} - {new Date((props.sesiune.data || props.sesiune.data_examen || '').toString().slice(0, 10) + 'T00:00:00').toLocaleDateString('ro-RO')}</h3>
-                    <p className="text-slate-400 mb-2">Comisia: {Array.isArray(props.sesiune.comisia) ? props.sesiune.comisia.join(', ') : props.sesiune.comisia}</p>
-                     {props.sesiune.status === 'Finalizat' ? (
+                    <h3 className="text-2xl font-bold text-white">
+                        {props.sesiune.locatie_nume || (props.locatii || []).find(l => l.id === props.sesiune.locatie_id)?.nume} -{' '}
+                        {new Date((props.sesiune.data || props.sesiune.data_examen || '').toString().slice(0, 10) + 'T00:00:00').toLocaleDateString('ro-RO')}
+                    </h3>
+                    <p className="text-slate-400 mb-2">
+                        Comisia: {Array.isArray(props.sesiune.comisia) ? props.sesiune.comisia.join(', ') : props.sesiune.comisia}
+                    </p>
+                    {props.sesiune.status === 'Finalizat' ? (
                         <span className="px-3 py-1 text-sm font-bold text-green-300 bg-green-900/50 border border-green-700/50 rounded-full">Finalizat</span>
                     ) : (
                         <span className="px-3 py-1 text-sm font-bold text-sky-300 bg-sky-900/50 border border-sky-700/50 rounded-full">Programat</span>
                     )}
                 </div>
-                 {props.sesiune.status !== 'Finalizat' && !props.isReadOnly && (
+
+                {!props.isReadOnly && (
                     <div className="flex flex-col sm:flex-row gap-2">
+                        <Button variant="secondary" onClick={() => setIsImportOpen(true)} title="Import din fișier XLS (Ex. Local sau Examen de Grad)">
+                            <UploadCloudIcon className="w-4 h-4 mr-2" /> Import XLS
+                        </Button>
                         <Button variant="secondary" onClick={props.onEdit}>
                             <EditIcon className="w-4 h-4 mr-2" /> Editează
                         </Button>
-                        <Button variant="success" onClick={handleFinalizeExam} isLoading={props.isFinalizing}>
-                            Finalizează Examen
-                        </Button>
+                        {props.sesiune.status !== 'Finalizat' && (
+                            <Button variant="success" onClick={handleFinalizeExam} isLoading={props.isFinalizing}>
+                                Finalizează Examen
+                            </Button>
+                        )}
                     </div>
                 )}
             </div>
-            
+
             <ManagementInscrieri {...props} detailsHeight={detailsHeight} />
+
+            <ImportExcelExamen
+                isOpen={isImportOpen}
+                onClose={() => setIsImportOpen(false)}
+                sesiune={props.sesiune}
+                sportivi={props.sportivi}
+                grade={props.grade}
+                setSportivi={props.setSportivi}
+                setInscrieri={props.setInscrieri}
+                setIstoricGrade={props.setIstoricGrade}
+            />
         </div>
     );
 };

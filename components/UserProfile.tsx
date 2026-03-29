@@ -117,42 +117,25 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
     }, [currentUser.roluri]);
 
     const gradeHistory = useMemo(() => {
-        if (!participari || !grade || !examene || !istoricGrade) return [];
+        if (!istoricGrade || !grade) return [];
 
-        const examGrades = (participari || [])
-            .filter(p => p.sportiv_id === sportiv.id && p.rezultat === 'Admis')
-            .map(p => {
-                const examen = (examene || []).find(e => e.id === p.sesiune_id);
-                const grad = (grade || []).find(g => g.id === p.grad_sustinut_id);
-                if (!examen || !grad) return null;
-                return {
-                    source: 'examen',
-                    date: new Date((examen.data || '').toString().slice(0, 10)).getTime(),
-                    grad_id: grad.id,
-                    rankName: grad.nume,
-                    rank: grad.ordine
-                };
-            })
-            .filter((p): p is NonNullable<typeof p> => p !== null);
-
-        const manualGrades = (istoricGrade || [])
-            .filter(hg => hg.sportiv_id === sportiv.id && !hg.sesiune_examen_id)
+        return (istoricGrade || [])
+            .filter(hg => hg.sportiv_id === sportiv.id)
             .map(hg => {
                 const grad = (grade || []).find(g => g.id === hg.grad_id);
                 if (!grad) return null;
                 return {
-                    source: 'manual',
+                    source: hg.sesiune_examen_id ? 'examen' : 'manual',
                     date: new Date((hg.data_obtinere || '').toString().slice(0, 10)).getTime(),
                     grad_id: grad.id,
                     rankName: grad.nume,
                     rank: grad.ordine
                 };
             })
-            .filter((g): g is NonNullable<typeof g> => g !== null);
+            .filter((g): g is NonNullable<typeof g> => g !== null)
+            .sort((a, b) => a.date - b.date);
 
-        return [...examGrades, ...manualGrades].sort((a, b) => a.date - b.date);
-
-    }, [participari, examene, grade, istoricGrade, sportiv.id]);
+    }, [istoricGrade, grade, sportiv.id]);
 
     const chartData: ChartDataPoint[] = useMemo(() => {
         return gradeHistory.map(item => ({
@@ -165,9 +148,8 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
     }, [gradeHistory]);
     
     const currentGrad = useMemo(() => {
-        const lastGradeEvent = [...gradeHistory].sort((a,b) => b.date - a.date)[0];
-        return lastGradeEvent ? grade.find(g => g.id === lastGradeEvent.grad_id) : null;
-    }, [gradeHistory, grade]);
+        return grade.find(g => g.id === sportiv.grad_actual_id) ?? null;
+    }, [grade, sportiv.grad_actual_id]);
 
     const { totalRestante, istoricFacturi } = useMemo(() => {
         if (!vizualizarePlati || !sportivi) return { totalRestante: 0, istoricFacturi: [] };
@@ -300,6 +282,14 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
             if (error) throw error;
             if (newGradeHistory) {
                 setIstoricGrade(prev => [...prev, newGradeHistory]);
+
+                // Actualizeaza grad_actual_id in starea locala daca noul grad e superior
+                const newGradeObj = grade.find(g => g.id === data.grad_id);
+                const currentGradeObj = grade.find(g => g.id === sportiv.grad_actual_id);
+                if (newGradeObj && (!currentGradeObj || newGradeObj.ordine > currentGradeObj.ordine)) {
+                    setSportivi(prev => prev.map(s => s.id === sportiv.id ? { ...s, grad_actual_id: data.grad_id } : s));
+                }
+
                 showSuccess("Succes", "Gradul a fost adăugat în istoric.");
                 setIsAddGradeModalOpen(false);
             }
@@ -576,6 +566,10 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
                         participari={participari}
                         examene={examene}
                         grade={grade}
+                        onNavigateToExam={onNavigate ? (sesiuneId) => {
+                            localStorage.setItem('phi-hau-selected-sesiune-id', sesiuneId);
+                            onNavigate('examene');
+                        } : undefined}
                     />
                 )}
 

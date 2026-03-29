@@ -14,6 +14,7 @@ interface GradeTabProps {
     participari: InscriereExamen[];
     examene: SesiuneExamen[];
     grade: Grad[];
+    onNavigateToExam?: (sesiuneId: string) => void;
 }
 
 export const GradeTab: React.FC<GradeTabProps> = ({
@@ -24,7 +25,8 @@ export const GradeTab: React.FC<GradeTabProps> = ({
     sportiv,
     participari,
     examene,
-    grade
+    grade,
+    onNavigateToExam
 }) => {
     return (
         <div className="space-y-6">
@@ -34,11 +36,12 @@ export const GradeTab: React.FC<GradeTabProps> = ({
                     <SportivProgressChart data={chartData} themeColor={primaryColor} />
                 </Card>
 
-                <ExamHistory 
-                    sportiv={sportiv} 
-                    participari={participari} 
-                    examene={examene} 
-                    grade={grade} 
+                <ExamHistory
+                    sportiv={sportiv}
+                    participari={participari}
+                    examene={examene}
+                    grade={grade}
+                    onNavigateToExam={onNavigateToExam}
                 />
             </div>
 

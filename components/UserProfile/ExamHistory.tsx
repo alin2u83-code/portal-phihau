@@ -1,16 +1,17 @@
 import React, { useMemo } from 'react';
 import { InscriereExamen, SesiuneExamen, Grad, Sportiv } from '../../types';
-import { Card } from '../ui';
-import { TrophyIcon, CheckCircleIcon, XCircleIcon, ClockIcon } from '../icons';
+import { Button, Card } from '../ui';
+import { TrophyIcon, CheckCircleIcon, XCircleIcon, ClockIcon, ChevronRightIcon } from '../icons';
 
 interface ExamHistoryProps {
     sportiv: Sportiv;
     participari: InscriereExamen[];
     examene: SesiuneExamen[];
     grade: Grad[];
+    onNavigateToExam?: (sesiuneId: string) => void;
 }
 
-export const ExamHistory: React.FC<ExamHistoryProps> = ({ sportiv, participari, examene, grade }) => {
+export const ExamHistory: React.FC<ExamHistoryProps> = ({ sportiv, participari, examene, grade, onNavigateToExam }) => {
     const history = useMemo(() => {
         if (!participari || !examene || !grade || !sportiv) return [];
 
@@ -118,6 +119,19 @@ export const ExamHistory: React.FC<ExamHistoryProps> = ({ sportiv, participari, 
                             
                             {item.observatii && (
                                 <p className="mt-2 text-xs text-slate-500 italic">"{item.observatii}"</p>
+                            )}
+
+                            {onNavigateToExam && item.sesiune_id && (
+                                <div className="mt-3 pt-3 border-t border-slate-700/50">
+                                    <Button
+                                        size="sm"
+                                        variant="secondary"
+                                        onClick={() => onNavigateToExam(item.sesiune_id!)}
+                                        className="text-xs"
+                                    >
+                                        Deschide Examenul <ChevronRightIcon className="w-3 h-3 ml-1" />
+                                    </Button>
+                                </div>
                             )}
                         </div>
                     </div>

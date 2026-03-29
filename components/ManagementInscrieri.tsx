@@ -961,6 +961,72 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         }
     };
 
+    const handleAdmitAll = async () => {
+        if (!supabase) return;
+        const neadmisi = participantiInscrisi.filter(i => (rezultateLocale[i.id] || i.rezultat) !== 'Admis');
+        if (neadmisi.length === 0) {
+            showSuccess("Info", "Toți participanții sunt deja marcați ca Admiși.");
+            return;
+        }
+        if (!confirm(`Ești sigur că vrei să marchezi toți cei ${neadmisi.length} participanți neadmiși ca ADMIȘI?`)) return;
+
+        setIsSavingResults(true);
+        const optimisticUpdate: Record<string, 'Admis' | 'Respins' | 'Neprezentat'> = {};
+        neadmisi.forEach(i => { optimisticUpdate[i.id] = 'Admis'; });
+        setRezultateLocale(prev => ({ ...prev, ...optimisticUpdate }));
+
+        try {
+            const allPromises: any[] = [];
+            const sportiviUpdates: { id: string; grad_actual_id: string }[] = [];
+
+            for (const inscriere of neadmisi) {
+                const targetId = inscriere.inscriere_id || inscriere.id;
+                allPromises.push(
+                    supabase.from('inscrieri_examene').upsert({
+                        sportiv_id: inscriere.sportiv_id,
+                        sesiune_id: sesiune.id,
+                        grad_sustinut_id: inscriere.grad_sustinut_id,
+                        data_eveniment: sesiune.data,
+                        rezultat: 'Admis',
+                        status_inscriere: 'Validat'
+                    }, { onConflict: 'sportiv_id,sesiune_id' })
+                );
+                if (inscriere.grad_sustinut_id) {
+                    allPromises.push(
+                        supabase.from('istoric_grade').upsert(
+                            { sportiv_id: inscriere.sportiv_id, grad_id: inscriere.grad_sustinut_id, data_obtinere: sesiune.data, sesiune_examen_id: sesiune.id },
+                            { onConflict: 'sportiv_id,grad_id', ignoreDuplicates: true }
+                        )
+                    );
+                    sportiviUpdates.push({ id: inscriere.sportiv_id, grad_actual_id: inscriere.grad_sustinut_id });
+                }
+            }
+
+            const results = await Promise.all(allPromises);
+            const anyError = results.find(r => r.error);
+            if (anyError) throw anyError.error;
+
+            setInscrieri(prev => prev.map(i => {
+                const wasUpdated = neadmisi.find(n => n.id === i.id);
+                return wasUpdated ? { ...i, rezultat: 'Admis' } : i;
+            }));
+            setSportivi(prev => {
+                const map = new Map(sportiviUpdates.map(u => [u.id, u.grad_actual_id]));
+                return prev.map(s => map.has(s.id) ? { ...s, grad_actual_id: map.get(s.id)! } : s);
+            });
+            showSuccess("Admis Toți", `${neadmisi.length} participanți marcați ca Admiși.`);
+        } catch (err: any) {
+            setRezultateLocale(prev => {
+                const reverted = { ...prev };
+                neadmisi.forEach(i => { reverted[i.id] = i.rezultat || 'Neprezentat'; });
+                return reverted;
+            });
+            showError("Eroare la Salvare", err.message);
+        } finally {
+            setIsSavingResults(false);
+        }
+    };
+
     const desyncedInscrieri = useMemo(() => {
         return participantiInscrisi.filter(i => {
             const rezultat = rezultateLocale[i.id] || i.rezultat;
@@ -1193,9 +1259,19 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                     <h3 className="text-lg font-bold text-white">Participanți Înscriși ({participantiInscrisi.length})</h3>
                     {!isReadOnly && (
                         <div className="flex flex-col sm:flex-row gap-3">
+                            {participantiInscrisi.some(i => (rezultateLocale[i.id] || i.rezultat) !== 'Admis') && (
+                                <Button
+                                    variant="success"
+                                    onClick={handleAdmitAll}
+                                    disabled={isSavingResults}
+                                    title="Marchează toți participanții ca Admiși"
+                                >
+                                    Admite Toți
+                                </Button>
+                            )}
                             {desyncedInscrieri.length > 0 && (
-                                <Button 
-                                    variant="secondary" 
+                                <Button
+                                    variant="secondary"
                                     className="border-amber-500 text-amber-500 hover:bg-amber-500/10"
                                     onClick={handleForceSync}
                                     disabled={isSavingResults}

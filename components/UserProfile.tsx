@@ -74,6 +74,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
     const [isReportModalOpen, setIsReportModalOpen] = useState(false);
     const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
     const [isAddGradeModalOpen, setIsAddGradeModalOpen] = useState(false);
+    const [gradeEntryToEdit, setGradeEntryToEdit] = useState<{ id: string; grad_id: string; data_obtinere: string; observatii: string } | null>(null);
     const [isCreateAccountModalOpen, setIsCreateAccountModalOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'profil' | 'contact' | 'grade' | 'financiar'>('profil');
 
@@ -124,12 +125,16 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
             .map(hg => {
                 const grad = (grade || []).find(g => g.id === hg.grad_id);
                 if (!grad) return null;
+                const dateStr = (hg.data_obtinere || '').toString().slice(0, 10);
                 return {
+                    id: hg.id,
                     source: hg.sesiune_examen_id ? 'examen' : 'manual',
-                    date: new Date((hg.data_obtinere || '').toString().slice(0, 10)).getTime(),
+                    date: new Date(dateStr).getTime(),
+                    data_obtinere: dateStr,
                     grad_id: grad.id,
                     rankName: grad.nume,
-                    rank: grad.ordine
+                    rank: grad.ordine,
+                    observatii: hg.observatii || ''
                 };
             })
             .filter((g): g is NonNullable<typeof g> => g !== null)
@@ -295,6 +300,38 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
             }
         } catch (err: any) {
             showError("Eroare la adăugare", err.message);
+        }
+    };
+
+    const handleEditGrade = async (data: { grad_id: string; data_obtinere: string; observatii: string }) => {
+        if (!supabase || !gradeEntryToEdit) return;
+        try {
+            const { error } = await supabase.from('istoric_grade')
+                .update({ grad_id: data.grad_id, data_obtinere: data.data_obtinere, observatii: data.observatii })
+                .eq('id', gradeEntryToEdit.id);
+            if (error) throw error;
+            setIstoricGrade(prev => prev.map(ig =>
+                ig.id === gradeEntryToEdit.id
+                    ? { ...ig, grad_id: data.grad_id, data_obtinere: data.data_obtinere, observatii: data.observatii }
+                    : ig
+            ));
+            setGradeEntryToEdit(null);
+            showSuccess("Succes", "Intrarea a fost actualizată.");
+        } catch (err: any) {
+            showError("Eroare la editare", err.message);
+        }
+    };
+
+    const handleDeleteGrade = async (entryId: string) => {
+        if (!supabase) return;
+        if (!confirm('Ești sigur că vrei să ștergi această intrare din istoricul de grade?')) return;
+        try {
+            const { error } = await supabase.from('istoric_grade').delete().eq('id', entryId);
+            if (error) throw error;
+            setIstoricGrade(prev => prev.filter(ig => ig.id !== entryId));
+            showSuccess("Succes", "Intrarea a fost ștearsă din istoric.");
+        } catch (err: any) {
+            showError("Eroare la ștergere", err.message);
         }
     };
 
@@ -566,6 +603,8 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
                         participari={participari}
                         examene={examene}
                         grade={grade}
+                        onEditEntry={(entry) => setGradeEntryToEdit(entry)}
+                        onDeleteEntry={handleDeleteGrade}
                         onNavigateToExam={onNavigate ? (sesiuneId) => {
                             localStorage.setItem('phi-hau-selected-sesiune-id', sesiuneId);
                             onNavigate('examene');
@@ -596,6 +635,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
             {isReportModalOpen && <SportivFeedbackReport isOpen={isReportModalOpen} onClose={() => setIsReportModalOpen(false)} sportiv={sportiv} antrenamente={antrenamente} grupe={grupe} grade={grade} participari={participari} examene={examene} />}
             {isTransferModalOpen && <TransferModal isOpen={isTransferModalOpen} onClose={() => setIsTransferModalOpen(false)} sportiv={sportiv} clubs={clubs} onTransferComplete={(updatedSportiv) => { setSportivi(p => p.map(s => s.id === updatedSportiv.id ? updatedSportiv : s)); setIsTransferModalOpen(false); }} />}
             {isAddGradeModalOpen && <AddGradeModal isOpen={isAddGradeModalOpen} onClose={() => setIsAddGradeModalOpen(false)} onSave={handleAddGrade} sportiv={sportiv} grades={grade} />}
+            {gradeEntryToEdit && <AddGradeModal isOpen={!!gradeEntryToEdit} onClose={() => setGradeEntryToEdit(null)} onSave={handleEditGrade} sportiv={sportiv} grades={grade} initialData={gradeEntryToEdit} />}
             {isCreateAccountModalOpen && <CreateAccountModal sportiv={sportiv} onClose={() => setIsCreateAccountModalOpen(false)} onAccountCreated={handleAccountCreated} currentUser={currentUser} allRoles={allRoles} />}
             <PlataEditModal plata={plataToEdit} onClose={() => setPlataToEdit(null)} onSave={handleSavePlataEdit} isLoading={isSaving} />
             <ConfirmDeleteModal isOpen={!!plataToDelete} onClose={() => setPlataToDelete(null)} onConfirm={() => { if(plataToDelete) confirmDeletePlata(plataToDelete.id) }} tableName="Factură" isLoading={isDeleting} />

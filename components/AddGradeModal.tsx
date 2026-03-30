@@ -9,23 +9,24 @@ interface AddGradeModalProps {
     onSave: (data: { grad_id: string; data_obtinere: string; observatii: string }) => Promise<void>;
     sportiv: Sportiv;
     grades: Grad[];
+    initialData?: { grad_id: string; data_obtinere: string; observatii: string };
 }
 
-export const AddGradeModal: React.FC<AddGradeModalProps> = ({ isOpen, onClose, onSave, sportiv, grades }) => {
+export const AddGradeModal: React.FC<AddGradeModalProps> = ({ isOpen, onClose, onSave, sportiv, grades, initialData }) => {
     const [gradId, setGradId] = useState('');
     const [dataObtinere, setDataObtinere] = useState(new Date().toISOString().split('T')[0]);
     const [observatii, setObservatii] = useState('');
     const [loading, setLoading] = useState(false);
     const { showError } = useError();
+    const isEditing = !!initialData;
 
     useEffect(() => {
         if (isOpen) {
-            // Resetează starea la deschidere
-            setGradId('');
-            setDataObtinere(new Date().toISOString().split('T')[0]);
-            setObservatii('');
+            setGradId(initialData?.grad_id ?? '');
+            setDataObtinere(initialData?.data_obtinere ?? new Date().toISOString().split('T')[0]);
+            setObservatii(initialData?.observatii ?? '');
         }
-    }, [isOpen]);
+    }, [isOpen, initialData]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -40,8 +41,12 @@ export const AddGradeModal: React.FC<AddGradeModalProps> = ({ isOpen, onClose, o
 
     const sortedGrades = [...grades].sort((a,b) => a.ordine - b.ordine);
 
+    const title = isEditing
+        ? `Editează Intrare Grad — ${sportiv.prenume} ${sportiv.nume}`
+        : `Adaugă Grad Manual pentru ${sportiv.prenume} ${sportiv.nume}`;
+
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title={`Adaugă Grad Manual pentru ${sportiv.nume}`}>
+        <Modal isOpen={isOpen} onClose={onClose} title={title}>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <Select
                     label="Gradul Obținut"
@@ -72,7 +77,7 @@ export const AddGradeModal: React.FC<AddGradeModalProps> = ({ isOpen, onClose, o
                         Anulează
                     </Button>
                     <Button type="submit" variant="success" isLoading={loading}>
-                        Salvează Grad
+                        {isEditing ? 'Salvează Modificările' : 'Salvează Grad'}
                     </Button>
                 </div>
             </form>

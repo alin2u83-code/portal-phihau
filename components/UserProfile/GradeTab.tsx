@@ -1,19 +1,31 @@
 import React from 'react';
 import { Card, Button } from '../ui';
-import { PlusIcon } from '../icons';
+import { PlusIcon, EditIcon, TrashIcon } from '../icons';
 import { SportivProgressChart, ChartDataPoint } from '../SportivProgressChart';
 import { ExamHistory } from './ExamHistory';
 import { Sportiv, InscriereExamen, SesiuneExamen, Grad } from '../../types';
+
+interface GradeHistoryItem {
+    id: string;
+    date: number;
+    data_obtinere: string;
+    rankName: string;
+    grad_id: string;
+    source: string;
+    observatii: string;
+}
 
 interface GradeTabProps {
     chartData: ChartDataPoint[];
     primaryColor: string;
     setIsAddGradeModalOpen: (val: boolean) => void;
-    gradeHistory: { date: number; rankName: string; source: string }[];
+    gradeHistory: GradeHistoryItem[];
     sportiv: Sportiv;
     participari: InscriereExamen[];
     examene: SesiuneExamen[];
     grade: Grad[];
+    onEditEntry?: (entry: { id: string; grad_id: string; data_obtinere: string; observatii: string }) => void;
+    onDeleteEntry?: (id: string) => void;
     onNavigateToExam?: (sesiuneId: string) => void;
 }
 
@@ -26,6 +38,8 @@ export const GradeTab: React.FC<GradeTabProps> = ({
     participari,
     examene,
     grade,
+    onEditEntry,
+    onDeleteEntry,
     onNavigateToExam
 }) => {
     return (
@@ -60,11 +74,12 @@ export const GradeTab: React.FC<GradeTabProps> = ({
                                 <th className="p-3">Grad</th>
                                 <th className="p-3">Sursă</th>
                                 <th className="p-3">Observații</th>
+                                {(onEditEntry || onDeleteEntry) && <th className="p-3 w-24"></th>}
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-700 bg-slate-900/50">
-                            {gradeHistory.length > 0 ? gradeHistory.map((item, idx) => (
-                                <tr key={idx} className="hover:bg-slate-800/50 transition-colors">
+                            {gradeHistory.length > 0 ? gradeHistory.map((item) => (
+                                <tr key={item.id} className="hover:bg-slate-800/50 transition-colors">
                                     <td className="p-3 font-medium text-white">{new Date(item.date).toLocaleDateString('ro-RO')}</td>
                                     <td className="p-3"><span className="font-bold text-amber-400">{item.rankName}</span></td>
                                     <td className="p-3">
@@ -72,10 +87,34 @@ export const GradeTab: React.FC<GradeTabProps> = ({
                                             {item.source === 'examen' ? 'Examen Oficial' : 'Acordat Manual'}
                                         </span>
                                     </td>
-                                    <td className="p-3 text-slate-400 italic">-</td>
+                                    <td className="p-3 text-slate-400 italic">{item.observatii || '-'}</td>
+                                    {(onEditEntry || onDeleteEntry) && (
+                                        <td className="p-3">
+                                            <div className="flex gap-1 justify-end">
+                                                {onEditEntry && (
+                                                    <button
+                                                        onClick={() => onEditEntry({ id: item.id, grad_id: item.grad_id, data_obtinere: item.data_obtinere, observatii: item.observatii })}
+                                                        className="p-1.5 rounded text-slate-400 hover:text-amber-400 hover:bg-amber-500/10 transition-colors"
+                                                        title="Editează"
+                                                    >
+                                                        <EditIcon className="w-4 h-4" />
+                                                    </button>
+                                                )}
+                                                {onDeleteEntry && (
+                                                    <button
+                                                        onClick={() => onDeleteEntry(item.id)}
+                                                        className="p-1.5 rounded text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                                                        title="Șterge"
+                                                    >
+                                                        <TrashIcon className="w-4 h-4" />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </td>
+                                    )}
                                 </tr>
                             )) : (
-                                <tr><td colSpan={4} className="p-4 text-center text-slate-500 italic">Nu există istoric înregistrat.</td></tr>
+                                <tr><td colSpan={5} className="p-4 text-center text-slate-500 italic">Nu există istoric înregistrat.</td></tr>
                             )}
                         </tbody>
                     </table>

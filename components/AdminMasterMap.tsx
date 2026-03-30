@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, DecontFederatie, InscriereExamen, Plata } from '../types';
+import { View, DecontFederatie, InscriereExamen, Plata, User } from '../types';
 import { Card } from './ui';
 import {
     UsersIcon,
@@ -58,9 +58,10 @@ interface AdminMasterMapProps {
     deconturiFederatie: DecontFederatie[];
     inscrieriExamene: InscriereExamen[];
     plati: Plata[];
+    currentUser: User | null;
 }
 
-export const AdminMasterMap: React.FC<AdminMasterMapProps> = ({ onNavigate, deconturiFederatie, inscrieriExamene, plati }) => {
+export const AdminMasterMap: React.FC<AdminMasterMapProps> = ({ onNavigate, deconturiFederatie, inscrieriExamene, plati, currentUser }) => {
     const [antrenamenteAzi, setAntrenamenteAzi] = useState<number | null>(null);
 
     const pendingDeconturi = React.useMemo(() =>
@@ -77,12 +78,13 @@ export const AdminMasterMap: React.FC<AdminMasterMapProps> = ({ onNavigate, deco
 
     useEffect(() => {
         const today = new Date().toLocaleDateString('sv-SE');
-        supabase
+        let query = supabase
             .from('program_antrenamente')
             .select('id', { count: 'exact', head: true })
-            .eq('data', today)
-            .then(({ count }) => setAntrenamenteAzi(count ?? 0));
-    }, []);
+            .eq('data', today);
+        if (currentUser?.club_id) query = query.eq('club_id', currentUser.club_id);
+        query.then(({ count }) => setAntrenamenteAzi(count ?? 0));
+    }, [currentUser?.club_id]);
 
     return (
         <div className="space-y-6">

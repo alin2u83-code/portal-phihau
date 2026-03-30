@@ -118,7 +118,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                                                 <h1 className="text-2xl font-bold text-white">Bună ziua{currentUser?.nume ? `, ${currentUser.nume}` : ''}!</h1>
                                                 <p className="text-slate-400 text-sm">Ce facem azi?</p>
                                             </header>
-                                            <Lazy.AdminMasterMap onNavigate={setActiveView} deconturiFederatie={filteredData.deconturiFederatie} inscrieriExamene={filteredData.inscrieriExamene} plati={filteredData.plati} />
+                                            <Lazy.AdminMasterMap onNavigate={setActiveView} deconturiFederatie={filteredData.deconturiFederatie} inscrieriExamene={filteredData.inscrieriExamene} plati={filteredData.plati} currentUser={currentUser ?? null} />
                                         </div>
                                     );
                                 }

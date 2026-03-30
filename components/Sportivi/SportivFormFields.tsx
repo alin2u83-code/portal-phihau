@@ -173,19 +173,34 @@ export const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
                         <Input label="Adresă" name="adresa" value={formData.adresa || ''} onChange={handleChange} disabled={loading} />
                     </FormSection>
 
-                    {!initialData.id && (
+                    {!initialData.id ? (
                         <FormSection title="Detalii Cont Acces (Opțional)">
                             <p className="text-xs text-slate-400 col-span-full -mt-1">La salvare, se va crea automat un cont de acces cu email și parolă generate. Username-ul va fi generat automat (ex: nume.prenume).</p>
                             <Input label="Email (Login)" name="email" type="email" value={formData.email || ''} onChange={handleChange} disabled={loading} required={!initialData.id} error={errors.email} />
-                            <Input 
-                                label="Username (Auto-generat)" 
-                                name="username" 
-                                value={formData.username || '(generat automat)'} 
-                                onChange={handleChange} 
-                                disabled={true} 
-                                className="opacity-60 cursor-not-allowed" 
+                            <Input
+                                label="Username (Auto-generat)"
+                                name="username"
+                                value={formData.username || '(generat automat)'}
+                                onChange={handleChange}
+                                disabled={true}
+                                className="opacity-60 cursor-not-allowed"
                             />
                             <Input label="Parolă" name="parola" value={formData.parola || ''} onChange={handleChange} disabled={loading} required error={errors.parola} />
+                        </FormSection>
+                    ) : (
+                        <FormSection title="Email & Login">
+                            <Input
+                                label="Email"
+                                name="email"
+                                type="email"
+                                value={formData.email || ''}
+                                onChange={handleChange}
+                                disabled={loading}
+                                placeholder="adresa@email.ro"
+                            />
+                            <p className="text-xs text-slate-400 col-span-full -mt-1">
+                                Dacă sportivul are cont de login, emailul de autentificare va fi actualizat automat.
+                            </p>
                         </FormSection>
                     )}
 

@@ -38,12 +38,26 @@ export const actualizeazaSportiv = async (id: string, formData: Partial<Sportiv>
         const { roluri, cluburi, nume, prenume, ...otherData } = formData;
 
         // Fetch current data to check for changes and get missing name parts
-        const { data: currentSportiv, error: fetchError } = await supabase.from('sportivi').select('nume, prenume').eq('id', id).single();
+        const { data: currentSportiv, error: fetchError } = await supabase.from('sportivi').select('nume, prenume, email, user_id').eq('id', id).single();
         if (fetchError) throw fetchError;
 
         let nameChanged = false;
         if (nume !== undefined && nume !== currentSportiv.nume) nameChanged = true;
         if (prenume !== undefined && prenume !== currentSportiv.prenume) nameChanged = true;
+
+        // Schimbă email în auth.users dacă s-a modificat și există cont de login
+        const { email: newEmail, ...otherDataWithoutEmail } = formData as any;
+        if (newEmail && newEmail !== currentSportiv.email && currentSportiv.user_id) {
+            const response = await fetch('/api/schimba-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: currentSportiv.user_id, new_email: newEmail }),
+            });
+            if (!response.ok) {
+                const err = await response.json();
+                throw new Error(err.error || 'Eroare la actualizarea emailului de login.');
+            }
+        }
 
         if (nameChanged) {
              const newNume = nume !== undefined ? nume : currentSportiv.nume;

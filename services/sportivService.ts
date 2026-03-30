@@ -45,17 +45,24 @@ export const actualizeazaSportiv = async (id: string, formData: Partial<Sportiv>
         if (nume !== undefined && nume !== currentSportiv.nume) nameChanged = true;
         if (prenume !== undefined && prenume !== currentSportiv.prenume) nameChanged = true;
 
-        // Schimbă email în auth.users dacă s-a modificat și există cont de login
-        const { email: newEmail, ...otherDataWithoutEmail } = formData as any;
-        if (newEmail && newEmail !== currentSportiv.email && currentSportiv.user_id) {
-            const response = await fetch('/api/schimba-email', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user_id: currentSportiv.user_id, new_email: newEmail }),
-            });
-            if (!response.ok) {
-                const err = await response.json();
-                throw new Error(err.error || 'Eroare la actualizarea emailului de login.');
+        // Schimbă email dacă s-a modificat
+        const { email: newEmail } = formData as any;
+        if (newEmail !== undefined && newEmail !== null && newEmail !== currentSportiv.email) {
+            // Actualizăm email în tabelul sportivi
+            const { error: emailError } = await supabase.from('sportivi').update({ email: newEmail }).eq('id', id);
+            if (emailError) throw emailError;
+
+            // Dacă sportivul are cont de login, actualizăm și în auth.users
+            if (currentSportiv.user_id) {
+                const response = await fetch('/api/schimba-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: currentSportiv.user_id, new_email: newEmail }),
+                });
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.error || 'Eroare la actualizarea emailului de login.');
+                }
             }
         }
 
@@ -74,7 +81,8 @@ export const actualizeazaSportiv = async (id: string, formData: Partial<Sportiv>
 
         // Update other fields if any
         if (Object.keys(otherData).length > 0) {
-            const { grad_actual_id, grupe, familie, sportivi_count, username, parola, ...restData } = otherData as any;
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { grad_actual_id, grupe, familie, sportivi_count, username, parola, id: _id, email: _email, ...restData } = otherData as any;
 
             // Strip any remaining object/array values (join fields) that can't be written to DB
             const safeData = Object.fromEntries(

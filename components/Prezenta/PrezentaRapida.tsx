@@ -142,7 +142,16 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
 
         if (error) { showError("Eroare", error.message); setLoading(false); return; }
 
-        const built: TrainingSection[] = (data || []).map(t => {
+        // Deduplicăm în caz că DB-ul are rânduri duplicate (același grup+oră)
+        const seen = new Set<string>();
+        const deduped = (data || []).filter(t => {
+            const key = `${t.grupe ? (t.grupe as any).denumire : ''}_${t.ora_start}_${t.ora_sfarsit}`;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        });
+
+        const built: TrainingSection[] = deduped.map(t => {
             const sportivi = ((t.grupe as any)?.sportivi || [])
                 .filter((s: any) => s.status === 'Activ')
                 .sort((a: any, b: any) => a.nume.localeCompare(b.nume));

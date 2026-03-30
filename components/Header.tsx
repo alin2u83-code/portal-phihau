@@ -66,11 +66,13 @@ export const Header: React.FC<HeaderProps> = ({
     onSwitchRole,
     onOpenMobileSidebar,
 }) => {
-    const { activeView, setActiveView } = useNavigation();
+    const { activeView, setActiveView, canGoBack, previousView } = useNavigation();
     const isRootView = ROOT_VIEWS.includes(activeView);
     const isMobile = useIsMobile();
 
     const pageTitle = VIEW_TITLES[activeView] || 'Portal';
+    const previousTitle = previousView ? (VIEW_TITLES[previousView] || null) : null;
+    const showBackButton = !isRootView || canGoBack;
 
     return (
         <header
@@ -89,15 +91,20 @@ export const Header: React.FC<HeaderProps> = ({
                         <Bars3Icon className="w-5 h-5" />
                     </button>
                 )}
-                {!isRootView && (
+                {showBackButton && (
                     <Button
                         onClick={onBack}
                         variant="secondary"
                         size="sm"
                         className="!px-3 !py-2 bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700 shadow-sm flex items-center gap-1.5 shrink-0"
+                        title={previousTitle ? `Înapoi la ${previousTitle}` : 'Înapoi'}
                     >
                         <ArrowLeftIcon className="w-4 h-4" />
-                        {!isMobile && <span className="text-xs font-medium">Înapoi</span>}
+                        {!isMobile && (
+                            <span className="text-xs font-medium">
+                                {canGoBack && previousTitle ? previousTitle : 'Înapoi'}
+                            </span>
+                        )}
                     </Button>
                 )}
                 <div className="flex items-center gap-2 min-w-0">

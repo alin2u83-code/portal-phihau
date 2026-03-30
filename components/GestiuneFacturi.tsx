@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Plata, Sportiv, User, TipPlata, Familie, Tranzactie, Reducere, PretConfig, TipAbonament } from '../types';
-import { Button, Card, Input, Select, Modal } from './ui';
-import { ArrowLeftIcon, PlusIcon, EditIcon, TrashIcon, SearchIcon, WalletIcon, CheckCircleIcon } from './icons';
+import { Button, Card, Input, Select, Modal, SearchInput } from './ui';
+import { ArrowLeftIcon, PlusIcon, EditIcon, TrashIcon, WalletIcon, CheckCircleIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
@@ -521,18 +521,12 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
             <Card className="p-0 overflow-hidden">
                 <div className="p-4 bg-slate-700/50 font-bold text-white flex justify-between items-center flex-wrap gap-4">
                     <span>Facturi Recente</span>
-                    <div className="relative w-full md:w-64">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <SearchIcon className="h-4 w-4 text-slate-400" />
-                        </div>
-                        <Input
-                            label=""
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="Caută după nume sau descriere..."
-                            className="pl-10 py-1 text-sm !mt-0"
-                        />
-                    </div>
+                    <SearchInput
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Caută după nume sau descriere..."
+                        containerClassName="w-full md:w-64"
+                    />
                 </div>
                 <div className="overflow-x-auto max-h-[60vh]">
                     <ResponsiveTable 

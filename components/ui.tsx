@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
-import { XIcon } from './icons';
-import { Rol } from '../types';
+import { XIcon, SearchIcon } from './icons';
+import { Rol, Club } from '../types';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger' | 'success' | 'info' | 'warning';
@@ -268,3 +268,38 @@ export const Badge: React.FC<{ children: React.ReactNode, variant?: 'green' | 'r
     </span>
   );
 };
+
+interface SearchInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  label?: string;
+  containerClassName?: string;
+}
+
+export const SearchInput: React.FC<SearchInputProps> = ({ label, containerClassName = '', className = '', ...props }) => (
+  <div className={`w-full ${containerClassName}`}>
+    {label && <label className="block text-[11px] uppercase font-bold text-slate-200 mb-1 ml-1">{label}</label>}
+    <div className="relative">
+      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+        <SearchIcon className="h-4 w-4 text-slate-400" />
+      </div>
+      <input
+        {...props}
+        className={`w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-base sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm touch-manipulation appearance-none ${className}`}
+      />
+    </div>
+  </div>
+);
+
+export const ClubSelect: React.FC<{
+  clubs: Club[];
+  value: string;
+  onChange: React.ChangeEventHandler<HTMLSelectElement>;
+  label?: string;
+  allLabel?: string;
+  name?: string;
+  renderOption?: (club: Club) => string;
+}> = ({ clubs, value, onChange, label = 'Club', allLabel = 'Toate cluburile', name, renderOption }) => (
+  <Select label={label} name={name} value={value} onChange={onChange}>
+    <option value="">{allLabel}</option>
+    {clubs.map(c => <option key={c.id} value={c.id}>{renderOption ? renderOption(c) : c.nume}</option>)}
+  </Select>
+);

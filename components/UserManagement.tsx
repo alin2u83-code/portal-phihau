@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Sportiv, User, Rol, Club, Permissions } from '../types';
-import { Button, Input, Card, Select, Modal, RoleBadge } from './ui';
+import { Button, Card, Input, Select, Modal, RoleBadge, SearchInput, ClubSelect } from './ui';
 import { ArrowLeftIcon, ShieldCheckIcon, PlusIcon, LockIcon, ClipboardCheckIcon, WalletIcon, UsersIcon, CogIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
@@ -724,22 +724,18 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                             </Button>
                         </div>
                         <div className="flex flex-col sm:flex-row gap-2">
-                            <Input
-                                label=""
+                            <SearchInput
                                 placeholder="Caută după nume sau email..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="flex-1"
+                                containerClassName="flex-1"
                             />
                             {isFederationAdmin && (
-                                <select
+                                <ClubSelect
+                                    clubs={clubs}
                                     value={selectedClubId || ''}
                                     onChange={(e) => setSelectedClubId(e.target.value || null)}
-                                    className="bg-slate-800 border border-slate-700 rounded-md px-3 py-1.5 text-sm text-slate-200 focus:ring-1 focus:ring-amber-500 outline-none w-full sm:w-auto"
-                                >
-                                    <option value="">Toate Cluburile</option>
-                                    {clubs.map(c => <option key={c.id} value={c.id}>{c.nume}</option>)}
-                                </select>
+                                />
                             )}
                         </div>
                         <div className="flex flex-wrap items-center gap-4">

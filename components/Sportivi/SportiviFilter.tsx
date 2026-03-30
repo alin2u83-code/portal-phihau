@@ -1,6 +1,5 @@
 import React from 'react';
-import { Input, Select } from '../ui';
-import { SearchIcon } from '../icons';
+import { Input, Select, ClubSelect } from '../ui';
 import { Grupa, Rol, Grad, Club, Permissions } from '../../types';
 
 interface SportiviFilterProps {
@@ -71,14 +70,11 @@ export const SportiviFilter: React.FC<SportiviFilterProps> = ({ filters, onFilte
         {[...(grade || [])].sort((a,b) => a.ordine - b.ordine).map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}
       </Select>
       {permissions?.isFederationAdmin && clubs && (
-        <Select
-          label="Club"
+        <ClubSelect
+          clubs={clubs}
           value={filters.clubFilter || ''}
           onChange={(e) => onFilterChange('clubFilter', e.target.value)}
-        >
-          <option value="">Toate Cluburile</option>
-          {clubs.map(c => <option key={c.id} value={c.id}>{c.nume}</option>)}
-        </Select>
+        />
       )}
     </div>
   );

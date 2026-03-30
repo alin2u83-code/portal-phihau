@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { SesiuneExamen, InscriereExamen, Sportiv, Grad, Locatie, Plata, PretConfig, User, Club, DecontFederatie, View, IstoricGrade } from '../types';
-import { Button, Modal, Input, Select, Card } from './ui';
+import { Button, Modal, Input, Select, Card, ClubSelect } from './ui';
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon, FileTextIcon, UploadCloudIcon, BookOpenIcon } from './icons';
 import { MartialArtsSkeleton } from './MartialArtsSkeleton';
 import { supabase } from '../supabaseClient';
@@ -201,10 +201,12 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
           {filteredLocatii.map(l => <option key={l.id} value={l.id}>{l.nume}</option>)}
         </Select>
         {isFederationAdmin && (
-          <Select label="Filtrează după club" value={clubFilter} onChange={e => setClubFilter(e.target.value)}>
-            <option value="">Toate cluburile</option>
-            {(clubs || []).map(c => <option key={c.id} value={c.id}>{c.nume}</option>)}
-          </Select>
+          <ClubSelect
+            clubs={clubs || []}
+            value={clubFilter}
+            onChange={e => setClubFilter(e.target.value)}
+            label="Filtrează după club"
+          />
         )}
         <Select label="Filtrează după status" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
           <option value="">Toate statusurile</option>

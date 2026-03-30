@@ -47,7 +47,7 @@ const UserAvatar: React.FC<{ user: User; size?: 'sm' | 'md' }> = ({ user, size =
 
 export const Sidebar: React.FC<SidebarProps> = (props) => {
     const { currentUser, onLogout, isExpanded, setIsExpanded, clubs, permissions, activeRole, canSwitchRoles, onSwitchRole, isSwitchingRole, userRoles, isMobileOpen, setIsMobileOpen } = props;
-    const { activeView, setActiveView } = useNavigation();
+    const { activeView, navigateRoot } = useNavigation();
     const [isRoleSwitcherOpen, setIsRoleSwitcherOpen] = useState(false);
     const roleSwitcherRef = useRef<HTMLDivElement>(null);
 
@@ -62,7 +62,7 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
     }, []);
 
     const handleNavigate = (view: View) => {
-        setActiveView(view);
+        navigateRoot(view);
         setIsMobileOpen(false);
     };
 

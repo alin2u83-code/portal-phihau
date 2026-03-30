@@ -35,16 +35,20 @@ function App() {
 
   const permissions = usePermissions(activeRoleContext);
 
-  const { activeView, setActiveView } = useNavigation();
+  const { activeView, setActiveView, goBack, canGoBack } = useNavigation();
   const { isSidebarExpanded, setIsSidebarExpanded } = useAppStore();
   
   const [selectedSportiv, setSelectedSportiv] = React.useState<Sportiv | null>(null);
   const [platiPentruIncasare, setPlatiPentruIncasare] = React.useState<Plata[]>([]);
 
   const handleBackToDashboard = React.useCallback(() => {
-    const dashboardView = (permissions?.hasAdminAccess && activeRole !== 'SPORTIV') ? 'dashboard' : 'my-portal';
-    setActiveView(dashboardView);
-  }, [permissions?.hasAdminAccess, activeRole, setActiveView]);
+    if (canGoBack) {
+      goBack();
+    } else {
+      const dashboardView = (permissions?.hasAdminAccess && activeRole !== 'SPORTIV') ? 'dashboard' : 'my-portal';
+      setActiveView(dashboardView);
+    }
+  }, [canGoBack, goBack, permissions?.hasAdminAccess, activeRole, setActiveView]);
 
   if (loading) {
       return <MartialArtsSkeleton />;

@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { Plata, Sportiv, Permissions } from '../types';
-import { Button, Input, Select, Card, Modal } from './ui';
-import { EditIcon, ArrowLeftIcon, TrashIcon, BanknotesIcon, SearchIcon, BellIcon, WalletIcon } from './icons';
+import { Plata, Sportiv, Permissions, Club } from '../types';
+import { Button, Input, Select, Card, Modal, SearchInput, ClubSelect } from './ui';
+import { EditIcon, ArrowLeftIcon, TrashIcon, BanknotesIcon, BellIcon, WalletIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { sendBulkNotifications } from '../utils/notifications';
@@ -416,10 +416,13 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
 
              <Card className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {permissions.isSuperAdmin && (
-                    <Select label="Filtrează Club" name="clubId" value={filter.clubId} onChange={e => setFilter(p => ({...p, clubId: e.target.value}))}>
-                        <option value="">Toate Cluburile</option>
-                        {(clubs || []).map(c => <option key={c.id} value={c.id}>{c.id === FEDERATIE_ID ? FEDERATIE_NAME : c.nume}</option>)}
-                    </Select>
+                    <ClubSelect
+                        clubs={clubs || []}
+                        value={filter.clubId}
+                        onChange={e => setFilter(p => ({...p, clubId: e.target.value}))}
+                        label="Filtrează Club"
+                        renderOption={(c: Club) => c.id === FEDERATIE_ID ? FEDERATIE_NAME : c.nume}
+                    />
                 )}
                  <Select label="Status" name="status" value={filter.status} onChange={e => setFilter(p => ({...p, status: e.target.value}))}>
                     <option value="">Toate Statusurile</option>
@@ -433,21 +436,12 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                      {[...new Set((plati || []).map(p=>p.tip))].sort().map(tip => <option key={tip || 'fara-tip'} value={tip || ''}>{tip || 'Fără tip'}</option>)}
                 </Select>
                 
-                <div className="w-full">
-                    <label className="block text-[11px] uppercase font-bold text-slate-200 mb-1 ml-1">Caută Sportiv / Familie</label>
-                    <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <SearchIcon className="h-4 w-4 text-slate-400" />
-                        </div>
-                        <Input
-                            label=""
-                            value={filter.sportiv}
-                            onChange={e => setFilter(p => ({...p, sportiv: e.target.value}))}
-                            placeholder="Nume sportiv sau familie..."
-                            className="pl-10 py-1 text-sm !mt-0"
-                        />
-                    </div>
-                </div>
+                <SearchInput
+                    label="Caută Sportiv / Familie"
+                    value={filter.sportiv}
+                    onChange={e => setFilter(p => ({...p, sportiv: e.target.value}))}
+                    placeholder="Nume sportiv sau familie..."
+                />
 
                 <div className="flex items-end">
                     <Button variant="secondary" onClick={() => setFilter(initialFilters)} className="w-full">Resetează Filtre</Button>

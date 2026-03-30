@@ -7,6 +7,7 @@ import { MandatoryPasswordChange } from './MandatoryPasswordChange';
 import { Card } from './ui';
 import { MartialArtsSkeleton } from './MartialArtsSkeleton';
 import { useData } from '../contexts/DataContext';
+import { useNavigation } from '../contexts/NavigationContext';
 
 export interface AppRouterProps {
     activeView: View;
@@ -50,10 +51,14 @@ export const AppRouter: React.FC<AppRouterProps> = ({
         setActiveView('jurnal-incasari');
     };
 
+    const { goBack, canGoBack } = useNavigation();
     const handleJurnalBack = () => {
-        const previousView = platiPentruIncasare.length > 0 ? 'plati-scadente' : 'dashboard';
         setPlatiPentruIncasare([]);
-        setActiveView(previousView);
+        if (canGoBack) {
+            goBack();
+        } else {
+            setActiveView('plati-scadente');
+        }
     };
 
     const handleIncasareProcesata = () => {

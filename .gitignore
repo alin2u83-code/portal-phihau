@@ -3,3 +3,4 @@ node_modules
 RubisianCube/
 docs/
 supabase/migrations/
+ACTIVITY_LOG.md

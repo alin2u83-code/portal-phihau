@@ -633,6 +633,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
                         setPlataToEdit={setPlataToEdit}
                         plati={plati}
                         setPlataToDelete={setPlataToDelete}
+                        tranzactii={tranzactii}
                     />
                 )}
 

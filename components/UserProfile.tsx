@@ -48,6 +48,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
         setSportivi,
         setPlati,
         setTranzactii,
+        setVizualizarePlati,
         clubs,
         allRoles,
         filteredData
@@ -349,6 +350,10 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
             showError("Eroare la Salvare", "Nu s-a putut actualiza factura. Verificați permisiunile.");
         } else {
             setPlati(prev => prev.map(p => p.id === id ? data : p));
+            setVizualizarePlati(prev => prev.map(v => v.plata_id === id
+                ? { ...v, status: data.status, suma_datorata: data.suma, descriere: data.descriere, data_emitere: data.data }
+                : v
+            ));
             setPlataToEdit(null);
             showSuccess("Succes", "Factura a fost actualizată.");
         }
@@ -371,6 +376,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
             showError("Eroare la Ștergere", error);
         } else {
             setPlati(prev => prev.filter(p => p.id !== id));
+            setVizualizarePlati(prev => prev.filter(v => v.plata_id !== id));
             setPlataToDelete(null);
             showSuccess("Succes", "Factura a fost ștearsă.");
         }

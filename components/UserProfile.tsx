@@ -338,6 +338,20 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
         }
     };
 
+    const handleSaveTranzactieEdit = async (editedTrz: Tranzactie) => {
+        if (!supabase) return;
+        setIsSaving(true);
+        const { id, ...updates } = editedTrz;
+        const { data, error } = await supabase.from('tranzactii').update(updates).eq('id', id).select().maybeSingle();
+        setIsSaving(false);
+        if (error) {
+            showError("Eroare la Salvare", error.message || error);
+        } else if (data) {
+            setTranzactii(prev => prev.map(t => t.id === id ? data : t));
+            showSuccess("Succes", "Încasarea a fost actualizată.");
+        }
+    };
+
     const handleSavePlataEdit = async (editedPlata: Plata) => {
         if (!supabase) return;
         setIsSaving(true);
@@ -660,7 +674,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
             {isAddGradeModalOpen && <AddGradeModal isOpen={isAddGradeModalOpen} onClose={() => setIsAddGradeModalOpen(false)} onSave={handleAddGrade} sportiv={sportiv} grades={grade} />}
             {gradeEntryToEdit && <AddGradeModal isOpen={!!gradeEntryToEdit} onClose={() => setGradeEntryToEdit(null)} onSave={handleEditGrade} sportiv={sportiv} grades={grade} initialData={gradeEntryToEdit} />}
             {isCreateAccountModalOpen && <CreateAccountModal sportiv={sportiv} onClose={() => setIsCreateAccountModalOpen(false)} onAccountCreated={handleAccountCreated} currentUser={currentUser} allRoles={allRoles} />}
-            <PlataEditModal plata={plataToEdit} onClose={() => setPlataToEdit(null)} onSave={handleSavePlataEdit} isLoading={isSaving} />
+            <PlataEditModal plata={plataToEdit} onClose={() => setPlataToEdit(null)} onSave={handleSavePlataEdit} onSaveTranzactie={handleSaveTranzactieEdit} isLoading={isSaving} tranzactii={tranzactii.filter(t => t.plata_ids?.includes(plataToEdit?.id ?? ''))} />
             <ConfirmDeleteModal isOpen={!!plataToDelete} onClose={() => setPlataToDelete(null)} onConfirm={() => { if(plataToDelete) confirmDeletePlata(plataToDelete.id) }} tableName="Factură" isLoading={isDeleting} />
         </div>
     );

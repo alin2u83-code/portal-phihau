@@ -174,7 +174,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
 
         const facturiMap = new Map<string, {
             detalii: VizualizarePlata;
-            incasari: { data_plata: string; suma_incasata: number }[];
+            incasari: { data_plata: string; suma_incasata: number; tranzactie_id: string | null }[];
             totalIncasat: number;
         }>();
 
@@ -184,7 +184,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
             }
             if (p.data_plata && p.suma_incasata) {
                 const factura = facturiMap.get(p.plata_id)!;
-                factura.incasari.push({ data_plata: p.data_plata, suma_incasata: p.suma_incasata });
+                factura.incasari.push({ data_plata: p.data_plata, suma_incasata: p.suma_incasata, tranzactie_id: p.tranzactie_id ?? null });
                 factura.totalIncasat += p.suma_incasata;
             }
         });
@@ -626,6 +626,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
                         totalRestante={totalRestante}
                         tipuriAbonament={tipuriAbonament}
                         sportiv={sportiv}
+                        sportivi={sportivi}
                         familii={familii}
                         vizualizarePlati={vizualizarePlati}
                         possibleViewError={possibleViewError}

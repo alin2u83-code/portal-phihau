@@ -132,8 +132,8 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
   const titleId = React.useId();
 
   return (
-    <div className="fixed inset-0 bg-black/80 z-50 flex items-end sm:items-center sm:justify-center sm:p-4 backdrop-blur-sm animate-fade-in" onClick={() => !persistent && onClose()} role="dialog" aria-modal="true" aria-labelledby={titleId}>
-      <div className="bg-slate-900 border-t sm:border border-slate-700/80 w-full h-[90vh] sm:h-auto sm:max-h-[90vh] sm:max-w-2xl rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col" onClick={(e) => e.stopPropagation()} style={{ boxShadow: '0 25px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04)' }}>
+    <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in" onClick={() => !persistent && onClose()} role="dialog" aria-modal="true" aria-labelledby={titleId}>
+      <div className="bg-slate-900 border border-slate-700/80 w-full max-h-[90vh] max-w-lg sm:max-w-2xl rounded-2xl shadow-2xl flex flex-col" onClick={(e) => e.stopPropagation()} style={{ boxShadow: '0 25px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04)' }}>
         <div className="flex justify-between items-center p-4 sm:p-5 border-b border-slate-700/80 bg-slate-800/60 rounded-t-2xl sticky top-0 z-10 backdrop-blur-md">
           <h2 id={titleId} className="text-base sm:text-lg font-bold text-white tracking-tight truncate pr-4">{title}</h2>
           <button onClick={onClose} className="p-2 -mr-1 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-xl transition-colors active:scale-95 touch-manipulation">

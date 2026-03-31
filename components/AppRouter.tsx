@@ -127,7 +127,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                             case 'sportivi':
                                 return renderProtected(<Lazy.SportiviManagement onBack={handleBackToDashboard} onViewSportiv={onViewSportiv} permissions={permissions} />, isAtLeastInstructor);
                             case 'profil-sportiv':
-                                return renderProtected(selectedSportiv ? <Lazy.UserProfile sportiv={selectedSportiv} onBack={() => setActiveView('sportivi')} onNavigate={setActiveView} onViewExameneRaport={(id) => { setSportivIdPentruRaport(id); setActiveView('rapoarte-examen'); }} /> : null, isAtLeastInstructor);
+                                return renderProtected(selectedSportiv ? <Lazy.UserProfile sportiv={selectedSportiv} onBack={() => setActiveView('sportivi')} onNavigate={setActiveView} onViewExameneRaport={(id) => { setSportivIdPentruRaport(id); setActiveView('rapoarte-examen'); }} onViewSportiv={onViewSportiv} /> : null, isAtLeastInstructor);
                             case 'structura-federatie':
                                 return renderProtected(<Lazy.FederationStructure clubs={clubs} sportivi={sportivi} grupe={grupe} onBack={handleBackToDashboard} onNavigate={(view) => setActiveView(view)} />, isFederationAdmin);
                             case 'examene': {

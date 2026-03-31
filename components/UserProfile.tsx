@@ -27,6 +27,7 @@ import { ProfilTab } from './UserProfile/ProfilTab';
 import { ContactTab } from './UserProfile/ContactTab';
 import { GradeTab } from './UserProfile/GradeTab';
 import { FinanciarTab } from './UserProfile/FinanciarTab';
+import { FamilieTab } from './UserProfile/FamilieTab';
 
 const getGrad = (gradId: string | null, allGrades: Grad[]) => gradId ? allGrades.find(g => g.id === gradId) : null;
 import { getAge } from '../utils/date';
@@ -37,9 +38,10 @@ interface UserProfileProps {
     onBack: () => void;
     onNavigate?: (view: import('../types').View) => void;
     onViewExameneRaport?: (sportivId: string) => void;
+    onViewSportiv?: (sportiv: Sportiv) => void;
 }
 
-export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNavigate, onViewExameneRaport }) => {
+export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNavigate, onViewExameneRaport, onViewSportiv }) => {
     const {
         currentUser,
         setIstoricGrade,
@@ -76,7 +78,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
     const [isAddGradeModalOpen, setIsAddGradeModalOpen] = useState(false);
     const [gradeEntryToEdit, setGradeEntryToEdit] = useState<{ id: string; grad_id: string; data_obtinere: string; observatii: string } | null>(null);
     const [isCreateAccountModalOpen, setIsCreateAccountModalOpen] = useState(false);
-    const [activeTab, setActiveTab] = useState<'profil' | 'contact' | 'grade' | 'financiar'>('profil');
+    const [activeTab, setActiveTab] = useState<'profil' | 'contact' | 'grade' | 'financiar' | 'familie'>('profil');
 
     const clubTheme = useMemo(() => {
         const club = clubs.find(c => c.id === sportiv.club_id);
@@ -547,6 +549,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
                     { id: 'contact', label: 'Contact & Info', icon: ClipboardListIcon },
                     { id: 'grade', label: 'Evoluție & Grade', icon: TrophyIcon, hidden: !canViewSensitiveInfo },
                     { id: 'financiar', label: 'Istoric Financiar', icon: BanknotesIcon },
+                    { id: 'familie', label: 'Familie', icon: UsersIcon, hidden: !sportiv.familie_id },
                 ].filter(tab => !tab.hidden).map(tab => (
                     <button
                         key={tab.id}
@@ -624,6 +627,18 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
                         setPlataToEdit={setPlataToEdit}
                         plati={plati}
                         setPlataToDelete={setPlataToDelete}
+                    />
+                )}
+
+                {activeTab === 'familie' && (
+                    <FamilieTab
+                        sportiv={sportiv}
+                        sportivi={sportivi}
+                        familii={familii}
+                        grade={grade}
+                        grupe={grupe}
+                        tipuriAbonament={tipuriAbonament}
+                        onViewSportiv={onViewSportiv ?? (() => {})}
                     />
                 )}
             </div>

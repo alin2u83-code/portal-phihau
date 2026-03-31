@@ -17,6 +17,7 @@ import { useDashboardPermissions } from '../hooks/useDashboardPermissions';
 import { VizaMedicalaCard } from './SportivDashboard/VizaMedicalaCard';
 import { TrainingActionCard, AnuntStatus } from './SportivDashboard/TrainingActionCard';
 import { HistoryModal } from './SportivDashboard/HistoryModal';
+import { FamilieWidget } from './SportivDashboard/FamilieWidget';
 import { EvenimenteWidget } from './EvenimenteWidget';
 
 const getGrad = (gradId: string | null, allGrades: Grad[]) =>
@@ -437,6 +438,15 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                     )}
                 </div>
             </div>
+
+            {/* ── FAMILIE & FRAȚI ─────────────────────────────────────── */}
+            {viewedUser.familie_id && (
+                <FamilieWidget
+                    currentUser={viewedUser}
+                    isViewingOwnProfile={isViewingOwnProfile}
+                    grade={grade}
+                />
+            )}
 
             {/* ── SWITCH ROL ──────────────────────────────────────────── */}
             {canSwitchRoles && (

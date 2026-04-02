@@ -94,7 +94,7 @@ export const FederationStructure: React.FC<FederationStructureProps> = ({ clubs,
             </div>
 
             <Card className="bg-slate-900/50 border-dashed">
-                <div className="flex flex-col items-center justify-center p-8 text-center">
+                <div className="flex flex-col items-center justify-center p-4 md:p-8 text-center">
                     <div className="p-4 bg-slate-800 rounded-full mb-4">
                         <ClipboardListIcon className="w-12 h-12 text-slate-600" />
                     </div>

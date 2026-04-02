@@ -94,7 +94,7 @@ export const ExamenPhiHauSimplu: React.FC<ExamenPhiHauSimpluProps> = ({ sesiune,
     }
 
     return (
-        <div className="overflow-hidden">
+        <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[600px]">
                 <thead className="bg-slate-700/50 border-b border-slate-600">
                     <tr>

@@ -470,6 +470,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
     // State for results
     const [rezultateLocale, setRezultateLocale] = useState<Record<string, 'Admis' | 'Respins' | 'Neprezentat'>>({});
     const [isSavingResults, setIsSavingResults] = useState(false);
+    const [showAdmitAllConfirm, setShowAdmitAllConfirm] = useState(false);
     const [, startTransition] = useTransition();
     
     const inscrisiInSesiuneIds = useMemo(() => {
@@ -970,14 +971,21 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         }
     };
 
-    const handleAdmitAll = async () => {
-        if (!supabase) return;
+    const handleAdmitAll = () => {
         const neadmisi = participantiInscrisi.filter(i => (rezultateLocale[i.id] || i.rezultat) !== 'Admis');
         if (neadmisi.length === 0) {
             showSuccess("Info", "Toți participanții sunt deja marcați ca Admiși.");
             return;
         }
-        if (!confirm(`Ești sigur că vrei să marchezi toți cei ${neadmisi.length} participanți neadmiși ca ADMIȘI?`)) return;
+        setShowAdmitAllConfirm(true);
+    };
+
+    const handleAdmitAllConfirmed = async () => {
+        if (!supabase) return;
+        setShowAdmitAllConfirm(false);
+
+        const neadmisi = participantiInscrisi.filter(i => (rezultateLocale[i.id] || i.rezultat) !== 'Admis');
+        if (neadmisi.length === 0) return;
 
         // Aplica optimistic update si starea de loading imediat
         const optimisticUpdate: Record<string, 'Admis' | 'Respins' | 'Neprezentat'> = {};
@@ -985,10 +993,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         setRezultateLocale(prev => ({ ...prev, ...optimisticUpdate }));
         setIsSavingResults(true);
 
-        // Cede controlul browserului sa picteze starea optimista inainte de operatiile DB
-        await new Promise<void>(resolve => setTimeout(resolve, 0));
-
-        // Construieste operatiile DB dupa ce browserul a picat
+        // Construieste operatiile DB
         const sportiviUpdates: { id: string; grad_actual_id: string }[] = [];
         const allPromises: any[] = [];
         for (const inscriere of neadmisi) {
@@ -1407,6 +1412,22 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 sesiuneData={sesiune.data}
                 inscrisiIds={inscrisiInSesiuneIds}
             />
+
+            <Modal isOpen={showAdmitAllConfirm} onClose={() => setShowAdmitAllConfirm(false)} title="Confirmare Admitere">
+                <div className="space-y-5">
+                    <p className="text-slate-300">
+                        Ești sigur că vrei să marchezi toți participanții neadmiși ca <span className="text-emerald-400 font-semibold">ADMIȘI</span>?
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                        <Button variant="secondary" onClick={() => setShowAdmitAllConfirm(false)} className="flex-1">
+                            Anulează
+                        </Button>
+                        <Button variant="success" onClick={handleAdmitAllConfirmed} className="flex-1">
+                            Da, admite toți
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 };

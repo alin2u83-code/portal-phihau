@@ -979,9 +979,16 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         }
         if (!confirm(`Ești sigur că vrei să marchezi toți cei ${neadmisi.length} participanți neadmiși ca ADMIȘI?`)) return;
 
+        // Aplica optimistic update si starea de loading imediat
+        const optimisticUpdate: Record<string, 'Admis' | 'Respins' | 'Neprezentat'> = {};
+        neadmisi.forEach(i => { optimisticUpdate[i.id] = 'Admis'; });
+        setRezultateLocale(prev => ({ ...prev, ...optimisticUpdate }));
         setIsSavingResults(true);
 
-        // Porneste DB operations imediat (async) - nu blocheaza UI
+        // Cede controlul browserului sa picteze starea optimista inainte de operatiile DB
+        await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+        // Construieste operatiile DB dupa ce browserul a picat
         const sportiviUpdates: { id: string; grad_actual_id: string }[] = [];
         const allPromises: any[] = [];
         for (const inscriere of neadmisi) {
@@ -1001,13 +1008,6 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 sportiviUpdates.push({ id: inscriere.sportiv_id, grad_actual_id: inscriere.grad_sustinut_id });
             }
         }
-
-        // Defer re-render-ul costisitor al tabelului ca sa nu blocheze UI-ul
-        startTransition(() => {
-            const optimisticUpdate: Record<string, 'Admis' | 'Respins' | 'Neprezentat'> = {};
-            neadmisi.forEach(i => { optimisticUpdate[i.id] = 'Admis'; });
-            setRezultateLocale(prev => ({ ...prev, ...optimisticUpdate }));
-        });
 
         try {
             const results = await Promise.all(allPromises);

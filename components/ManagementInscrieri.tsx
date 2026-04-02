@@ -569,7 +569,15 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
     }, [participantiInscrisi]);
 
     useEffect(() => {
-        setRezultateLocale(initialRezultate);
+        // Merge: add new entries from DB but keep any locally-set values
+        // This prevents saves from being overwritten when participantiInscrisi recomputes
+        setRezultateLocale(prev => {
+            const next = { ...initialRezultate };
+            Object.keys(prev).forEach(id => {
+                if (id in next) next[id] = prev[id];
+            });
+            return next;
+        });
     }, [initialRezultate]);
 
     const sortedGrades = useMemo(() => [...(grade || [])].sort((a,b) => a.ordine - b.ordine), [grade]);
@@ -913,16 +921,11 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             const allPromises: any[] = [];
             const sportiviUpdatesLocal: Partial<Sportiv>[] = [];
 
-            // 1. Upsert the result in inscrieri_examene
+            // 1. Update the result in inscrieri_examene by record id
             allPromises.push(
-                supabase.from('inscrieri_examene').upsert({
-                    sportiv_id: inscriere.sportiv_id,
-                    sesiune_id: sesiune.id,
-                    grad_sustinut_id: inscriere.grad_sustinut_id,
-                    data_eveniment: sesiune.data,
-                    rezultat: newResult,
-                    status_inscriere: 'Validat' // Default to Validat if it's a new entry from result change
-                }, { onConflict: 'sportiv_id,sesiune_id' })
+                supabase.from('inscrieri_examene')
+                    .update({ rezultat: newResult, status_inscriere: 'Validat' })
+                    .eq('id', targetId)
             );
             
             // 2. Handle grade promotion if Admis
@@ -982,15 +985,11 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         const sportiviUpdates: { id: string; grad_actual_id: string }[] = [];
         const allPromises: any[] = [];
         for (const inscriere of neadmisi) {
+            const recordId = inscriere.inscriere_id || inscriere.id;
             allPromises.push(
-                supabase.from('inscrieri_examene').upsert({
-                    sportiv_id: inscriere.sportiv_id,
-                    sesiune_id: sesiune.id,
-                    grad_sustinut_id: inscriere.grad_sustinut_id,
-                    data_eveniment: sesiune.data,
-                    rezultat: 'Admis',
-                    status_inscriere: 'Validat'
-                }, { onConflict: 'sportiv_id,sesiune_id' })
+                supabase.from('inscrieri_examene')
+                    .update({ rezultat: 'Admis', status_inscriere: 'Validat' })
+                    .eq('id', recordId)
             );
             if (inscriere.grad_sustinut_id) {
                 allPromises.push(

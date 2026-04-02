@@ -74,25 +74,20 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
         
         setIsGenerating(true);
         try {
-            let clubId = currentUser?.club_id;
-            
-            // Fallback to visibleClubIds if club_id is missing on currentUser
-            if (!clubId && Array.isArray(permissions.visibleClubIds) && permissions.visibleClubIds.length === 1) {
-                clubId = permissions.visibleClubIds[0];
+            if (permissions.isFederationAdmin) {
+                throw new Error("Adminii de federație nu pot genera abonamente la nivel de club. Această acțiune aparține adminului de club.");
             }
 
-            if (!clubId && !permissions.isSuperAdmin) {
-                throw new Error("Contextul curent nu are un club ID asociat.");
+            const clubId = currentUser?.club_id;
+            if (!clubId) {
+                throw new Error("Nu este asociat niciun club contului tău. Contactează un super admin.");
             }
-    
-            let sportiviQuery = supabase
+
+            const sportiviQuery = supabase
                 .from('sportivi')
                 .select('*')
-                .eq('status', 'Activ');
-
-            if (clubId) {
-                sportiviQuery = sportiviQuery.eq('club_id', clubId);
-            }
+                .eq('status', 'Activ')
+                .eq('club_id', clubId);
 
             const { data: sportiviActiviBrut, error } = await sportiviQuery;
 
@@ -468,7 +463,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
 
             <div className="flex flex-col gap-2">
                 <div className="flex flex-wrap gap-2">
-                    {permissions.canManageFinances && <Button onClick={handleGenerateSubscriptions} variant="info" size="sm" isLoading={isGenerating} className="flex-1 sm:flex-none justify-center">Generează Abonamente</Button>}
+                    {permissions.isAdminClub && <Button onClick={handleGenerateSubscriptions} variant="info" size="sm" isLoading={isGenerating} className="flex-1 sm:flex-none justify-center">Generează Abonamente</Button>}
                     {permissions.canManageFinances && selectedIds.size > 0 && (
                         <Button onClick={handleNotifyOverdue} variant="warning" size="sm" isLoading={isGenerating} className="flex-1 sm:flex-none justify-center">
                             <BellIcon className="w-4 h-4 mr-1"/>

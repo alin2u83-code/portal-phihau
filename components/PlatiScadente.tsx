@@ -28,6 +28,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
     const tranzactii = filteredData.tranzactii;
     const reduceri = filteredData.reduceri;
     const inscrieriExamene = filteredData.inscrieriExamene;
+    const grupe = filteredData.grupe;
 
     const [filter, setFilter] = useLocalStorage('phi-hau-plati-scadente-filter', initialFilters);
     const [editingPlata, setEditingPlata] = useState<Plata | null>(null);
@@ -84,16 +85,32 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                 throw new Error("Contextul curent nu are un club ID asociat.");
             }
     
-            const { data: sportiviActivi, error } = await supabase
+            let sportiviQuery = supabase
                 .from('sportivi')
                 .select('*')
                 .eq('status', 'Activ');
+
+            if (clubId) {
+                sportiviQuery = sportiviQuery.eq('club_id', clubId);
+            }
+
+            const { data: sportiviActiviBrut, error } = await sportiviQuery;
 
             if (error) {
                 console.error('DETALII EROARE:', JSON.stringify(error, null, 2));
                 throw error;
             }
-            
+
+            // Excludem sportivii din grupe cu "retras" în denumire
+            const grupeRetrasi = new Set(
+                (grupe || [])
+                    .filter(g => g.denumire.toLowerCase().includes('retras'))
+                    .map(g => g.id)
+            );
+            const sportiviActivi = sportiviActiviBrut.filter(
+                s => !s.grupa_id || !grupeRetrasi.has(s.grupa_id)
+            );
+
             const today = new Date();
             const dataCurenta = today.toISOString().split('T')[0];
             const lunaText = today.toLocaleString('ro-RO', { month: 'long', year: 'numeric'});
@@ -144,7 +161,8 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                 if (sportiviProcesati.has(sportiv.id) || sportiv.familie_id) return;
                 const exists = (plati || []).some(p => p.sportiv_id === sportiv.id && p.tip === 'Abonament' && new Date((p.data || '').toString().slice(0, 10)).getMonth() === lunaCurentaIdx && new Date((p.data || '').toString().slice(0, 10)).getFullYear() === anulCurent);
                 if (exists) return;
-                const abonamentConfig = (tipuriAbonament || []).find(ab => ab.numar_membri === 1);
+                const abonamentConfig = (tipuriAbonament || []).find(ab => ab.id === sportiv.tip_abonament_id)
+                    || (tipuriAbonament || []).find(ab => ab.numar_membri === 1);
                 if (abonamentConfig) {
                     const creditSportiv = balances.indivBalances.get(sportiv.id) || 0;
                     let sumaDeFacturat = abonamentConfig.pret;

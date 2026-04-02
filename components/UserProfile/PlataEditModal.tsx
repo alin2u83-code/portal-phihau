@@ -1,27 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import { Plata, Tranzactie } from '../../types';
 import { Modal, Input, Select, Button } from '../ui';
-import { BanknotesIcon, WalletIcon, CalendarDaysIcon, CheckCircleIcon } from '../icons';
+import { BanknotesIcon, WalletIcon, CalendarDaysIcon, CheckCircleIcon, TransferIcon } from '../icons';
 
 export interface PlataEditModalProps {
     plata: Plata | null;
     onClose: () => void;
     onSave: (plata: Plata) => Promise<void>;
     onSaveTranzactie: (tranzactie: Tranzactie) => Promise<void>;
+    onMutaPlata?: (tranzactieId: string, oldPlataId: string, newPlataId: string) => Promise<void>;
     isLoading: boolean;
     tranzactii: Tranzactie[];
+    platiFamilie?: Plata[];
 }
 
 export const PlataEditModal: React.FC<PlataEditModalProps> = ({
-    plata, onClose, onSave, onSaveTranzactie, isLoading, tranzactii
+    plata, onClose, onSave, onSaveTranzactie, onMutaPlata, isLoading, tranzactii, platiFamilie = []
 }) => {
     const [formPlata, setFormPlata] = useState<Plata | null>(plata);
     const [formTrz, setFormTrz] = useState<Tranzactie | null>(null);
     const [savingTrz, setSavingTrz] = useState(false);
+    const [showMuta, setShowMuta] = useState(false);
+    const [selectedNewPlataId, setSelectedNewPlataId] = useState('');
+    const [mutaLoading, setMutaLoading] = useState(false);
 
     useEffect(() => {
         setFormPlata(plata);
         setFormTrz(tranzactii.length > 0 ? { ...tranzactii[0] } : null);
+        setShowMuta(false);
+        setSelectedNewPlataId('');
     }, [plata, tranzactii]);
 
     if (!formPlata) return null;
@@ -41,6 +48,14 @@ export const PlataEditModal: React.FC<PlataEditModalProps> = ({
         setSavingTrz(true);
         await onSaveTranzactie(formTrz);
         setSavingTrz(false);
+    };
+
+    const handleMuta = async () => {
+        if (!formTrz || !formPlata || !selectedNewPlataId || !onMutaPlata) return;
+        setMutaLoading(true);
+        await onMutaPlata(formTrz.id, formPlata.id, selectedNewPlataId);
+        setMutaLoading(false);
+        onClose();
     };
 
     const ramasDePlata = formTrz
@@ -176,6 +191,56 @@ export const PlataEditModal: React.FC<PlataEditModalProps> = ({
                                 <p className="text-[11px] text-slate-500 text-center italic">
                                     {tranzactii.length} încasări totale — se editează prima
                                 </p>
+                            )}
+
+                            {/* Mută pe altă factură */}
+                            {onMutaPlata && platiFamilie.length > 0 && (
+                                <div className="mt-1">
+                                    {!showMuta ? (
+                                        <button
+                                            type="button"
+                                            className="text-xs text-amber-400 hover:text-amber-300 underline underline-offset-2 transition-colors"
+                                            onClick={() => setShowMuta(true)}
+                                        >
+                                            Mută pe altă factură...
+                                        </button>
+                                    ) : (
+                                        <div className="p-3 bg-amber-950/20 border border-amber-500/20 rounded-xl space-y-2">
+                                            <p className="text-xs font-semibold text-amber-400">Mută încasarea pe:</p>
+                                            <select
+                                                className="w-full bg-slate-800 border border-slate-600 text-white text-xs rounded-lg px-2.5 py-2 focus:outline-none focus:border-amber-500"
+                                                value={selectedNewPlataId}
+                                                onChange={e => setSelectedNewPlataId(e.target.value)}
+                                            >
+                                                <option value="">— Selectează factura —</option>
+                                                {platiFamilie.map(p => (
+                                                    <option key={p.id} value={p.id}>
+                                                        {p.descriere} — {(p.suma || 0).toFixed(2)} RON [{p.status}]
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <div className="flex gap-2">
+                                                <Button
+                                                    variant="warning"
+                                                    className="flex-1 text-xs py-1.5"
+                                                    onClick={handleMuta}
+                                                    isLoading={mutaLoading}
+                                                    disabled={!selectedNewPlataId}
+                                                >
+                                                    <TransferIcon className="w-3.5 h-3.5 mr-1" />
+                                                    Mută
+                                                </Button>
+                                                <Button
+                                                    variant="secondary"
+                                                    className="flex-1 text-xs py-1.5"
+                                                    onClick={() => { setShowMuta(false); setSelectedNewPlataId(''); }}
+                                                >
+                                                    Anulează
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                             )}
                         </>
                     ) : (

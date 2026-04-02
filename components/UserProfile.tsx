@@ -373,21 +373,55 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
         }
     };
 
+    const handleMutaPlata = async (tranzactieId: string, oldPlataId: string, newPlataId: string) => {
+        if (!supabase) return;
+        const tranzactie = tranzactii.find(t => t.id === tranzactieId);
+        const newPlata = plati.find(p => p.id === newPlataId);
+        if (!tranzactie || !newPlata) return;
+
+        const newPlataIds = tranzactie.plata_ids.map(pid => pid === oldPlataId ? newPlataId : pid);
+        const sumaIncasata = tranzactie.suma;
+        const newStatus: Plata['status'] = sumaIncasata >= newPlata.suma ? 'Achitat' : sumaIncasata > 0 ? 'Achitat Parțial' : 'Neachitat';
+
+        const [trzRes, oldRes, newRes] = await Promise.all([
+            supabase.from('tranzactii').update({ plata_ids: newPlataIds }).eq('id', tranzactieId),
+            supabase.from('plati').update({ status: 'Neachitat' }).eq('id', oldPlataId),
+            supabase.from('plati').update({ status: newStatus }).eq('id', newPlataId),
+        ]);
+
+        if (trzRes.error || oldRes.error || newRes.error) {
+            showError("Eroare", (trzRes.error || oldRes.error || newRes.error)?.message ?? 'Eroare necunoscută');
+            return;
+        }
+        setTranzactii(prev => prev.map(t => t.id === tranzactieId ? { ...t, plata_ids: newPlataIds } : t));
+        setPlati(prev => prev.map(p =>
+            p.id === oldPlataId ? { ...p, status: 'Neachitat' } :
+            p.id === newPlataId ? { ...p, status: newStatus } : p
+        ));
+        setVizualizarePlati(prev => prev.map(v =>
+            v.plata_id === oldPlataId ? { ...v, status: 'Neachitat' } :
+            v.plata_id === newPlataId ? { ...v, status: newStatus } : v
+        ));
+        setPlataToEdit(null);
+        showSuccess('Plată mutată', `Încasarea a fost transferată. Factura nouă: ${newStatus}.`);
+    };
+
     const confirmDeletePlata = async (id: string) => {
         if (!supabase) return;
         setIsDeleting(true);
-        const { data: tranzactiiData, error: tranzactiiError } = await supabase.from('tranzactii').select('id, plata_ids').contains('plata_ids', [id]);
-        if (tranzactiiError) { showError("Eroare la Verificare", tranzactiiError); setIsDeleting(false); return; }
+        // Dezleagă tranzacțiile asociate înainte de ștergere
+        const { data: tranzactiiData } = await supabase.from('tranzactii').select('id, plata_ids').contains('plata_ids', [id]);
         if (tranzactiiData && tranzactiiData.length > 0) {
-            showError("Ștergere Blocată", "Această factură este parte dintr-o tranzacție și nu poate fi ștearsă. Anulați întâi tranzacția din Jurnalul de Încasări.");
-            setIsDeleting(false);
-            setPlataToDelete(null);
-            return;
+            await Promise.all(tranzactiiData.map(async (t) => {
+                const newIds = t.plata_ids.filter((pid: string) => pid !== id);
+                await supabase.from('tranzactii').update({ plata_ids: newIds }).eq('id', t.id);
+                setTranzactii(prev => prev.map(tr => tr.id === t.id ? { ...tr, plata_ids: newIds } : tr));
+            }));
         }
         const { error } = await supabase.from('plati').delete().eq('id', id);
         setIsDeleting(false);
         if (error) {
-            showError("Eroare la Ștergere", error);
+            showError("Eroare la Ștergere", error.message ?? error);
         } else {
             setPlati(prev => prev.filter(p => p.id !== id));
             setVizualizarePlati(prev => prev.filter(v => v.plata_id !== id));
@@ -674,7 +708,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
             {isAddGradeModalOpen && <AddGradeModal isOpen={isAddGradeModalOpen} onClose={() => setIsAddGradeModalOpen(false)} onSave={handleAddGrade} sportiv={sportiv} grades={grade} />}
             {gradeEntryToEdit && <AddGradeModal isOpen={!!gradeEntryToEdit} onClose={() => setGradeEntryToEdit(null)} onSave={handleEditGrade} sportiv={sportiv} grades={grade} initialData={gradeEntryToEdit} />}
             {isCreateAccountModalOpen && <CreateAccountModal sportiv={sportiv} onClose={() => setIsCreateAccountModalOpen(false)} onAccountCreated={handleAccountCreated} currentUser={currentUser} allRoles={allRoles} />}
-            <PlataEditModal plata={plataToEdit} onClose={() => setPlataToEdit(null)} onSave={handleSavePlataEdit} onSaveTranzactie={handleSaveTranzactieEdit} isLoading={isSaving} tranzactii={tranzactii.filter(t => t.plata_ids?.includes(plataToEdit?.id ?? ''))} />
+            <PlataEditModal plata={plataToEdit} onClose={() => setPlataToEdit(null)} onSave={handleSavePlataEdit} onSaveTranzactie={handleSaveTranzactieEdit} onMutaPlata={handleMutaPlata} isLoading={isSaving} tranzactii={tranzactii.filter(t => t.plata_ids?.includes(plataToEdit?.id ?? ''))} platiFamilie={plati.filter(p => (p.sportiv_id === sportiv.id || (sportiv.familie_id && p.familie_id === sportiv.familie_id)) && p.id !== plataToEdit?.id)} />
             <ConfirmDeleteModal isOpen={!!plataToDelete} onClose={() => setPlataToDelete(null)} onConfirm={() => { if(plataToDelete) confirmDeletePlata(plataToDelete.id) }} tableName="Factură" isLoading={isDeleting} />
         </div>
     );

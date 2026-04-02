@@ -552,8 +552,13 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 return numeA.localeCompare(numeB);
             });
         }
-        return data;
-    }, [allInscrieri, sesiune.id, sortConfigs]);
+        return data.map(i => ({
+            ...i,
+            status_plata: i.plata_id
+                ? (plati.find(p => p.id === i.plata_id)?.status || 'Neachitat')
+                : 'Neachitat'
+        }));
+    }, [allInscrieri, sesiune.id, sortConfigs, plati]);
 
     const initialRezultate = useMemo(() => {
         const initial: Record<string, 'Admis' | 'Respins' | 'Neprezentat'> = {};

@@ -562,7 +562,7 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
                 )}
                 <Select label="Grad" value={filterGrad} onChange={e => setFilterGrad(e.target.value)}>
                     <option value="">Toate gradele</option>
-                    {grade.map(g => <option key={g.id} value={String(g.ordine)}>{g.nume}</option>)}
+                    {[...grade].sort((a, b) => a.ordine - b.ordine).map(g => <option key={g.id} value={String(g.ordine)}>{g.nume}</option>)}
                 </Select>
                 <Select label="Rezultat" value={filterRezultat} onChange={e => setFilterRezultat(e.target.value)}>
                     <option value="">Toate rezultatele</option>

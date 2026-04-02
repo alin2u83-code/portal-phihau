@@ -768,7 +768,17 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                                 <div>
                                     <p className="font-semibold text-white">Lista de referință sportivi</p>
                                     <p className="text-xs text-slate-400">CSV cu: ID, Nume, Prenume, Data_Nasterii, Grad_Actual</p>
-                                
+                                </div>
+                                <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    onClick={downloadReferenceFile}
+                                    isLoading={downloadingRef}
+                                    disabled={grades.length === 0}
+                                >
+                                    <DocumentArrowDownIcon className="w-4 h-4 mr-1" /> Descarcă
+                                </Button>
+                            </div>
 
                             {/* Formula Excel */}
                             <div>

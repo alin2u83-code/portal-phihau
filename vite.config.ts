@@ -72,16 +72,6 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [
       react(),
-      VitePWA({
-        registerType: 'autoUpdate',
-        manifest: false,
-        srcDir: '.',
-        filename: 'sw.js',
-        strategies: 'injectManifest',
-        injectManifest: {
-          injectionPoint: undefined,
-        },
-      }),
       claudeProxyPlugin(env.CLAUDE_API_KEY || ''),
     ],
   };

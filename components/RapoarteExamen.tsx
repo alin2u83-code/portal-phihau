@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { SesiuneExamen, InscriereExamen, Sportiv, Grad, Locatie, Plata, PretConfig, User, Club, DecontFederatie, View, IstoricGrade } from '../types';
 import { Button, Modal, Input, Select, Card } from './ui';
-import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon } from './icons';
+import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon, UserCircleIcon, ClipboardListIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
@@ -392,7 +392,7 @@ interface RaportRow {
 type SortField = 'sportiv' | 'grad' | 'data' | 'rezultat' | 'club';
 type SortDir = 'asc' | 'desc';
 
-const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; currentUser: User; initialSportivId?: string | null }> = ({ sesiuni, grade, currentUser, initialSportivId }) => {
+const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; currentUser: User; initialSportivId?: string | null; sportivi: Sportiv[]; onViewSportiv: (sportiv: Sportiv) => void; onViewSesiune: (sesiuneId: string) => void }> = ({ sesiuni, grade, currentUser, initialSportivId, sportivi, onViewSportiv, onViewSesiune }) => {
     const [rows, setRows] = useState<RaportRow[]>([]);
     const [loading, setLoading] = useState(false);
     const [filterNume, setFilterNume] = useState('');
@@ -619,6 +619,8 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
                                         <td className="p-3 text-slate-400 hidden lg:table-cell">{r.locatie_nume || '—'}</td>
                                         <td className="p-3 text-right">
                                             <div className="flex justify-end gap-1">
+                                                <Button variant="secondary" size="sm" onClick={() => { const s = sportivi.find(x => x.id === r.sportiv_id); if (s) onViewSportiv(s); }} title="Profil sportiv"><UserCircleIcon className="w-3.5 h-3.5" /></Button>
+                                                <Button variant="secondary" size="sm" onClick={() => onViewSesiune(r.sesiune_id)} title="Mergi la examen"><ClipboardListIcon className="w-3.5 h-3.5" /></Button>
                                                 <Button variant="primary" size="sm" onClick={() => handleEdit(r)} title="Editează"><EditIcon className="w-3.5 h-3.5" /></Button>
                                                 <Button variant="danger" size="sm" onClick={() => setConfirmDeleteId(r.inscriere_id)} isLoading={deletingId === r.inscriere_id} title="Șterge"><TrashIcon className="w-3.5 h-3.5" /></Button>
                                             </div>
@@ -812,7 +814,7 @@ export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ currentUser, clu
         </div>
       )}
       {activeTab === 'raport' && (
-          <RaportInscrieri sesiuni={sesiuni} grade={grade} currentUser={currentUser} initialSportivId={initialSportivId} />
+          <RaportInscrieri sesiuni={sesiuni} grade={grade} currentUser={currentUser} initialSportivId={initialSportivId} sportivi={sportivi} onViewSportiv={onViewSportiv} onViewSesiune={(id) => { setSelectedSesiuneId(id); setActiveTab('sesiuni'); }} />
       )}
     </div>
   );

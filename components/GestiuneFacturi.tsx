@@ -8,6 +8,7 @@ import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { ResponsiveTable, Column } from './ResponsiveTable';
 import { useData } from '../contexts/DataContext';
 import { getPretValabil, getPretProdus } from '../utils/pricing';
+import { getDisplayStatus, STATUS_DISPLAY_CONFIG } from '../utils/paymentStatus';
 
 interface GestiuneFacturiProps {
     onBack: () => void;
@@ -365,15 +366,15 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
             label: 'Status',
             headerClassName: 'text-center',
             cellClassName: 'text-center',
-            render: (p) => (
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
-                    p.status === 'Achitat' ? 'bg-green-600/20 text-green-400 border-green-600/50' : 
-                    p.status === 'Achitat Parțial' ? 'bg-amber-600/20 text-amber-400 border-amber-600/50' : 
-                    'bg-red-600/20 text-red-400 border-red-600/50'
-                }`}>
-                    {p.status}
-                </span>
-            )
+            render: (p) => {
+                const ds = getDisplayStatus(p);
+                const cfg = STATUS_DISPLAY_CONFIG[ds];
+                return (
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${cfg.cls}`}>
+                        {cfg.label}
+                    </span>
+                );
+            }
         },
         {
             key: 'actions',
@@ -408,13 +409,11 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
                     )}
                     <p className="text-sm text-slate-400">{new Date((p.data || '').toString().slice(0, 10)).toLocaleDateString('ro-RO')}</p>
                 </div>
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
-                    p.status === 'Achitat' ? 'bg-green-600/20 text-green-400 border-green-600/50' : 
-                    p.status === 'Achitat Parțial' ? 'bg-amber-600/20 text-amber-400 border-amber-600/50' : 
-                    'bg-red-600/20 text-red-400 border-red-600/50'
-                }`}>
-                    {p.status}
-                </span>
+                {(() => { const ds = getDisplayStatus(p); const cfg = STATUS_DISPLAY_CONFIG[ds]; return (
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${cfg.cls}`}>
+                        {cfg.label}
+                    </span>
+                ); })()}
             </div>
             
             <div className="mt-2 grid grid-cols-2 gap-2">

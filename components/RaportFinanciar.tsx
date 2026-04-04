@@ -1,11 +1,16 @@
 import React, { useMemo, useState } from 'react';
 import { IstoricPlataDetaliat, Sportiv, Familie, Plata, Tranzactie } from '../types';
 import { Card, Input, Select, Button } from './ui';
-import { ChartBarIcon, BanknotesIcon, FileTextIcon, ChevronDownIcon } from './icons';
+import { ChartBarIcon, BanknotesIcon, FileTextIcon, ChevronDownIcon, ExclamationTriangleIcon, CheckCircleIcon, WalletIcon, XIcon, TrendingUpIcon } from './icons';
+import { RevenueBarChart } from './RevenueBarChart';
+import { PaymentTypePieChart } from './PaymentTypePieChart';
+import { AgingReport } from './AgingReport';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { supabase } from '../supabaseClient';
 import { useData } from '../contexts/DataContext';
 import { useError } from './ErrorProvider';
+import { getDisplayStatus, STATUS_DISPLAY_CONFIG } from '../utils/paymentStatus';
+import { FacturaChitantaModal } from './FacturaChitantaModal';
 
 interface RaportFinanciarProps {
     istoricPlatiDetaliat: IstoricPlataDetaliat[];
@@ -42,12 +47,15 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
     const { currentUser } = useData();
     const { showError, showSuccess } = useError();
     const [filters, setFilters] = useLocalStorage('phi-hau-raport-financiar-filters', initialFilters);
-    const [activeTab, setActiveTab] = useState<'incasari' | 'lunar' | 'taxe_anuale'>('incasari');
+    const [activeTab, setActiveTab] = useState<'incasari' | 'lunar' | 'taxe_anuale' | 'abonamente' | 'grafice'>('incasari');
     const [selectedMonth, setSelectedMonth] = useState('');
     const [filtersOpen, setFiltersOpen] = useState(false);
 
     // Payment modal state
     const [plataToIncaseze, setPlataToIncaseze] = useState<IstoricPlataDetaliat | null>(null);
+
+    // Factură / Chitanță modal
+    const [documentModal, setDocumentModal] = useState<{ plata: IstoricPlataDetaliat; mode: 'factura' | 'chitanta' } | null>(null);
     const [paymentAmount, setPaymentAmount] = useState('');
     const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'Transfer Bancar'>('Cash');
     const [isSaving, setIsSaving] = useState(false);
@@ -105,11 +113,14 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
         if (!istoricPlatiDetaliat) return [];
         return istoricPlatiDetaliat
             .filter(t => {
-                const dp = t.data_plata_string ? new Date(t.data_plata_string.toString().slice(0, 10)) : null;
+                // Tab "Încasări" arată doar plăți efectuate (cu dată de plată)
+                if (!t.data_plata_string) return false;
+                const dp = new Date(t.data_plata_string.toString().slice(0, 10));
+                if (isNaN(dp.getTime())) return false;
                 const s = filters.startDate ? new Date(filters.startDate) : null;
                 const e = filters.endDate ? new Date(filters.endDate) : null;
-                if (s && dp && dp < s) return false;
-                if (e && dp) { e.setHours(23, 59, 59, 999); if (dp > e) return false; }
+                if (s && dp < s) return false;
+                if (e) { const eEnd = new Date(e); eEnd.setHours(23, 59, 59, 999); if (dp > eEnd) return false; }
                 if (filters.sportivId && t.sportiv_id !== filters.sportivId) return false;
                 if (filters.familieId && t.familie_id !== filters.familieId) return false;
                 if (filters.metodaPlata && t.metoda_plata !== filters.metodaPlata) return false;
@@ -171,6 +182,73 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
 
     const activeFiltersCount = Object.values(filters).filter(Boolean).length;
 
+    // ─── KPI cards ───────────────────────────────────────────────────────────
+    const kpi = useMemo(() => {
+        const lunaAct = new Date().toISOString().slice(0, 7);
+        const incasatLuna = (istoricPlatiDetaliat || [])
+            .filter(t => t.data_plata_string?.toString().startsWith(lunaAct))
+            .reduce((s, t) => s + (t.suma_incasata || 0), 0);
+
+        const emisLuna = (istoricPlatiDetaliat || [])
+            .filter(t => t.data_emitere?.toString().startsWith(lunaAct))
+            .reduce((s, t) => s + t.suma_datorata, 0);
+
+        const totalRestante = (istoricPlatiDetaliat || [])
+            .filter(t => t.status !== 'Achitat')
+            .reduce((s, t) => s + (t.rest_de_plata ?? 0), 0);
+
+        const azi = new Date(); azi.setHours(0, 0, 0, 0);
+        const nrScadente = (plati || []).filter(p => {
+            if (p.status === 'Achitat') return false;
+            const d = new Date(p.data.toString().slice(0, 10));
+            return !isNaN(d.getTime()) && d < azi;
+        }).length;
+
+        const rataColectare = emisLuna > 0 ? Math.round((incasatLuna / emisLuna) * 100) : null;
+
+        return { incasatLuna, totalRestante, nrScadente, rataColectare };
+    }, [istoricPlatiDetaliat, plati]);
+
+    // ─── Filter chips ─────────────────────────────────────────────────────────
+    const activeFilterChips = useMemo(() => {
+        const chips: { key: string; label: string }[] = [];
+        if (filters.startDate) chips.push({ key: 'startDate', label: `De la: ${new Date(filters.startDate).toLocaleDateString('ro-RO')}` });
+        if (filters.endDate)   chips.push({ key: 'endDate',   label: `Până la: ${new Date(filters.endDate).toLocaleDateString('ro-RO')}` });
+        if (filters.metodaPlata) chips.push({ key: 'metodaPlata', label: `Metodă: ${filters.metodaPlata}` });
+        if (filters.sportivId) {
+            const s = sportivi.find(sp => sp.id === filters.sportivId);
+            if (s) chips.push({ key: 'sportivId', label: `Sportiv: ${s.nume} ${s.prenume}` });
+        }
+        if (filters.familieId) {
+            const f = familii.find(fa => fa.id === filters.familieId);
+            if (f) chips.push({ key: 'familieId', label: `Familie: ${f.nume}` });
+        }
+        return chips;
+    }, [filters, sportivi, familii]);
+
+    // ─── Tab Abonamente ───────────────────────────────────────────────────────
+    const [lunaAbonamente, setLunaAbonamente] = useState('');
+    const luniAbonamente = useMemo(() => {
+        const s = new Set<string>();
+        (plati || []).filter(p => (p.tip || '').toLowerCase().includes('abonament'))
+            .forEach(p => { const l = p.data.toString().slice(0, 7); if (l) s.add(l); });
+        return Array.from(s).sort().reverse();
+    }, [plati]);
+
+    const abonamenteData = useMemo(() => {
+        const luna = lunaAbonamente || luniAbonamente[0] || '';
+        if (!luna) return { luna, total: 0, achitate: 0, neachitate: 0, listaNeachitate: [] as Plata[], totalSuma: 0, incasatSuma: 0 };
+        const lunares = (plati || []).filter(p =>
+            (p.tip || '').toLowerCase().includes('abonament') &&
+            p.data.toString().startsWith(luna)
+        );
+        const achitate = lunares.filter(p => p.status === 'Achitat');
+        const neachitate = lunares.filter(p => p.status !== 'Achitat');
+        const totalSuma = lunares.reduce((s, p) => s + p.suma, 0);
+        const incasatSuma = achitate.reduce((s, p) => s + p.suma, 0);
+        return { luna, total: lunares.length, achitate: achitate.length, neachitate: neachitate.length, listaNeachitate: neachitate, totalSuma, incasatSuma };
+    }, [plati, lunaAbonamente, luniAbonamente]);
+
     const SportivLink: React.FC<{ row: IstoricPlataDetaliat }> = ({ row }) => {
         const name = row.nume_complet_sportiv || '—';
         if (!row.sportiv_id || !onViewSportiv) return <span>{name}</span>;
@@ -186,9 +264,11 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
     };
 
     const tabs = [
-        { id: 'incasari' as const, label: 'Încasări', icon: <FileTextIcon className="w-4 h-4" /> },
-        { id: 'lunar' as const, label: 'Lunar', icon: <ChartBarIcon className="w-4 h-4" /> },
-        { id: 'taxe_anuale' as const, label: 'Taxe Anuale', icon: <BanknotesIcon className="w-4 h-4" /> },
+        { id: 'incasari' as const,    label: 'Încasări',     icon: <FileTextIcon className="w-4 h-4" /> },
+        { id: 'abonamente' as const,  label: 'Abonamente',   icon: <WalletIcon className="w-4 h-4" /> },
+        { id: 'lunar' as const,       label: 'Lunar',        icon: <ChartBarIcon className="w-4 h-4" /> },
+        { id: 'taxe_anuale' as const, label: 'Taxe Anuale',  icon: <BanknotesIcon className="w-4 h-4" /> },
+        { id: 'grafice' as const,     label: 'Grafice',      icon: <TrendingUpIcon className="w-4 h-4" /> },
     ];
 
     return (
@@ -208,6 +288,60 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                     </button>
                 ))}
             </div>
+
+            {/* ─── KPI CARDS (mereu vizibile) ─── */}
+            {(activeTab === 'incasari' || activeTab === 'abonamente') && (
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                    {/* Încasat luna curentă */}
+                    <div className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3">
+                        <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1">
+                            <CheckCircleIcon className="w-3.5 h-3.5 text-emerald-400" />
+                            Încasat {new Date().toLocaleString('ro-RO', { month: 'short' })}
+                        </p>
+                        <p className="text-xl font-black text-emerald-400">{(kpi.incasatLuna).toLocaleString('ro-RO', { minimumFractionDigits: 0 })} RON</p>
+                    </div>
+                    {/* Total restanțe */}
+                    <div className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3">
+                        <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1">
+                            <ExclamationTriangleIcon className="w-3.5 h-3.5 text-amber-400" />
+                            Total Restanțe
+                        </p>
+                        <p className={`text-xl font-black ${kpi.totalRestante > 0 ? 'text-rose-400' : 'text-slate-500'}`}>
+                            {(kpi.totalRestante).toLocaleString('ro-RO', { minimumFractionDigits: 0 })} RON
+                        </p>
+                    </div>
+                    {/* Plăți scadente */}
+                    <div className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3">
+                        <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1">
+                            <ExclamationTriangleIcon className="w-3.5 h-3.5 text-red-400" />
+                            Plăți Scadente
+                        </p>
+                        <p className={`text-xl font-black ${kpi.nrScadente > 0 ? 'text-red-400' : 'text-slate-500'}`}>
+                            {kpi.nrScadente} {kpi.nrScadente === 1 ? 'factură' : 'facturi'}
+                        </p>
+                    </div>
+                    {/* Rata colectare */}
+                    <div className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3">
+                        <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1">
+                            <ChartBarIcon className="w-3.5 h-3.5 text-indigo-400" />
+                            Rată Colectare
+                        </p>
+                        {kpi.rataColectare !== null ? (
+                            <div>
+                                <p className={`text-xl font-black ${kpi.rataColectare >= 90 ? 'text-emerald-400' : kpi.rataColectare >= 70 ? 'text-amber-400' : 'text-rose-400'}`}>
+                                    {kpi.rataColectare}%
+                                </p>
+                                <div className="w-full bg-slate-700 rounded-full h-1 mt-1.5">
+                                    <div className={`h-1 rounded-full transition-all ${kpi.rataColectare >= 90 ? 'bg-emerald-400' : kpi.rataColectare >= 70 ? 'bg-amber-400' : 'bg-rose-400'}`}
+                                        style={{ width: `${Math.min(kpi.rataColectare, 100)}%` }} />
+                                </div>
+                            </div>
+                        ) : (
+                            <p className="text-xl font-black text-slate-500">—</p>
+                        )}
+                    </div>
+                </div>
+            )}
 
             {/* ─── TAB: ÎNCASĂRI ─── */}
             {activeTab === 'incasari' && (
@@ -254,6 +388,32 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                         )}
                     </Card>
 
+                    {/* Filter chips active */}
+                    {activeFilterChips.length > 0 && (
+                        <div className="flex flex-wrap gap-2 px-1">
+                            {activeFilterChips.map(chip => (
+                                <span key={chip.key}
+                                    className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-indigo-500/15
+                                               text-indigo-300 border border-indigo-500/30 rounded-full text-xs font-medium">
+                                    {chip.label}
+                                    <button
+                                        onClick={() => setFilters((f: typeof filters) => ({ ...f, [chip.key]: '' }))}
+                                        className="ml-0.5 hover:text-white transition-colors"
+                                        aria-label={`Șterge filtrul ${chip.label}`}
+                                    >
+                                        <XIcon className="w-3 h-3" />
+                                    </button>
+                                </span>
+                            ))}
+                            {activeFilterChips.length > 1 && (
+                                <button onClick={resetFilters}
+                                    className="text-xs text-slate-500 hover:text-rose-400 transition-colors px-1">
+                                    Șterge toate
+                                </button>
+                            )}
+                        </div>
+                    )}
+
                     {/* Total card */}
                     <div className="flex items-center justify-between bg-slate-800/60 border border-slate-700/50 rounded-xl px-5 py-4">
                         <div>
@@ -280,6 +440,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                                             <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-400">Descriere</th>
                                             <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-400">Metodă</th>
                                             <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-400 text-right">Sumă</th>
+                                            <th className="px-4 py-3 w-20"></th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-800/60">
@@ -297,6 +458,15 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                                                 </td>
                                                 <td className="px-4 py-3 text-right font-bold text-white whitespace-nowrap">
                                                     {formatSum(t.suma_incasata)}
+                                                </td>
+                                                <td className="px-4 py-3 text-right">
+                                                    <button
+                                                        onClick={() => setDocumentModal({ plata: t, mode: t.status === 'Achitat' ? 'chitanta' : 'factura' })}
+                                                        title={t.status === 'Achitat' ? 'Chitanță' : 'Factură'}
+                                                        className="text-slate-500 hover:text-indigo-400 transition-colors p-1 rounded"
+                                                    >
+                                                        <FileTextIcon className="w-4 h-4" />
+                                                    </button>
                                                 </td>
                                             </tr>
                                         ))}
@@ -480,6 +650,182 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                     ))}
                 </div>
             )}
+            {/* ─── TAB: ABONAMENTE ─── */}
+            {activeTab === 'abonamente' && (
+                <div className="space-y-4">
+                    {/* Selector lună */}
+                    <Card>
+                        <Select
+                            label="Luna"
+                            value={lunaAbonamente || luniAbonamente[0] || ''}
+                            onChange={e => setLunaAbonamente(e.target.value)}
+                            className="max-w-xs"
+                        >
+                            {luniAbonamente.map(l => <option key={l} value={l}>{l}</option>)}
+                        </Select>
+                    </Card>
+
+                    {abonamenteData.total === 0 ? (
+                        <Card><p className="text-center text-slate-400 py-6 italic">Nu s-au găsit abonamente pentru această lună.</p></Card>
+                    ) : (
+                        <>
+                            {/* Sumar */}
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                <div className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 col-span-2 md:col-span-1">
+                                    <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">Total sportivi</p>
+                                    <p className="text-2xl font-black text-white">{abonamenteData.total}</p>
+                                </div>
+                                <div className="bg-slate-900 border border-emerald-800/30 rounded-xl px-4 py-3">
+                                    <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">Achitat</p>
+                                    <p className="text-2xl font-black text-emerald-400">{abonamenteData.achitate}</p>
+                                    <p className="text-xs text-slate-500 mt-0.5">{abonamenteData.total > 0 ? Math.round((abonamenteData.achitate / abonamenteData.total) * 100) : 0}%</p>
+                                </div>
+                                <div className="bg-slate-900 border border-rose-800/30 rounded-xl px-4 py-3">
+                                    <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">Neachitat</p>
+                                    <p className={`text-2xl font-black ${abonamenteData.neachitate > 0 ? 'text-rose-400' : 'text-slate-500'}`}>{abonamenteData.neachitate}</p>
+                                </div>
+                                <div className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3">
+                                    <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">Rest Colectat</p>
+                                    <p className={`text-lg font-black ${abonamenteData.incasatSuma < abonamenteData.totalSuma ? 'text-amber-400' : 'text-emerald-400'}`}>
+                                        {formatSum(abonamenteData.totalSuma - abonamenteData.incasatSuma)}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Bara progres colectare */}
+                            {abonamenteData.totalSuma > 0 && (
+                                <div className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3">
+                                    <div className="flex justify-between text-xs text-slate-400 mb-2">
+                                        <span>Progres colectare</span>
+                                        <span className="font-bold text-white">
+                                            {formatSum(abonamenteData.incasatSuma)} / {formatSum(abonamenteData.totalSuma)}
+                                        </span>
+                                    </div>
+                                    <div className="w-full bg-slate-700 rounded-full h-2">
+                                        <div
+                                            className="h-2 rounded-full bg-emerald-400 transition-all"
+                                            style={{ width: `${Math.min(Math.round((abonamenteData.incasatSuma / abonamenteData.totalSuma) * 100), 100)}%` }}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Lista neachitate */}
+                            {abonamenteData.listaNeachitate.length > 0 && (
+                                <>
+                                    <h3 className="text-sm font-bold text-rose-400 px-1 flex items-center gap-2">
+                                        <ExclamationTriangleIcon className="w-4 h-4" />
+                                        Abonamente neachitate ({abonamenteData.listaNeachitate.length})
+                                    </h3>
+                                    <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+                                        <div className="divide-y divide-slate-800/60">
+                                            {abonamenteData.listaNeachitate.map(p => {
+                                                const ds = getDisplayStatus(p);
+                                                const cfg = STATUS_DISPLAY_CONFIG[ds];
+                                                const sp = sportivi.find(s => s.id === p.sportiv_id);
+                                                const fam = familii.find(f => f.id === p.familie_id);
+                                                const numePlatitor = sp ? `${sp.nume} ${sp.prenume}` : fam?.nume ?? '—';
+                                                return (
+                                                    <div key={p.id} className="flex items-center justify-between px-4 py-3 gap-3">
+                                                        <div className="min-w-0">
+                                                            <p className="text-white font-medium text-sm truncate">{numePlatitor}</p>
+                                                            <p className="text-slate-500 text-xs mt-0.5">{p.descriere}</p>
+                                                        </div>
+                                                        <div className="flex items-center gap-2 shrink-0">
+                                                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${cfg.cls}`}>
+                                                                {cfg.label}
+                                                            </span>
+                                                            <span className="text-white font-bold text-sm whitespace-nowrap">{formatSum(p.suma)}</span>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                        </>
+                    )}
+                </div>
+            )}
+
+            {/* ─── TAB: GRAFICE ─── */}
+            {activeTab === 'grafice' && (
+                <div className="space-y-4">
+                    {/* Bar chart — încasări 12 luni */}
+                    <RevenueBarChart istoricPlatiDetaliat={istoricPlatiDetaliat} />
+
+                    {/* Donut + Aging side by side pe desktop */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <PaymentTypePieChart istoricPlatiDetaliat={istoricPlatiDetaliat} />
+
+                        {/* Mini KPI restanțe lângă donut */}
+                        <div className="space-y-3">
+                            <div className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3">
+                                <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-3">
+                                    Sumar financiar curent
+                                </p>
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm text-slate-400">Încasat luna curentă</span>
+                                        <span className="text-sm font-bold text-emerald-400">
+                                            {kpi.incasatLuna.toLocaleString('ro-RO', { minimumFractionDigits: 0 })} RON
+                                        </span>
+                                    </div>
+                                    <div className="h-px bg-slate-800" />
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm text-slate-400">Total restanțe</span>
+                                        <span className={`text-sm font-bold ${kpi.totalRestante > 0 ? 'text-rose-400' : 'text-slate-500'}`}>
+                                            {kpi.totalRestante.toLocaleString('ro-RO', { minimumFractionDigits: 0 })} RON
+                                        </span>
+                                    </div>
+                                    <div className="h-px bg-slate-800" />
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm text-slate-400">Facturi scadente</span>
+                                        <span className={`text-sm font-bold ${kpi.nrScadente > 0 ? 'text-red-400' : 'text-slate-500'}`}>
+                                            {kpi.nrScadente} {kpi.nrScadente === 1 ? 'factură' : 'facturi'}
+                                        </span>
+                                    </div>
+                                    {kpi.rataColectare !== null && (
+                                        <>
+                                            <div className="h-px bg-slate-800" />
+                                            <div>
+                                                <div className="flex items-center justify-between mb-1.5">
+                                                    <span className="text-sm text-slate-400">Rată colectare</span>
+                                                    <span className={`text-sm font-bold ${kpi.rataColectare >= 90 ? 'text-emerald-400' : kpi.rataColectare >= 70 ? 'text-amber-400' : 'text-rose-400'}`}>
+                                                        {kpi.rataColectare}%
+                                                    </span>
+                                                </div>
+                                                <div className="w-full bg-slate-700 rounded-full h-1.5">
+                                                    <div
+                                                        className={`h-1.5 rounded-full transition-all ${kpi.rataColectare >= 90 ? 'bg-emerald-400' : kpi.rataColectare >= 70 ? 'bg-amber-400' : 'bg-rose-400'}`}
+                                                        style={{ width: `${Math.min(kpi.rataColectare, 100)}%` }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Aging report — full width */}
+                    <AgingReport plati={plati} sportivi={sportivi} familii={familii} />
+                </div>
+            )}
+
+            {/* ─── MODAL FACTURĂ / CHITANȚĂ ─── */}
+            {documentModal && (
+                <FacturaChitantaModal
+                    mode={documentModal.mode}
+                    plata={documentModal.plata}
+                    sportiv={sportivi.find(s => s.id === documentModal.plata.sportiv_id) ?? null}
+                    familie={familii.find(f => f.id === documentModal.plata.familie_id) ?? null}
+                    onClose={() => setDocumentModal(null)}
+                />
+            )}
+
             {/* ─── MODAL ÎNCASARE ─── */}
             {plataToIncaseze && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">

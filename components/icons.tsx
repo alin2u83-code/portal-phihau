@@ -7,7 +7,8 @@ import {
   ChevronLeft, ChevronRight, Printer, Check, ArrowRightLeft, Search, Bell, Network,
   UploadCloud, Mail, Lock, UserPlus, BookOpen, BookMarked, FileText, UserX, UserCheck, XCircle, Clock,
   Camera, Upload, Building2, Paintbrush, MapPin, CreditCard, Calendar, AlertCircle,
-  Bot, Send, Sparkles, ChevronUp, HelpCircle, MessageSquare, GraduationCap, Minimize2
+  Bot, Send, Sparkles, ChevronUp, HelpCircle, MessageSquare, GraduationCap, Minimize2,
+  TrendingUp
 } from 'lucide-react';
 
 export const PlusIcon = Plus;
@@ -73,3 +74,4 @@ export const ChevronUpIcon = ChevronUp;
 export const HelpCircleIcon = HelpCircle;
 export const MessageSquareIcon = MessageSquare;
 export const Minimize2Icon = Minimize2;
+export const TrendingUpIcon = TrendingUp;

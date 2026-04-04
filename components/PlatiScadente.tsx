@@ -9,6 +9,7 @@ import { useLocalStorage } from '../hooks/useLocalStorage';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
 import { useData } from '../contexts/DataContext';
+import { getDisplayStatus, STATUS_DISPLAY_CONFIG } from '../utils/paymentStatus';
 
 interface PlatiScadenteProps { 
     onIncaseazaMultiple: (plati: Plata[]) => void;
@@ -505,7 +506,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                                             </div>
                                         )}
                                     </td>
-                                    <td className="p-3 text-center"><span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${ p.status === 'Achitat' ? 'bg-green-100 text-green-800' : p.status === 'Achitat Parțial' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>{p.status}</span></td>
+                                    <td className="p-3 text-center">{(() => { const ds = getDisplayStatus(p); const cfg = STATUS_DISPLAY_CONFIG[ds]; return <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${cfg.cls}`}>{cfg.label}</span>; })()}</td>
                                     <td className="p-3 text-right">
                                         <div className="flex justify-end gap-2">
                                             {p.status !== 'Achitat' && (

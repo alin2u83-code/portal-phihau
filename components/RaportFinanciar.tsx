@@ -1,10 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import { IstoricPlataDetaliat, Sportiv, Familie, Plata, Tranzactie } from '../types';
 import { Card, Input, Select, Button } from './ui';
-import { ChartBarIcon, BanknotesIcon, FileTextIcon, ChevronDownIcon, ExclamationTriangleIcon, CheckCircleIcon, WalletIcon, XIcon, TrendingUpIcon } from './icons';
+import { ChartBarIcon, BanknotesIcon, FileTextIcon, ChevronDownIcon, ExclamationTriangleIcon, CheckCircleIcon, WalletIcon, XIcon, TrendingUpIcon, UsersIcon, DownloadIcon, DocumentArrowDownIcon } from './icons';
 import { RevenueBarChart } from './RevenueBarChart';
 import { PaymentTypePieChart } from './PaymentTypePieChart';
 import { AgingReport } from './AgingReport';
+import { FamilyPaymentCard } from './FamilyPaymentCard';
+import { exportIncasariCSV, exportIncasariPDF } from '../utils/exportFinanciar';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { supabase } from '../supabaseClient';
 import { useData } from '../contexts/DataContext';
@@ -47,7 +49,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
     const { currentUser } = useData();
     const { showError, showSuccess } = useError();
     const [filters, setFilters] = useLocalStorage('phi-hau-raport-financiar-filters', initialFilters);
-    const [activeTab, setActiveTab] = useState<'incasari' | 'lunar' | 'taxe_anuale' | 'abonamente' | 'grafice'>('incasari');
+    const [activeTab, setActiveTab] = useState<'incasari' | 'lunar' | 'taxe_anuale' | 'abonamente' | 'grafice' | 'familii'>('incasari');
     const [selectedMonth, setSelectedMonth] = useState('');
     const [filtersOpen, setFiltersOpen] = useState(false);
 
@@ -269,6 +271,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
         { id: 'lunar' as const,       label: 'Lunar',        icon: <ChartBarIcon className="w-4 h-4" /> },
         { id: 'taxe_anuale' as const, label: 'Taxe Anuale',  icon: <BanknotesIcon className="w-4 h-4" /> },
         { id: 'grafice' as const,     label: 'Grafice',      icon: <TrendingUpIcon className="w-4 h-4" /> },
+        { id: 'familii' as const,     label: 'Familii',      icon: <UsersIcon className="w-4 h-4" /> },
     ];
 
     return (
@@ -414,11 +417,35 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                         </div>
                     )}
 
-                    {/* Total card */}
-                    <div className="flex items-center justify-between bg-slate-800/60 border border-slate-700/50 rounded-xl px-5 py-4">
+                    {/* Total card + Export */}
+                    <div className="flex items-center justify-between bg-slate-800/60 border border-slate-700/50 rounded-xl px-5 py-4 gap-4">
                         <div>
                             <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Total Încasări</p>
                             <p className="text-xs text-slate-500">{filteredIstoric.length} înregistrări</p>
+                        </div>
+                        <div className="flex items-center gap-2 ml-auto">
+                            <button
+                                onClick={() => exportIncasariCSV(filteredIstoric)}
+                                disabled={filteredIstoric.length === 0}
+                                title="Export CSV"
+                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-300
+                                           bg-slate-700/60 hover:bg-slate-700 border border-slate-600/50
+                                           rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                            >
+                                <DownloadIcon className="w-3.5 h-3.5" />
+                                <span className="hidden sm:inline">CSV</span>
+                            </button>
+                            <button
+                                onClick={() => exportIncasariPDF(filteredIstoric, totalIncasari)}
+                                disabled={filteredIstoric.length === 0}
+                                title="Export PDF"
+                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white
+                                           bg-indigo-600/70 hover:bg-indigo-600 border border-indigo-500/50
+                                           rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                            >
+                                <DocumentArrowDownIcon className="w-3.5 h-3.5" />
+                                <span className="hidden sm:inline">PDF</span>
+                            </button>
                         </div>
                         <p className={`text-2xl md:text-3xl font-black ${totalIncasari > 0 ? 'text-emerald-400' : 'text-slate-500'}`}>
                             {formatSum(totalIncasari)}
@@ -748,6 +775,73 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                     )}
                 </div>
             )}
+
+            {/* ─── TAB: FAMILII ─── */}
+            {activeTab === 'familii' && (() => {
+                const familiiCuPlati = familii.filter(f =>
+                    (plati || []).some(p =>
+                        p.familie_id === f.id ||
+                        sportivi.some(s => s.familie_id === f.id && s.id === p.sportiv_id)
+                    )
+                );
+                const totalFamiliiRestante = familiiCuPlati.filter(f => {
+                    const memberIds = new Set(sportivi.filter(s => s.familie_id === f.id).map(s => s.id));
+                    return (plati || []).some(p =>
+                        (p.familie_id === f.id || (p.sportiv_id !== null && memberIds.has(p.sportiv_id))) &&
+                        p.status !== 'Achitat'
+                    );
+                }).length;
+
+                return (
+                    <div className="space-y-4">
+                        {/* Sumar */}
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3">
+                                <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">Familii înregistrate</p>
+                                <p className="text-2xl font-black text-white">{familiiCuPlati.length}</p>
+                            </div>
+                            <div className="bg-slate-900 border border-rose-800/30 rounded-xl px-4 py-3">
+                                <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">Cu restanțe</p>
+                                <p className={`text-2xl font-black ${totalFamiliiRestante > 0 ? 'text-rose-400' : 'text-slate-500'}`}>
+                                    {totalFamiliiRestante}
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Lista carduri familii */}
+                        {familiiCuPlati.length === 0 ? (
+                            <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 text-center">
+                                <p className="text-slate-400 italic">Nu există familii cu plăți înregistrate.</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {/* Familii cu restanțe primele */}
+                                {[...familiiCuPlati].sort((a, b) => {
+                                    const aIds = new Set(sportivi.filter(s => s.familie_id === a.id).map(s => s.id));
+                                    const bIds = new Set(sportivi.filter(s => s.familie_id === b.id).map(s => s.id));
+                                    const aRest = (plati || []).some(p =>
+                                        (p.familie_id === a.id || (p.sportiv_id !== null && aIds.has(p.sportiv_id))) && p.status !== 'Achitat'
+                                    );
+                                    const bRest = (plati || []).some(p =>
+                                        (p.familie_id === b.id || (p.sportiv_id !== null && bIds.has(p.sportiv_id))) && p.status !== 'Achitat'
+                                    );
+                                    if (aRest && !bRest) return -1;
+                                    if (!aRest && bRest) return 1;
+                                    return a.nume.localeCompare(b.nume);
+                                }).map(f => (
+                                    <FamilyPaymentCard
+                                        key={f.id}
+                                        familie={f}
+                                        sportivi={sportivi}
+                                        plati={plati}
+                                        onViewSportiv={onViewSportiv}
+                                    />
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                );
+            })()}
 
             {/* ─── TAB: GRAFICE ─── */}
             {activeTab === 'grafice' && (

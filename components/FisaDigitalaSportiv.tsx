@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { User, Grad, InscriereExamen, Examen, Plata, View } from '../types';
 import { Button, Card } from './ui';
-import { ArrowLeftIcon, ShieldCheckIcon, WalletIcon } from './icons';
+import { ArrowLeftIcon, ShieldCheckIcon, WalletIcon, CheckCircleIcon, XCircleIcon, ExclamationTriangleIcon } from './icons';
 
 // Props
 interface FisaDigitalaSportivProps {
@@ -121,6 +121,69 @@ export const FisaDigitalaSportiv: React.FC<FisaDigitalaSportivProps> = ({ curren
                     <p className="text-center text-slate-400">Felicitări! Ați atins gradul maxim înregistrat în sistem.</p>
                 )}
             </Card>
+
+            {/* ─── Widget Eligibilitate Examen ─── */}
+            {nextGrad && (() => {
+                const stagSuficient = timeToNextGrade.percentage >= 100;
+                const financiarOk = totalRestante === 0;
+                const eligibil = stagSuficient && financiarOk;
+                return (
+                    <Card className={`border-l-4 ${eligibil ? 'border-emerald-500' : 'border-amber-500'}`}>
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-bold text-white">Eligibilitate Examen</h3>
+                            <span className={`flex items-center gap-1.5 text-sm font-bold px-3 py-1 rounded-full
+                                ${eligibil
+                                    ? 'bg-emerald-500/15 text-emerald-400'
+                                    : 'bg-amber-500/15 text-amber-400'
+                                }`}>
+                                {eligibil
+                                    ? <><CheckCircleIcon className="w-4 h-4" />Eligibil</>
+                                    : <><ExclamationTriangleIcon className="w-4 h-4" />Neeligibil</>
+                                }
+                            </span>
+                        </div>
+                        <div className="space-y-3">
+                            {/* Criteriu 1: Stagiu */}
+                            <div className="flex items-start gap-3 p-3 bg-slate-800/40 rounded-xl">
+                                {stagSuficient
+                                    ? <CheckCircleIcon className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+                                    : <XCircleIcon className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+                                }
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-semibold text-white">Stagiu minim de pregătire</p>
+                                    <p className="text-xs text-slate-400 mt-0.5">
+                                        {timeToNextGrade.monthsElapsed} / {timeToNextGrade.monthsRequired} luni completate
+                                        {!stagSuficient && ` · mai ${timeToNextGrade.monthsRequired - timeToNextGrade.monthsElapsed} luni`}
+                                    </p>
+                                    <div className="w-full bg-slate-700 rounded-full h-1.5 mt-2">
+                                        <div
+                                            className={`h-1.5 rounded-full transition-all ${stagSuficient ? 'bg-emerald-400' : 'bg-amber-400'}`}
+                                            style={{ width: `${Math.min(timeToNextGrade.percentage, 100)}%` }}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Criteriu 2: Plăți */}
+                            <div className="flex items-start gap-3 p-3 bg-slate-800/40 rounded-xl">
+                                {financiarOk
+                                    ? <CheckCircleIcon className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+                                    : <XCircleIcon className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+                                }
+                                <div>
+                                    <p className="text-sm font-semibold text-white">Situație financiară</p>
+                                    <p className={`text-xs mt-0.5 ${financiarOk ? 'text-slate-400' : 'text-red-300'}`}>
+                                        {financiarOk
+                                            ? 'Toate plățile sunt la zi'
+                                            : `Restanță: ${totalRestante.toFixed(2)} RON — contactați secretariatul`
+                                        }
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </Card>
+                );
+            })()}
         </div>
     );
 };

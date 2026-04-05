@@ -10,6 +10,14 @@ export interface ImportReport {
 const validateEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 const validateCNP = (cnp: string) => /^\d{13}$/.test(cnp);
 
+const generateEmail = (prenume: string, nume: string): string => {
+  const sanitize = (s: string) =>
+    s.toLowerCase()
+     .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+     .replace(/\s+/g, '.').replace(/[^a-z0-9.]/g, '');
+  return `${sanitize(prenume)}.${sanitize(nume)}@frqkd.ro`;
+};
+
 export const importSportivi = async (
   dateSportivi: any[],
   activeClubId: string,
@@ -42,8 +50,7 @@ export const importSportivi = async (
     try {
       // 1. Validări de bază
       if (!row.nume || !row.prenume) throw new Error("Lipsesc nume sau prenume");
-      if (!row.email && !row.cnp) throw new Error("Lipsesc email și CNP");
-      
+
       if (row.email && !validateEmail(row.email)) throw new Error(`Email invalid: ${row.email}`);
       if (row.cnp && !validateCNP(row.cnp)) throw new Error(`CNP invalid: ${row.cnp}`);
 
@@ -67,10 +74,14 @@ export const importSportivi = async (
       const gradId = findGradeId(row.grad_actual || row.grad_actual_id);
       if (!gradId) throw new Error("Nu s-a găsit gradul specificat și nu există grad implicit (Debutant)");
 
+      const numeClean = row.nume.trim().replace(/[?]/g, '');
+      const prenumeClean = row.prenume.trim().replace(/[?]/g, '');
+      const emailResolved = row.email?.toLowerCase().trim() || generateEmail(prenumeClean, numeClean);
+
       const sportivData = {
-        nume: row.nume.trim().replace(/[?]/g, ''),
-        prenume: row.prenume.trim().replace(/[?]/g, ''),
-        email: row.email?.toLowerCase().trim() || null,
+        nume: numeClean,
+        prenume: prenumeClean,
+        email: emailResolved,
         cnp: row.cnp?.trim() || null,
         data_nasterii: dataNasterii,
         telefon: row.telefon?.trim() || null,
@@ -83,7 +94,7 @@ export const importSportivi = async (
         grad_actual_id: gradId,
       };
 
-      // 4. Upsert logic — construim query-ul conditional pentru a evita OR cu null
+      // 4. Upsert logic — căutare duplicat după email/CNP sau fallback pe nume+dată naștere
       let existingQuery = supabase.from('sportivi').select('id');
       if (sportivData.email && sportivData.cnp) {
         existingQuery = existingQuery.or(`email.eq.${sportivData.email},cnp.eq.${sportivData.cnp}`);
@@ -91,8 +102,15 @@ export const importSportivi = async (
         existingQuery = existingQuery.eq('email', sportivData.email);
       } else if (sportivData.cnp) {
         existingQuery = existingQuery.eq('cnp', sportivData.cnp);
+      } else if (sportivData.data_nasterii) {
+        existingQuery = existingQuery
+          .eq('nume', sportivData.nume)
+          .eq('prenume', sportivData.prenume)
+          .eq('data_nasterii', sportivData.data_nasterii);
       } else {
-        throw new Error("Lipsesc email și CNP — nu se poate verifica duplicatul");
+        existingQuery = existingQuery
+          .eq('nume', sportivData.nume)
+          .eq('prenume', sportivData.prenume);
       }
       const { data: existing, error: fetchError } = await existingQuery.maybeSingle();
 

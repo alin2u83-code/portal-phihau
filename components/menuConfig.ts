@@ -4,6 +4,7 @@ import {
     HomeIcon, UsersIcon, TrophyIcon, BanknotesIcon, CalendarDaysIcon,
     ClipboardCheckIcon, CogIcon, SitemapIcon, ArchiveBoxIcon, FileTextIcon,
     ChartBarIcon, UserPlusIcon, BookOpenIcon, BookMarkedIcon, WalletIcon,
+    ClockIcon,
 } from './icons';
 
 export interface MenuItem {
@@ -74,6 +75,7 @@ export const adminMenu: MenuItem[] = [
         ]
     },
     { label: 'Notificări', icon: ClipboardCheckIcon, view: 'notificari' },
+    { label: 'Istoric Activitate', icon: ClockIcon, view: 'istoric-activitate' },
 ];
 
 // Meniu pentru Admin Club (fara sectiuni federative)
@@ -128,6 +130,7 @@ export const adminClubMenu: MenuItem[] = [
         ]
     },
     { label: 'Notificări', icon: ClipboardCheckIcon, view: 'notificari' },
+    { label: 'Istoric Activitate', icon: ClockIcon, view: 'istoric-activitate' },
 ];
 
 // Meniu pentru Instructori
@@ -153,6 +156,7 @@ export const instructorMenu: MenuItem[] = [
     },
     { label: 'Rapoarte', icon: ChartBarIcon, view: 'rapoarte' },
     { label: 'Notificări', icon: ClipboardCheckIcon, view: 'notificari' },
+    { label: 'Istoric Activitate', icon: ClockIcon, view: 'istoric-activitate' },
     { label: 'Setări Cont', icon: CogIcon, view: 'account-settings' },
 ];
 

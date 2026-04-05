@@ -645,16 +645,25 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         let newInscrieri: InscriereExamen[] = [];
         let errorCount = 0;
     
+        let skipCount = 0;
         for (const selection of selections) {
+            await new Promise(r => setTimeout(r, 0)); // yield to browser between iterations
             const { sportiv_id, grad_sustinut_id } = selection;
             const sportiv = (sportivi || []).find(s => s.id === sportiv_id);
             const grad = (grade || []).find(g => g.id === grad_sustinut_id);
-    
+
             if (!sportiv || !grad) {
                 errorCount++;
                 continue;
             }
-    
+
+            // Skip silently if sportiv is already registered for this session
+            const alreadyRegistered = inscrieri.some(i => i.sportiv_id === sportiv_id);
+            if (alreadyRegistered) {
+                skipCount++;
+                continue;
+            }
+
             try {
                 let plataId: string | null = null;
                 
@@ -742,9 +751,12 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             await sendBulkNotifications(notifications);
         }
 
-        const successCount = selections.length - errorCount;
+        const successCount = selections.length - errorCount - skipCount;
         if (successCount > 0) {
             showSuccess("Înscriere finalizată", `${successCount} sportivi au fost înscriși cu succes.`);
+        }
+        if (skipCount > 0) {
+            showError("Deja înscriși", `${skipCount} sportivi erau deja înscriși la această sesiune și au fost ignorați.`);
         }
         if (errorCount > 0) {
             showError("Înscrieri eșuate", `${errorCount} sportivi nu au putut fi înscriși.`);

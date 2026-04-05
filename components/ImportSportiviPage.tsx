@@ -70,6 +70,14 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
         if (e.target.files) setFile(e.target.files[0]);
     };
 
+    const generateEmail = (prenume: string, nume: string): string => {
+        const sanitize = (s: string) =>
+            s.toLowerCase()
+             .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+             .replace(/\s+/g, '.').replace(/[^a-z0-9.]/g, '');
+        return `${sanitize(prenume)}.${sanitize(nume)}@frqkd.ro`;
+    };
+
     const levenshteinDistance = (a: string, b: string): number => {
         const tmp = [];
         for (let i = 0; i <= a.length; i++) tmp[i] = [i];
@@ -178,10 +186,12 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
                             isSimilar(s.prenume, prenumeCSV)
                         );
 
+                        const emailCSV = row['EMAIL']?.trim() || row['Email']?.trim() || row['email']?.trim();
                         const sportivData: any = {
                             nume: numeCSV,
                             prenume: prenumeCSV,
                             cnp: row['CNP']?.trim() || null,
+                            email: emailCSV || generateEmail(prenumeCSV, numeCSV),
                             data_nasterii: dataNasteriiCSV || null,
                             adresa: row['ADRESA']?.trim() || null,
                             locul_nasterii: row['LOCUL NASTERII']?.trim() || null,
@@ -193,7 +203,7 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
                             club_id: currentClubId,
                         };
 
-                        // Remove null fields to avoid overwriting with null if we decide to update
+                        // Remove null/empty fields to avoid overwriting existing data with null
                         Object.keys(sportivData).forEach(key => {
                             if (sportivData[key] === null || sportivData[key] === undefined || sportivData[key] === '') {
                                 delete sportivData[key];
@@ -201,6 +211,7 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
                         });
 
                         if (match1) {
+                            // Strict match (same name + birthdate) → auto-update missing fields, no user confirmation needed
                             duplicates.push({ type: 'strict', csvRow: row, existingSportiv: match1, sportivData, originalIndex: index });
                         } else if (match2) {
                             duplicates.push({ type: 'loose', csvRow: row, existingSportiv: match2, sportivData, originalIndex: index });
@@ -237,17 +248,24 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
     };
 
     const handleExecuteImport = async () => {
-        const selectedDuplicates = potentialDuplicates
+        // Strict duplicates (same name + birthdate) are always auto-updated
+        const autoUpdates = potentialDuplicates
+            .filter(d => d.type === 'strict')
+            .map(d => ({ ...d.sportivData, id: d.existingSportiv.id }));
+
+        // Loose duplicates require manual checkbox selection
+        const looseDuplicates = potentialDuplicates.filter(d => d.type === 'loose');
+        const selectedLoose = looseDuplicates
             .filter((_, i) => selectedIndices.has(i))
             .map(d => ({ ...d.sportivData, id: d.existingSportiv.id }));
-        
+
         const validUniques = toImportList
             .filter(s => !s.error)
             .map(({originalIndex, error, ...rest}) => rest);
-        
+
         const invalidUniques = toImportList.filter(s => s.error);
 
-        const finalToImport = [...validUniques, ...selectedDuplicates];
+        const finalToImport = [...validUniques, ...autoUpdates, ...selectedLoose];
 
         if (finalToImport.length === 0) {
             if (invalidUniques.length > 0) {
@@ -293,9 +311,11 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
                 }
 
                 console.log("Import finalizat cu succes.");
-                let successMsg = `Import finalizat cu succes! ${finalToImport.length} sportivi procesați.`;
+                const newCount = validUniques.length;
+                const updatedCount = autoUpdates.length + selectedLoose.length;
+                let successMsg = `Import finalizat: ${newCount} sportivi noi adăugați, ${updatedCount} actualizați.`;
                 if (invalidUniques.length > 0) {
-                    successMsg += ` (${invalidUniques.length} omiși din cauza datei de naștere)`;
+                    successMsg += ` (${invalidUniques.length} omiși — dată naștere lipsă)`;
                 }
                 toast.success(successMsg, { id: processingToastId });
                 
@@ -337,36 +357,59 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
                     </div>
                 </div>
 
-                <div className="mb-6">
-                    <h3 className="text-lg font-semibold mb-2 text-yellow-400">Potențiale Duplicate ({potentialDuplicates.length})</h3>
-                    <p className="text-sm text-gray-400 mb-2">Bifează sportivii pe care dorești să îi imporți chiar dacă par să existe deja.</p>
-                    <div className="max-h-60 overflow-y-auto border border-white/10 rounded p-2 bg-black/20">
-                        {potentialDuplicates.map((d, i) => (
-                            <div key={i} className="flex items-start gap-3 py-2 border-b border-white/5 last:border-0">
-                                <input 
-                                    type="checkbox" 
-                                    checked={selectedIndices.has(i)} 
-                                    onChange={() => toggleSelection(i)}
-                                    className="mt-1 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                                />
-                                <div className="text-sm">
-                                    <div className="font-medium text-white">
-                                        Din CSV: {d.csvRow['NUME SPORTIV']} {d.csvRow['PRENUME SPORTIV']} ({d.csvRow['DATA NASTERII']})
-                                    </div>
-                                    <div className="text-gray-400 italic">
-                                        {d.type === 'strict' ? 'Potrivire exactă cu: ' : 'Seamănă mult cu: '} 
-                                        {d.existingSportiv.nume} {d.existingSportiv.prenume} ({d.existingSportiv.data_nasterii})
+                {/* Strict duplicates: auto-updated, no checkbox needed */}
+                {potentialDuplicates.filter(d => d.type === 'strict').length > 0 && (
+                    <div className="mb-6">
+                        <h3 className="text-lg font-semibold mb-2 text-blue-400">
+                            Sportivi existenți — actualizare automată ({potentialDuplicates.filter(d => d.type === 'strict').length})
+                        </h3>
+                        <p className="text-sm text-gray-400 mb-2">Acești sportivi există deja (potrivire exactă). Datele lipsă vor fi completate automat.</p>
+                        <div className="max-h-40 overflow-y-auto border border-white/10 rounded p-2 bg-black/20">
+                            {potentialDuplicates.filter(d => d.type === 'strict').map((d, i) => (
+                                <div key={i} className="text-sm py-1 border-b border-white/5 last:border-0 text-blue-300">
+                                    {d.existingSportiv.nume} {d.existingSportiv.prenume} ({d.existingSportiv.data_nasterii}) — date lipsă completate din CSV
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Loose duplicates: require manual confirmation */}
+                {potentialDuplicates.filter(d => d.type === 'loose').length > 0 && (
+                    <div className="mb-6">
+                        <h3 className="text-lg font-semibold mb-2 text-yellow-400">
+                            Potențiale Duplicate — confirmare necesară ({potentialDuplicates.filter(d => d.type === 'loose').length})
+                        </h3>
+                        <p className="text-sm text-gray-400 mb-2">Bifează sportivii pe care dorești să îi actualizezi (seamănă cu înregistrări existente, dar data nașterii diferă).</p>
+                        <div className="max-h-60 overflow-y-auto border border-white/10 rounded p-2 bg-black/20">
+                            {potentialDuplicates.filter(d => d.type === 'loose').map((d, i) => (
+                                <div key={i} className="flex items-start gap-3 py-2 border-b border-white/5 last:border-0">
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedIndices.has(i)}
+                                        onChange={() => toggleSelection(i)}
+                                        className="mt-1 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                    />
+                                    <div className="text-sm">
+                                        <div className="font-medium text-white">
+                                            Din CSV: {d.csvRow['NUME SPORTIV']} {d.csvRow['PRENUME SPORTIV']} ({d.csvRow['DATA NASTERII']})
+                                        </div>
+                                        <div className="text-gray-400 italic">
+                                            Seamănă mult cu: {d.existingSportiv.nume} {d.existingSportiv.prenume} ({d.existingSportiv.data_nasterii})
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
-                </div>
+                )}
 
                 <div className="flex flex-col gap-4">
                     {showConfirm ? (
                         <div className="bg-violet-900/20 border border-violet-500/50 p-4 rounded-lg mb-4">
-                            <p className="text-white mb-4">Ești pe cale să imporți {toImportList.length + selectedIndices.size} sportivi. Ești sigur?</p>
+                            <p className="text-white mb-4">
+                                Ești pe cale să adaugi {toImportList.filter(s => !s.error).length} sportivi noi și să actualizezi {potentialDuplicates.filter(d => d.type === 'strict').length + selectedIndices.size} existenți. Ești sigur?
+                            </p>
                             <div className="flex gap-3">
                                 <Button onClick={handleExecuteImport} isLoading={importing}>
                                     Da, Importă acum
@@ -379,7 +422,7 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
                     ) : (
                         <div className="flex gap-4">
                             <Button onClick={handleExecuteImport} isLoading={importing}>
-                                Finalizează Import ({toImportList.length + selectedIndices.size})
+                                Finalizează Import ({toImportList.filter(s => !s.error).length} noi + {potentialDuplicates.filter(d => d.type === 'strict').length + selectedIndices.size} actualizări)
                             </Button>
                             <Button variant="secondary" onClick={() => setStep(0)}>
                                 Înapoi la încărcare

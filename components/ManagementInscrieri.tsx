@@ -658,7 +658,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             }
 
             // Skip silently if sportiv is already registered for this session
-            const alreadyRegistered = inscrieri.some(i => i.sportiv_id === sportiv_id);
+            const alreadyRegistered = inscrisiInSesiuneIds.has(sportiv_id);
             if (alreadyRegistered) {
                 skipCount++;
                 continue;

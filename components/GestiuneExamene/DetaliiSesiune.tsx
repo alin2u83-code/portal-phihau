@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, Button } from '../ui';
-import { EditIcon, UploadCloudIcon, BookOpenIcon } from '../icons';
+import { EditIcon, UploadCloudIcon, BookOpenIcon, UserPlusIcon } from '../icons';
 import { ManagementInscrieri } from '../ManagementInscrieri';
 import { SesiuneExamen, InscriereExamen, Sportiv, Grad, Locatie, Plata, PretConfig, User, DecontFederatie, IstoricGrade } from '../../types';
 import { ImportExcelExamen } from './ImportExcelExamen';
 import { ImportTutorial } from '../ImportTutorial';
+import { ImportSportiviExamen } from './ImportSportiviExamen';
 
 export interface DetaliiSesiuneProps {
     sesiune: SesiuneExamen;
@@ -35,6 +36,7 @@ export const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
     const [detailsHeight, setDetailsHeight] = useState(0);
     const [isImportOpen, setIsImportOpen] = useState(false);
     const [isTutorialOpen, setIsTutorialOpen] = useState(false);
+    const [isImportSportiviOpen, setIsImportSportiviOpen] = useState(false);
 
     useEffect(() => {
         if (detailsRef.current) {
@@ -85,6 +87,9 @@ export const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
                         <Button variant="secondary" onClick={() => setIsTutorialOpen(true)} title="Ghid import XLS">
                             <BookOpenIcon className="w-4 h-4" />
                         </Button>
+                        <Button variant="secondary" onClick={() => setIsImportSportiviOpen(true)} title="Import sportivi noi și adaugă-i în sesiune">
+                            <UserPlusIcon className="w-4 h-4 mr-2" /> Import Sportivi
+                        </Button>
                         <Button variant="secondary" onClick={() => setIsImportOpen(true)} title="Import din fișier XLS (Ex. Local sau Examen de Grad)">
                             <UploadCloudIcon className="w-4 h-4 mr-2" /> Import XLS
                         </Button>
@@ -103,6 +108,19 @@ export const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
             <ManagementInscrieri {...props} detailsHeight={detailsHeight} />
 
             <ImportTutorial asModal isOpen={isTutorialOpen} onClose={() => setIsTutorialOpen(false)} />
+
+            <ImportSportiviExamen
+                isOpen={isImportSportiviOpen}
+                onClose={() => setIsImportSportiviOpen(false)}
+                sesiune={props.sesiune}
+                sportivi={props.sportivi}
+                setSportivi={props.setSportivi}
+                grade={props.grade}
+                allInscrieri={props.inscrieri}
+                setInscrieri={props.setInscrieri}
+                istoricGrade={props.istoricGrade}
+                currentUser={props.currentUser}
+            />
 
             <ImportExcelExamen
                 isOpen={isImportOpen}

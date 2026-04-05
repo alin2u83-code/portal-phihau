@@ -1,7 +1,11 @@
 /**
  * ImportTutorial.tsx
  *
- * Ghid pas cu pas pentru importul XLS în sesiunile de examen.
+ * Ghid complet pentru adăugarea sportivilor în sesiunile de examen.
+ * Acoperă 2 fluxuri:
+ *   A) Import Sportivi (buton „Import Sportivi") — wizard CSV 2 pași
+ *   B) Import XLS (buton „Import XLS") — fișiere oficiale federație
+ *
  * Poate fi afișat ca pagină întreagă (onBack prezent) sau ca modal (asModal + onClose).
  */
 
@@ -15,16 +19,14 @@ import {
     UploadCloudIcon,
     ChevronDownIcon,
     ChevronUpIcon,
-    ChevronRightIcon,
+    UserPlusIcon,
 } from './icons';
 import { Button, Modal } from './ui';
 
-// ─── Props ───────────────────────────────────────────────────────────────────
+// ─── Props ────────────────────────────────────────────────────────────────────
 
 interface ImportTutorialProps {
-    /** Mod pagină întreagă */
     onBack?: () => void;
-    /** Mod modal */
     asModal?: boolean;
     isOpen?: boolean;
     onClose?: () => void;
@@ -62,12 +64,12 @@ const CollapsibleSection: React.FC<{ title: string; defaultOpen?: boolean; child
     );
 };
 
-// Badge-uri vizuale pentru statusuri
-const Badge: React.FC<{ color: 'emerald' | 'amber' | 'rose' | 'slate'; children: React.ReactNode }> = ({ color, children }) => {
+const Badge: React.FC<{ color: 'emerald' | 'amber' | 'rose' | 'sky' | 'slate'; children: React.ReactNode }> = ({ color, children }) => {
     const map = {
         emerald: 'bg-emerald-900/40 border-emerald-700/60 text-emerald-300',
         amber:   'bg-amber-900/40 border-amber-700/60 text-amber-300',
         rose:    'bg-rose-900/40 border-rose-700/60 text-rose-300',
+        sky:     'bg-sky-900/40 border-sky-700/60 text-sky-300',
         slate:   'bg-slate-700/60 border-slate-600 text-slate-300',
     };
     return (
@@ -85,181 +87,279 @@ const TutorialContent: React.FC = () => (
         {/* Introducere */}
         <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-700">
             <p className="text-slate-300 text-sm leading-relaxed">
-                Importul XLS îți permite să încarci direct <strong className="text-white">fișierele oficiale de examen</strong> trimise federației,
-                fără a re-introduce manual datele. Sistemul recunoaște automat formatul și potrivește sportivii din baza de date.
+                Există <strong className="text-white">două moduri</strong> de a adăuga sportivi la o sesiune de examen,
+                în funcție de situație: importul de sportivi noi din CSV sau importul fișierelor oficiale XLS de la federație.
             </p>
         </div>
 
-        {/* Fișiere suportate */}
-        <CollapsibleSection title="Fișiere acceptate — 2 formate" defaultOpen>
-            <div className="space-y-4">
-                <div className="rounded-lg border border-emerald-700/40 bg-emerald-900/10 p-4">
-                    <p className="font-bold text-emerald-300 mb-2">Format 1 · Ex. Local (1 sheet)</p>
-                    <p className="text-slate-400 mb-2">
-                        Fișierul trimis federației după examene locale: <code className="font-mono text-xs bg-slate-800 px-1 rounded">Phi Hau - Ex. Local - YYYY.MM.DD.xls</code>
+        {/* ════════════════════════════════════════════════════════ */}
+        {/* FLUX A — Import Sportivi (CSV)                          */}
+        {/* ════════════════════════════════════════════════════════ */}
+        <CollapsibleSection title={'Flux A \u2014 Import Sportivi din CSV (buton \u201eImport Sportivi\u201d)'} defaultOpen>
+            <div className="space-y-5">
+
+                <div className="p-3 rounded-lg border border-sky-700/40 bg-sky-900/10 text-sky-200 text-xs">
+                    Folosește acest flux când ai o listă de sportivi care nu sunt încă în sistem
+                    sau când vrei să-i adaugi rapid la o sesiune cu datele minime (Nume, Prenume, Data nașterii).
+                </div>
+
+                {/* Pas 1 */}
+                <Step number={1} title="Importă sportivii din fișierul CSV">
+                    <p>
+                        Apasă butonul{' '}
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-700 border border-slate-600 rounded text-xs text-white font-semibold">
+                            <UserPlusIcon className="w-3 h-3" /> Import Sportivi
+                        </span>{' '}
+                        din ecranul detalii sesiune.
                     </p>
-                    <div className="overflow-x-auto">
+                    <p>
+                        Descarcă <strong className="text-white">șablonul CSV</strong> (butonul „Șablon CSV") și completează-l
+                        cu datele sportivilor. Șablonul arată exact ce câmpuri sunt necesare:
+                    </p>
+
+                    {/* Tabel format */}
+                    <div className="overflow-x-auto mt-2 rounded-lg border border-slate-700">
                         <table className="text-xs w-full border-collapse">
-                            <thead>
+                            <thead className="bg-slate-800">
                                 <tr className="border-b border-slate-700">
-                                    <th className="text-left py-1.5 px-2 text-slate-400">Nr.</th>
-                                    <th className="text-left py-1.5 px-2 text-slate-400">Nume complet</th>
-                                    <th className="text-left py-1.5 px-2 text-slate-400">...</th>
-                                    <th className="text-left py-1.5 px-2 text-slate-400">Grad</th>
-                                    <th className="text-left py-1.5 px-2 text-slate-400">Admis/Respins</th>
-                                    <th className="text-left py-1.5 px-2 text-slate-400">Contribuție</th>
+                                    <th className="text-left py-2 px-3 text-slate-400">Coloană</th>
+                                    <th className="text-left py-2 px-3 text-slate-400">Obligatoriu</th>
+                                    <th className="text-left py-2 px-3 text-slate-400">Format</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr className="border-b border-slate-800">
-                                    <td className="py-1 px-2 text-slate-300 font-mono">1</td>
-                                    <td className="py-1 px-2 text-white">Popescu Ion</td>
-                                    <td className="py-1 px-2 text-slate-500">...</td>
-                                    <td className="py-1 px-2 text-slate-300">2 Câp Roșu</td>
-                                    <td className="py-1 px-2 text-emerald-300 font-bold">Admis</td>
-                                    <td className="py-1 px-2 text-slate-300">100</td>
+                                    <td className="py-1.5 px-3 text-white font-medium">Nume</td>
+                                    <td className="py-1.5 px-3 text-rose-400 font-bold">DA</td>
+                                    <td className="py-1.5 px-3 text-slate-300 font-mono">Text</td>
+                                </tr>
+                                <tr className="border-b border-slate-800">
+                                    <td className="py-1.5 px-3 text-white font-medium">Prenume</td>
+                                    <td className="py-1.5 px-3 text-rose-400 font-bold">DA</td>
+                                    <td className="py-1.5 px-3 text-slate-300 font-mono">Text</td>
+                                </tr>
+                                <tr className="border-b border-slate-800">
+                                    <td className="py-1.5 px-3 text-white font-medium">Data nasterii</td>
+                                    <td className="py-1.5 px-3 text-rose-400 font-bold">DA</td>
+                                    <td className="py-1.5 px-3 text-slate-300 font-mono">ZZ/LL/AAAA</td>
                                 </tr>
                                 <tr>
-                                    <td className="py-1 px-2 text-slate-300 font-mono">2</td>
-                                    <td className="py-1 px-2 text-white">Ionescu Maria</td>
-                                    <td className="py-1 px-2 text-slate-500">...</td>
-                                    <td className="py-1 px-2 text-slate-300">1 Câp Roșu</td>
-                                    <td className="py-1 px-2 text-rose-300 font-bold">Respins</td>
-                                    <td className="py-1 px-2 text-slate-300">100</td>
+                                    <td className="py-1.5 px-3 text-white font-medium">Telefon</td>
+                                    <td className="py-1.5 px-3 text-slate-500">opțional</td>
+                                    <td className="py-1.5 px-3 text-slate-300 font-mono">Număr</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
-                    <p className="text-slate-500 text-xs mt-2">Importă: înscrierea la sesiune + rezultat (Admis/Respins) + contribuție</p>
-                </div>
 
-                <div className="rounded-lg border border-blue-700/40 bg-blue-900/10 p-4">
-                    <p className="font-bold text-blue-300 mb-2">Format 2 · Examen de Grad (mai multe sheet-uri)</p>
-                    <p className="text-slate-400 mb-2">
-                        Fișierul cu note individuale: <code className="font-mono text-xs bg-slate-800 px-1 rounded">examen de grad YYYY.MM.DD.xls</code>
+                    {/* Exemple fictive */}
+                    <p className="font-semibold text-white mt-3">Exemplu conținut CSV (date fictive):</p>
+                    <div className="overflow-x-auto rounded-lg border border-slate-700">
+                        <table className="text-xs w-full border-collapse">
+                            <thead className="bg-slate-800">
+                                <tr className="border-b border-slate-700">
+                                    <th className="text-left py-2 px-3 text-slate-400">Nume</th>
+                                    <th className="text-left py-2 px-3 text-slate-400">Prenume</th>
+                                    <th className="text-left py-2 px-3 text-slate-400">Data nasterii</th>
+                                    <th className="text-left py-2 px-3 text-slate-400">Telefon</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr className="border-b border-slate-800">
+                                    <td className="py-1.5 px-3 text-white">Ionescu</td>
+                                    <td className="py-1.5 px-3 text-white">Alexandru</td>
+                                    <td className="py-1.5 px-3 text-slate-300 font-mono">15/03/2015</td>
+                                    <td className="py-1.5 px-3 text-slate-500 italic">—</td>
+                                </tr>
+                                <tr className="border-b border-slate-800">
+                                    <td className="py-1.5 px-3 text-white">Popescu</td>
+                                    <td className="py-1.5 px-3 text-white">Maria Elena</td>
+                                    <td className="py-1.5 px-3 text-slate-300 font-mono">22/07/2018</td>
+                                    <td className="py-1.5 px-3 text-slate-500 italic">—</td>
+                                </tr>
+                                <tr>
+                                    <td className="py-1.5 px-3 text-white">Constantin</td>
+                                    <td className="py-1.5 px-3 text-white">Andrei Mihai</td>
+                                    <td className="py-1.5 px-3 text-slate-300 font-mono">08/11/2012</td>
+                                    <td className="py-1.5 px-3 text-slate-300 font-mono">0722123456</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p className="text-slate-500 text-xs mt-2">
+                        Nu include coloane cu ID-uri sau alte date din sistem — acestea sunt generate automat.
                     </p>
+
+                    <p className="mt-3">Sistemul verifică automat fiecare rând:</p>
+                    <div className="space-y-2 mt-2">
+                        <div className="flex items-center gap-3 p-2.5 rounded-lg bg-emerald-900/20 border border-emerald-700/40">
+                            <CheckCircleIcon className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                            <div>
+                                <Badge color="emerald">Creat</Badge>
+                                <span className="text-slate-300 text-xs ml-2">Sportiv nou — adăugat cu grad Debutant, clubul tău, fără grupă.</span>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-3 p-2.5 rounded-lg bg-sky-900/20 border border-sky-700/40">
+                            <CheckCircleIcon className="w-4 h-4 text-sky-400 flex-shrink-0" />
+                            <div>
+                                <Badge color="sky">Existent</Badge>
+                                <span className="text-slate-300 text-xs ml-2">Sportivul există deja (același Nume+Prenume+Data nașterii) — ignorat, nu se duplică.</span>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-3 p-2.5 rounded-lg bg-rose-900/20 border border-rose-700/40">
+                            <XCircleIcon className="w-4 h-4 text-rose-400 flex-shrink-0" />
+                            <div>
+                                <Badge color="rose">Eroare</Badge>
+                                <span className="text-slate-300 text-xs ml-2">Date invalide (câmp lipsă, dată greșită). Nu este adăugat.</span>
+                            </div>
+                        </div>
+                    </div>
+                </Step>
+
+                {/* Pas 2 */}
+                <Step number={2} title="Adaugă sportivii în sesiunea de examen">
+                    <p>
+                        După import, sistemul afișează automat lista sportivilor (atât cei creați cât și cei existenți).
+                        Selectează <strong className="text-white">gradul susținut</strong> pentru fiecare.
+                    </p>
+                    <div className="mt-3 p-3 bg-slate-800/60 rounded-lg border border-slate-700 space-y-2">
+                        <p className="text-slate-300 text-xs font-bold">Sistemul verifică automat și ignoră:</p>
+                        <ul className="list-disc pl-4 space-y-1 text-xs text-slate-400">
+                            <li>Sportivii care <strong className="text-amber-300">au deja gradul</strong> respectiv (din istoricul de grade)</li>
+                            <li>Sportivii care sunt <strong className="text-amber-300">deja înscriși</strong> în această sesiune</li>
+                        </ul>
+                    </div>
+                    <p className="mt-3">
+                        Apasă <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-700 rounded text-xs text-white font-semibold">Adaugă N sportivi în sesiune</span>.
+                        Sistemul va genera automat și factura de taxă examen pentru fiecare.
+                    </p>
+                </Step>
+
+                {/* Raport */}
+                <div className="p-3 bg-slate-800/60 rounded-lg border border-slate-700">
+                    <p className="text-slate-300 text-sm font-bold mb-2">Raport după import:</p>
                     <p className="text-slate-400 text-xs">
-                        Fiecare sheet = un grad (ex: "1 CR", "2 CR", "C.V 1 CA").<br />
-                        Coloane: Nr. · Nume · Prenume · ... · Grad · Tehnică · Doc Luyện · Song Đôi · Thảo Quyền · Notă Generală
-                    </p>
-                    <p className="text-slate-500 text-xs mt-2">Importă: înscrierea + notele detaliate per disciplină</p>
-                </div>
-
-                <div className="flex items-start gap-2 p-3 bg-amber-900/20 border border-amber-700/40 rounded-lg">
-                    <ExclamationTriangleIcon className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
-                    <p className="text-amber-200 text-xs">
-                        Sistemul detectează automat formatul după numărul de sheet-uri. Nu trebuie să faci nicio selecție manuală.
+                        La finalul fiecărui pas, sistemul afișează un raport complet cu:
+                        cine a fost adăugat, cine a fost ignorat și din ce motiv, și cine a avut erori.
+                        Nu se creează duplicate indiferent de câte ori rulezi importul.
                     </p>
                 </div>
             </div>
         </CollapsibleSection>
 
-        {/* Pași */}
-        <div className="space-y-6">
-            <h2 className="text-base font-bold text-white">Cum funcționează — 3 pași</h2>
+        {/* ════════════════════════════════════════════════════════ */}
+        {/* FLUX B — Import XLS (fișiere federație)                */}
+        {/* ════════════════════════════════════════════════════════ */}
+        <CollapsibleSection title={'Flux B \u2014 Import XLS fi\u0219iere federa\u021bie (buton \u201eImport XLS\u201d)'}>
+            <div className="space-y-4">
 
-            <Step number={1} title="Deschide wizardul și încarcă fișierul">
-                <p>
-                    Din ecranul detalii sesiune, apasă butonul{' '}
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-700 border border-slate-600 rounded text-xs text-white font-semibold">
-                        <UploadCloudIcon className="w-3 h-3" /> Import XLS
-                    </span>.
-                </p>
-                <p>Trage fișierul <code className="font-mono text-xs bg-slate-800 px-1 rounded">.xls</code> sau <code className="font-mono text-xs bg-slate-800 px-1 rounded">.xlsx</code> în zona de upload sau apasă pentru a-l selecta.</p>
-                <p className="text-slate-400 text-xs">Sistemul citește fișierul complet în browser — nu se trimite nicăieri până la confirmare.</p>
-            </Step>
+                <div className="p-3 rounded-lg border border-amber-700/40 bg-amber-900/10 text-amber-200 text-xs">
+                    Folosește acest flux pentru a importa fișierele oficiale trimise federației după examene.
+                    Sistemul recunoaște automat formatul și potrivește sportivii existenți din baza de date.
+                </div>
 
-            <Step number={2} title="Verifică sportivii — rezolvă potrivirile nesigure">
-                <p>
-                    Fiecare rând din fișier primește automat un status de potrivire cu baza de date:
-                </p>
-                <div className="space-y-2 mt-3">
-                    <div className="flex items-center gap-3 p-2.5 rounded-lg bg-emerald-900/20 border border-emerald-700/40">
-                        <CheckCircleIcon className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                        <div>
-                            <Badge color="emerald">Găsit exact</Badge>
-                            <span className="text-slate-300 text-xs ml-2">Sportivul a fost identificat cu certitudine (similaritate ≥95%). Nicio acțiune.</span>
-                        </div>
+                <div className="space-y-3">
+                    <div className="rounded-lg border border-emerald-700/40 bg-emerald-900/10 p-4">
+                        <p className="font-bold text-emerald-300 mb-1">Format 1 · Ex. Local (1 sheet)</p>
+                        <p className="text-slate-400 text-xs">
+                            Fișierul trimis federației după examene locale:{' '}
+                            <code className="font-mono text-xs bg-slate-800 px-1 rounded">Phi Hau - Ex. Local - YYYY.MM.DD.xls</code>
+                        </p>
+                        <p className="text-slate-500 text-xs mt-1">Importă: înscrierea + rezultat (Admis/Respins) + contribuție</p>
                     </div>
-                    <div className="flex items-center gap-3 p-2.5 rounded-lg bg-amber-900/20 border border-amber-700/40">
-                        <ExclamationTriangleIcon className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                        <div>
-                            <Badge color="amber">Potrivire nesigură</Badge>
-                            <span className="text-slate-300 text-xs ml-2">Probabil același sportiv, dar cu mici diferențe de scriere. <strong className="text-amber-200">Trebuie confirmat manual.</strong></span>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-3 p-2.5 rounded-lg bg-rose-900/20 border border-rose-700/40">
-                        <XCircleIcon className="w-4 h-4 text-rose-400 flex-shrink-0" />
-                        <div>
-                            <Badge color="rose">Inexistent</Badge>
-                            <span className="text-slate-300 text-xs ml-2">Sportivul nu există în bază. Completează Nume/Prenume/Data nașterii pentru a-l crea.</span>
-                        </div>
+                    <div className="rounded-lg border border-blue-700/40 bg-blue-900/10 p-4">
+                        <p className="font-bold text-blue-300 mb-1">Format 2 · Examen de Grad (mai multe sheet-uri)</p>
+                        <p className="text-slate-400 text-xs">
+                            Fișierul cu note individuale:{' '}
+                            <code className="font-mono text-xs bg-slate-800 px-1 rounded">examen de grad YYYY.MM.DD.xls</code>
+                        </p>
+                        <p className="text-slate-400 text-xs mt-1">Fiecare sheet = un grad. Coloane: Nr. · Nume · Prenume · Grad · Tehnică · Doc Luyện · Song Đôi · Thảo Quyền · Notă Generală</p>
+                        <p className="text-slate-500 text-xs mt-1">Importă: înscrierea + notele detaliate per disciplină</p>
                     </div>
                 </div>
-                <div className="mt-3 p-3 bg-slate-800/60 rounded-lg border border-slate-700">
-                    <p className="text-slate-300 text-xs font-bold mb-1">Pentru potriviri nesigure (portocaliu):</p>
-                    <ol className="list-decimal pl-4 space-y-1 text-xs text-slate-400">
-                        <li>Sistemul afișează câțiva candidați — apasă pe cel corect pentru a-l selecta</li>
-                        <li>Dacă niciunul nu e potrivit, apasă <strong className="text-rose-300">→ Creează ca nou</strong></li>
-                        <li>Butonul „Continuă" rămâne blocat cât există potriviri nesoluționate</li>
-                    </ol>
-                </div>
-                <p className="text-xs text-slate-500 mt-2">
-                    Poți oricând <strong className="text-slate-400">Exclude</strong> un rând dacă nu vrei să fie importat (ex: sportiv prezent accidental în fișier).
-                </p>
-            </Step>
 
-            <Step number={3} title="Confirmă importul">
-                <p>Ecranul de confirmare arată un rezumat:</p>
-                <div className="grid grid-cols-2 gap-2 mt-2">
-                    {[
-                        { label: 'Sportivi de înscris', color: 'text-white' },
-                        { label: 'Sportivi noi de creat', color: 'text-rose-400' },
-                        { label: 'Admiși', color: 'text-emerald-400' },
-                        { label: 'Excluși manual', color: 'text-slate-400' },
-                    ].map(({ label, color }) => (
-                        <div key={label} className="bg-slate-800 rounded-lg p-2.5">
-                            <p className="text-xs text-slate-400">{label}</p>
-                            <p className={`text-lg font-bold ${color}`}>—</p>
+                <div className="space-y-4">
+                    <h2 className="text-sm font-bold text-white">Cum funcționează — 3 pași</h2>
+
+                    <Step number={1} title="Încarcă fișierul XLS">
+                        <p>
+                            Apasă{' '}
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-700 border border-slate-600 rounded text-xs text-white font-semibold">
+                                <UploadCloudIcon className="w-3 h-3" /> Import XLS
+                            </span>.
+                            Trage fișierul <code className="font-mono text-xs bg-slate-800 px-1 rounded">.xls</code> sau{' '}
+                            <code className="font-mono text-xs bg-slate-800 px-1 rounded">.xlsx</code> în zona de upload.
+                        </p>
+                        <p className="text-slate-400 text-xs">Sistemul detectează automat formatul după numărul de sheet-uri.</p>
+                    </Step>
+
+                    <Step number={2} title="Verifică potrivirile — rezolvă cazurile nesigure">
+                        <div className="space-y-2">
+                            <div className="flex items-center gap-3 p-2.5 rounded-lg bg-emerald-900/20 border border-emerald-700/40">
+                                <CheckCircleIcon className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                                <div>
+                                    <Badge color="emerald">Găsit exact</Badge>
+                                    <span className="text-slate-300 text-xs ml-2">Identificat cu certitudine (≥95%). Nicio acțiune.</span>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-3 p-2.5 rounded-lg bg-amber-900/20 border border-amber-700/40">
+                                <ExclamationTriangleIcon className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                                <div>
+                                    <Badge color="amber">Potrivire nesigură</Badge>
+                                    <span className="text-slate-300 text-xs ml-2">Probabil același sportiv, diferențe de scriere. <strong className="text-amber-200">Confirmare manuală.</strong></span>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-3 p-2.5 rounded-lg bg-rose-900/20 border border-rose-700/40">
+                                <XCircleIcon className="w-4 h-4 text-rose-400 flex-shrink-0" />
+                                <div>
+                                    <Badge color="rose">Inexistent</Badge>
+                                    <span className="text-slate-300 text-xs ml-2">Nu există în bază. Completează Nume/Prenume/Data nașterii pentru creare.</span>
+                                </div>
+                            </div>
                         </div>
-                    ))}
+                    </Step>
+
+                    <Step number={3} title="Confirmă importul">
+                        <p>Ecranul de confirmare arată rezumatul și numărul de sportivi de importat.</p>
+                        <div className="flex items-start gap-2 mt-3 p-3 bg-amber-900/20 border border-amber-700/40 rounded-lg">
+                            <ExclamationTriangleIcon className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+                            <p className="text-amber-200 text-xs">
+                                Sportivii marcați <strong>Admis</strong> vor fi înregistrați automat în istoricul de grade.
+                                Importul face upsert — rularea de două ori nu creează duplicate.
+                            </p>
+                        </div>
+                    </Step>
                 </div>
-                <p className="mt-3">
-                    Apasă <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-700 rounded text-xs text-white font-semibold">Importă N sportivi</span> pentru a finaliza.
-                </p>
-                <div className="flex items-start gap-2 mt-3 p-3 bg-amber-900/20 border border-amber-700/40 rounded-lg">
-                    <ExclamationTriangleIcon className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
-                    <p className="text-amber-200 text-xs">
-                        Sportivii marcați <strong>Admis</strong> vor fi înregistrați automat în istoricul de grade și gradul lor actual va fi actualizat.
-                        Cei marcați <strong>Respins</strong> sunt înscriși la sesiune dar gradul nu se modifică.
-                    </p>
-                </div>
-            </Step>
-        </div>
+            </div>
+        </CollapsibleSection>
 
         {/* FAQ */}
         <CollapsibleSection title="Întrebări frecvente">
             <div className="space-y-4 text-sm">
                 {[
                     {
-                        q: 'Ce se întâmplă dacă un sportiv e deja înscris la această sesiune?',
-                        a: 'Importul face upsert (insert sau update). Dacă sportivul există deja în sesiune, datele lui se actualizează cu ce e în fișier (rezultat, contribuție, note). Nu se creează duplicate.',
+                        q: 'Ce grad primesc sportivii importați prin CSV?',
+                        a: 'Gradul Debutant (cel cu ordinea 0 în nomenclator). Clubul este setat automat la clubul utilizatorului care face importul. Nu se atribuie nicio grupă.',
                     },
                     {
-                        q: 'Pot importa același fișier de două ori?',
-                        a: 'Da, e sigur. Datorită upsert-ului, a doua rulare suprascrie datele existente — nu dublează înregistrările.',
+                        q: 'Cum detectează sistemul că un sportiv există deja?',
+                        a: 'Compară Nume + Prenume + Data nașterii (fără diacritice, case-insensitive). Dacă toate trei se potrivesc exact, sportivul este considerat existent și nu se creează duplicat.',
                     },
                     {
-                        q: 'Sistemul nu a găsit niciun sportiv deși există în bază. De ce?',
-                        a: 'Probabil diferență mare de scriere (diacritice lipsă, ordine Prenume/Nume inversată, greșeli de tipar). Caută-l manual în lista de candidați la potriviri nesigure sau verifică cum e scris în baza de date.',
+                        q: 'Pot importa un sportiv care are deja un grad mai mare decât Debutant?',
+                        a: 'Dacă sportivul există deja în sistem, va fi identificat ca „Existent" și nu se modifică nimic din profilul lui. La Pasul 2 poți selecta orice grad susținut.',
                     },
                     {
-                        q: 'Ce înseamnă "potrivire nesigură" concret?',
-                        a: 'Algoritmul de comparare (Levenshtein) calculează o similaritate între 70% și 94%. Suficient de apropiat pentru a fi probabil același om, dar nu destul de cert pentru potrivire automată.',
+                        q: 'Ce se întâmplă dacă sportivul are deja gradul pe care vreau să-l testez?',
+                        a: 'La Pasul 2, sistemul verifică istoricul de grade. Dacă sportivul are deja gradul respectiv, este trecut automat la „Ignorat — are deja gradul X" și nu este înscris în sesiune.',
                     },
                     {
-                        q: 'Pot importa note (Examen de Grad) și rezultate (Ex. Local) pentru aceeași sesiune?',
-                        a: 'Da, rulezi importul de două ori: o dată cu fișierul Ex. Local, o dată cu fișierul Examen de Grad. Datele se completează reciproc (upsert).',
+                        q: 'Pot rula importul de mai multe ori cu același fișier?',
+                        a: 'Da. La Pasul 1, sportivii existenți sunt ignorați (nu se dublează). La Pasul 2, sportivii deja înscriși în sesiune sunt ignorați. Este sigur să rulezi de mai ori.',
+                    },
+                    {
+                        q: 'Care e diferența între „Import Sportivi" și „Import XLS"?',
+                        a: '„Import Sportivi" (CSV) este pentru adăugarea sportivilor noi în sistem + înscrierea lor în sesiune, cu date minime. „Import XLS" este pentru fișierele oficiale ale federației care conțin deja rezultatele (Admis/Respins) și notele.',
                     },
                 ].map(({ q, a }, i) => (
                     <div key={i}>
@@ -275,16 +375,14 @@ const TutorialContent: React.FC = () => (
 // ─── Componenta principală ─────────────────────────────────────────────────────
 
 export const ImportTutorial: React.FC<ImportTutorialProps> = ({ onBack, asModal, isOpen = false, onClose }) => {
-    // Mod modal
     if (asModal && onClose !== undefined) {
         return (
-            <Modal isOpen={isOpen} title="Ghid Import XLS" onClose={onClose}>
+            <Modal isOpen={isOpen} title="Ghid Import — Sesiuni Examene" onClose={onClose}>
                 <TutorialContent />
             </Modal>
         );
     }
 
-    // Mod pagină întreagă
     return (
         <div className="max-w-3xl mx-auto space-y-6">
             <div className="flex items-center gap-4">
@@ -294,10 +392,10 @@ export const ImportTutorial: React.FC<ImportTutorialProps> = ({ onBack, asModal,
                 <div>
                     <h1 className="text-2xl sm:text-3xl font-bold text-white flex items-center gap-3">
                         <BookOpenIcon className="w-7 h-7 text-brand-secondary" />
-                        Ghid Import XLS
+                        Ghid Import — Sesiuni Examene
                     </h1>
                     <p className="text-slate-400 text-sm mt-1">
-                        Import fișiere federație direct în sesiunile de examen.
+                        Adaugă sportivi în sesiune prin CSV sau fișiere XLS federație.
                     </p>
                 </div>
             </div>

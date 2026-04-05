@@ -27,6 +27,7 @@ export const adminMenu: MenuItem[] = [
         submenu: [
             { label: 'Sportivi', view: 'sportivi' },
             { label: 'Import Sportivi', view: 'import-sportivi' },
+            { label: 'Deduplicare Sportivi', view: 'deduplicare-sportivi' },
             { label: 'Familii', view: 'familii' },
             { label: 'Legitimații', view: 'legitimatii' },
             { label: 'Nomenclator Grade', view: 'grade' },

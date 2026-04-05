@@ -54,3 +54,4 @@ export const ReportsDashboard = lazy(() => import('./ReportsDashboard').then(m =
 export const LegitimatiiPage = lazy(() => import('./LegitimatiiPage').then(m => ({ default: m.LegitimatiiPage })));
 export const ImportSportiviPage = lazy(() => import('./ImportSportiviPage').then(m => ({ default: m.ImportSportiviPage })));
 export const IstoricActivitate = lazy(() => import('./IstoricActivitate').then(m => ({ default: m.IstoricActivitate })));
+export const DeduplicareSportivi = lazy(() => import('./DeduplicareSportivi').then(m => ({ default: m.DeduplicareSportivi })));

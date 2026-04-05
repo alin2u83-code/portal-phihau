@@ -54,12 +54,24 @@ export const importSportivi = async (
       if (row.email && !validateEmail(row.email)) throw new Error(`Email invalid: ${row.email}`);
       if (row.cnp && !validateCNP(row.cnp)) throw new Error(`CNP invalid: ${row.cnp}`);
 
-      // 2. Validare dată naștere
-      let dataNasterii = row.data_nasterii?.trim() || null;
-      if (dataNasterii) {
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(dataNasterii) || isNaN(Date.parse(dataNasterii))) {
-          throw new Error(`Data nașterii invalidă: ${dataNasterii}`);
+      // 2. Validare și normalizare dată naștere
+      let dataNasterii: string | null = null;
+      const rawDate = row.data_nasterii?.trim();
+      if (rawDate) {
+        if (/^\d{4}-\d{2}-\d{2}$/.test(rawDate)) {
+          dataNasterii = rawDate;
+        } else {
+          // Acceptă DD/MM/YYYY, DD.MM.YYYY, DD-MM-YYYY
+          const m = rawDate.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{4})$/);
+          if (m) {
+            const iso = `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+            const d = new Date(iso);
+            if (!isNaN(d.getTime()) && d.getFullYear() === +m[3] && d.getMonth() + 1 === +m[2] && d.getDate() === +m[1]) {
+              dataNasterii = iso;
+            }
+          }
         }
+        if (!dataNasterii) throw new Error(`Data nașterii invalidă: ${rawDate}`);
       }
 
       const normalizeGen = (gen: string | null | undefined): 'Masculin' | 'Feminin' | null => {

@@ -90,7 +90,7 @@ export const importSportivi = async (
       const prenumeClean = row.prenume.trim().replace(/[?]/g, '');
       const emailResolved = row.email?.toLowerCase().trim() || generateEmail(prenumeClean, numeClean);
 
-      const sportivData = {
+      const sportivDataRaw: Record<string, any> = {
         nume: numeClean,
         prenume: prenumeClean,
         email: emailResolved,
@@ -105,6 +105,11 @@ export const importSportivi = async (
         grupa_id: row.grupa_id || defaultGrupaId,
         grad_actual_id: gradId,
       };
+
+      // Eliminăm câmpurile null/undefined — DB-ul folosește valorile default
+      const sportivData = Object.fromEntries(
+        Object.entries(sportivDataRaw).filter(([, v]) => v !== null && v !== undefined && v !== '')
+      );
 
       // 4. Upsert logic — căutare duplicat după email/CNP sau fallback pe nume+dată naștere
       let existingQuery = supabase.from('sportivi').select('id');

@@ -21,8 +21,8 @@ interface SportiviFilterProps {
 
 export const SportiviFilter: React.FC<SportiviFilterProps> = ({ filters, onFilterChange, grupe, allRoles, grade, clubs, permissions }) => {
   const currentClubId = filters.clubFilter;
-  // Includem și grupele fără club_id (filtrate deja de context prin RLS)
-  const grupeClub = grupe.filter(g => !currentClubId || !g.club_id || g.club_id === currentClubId);
+  // filteredData.grupe e deja filtrat prin RLS — nu re-filtrăm după club_id
+  const grupeClub = grupe;
 
   return (
     <div data-tutorial="sportivi-filter" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4 p-4 rounded-lg bg-slate-800/50">

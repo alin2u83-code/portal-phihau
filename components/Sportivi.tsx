@@ -1,9 +1,10 @@
 import React, { useState, useMemo, useTransition } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../supabaseClient';
-import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions, VizualizarePlata } from '../types';
-import { Button } from './ui';
+import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions, VizualizarePlata, ProgramItem } from '../types';
+import { Button, Modal, Input } from './ui';
 import { PlusIcon, UploadCloudIcon, ArrowLeftIcon } from './icons';
+import { ProgramEditor } from './Grupe/ProgramEditor';
 import { adaugaSportiv, actualizeazaSportiv } from '../services/sportivService';
 import { useError } from './ErrorProvider';
 import { useLocalStorage } from '../hooks/useLocalStorage';
@@ -66,8 +67,9 @@ export const Sportivi: React.FC<{
     const [selectedSportivIds, setSelectedSportivIds] = useState<Set<string>>(new Set());
     const [bulkGrupaId, setBulkGrupaId] = useState('');
     const [bulkLoading, setBulkLoading] = useState(false);
-    const [showNewGrupaInput, setShowNewGrupaInput] = useState(false);
+    const [showNewGrupaModal, setShowNewGrupaModal] = useState(false);
     const [newGrupaDenumire, setNewGrupaDenumire] = useState('');
+    const [newGrupaProgram, setNewGrupaProgram] = useState<ProgramItem[]>([]);
     const [sportivForWallet, setSportivForWallet] = useState<Sportiv | null>(null);
     const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
     const [selectedSportivForHighlight, setSelectedSportivForHighlight] = useState<Sportiv | null>(null);
@@ -163,37 +165,16 @@ export const Sportivi: React.FC<{
         });
     };
 
-    const handleBulkAssignGroup = async () => {
+    const handleBulkAssignGroup = async (overrideGrupaId?: string | null, overrideGrupaName?: string) => {
         if (!supabase || selectedSportivIds.size === 0) return;
+        if (bulkGrupaId === '__new__' && overrideGrupaId === undefined) {
+            setShowNewGrupaModal(true);
+            return;
+        }
         setBulkLoading(true);
         const ids = Array.from(selectedSportivIds);
-        let resolvedGrupaId: string | null = bulkGrupaId || null;
-        let grupaName = resolvedGrupaId ? grupe.find(g => g.id === resolvedGrupaId)?.denumire || 'grupă' : 'fără grupă';
-
-        if (bulkGrupaId === '__new__') {
-            const denumire = newGrupaDenumire.trim();
-            if (!denumire) {
-                showError('Eroare', 'Introduceți o denumire pentru grupă.');
-                setBulkLoading(false);
-                return;
-            }
-            const clubId = currentUser?.club_id || activeRoleContext?.club_id;
-            const { data: nouaGrupa, error: grupaError } = await supabase
-                .from('grupe')
-                .insert({ denumire, club_id: clubId })
-                .select()
-                .single();
-            if (grupaError || !nouaGrupa) {
-                showError('Eroare', grupaError?.message || 'Nu s-a putut crea grupa.');
-                setBulkLoading(false);
-                return;
-            }
-            resolvedGrupaId = nouaGrupa.id;
-            grupaName = nouaGrupa.denumire;
-            setGrupe(prev => [...prev, nouaGrupa]);
-            setNewGrupaDenumire('');
-            setShowNewGrupaInput(false);
-        }
+        const resolvedGrupaId = overrideGrupaId !== undefined ? overrideGrupaId : (bulkGrupaId || null);
+        const grupaName = overrideGrupaName || (resolvedGrupaId ? grupe.find(g => g.id === resolvedGrupaId)?.denumire || 'grupă' : 'fără grupă');
 
         const { error } = await supabase.from('sportivi').update({ grupa_id: resolvedGrupaId }).in('id', ids);
         setBulkLoading(false);
@@ -205,6 +186,34 @@ export const Sportivi: React.FC<{
             setSelectedSportivIds(new Set());
             setBulkGrupaId('');
         }
+    };
+
+    const handleSaveNewGrupa = async () => {
+        if (!supabase) return;
+        const denumire = newGrupaDenumire.trim();
+        if (!denumire) { showError('Eroare', 'Introduceți o denumire pentru grupă.'); return; }
+        setBulkLoading(true);
+        const clubId = activeRoleContext?.club_id || currentUser?.club_id;
+        const { data: nouaGrupa, error: grupaError } = await supabase
+            .from('grupe')
+            .insert({ denumire, club_id: clubId })
+            .select()
+            .single();
+        if (grupaError || !nouaGrupa) {
+            showError('Eroare', grupaError?.message || 'Nu s-a putut crea grupa.');
+            setBulkLoading(false);
+            return;
+        }
+        if (newGrupaProgram.length > 0) {
+            const programToInsert = newGrupaProgram.map(({ id: _id, ...rest }) => ({ ...rest, grupa_id: nouaGrupa.id }));
+            await supabase.from('orar_saptamanal').insert(programToInsert);
+        }
+        setGrupe(prev => [...prev, { ...nouaGrupa, program: newGrupaProgram }]);
+        setShowNewGrupaModal(false);
+        setNewGrupaDenumire('');
+        setNewGrupaProgram([]);
+        setBulkGrupaId('');
+        await handleBulkAssignGroup(nouaGrupa.id, nouaGrupa.denumire);
     };
 
     const handleOpenWallet = (sportiv: Sportiv) => {
@@ -491,28 +500,13 @@ export const Sportivi: React.FC<{
                     <span className="text-sm font-semibold text-brand-primary shrink-0">{selectedSportivIds.size} selectați</span>
                     <select
                         value={bulkGrupaId}
-                        onChange={e => {
-                            const val = e.target.value;
-                            setBulkGrupaId(val);
-                            setShowNewGrupaInput(val === '__new__');
-                            if (val !== '__new__') setNewGrupaDenumire('');
-                        }}
+                        onChange={e => setBulkGrupaId(e.target.value)}
                         className="w-full sm:flex-1 sm:max-w-xs bg-slate-800 border border-slate-600 text-white rounded-lg px-3 py-2 text-sm"
                     >
                         <option value="">Fără grupă</option>
                         {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
                         <option value="__new__">+ Grupă nouă...</option>
                     </select>
-                    {showNewGrupaInput && (
-                        <input
-                            type="text"
-                            value={newGrupaDenumire}
-                            onChange={e => setNewGrupaDenumire(e.target.value)}
-                            placeholder="Denumire grupă nouă"
-                            className="w-full sm:flex-1 sm:max-w-xs bg-slate-800 border border-brand-primary text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand-primary"
-                            autoFocus
-                        />
-                    )}
                     <div className="flex gap-2 w-full sm:w-auto">
                         <Button variant="primary" size="sm" onClick={handleBulkAssignGroup} isLoading={bulkLoading} className="flex-1 sm:flex-none">
                             Mută în grupă
@@ -621,6 +615,25 @@ export const Sportivi: React.FC<{
                 onDeactivate={handleDeactivate}
                 onDelete={handleDelete}
             />
+
+            <Modal isOpen={showNewGrupaModal} onClose={() => { setShowNewGrupaModal(false); setBulkGrupaId(''); }} title="Grupă nouă">
+                <div className="space-y-4">
+                    <Input
+                        label="Denumire grupă"
+                        value={newGrupaDenumire}
+                        onChange={e => setNewGrupaDenumire(e.target.value)}
+                        placeholder="ex: Copii Avansați"
+                        autoFocus
+                    />
+                    <ProgramEditor program={newGrupaProgram} setProgram={setNewGrupaProgram} />
+                    <div className="flex justify-end gap-2 pt-2">
+                        <Button variant="secondary" onClick={() => { setShowNewGrupaModal(false); setBulkGrupaId(''); }}>Anulează</Button>
+                        <Button variant="success" onClick={handleSaveNewGrupa} isLoading={bulkLoading}>
+                            Creează și mută {selectedSportivIds.size > 0 ? `(${selectedSportivIds.size})` : ''}
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 };

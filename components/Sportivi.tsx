@@ -66,6 +66,8 @@ export const Sportivi: React.FC<{
     const [selectedSportivIds, setSelectedSportivIds] = useState<Set<string>>(new Set());
     const [bulkGrupaId, setBulkGrupaId] = useState('');
     const [bulkLoading, setBulkLoading] = useState(false);
+    const [showNewGrupaInput, setShowNewGrupaInput] = useState(false);
+    const [newGrupaDenumire, setNewGrupaDenumire] = useState('');
     const [sportivForWallet, setSportivForWallet] = useState<Sportiv | null>(null);
     const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
     const [selectedSportivForHighlight, setSelectedSportivForHighlight] = useState<Sportiv | null>(null);
@@ -165,14 +167,40 @@ export const Sportivi: React.FC<{
         if (!supabase || selectedSportivIds.size === 0) return;
         setBulkLoading(true);
         const ids = Array.from(selectedSportivIds);
-        const newGrupaId = bulkGrupaId || null;
-        const { error } = await supabase.from('sportivi').update({ grupa_id: newGrupaId }).in('id', ids);
+        let resolvedGrupaId: string | null = bulkGrupaId || null;
+        let grupaName = resolvedGrupaId ? grupe.find(g => g.id === resolvedGrupaId)?.denumire || 'grupă' : 'fără grupă';
+
+        if (bulkGrupaId === '__new__') {
+            const denumire = newGrupaDenumire.trim();
+            if (!denumire) {
+                showError('Eroare', 'Introduceți o denumire pentru grupă.');
+                setBulkLoading(false);
+                return;
+            }
+            const clubId = currentUser?.club_id || activeRoleContext?.club_id;
+            const { data: nouaGrupa, error: grupaError } = await supabase
+                .from('grupe')
+                .insert({ denumire, club_id: clubId })
+                .select()
+                .single();
+            if (grupaError || !nouaGrupa) {
+                showError('Eroare', grupaError?.message || 'Nu s-a putut crea grupa.');
+                setBulkLoading(false);
+                return;
+            }
+            resolvedGrupaId = nouaGrupa.id;
+            grupaName = nouaGrupa.denumire;
+            setGrupe(prev => [...prev, nouaGrupa]);
+            setNewGrupaDenumire('');
+            setShowNewGrupaInput(false);
+        }
+
+        const { error } = await supabase.from('sportivi').update({ grupa_id: resolvedGrupaId }).in('id', ids);
         setBulkLoading(false);
         if (error) {
             showError('Eroare', error.message);
         } else {
             queryClient.invalidateQueries({ queryKey: ['sportivi'] });
-            const grupaName = newGrupaId ? grupe.find(g => g.id === newGrupaId)?.denumire || 'grupă' : 'fără grupă';
             showSuccess('Succes', `${ids.length} sportivi mutați în ${grupaName}.`);
             setSelectedSportivIds(new Set());
             setBulkGrupaId('');
@@ -463,12 +491,28 @@ export const Sportivi: React.FC<{
                     <span className="text-sm font-semibold text-brand-primary shrink-0">{selectedSportivIds.size} selectați</span>
                     <select
                         value={bulkGrupaId}
-                        onChange={e => setBulkGrupaId(e.target.value)}
+                        onChange={e => {
+                            const val = e.target.value;
+                            setBulkGrupaId(val);
+                            setShowNewGrupaInput(val === '__new__');
+                            if (val !== '__new__') setNewGrupaDenumire('');
+                        }}
                         className="w-full sm:flex-1 sm:max-w-xs bg-slate-800 border border-slate-600 text-white rounded-lg px-3 py-2 text-sm"
                     >
                         <option value="">Fără grupă</option>
                         {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
+                        <option value="__new__">+ Grupă nouă...</option>
                     </select>
+                    {showNewGrupaInput && (
+                        <input
+                            type="text"
+                            value={newGrupaDenumire}
+                            onChange={e => setNewGrupaDenumire(e.target.value)}
+                            placeholder="Denumire grupă nouă"
+                            className="w-full sm:flex-1 sm:max-w-xs bg-slate-800 border border-brand-primary text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand-primary"
+                            autoFocus
+                        />
+                    )}
                     <div className="flex gap-2 w-full sm:w-auto">
                         <Button variant="primary" size="sm" onClick={handleBulkAssignGroup} isLoading={bulkLoading} className="flex-1 sm:flex-none">
                             Mută în grupă

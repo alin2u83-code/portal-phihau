@@ -19,6 +19,7 @@ import { TrainingActionCard, AnuntStatus } from './SportivDashboard/TrainingActi
 import { HistoryModal } from './SportivDashboard/HistoryModal';
 import { FamilieWidget } from './SportivDashboard/FamilieWidget';
 import { EvenimenteWidget } from './EvenimenteWidget';
+import { SportivPassport } from './SportivPassport';
 
 const getGrad = (gradId: string | null, allGrades: Grad[]) =>
     gradId ? allGrades.find(g => g.id === gradId) ?? null : null;
@@ -421,6 +422,16 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                     </div>
                 </Card>
             )}
+
+            {/* ── PAȘAPORT VIRTUAL ────────────────────────────────────── */}
+            <SportivPassport
+                viewedUser={viewedUser}
+                grade={grade}
+                participari={participari}
+                examene={examene}
+                istoricGrade={istoricGrade}
+                plati={plati}
+            />
 
             {/* ── WIDGETS SECUNDARE ───────────────────────────────────── */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

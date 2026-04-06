@@ -308,11 +308,23 @@ export const Sportivi: React.FC<{
                 // Use selected roles or default to SPORTIV
                 let rolesToAssign = roluri || [];
                 if (rolesToAssign.length === 0) {
-                    const sportivRole = allRoles.find(r => r.nume === 'SPORTIV');
-                    if (sportivRole) rolesToAssign = [sportivRole];
+                    // 1. Caută în contextul curent
+                    let sportivRole = allRoles.find(r => r.nume === 'SPORTIV');
+                    // 2. Fallback: fetch direct din DB dacă allRoles e gol (race condition / cache corupt)
+                    if (!sportivRole) {
+                        const { data: rolesData } = await supabase
+                            .from('roluri').select('id, nume').eq('nume', 'SPORTIV').maybeSingle();
+                        if (rolesData) {
+                            sportivRole = rolesData as typeof sportivRole;
+                            setAllRoles(prev => prev.some(r => r.nume === 'SPORTIV') ? prev : [...prev, rolesData as any]);
+                        }
+                    }
+                    // 3. Fallback final: obiect sintetic — API-ul folosește doar .nume, nu .id
+                    if (!sportivRole) {
+                        sportivRole = { id: 'sportiv-role', nume: 'SPORTIV' } as typeof sportivRole;
+                    }
+                    rolesToAssign = [sportivRole];
                 }
-
-                if (rolesToAssign.length === 0) throw new Error("Rolul de bază 'SPORTIV' nu a fost găsit.");
 
                 const result = await createAccountAndAssignRole(
                     email,
@@ -362,8 +374,12 @@ export const Sportivi: React.FC<{
         setCreateAccountError('');
         
         try {
-            const sportivRole = allRoles.find(r => r.nume === 'SPORTIV');
-            if (!sportivRole) throw new Error("Rolul 'SPORTIV' nu a fost găsit.");
+            let sportivRole = allRoles.find(r => r.nume === 'SPORTIV');
+            if (!sportivRole) {
+                const { data: rolesData } = await supabase
+                    .from('roluri').select('id, nume').eq('nume', 'SPORTIV').maybeSingle();
+                sportivRole = (rolesData as typeof sportivRole) ?? ({ id: 'sportiv-role', nume: 'SPORTIV' } as typeof sportivRole);
+            }
 
             const result = await createAccountAndAssignRole(
                 createAccountForm.email,

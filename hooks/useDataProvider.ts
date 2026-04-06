@@ -310,11 +310,15 @@ export const useDataProvider = () => {
             // Merge cached results
             const finalData = { ...processedData, ...cachedResults };
             
-            // Update cache for newly fetched data
+            // Update cache for newly fetched data — nu cachea array-uri goale pentru date statice critice
             settledResults.forEach((result, index) => {
                 const key = queryKeys[index];
                 if (result.status === 'fulfilled' && cacheKeys[key]) {
-                    setCachedData(cacheKeys[key], result.value.data);
+                    const rawData = result.value?.data;
+                    // Nu salva în cache dacă datele sunt goale pentru tabele care trebuie să aibă date
+                    if (rawData && rawData.length > 0) {
+                        setCachedData(cacheKeys[key], rawData);
+                    }
                 }
             });
 
@@ -328,10 +332,10 @@ export const useDataProvider = () => {
 
             setData(prev => ({
                 ...prev,
-                clubs: finalData.clubs || prev.clubs,
-                allRoles: finalData.allRoles || prev.allRoles,
-                grade: finalData.grade || prev.grade,
-                tipuriAbonament: finalData.tipuriAbonament || prev.tipuriAbonament,
+                clubs: finalData.clubs?.length ? finalData.clubs : prev.clubs,
+                allRoles: finalData.allRoles?.length ? finalData.allRoles : prev.allRoles,
+                grade: finalData.grade?.length ? finalData.grade : prev.grade,
+                tipuriAbonament: finalData.tipuriAbonament?.length ? finalData.tipuriAbonament : prev.tipuriAbonament,
                 locatii: finalData.locatii || prev.locatii,
                 tipuriPlati: finalData.tipuriPlati || prev.tipuriPlati,
                 sesiuniExamene: finalData.sesiuniExamene || prev.sesiuniExamene,

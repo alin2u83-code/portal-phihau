@@ -223,8 +223,8 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                         </div>
 
                         {/* Grad */}
-                        <div className="mt-3 flex justify-center sm:justify-start">
-                            <GradBadge grad={currentGrad} gradName={currentGrad?.nume} isLarge />
+                        <div className="mt-2 flex justify-center sm:justify-start">
+                            <GradBadge grad={currentGrad} gradName={currentGrad?.nume} />
                         </div>
                     </div>
 
@@ -310,7 +310,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
             )}
 
             {/* ── STATS GRID ──────────────────────────────────────────── */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
 
                 {/* Prezențe Recente */}
                 <Card className="border border-slate-800 bg-slate-900/50">
@@ -353,12 +353,12 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                 </Card>
 
                 {/* Evoluție Grade */}
-                <Card className="border border-slate-800 bg-slate-900/50">
-                    <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
+                <Card className="border border-slate-800 bg-slate-900/50 overflow-hidden">
+                    <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
                         <TrophyIcon className="w-4 h-4 text-amber-400" />
                         Evoluție Grade
                     </h3>
-                    <div className="h-40">
+                    <div className="h-44">
                         <SportivProgressChart data={gradeHistoryData} themeColor="#fbbf24" />
                     </div>
                 </Card>
@@ -434,7 +434,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
             />
 
             {/* ── WIDGETS SECUNDARE ───────────────────────────────────── */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                 <AntrenamenteViitoare currentUser={viewedUser} antrenamente={antrenamente} grupe={grupe} anunturi={anunturi} />
 
                 <div className="space-y-4">

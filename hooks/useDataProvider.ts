@@ -116,7 +116,10 @@ export const useDataProvider = () => {
         evenimente: data.evenimente,
         rezultate: data.rezultate,
         tipuriAbonament: data.tipuriAbonament,
-        familii: data.familii,
+        // Filter familii by active club — RLS not yet configured on familii table
+        familii: permissions.isFederationLevel
+            ? data.familii
+            : data.familii.filter(f => !f.club_id || f.club_id === activeRoleContext?.club_id),
         anunturiPrezenta: attendanceData.anunturiPrezenta,
         reduceri: data.reduceri,
         deconturiFederatie: data.deconturiFederatie,

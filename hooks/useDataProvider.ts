@@ -205,26 +205,65 @@ export const useDataProvider = () => {
                 )
                 .subscribe();
             
-            const anunturiSubscription = supabase
-                .channel('anunturi_prezenta_changes')
-                .on(
-                    'postgres_changes',
-                    { event: 'INSERT', schema: 'public', table: 'anunturi_prezenta' },
-                    (payload) => {
-                        if (activeRole === 'INSTRUCTOR') {
-                            const { sportiv_nume, data_antrenament } = payload.new as any;
-                            toast.success(`${sportiv_nume} a confirmat prezența la antrenamentul din data de ${data_antrenament}`);
+            const isStaff = activeRole === 'INSTRUCTOR' || activeRole === 'ADMIN_CLUB' || activeRole === 'ADMIN' || activeRole === 'SUPER_ADMIN_FEDERATIE';
+            const clubId = currentUser?.club_id;
+            const anunturiSubscription = isStaff && clubId
+                ? supabase
+                    .channel('anunturi_prezenta_changes')
+                    .on(
+                        'postgres_changes',
+                        {
+                            event: '*',
+                            schema: 'public',
+                            table: 'anunturi_prezenta',
+                            filter: `club_id=eq.${clubId}`
+                        },
+                        async (payload) => {
+                            const record = payload.new as any;
+                            if (!record?.sportiv_id || !record?.status) return;
+
+                            const statusLabel: Record<string, { msg: string; icon: string }> = {
+                                'Confirm':   { msg: 'confirmă prezența',  icon: '✅' },
+                                'Intarziat': { msg: 'va întârzia',         icon: '⏰' },
+                                'Absent':    { msg: 'va absenta',          icon: '❌' },
+                            };
+                            const { msg, icon } = statusLabel[record.status] ?? { msg: record.status, icon: '📋' };
+
+                            const { data: sportivData } = await supabase
+                                .from('sportivi')
+                                .select('nume, prenume')
+                                .eq('id', record.sportiv_id)
+                                .maybeSingle();
+
+                            const numeSportiv = sportivData
+                                ? `${sportivData.prenume} ${sportivData.nume}`
+                                : 'Un sportiv';
+
+                            const toastFn = record.status === 'Absent' ? toast.error
+                                : record.status === 'Intarziat' ? toast
+                                : toast.success;
+
+                            if (record.status === 'Intarziat') {
+                                toast(`${icon} ${numeSportiv} ${msg}`, {
+                                    icon: '⏰',
+                                    style: { background: '#78350f', color: '#fef3c7', border: '1px solid #d97706' }
+                                });
+                            } else if (record.status === 'Absent') {
+                                toast.error(`${icon} ${numeSportiv} ${msg}`);
+                            } else {
+                                toast.success(`${icon} ${numeSportiv} ${msg}`);
+                            }
                         }
-                    }
-                )
-                .subscribe();
+                    )
+                    .subscribe()
+                : null;
 
             return () => {
                 supabase.removeChannel(subscription);
-                supabase.removeChannel(anunturiSubscription);
+                if (anunturiSubscription) supabase.removeChannel(anunturiSubscription);
             };
         }
-    }, [currentUser?.id, fetchIstoricVedere, activeRole]);
+    }, [currentUser?.id, currentUser?.club_id, fetchIstoricVedere, activeRole]);
 
     const fetchAppData = useCallback(async (activeCtx: any) => {
         try {

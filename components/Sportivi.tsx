@@ -22,6 +22,7 @@ import { useSportivi } from '../hooks/useSportivi';
 import { useData } from '../contexts/DataContext';
 import { useFamilyManager } from '../hooks/useFamilyManager';
 import { getAge } from '../utils/date';
+import { TourOverlay, TourButton, TOURS } from './GhidUtilizator';
 
 
 
@@ -508,6 +509,7 @@ export const Sportivi: React.FC<{
                             size="sm"
                             onClick={handleOpenAddSportiv}
                             style={{ backgroundColor: currentUser?.cluburi?.theme_config?.accent_color, color: '#ffffff' }}
+                            data-tour="sportivi-adauga"
                         >
                             <PlusIcon className="w-4 h-4 mr-1"/> Adaugă Sportiv
                         </Button>
@@ -541,6 +543,7 @@ export const Sportivi: React.FC<{
                 </div>
             )}
 
+            <div data-tour="sportivi-tabel">
             {loading ? (
                 <MartialArtsSkeleton count={8} />
             ) : isMobile ? (
@@ -572,10 +575,11 @@ export const Sportivi: React.FC<{
                     onSelectionChange={setSelectedSportivIds}
                 />
             )}
+            </div>
 
             {/* Paginare */}
             {!loadAll ? (
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 pt-4 border-t border-slate-700/50">
+                <div data-tour="sportivi-paginare" className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 pt-4 border-t border-slate-700/50">
                     {/* Stânga: info + selector per pagina + incarca toti */}
                     <div className="flex flex-wrap items-center gap-2 text-sm text-slate-400">
                         <span>
@@ -741,6 +745,9 @@ export const Sportivi: React.FC<{
                     </div>
                 </div>
             </Modal>
+
+            <TourOverlay steps={TOURS.sportivi} pageKey="sportivi" />
+            <TourButton steps={TOURS.sportivi} pageKey="sportivi" />
 
             <Modal isOpen={showNewGrupaModal} onClose={() => { setShowNewGrupaModal(false); setBulkGrupaId(''); }} title="Grupă nouă">
                 <div className="space-y-4">

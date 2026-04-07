@@ -35,21 +35,25 @@ export const SportiviFilter: React.FC<SportiviFilterProps> = ({ filters, onFilte
 
   const filterContent = (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-      <Input
-        label="Caută sportiv"
-        placeholder="Nume, prenume..."
-        value={filters.searchTerm}
-        onChange={(e) => onFilterChange('searchTerm', e.target.value)}
-      />
-      <Select
-        label="Status"
-        value={filters.statusFilter}
-        onChange={(e) => onFilterChange('statusFilter', e.target.value)}
-      >
-        <option value="">Toate Statusurile</option>
-        <option value="Activ">Activ</option>
-        <option value="Inactiv">Inactiv</option>
-      </Select>
+      <div data-tour="sportivi-search">
+        <Input
+          label="Caută sportiv"
+          placeholder="Nume, prenume..."
+          value={filters.searchTerm}
+          onChange={(e) => onFilterChange('searchTerm', e.target.value)}
+        />
+      </div>
+      <div data-tour="sportivi-filtru-status">
+        <Select
+          label="Status"
+          value={filters.statusFilter}
+          onChange={(e) => onFilterChange('statusFilter', e.target.value)}
+        >
+          <option value="">Toate Statusurile</option>
+          <option value="Activ">Activ</option>
+          <option value="Inactiv">Inactiv</option>
+        </Select>
+      </div>
       <Select
         label="Grupă"
         value={filters.grupaFilter}

@@ -11,6 +11,7 @@ import { useData } from '../contexts/DataContext';
 import { GrupaFormModal } from './Grupe/GrupaFormModal';
 import { GrupaCard } from './Grupe/GrupaCard';
 import { AdaugaSportiviModal } from './Grupe/AdaugaSportiviModal';
+import { TourOverlay, TourButton, TOURS } from './GhidUtilizator';
 
 // Interfață extinsă pentru datele aduse din Supabase
 interface GrupaWithDetails extends GrupaType {
@@ -152,10 +153,10 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
                     <Button variant="secondary" onClick={onBack}><ArrowLeftIcon className="w-5 h-5 mr-2" />Înapoi</Button>
                     <h1 className="text-2xl sm:text-3xl font-bold text-white">Management Grupe & Orar</h1>
                 </div>
-                <Button onClick={handleOpenAdd} variant="info" className="w-full sm:w-auto"><PlusIcon className="w-5 h-5 mr-2" />Adaugă Grupă</Button>
+                <Button onClick={handleOpenAdd} variant="info" className="w-full sm:w-auto" data-tour="grupe-adauga"><PlusIcon className="w-5 h-5 mr-2" />Adaugă Grupă</Button>
             </div>
             {grupe.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div data-tour="grupe-lista" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {(grupe as GrupaWithDetails[]).map(grupa => (
                         <GrupaCard key={grupa.id} grupa={grupa} onEdit={handleOpenEdit} onDelete={setGrupaToDelete} onAdaugaSportivi={setGrupaForAdaugaSportivi} />
                     ))}
@@ -166,6 +167,8 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
                 </Card>
             )}
 
+            <TourOverlay steps={TOURS.grupe} pageKey="grupe" />
+            <TourButton steps={TOURS.grupe} pageKey="grupe" />
             <GrupaFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSave} grupaToEdit={grupaToEdit} currentUser={currentUser} clubs={clubs} locatii={locatii} />
             <ConfirmDeleteModal isOpen={!!grupaToDelete} onClose={() => setGrupaToDelete(null)} onConfirm={() => { if(grupaToDelete) confirmDelete(grupaToDelete.id) }} tableName="Grupe" isLoading={isDeleting} />
             {grupaForAdaugaSportivi && (

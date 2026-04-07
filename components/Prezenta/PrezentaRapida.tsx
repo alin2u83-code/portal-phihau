@@ -271,7 +271,7 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
     return (
         <div className="space-y-4">
             {/* Controls row */}
-            <div className="flex items-center justify-between">
+            <div data-tour="prezenta-data" className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <SparklesIcon className="w-4 h-4 text-amber-400 shrink-0" />
                     <p className="text-xs text-slate-400">Apasă pe un sportiv pentru a comuta prezența.</p>
@@ -354,7 +354,7 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
                         {section.athletes.length === 0 ? (
                             <p className="text-sm text-slate-500 italic px-4 pb-4">Niciun sportiv activ în această grupă.</p>
                         ) : (
-                            <div className="border-t border-slate-800/60">
+                            <div data-tour="prezenta-lista" className="border-t border-slate-800/60">
                                 {/* Column headers */}
                                 <div className="flex items-center gap-3 px-4 py-1.5 bg-slate-800/30">
                                     <span className="w-5 shrink-0" />
@@ -398,6 +398,7 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
                                 variant={isSaved ? 'secondary' : 'success'}
                                 className="flex-1"
                                 disabled={isSaving || section.athletes.length === 0}
+                                data-tour="prezenta-salveaza"
                             >
                                 {isSaved
                                     ? <><CheckCircleIcon className="w-4 h-4 mr-1.5" /> Salvat</>

@@ -10,6 +10,7 @@ import { useStatusePrezenta } from '../hooks/useStatusePrezenta';
 import { GeneratorProgramMasiv } from './GeneratorProgramMasiv';
 import { useData } from '../contexts/DataContext';
 
+import { TourOverlay, TourButton, TOURS } from './GhidUtilizator';
 import { DashboardPrezentaAzi } from './Prezenta/DashboardPrezentaAzi';
 import { CalendarActivitati } from './Prezenta/CalendarActivitati';
 import { OrarEditor } from './Prezenta/OrarEditor';
@@ -194,6 +195,9 @@ export const Prezenta: React.FC<{ onBack: () => void; onViewSportiv?: (s: Sporti
 
             {/* Content */}
             {renderContent()}
+
+            <TourOverlay steps={TOURS.prezenta} pageKey="prezenta" />
+            <TourButton steps={TOURS.prezenta} pageKey="prezenta" />
         </div>
     );
 };

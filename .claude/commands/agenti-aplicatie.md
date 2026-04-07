@@ -34,3 +34,15 @@ După ce toți agenții există, rulează un audit rapid:
 - Verifică că fiecare agent are secțiunea "Rețea de agenți"
 - Confirmă că `audit-sistem.md` există și poate coordona ceilalți agenți
 - Raportează lista completă de agenți activi
+
+## Salvare bug-uri rezolvate în agenți
+
+Când un bug este rezolvat, agentul care l-a reparat (sau `audit-sistem`) trebuie să:
+1. Adauge o intrare în secțiunea "Probleme cunoscute rezolvate" din agentul domeniului afectat
+2. Adauge aceeași intrare în tabelul din `audit-sistem.md`
+3. Formatul înregistrării:
+   ```
+   | Problemă | Cauza rădăcină | Fix aplicat | Fișiere modificate |
+   ```
+
+Aceasta asigură că bug-urile rezolvate nu reapar și că toți agenții știu ce a fost fixat.

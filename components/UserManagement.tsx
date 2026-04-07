@@ -357,7 +357,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
         if (finalRoleIds.length === 0 && sportivRole) {
             finalRoleIds.push(sportivRole.id);
         }
-        
+
         try {
             const rolesToUpsert = finalRoleIds.map(roleId => {
                 const role = allRoles.find(r => r.id === roleId);
@@ -370,6 +370,13 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                 };
             }).filter((r): r is NonNullable<typeof r> => r !== null);
 
+            // Gardă: dacă niciun rol selectat nu se poate rezolva din allRoles
+            // (ex: rol adăugat manual în Supabase fără rol_id corect), NU continua —
+            // altfel DELETE fără NOT IN ar șterge TOATE rolurile utilizatorului.
+            if (rolesToUpsert.length === 0 && finalRoleIds.length > 0) {
+                throw new Error("Rolurile selectate nu au putut fi identificate. Reîncărcați pagina și încercați din nou.");
+            }
+
             const roleDenumiriToKeep = rolesToUpsert.map(r => r.rol_denumire);
 
             if (rolesToUpsert.length > 0) {
@@ -378,21 +385,17 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                     .upsert(rolesToUpsert, { onConflict: 'user_id,sportiv_id,rol_denumire' });
                 if (upsertError) throw upsertError;
             }
-            
-            const deleteQuery = supabase
-                .from('utilizator_roluri_multicont')
-                .delete()
-                .eq('sportiv_id', targetUser.id);
 
+            // DELETE doar rolurile care NU sunt în lista nouă.
+            // Format corect PostgREST: (SPORTIV,INSTRUCTOR) — fără single quotes.
             if (roleDenumiriToKeep.length > 0) {
-                deleteQuery.not('rol_denumire', 'in', `(${roleDenumiriToKeep.map(r => `'${r}'`).join(',')})`);
+                const { error: deleteError } = await supabase
+                    .from('utilizator_roluri_multicont')
+                    .delete()
+                    .eq('sportiv_id', targetUser.id)
+                    .not('rol_denumire', 'in', `(${roleDenumiriToKeep.join(',')})`);
+                if (deleteError) throw deleteError;
             }
-            
-            const { error: deleteError } = await deleteQuery;
-            if (deleteError) throw deleteError;
-
-            // Sincronizare metadate după modificare
-            await supabase.rpc('sync_user_metadata');
 
             const updatedRoles = allRoles.filter(r => finalRoleIds.includes(r.id));
             setSportivi(prev => prev.map(s => s.id === userId ? { ...s, roluri: updatedRoles } : s));

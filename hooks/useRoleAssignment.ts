@@ -112,14 +112,7 @@ export const useRoleAssignment = (currentUser: User, allRoles: Rol[]) => {
 
         setLoading(true);
         try {
-            // 1. Ștergem rolurile vechi pentru a permite trigger-ului să gestioneze is_primary
-            const { error: deleteError } = await supabase
-                .from('utilizator_roluri_multicont')
-                .delete()
-                .eq('sportiv_id', sportiv.id);
-            if (deleteError) throw deleteError;
-
-            // 2. Inserăm noile roluri (trigger-ul va seta is_primary corect)
+            // 1. Inserăm/actualizăm noile roluri (trigger-ul va seta is_primary corect)
             const rolesToInsert = finalRoleIds.map(roleId => {
                 const role = allRoles.find(r => r.id === roleId);
                 if (!role) return null;
@@ -132,11 +125,32 @@ export const useRoleAssignment = (currentUser: User, allRoles: Rol[]) => {
                 };
             }).filter(Boolean);
 
+            // Gardă: dacă niciun rol nu se poate rezolva din allRoles, abort —
+            // altfel DELETE fără NOT IN ar șterge TOATE rolurile utilizatorului.
+            if (rolesToInsert.length === 0 && finalRoleIds.length > 0) {
+                throw new Error("Rolurile selectate nu au putut fi identificate. Reîncărcați pagina și încercați din nou.");
+            }
+
             if (rolesToInsert.length > 0) {
                 const { error: upsertError } = await supabase
                     .from('utilizator_roluri_multicont')
                     .upsert(rolesToInsert as any[], { onConflict: 'user_id,rol_denumire,sportiv_id' });
                 if (upsertError) throw upsertError;
+            }
+
+            // 2. Ștergem doar rolurile care NU mai sunt în lista nouă.
+            // Format corect PostgREST pentru NOT IN: (SPORTIV,INSTRUCTOR) — fără single quotes.
+            const denumiriDeReținut = finalRoleIds
+                .map(id => allRoles.find(r => r.id === id)?.nume)
+                .filter((n): n is string => Boolean(n));
+
+            if (denumiriDeReținut.length > 0) {
+                const { error: deleteError } = await supabase
+                    .from('utilizator_roluri_multicont')
+                    .delete()
+                    .eq('sportiv_id', sportiv.id)
+                    .not('rol_denumire', 'in', `(${denumiriDeReținut.join(',')})`);
+                if (deleteError) throw deleteError;
             }
 
             // 3. Sincronizare metadate

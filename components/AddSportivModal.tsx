@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, Button, Input } from './ui';
+import { Card, Button, Input, DateInputDMY } from './ui';
 import { X } from 'lucide-react';
 import { Sportiv } from '../types';
 
@@ -37,7 +37,7 @@ export const AddSportivModal: React.FC<AddSportivModalProps> = ({ isOpen, onClos
                     <Input label="Nume" value={formData.nume || ''} onChange={e => setFormData({...formData, nume: e.target.value})} required />
                     <Input label="Prenume" value={formData.prenume || ''} onChange={e => setFormData({...formData, prenume: e.target.value})} required />
                     <Input label="Email" type="email" value={formData.email || ''} onChange={e => setFormData({...formData, email: e.target.value})} required />
-                    <Input label="Data Nașterii" type="date" value={formData.data_nasterii || ''} onChange={e => setFormData({...formData, data_nasterii: e.target.value})} required />
+                    <DateInputDMY label="Data Nașterii" value={formData.data_nasterii || ''} onChange={(v) => setFormData({...formData, data_nasterii: v})} required />
                     <div className="flex justify-end gap-2 mt-6">
                         <Button variant="secondary" onClick={onClose}>Anulează</Button>
                         <Button type="submit">Salvează</Button>

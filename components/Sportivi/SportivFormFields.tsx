@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { Sportiv, Grupa, Familie, TipAbonament, Club, User, Grad, Rol } from '../../types';
-import { Button, Input, Select, FormSection, Switch } from '../ui';
+import { Button, Input, Select, FormSection, Switch, DateInputDMY } from '../ui';
 import { PlusIcon } from '../icons';
 import { FEDERATIE_ID } from '../../constants';
 import { validateSportiv } from '../../utils/validation';
@@ -154,7 +154,7 @@ export const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
                     <FormSection title="Date Personale">
                         <Input label="Nume" name="nume" value={formData.nume || ''} onChange={handleChange} required disabled={loading} error={errors.nume} />
                         <Input label="Prenume" name="prenume" value={formData.prenume || ''} onChange={handleChange} required disabled={loading} error={errors.prenume} />
-                        <Input label="Data Nașterii" name="data_nasterii" type="date" value={formData.data_nasterii || ''} onChange={handleChange} required disabled={loading} error={errors.data_nasterii} />
+                        <DateInputDMY label="Data Nașterii" value={formData.data_nasterii || ''} onChange={(v) => handleChange({ target: { name: 'data_nasterii', value: v } } as React.ChangeEvent<HTMLInputElement>)} required disabled={loading} error={errors.data_nasterii} />
                         <Input label="CNP" name="cnp" value={formData.cnp || ''} onChange={handleChange} disabled={loading} maxLength={13} />
                         <Input label="Înălțime (cm)" name="inaltime" type="number" value={formData.inaltime || ''} onChange={handleChange} disabled={loading} />
                         <Select label="Gen" name="gen" value={formData.gen || ''} onChange={handleChange} disabled={loading}>

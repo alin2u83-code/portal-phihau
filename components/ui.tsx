@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { XIcon, SearchIcon } from './icons';
 import { Rol, Club } from '../types';
@@ -305,3 +305,83 @@ export const ClubSelect: React.FC<{
     {clubs.map(c => <option key={c.id} value={c.id}>{renderOption ? renderOption(c) : c.nume}</option>)}
   </Select>
 );
+
+interface DateInputDMYProps {
+  label?: string;
+  value: string; // YYYY-MM-DD
+  onChange: (value: string) => void;
+  required?: boolean;
+  disabled?: boolean;
+  error?: string;
+}
+
+export const DateInputDMY: React.FC<DateInputDMYProps> = ({ label, value, onChange, required, disabled, error }) => {
+  const [zi, setZi] = useState('');
+  const [luna, setLuna] = useState('');
+  const [an, setAn] = useState('');
+  const lunaRef = useRef<HTMLInputElement>(null);
+  const anRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (value && value.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      const [y, m, d] = value.split('-');
+      setAn(y); setLuna(m); setZi(d);
+    } else if (!value) {
+      setZi(''); setLuna(''); setAn('');
+    }
+  }, [value]);
+
+  const emit = (z: string, l: string, a: string) => {
+    if (z.length <= 2 && l.length <= 2 && a.length === 4) {
+      onChange(`${a}-${l.padStart(2,'0')}-${z.padStart(2,'0')}`);
+    } else {
+      onChange('');
+    }
+  };
+
+  const handleZi = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const v = e.target.value.replace(/\D/g,'').slice(0,2);
+    setZi(v); emit(v, luna, an);
+    if (v.length === 2 && +v >= 1 && +v <= 31) lunaRef.current?.focus();
+  };
+
+  const handleLuna = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const v = e.target.value.replace(/\D/g,'').slice(0,2);
+    setLuna(v); emit(zi, v, an);
+    if (v.length === 2 && +v >= 1 && +v <= 12) anRef.current?.focus();
+  };
+
+  const handleAn = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const v = e.target.value.replace(/\D/g,'').slice(0,4);
+    setAn(v); emit(zi, luna, v);
+  };
+
+  const cls = `w-full bg-slate-800 border ${error ? 'border-red-500' : 'border-slate-700'} rounded-lg px-2 py-2 text-white text-center text-base focus:outline-none focus:ring-2 focus:ring-amber-500 disabled:opacity-50`;
+
+  return (
+    <div className="space-y-1">
+      {label && (
+        <label className="block text-sm font-medium text-slate-300">
+          {label}{required && <span className="text-red-400 ml-1">*</span>}
+        </label>
+      )}
+      <div className="flex gap-2 items-end">
+        <div className="flex flex-col items-center gap-1 flex-1">
+          <input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="ZZ" value={zi} onChange={handleZi} disabled={disabled} maxLength={2} className={cls} aria-label="Zi" />
+          <span className="text-xs text-slate-500">Zi</span>
+        </div>
+        <span className="text-slate-500 mb-5">/</span>
+        <div className="flex flex-col items-center gap-1 flex-1">
+          <input ref={lunaRef} type="text" inputMode="numeric" pattern="[0-9]*" placeholder="LL" value={luna} onChange={handleLuna} disabled={disabled} maxLength={2} className={cls} aria-label="Lună" />
+          <span className="text-xs text-slate-500">Lună</span>
+        </div>
+        <span className="text-slate-500 mb-5">/</span>
+        <div className="flex flex-col items-center gap-1 flex-[2]">
+          <input ref={anRef} type="text" inputMode="numeric" pattern="[0-9]*" placeholder="AAAA" value={an} onChange={handleAn} disabled={disabled} maxLength={4} className={cls} aria-label="An" />
+          <span className="text-xs text-slate-500">An</span>
+        </div>
+      </div>
+      {error && <p className="text-xs text-red-400 mt-1">{error}</p>}
+    </div>
+  );
+};

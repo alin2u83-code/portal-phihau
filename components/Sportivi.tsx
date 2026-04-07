@@ -117,13 +117,33 @@ export const Sportivi: React.FC<{
         return grupe.filter(g => g.club_id === clubIdActiv);
     }, [grupe, permissions.isFederationAdmin, filters.clubFilter, activeRoleContext?.club_id, currentUser?.club_id]);
 
-    // Reset page on filter change
-    React.useEffect(() => {
-        setPage(1);
-    }, [filters.searchTerm, filters.statusFilter, filters.grupaFilter, filters.rolFilter, filters.gradFilter, setFilters]);
+    const PAGE_SIZE_OPTIONS = [5, 10, 20, 50, 100];
 
     const [page, setPage] = useState(1);
-    const pageSize = 50;
+    const [pageSize, setPageSize] = useState(20);
+    const [loadAll, setLoadAll] = useState(false);
+    const [showMutaGrupaModal, setShowMutaGrupaModal] = useState(false);
+
+    // Reset page si loadAll la schimbarea filtrelor
+    React.useEffect(() => {
+        setPage(1);
+        setLoadAll(false);
+    }, [filters.searchTerm, filters.statusFilter, filters.grupaFilter, filters.rolFilter, filters.gradFilter, setFilters]);
+
+    const handlePageSizeChange = (newSize: number) => {
+        setPageSize(newSize);
+        setPage(1);
+    };
+
+    const handleLoadAll = () => {
+        setLoadAll(true);
+        setPage(1);
+    };
+
+    const handleResetPagination = () => {
+        setLoadAll(false);
+        setPage(1);
+    };
 
     const { data: sportiviData, isLoading: sportiviLoading, error: sportiviError, count: totalSportivi } = useSportivi({
         status: filters.statusFilter,
@@ -131,10 +151,10 @@ export const Sportivi: React.FC<{
         rolId: filters.rolFilter,
         searchTerm: filters.searchTerm,
         grupaId: filters.grupaFilter
-    }, { page, pageSize }, undefined, activeRoleContext?.id);
-    
+    }, loadAll ? undefined : { page, pageSize }, undefined, activeRoleContext?.id, loadAll);
+
     const sportivi = sportiviData || [];
-    const hasMore = sportivi.length < totalSportivi;
+    const totalPages = Math.ceil(totalSportivi / pageSize);
     
     const {
         loading: familyLoading,
@@ -194,6 +214,7 @@ export const Sportivi: React.FC<{
             showSuccess('Succes', `${ids.length} sportivi mutați în ${grupaName}.`);
             setSelectedSportivIds(new Set());
             setBulkGrupaId('');
+            setShowMutaGrupaModal(false);
         }
     };
 
@@ -505,23 +526,16 @@ export const Sportivi: React.FC<{
             />
 
             {selectedSportivIds.size > 0 && (
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 p-3 bg-brand-primary/10 border border-brand-primary/30 rounded-lg">
-                    <span className="text-sm font-semibold text-brand-primary shrink-0">{selectedSportivIds.size} selectați</span>
-                    <select
-                        value={bulkGrupaId}
-                        onChange={e => setBulkGrupaId(e.target.value)}
-                        className="w-full sm:flex-1 sm:max-w-xs bg-slate-800 border border-slate-600 text-white rounded-lg px-3 py-2 text-sm"
-                    >
-                        <option value="">Fără grupă</option>
-                        {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
-                        <option value="__new__">+ Grupă nouă...</option>
-                    </select>
-                    <div className="flex gap-2 w-full sm:w-auto">
-                        <Button variant="primary" size="sm" onClick={() => handleBulkAssignGroup()} isLoading={bulkLoading} className="flex-1 sm:flex-none">
+                <div className="flex flex-col sm:flex-row items-center gap-3 p-3 bg-brand-primary/10 border border-brand-primary/30 rounded-lg">
+                    <span className="text-sm font-semibold text-brand-primary shrink-0">
+                        {selectedSportivIds.size} {selectedSportivIds.size === 1 ? 'sportiv selectat' : 'sportivi selectați'}
+                    </span>
+                    <div className="flex gap-2 ml-auto">
+                        <Button variant="primary" size="sm" onClick={() => setShowMutaGrupaModal(true)}>
                             Mută în grupă
                         </Button>
-                        <Button variant="secondary" size="sm" onClick={() => setSelectedSportivIds(new Set())} className="flex-1 sm:flex-none">
-                            Anulează
+                        <Button variant="secondary" size="sm" onClick={() => setSelectedSportivIds(new Set())}>
+                            Anulează selecția
                         </Button>
                     </div>
                 </div>
@@ -559,11 +573,84 @@ export const Sportivi: React.FC<{
                 />
             )}
 
-            {hasMore && (
-                <div className="flex justify-center mt-4">
-                    <Button variant="secondary" onClick={() => setPage(p => p + 1)} isLoading={sportiviLoading}>
-                        Încarcă mai mult
-                    </Button>
+            {/* Paginare */}
+            {!loadAll ? (
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 pt-4 border-t border-slate-700/50">
+                    {/* Stânga: info + selector per pagina + incarca toti */}
+                    <div className="flex flex-wrap items-center gap-2 text-sm text-slate-400">
+                        <span>
+                            {totalSportivi === 0
+                                ? 'Niciun sportiv'
+                                : `${Math.min((page - 1) * pageSize + 1, totalSportivi)}–${Math.min(page * pageSize, totalSportivi)} din ${totalSportivi}`}
+                        </span>
+                        <span className="text-slate-600">|</span>
+                        <label className="flex items-center gap-1 text-slate-400 text-sm">
+                            Afișează
+                            <select
+                                value={pageSize}
+                                onChange={e => handlePageSizeChange(Number(e.target.value))}
+                                className="bg-slate-800 border border-slate-600 text-white rounded-md px-2 py-1 text-sm cursor-pointer focus:outline-none focus:ring-1 focus:ring-brand-primary"
+                            >
+                                {PAGE_SIZE_OPTIONS.map(n => (
+                                    <option key={n} value={n}>{n}</option>
+                                ))}
+                            </select>
+                            / pagină
+                        </label>
+                        {(permissions.isAdminClub || permissions.isFederationAdmin) && totalSportivi > pageSize && (
+                            <button
+                                onClick={handleLoadAll}
+                                disabled={sportiviLoading}
+                                className="text-brand-primary hover:text-brand-primary/80 underline underline-offset-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {sportiviLoading ? 'Se încarcă...' : `Încarcă toți (${totalSportivi})`}
+                            </button>
+                        )}
+                    </div>
+                    {/* Dreapta: butoane navigare */}
+                    {totalPages > 1 && (
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                                disabled={page <= 1}
+                                className={`px-3 py-1.5 rounded-md border text-sm font-medium transition-colors ${
+                                    page <= 1
+                                        ? 'border-slate-700 text-slate-600 opacity-50 cursor-not-allowed bg-slate-800/50'
+                                        : 'border-slate-600 text-slate-300 hover:border-slate-400 hover:text-white bg-slate-800 cursor-pointer'
+                                }`}
+                            >
+                                Anterior
+                            </button>
+                            <span className="text-sm text-slate-400 select-none px-1">
+                                Pagina {page} din {totalPages}
+                            </span>
+                            <button
+                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                                disabled={page >= totalPages}
+                                className={`px-3 py-1.5 rounded-md border text-sm font-medium transition-colors ${
+                                    page >= totalPages
+                                        ? 'border-slate-700 text-slate-600 opacity-50 cursor-not-allowed bg-slate-800/50'
+                                        : 'border-slate-600 text-slate-300 hover:border-slate-400 hover:text-white bg-slate-800 cursor-pointer'
+                                }`}
+                            >
+                                Următor
+                            </button>
+                        </div>
+                    )}
+                </div>
+            ) : (
+                <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-700/50">
+                    <span className="text-sm text-slate-400">
+                        {sportiviLoading
+                            ? 'Se încarcă toți sportivii...'
+                            : `Afișând toți ${totalSportivi} sportivii`}
+                    </span>
+                    <button
+                        onClick={handleResetPagination}
+                        className="text-sm text-brand-primary hover:text-brand-primary/80 underline underline-offset-2"
+                    >
+                        Revenire la paginare
+                    </button>
                 </div>
             )}
 
@@ -622,6 +709,38 @@ export const Sportivi: React.FC<{
                 onDeactivate={handleDeactivate}
                 onDelete={handleDelete}
             />
+
+            {/* Modal: Mută în grupă */}
+            <Modal isOpen={showMutaGrupaModal} onClose={() => { setShowMutaGrupaModal(false); setBulkGrupaId(''); }} title={`Mută ${selectedSportivIds.size} ${selectedSportivIds.size === 1 ? 'sportiv' : 'sportivi'} în grupă`}>
+                <div className="space-y-4">
+                    <p className="text-sm text-slate-400">
+                        Selectează grupa în care vrei să muți sportivii selectați. Grupele fără selecție vor fi setate la "Fără grupă".
+                    </p>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Grupă destinație</label>
+                        <select
+                            value={bulkGrupaId}
+                            onChange={e => setBulkGrupaId(e.target.value)}
+                            className="w-full bg-slate-800 border border-slate-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                            autoFocus
+                        >
+                            <option value="">Fără grupă (elimină din grupă)</option>
+                            {grupeFiltrateClub.map(g => (
+                                <option key={g.id} value={g.id}>{g.denumire}</option>
+                            ))}
+                            <option value="__new__">+ Grupă nouă...</option>
+                        </select>
+                    </div>
+                    <div className="flex justify-end gap-2 pt-2">
+                        <Button variant="secondary" onClick={() => { setShowMutaGrupaModal(false); setBulkGrupaId(''); }}>
+                            Anulează
+                        </Button>
+                        <Button variant="primary" onClick={() => handleBulkAssignGroup()} isLoading={bulkLoading}>
+                            Confirmă mutarea
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
 
             <Modal isOpen={showNewGrupaModal} onClose={() => { setShowNewGrupaModal(false); setBulkGrupaId(''); }} title="Grupă nouă">
                 <div className="space-y-4">

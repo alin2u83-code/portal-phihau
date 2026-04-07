@@ -34,7 +34,7 @@ export const SportiviFilter: React.FC<SportiviFilterProps> = ({ filters, onFilte
   ].filter(Boolean).length;
 
   const filterContent = (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-5 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
       <Input
         label="Caută sportiv"
         placeholder="Nume, prenume..."

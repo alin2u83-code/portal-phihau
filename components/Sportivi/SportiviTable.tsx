@@ -109,7 +109,10 @@ export const SportiviTable: React.FC<SportiviTableProps> = (props) => {
             </span>
         )
     },
-    { key: 'grupa_id', label: 'Grupă', tooltip: "Grupa de antrenament.", render: (s) => grupe.find(g => g.id === s.grupa_id)?.denumire || '-', className: 'hidden md:table-cell' },
+    { key: 'grupa_id', label: 'Grupă', tooltip: "Grupa de antrenament.", render: (s) => {
+        const denumire = grupe.find(g => g.id === s.grupa_id)?.denumire;
+        return <span className="truncate max-w-[120px] block" title={denumire || '-'}>{denumire || '-'}</span>;
+    }, className: 'hidden md:table-cell' },
     {
         key: 'actions',
         label: 'Acțiuni',
@@ -117,18 +120,18 @@ export const SportiviTable: React.FC<SportiviTableProps> = (props) => {
         headerClassName: 'text-right',
         cellClassName: 'text-right',
         render: (s) => (
-            <div className="flex justify-end items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                <Button size="sm" variant="secondary" onClick={() => onEdit(s)} title="Editează Profil" className="!p-2">
+            <div className="flex justify-end items-center gap-1 md:gap-2" onClick={(e) => e.stopPropagation()}>
+                <Button size="sm" variant="secondary" onClick={() => onEdit(s)} title="Editează Profil" className="!p-1.5 md:!p-2">
                     <EditIcon className="w-4 h-4" />
                 </Button>
-                <Button size="sm" variant="info" onClick={() => onOpenWallet(s)} title="Portofel Sportiv" className="!p-2 flex items-center gap-1">
+                <Button size="sm" variant="info" onClick={() => onOpenWallet(s)} title="Portofel Sportiv" className="!p-1.5 md:!p-2 flex items-center gap-1">
                     <WalletIcon className="w-4 h-4" />
                     <span className="hidden lg:inline text-xs font-bold">Portofel</span>
                 </Button>
-                <Button size="sm" variant="secondary" onClick={() => onOpenAccountSettings(s)} title="Setări Cont de Acces" className="!p-2">
+                <Button size="sm" variant="secondary" onClick={() => onOpenAccountSettings(s)} title="Setări Cont de Acces" className="!p-1.5 md:!p-2">
                     <ShieldCheckIcon className="w-4 h-4" />
                 </Button>
-                 <Button size="sm" variant="danger" onClick={() => onDelete(s)} title="Șterge Sportiv" className="!p-2">
+                <Button size="sm" variant="danger" onClick={() => onDelete(s)} title="Șterge Sportiv" className="!p-1.5 md:!p-2">
                     <TrashIcon className="w-4 h-4" />
                 </Button>
             </div>
@@ -141,7 +144,7 @@ export const SportiviTable: React.FC<SportiviTableProps> = (props) => {
       const grupa = grupe.find(g => g.id === sportiv.grupa_id);
 
       return (
-          <Card className={`mb-4 border-l-4 ${sportiv.status === 'Activ' ? 'border-green-500' : 'border-slate-600'}`}>
+          <Card className={`border-l-4 ${sportiv.status === 'Activ' ? 'border-green-500' : 'border-slate-600'}`}>
             <div className="flex justify-between items-start">
               <div>
                 <p className="font-bold text-white text-lg mb-1">{sportiv.nume} {sportiv.prenume}</p>
@@ -189,6 +192,8 @@ export const SportiviTable: React.FC<SportiviTableProps> = (props) => {
       searchTerm={searchTerm}
       onSearchChange={onSearchChange}
       pageSize={10}
+      cardBreakpoint={1024}
+      cardContainerClassName="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 sm:p-4"
     />
   );
 };

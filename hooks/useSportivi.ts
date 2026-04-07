@@ -81,11 +81,12 @@ export const useSportivi = (
     filters: SportiviFilters = {},
     pagination?: PaginationOptions,
     sort?: SortOptions,
-    contextId?: string
+    contextId?: string,
+    loadAll?: boolean
 ) => {
     const queryResult = useQuery<{ data: Sportiv[], count: number }, Error>({
-        queryKey: ['sportivi', filters, pagination, sort, contextId],
-        queryFn: () => fetchSportiviData(filters, pagination, sort),
+        queryKey: ['sportivi', filters, pagination, sort, contextId, loadAll],
+        queryFn: () => fetchSportiviData(filters, loadAll ? undefined : pagination, sort),
     });
 
     return {

@@ -31,6 +31,10 @@ export interface ResponsiveTableProps<T> {
     pageSize?: number;
     idKey?: keyof T;
     detailsHeight?: number;
+    /** Lățimea maximă (px) sub care se activează card layout. Default: 768 (mobil). Setează 1024 pentru a activa și pe tabletă. */
+    cardBreakpoint?: number;
+    /** Clasa CSS pentru containerul card-urilor. Default: 'divide-y divide-[var(--border-color)]' */
+    cardContainerClassName?: string;
 }
 
 // --- MAIN COMPONENT ---
@@ -50,8 +54,19 @@ export function ResponsiveTable<T>({
     idKey = 'id' as keyof T,
     pageSize = 10,
     detailsHeight = 0,
+    cardBreakpoint = 768,
+    cardContainerClassName,
 }: ResponsiveTableProps<T>) {
     const isMobile = useIsMobile();
+    // Track window width only when a custom cardBreakpoint above 768px is needed
+    const [windowWidth, setWindowWidth] = React.useState(() => (typeof window !== 'undefined' ? window.innerWidth : 1024));
+    React.useEffect(() => {
+        if (cardBreakpoint <= 768) return; // isMobile already covers this case
+        const onResize = () => setWindowWidth(window.innerWidth);
+        window.addEventListener('resize', onResize);
+        return () => window.removeEventListener('resize', onResize);
+    }, [cardBreakpoint]);
+    const useCardLayout = renderMobileItem != null && (cardBreakpoint > 768 ? windowWidth < cardBreakpoint : isMobile);
     const [currentPage, setCurrentPage] = React.useState(1);
 
     const paginatedData = React.useMemo(() => {
@@ -86,12 +101,12 @@ export function ResponsiveTable<T>({
                 </div>
             )}
             
-            {/* Mobile View */}
-            {isMobile && renderMobileItem ? (
-                <div className="divide-y divide-[var(--border-color)]">
+            {/* Mobile/Tablet Card View */}
+            {useCardLayout ? (
+                <div className={cardContainerClassName ?? 'divide-y divide-[var(--border-color)]'}>
                     {paginatedData.map((item, index) => (
                         <div key={String(item[idKey] || index)} onClick={() => onRowClick?.(item)}>
-                            {renderMobileItem(item)}
+                            {renderMobileItem!(item)}
                         </div>
                     ))}
                 </div>
@@ -113,9 +128,9 @@ export function ResponsiveTable<T>({
                                             ${col.className || ''} 
                                             ${onSort ? 'cursor-pointer' : ''}
                                         `}
-                                        style={{ 
-                                            top: `${detailsHeight - 90}px`, // Modifică aici valoarea (ex: -10, -20)
-    boxShadow: 'inset 0 -1px 0 var(--border-color)' 
+                                        style={{
+                                            top: detailsHeight > 0 ? `${detailsHeight - 90}px` : '0px',
+                                            boxShadow: 'inset 0 -1px 0 var(--border-color)'
                                         }}
                                         title={col.tooltip}
                                         onClick={(e) => {

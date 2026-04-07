@@ -545,8 +545,6 @@ export const Sportivi: React.FC<{
                     onDelete={setSportivToDelete}
                     requestSort={requestSort}
                     sortConfig={sortConfig}
-                    searchTerm={filters.searchTerm}
-                    onSearchChange={handleSearchChange}
                     selectedIds={selectedSportivIds}
                     onSelectionChange={setSelectedSportivIds}
                 />

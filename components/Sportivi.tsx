@@ -205,7 +205,7 @@ export const Sportivi: React.FC<{
             return;
         }
         if (newGrupaProgram.length > 0) {
-            const programToInsert = newGrupaProgram.map(({ id: _id, ...rest }) => ({ ...rest, grupa_id: nouaGrupa.id }));
+            const programToInsert = newGrupaProgram.map(({ id: _id, ...rest }) => ({ ...rest, grupa_id: nouaGrupa.id, club_id: nouaGrupa.club_id }));
             await supabase.from('orar_saptamanal').insert(programToInsert);
         }
         setGrupe(prev => [...prev, { ...nouaGrupa, program: newGrupaProgram }]);

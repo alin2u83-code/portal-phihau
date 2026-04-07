@@ -46,7 +46,7 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
             }
             await supabase.from('orar_saptamanal').delete().eq('grupa_id', grupaToEdit.id);
             if (program.length > 0) {
-                const programToInsert = program.map(({ id, ...rest }) => ({ ...rest, grupa_id: grupaToEdit.id }));
+                const programToInsert = program.map(({ id, ...rest }) => ({ ...rest, grupa_id: grupaToEdit.id, club_id: grupaToEdit.club_id }));
                 const { error: insertError } = await supabase.from('orar_saptamanal').insert(programToInsert);
                 if (insertError) { 
                     console.error('DETALII EROARE:', JSON.stringify(insertError, null, 2));
@@ -66,7 +66,7 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
                 return; 
             }
             if (newGrupa && program.length > 0) {
-                const programToInsert = program.map(({id, ...rest}) => ({ ...rest, grupa_id: newGrupa.id }));
+                const programToInsert = program.map(({id, ...rest}) => ({ ...rest, grupa_id: newGrupa.id, club_id: newGrupa.club_id }));
                 await supabase.from('orar_saptamanal').insert(programToInsert);
             }
             if (newGrupa) {

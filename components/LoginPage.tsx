@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useAuthForm } from '../hooks/useAuthForm';
 import { Button, Card, Input } from './ui';
-import { LogIn, Mail, Lock, ShieldCheck, ArrowRight } from 'lucide-react';
+import { LogIn, Mail, Lock, ShieldCheck, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
 import { QwanKiDoLogo } from './Logo';
 
@@ -11,6 +11,7 @@ export const LoginPage: React.FC = () => {
     const navigate = useNavigate();
     const { login, loading, error: authError, clearStates } = useAuth();
     const { formData, errors, handleChange, validate, resetForm } = useAuthForm('login');
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -73,17 +74,25 @@ export const LoginPage: React.FC = () => {
                         </div>
 
                         <div className="relative">
-                            <Input 
-                                label="Parolă" 
-                                name="parola" 
-                                type="password" 
-                                value={formData.parola || ''} 
-                                onChange={(e) => { handleChange(e); clearStates(); }} 
-                                required 
+                            <Input
+                                label="Parolă"
+                                name="parola"
+                                type={showPassword ? 'text' : 'password'}
+                                value={formData.parola || ''}
+                                onChange={(e) => { handleChange(e); clearStates(); }}
+                                required
                                 placeholder="••••••••"
-                                className={`pl-10 ${errors.parola ? 'border-red-500 focus:ring-red-500' : ''}`}
+                                className={`pl-10 pr-12 ${errors.parola ? 'border-red-500 focus:ring-red-500' : ''}`}
                             />
                             <Lock className="absolute left-3 top-[34px] w-4 h-4 text-slate-500" />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(prev => !prev)}
+                                className="absolute right-3 top-[30px] p-1 text-slate-400 hover:text-white active:text-amber-400 transition-colors touch-manipulation"
+                                aria-label={showPassword ? 'Ascunde parola' : 'Arată parola'}
+                            >
+                                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                            </button>
                             {errors.parola && <p className="text-xs text-red-400 mt-1 ml-1">{errors.parola}</p>}
                         </div>
 

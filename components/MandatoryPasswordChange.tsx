@@ -6,6 +6,7 @@ import { useError } from './ErrorProvider';
 import { ShieldCheckIcon } from './icons';
 import { getAuthErrorMessage } from '../utils/error';
 import { checkLeakedPassword } from '../utils/checkLeakedPassword';
+import { Eye, EyeOff } from 'lucide-react';
 
 interface MandatoryPasswordChangeProps {
     currentUser: User;
@@ -16,6 +17,8 @@ export const MandatoryPasswordChange: React.FC<MandatoryPasswordChangeProps> = (
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [loading, setLoading] = useState(false);
+    const [showNew, setShowNew] = useState(false);
+    const [showConfirm, setShowConfirm] = useState(false);
     const { showError, showSuccess } = useError();
 
     const validatePassword = () => {
@@ -54,27 +57,22 @@ export const MandatoryPasswordChange: React.FC<MandatoryPasswordChangeProps> = (
                 return;
             }
 
-            // 1. Update authentication user's password
             const { error: authError } = await supabase.auth.updateUser({ password: newPassword });
             if (authError) {
                 throw authError;
             }
 
-            // 2. Update the profile flag
             const { error: profileError } = await supabase
                 .from('sportivi')
                 .update({ trebuie_schimbata_parola: false })
                 .eq('user_id', currentUser.user_id);
 
             if (profileError) {
-                // This is a tricky state. The auth password is changed, but the flag isn't.
-                // We should inform the user to contact admin.
                 throw new Error(`Parola a fost schimbată, dar a apărut o eroare la actualizarea profilului. Vă rugăm contactați un administrator. Detalii: ${profileError.message}`);
             }
-            
+
             showSuccess("Parolă Actualizată", "Parola a fost schimbată cu succes. Veți fi redirecționat.");
-            
-            // Wait a moment before triggering the reload so the user can see the message.
+
             setTimeout(() => {
                 onPasswordChanged();
             }, 1500);
@@ -100,25 +98,47 @@ export const MandatoryPasswordChange: React.FC<MandatoryPasswordChangeProps> = (
                     </div>
 
                     <form onSubmit={handleSave} className="space-y-4">
-                        <Input
-                            label="Parolă Nouă"
-                            id="newPassword"
-                            name="newPassword"
-                            type="password"
-                            value={newPassword}
-                            onChange={(e) => setNewPassword(e.target.value)}
-                            required
-                        />
-                        <Input
-                            label="Confirmă Parola Nouă"
-                            id="confirmPassword"
-                            name="confirmPassword"
-                            type="password"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            required
-                        />
-                        
+                        <div className="relative">
+                            <Input
+                                label="Parolă Nouă"
+                                id="newPassword"
+                                name="newPassword"
+                                type={showNew ? 'text' : 'password'}
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                required
+                                className="pr-12"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowNew(prev => !prev)}
+                                className="absolute right-3 top-[34px] p-1 text-slate-400 hover:text-white active:text-amber-400 transition-colors touch-manipulation"
+                                aria-label={showNew ? 'Ascunde parola' : 'Arată parola'}
+                            >
+                                {showNew ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                            </button>
+                        </div>
+                        <div className="relative">
+                            <Input
+                                label="Confirmă Parola Nouă"
+                                id="confirmPassword"
+                                name="confirmPassword"
+                                type={showConfirm ? 'text' : 'password'}
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                required
+                                className="pr-12"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowConfirm(prev => !prev)}
+                                className="absolute right-3 top-[34px] p-1 text-slate-400 hover:text-white active:text-amber-400 transition-colors touch-manipulation"
+                                aria-label={showConfirm ? 'Ascunde parola' : 'Arată parola'}
+                            >
+                                {showConfirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                            </button>
+                        </div>
+
                         <div className="text-xs text-slate-400 pl-1 pt-1">
                             * Minim 8 caractere, cel puțin o cifră.
                         </div>

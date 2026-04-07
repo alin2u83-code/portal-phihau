@@ -4,10 +4,12 @@ import { supabase } from '../supabaseClient';
 import { Button, Card, Input } from './ui';
 import { useError } from './ErrorProvider';
 import { checkLeakedPassword } from '../utils/checkLeakedPassword';
+import { Eye, EyeOff } from 'lucide-react';
 
 export const ResetPasswordPage: React.FC = () => {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
     const { showError, showSuccess } = useError();
 
@@ -44,14 +46,25 @@ export const ResetPasswordPage: React.FC = () => {
             <Card className="w-full max-w-md p-8 bg-slate-900/80 border-t-4 border-amber-500">
                 <h2 className="text-2xl font-bold text-white mb-6">Setează o parolă nouă</h2>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    <Input 
-                        label="Parolă nouă" 
-                        type="password" 
-                        value={password} 
-                        onChange={(e) => setPassword(e.target.value)} 
-                        required 
-                        placeholder="••••••••"
-                    />
+                    <div className="relative">
+                        <Input
+                            label="Parolă nouă"
+                            type={showPassword ? 'text' : 'password'}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                            placeholder="••••••••"
+                            className="pr-12"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(prev => !prev)}
+                            className="absolute right-3 top-[34px] p-1 text-slate-400 hover:text-white active:text-amber-400 transition-colors touch-manipulation"
+                            aria-label={showPassword ? 'Ascunde parola' : 'Arată parola'}
+                        >
+                            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                        </button>
+                    </div>
                     <Button type="submit" className="w-full bg-amber-600 hover:bg-amber-500" isLoading={loading}>
                         Salvează parola
                     </Button>

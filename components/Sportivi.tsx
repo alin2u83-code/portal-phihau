@@ -508,7 +508,7 @@ export const Sportivi: React.FC<{
                         <option value="__new__">+ Grupă nouă...</option>
                     </select>
                     <div className="flex gap-2 w-full sm:w-auto">
-                        <Button variant="primary" size="sm" onClick={handleBulkAssignGroup} isLoading={bulkLoading} className="flex-1 sm:flex-none">
+                        <Button variant="primary" size="sm" onClick={() => handleBulkAssignGroup()} isLoading={bulkLoading} className="flex-1 sm:flex-none">
                             Mută în grupă
                         </Button>
                         <Button variant="secondary" size="sm" onClick={() => setSelectedSportivIds(new Set())} className="flex-1 sm:flex-none">

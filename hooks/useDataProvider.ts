@@ -88,10 +88,13 @@ export const useDataProvider = () => {
 
     const attendanceData = useAttendanceData();
 
+    // SUPER_ADMIN_FEDERATIE și ADMIN văd toate grupele; ceilalți văd doar grupele clubului lor
+    const grupeClubId = permissions.isFederationLevel ? null : (activeRoleContext?.club_id ?? null);
+
     // Use custom hooks for data fetching
     const { data: sportiviData, isLoading: sportiviLoading, error: sportiviError } = useSportivi({}, undefined, undefined, activeRoleContext?.id);
     const { data: platiData, isLoading: platiLoading, error: platiError } = usePlati(activeRoleContext?.id);
-    const { data: grupeData, isLoading: grupeLoading, error: grupeError } = useGrupe(activeRoleContext?.id);
+    const { data: grupeData, isLoading: grupeLoading, error: grupeError } = useGrupe(activeRoleContext?.id, grupeClubId);
 
     // Update state when data changes de la hook-urile secundare
     useEffect(() => {

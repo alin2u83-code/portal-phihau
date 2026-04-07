@@ -23,7 +23,6 @@ interface SportiviFilterProps {
 export const SportiviFilter: React.FC<SportiviFilterProps> = ({ filters, onFilterChange, grupe, allRoles, grade, clubs, permissions }) => {
   const isMobile = useIsMobile();
   const [isExpanded, setIsExpanded] = useState(false);
-  const grupeClub = grupe;
 
   const activeCount = [
     filters.searchTerm,
@@ -58,7 +57,7 @@ export const SportiviFilter: React.FC<SportiviFilterProps> = ({ filters, onFilte
       >
         <option value="">Toate Grupele</option>
         <option value="fara-grupa">Fără Grupă</option>
-        {grupeClub.map(g => (
+        {grupe.map(g => (
           <option key={g.id} value={g.id}>
             {g.denumire || 'Fără denumire'}
           </option>

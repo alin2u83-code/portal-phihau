@@ -29,7 +29,7 @@ const TAB_ROOTS: Record<Tab, View> = {
 
 // --- Componenta Principală de Navigare ---
 export const Prezenta: React.FC<{ onBack: () => void; onViewSportiv?: (s: Sportiv) => void }> = ({ onBack, onViewSportiv }) => {
-    const { currentUser } = useData();
+    const { currentUser, activeRoleContext } = useData();
     const { byId: statusById } = useStatusePrezenta();
     const [activeTab, setActiveTab] = useState<Tab>('rapid');
     const [viewStack, setViewStack] = useState<ViewState[]>([{ view: 'rapid', id: null }]);
@@ -42,13 +42,21 @@ export const Prezenta: React.FC<{ onBack: () => void; onViewSportiv?: (s: Sporti
     useEffect(() => {
         const fetchGrupe = async () => {
             setLoading(true);
-            const { data, error } = await supabase.from('grupe').select('*, program:orar_saptamanal(*), sportivi_count:sportivi(count)');
+            const activeRole = activeRoleContext?.roluri?.nume || activeRoleContext?.rol_denumire;
+            const isFederationLevel = activeRole === 'SUPER_ADMIN_FEDERATIE' || activeRole === 'ADMIN';
+            const clubId = isFederationLevel ? null : (activeRoleContext?.club_id ?? currentUser?.club_id ?? null);
+
+            let query = supabase.from('grupe').select('*, program:orar_saptamanal(*), sportivi_count:sportivi(count)');
+            if (clubId) {
+                query = query.eq('club_id', clubId);
+            }
+            const { data, error } = await query;
             if (error) showError("Eroare la încărcarea grupelor", error.message);
             else setGrupe(data as any || []);
             setLoading(false);
         };
         fetchGrupe();
-    }, [showError]);
+    }, [showError, activeRoleContext, currentUser?.club_id]);
 
     const switchTab = (tab: Tab) => {
         setActiveTab(tab);

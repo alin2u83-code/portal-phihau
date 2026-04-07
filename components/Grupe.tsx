@@ -10,6 +10,7 @@ import { useData } from '../contexts/DataContext';
 
 import { GrupaFormModal } from './Grupe/GrupaFormModal';
 import { GrupaCard } from './Grupe/GrupaCard';
+import { AdaugaSportiviModal } from './Grupe/AdaugaSportiviModal';
 
 // Interfață extinsă pentru datele aduse din Supabase
 interface GrupaWithDetails extends GrupaType {
@@ -22,12 +23,13 @@ interface GrupeManagementProps {
     onBack: () => void; 
 }
 export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
-    const { currentUser, clubs, grupe, setGrupe, locatii, activeRoleContext } = useData();
+    const { currentUser, clubs, grupe, setGrupe, locatii, activeRoleContext, sportivi, setSportivi } = useData();
     const [loading, setLoading] = useState(false); // Keep loading state if needed, or use loading from useData
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [grupaToEdit, setGrupaToEdit] = useState<GrupaWithDetails | null>(null);
     const [grupaToDelete, setGrupaToDelete] = useState<GrupaWithDetails | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [grupaForAdaugaSportivi, setGrupaForAdaugaSportivi] = useState<GrupaWithDetails | null>(null);
     const { showError, showSuccess } = useError();
     const queryClient = useQueryClient();
 
@@ -80,6 +82,43 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
 
     const handleOpenAdd = () => { setGrupaToEdit(null); setIsModalOpen(true); };
     const handleOpenEdit = (grupa: GrupaWithDetails) => { setGrupaToEdit(grupa); setIsModalOpen(true); };
+
+    const handleAdaugaSportiviInGrupa = async (sportiviIds: string[]) => {
+        if (!grupaForAdaugaSportivi || sportiviIds.length === 0) return;
+        const { error } = await supabase
+            .from('sportivi')
+            .update({ grupa_id: grupaForAdaugaSportivi.id })
+            .in('id', sportiviIds);
+        if (error) {
+            showError("Eroare la adăugarea sportivilor", error);
+            return;
+        }
+        // Actualizăm starea locală a sportivilor
+        setSportivi(prev =>
+            prev.map(s =>
+                sportiviIds.includes(s.id)
+                    ? { ...s, grupa_id: grupaForAdaugaSportivi.id }
+                    : s
+            )
+        );
+        // Actualizăm numărul de sportivi din grupă local
+        setGrupe(prev =>
+            (prev as GrupaWithDetails[]).map(g =>
+                g.id === grupaForAdaugaSportivi.id
+                    ? {
+                        ...g,
+                        sportivi: [{ count: (g.sportivi?.[0]?.count ?? 0) + sportiviIds.length }],
+                    }
+                    : g
+            )
+        );
+        queryClient.invalidateQueries({ queryKey: ['sportivi'] });
+        queryClient.invalidateQueries({ queryKey: ['grupe', activeRoleContext?.id] });
+        showSuccess(
+            "Succes",
+            `${sportiviIds.length} sportiv${sportiviIds.length !== 1 ? 'i adăugați' : ' adăugat'} în ${grupaForAdaugaSportivi.denumire}.`
+        );
+    };
     
     const confirmDelete = async (grupaId: string) => {
         const grupa = (grupe as GrupaWithDetails[]).find(g => g.id === grupaId);
@@ -118,7 +157,7 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
             {grupe.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {(grupe as GrupaWithDetails[]).map(grupa => (
-                        <GrupaCard key={grupa.id} grupa={grupa} onEdit={handleOpenEdit} onDelete={setGrupaToDelete} />
+                        <GrupaCard key={grupa.id} grupa={grupa} onEdit={handleOpenEdit} onDelete={setGrupaToDelete} onAdaugaSportivi={setGrupaForAdaugaSportivi} />
                     ))}
                 </div>
             ) : (
@@ -129,6 +168,16 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
 
             <GrupaFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSave} grupaToEdit={grupaToEdit} currentUser={currentUser} clubs={clubs} locatii={locatii} />
             <ConfirmDeleteModal isOpen={!!grupaToDelete} onClose={() => setGrupaToDelete(null)} onConfirm={() => { if(grupaToDelete) confirmDelete(grupaToDelete.id) }} tableName="Grupe" isLoading={isDeleting} />
+            {grupaForAdaugaSportivi && (
+                <AdaugaSportiviModal
+                    isOpen={!!grupaForAdaugaSportivi}
+                    onClose={() => setGrupaForAdaugaSportivi(null)}
+                    grupa={grupaForAdaugaSportivi}
+                    totiSportivii={sportivi as Sportiv[]}
+                    sportiviInGrupa={(sportivi as Sportiv[]).filter(s => s.grupa_id === grupaForAdaugaSportivi.id)}
+                    onSave={handleAdaugaSportiviInGrupa}
+                />
+            )}
         </div>
     );
 };

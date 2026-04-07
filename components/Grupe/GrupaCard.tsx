@@ -1,7 +1,7 @@
 import React from 'react';
 import { Grupa as GrupaType, ProgramItem } from '../../types';
 import { Button, Card } from '../ui';
-import { TrashIcon, UsersIcon } from '../icons';
+import { TrashIcon, UsersIcon, UserPlusIcon } from '../icons';
 import { sortProgram } from './ProgramEditor';
 
 interface GrupaWithDetails extends GrupaType {
@@ -9,13 +9,14 @@ interface GrupaWithDetails extends GrupaType {
     program: ProgramItem[];
 }
 
-export const GrupaCard: React.FC<{ 
-    grupa: GrupaWithDetails; 
-    onEdit: (g: GrupaWithDetails) => void; 
-    onDelete: (g: GrupaWithDetails) => void; 
-}> = ({ grupa, onEdit, onDelete }) => {
+export const GrupaCard: React.FC<{
+    grupa: GrupaWithDetails;
+    onEdit: (g: GrupaWithDetails) => void;
+    onDelete: (g: GrupaWithDetails) => void;
+    onAdaugaSportivi: (g: GrupaWithDetails) => void;
+}> = ({ grupa, onEdit, onDelete, onAdaugaSportivi }) => {
     const sportiviCount = grupa.sportivi?.[0]?.count ?? 0;
-    
+
     return (
         <Card className="flex flex-col h-full group">
             <div className="flex-grow">
@@ -34,8 +35,12 @@ export const GrupaCard: React.FC<{
                     {grupa.program.length === 0 && <p className="text-xs italic text-slate-500">Niciun program.</p>}
                 </div>
             </div>
-            <div className="mt-6 pt-4 border-t border-slate-700 flex justify-end gap-2">
+            <div className="mt-6 pt-4 border-t border-slate-700 flex flex-wrap justify-end gap-2">
                 <Button size="sm" variant="danger" onClick={() => onDelete(grupa)}><TrashIcon className="w-4 h-4"/></Button>
+                <Button size="sm" variant="info" onClick={() => onAdaugaSportivi(grupa)}>
+                    <UserPlusIcon className="w-4 h-4 mr-1.5" />
+                    Sportivi
+                </Button>
                 <Button size="sm" variant="primary" onClick={() => onEdit(grupa)}>Gestionează</Button>
             </div>
         </Card>

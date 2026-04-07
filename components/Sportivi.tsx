@@ -108,6 +108,15 @@ export const Sportivi: React.FC<{
         clubFilter: permissions.isFederationAdmin ? '' : (currentUser.club_id || ''),
     });
 
+    // Filtrare grupe după club: federation admin folosește clubFilter, ceilalți folosesc clubul din contextul activ
+    const grupeFiltrateClub = useMemo(() => {
+        const clubIdActiv = permissions.isFederationAdmin
+            ? filters.clubFilter || ''
+            : activeRoleContext?.club_id || currentUser?.club_id || '';
+        if (!clubIdActiv) return grupe;
+        return grupe.filter(g => g.club_id === clubIdActiv);
+    }, [grupe, permissions.isFederationAdmin, filters.clubFilter, activeRoleContext?.club_id, currentUser?.club_id]);
+
     // Reset page on filter change
     React.useEffect(() => {
         setPage(1);
@@ -488,7 +497,7 @@ export const Sportivi: React.FC<{
             <SportiviFilter
                 filters={filters}
                 onFilterChange={handleFilterChange}
-                grupe={grupe}
+                grupe={grupeFiltrateClub}
                 allRoles={allRoles}
                 grade={grade}
                 clubs={clubs}

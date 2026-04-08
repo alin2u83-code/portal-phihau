@@ -1,4 +1,4 @@
-import React, { Suspense, useState } from 'react';
+import React, { Suspense, useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { View, Sportiv, Plata } from '../types';
 import * as Lazy from './LazyComponents';
@@ -45,6 +45,22 @@ export const AppRouter: React.FC<AppRouterProps> = ({
         setGrade, setTipuriAbonament, setDeconturiFederatie, setIstoricGrade,
         filteredData, antrenamente, setAntrenamente, anunturiPrezenta, setAnunturiPrezenta, setCurrentUser
     } = useData();
+
+    // Scroll to top on page navigation; preserve position during saves (same view re-renders)
+    const prevViewRef = useRef<View | null>(null);
+    useEffect(() => {
+        if (prevViewRef.current !== null && prevViewRef.current !== activeView) {
+            // Cross-browser / cross-OS: both window and documentElement
+            try {
+                window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+            } catch {
+                window.scrollTo(0, 0);
+            }
+            document.documentElement.scrollTop = 0;
+            document.body.scrollTop = 0; // Safari fallback
+        }
+        prevViewRef.current = activeView;
+    }, [activeView]);
 
     const handleIncaseazaMultiple = (platiSelectate: Plata[]) => {
         setPlatiPentruIncasare(platiSelectate);

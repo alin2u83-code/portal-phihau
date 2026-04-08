@@ -35,7 +35,7 @@ export const useAttendanceData = (clubId?: string | null, skipFetch = false, fil
         try {
             let antrenamenteQuery = supabase
                 .from('program_antrenamente')
-                .select('*, prezenta:prezenta_antrenament(sportiv_id, status_id)');
+                .select('*, grupe(denumire, sala, locatie_id, nom_locatii:locatie_id(id, nume)), prezenta:prezenta_antrenament(sportiv_id, status_id)');
             const anunturiQuery = supabase.from('anunturi_prezenta').select('*');
 
             if (filters?.date) {
@@ -56,6 +56,10 @@ export const useAttendanceData = (clubId?: string | null, skipFetch = false, fil
 
             const allTrainings = (antrenamenteRes.data || []).map(t => ({
                 ...t,
+                // Populăm câmpurile derivate din join-ul pe grupe dacă nu sunt deja setate la nivel de view
+                nume_grupa: t.nume_grupa || t.grupe?.denumire || null,
+                // sala vine din locatia asociată grupei (nom_locatii.nume), nu din câmpul grupe.sala care e NULL
+                sala: t.sala || (t.grupe as any)?.nom_locatii?.nume || t.grupe?.sala || null,
                 prezenta: enrichPrezenta(t.prezenta || [], statusById),
             }));
 

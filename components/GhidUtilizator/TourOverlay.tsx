@@ -143,7 +143,7 @@ export const TourOverlay: React.FC<TourOverlayProps> = ({ steps, pageKey }) => {
     const el = document.querySelector<HTMLElement>(step.target);
     if (!el) return;
 
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.scrollIntoView({ behavior: 'smooth', block: step.scrollBlock ?? 'center' });
 
     // Wait for scroll to complete before measuring
     const timer = setTimeout(updatePosition, 350);

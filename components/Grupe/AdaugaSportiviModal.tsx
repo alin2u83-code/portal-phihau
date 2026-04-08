@@ -4,6 +4,20 @@ import { Sportiv, Grupa as GrupaType, ProgramItem } from '../../types';
 import { Button } from '../ui';
 import { XIcon, SearchIcon, UserPlusIcon, CheckIcon } from '../icons';
 
+// Normalizează un string din DB (poate fi ALL CAPS) la Title Case
+function toTitleCase(str: string): string {
+    if (!str) return str;
+    return str
+        .toLowerCase()
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+}
+
+function numeAfisat(sportiv: Sportiv): string {
+    return `${toTitleCase(sportiv.nume)} ${toTitleCase(sportiv.prenume)}`;
+}
+
 interface GrupaWithDetails extends GrupaType {
     sportivi: { count: number }[];
     program: ProgramItem[];
@@ -29,6 +43,7 @@ export const AdaugaSportiviModal: React.FC<AdaugaSportiviModalProps> = ({
     const [search, setSearch] = useState('');
     const [selected, setSelected] = useState<Set<string>>(new Set());
     const [loading, setLoading] = useState(false);
+    const [filtrFaraGrupa, setFiltrFaraGrupa] = useState(false);
 
     const sportiviInGrupaIds = useMemo(
         () => new Set(sportiviInGrupa.map(s => s.id)),
@@ -37,13 +52,22 @@ export const AdaugaSportiviModal: React.FC<AdaugaSportiviModalProps> = ({
 
     // Sportivi disponibili = activi, din același club, care nu sunt deja în grupă
     const sportiviDisponibili = useMemo(() => {
-        return totiSportivii.filter(s => {
+        const filtered = totiSportivii.filter(s => {
             const esteDinClub = s.club_id === grupa.club_id;
             const nuEInGrupa = !sportiviInGrupaIds.has(s.id);
             const esteActiv = s.status === 'Activ';
             return esteDinClub && nuEInGrupa && esteActiv;
         });
-    }, [totiSportivii, sportiviInGrupaIds, grupa.club_id]);
+
+        if (filtrFaraGrupa) {
+            // Cei fără grupă apar primii, restul după
+            const faraGrupa = filtered.filter(s => !s.grupa_id);
+            const cuGrupa = filtered.filter(s => s.grupa_id);
+            return [...faraGrupa, ...cuGrupa];
+        }
+
+        return filtered;
+    }, [totiSportivii, sportiviInGrupaIds, grupa.club_id, filtrFaraGrupa]);
 
     const rezultateCautare = useMemo(() => {
         if (!search.trim()) return sportiviDisponibili;
@@ -142,6 +166,28 @@ export const AdaugaSportiviModal: React.FC<AdaugaSportiviModalProps> = ({
                             className="w-full bg-slate-800 border border-slate-700 rounded-xl pl-9 pr-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-all"
                         />
                     </div>
+
+                    {/* Toggle: Fără grupă mai întâi */}
+                    <button
+                        onClick={() => setFiltrFaraGrupa(prev => !prev)}
+                        className={`mt-3 flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-lg border transition-all w-full ${
+                            filtrFaraGrupa
+                                ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400'
+                                : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-slate-300 hover:border-slate-600'
+                        }`}
+                    >
+                        <span
+                            className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-all ${
+                                filtrFaraGrupa
+                                    ? 'bg-emerald-500 border-emerald-500'
+                                    : 'border-slate-500 bg-transparent'
+                            }`}
+                        >
+                            {filtrFaraGrupa && <CheckIcon className="w-2.5 h-2.5 text-white" />}
+                        </span>
+                        Fără grupă mai întâi
+                    </button>
+
                     {sportiviDisponibili.length > 0 && (
                         <div className="flex items-center justify-between mt-3">
                             <span className="text-xs text-slate-400">
@@ -210,14 +256,14 @@ export const AdaugaSportiviModal: React.FC<AdaugaSportiviModalProps> = ({
 
                                             {/* Avatar */}
                                             <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
-                                                {(sportiv.prenume?.[0] || '').toUpperCase()}
                                                 {(sportiv.nume?.[0] || '').toUpperCase()}
+                                                {(sportiv.prenume?.[0] || '').toUpperCase()}
                                             </div>
 
                                             {/* Nume */}
                                             <div className="min-w-0 flex-1">
                                                 <p className={`text-sm font-semibold truncate ${esteSelectat ? 'text-sky-300' : 'text-white'}`}>
-                                                    {sportiv.prenume} {sportiv.nume}
+                                                    {numeAfisat(sportiv)}
                                                 </p>
                                                 {sportiv.grupa_id && (
                                                     <p className="text-xs text-amber-400/80 truncate">

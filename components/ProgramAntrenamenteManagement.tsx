@@ -6,17 +6,29 @@ import { ArrowLeftIcon, CalendarDaysIcon, EditIcon, TrashIcon, PlusIcon } from '
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { MartialArtsSkeleton } from './MartialArtsSkeleton';
+import { formatTime } from '../utils/date';
 
 interface ProgramAntrenamenteManagementProps {
     onBack: () => void;
 }
 
 export const ProgramAntrenamenteManagement: React.FC<ProgramAntrenamenteManagementProps> = ({ onBack }) => {
-    const { filteredData, setAntrenamente, loading } = useData();
+    const { filteredData, setAntrenamente, loading, refetch, clubs, activeRoleContext } = useData();
     const { showError, showSuccess } = useError();
+    const [isRefreshing, setIsRefreshing] = useState(false);
+
+    const handleRefresh = async () => {
+        setIsRefreshing(true);
+        try {
+            if (refetch) await refetch();
+        } finally {
+            setIsRefreshing(false);
+        }
+    };
     
     const [dayFilter, setDayFilter] = useState<string>('');
     const [groupFilter, setGroupFilter] = useState<string>('');
+    const [clubFilter, setClubFilter] = useState<string>('');
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editingAntrenament, setEditingAntrenament] = useState<Antrenament | null>(null);
     const [isSaving, setIsSaving] = useState(false);
@@ -31,23 +43,35 @@ export const ProgramAntrenamenteManagement: React.FC<ProgramAntrenamenteManageme
 
     const antrenamente = filteredData.antrenamente || [];
 
+    const activeRoleName = (activeRoleContext as any)?.roluri?.nume || (activeRoleContext as any)?.rol_denumire || '';
+    const isFederationLevel = activeRoleName === 'SUPER_ADMIN_FEDERATIE' || activeRoleName === 'ADMIN';
+
+    const cluburiDisponibile = useMemo(() => {
+        if (!isFederationLevel) return [];
+        // Obținem cluburile unice din antrenamentele existente, mapate la numele din clubs
+        const clubIds = new Set(antrenamente.map(a => a.club_id).filter(Boolean));
+        return (clubs || []).filter(c => clubIds.has(c.id));
+    }, [antrenamente, clubs, isFederationLevel]);
+
     const grupeDisponibile = useMemo(() => {
-        const unique = new Set(antrenamente.map(a => a.nume_grupa).filter(Boolean));
+        const filtered = clubFilter ? antrenamente.filter(a => a.club_id === clubFilter) : antrenamente;
+        const unique = new Set(filtered.map(a => a.nume_grupa).filter(Boolean));
         return Array.from(unique).sort();
-    }, [antrenamente]);
+    }, [antrenamente, clubFilter]);
 
     const filteredAntrenamente = useMemo(() => {
         return antrenamente.filter(a => {
             const matchesDay = !dayFilter || getDayOfWeek((a.data || '').toString()) === dayFilter;
             const matchesGroup = !groupFilter || a.nume_grupa === groupFilter;
-            return matchesDay && matchesGroup;
+            const matchesClub = !clubFilter || a.club_id === clubFilter;
+            return matchesDay && matchesGroup && matchesClub;
         }).sort((a, b) => {
             // Sort by date then by start time
             const dateCompare = new Date((b.data || '').toString().slice(0, 10)).getTime() - new Date((a.data || '').toString().slice(0, 10)).getTime();
             if (dateCompare !== 0) return dateCompare;
             return (a.ora_start || '').localeCompare(b.ora_start || '');
         });
-    }, [antrenamente, dayFilter, groupFilter]);
+    }, [antrenamente, dayFilter, groupFilter, clubFilter]);
 
     const handleEdit = (a: Antrenament) => {
         setEditingAntrenament({ ...a });
@@ -94,14 +118,30 @@ export const ProgramAntrenamenteManagement: React.FC<ProgramAntrenamenteManageme
                     <h1 className="text-3xl font-black text-white tracking-tight uppercase">Program Antrenamente</h1>
                     <p className="text-slate-400 mt-1">Gestionează instanțele de antrenament din club.</p>
                 </div>
-                <Button variant="secondary" onClick={onBack}>
-                    <ArrowLeftIcon className="w-5 h-5 mr-2" />
-                    Înapoi
-                </Button>
+                <div className="flex gap-2">
+                    <Button variant="secondary" onClick={handleRefresh} isLoading={isRefreshing} title="Reîncarcă datele">
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                        Actualizează
+                    </Button>
+                    <Button variant="secondary" onClick={onBack}>
+                        <ArrowLeftIcon className="w-5 h-5 mr-2" />
+                        Înapoi
+                    </Button>
+                </div>
             </div>
 
             <Card className="p-4 bg-slate-900/40 backdrop-blur-sm border-slate-800">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className={`grid grid-cols-1 gap-4 ${isFederationLevel ? 'md:grid-cols-3' : 'md:grid-cols-2'}`}>
+                    {isFederationLevel && (
+                        <Select
+                            label="Filtrează după club"
+                            value={clubFilter}
+                            onChange={e => { setClubFilter(e.target.value); setGroupFilter(''); }}
+                        >
+                            <option value="">Toate cluburile</option>
+                            {cluburiDisponibile.map(c => <option key={c.id} value={c.id}>{c.nume}</option>)}
+                        </Select>
+                    )}
                     <Select label="Filtrează după zi" value={dayFilter} onChange={e => setDayFilter(e.target.value)}>
                         <option value="">Toate zilele</option>
                         {zileSaptamana.map(zi => <option key={zi} value={zi}>{zi}</option>)}
@@ -147,7 +187,7 @@ export const ProgramAntrenamenteManagement: React.FC<ProgramAntrenamenteManageme
                                     <div className="flex flex-col">
                                         <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Interval Orar</span>
                                         <span className="text-lg font-black text-white">
-                                            {a.ora_start} - {a.ora_sfarsit}
+                                            {formatTime(a.ora_start)} - {formatTime(a.ora_sfarsit)}
                                             <span className="text-xs font-normal text-slate-500 ml-2">({a.durata_minute} min)</span>
                                         </span>
                                     </div>

@@ -1,10 +1,20 @@
 # Skill: agenti-aplicatie
 
-Când utilizatorul invocă `/agenti-aplicatie`, execută următoarele:
+Când utilizatorul invocă `/agenti-aplicatie [task]`, execută următoarele:
 
-1. Verifică ce agenți există deja în `.claude/agents/`
-2. Creează sau actualizează toți agenții specializați listați mai jos
-3. Raportează ce agenți au fost creați/actualizați
+## Pasul 0 — Identifică taskul și agentul potrivit
+
+Dacă utilizatorul a furnizat un task împreună cu comanda (ex: `/agenti-aplicatie corectează bug în Grupe`):
+
+1. **Analizează taskul** și determină ce domeniu acoperă (sportivi, plăți, examene, competiții, prezență, grupe/orar, RLS, autentificare, dashboard sportiv, responsive, admin-club, audit).
+2. **Identifică agentul potrivit** din lista de agenți de mai jos.
+3. **Verifică dacă agentul există** în `.claude/agents/`.
+   - Dacă **agentul există** → sari direct la **Pasul 3** (execuție task).
+   - Dacă **agentul lipsește** → continuă cu **Pasul 1** pentru a-l crea, apoi cere restart.
+
+## Pasul 1 — Verificare și creare agenți lipsă
+
+Dacă nu există un task specific (comanda e invocată fără argumente) sau dacă agentul necesar lipsește:
 
 ## Agenții care trebuie să existe
 
@@ -27,6 +37,41 @@ Agenții deja existenți (nu suprascrie):
 ## Cum creezi un agent lipsă
 
 Folosește `Write` pentru a crea fișierul în `.claude/agents/<nume>.md` cu frontmatter corect și documentație despre domeniu, fișiere cheie, tabele Supabase, RLS, și rețeaua de agenți.
+
+## Pasul 2 — Cere restart după creare
+
+Dacă au fost creați agenți noi, **oprește-te** și afișează mesajul:
+
+> **Agenți noi creați:** `<lista agenți>`.
+> Pentru ca agenții să fie activați, este necesar un **restart Claude Code**.
+> Rulează comanda: `/agenti-aplicatie <taskul tău original>` după restart.
+
+Nu continua cu taskul în aceeași sesiune dacă agenți noi au fost creați.
+
+## Pasul 3 — Execuție task cu agentul potrivit
+
+Dacă agentul necesar există deja (sau după restart):
+
+1. Folosește `Agent` tool cu `subagent_type` setat la agentul identificat (ex: `grupe-orar`, `prezenta`, `sportivi-management`).
+2. Transmite agentului contextul complet: taskul, fișierele relevante, eroarea dacă există.
+3. Raportează rezultatul utilizatorului.
+
+**Mapare domeniu → subagent_type:**
+| Domeniu | subagent_type |
+|---|---|
+| Grupe, orar săptămânal, program antrenamente | `grupe-orar` |
+| Sportivi, import, export, roluri | `sportivi-management` |
+| Plăți, facturi, portofel | `plati-facturi` |
+| Examene, grade, promovări | `examene` |
+| Competiții, stagii | `competitii` |
+| Prezență, calendar, rapoarte | `prezenta` |
+| RLS, permisiuni, erori 403 | `rls-securitate` |
+| Autentificare, login, reset parolă | `autentificare` |
+| Dashboard sportiv | `sportiv-dashboard` |
+| Responsive, mobil, tabletă | `responsive-mobile-tablet` |
+| Admin club, permisiuni admin | `admin-club` |
+| Audit cross-domain, erori fără cauză clară | `audit-sistem` |
+| UX, butoane, ghid interactiv | `ux-ghid-utilizator` |
 
 ## Audit rapid după creare
 

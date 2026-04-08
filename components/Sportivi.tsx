@@ -543,6 +543,12 @@ export const Sportivi: React.FC<{
                 </div>
             )}
 
+            {/* Ancora de tour: banda subtire invizibila plasata la inceputul tabelului.
+                Pasul 4 din ghid tinteste aceasta ancora in loc de intregul div al tabelului,
+                care poate depasi inaltimea viewport-ului si cauza pozitionare incorecta a spotlight-ului.
+                Banda are 4px inaltime — suficient pentru spotlight, invizibila vizual. */}
+            <div data-tour="sportivi-tabel-ancora" aria-hidden="true" className="h-1 w-full" />
+
             <div data-tour="sportivi-tabel">
             {loading ? (
                 <MartialArtsSkeleton count={8} />

@@ -275,6 +275,15 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
 
     const handleDelete = async () => {
         if (!supabase) return;
+        // Ștergem mai întâi înregistrările din tabele copil cu FK către sportivi
+        const { error: rolesError } = await supabase
+            .from('utilizator_roluri_multicont')
+            .delete()
+            .eq('sportiv_id', sportiv.id);
+        if (rolesError) {
+            showError("Eroare", `Nu s-au putut șterge rolurile sportivului: ${rolesError.message}`);
+            return;
+        }
         const { error } = await supabase.from('sportivi').delete().eq('id', sportiv.id);
         if(error) showError("Eroare", error.message);
         else { setSportivi(prev => prev.filter(s => s.id !== sportiv.id)); onBack(); showSuccess("Succes", "Sportivul a fost șters definitiv."); }

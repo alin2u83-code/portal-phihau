@@ -35,6 +35,7 @@ const TABELE_REFERINTA = [
     'anunturi_prezenta',
     'vize_medicale',
     'echipa_sportivi',
+    'utilizator_roluri_multicont',
 ];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────

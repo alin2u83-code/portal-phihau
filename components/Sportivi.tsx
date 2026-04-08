@@ -277,6 +277,15 @@ export const Sportivi: React.FC<{
     
     const handleDelete = async (sportivToDelete: Sportiv) => {
         if (!sportivToDelete) return;
+        // Ștergem mai întâi înregistrările din tabele copil cu FK către sportivi
+        const { error: rolesError } = await supabase
+            .from('utilizator_roluri_multicont')
+            .delete()
+            .eq('sportiv_id', sportivToDelete.id);
+        if (rolesError) {
+            showError("Eroare", `Nu s-au putut șterge rolurile sportivului: ${rolesError.message}`);
+            return;
+        }
         const { error } = await supabase.from('sportivi').delete().eq('id', sportivToDelete.id);
         if(error) {
             showError("Eroare", error.message);

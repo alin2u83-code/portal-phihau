@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useTransition } from 'react';
+import React, { useState, useMemo, useTransition, useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../supabaseClient';
 import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions, VizualizarePlata, ProgramItem } from '../types';
@@ -120,13 +120,59 @@ export const Sportivi: React.FC<{
 
     const PAGE_SIZE_OPTIONS = [5, 10, 20, 50, 100];
 
-    const [page, setPage] = useState(1);
-    const [pageSize, setPageSize] = useState(20);
-    const [loadAll, setLoadAll] = useState(false);
+    // Cheie sessionStorage pentru salvarea stării de paginare + scroll
+    const PAGINATION_STORAGE_KEY = 'phi-hau-sportivi-pagination-state';
+
+    // Citim starea salvată o singură dată la montare folosind un ref lazy init
+    // useRef cu funcție lazy asigură că citim sessionStorage o singură dată, indiferent de re-render-uri
+    type SavedPaginationState = { page: number; pageSize: number; loadAll: boolean; scrollY: number; fromProfile: true };
+    const restoredStateRef = useRef<SavedPaginationState | null>(null);
+    if (restoredStateRef.current === null) {
+        // Se execută o singură dată (primul render); dacă nu există cheie, rămâne null
+        try {
+            const raw = sessionStorage.getItem(PAGINATION_STORAGE_KEY);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (parsed?.fromProfile) {
+                    restoredStateRef.current = parsed as SavedPaginationState;
+                    sessionStorage.removeItem(PAGINATION_STORAGE_KEY);
+                }
+            }
+        } catch {}
+    }
+    const restoredState = restoredStateRef.current;
+
+    const [page, setPage] = useState(restoredState?.page ?? 1);
+    const [pageSize, setPageSize] = useState(restoredState?.pageSize ?? 20);
+    const [loadAll, setLoadAll] = useState(restoredState?.loadAll ?? false);
     const [showMutaGrupaModal, setShowMutaGrupaModal] = useState(false);
 
+    // Ref pentru a sări peste reset-ul paginării la primul efect (când restaurăm din sessionStorage)
+    const isRestoringRef = useRef(!!restoredState);
+
+    // Restaurează scroll-ul după ce lista se randează (o singură dată la montare)
+    useEffect(() => {
+        const scrollTarget = restoredState?.scrollY;
+        if (!scrollTarget) return;
+        // requestAnimationFrame asigură că DOM-ul e pictat înainte de scroll
+        const raf = requestAnimationFrame(() => {
+            try {
+                window.scrollTo({ top: scrollTarget, left: 0, behavior: 'instant' as ScrollBehavior });
+            } catch {
+                window.scrollTo(0, scrollTarget);
+            }
+        });
+        return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     // Reset page si loadAll la schimbarea filtrelor
+    // Excepție: nu resetăm dacă tocmai am restaurat starea din sessionStorage
     React.useEffect(() => {
+        if (isRestoringRef.current) {
+            isRestoringRef.current = false;
+            return;
+        }
         setPage(1);
         setLoadAll(false);
     }, [filters.searchTerm, filters.statusFilter, filters.grupaFilter, filters.rolFilter, filters.gradFilter, setFilters]);
@@ -257,6 +303,17 @@ export const Sportivi: React.FC<{
     };
 
     const handleRowClick = (sportiv: Sportiv) => {
+        // Salvăm starea paginării și poziția scroll înainte de navigare la profil
+        try {
+            const state = {
+                page,
+                pageSize,
+                loadAll,
+                scrollY: window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0,
+                fromProfile: true,
+            };
+            sessionStorage.setItem(PAGINATION_STORAGE_KEY, JSON.stringify(state));
+        } catch {}
         setSelectedSportivForHighlight(sportiv);
         onViewSportiv(sportiv);
     };

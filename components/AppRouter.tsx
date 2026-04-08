@@ -47,17 +47,21 @@ export const AppRouter: React.FC<AppRouterProps> = ({
     } = useData();
 
     // Scroll to top on page navigation; preserve position during saves (same view re-renders)
+    // Excepție: revenire din profil-sportiv → sportivi păstrează scroll-ul (restaurat de Sportivi.tsx)
     const prevViewRef = useRef<View | null>(null);
     useEffect(() => {
         if (prevViewRef.current !== null && prevViewRef.current !== activeView) {
-            // Cross-browser / cross-OS: both window and documentElement
-            try {
-                window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
-            } catch {
-                window.scrollTo(0, 0);
+            const isBackFromProfile =
+                prevViewRef.current === 'profil-sportiv' && activeView === 'sportivi';
+            if (!isBackFromProfile) {
+                try {
+                    window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+                } catch {
+                    window.scrollTo(0, 0);
+                }
+                document.documentElement.scrollTop = 0;
+                document.body.scrollTop = 0; // Safari fallback
             }
-            document.documentElement.scrollTop = 0;
-            document.body.scrollTop = 0; // Safari fallback
         }
         prevViewRef.current = activeView;
     }, [activeView]);

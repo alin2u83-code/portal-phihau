@@ -166,7 +166,8 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
     const { prezentId } = useStatusePrezenta();
     const { saveAttendance } = useAttendance();
     const { showError } = useError();
-    const { grade } = useData();
+    const { grade, activeRoleContext, currentUser } = useData();
+    const clubId: string | null = (activeRoleContext?.club_id ?? currentUser?.club_id) || null;
     const [sections, setSections] = useState<TrainingSection[]>([]);
     const [loading, setLoading] = useState(true);
     const [savingId, setSavingId] = useState<string | null>(null);
@@ -192,12 +193,14 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
 
     const fetchTrainings = useCallback(async () => {
         setLoading(true);
+        let trainingQuery = supabase
+            .from('program_antrenamente')
+            .select('id, ora_start, ora_sfarsit, grupe(denumire, sportivi(id, nume, prenume, status, grad_actual_id)), prezenta:prezenta_antrenament(sportiv_id, status_id)')
+            .eq('data', today)
+            .order('ora_start');
+        if (clubId) trainingQuery = trainingQuery.eq('club_id', clubId);
         const [trainingRes, statusRes] = await Promise.all([
-            supabase
-                .from('program_antrenamente')
-                .select('id, ora_start, ora_sfarsit, grupe(denumire, sportivi(id, nume, prenume, status, grad_actual_id)), prezenta:prezenta_antrenament(sportiv_id, status_id)')
-                .eq('data', today)
-                .order('ora_start'),
+            trainingQuery,
             supabase.from('statuse_prezenta').select('id, este_prezent, denumire'),
         ]);
         const { data, error } = trainingRes;
@@ -265,7 +268,7 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
         }
 
         setLoading(false);
-    }, [today, showError, gradeById]);
+    }, [today, showError, gradeById, clubId]);
 
     useEffect(() => { fetchTrainings(); }, [fetchTrainings]);
 

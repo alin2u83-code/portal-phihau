@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Grupa as GrupaType, ProgramItem, User, Club, Sportiv } from '../types';
+import { Grupa as GrupaType, ProgramItem, User, Club, Sportiv, Locatie } from '../types';
 import { Button, Modal, Input, Select, Card } from './ui';
 import { PlusIcon, TrashIcon, EditIcon, ArrowLeftIcon, UsersIcon } from './icons';
 import { supabase } from '../supabaseClient';
@@ -11,6 +11,7 @@ import { useData } from '../contexts/DataContext';
 import { GrupaFormModal } from './Grupe/GrupaFormModal';
 import { GrupaCard } from './Grupe/GrupaCard';
 import { AdaugaSportiviModal } from './Grupe/AdaugaSportiviModal';
+import { OrarEditorModal } from './Grupe/OrarEditorModal';
 import { TourOverlay, TourButton, TOURS } from './GhidUtilizator';
 
 // Interfață extinsă pentru datele aduse din Supabase
@@ -24,15 +25,33 @@ interface GrupeManagementProps {
     onBack: () => void; 
 }
 export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
-    const { currentUser, clubs, grupe, setGrupe, locatii, activeRoleContext, sportivi, setSportivi } = useData();
+    const { currentUser, clubs, grupe, setGrupe, locatii, setLocatii, activeRoleContext, sportivi, setSportivi, refetch } = useData();
     const [loading, setLoading] = useState(false); // Keep loading state if needed, or use loading from useData
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [grupaToEdit, setGrupaToEdit] = useState<GrupaWithDetails | null>(null);
     const [grupaToDelete, setGrupaToDelete] = useState<GrupaWithDetails | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const [grupaForAdaugaSportivi, setGrupaForAdaugaSportivi] = useState<GrupaWithDetails | null>(null);
+    const [grupaForOrar, setGrupaForOrar] = useState<GrupaWithDetails | null>(null);
+    const [isRefreshing, setIsRefreshing] = useState(false);
     const { showError, showSuccess } = useError();
     const queryClient = useQueryClient();
+
+    const handleRefresh = async () => {
+        setIsRefreshing(true);
+        try {
+            queryClient.invalidateQueries({ queryKey: ['grupe', activeRoleContext?.id] });
+            if (refetch) await refetch();
+        } finally {
+            setIsRefreshing(false);
+        }
+    };
+
+    const handleLocatieAdded = (locatie: Locatie) => {
+        if (setLocatii) {
+            setLocatii((prev: Locatie[]) => [...prev, locatie]);
+        }
+    };
 
     // Remove useEffect for fetching grupe, as it's now in DataContext
 
@@ -153,12 +172,24 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
                     <Button variant="secondary" onClick={onBack}><ArrowLeftIcon className="w-5 h-5 mr-2" />Înapoi</Button>
                     <h1 className="text-2xl sm:text-3xl font-bold text-white">Management Grupe & Orar</h1>
                 </div>
-                <Button onClick={handleOpenAdd} variant="info" className="w-full sm:w-auto" data-tour="grupe-adauga"><PlusIcon className="w-5 h-5 mr-2" />Adaugă Grupă</Button>
+                <div className="flex gap-2 w-full sm:w-auto">
+                    <Button
+                        variant="secondary"
+                        onClick={handleRefresh}
+                        isLoading={isRefreshing}
+                        title="Reîncarcă datele (util dacă alți admini au făcut modificări)"
+                        className="flex-1 sm:flex-none"
+                    >
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                        Actualizează
+                    </Button>
+                    <Button onClick={handleOpenAdd} variant="info" className="flex-1 sm:flex-none" data-tour="grupe-adauga"><PlusIcon className="w-5 h-5 mr-2" />Adaugă Grupă</Button>
+                </div>
             </div>
             {grupe.length > 0 ? (
                 <div data-tour="grupe-lista" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {(grupe as GrupaWithDetails[]).map(grupa => (
-                        <GrupaCard key={grupa.id} grupa={grupa} onEdit={handleOpenEdit} onDelete={setGrupaToDelete} onAdaugaSportivi={setGrupaForAdaugaSportivi} />
+                        <GrupaCard key={grupa.id} grupa={grupa} onEdit={handleOpenEdit} onDelete={setGrupaToDelete} onAdaugaSportivi={setGrupaForAdaugaSportivi} onConfigurareOrar={setGrupaForOrar} />
                     ))}
                 </div>
             ) : (
@@ -169,8 +200,16 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
 
             <TourOverlay steps={TOURS.grupe} pageKey="grupe" />
             <TourButton steps={TOURS.grupe} pageKey="grupe" />
-            <GrupaFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSave} grupaToEdit={grupaToEdit} currentUser={currentUser} clubs={clubs} locatii={locatii} />
+            <GrupaFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSave} grupaToEdit={grupaToEdit} currentUser={currentUser} clubs={clubs} locatii={locatii} onLocatieAdded={handleLocatieAdded} />
             <ConfirmDeleteModal isOpen={!!grupaToDelete} onClose={() => setGrupaToDelete(null)} onConfirm={() => { if(grupaToDelete) confirmDelete(grupaToDelete.id) }} tableName="Grupe" isLoading={isDeleting} />
+            {grupaForOrar && (
+                <OrarEditorModal
+                    isOpen={!!grupaForOrar}
+                    onClose={() => setGrupaForOrar(null)}
+                    grupa={grupaForOrar}
+                    setGrupe={setGrupe}
+                />
+            )}
             {grupaForAdaugaSportivi && (
                 <AdaugaSportiviModal
                     isOpen={!!grupaForAdaugaSportivi}

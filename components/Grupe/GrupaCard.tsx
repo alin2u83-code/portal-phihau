@@ -1,8 +1,9 @@
 import React from 'react';
 import { Grupa as GrupaType, ProgramItem } from '../../types';
 import { Button, Card } from '../ui';
-import { TrashIcon, UsersIcon, UserPlusIcon } from '../icons';
+import { TrashIcon, UsersIcon, UserPlusIcon, CogIcon } from '../icons';
 import { sortProgram } from './ProgramEditor';
+import { formatTime } from '../../utils/date';
 
 interface GrupaWithDetails extends GrupaType {
     sportivi: { count: number }[];
@@ -14,7 +15,8 @@ export const GrupaCard: React.FC<{
     onEdit: (g: GrupaWithDetails) => void;
     onDelete: (g: GrupaWithDetails) => void;
     onAdaugaSportivi: (g: GrupaWithDetails) => void;
-}> = ({ grupa, onEdit, onDelete, onAdaugaSportivi }) => {
+    onConfigurareOrar: (g: GrupaWithDetails) => void;
+}> = ({ grupa, onEdit, onDelete, onAdaugaSportivi, onConfigurareOrar }) => {
     const sportiviCount = grupa.sportivi?.[0]?.count ?? 0;
 
     return (
@@ -29,7 +31,7 @@ export const GrupaCard: React.FC<{
                 <div className="space-y-1">
                     {sortProgram(grupa.program).map(p => (
                         <div key={p.id} className="text-xs font-semibold bg-slate-700/50 px-2 py-1 rounded-full text-slate-300">
-                            {p.ziua}: {p.ora_start} - {p.ora_sfarsit}
+                            {p.ziua}: {formatTime(p.ora_start)} - {formatTime(p.ora_sfarsit)}
                         </div>
                     ))}
                     {grupa.program.length === 0 && <p className="text-xs italic text-slate-500">Niciun program.</p>}
@@ -40,6 +42,10 @@ export const GrupaCard: React.FC<{
                 <Button size="sm" variant="info" onClick={() => onAdaugaSportivi(grupa)}>
                     <UserPlusIcon className="w-4 h-4 mr-1.5" />
                     Sportivi
+                </Button>
+                <Button size="sm" variant="secondary" onClick={() => onConfigurareOrar(grupa)}>
+                    <CogIcon className="w-4 h-4 mr-1.5" />
+                    Orar
                 </Button>
                 <Button size="sm" variant="primary" onClick={() => onEdit(grupa)}>Gestionează</Button>
             </div>

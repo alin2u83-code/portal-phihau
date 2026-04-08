@@ -48,6 +48,19 @@ Dacă au fost creați agenți noi, **oprește-te** și afișează mesajul:
 
 Nu continua cu taskul în aceeași sesiune dacă agenți noi au fost creați.
 
+## Cerință globală automată — Responsive Mobile & Tabletă
+
+**ORICE modificare de UI/componente trebuie să fie responsive**, fără excepție:
+- Folosește breakpoint-uri Tailwind: `sm:`, `md:`, `lg:` pentru layout-uri diferite
+- Pe mobil (`< md`): coloane unice, butoane full-width, fonturi mai mici, padding redus
+- Pe tabletă (`md`): layout intermediar, grilă 2 coloane unde e cazul
+- Modals: pe mobil se deschid din jos (`items-end`) sau full-screen, nu centrate
+- Tabele: pe mobil se transformă în carduri sau au scroll orizontal
+- Butoane de acțiune: minim `h-10 touch-target` pe mobil
+- Testează mental layout-ul pe `375px` (iPhone), `768px` (iPad), `1280px` (desktop)
+
+Agentul `responsive-mobile-tablet` este consultat automat dacă modificările afectează layout, modals, tabele sau navigare.
+
 ## Pasul 3 — Execuție task cu agentul potrivit
 
 Dacă agentul necesar există deja (sau după restart):

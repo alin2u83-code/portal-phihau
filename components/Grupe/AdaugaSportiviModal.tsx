@@ -5,17 +5,8 @@ import { Button } from '../ui';
 import { XIcon, SearchIcon, UserPlusIcon, CheckIcon } from '../icons';
 
 // Normalizează un string din DB (poate fi ALL CAPS) la Title Case
-function toTitleCase(str: string): string {
-    if (!str) return str;
-    return str
-        .toLowerCase()
-        .split(' ')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
-}
-
 function numeAfisat(sportiv: Sportiv): string {
-    return `${toTitleCase(sportiv.nume)} ${toTitleCase(sportiv.prenume)}`;
+    return `${(sportiv.nume || '').toUpperCase()} ${(sportiv.prenume || '').toUpperCase()}`;
 }
 
 interface GrupaWithDetails extends GrupaType {

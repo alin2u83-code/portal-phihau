@@ -92,7 +92,14 @@ export const useDataProvider = () => {
     const grupeClubId = permissions.isFederationLevel ? null : (activeRoleContext?.club_id ?? null);
 
     // Use custom hooks for data fetching
-    const { data: sportiviData, isLoading: sportiviLoading, error: sportiviError } = useSportivi({}, undefined, undefined, activeRoleContext?.id);
+    // Pentru non-federation admin, filtrăm sportivii la nivel de query după clubul activ
+    const sportiviClubId = permissions.isFederationLevel ? undefined : (activeRoleContext?.club_id ?? undefined);
+    const { data: sportiviData, isLoading: sportiviLoading, error: sportiviError } = useSportivi(
+        { clubId: sportiviClubId },
+        undefined,
+        undefined,
+        activeRoleContext?.id
+    );
     const { data: platiData, isLoading: platiLoading, error: platiError } = usePlati(activeRoleContext?.id);
     const { data: grupeData, isLoading: grupeLoading, error: grupeError } = useGrupe(activeRoleContext?.id, grupeClubId);
 

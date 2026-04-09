@@ -232,7 +232,7 @@ export const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
                 <div className="space-y-4 animate-fade-in">
                     <FormSection title="Club & Antrenament">
                         <Input label="Data Înscrierii" name="data_inscrierii" type="date" value={formData.data_inscrierii?.split('T')[0] || ''} onChange={handleChange} disabled={loading} />
-                        {isSuperAdmin && (
+                        {isSuperAdmin ? (
                             <div className="col-span-full">
                                 <label className="block text-xs font-bold text-slate-400 mb-2 uppercase">Club</label>
                                 <div className="flex flex-col gap-2 max-h-60 overflow-y-auto custom-scrollbar p-1">
@@ -251,6 +251,16 @@ export const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
                                             {c.id === FEDERATIE_ID && <span className="text-xs opacity-75">Federație</span>}
                                         </button>
                                     ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="col-span-full">
+                                <label className="block text-xs font-bold text-slate-400 mb-2 uppercase">Club</label>
+                                <div className="flex items-center gap-2 p-3 rounded-lg bg-slate-800/60 border border-slate-700 text-slate-300">
+                                    <span className="font-medium">
+                                        {clubs.find(c => c.id === (formData.club_id || currentUser?.club_id))?.nume || 'Clubul curent'}
+                                    </span>
+                                    <span className="ml-auto text-xs text-slate-500 select-none">Read-only</span>
                                 </div>
                             </div>
                         )}

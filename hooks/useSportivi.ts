@@ -8,6 +8,7 @@ export interface SportiviFilters {
     gradId?: string;
     searchTerm?: string;
     grupaId?: string;
+    clubId?: string;
 }
 
 export interface PaginationOptions {
@@ -34,10 +35,14 @@ export const fetchSportiviData = async (
         .from('sportivi')
         .select(selectString, { count: 'exact' });
     
+    if (filters.clubId) {
+        query = query.eq('club_id', filters.clubId);
+    }
+
     if (filters.rolId) {
         query = query.eq('roluri.rol_id', filters.rolId);
     }
-    
+
     if (filters.status) {
         query = query.eq('status', filters.status);
     }

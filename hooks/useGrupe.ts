@@ -5,9 +5,12 @@ import { getCachedData, setCachedData } from '../utils/cache';
 
 export const useGrupe = (contextId: string | null | undefined, clubId?: string | null) => {
     const cacheKey = `cache_grupe_${contextId || 'all'}_${clubId || 'all'}`;
+    // Nu executa query-ul până când contextId nu este cunoscut (utilizatorul și-a selectat rolul)
+    const isReady = !!contextId;
 
     return useQuery<Grupa[], Error>({
         queryKey: ['grupe', contextId, clubId],
+        enabled: isReady,
         queryFn: async () => {
             // Check localStorage cache first
             const cached = getCachedData<Grupa[]>(cacheKey, 10);
@@ -22,8 +25,11 @@ export const useGrupe = (contextId: string | null | undefined, clubId?: string |
             if (error) throw error;
 
             const result = data as Grupa[];
-            // Update localStorage cache
-            setCachedData(cacheKey, result);
+            // Nu salva în cache dacă rezultatul e gol — evită blocarea re-fetch-ului
+            // când utilizatorul nu are încă grupe sau club_id nu era setat corect
+            if (result && result.length > 0) {
+                setCachedData(cacheKey, result);
+            }
 
             return result;
         },

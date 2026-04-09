@@ -114,7 +114,9 @@ export const Sportivi: React.FC<{
         const clubIdActiv = permissions.isFederationAdmin
             ? filters.clubFilter || ''
             : activeRoleContext?.club_id || currentUser?.club_id || '';
-        if (!clubIdActiv) return grupe;
+        // Dacă clubIdActiv e gol: federation admin fără filtru club vede toate grupele;
+        // admin club fără club_id în context returnează [] (nu ar trebui să se întâmple în practică)
+        if (!clubIdActiv) return permissions.isFederationAdmin ? grupe : [];
         return grupe.filter(g => g.club_id === clubIdActiv);
     }, [grupe, permissions.isFederationAdmin, filters.clubFilter, activeRoleContext?.club_id, currentUser?.club_id]);
 
@@ -192,12 +194,19 @@ export const Sportivi: React.FC<{
         setPage(1);
     };
 
+    // Pentru non-federation admin, filtrul de club e fixat la clubul activ (server-side)
+    // Federation admin poate filtra prin filters.clubFilter (UI)
+    const sportiviClubIdFilter = permissions.isFederationAdmin
+        ? (filters.clubFilter || undefined)
+        : (activeRoleContext?.club_id || currentUser?.club_id || undefined);
+
     const { data: sportiviData, isLoading: sportiviLoading, error: sportiviError, count: totalSportivi } = useSportivi({
         status: filters.statusFilter,
         gradId: filters.gradFilter !== 'null' ? filters.gradFilter : undefined,
         rolId: filters.rolFilter,
         searchTerm: filters.searchTerm,
-        grupaId: filters.grupaFilter
+        grupaId: filters.grupaFilter,
+        clubId: sportiviClubIdFilter
     }, loadAll ? undefined : { page, pageSize }, undefined, activeRoleContext?.id, loadAll);
 
     const sportivi = sportiviData || [];

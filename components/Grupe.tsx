@@ -5,6 +5,7 @@ import { Button, Modal, Input, Select, Card } from './ui';
 import { PlusIcon, TrashIcon, EditIcon, ArrowLeftIcon, UsersIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
+import { clearCache } from '../utils/cache';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { useData } from '../contexts/DataContext';
 
@@ -26,7 +27,7 @@ interface GrupeManagementProps {
     onBack: () => void; 
 }
 export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
-    const { currentUser, clubs, grupe, setGrupe, locatii, setLocatii, activeRoleContext, sportivi, setSportivi, refetch } = useData();
+    const { currentUser, clubs, grupe, setGrupe, locatii, setLocatii, activeRoleContext, sportivi, setSportivi } = useData();
     const [loading, setLoading] = useState(false); // Keep loading state if needed, or use loading from useData
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [grupaToEdit, setGrupaToEdit] = useState<GrupaWithDetails | null>(null);
@@ -42,8 +43,13 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
     const handleRefresh = async () => {
         setIsRefreshing(true);
         try {
-            queryClient.invalidateQueries({ queryKey: ['grupe', activeRoleContext?.id] });
-            if (refetch) await refetch();
+            // Ștergem toate cheile localStorage care încep cu cache_grupe_
+            // pentru a forța re-fetch real de la Supabase (nu din cache stale)
+            Object.keys(localStorage)
+                .filter(k => k.startsWith('cache_grupe_'))
+                .forEach(k => clearCache(k));
+            // Invalidăm prefix-ul complet — acoperă orice combinație de contextId + clubId
+            await queryClient.invalidateQueries({ queryKey: ['grupe'] });
         } finally {
             setIsRefreshing(false);
         }
@@ -80,7 +86,7 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
             }
             const { data: newProgramItems } = await supabase.from('orar_saptamanal').select('*').eq('grupa_id', grupaToEdit.id);
             if (updatedGrupa) setGrupe(prev => (prev as GrupaWithDetails[]).map(g => g.id === grupaToEdit.id ? { ...g, ...updatedGrupa, program: newProgramItems || [] } : g));
-            queryClient.invalidateQueries({ queryKey: ['grupe', activeRoleContext?.id] });
+            queryClient.invalidateQueries({ queryKey: ['grupe'] });
             showSuccess("Succes", "Grupa a fost actualizată.");
         } else { // CREATE
             const { data: newGrupa, error: grupaError } = await supabase.from('grupe').insert(grupaDbPayload).select().single();
@@ -96,7 +102,7 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
             if (newGrupa) {
                 const { data: finalGrupa } = await supabase.from('grupe').select('*, sportivi(count), program:orar_saptamanal!grupa_id(*)').eq('id', newGrupa.id).single();
                 setGrupe(prev => [...(prev as GrupaWithDetails[]), finalGrupa as GrupaWithDetails]);
-                queryClient.invalidateQueries({ queryKey: ['grupe', activeRoleContext?.id] });
+                queryClient.invalidateQueries({ queryKey: ['grupe'] });
                 showSuccess("Succes", "Grupa a fost creată.");
             }
         }
@@ -135,7 +141,7 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
             )
         );
         queryClient.invalidateQueries({ queryKey: ['sportivi'] });
-        queryClient.invalidateQueries({ queryKey: ['grupe', activeRoleContext?.id] });
+        queryClient.invalidateQueries({ queryKey: ['grupe'] });
         showSuccess(
             "Succes",
             `${sportiviIds.length} sportiv${sportiviIds.length !== 1 ? 'i adăugați' : ' adăugat'} în ${grupaForAdaugaSportivi.denumire}.`
@@ -158,7 +164,7 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
         }
         else { 
             setGrupe(prev => (prev as GrupaWithDetails[]).filter(g => g.id !== grupaId)); 
-            queryClient.invalidateQueries({ queryKey: ['grupe', activeRoleContext?.id] });
+            queryClient.invalidateQueries({ queryKey: ['grupe'] });
             showSuccess("Succes", "Grupa a fost ștearsă."); 
         }
         setIsDeleting(false);

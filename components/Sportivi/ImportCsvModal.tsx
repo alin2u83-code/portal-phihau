@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card, Button } from '../ui';
 import { X, Upload, FileText, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
-import Papa from 'papaparse';
+import { parseCSVWithEncoding } from '../../utils/csv';
 import { useError } from '../ErrorProvider';
 import { importSportivi, ImportReport } from '../../services/importSportiviService';
 import { Grad } from '../../types';
@@ -34,26 +34,25 @@ export const ImportCsvModal: React.FC<ImportCsvModalProps> = ({ isOpen, onClose,
             setReport(null);
             
             // Generate preview
-            Papa.parse(selectedFile, {
-                header: true,
-                preview: 5,
-                complete: (results) => {
-                    setPreviewData(results.data);
-                }
-            });
+            parseCSVWithEncoding(
+                selectedFile,
+                { header: true, preview: 5 },
+                (results) => { setPreviewData(results.data); }
+            );
         }
     };
 
     const handleUpload = () => {
         if (!file) return;
         setStatus('uploading');
-        Papa.parse(file, {
-            header: true,
-            complete: async (results) => {
+        parseCSVWithEncoding(
+            file,
+            { header: true },
+            async (results) => {
                 try {
                     const report = await importSportivi(results.data, activeClubId, defaultGrupaId, grade);
                     setReport(report);
-                    
+
                     if (report.erori > 0) {
                         setStatus('error');
                         setMessage(`Import finalizat cu ${report.erori} erori.`);
@@ -67,11 +66,11 @@ export const ImportCsvModal: React.FC<ImportCsvModalProps> = ({ isOpen, onClose,
                     showError('Eroare Import', err.message);
                 }
             },
-            error: (err) => {
+            (err) => {
                 setStatus('error');
                 showError('Eroare Parsare CSV', err.message);
             }
-        });
+        );
     };
 
     return (

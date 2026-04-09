@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Button } from './ui';
-import Papa from 'papaparse';
+import { parseCSVWithEncoding } from '../utils/csv';
 import { supabase } from '../supabaseClient';
 import toast from 'react-hot-toast';
 
@@ -147,10 +147,10 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
         console.log("Începere analiză fișier:", file.name);
         setImporting(true);
         
-        Papa.parse(file, {
-            header: true,
-            skipEmptyLines: true,
-            complete: async (results) => {
+        parseCSVWithEncoding(
+            file,
+            { header: true, skipEmptyLines: true },
+            async (results) => {
                 console.log("Parsare CSV finalizată. Rânduri găsite:", results.data.length);
                 
                 try {
@@ -239,12 +239,12 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
                     setImporting(false);
                 }
             },
-            error: (error) => {
+            (error) => {
                 console.error("Eroare PapaParse:", error);
                 toast.error("Eroare la citirea fișierului CSV: " + error.message);
                 setImporting(false);
             }
-        });
+        );
     };
 
     const handleExecuteImport = async () => {

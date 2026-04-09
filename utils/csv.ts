@@ -1,3 +1,29 @@
+import Papa from 'papaparse';
+
+/**
+ * Parsează un fișier CSV cu detectie automată de encoding.
+ * Rezolvă problema diacriticelor românești din fișiere generate de Excel (Windows-1252).
+ */
+export function parseCSVWithEncoding(
+    file: File,
+    options: Papa.ParseConfig,
+    onComplete: (results: Papa.ParseResult<any>) => void,
+    onError?: (error: Papa.ParseError) => void
+) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const buffer = e.target?.result as ArrayBuffer;
+        const bytes = new Uint8Array(buffer);
+        // Detectie BOM UTF-8: EF BB BF → fisier salvat explicit ca UTF-8
+        const isUtf8Bom = bytes[0] === 0xEF && bytes[1] === 0xBB && bytes[2] === 0xBF;
+        // Fisierele generate de Excel in Romania sunt de obicei Windows-1252 fara BOM
+        const encoding = isUtf8Bom ? 'utf-8' : 'windows-1252';
+        const text = new TextDecoder(encoding).decode(buffer);
+        Papa.parse(text, { ...options, complete: onComplete, error: onError });
+    };
+    reader.readAsArrayBuffer(file);
+}
+
 export function exportToCsv(filename: string, rows: object[]) {
     if (!rows || rows.length === 0) {
         alert("Nu există date de exportat.");

@@ -19,7 +19,8 @@ export function parseCSVWithEncoding(
         // Fisierele generate de Excel in Romania sunt de obicei Windows-1252 fara BOM
         const encoding = isUtf8Bom ? 'utf-8' : 'windows-1252';
         const text = new TextDecoder(encoding).decode(buffer);
-        Papa.parse(text, { ...options, complete: onComplete, error: onError });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (Papa.parse as any)(text, { ...options, complete: onComplete, error: onError });
     };
     reader.readAsArrayBuffer(file);
 }

@@ -1,9 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Sportiv, Grupa, Antrenament, Grad } from '../types';
 import { Card, Select, Button } from './ui';
 import { ArrowLeftIcon, DocumentArrowDownIcon, ExclamationTriangleIcon } from './icons';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useData } from '../contexts/DataContext';
+import { supabase } from '../supabaseClient';
 
 // Functie helper pentru export CSV, inclusa local pentru a evita crearea de fisiere noi
 const exportToCsv = (filename: string, rows: object[]) => {
@@ -60,7 +61,30 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
     const sportivi = filteredData.sportivi;
     const grupe = filteredData.grupe;
     const antrenamente = filteredData.antrenamente;
-    
+
+    // Map: sportiv_id -> Set<grupa_id> (grupele secundare ale fiecărui sportiv)
+    const [grupeSecundareMap, setGrupeSecundareMap] = useState<Map<string, Set<string>>>(new Map());
+
+    useEffect(() => {
+        const fetchGrupeSecundare = async () => {
+            const { data, error } = await supabase
+                .from('sportivi_grupe_secundare')
+                .select('sportiv_id, grupa_id')
+                .eq('este_activ', true);
+            if (error) {
+                console.error('Eroare fetch grupe secundare (raport lunar):', error.message);
+                return;
+            }
+            const map = new Map<string, Set<string>>();
+            (data || []).forEach((row: { sportiv_id: string; grupa_id: string }) => {
+                if (!map.has(row.sportiv_id)) map.set(row.sportiv_id, new Set());
+                map.get(row.sportiv_id)!.add(row.grupa_id);
+            });
+            setGrupeSecundareMap(map);
+        };
+        fetchGrupeSecundare();
+    }, []);
+
     const today = new Date();
     const [filters, setFilters] = useLocalStorage('phi-hau-raport-lunar-filters', {
         month: today.getMonth(),
@@ -76,24 +100,48 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
     const reportData = useMemo((): ReportRow[] => {
         const { month, year, grupaId } = filters;
 
-        const sportiviFiltrati = sportivi.filter(s => s.status === 'Activ' && (grupaId ? s.grupa_id === String(grupaId) : true));
-        
+        // Dacă e filtru pe grupă: includem și sportivii secundari ai acelei grupe
+        let sportiviFiltrati: Sportiv[];
+        if (grupaId) {
+            const idGrupa = String(grupaId);
+            const principali = sportivi.filter(s => s.status === 'Activ' && s.grupa_id === idGrupa);
+            const idPrincipali = new Set(principali.map(s => s.id));
+            const secundari = sportivi.filter(s =>
+                s.status === 'Activ' &&
+                !idPrincipali.has(s.id) &&
+                grupeSecundareMap.get(s.id)?.has(idGrupa)
+            );
+            sportiviFiltrati = [...principali, ...secundari];
+        } else {
+            sportiviFiltrati = sportivi.filter(s => s.status === 'Activ');
+        }
+
         const antrenamenteInLuna = antrenamente.filter(a => {
             const date = new Date((a.data || '').toString().slice(0, 10));
             return date.getFullYear() === year && date.getMonth() === month;
         });
 
         return sportiviFiltrati.map(sportiv => {
-            const grupaSportiv = grupe.find(g => g.id === sportiv.grupa_id);
-            if (!grupaSportiv && !filters.grupaId) return null; 
+            // Toate grupele sportivului (primara + secundare)
+            const toateGrupeleSportiv = new Set<string>();
+            if (sportiv.grupa_id) toateGrupeleSportiv.add(sportiv.grupa_id);
+            grupeSecundareMap.get(sportiv.id)?.forEach(gid => toateGrupeleSportiv.add(gid));
 
-            const antrenamenteGrupa = antrenamenteInLuna.filter(a => a.grupa_id === sportiv.grupa_id);
+            // Dacă filtram după grupă, contorizăm doar antrenamentele acelei grupe
+            const grupeDeContorizat = grupaId
+                ? new Set([String(grupaId)])
+                : toateGrupeleSportiv;
+
+            const grupaSportivExista = sportiv.grupa_id && grupe.find(g => g.id === sportiv.grupa_id);
+            if (!grupaSportivExista && !grupaId && grupeDeContorizat.size === 0) return null;
+
+            const antrenamenteGrupa = antrenamenteInLuna.filter(a => a.grupa_id && grupeDeContorizat.has(a.grupa_id));
             const totalTrainings = antrenamenteGrupa.length;
-            
+
             const attendedTrainings = antrenamenteGrupa.filter(a =>
                 (a.prezenta || []).some((p: any) => p.sportiv_id === sportiv.id && p.status?.este_prezent === true)
             ).length;
-            
+
             const gradActual = grade.find(g => g.id === sportiv.grad_actual_id)?.nume || 'Începător';
 
             return {
@@ -103,10 +151,10 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
                 totalTrainings,
                 attendedTrainings,
             };
-        }).filter((row): row is ReportRow => row !== null && (filters.grupaId ? true : row.totalTrainings > 0))
+        }).filter((row): row is ReportRow => row !== null && (grupaId ? true : row.totalTrainings > 0))
           .sort((a,b) => a.nume.localeCompare(b.nume));
 
-    }, [filters, sportivi, grupe, antrenamente, grade]);
+    }, [filters, sportivi, grupe, antrenamente, grade, grupeSecundareMap]);
 
     const handleExport = () => {
         const dataToExport = reportData.map(d => ({

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Antrenament, Sportiv, Grupa, View } from '../types';
 import { Card, Input, Select, Button } from './ui';
 import { ArrowLeftIcon, ExclamationTriangleIcon } from './icons';
@@ -6,6 +6,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useData } from '../contexts/DataContext';
 import { ResponsiveTable, Column } from './ResponsiveTable';
+import { supabase } from '../supabaseClient';
 
 interface RaportPrezentaProps {
     onBack: () => void;
@@ -37,6 +38,27 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
     const grupe = filteredData.grupe;
 
     const [filters, setFilters] = useLocalStorage('phi-hau-raport-prezenta-filters', initialFilters);
+
+    // Map: grupa_id -> Sportiv[] (sportivi secundari activi)
+    const [grupeSecundareMap, setGrupeSecundareMap] = useState<Map<string, Sportiv[]>>(new Map());
+
+    useEffect(() => {
+        supabase
+            .from('sportivi_grupe_secundare')
+            .select('grupa_id, sportivi(id, nume, prenume, status, grupa_id, club_id)')
+            .eq('este_activ', true)
+            .then(({ data }) => {
+                if (!data) return;
+                const map = new Map<string, Sportiv[]>();
+                (data as any[]).forEach(row => {
+                    const s = row.sportivi;
+                    if (!s || s.status !== 'Activ') return;
+                    if (!map.has(row.grupa_id)) map.set(row.grupa_id, []);
+                    map.get(row.grupa_id)!.push(s as Sportiv);
+                });
+                setGrupeSecundareMap(map);
+            });
+    }, []);
 
     const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setFilters(prev => ({...prev, [e.target.name]: e.target.value}));
@@ -78,9 +100,15 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
         
         // Data for detailed log (present and absent)
         const detailedLog = filteredTrainings.flatMap(a => {
-            const sportiviAsteptati = (a.grupa_id)
-                ? (sportivi || []).filter(s => s.grupa_id === a.grupa_id && s.status === 'Activ')
-                : (sportivi || []).filter(s => s.participa_vacanta && s.status === 'Activ');
+            let sportiviAsteptati: Sportiv[];
+            if (a.grupa_id) {
+                const principali = (sportivi || []).filter(s => s.grupa_id === a.grupa_id && s.status === 'Activ');
+                const principaliIds = new Set(principali.map(s => s.id));
+                const secundari = (grupeSecundareMap.get(a.grupa_id) || []).filter(s => !principaliIds.has(s.id));
+                sportiviAsteptati = [...principali, ...secundari];
+            } else {
+                sportiviAsteptati = (sportivi || []).filter(s => s.participa_vacanta && s.status === 'Activ');
+            }
 
             return sportiviAsteptati.map(sportiv => ({
                 id: `${a.id}-${sportiv.id}`, data: (a.data || '').toString().slice(0, 10), sportiv: sportiv,
@@ -111,7 +139,7 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
         })).sort((a, b) => a.percentage - b.percentage);
 
         return { filteredPresenceRecords: presenceRecords, filteredDetailedLog: finalFilteredLog, athleteSummary };
-    }, [antrenamente, sportivi, grupe, filters]);
+    }, [antrenamente, sportivi, grupe, filters, grupeSecundareMap]);
 
 
     const { groupChartData, activeGroups } = useMemo(() => {

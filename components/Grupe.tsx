@@ -34,6 +34,7 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
     const [isDeleting, setIsDeleting] = useState(false);
     const [grupaForAdaugaSportivi, setGrupaForAdaugaSportivi] = useState<GrupaWithDetails | null>(null);
     const [grupaForOrar, setGrupaForOrar] = useState<GrupaWithDetails | null>(null);
+    const [grupaForSecundari, setGrupaForSecundari] = useState<GrupaWithDetails | null>(null);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const { showError, showSuccess } = useError();
     const queryClient = useQueryClient();
@@ -190,7 +191,7 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
             {grupe.length > 0 ? (
                 <div data-tour="grupe-lista" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {(grupe as GrupaWithDetails[]).map(grupa => (
-                        <GrupaCard key={grupa.id} grupa={grupa} onEdit={handleOpenEdit} onDelete={setGrupaToDelete} onAdaugaSportivi={setGrupaForAdaugaSportivi} onConfigurareOrar={setGrupaForOrar} />
+                        <GrupaCard key={grupa.id} grupa={grupa} onEdit={handleOpenEdit} onDelete={setGrupaToDelete} onAdaugaSportivi={setGrupaForAdaugaSportivi} onConfigurareOrar={setGrupaForOrar} onGestionareSecundari={setGrupaForSecundari} />
                     ))}
                 </div>
             ) : (
@@ -219,6 +220,16 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
                     totiSportivii={sportivi as Sportiv[]}
                     sportiviInGrupa={(sportivi as Sportiv[]).filter(s => s.grupa_id === grupaForAdaugaSportivi.id)}
                     onSave={handleAdaugaSportiviInGrupa}
+                />
+            )}
+            {grupaForSecundari && (
+                <GrupeSecundareModal
+                    isOpen={!!grupaForSecundari}
+                    onClose={() => setGrupaForSecundari(null)}
+                    grupa={grupaForSecundari}
+                    totiSportivii={sportivi as Sportiv[]}
+                    toateGrupele={grupe as GrupaWithDetails[]}
+                    onChanged={handleRefresh}
                 />
             )}
         </div>

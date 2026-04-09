@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Button } from './ui';
-import { parseCSVWithEncoding } from '../utils/csv';
+import { parseCSVWithEncoding, generateEmail, isSimilar } from '../utils/csv';
+import { normalizeDate } from '../utils/date';
 import { supabase } from '../supabaseClient';
 import toast from 'react-hot-toast';
 
@@ -41,6 +42,9 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
     const [currentClubId, setCurrentClubId] = useState<string | null>(null);
     const [showConfirm, setShowConfirm] = useState(false);
     const [importResult, setImportResult] = useState<ImportResult | null>(null);
+
+    // false = completează doar câmpurile lipsă (default sigur), true = suprascrie tot cu datele din CSV
+    const [overwriteMode, setOverwriteMode] = useState(false);
 
     // State pentru expandarea randurilor POSIBIL_DUPLICAT
     const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
@@ -100,69 +104,6 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
         if (e.target.files) setFile(e.target.files[0]);
     };
 
-    const generateEmail = (prenume: string, nume: string): string => {
-        const sanitize = (s: string) =>
-            s.toLowerCase()
-             .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-             .replace(/\s+/g, '.').replace(/[^a-z0-9.]/g, '');
-        return `${sanitize(prenume)}.${sanitize(nume)}@frqkd.ro`;
-    };
-
-    const levenshteinDistance = (a: string, b: string): number => {
-        const tmp = [];
-        for (let i = 0; i <= a.length; i++) tmp[i] = [i];
-        for (let j = 0; j <= b.length; j++) tmp[0][j] = j;
-        for (let i = 1; i <= a.length; i++) {
-            for (let j = 1; j <= b.length; j++) {
-                tmp[i][j] = Math.min(
-                    tmp[i - 1][j] + 1,
-                    tmp[i][j - 1] + 1,
-                    tmp[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)
-                );
-            }
-        }
-        return tmp[a.length][b.length];
-    };
-
-    const isSimilar = (a: string, b: string): boolean => {
-        const dist = levenshteinDistance(a.toLowerCase().trim(), b.toLowerCase().trim());
-        const maxLength = Math.max(a.length, b.length);
-        if (maxLength === 0) return true;
-        const threshold = maxLength < 5 ? 1 : 2;
-        return dist <= threshold;
-    };
-
-    const normalizeDate = (dateStr: string): string | null => {
-        if (!dateStr) return null;
-        const trimmed = dateStr.trim();
-        if (!trimmed) return null;
-
-        if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
-            const date = new Date(trimmed);
-            return isNaN(date.getTime()) ? null : trimmed;
-        }
-
-        const match = trimmed.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{4})$/);
-        if (match) {
-            const [_, d, m, y] = match;
-            const day = d.padStart(2, '0');
-            const month = m.padStart(2, '0');
-            const year = y;
-            const isoDate = `${year}-${month}-${day}`;
-
-            const date = new Date(isoDate);
-            if (!isNaN(date.getTime())) {
-                const checkY = date.getFullYear();
-                const checkM = date.getMonth() + 1;
-                const checkD = date.getDate();
-                if (checkY === parseInt(year) && checkM === parseInt(month) && checkD === parseInt(day)) {
-                    return isoDate;
-                }
-            }
-        }
-
-        return null;
-    };
 
     // Formatare data ISO -> DD.MM.YYYY pentru afisare
     const formatDateForDisplay = (isoDate: string | null): string => {
@@ -282,14 +223,30 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
 
     const handleExecuteImport = async () => {
         const strictDuplicates = potentialDuplicates.filter(d => d.type === 'strict');
+        const looseDuplicates = potentialDuplicates.filter(d => d.type === 'loose');
+
+        // Când overwriteMode=false, excludem din update câmpurile care există deja în DB
+        const buildUpdatePayload = (sportivData: any, existingSportiv: any) => {
+            if (overwriteMode) return { ...sportivData };
+            const safe: any = { id: existingSportiv.id };
+            for (const key of Object.keys(sportivData)) {
+                if (key === 'id') continue;
+                // Păstrăm câmpul din CSV doar dacă în DB este null/undefined/gol
+                const existingVal = existingSportiv[key];
+                if (existingVal === null || existingVal === undefined || existingVal === '') {
+                    safe[key] = sportivData[key];
+                }
+            }
+            return safe;
+        };
+
         const autoUpdates = strictDuplicates
             .filter((_, i) => !excludedStrictIndices.has(i))
-            .map(d => ({ ...d.sportivData, id: d.existingSportiv.id }));
+            .map(d => buildUpdatePayload(d.sportivData, d.existingSportiv));
 
-        const looseDuplicates = potentialDuplicates.filter(d => d.type === 'loose');
         const selectedLoose = looseDuplicates
             .filter((_, i) => selectedIndices.has(i))
-            .map(d => ({ ...d.sportivData, id: d.existingSportiv.id }));
+            .map(d => buildUpdatePayload(d.sportivData, d.existingSportiv));
 
         const validUniques = toImportList
             .filter(s => !s.error)
@@ -858,6 +815,34 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
                                 )}
                             </div>
                         ))}
+                    </div>
+                </div>
+
+                {/* Comportament actualizare */}
+                <div className="flex items-start gap-3 p-3 bg-zinc-800/50 border border-zinc-700 rounded-lg">
+                    <button
+                        type="button"
+                        onClick={() => setOverwriteMode(v => !v)}
+                        className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none mt-0.5 ${overwriteMode ? 'bg-amber-500' : 'bg-zinc-600'}`}
+                        role="switch"
+                        aria-checked={overwriteMode}
+                    >
+                        <span className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow transform transition duration-200 ${overwriteMode ? 'translate-x-4' : 'translate-x-0'}`} />
+                    </button>
+                    <div>
+                        <p className="text-sm font-medium text-zinc-200">
+                            {overwriteMode ? 'Suprascrie câmpurile existente' : 'Completează doar câmpurile lipsă'}
+                        </p>
+                        <p className="text-xs text-zinc-500 mt-0.5">
+                            {overwriteMode
+                                ? 'Datele din CSV vor înlocui câmpurile existente în baza de date, chiar dacă au deja valori.'
+                                : 'Implicit: câmpurile care au deja valori în baza de date nu vor fi modificate.'}
+                        </p>
+                        {overwriteMode && (
+                            <p className="text-xs text-amber-400 mt-1 flex items-center gap-1">
+                                <span>⚠</span> Atenție: această opțiune poate suprascrie date corecte existente.
+                            </p>
+                        )}
                     </div>
                 </div>
 

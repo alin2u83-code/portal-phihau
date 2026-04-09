@@ -1,5 +1,6 @@
 import { supabase } from '../supabaseClient';
 import { Grad } from '../types';
+import { generateEmail } from '../utils/csv';
 
 export interface ImportReport {
   succes: number;
@@ -9,14 +10,6 @@ export interface ImportReport {
 
 const validateEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 const validateCNP = (cnp: string) => /^\d{13}$/.test(cnp);
-
-const generateEmail = (prenume: string, nume: string): string => {
-  const sanitize = (s: string) =>
-    s.toLowerCase()
-     .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-     .replace(/\s+/g, '.').replace(/[^a-z0-9.]/g, '');
-  return `${sanitize(prenume)}.${sanitize(nume)}@frqkd.ro`;
-};
 
 export const importSportivi = async (
   dateSportivi: any[],

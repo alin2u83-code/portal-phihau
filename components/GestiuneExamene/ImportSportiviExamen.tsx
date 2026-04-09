@@ -26,6 +26,7 @@ import {
 import { AlertTriangle, Loader2 } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import { useError } from '../ErrorProvider';
+import { generateEmail } from '../../utils/csv';
 import { Sportiv, Grad, SesiuneExamen, InscriereExamen, IstoricGrade, User } from '../../types';
 import { getPretProdus } from '../../utils/pricing';
 import { sendBulkNotifications } from '../../utils/notifications';
@@ -277,11 +278,6 @@ export const ImportSportiviExamen: React.FC<ImportSportiviExamenProps> = ({
 
             // Creare sportiv nou
             try {
-                const generateEmail = (p: string, n: string) => {
-                    const san = (s: string) => normalizeStr(s).replace(/\s+/g, '.').replace(/[^a-z0-9.]/g, '');
-                    return `${san(p)}.${san(n)}@frqkd.ro`;
-                };
-
                 const sportivData = {
                     nume: nume.trim(),
                     prenume: prenume.trim(),

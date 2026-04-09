@@ -85,6 +85,10 @@ export const ImportCsvModal: React.FC<ImportCsvModalProps> = ({ isOpen, onClose,
                 </div>
 
                 <div className="max-h-[70vh] overflow-y-auto pr-2">
+                    <div className="mb-4 p-3 bg-zinc-800/60 border border-zinc-700 rounded-lg text-xs text-zinc-400">
+                        <span className="text-zinc-300 font-medium">Format simplu</span> — coloane: <code className="text-amber-400">nume, prenume, data_nasterii, email, cnp, telefon, adresa, gen, grad_actual_id</code>.
+                        <span className="block mt-1">Pentru import în format federație (FRQKD), folosește pagina <span className="text-zinc-300">Import Sportivi</span> din meniu.</span>
+                    </div>
                     <div className={`border-2 border-dashed rounded-xl p-8 text-center transition-all ${file ? 'border-amber-500 bg-amber-500/5' : 'border-zinc-700 hover:border-zinc-500'}`}>
                         <input type="file" accept=".csv" onChange={handleFileChange} className="hidden" id="csv-upload" />
                         <label htmlFor="csv-upload" className="cursor-pointer flex flex-col items-center gap-4">

@@ -47,7 +47,9 @@ export const GradeTab: React.FC<GradeTabProps> = ({
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <Card>
                     <h3 className="text-lg font-bold text-white mb-4">Evoluție în Timp</h3>
-                    <SportivProgressChart data={chartData} themeColor={primaryColor} />
+                    <div className="h-48">
+                        <SportivProgressChart data={chartData} themeColor={primaryColor} />
+                    </div>
                 </Card>
 
                 <ExamHistory

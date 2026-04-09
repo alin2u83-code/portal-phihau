@@ -5,3 +5,4 @@ docs/
 supabase/migrations/
 ACTIVITY_LOG.md
 .claude/agents/
+.claude/commands/

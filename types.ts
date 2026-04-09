@@ -31,10 +31,12 @@ export interface User {
 
 export type Examen = SesiuneExamen;
 
-export interface SportivProgramPersonalizat {
+export interface SportivGrupaSecundara {
     sportiv_id: string;
-    orar_id: string;
+    grupa_id: string;
+    club_id: string;
     este_activ: boolean;
+    created_at?: string;
 }
 
 // --- Domain: Club & Organization ---

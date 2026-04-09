@@ -129,10 +129,13 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
                 const grad = (grade || []).find(g => g.id === hg.grad_id);
                 if (!grad) return null;
                 const dateStr = (hg.data_obtinere || '').toString().slice(0, 10);
+                // Parsare cu T00:00:00 pentru a evita offset-ul UTC care mută data cu o zi înapoi
+                // pe fusuri orare pozitive (ex. România UTC+2/+3)
+                const timestamp = new Date(dateStr + 'T00:00:00').getTime();
                 return {
                     id: hg.id,
                     source: hg.sesiune_examen_id ? 'examen' : 'manual',
-                    date: new Date(dateStr).getTime(),
+                    date: timestamp,
                     data_obtinere: dateStr,
                     grad_id: grad.id,
                     rankName: grad.nume,
@@ -147,7 +150,8 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
 
     const chartData: ChartDataPoint[] = useMemo(() => {
         return gradeHistory.map(item => ({
-            date: new Date(item.date).toLocaleDateString('ro-RO'),
+            // Afișăm data_obtinere direct (YYYY-MM-DD → formatat local) fără a re-parcurge prin timestamp
+            date: new Date(item.data_obtinere + 'T00:00:00').toLocaleDateString('ro-RO'),
             rankOrder: item.rank,
             rankName: item.rankName,
             timestamp: item.date,

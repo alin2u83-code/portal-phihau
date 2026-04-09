@@ -80,7 +80,7 @@ export const GradeTab: React.FC<GradeTabProps> = ({
                         <tbody className="divide-y divide-slate-700 bg-slate-900/50">
                             {gradeHistory.length > 0 ? gradeHistory.map((item) => (
                                 <tr key={item.id} className="hover:bg-slate-800/50 transition-colors">
-                                    <td className="p-3 font-medium text-white">{new Date(item.date).toLocaleDateString('ro-RO')}</td>
+                                    <td className="p-3 font-medium text-white">{new Date(item.data_obtinere + 'T00:00:00').toLocaleDateString('ro-RO')}</td>
                                     <td className="p-3"><span className="font-bold text-amber-400">{item.rankName}</span></td>
                                     <td className="p-3">
                                         <span className={`px-2 py-1 rounded text-xs ${item.source === 'examen' ? 'bg-blue-900/30 text-blue-400' : 'bg-slate-700 text-slate-300'}`}>

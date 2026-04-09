@@ -644,7 +644,9 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         let newPlati: Plata[] = [];
         let newInscrieri: InscriereExamen[] = [];
         let errorCount = 0;
-    
+
+        // Set local pentru a preveni duplicate în cadrul aceluiași batch
+        const addedInBatch = new Set<string>();
         let skipCount = 0;
         for (const selection of selections) {
             await new Promise(r => setTimeout(r, 0)); // yield to browser between iterations
@@ -657,9 +659,22 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 continue;
             }
 
-            // Skip silently if sportiv is already registered for this session
-            const alreadyRegistered = inscrisiInSesiuneIds.has(sportiv_id);
+            // Skip silently if sportiv is already registered for this session (din DB sau din batch-ul curent)
+            const alreadyRegistered = inscrisiInSesiuneIds.has(sportiv_id) || addedInBatch.has(sportiv_id);
             if (alreadyRegistered) {
+                skipCount++;
+                continue;
+            }
+
+            // Verificare: sportivul nu încearcă să susțină un grad pe care îl are deja în istoric
+            const areGradulDeja = (istoricGrade || []).some(
+                ig => ig.sportiv_id === sportiv_id && ig.grad_id === grad_sustinut_id
+            );
+            if (areGradulDeja) {
+                showError(
+                    `Grad deja obținut — ${sportiv.nume} ${sportiv.prenume}`,
+                    `Sportivul are deja gradul "${grad.nume}" în istoric. Înscrierea a fost ignorată.`
+                );
                 skipCount++;
                 continue;
             }
@@ -717,6 +732,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 if (!viewData) throw new Error("Nu s-au putut prelua detaliile înscrierii din vedere.");
 
                 newInscrieri.push(viewData as InscriereExamen);
+                addedInBatch.add(sportiv_id);
             } catch (err: any) {
                 errorCount++;
                 showError(`Eroare la înscrierea lui ${sportiv.nume} ${sportiv.prenume}`, err.message);

@@ -8,6 +8,8 @@ import { useError } from './ErrorProvider';
 import { clearCache } from '../utils/cache';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { useData } from '../contexts/DataContext';
+import { useGrupe } from '../hooks/useGrupe';
+import { usePermissions } from '../hooks/usePermissions';
 
 import { GrupaFormModal } from './Grupe/GrupaFormModal';
 import { GrupaCard } from './Grupe/GrupaCard';
@@ -27,8 +29,15 @@ interface GrupeManagementProps {
     onBack: () => void; 
 }
 export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
-    const { currentUser, clubs, grupe, setGrupe, locatii, setLocatii, activeRoleContext, sportivi, setSportivi } = useData();
-    const [loading, setLoading] = useState(false); // Keep loading state if needed, or use loading from useData
+    const { currentUser, clubs, setGrupe, locatii, setLocatii, activeRoleContext, sportivi, setSportivi } = useData();
+
+    // Fetch grupe direct — nu prin context (evită probleme de timing/cache la nivel de provider)
+    const permissions = usePermissions(activeRoleContext);
+    const grupeClubId = permissions.isFederationLevel ? null : (activeRoleContext?.club_id ?? null);
+    const { data: grupeData, isLoading: grupeLoading, refetch: refetchGrupe } = useGrupe(activeRoleContext?.id, grupeClubId);
+    const grupe = grupeData || [];
+
+    const [loading, setLoading] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [grupaToEdit, setGrupaToEdit] = useState<GrupaWithDetails | null>(null);
     const [grupaToDelete, setGrupaToDelete] = useState<GrupaWithDetails | null>(null);
@@ -43,13 +52,12 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
     const handleRefresh = async () => {
         setIsRefreshing(true);
         try {
-            // Ștergem toate cheile localStorage care încep cu cache_grupe_
-            // pentru a forța re-fetch real de la Supabase (nu din cache stale)
+            // Șterge cache localStorage + invalidează React Query + re-fetch direct
             Object.keys(localStorage)
                 .filter(k => k.startsWith('cache_grupe_'))
                 .forEach(k => clearCache(k));
-            // Invalidăm prefix-ul complet — acoperă orice combinație de contextId + clubId
             await queryClient.invalidateQueries({ queryKey: ['grupe'] });
+            await refetchGrupe();
         } finally {
             setIsRefreshing(false);
         }

@@ -4,6 +4,7 @@ import { Card } from './ui';
 import { CalendarDaysIcon, ClockIcon } from './icons';
 import { MapPin, Loader2 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
+import { formatTime } from '../utils/date';
 
 interface UpcomingTrainingsWidgetProps {
     currentUser: User;
@@ -62,7 +63,7 @@ export const UpcomingTrainingsWidget: React.FC<UpcomingTrainingsWidgetProps> = (
                                     </span>
                                     <div className="flex items-center gap-1 text-xs font-mono text-slate-400 bg-slate-900/50 px-2 py-0.5 rounded">
                                         <ClockIcon className="w-3 h-3" />
-                                        {training.ora_start} - {training.ora_sfarsit}
+                                        {formatTime(training.ora_start)} - {formatTime(training.ora_sfarsit)}
                                     </div>
                                 </div>
                                 <div className="flex items-center justify-between">

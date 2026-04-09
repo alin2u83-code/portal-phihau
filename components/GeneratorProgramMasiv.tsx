@@ -4,6 +4,7 @@ import { Grupa, ProgramItem } from '../types';
 import { Button, Card, Input } from './ui';
 import { ArrowLeftIcon, CalendarDaysIcon, CheckCircleIcon } from './icons';
 import { useError } from './ErrorProvider';
+import { formatTime } from '../utils/date';
 
 interface GeneratorProgramMasivProps {
     onBack: () => void;
@@ -287,7 +288,7 @@ export const GeneratorProgramMasiv: React.FC<GeneratorProgramMasivProps> = ({ on
                                         <tr key={idx} className="hover:bg-slate-800/30 transition-colors">
                                             <td className="p-4 text-white font-mono">{inst.data}</td>
                                             <td className="p-4 text-slate-400">{inst.ziua}</td>
-                                            <td className="p-4 text-slate-400">{inst.ora_start} - {inst.ora_sfarsit}</td>
+                                            <td className="p-4 text-slate-400">{formatTime(inst.ora_start)} - {formatTime(inst.ora_sfarsit)}</td>
                                             <td className="p-4 text-indigo-300 font-bold">{inst.grupaNume}</td>
                                         </tr>
                                     ))}

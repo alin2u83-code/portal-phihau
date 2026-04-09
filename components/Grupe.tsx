@@ -12,6 +12,7 @@ import { GrupaFormModal } from './Grupe/GrupaFormModal';
 import { GrupaCard } from './Grupe/GrupaCard';
 import { AdaugaSportiviModal } from './Grupe/AdaugaSportiviModal';
 import { OrarEditorModal } from './Grupe/OrarEditorModal';
+import { GrupeSecundareModal } from './Grupe/GrupeSecundareModal';
 import { TourOverlay, TourButton, TOURS } from './GhidUtilizator';
 
 // Interfață extinsă pentru datele aduse din Supabase

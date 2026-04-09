@@ -8,8 +8,15 @@ import { useAttendance } from '../hooks/useAttendance';
 import { useError } from './ErrorProvider';
 import { AntrenamentForm } from './AntrenamentForm';
 import { supabase } from '../supabaseClient';
+import { formatTime } from '../utils/date';
 import { generateTrainingsFromSchedule } from '../utils/trainingGenerator';
 import { useStatusePrezenta } from '../hooks/useStatusePrezenta';
+
+// Tip extins pentru sportiv cu informație de apartenența la grupă
+export type TipMembru = 'principal' | 'secundar';
+export interface SportivCuTip extends Sportiv {
+    tip?: TipMembru;
+}
 
 import { useData } from '../contexts/DataContext';
 
@@ -105,7 +112,7 @@ export const FormularPrezenta: React.FC<{
     antrenament: Antrenament & { grupe: Grupa & { sportivi: Sportiv[] }};
     onBack: () => void;
     onViewSportiv?: (s: Sportiv) => void;
-    saveAttendance: (id: string, records: { sportiv_id: string; status_id: string }[]) => Promise<boolean>;
+    saveAttendance: (id: string, records: { sportiv_id: string; status_id: string }[], allSportivIds?: string[]) => Promise<boolean>;
 }> = ({ antrenament, onBack, onViewSportiv, saveAttendance }) => {
     const { prezentId, absentId } = useStatusePrezenta();
     const [presentIds, setPresentIds] = useState<Set<string>>(new Set());
@@ -113,6 +120,7 @@ export const FormularPrezenta: React.FC<{
     const [saved, setSaved] = useState(false);
     const [selectedSportiv, setSelectedSportiv] = useState<Sportiv | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [sportiviSecundari, setSportiviSecundari] = useState<SportivCuTip[]>([]);
 
     // 1. Initial Data Population
     useEffect(() => {
@@ -127,11 +135,48 @@ export const FormularPrezenta: React.FC<{
         populateInitialData();
     }, [antrenament]);
 
-    const sportiviInGrupa = useMemo(() => {
-        return (antrenament.grupe?.sportivi || [])
+    // Fetch sportivi secundari pentru grupa antrenamentului
+    useEffect(() => {
+        const grupaId = antrenament.grupe?.id ?? (antrenament as any).grupa_id;
+        if (!grupaId) return;
+
+        const fetchSecundari = async () => {
+            const { data, error } = await supabase
+                .from('sportivi_grupe_secundare')
+                .select('sportiv_id, sportivi(id, nume, prenume, grad_actual_id, status)')
+                .eq('grupa_id', grupaId)
+                .eq('este_activ', true);
+
+            if (error) {
+                console.error('Eroare fetch sportivi secundari:', error.message);
+                return;
+            }
+
+            const secundari: SportivCuTip[] = (data || [])
+                .map((row: any) => row.sportivi)
+                .filter((s: any) => s && s.status === 'Activ')
+                .map((s: any) => ({ ...s, tip: 'secundar' as TipMembru }));
+
+            setSportiviSecundari(secundari);
+        };
+
+        fetchSecundari();
+    }, [antrenament.grupe?.id, (antrenament as any).grupa_id]);
+
+    // Lista combinată: principali + secundari, fără duplicate
+    const sportiviInGrupa = useMemo((): SportivCuTip[] => {
+        const principali: SportivCuTip[] = (antrenament.grupe?.sportivi || [])
             .filter(s => s.status === 'Activ')
+            .map(s => ({ ...s, tip: 'principal' as TipMembru }));
+
+        // Eliminăm duplicatele — dacă un sportiv apare și ca principal și ca secundar,
+        // rămâne doar varianta principală
+        const idPrincipali = new Set(principali.map(s => s.id));
+        const secundariFiltrati = sportiviSecundari.filter(s => !idPrincipali.has(s.id));
+
+        return [...principali, ...secundariFiltrati]
             .sort((a, b) => a.nume.localeCompare(b.nume));
-    }, [antrenament.grupe]);
+    }, [antrenament.grupe, sportiviSecundari]);
 
     // 2. Checkbox State Management
     const toggleSportiv = (sportivId: string) => {
@@ -204,7 +249,7 @@ export const FormularPrezenta: React.FC<{
                     <h2 className="text-2xl font-black text-white tracking-tight">{antrenament.grupe?.denumire}</h2>
                     <p className="text-sm font-medium text-slate-400 flex items-center justify-end gap-2">
                         <CalendarDaysIcon className="w-4 h-4" />
-                        {new Date((antrenament.data || '').toString().slice(0, 10)).toLocaleDateString('ro-RO', { day: 'numeric', month: 'long' })} • {antrenament.ora_start}
+                        {new Date((antrenament.data || '').toString().slice(0, 10)).toLocaleDateString('ro-RO', { day: 'numeric', month: 'long' })} • {formatTime(antrenament.ora_start)}
                     </p>
                 </div>
             </div>
@@ -264,11 +309,21 @@ export const FormularPrezenta: React.FC<{
                                         <CheckCircleIcon className="w-4 h-4 text-white" />
                                     </motion.div>
                                 </div>
-                                <span 
-                                    className={`font-bold flex-grow select-none transition-colors ${isPresent ? 'text-emerald-400' : 'text-slate-300'}`}
-                                >
-                                    {s.nume} {s.prenume}
-                                </span>
+                                <div className="flex-grow min-w-0 select-none">
+                                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                        <span className={`font-bold transition-colors ${isPresent ? 'text-emerald-400' : 'text-slate-300'}`}>
+                                            {s.nume} {s.prenume}
+                                        </span>
+                                        {(s as SportivCuTip).tip === 'secundar' && (
+                                            <span
+                                                title="Grupă secundară"
+                                                className="inline-flex items-center bg-purple-500/20 text-purple-300 text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded border border-purple-500/30 leading-none shrink-0"
+                                            >
+                                                SECUNDAR
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
                                 {onViewSportiv && (
                                     <Button 
                                         size="sm" 
@@ -480,7 +535,7 @@ export const ListaPrezentaAntrenament: React.FC<ListaPrezentaAntrenamentProps> =
                                         <div className="flex items-center gap-4 w-full sm:w-auto">
                                             <div className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center border ${isToday ? 'bg-indigo-500/20 border-indigo-500/30 text-indigo-400' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>
                                                 <span className="text-[10px] font-black uppercase leading-none mb-1">{new Date((a.data || '').toString().slice(0, 10)).toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' })}</span>
-                                                <span className="text-xs font-bold">{a.ora_start}</span>
+                                                <span className="text-xs font-bold">{formatTime(a.ora_start)}</span>
                                             </div>
                                             <div>
                                                 <div className="flex items-center gap-2 mb-1">
@@ -494,7 +549,7 @@ export const ListaPrezentaAntrenament: React.FC<ListaPrezentaAntrenamentProps> =
                                                         </span>
                                                     )}
                                                 </div>
-                                                <p className="text-lg font-bold text-white leading-none">{a.ora_start} - {a.ora_sfarsit}</p>
+                                                <p className="text-lg font-bold text-white leading-none">{formatTime(a.ora_start)} - {formatTime(a.ora_sfarsit)}</p>
                                             </div>
                                         </div>
                                         <Button size="sm" onClick={() => setSelectedTraining(a as any)} className={`w-full sm:w-auto shadow-lg ${isToday ? 'shadow-indigo-500/20' : 'shadow-slate-900/20'}`}>

@@ -6,6 +6,7 @@ import { useCalendarView } from '../../hooks/useCalendarView';
 import { AntrenamentForm } from '../AntrenamentForm';
 import { supabase } from '../../supabaseClient';
 import { Input } from '../ui';
+import { formatTime } from '../../utils/date';
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -295,7 +296,7 @@ export const CalendarActivitati: React.FC<{
                                                         </span>
                                                         <span className="text-xs text-slate-500 font-mono">#{a.id.slice(0, 8)}</span>
                                                     </div>
-                                                    <p className="text-lg font-bold text-white leading-none">{a.ora_start} - {a.ora_sfarsit}</p>
+                                                    <p className="text-lg font-bold text-white leading-none">{formatTime(a.ora_start)} - {formatTime(a.ora_sfarsit)}</p>
                                                 </div>
                                             </div>
                                             <Button size="sm" onClick={() => onSelect(a.id)} className="w-full sm:w-auto shadow-lg shadow-indigo-500/10">

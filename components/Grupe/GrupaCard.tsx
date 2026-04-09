@@ -16,7 +16,9 @@ export const GrupaCard: React.FC<{
     onDelete: (g: GrupaWithDetails) => void;
     onAdaugaSportivi: (g: GrupaWithDetails) => void;
     onConfigurareOrar: (g: GrupaWithDetails) => void;
-}> = ({ grupa, onEdit, onDelete, onAdaugaSportivi, onConfigurareOrar }) => {
+    onGestionareSecundari?: (g: GrupaWithDetails) => void;
+    nrSecundari?: number;
+}> = ({ grupa, onEdit, onDelete, onAdaugaSportivi, onConfigurareOrar, onGestionareSecundari, nrSecundari }) => {
     const sportiviCount = grupa.sportivi?.[0]?.count ?? 0;
 
     return (
@@ -24,8 +26,18 @@ export const GrupaCard: React.FC<{
             <div className="flex-grow">
                 <h3 className="text-xl font-bold text-white">{grupa.denumire}</h3>
                 <p className="text-sm text-slate-400 mb-4">{grupa.sala || 'Sală nespecificată'}</p>
-                <div className="flex items-center gap-4 text-sm mb-4">
-                    <div className="flex items-center gap-2 text-green-400"><UsersIcon className="w-4 h-4"/><span>{sportiviCount} Sportivi Activi</span></div>
+                <div className="flex flex-wrap items-center gap-3 text-sm mb-4">
+                    <div className="flex items-center gap-2 text-green-400">
+                        <UsersIcon className="w-4 h-4"/>
+                        <span>{sportiviCount} Sportivi Activi</span>
+                    </div>
+                    {nrSecundari !== undefined && nrSecundari > 0 && (
+                        <div className="flex items-center gap-1.5">
+                            <span className="inline-flex items-center bg-purple-500/20 text-purple-400 border border-purple-500/50 text-xs px-2 py-0.5 rounded font-medium">
+                                {nrSecundari} SECUNDAR{nrSecundari !== 1 ? 'I' : ''}
+                            </span>
+                        </div>
+                    )}
                 </div>
                 <h4 className="text-xs font-bold uppercase text-slate-500 mb-2">Orar</h4>
                 <div className="space-y-1">
@@ -43,6 +55,23 @@ export const GrupaCard: React.FC<{
                     <UserPlusIcon className="w-4 h-4 mr-1.5" />
                     Sportivi
                 </Button>
+                {onGestionareSecundari && (
+                    <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => onGestionareSecundari(grupa)}
+                        className="border-purple-500/40 text-purple-400 hover:bg-purple-500/10 hover:border-purple-400"
+                        title="Gestionează sportivii secundari"
+                    >
+                        <UsersIcon className="w-4 h-4 mr-1.5" />
+                        Secundari
+                        {nrSecundari !== undefined && nrSecundari > 0 && (
+                            <span className="ml-1 bg-purple-500/30 text-purple-300 text-xs px-1.5 py-0.5 rounded-full font-bold">
+                                {nrSecundari}
+                            </span>
+                        )}
+                    </Button>
+                )}
                 <Button size="sm" variant="secondary" onClick={() => onConfigurareOrar(grupa)}>
                     <CogIcon className="w-4 h-4 mr-1.5" />
                     Orar

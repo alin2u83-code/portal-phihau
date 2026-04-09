@@ -6,6 +6,7 @@ import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { useData } from '../contexts/DataContext';
 import { sendBulkNotifications } from '../utils/notifications';
+import { formatTime } from '../utils/date';
 
 interface ProgramareActivitatiProps {
     onBack: () => void;
@@ -215,7 +216,7 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ onBa
                         .map(s => ({
                             recipient_user_id: s.user_id!,
                             title: 'Antrenament Anulat',
-                            body: `Antrenamentul din data de ${new Date((antrenament.data || '').toString().slice(0, 10)).toLocaleDateString('ro-RO')} (${antrenament.ora_start}) a fost anulat.`,
+                            body: `Antrenamentul din data de ${new Date((antrenament.data || '').toString().slice(0, 10)).toLocaleDateString('ro-RO')} (${formatTime(antrenament.ora_start)}) a fost anulat.`,
                             type: 'antrenament'
                         }));
                     
@@ -607,7 +608,7 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ onBa
                                         </div>
                                         <div className="flex items-center gap-1">
                                             <span className="text-slate-500">Ora:</span>
-                                            <span className="text-white">{a.ora_start}</span>
+                                            <span className="text-white">{formatTime(a.ora_start)}</span>
                                         </div>
                                     </div>
                                 )}

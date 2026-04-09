@@ -5,9 +5,37 @@ import { useError } from './ErrorProvider';
 import { Card, Button } from './ui';
 import { ArrowLeftIcon, CalendarDaysIcon, SparklesIcon } from './icons';
 import { useAttendance } from '../hooks/useAttendance';
-import { FormularPrezenta } from './ListaPrezentaAntrenament';
+import { FormularPrezenta, SportivCuTip, TipMembru } from './ListaPrezentaAntrenament';
 import { PrezentaRapida } from './Prezenta/PrezentaRapida';
 import { useStatusePrezenta } from '../hooks/useStatusePrezenta';
+import { formatTime } from '../utils/date';
+
+// Utilitar: combină sportivii principali cu cei secundari, elimină duplicate
+const combinaSportivi = (principali: Sportiv[], secundari: SportivCuTip[]): SportivCuTip[] => {
+    const principaliCuTip: SportivCuTip[] = principali.map(s => ({ ...s, tip: 'principal' as TipMembru }));
+    const idPrincipali = new Set(principaliCuTip.map(s => s.id));
+    const secundariFiltrati = secundari.filter(s => !idPrincipali.has(s.id));
+    return [...principaliCuTip, ...secundariFiltrati].sort((a, b) => a.nume.localeCompare(b.nume));
+};
+
+// Fetch sportivi secundari pentru o grupă
+const fetchSportiviSecundari = async (grupaId: string): Promise<SportivCuTip[]> => {
+    const { data, error } = await supabase
+        .from('sportivi_grupe_secundare')
+        .select('sportiv_id, sportivi(id, nume, prenume, grad_actual_id, status)')
+        .eq('grupa_id', grupaId)
+        .eq('este_activ', true);
+
+    if (error) {
+        console.error('Eroare fetch sportivi secundari:', error.message);
+        return [];
+    }
+
+    return (data || [])
+        .map((row: any) => row.sportivi)
+        .filter((s: any) => s && s.status === 'Activ')
+        .map((s: any) => ({ ...s, tip: 'secundar' as TipMembru }));
+};
 
 interface TrainingWithGroupAndAthletes extends Omit<Antrenament, 'grupe' | 'prezenta'> {
     grupe: (Grupa & { sportivi: Sportiv[] }) | null;
@@ -51,13 +79,24 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
                     .select('*, grupe(*, sportivi(id, nume, prenume, status, grad_actual_id)), prezenta:prezenta_antrenament(sportiv_id, status_id)')
                     .eq('data', selectedDateString);
                 if (error) { showError("Eroare la încărcarea antrenamentelor", error.message); setLoading(false); return; }
-                const processed = (data || []).map(t => ({
-                    ...t,
-                    grupe: t.grupe ? {
-                        ...t.grupe,
-                        sportivi: (t.grupe.sportivi || []).filter((s: Sportiv) => s.status === 'Activ').sort((a: Sportiv, b: Sportiv) => a.nume.localeCompare(b.nume))
-                    } : null
+
+                // Pentru fiecare antrenament, fetch sportivii secundari ai grupei
+                const processed = await Promise.all((data || []).map(async t => {
+                    const principali = t.grupe
+                        ? (t.grupe.sportivi || []).filter((s: Sportiv) => s.status === 'Activ')
+                        : [];
+                    const grupaId = t.grupe?.id ?? t.grupa_id;
+                    const secundari = grupaId ? await fetchSportiviSecundari(grupaId) : [];
+
+                    return {
+                        ...t,
+                        grupe: t.grupe ? {
+                            ...t.grupe,
+                            sportivi: combinaSportivi(principali, secundari),
+                        } : null,
+                    };
                 }));
+
                 setTrainings(processed.sort((a, b) => a.ora_start.localeCompare(b.ora_start)) as TrainingWithGroupAndAthletes[]);
                 setLoading(false);
             };
@@ -75,9 +114,18 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
             .eq('id', id).single();
         if (error) { showError("Eroare", error.message); setLoading(false); return; }
         if (data) {
+            const principali = data.grupe
+                ? (data.grupe.sportivi || []).filter((s: any) => s.status === 'Activ')
+                : [];
+            const grupaId = data.grupe?.id ?? data.grupa_id;
+            const secundari = grupaId ? await fetchSportiviSecundari(grupaId) : [];
+
             const processed = {
                 ...data,
-                grupe: data.grupe ? { ...data.grupe, sportivi: (data.grupe.sportivi || []).filter((s: any) => s.status === 'Activ').sort((a: any, b: any) => a.nume.localeCompare(b.nume)) } : null,
+                grupe: data.grupe ? {
+                    ...data.grupe,
+                    sportivi: combinaSportivi(principali, secundari),
+                } : null,
                 prezenta: (data.prezenta || []).map((p: any) => ({ ...p, status: p.status_id ? (statusById[p.status_id] ?? null) : null })),
             };
             setSelectedTraining(processed as any);
@@ -163,7 +211,7 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-white">{t.grupe?.denumire || 'Antrenament Liber'}</h3>
-                                    <p className="text-sm text-slate-400">{t.ora_start} - {t.ora_sfarsit} • {t.grupe?.sportivi.length || 0} sportivi</p>
+                                    <p className="text-sm text-slate-400">{formatTime(t.ora_start)} - {formatTime(t.ora_sfarsit)} • {t.grupe?.sportivi.length || 0} sportivi</p>
                                 </div>
                             </div>
                             <Button size="sm" onClick={() => setSelectedTraining(t)} className="w-full sm:w-auto">

@@ -135,7 +135,33 @@
       "Bash(find /c/Users/lungu/portal-phihau -name *.sql)",
       "Bash(find /c/Users/lungu/portal-phihau/types -name *.ts)",
       "Bash(find C:Userslunguportal-phihau -type f \\\\\\(-name *ProfilSportiv* -o -name *profil-sportiv* \\\\\\))",
-      "Bash(find C:Userslunguportal-phihau -type f \\\\\\(-name *UserProfile* \\\\\\))"
+      "Bash(find C:Userslunguportal-phihau -type f \\\\\\(-name *UserProfile* \\\\\\))",
+      "Bash(npm run:*)",
+      "Bash(npx vite:*)",
+      "Bash(npm show:*)",
+      "WebFetch(domain:www.teamsnap.com)",
+      "WebFetch(domain:www.glofox.com)",
+      "WebFetch(domain:zenplanner.com)",
+      "WebFetch(domain:www.sportsengine.com)",
+      "WebFetch(domain:usmanaeem.medium.com)",
+      "WebFetch(domain:gymdesk.com)",
+      "WebFetch(domain:docs.gymdesk.com)",
+      "WebFetch(domain:www.martialytics.com)",
+      "WebFetch(domain:www.versapay.com)",
+      "WebFetch(domain:www.mindbodyonline.com)",
+      "WebFetch(domain:gocardless.com)",
+      "WebFetch(domain:www.subframe.com)",
+      "WebFetch(domain:carbondesignsystem.com)",
+      "WebFetch(domain:groundstandard.shop)",
+      "WebFetch(domain:www.ezfacility.com)",
+      "WebFetch(domain:resasports.com)",
+      "WebFetch(domain:www.justinmind.com)",
+      "Bash(git check-ignore:*)",
+      "Read(//c/Users/lungu/portal-phihau/**)",
+      "Bash(xargs cat:*)"
     ]
+  },
+  "enabledPlugins": {
+    "vercel@claude-plugins-official": true
   }
 }

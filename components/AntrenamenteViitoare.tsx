@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { User, Antrenament, Grupa, AnuntPrezenta } from '../types';
 import { Card, Button } from './ui';
 import { ChevronLeftIcon, ChevronRightIcon, ClockIcon } from './icons';
+import { formatTime } from '../utils/date';
 
 interface AntrenamenteViitoareProps {
     currentUser: User;
@@ -34,7 +35,7 @@ export const AntrenamenteViitoare: React.FC<AntrenamenteViitoareProps> = ({ curr
                 const dateKey = (a.data || '').toString().slice(0, 10);
                 const existing = events.get(dateKey) || [];
                 const groupName = a.grupa_id ? (grupe.find(g => g.id === a.grupa_id)?.denumire || 'Grupă') : 'Liber (Vacanță)';
-                events.set(dateKey, [...existing, { time: `${a.ora_start} - ${a.ora_sfarsit}`, groupName, antrenament: a }]);
+                events.set(dateKey, [...existing, { time: `${formatTime(a.ora_start)} - ${formatTime(a.ora_sfarsit)}`, groupName, antrenament: a }]);
             }
         });
         

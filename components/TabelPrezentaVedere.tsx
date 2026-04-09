@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Card, Button, Select } from './ui';
 import { CheckIcon, XIcon } from './icons';
 import { VederePrezentaSportiv } from '../types';
+import { formatTime } from '../utils/date';
 
 interface TabelPrezentaVedereProps {
     istoricPrezenta: VederePrezentaSportiv[];
@@ -75,7 +76,7 @@ export const TabelPrezentaVedere: React.FC<TabelPrezentaVedereProps> = ({ istori
                                     })}
                                 </span>
                                 <span className="text-sm text-slate-400">
-                                    {p.nume_grupa} • {p.ora_start}
+                                    {p.nume_grupa} • {formatTime(p.ora_start)}
                                 </span>
                             </div>
                             <div className="flex items-center gap-2">

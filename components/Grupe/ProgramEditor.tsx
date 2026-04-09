@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ProgramItem } from '../../types';
 import { Button, Input, Select } from '../ui';
 import { PlusIcon, TrashIcon } from '../icons';
+import { formatTime } from '../../utils/date';
 
 const zileSaptamanaOrdonate: Record<ProgramItem['ziua'], number> = { 'Luni': 1, 'Marți': 2, 'Miercuri': 3, 'Joi': 4, 'Vineri': 5, 'Sâmbătă': 6, 'Duminică': 7 };
 
@@ -29,7 +30,7 @@ export const ProgramEditor: React.FC<{ program: ProgramItem[], setProgram: React
                 <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
                     {sortProgram(program).map((item) => ( 
                         <div key={item.id} className="flex items-center gap-3 bg-slate-700 p-2 rounded">
-                            <span className="font-semibold flex-grow text-white">{item.ziua}: {item.ora_start} - {item.ora_sfarsit}</span>
+                            <span className="font-semibold flex-grow text-white">{item.ziua}: {formatTime(item.ora_start)} - {formatTime(item.ora_sfarsit)}</span>
                             <Button type="button" size="sm" variant="danger" onClick={() => handleRemove(item)}><TrashIcon className="w-4 h-4" /></Button> 
                         </div>
                     ))}

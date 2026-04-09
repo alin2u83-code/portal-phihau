@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../supabaseClient';
 import { Card, Input, Button } from './ui';
 import { ArrowLeftIcon, CalendarDaysIcon, CheckCircleIcon, XCircleIcon } from './icons';
+import { formatTime } from '../utils/date';
 
 interface VederePrezentaSportiv {
     sportiv_id: string;
@@ -137,7 +138,7 @@ export const IstoricPrezentaSportiv: React.FC<IstoricPrezentaSportivProps> = ({ 
                                                 </p>
                                                 <div className="flex items-center text-sm text-slate-400 mt-0.5">
                                                     <CalendarDaysIcon className="w-3.5 h-3.5 mr-1.5 opacity-70" />
-                                                    {record.ora_start}
+                                                    {formatTime(record.ora_start)}
                                                 </div>
                                             </div>
                                             

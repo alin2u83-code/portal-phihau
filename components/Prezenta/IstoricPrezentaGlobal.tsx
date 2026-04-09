@@ -5,6 +5,7 @@ import { ArrowLeftIcon, CalendarDaysIcon } from '../icons';
 import { supabase } from '../../supabaseClient';
 import { useError } from '../ErrorProvider';
 import { ResponsiveTable, Column } from '../ResponsiveTable';
+import { formatTime } from '../../utils/date';
 
 export const IstoricPrezentaGlobal: React.FC<{ onBack: () => void, onViewSportiv?: (s: Sportiv) => void }> = ({ onBack, onViewSportiv }) => {
     const [istoric, setIstoric] = useState<any[]>([]);
@@ -114,7 +115,7 @@ export const IstoricPrezentaGlobal: React.FC<{ onBack: () => void, onViewSportiv
         {
             key: 'ora_start',
             label: 'Ora',
-            render: (row) => <span className="text-slate-500 font-mono">{row.ora_start}</span>
+            render: (row) => <span className="text-slate-500 font-mono">{formatTime(row.ora_start)}</span>
         },
         {
             key: 'nume_sportiv',
@@ -160,7 +161,7 @@ export const IstoricPrezentaGlobal: React.FC<{ onBack: () => void, onViewSportiv
                         <div className="flex items-center gap-2 text-xs text-slate-500">
                             <CalendarDaysIcon className="w-3 h-3" />
                             <span>{new Date((row.data || '').toString().slice(0, 10)).toLocaleDateString('ro-RO')}</span>
-                            <span className="font-mono ml-2">{row.ora_start}</span>
+                            <span className="font-mono ml-2">{formatTime(row.ora_start)}</span>
                         </div>
                     </div>
                     <span className={`px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${row.status?.toLowerCase() === 'prezent' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>

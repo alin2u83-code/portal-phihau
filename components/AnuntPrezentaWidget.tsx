@@ -4,6 +4,7 @@ import { Card, Button, Select, Input } from './ui';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { ChatBubbleLeftEllipsisIcon } from './icons';
+import { formatTime } from '../utils/date';
 
 interface SingleTrainingAnuntProps {
     training: Antrenament;
@@ -126,7 +127,7 @@ const SingleTrainingAnunt: React.FC<SingleTrainingAnuntProps> = ({ training, cur
 
     return (
         <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-600">
-            <p className="font-bold text-white">Antrenament la ora {training.ora_start}</p>
+            <p className="font-bold text-white">Antrenament la ora {formatTime(training.ora_start)}</p>
             <p className="text-sm text-slate-400 mb-4">Anunță instructorul despre prezența ta.</p>
             {existingAnunt && mode === 'options' ? renderExistingAnunt() :
                 mode === 'options' ? renderOptions() :

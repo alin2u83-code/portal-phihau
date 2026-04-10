@@ -124,20 +124,36 @@ export function matchSportiv(
 
 /** Match numele gradului din XLS cu lista de grade din DB */
 export function matchGrad(gradNume: string, grade: Grad[]): Grad | undefined {
+    if (!gradNume) return undefined;
     const norm = normalizeStr(gradNume);
-    // Dacă e un număr simplu (ex: "2"), caută după ordine
+
+    // 1. Număr simplu (ex: "2") → caută după ordine exact
     const asNumber = parseInt(gradNume.trim(), 10);
     if (!isNaN(asNumber) && String(asNumber) === gradNume.trim()) {
-        const byOrdine = grade.find(g => g.ordine === asNumber);
-        if (byOrdine) return byOrdine;
+        return grade.find(g => g.ordine === asNumber);
     }
+
+    // 2. Extrage primul număr din text (ex: "2 Cap Rosu", "Cap Rosu 2", "2CR") → ordine
+    const numMatch = gradNume.match(/\d+/);
+    if (numMatch) {
+        const n = parseInt(numMatch[0], 10);
+        const byOrdine = grade.find(g => g.ordine === n);
+        if (byOrdine) {
+            // Verifică că restul textului se potrivește cu gradul (evită "22" să matcheze ordin 2)
+            const normGrad = normalizeStr(byOrdine.nume);
+            const scoreWithOrdine = similarity(norm, normGrad);
+            if (scoreWithOrdine >= 0.4) return byOrdine;
+        }
+    }
+
+    // 3. Similaritate text complet
     let best: Grad | undefined;
     let bestScore = 0;
     for (const g of grade) {
         const s = similarity(norm, normalizeStr(g.nume));
         if (s > bestScore) { bestScore = s; best = g; }
     }
-    return bestScore >= 0.6 ? best : undefined;
+    return bestScore >= 0.5 ? best : undefined;
 }
 
 // ─── Detectare format ────────────────────────────────────────────────────────

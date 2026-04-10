@@ -203,6 +203,19 @@ function parseExLocal(
         return { metadata, randuri: [], erori };
     }
 
+    // Detectare dinamică coloane din header
+    const headerCells = rows[headerRow].map((c: any) => normalizeStr(String(c)));
+    const colNume = headerCells.findIndex((c: string) => c.includes('num') || c.includes('prenume') || c.includes('sportiv'));
+    const colGrad = headerCells.findIndex((c: string) => c.includes('grad'));
+    const colRez  = headerCells.findIndex((c: string) => c.includes('admis') || c.includes('respins') || c.includes('rezultat'));
+    const colContrib = headerCells.findIndex((c: string) => c.includes('contrib') || c.includes('taxa'));
+
+    // Fallback la poziții clasice dacă header-ul nu e standard
+    const iNume    = colNume    >= 0 ? colNume    : 1;
+    const iGrad    = colGrad    >= 0 ? colGrad    : 3;
+    const iRez     = colRez     >= 0 ? colRez     : 4;
+    const iContrib = colContrib >= 0 ? colContrib : 5;
+
     // Parsare rânduri date
     const randuri: RandImport[] = [];
     for (let r = headerRow + 1; r < rows.length; r++) {
@@ -210,16 +223,16 @@ function parseExLocal(
         const nr = row[0];
         if (!nr || typeof nr !== 'number') continue;
 
-        const numeRaw = String(row[1] || '').trim();
+        const numeRaw = String(row[iNume] || '').trim();
         if (!numeRaw) continue;
 
-        const gradNume = String(row[3] || '').trim();
+        const gradNume = String(row[iGrad] || '').trim();
         let rezultat: 'Admis' | 'Respins' | undefined;
-        const rez = String(row[4] || '').trim().toLowerCase();
+        const rez = String(row[iRez] || '').trim().toLowerCase();
         if (rez === 'admis') rezultat = 'Admis';
         else if (rez === 'respins') rezultat = 'Respins';
 
-        const contributie = typeof row[5] === 'number' ? row[5] : undefined;
+        const contributie = typeof row[iContrib] === 'number' ? row[iContrib] : undefined;
 
         // Split nume: primul cuvânt = Nume, restul = Prenume
         const parts = numeRaw.split(' ');

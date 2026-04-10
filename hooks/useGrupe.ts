@@ -16,7 +16,7 @@ export const useGrupe = (contextId: string | null | undefined, clubId?: string |
             const cached = getCachedData<Grupa[]>(cacheKey, 10);
             if (cached) return cached;
 
-            let query = supabase.from('grupe').select('*, sportivi(count), program:orar_saptamanal!grupa_id(*)');
+            let query = supabase.from('grupe').select('*, sportivi!grupa_id(count), program:orar_saptamanal!grupa_id(*)');
             // Filtrează grupele după club_id dacă nu este SUPER_ADMIN_FEDERATIE
             if (clubId) {
                 query = query.eq('club_id', clubId);

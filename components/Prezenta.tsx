@@ -47,7 +47,7 @@ export const Prezenta: React.FC<{ onBack: () => void; onViewSportiv?: (s: Sporti
             const isFederationLevel = activeRole === 'SUPER_ADMIN_FEDERATIE' || activeRole === 'ADMIN';
             const clubId = isFederationLevel ? null : (activeRoleContext?.club_id ?? currentUser?.club_id ?? null);
 
-            let query = supabase.from('grupe').select('*, program:orar_saptamanal(*), sportivi_count:sportivi(count)');
+            let query = supabase.from('grupe').select('*, program:orar_saptamanal(*), sportivi_count:sportivi!grupa_id(count)');
             if (clubId) {
                 query = query.eq('club_id', clubId);
             }
@@ -77,7 +77,7 @@ export const Prezenta: React.FC<{ onBack: () => void; onViewSportiv?: (s: Sporti
     const handleSelectAntrenament = async (id: string) => {
         setLoading(true);
         const { data, error } = await supabase.from('program_antrenamente')
-            .select('*, grupe(*, sportivi(id, nume, prenume, status, grad_actual_id)), prezenta:prezenta_antrenament(sportiv_id, status_id)')
+            .select('*, grupe(*, sportivi!grupa_id(id, nume, prenume, status, grad_actual_id)), prezenta:prezenta_antrenament(sportiv_id, status_id)')
             .eq('id', id).single();
         if (error) { showError("Eroare", error.message); }
         else if (data) {

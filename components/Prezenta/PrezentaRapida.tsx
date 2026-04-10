@@ -195,7 +195,7 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
         setLoading(true);
         let trainingQuery = supabase
             .from('program_antrenamente')
-            .select('id, ora_start, ora_sfarsit, grupe(denumire, sportivi(id, nume, prenume, status, grad_actual_id)), prezenta:prezenta_antrenament(sportiv_id, status_id)')
+            .select('id, ora_start, ora_sfarsit, grupe(denumire, sportivi!grupa_id(id, nume, prenume, status, grad_actual_id)), prezenta:prezenta_antrenament(sportiv_id, status_id)')
             .eq('data', today)
             .order('ora_start');
         if (clubId) trainingQuery = trainingQuery.eq('club_id', clubId);

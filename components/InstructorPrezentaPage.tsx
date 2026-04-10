@@ -76,7 +76,7 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
                 setLoading(true);
                 const { data, error } = await supabase
                     .from('program_antrenamente')
-                    .select('*, grupe(*, sportivi(id, nume, prenume, status, grad_actual_id)), prezenta:prezenta_antrenament(sportiv_id, status_id)')
+                    .select('*, grupe(*, sportivi!grupa_id(id, nume, prenume, status, grad_actual_id)), prezenta:prezenta_antrenament(sportiv_id, status_id)')
                     .eq('data', selectedDateString);
                 if (error) { showError("Eroare la încărcarea antrenamentelor", error.message); setLoading(false); return; }
 
@@ -110,7 +110,7 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
         setLoading(true);
         const { data, error } = await supabase
             .from('program_antrenamente')
-            .select('*, grupe(*, sportivi(id, nume, prenume, status, grad_actual_id)), prezenta:prezenta_antrenament(sportiv_id, status_id)')
+            .select('*, grupe(*, sportivi!grupa_id(id, nume, prenume, status, grad_actual_id)), prezenta:prezenta_antrenament(sportiv_id, status_id)')
             .eq('id', id).single();
         if (error) { showError("Eroare", error.message); setLoading(false); return; }
         if (data) {

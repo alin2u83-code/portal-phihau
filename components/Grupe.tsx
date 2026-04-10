@@ -108,7 +108,7 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
                 await supabase.from('orar_saptamanal').insert(programToInsert);
             }
             if (newGrupa) {
-                const { data: finalGrupa } = await supabase.from('grupe').select('*, sportivi(count), program:orar_saptamanal!grupa_id(*)').eq('id', newGrupa.id).single();
+                const { data: finalGrupa } = await supabase.from('grupe').select('*, sportivi!grupa_id(count), program:orar_saptamanal!grupa_id(*)').eq('id', newGrupa.id).single();
                 setGrupe(prev => [...(prev as GrupaWithDetails[]), finalGrupa as GrupaWithDetails]);
                 queryClient.invalidateQueries({ queryKey: ['grupe'] });
                 showSuccess("Succes", "Grupa a fost creată.");

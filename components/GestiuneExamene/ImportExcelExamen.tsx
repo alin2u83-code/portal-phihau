@@ -66,6 +66,7 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
     const [eroriParsare, setEroriParsare] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isImporting, setIsImporting] = useState(false);
+    const [filtruActiv, setFiltruActiv] = useState<'toti' | 'fuzzy' | 'nou'>('toti');
 
     // Stare pentru rezolvare manuală (fuzzy + nou)
     const [overrides, setOverrides] = useState<Record<number, {
@@ -88,6 +89,7 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
             setRanduri(result.randuri);
             setEroriParsare(result.erori);
             setOverrides({});
+            setFiltruActiv('toti');
             setStep(2);
         } catch (err: any) {
             showError('Eroare parsare', err.message || 'Nu s-a putut citi fișierul Excel.');
@@ -350,17 +352,29 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
                         ))}
                     </div>
 
-                    {/* Statistici */}
+                    {/* Statistici / Filtre */}
                     <div className="flex gap-3 flex-wrap">
                         <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-900/30 border border-emerald-700/50 text-emerald-400 text-sm font-bold">
                             <CheckCircleIcon className="w-4 h-4" /> {stats.exact} găsiți exact
                         </span>
-                        <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-900/30 border border-amber-700/50 text-amber-400 text-sm font-bold">
+                        <button
+                            onClick={() => setFiltruActiv(filtruActiv === 'fuzzy' ? 'toti' : 'fuzzy')}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm font-bold transition-all
+                                ${filtruActiv === 'fuzzy'
+                                    ? 'bg-amber-500 border-amber-400 text-slate-900'
+                                    : 'bg-amber-900/30 border-amber-700/50 text-amber-400 hover:border-amber-400'}`}
+                        >
                             <ExclamationTriangleIcon className="w-4 h-4" /> {stats.fuzzy} nesiguri
-                        </span>
-                        <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-900/30 border border-rose-700/50 text-rose-400 text-sm font-bold">
+                        </button>
+                        <button
+                            onClick={() => setFiltruActiv(filtruActiv === 'nou' ? 'toti' : 'nou')}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm font-bold transition-all
+                                ${filtruActiv === 'nou'
+                                    ? 'bg-rose-500 border-rose-400 text-white'
+                                    : 'bg-rose-900/30 border-rose-700/50 text-rose-400 hover:border-rose-400'}`}
+                        >
                             <XCircleIcon className="w-4 h-4" /> {stats.nou} inexistenți
-                        </span>
+                        </button>
                         {stats.skip > 0 && (
                             <span className="px-3 py-1.5 rounded-full bg-slate-700 text-slate-400 text-sm font-bold">
                                 {stats.skip} excluși
@@ -383,6 +397,8 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
                     {/* Tabel sportivi */}
                     <div className="max-h-96 overflow-y-auto space-y-2 pr-1">
                         {randuri.map((rand, i) => {
+                            if (filtruActiv === 'fuzzy' && rand.status !== 'fuzzy') return null;
+                            if (filtruActiv === 'nou' && rand.status !== 'nou') return null;
                             const ov = overrides[i] || {};
                             const isSkipped = ov.skip;
                             return (

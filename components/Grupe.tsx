@@ -156,6 +156,14 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
         );
     };
     
+    const handleScoateSportivDinGrupa = async (sportiviId: string) => {
+        const { error } = await supabase.from('sportivi').update({ grupa_id: null }).eq('id', sportiviId);
+        if (error) { showError('Eroare', error); return; }
+        setSportivi(prev => (prev as Sportiv[]).map(s => s.id === sportiviId ? { ...s, grupa_id: null } : s));
+        queryClient.invalidateQueries({ queryKey: ['grupe'] });
+        await refetchGrupe();
+    };
+
     const confirmDelete = async (grupaId: string) => {
         const grupa = (grupe as GrupaWithDetails[]).find(g => g.id === grupaId);
         if ((grupa?.sportivi?.[0]?.count ?? 0) > 0) {
@@ -254,6 +262,7 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
                     totiSportivii={sportivi as Sportiv[]}
                     sportiviInGrupa={(sportivi as Sportiv[]).filter(s => s.grupa_id === grupaForAdaugaSportivi.id)}
                     onSave={handleAdaugaSportiviInGrupa}
+                    onRemove={handleScoateSportivDinGrupa}
                 />
             )}
             {grupaForSecundari && (

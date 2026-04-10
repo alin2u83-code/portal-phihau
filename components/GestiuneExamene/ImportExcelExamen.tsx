@@ -337,10 +337,28 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
                         <p className="text-slate-500 text-xs mt-3">Format acceptat: <strong>Tabel examene locale</strong> (1 sheet) sau <strong>Examen de grad</strong> (multiple sheet-uri)</p>
                         {isLoading && <p className="text-brand-primary text-sm mt-3 animate-pulse">Se procesează fișierul...</p>}
                     </div>
-                    <div className="bg-slate-800/50 rounded-lg p-4 text-sm text-slate-400 space-y-1">
-                        <p className="font-medium text-slate-300 mb-2">Fișiere suportate:</p>
-                        <p>• <strong className="text-slate-200">Phi Hau - Ex. Local - YYYY.MM.DD.xls</strong> → înscrie sportivi + rezultate</p>
-                        <p>• <strong className="text-slate-200">examen de grad YYYY.MM.DD.xls</strong> → importă note per sportiv</p>
+                    <div className="bg-slate-800/50 rounded-lg p-4 text-sm text-slate-400 space-y-3">
+                        <div>
+                            <p className="font-medium text-slate-300 mb-1">Fișiere suportate:</p>
+                            <p>• <strong className="text-slate-200">Phi Hau - Ex. Local - YYYY.MM.DD.xls</strong> → înscrie sportivi + rezultate</p>
+                            <p>• <strong className="text-slate-200">examen de grad YYYY.MM.DD.xls</strong> → importă note per sportiv</p>
+                        </div>
+                        <div>
+                            <p className="font-medium text-slate-300 mb-1">Coloana Grad — formate acceptate:</p>
+                            <div className="grid grid-cols-2 gap-x-4 gap-y-0.5">
+                                <p><strong className="text-slate-200">1</strong> sau <strong className="text-slate-200">1 Câp Alb</strong></p>
+                                <p><strong className="text-slate-200">2</strong> sau <strong className="text-slate-200">2 Câp Roșu</strong></p>
+                                <p><strong className="text-slate-200">3</strong> sau <strong className="text-slate-200">3 Câp Roșu</strong></p>
+                                <p><strong className="text-slate-200">4</strong> sau <strong className="text-slate-200">4 Câp Roșu</strong></p>
+                                <p><strong className="text-slate-200">5</strong> sau <strong className="text-slate-200">5 Câp Albastru</strong></p>
+                                <p><strong className="text-slate-200">6</strong> sau <strong className="text-slate-200">6 Câp Albastru</strong></p>
+                            </div>
+                            <p className="mt-1 text-slate-500 text-xs">Numărul singur (1, 2, 3...) sau numele complet — ambele sunt recunoscute automat.</p>
+                        </div>
+                        <div>
+                            <p className="font-medium text-slate-300 mb-1">Coloana Rezultat:</p>
+                            <p><strong className="text-slate-200">Admis</strong> sau <strong className="text-slate-200">Respins</strong> (dacă lipsește → se marchează automat <em>Neprezentat</em>)</p>
+                        </div>
                     </div>
                 </div>
             )}

@@ -116,6 +116,7 @@ export const useDataProvider = () => {
     // Use the filtering hook internally
     const filteredData = useFilteredData({
         activeRole,
+        activeClubId: activeRoleContext?.club_id ?? null,
         sportivi: data.sportivi,
         sesiuniExamene: data.sesiuniExamene,
         inscrieriExamene: data.inscrieriExamene,
@@ -322,7 +323,9 @@ export const useDataProvider = () => {
                 grade: cleanedSupabase.from('grade').select('*'),
                 tipuriAbonament: cleanedSupabase.from('tipuri_abonament').select('id, denumire, pret, club_id, numar_membri'),
                 tipuriPlati: cleanedSupabase.from('tipuri_plati').select('id, nume'),
-                sesiuniExamene: cleanedSupabase.from('sesiuni_examene').select('*'),
+                sesiuniExamene: (isAdminClub && activeCtx.club_id)
+                    ? cleanedSupabase.from('sesiuni_examene').select('*').eq('club_id', activeCtx.club_id)
+                    : cleanedSupabase.from('sesiuni_examene').select('*'),
                 tranzactii: cleanedSupabase.from('tranzactii').select('*'),
                 evenimente: cleanedSupabase.from('evenimente').select('*'),
                 rezultate: cleanedSupabase.from('rezultate').select('*'),

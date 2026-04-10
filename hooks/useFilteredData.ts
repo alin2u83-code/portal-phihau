@@ -3,6 +3,7 @@ import { Sportiv, Rol, SesiuneExamen, InscriereExamen, Antrenament, Grupa, Plata
 
 interface UseFilteredDataProps {
     activeRole: Rol['nume'] | null;
+    activeClubId?: string | null;
     sportivi: Sportiv[];
     sesiuniExamene: SesiuneExamen[];
     inscrieriExamene: InscriereExamen[];
@@ -25,6 +26,7 @@ interface UseFilteredDataProps {
 
 export const useFilteredData = ({
     activeRole,
+    activeClubId,
     sportivi,
     sesiuniExamene,
     inscrieriExamene,
@@ -44,10 +46,17 @@ export const useFilteredData = ({
     istoricPlatiDetaliat,
     locatii
 }: UseFilteredDataProps) => {
+    const isFederationLevel = activeRole === 'SUPER_ADMIN_FEDERATIE' || activeRole === 'ADMIN';
+    const filteredSesiuniExamene = useMemo(() => {
+        const all = sesiuniExamene || [];
+        if (isFederationLevel || !activeClubId) return all;
+        return all.filter(s => s.club_id === activeClubId);
+    }, [sesiuniExamene, isFederationLevel, activeClubId]);
+
     return useMemo(() => {
         return {
             sportivi: sportivi || [],
-            sesiuniExamene: sesiuniExamene || [],
+            sesiuniExamene: filteredSesiuniExamene,
             inscrieriExamene: inscrieriExamene || [],
             antrenamente: antrenamente || [],
             grupe: grupe || [],
@@ -67,7 +76,7 @@ export const useFilteredData = ({
         };
     }, [
         sportivi,
-        sesiuniExamene,
+        filteredSesiuniExamene,
         inscrieriExamene,
         antrenamente,
         grupe,

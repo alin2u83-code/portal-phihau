@@ -150,6 +150,7 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
         const newInscrieri: InscriereExamen[] = [];
         const newIstoricGrade: IstoricGrade[] = [];
         let importErrors = 0;
+        let primaEroare = '';
 
         for (let i = 0; i < randuri.length; i++) {
             const rand = randuri[i];
@@ -224,7 +225,8 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
                     .maybeSingle();
 
                 if (errI) {
-                    console.error(`[ImportExcel] Eroare înscriere ${rand.numeRaw}:`, errI.message);
+                    console.error(`[ImportExcel] Eroare înscriere ${rand.numeRaw}:`, errI);
+                    if (!primaEroare) primaEroare = `${rand.numeRaw}: [${errI.code}] ${errI.message}`;
                     importErrors++;
                     continue;
                 }
@@ -266,7 +268,7 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
             showSuccess('Import reușit', `${newInscrieri.length} sportivi înscriși${newSportivi.length ? `, ${newSportivi.length} creați` : ''}.`);
             handleClose();
         } else if (newInscrieri.length === 0) {
-            showError('Import eșuat', `Niciun sportiv nu a putut fi înscris. ${importErrors} erori — verifică consola pentru detalii.`);
+            showError('Import eșuat', `Niciun sportiv nu a putut fi înscris. ${importErrors} erori.${primaEroare ? `\n\nPrima eroare: ${primaEroare}` : ''}`);
             // Nu închidem modalul — utilizatorul poate vedea ce s-a întâmplat
         } else {
             showError('Import parțial', `${newInscrieri.length} înscriși cu succes, ${importErrors} erori.`);

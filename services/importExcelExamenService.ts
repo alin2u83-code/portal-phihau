@@ -125,7 +125,12 @@ export function matchSportiv(
 /** Match numele gradului din XLS cu lista de grade din DB */
 export function matchGrad(gradNume: string, grade: Grad[]): Grad | undefined {
     const norm = normalizeStr(gradNume);
-    // Exact match pe ordine numerică dacă textul conține numărul
+    // Dacă e un număr simplu (ex: "2"), caută după ordine
+    const asNumber = parseInt(gradNume.trim(), 10);
+    if (!isNaN(asNumber) && String(asNumber) === gradNume.trim()) {
+        const byOrdine = grade.find(g => g.ordine === asNumber);
+        if (byOrdine) return byOrdine;
+    }
     let best: Grad | undefined;
     let bestScore = 0;
     for (const g of grade) {

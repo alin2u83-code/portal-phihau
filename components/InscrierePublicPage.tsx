@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import { QwanKiDoLogo } from './Logo';
 
 interface Club {
     id: string;
     nume: string;
+    slug?: string | null;
 }
 
 interface FormData {
@@ -28,7 +29,9 @@ interface FormErrors {
 }
 
 export const InscrierePublicPage: React.FC = () => {
+    const { clubSlug } = useParams<{ clubSlug?: string }>();
     const [cluburi, setCluburi] = useState<Club[]>([]);
+    const [clubPreselected, setClubPreselected] = useState<Club | null>(null);
     const [loadingCluburi, setLoadingCluburi] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
@@ -50,17 +53,25 @@ export const InscrierePublicPage: React.FC = () => {
             setLoadingCluburi(true);
             const { data, error } = await supabase
                 .from('cluburi')
-                .select('id, nume')
+                .select('id, nume, slug')
                 .order('nume', { ascending: true });
 
             if (!error && data) {
                 setCluburi(data);
+                // Dacă există slug în URL, pre-selectează clubul și blochează selectorul
+                if (clubSlug) {
+                    const found = data.find(c => c.slug === clubSlug);
+                    if (found) {
+                        setClubPreselected(found);
+                        setFormData(prev => ({ ...prev, club_id: found.id }));
+                    }
+                }
             }
             setLoadingCluburi(false);
         };
 
         fetchCluburi();
-    }, []);
+    }, [clubSlug]);
 
     const handleChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -156,7 +167,7 @@ export const InscrierePublicPage: React.FC = () => {
 
                     <div className="text-center mb-7">
                         <h1 className="text-2xl font-bold text-white tracking-tight">
-                            Înregistrare Sportiv
+                            {clubPreselected ? `Înregistrare — ${clubPreselected.nume}` : 'Înregistrare Sportiv'}
                         </h1>
                         <p className="text-slate-400 mt-1.5 text-sm">
                             Completează formularul și te vom contacta în curând.
@@ -262,29 +273,39 @@ export const InscrierePublicPage: React.FC = () => {
                             />
                         </div>
 
-                        {/* Club */}
-                        <div>
-                            <label className={labelBase}>
-                                Club <span className="text-red-400">*</span>
-                            </label>
-                            <select
-                                name="club_id"
-                                value={formData.club_id}
-                                onChange={handleChange}
-                                disabled={loadingCluburi}
-                                className={`${inputBase} ${errors.club_id ? errorClass : ''} disabled:opacity-50`}
-                            >
-                                <option value="">
-                                    {loadingCluburi ? 'Se încarcă cluburile...' : 'Selectează clubul...'}
-                                </option>
-                                {cluburi.map(club => (
-                                    <option key={club.id} value={club.id}>
-                                        {club.nume}
+                        {/* Club — ascuns dacă e pre-selectat prin slug */}
+                        {clubPreselected ? (
+                            <div className="flex items-center gap-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30">
+                                <svg className="w-4 h-4 text-amber-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                <span className="text-sm text-amber-300 font-medium">{clubPreselected.nume}</span>
+                            </div>
+                        ) : (
+                            <div>
+                                <label className={labelBase}>
+                                    Club <span className="text-red-400">*</span>
+                                </label>
+                                <select
+                                    name="club_id"
+                                    value={formData.club_id}
+                                    onChange={handleChange}
+                                    disabled={loadingCluburi}
+                                    className={`${inputBase} ${errors.club_id ? errorClass : ''} disabled:opacity-50`}
+                                >
+                                    <option value="">
+                                        {loadingCluburi ? 'Se încarcă cluburile...' : 'Selectează clubul...'}
                                     </option>
-                                ))}
-                            </select>
-                            {errors.club_id && <p className="text-xs text-red-400 mt-1">{errors.club_id}</p>}
-                        </div>
+                                    {cluburi.map(club => (
+                                        <option key={club.id} value={club.id}>
+                                            {club.nume}
+                                        </option>
+                                    ))}
+                                </select>
+                                {errors.club_id && <p className="text-xs text-red-400 mt-1">{errors.club_id}</p>}
+                            </div>
+                        )}
 
                         {/* Mesaj */}
                         <div>

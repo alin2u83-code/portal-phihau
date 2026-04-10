@@ -17,7 +17,7 @@ interface CerereInscriere {
     created_at: string;
     procesat_la: string | null;
     motiv_respingere: string | null;
-    club: { nume: string } | null;
+    club: { nume: string; slug?: string | null } | null;
 }
 
 interface CereriInscriereProps {
@@ -46,7 +46,7 @@ export const CereriInscriere: React.FC<CereriInscriereProps> = ({ onBack }) => {
         setLoading(true);
         const { data, error } = await supabase
             .from('cereri_inregistrare')
-            .select('*, club:club_id(nume)')
+            .select('*, club:club_id(nume, slug)')
             .order('created_at', { ascending: false });
 
         if (!error && data) {
@@ -96,8 +96,14 @@ export const CereriInscriere: React.FC<CereriInscriereProps> = ({ onBack }) => {
         setMotivRespingere('');
     };
 
+    // Obține link-ul personalizat al clubului (primul club găsit în cereri sau generic)
+    const clubSlugDetectat = cereri.find(c => c.club?.slug)?.club?.slug;
+    const linkInscriere = clubSlugDetectat
+        ? `${window.location.origin}/inscriere/${clubSlugDetectat}`
+        : `${window.location.origin}/inscriere`;
+
     const handleCopyLink = async () => {
-        const link = `${window.location.origin}/inscriere`;
+        const link = linkInscriere;
         try {
             await navigator.clipboard.writeText(link);
             setCopySuccess(true);
@@ -138,36 +144,38 @@ export const CereriInscriere: React.FC<CereriInscriereProps> = ({ onBack }) => {
     return (
         <div className="space-y-6 animate-fade-in-down">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div>
-                    <h1 className="text-2xl font-bold text-white">Cereri Înscriere</h1>
-                    <p className="text-slate-400 text-sm mt-0.5">Gestionează cererile de înregistrare online.</p>
+            <div className="flex flex-col gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div>
+                        <h1 className="text-2xl font-bold text-white">Cereri Înscriere</h1>
+                        <p className="text-slate-400 text-sm mt-0.5">Gestionează cererile de înregistrare online.</p>
+                    </div>
+                    <button
+                        onClick={handleCopyLink}
+                        className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all border ${
+                            copySuccess
+                                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                                : 'bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/20'
+                        }`}
+                        title="Copiază link-ul personalizat de înscriere"
+                    >
+                        {copySuccess ? (
+                            <>
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                                Link copiat!
+                            </>
+                        ) : (
+                            <>
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 010 5.656L10.414 19.24A4 4 0 014.757 13.583l1.415-1.415m5.656-5.656l1.414-1.414a4 4 0 015.657 5.657l-3.535 3.535" />
+                                </svg>
+                                Copiază link club
+                            </>
+                        )}
+                    </button>
                 </div>
-                <button
-                    onClick={handleCopyLink}
-                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all border ${
-                        copySuccess
-                            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                            : 'bg-slate-800 border-slate-700 text-slate-300 hover:text-white hover:bg-slate-700'
-                    }`}
-                    title="Copiază link-ul public de înscriere"
-                >
-                    {copySuccess ? (
-                        <>
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                            Link copiat!
-                        </>
-                    ) : (
-                        <>
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 010 5.656L10.414 19.24A4 4 0 014.757 13.583l1.415-1.415m5.656-5.656l1.414-1.414a4 4 0 015.657 5.657l-3.535 3.535" />
-                            </svg>
-                            Copiază link înscriere
-                        </>
-                    )}
-                </button>
             </div>
 
             {/* Tabs */}

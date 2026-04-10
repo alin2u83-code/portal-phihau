@@ -76,6 +76,7 @@ function App() {
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/reset-password" element={<ResetPasswordPage />} />
                 <Route path="/inscriere" element={<InscrierePublicPage />} />
+                <Route path="/inscriere/:clubSlug" element={<InscrierePublicPage />} />
                 <Route path="*" element={<Navigate to="/login" replace />} />
             </Routes>
         ) : effectiveNeedsRoleSelection ? (

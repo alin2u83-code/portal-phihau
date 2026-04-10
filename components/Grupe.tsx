@@ -179,8 +179,28 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
         setGrupaToDelete(null);
     };
 
-    // Remove loading check if not needed
-    
+    if (grupeLoading) {
+        return (
+            <div className="space-y-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div className="flex items-center gap-3">
+                        <Button variant="secondary" onClick={onBack}><ArrowLeftIcon className="w-5 h-5 mr-2" />Înapoi</Button>
+                        <h1 className="text-2xl sm:text-3xl font-bold text-white">Management Grupe & Orar</h1>
+                    </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {[1, 2, 3].map(i => (
+                        <div key={i} className="bg-slate-800 rounded-xl p-6 animate-pulse">
+                            <div className="h-6 bg-slate-700 rounded w-2/3 mb-4"></div>
+                            <div className="h-4 bg-slate-700 rounded w-1/2 mb-2"></div>
+                            <div className="h-4 bg-slate-700 rounded w-1/3"></div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">

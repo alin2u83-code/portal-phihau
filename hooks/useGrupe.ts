@@ -33,6 +33,11 @@ export const useGrupe = (contextId: string | null | undefined, clubId?: string |
 
             return result;
         },
-        staleTime: 10 * 60 * 1000, // Also tell React Query to keep it fresh for 10 mins
+        staleTime: (query) => {
+            // Nu considera datele "fresh" dacă sunt goale — permite re-fetch la navigare
+            const data = query.state.data as Grupa[] | undefined;
+            if (!data || data.length === 0) return 0;
+            return 10 * 60 * 1000; // 10 min dacă avem date reale
+        },
     });
 };

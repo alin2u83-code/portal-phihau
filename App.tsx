@@ -21,6 +21,7 @@ import { ClubGuard } from './components/ClubGuard';
 import { useAppStore } from './src/store/useAppStore';
 import { LoginPage } from './components/LoginPage';
 import { ResetPasswordPage } from './components/ResetPasswordPage';
+import { InscrierePublicPage } from './components/InscrierePublicPage';
 import { useAppLogic } from './hooks/useAppLogic';
 import { AppLayout } from './components/AppLayout';
 import { AIAssistantProvider } from './contexts/AIAssistantContext';
@@ -74,6 +75,7 @@ function App() {
             <Routes>
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/reset-password" element={<ResetPasswordPage />} />
+                <Route path="/inscriere" element={<InscrierePublicPage />} />
                 <Route path="*" element={<Navigate to="/login" replace />} />
             </Routes>
         ) : effectiveNeedsRoleSelection ? (

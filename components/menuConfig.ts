@@ -76,6 +76,7 @@ export const adminMenu: MenuItem[] = [
         ]
     },
     { label: 'Notificări', icon: ClipboardCheckIcon, view: 'notificari' },
+    { label: 'Cereri Înscriere', icon: UserPlusIcon, view: 'cereri-inscriere' },
     { label: 'Istoric Activitate', icon: ClockIcon, view: 'istoric-activitate' },
 ];
 
@@ -133,6 +134,7 @@ export const adminClubMenu: MenuItem[] = [
         ]
     },
     { label: 'Notificări', icon: ClipboardCheckIcon, view: 'notificari' },
+    { label: 'Cereri Înscriere', icon: UserPlusIcon, view: 'cereri-inscriere' },
     { label: 'Istoric Activitate', icon: ClockIcon, view: 'istoric-activitate' },
 ];
 

@@ -356,51 +356,144 @@ const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps & { sesiuneData: 
         setLoading(false);
     };
 
+    // Selectare / deselectare toți sportivii filtrați (fără viză exclusă dacă isEligible)
+    const handleSelectAll = (checked: boolean) => {
+        if (!checked) {
+            // Deselectăm pe toți cei filtrați
+            const filteredIds = new Set(filteredSportivi.map(s => s.id));
+            setSelections(prev => {
+                const next = new Map(prev);
+                filteredIds.forEach(id => next.delete(id));
+                return next;
+            });
+            return;
+        }
+        // Selectăm toți eligibili din filtrare (fără să așteptăm sugestiile — le setăm din defaultNextGradeId)
+        setSelections(prev => {
+            const next = new Map(prev);
+            filteredSportivi.forEach(s => {
+                if (s.isEligible && !next.has(s.id)) {
+                    next.set(s.id, suggestions.get(s.id) || s.defaultNextGradeId || '');
+                }
+            });
+            return next;
+        });
+    };
+
+    const allFilteredEligibleSelected = filteredSportivi.length > 0 &&
+        filteredSportivi.filter(s => s.isEligible).every(s => selections.has(s.id));
+
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Adaugă Participanți la Examen">
             <div className="space-y-4">
-                <Input
-                    label=""
-                    placeholder="Filtrează sportivi..."
-                    value={filterTerm}
-                    onChange={e => setFilterTerm(e.target.value)}
-                />
-                <div className="max-h-96 overflow-y-auto space-y-2 p-2 bg-slate-900/50 rounded-lg border border-slate-700">
+                {/* Bara de filtrare + selectare totală */}
+                <div className="flex gap-2 items-center">
+                    <div className="flex-grow">
+                        <Input
+                            label=""
+                            placeholder="Caută după nume sau prenume..."
+                            value={filterTerm}
+                            onChange={e => setFilterTerm(e.target.value)}
+                        />
+                    </div>
+                    {filteredSportivi.some(s => s.isEligible) && (
+                        <button
+                            type="button"
+                            onClick={() => handleSelectAll(!allFilteredEligibleSelected)}
+                            className="flex-shrink-0 text-xs px-3 py-2 rounded-lg border border-slate-600 text-slate-300 hover:border-brand-secondary hover:text-brand-secondary transition-colors"
+                            title={allFilteredEligibleSelected ? 'Deselectează toți' : 'Selectează toți eligibilii'}
+                        >
+                            {allFilteredEligibleSelected ? 'Deselectează toți' : 'Selectează toți'}
+                        </button>
+                    )}
+                </div>
+
+                {/* Contoare */}
+                {selections.size > 0 && (
+                    <div className="flex items-center gap-2 px-3 py-2 bg-brand-secondary/10 border border-brand-secondary/30 rounded-lg">
+                        <CheckCircleIcon className="w-4 h-4 text-brand-secondary flex-shrink-0" />
+                        <span className="text-sm text-brand-secondary font-semibold">
+                            {selections.size} {selections.size === 1 ? 'sportiv selectat' : 'sportivi selectați'}
+                        </span>
+                        {Array.from(selections.values()).some(v => !v) && (
+                            <span className="ml-auto text-xs text-amber-400 font-bold">
+                                Grad neales la {Array.from(selections.values()).filter(v => !v).length}
+                            </span>
+                        )}
+                    </div>
+                )}
+
+                <div className="max-h-[420px] overflow-y-auto space-y-2 p-2 bg-slate-900/50 rounded-lg border border-slate-700">
+                    {filteredSportivi.length === 0 && (
+                        <p className="text-center text-slate-500 py-8 text-sm">
+                            {filterTerm ? 'Niciun sportiv găsit pentru filtrul aplicat.' : 'Toți sportivii activi sunt deja înscriși.'}
+                        </p>
+                    )}
                    {(filteredSportivi || []).map(s => {
                        const isSelected = selections.has(s.id);
-                       const { isEligible, lastPromotionDate, hasVisa } = s;
+                       const { isEligible, hasVisa } = s;
+                       const gradSelectat = selections.get(s.id) || '';
+                       const gradSelectatNume = grade.find(g => g.id === gradSelectat)?.nume;
                        return (
-                           <div key={s.id} className={`p-3 rounded-md transition-colors ${isSelected ? 'bg-brand-secondary/20' : (isEligible ? 'bg-slate-700/50' : 'bg-red-900/20 opacity-70')}`}>
+                           <div
+                               key={s.id}
+                               className={`p-3 rounded-lg border transition-all ${
+                                   isSelected
+                                       ? 'bg-brand-secondary/15 border-brand-secondary/40'
+                                       : isEligible
+                                           ? 'bg-slate-700/40 border-slate-700/60 hover:border-slate-600'
+                                           : 'bg-red-900/10 border-red-900/30 opacity-60'
+                               }`}
+                           >
                                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                                   <div className="flex items-center gap-3 flex-grow">
+                                   {/* Checkbox + info sportiv */}
+                                   <div className="flex items-start gap-3 flex-grow min-w-0">
                                        <input
                                            type="checkbox"
                                            checked={isSelected}
                                            onChange={(e) => handleSelect(s.id, e.target.checked)}
-                                           className="h-5 w-5 rounded border-slate-500 bg-slate-900 text-brand-secondary focus:ring-brand-secondary focus:ring-offset-slate-800 flex-shrink-0"
+                                           className="mt-0.5 h-5 w-5 rounded border-slate-500 bg-slate-900 text-brand-secondary focus:ring-brand-secondary focus:ring-offset-slate-800 flex-shrink-0 cursor-pointer"
                                            disabled={!isEligible || fetchingSuggestions}
                                        />
-                                       <div className="flex-grow">
-                                           <p className={`font-medium ${!isEligible ? 'text-slate-400' : 'text-white'}`}>{s.nume} {s.prenume}</p>
-                                           <div className="flex flex-wrap gap-x-4 gap-y-1">
+                                       <div className="flex-grow min-w-0">
+                                           <p className={`font-semibold truncate ${!isEligible ? 'text-slate-400' : 'text-white'}`}>
+                                               {s.nume} {s.prenume}
+                                           </p>
+                                           <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5">
+                                               <span className="text-xs text-slate-400">
+                                                   Grad actual: <span className="text-slate-300">{grade.find(g => g.id === s.grad_actual_id)?.nume || 'Începător'}</span>
+                                               </span>
+                                               <span className="text-xs text-brand-secondary/80">
+                                                   {getAgeOnDate(s.data_nasterii, sesiuneData)} ani
+                                               </span>
                                                {!hasVisa && (
-                                                    <p className="text-xs text-red-400 font-bold">LIPSĂ VIZĂ ANUALĂ {sesiuneYear}</p>
+                                                   <span className="text-xs text-red-400 font-bold uppercase">
+                                                       Fără viză {sesiuneYear}
+                                                   </span>
                                                )}
-                                               <p className="text-xs text-slate-400">Grad actual: {grade.find(g => g.id === s.grad_actual_id)?.nume || 'Începător'}</p>
-                                               <p className="text-xs text-brand-secondary font-bold">Vârstă la examen: {getAgeOnDate(s.data_nasterii, sesiuneData)} ani</p>
                                            </div>
+                                           {/* Afișare grad selectat pe mobil */}
+                                           {isSelected && gradSelectatNume && (
+                                               <p className="sm:hidden text-xs text-brand-secondary font-semibold mt-1">
+                                                   Grad vizat: {gradSelectatNume}
+                                               </p>
+                                           )}
                                        </div>
                                    </div>
-                                   <div className="w-full sm:w-48 pl-8 sm:pl-0">
+                                   {/* Select grad — vizibil mereu dar disabled dacă nu e selectat */}
+                                   <div className="w-full sm:w-52 pl-8 sm:pl-0 flex-shrink-0">
                                        <Select
                                            label=""
                                            value={selections.get(s.id) || ''}
                                            onChange={(e) => handleGradeChange(s.id, e.target.value)}
                                            disabled={!isSelected || !isEligible}
-                                           className="!py-2 text-sm w-full"
+                                           className={`!py-1.5 text-sm w-full ${isSelected && !gradSelectat ? 'border-amber-500/60' : ''}`}
                                        >
-                                           <option value="">Alege grad...</option>
+                                           <option value="">
+                                               {fetchingSuggestions && isSelected ? 'Se calculează...' : 'Alege grad...'}
+                                           </option>
                                            {(grade || [])
+                                                .sort((a, b) => a.ordine - b.ordine)
                                                 .filter(g => {
                                                     const age = getAgeOnDate(s.data_nasterii, sesiuneData);
                                                     if (age < 12 && g.nume.toLowerCase().includes('dang')) return false;
@@ -414,10 +507,20 @@ const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps & { sesiuneData: 
                        );
                    })}
                 </div>
-                <div className="flex justify-end pt-4 gap-2 border-t border-slate-700">
-                    <Button variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button>
-                    <Button variant="primary" onClick={handleSaveClick} isLoading={loading} disabled={selections.size === 0 || fetchingSuggestions}>
-                        Adaugă {selections.size > 0 ? `${selections.size} Participanți` : ''}
+                <div className="flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center pt-4 gap-3 border-t border-slate-700">
+                    <Button variant="secondary" onClick={onClose} disabled={loading} className="sm:w-auto">
+                        Anulează
+                    </Button>
+                    <Button
+                        variant="primary"
+                        onClick={handleSaveClick}
+                        isLoading={loading}
+                        disabled={selections.size === 0 || fetchingSuggestions || Array.from(selections.values()).some(v => !v)}
+                        className="sm:w-auto"
+                    >
+                        {loading ? 'Se înscriu...' : selections.size > 0
+                            ? `Înscrie ${selections.size} ${selections.size === 1 ? 'Sportiv' : 'Sportivi'}`
+                            : 'Selectează sportivi'}
                     </Button>
                 </div>
             </div>
@@ -683,26 +786,34 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 let plataId: string | null = null;
                 
                 // 1. Get registration details (fee and suggested grade) from RPC
-                const { data: regDetails, error: regError } = await supabase.rpc('get_registration_details', { 
-                    p_sportiv_id: sportiv.id 
-                });
-                
-                if (regError) throw new Error(`Eroare la calculul taxei: ${regError.message}`);
-                
-                const taxaSuma = regDetails?.[0]?.taxa_suma || 0;
-                const gradSugeratNume = regDetails?.[0]?.grad_sugerat_nume || grad.nume;
+                // Fallback graceful: dacă RPC nu există sau returnează eroare, continuăm fără taxă
+                let taxaSuma = 0;
+                let gradSugeratNume = grad.nume;
+                try {
+                    const { data: regDetails, error: regError } = await supabase.rpc('get_registration_details', {
+                        p_sportiv_id: sportiv.id
+                    });
+                    if (!regError && regDetails?.[0]) {
+                        taxaSuma = regDetails[0].taxa_suma || 0;
+                        gradSugeratNume = regDetails[0].grad_sugerat_nume || grad.nume;
+                    }
+                } catch {
+                    // RPC indisponibil — continuăm fără taxă automată
+                    console.warn(`[ManagementInscrieri] get_registration_details indisponibil pentru ${sportiv.id}, continuăm fără taxă.`);
+                }
 
                 // 2. Generate automatic invoice
                 if (taxaSuma > 0) {
                     const plataData = {
-                        sportiv_id: sportiv.id, 
-                        familie_id: sportiv.familie_id, 
-                        suma: taxaSuma, 
-                        data: sesiune.data, 
+                        sportiv_id: sportiv.id,
+                        familie_id: sportiv.familie_id,
+                        suma: taxaSuma,
+                        data: sesiune.data,
                         status: 'Neachitat' as const,
-                        descriere: `Taxa examen ${gradSugeratNume}`, 
-                        tip: 'Taxa Examen' as const, 
-                        observatii: `Generat automat la înscriere examen (Vârstă: ${getAgeOnDate(sportiv.data_nasterii, sesiune.data)} ani).`
+                        descriere: `Taxa examen ${gradSugeratNume}`,
+                        tip: 'Taxa Examen' as const,
+                        observatii: `Generat automat la înscriere examen (Vârstă: ${getAgeOnDate(sportiv.data_nasterii, sesiune.data)} ani).`,
+                        club_id: sportiv.club_id
                     };
                     const { data: pData, error: pError } = await supabase.from('plati').insert(plataData).select().maybeSingle();
                     if (pError) throw new Error(`Factura pt ${sportiv.nume} nu a putut fi generată: ${pError.message}`);
@@ -823,7 +934,8 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                         const sportiv = sportivi.find(s => s.id === inscriereToEdit.sportiv_id);
                         const plataData: Omit<Plata, 'id'> = {
                             sportiv_id: inscriereToEdit.sportiv_id, familie_id: sportiv?.familie_id || null, suma: taxaConfig.suma, data: sesiune.data, status: 'Neachitat',
-                            descriere: descriereFactura, tip: 'Taxa Examen', observatii: 'Generat automat la modificare înscriere.'
+                            descriere: descriereFactura, tip: 'Taxa Examen', observatii: 'Generat automat la modificare înscriere.',
+                            club_id: sportiv?.club_id || null
                         };
                         const { data: pData, error: pError } = await supabase.from('plati').insert(plataData).select().maybeSingle();
                         if (pError) throw pError;
@@ -1232,47 +1344,68 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         const prenume = inscriere.sportiv_prenume || inscriere.sportivi?.prenume || '';
         const fullName = `${nume} ${prenume}`.trim() || 'Necunoscut';
 
+        const gradActualNume = grade.find(g => g.id === inscriere.grad_actual_id)?.nume;
+        const gradVizatNume = inscriere.grad_sustinut || inscriere.grades?.nume;
+
         return (
-            <Card className="mb-4 border-l-4 border-brand-primary">
-                <div className="flex justify-between items-start mb-2">
-                    <div>
-                        <p className="font-bold text-white text-lg" onClick={() => { if(sportiv) onViewSportiv(sportiv); }}>
+            <Card className={`mb-3 border-l-4 ${
+                rezultat === 'Admis' ? 'border-emerald-500' :
+                rezultat === 'Respins' ? 'border-red-500' :
+                'border-brand-primary'
+            }`}>
+                {/* Header card */}
+                <div className="flex items-start justify-between gap-2 mb-3">
+                    <div className="flex-grow min-w-0">
+                        <p
+                            className="font-bold text-white text-base leading-tight cursor-pointer hover:text-brand-primary transition-colors"
+                            onClick={() => { if(sportiv) onViewSportiv(sportiv); }}
+                        >
                             {fullName}
                         </p>
-                        <p className="text-sm text-brand-secondary font-semibold">
-                            Grad Vizat: {inscriere.grad_sustinut || inscriere.grades?.nume || 'Necunoscut'}
-                        </p>
-                        <div className="mt-1">
-                            <span className={`text-[10px] px-2 py-0.5 rounded font-bold border ${inscriere.status_plata === 'Achitat' ? 'bg-green-900/40 text-green-400 border-green-700/50' : 'bg-amber-900/40 text-amber-400 border-amber-700/50'}`}>
-                                STATUS PLATĂ: {inscriere.status_plata || 'Necunoscut'}
+                        {/* Grade: actual → vizat */}
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
+                            <span className="text-xs text-slate-400">
+                                {gradActualNume || inscriere.nume_grad_actual || 'Fără grad'}
+                            </span>
+                            <span className="text-slate-600 text-xs">→</span>
+                            <span className="text-xs font-bold text-brand-secondary">
+                                {gradVizatNume || 'Necunoscut'}
                             </span>
                         </div>
                     </div>
+                    <span className={`flex-shrink-0 text-[10px] px-2 py-0.5 rounded-full font-bold border ${
+                        inscriere.status_plata === 'Achitat'
+                            ? 'bg-green-900/40 text-green-400 border-green-700/50'
+                            : 'bg-amber-900/40 text-amber-400 border-amber-700/50'
+                    }`}>
+                        {inscriere.status_plata === 'Achitat' ? 'Achitat' : 'Neachitat'}
+                    </span>
                 </div>
-                
-                <div className="mt-4 space-y-3">
+
+                {/* Rezultat */}
+                <div className="space-y-3">
                     <div>
-                        <label className="text-xs text-slate-400 uppercase font-bold mb-1 block">Rezultat</label>
-                        <Select 
-                            label="" 
+                        <label className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1 block">Rezultat</label>
+                        <Select
+                            label=""
                             value={rezultat}
                             onChange={(e) => handleResultChange(inscriere.id, e.target.value as any)}
-                            className={`!py-2 w-full ${statusColorClass}`}
+                            className={`!py-2 w-full text-sm ${statusColorClass}`}
                             disabled={isReadOnly}
                         >
-                            <option value="Neprezentat">În așteptare</option>
+                            <option value="Neprezentat">In așteptare</option>
                             <option value="Admis">Admis</option>
                             <option value="Respins">Respins</option>
                         </Select>
                     </div>
 
                     {!isReadOnly && (
-                        <div className="flex justify-end gap-2 pt-2 border-t border-slate-700">
+                        <div className="flex gap-2 pt-2 border-t border-slate-700/60">
                             <Button size="sm" variant="secondary" onClick={() => handleOpenEditModal(inscriere)} className="flex-1 justify-center">
-                                <EditIcon className="w-4 h-4 mr-2" /> Modifică
+                                <EditIcon className="w-3.5 h-3.5 mr-1.5" /> Editează
                             </Button>
                             <Button size="sm" variant="danger" onClick={() => handleInitiateDelete(inscriere)} className="flex-1 justify-center">
-                                <TrashIcon className="w-4 h-4 mr-2" /> Retrage
+                                <TrashIcon className="w-3.5 h-3.5 mr-1.5" /> Retrage
                             </Button>
                         </div>
                     )}
@@ -1281,32 +1414,67 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         );
     };
 
+    // Statistici rapide
+    const statsAdmis = participantiInscrisi.filter(i => (rezultateLocale[i.id] || i.rezultat) === 'Admis').length;
+    const statsRespins = participantiInscrisi.filter(i => (rezultateLocale[i.id] || i.rezultat) === 'Respins').length;
+    const statsAsteptare = participantiInscrisi.filter(i => !i.rezultat || i.rezultat === 'Neprezentat').length;
+
     return (
-        <div className="space-y-6">
-             {!isReadOnly && (
+        <div className="space-y-5">
+            {/* ── Card Înscriere ── */}
+            {!isReadOnly && (
                 <Card>
-                    <h3 className="text-lg font-bold text-white mb-2">Înscriere Participanți</h3>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+                        <div>
+                            <h3 className="text-base font-bold text-white">Înscriere Participanți</h3>
+                            <p className="text-xs text-slate-400 mt-0.5">Adaugă sportivi individual sau selectează mai mulți odată</p>
+                        </div>
+                    </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <Button onClick={() => setIsSingleAddModalOpen(true)} variant="primary" className="w-full">
-                            <PlusIcon className="w-5 h-5 mr-2" /> Înscriere Individuală
+                        <Button onClick={() => setIsSingleAddModalOpen(true)} variant="primary" className="w-full justify-center">
+                            <PlusIcon className="w-4 h-4 mr-2" /> Adaugă Individual
                         </Button>
-                        <Button onClick={() => setIsBulkAddModalOpen(true)} variant="info" className="w-full">
-                            <PlusIcon className="w-5 h-5 mr-2" /> Adaugă Participanți (Bulk)
+                        <Button onClick={() => setIsBulkAddModalOpen(true)} variant="info" className="w-full justify-center">
+                            <PlusIcon className="w-4 h-4 mr-2" /> Adaugă Multipli
                         </Button>
                     </div>
                 </Card>
-             )}
+            )}
+
+            {/* ── Statistici rezultate (afișate doar dacă există participanți) ── */}
+            {participantiInscrisi.length > 0 && (
+                <div className="grid grid-cols-3 gap-3">
+                    <div className="bg-emerald-900/20 border border-emerald-700/30 rounded-xl p-3 text-center">
+                        <p className="text-2xl font-bold text-emerald-400">{statsAdmis}</p>
+                        <p className="text-xs text-emerald-300 mt-0.5 uppercase tracking-wide">Admiși</p>
+                    </div>
+                    <div className="bg-amber-900/20 border border-amber-700/30 rounded-xl p-3 text-center">
+                        <p className="text-2xl font-bold text-amber-400">{statsAsteptare}</p>
+                        <p className="text-xs text-amber-300 mt-0.5 uppercase tracking-wide">În așteptare</p>
+                    </div>
+                    <div className="bg-red-900/20 border border-red-700/30 rounded-xl p-3 text-center">
+                        <p className="text-2xl font-bold text-red-400">{statsRespins}</p>
+                        <p className="text-xs text-red-300 mt-0.5 uppercase tracking-wide">Respinși</p>
+                    </div>
+                </div>
+            )}
 
             <Card>
-                 <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-lg font-bold text-white">Participanți Înscriși ({participantiInscrisi.length})</h3>
+                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+                    <h3 className="text-base font-bold text-white">
+                        Participanți Înscriși
+                        <span className="ml-2 px-2 py-0.5 rounded-full bg-slate-700 text-slate-300 text-xs font-normal">
+                            {participantiInscrisi.length}
+                        </span>
+                    </h3>
                     {!isReadOnly && (
-                        <div className="flex flex-col sm:flex-row gap-3">
+                        <div className="flex flex-wrap gap-2">
                             {participantiInscrisi.some(i => (rezultateLocale[i.id] || i.rezultat) !== 'Admis') && (
                                 <Button
                                     variant="success"
                                     onClick={handleAdmitAll}
                                     disabled={isSavingResults}
+                                    size="sm"
                                     title="Marchează toți participanții ca Admiși"
                                 >
                                     Admite Toți
@@ -1315,12 +1483,13 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                             {desyncedInscrieri.length > 0 && (
                                 <Button
                                     variant="secondary"
+                                    size="sm"
                                     className="border-amber-500 text-amber-500 hover:bg-amber-500/10"
                                     onClick={handleForceSync}
                                     disabled={isSavingResults}
                                 >
                                     <AlertTriangle className="w-4 h-4 mr-2" />
-                                    Sincronizare Forțată ({desyncedInscrieri.length})
+                                    Sincronizare ({desyncedInscrieri.length})
                                 </Button>
                             )}
                         </div>

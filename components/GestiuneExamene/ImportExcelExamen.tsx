@@ -200,22 +200,33 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
                       ).getTime()) / (1000 * 60 * 60 * 24 * 365.25))
                     : 0;
 
+                // Găsim grad_actual_id al sportivului (înainte de examen)
+                const sportivRef = sportivi.find(s => s.id === sportivId) || newSportivi.find(s => s.id === sportivId);
+
+                const inscrierePayload: Record<string, unknown> = {
+                    sportiv_id: sportivId,
+                    sesiune_id: sesiune.id,
+                    grad_sustinut_id: gradId,
+                    grad_actual_id: sportivRef?.grad_actual_id || null,
+                    club_id: sportivRef?.club_id || sesiune.club_id || null,
+                    varsta_la_examen: varsta,
+                    rezultat: rand.rezultat || 'Neprezentat',
+                    status_inscriere: 'Validat',
+                    note_detaliate: rand.note || null,
+                };
+
                 const { data: inscr, error: errI } = await supabase
                     .from('inscrieri_examene')
-                    .upsert({
-                        sportiv_id: sportivId,
-                        sesiune_id: sesiune.id,
-                        grad_sustinut_id: gradId,
-                        varsta_la_examen: varsta,
-                        rezultat: rand.rezultat || null,
-                        status_inscriere: 'Validat',
-                        contributie: rand.contributie || null,
-                        note_detaliate: rand.note || null,
-                    }, { onConflict: 'sportiv_id,sesiune_id' })
+                    .upsert(inscrierePayload, { onConflict: 'sportiv_id,sesiune_id' })
                     .select()
                     .maybeSingle();
 
-                if (errI || !inscr) { importErrors++; continue; }
+                if (errI) {
+                    console.error(`[ImportExcel] Eroare înscriere ${rand.numeRaw}:`, errI.message);
+                    importErrors++;
+                    continue;
+                }
+                if (!inscr) { importErrors++; continue; }
                 newInscrieri.push(inscr as InscriereExamen);
 
                 // ── Dacă Admis → înregistrează în istoric_grade ──
@@ -251,10 +262,14 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
 
         if (importErrors === 0) {
             showSuccess('Import reușit', `${newInscrieri.length} sportivi înscriși${newSportivi.length ? `, ${newSportivi.length} creați` : ''}.`);
+            handleClose();
+        } else if (newInscrieri.length === 0) {
+            showError('Import eșuat', `Niciun sportiv nu a putut fi înscris. ${importErrors} erori — verifică consola pentru detalii.`);
+            // Nu închidem modalul — utilizatorul poate vedea ce s-a întâmplat
         } else {
-            showError('Import parțial', `${newInscrieri.length} înscriși, ${importErrors} erori.`);
+            showError('Import parțial', `${newInscrieri.length} înscriși cu succes, ${importErrors} erori.`);
+            handleClose();
         }
-        handleClose();
     };
 
     // ─── Reset la închidere ────────────────────────────────────────────────

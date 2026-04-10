@@ -444,11 +444,16 @@ export const ImportSportiviExamen: React.FC<ImportSportiviExamenProps> = ({
             }
 
             try {
-                // Calcul taxă via RPC
-                const { data: regDetails } = await supabase.rpc('get_registration_details', {
-                    p_sportiv_id: sportiv.id,
-                });
-                const taxaSuma = regDetails?.[0]?.taxa_suma || 0;
+                // Calcul taxă via RPC — fallback la 0 dacă funcția nu e disponibilă
+                let taxaSuma = 0;
+                try {
+                    const { data: regDetails, error: regError } = await supabase.rpc('get_registration_details', {
+                        p_sportiv_id: sportiv.id,
+                    });
+                    if (!regError && regDetails?.[0]) taxaSuma = regDetails[0].taxa_suma || 0;
+                } catch {
+                    console.warn(`[ImportSportiviExamen] get_registration_details indisponibil, continuăm fără taxă.`);
+                }
 
                 let plataId: string | null = null;
                 if (taxaSuma > 0) {

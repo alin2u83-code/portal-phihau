@@ -191,10 +191,16 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
                     newSportivi.push(newS as Sportiv);
                 }
 
-                if (!sportivId) { importErrors++; continue; }
+                if (!sportivId) {
+                    if (!primaEroare) primaEroare = `${rand.numeRaw}: sportivId lipsă (status: ${rand.status})`;
+                    importErrors++; continue;
+                }
 
                 const gradId = rand.gradId;
-                if (!gradId) { importErrors++; continue; }
+                if (!gradId) {
+                    if (!primaEroare) primaEroare = `${rand.numeRaw}: gradId lipsă (grad: ${rand.gradNume})`;
+                    importErrors++; continue;
+                }
 
                 // ── Înregistrare la examen ──
                 const varsta = sesiune.data && (sportivi.find(s => s.id === sportivId) || newSportivi.find(s => s.id === sportivId))?.data_nasterii
@@ -230,7 +236,10 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
                     importErrors++;
                     continue;
                 }
-                if (!inscr) { importErrors++; continue; }
+                if (!inscr) {
+                    if (!primaEroare) primaEroare = `${rand.numeRaw}: upsert fără date returnate (sportiv_id=${sportivId}, sesiune_id=${sesiune.id}, grad_id=${gradId})`;
+                    importErrors++; continue;
+                }
                 newInscrieri.push(inscr as InscriereExamen);
 
                 // ── Dacă Admis → înregistrează în istoric_grade ──

@@ -69,8 +69,9 @@ export const adminMenu: MenuItem[] = [
     {
         label: 'Setări & Admin', icon: CogIcon,
         submenu: [
-            { label: 'Setări Club', view: 'setari-club' },
+            { label: 'Gestiune Cluburi', view: 'cluburi' },
             { label: 'Structură Federație', view: 'structura-federatie' },
+            { label: 'Setări Club', view: 'setari-club' },
             { label: 'Mentenanță Date', view: 'data-maintenance' },
             { label: 'Setări Cont', view: 'account-settings' },
         ]

@@ -426,15 +426,18 @@ export const DateInputDMY: React.FC<DateInputDMYProps> = ({ label, value, onChan
   const [an, setAn] = useState('');
   const lunaRef = useRef<HTMLInputElement>(null);
   const anRef = useRef<HTMLInputElement>(null);
-  // Flag care previne ca useEffect să reseteze câmpurile interne
-  // când onChange('') a fost emis chiar de noi (date incomplete în curs de tastare)
-  const skipExternalSyncRef = useRef(false);
+  // Previne resetarea câmpurilor interne cât timp utilizatorul are focus activ
+  const hasFocusRef = useRef(false);
+  // Valoarea externă anterioară — sincronizăm doar când valoarea se schimbă cu adevărat din exterior
+  const lastExternalValueRef = useRef<string>('');
 
   useEffect(() => {
-    if (skipExternalSyncRef.current) {
-      skipExternalSyncRef.current = false;
-      return;
-    }
+    // Nu suprascriem câmpurile dacă utilizatorul tastează activ
+    if (hasFocusRef.current) return;
+    // Sincronizăm doar dacă valoarea externă s-a schimbat față de ultima dată când am sincronizat
+    if (value === lastExternalValueRef.current) return;
+    lastExternalValueRef.current = value || '';
+
     if (value && value.match(/^\d{4}-\d{2}-\d{2}$/)) {
       const [y, m, d] = value.split('-');
       setAn(y); setLuna(m); setZi(d);
@@ -444,12 +447,12 @@ export const DateInputDMY: React.FC<DateInputDMYProps> = ({ label, value, onChan
   }, [value]);
 
   const emit = (z: string, l: string, a: string) => {
-    if (z.length <= 2 && l.length <= 2 && a.length === 4) {
-      onChange(`${a}-${l.padStart(2,'0')}-${z.padStart(2,'0')}`);
+    if (z.length <= 2 && l.length <= 2 && a.length === 4 && +z >= 1 && +z <= 31 && +l >= 1 && +l <= 12) {
+      const emitted = `${a}-${l.padStart(2,'0')}-${z.padStart(2,'0')}`;
+      lastExternalValueRef.current = emitted;
+      onChange(emitted);
     } else {
-      // Data incompletă — marcăm că această schimbare vine din interior
-      // ca să nu se triggere reset-ul din useEffect
-      skipExternalSyncRef.current = true;
+      lastExternalValueRef.current = '';
       onChange('');
     }
   };
@@ -471,6 +474,9 @@ export const DateInputDMY: React.FC<DateInputDMYProps> = ({ label, value, onChan
     setAn(v); emit(zi, luna, v);
   };
 
+  const handleFocus = () => { hasFocusRef.current = true; };
+  const handleBlur = () => { hasFocusRef.current = false; };
+
   const cls = `w-full bg-slate-800 border ${error ? 'border-red-500' : 'border-slate-700'} rounded-lg px-2 py-2 text-white text-center text-base focus:outline-none focus:ring-2 focus:ring-amber-500 disabled:opacity-50`;
 
   return (
@@ -482,17 +488,17 @@ export const DateInputDMY: React.FC<DateInputDMYProps> = ({ label, value, onChan
       )}
       <div className="flex gap-2 items-end">
         <div className="flex flex-col items-center gap-1 flex-1">
-          <input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="ZZ" value={zi} onChange={handleZi} disabled={disabled} maxLength={2} className={cls} aria-label="Zi" />
+          <input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="ZZ" value={zi} onChange={handleZi} onFocus={handleFocus} onBlur={handleBlur} disabled={disabled} maxLength={2} className={cls} aria-label="Zi" />
           <span className="text-xs text-slate-500">Zi</span>
         </div>
         <span className="text-slate-500 mb-5">/</span>
         <div className="flex flex-col items-center gap-1 flex-1">
-          <input ref={lunaRef} type="text" inputMode="numeric" pattern="[0-9]*" placeholder="LL" value={luna} onChange={handleLuna} disabled={disabled} maxLength={2} className={cls} aria-label="Lună" />
+          <input ref={lunaRef} type="text" inputMode="numeric" pattern="[0-9]*" placeholder="LL" value={luna} onChange={handleLuna} onFocus={handleFocus} onBlur={handleBlur} disabled={disabled} maxLength={2} className={cls} aria-label="Lună" />
           <span className="text-xs text-slate-500">Lună</span>
         </div>
         <span className="text-slate-500 mb-5">/</span>
         <div className="flex flex-col items-center gap-1 flex-[2]">
-          <input ref={anRef} type="text" inputMode="numeric" pattern="[0-9]*" placeholder="AAAA" value={an} onChange={handleAn} disabled={disabled} maxLength={4} className={cls} aria-label="An" />
+          <input ref={anRef} type="text" inputMode="numeric" pattern="[0-9]*" placeholder="AAAA" value={an} onChange={handleAn} onFocus={handleFocus} onBlur={handleBlur} disabled={disabled} maxLength={4} className={cls} aria-label="An" />
           <span className="text-xs text-slate-500">An</span>
         </div>
       </div>

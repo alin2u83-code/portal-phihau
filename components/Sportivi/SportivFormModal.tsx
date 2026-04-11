@@ -146,13 +146,23 @@ export const SportivFormModal: React.FC<{
                         onQuickAddFamilie={() => setIsFamilieModalOpen(true)}
                         allRoles={allRoles}
                     />
-                    <div className="flex justify-end pt-4 mt-4 gap-2 border-t border-slate-700">
-                        <Button type="button" variant="secondary" onClick={handleClose} disabled={loading}>Închide</Button>
+                    {/* Footer: stivuit pe mobil, aliniat dreapta pe desktop */}
+                    <div className="flex flex-col-reverse sm:flex-row sm:justify-end pt-4 mt-4 gap-2 border-t border-slate-700">
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={handleClose}
+                            disabled={loading}
+                            className="w-full sm:w-auto"
+                        >
+                            Închide
+                        </Button>
                         <Button
                             type="submit"
                             variant={sportivToEdit ? 'success' : 'primary'}
                             isLoading={loading}
                             disabled={!isFormValid || loading}
+                            className="w-full sm:w-auto"
                         >
                             {sportivToEdit ? 'Salvează Modificările' : 'Adaugă Practicant'}
                         </Button>

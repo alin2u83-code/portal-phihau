@@ -318,7 +318,7 @@ export const useDataProvider = () => {
             };
 
             const queries: Record<string, any> = {
-                clubs: cleanedSupabase.from('cluburi').select('id, nume, theme_config'),
+                clubs: cleanedSupabase.from('cluburi').select('id, nume, cif, oras, theme_config'),
                 allRoles: cleanedSupabase.from('roluri').select('id, nume'),
                 grade: cleanedSupabase.from('grade').select('*'),
                 tipuriAbonament: cleanedSupabase.from('tipuri_abonament').select('id, denumire, pret, club_id, numar_membri'),

@@ -44,6 +44,7 @@ interface UserProfileProps {
 export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNavigate, onViewExameneRaport, onViewSportiv }) => {
     const {
         currentUser,
+        activeRoleContext,
         setIstoricGrade,
         setSportivi,
         setPlati,
@@ -112,13 +113,21 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
         });
     }, [sportiv]);
 
-    const isSuperAdmin = currentUser.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN');
-    const isClubAdmin = currentUser.roluri.some(r => r.nume === 'ADMIN_CLUB');
+    // Derivăm rolul activ din activeRoleContext (sursa de adevăr) pentru a evita
+    // inconsistențele din currentUser.roluri când utilizatorul are un singur rol
+    const activeRoleName = activeRoleContext?.roluri?.nume || activeRoleContext?.rol_denumire || null;
+    const isSuperAdmin = activeRoleName === 'SUPER_ADMIN_FEDERATIE' || activeRoleName === 'ADMIN'
+        || currentUser.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN');
+    const isClubAdmin = activeRoleName === 'ADMIN_CLUB'
+        || currentUser.roluri.some(r => r.nume === 'ADMIN_CLUB');
+    // Admin de club are același acces la informații sensibile ca și super adminii
+    const isAdminOrAbove = isSuperAdmin || isClubAdmin;
     const canViewSensitiveInfo = useMemo(() => {
-        return currentUser.roluri.some(r => 
+        if (activeRoleName && ['SUPER_ADMIN_FEDERATIE', 'ADMIN', 'ADMIN_CLUB', 'INSTRUCTOR'].includes(activeRoleName)) return true;
+        return currentUser.roluri.some(r =>
             ['SUPER_ADMIN_FEDERATIE', 'ADMIN', 'ADMIN_CLUB', 'INSTRUCTOR'].includes(r.nume)
         );
-    }, [currentUser.roluri]);
+    }, [activeRoleName, currentUser.roluri]);
 
     const gradeHistory = useMemo(() => {
         if (!istoricGrade || !grade) return [];
@@ -614,7 +623,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
                             </Button>
                         </>
                     )}
-                    {isSuperAdmin && (
+                    {isAdminOrAbove && (
                         <Button variant="danger" onClick={() => setIsDeleteModalOpen(true)} className="shadow-sm hover:shadow-md transition-all">
                             <TrashIcon className="w-4 h-4 mr-2"/> Șterge
                         </Button>

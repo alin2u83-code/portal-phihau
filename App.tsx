@@ -25,6 +25,7 @@ import { InscrierePublicPage } from './components/InscrierePublicPage';
 import { useAppLogic } from './hooks/useAppLogic';
 import { AppLayout } from './components/AppLayout';
 import { AIAssistantProvider } from './contexts/AIAssistantContext';
+import { useLocalStorage } from './hooks/useLocalStorage';
 
 function App() {
   const {
@@ -38,9 +39,37 @@ function App() {
 
   const { activeView, setActiveView, goBack, canGoBack } = useNavigation();
   const { isSidebarExpanded, setIsSidebarExpanded } = useAppStore();
-  
-  const [selectedSportiv, setSelectedSportiv] = React.useState<Sportiv | null>(null);
+
+  const { filteredData, loading: dataLoading } = useData();
+
+  const [selectedSportiv, setSelectedSportivState] = React.useState<Sportiv | null>(null);
+  const [selectedSportivId, setSelectedSportivId] = useLocalStorage<string | null>('phi-hau-selected-sportiv-id', null);
   const [platiPentruIncasare, setPlatiPentruIncasare] = React.useState<Plata[]>([]);
+
+  // La refresh: daca activeView === 'profil-sportiv' si selectedSportiv lipseste,
+  // recupereaza sportivul dupa ID-ul salvat in localStorage
+  useEffect(() => {
+    if (activeView !== 'profil-sportiv') return;
+    if (selectedSportiv !== null) return;
+    if (dataLoading) return;
+    if (!selectedSportivId) {
+      setActiveView('sportivi');
+      return;
+    }
+    const found = filteredData.sportivi.find(s => s.id === selectedSportivId);
+    if (found) {
+      setSelectedSportivState(found);
+    } else {
+      // ID-ul salvat nu mai exista sau nu e accesibil — curata si redirecteaza
+      setSelectedSportivId(null);
+      setActiveView('sportivi');
+    }
+  }, [activeView, selectedSportiv, selectedSportivId, filteredData.sportivi, dataLoading, setActiveView, setSelectedSportivId]);
+
+  const setSelectedSportiv = React.useCallback((s: Sportiv | null) => {
+    setSelectedSportivState(s);
+    setSelectedSportivId(s ? s.id : null);
+  }, [setSelectedSportivId]);
 
   const handleBackToDashboard = React.useCallback(() => {
     if (canGoBack) {

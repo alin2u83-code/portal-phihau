@@ -121,9 +121,12 @@ export const LoginPage: React.FC = () => {
 
                 </Card>
                 
-                <div className="mt-8 text-center">
+                <div className="mt-8 text-center space-y-1">
                     <p className="text-slate-600 text-xs uppercase tracking-widest font-bold">
                         Qwan Ki Do - România
+                    </p>
+                    <p className="text-slate-700 text-[10px] tracking-wide">
+                        Realizat cu <span className="text-amber-700">AI</span> de <span className="text-slate-500 font-semibold">Alin Lungu</span>
                     </p>
                 </div>
             </div>

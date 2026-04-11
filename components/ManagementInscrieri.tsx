@@ -1096,8 +1096,18 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                         { onConflict: 'sportiv_id,grad_id', ignoreDuplicates: true }
                     )
                 );
+                // Actualizează grad_actual_id în DB doar dacă noul grad e superior celui curent
+                const newGrade = grade.find(g => g.id === newGradId);
+                const currentGrade = grade.find(g => g.id === inscriere.grad_actual_id);
+                if ((newGrade?.ordine ?? 0) > (currentGrade?.ordine ?? -1)) {
+                    allPromises.push(
+                        supabase.from('sportivi')
+                            .update({ grad_actual_id: newGradId })
+                            .eq('id', inscriere.sportiv_id)
+                    );
+                }
                 sportiviUpdatesLocal.push({ id: inscriere.sportiv_id, grad_actual_id: newGradId });
-            } 
+            }
             // 3. Revert if it was previously Admis and now it's not
             else if (oldResult === 'Admis') {
                 allPromises.push(supabase.from('istoric_grade').delete().match({ sportiv_id: inscriere.sportiv_id, sesiune_examen_id: sesiune.id }));
@@ -1168,6 +1178,16 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                         { onConflict: 'sportiv_id,grad_id', ignoreDuplicates: true }
                     )
                 );
+                // Actualizează grad_actual_id în DB dacă noul grad e superior celui curent
+                const newGrade = grade.find(g => g.id === inscriere.grad_sustinut_id);
+                const currentGrade = grade.find(g => g.id === inscriere.grad_actual_id);
+                if ((newGrade?.ordine ?? 0) > (currentGrade?.ordine ?? -1)) {
+                    allPromises.push(
+                        supabase.from('sportivi')
+                            .update({ grad_actual_id: inscriere.grad_sustinut_id })
+                            .eq('id', inscriere.sportiv_id)
+                    );
+                }
                 sportiviUpdates.push({ id: inscriere.sportiv_id, grad_actual_id: inscriere.grad_sustinut_id });
             }
         }
@@ -1232,6 +1252,16 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                     { onConflict: 'sportiv_id,grad_id', ignoreDuplicates: true }
                 )
             );
+            // Actualizează grad_actual_id în DB (sincronizare forțată)
+            const newGrade = grade.find(g => g.id === newGradId);
+            const currentGrade = grade.find(g => g.id === inscriere.grad_actual_id);
+            if ((newGrade?.ordine ?? 0) > (currentGrade?.ordine ?? -1)) {
+                syncPromises.push(
+                    supabase.from('sportivi')
+                        .update({ grad_actual_id: newGradId })
+                        .eq('id', inscriere.sportiv_id)
+                );
+            }
             sportiviUpdatesLocal.push({ id: inscriere.sportiv_id, grad_actual_id: newGradId });
         }
 

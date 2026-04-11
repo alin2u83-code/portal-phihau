@@ -120,7 +120,11 @@ export const Sportivi: React.FC<{
         return grupe.filter(g => g.club_id === clubIdActiv);
     }, [grupe, permissions.isFederationAdmin, filters.clubFilter, activeRoleContext?.club_id, currentUser?.club_id]);
 
-    const PAGE_SIZE_OPTIONS = [5, 10, 20, 50, 100];
+    const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
+    const PAGE_SIZE_LS_KEY = 'phi-hau-sportivi-page-size';
+
+    // Preferința de page size persistă în localStorage
+    const [savedPageSize, setSavedPageSize] = useLocalStorage<number>(PAGE_SIZE_LS_KEY, 25);
 
     // Cheie sessionStorage pentru salvarea stării de paginare + scroll
     const PAGINATION_STORAGE_KEY = 'phi-hau-sportivi-pagination-state';
@@ -145,7 +149,8 @@ export const Sportivi: React.FC<{
     const restoredState = restoredStateRef.current;
 
     const [page, setPage] = useState(restoredState?.page ?? 1);
-    const [pageSize, setPageSize] = useState(restoredState?.pageSize ?? 20);
+    // Prioritate: stare restaurată din sessionStorage (revenire din profil) > preferință localStorage > default 25
+    const [pageSize, setPageSize] = useState(restoredState?.pageSize ?? savedPageSize);
     const [loadAll, setLoadAll] = useState(restoredState?.loadAll ?? false);
     const [showMutaGrupaModal, setShowMutaGrupaModal] = useState(false);
 
@@ -180,8 +185,16 @@ export const Sportivi: React.FC<{
     }, [filters.searchTerm, filters.statusFilter, filters.grupaFilter, filters.rolFilter, filters.gradFilter, setFilters]);
 
     const handlePageSizeChange = (newSize: number) => {
-        setPageSize(newSize);
-        setPage(1);
+        if (newSize === 0) {
+            // Valoarea 0 = "Toți"
+            setLoadAll(true);
+            setPage(1);
+        } else {
+            setPageSize(newSize);
+            setSavedPageSize(newSize); // persită în localStorage
+            setLoadAll(false);
+            setPage(1);
+        }
     };
 
     const handleLoadAll = () => {
@@ -671,18 +684,12 @@ export const Sportivi: React.FC<{
                                 {PAGE_SIZE_OPTIONS.map(n => (
                                     <option key={n} value={n}>{n}</option>
                                 ))}
+                                {(permissions.isAdminClub || permissions.isFederationAdmin) && (
+                                    <option value={0}>Toți ({totalSportivi})</option>
+                                )}
                             </select>
                             / pagină
                         </label>
-                        {(permissions.isAdminClub || permissions.isFederationAdmin) && totalSportivi > pageSize && (
-                            <button
-                                onClick={handleLoadAll}
-                                disabled={sportiviLoading}
-                                className="text-brand-primary hover:text-brand-primary/80 underline underline-offset-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                {sportiviLoading ? 'Se încarcă...' : `Încarcă toți (${totalSportivi})`}
-                            </button>
-                        )}
                     </div>
                     {/* Dreapta: butoane navigare */}
                     {totalPages > 1 && (
@@ -716,18 +723,29 @@ export const Sportivi: React.FC<{
                     )}
                 </div>
             ) : (
-                <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-700/50">
-                    <span className="text-sm text-slate-400">
-                        {sportiviLoading
-                            ? 'Se încarcă toți sportivii...'
-                            : `Afișând toți ${totalSportivi} sportivii`}
-                    </span>
-                    <button
-                        onClick={handleResetPagination}
-                        className="text-sm text-brand-primary hover:text-brand-primary/80 underline underline-offset-2"
-                    >
-                        Revenire la paginare
-                    </button>
+                <div className="flex flex-wrap items-center justify-between gap-3 mt-4 pt-4 border-t border-slate-700/50">
+                    <div className="flex flex-wrap items-center gap-2 text-sm text-slate-400">
+                        <span>
+                            {sportiviLoading
+                                ? 'Se încarcă toți sportivii...'
+                                : `Afișând toți ${totalSportivi} sportivii`}
+                        </span>
+                        <span className="text-slate-600">|</span>
+                        <label className="flex items-center gap-1 text-sm">
+                            Afișează
+                            <select
+                                value={0}
+                                onChange={e => handlePageSizeChange(Number(e.target.value))}
+                                className="bg-slate-800 border border-slate-600 text-white rounded-md px-2 py-1 text-sm cursor-pointer focus:outline-none focus:ring-1 focus:ring-brand-primary"
+                            >
+                                {PAGE_SIZE_OPTIONS.map(n => (
+                                    <option key={n} value={n}>{n}</option>
+                                ))}
+                                <option value={0}>Toți ({totalSportivi})</option>
+                            </select>
+                            / pagină
+                        </label>
+                    </div>
                 </div>
             )}
 

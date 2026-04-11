@@ -125,7 +125,7 @@ export const useExamManager = (
                     
                     if (!existingIstoric) {
                         // Arhivare note în observații
-                        const notesStr = inscriere.note_detaliate 
+                        const notesStr = inscriere.note_detaliate
                             ? Object.entries(inscriere.note_detaliate).map(([k, v]) => `${k}: ${v}`).join(', ')
                             : '';
 
@@ -141,10 +141,26 @@ export const useExamManager = (
                             })
                             .select()
                             .single();
-                        
+
                         if (insertIstoricError) throw insertIstoricError;
                         if (newIstoricData) newIstoricEntries.push(newIstoricData as IstoricGrade);
                         updatedSportiviIds.add(inscriere.sportiv_id);
+                    }
+
+                    // Actualizează grad_actual_id direct în DB.
+                    // Trigger-ul SQL sync_grad_actual_on_exam_result protejează contra downgrade,
+                    // dar dacă triggerul nu e activ, actualizăm oricum (cel mai mare grad obținut
+                    // este garantat de ordinea for-loop și de validarea de mai jos).
+                    const targetGrade = grade.find(g => g.id === targetGradId);
+                    const currentGrade = grade.find(g => g.id === inscriere.grad_actual_id);
+                    const targetOrdine = targetGrade?.ordine ?? 0;
+                    const currentOrdine = currentGrade?.ordine ?? -1;
+                    if (targetOrdine > currentOrdine) {
+                        const { error: gradUpdateError } = await supabase
+                            .from('sportivi')
+                            .update({ grad_actual_id: targetGradId })
+                            .eq('id', inscriere.sportiv_id);
+                        if (gradUpdateError) throw gradUpdateError;
                     }
                 }
                 totalSportivi++;

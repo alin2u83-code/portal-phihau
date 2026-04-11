@@ -182,22 +182,12 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
         
         const descriereFactura = `${taxaToGenerate.descriere || 'Taxă Anuală'} ${taxaToGenerate.an}`;
 
-        const existingPlatiDesc = new Set(
-            plati.filter(p => p.descriere === descriereFactura).map(p => p.sportiv_id)
-        );
-        const sportiviDeFacturat = sportiviActivi.filter(s => !existingPlatiDesc.has(s.id));
-
-        if (sportiviDeFacturat.length === 0) {
-            showSuccess("Info", "Toți sportivii activi au deja o factură generată pentru această taxă.");
-            setIsGenerating(false);
-            setTaxaToGenerate(null);
-            return;
-        }
-
-        const newPlati = sportiviDeFacturat.map(s => ({
+        // Verificare server-side prin coloana `an` — elimină verificarea client-side fragilă bazată pe `descriere`
+        const newPlati = sportiviActivi.map(s => ({
             sportiv_id: s.id,
             familie_id: s.familie_id,
             club_id: s.club_id,
+            an: taxaToGenerate.an,
             suma: taxaToGenerate.suma,
             data: new Date().toISOString().split('T')[0],
             status: 'Neachitat',
@@ -206,16 +196,25 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
             observatii: 'Generat automat'
         }));
 
-        const { data, error } = await supabase.from('plati').insert(newPlati).select();
+        // upsert: duplicate per (sportiv_id, an) sunt silențioase
+        const { data, error } = await supabase
+            .from('plati')
+            .upsert(newPlati, { onConflict: 'sportiv_id,an', ignoreDuplicates: true })
+            .select();
         
         setIsGenerating(false);
         setTaxaToGenerate(null);
 
         if (error) {
             showError("Eroare la generarea facturilor", error);
-        } else if (data) {
-            setPlati(prev => [...prev, ...data]);
-            showSuccess("Operațiune finalizată", `${data.length} facturi noi au fost generate.`);
+        } else {
+            const generated = data ?? [];
+            if (generated.length > 0) {
+                setPlati(prev => [...prev, ...generated]);
+                showSuccess("Operațiune finalizată", `${generated.length} facturi noi au fost generate.`);
+            } else {
+                showSuccess("Info", "Toți sportivii activi au deja o taxă anuală generată pentru acest an.");
+            }
         }
     };
 

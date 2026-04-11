@@ -119,44 +119,41 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
             const familyIdsInClub = new Set(sportiviActivi.map(s => s.familie_id).filter(Boolean));
             const relevantFamilies = familii.filter(f => familyIdsInClub.has(f.id));
             
+            // luna și an numerice pentru coloanele de unicitate
+            const lunaCurenta = today.getMonth() + 1; // 1–12
+
             relevantFamilies.forEach(familie => {
                 const membriActiviInFamilie = sportiviActivi.filter(s => s.familie_id === familie.id);
                 if (membriActiviInFamilie.length === 0) return;
-    
-                const exists = (plati || []).some(p => 
-                    p.familie_id === familie.id && 
-                    p.tip === 'Abonament' && 
-                    new Date((p.data || '').toString().slice(0, 10)).getMonth() === lunaCurentaIdx && 
-                    new Date((p.data || '').toString().slice(0, 10)).getFullYear() === anulCurent
-                );
-                if (exists) {
-                    membriActiviInFamilie.forEach(m => sportiviProcesati.add(m.id));
-                    return;
-                }
-    
+
+                // Nu mai verificăm client-side — upsert cu onConflict garantează unicitatea
                 const nrMembri = membriActiviInFamilie.length;
                 let abonamentConfig = (tipuriAbonament || []).find(ab => ab.numar_membri === nrMembri);
                 if (!abonamentConfig && nrMembri > 1) {
                     abonamentConfig = [...(tipuriAbonament || [])].filter(ab => ab.numar_membri > 1).sort((a, b) => b.numar_membri - a.numar_membri)[0];
                 }
-    
+
                 if (abonamentConfig) {
                     const creditFamilie = balances.famBalances.get(familie.id) || 0;
                     let sumaDeFacturat = abonamentConfig.pret;
                     let status: Plata['status'] = 'Neachitat';
                     let observatii = `Abonament pt: ${membriActiviInFamilie.map(m => m.prenume).join(', ')}.`;
-                    if (creditFamilie >= sumaDeFacturat) { status = 'Achitat'; observatii += ` Stins automat din credit.`; } 
+                    if (creditFamilie >= sumaDeFacturat) { status = 'Achitat'; observatii += ` Stins automat din credit.`; }
                     else if (creditFamilie > 0) { sumaDeFacturat -= creditFamilie; observatii += ` Parțial stins din credit.`; }
-    
-                    platiToInsert.push({ sportiv_id: null, familie_id: familie.id, suma: sumaDeFacturat, data: dataCurenta, status: status, descriere: `Abonament Familie ${lunaText}`, tip: 'Abonament', observatii: observatii, club_id: membriActiviInFamilie[0]?.club_id });
+
+                    platiToInsert.push({
+                        sportiv_id: null, familie_id: familie.id,
+                        luna: lunaCurenta, an: anulCurent,
+                        suma: sumaDeFacturat, data: dataCurenta, status,
+                        descriere: `Abonament Familie ${lunaText}`, tip: 'Abonament',
+                        observatii, club_id: membriActiviInFamilie[0]?.club_id
+                    });
                     membriActiviInFamilie.forEach(m => sportiviProcesati.add(m.id));
                 }
             });
-    
+
             sportiviActivi.forEach(sportiv => {
                 if (sportiviProcesati.has(sportiv.id) || sportiv.familie_id) return;
-                const exists = (plati || []).some(p => p.sportiv_id === sportiv.id && p.tip === 'Abonament' && new Date((p.data || '').toString().slice(0, 10)).getMonth() === lunaCurentaIdx && new Date((p.data || '').toString().slice(0, 10)).getFullYear() === anulCurent);
-                if (exists) return;
                 const abonamentConfig = (tipuriAbonament || []).find(ab => ab.id === sportiv.tip_abonament_id)
                     || (tipuriAbonament || []).find(ab => ab.numar_membri === 1);
                 if (abonamentConfig) {
@@ -164,16 +161,50 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                     let sumaDeFacturat = abonamentConfig.pret;
                     let status: Plata['status'] = 'Neachitat';
                     let observatii = 'Generat automat.';
-                    if (creditSportiv >= sumaDeFacturat) { status = 'Achitat'; observatii += ' Stins automat din credit.'; } 
+                    if (creditSportiv >= sumaDeFacturat) { status = 'Achitat'; observatii += ' Stins automat din credit.'; }
                     else if (creditSportiv > 0) { sumaDeFacturat -= creditSportiv; observatii += ' Parțial stins din credit.'; }
-                    platiToInsert.push({ sportiv_id: sportiv.id, familie_id: null, suma: sumaDeFacturat, data: dataCurenta, status: status, descriere: `Abonament ${lunaText}`, tip: 'Abonament', observatii: observatii, club_id: sportiv.club_id });
+                    platiToInsert.push({
+                        sportiv_id: sportiv.id, familie_id: null,
+                        luna: lunaCurenta, an: anulCurent,
+                        suma: sumaDeFacturat, data: dataCurenta, status,
+                        descriere: `Abonament ${lunaText}`, tip: 'Abonament',
+                        observatii, club_id: sportiv.club_id
+                    });
                 }
             });
-    
+
             if (platiToInsert.length > 0) {
-                const { data, error: insertError } = await supabase.from('plati').insert(platiToInsert).select();
-                if (insertError) { throw insertError; } 
-                else if (data) { setPlati(prev => [...prev, ...data]); showSuccess("Generare Finalizată", `${data.length} facturi noi au fost generate.`); }
+                // Upsert cu onConflict separat pentru sportiv individual și familie
+                // PostgREST acceptă un singur onConflict per apel — trimitem în două batch-uri
+                const platiSportiv = platiToInsert.filter(p => p.sportiv_id !== null);
+                const platiFamilie = platiToInsert.filter(p => p.familie_id !== null && p.sportiv_id === null);
+
+                let totalGenerate = 0;
+                const allNew: Plata[] = [];
+
+                if (platiSportiv.length > 0) {
+                    const { data: ds, error: es } = await supabase
+                        .from('plati')
+                        .upsert(platiSportiv, { onConflict: 'sportiv_id,luna,an', ignoreDuplicates: true })
+                        .select();
+                    if (es) throw es;
+                    if (ds) { allNew.push(...(ds as Plata[])); totalGenerate += ds.length; }
+                }
+                if (platiFamilie.length > 0) {
+                    const { data: df, error: ef } = await supabase
+                        .from('plati')
+                        .upsert(platiFamilie, { onConflict: 'familie_id,luna,an', ignoreDuplicates: true })
+                        .select();
+                    if (ef) throw ef;
+                    if (df) { allNew.push(...(df as Plata[])); totalGenerate += df.length; }
+                }
+
+                if (totalGenerate > 0) {
+                    setPlati(prev => [...prev, ...allNew]);
+                    showSuccess("Generare Finalizată", `${totalGenerate} facturi noi au fost generate.`);
+                } else {
+                    showSuccess("Info", "Toți sportivii activi au deja abonament generat pentru luna curentă.");
+                }
             } else {
                 showSuccess("Info", "Nicio factură nouă de generat pentru luna curentă pentru sportivii din acest club.");
             }

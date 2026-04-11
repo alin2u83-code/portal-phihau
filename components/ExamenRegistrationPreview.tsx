@@ -20,19 +20,48 @@ export const ExamenRegistrationPreview: React.FC<ExamenRegistrationPreviewProps>
     const handleConfirm = async () => {
         if (!data) return;
         setSubmitting(true);
-        
-        try {
-            const { error: insertError } = await supabase.from('plati').insert({
-                sportiv_id,
-                suma: data.taxa_suma,
-                status: isCash ? 'Achitat' : 'Restanta',
-                metoda_plata: isCash ? 'Cash' : null,
-                descriere: `Taxă examen - Grad: ${data.grad_sugerat_nume} (Sesiune ID: ${sesiune_id})`,
-                data_platii: isCash ? new Date().toISOString().split('T')[0] : null,
-                club_id: (await supabase.from('sportivi').select('club_id').eq('id', sportiv_id).single()).data?.club_id
-            });
 
-            if (insertError) throw insertError;
+        try {
+            // Verifică mai întâi dacă plata există deja pentru această sesiune
+            const { data: existing } = await supabase
+                .from('plati')
+                .select('id')
+                .eq('sportiv_id', sportiv_id)
+                .eq('sesiune_id', sesiune_id)
+                .eq('tip', 'Taxa Examen')
+                .maybeSingle();
+
+            if (existing?.id) {
+                // Plata există deja — actualizează dacă suma diferă
+                const { error: updateError } = await supabase
+                    .from('plati')
+                    .update({
+                        suma: data.taxa_suma,
+                        status: isCash ? 'Achitat' : 'Neachitat',
+                    })
+                    .eq('id', existing.id);
+                if (updateError) throw updateError;
+            } else {
+                // Plata nu există — inserează cu sesiune_id pentru unicitate
+                const { data: sportivData } = await supabase
+                    .from('sportivi')
+                    .select('club_id')
+                    .eq('id', sportiv_id)
+                    .single();
+
+                const { error: insertError } = await supabase.from('plati').insert({
+                    sportiv_id,
+                    sesiune_id,
+                    suma: data.taxa_suma,
+                    status: isCash ? 'Achitat' : 'Neachitat',
+                    descriere: `Taxă examen - Grad: ${data.grad_sugerat_nume}`,
+                    data: new Date().toISOString().split('T')[0],
+                    tip: 'Taxa Examen',
+                    observatii: 'Generat din ExamenRegistrationPreview',
+                    club_id: sportivData?.club_id ?? null,
+                });
+                if (insertError) throw insertError;
+            }
 
             showSuccess("Succes", "Înregistrarea la examen a fost salvată.");
             onConfirm();

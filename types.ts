@@ -162,6 +162,10 @@ export interface Plata {
   descriere: string;
   tip: string;
   observatii: string;
+  // Coloane de normalizare (Varianta B — FK dedicate)
+  sesiune_id?: string | null;   // FK → sesiuni_examene.id (pentru 'Taxa Examen')
+  luna?: number | null;         // 1–12 (pentru 'Abonament')
+  an?: number | null;           // 2020–2100 (pentru 'Abonament' și 'Taxa Anuala')
 }
 
 export interface VizualizarePlata {

@@ -457,18 +457,36 @@ export const ImportSportiviExamen: React.FC<ImportSportiviExamenProps> = ({
 
                 let plataId: string | null = null;
                 if (taxaSuma > 0) {
-                    const { data: pData, error: pError } = await supabase.from('plati').insert({
-                        sportiv_id: sportiv.id,
-                        familie_id: sportiv.familie_id,
-                        suma: taxaSuma,
-                        data: sesiune.data,
-                        status: 'Neachitat',
-                        descriere: `Taxa examen ${grad.nume}`,
-                        tip: 'Taxa Examen',
-                        observatii: 'Generat automat — import sesiune examen',
-                    }).select().maybeSingle();
+                    // upsert cu sesiune_id — la import, duplicate silențioase (ignoreDuplicates: true)
+                    const { data: pData, error: pError } = await supabase
+                        .from('plati')
+                        .upsert({
+                            sportiv_id: sportiv.id,
+                            familie_id: sportiv.familie_id,
+                            sesiune_id: sesiune.id,
+                            suma: taxaSuma,
+                            data: sesiune.data,
+                            status: 'Neachitat',
+                            descriere: `Taxa examen ${grad.nume}`,
+                            tip: 'Taxa Examen',
+                            observatii: 'Generat automat — import sesiune examen',
+                        }, { onConflict: 'sportiv_id,sesiune_id', ignoreDuplicates: true })
+                        .select()
+                        .maybeSingle();
                     if (pError) throw new Error(`Factură: ${pError.message}`);
-                    plataId = pData?.id || null;
+                    // Dacă plata exista deja (ignoreDuplicates), caută ID-ul existent
+                    if (pData?.id) {
+                        plataId = pData.id;
+                    } else {
+                        const { data: existing } = await supabase
+                            .from('plati')
+                            .select('id')
+                            .eq('sportiv_id', sportiv.id)
+                            .eq('sesiune_id', sesiune.id)
+                            .eq('tip', 'Taxa Examen')
+                            .maybeSingle();
+                        plataId = existing?.id || null;
+                    }
                 }
 
                 const getAge = (birth: string, ref: string) => {

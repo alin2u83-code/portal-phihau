@@ -802,11 +802,12 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                     console.warn(`[ManagementInscrieri] get_registration_details indisponibil pentru ${sportiv.id}, continuăm fără taxă.`);
                 }
 
-                // 2. Generate automatic invoice
+                // 2. Generate automatic invoice (upsert cu sesiune_id pentru unicitate)
                 if (taxaSuma > 0) {
                     const plataData = {
                         sportiv_id: sportiv.id,
                         familie_id: sportiv.familie_id,
+                        sesiune_id: sesiune.id,
                         suma: taxaSuma,
                         data: sesiune.data,
                         status: 'Neachitat' as const,
@@ -815,7 +816,11 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                         observatii: `Generat automat la înscriere examen (Vârstă: ${getAgeOnDate(sportiv.data_nasterii, sesiune.data)} ani).`,
                         club_id: sportiv.club_id
                     };
-                    const { data: pData, error: pError } = await supabase.from('plati').insert(plataData).select().maybeSingle();
+                    const { data: pData, error: pError } = await supabase
+                        .from('plati')
+                        .upsert(plataData, { onConflict: 'sportiv_id,sesiune_id', ignoreDuplicates: false })
+                        .select()
+                        .maybeSingle();
                     if (pError) throw new Error(`Factura pt ${sportiv.nume} nu a putut fi generată: ${pError.message}`);
                     if (!pData) throw new Error(`Factura pt ${sportiv.nume} nu a putut fi generată (nicio dată returnată).`);
                     plataId = pData.id;
@@ -933,11 +938,17 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                     } else {
                         const sportiv = sportivi.find(s => s.id === inscriereToEdit.sportiv_id);
                         const plataData: Omit<Plata, 'id'> = {
-                            sportiv_id: inscriereToEdit.sportiv_id, familie_id: sportiv?.familie_id || null, suma: taxaConfig.suma, data: sesiune.data, status: 'Neachitat',
+                            sportiv_id: inscriereToEdit.sportiv_id, familie_id: sportiv?.familie_id || null,
+                            sesiune_id: sesiune.id,
+                            suma: taxaConfig.suma, data: sesiune.data, status: 'Neachitat',
                             descriere: descriereFactura, tip: 'Taxa Examen', observatii: 'Generat automat la modificare înscriere.',
                             club_id: sportiv?.club_id || null
                         };
-                        const { data: pData, error: pError } = await supabase.from('plati').insert(plataData).select().maybeSingle();
+                        const { data: pData, error: pError } = await supabase
+                            .from('plati')
+                            .upsert(plataData, { onConflict: 'sportiv_id,sesiune_id', ignoreDuplicates: false })
+                            .select()
+                            .maybeSingle();
                         if (pError) throw pError;
                         if (!pData) throw new Error("Factura nouă nu a putut fi generată.");
                         plataResult = { action: 'add', data: pData as Plata };

@@ -73,6 +73,15 @@ export const createAccount = async (params: CreateAccountParams): Promise<Create
         if (data.user) {
             if (existingSportiv) {
                 await supabase.from('sportivi').update({ user_id: data.user.id, email: finalEmail }).eq('id', existingSportiv.id);
+
+                // Inserează rolul pentru sportivul existent
+                await supabase.from('utilizator_roluri_multicont').upsert({
+                    user_id: data.user.id,
+                    sportiv_id: existingSportiv.id,
+                    club_id: clubId,
+                    rol_denumire: 'SPORTIV',
+                    is_primary: true,
+                }, { onConflict: 'user_id,sportiv_id', ignoreDuplicates: true });
             } else {
                 // Check if trigger created it
                 const { data: triggerProfile } = await supabase
@@ -80,6 +89,8 @@ export const createAccount = async (params: CreateAccountParams): Promise<Create
                     .select('id')
                     .eq('user_id', data.user.id)
                     .maybeSingle();
+
+                let sportivId: string | null = triggerProfile?.id ?? null;
 
                 if (!triggerProfile) {
                     const { data: inserted, error: insertError } = await supabase.from('sportivi').insert({
@@ -96,6 +107,7 @@ export const createAccount = async (params: CreateAccountParams): Promise<Create
                     }).select('id').single();
 
                     if (!insertError && inserted) {
+                        sportivId = inserted.id;
                         await supabase.from('istoric_grade').insert({
                             sportiv_id: inserted.id,
                             grad_id: DEBUTANT_GRAD_ID,
@@ -103,6 +115,17 @@ export const createAccount = async (params: CreateAccountParams): Promise<Create
                             observatii: 'Înregistrare cont'
                         });
                     }
+                }
+
+                // Inserează rolul pentru sportivul nou creat (trigger sau manual)
+                if (sportivId) {
+                    await supabase.from('utilizator_roluri_multicont').upsert({
+                        user_id: data.user.id,
+                        sportiv_id: sportivId,
+                        club_id: clubId,
+                        rol_denumire: 'SPORTIV',
+                        is_primary: true,
+                    }, { onConflict: 'user_id,sportiv_id', ignoreDuplicates: true });
                 }
             }
             return { success: true, user: data.user };

@@ -86,7 +86,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
     };
 
     if (currentUser && currentUser.trebuie_schimbata_parola) {
-        return <MandatoryPasswordChange currentUser={currentUser} onPasswordChanged={() => {}} />;
+        return <MandatoryPasswordChange currentUser={currentUser} onPasswordChanged={() => window.location.reload()} />;
     }
     
     const renderProtected = (view: React.ReactNode, hasAccess: boolean) => {

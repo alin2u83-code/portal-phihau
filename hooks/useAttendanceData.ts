@@ -30,6 +30,9 @@ export const useAttendanceData = (clubId?: string | null, skipFetch = false, fil
 
     const fetchAttendanceData = useCallback(async () => {
         if (!supabase || skipFetch) return;
+        // Nu face fetch dacă nu există sesiune activă (evită 401 la pagina de login)
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) { setLoading(false); return; }
         setLoading(true);
         setError(null);
         try {

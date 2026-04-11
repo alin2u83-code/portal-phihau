@@ -150,6 +150,111 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
   );
 };
 
+interface CredentialeContModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  email: string;
+  parola: string;
+  numeSportiv?: string;
+}
+
+export const CredentialeContModal: React.FC<CredentialeContModalProps> = ({ isOpen, onClose, email, parola, numeSportiv }) => {
+  const [copiatEmail, setCopiatEmail] = useState(false);
+  const [copiatParola, setCopiatParola] = useState(false);
+
+  const copiaza = (text: string, setCopiat: React.Dispatch<React.SetStateAction<boolean>>) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopiat(true);
+      setTimeout(() => setCopiat(false), 2000);
+    });
+  };
+
+  if (!isOpen) return null;
+
+  return ReactDOM.createPortal(
+    <div
+      className="fixed inset-0 bg-black/80 z-[9999] flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Credențiale cont creat"
+    >
+      <div
+        className="bg-slate-900 border border-slate-700/80 w-full max-w-md rounded-2xl shadow-2xl flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+        style={{ boxShadow: '0 25px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04)' }}
+      >
+        {/* Header */}
+        <div className="flex justify-between items-center p-4 sm:p-5 border-b border-slate-700/80 bg-slate-800/60 rounded-t-2xl">
+          <div>
+            <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">Cont creat cu succes</h2>
+            {numeSportiv && <p className="text-xs text-slate-400 mt-0.5">Credențiale pentru {numeSportiv}</p>}
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-2 -mr-1 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-xl transition-colors active:scale-95 touch-manipulation"
+            aria-label="Închide"
+          >
+            <XIcon className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="p-4 sm:p-6 space-y-4">
+          <p className="text-sm text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">
+            Transmite aceste credențiale sportivului. Parola va fi cerută a fi schimbată la prima autentificare.
+          </p>
+
+          {/* Email */}
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-slate-400 uppercase tracking-wide">Email</label>
+            <div className="flex items-center gap-2 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2">
+              <span className="flex-1 text-sm text-white font-mono break-all select-all">{email}</span>
+              <button
+                type="button"
+                onClick={() => copiaza(email, setCopiatEmail)}
+                className="shrink-0 text-xs px-2 py-1 rounded bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white transition-colors touch-manipulation"
+                aria-label="Copiază email"
+              >
+                {copiatEmail ? 'Copiat!' : 'Copiază'}
+              </button>
+            </div>
+          </div>
+
+          {/* Parola */}
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-slate-400 uppercase tracking-wide">Parolă inițială</label>
+            <div className="flex items-center gap-2 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2">
+              <span className="flex-1 text-sm text-white font-mono break-all select-all">{parola}</span>
+              <button
+                type="button"
+                onClick={() => copiaza(parola, setCopiatParola)}
+                className="shrink-0 text-xs px-2 py-1 rounded bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white transition-colors touch-manipulation"
+                aria-label="Copiază parola"
+              >
+                {copiatParola ? 'Copiată!' : 'Copiază'}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="p-4 sm:p-5 pt-0">
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-full py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-white font-semibold text-sm transition-colors border-b-4 border-amber-800 touch-manipulation"
+          >
+            Am înțeles
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+};
+
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
     label: string;
     error?: string;
@@ -321,8 +426,15 @@ export const DateInputDMY: React.FC<DateInputDMYProps> = ({ label, value, onChan
   const [an, setAn] = useState('');
   const lunaRef = useRef<HTMLInputElement>(null);
   const anRef = useRef<HTMLInputElement>(null);
+  // Flag care previne ca useEffect să reseteze câmpurile interne
+  // când onChange('') a fost emis chiar de noi (date incomplete în curs de tastare)
+  const skipExternalSyncRef = useRef(false);
 
   useEffect(() => {
+    if (skipExternalSyncRef.current) {
+      skipExternalSyncRef.current = false;
+      return;
+    }
     if (value && value.match(/^\d{4}-\d{2}-\d{2}$/)) {
       const [y, m, d] = value.split('-');
       setAn(y); setLuna(m); setZi(d);
@@ -335,6 +447,9 @@ export const DateInputDMY: React.FC<DateInputDMYProps> = ({ label, value, onChan
     if (z.length <= 2 && l.length <= 2 && a.length === 4) {
       onChange(`${a}-${l.padStart(2,'0')}-${z.padStart(2,'0')}`);
     } else {
+      // Data incompletă — marcăm că această schimbare vine din interior
+      // ca să nu se triggere reset-ul din useEffect
+      skipExternalSyncRef.current = true;
       onChange('');
     }
   };

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Sportiv, User, Rol, Club, Permissions } from '../types';
-import { Button, Card, Input, Select, Modal, RoleBadge, SearchInput, ClubSelect } from './ui';
+import { Button, Card, Input, Select, Modal, RoleBadge, SearchInput, ClubSelect, CredentialeContModal } from './ui';
 import { ArrowLeftIcon, ShieldCheckIcon, PlusIcon, LockIcon, ClipboardCheckIcon, WalletIcon, UsersIcon, CogIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
@@ -30,6 +30,7 @@ const CreateStaffModal: React.FC<{
         club_id: permissions.isFederationAdmin ? '' : (currentUser.club_id || '')
     });
     const [loading, setLoading] = useState(false);
+    const [credentialeModal, setCredentialeModal] = useState<{ email: string; parola: string; numeSportiv: string } | null>(null);
     const { showError, showSuccess } = useError();
 
     // Reset form when modal opens
@@ -103,9 +104,13 @@ const CreateStaffModal: React.FC<{
             }
 
             setSportivi(prev => [...prev, result.sportiv!]);
-            showSuccess("Operațiune finalizată!", `${formData.nume} ${formData.prenume} a fost adăugat ca ${rolAtribuit?.nume}. Utilizatorul va trebui să-și schimbe parola la prima autentificare.`);
             setFormData(initialStaffFormState);
             onClose();
+            setCredentialeModal({
+                email: formData.email,
+                parola: result.generatedPassword ?? formData.parola,
+                numeSportiv: `${formData.prenume} ${formData.nume}`.trim(),
+            });
 
         } catch (err: any) {
             console.error('DETALII EROARE:', JSON.stringify(err, null, 2));
@@ -116,7 +121,17 @@ const CreateStaffModal: React.FC<{
     };
     
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Adaugă Membru Staff">
+        <>
+            {credentialeModal && (
+                <CredentialeContModal
+                    isOpen={true}
+                    onClose={() => setCredentialeModal(null)}
+                    email={credentialeModal.email}
+                    parola={credentialeModal.parola}
+                    numeSportiv={credentialeModal.numeSportiv}
+                />
+            )}
+            <Modal isOpen={isOpen} onClose={onClose} title="Adaugă Membru Staff">
             <form onSubmit={handleSave} className="space-y-6 pt-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Input label="Nume" name="nume" value={formData.nume} onChange={handleChange} required />
@@ -151,6 +166,7 @@ const CreateStaffModal: React.FC<{
                 </div>
             </form>
         </Modal>
+        </>
     );
 };
 
@@ -258,6 +274,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
     const [createAccountForm, setCreateAccountForm] = useState({ email: '', username: '', parola: '' });
     const [createAccountError, setCreateAccountError] = useState('');
     const [createAccountLoading, setCreateAccountLoading] = useState(false);
+    const [credentialeContModal, setCredentialeContModal] = useState<{ email: string; parola: string; numeSportiv: string } | null>(null);
     
     const [newRoleName, setNewRoleName] = useState('');
     const [roleCreationFeedback, setRoleCreationFeedback] = useState<{ type: 'success' | 'error', message: string } | null>(null);
@@ -462,9 +479,13 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
             }
 
             setSportivi(prev => prev.map(s => s.id === selectedUserForAccount.id ? result.sportiv! : s));
-            
+
             setIsCreateAccountModalOpen(false);
-            showSuccess("Cont Creat", `Contul pentru ${selectedUserForAccount.nume} a fost creat cu succes.`);
+            setCredentialeContModal({
+                email: createAccountForm.email,
+                parola: result.generatedPassword ?? createAccountForm.parola,
+                numeSportiv: `${selectedUserForAccount.prenume || ''} ${selectedUserForAccount.nume || ''}`.trim(),
+            });
     
         } catch (err: any) {
             console.error('DETALII EROARE:', JSON.stringify(err, null, 2));
@@ -661,6 +682,15 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
 
     return (
         <div className="space-y-4 md:space-y-8">
+            {credentialeContModal && (
+                <CredentialeContModal
+                    isOpen={true}
+                    onClose={() => setCredentialeContModal(null)}
+                    email={credentialeContModal.email}
+                    parola={credentialeContModal.parola}
+                    numeSportiv={credentialeContModal.numeSportiv}
+                />
+            )}
             {onBack && <Button onClick={onBack} variant="secondary" className="mb-4"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>}
 
             <header className="mb-4 md:mb-8">

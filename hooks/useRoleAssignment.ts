@@ -27,7 +27,7 @@ export const useRoleAssignment = (currentUser: User, allRoles: Rol[]) => {
         return allRoles.filter(r => (roleWeights[r.nume] || 0) <= currentUserMaxWeight);
     }, [allRoles, currentUserMaxWeight, roleWeights]);
 
-    const createAccountAndAssignRole = async (email: string, parola: string, sportivData: Partial<Sportiv>, rolesToAssign: Rol[]): Promise<{ success: boolean; sportiv?: Sportiv; error?: string }> => {
+    const createAccountAndAssignRole = async (email: string, parola: string, sportivData: Partial<Sportiv>, rolesToAssign: Rol[]): Promise<{ success: boolean; sportiv?: Sportiv; error?: string; generatedPassword?: string }> => {
         setLoading(true);
         try {
             // 1. Apelăm API-ul nostru securizat din backend
@@ -73,7 +73,7 @@ export const useRoleAssignment = (currentUser: User, allRoles: Rol[]) => {
 
             if (fetchError) throw fetchError;
 
-            return { success: true, sportiv: { ...finalSportiv, roluri: rolesToAssign } };
+            return { success: true, sportiv: { ...finalSportiv, roluri: rolesToAssign }, generatedPassword: parola };
         } catch (err: any) {
             console.error('Account Creation Error:', err);
             return { success: false, error: err.message || "A apărut o eroare neașteptată." };

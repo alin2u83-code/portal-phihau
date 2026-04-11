@@ -2,7 +2,7 @@ import React, { useState, useMemo, useTransition, useEffect, useRef } from 'reac
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../supabaseClient';
 import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions, VizualizarePlata, ProgramItem } from '../types';
-import { Button, Modal, Input } from './ui';
+import { Button, Modal, Input, CredentialeContModal } from './ui';
 import { PlusIcon, UploadCloudIcon, ArrowLeftIcon } from './icons';
 import { ProgramEditor } from './Grupe/ProgramEditor';
 import { adaugaSportiv, actualizeazaSportiv } from '../services/sportivService';
@@ -80,6 +80,7 @@ export const Sportivi: React.FC<{
     const [createAccountForm, setCreateAccountForm] = useState({ email: '', username: '', parola: '' });
     const [createAccountLoading, setCreateAccountLoading] = useState(false);
     const [createAccountError, setCreateAccountError] = useState('');
+    const [credentialeModal, setCredentialeModal] = useState<{ email: string; parola: string; numeSportiv: string } | null>(null);
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
     const [isExportTableOpen, setIsExportTableOpen] = useState(false);
     const [accountSettingsSportiv, setAccountSettingsSportiv] = useState<Sportiv | null>(null);
@@ -487,8 +488,12 @@ export const Sportivi: React.FC<{
 
                 setSportivi(prev => [...prev, result.sportiv!]);
                 queryClient.invalidateQueries({ queryKey: ['sportivi'] });
-                showSuccess('Succes', `Sportivul a fost adăugat cu succes. Username generat: ${result.sportiv?.username}`);
                 handleCloseFormModal();
+                setCredentialeModal({
+                    email,
+                    parola: result.generatedPassword ?? parola,
+                    numeSportiv: `${profileData.prenume || ''} ${profileData.nume || ''}`.trim(),
+                });
                 return { success: true, data: result.sportiv! };
             }
         } catch (err: any) {
@@ -539,10 +544,16 @@ export const Sportivi: React.FC<{
             if (!result.success || !result.sportiv) {
                 throw new Error(result.error || 'A apărut o eroare la crearea contului.');
             }
-    
-            showSuccess("Cont Creat", `Contul pentru ${sportivForAccountCreation.nume} a fost creat cu succes. Reîncărcați pagina.`);
+
+            setIsFormModalOpen(false);
+            setSportivForAccountCreation(null);
+            setCredentialeModal({
+                email: createAccountForm.email,
+                parola: result.generatedPassword ?? createAccountForm.parola,
+                numeSportiv: `${sportivForAccountCreation.prenume || ''} ${sportivForAccountCreation.nume || ''}`.trim(),
+            });
             setTimeout(() => window.location.reload(), 1500);
-    
+
         } catch (err: any) {
             setCreateAccountError(err.message);
         } finally {
@@ -557,6 +568,15 @@ export const Sportivi: React.FC<{
 
     return (
         <div className="space-y-4">
+            {credentialeModal && (
+                <CredentialeContModal
+                    isOpen={true}
+                    onClose={() => setCredentialeModal(null)}
+                    email={credentialeModal.email}
+                    parola={credentialeModal.parola}
+                    numeSportiv={credentialeModal.numeSportiv}
+                />
+            )}
             {/* Header */}
             <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-3">

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Sportiv, User, Rol } from '../../types';
-import { Modal, Input, Button } from '../ui';
+import { Modal, Input, Button, CredentialeContModal } from '../ui';
 import { useError } from '../ErrorProvider';
 import { useRoleAssignment } from '../../hooks/useRoleAssignment';
 
@@ -13,6 +13,7 @@ export const CreateAccountModal: React.FC<{
 }> = ({ sportiv, onClose, onAccountCreated, currentUser, allRoles }) => {
     const { showError } = useError();
     const [form, setForm] = useState({ email: '', parola: '' });
+    const [credentiale, setCredentiale] = useState<{ email: string; parola: string } | null>(null);
     const { createAccountAndAssignRole, loading } = useRoleAssignment(currentUser, allRoles);
 
     useEffect(() => {
@@ -40,11 +41,23 @@ export const CreateAccountModal: React.FC<{
         const result = await createAccountAndAssignRole(form.email, form.parola, sportiv, [sportivRole]);
         if (result.success) {
             onAccountCreated();
-            onClose();
+            setCredentiale({ email: form.email, parola: result.generatedPassword ?? form.parola });
         } else {
             showError("Eroare", result.error || "A apărut o eroare la crearea contului.");
         }
     };
+
+    if (credentiale) {
+        return (
+            <CredentialeContModal
+                isOpen={true}
+                onClose={() => { setCredentiale(null); onClose(); }}
+                email={credentiale.email}
+                parola={credentiale.parola}
+                numeSportiv={`${sportiv.prenume} ${sportiv.nume}`}
+            />
+        );
+    }
 
     return (
         <Modal isOpen={true} onClose={onClose} title={`Generează Cont pentru ${sportiv.nume}`}>

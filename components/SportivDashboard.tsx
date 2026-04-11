@@ -185,7 +185,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
     const initials = `${viewedUser.nume?.[0] ?? ''}${viewedUser.prenume?.[0] ?? ''}`;
 
     return (
-        <div className="space-y-4 md:space-y-5 pb-24 md:pb-6">
+        <div className="space-y-4 md:space-y-5 pb-28 md:pb-24">
 
             {/* ── HEADER CARD ─────────────────────────────────────────── */}
             <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 border border-slate-700/60 shadow-xl">

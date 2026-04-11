@@ -51,10 +51,10 @@ export const AIAssistantWidget: React.FC<AIAssistantWidgetProps> = ({ activeRole
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-[8000] flex flex-col items-end gap-3">
+    <div className="fixed bottom-[84px] right-4 md:bottom-6 md:right-6 z-[8000] flex flex-col items-end gap-3">
       {/* Chat panel */}
       {isOpen && (
-        <div className="w-80 sm:w-96 h-[540px] bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl shadow-black/50 flex flex-col overflow-hidden animate-fade-in-down relative">
+        <div className="w-[calc(100vw-2rem)] sm:w-80 md:w-96 h-[min(480px,calc(100dvh-180px))] md:h-[540px] bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl shadow-black/50 flex flex-col overflow-hidden animate-fade-in-down relative">
 
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700/80 bg-slate-800/80 backdrop-blur shrink-0">

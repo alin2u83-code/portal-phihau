@@ -412,6 +412,8 @@ export interface TaxaAnualeConfig {
   suma: number;
   descriere: string | null;
   club_id: string | null;
+  data_inceput?: string | null;
+  data_sfarsit?: string | null;
   created_at?: string;
 }
 

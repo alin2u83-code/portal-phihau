@@ -35,6 +35,8 @@ export interface ResponsiveTableProps<T> {
     cardBreakpoint?: number;
     /** Clasa CSS pentru containerul card-urilor. Default: 'divide-y divide-[var(--border-color)]' */
     cardContainerClassName?: string;
+    /** Dezactivează paginarea internă. Util când părintele gestionează paginarea server-side. */
+    disablePagination?: boolean;
 }
 
 // --- MAIN COMPONENT ---
@@ -56,6 +58,7 @@ export function ResponsiveTable<T>({
     detailsHeight = 0,
     cardBreakpoint = 768,
     cardContainerClassName,
+    disablePagination = false,
 }: ResponsiveTableProps<T>) {
     const isMobile = useIsMobile();
     // Track window width only when a custom cardBreakpoint above 768px is needed
@@ -71,13 +74,13 @@ export function ResponsiveTable<T>({
 
     const paginatedData = React.useMemo(() => {
         if (!data) return [];
-        if (!pageSize) return data;
+        if (disablePagination || !pageSize) return data;
         const start = (currentPage - 1) * pageSize;
         return data.slice(start, start + pageSize);
-    }, [data, currentPage, pageSize]);
+    }, [data, currentPage, pageSize, disablePagination]);
 
     const safeData = data || [];
-    const totalPages = Math.ceil(safeData.length / pageSize);
+    const totalPages = disablePagination ? 1 : Math.ceil(safeData.length / pageSize);
 
     return (
         <div className="bg-[var(--bg-card)] rounded-lg shadow-md overflow-hidden border border-[var(--border-color)]">

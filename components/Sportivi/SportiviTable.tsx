@@ -192,6 +192,7 @@ export const SportiviTable: React.FC<SportiviTableProps> = (props) => {
       searchTerm={searchTerm}
       onSearchChange={onSearchChange}
       pageSize={10}
+      disablePagination
       cardBreakpoint={1024}
       cardContainerClassName="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 sm:p-4"
     />

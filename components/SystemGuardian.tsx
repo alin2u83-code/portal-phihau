@@ -111,6 +111,12 @@ export const SystemGuardian: React.FC<SystemGuardianProps> = ({ children, isLoad
     }, [isLoading, currentUser, permissions?.isFederationAdmin]);
 
     if (error) {
+        // Dacă userul nu e logat, nu afișa eroarea de sistem — lasă routing-ul
+        // să redirecționeze spre /login. Erorile 401/permission denied apar
+        // normal când fetch-urile rulează fără sesiune activă.
+        if (!currentUser) {
+            return <>{children}</>;
+        }
         if (error.includes('Contul de utilizator nu este legat')) {
             return <ProfileLinkErrorScreen />;
         }

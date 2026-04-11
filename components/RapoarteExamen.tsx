@@ -231,13 +231,15 @@ const DetaliiSesiune: React.FC<{
             let totalSportivi = 0;
             const updatedSportiviIds = new Set<string>();
             const newIstoricEntries: IstoricGrade[] = [];
-            
+            // Map sportiv_id → targetGradId rezolvat, pentru update local corect
+            const sportiviGradMap = new Map<string, string>();
+
             // 2. Process each inscriere
             for (const inscriere of props.inscrieri) {
                 if (inscriere.rezultat === 'Admis') {
                     // VALIDARE STRICTĂ grad_id (grad_sustinut_id)
                     let targetGradId = inscriere.grad_sustinut_id;
-                    
+
                     if (!targetGradId || targetGradId === 'undefined' || targetGradId === 'null') {
                         // Fallback to current grade if available
                         if (inscriere.grad_actual_id) {
@@ -256,10 +258,10 @@ const DetaliiSesiune: React.FC<{
                         .eq('grad_id', targetGradId)
                         .eq('sesiune_examen_id', sesiuneId)
                         .maybeSingle();
-                    
+
                     if (!existingIstoric) {
                         // Arhivare note în observații
-                        const notesStr = inscriere.note_detaliate 
+                        const notesStr = inscriere.note_detaliate
                             ? Object.entries(inscriere.note_detaliate).map(([k, v]) => `${k}: ${v}`).join(', ')
                             : '';
 
@@ -275,27 +277,35 @@ const DetaliiSesiune: React.FC<{
                             })
                             .select()
                             .maybeSingle();
-                        
+
                         if (insertIstoricError) throw insertIstoricError;
                         if (newIstoricData) newIstoricEntries.push(newIstoricData as IstoricGrade);
                         updatedSportiviIds.add(inscriere.sportiv_id);
+                    }
+
+                    // Actualizează grad_actual_id în DB dacă noul grad e superior celui curent
+                    // Aceasta este pasul care lipsea și cauza bug-ul: sportivi.grad_actual_id
+                    // rămânea la valoarea veche în baza de date după finalizarea examenului.
+                    const newGrade = props.grade?.find(g => g.id === targetGradId);
+                    const currentGrade = props.grade?.find(g => g.id === inscriere.grad_actual_id);
+                    if ((newGrade?.ordine ?? 0) > (currentGrade?.ordine ?? -1)) {
+                        const { error: gradUpdateError } = await supabase
+                            .from('sportivi')
+                            .update({ grad_actual_id: targetGradId })
+                            .eq('id', inscriere.sportiv_id);
+                        if (gradUpdateError) throw gradUpdateError;
+                        sportiviGradMap.set(inscriere.sportiv_id, targetGradId);
                     }
                 }
                 totalSportivi++;
             }
 
-            // Update local state for sportivi - the trigger will handle the DB update, 
-            // but we update local state for immediate feedback
-            if (updatedSportiviIds.size > 0) {
+            // Update local state for sportivi (UI feedback imediat)
+            if (sportiviGradMap.size > 0 || updatedSportiviIds.size > 0) {
                 props.setSportivi(prev => prev.map(s => {
-                    if (updatedSportiviIds.has(s.id)) {
-                        const inscriere = props.inscrieri.find(i => i.sportiv_id === s.id && i.rezultat === 'Admis');
-                        if (inscriere) {
-                            return { 
-                                ...s, 
-                                grad_actual_id: inscriere.grad_sustinut_id
-                            };
-                        }
+                    const resolvedGradId = sportiviGradMap.get(s.id);
+                    if (resolvedGradId) {
+                        return { ...s, grad_actual_id: resolvedGradId };
                     }
                     return s;
                 }));

@@ -244,6 +244,28 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
     const handleDelete = async () => {
         if (!plataToDelete || !supabase) return;
         setIsDeleting(true);
+
+        // Verifică dacă plata este referențiată de înscrieri la examene
+        const { data: inscrieri, error: inscrieriError } = await supabase
+            .from('inscrieri_examene')
+            .select('id')
+            .eq('plata_id', plataToDelete.id)
+            .limit(1);
+        if (inscrieriError) {
+            setIsDeleting(false);
+            console.error('DETALII EROARE:', JSON.stringify(inscrieriError, null, 2));
+            showError("Eroare la ștergere", inscrieriError.message);
+            return;
+        }
+        if (inscrieri && inscrieri.length > 0) {
+            setIsDeleting(false);
+            showError(
+                "Ștergere imposibilă",
+                "Plata nu poate fi ștearsă — este asociată cu înscrieri la examene. Modificați sau retrageți înscrierea înainte de a șterge factura."
+            );
+            return;
+        }
+
         const { error } = await supabase.from('plati').delete().eq('id', plataToDelete.id);
         setIsDeleting(false);
 

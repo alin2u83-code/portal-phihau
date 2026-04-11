@@ -946,6 +946,13 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                     }
                 } else {
                     if (plataAsociata) {
+                        // Dezleagă mai întâi FK-ul din inscrieri_examene înainte de a șterge plata,
+                        // altfel Postgres refuză cu FK violation (inscrieri_examene_plata_id_fkey)
+                        const { error: nullifyError } = await supabase
+                            .from('inscrieri_examene')
+                            .update({ plata_id: null })
+                            .eq('id', inscriereToEdit.inscriere_id || inscriereToEdit.id);
+                        if (nullifyError) throw nullifyError;
                         const { error: pError } = await supabase.from('plati').delete().eq('id', plataAsociata.id);
                         if (pError) throw pError;
                         plataResult = { action: 'delete', data: plataAsociata };

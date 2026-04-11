@@ -122,38 +122,350 @@ export function matchSportiv(
     };
 }
 
-/** Match numele gradului din XLS cu lista de grade din DB */
-export function matchGrad(gradNume: string, grade: Grad[]): Grad | undefined {
-    if (!gradNume) return undefined;
-    const norm = normalizeStr(gradNume);
+// ─── Normalizare extinsă pentru matching grade ───────────────────────────────
 
-    // 1. Număr simplu (ex: "2") → caută după ordine exact
-    const asNumber = parseInt(gradNume.trim(), 10);
-    if (!isNaN(asNumber) && String(asNumber) === gradNume.trim()) {
-        return grade.find(g => g.ordine === asNumber);
-    }
+/**
+ * Normalizare agresivă: lowercase, fără diacritice, fără punctuație,
+ * fără spații multiple. Folosită intern doar în matchGrad.
+ *
+ * Diferă de normalizeStr prin că elimină și punctele/virgulele explicit,
+ * astfel "c.v" devine "cv", "Cap R." devine "cap r".
+ */
+function normGradStr(s: string): string {
+    return (s || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')   // diacritice
+        .toLowerCase()
+        .replace(/[.\-,]/g, '')             // punctuație frecventă în abrevieri
+        .replace(/[^a-z0-9\s]/g, '')        // restul caracterelor speciale
+        .replace(/\s+/g, ' ')
+        .trim();
+}
 
-    // 2. Extrage primul număr din text (ex: "2 Cap Rosu", "Cap Rosu 2", "2CR") → ordine
-    const numMatch = gradNume.match(/\d+/);
-    if (numMatch) {
-        const n = parseInt(numMatch[0], 10);
-        const byOrdine = grade.find(g => g.ordine === n);
-        if (byOrdine) {
-            // Verifică că restul textului se potrivește cu gradul (evită "22" să matcheze ordin 2)
-            const normGrad = normalizeStr(byOrdine.nume);
-            const scoreWithOrdine = similarity(norm, normGrad);
-            if (scoreWithOrdine >= 0.4) return byOrdine;
+/**
+ * Generează variante de alias pentru un grad din DB,
+ * bazate pe regulile de abreviere folosite în practică.
+ *
+ * Exemple:
+ *   "Cap Roșu"   → ["cap rosu", "cap r", "cr"]
+ *   "Cap Galben" → ["cap galben", "cap g", "cg"]
+ *   "Centură Violet" → ["centura violet", "cv", "centura v", "c v"]
+ *   "3 Cap Roșu" → ["3 cap rosu", "3cr", "3 cr", "3 cap r"]
+ */
+function buildGradAliases(grad: Grad): string[] {
+    const n = normGradStr(grad.nume);
+    const aliases = new Set<string>([n]);
+
+    const words = n.split(' ').filter(Boolean);
+
+    // Inițiale complete (ex: "cap rosu" → "cr")
+    const initials = words.map(w => w[0]).join('');
+    if (initials.length >= 2) aliases.add(initials);
+
+    // Abrevieri cunoscute pentru cuvinte frecvente
+    const abbrevMap: Record<string, string[]> = {
+        'cap':      ['cap', 'c'],
+        'centura':  ['centura', 'cent', 'c'],
+        'rosu':     ['rosu', 'r'],
+        'galben':   ['galben', 'g', 'gal'],
+        'albastru': ['albastru', 'alb', 'a'],
+        'alb':      ['alb', 'a'],
+        'violet':   ['violet', 'v', 'vio'],
+        'negru':    ['negru', 'n', 'neg'],
+        'maro':     ['maro', 'm'],
+        'portocaliu': ['portocaliu', 'p', 'port'],
+        'verde':    ['verde', 'v', 'vd'],
+        'roz':      ['roz', 'r'],
+    };
+
+    // Aliasuri cu prefix numeric (ex: "3 cap rosu" → "3cr", "3 cr", "3 cap r")
+    const numPrefix = words[0] && /^\d+$/.test(words[0]) ? words[0] : null;
+    const colorWords = numPrefix ? words.slice(1) : words;
+
+    // "cap r", "cap g", "centura v" etc. (primul cuvânt + inițiala culorii)
+    if (colorWords.length >= 2) {
+        const firstWord = colorWords[0];
+        const colorInitial = colorWords[colorWords.length - 1][0];
+        const secondInitial = colorWords[1][0];
+
+        // Ex: "cap r", "cap g"
+        aliases.add(`${firstWord} ${colorInitial}`);
+        // Ex: "cap ro", "cap al"
+        if (colorWords[colorWords.length - 1].length >= 2) {
+            aliases.add(`${firstWord} ${colorWords[colorWords.length - 1].slice(0, 2)}`);
+        }
+
+        if (numPrefix) {
+            // Ex: "3 cap r", "3cr", "3 cr"
+            aliases.add(`${numPrefix} ${firstWord} ${colorInitial}`);
+            aliases.add(`${numPrefix}${initials.slice(1)}`); // "3cr" → prefix + inițiale fără cifră
+            aliases.add(`${numPrefix} ${initials.slice(1)}`);
+            // Ex: "3 cap alb" → "3ca", "3 ca"
+            aliases.add(`${numPrefix}${firstWord[0]}${secondInitial}`);
+            aliases.add(`${numPrefix} ${firstWord[0]}${secondInitial}`);
         }
     }
 
-    // 3. Similaritate text complet
+    // Variante cu cuvinte expandate/abreviate
+    const expandedVariants: string[][] = [[]];
+    for (const word of colorWords) {
+        const abbrevs = abbrevMap[word] || [word];
+        const newVariants: string[][] = [];
+        for (const existing of expandedVariants) {
+            for (const abbrev of abbrevs) {
+                newVariants.push([...existing, abbrev]);
+            }
+        }
+        expandedVariants.length = 0;
+        expandedVariants.push(...newVariants.slice(0, 20)); // limitat la 20
+    }
+    for (const variant of expandedVariants) {
+        const joined = (numPrefix ? [numPrefix, ...variant] : variant).join(' ');
+        aliases.add(joined);
+        if (numPrefix) {
+            // și fără spațiu după număr: "3cv", "3ca"
+            aliases.add(numPrefix + variant.join(''));
+        }
+    }
+
+    return Array.from(aliases);
+}
+
+// ─── Aliasuri manuale pentru cazuri speciale sau abrevieri ambigue ────────────
+
+/**
+ * Tabel de aliasuri explicite: cheia normalizată (normGradStr aplicat)
+ * mapează la un fragment din numele gradului din DB (normGradStr aplicat).
+ * Aceste aliasuri sunt prioritare față de orice logică automată.
+ *
+ * Adaugă aici orice variantă tipică din fișierele XLS ale clubului.
+ */
+const ALIASURI_EXPLICITE: Record<string, string> = {
+    // Centură Violet (standalone, fără număr)
+    'cv':               'centura violet',
+    'c v':              'centura violet',
+    'centura violet':   'centura violet',
+    'centura v':        'centura violet',
+    'cent violet':      'centura violet',
+
+    // Cap Roșu
+    'cap rosu':         'cap rosu',
+    'cap r':            'cap rosu',
+    'cr':               'cap rosu',
+    'cap ro':           'cap rosu',
+
+    // Cap Galben
+    'cap galben':       'cap galben',
+    'cap g':            'cap galben',
+    'cg':               'cap galben',
+    'cap gal':          'cap galben',
+
+    // Cap Albastru
+    // ATENȚIE: "cap alb" NU mapează la "cap albastru" — poate fi "Cap Alb" distinct
+    // "ca" standalone NU mapează automat — ambiguu între Cap Albastru și C.V. N Cap Alb
+    'cap albastru':     'cap albastru',
+    'cap a':            'cap albastru',
+
+    // ─── C.V. N Cap Alb (gradele compuse cu prefix C.V.) ────────────────────────
+    // Formatul în DB: "C.V. 1 Cap Alb", "C.V. 2 Cap Alb", "C.V. 3 Cap Alb", "C.V. 4 Cap Alb"
+    // După normGradStr: "cv 1 cap alb", "cv 2 cap alb", "cv 3 cap alb", "cv 4 cap alb"
+
+    // C.V. 1 Cap Alb
+    '1 ca':             'cv 1 cap alb',
+    '1ca':              'cv 1 cap alb',
+    '1 cap alb':        'cv 1 cap alb',
+    'cv1ca':            'cv 1 cap alb',
+    'cv 1 ca':          'cv 1 cap alb',
+    'cv1 ca':           'cv 1 cap alb',
+    'cv1':              'cv 1 cap alb',
+    'cv 1':             'cv 1 cap alb',
+    'c v 1':            'cv 1 cap alb',
+    'c v 1 ca':         'cv 1 cap alb',
+    'cv 1 cap alb':     'cv 1 cap alb',
+    'c v 1 cap alb':    'cv 1 cap alb',
+    'centura violet 1 cap alb': 'cv 1 cap alb',
+    'centura violet 1 ca': 'cv 1 cap alb',
+
+    // C.V. 2 Cap Alb
+    '2 ca':             'cv 2 cap alb',
+    '2ca':              'cv 2 cap alb',
+    '2 cap alb':        'cv 2 cap alb',
+    'cv2ca':            'cv 2 cap alb',
+    'cv 2 ca':          'cv 2 cap alb',
+    'cv2 ca':           'cv 2 cap alb',
+    'cv2':              'cv 2 cap alb',
+    'cv 2':             'cv 2 cap alb',
+    'c v 2':            'cv 2 cap alb',
+    'c v 2 ca':         'cv 2 cap alb',
+    'cv 2 cap alb':     'cv 2 cap alb',
+    'c v 2 cap alb':    'cv 2 cap alb',
+    'centura violet 2 cap alb': 'cv 2 cap alb',
+    'centura violet 2 ca': 'cv 2 cap alb',
+
+    // C.V. 3 Cap Alb
+    '3 ca':             'cv 3 cap alb',
+    '3ca':              'cv 3 cap alb',
+    '3 cap alb':        'cv 3 cap alb',
+    'cv3ca':            'cv 3 cap alb',
+    'cv 3 ca':          'cv 3 cap alb',
+    'cv3 ca':           'cv 3 cap alb',
+    'cv3':              'cv 3 cap alb',
+    'cv 3':             'cv 3 cap alb',
+    'c v 3':            'cv 3 cap alb',
+    'c v 3 ca':         'cv 3 cap alb',
+    'cv 3 cap alb':     'cv 3 cap alb',
+    'c v 3 cap alb':    'cv 3 cap alb',
+    'centura violet 3 cap alb': 'cv 3 cap alb',
+    'centura violet 3 ca': 'cv 3 cap alb',
+
+    // C.V. 4 Cap Alb
+    '4 ca':             'cv 4 cap alb',
+    '4ca':              'cv 4 cap alb',
+    '4 cap alb':        'cv 4 cap alb',
+    'cv4ca':            'cv 4 cap alb',
+    'cv 4 ca':          'cv 4 cap alb',
+    'cv4 ca':           'cv 4 cap alb',
+    'cv4':              'cv 4 cap alb',
+    'cv 4':             'cv 4 cap alb',
+    'c v 4':            'cv 4 cap alb',
+    'c v 4 ca':         'cv 4 cap alb',
+    'cv 4 cap alb':     'cv 4 cap alb',
+    'c v 4 cap alb':    'cv 4 cap alb',
+    'centura violet 4 cap alb': 'cv 4 cap alb',
+    'centura violet 4 ca': 'cv 4 cap alb',
+};
+
+/** Match numele gradului din XLS cu lista de grade din DB */
+export function matchGrad(gradNume: string, grade: Grad[]): Grad | undefined {
+    if (!gradNume || !grade.length) return undefined;
+
+    const normInput = normGradStr(gradNume);
+
+    // ── Pasul 1: Număr simplu exact (ex: "2") → ordine ──────────────────────
+    const trimmed = gradNume.trim();
+    const asNumber = parseInt(trimmed, 10);
+    if (!isNaN(asNumber) && String(asNumber) === trimmed) {
+        const byOrdine = grade.find(g => g.ordine === asNumber);
+        if (byOrdine) {
+            console.debug(`[matchGrad] "${gradNume}" → ordine exact → "${byOrdine.nume}"`);
+            return byOrdine;
+        }
+    }
+
+    // ── Pasul 2: Match exact după normalizare ────────────────────────────────
+    for (const g of grade) {
+        if (normGradStr(g.nume) === normInput) {
+            console.debug(`[matchGrad] "${gradNume}" → match normalizat exact → "${g.nume}"`);
+            return g;
+        }
+    }
+
+    // ── Pasul 3: Aliasuri explicite ──────────────────────────────────────────
+    const aliasTarget = ALIASURI_EXPLICITE[normInput];
+    if (aliasTarget) {
+        // Prioritate 1: match exact pe target normalizat
+        const exactFound = grade.find(g => normGradStr(g.nume) === aliasTarget);
+        if (exactFound) {
+            console.debug(`[matchGrad] "${gradNume}" → alias explicit exact "${aliasTarget}" → "${exactFound.nume}"`);
+            return exactFound;
+        }
+        // Prioritate 2: normG al gradului din DB conține targetul ca substring
+        // (ex: target "cap rosu" găsit în "3 Cap Rosu")
+        // NU folosim aliasTarget.includes(normG) — risc de match fals pozitiv
+        // (ex: target "cv 1 cap alb" ar include "cv" și ar returna "Centura Violet")
+        const substringFound = grade.find(g => normGradStr(g.nume).includes(aliasTarget));
+        if (substringFound) {
+            console.debug(`[matchGrad] "${gradNume}" → alias explicit substring "${aliasTarget}" → "${substringFound.nume}"`);
+            return substringFound;
+        }
+    }
+
+    // ── Pasul 4: Aliasuri generate automat din regulile de abreviere ─────────
+    for (const g of grade) {
+        const aliases = buildGradAliases(g);
+        if (aliases.includes(normInput)) {
+            console.debug(`[matchGrad] "${gradNume}" → alias auto → "${g.nume}" (aliases: ${aliases.slice(0, 8).join(', ')})`);
+            return g;
+        }
+    }
+
+    // ── Pasul 5: Matching pe prefix cu număr + inițiale culoare ─────────────
+    // Ex: "3 cap r", "3 cap rosu", "3cr" → gradul cu ordine 3 și culoare rosu
+    const numInText = normInput.match(/^(\d+)\s*(.+)$/);
+    if (numInText) {
+        const [, numStr, rest] = numInText;
+        const n = parseInt(numStr, 10);
+        const candidatesByOrdine = grade.filter(g => g.ordine === n);
+        if (candidatesByOrdine.length === 1) {
+            // Dacă există un singur grad cu această ordine, verifică că restul nu contrazice
+            const g = candidatesByOrdine[0];
+            const normG = normGradStr(g.nume);
+            const scoreCheck = similarity(normInput, normG);
+            if (scoreCheck >= 0.35 || normG.startsWith(numStr)) {
+                console.debug(`[matchGrad] "${gradNume}" → ordine+rest → "${g.nume}" (score=${scoreCheck.toFixed(2)})`);
+                return g;
+            }
+        }
+        if (candidatesByOrdine.length > 1 && rest) {
+            // Dacă există mai multe grade cu aceeași ordine, alege cel mai bun după rest
+            let bestByOrdine: Grad | undefined;
+            let bestOrdineScore = 0;
+            for (const g of candidatesByOrdine) {
+                const normG = normGradStr(g.nume);
+                const restNorm = normG.replace(numStr, '').trim();
+                const s = similarity(rest, restNorm);
+                if (s > bestOrdineScore) { bestOrdineScore = s; bestByOrdine = g; }
+            }
+            if (bestByOrdine && bestOrdineScore >= 0.3) {
+                console.debug(`[matchGrad] "${gradNume}" → ordine+culoare → "${bestByOrdine.nume}" (score=${bestOrdineScore.toFixed(2)})`);
+                return bestByOrdine;
+            }
+        }
+    }
+
+    // ── Pasul 6: Matching pe inițiale cu prefix "cap X" / "centura X" ────────
+    // Ex: "cap r" → caută grade care conțin "cap" și al căror al doilea cuvânt
+    // normalizat începe cu "r"
+    const capsMatch = normInput.match(/^(cap|centura|cent)\s+([a-z])(\w*)$/);
+    if (capsMatch) {
+        const [, prefix, initial, rest2] = capsMatch;
+        const candidates = grade.filter(g => {
+            const normG = normGradStr(g.nume);
+            const gWords = normG.split(' ');
+            return gWords.some(w => w === prefix || w.startsWith(prefix.slice(0, 3)))
+                && gWords.some(w => w.startsWith(initial));
+        });
+        if (candidates.length === 1) {
+            console.debug(`[matchGrad] "${gradNume}" → prefix+inițiala → "${candidates[0].nume}"`);
+            return candidates[0];
+        }
+        if (candidates.length > 1 && rest2) {
+            // Rafinează după restul literei (ex: "cap al" → "albastru" sau "alb")
+            const refined = candidates.filter(g =>
+                normGradStr(g.nume).split(' ').some(w => w.startsWith(initial + rest2))
+            );
+            if (refined.length === 1) {
+                console.debug(`[matchGrad] "${gradNume}" → prefix+prefix-culoare → "${refined[0].nume}"`);
+                return refined[0];
+            }
+        }
+    }
+
+    // ── Pasul 7: Fallback fuzzy Levenshtein (logica originală, threshold 0.5) ─
     let best: Grad | undefined;
     let bestScore = 0;
     for (const g of grade) {
-        const s = similarity(norm, normalizeStr(g.nume));
+        const s = similarity(normInput, normGradStr(g.nume));
         if (s > bestScore) { bestScore = s; best = g; }
     }
-    return bestScore >= 0.5 ? best : undefined;
+
+    if (bestScore >= 0.5 && best) {
+        console.debug(`[matchGrad] "${gradNume}" → fuzzy (${bestScore.toFixed(2)}) → "${best.nume}"`);
+        return best;
+    }
+
+    console.debug(`[matchGrad] "${gradNume}" → fără match (best fuzzy: ${bestScore.toFixed(2)})`);
+    return undefined;
 }
 
 // ─── Detectare format ────────────────────────────────────────────────────────

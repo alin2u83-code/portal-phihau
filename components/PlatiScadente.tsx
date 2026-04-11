@@ -244,11 +244,35 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
     const confirmDelete = async (id: string) => {
         if(!supabase) return;
         setIsDeleting(true);
+
+        // Verifică dacă plata este referențiată de înscrieri la examene
+        const { data: inscrieri, error: inscrieriError } = await supabase
+            .from('inscrieri_examene')
+            .select('id')
+            .eq('plata_id', id)
+            .limit(1);
+        if (inscrieriError) {
+            setIsDeleting(false);
+            console.error('DETALII EROARE:', JSON.stringify(inscrieriError, null, 2));
+            showError("Eroare la Ștergere", inscrieriError.message);
+            setPlataToDelete(null);
+            return;
+        }
+        if (inscrieri && inscrieri.length > 0) {
+            setIsDeleting(false);
+            showError(
+                "Ștergere imposibilă",
+                "Plata nu poate fi ștearsă — este asociată cu înscrieri la examene. Modificați sau retrageți înscrierea înainte de a șterge factura."
+            );
+            setPlataToDelete(null);
+            return;
+        }
+
         const { error } = await supabase.from('plati').delete().eq('id', id);
         setIsDeleting(false);
-        if(error) { 
+        if(error) {
             console.error('DETALII EROARE:', JSON.stringify(error, null, 2));
-            showError("Eroare la Ștergere", error.message); 
+            showError("Eroare la Ștergere", error.message);
         }
         else { setPlati(prev => prev.filter(p => p.id !== id)); }
         setPlataToDelete(null);

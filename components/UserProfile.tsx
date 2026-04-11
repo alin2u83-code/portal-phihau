@@ -414,6 +414,27 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
     const confirmDeletePlata = async (id: string) => {
         if (!supabase) return;
         setIsDeleting(true);
+
+        // Verifică dacă plata este referențiată de înscrieri la examene
+        const { data: inscrieri, error: inscrieriError } = await supabase
+            .from('inscrieri_examene')
+            .select('id')
+            .eq('plata_id', id)
+            .limit(1);
+        if (inscrieriError) {
+            setIsDeleting(false);
+            showError("Eroare la Ștergere", inscrieriError.message);
+            return;
+        }
+        if (inscrieri && inscrieri.length > 0) {
+            setIsDeleting(false);
+            showError(
+                "Ștergere imposibilă",
+                "Plata nu poate fi ștearsă — este asociată cu înscrieri la examene. Modificați sau retrageți înscrierea înainte de a șterge factura."
+            );
+            return;
+        }
+
         // Dezleagă tranzacțiile asociate înainte de ștergere
         const { data: tranzactiiData } = await supabase.from('tranzactii').select('id, plata_ids').contains('plata_ids', [id]);
         if (tranzactiiData && tranzactiiData.length > 0) {

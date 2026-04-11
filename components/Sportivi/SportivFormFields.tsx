@@ -367,28 +367,21 @@ export const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
                         />
                         {isSuperAdmin ? (
                             <div className="col-span-full">
-                                <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wide">
-                                    Club
+                                <label className="block text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-wide">
+                                    Club *
                                 </label>
-                                <div className="flex flex-col gap-2 max-h-52 overflow-y-auto custom-scrollbar p-1 rounded-lg border border-slate-700/50">
-                                    {clubs.map(c => (
-                                        <button
-                                            key={c.id}
-                                            type="button"
-                                            onClick={() => handleChange({ target: { name: 'club_id', value: c.id } })}
-                                            className={`p-3 rounded-xl border text-left transition-all active:scale-95 touch-manipulation ${
-                                                formData.club_id === c.id
-                                                    ? 'bg-indigo-600 border-indigo-500 text-white shadow-md'
-                                                    : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
-                                            }`}
-                                        >
-                                            <span className="font-semibold block">{c.nume}</span>
-                                            {c.id === FEDERATIE_ID && (
-                                                <span className="text-xs opacity-75">Federație</span>
-                                            )}
-                                        </button>
+                                <select
+                                    name="club_id"
+                                    value={formData.club_id || ''}
+                                    onChange={handleChange}
+                                    disabled={loading}
+                                    className="w-full bg-slate-800 border border-slate-700 text-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors touch-manipulation"
+                                >
+                                    <option value="">— Selectează club —</option>
+                                    {clubs.filter(c => c.id !== FEDERATIE_ID).map(c => (
+                                        <option key={c.id} value={c.id}>{c.nume}</option>
                                     ))}
-                                </div>
+                                </select>
                             </div>
                         ) : (
                             <div className="col-span-full">

@@ -218,7 +218,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
       {loading ? (
           <MartialArtsSkeleton count={6} />
       ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {(sortedSesiuni || []).map(s => { 
                 const club = (clubs || []).find(c => c.id === s.club_id);
                 const cardStyle = club?.theme_config ? (club.theme_config as React.CSSProperties) : {};

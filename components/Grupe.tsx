@@ -196,7 +196,7 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
                         <h1 className="text-2xl sm:text-3xl font-bold text-white">Management Grupe & Orar</h1>
                     </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {[1, 2, 3].map(i => (
                         <div key={i} className="bg-slate-800 rounded-xl p-6 animate-pulse">
                             <div className="h-6 bg-slate-700 rounded w-2/3 mb-4"></div>
@@ -231,7 +231,7 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
                 </div>
             </div>
             {grupe.length > 0 ? (
-                <div data-tour="grupe-lista" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div data-tour="grupe-lista" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {(grupe as GrupaWithDetails[]).map(grupa => (
                         <GrupaCard key={grupa.id} grupa={grupa} onEdit={handleOpenEdit} onDelete={setGrupaToDelete} onAdaugaSportivi={setGrupaForAdaugaSportivi} onConfigurareOrar={setGrupaForOrar} onGestionareSecundari={setGrupaForSecundari} />
                     ))}

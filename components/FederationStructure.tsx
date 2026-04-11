@@ -59,7 +59,7 @@ export const FederationStructure: React.FC<FederationStructureProps> = ({ clubs,
                 </div>
             </header>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {statsByClub.map(club => (
                     <Card key={club.id} className="group hover:border-brand-primary/50 transition-all duration-300">
                         <div className="flex justify-between items-start mb-4">

@@ -106,7 +106,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
             </div>
 
             <h2 className="text-xl font-bold text-white mt-8 mb-4">Acțiuni Rapide</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
                 <Card className="p-4 md:p-6 bg-slate-900 border-slate-800 hover:border-slate-700 transition-all group cursor-pointer" onClick={() => onNavigate('stagii')}>
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-medium text-slate-400">Stagii</h3>

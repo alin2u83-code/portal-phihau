@@ -19,7 +19,7 @@ export const ReportsDashboard: React.FC<ReportsDashboardProps> = ({ onNavigate }
     return (
         <div className="space-y-6">
             <h1 className="text-3xl font-bold text-white mb-6">Rapoarte</h1>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {reports.map((report) => (
                     <Card key={report.view} className="p-6 cursor-pointer hover:border-brand-primary transition-all" onClick={() => onNavigate(report.view as any)}>
                         <div className="flex items-center gap-4">

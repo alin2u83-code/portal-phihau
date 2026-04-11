@@ -536,8 +536,8 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
             </div>
 
             <Card className="p-0 overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm">
+                <div className="overflow-x-auto -mx-0">
+                    <table className="w-full text-left text-sm min-w-[700px]">
                         <thead className="bg-slate-700/50">
                             <tr>
                                 <th className="p-3"><input type="checkbox" onChange={handleSelectAll} className="h-4 w-4 rounded border-slate-500 bg-slate-800 text-brand-secondary focus:ring-brand-secondary" /></th>

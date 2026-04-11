@@ -161,7 +161,7 @@ export const ProgramAntrenamenteManagement: React.FC<ProgramAntrenamenteManageme
                     <p className="text-slate-500 text-lg">Nu am găsit antrenamente care să corespundă filtrelor.</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredAntrenamente.map(a => (
                         <Card key={a.id} className="group relative overflow-hidden border-none shadow-xl bg-slate-900/40 backdrop-blur-sm hover:shadow-indigo-500/10 transition-all duration-300">
                             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 to-purple-500 opacity-30 group-hover:opacity-100 transition-opacity"></div>

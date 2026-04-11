@@ -158,9 +158,9 @@ const CreateStaffModal: React.FC<{
                         {clubs.map(c => <option key={c.id} value={c.id}>{c.nume}</option>)}
                     </Select>
                 </div>
-                <div className="flex justify-end pt-4 border-t border-slate-700">
-                    <Button type="button" variant="secondary" onClick={onClose} className="mr-2">Anulează</Button>
-                    <Button type="submit" variant="success" isLoading={loading} className="px-8">
+                <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4 border-t border-slate-700">
+                    <Button type="button" variant="secondary" onClick={onClose} className="w-full sm:w-auto justify-center">Anulează</Button>
+                    <Button type="submit" variant="success" isLoading={loading} className="w-full sm:w-auto justify-center px-8">
                         Creează Utilizator
                     </Button>
                 </div>
@@ -235,7 +235,7 @@ const PermissionGuide: React.FC = () => {
     ];
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             {roles.map((role, idx) => (
                 <Card key={idx} className="border-t-2 border-slate-700 hover:border-slate-500 transition-colors">
                     <div className="flex items-center gap-2 mb-3">
@@ -804,9 +804,9 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                         <Input label="Nume Utilizator" name="username" type="text" value={createAccountForm.username} onChange={handleCreateAccountFormChange} placeholder="Opțional. Ex: ion.popescu"/>
                         <Input label="Parolă Inițială" name="parola" type="password" value={createAccountForm.parola} onChange={handleCreateAccountFormChange} required />
                         {createAccountError && <p className="text-red-400 text-sm text-center bg-red-900/50 p-2 rounded">{createAccountError}</p>}
-                        <div className="flex justify-end pt-4 space-x-2">
-                            <Button type="button" variant="secondary" onClick={() => setIsCreateAccountModalOpen(false)} disabled={createAccountLoading}>Anulează</Button>
-                            <Button type="submit" variant="success" disabled={createAccountLoading}>{createAccountLoading ? 'Se creează...' : 'Creează Cont'}</Button>
+                        <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
+                            <Button type="button" variant="secondary" onClick={() => setIsCreateAccountModalOpen(false)} disabled={createAccountLoading} className="w-full sm:w-auto justify-center">Anulează</Button>
+                            <Button type="submit" variant="success" disabled={createAccountLoading} className="w-full sm:w-auto justify-center">{createAccountLoading ? 'Se creează...' : 'Creează Cont'}</Button>
                         </div>
                     </form>
                 </Modal>

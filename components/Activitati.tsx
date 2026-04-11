@@ -500,7 +500,7 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ onBa
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {filteredAntrenamente.length > 0 ? filteredAntrenamente.map(a => (
                         <Card key={a.id} className={`group relative overflow-hidden border-none shadow-lg transition-all ${!a.is_activ ? 'opacity-60 grayscale' : 'hover:shadow-indigo-500/10'} ${editingId === a.id ? 'ring-2 ring-indigo-500' : ''}`}>
                             <div className={`absolute top-0 left-0 w-1 h-full ${a.is_recurent ? 'bg-indigo-500' : 'bg-amber-500'}`}></div>

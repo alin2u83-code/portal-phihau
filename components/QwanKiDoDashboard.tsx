@@ -120,7 +120,7 @@ export const QwanKiDoDashboard: React.FC<DashboardProps> = ({ currentUser }) => 
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full animate-fade-in-down">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full animate-fade-in-down">
       {cards.map((card, index) => (
         <div key={index} className="bg-white rounded-xl shadow-lg p-6 flex items-center border-l-4 border-[#0f172a] transition-transform hover:scale-[1.02]">
             <div className={`p-4 rounded-full ${card.bgColor} text-white shadow-md`}>

@@ -60,7 +60,7 @@ const AdminFederationCard: React.FC<{ deconturi: DecontFederatie[] }> = ({ decon
 };
 
 const InstructorCards: React.FC<{ onNavigate: (view: View) => void }> = ({ onNavigate }) => (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <NavCard
             title="Prezență la Antrenament"
             description="Înregistrează rapid prezența sportivilor la antrenamentele de astăzi."
@@ -121,7 +121,7 @@ export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({ session, cur
                 items.length > 0 && (
                     <div key={category}>
                         <h2 className="text-2xl font-bold text-white mb-6 border-b-2 border-amber-400/50 pb-2">{category}</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                             {items.map(item => (
                                 <NavCard
                                     key={item.view}

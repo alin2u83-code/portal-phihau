@@ -132,7 +132,7 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ plati, t
             <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
             <h1 className="text-xl md:text-3xl font-bold text-white">Dashboard Financiar</h1>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 <KpiCard title="Total Încasat (Luna Curentă)" value={`${kpiData.totalIncasatLuna.toFixed(2)} lei`} icon={BanknotesIcon} color="border-green-500" />
                 <KpiCard title="Total de Încasat (Restanțe)" value={`${kpiData.totalRestante.toFixed(2)} lei`} icon={ExclamationTriangleIcon} color="border-amber-500" />
                 <KpiCard title="Număr Sportivi Activi" value={String(kpiData.nrSportiviActivi)} icon={UsersIcon} color="border-sky-500" />

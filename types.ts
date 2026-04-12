@@ -406,6 +406,14 @@ export interface DecontFederatie {
   data_generare: string | null;
 }
 
+export interface DecontSportiv {
+  id: string;
+  decont_id: string;
+  sportiv_id: string;
+  an: number;
+  created_at?: string;
+}
+
 export interface TaxaAnualeConfig {
   id: string;
   an: number;

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { supabase } from '../supabaseClient';
-import { User, Sportiv, Plata, TaxaAnualeConfig, VizaSportiv } from '../types';
+import { User, Sportiv, Plata, TaxaAnualeConfig, VizaSportiv, DecontSportiv } from '../types';
 import { Button, Card, Input, Modal, Select } from './ui';
 import { ArrowLeftIcon, CogIcon, BanknotesIcon, PlusIcon, CheckCircleIcon, XCircleIcon, SearchIcon, TrashIcon, CalendarIcon, DownloadIcon, PrinterIcon } from './icons';
 import { useError } from './ErrorProvider';
@@ -164,7 +164,8 @@ const TaxaCard: React.FC<{
 };
 
 export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, sportivi, plati, setPlati }) => {
-    const { taxeAnualeConfig, vizeSportivi, setTaxeAnualeConfig, setVizeSportivi, loading } = useData();
+    const { taxeAnualeConfig, vizeSportivi, decontSportivi, setTaxeAnualeConfig, setVizeSportivi, loading } = useData();
+    const [activeTab, setActiveTab] = useState<'config' | 'dashboard'>('config');
     const [taxaToGenerate, setTaxaToGenerate] = useState<TaxaAnualeConfig | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
     const [selectedTaxaForStatus, setSelectedTaxaForStatus] = useState<TaxaAnualeConfig | null>(null);
@@ -347,6 +348,39 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
         window.print();
     };
 
+    // --- Date pentru Dashboard (hook-uri înainte de orice return condiționat) ---
+    const anCurent = new Date().getFullYear();
+
+    // Secțiunea 1: sportivi care au plătit taxa anuală la club (status Achitat)
+    const sportiviAchitatClub = useMemo(() => {
+        const platiTaxa = plati.filter(
+            p => p.tip === 'Taxa Anuala' && p.status === 'Achitat' && (p as any).an === anCurent
+        );
+        return platiTaxa.map(p => {
+            const s = sportivi.find(sp => sp.id === p.sportiv_id);
+            return s ? { sportiv: s, plata: p } : null;
+        }).filter((x): x is { sportiv: Sportiv; plata: Plata } => x !== null);
+    }, [plati, sportivi, anCurent]);
+
+    // Secțiunea 2: sportivi acoperiți de un decont în anul curent
+    const sportiviAchitatFederatie = useMemo(() => {
+        return decontSportivi
+            .filter(ds => ds.an === anCurent)
+            .map(ds => {
+                const s = sportivi.find(sp => sp.id === ds.sportiv_id);
+                return s ? { sportiv: s, decontSportiv: ds } : null;
+            })
+            .filter((x): x is { sportiv: Sportiv; decontSportiv: DecontSportiv } => x !== null);
+    }, [decontSportivi, sportivi, anCurent]);
+
+    // Secțiunea 3: sportivi activi fără plată la club
+    const sportiviActivi = useMemo(() => sportivi.filter(s => s.status === 'Activ'), [sportivi]);
+    const idsAchitatClub = useMemo(() => new Set(sportiviAchitatClub.map(x => x.sportiv.id)), [sportiviAchitatClub]);
+    const sportiviRestantieri = useMemo(
+        () => sportiviActivi.filter(s => !idsAchitatClub.has(s.id)),
+        [sportiviActivi, idsAchitatClub]
+    );
+
     if (loading) {
         return <div className="flex items-center justify-center h-64 text-slate-400">Se încarcă datele...</div>;
     }
@@ -363,14 +397,12 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
                 </div>
 
                 <div className="flex flex-col items-start md:items-end gap-1">
-                    {/* Rol vizibil pentru ADMIN_CLUB — informare clară */}
                     {canGenerate && !canManage && (
                         <p className="text-xs text-amber-400/80 bg-amber-400/10 border border-amber-400/20 px-2 py-1 rounded-md">
                             Admin Club: poți genera facturi, dar nu poți modifica taxele federale.
                         </p>
                     )}
-                    {/* Buton adăugare — doar SUPER_ADMIN_FEDERATIE */}
-                    {canManage && (
+                    {canManage && activeTab === 'config' && (
                         <Button variant="primary" onClick={() => setShowAddModal(true)}>
                             <PlusIcon className="w-5 h-5 mr-2" /> Adaugă Configurare
                         </Button>
@@ -378,38 +410,158 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
                 </div>
             </div>
 
-            {/* Grid responsive: 1 col mobil, 2 col tablet, 3 col desktop */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                {taxeAnualeConfig.length > 0 ? (
-                    taxeAnualeConfig
-                        .slice()
-                        .sort((a, b) => (b.an ?? 0) - (a.an ?? 0))
-                        .map(taxa => (
-                            <TaxaCard
-                                key={taxa.id}
-                                taxa={taxa}
-                                onUpdate={handleUpdate}
-                                onDelete={setTaxaToDelete}
-                                onGenerate={setTaxaToGenerate}
-                                onViewStatus={setSelectedTaxaForStatus}
-                                canManage={canManage}
-                                canGenerate={canGenerate}
-                            />
-                        ))
-                ) : (
-                    <Card className="col-span-full text-center py-12 bg-slate-800/30 border-dashed border-slate-700">
-                        <BanknotesIcon className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-                        <p className="text-slate-400 font-medium">Nicio taxă anuală configurată.</p>
-                        {canManage && (
-                            <Button variant="secondary" size="sm" className="mt-4" onClick={() => setShowAddModal(true)}>
-                                Configurează Prima Taxă
-                            </Button>
-                        )}
-                    </Card>
-                )}
+            {/* Tab-uri */}
+            <div className="flex border-b border-slate-700">
+                <button
+                    onClick={() => setActiveTab('config')}
+                    className={`px-5 py-2.5 text-sm font-semibold transition-colors border-b-2 -mb-px ${
+                        activeTab === 'config'
+                            ? 'border-brand-primary text-brand-secondary'
+                            : 'border-transparent text-slate-400 hover:text-white'
+                    }`}
+                >
+                    Configurare
+                </button>
+                <button
+                    onClick={() => setActiveTab('dashboard')}
+                    className={`px-5 py-2.5 text-sm font-semibold transition-colors border-b-2 -mb-px ${
+                        activeTab === 'dashboard'
+                            ? 'border-brand-primary text-brand-secondary'
+                            : 'border-transparent text-slate-400 hover:text-white'
+                    }`}
+                >
+                    Dashboard {anCurent}
+                </button>
             </div>
 
-            {/* Modal Status Vize */}
+            {/* ===== TAB CONFIGURARE ===== */}
+            {activeTab === 'config' && (
+                <>
+                    {/* Grid responsive: 1 col mobil, 2 col tablet, 3 col desktop */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                        {taxeAnualeConfig.length > 0 ? (
+                            taxeAnualeConfig
+                                .slice()
+                                .sort((a, b) => (b.an ?? 0) - (a.an ?? 0))
+                                .map(taxa => (
+                                    <TaxaCard
+                                        key={taxa.id}
+                                        taxa={taxa}
+                                        onUpdate={handleUpdate}
+                                        onDelete={setTaxaToDelete}
+                                        onGenerate={setTaxaToGenerate}
+                                        onViewStatus={setSelectedTaxaForStatus}
+                                        canManage={canManage}
+                                        canGenerate={canGenerate}
+                                    />
+                                ))
+                        ) : (
+                            <Card className="col-span-full text-center py-12 bg-slate-800/30 border-dashed border-slate-700">
+                                <BanknotesIcon className="w-12 h-12 text-slate-600 mx-auto mb-4" />
+                                <p className="text-slate-400 font-medium">Nicio taxă anuală configurată.</p>
+                                {canManage && (
+                                    <Button variant="secondary" size="sm" className="mt-4" onClick={() => setShowAddModal(true)}>
+                                        Configurează Prima Taxă
+                                    </Button>
+                                )}
+                            </Card>
+                        )}
+                    </div>
+                </>
+            )}
+
+            {/* ===== TAB DASHBOARD ===== */}
+            {activeTab === 'dashboard' && (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+
+                    {/* Secțiunea 1 — Achitat la Club */}
+                    <div className="flex flex-col gap-3">
+                        <div className="flex items-center justify-between px-1">
+                            <h2 className="text-sm font-black uppercase tracking-widest text-emerald-400">Achitat la Club</h2>
+                            <span className="text-xl font-black text-white">{sportiviAchitatClub.length}</span>
+                        </div>
+                        <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
+                            {sportiviAchitatClub.length === 0 ? (
+                                <Card className="text-center py-6 text-slate-500 italic text-sm bg-slate-800/30 border-dashed">
+                                    Nicio plată înregistrată.
+                                </Card>
+                            ) : (
+                                sportiviAchitatClub.map(({ sportiv, plata }) => (
+                                    <Card key={plata.id} className="flex flex-col gap-1 bg-slate-800/50 border-emerald-800/30 py-3 px-4">
+                                        <span className="font-bold text-white text-sm">{sportiv.nume} {sportiv.prenume}</span>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs text-slate-400">
+                                                {plata.data ? new Date(plata.data).toLocaleDateString('ro-RO') : '-'}
+                                            </span>
+                                            <span className="text-xs font-bold text-emerald-400">
+                                                {(plata.suma || 0).toFixed(2)} RON
+                                            </span>
+                                        </div>
+                                    </Card>
+                                ))
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Secțiunea 2 — Achitat la Federație */}
+                    <div className="flex flex-col gap-3">
+                        <div className="flex items-center justify-between px-1">
+                            <h2 className="text-sm font-black uppercase tracking-widest text-blue-400">Achitat la Federație</h2>
+                            <span className="text-xl font-black text-white">{sportiviAchitatFederatie.length}</span>
+                        </div>
+                        <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
+                            {sportiviAchitatFederatie.length === 0 ? (
+                                <Card className="text-center py-6 text-slate-500 italic text-sm bg-slate-800/30 border-dashed">
+                                    Niciun decont confirmat.
+                                </Card>
+                            ) : (
+                                sportiviAchitatFederatie.map(({ sportiv, decontSportiv }) => (
+                                    <Card key={decontSportiv.id} className="flex flex-col gap-1 bg-slate-800/50 border-blue-800/30 py-3 px-4">
+                                        <span className="font-bold text-white text-sm">{sportiv.nume} {sportiv.prenume}</span>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs text-slate-400">
+                                                {decontSportiv.created_at
+                                                    ? new Date(decontSportiv.created_at).toLocaleDateString('ro-RO')
+                                                    : '-'}
+                                            </span>
+                                            <span className="text-xs font-mono text-slate-500 truncate max-w-[80px]" title={decontSportiv.decont_id}>
+                                                #{decontSportiv.decont_id.slice(0, 8)}
+                                            </span>
+                                        </div>
+                                    </Card>
+                                ))
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Secțiunea 3 — Restanțieri */}
+                    <div className="flex flex-col gap-3">
+                        <div className="flex items-center justify-between px-1">
+                            <h2 className="text-sm font-black uppercase tracking-widest text-red-400">Restanțieri</h2>
+                            <span className="text-xl font-black text-white">{sportiviRestantieri.length}</span>
+                        </div>
+                        <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
+                            {sportiviRestantieri.length === 0 ? (
+                                <Card className="text-center py-6 text-slate-500 italic text-sm bg-slate-800/30 border-dashed border-emerald-800/30">
+                                    <CheckCircleIcon className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
+                                    Toți sportivii activi au plătit.
+                                </Card>
+                            ) : (
+                                sportiviRestantieri.map(sportiv => (
+                                    <Card key={sportiv.id} className="flex items-center justify-between bg-slate-800/50 border-red-900/30 py-3 px-4">
+                                        <span className="font-bold text-white text-sm">{sportiv.nume} {sportiv.prenume}</span>
+                                        <span className="text-[10px] font-black px-2 py-1 rounded-full bg-red-500/15 text-red-400 border border-red-500/20 uppercase whitespace-nowrap">
+                                            Neplătit
+                                        </span>
+                                    </Card>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal Status Vize — activ doar din tab Configurare */}
             <Modal
                 isOpen={!!selectedTaxaForStatus}
                 onClose={() => {

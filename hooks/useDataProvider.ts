@@ -2,10 +2,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 import { supabase } from '../supabaseClient';
 import { 
-    Sportiv, SesiuneExamen, Grad, InscriereExamen, Antrenament, Grupa, Plata, 
-    Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie, 
+    Sportiv, SesiuneExamen, Grad, InscriereExamen, Antrenament, Grupa, Plata,
+    Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie,
     Rol, AnuntPrezenta, Reducere, TipPlata, Locatie, Club, DecontFederatie, IstoricGrade, VizualizarePlata, IstoricPlataDetaliat, VederePrezentaSportiv, FilteredData,
-    TaxaAnualeConfig, VizaSportiv
+    TaxaAnualeConfig, VizaSportiv, DecontSportiv
 } from '../types';
 import { Session, SupabaseClient } from '@supabase/supabase-js';
 import { withCleanUuidFilters } from '../utils/supabaseFilters';
@@ -45,6 +45,7 @@ export interface AppData {
     istoricPrezenta: VederePrezentaSportiv[];
     taxeAnualeConfig: TaxaAnualeConfig[];
     vizeSportivi: VizaSportiv[];
+    decontSportivi: DecontSportiv[];
     filteredData?: FilteredData;
     allowedClubs: string[];
 }
@@ -55,7 +56,7 @@ const initialData: AppData = {
     rezultate: [], preturiConfig: [], tipuriAbonament: [], familii: [], 
     allRoles: [], reduceri: [], tipuriPlati: [], 
     locatii: [], clubs: [], deconturiFederatie: [], vizualizarePlati: [],
-    istoricPlatiDetaliat: [], istoricPrezenta: [], taxeAnualeConfig: [], vizeSportivi: [], allowedClubs: []
+    istoricPlatiDetaliat: [], istoricPrezenta: [], taxeAnualeConfig: [], vizeSportivi: [], decontSportivi: [], allowedClubs: []
 };
 
 export const useDataProvider = () => {
@@ -336,7 +337,8 @@ export const useDataProvider = () => {
                 reduceri: cleanedSupabase.from('reduceri').select('*'),
                 deconturiFederatie: cleanedSupabase.from('deconturi_federatie').select('*'),
                 taxeAnualeConfig: cleanedSupabase.from('taxe_anuale_config').select('*'),
-                vizeSportivi: cleanedSupabase.from('vize_medicale').select('*'),
+                vizeSportivi: cleanedSupabase.from('vize_sportivi').select('*'),
+                decontSportivi: cleanedSupabase.from('decont_sportivi').select('*'),
             };
 
             // Check cache for static data
@@ -405,7 +407,8 @@ export const useDataProvider = () => {
                 inscrieriExamene: finalData.inscrieriExamene || prev.inscrieriExamene,
                 istoricGrade: finalData.istoricGrade || prev.istoricGrade,
                 taxeAnualeConfig: finalData.taxeAnualeConfig || prev.taxeAnualeConfig,
-                vizeSportivi: finalData.vizeSportivi || prev.vizeSportivi
+                vizeSportivi: finalData.vizeSportivi || prev.vizeSportivi,
+                decontSportivi: finalData.decontSportivi || prev.decontSportivi,
             }));
 
         } catch (err: any) {
@@ -509,6 +512,7 @@ export const useDataProvider = () => {
         setVizualizarePlati: createSetter('vizualizarePlati'),
         setTaxeAnualeConfig: createSetter('taxeAnualeConfig'),
         setVizeSportivi: createSetter('vizeSportivi'),
+        setDecontSportivi: createSetter('decontSportivi'),
         loadingIstoric,
         fetchIstoricVedere,
         initializeAndFetchData 

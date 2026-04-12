@@ -43,6 +43,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
         setGrupe, setTranzactii, setEvenimente, setRezultate, setFamilii,
         setAllRoles, setReduceri, setTipuriPlati, setLocatii, setClubs,
         setGrade, setTipuriAbonament, setDeconturiFederatie, setIstoricGrade,
+        decontSportivi, setDecontSportivi,
         filteredData, antrenamente, setAntrenamente, anunturiPrezenta, setAnunturiPrezenta, setCurrentUser
     } = useData();
 
@@ -195,7 +196,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                             case 'gestiune-facturi':
                                 return renderProtected(<Lazy.GestiuneFacturi onBack={handleBackToDashboard} currentUser={currentUser!} sportivi={filteredData.sportivi} plati={filteredData.plati} setPlati={setPlati} setTranzactii={setTranzactii} tipuriPlati={tipuriPlati} familii={filteredData.familii} onViewSportiv={onViewSportiv} />, canManageFinances);
                             case 'deconturi-federatie':
-                                return renderProtected(<Lazy.FederationInvoices onBack={handleBackToDashboard} deconturi={filteredData.deconturiFederatie} setDeconturi={setDeconturiFederatie} currentUser={currentUser!} permissions={permissions} />, isAtLeastClubAdmin);
+                                return renderProtected(<Lazy.FederationInvoices onBack={handleBackToDashboard} deconturi={filteredData.deconturiFederatie} setDeconturi={setDeconturiFederatie} decontSportivi={decontSportivi} setDecontSportivi={setDecontSportivi} sportivi={filteredData.sportivi} currentUser={currentUser!} permissions={permissions} />, isAtLeastClubAdmin);
                             case 'plati-scadente':
                                 return renderProtected(<Lazy.PlatiScadente onIncaseazaMultiple={handleIncaseazaMultiple} onViewSportiv={onViewSportiv} permissions={permissions} onBack={handleBackToDashboard} />, canManageFinances);
                             case 'jurnal-incasari':

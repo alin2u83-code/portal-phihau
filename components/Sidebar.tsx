@@ -204,13 +204,6 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
                         </button>
                     </div>
                 )}
-                {effectiveExpanded && (
-                    <div className="px-3 pb-2 text-center">
-                        <p className="text-[9px] text-slate-700 tracking-wide">
-                            Realizat cu <span className="text-amber-800">AI</span> de <span className="text-slate-600 font-semibold">Alin Lungu</span>
-                        </p>
-                    </div>
-                )}
             </div>
         </div>
     );

@@ -71,7 +71,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
             />
 
             <main className={`flex-1 transition-all duration-300 pt-16 ${isSidebarExpanded ? 'md:ml-64' : 'md:ml-20'} min-h-screen`}>
-                <div className="p-4 pb-28 md:p-6 md:pb-24 lg:p-8 lg:pb-24 max-w-7xl mx-auto animate-fade-in">
+                <div className="p-4 pb-28 md:p-6 md:pb-20 lg:p-8 lg:pb-20 max-w-7xl mx-auto animate-fade-in">
                     <ErrorBoundary onNavigate={setActiveView}>
                         <ClubGuard>
                             <AppRouter
@@ -97,7 +97,21 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                 </div>
             </main>
 
-            {/* AI Assistant - floating widget, always visible */}
+            {/* Footer fix desktop — bara de jos cu AI assistant */}
+            <footer className={`hidden md:flex fixed bottom-0 right-0 z-[7999] h-12 items-center justify-between px-5 bg-slate-950/90 backdrop-blur border-t border-slate-800/80 transition-all duration-300 ${isSidebarExpanded ? 'left-64' : 'left-20'}`}>
+                <p className="text-[10px] text-slate-700 tracking-wide select-none">
+                    Realizat cu <span className="text-amber-800">AI</span> de <span className="text-slate-600 font-semibold">Alin Lungu</span>
+                </p>
+                <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-slate-700">Asistent AI</span>
+                    <span className="flex h-1.5 w-1.5">
+                        <span className="animate-ping absolute inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400 opacity-75" />
+                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+                    </span>
+                </div>
+            </footer>
+
+            {/* AI Assistant - floating widget */}
             <AIAssistantWidget activeRole={activeRole} />
 
             {/* Tutorial overlay - shown on first login for admin roles */}

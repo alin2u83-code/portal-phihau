@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { supabase } from '../supabaseClient';
 import { User, Sportiv, Plata, TaxaAnualeConfig, VizaSportiv } from '../types';
 import { Button, Card, Input, Modal, Select } from './ui';
-import { ArrowLeftIcon, CogIcon, BanknotesIcon, PlusIcon, CheckCircleIcon, XCircleIcon, SearchIcon, TrashIcon, CalendarIcon } from './icons';
+import { ArrowLeftIcon, CogIcon, BanknotesIcon, PlusIcon, CheckCircleIcon, XCircleIcon, SearchIcon, TrashIcon, CalendarIcon, DownloadIcon, PrinterIcon } from './icons';
 import { useError } from './ErrorProvider';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { useData } from '../contexts/DataContext';
@@ -321,6 +321,32 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
             });
     }, [selectedTaxaForStatus, sportivi, vizeSportivi, searchTerm, statusFilter]);
 
+    const handleExportCSV = () => {
+        if (!selectedTaxaForStatus) return;
+        const sportiviActivi = statusList.filter(s => s.vizaStatus === 'Activ');
+        const rows = [
+            ['Nr.', 'Nume', 'Prenume', 'Data Plății'],
+            ...sportiviActivi.map((s, i) => [
+                i + 1,
+                s.nume,
+                s.prenume,
+                s.dataPlatii ? new Date(s.dataPlatii).toLocaleDateString('ro-RO') : '-'
+            ])
+        ];
+        const csv = rows.map(r => r.join(',')).join('\n');
+        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `vize_active_${selectedTaxaForStatus.an}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
+    const handlePrint = () => {
+        window.print();
+    };
+
     if (loading) {
         return <div className="flex items-center justify-center h-64 text-slate-400">Se încarcă datele...</div>;
     }
@@ -417,6 +443,23 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
                             </Select>
                         </div>
                     </div>
+
+                    {/* Export / Print — vizibil doar când există sportivi cu viză activă */}
+                    {statusList.some(s => s.vizaStatus === 'Activ') && (
+                        <div className="flex flex-col sm:flex-row gap-2 justify-between items-start sm:items-center p-3 bg-slate-800/40 rounded-lg border border-slate-700/50">
+                            <p className="text-xs text-slate-400">
+                                <span className="font-bold text-emerald-400">{statusList.filter(s => s.vizaStatus === 'Activ').length}</span> sportivi cu viză activă — pot fi exportați pentru federație
+                            </p>
+                            <div className="flex gap-2 w-full sm:w-auto">
+                                <Button variant="secondary" size="sm" className="flex-1 sm:flex-none" onClick={handleExportCSV}>
+                                    <DownloadIcon className="w-4 h-4 mr-1.5" /> Export CSV
+                                </Button>
+                                <Button variant="secondary" size="sm" className="flex-1 sm:flex-none" onClick={handlePrint}>
+                                    <PrinterIcon className="w-4 h-4 mr-1.5" /> Tipărește
+                                </Button>
+                            </div>
+                        </div>
+                    )}
 
                     <div className="max-h-[60vh] overflow-y-auto rounded-lg border border-slate-700">
                         <ResponsiveTable

@@ -7,6 +7,8 @@ import { AppRouter } from './AppRouter';
 import { View, Sportiv, Plata, User, Permissions } from '../types';
 import { AIAssistantWidget } from './AIAssistant';
 import { TutorialOverlay } from './Tutorial';
+import { useAIStore } from '../src/store/useAIStore';
+import { BotIcon, XIcon } from './icons';
 
 interface AppLayoutProps {
     currentUser: User;
@@ -39,6 +41,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
     activeRoleContext
 }) => {
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+    const { isOpen: isAIOpen, setIsOpen: setIsAIOpen } = useAIStore();
 
     return (
         <div className="flex min-h-screen bg-[var(--bg-main)]">
@@ -97,18 +100,32 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                 </div>
             </main>
 
-            {/* Footer fix desktop — bara de jos cu AI assistant */}
-            <footer className={`hidden md:flex fixed bottom-0 right-0 z-[7999] h-12 items-center justify-between px-5 bg-slate-950/90 backdrop-blur border-t border-slate-800/80 transition-all duration-300 ${isSidebarExpanded ? 'left-64' : 'left-20'}`}>
+            {/* Footer fix desktop — bara de jos cu AI assistant integrat */}
+            <footer className={`hidden md:flex fixed bottom-0 right-0 z-[7999] h-12 items-center justify-between px-4 bg-slate-950/90 backdrop-blur border-t border-slate-800/80 transition-all duration-300 ${isSidebarExpanded ? 'left-64' : 'left-20'}`}>
                 <p className="text-[10px] text-slate-700 tracking-wide select-none">
                     Realizat cu <span className="text-amber-800">AI</span> de <span className="text-slate-600 font-semibold">Alin Lungu</span>
                 </p>
-                <div className="flex items-center gap-2">
-                    <span className="text-[10px] text-slate-700">Asistent AI</span>
-                    <span className="flex h-1.5 w-1.5">
-                        <span className="animate-ping absolute inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400 opacity-75" />
-                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
-                    </span>
-                </div>
+
+                {/* Buton AI integrat în footer */}
+                <button
+                    data-tutorial="ai-widget"
+                    onClick={() => setIsAIOpen(!isAIOpen)}
+                    className={`flex items-center gap-2 px-3 h-8 rounded-xl text-sm font-semibold transition-all border ${
+                        isAIOpen
+                            ? 'bg-slate-700 border-slate-600 text-white'
+                            : 'bg-indigo-600/20 border-indigo-500/40 text-indigo-300 hover:bg-indigo-600/30 hover:border-indigo-400/60'
+                    }`}
+                    title="Asistent AI"
+                >
+                    {isAIOpen ? <XIcon className="w-4 h-4" /> : <BotIcon className="w-4 h-4" />}
+                    <span className="hidden lg:inline text-xs">{isAIOpen ? 'Închide' : 'Asistent AI'}</span>
+                    {!isAIOpen && (
+                        <span className="flex h-1.5 w-1.5 relative">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+                        </span>
+                    )}
+                </button>
             </footer>
 
             {/* AI Assistant - floating widget */}

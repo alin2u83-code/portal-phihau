@@ -52,7 +52,7 @@ export const AIAssistantWidget: React.FC<AIAssistantWidgetProps> = ({ activeRole
 
   return (
     <div className="fixed bottom-[72px] right-4 md:bottom-12 md:right-6 z-[8000] flex flex-col items-end gap-3">
-      {/* Chat panel */}
+      {/* Chat panel — se deschide deasupra butonului (mobil: FAB, desktop: buton din footer) */}
       {isOpen && (
         <div className="w-[calc(100vw-2rem)] sm:w-80 md:w-96 h-[min(460px,calc(100dvh-200px))] md:h-[520px] bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl shadow-black/50 flex flex-col overflow-hidden animate-fade-in-down relative">
 
@@ -196,11 +196,11 @@ export const AIAssistantWidget: React.FC<AIAssistantWidgetProps> = ({ activeRole
         </div>
       )}
 
-      {/* Floating trigger button */}
+      {/* Floating trigger button — DOAR pe mobil, pe desktop butonul e în footer */}
       <button
         data-tutorial="ai-widget"
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-14 h-14 rounded-2xl shadow-lg flex items-center justify-center transition-all hover:scale-110 active:scale-95 ${
+        className={`md:hidden w-14 h-14 rounded-2xl shadow-lg flex items-center justify-center transition-all hover:scale-110 active:scale-95 ${
           isOpen
             ? 'bg-slate-700 hover:bg-slate-600 text-white'
             : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-500/30'

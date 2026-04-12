@@ -1,8 +1,23 @@
 node_modules
+dist/
+
+# Variabile de mediu și secrete
 .env
-RubisianCube/
-docs/
-supabase/migrations/
+.env.*
+*.local
+
+# SQL — schema DB, migrații, RLS policies, fixuri (informații sensibile despre structura DB)
+sql/
+supabase/
+*.sql
+
+# Scripts de debug și interogări cu date specifice
+scripts/
+
+# Claude
 ACTIVITY_LOG.md
 .claude/agents/
 .claude/commands/
+
+# Altele
+RubisianCube/

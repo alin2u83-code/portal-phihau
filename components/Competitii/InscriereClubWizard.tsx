@@ -1150,10 +1150,467 @@ const Pas2CategoriiPerSportiv: React.FC<Pas2Props> = ({
 };
 
 // -----------------------------------------------
-// PLACEHOLDER — pașii 3, 4
+// TIP: EchipaFormata — starea produsă de Pasul 3
+// -----------------------------------------------
+
+/** O echipă formată pentru o categorie de tip echipă/pereche. */
+export interface EchipaFormata {
+  categorieId: string;
+  numeEchipa: string;
+  titulari: string[];  // sportivId[]
+  rezerve: string[];   // sportivId[]
+  echipaIncompleta?: boolean; // solicitare partener inter-club
+}
+
+// -----------------------------------------------
+// HELPER: descriere tip participare pentru header
+// -----------------------------------------------
+function descrieTipEchipa(cat: CategorieCompetitie): string {
+  if (cat.tip_participare === 'pereche') {
+    return 'Pereche 2 sportivi';
+  }
+  const titMax = cat.sportivi_per_echipa_max;
+  const rezMax = cat.rezerve_max;
+  return `Echipa ${titMax} titular${titMax !== 1 ? 'i' : ''} + ${rezMax} rezerv${rezMax !== 1 ? 'e' : 'a'}`;
+}
+
+// -----------------------------------------------
+// SUB-COMPONENTĂ: contor vizual titulari/rezerve
+// -----------------------------------------------
+interface ContorEchipaProps {
+  titulariCurenti: number;
+  titulariMin: number;
+  titulariMax: number;
+  rezerveCurente: number;
+  rezerveMax: number;
+  isPereche: boolean;
+}
+
+const ContorEchipa: React.FC<ContorEchipaProps> = ({
+  titulariCurenti, titulariMin, titulariMax,
+  rezerveCurente, rezerveMax, isPereche,
+}) => {
+  const titulariComplet = isPereche
+    ? titulariCurenti === 2
+    : titulariCurenti >= titulariMin && titulariCurenti <= titulariMax;
+  const clsTitulari = titulariComplet ? 'text-green-400' : titulariCurenti < titulariMin ? 'text-red-400' : 'text-yellow-400';
+
+  return (
+    <div className="flex items-center gap-3 text-xs font-semibold">
+      <span className={clsTitulari}>
+        Titulari: {titulariCurenti}/{isPereche ? 2 : titulariMax}
+      </span>
+      {!isPereche && rezerveMax > 0 && (
+        <>
+          <span className="text-slate-600">·</span>
+          <span className={rezerveCurente <= rezerveMax ? 'text-slate-300' : 'text-red-400'}>
+            Rezerve: {rezerveCurente}/{rezerveMax}
+          </span>
+        </>
+      )}
+    </div>
+  );
+};
+
+// -----------------------------------------------
+// TIP ROL SPORTIV ÎN ECHIPĂ
+// -----------------------------------------------
+type RolEchipa = 'titular' | 'rezerva' | 'nu_participa';
+
+// -----------------------------------------------
+// SUB-COMPONENTĂ: secțiune per categorie echipă
+// -----------------------------------------------
+interface SectiuneEchipaCategorieProps {
+  cat: CategorieCompetitie;
+  sportiviDisponibili: Sportiv[];
+  numeClub: string;
+  echipa: EchipaFormata;
+  onUpdateEchipa: (update: Partial<EchipaFormata>) => void;
+  erroare: string | null;
+}
+
+const SectiuneEchipaCategorie: React.FC<SectiuneEchipaCategorieProps> = ({
+  cat, sportiviDisponibili, numeClub, echipa, onUpdateEchipa, erroare,
+}) => {
+  const isPereche = cat.tip_participare === 'pereche';
+  const titulariMax = isPereche ? 2 : cat.sportivi_per_echipa_max;
+  const titulariMin = isPereche ? 2 : cat.sportivi_per_echipa_min;
+  const rezerveMax = isPereche ? 0 : cat.rezerve_max;
+
+  // Sportivul unic → banner amber
+  const areUnSingurSportiv = sportiviDisponibili.length === 1;
+
+  const getRolSportiv = (sportivId: string): RolEchipa => {
+    if (echipa.titulari.includes(sportivId)) return 'titular';
+    if (echipa.rezerve.includes(sportivId)) return 'rezerva';
+    return 'nu_participa';
+  };
+
+  const handleRolChange = (sportivId: string, rol: RolEchipa) => {
+    const titulariNoi = echipa.titulari.filter(id => id !== sportivId);
+    const rezerveNoi = echipa.rezerve.filter(id => id !== sportivId);
+
+    if (rol === 'titular') {
+      // Verificare limita titulari
+      if (titulariNoi.length < titulariMax) {
+        titulariNoi.push(sportivId);
+      }
+    } else if (rol === 'rezerva' && !isPereche) {
+      // Verificare limita rezerve
+      if (rezerveNoi.length < rezerveMax) {
+        rezerveNoi.push(sportivId);
+      }
+    }
+    // 'nu_participa' → nu adaugă nicăieri
+
+    onUpdateEchipa({ titulari: titulariNoi, rezerve: rezerveNoi });
+  };
+
+  return (
+    <div className="rounded-xl border border-slate-700 bg-slate-800/40 overflow-hidden">
+      {/* Header categorie */}
+      <div className="px-4 py-3 bg-slate-800/70 border-b border-slate-700 space-y-1">
+        <div className="flex items-start justify-between gap-2 flex-wrap">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-semibold text-sm text-white leading-tight">
+                {cat.denumire ?? `Categoria ${cat.numar_categorie}`}
+              </span>
+              <BadgeTipParticipare tip={cat.tip_participare} />
+            </div>
+            <div className="text-[11px] text-slate-500 mt-0.5">
+              {descrieTipEchipa(cat)}
+            </div>
+          </div>
+        </div>
+        <ContorEchipa
+          titulariCurenti={echipa.titulari.length}
+          titulariMin={titulariMin}
+          titulariMax={titulariMax}
+          rezerveCurente={echipa.rezerve.length}
+          rezerveMax={rezerveMax}
+          isPereche={isPereche}
+        />
+      </div>
+
+      {/* Banner sportiv unic → inter-club */}
+      {areUnSingurSportiv && (
+        <div className="mx-4 mt-3 rounded-lg border border-amber-600/50 bg-amber-900/20 px-3 py-2.5">
+          <p className="text-xs text-amber-300 leading-relaxed mb-2">
+            Echipa incompleta — Poti solicita partener de la alt club.
+          </p>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={echipa.echipaIncompleta ?? false}
+              onChange={e => onUpdateEchipa({ echipaIncompleta: e.target.checked })}
+              className="w-4 h-4 rounded accent-amber-500 cursor-pointer"
+            />
+            <span className="text-xs text-amber-400 font-medium">
+              Solicit partener inter-club
+            </span>
+          </label>
+        </div>
+      )}
+
+      {/* Lista sportivi disponibili */}
+      {sportiviDisponibili.length === 0 ? (
+        <div className="px-4 py-6 text-center text-sm text-slate-500 italic">
+          Niciun sportiv eligibil pentru aceasta categorie.
+        </div>
+      ) : (
+        <div className="divide-y divide-slate-700/50">
+          {sportiviDisponibili.map(sportiv => {
+            const rolCurent = getRolSportiv(sportiv.id);
+            const titulariBlocati = echipa.titulari.length >= titulariMax && rolCurent !== 'titular';
+            const rezerveBlocate = echipa.rezerve.length >= rezerveMax && rolCurent !== 'rezerva';
+
+            return (
+              <div
+                key={sportiv.id}
+                className="flex items-center gap-3 px-4 py-3"
+              >
+                {/* Nume sportiv */}
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm font-medium text-white">
+                    {sportiv.prenume} {sportiv.nume}
+                  </span>
+                </div>
+
+                {/* Butoane rol — mobil: verticale, desktop: orizontale */}
+                <div className="flex flex-col sm:flex-row gap-1.5 shrink-0">
+                  {/* Titular */}
+                  <button
+                    onClick={() => handleRolChange(sportiv.id, rolCurent === 'titular' ? 'nu_participa' : 'titular')}
+                    disabled={titulariBlocati}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors min-w-[76px] ${
+                      rolCurent === 'titular'
+                        ? 'bg-green-700 border-green-500 text-white'
+                        : titulariBlocati
+                          ? 'opacity-30 bg-slate-700 border-slate-600 text-slate-500 cursor-not-allowed'
+                          : 'bg-slate-700 border-slate-600 text-slate-300 hover:bg-green-900/40 hover:border-green-600 hover:text-green-300'
+                    }`}
+                  >
+                    Titular
+                  </button>
+
+                  {/* Rezerva — ascuns pentru pereche */}
+                  {!isPereche && rezerveMax > 0 && (
+                    <button
+                      onClick={() => handleRolChange(sportiv.id, rolCurent === 'rezerva' ? 'nu_participa' : 'rezerva')}
+                      disabled={rezerveBlocate}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors min-w-[76px] ${
+                        rolCurent === 'rezerva'
+                          ? 'bg-sky-700 border-sky-500 text-white'
+                          : rezerveBlocate
+                            ? 'opacity-30 bg-slate-700 border-slate-600 text-slate-500 cursor-not-allowed'
+                            : 'bg-slate-700 border-slate-600 text-slate-300 hover:bg-sky-900/40 hover:border-sky-600 hover:text-sky-300'
+                      }`}
+                    >
+                      Rezerva
+                    </button>
+                  )}
+
+                  {/* Nu participa — vizibil implicit prin lipsa selecției */}
+                  {rolCurent !== 'nu_participa' && (
+                    <button
+                      onClick={() => handleRolChange(sportiv.id, 'nu_participa')}
+                      className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-600 bg-slate-800 text-slate-500 hover:text-red-400 hover:border-red-700/50 transition-colors min-w-[76px]"
+                    >
+                      Elimina
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Câmp nume echipă */}
+      <div className="px-4 py-3 border-t border-slate-700/60 bg-slate-800/20">
+        <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1.5">
+          Nume echipa (optional)
+        </label>
+        <input
+          type="text"
+          value={echipa.numeEchipa}
+          onChange={e => onUpdateEchipa({ numeEchipa: e.target.value })}
+          placeholder={numeClub}
+          className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-brand-primary"
+        />
+      </div>
+
+      {/* Eroare validare */}
+      {erroare && (
+        <div className="px-4 pb-3">
+          <p className="text-xs text-red-400 bg-red-900/20 border border-red-700/40 rounded-lg px-3 py-2">
+            {erroare}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// -----------------------------------------------
+// PASUL 3 — Formare echipe
+// -----------------------------------------------
+interface Pas3Props {
+  sportivi: Sportiv[];
+  categorii: CategorieCompetitie[];
+  selectedSportivi: Set<string>;
+  indivPicks: IndivPicks;
+  echipaPicks: string[];         // categorieId[] din Pasul 2
+  numeClub: string;
+  echipeFormate: EchipaFormata[];
+  onUpdateEchipe: (next: EchipaFormata[]) => void;
+  onContinua: () => void;
+  onBack: () => void;
+}
+
+const Pas3FormareEchipe: React.FC<Pas3Props> = ({
+  sportivi, categorii,
+  selectedSportivi, indivPicks, echipaPicks,
+  numeClub, echipeFormate, onUpdateEchipe,
+  onContinua, onBack,
+}) => {
+  // Categoriile de echipă selectate în Pasul 2
+  const categoriiEchipa = useMemo<CategorieCompetitie[]>(() =>
+    echipaPicks
+      .map(id => categorii.find(c => c.id === id))
+      .filter((c): c is CategorieCompetitie => c !== undefined),
+    [echipaPicks, categorii]
+  );
+
+  // Sportivii selectați în Pasul 1 (obiecte complete)
+  const sportiviSelectati = useMemo<Sportiv[]>(() =>
+    sportivi.filter(s => selectedSportivi.has(s.id)),
+    [sportivi, selectedSportivi]
+  );
+
+  // Sportivii eligibili per categorie echipă:
+  // un sportiv e disponibil dacă a bifat acea categorie în Pasul 2
+  const sportiviDisponibiliPerCategorie = useMemo<Map<string, Sportiv[]>>(() => {
+    const map = new Map<string, Sportiv[]>();
+    for (const cat of categoriiEchipa) {
+      const disponibili = sportiviSelectati.filter(s => {
+        const picks = indivPicks.get(s.id);
+        return picks?.has(cat.id) ?? false;
+      });
+      map.set(cat.id, disponibili);
+    }
+    return map;
+  }, [categoriiEchipa, sportiviSelectati, indivPicks]);
+
+  // Inițializare echipeFormate dacă sunt goale
+  useEffect(() => {
+    if (echipeFormate.length === 0 && categoriiEchipa.length > 0) {
+      const initiale: EchipaFormata[] = categoriiEchipa.map(cat => ({
+        categorieId: cat.id,
+        numeEchipa: numeClub,
+        titulari: [],
+        rezerve: [],
+        echipaIncompleta: false,
+      }));
+      onUpdateEchipe(initiale);
+    }
+    // Rulat o singură dată la mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const getEchipa = (catId: string): EchipaFormata => {
+    return echipeFormate.find(e => e.categorieId === catId) ?? {
+      categorieId: catId,
+      numeEchipa: numeClub,
+      titulari: [],
+      rezerve: [],
+      echipaIncompleta: false,
+    };
+  };
+
+  const handleUpdateEchipa = (catId: string, update: Partial<EchipaFormata>) => {
+    onUpdateEchipe(
+      echipeFormate.map(e =>
+        e.categorieId === catId ? { ...e, ...update } : e
+      )
+    );
+  };
+
+  // Validare per categorie
+  const eroriPerCategorie = useMemo<Map<string, string>>(() => {
+    const erori = new Map<string, string>();
+    for (const cat of categoriiEchipa) {
+      const echipa = getEchipa(cat.id);
+      const isPereche = cat.tip_participare === 'pereche';
+      const titMin = isPereche ? 2 : cat.sportivi_per_echipa_min;
+
+      if (echipa.echipaIncompleta) continue; // inter-club → permis
+
+      if (echipa.titulari.length < titMin) {
+        const necesar = titMin - echipa.titulari.length;
+        erori.set(
+          cat.id,
+          `Lipsesc ${necesar} titular${necesar !== 1 ? 'i' : ''} (minim ${titMin} necesari pentru start)`
+        );
+      }
+    }
+    return erori;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [echipeFormate, categoriiEchipa]);
+
+  const poateContinua = eroriPerCategorie.size === 0;
+
+  return (
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex items-start gap-3">
+        <Button variant="secondary" size="sm" onClick={onBack} className="!p-2 shrink-0 mt-0.5">
+          <ArrowLeftIcon className="w-4 h-4" />
+        </Button>
+        <div className="flex-1 min-w-0">
+          <h2 className="text-lg font-bold text-white leading-tight">
+            Inscriere sportivi
+          </h2>
+          <p className="text-xs text-slate-400 mt-0.5">
+            Pasul 3 din 4: {STEP_LABELS[2]}
+          </p>
+        </div>
+        <div className="text-right shrink-0">
+          <span className="text-xs text-slate-500">
+            {categoriiEchipa.length} categor{categoriiEchipa.length === 1 ? 'ie' : 'ii'}
+          </span>
+        </div>
+      </div>
+
+      {/* Progress */}
+      <WizardProgress step={3} total={4} />
+
+      {/* Grid categorii — responsive */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-1 gap-4">
+        {categoriiEchipa.map(cat => {
+          const disponibili = sportiviDisponibiliPerCategorie.get(cat.id) ?? [];
+          const echipa = getEchipa(cat.id);
+          const erroare = eroriPerCategorie.get(cat.id) ?? null;
+
+          return (
+            <SectiuneEchipaCategorie
+              key={cat.id}
+              cat={cat}
+              sportiviDisponibili={disponibili}
+              numeClub={numeClub}
+              echipa={echipa}
+              onUpdateEchipa={update => handleUpdateEchipa(cat.id, update)}
+              erroare={erroare}
+            />
+          );
+        })}
+      </div>
+
+      {/* Sumar validare global */}
+      {!poateContinua && (
+        <div className="rounded-lg border border-red-700/50 bg-red-900/20 px-4 py-3">
+          <p className="text-xs text-red-400 font-semibold mb-1">
+            Echipe incomplete:
+          </p>
+          {Array.from(eroriPerCategorie.entries()).map(([catId, msg]) => {
+            const cat = categorii.find(c => c.id === catId);
+            return (
+              <p key={catId} className="text-xs text-red-400">
+                {cat?.denumire ?? catId}: {msg}
+              </p>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Footer sticky */}
+      <div className="sticky bottom-0 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 -mx-4 px-4 md:static md:bg-transparent md:border-0 md:pt-2 md:pb-0 md:mx-0 md:px-0">
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-xs text-slate-400">
+            {poateContinua
+              ? `${categoriiEchipa.length} echip${categoriiEchipa.length === 1 ? 'a' : 'e'} configurate`
+              : 'Completeaza echipele inainte de a continua'}
+          </span>
+          <Button
+            variant="success"
+            disabled={!poateContinua}
+            onClick={onContinua}
+            className="min-w-[140px]"
+          >
+            Continua
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// -----------------------------------------------
+// PLACEHOLDER — pasul 4
 // -----------------------------------------------
 const PlaceholderPas: React.FC<{
-  step: 3 | 4;
+  step: 4;
   onBack: () => void;
 }> = ({ step, onBack }) => (
   <div className="space-y-4">
@@ -1194,6 +1651,7 @@ export interface InscriereClubWizardProps {
   inscrieri: InscriereCompetitie[];
   echipe: EchipaCompetitie[];
   clubId: string;
+  numeClub: string;
   vizeSportivi: VizaSportiv[];
   onBack: () => void;
   onSaved: () => void;
@@ -1201,7 +1659,7 @@ export interface InscriereClubWizardProps {
 
 const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
   competitie, probe, categorii, sportivi, grade,
-  inscrieri, echipe, clubId, vizeSportivi, onBack, onSaved,
+  inscrieri, echipe, clubId, numeClub, vizeSportivi, onBack, onSaved,
 }) => {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [selectedSportivi, setSelectedSportivi] = useState<Set<string>>(new Set());
@@ -1210,6 +1668,8 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
   const [indivPicks, setIndivPicks] = useState<IndivPicks>(new Map());
   // Categoriile de tip echipă/pereche bifate în Pasul 2 → pasate la Pasul 3
   const [echipaPicks, setEchipaPicks] = useState<string[]>([]);
+  // Starea Pasului 3
+  const [echipeFormate, setEchipeFormate] = useState<EchipaFormata[]>([]);
 
   const handleToggle = (id: string) => {
     setSelectedSportivi(prev => {
@@ -1264,7 +1724,20 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
   }
 
   if (step === 3) {
-    return <PlaceholderPas step={3} onBack={() => setStep(2)} />;
+    return (
+      <Pas3FormareEchipe
+        sportivi={sportivi}
+        categorii={categorii}
+        selectedSportivi={selectedSportivi}
+        indivPicks={indivPicks}
+        echipaPicks={echipaPicks}
+        numeClub={numeClub}
+        echipeFormate={echipeFormate}
+        onUpdateEchipe={setEchipeFormate}
+        onContinua={() => setStep(4)}
+        onBack={() => setStep(2)}
+      />
+    );
   }
 
   return <PlaceholderPas step={4} onBack={() => setStep(echipaPicks.length > 0 ? 3 : 2)} />;

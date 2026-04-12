@@ -499,6 +499,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                 inscrieri={inscrieri}
                 echipe={echipe}
                 clubId={myClubId || ''}
+                numeClub={currentUser?.cluburi?.nume ?? ''}
                 vizeSportivi={vizeSportivi}
                 onBack={() => setWizardOpen(false)}
                 onSaved={() => { setWizardOpen(false); fetchData(); }}

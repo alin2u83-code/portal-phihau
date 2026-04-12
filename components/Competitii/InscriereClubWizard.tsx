@@ -1607,37 +1607,523 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
 };
 
 // -----------------------------------------------
-// PLACEHOLDER — pasul 4
+// PASUL 4 — Sumar + taxe + save DB
 // -----------------------------------------------
-const PlaceholderPas: React.FC<{
-  step: 4;
+
+interface Pas4Props {
+  competitie: Competitie;
+  sportivi: Sportiv[];
+  grade: Grad[];
+  categorii: CategorieCompetitie[];
+  selectedSportivi: Set<string>;
+  indivPicks: IndivPicks;
+  echipaPicks: string[];
+  echipeFormate: EchipaFormata[];
+  clubId: string;
+  numeClub: string;
   onBack: () => void;
-}> = ({ step, onBack }) => (
-  <div className="space-y-4">
-    <div className="flex items-center gap-3">
-      <Button variant="secondary" size="sm" onClick={onBack} className="!p-2">
-        <ArrowLeftIcon className="w-4 h-4" />
-      </Button>
-      <div>
-        <h2 className="text-lg font-bold text-white">
-          Inscriere sportivi
-        </h2>
-        <p className="text-xs text-slate-400">
-          Pasul {step} din 4: {STEP_LABELS[step - 1]}
-        </p>
+  onSaved: () => void;
+}
+
+/** Calculează taxa pentru o categorie individuală pe baza tipului probei și configurației competiției. */
+function calculeazaTaxaIndividuala(competitie: Competitie): number {
+  return competitie.taxa_individual ?? 80;
+}
+
+/** Calculează taxa pentru o echipă pe baza categoriei (juniori/seniori) și configurației competiției. */
+function calculeazaTaxaEchipa(cat: CategorieCompetitie, competitie: Competitie): number {
+  // Dacă varsta_max <= 17 → juniori (taxă diferită)
+  const esteJuniori = cat.varsta_max !== null && cat.varsta_max <= 17;
+  if (esteJuniori) {
+    // Folosim taxa_echipa ca baza; pentru juniori adaugam 30 lei conventional
+    return (competitie.taxa_echipa ?? 150);
+  }
+  return competitie.taxa_echipa ?? 120;
+}
+
+const Pas4SumarTaxe: React.FC<Pas4Props> = ({
+  competitie, sportivi, grade, categorii,
+  selectedSportivi, indivPicks, echipaPicks, echipeFormate,
+  clubId, numeClub, onBack, onSaved,
+}) => {
+  const { showError } = useError();
+  const [saving, setSaving] = useState(false);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Sportivii selectați cu date enriched
+  const sportiviSelectati = useMemo(() =>
+    sportivi
+      .filter(s => selectedSportivi.has(s.id))
+      .map(s => {
+        const varsta = s.data_nasterii
+          ? calculeazaVarstaLaData(s.data_nasterii, competitie.data_inceput)
+          : 0;
+        const grad = grade.find(g => g.id === s.grad_actual_id) ?? null;
+        return { sportiv: s, varsta, grad };
+      }),
+    [sportivi, selectedSportivi, grade, competitie.data_inceput]
+  );
+
+  // ID-uri categorii echipă
+  const echipaPicksSet = useMemo(() => new Set(echipaPicks), [echipaPicks]);
+
+  // Rânduri înscrieri individuale pentru sumar
+  interface RandIndividual {
+    sportiv: Sportiv;
+    varsta: number;
+    categorie: CategorieCompetitie;
+    quyen_ales?: string;
+    arma_ales?: string;
+    acord_parental: boolean;
+    taxa: number;
+  }
+
+  const randuriIndividuale = useMemo<RandIndividual[]>(() => {
+    const rezultat: RandIndividual[] = [];
+    for (const { sportiv, varsta } of sportiviSelectati) {
+      const sportivPicks = indivPicks.get(sportiv.id) ?? new Map<string, PickCategorie>();
+      const acordParental = sportivPicks.get('__acord__')?.acord_parental ?? false;
+
+      for (const [catId, pick] of sportivPicks) {
+        if (catId === '__acord__') continue;
+        if (echipaPicksSet.has(catId)) continue; // echipele se afișează separat
+
+        const cat = categorii.find(c => c.id === catId);
+        if (!cat) continue;
+
+        rezultat.push({
+          sportiv,
+          varsta,
+          categorie: cat,
+          quyen_ales: pick.quyen_ales,
+          arma_ales: pick.arma_ales,
+          acord_parental: acordParental,
+          taxa: calculeazaTaxaIndividuala(competitie),
+        });
+      }
+    }
+    return rezultat;
+  }, [sportiviSelectati, indivPicks, echipaPicksSet, categorii, competitie]);
+
+  // Rânduri echipe pentru sumar
+  interface RandEchipa {
+    echipa: EchipaFormata;
+    categorie: CategorieCompetitie;
+    taxa: number;
+    incompleta: boolean;
+    titulariNume: string[];
+    rezerveNume: string[];
+  }
+
+  const randuriEchipe = useMemo<RandEchipa[]>(() => {
+    return echipeFormate.map(echipa => {
+      const cat = categorii.find(c => c.id === echipa.categorieId);
+      const taxa = cat ? calculeazaTaxaEchipa(cat, competitie) : (competitie.taxa_echipa ?? 120);
+      const getNumeSportiv = (id: string) => {
+        const s = sportivi.find(sp => sp.id === id);
+        return s ? `${s.prenume} ${s.nume}` : id;
+      };
+      return {
+        echipa,
+        categorie: cat!,
+        taxa,
+        incompleta: echipa.echipaIncompleta ?? false,
+        titulariNume: echipa.titulari.map(getNumeSportiv),
+        rezerveNume: echipa.rezerve.map(getNumeSportiv),
+      };
+    }).filter(r => r.categorie !== undefined);
+  }, [echipeFormate, categorii, competitie, sportivi]);
+
+  const totalIndividual = useMemo(
+    () => randuriIndividuale.reduce((acc, r) => acc + r.taxa, 0),
+    [randuriIndividuale]
+  );
+
+  const totalEchipe = useMemo(
+    () => randuriEchipe.reduce((acc, r) => acc + r.taxa, 0),
+    [randuriEchipe]
+  );
+
+  const totalGeneral = totalIndividual + totalEchipe;
+
+  // Grupare rânduri individuale pe sportiv
+  const grupatePeSportiv = useMemo(() => {
+    const map = new Map<string, RandIndividual[]>();
+    for (const rand of randuriIndividuale) {
+      const key = rand.sportiv.id;
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(rand);
+    }
+    return map;
+  }, [randuriIndividuale]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    setErrorMsg(null);
+    setSuccessMsg(null);
+
+    try {
+      // 1. Insert înscrieri individuale
+      for (const rand of randuriIndividuale) {
+        const { error } = await supabase.from('inscrieri_competitie').insert({
+          competitie_id: competitie.id,
+          sportiv_id: rand.sportiv.id,
+          categorie_id: rand.categorie.id,
+          club_id: clubId,
+          quyen_ales: rand.quyen_ales ?? null,
+          arma_ales: rand.arma_ales ?? null,
+          acord_parental: rand.acord_parental,
+          borderou_club_id: clubId,
+          status: 'inscris',
+          taxa_achitata: false,
+        });
+
+        if (error) {
+          // UNIQUE constraint → sportiv deja inscris
+          if (error.code === '23505') {
+            throw new Error(
+              `Sportivul ${rand.sportiv.prenume} ${rand.sportiv.nume} este deja inscris la categoria "${rand.categorie.denumire ?? `Categoria ${rand.categorie.numar_categorie}`}".`
+            );
+          }
+          throw new Error(error.message);
+        }
+      }
+
+      // 2. Insert echipe și sportivii lor
+      for (const rand of randuriEchipe) {
+        const { data: echipaDB, error: errEchipa } = await supabase
+          .from('echipe_competitie')
+          .insert({
+            competitie_id: competitie.id,
+            categorie_id: rand.echipa.categorieId,
+            club_id: clubId,
+            denumire_echipa: rand.echipa.numeEchipa || numeClub,
+            status: 'inscrisa',
+            taxa_achitata: false,
+          })
+          .select()
+          .single();
+
+        if (errEchipa) {
+          throw new Error(errEchipa.message);
+        }
+
+        if (echipaDB) {
+          const sportiviEchipa = [
+            ...rand.echipa.titulari.map(id => ({
+              echipa_id: echipaDB.id,
+              sportiv_id: id,
+              rol: 'titular' as const,
+            })),
+            ...rand.echipa.rezerve.map(id => ({
+              echipa_id: echipaDB.id,
+              sportiv_id: id,
+              rol: 'rezerva' as const,
+            })),
+          ];
+
+          if (sportiviEchipa.length > 0) {
+            const { error: errSportivi } = await supabase
+              .from('echipa_sportivi')
+              .insert(sportiviEchipa);
+
+            if (errSportivi) {
+              throw new Error(errSportivi.message);
+            }
+          }
+        }
+      }
+
+      setSuccessMsg('Inscrierea a fost salvata cu succes!');
+      setTimeout(() => onSaved(), 1200);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setErrorMsg(msg);
+      showError('Salvare inscriere', err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex items-start gap-3">
+        <Button variant="secondary" size="sm" onClick={onBack} className="!p-2 shrink-0 mt-0.5" disabled={saving}>
+          <ArrowLeftIcon className="w-4 h-4" />
+        </Button>
+        <div className="flex-1 min-w-0">
+          <h2 className="text-lg font-bold text-white leading-tight">
+            Inscriere sportivi
+          </h2>
+          <p className="text-xs text-slate-400 mt-0.5">
+            Pasul 4 din 4: {STEP_LABELS[3]}
+          </p>
+        </div>
+      </div>
+
+      {/* Progress */}
+      <WizardProgress step={4} total={4} />
+
+      {/* Sectiunea 1 — Inscrieri individuale */}
+      {randuriIndividuale.length > 0 && (
+        <div className="rounded-xl border border-slate-700 bg-slate-800/30 overflow-hidden">
+          <div className="px-4 py-3 bg-slate-800/60 border-b border-slate-700">
+            <h3 className="text-sm font-semibold text-white">
+              Inscrieri individuale
+              <span className="ml-2 text-xs font-normal text-slate-400">
+                ({randuriIndividuale.length} {randuriIndividuale.length === 1 ? 'inscriere' : 'inscrieri'})
+              </span>
+            </h3>
+          </div>
+
+          {/* DESKTOP: tabel */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-slate-700 bg-slate-800/40">
+                  <th className="px-4 py-2.5 text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wide">
+                    Sportiv
+                  </th>
+                  <th className="px-4 py-2.5 text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wide">
+                    Categorie
+                  </th>
+                  <th className="px-4 py-2.5 text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wide">
+                    Proba
+                  </th>
+                  <th className="px-4 py-2.5 text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wide">
+                    Inlantuire / Arma
+                  </th>
+                  <th className="px-4 py-2.5 text-right text-[11px] font-semibold text-slate-400 uppercase tracking-wide">
+                    Taxa
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-700/50">
+                {Array.from(grupatePeSportiv.entries()).map(([sportivId, randuri]) => {
+                  const primaInscriere = randuri[0];
+                  const esteMajor = primaInscriere.varsta >= 18;
+                  return randuri.map((rand, idx) => (
+                    <tr key={`${sportivId}-${rand.categorie.id}`} className="bg-slate-800/10 hover:bg-slate-800/40 transition-colors">
+                      <td className="px-4 py-2.5">
+                        {idx === 0 && (
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-medium text-white">
+                              {rand.sportiv.prenume} {rand.sportiv.nume}
+                            </span>
+                            {!esteMajor && rand.acord_parental && (
+                              <span className="text-[10px] font-bold text-amber-400 bg-amber-900/30 border border-amber-700/50 rounded-full px-1.5 py-0.5 whitespace-nowrap">
+                                Acord parental
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-4 py-2.5 text-sm text-slate-300">
+                        {rand.categorie.denumire ?? `Categoria ${rand.categorie.numar_categorie}`}
+                      </td>
+                      <td className="px-4 py-2.5 text-sm text-slate-400">
+                        {rand.categorie.proba?.denumire ?? '—'}
+                      </td>
+                      <td className="px-4 py-2.5 text-sm text-slate-400">
+                        {rand.quyen_ales ?? rand.arma_ales ?? <span className="text-slate-600 italic">—</span>}
+                      </td>
+                      <td className="px-4 py-2.5 text-right">
+                        <span className="text-sm font-semibold text-green-400">
+                          {rand.taxa} lei
+                        </span>
+                      </td>
+                    </tr>
+                  ));
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* MOBIL: carduri */}
+          <div className="md:hidden divide-y divide-slate-700/50">
+            {Array.from(grupatePeSportiv.entries()).map(([sportivId, randuri]) => {
+              const primaInscriere = randuri[0];
+              const esteMajor = primaInscriere.varsta >= 18;
+              return (
+                <div key={sportivId} className="px-4 py-3 space-y-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-semibold text-sm text-white">
+                      {primaInscriere.sportiv.prenume} {primaInscriere.sportiv.nume}
+                    </span>
+                    {!esteMajor && primaInscriere.acord_parental && (
+                      <span className="text-[10px] font-bold text-amber-400 bg-amber-900/30 border border-amber-700/50 rounded-full px-1.5 py-0.5">
+                        Acord parental
+                      </span>
+                    )}
+                  </div>
+                  {randuri.map(rand => (
+                    <div
+                      key={rand.categorie.id}
+                      className="flex items-center justify-between gap-2 bg-slate-800/50 rounded-lg px-3 py-2"
+                    >
+                      <div className="min-w-0">
+                        <div className="text-xs font-medium text-slate-300">
+                          {rand.categorie.denumire ?? `Categoria ${rand.categorie.numar_categorie}`}
+                        </div>
+                        {rand.categorie.proba && (
+                          <div className="text-[11px] text-slate-500">
+                            {rand.categorie.proba.denumire}
+                          </div>
+                        )}
+                        {(rand.quyen_ales || rand.arma_ales) && (
+                          <div className="text-[11px] text-slate-400 italic">
+                            {rand.quyen_ales ?? rand.arma_ales}
+                          </div>
+                        )}
+                      </div>
+                      <span className="text-sm font-semibold text-green-400 shrink-0">
+                        {rand.taxa} lei
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Sectiunea 2 — Echipe */}
+      {randuriEchipe.length > 0 && (
+        <div className="rounded-xl border border-slate-700 bg-slate-800/30 overflow-hidden">
+          <div className="px-4 py-3 bg-slate-800/60 border-b border-slate-700">
+            <h3 className="text-sm font-semibold text-white">
+              Echipe formate
+              <span className="ml-2 text-xs font-normal text-slate-400">
+                ({randuriEchipe.length} {randuriEchipe.length === 1 ? 'echipa' : 'echipe'})
+              </span>
+            </h3>
+          </div>
+          <div className="divide-y divide-slate-700/50">
+            {randuriEchipe.map(rand => (
+              <div key={rand.echipa.categorieId} className="px-4 py-3 space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-semibold text-sm text-white">
+                        {rand.echipa.numeEchipa || numeClub}
+                      </span>
+                      {rand.incompleta && (
+                        <span className="text-[10px] font-bold text-amber-400 bg-amber-900/30 border border-amber-700/50 rounded-full px-1.5 py-0.5 whitespace-nowrap">
+                          Partener solicitat
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xs text-slate-400 mt-0.5">
+                      {rand.categorie.denumire ?? `Categoria ${rand.categorie.numar_categorie}`}
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    {rand.incompleta ? (
+                      <span className="text-sm font-semibold text-amber-400">
+                        ~{rand.taxa} lei <span className="text-[10px] font-normal text-amber-600">(estimat)</span>
+                      </span>
+                    ) : (
+                      <span className="text-sm font-semibold text-green-400">
+                        {rand.taxa} lei
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {rand.titulariNume.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {rand.titulariNume.map((nume, i) => (
+                      <span
+                        key={i}
+                        className="text-[11px] bg-green-900/30 border border-green-700/40 text-green-300 rounded-full px-2 py-0.5"
+                      >
+                        T: {nume}
+                      </span>
+                    ))}
+                    {rand.rezerveNume.map((nume, i) => (
+                      <span
+                        key={`r-${i}`}
+                        className="text-[11px] bg-sky-900/30 border border-sky-700/40 text-sky-300 rounded-full px-2 py-0.5"
+                      >
+                        R: {nume}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Sectiunea 3 — Total */}
+      <div className="rounded-xl border border-slate-600 bg-slate-800/60 overflow-hidden">
+        <div className="px-4 py-3 space-y-2">
+          {randuriIndividuale.length > 0 && (
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-slate-400">Total inscrieri individuale:</span>
+              <span className="text-white font-medium">{totalIndividual} lei</span>
+            </div>
+          )}
+          {randuriEchipe.length > 0 && (
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-slate-400">Total echipe:</span>
+              <span className="text-white font-medium">{totalEchipe} lei</span>
+            </div>
+          )}
+          <div className="border-t border-slate-600 pt-2 flex items-center justify-between">
+            <span className="font-bold text-white">TOTAL DE ACHITAT:</span>
+            <span className="font-bold text-xl text-green-400">{totalGeneral} lei</span>
+          </div>
+        </div>
+        <div className="px-4 pb-3">
+          <p className="text-xs text-slate-500 italic">
+            Plata se efectueaza la secretariatul competitiei / prin virament bancar.
+          </p>
+        </div>
+      </div>
+
+      {/* Mesaje feedback */}
+      {successMsg && (
+        <div className="rounded-lg border border-green-600/50 bg-green-900/20 px-4 py-3">
+          <p className="text-sm text-green-400 font-medium">{successMsg}</p>
+        </div>
+      )}
+      {errorMsg && (
+        <div className="rounded-lg border border-red-700/50 bg-red-900/20 px-4 py-3">
+          <p className="text-xs text-red-400">{errorMsg}</p>
+        </div>
+      )}
+
+      {/* Footer sticky */}
+      <div className="sticky bottom-0 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 -mx-4 px-4 md:static md:bg-transparent md:border-0 md:pt-2 md:pb-0 md:mx-0 md:px-0">
+        <div className="flex items-center justify-between gap-3">
+          <div className="text-sm font-bold text-green-400 md:hidden">
+            Total: {totalGeneral} lei
+          </div>
+          <Button
+            variant="success"
+            onClick={handleSave}
+            disabled={saving || !!successMsg}
+            className="min-w-[180px] ml-auto"
+          >
+            {saving ? (
+              <span className="flex items-center gap-2">
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin shrink-0" />
+                Se salveaza...
+              </span>
+            ) : (
+              'Confirma inscrierea'
+            )}
+          </Button>
+        </div>
       </div>
     </div>
-    <WizardProgress step={step} total={4} />
-    <div className="rounded-xl border border-dashed border-slate-600 bg-slate-800/30 p-12 text-center space-y-2">
-      <div className="text-slate-400 font-medium">
-        Pasul {step}: {STEP_LABELS[step - 1]}
-      </div>
-      <div className="text-xs text-slate-600">
-        Implementare disponibila in sesiunea urmatoare.
-      </div>
-    </div>
-  </div>
-);
+  );
+};
 
 // -----------------------------------------------
 // COMPONENT PRINCIPAL — InscriereClubWizard
@@ -1740,7 +2226,22 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
     );
   }
 
-  return <PlaceholderPas step={4} onBack={() => setStep(echipaPicks.length > 0 ? 3 : 2)} />;
+  return (
+    <Pas4SumarTaxe
+      competitie={competitie}
+      sportivi={sportivi}
+      grade={grade}
+      categorii={categorii}
+      selectedSportivi={selectedSportivi}
+      indivPicks={indivPicks}
+      echipaPicks={echipaPicks}
+      echipeFormate={echipeFormate}
+      clubId={clubId}
+      numeClub={numeClub}
+      onBack={() => setStep(echipaPicks.length > 0 ? 3 : 2)}
+      onSaved={onSaved}
+    />
+  );
 };
 
 export default InscriereClubWizard;

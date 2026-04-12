@@ -125,7 +125,7 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
     }, [activeRole]);
 
     const buildSidebarContent = (effectiveExpanded: boolean) => (
-        <div data-tutorial="sidebar" className="flex flex-col h-full text-slate-200 shadow-2xl">
+        <div data-tutorial="sidebar" className="flex flex-col h-full min-h-0 text-slate-200 shadow-2xl">
             {/* Background */}
             <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 pointer-events-none" />
             <div className="absolute inset-0 border-r border-slate-800/80 pointer-events-none" />

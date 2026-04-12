@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { View, Permissions } from '../types';
 import { useNavigation } from '../contexts/NavigationContext';
 import { adminMenu, instructorMenu, sportivMenu, MenuItem } from './menuConfig';
@@ -126,8 +126,43 @@ export const NavMenu: React.FC<NavMenuProps> = (props) => {
   const initialOpen = menuToDisplay.find(item => item.submenu?.some(s => s.view === activeView))?.label ?? null;
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(initialOpen);
 
+  const navRef = useRef<HTMLElement>(null);
+  const [canScrollUp, setCanScrollUp] = useState(false);
+  const [canScrollDown, setCanScrollDown] = useState(false);
+
+  const updateScrollState = useCallback(() => {
+    const el = navRef.current;
+    if (!el) return;
+    setCanScrollUp(el.scrollTop > 4);
+    setCanScrollDown(el.scrollTop + el.clientHeight < el.scrollHeight - 4);
+  }, []);
+
+  useEffect(() => {
+    const el = navRef.current;
+    if (!el) return;
+    updateScrollState();
+    el.addEventListener('scroll', updateScrollState, { passive: true });
+    const ro = new ResizeObserver(updateScrollState);
+    ro.observe(el);
+    return () => { el.removeEventListener('scroll', updateScrollState); ro.disconnect(); };
+  }, [updateScrollState, menuToDisplay]);
+
+  const scrollBy = (direction: 'up' | 'down') => {
+    navRef.current?.scrollBy({ top: direction === 'up' ? -120 : 120, behavior: 'smooth' });
+  };
+
   return (
-    <nav className="flex-1 px-2 py-4 space-y-1.5 overflow-y-auto">
+    <div className="relative flex-1 min-h-0 flex flex-col">
+      {/* Scroll up button */}
+      <button
+        onClick={() => scrollBy('up')}
+        className={`absolute top-0 left-0 right-0 z-10 flex items-center justify-center h-6 bg-gradient-to-b from-slate-900 to-transparent transition-opacity duration-200 ${canScrollUp ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+        aria-label="Scroll sus"
+      >
+        <ChevronDownIcon className="w-4 h-4 text-amber-400 rotate-180" />
+      </button>
+
+    <nav ref={navRef} className="flex-1 px-2 py-4 space-y-1.5 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
       {menuToDisplay.map(item => {
         const badgeCount = item.view === 'notificari' ? unreadCount : undefined;
         const isActive = item.view ? item.view === activeView : false;
@@ -172,5 +207,15 @@ export const NavMenu: React.FC<NavMenuProps> = (props) => {
         </div>
       )}
     </nav>
+
+      {/* Scroll down button */}
+      <button
+        onClick={() => scrollBy('down')}
+        className={`absolute bottom-0 left-0 right-0 z-10 flex items-center justify-center h-6 bg-gradient-to-t from-slate-900 to-transparent transition-opacity duration-200 ${canScrollDown ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+        aria-label="Scroll jos"
+      >
+        <ChevronDownIcon className="w-4 h-4 text-amber-400" />
+      </button>
+    </div>
   );
 };

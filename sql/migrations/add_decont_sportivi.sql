@@ -22,7 +22,7 @@ CREATE INDEX IF NOT EXISTS idx_decont_sportivi_sportiv_an ON public.decont_sport
 
 -- -------------------------------------------------------------------------
 -- RLS Policies — același pattern ca REFACTOR_VIZE_FEDERALE.sql
--- Funcții folosite: utilizator_roluri_multicont.rol_nume și club_id
+-- Funcții folosite: utilizator_roluri_multicont.rol_denumire și club_id
 -- -------------------------------------------------------------------------
 
 -- Policy 1: SUPER_ADMIN_FEDERATIE — acces total
@@ -36,7 +36,7 @@ CREATE POLICY "Federatie - Full Access Decont Sportivi"
             SELECT 1
             FROM public.utilizator_roluri_multicont
             WHERE user_id = auth.uid()
-              AND rol_nume = 'SUPER_ADMIN_FEDERATIE'
+              AND rol_denumire = 'SUPER_ADMIN_FEDERATIE'
         )
     );
 

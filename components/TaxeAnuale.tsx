@@ -1,12 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { supabase } from '../supabaseClient';
-import { User, Sportiv, Plata, TaxaAnualeConfig, VizaSportiv, DecontSportiv } from '../types';
+import { User, Sportiv, Plata, TaxaAnualeConfig, VizaSportiv, DecontSportiv, DecontFederatie } from '../types';
 import { Button, Card, Input, Modal, Select } from './ui';
 import { ArrowLeftIcon, CogIcon, BanknotesIcon, PlusIcon, CheckCircleIcon, XCircleIcon, SearchIcon, TrashIcon, CalendarIcon, DownloadIcon, PrinterIcon } from './icons';
 import { useError } from './ErrorProvider';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { useData } from '../contexts/DataContext';
-import { ResponsiveTable, Column } from './ResponsiveTable';
+import { ResponsiveTable } from './ResponsiveTable';
 
 interface TaxeAnualeProps {
     onBack: () => void;
@@ -31,14 +31,22 @@ function getTitluTaxa(taxa: TaxaAnualeConfig): string {
     return 'Taxă Anuală';
 }
 
+// Detectează tipul taxei după descriere
+const getTipTaxa = (taxa: TaxaAnualeConfig): 'FRAM' | 'FRQKD' | 'Alta' => {
+    const d = (taxa.descriere || '').toUpperCase();
+    if (d.includes('FRAM')) return 'FRAM';
+    if (d.includes('FRQKD')) return 'FRQKD';
+    return 'Alta';
+};
+
 const TaxaCard: React.FC<{
     taxa: TaxaAnualeConfig;
     onUpdate: (id: string, updates: Partial<TaxaAnualeConfig>) => void;
     onDelete: (taxa: TaxaAnualeConfig) => void;
     onGenerate: (taxa: TaxaAnualeConfig) => void;
     onViewStatus: (taxa: TaxaAnualeConfig) => void;
-    canManage: boolean;   // SUPER_ADMIN_FEDERATIE: poate edita/șterge/adăuga
-    canGenerate: boolean; // ADMIN_CLUB + SUPER_ADMIN: poate genera facturi
+    canManage: boolean;
+    canGenerate: boolean;
 }> = ({ taxa, onUpdate, onDelete, onGenerate, onViewStatus, canManage, canGenerate }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [editState, setEditState] = useState(taxa);
@@ -88,7 +96,6 @@ const TaxaCard: React.FC<{
                         )}
                     </div>
 
-                    {/* Perioadă de validitate */}
                     {!isEditing && perioadaText && (
                         <div className="flex items-center gap-1.5 mt-2">
                             <CalendarIcon className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
@@ -96,7 +103,6 @@ const TaxaCard: React.FC<{
                         </div>
                     )}
 
-                    {/* Câmpuri editare perioadă — doar SUPER_ADMIN */}
                     {isEditing && (
                         <div className="mt-3 grid grid-cols-2 gap-2">
                             <Input
@@ -115,7 +121,6 @@ const TaxaCard: React.FC<{
                     )}
                 </div>
 
-                {/* Butoane editare/ștergere — doar SUPER_ADMIN_FEDERATIE */}
                 {canManage && (
                     <div className="flex gap-2 flex-shrink-0">
                         {isEditing ? (
@@ -151,7 +156,6 @@ const TaxaCard: React.FC<{
                 </Button>
             </div>
 
-            {/* Buton generare facturi — ADMIN_CLUB și SUPER_ADMIN_FEDERATIE */}
             {canGenerate && (
                 <div className="mt-6 pt-4 border-t border-slate-700/50 flex gap-2">
                     <Button variant="info" size="sm" className="flex-1" onClick={() => onGenerate(taxa)}>
@@ -163,9 +167,352 @@ const TaxaCard: React.FC<{
     );
 };
 
+// ====== Sub-componentă pentru lista "Au plătit" / "Nu au plătit" per tip taxă ======
+interface TipTaxaListeProps {
+    tip: 'FRAM' | 'FRQKD';
+    sportiviActivi: Sportiv[];
+    plati: Plata[];
+    anCurent: number;
+}
+
+const TipTaxaListe: React.FC<TipTaxaListeProps> = ({ tip, sportiviActivi, plati, anCurent }) => {
+    // Plăți achitate pentru acest tip de taxă în anul curent
+    const platiAchitate = useMemo(() => {
+        return plati.filter(p => {
+            if (p.status !== 'Achitat') return false;
+            if (p.an != null && p.an !== anCurent) return false;
+            if (p.an == null) {
+                // Fallback: verificăm după data plății
+                if (p.data) {
+                    const an = new Date(p.data).getFullYear();
+                    if (an !== anCurent) return false;
+                }
+            }
+            const desc = (p.descriere || '').toUpperCase();
+            const tipPlata = (p.tip || '').toUpperCase();
+            return desc.includes(tip) || tipPlata.includes(tip);
+        });
+    }, [plati, anCurent, tip]);
+
+    const idsAuPlatit = useMemo(() => new Set(platiAchitate.map(p => p.sportiv_id).filter(Boolean)), [platiAchitate]);
+
+    const auPlatit = useMemo(() =>
+        platiAchitate.map(p => {
+            const s = sportiviActivi.find(sp => sp.id === p.sportiv_id);
+            return s ? { sportiv: s, plata: p } : null;
+        }).filter((x): x is { sportiv: Sportiv; plata: Plata } => x !== null),
+        [platiAchitate, sportiviActivi]
+    );
+
+    const nuAuPlatit = useMemo(() =>
+        sportiviActivi.filter(s => !idsAuPlatit.has(s.id)),
+        [sportiviActivi, idsAuPlatit]
+    );
+
+    const culoareTip = tip === 'FRAM' ? 'text-sky-400' : 'text-violet-400';
+    const borderTip = tip === 'FRAM' ? 'border-sky-700/30' : 'border-violet-700/30';
+
+    return (
+        <div className={`rounded-xl border ${borderTip} p-4 space-y-4`}>
+            <h3 className={`text-base font-black uppercase tracking-widest ${culoareTip}`}>
+                Taxe {tip}
+            </h3>
+
+            {/* 2 coloane pe tabletă+ */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Au plătit */}
+                <div className="space-y-2">
+                    <div className="flex items-center justify-between px-1">
+                        <span className="text-xs font-black uppercase tracking-wider text-emerald-400">Au plătit</span>
+                        <span className="text-sm font-black text-white">{auPlatit.length}</span>
+                    </div>
+                    <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1">
+                        {auPlatit.length === 0 ? (
+                            <div className="text-center py-4 text-slate-500 italic text-xs bg-slate-800/30 rounded-lg border border-dashed border-slate-700">
+                                Nicio plată înregistrată.
+                            </div>
+                        ) : (
+                            auPlatit.map(({ sportiv, plata }) => (
+                                <div key={plata.id} className="flex items-center justify-between bg-emerald-900/10 border border-emerald-800/20 rounded-lg py-2 px-3">
+                                    <span className="font-semibold text-white text-xs">{sportiv.nume} {sportiv.prenume}</span>
+                                    <div className="flex flex-col items-end gap-0.5">
+                                        <span className="text-[10px] text-emerald-400 font-bold">{(plata.suma || 0).toFixed(2)} RON</span>
+                                        <span className="text-[10px] text-slate-500">{plata.data ? new Date(plata.data).toLocaleDateString('ro-RO') : '-'}</span>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+
+                {/* Nu au plătit */}
+                <div className="space-y-2">
+                    <div className="flex items-center justify-between px-1">
+                        <span className="text-xs font-black uppercase tracking-wider text-red-400">Nu au plătit</span>
+                        <span className="text-sm font-black text-white">{nuAuPlatit.length}</span>
+                    </div>
+                    <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1">
+                        {nuAuPlatit.length === 0 ? (
+                            <div className="flex items-center justify-center gap-2 py-4 text-emerald-400 text-xs bg-emerald-900/10 rounded-lg border border-dashed border-emerald-800/20">
+                                <CheckCircleIcon className="w-4 h-4" /> Toți au plătit.
+                            </div>
+                        ) : (
+                            nuAuPlatit.map(sportiv => (
+                                <div key={sportiv.id} className="flex items-center justify-between bg-red-900/10 border border-red-800/20 rounded-lg py-2 px-3">
+                                    <span className="font-semibold text-white text-xs">{sportiv.nume} {sportiv.prenume}</span>
+                                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-red-500/15 text-red-400 border border-red-500/20 uppercase">Restant</span>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// ====== Sub-componentă Tab "Taxe Club" — pentru ADMIN_CLUB ======
+interface TabTaxeClubProps {
+    sportiviActivi: Sportiv[];
+    plati: Plata[];
+    anCurent: number;
+}
+
+const TabTaxeClub: React.FC<TabTaxeClubProps> = ({ sportiviActivi, plati, anCurent }) => {
+    return (
+        <div className="space-y-6">
+            <p className="text-sm text-slate-400">
+                Situația plăților taxelor anuale la nivel de club pentru anul <span className="font-bold text-white">{anCurent}</span>.
+            </p>
+            {/* Desktop: 2 coloane (FRAM | FRQKD); Tabletă/Mobil: stacked */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <TipTaxaListe tip="FRAM" sportiviActivi={sportiviActivi} plati={plati} anCurent={anCurent} />
+                <TipTaxaListe tip="FRQKD" sportiviActivi={sportiviActivi} plati={plati} anCurent={anCurent} />
+            </div>
+        </div>
+    );
+};
+
+// ====== Sub-componentă Tab "Transmis Federație" — pentru ADMIN_CLUB ======
+interface TabTransmisFederatieProps {
+    decontSportivi: DecontSportiv[];
+    deconturiFederatie: DecontFederatie[];
+    sportivi: Sportiv[];
+    taxeAnualeConfig: TaxaAnualeConfig[];
+    anCurent: number;
+}
+
+const TabTransmisFederatie: React.FC<TabTransmisFederatieProps> = ({
+    decontSportivi, deconturiFederatie, sportivi, taxeAnualeConfig, anCurent
+}) => {
+    const deconturiAn = useMemo(() =>
+        decontSportivi.filter(ds => ds.an === anCurent),
+        [decontSportivi, anCurent]
+    );
+
+    const rows = useMemo(() => {
+        return deconturiAn.map(ds => {
+            const sportiv = sportivi.find(s => s.id === ds.sportiv_id);
+            const decont = deconturiFederatie.find(d => d.id === ds.decont_id);
+            const nrParticipanti = decont?.nr_participanti || 1;
+            const sumaTotal = decont?.suma_totala || 0;
+            const sumaPerSportiv = nrParticipanti > 0 ? sumaTotal / nrParticipanti : sumaTotal;
+            const dataDecont = decont?.data_generare || ds.created_at;
+            return {
+                id: ds.id,
+                numeSportiv: sportiv ? `${sportiv.nume} ${sportiv.prenume}` : `ID: ${ds.sportiv_id.slice(0, 8)}`,
+                suma: sumaPerSportiv,
+                dataDecont,
+                decontId: ds.decont_id,
+            };
+        });
+    }, [deconturiAn, sportivi, deconturiFederatie]);
+
+    if (rows.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center gap-3 py-16 text-slate-500">
+                <BanknotesIcon className="w-12 h-12 text-slate-700" />
+                <p className="text-sm italic">Niciun decont transmis încă pentru anul {anCurent}.</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-4">
+            <p className="text-sm text-slate-400">
+                Sportivi incluși în deconturi transmise la federație în <span className="font-bold text-white">{anCurent}</span>.
+                Total: <span className="font-bold text-white">{rows.length}</span> sportivi.
+            </p>
+            <div className="overflow-x-auto rounded-xl border border-slate-700">
+                <table className="w-full text-sm">
+                    <thead>
+                        <tr className="border-b border-slate-700 bg-slate-800/60">
+                            <th className="text-left py-3 px-4 text-xs font-black uppercase tracking-wider text-slate-400">Sportiv</th>
+                            <th className="text-right py-3 px-4 text-xs font-black uppercase tracking-wider text-slate-400">Sumă</th>
+                            <th className="text-left py-3 px-4 text-xs font-black uppercase tracking-wider text-slate-400">Data Decontului</th>
+                            <th className="text-left py-3 px-4 text-xs font-black uppercase tracking-wider text-slate-400 hidden sm:table-cell">Decont ID</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {rows.map(row => (
+                            <tr key={row.id} className="border-b border-slate-700/50 hover:bg-slate-800/30 transition-colors">
+                                <td className="py-3 px-4 font-semibold text-white">{row.numeSportiv}</td>
+                                <td className="py-3 px-4 text-right font-bold text-emerald-400">{row.suma.toFixed(2)} RON</td>
+                                <td className="py-3 px-4 text-slate-300 text-xs">{row.dataDecont ? new Date(row.dataDecont).toLocaleDateString('ro-RO') : '-'}</td>
+                                <td className="py-3 px-4 text-slate-500 font-mono text-[10px] hidden sm:table-cell">#{row.decontId.slice(0, 8)}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
+};
+
+// ====== Sub-componentă Tab "Raport Federație" — pentru SUPER_ADMIN ======
+interface TabRaportFederatieProps {
+    decontSportivi: DecontSportiv[];
+    deconturiFederatie: DecontFederatie[];
+    sportivi: Sportiv[];
+    taxeAnualeConfig: TaxaAnualeConfig[];
+    clubs: { id: string; nume: string }[];
+    anCurent: number;
+}
+
+const TabRaportFederatie: React.FC<TabRaportFederatieProps> = ({
+    decontSportivi, deconturiFederatie, sportivi, taxeAnualeConfig, clubs, anCurent
+}) => {
+    const deconturiAn = useMemo(() =>
+        decontSportivi.filter(ds => ds.an === anCurent),
+        [decontSportivi, anCurent]
+    );
+
+    // Grupăm pe club_id
+    const grupateClub = useMemo(() => {
+        const map = new Map<string, {
+            clubNume: string;
+            rows: {
+                id: string;
+                numeSportiv: string;
+                suma: number;
+                dataDecont: string | null | undefined;
+                tipTaxa: string;
+            }[];
+        }>();
+
+        deconturiAn.forEach(ds => {
+            const sportiv = sportivi.find(s => s.id === ds.sportiv_id);
+            const clubId = sportiv?.club_id || 'necunoscut';
+            const club = clubs.find(c => c.id === clubId);
+            const clubNume = club?.nume || (sportiv?.cluburi?.nume) || `Club ${clubId.slice(0, 8)}`;
+
+            const decont = deconturiFederatie.find(d => d.id === ds.decont_id);
+            const nrParticipanti = decont?.nr_participanti || 1;
+            const sumaTotal = decont?.suma_totala || 0;
+            const sumaPerSportiv = nrParticipanti > 0 ? sumaTotal / nrParticipanti : sumaTotal;
+            const dataDecont = decont?.data_generare || ds.created_at;
+
+            // Detectăm tip taxă din tip_activitate al decontului sau fallback la taxe config
+            const tipActivitate = (decont?.tip_activitate || '').toUpperCase();
+            const tipTaxa = tipActivitate.includes('FRAM') ? 'FRAM'
+                : tipActivitate.includes('FRQKD') ? 'FRQKD'
+                : 'Taxa Anuală';
+
+            if (!map.has(clubId)) {
+                map.set(clubId, { clubNume, rows: [] });
+            }
+            map.get(clubId)!.rows.push({
+                id: ds.id,
+                numeSportiv: sportiv ? `${sportiv.nume} ${sportiv.prenume}` : `ID: ${ds.sportiv_id.slice(0, 8)}`,
+                suma: sumaPerSportiv,
+                dataDecont,
+                tipTaxa,
+            });
+        });
+
+        return Array.from(map.entries()).map(([clubId, val]) => ({
+            clubId,
+            clubNume: val.clubNume,
+            rows: val.rows,
+            total: val.rows.reduce((acc, r) => acc + r.suma, 0),
+        })).sort((a, b) => a.clubNume.localeCompare(b.clubNume, 'ro'));
+    }, [deconturiAn, sportivi, deconturiFederatie, clubs]);
+
+    if (grupateClub.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center gap-3 py-16 text-slate-500">
+                <BanknotesIcon className="w-12 h-12 text-slate-700" />
+                <p className="text-sm italic">Niciun decont transmis de cluburi pentru anul {anCurent}.</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-6">
+            <p className="text-sm text-slate-400">
+                Raport federație — deconturi transmise de cluburi pentru <span className="font-bold text-white">{anCurent}</span>.
+                Total cluburi raportate: <span className="font-bold text-white">{grupateClub.length}</span>.
+            </p>
+
+            {grupateClub.map(club => (
+                <div key={club.clubId} className="rounded-xl border border-slate-700 overflow-hidden">
+                    {/* Header club */}
+                    <div className="flex items-center justify-between px-5 py-3 bg-slate-800/70 border-b border-slate-700">
+                        <div className="flex items-center gap-3">
+                            <span className="text-sm font-black text-white">{club.clubNume}</span>
+                            <span className="text-xs text-slate-400">{club.rows.length} sportivi</span>
+                        </div>
+                        <span className="text-sm font-black text-emerald-400">{club.total.toFixed(2)} RON</span>
+                    </div>
+
+                    {/* Tabel sportivi */}
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr className="border-b border-slate-700/60 bg-slate-800/30">
+                                    <th className="text-left py-2 px-4 text-[10px] font-black uppercase tracking-wider text-slate-500">Sportiv</th>
+                                    <th className="text-left py-2 px-4 text-[10px] font-black uppercase tracking-wider text-slate-500">Tip Taxă</th>
+                                    <th className="text-right py-2 px-4 text-[10px] font-black uppercase tracking-wider text-slate-500">Sumă</th>
+                                    <th className="text-left py-2 px-4 text-[10px] font-black uppercase tracking-wider text-slate-500 hidden sm:table-cell">Data</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {club.rows.map(row => (
+                                    <tr key={row.id} className="border-b border-slate-700/30 hover:bg-slate-800/20 transition-colors">
+                                        <td className="py-2.5 px-4 font-semibold text-white">{row.numeSportiv}</td>
+                                        <td className="py-2.5 px-4">
+                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border uppercase ${
+                                                row.tipTaxa === 'FRAM'
+                                                    ? 'bg-sky-500/10 text-sky-400 border-sky-500/20'
+                                                    : row.tipTaxa === 'FRQKD'
+                                                    ? 'bg-violet-500/10 text-violet-400 border-violet-500/20'
+                                                    : 'bg-slate-700/50 text-slate-400 border-slate-600'
+                                            }`}>
+                                                {row.tipTaxa}
+                                            </span>
+                                        </td>
+                                        <td className="py-2.5 px-4 text-right font-bold text-emerald-400">{row.suma.toFixed(2)} RON</td>
+                                        <td className="py-2.5 px-4 text-slate-400 text-xs hidden sm:table-cell">
+                                            {row.dataDecont ? new Date(row.dataDecont).toLocaleDateString('ro-RO') : '-'}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+};
+
+// ====== Componenta principală ======
 export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, sportivi, plati, setPlati }) => {
-    const { taxeAnualeConfig, vizeSportivi, decontSportivi, setTaxeAnualeConfig, setVizeSportivi, loading } = useData();
-    const [activeTab, setActiveTab] = useState<'config' | 'dashboard'>('config');
+    const { taxeAnualeConfig, vizeSportivi, decontSportivi, deconturiFederatie, clubs, setTaxeAnualeConfig, setVizeSportivi, loading } = useData();
+
+    // Tab-uri: ADMIN_CLUB vede 'config' | 'taxe-club' | 'transmis-federatie'
+    //         SUPER_ADMIN vede 'config' | 'raport-federatie'
+    const [activeTab, setActiveTab] = useState<'config' | 'taxe-club' | 'transmis-federatie' | 'raport-federatie'>('config');
     const [taxaToGenerate, setTaxaToGenerate] = useState<TaxaAnualeConfig | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
     const [selectedTaxaForStatus, setSelectedTaxaForStatus] = useState<TaxaAnualeConfig | null>(null);
@@ -178,20 +525,17 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
         data_inceput: `${new Date().getFullYear()}-01-01`,
         data_sfarsit: `${new Date().getFullYear()}-12-31`,
     });
-
     const [taxaToDelete, setTaxaToDelete] = useState<TaxaAnualeConfig | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const [statusFilter, setStatusFilter] = useState<'Toate' | 'Activ' | 'Neplătit'>('Toate');
 
     const { showError, showSuccess } = useError();
 
-    // SUPER_ADMIN_FEDERATIE: poate adăuga/edita/șterge configurații de taxe
     const canManage = useMemo(() =>
         currentUser.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE'),
         [currentUser.roluri]
     );
 
-    // ADMIN_CLUB și SUPER_ADMIN_FEDERATIE: pot genera facturi pentru sportivii lor
     const canGenerate = useMemo(() =>
         currentUser.roluri.some(r =>
             r.nume === 'ADMIN_CLUB' ||
@@ -200,6 +544,10 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
         ),
         [currentUser.roluri]
     );
+
+    const anCurent = new Date().getFullYear();
+
+    const sportiviActivi = useMemo(() => sportivi.filter(s => s.status === 'Activ'), [sportivi]);
 
     const handleDeleteTaxa = async () => {
         if (!taxaToDelete || !supabase) return;
@@ -234,12 +582,10 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
             showError("Date Incomplete", "Anul și suma sunt obligatorii.");
             return;
         }
-
         const payload = {
             ...newTaxa,
             club_id: currentUser.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE') ? null : currentUser.club_id
         };
-
         const { data, error } = await supabase.from('taxe_anuale_config').insert(payload).select().single();
         if (error) {
             showError("Eroare la adăugare", error);
@@ -259,13 +605,10 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
 
     const handleGenerareMasiva = async () => {
         if (!taxaToGenerate || !supabase) return;
-
         setIsGenerating(true);
-        const sportiviActivi = sportivi.filter(s => s.status === 'Activ');
-
+        const sportiviActiviList = sportivi.filter(s => s.status === 'Activ');
         const descriereFactura = `${getTitluTaxa(taxaToGenerate)} ${taxaToGenerate.an ?? ''}`.trim();
-
-        const newPlati = sportiviActivi.map(s => ({
+        const newPlati = sportiviActiviList.map(s => ({
             sportiv_id: s.id,
             familie_id: s.familie_id,
             club_id: s.club_id,
@@ -277,15 +620,12 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
             tip: 'Taxa Anuala',
             observatii: 'Generat automat'
         }));
-
         const { data, error } = await supabase
             .from('plati')
             .upsert(newPlati, { onConflict: 'sportiv_id,an', ignoreDuplicates: true })
             .select();
-
         setIsGenerating(false);
         setTaxaToGenerate(null);
-
         if (error) {
             showError("Eroare la generarea facturilor", error);
         } else {
@@ -301,7 +641,6 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
 
     const statusList = useMemo(() => {
         if (!selectedTaxaForStatus) return [];
-
         return sportivi
             .filter(s => s.status === 'Activ')
             .map(s => {
@@ -324,10 +663,10 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
 
     const handleExportCSV = () => {
         if (!selectedTaxaForStatus) return;
-        const sportiviActivi = statusList.filter(s => s.vizaStatus === 'Activ');
+        const sportiviActiviSt = statusList.filter(s => s.vizaStatus === 'Activ');
         const rows = [
             ['Nr.', 'Nume', 'Prenume', 'Data Plății'],
-            ...sportiviActivi.map((s, i) => [
+            ...sportiviActiviSt.map((s, i) => [
                 i + 1,
                 s.nume,
                 s.prenume,
@@ -348,42 +687,22 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
         window.print();
     };
 
-    // --- Date pentru Dashboard (hook-uri înainte de orice return condiționat) ---
-    const anCurent = new Date().getFullYear();
-
-    // Secțiunea 1: sportivi care au plătit taxa anuală la club (status Achitat)
-    const sportiviAchitatClub = useMemo(() => {
-        const platiTaxa = plati.filter(
-            p => p.tip === 'Taxa Anuala' && p.status === 'Achitat' && (p as any).an === anCurent
-        );
-        return platiTaxa.map(p => {
-            const s = sportivi.find(sp => sp.id === p.sportiv_id);
-            return s ? { sportiv: s, plata: p } : null;
-        }).filter((x): x is { sportiv: Sportiv; plata: Plata } => x !== null);
-    }, [plati, sportivi, anCurent]);
-
-    // Secțiunea 2: sportivi acoperiți de un decont în anul curent
-    const sportiviAchitatFederatie = useMemo(() => {
-        return decontSportivi
-            .filter(ds => ds.an === anCurent)
-            .map(ds => {
-                const s = sportivi.find(sp => sp.id === ds.sportiv_id);
-                return s ? { sportiv: s, decontSportiv: ds } : null;
-            })
-            .filter((x): x is { sportiv: Sportiv; decontSportiv: DecontSportiv } => x !== null);
-    }, [decontSportivi, sportivi, anCurent]);
-
-    // Secțiunea 3: sportivi activi fără plată la club
-    const sportiviActivi = useMemo(() => sportivi.filter(s => s.status === 'Activ'), [sportivi]);
-    const idsAchitatClub = useMemo(() => new Set(sportiviAchitatClub.map(x => x.sportiv.id)), [sportiviAchitatClub]);
-    const sportiviRestantieri = useMemo(
-        () => sportiviActivi.filter(s => !idsAchitatClub.has(s.id)),
-        [sportiviActivi, idsAchitatClub]
-    );
-
     if (loading) {
         return <div className="flex items-center justify-center h-64 text-slate-400">Se încarcă datele...</div>;
     }
+
+    // Calculăm tab-urile disponibile în funcție de rol
+    type TabId = 'config' | 'taxe-club' | 'transmis-federatie' | 'raport-federatie';
+    const taburi: { id: TabId; label: string }[] = [
+        { id: 'config', label: 'Configurare' },
+        ...(canManage
+            ? [{ id: 'raport-federatie' as TabId, label: 'Raport Federație' }]
+            : [
+                { id: 'taxe-club' as TabId, label: 'Taxe Club' },
+                { id: 'transmis-federatie' as TabId, label: 'Transmis Federație' },
+              ]
+        ),
+    ];
 
     return (
         <div className="space-y-8 animate-fade-in">
@@ -411,33 +730,25 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
             </div>
 
             {/* Tab-uri */}
-            <div className="flex border-b border-slate-700">
-                <button
-                    onClick={() => setActiveTab('config')}
-                    className={`px-5 py-2.5 text-sm font-semibold transition-colors border-b-2 -mb-px ${
-                        activeTab === 'config'
-                            ? 'border-brand-primary text-brand-secondary'
-                            : 'border-transparent text-slate-400 hover:text-white'
-                    }`}
-                >
-                    Configurare
-                </button>
-                <button
-                    onClick={() => setActiveTab('dashboard')}
-                    className={`px-5 py-2.5 text-sm font-semibold transition-colors border-b-2 -mb-px ${
-                        activeTab === 'dashboard'
-                            ? 'border-brand-primary text-brand-secondary'
-                            : 'border-transparent text-slate-400 hover:text-white'
-                    }`}
-                >
-                    Dashboard {anCurent}
-                </button>
+            <div className="flex border-b border-slate-700 overflow-x-auto">
+                {taburi.map(tab => (
+                    <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`px-5 py-2.5 text-sm font-semibold transition-colors border-b-2 -mb-px whitespace-nowrap ${
+                            activeTab === tab.id
+                                ? 'border-brand-primary text-brand-secondary'
+                                : 'border-transparent text-slate-400 hover:text-white'
+                        }`}
+                    >
+                        {tab.label}
+                    </button>
+                ))}
             </div>
 
             {/* ===== TAB CONFIGURARE ===== */}
             {activeTab === 'config' && (
                 <>
-                    {/* Grid responsive: 1 col mobil, 2 col tablet, 3 col desktop */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                         {taxeAnualeConfig.length > 0 ? (
                             taxeAnualeConfig
@@ -470,98 +781,39 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
                 </>
             )}
 
-            {/* ===== TAB DASHBOARD ===== */}
-            {activeTab === 'dashboard' && (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-
-                    {/* Secțiunea 1 — Achitat la Club */}
-                    <div className="flex flex-col gap-3">
-                        <div className="flex items-center justify-between px-1">
-                            <h2 className="text-sm font-black uppercase tracking-widest text-emerald-400">Achitat la Club</h2>
-                            <span className="text-xl font-black text-white">{sportiviAchitatClub.length}</span>
-                        </div>
-                        <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
-                            {sportiviAchitatClub.length === 0 ? (
-                                <Card className="text-center py-6 text-slate-500 italic text-sm bg-slate-800/30 border-dashed">
-                                    Nicio plată înregistrată.
-                                </Card>
-                            ) : (
-                                sportiviAchitatClub.map(({ sportiv, plata }) => (
-                                    <Card key={plata.id} className="flex flex-col gap-1 bg-slate-800/50 border-emerald-800/30 py-3 px-4">
-                                        <span className="font-bold text-white text-sm">{sportiv.nume} {sportiv.prenume}</span>
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-xs text-slate-400">
-                                                {plata.data ? new Date(plata.data).toLocaleDateString('ro-RO') : '-'}
-                                            </span>
-                                            <span className="text-xs font-bold text-emerald-400">
-                                                {(plata.suma || 0).toFixed(2)} RON
-                                            </span>
-                                        </div>
-                                    </Card>
-                                ))
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Secțiunea 2 — Achitat la Federație */}
-                    <div className="flex flex-col gap-3">
-                        <div className="flex items-center justify-between px-1">
-                            <h2 className="text-sm font-black uppercase tracking-widest text-blue-400">Achitat la Federație</h2>
-                            <span className="text-xl font-black text-white">{sportiviAchitatFederatie.length}</span>
-                        </div>
-                        <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
-                            {sportiviAchitatFederatie.length === 0 ? (
-                                <Card className="text-center py-6 text-slate-500 italic text-sm bg-slate-800/30 border-dashed">
-                                    Niciun decont confirmat.
-                                </Card>
-                            ) : (
-                                sportiviAchitatFederatie.map(({ sportiv, decontSportiv }) => (
-                                    <Card key={decontSportiv.id} className="flex flex-col gap-1 bg-slate-800/50 border-blue-800/30 py-3 px-4">
-                                        <span className="font-bold text-white text-sm">{sportiv.nume} {sportiv.prenume}</span>
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-xs text-slate-400">
-                                                {decontSportiv.created_at
-                                                    ? new Date(decontSportiv.created_at).toLocaleDateString('ro-RO')
-                                                    : '-'}
-                                            </span>
-                                            <span className="text-xs font-mono text-slate-500 truncate max-w-[80px]" title={decontSportiv.decont_id}>
-                                                #{decontSportiv.decont_id.slice(0, 8)}
-                                            </span>
-                                        </div>
-                                    </Card>
-                                ))
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Secțiunea 3 — Restanțieri */}
-                    <div className="flex flex-col gap-3">
-                        <div className="flex items-center justify-between px-1">
-                            <h2 className="text-sm font-black uppercase tracking-widest text-red-400">Restanțieri</h2>
-                            <span className="text-xl font-black text-white">{sportiviRestantieri.length}</span>
-                        </div>
-                        <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
-                            {sportiviRestantieri.length === 0 ? (
-                                <Card className="text-center py-6 text-slate-500 italic text-sm bg-slate-800/30 border-dashed border-emerald-800/30">
-                                    <CheckCircleIcon className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
-                                    Toți sportivii activi au plătit.
-                                </Card>
-                            ) : (
-                                sportiviRestantieri.map(sportiv => (
-                                    <Card key={sportiv.id} className="flex items-center justify-between bg-slate-800/50 border-red-900/30 py-3 px-4">
-                                        <span className="font-bold text-white text-sm">{sportiv.nume} {sportiv.prenume}</span>
-                                        <span className="text-[10px] font-black px-2 py-1 rounded-full bg-red-500/15 text-red-400 border border-red-500/20 uppercase whitespace-nowrap">
-                                            Neplătit
-                                        </span>
-                                    </Card>
-                                ))
-                            )}
-                        </div>
-                    </div>
-                </div>
+            {/* ===== TAB TAXE CLUB (ADMIN_CLUB) ===== */}
+            {activeTab === 'taxe-club' && !canManage && (
+                <TabTaxeClub
+                    sportiviActivi={sportiviActivi}
+                    plati={plati}
+                    anCurent={anCurent}
+                />
             )}
 
-            {/* Modal Status Vize — activ doar din tab Configurare */}
+            {/* ===== TAB TRANSMIS FEDERATIE (ADMIN_CLUB) ===== */}
+            {activeTab === 'transmis-federatie' && !canManage && (
+                <TabTransmisFederatie
+                    decontSportivi={decontSportivi}
+                    deconturiFederatie={deconturiFederatie}
+                    sportivi={sportivi}
+                    taxeAnualeConfig={taxeAnualeConfig}
+                    anCurent={anCurent}
+                />
+            )}
+
+            {/* ===== TAB RAPORT FEDERATIE (SUPER_ADMIN) ===== */}
+            {activeTab === 'raport-federatie' && canManage && (
+                <TabRaportFederatie
+                    decontSportivi={decontSportivi}
+                    deconturiFederatie={deconturiFederatie}
+                    sportivi={sportivi}
+                    taxeAnualeConfig={taxeAnualeConfig}
+                    clubs={clubs}
+                    anCurent={anCurent}
+                />
+            )}
+
+            {/* Modal Status Vize */}
             <Modal
                 isOpen={!!selectedTaxaForStatus}
                 onClose={() => {
@@ -596,7 +848,6 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
                         </div>
                     </div>
 
-                    {/* Export / Print — vizibil doar când există sportivi cu viză activă */}
                     {statusList.some(s => s.vizaStatus === 'Activ') && (
                         <div className="flex flex-col sm:flex-row gap-2 justify-between items-start sm:items-center p-3 bg-slate-800/40 rounded-lg border border-slate-700/50">
                             <p className="text-xs text-slate-400">
@@ -652,7 +903,7 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
                     <div className="space-y-4">
                         <Input label="Anul" type="number" value={newTaxa.an} onChange={e => setNewTaxa({...newTaxa, an: parseInt(e.target.value)})} />
                         <Input label="Suma (RON)" type="number" value={newTaxa.suma} onChange={e => setNewTaxa({...newTaxa, suma: parseFloat(e.target.value)})} />
-                        <Input label="Descriere (ex: Taxă Federală)" value={newTaxa.descriere} onChange={e => setNewTaxa({...newTaxa, descriere: e.target.value})} />
+                        <Input label="Descriere (ex: Taxă FRAM 2026)" value={newTaxa.descriere} onChange={e => setNewTaxa({...newTaxa, descriere: e.target.value})} />
                         <div className="grid grid-cols-2 gap-3">
                             <Input
                                 label="Dată început valabilitate"
@@ -689,7 +940,7 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
                 icon={BanknotesIcon}
             />
 
-            {/* Confirmare ștergere taxă — doar SUPER_ADMIN_FEDERATIE ajunge aici */}
+            {/* Confirmare ștergere taxă */}
             <ConfirmDeleteModal
                 isOpen={!!taxaToDelete}
                 onClose={() => setTaxaToDelete(null)}

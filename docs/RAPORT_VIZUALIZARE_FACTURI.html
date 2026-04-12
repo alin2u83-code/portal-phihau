@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Raport — Vizualizarea Facturilor în Aplicații Sportive</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --bg2: #1e293b;
+    --bg3: #334155;
+    --border: #334155;
+    --border2: #475569;
+    --text: #e2e8f0;
+    --text2: #94a3b8;
+    --text3: #64748b;
+    --accent: #6366f1;
+    --accent2: #818cf8;
+    --green: #22c55e;
+    --green-bg: rgba(34,197,94,0.12);
+    --amber: #f59e0b;
+    --amber-bg: rgba(245,158,11,0.12);
+    --red: #ef4444;
+    --red-bg: rgba(239,68,68,0.12);
+    --blue: #3b82f6;
+    --blue-bg: rgba(59,130,246,0.12);
+    --purple: #8b5cf6;
+    --purple-bg: rgba(139,92,246,0.12);
+    --cyan: #06b6d4;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  /* ── Layout ── */
+  .wrapper { display: flex; min-height: 100vh; }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 260px;
+    min-width: 260px;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    padding: 24px 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    flex-shrink: 0;
+  }
+  .sidebar-logo {
+    padding: 0 20px 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+  .sidebar-logo .club { font-size: 11px; color: var(--accent2); text-transform: uppercase; letter-spacing: .08em; font-weight: 600; }
+  .sidebar-logo .title { font-size: 13px; font-weight: 700; color: var(--text); margin-top: 2px; }
+  .sidebar-logo .date { font-size: 11px; color: var(--text3); margin-top: 4px; }
+
+  .nav-section { padding: 6px 20px 2px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--text3); }
+  .nav-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 20px;
+    font-size: 12.5px; color: var(--text2);
+    cursor: pointer; text-decoration: none;
+    transition: background .15s, color .15s;
+    border-left: 3px solid transparent;
+  }
+  .nav-item:hover { background: rgba(99,102,241,.08); color: var(--text); }
+  .nav-item.active { background: rgba(99,102,241,.15); color: var(--accent2); border-left-color: var(--accent); font-weight: 600; }
+  .nav-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border2); flex-shrink: 0; }
+  .nav-item.active .nav-dot { background: var(--accent2); }
+
+  /* ── Conținut principal ── */
+  .main { flex: 1; padding: 40px 48px; max-width: 960px; }
+
+  /* ── Header raport ── */
+  .report-header {
+    background: linear-gradient(135deg, rgba(99,102,241,.15) 0%, rgba(139,92,246,.08) 100%);
+    border: 1px solid rgba(99,102,241,.3);
+    border-radius: 16px;
+    padding: 32px 36px;
+    margin-bottom: 40px;
+  }
+  .report-header .tag {
+    display: inline-block;
+    background: rgba(99,102,241,.2);
+    color: var(--accent2);
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .1em;
+    padding: 4px 12px; border-radius: 20px;
+    margin-bottom: 14px;
+  }
+  .report-header h1 { font-size: 26px; font-weight: 800; color: #fff; line-height: 1.3; }
+  .report-header .sub { font-size: 14px; color: var(--text2); margin-top: 6px; }
+  .report-header .meta { display: flex; gap: 24px; margin-top: 18px; flex-wrap: wrap; }
+  .report-header .meta-item { font-size: 12px; color: var(--text3); }
+  .report-header .meta-item span { color: var(--text2); font-weight: 600; }
+
+  /* ── Secțiuni ── */
+  .section { margin-bottom: 52px; scroll-margin-top: 24px; }
+  .section-title {
+    font-size: 20px; font-weight: 800; color: #fff;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 28px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-title .num {
+    background: var(--accent);
+    color: #fff; font-size: 12px; font-weight: 700;
+    width: 26px; height: 26px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .subsection { margin-bottom: 32px; }
+  .subsection-title {
+    font-size: 15px; font-weight: 700; color: var(--accent2);
+    margin-bottom: 14px;
+    display: flex; align-items: center; gap-8px;
+  }
+
+  /* ── App cards ── */
+  .app-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 12px; }
+  .app-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    transition: border-color .2s;
+  }
+  .app-card:hover { border-color: var(--border2); }
+  .app-card.star { border-color: rgba(245,158,11,.4); background: rgba(245,158,11,.04); }
+  .app-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .app-name { font-size: 14px; font-weight: 700; color: #fff; }
+  .app-badge {
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+    padding: 2px 8px; border-radius: 10px;
+  }
+  .badge-star { background: rgba(245,158,11,.2); color: var(--amber); }
+  .badge-rel { background: rgba(99,102,241,.2); color: var(--accent2); }
+  .app-profile { font-size: 12px; color: var(--text3); margin-bottom: 10px; font-style: italic; }
+  .app-features { list-style: none; }
+  .app-features li { font-size: 12.5px; color: var(--text2); padding: 3px 0; display: flex; align-items: flex-start; gap: 6px; }
+  .app-features li::before { content: '→'; color: var(--accent); font-size: 11px; margin-top: 3px; flex-shrink: 0; }
+  .app-footer { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
+  .app-footer .pro { font-size: 11.5px; color: var(--green); }
+  .app-footer .con { font-size: 11.5px; color: var(--text3); }
+
+  /* ── Status badges demo ── */
+  .badge-demo { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 700;
+    border: 1px solid;
+  }
+  .badge .dot { width: 7px; height: 7px; border-radius: 50%; }
+  .b-green  { background: var(--green-bg);  color: var(--green);  border-color: rgba(34,197,94,.4);  }
+  .b-green .dot  { background: var(--green); }
+  .b-amber  { background: var(--amber-bg);  color: var(--amber);  border-color: rgba(245,158,11,.4); }
+  .b-amber .dot  { background: var(--amber); }
+  .b-slate  { background: rgba(71,85,105,.2); color: #94a3b8; border-color: rgba(71,85,105,.4); }
+  .b-slate .dot  { background: #64748b; }
+  .b-red    { background: var(--red-bg);    color: var(--red);    border-color: rgba(239,68,68,.4);  }
+  .b-red .dot    { background: var(--red); }
+  .b-red2   { background: rgba(127,29,29,.4); color: #fca5a5; border-color: rgba(185,28,28,.5); font-weight: 800; }
+  .b-red2 .dot   { background: #fca5a5; animation: pulse 1.5s infinite; }
+  .b-blue   { background: var(--blue-bg);   color: var(--blue);   border-color: rgba(59,130,246,.4); }
+  .b-blue .dot   { background: var(--blue); }
+  .badge-new { font-size: 10px; background: rgba(239,68,68,.15); color: var(--red); padding: 1px 7px; border-radius: 8px; margin-left: 4px; }
+
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  /* ── Tabele ── */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 16px 0; }
+  th {
+    background: rgba(99,102,241,.1);
+    color: var(--accent2);
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+    padding: 10px 14px; text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  td { padding: 10px 14px; border-bottom: 1px solid rgba(51,65,85,.5); color: var(--text2); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(99,102,241,.04); }
+  .td-bold { font-weight: 700; color: var(--text); }
+  .td-red { color: var(--red); font-weight: 700; }
+  .td-green { color: var(--green); font-weight: 700; }
+  .td-amber { color: var(--amber); font-weight: 700; }
+
+  /* Aging table heat map */
+  .heat-0  { color: var(--text2); }
+  .heat-1  { color: #fb923c; font-weight: 600; }
+  .heat-2  { color: #ef4444; font-weight: 700; }
+  .heat-3  { color: #dc2626; font-weight: 800; background: rgba(220,38,38,.08); border-radius: 4px; padding: 2px 6px; }
+
+  /* ── KPI cards demo ── */
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+  .kpi-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .kpi-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--text3); margin-bottom: 8px; display: flex; align-items: center; gap: 5px; }
+  .kpi-value { font-size: 20px; font-weight: 900; }
+  .kpi-sub { font-size: 11px; color: var(--text3); margin-top: 4px; }
+  .progress-bar { background: var(--bg3); border-radius: 4px; height: 4px; margin-top: 8px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 4px; }
+
+  /* ── Priority blocks ── */
+  .priority-block {
+    border-radius: 12px;
+    border: 1px solid;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .priority-block.high   { border-color: rgba(239,68,68,.3);  background: rgba(239,68,68,.04); }
+  .priority-block.medium { border-color: rgba(245,158,11,.3); background: rgba(245,158,11,.04); }
+  .priority-block.low    { border-color: rgba(34,197,94,.3);  background: rgba(34,197,94,.04); }
+  .priority-label {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em;
+    padding: 3px 10px; border-radius: 10px; margin-bottom: 16px;
+  }
+  .pl-high   { background: rgba(239,68,68,.15);  color: var(--red);   }
+  .pl-medium { background: rgba(245,158,11,.15); color: var(--amber); }
+  .pl-low    { background: rgba(34,197,94,.15);  color: var(--green); }
+
+  .feature-list { list-style: none; }
+  .feature-list li {
+    display: flex; gap: 10px; padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .feature-list li:last-child { border-bottom: none; }
+  .feature-id {
+    font-size: 11px; font-weight: 700; font-family: monospace;
+    padding: 2px 8px; border-radius: 6px; flex-shrink: 0; margin-top: 1px;
+    height: 20px; display: flex; align-items: center;
+  }
+  .fid-h { background: rgba(239,68,68,.15); color: var(--red); }
+  .fid-m { background: rgba(245,158,11,.15); color: var(--amber); }
+  .fid-l { background: rgba(34,197,94,.15); color: var(--green); }
+  .feature-content .feature-title { font-weight: 700; color: var(--text); font-size: 13.5px; }
+  .feature-content .feature-desc { color: var(--text2); font-size: 12.5px; margin-top: 2px; }
+  .feature-content .feature-files { font-size: 11px; color: var(--text3); margin-top: 4px; font-family: monospace; }
+
+  /* ── Notificări timeline ── */
+  .timeline { position: relative; padding-left: 28px; }
+  .timeline::before { content: ''; position: absolute; left: 7px; top: 8px; bottom: 8px; width: 2px; background: var(--border); }
+  .timeline-item { position: relative; margin-bottom: 14px; }
+  .timeline-dot {
+    position: absolute; left: -24px; top: 4px;
+    width: 12px; height: 12px; border-radius: 50%;
+    border: 2px solid var(--bg);
+  }
+  .tl-before { background: var(--blue); }
+  .tl-day0   { background: var(--amber); }
+  .tl-after  { background: var(--red); }
+  .tl-late   { background: var(--purple); }
+  .tl-critical { background: #dc2626; }
+  .timeline-content { font-size: 13px; }
+  .tl-timing { font-weight: 700; color: var(--text); }
+  .tl-desc   { color: var(--text2); font-size: 12px; margin-top: 1px; }
+  .tl-canal  {
+    display: inline-block; font-size: 10px; font-weight: 700;
+    padding: 1px 7px; border-radius: 8px; margin-left: 6px;
+  }
+  .canal-email { background: var(--blue-bg); color: var(--blue); }
+  .canal-sms { background: var(--green-bg); color: var(--green); }
+  .canal-wa { background: rgba(37,211,102,.15); color: #25d366; }
+  .canal-manual { background: var(--amber-bg); color: var(--amber); }
+
+  /* ── Roadmap ── */
+  .sprint-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .sprint-header {
+    padding: 14px 20px;
+    display: flex; align-items: center; gap-12px; justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+  .sprint-num {
+    font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em;
+    padding: 3px 10px; border-radius: 8px;
+  }
+  .sn-1 { background: rgba(239,68,68,.15); color: var(--red); }
+  .sn-2 { background: rgba(245,158,11,.15); color: var(--amber); }
+  .sn-3 { background: rgba(59,130,246,.15); color: var(--blue); }
+  .sn-4 { background: rgba(139,92,246,.15); color: var(--purple); }
+  .sprint-title { font-size: 13.5px; font-weight: 700; color: var(--text); }
+  .sprint-duration { font-size: 11px; color: var(--text3); }
+  .sprint-tasks { padding: 0 20px; }
+  .sprint-task {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 0; border-bottom: 1px solid rgba(51,65,85,.4);
+    font-size: 13px;
+  }
+  .sprint-task:last-child { border-bottom: none; }
+  .task-name { flex: 1; color: var(--text2); }
+  .task-file { font-size: 11px; color: var(--text3); font-family: monospace; }
+  .task-effort {
+    font-size: 11px; font-weight: 700; color: var(--accent2);
+    background: rgba(99,102,241,.1); padding: 2px 8px; border-radius: 6px;
+    white-space: nowrap;
+  }
+
+  /* ── Concluzie ── */
+  .conclusion-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
+  .conclusion-item {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 16px;
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+  .conc-stars { font-size: 14px; flex-shrink: 0; }
+  .conc-text .ct-title { font-size: 13px; font-weight: 700; color: var(--text); }
+  .conc-text .ct-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
+
+  /* ── Surse ── */
+  .sources-list { columns: 2; column-gap: 24px; margin-top: 16px; }
+  .sources-list a {
+    display: block; font-size: 12px; color: var(--accent2);
+    text-decoration: none; margin-bottom: 8px; break-inside: avoid;
+  }
+  .sources-list a:hover { color: #fff; text-decoration: underline; }
+  .sources-list a::before { content: '↗ '; font-size: 10px; }
+
+  /* ── Code blocks ── */
+  pre {
+    background: rgba(15,23,42,.8);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    font-size: 12px;
+    line-height: 1.6;
+    overflow-x: auto;
+    color: #93c5fd;
+    margin: 12px 0;
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+  }
+  pre .kw  { color: #c084fc; }
+  pre .str { color: #86efac; }
+  pre .cm  { color: #475569; font-style: italic; }
+  pre .fn  { color: #67e8f9; }
+  pre .num { color: #fb923c; }
+
+  /* ── Info box ── */
+  .info-box {
+    background: rgba(99,102,241,.08);
+    border: 1px solid rgba(99,102,241,.25);
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin: 14px 0;
+    font-size: 13px;
+    color: var(--text2);
+  }
+  .info-box strong { color: var(--accent2); }
+
+  /* ── Divider ── */
+  hr { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .main { padding: 24px 20px; }
+    .app-grid, .kpi-grid, .conclusion-grid { grid-template-columns: 1fr; }
+    .sources-list { columns: 1; }
+  }
+
+  /* ── Print ── */
+  @media print {
+    .sidebar { display: none; }
+    .main { padding: 20px; }
+    body { background: #fff; color: #1e293b; }
+    .app-card, .sprint-card, .priority-block, .kpi-card { border-color: #e2e8f0 !important; background: #f8fafc !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+<!-- ════════════════════════════════ SIDEBAR ════════════════════════════════ -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="club">Qwan Ki Do · Phi Hau</div>
+    <div class="title">Raport Vizualizare Facturi</div>
+    <div class="date">Generat: 03 Aprilie 2026</div>
+  </div>
+
+  <div class="nav-section">Capitole</div>
+  <a class="nav-item active" href="#cap1"><span class="nav-dot"></span>1. Analiză Comparativă</a>
+  <a class="nav-item" href="#cap2"><span class="nav-dot"></span>2. Pattern-uri UI/UX</a>
+  <a class="nav-item" href="#cap3"><span class="nav-dot"></span>3. Funcționalități Prioritizate</a>
+  <a class="nav-item" href="#cap4"><span class="nav-dot"></span>4. Recomandări QKD</a>
+  <a class="nav-item" href="#cap5"><span class="nav-dot"></span>5. Roadmap Implementare</a>
+  <a class="nav-item" href="#concluzie"><span class="nav-dot"></span>Concluzie</a>
+  <a class="nav-item" href="#surse"><span class="nav-dot"></span>Surse</a>
+
+  <div class="nav-section" style="margin-top:16px;">Aplicații Analizate</div>
+  <a class="nav-item" href="#teamsnap"><span class="nav-dot"></span>TeamSnap</a>
+  <a class="nav-item" href="#sportsengine"><span class="nav-dot"></span>SportsEngine</a>
+  <a class="nav-item" href="#mindbody"><span class="nav-dot"></span>Mindbody</a>
+  <a class="nav-item" href="#glofox"><span class="nav-dot"></span>Glofox</a>
+  <a class="nav-item" href="#gymdesk"><span class="nav-dot"></span>Gymdesk ⭐</a>
+  <a class="nav-item" href="#zenplanner"><span class="nav-dot"></span>Zen Planner</a>
+  <a class="nav-item" href="#martialytics"><span class="nav-dot"></span>Martialytics</a>
+</nav>
+
+<!-- ════════════════════════════════ MAIN ════════════════════════════════ -->
+<main class="main">
+
+  <!-- Header -->
+  <div class="report-header">
+    <div class="tag">Deep Research · Avril 2026</div>
+    <h1>Vizualizarea Facturilor și Plăților<br>în Aplicații de Management Sportiv</h1>
+    <div class="sub">Aplicare pentru Portalul Phi Hau — Club Arte Marțiale Qwan Ki Do</div>
+    <div class="meta">
+      <div class="meta-item">Data: <span>03 Aprilie 2026</span></div>
+      <div class="meta-item">Aplicații analizate: <span>8</span></div>
+      <div class="meta-item">Funcționalități propuse: <span>14</span></div>
+      <div class="meta-item">Sprints planificate: <span>4</span></div>
+    </div>
+  </div>
+
+  <!-- ══════════════ CAP 1 ══════════════ -->
+  <section class="section" id="cap1">
+    <div class="section-title">
+      <span class="num">1</span>
+      Analiza Comparativă a Aplicațiilor Existente
+    </div>
+
+    <div class="app-grid">
+
+      <!-- TeamSnap -->
+      <div class="app-card" id="teamsnap">
+        <div class="app-card-header">
+          <span class="app-name">TeamSnap</span>
+          <span class="app-badge badge-rel">Referință</span>
+        </div>
+        <div class="app-profile">Platformă dominantă pentru echipe de tineret, orientată spre simplitate.</div>
+        <ul class="app-features">
+          <li>Invoice generation direct din aplicație, securizat prin Stripe Identity</li>
+          <li>Tracking triplat: <em>cine</em> / <em>cum</em> / <em>când</em> — într-un singur ecran</li>
+          <li>Automated reminders push + email</li>
+          <li>Installment plans (plată în rate pe sezon)</li>
+          <li>Comision: 3.25% + $1.50 per tranzacție</li>
+        </ul>
+        <div class="app-footer">
+          <div class="pro">✓ Simplitate extremă, mobile-first</div>
+          <div class="con">✗ Fără aging report, fără vizualizare familie</div>
+        </div>
+      </div>
+
+      <!-- SportsEngine -->
+      <div class="app-card" id="sportsengine">
+        <div class="app-card-header">
+          <span class="app-name">SportsEngine HQ</span>
+          <span class="app-badge badge-rel">Enterprise</span>
+        </div>
+        <div class="app-profile">Platformă enterprise pentru organizații sportive mari (federații, ligi).</div>
+        <ul class="app-features">
+          <li>Invoice centralizat cu colectare plăți + taxe extra-sezon</li>
+          <li>Reducere declarată de 50% din timpul de reconciliere lunară</li>
+          <li>Toate tranzacțiile într-un singur loc securizat</li>
+          <li>Fundraising integrat cu tracking financiar</li>
+        </ul>
+        <div class="app-footer">
+          <div class="pro">✓ Potrivit pentru structuri multi-nivel (FRAM/FRQKD)</div>
+          <div class="con">✗ Complex, cost ridicat, fără specificitate arte marțiale</div>
+        </div>
+      </div>
+
+      <!-- Mindbody -->
+      <div class="app-card" id="mindbody">
+        <div class="app-card-header">
+          <span class="app-name">Mindbody Analytics 2.0</span>
+          <span class="app-badge badge-rel">Avansat</span>
+        </div>
+        <div class="app-profile">Lider pentru studiouri fitness/wellness, extins spre arte marțiale.</div>
+        <ul class="app-features">
+          <li>Dashboard Payments: sumă, data procesării, fee-uri, data depunerii</li>
+          <li>Declined Payment Analysis — cauza exactă a eșecurilor</li>
+          <li>Revenue pe tip serviciu cu filtre avansate</li>
+          <li>Export: CSV, PDF, Excel + integrare BI (Tableau, Power BI)</li>
+          <li>Reconciliere bancară automată cu deducere fee-uri</li>
+        </ul>
+        <div class="app-footer">
+          <div class="pro">✓ Cel mai avansat dashboard financiar analizat</div>
+          <div class="con">✗ Scump, complex pentru un club mic</div>
+        </div>
+      </div>
+
+      <!-- Glofox -->
+      <div class="app-card" id="glofox">
+        <div class="app-card-header">
+          <span class="app-name">Glofox (ABC Glofox)</span>
+          <span class="app-badge badge-rel">Arte Marțiale</span>
+        </div>
+        <div class="app-profile">Concurent Mindbody, orientat spre arte marțiale și fitness boutique.</div>
+        <ul class="app-features">
+          <li>Dashboard unic: sănătate financiară + instructori + activitate membri</li>
+          <li>Procesatori multipli: Stripe, PayU, Braintree, Checkout.com</li>
+          <li>Recurring + drop-in + special events — toate vizibile unitar</li>
+          <li>Consolidare toate fluxurile de venituri pe un ecran</li>
+        </ul>
+        <div class="app-footer">
+          <div class="pro">✓ Cel mai bun pentru membership recurring + taxe per eveniment</div>
+          <div class="con">✗ Fără vizualizare detaliată per familie</div>
+        </div>
+      </div>
+
+      <!-- Gymdesk -->
+      <div class="app-card star" id="gymdesk" style="grid-column: span 2;">
+        <div class="app-card-header">
+          <span class="app-name">⭐ Gymdesk — Cel mai relevant pentru Phi Hau</span>
+          <span class="app-badge badge-star">Recomandat</span>
+        </div>
+        <div class="app-profile">Soluție modernă dedicată exclusiv artelor marțiale și gym-urilor.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:8px;">
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--amber);text-transform:uppercase;margin-bottom:6px;">Dashboard Overview</div>
+            <ul class="app-features">
+              <li>Upcoming + Processed + Overdue — 3 valori distincte</li>
+              <li>Revenue history 12 luni (bar/line chart)</li>
+              <li>Top 5 overdue payments cu link direct</li>
+              <li>Top 5 recent payments cu opțiuni refund</li>
+            </ul>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--amber);text-transform:uppercase;margin-bottom:6px;">Overdue Management</div>
+            <ul class="app-features">
+              <li>Retry automat la 2, 4, 7 zile</li>
+              <li>Notificări automate: card expirat + link self-service</li>
+              <li>Late fees adăugate automat</li>
+              <li>Daily billing report email pentru admin</li>
+            </ul>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--amber);text-transform:uppercase;margin-bottom:6px;">Invoice Management</div>
+            <ul class="app-features">
+              <li>Editare: sumă, descriere, late fee, discount, metodă</li>
+              <li>On-demand + recurring + scheduled charges</li>
+              <li>Export în software contabil extern</li>
+              <li>Belt tracking + family memberships native</li>
+            </ul>
+          </div>
+        </div>
+        <div class="app-footer">
+          <div class="pro">✓ Combină: belt tracking + family accounts + billing proratat + Stripe — exact configurația Phi Hau</div>
+        </div>
+      </div>
+
+      <!-- Zen Planner -->
+      <div class="app-card" id="zenplanner">
+        <div class="app-card-header">
+          <span class="app-name">Zen Planner</span>
+          <span class="app-badge badge-rel">Arte Marțiale</span>
+        </div>
+        <div class="app-profile">Specializat arte marțiale, accent pe progressia pe grade/centuri.</div>
+        <ul class="app-features">
+          <li>Family accounts native — multiple memberships sub un cont</li>
+          <li>Progression-based billing (taxe diferite per grad)</li>
+          <li>Belt/rank tracking integrat cu billing</li>
+          <li>Automated billing cu failed payment recovery</li>
+        </ul>
+        <div class="app-footer">
+          <div class="pro">✓ Modelul familie + grade analog cu <code>familii + inscrieriExamene</code></div>
+        </div>
+      </div>
+
+      <!-- Martialytics -->
+      <div class="app-card" id="martialytics">
+        <div class="app-card-header">
+          <span class="app-name">Martialytics</span>
+          <span class="app-badge badge-rel">Specializat</span>
+        </div>
+        <div class="app-profile">Cea mai specializată platformă exclusiv pentru arte marțiale.</div>
+        <ul class="app-features">
+          <li>Live reports KPI: revenue growth vs income trends</li>
+          <li>Overdue payment management cu identificare conturi problemă</li>
+          <li>Recurring + family discounts + prorated billing</li>
+          <li>Economie declarată: 5-10 ore/săptămână</li>
+        </ul>
+        <div class="app-footer">
+          <div class="pro">✓ Cel mai specific pentru contextul QKD</div>
+          <div class="con">✗ Fără date publice despre vizualizări avansate</div>
+        </div>
+      </div>
+
+    </div><!-- /app-grid -->
+  </section>
+
+  <!-- ══════════════ CAP 2 ══════════════ -->
+  <section class="section" id="cap2">
+    <div class="section-title"><span class="num">2</span>Pattern-uri UI/UX Identificate</div>
+
+    <!-- 2.1 Ierarhie -->
+    <div class="subsection">
+      <div class="subsection-title">2.1 — Ierarhia Informației pe Dashboard</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px;font-family:monospace;font-size:13px;line-height:2;color:var(--text2);">
+        <div style="color:var(--accent2);font-weight:700;">Nivel 1: KPI Cards (sus)</div>
+        <div style="padding-left:20px;">4-6 metrici vizuale imediate: încasat, restanțe, scadente, rată colectare</div>
+        <div style="color:var(--accent2);font-weight:700;padding-left:20px;">└── Nivel 2: Grafice (mijloc)</div>
+        <div style="padding-left:40px;">Trend 12 luni (BarChart) + Breakdown tipuri (DonutChart)</div>
+        <div style="color:var(--accent2);font-weight:700;padding-left:40px;">└── Nivel 3: Tabele detaliate (jos)</div>
+        <div style="padding-left:60px;">Liste filtrate cu acțiuni inline directe</div>
+      </div>
+
+      <!-- KPI Demo -->
+      <div style="margin-top:16px;">
+        <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;">Demo KPI Cards</div>
+        <div class="kpi-grid">
+          <div class="kpi-card" style="border-color:rgba(34,197,94,.3);">
+            <div class="kpi-label" style="color:var(--green);">● Încasat Apr 2026</div>
+            <div class="kpi-value" style="color:var(--green);">3.450 RON</div>
+            <div class="kpi-sub">↑ +12% vs martie</div>
+          </div>
+          <div class="kpi-card" style="border-color:rgba(239,68,68,.3);">
+            <div class="kpi-label" style="color:var(--red);">⚠ Total Restanțe</div>
+            <div class="kpi-value" style="color:var(--red);">1.200 RON</div>
+            <div class="kpi-sub">12 facturi</div>
+          </div>
+          <div class="kpi-card" style="border-color:rgba(239,68,68,.3);">
+            <div class="kpi-label" style="color:var(--red);">🔴 Plăți Scadente</div>
+            <div class="kpi-value" style="color:var(--red);">7</div>
+            <div class="kpi-sub">facturi restante</div>
+          </div>
+          <div class="kpi-card" style="border-color:rgba(99,102,241,.3);">
+            <div class="kpi-label" style="color:var(--accent2);">📊 Rată Colectare</div>
+            <div class="kpi-value" style="color:var(--amber);">88%</div>
+            <div class="progress-bar"><div class="progress-fill" style="width:88%;background:var(--amber);"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr>
+
+    <!-- 2.2 Status badges -->
+    <div class="subsection">
+      <div class="subsection-title">2.2 — Status Badge-uri — Standard de Facto</div>
+      <div class="badge-demo">
+        <span class="badge b-green"><span class="dot"></span>Achitat <span style="font-size:10px;opacity:.6;margin-left:4px;">existent ✓</span></span>
+        <span class="badge b-amber"><span class="dot"></span>Achitat Parțial <span style="font-size:10px;opacity:.6;margin-left:4px;">existent ✓</span></span>
+        <span class="badge b-slate"><span class="dot"></span>Neachitat <span style="font-size:10px;opacity:.6;margin-left:4px;">existent ✓</span></span>
+        <span class="badge b-red"><span class="dot"></span>Scadent <span class="badge-new">NOU</span></span>
+        <span class="badge b-red2"><span class="dot"></span>Restant! <span class="badge-new">NOU</span></span>
+        <span class="badge b-blue"><span class="dot"></span>Programat <span class="badge-new">NOU</span></span>
+      </div>
+      <div class="info-box">
+        <strong>Distincția critică lipsă în Phi Hau</strong>: Aplicația nu diferențiază între o factură <em>Neachitat</em> cu scadența mâine și una restantă de 60 de zile. Ambele arată identic. Sub-statusul <strong>Scadent</strong> și <strong>Restant!</strong> rezolvă această problemă — implementat deja în <code>utils/paymentStatus.ts</code>.
+      </div>
+    </div>
+
+    <hr>
+
+    <!-- 2.3 Aging Report -->
+    <div class="subsection">
+      <div class="subsection-title">2.4 — Aging Report (AR Aging) — Standard Industrie</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Sportiv / Familie</th>
+            <th>Curent</th>
+            <th>1–30 zile</th>
+            <th>31–60 zile</th>
+            <th>61–90 zile</th>
+            <th>90+ zile</th>
+            <th>TOTAL</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="td-bold">Popescu Ion</td>
+            <td class="heat-0">150 RON</td>
+            <td class="heat-0">—</td>
+            <td class="heat-1">80 RON</td>
+            <td class="heat-0">—</td>
+            <td class="heat-0">—</td>
+            <td class="td-bold">230 RON</td>
+          </tr>
+          <tr>
+            <td class="td-bold">Familia Ionescu</td>
+            <td class="heat-0">—</td>
+            <td class="heat-1">300 RON</td>
+            <td class="heat-0">—</td>
+            <td class="heat-2">150 RON</td>
+            <td class="heat-0">—</td>
+            <td class="td-bold">450 RON</td>
+          </tr>
+          <tr>
+            <td class="td-bold">Maria Georgescu</td>
+            <td class="heat-0">—</td>
+            <td class="heat-0">—</td>
+            <td class="heat-0">—</td>
+            <td class="heat-0">—</td>
+            <td class="heat-3">200 RON</td>
+            <td class="td-bold">200 RON</td>
+          </tr>
+          <tr style="background:rgba(99,102,241,.06);">
+            <td class="td-bold" style="color:var(--accent2);">TOTAL</td>
+            <td class="td-bold">150</td>
+            <td class="td-bold">300</td>
+            <td class="td-bold">80</td>
+            <td class="td-bold">150</td>
+            <td class="heat-3" style="font-weight:800;">200</td>
+            <td class="td-bold" style="color:var(--red);">880 RON</td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="font-size:12px;color:var(--text3);margin-top:8px;">Celulele 90+ zile se colorează progresiv mai roșu (heat map). Click pe celulă → drill-down la facturile individuale.</div>
+    </div>
+
+    <hr>
+
+    <!-- 2.6 Notificări -->
+    <div class="subsection">
+      <div class="subsection-title">2.6 — Secvența Optimă de Notificări Scadente</div>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-dot tl-before"></div>
+          <div class="timeline-content">
+            <span class="tl-timing">T−7 zile</span>
+            <span class="tl-canal canal-email">Email</span>
+            <div class="tl-desc">„Plata se apropie" — reminder prietenos</div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot tl-day0"></div>
+          <div class="timeline-content">
+            <span class="tl-timing">T−0 (ziua scadenței)</span>
+            <span class="tl-canal canal-email">Email</span>
+            <span class="tl-canal canal-sms">SMS</span>
+            <div class="tl-desc">„Plată scadentă azi" — ton neutru, link plată</div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot tl-after"></div>
+          <div class="timeline-content">
+            <span class="tl-timing">T+3 zile</span>
+            <span class="tl-canal canal-email">Email</span>
+            <div class="tl-desc">„Plată întârziată — acționează acum"</div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot tl-late"></div>
+          <div class="timeline-content">
+            <span class="tl-timing">T+7 zile</span>
+            <span class="tl-canal canal-wa">WhatsApp</span>
+            <div class="tl-desc">Escaladare — canal cu 98% open rate</div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot tl-critical"></div>
+          <div class="timeline-content">
+            <span class="tl-timing">T+14 zile</span>
+            <span class="tl-canal canal-email">Email ferm</span>
+            <div class="tl-desc">Mențiunea penalităților potențiale</div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot" style="background:var(--text3);"></div>
+          <div class="timeline-content">
+            <span class="tl-timing">T+30 zile</span>
+            <span class="tl-canal canal-manual">Manual</span>
+            <div class="tl-desc">Escaladare administrator — contact direct</div>
+          </div>
+        </div>
+      </div>
+      <div class="info-box" style="margin-top:16px;">
+        <strong>Impact:</strong> Această secvență crește rata de colectare cu <strong>60–80%</strong>. Phi Hau are deja infrastructura în <code>utils/notifications</code> — lipsește orchestrarea automată (Supabase Edge Function + pg_cron).
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ CAP 3 ══════════════ -->
+  <section class="section" id="cap3">
+    <div class="section-title"><span class="num">3</span>Funcționalități Recomandate — Prioritizate</div>
+
+    <!-- HIGH -->
+    <div class="priority-block high">
+      <div class="priority-label pl-high">🔴 HIGH IMPACT — Implementare Prioritară</div>
+      <ul class="feature-list">
+        <li>
+          <span class="feature-id fid-h">H1</span>
+          <div class="feature-content">
+            <div class="feature-title">Sub-status "Scadent" / "Restant!" pentru plăți restante</div>
+            <div class="feature-desc">Distincție vizuală între plată viitoare și datorie restantă. Calcul bazat pe diferența de zile față de data scadenței.</div>
+            <div class="feature-files">✅ Implementat → utils/paymentStatus.ts · GestiuneFacturi.tsx · PlatiScadente.tsx</div>
+          </div>
+        </li>
+        <li>
+          <span class="feature-id fid-h">H2</span>
+          <div class="feature-content">
+            <div class="feature-title">4 KPI Cards pe Dashboard Financiar</div>
+            <div class="feature-desc">Încasat luna curentă · Total Restanțe · Plăți Scadente · Rată Colectare cu progress bar</div>
+            <div class="feature-files">✅ Implementat → RaportFinanciar.tsx</div>
+          </div>
+        </li>
+        <li>
+          <span class="feature-id fid-h">H3</span>
+          <div class="feature-content">
+            <div class="feature-title">Aging Report — Raport Vechime Restanțe</div>
+            <div class="feature-desc">Tabel cu coloane: Curent / 1-30 zile / 31-60 zile / 61-90 zile / 90+ zile cu heat map vizual.</div>
+            <div class="feature-files">⏳ De implementat → AgingReport.tsx + RPC get_aging_report() în Supabase</div>
+          </div>
+        </li>
+        <li>
+          <span class="feature-id fid-h">H4</span>
+          <div class="feature-content">
+            <div class="feature-title">Grafic Revenue History (12 luni)</div>
+            <div class="feature-desc">BarChart cu serii Emis (albastru) și Încasat (verde). Bibliotecă: recharts.</div>
+            <div class="feature-files">⏳ De implementat → RevenueBarChart.tsx (npm install recharts)</div>
+          </div>
+        </li>
+        <li>
+          <span class="feature-id fid-h">H5</span>
+          <div class="feature-content">
+            <div class="feature-title">Filter Chips — Filtre Active Vizibile</div>
+            <div class="feature-desc">Chips cu ștergere individuală per filtru, afișate sub bara de filtre.</div>
+            <div class="feature-files">✅ Implementat → RaportFinanciar.tsx</div>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <!-- MEDIUM -->
+    <div class="priority-block medium">
+      <div class="priority-label pl-medium">🟡 MEDIUM IMPACT — Faza 2</div>
+      <ul class="feature-list">
+        <li>
+          <span class="feature-id fid-m">M1</span>
+          <div class="feature-content">
+            <div class="feature-title">Donut Chart — Breakdown pe Tip Plată</div>
+            <div class="feature-desc">Segmente: Abonamente / Taxe Examene / Taxe Competiții / Taxe Federale FRAM+FRQKD / Stagii</div>
+            <div class="feature-files">⏳ De implementat → PaymentTypePieChart.tsx</div>
+          </div>
+        </li>
+        <li>
+          <span class="feature-id fid-m">M2</span>
+          <div class="feature-content">
+            <div class="feature-title">Family Account View — Sold Consolidat per Familie</div>
+            <div class="feature-desc">Card familie cu toți membrii, sold net, ultima plată, plăți scadente și acțiuni bulk.</div>
+            <div class="feature-files">⏳ De implementat → FamilyPaymentCard.tsx</div>
+          </div>
+        </li>
+        <li>
+          <span class="feature-id fid-m">M3</span>
+          <div class="feature-content">
+            <div class="feature-title">Export PDF per Sportiv/Familie</div>
+            <div class="feature-desc">Document PDF cu antet club, tabel facturi, total datorat/achitat/rest. Print direct din browser.</div>
+            <div class="feature-files">✅ Implementat (print) → FacturaChitantaModal.tsx · ⏳ PDF complet cu jspdf + jspdf-autotable</div>
+          </div>
+        </li>
+        <li>
+          <span class="feature-id fid-m">M4</span>
+          <div class="feature-content">
+            <div class="feature-title">Export CSV cu BOM pentru Excel</div>
+            <div class="feature-desc">CSV cu toate câmpurile financiare, BOM pentru caractere române corecte în Excel.</div>
+            <div class="feature-files">⏳ De implementat → RaportFinanciar.tsx (buton Export)</div>
+          </div>
+        </li>
+        <li>
+          <span class="feature-id fid-m">M5</span>
+          <div class="feature-content">
+            <div class="feature-title">Secvență Automată Notificări Scadente</div>
+            <div class="feature-desc">Edge Function Supabase rulată zilnic via pg_cron. Infrastructura de notificări există deja.</div>
+            <div class="feature-files">⏳ De implementat → supabase/functions/payment-reminders/</div>
+          </div>
+        </li>
+        <li>
+          <span class="feature-id fid-m">M6</span>
+          <div class="feature-content">
+            <div class="feature-title">Cashflow Forecast (30 zile)</div>
+            <div class="feature-desc">AreaChart cu suma estimată de încasat bazată pe plăți Neachitat cu dată viitoare.</div>
+            <div class="feature-files">⏳ De implementat → CashflowForecastChart.tsx</div>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <!-- LOW -->
+    <div class="priority-block low">
+      <div class="priority-label pl-low">🟢 LOW IMPACT — Faza 3 (Opțional)</div>
+      <ul class="feature-list">
+        <li>
+          <span class="feature-id fid-l">L1</span>
+          <div class="feature-content">
+            <div class="feature-title">Reconciliere Bancară prin Import CSV Extras de Cont</div>
+            <div class="feature-desc">Matching automat: sumă ±1 RON + dată ±3 zile + fuzzy matching pe nume beneficiar.</div>
+          </div>
+        </li>
+        <li>
+          <span class="feature-id fid-l">L2</span>
+          <div class="feature-content">
+            <div class="feature-title">Raport Comparativ An/An</div>
+            <div class="feature-desc">BarChart cu două serii: an curent vs an precedent per lună.</div>
+          </div>
+        </li>
+        <li>
+          <span class="feature-id fid-l">L3</span>
+          <div class="feature-content">
+            <div class="feature-title">Pivot Table Interactiv</div>
+            <div class="feature-desc">react-pivottable sau FlexMonster. Complexitate mare, utilitate limitată la dimensiunea actuală.</div>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ══════════════ CAP 4 ══════════════ -->
+  <section class="section" id="cap4">
+    <div class="section-title"><span class="num">4</span>Recomandări Specifice pentru Contextul Qwan Ki Do</div>
+
+    <!-- 4.1 Cicluri -->
+    <div class="subsection">
+      <div class="subsection-title">4.1 — Cicluri de Plată Specifice Artelor Marțiale</div>
+      <table>
+        <thead>
+          <tr><th>Tip Plată</th><th>Frecvență</th><th>Sezonalitate</th><th>Particularitate</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="td-bold">Abonament Lunar</td><td>Lunar</td><td>Constantă</td><td>Familie = discount</td></tr>
+          <tr><td class="td-bold">Taxa Examen FRQKD</td><td>2-4/an</td><td style="color:var(--amber);">Oct-Nov, Feb-Mar</td><td>Legată de promovare grad</td></tr>
+          <tr><td class="td-bold">Taxa Competiție</td><td>Variabilă</td><td style="color:var(--amber);">Mar-Mai, Sep-Oct</td><td>Per eveniment, per probă</td></tr>
+          <tr><td class="td-bold">Taxa Federală FRAM</td><td>Anuală</td><td style="color:var(--red);">Sep-Oct</td><td>Per sportiv activ</td></tr>
+          <tr><td class="td-bold">Taxa Federală FRQKD</td><td>Anuală</td><td style="color:var(--red);">Sep-Oct</td><td>Viza anuală obligatorie</td></tr>
+          <tr><td class="td-bold">Stagii Tehnice</td><td>2-4/an</td><td>Variabilă</td><td>Opțional</td></tr>
+          <tr><td class="td-bold">Echipamente</td><td>La cerere</td><td>Start sezon</td><td>One-time</td></tr>
+        </tbody>
+      </table>
+      <div class="info-box">
+        <strong>Implicație critică</strong>: Septembrie–Octombrie = vârf de generare facturi (taxe anuale + restart sezon). Cashflow forecast trebuie să evidențieze aceste vârfuri. Aging report filtrat per tip — taxele federale scadente au urgență diferită față de abonamente.
+      </div>
+    </div>
+
+    <hr>
+
+    <!-- 4.5 KPIs -->
+    <div class="subsection">
+      <div class="subsection-title">4.5 — KPI-uri Specifice Clubului</div>
+      <table>
+        <thead>
+          <tr><th>KPI</th><th>Formula</th><th>Target</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="td-bold">Rata Colectare Abonamente</td>
+            <td><code>achitat_abon / emis_abon × 100</code></td>
+            <td class="td-green">&gt; 90%</td>
+          </tr>
+          <tr>
+            <td class="td-bold">Zile Medie Colectare (DSO)</td>
+            <td><code>restante / (incasari_an / 365)</code></td>
+            <td class="td-green">&lt; 15 zile</td>
+          </tr>
+          <tr>
+            <td class="td-bold">% Sportivi cu Restanțe</td>
+            <td><code>sportivi_restante / total_activi × 100</code></td>
+            <td class="td-green">&lt; 10%</td>
+          </tr>
+          <tr>
+            <td class="td-bold">Revenue per Sportiv</td>
+            <td><code>total_incasat / nr_sportivi_activi</code></td>
+            <td class="td-amber">Benchmark lunar</td>
+          </tr>
+          <tr>
+            <td class="td-bold">Rata Vize Federale Plătite</td>
+            <td><code>vize_FRQKD_achitate / sportivi_activi × 100</code></td>
+            <td class="td-red">100% pre-examen</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════ CAP 5 ══════════════ -->
+  <section class="section" id="cap5">
+    <div class="section-title"><span class="num">5</span>Roadmap de Implementare</div>
+
+    <div class="sprint-card">
+      <div class="sprint-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="sprint-num sn-1">Sprint 1</span>
+          <span class="sprint-title">HIGH IMPACT — fără dependențe noi</span>
+        </div>
+        <span class="sprint-duration">1–2 săptămâni</span>
+      </div>
+      <div class="sprint-tasks">
+        <div class="sprint-task">
+          <span style="font-size:14px;">✅</span>
+          <span class="task-name">utils/paymentStatus.ts — getDisplayStatus() + STATUS_DISPLAY_CONFIG</span>
+          <span class="task-effort">Gata</span>
+        </div>
+        <div class="sprint-task">
+          <span style="font-size:14px;">✅</span>
+          <span class="task-name">Badge-uri Scadent / Restant! în GestiuneFacturi + PlatiScadente</span>
+          <span class="task-effort">Gata</span>
+        </div>
+        <div class="sprint-task">
+          <span style="font-size:14px;">✅</span>
+          <span class="task-name">4 KPI Cards în RaportFinanciar.tsx</span>
+          <span class="task-effort">Gata</span>
+        </div>
+        <div class="sprint-task">
+          <span style="font-size:14px;">✅</span>
+          <span class="task-name">Filter chips active cu ștergere individuală</span>
+          <span class="task-effort">Gata</span>
+        </div>
+        <div class="sprint-task">
+          <span style="font-size:14px;">✅</span>
+          <span class="task-name">Tab Abonamente lunar + progres colectare</span>
+          <span class="task-effort">Gata</span>
+        </div>
+        <div class="sprint-task">
+          <span style="font-size:14px;">✅</span>
+          <span class="task-name">FacturaChitantaModal.tsx — factură + chitanță cu print</span>
+          <span class="task-effort">Gata</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sprint-card">
+      <div class="sprint-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="sprint-num sn-2">Sprint 2</span>
+          <span class="sprint-title">Grafice + Aging Report</span>
+        </div>
+        <span class="sprint-duration">2–3 săptămâni</span>
+      </div>
+      <div class="sprint-tasks">
+        <div class="sprint-task">
+          <span style="font-size:14px;">⏳</span>
+          <span class="task-name"><code>npm install recharts</code></span>
+          <span class="task-effort">15 min</span>
+        </div>
+        <div class="sprint-task">
+          <span style="font-size:14px;">⏳</span>
+          <span class="task-name">RevenueBarChart.tsx — BarChart 12 luni Emis vs Încasat</span>
+          <span class="task-effort">4h</span>
+        </div>
+        <div class="sprint-task">
+          <span style="font-size:14px;">⏳</span>
+          <span class="task-name">PaymentTypePieChart.tsx — Donut breakdown tipuri plată</span>
+          <span class="task-effort">3h</span>
+        </div>
+        <div class="sprint-task">
+          <span style="font-size:14px;">⏳</span>
+          <span class="task-name">RPC get_aging_report() în Supabase (migrație SQL)</span>
+          <span class="task-effort">3h</span>
+        </div>
+        <div class="sprint-task">
+          <span style="font-size:14px;">⏳</span>
+          <span class="task-name">AgingReport.tsx — tabel cu heat map pe intervale de vechime</span>
+          <span class="task-effort">6h</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sprint-card">
+      <div class="sprint-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="sprint-num sn-3">Sprint 3</span>
+          <span class="sprint-title">Export + Familie</span>
+        </div>
+        <span class="sprint-duration">2–3 săptămâni</span>
+      </div>
+      <div class="sprint-tasks">
+        <div class="sprint-task">
+          <span style="font-size:14px;">⏳</span>
+          <span class="task-name">Export CSV cu BOM pentru Excel (caractere române corecte)</span>
+          <span class="task-effort">2h</span>
+        </div>
+        <div class="sprint-task">
+          <span style="font-size:14px;">⏳</span>
+          <span class="task-name">Export PDF complet cu jspdf + jspdf-autotable per sportiv</span>
+          <span class="task-effort">4h</span>
+        </div>
+        <div class="sprint-task">
+          <span style="font-size:14px;">⏳</span>
+          <span class="task-name">FamilyPaymentCard.tsx — vizualizare consolidată sold familie</span>
+          <span class="task-effort">6h</span>
+        </div>
+        <div class="sprint-task">
+          <span style="font-size:14px;">⏳</span>
+          <span class="task-name">Widget Eligibilitate Examen în FisaDigitalaSportiv.tsx</span>
+          <span class="task-effort">4h</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sprint-card">
+      <div class="sprint-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="sprint-num sn-4">Sprint 4</span>
+          <span class="sprint-title">Forecast + Notificări Automate</span>
+        </div>
+        <span class="sprint-duration">2–4 săptămâni</span>
+      </div>
+      <div class="sprint-tasks">
+        <div class="sprint-task">
+          <span style="font-size:14px;">⏳</span>
+          <span class="task-name">CashflowForecastChart.tsx — AreaChart proiecție 30 zile</span>
+          <span class="task-effort">4h</span>
+        </div>
+        <div class="sprint-task">
+          <span style="font-size:14px;">⏳</span>
+          <span class="task-name">Supabase Edge Function payment-reminders + secvență automată</span>
+          <span class="task-effort">8h</span>
+        </div>
+        <div class="sprint-task">
+          <span style="font-size:14px;">⏳</span>
+          <span class="task-name">pg_cron job zilnic pentru triggering automată</span>
+          <span class="task-effort">1h</span>
+        </div>
+        <div class="sprint-task">
+          <span style="font-size:14px;">⏳</span>
+          <span class="task-name">Tab Situație Taxe Federale per an cu rată achitare</span>
+          <span class="task-effort">3h</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ CONCLUZIE ══════════════ -->
+  <section class="section" id="concluzie">
+    <div class="section-title"><span class="num">✓</span>Concluzie</div>
+
+    <div class="info-box" style="font-size:14px;margin-bottom:20px;">
+      Portalul Phi Hau are o <strong>infrastructură solidă</strong> (tipuri bine definite, DataContext, Supabase RPC). Toate lacunele sunt rezolvabile cu codul și datele existente — lipsesc stratul de prezentare și câteva RPC-uri de agregare.
+    </div>
+
+    <div class="conclusion-grid">
+      <div class="conclusion-item">
+        <div class="conc-stars">⭐⭐⭐</div>
+        <div class="conc-text">
+          <div class="ct-title">Sub-status Scadent/Restant!</div>
+          <div class="ct-sub">Impact ridicat · 1-2 zile · ✅ Implementat</div>
+        </div>
+      </div>
+      <div class="conclusion-item">
+        <div class="conc-stars">⭐⭐⭐</div>
+        <div class="conc-text">
+          <div class="ct-title">Grafice vizuale (Revenue + Donut)</div>
+          <div class="ct-sub">Impact ridicat · 3-5 zile · ⏳ Sprint 2</div>
+        </div>
+      </div>
+      <div class="conclusion-item">
+        <div class="conc-stars">⭐⭐⭐</div>
+        <div class="conc-text">
+          <div class="ct-title">KPI Cards Dashboard</div>
+          <div class="ct-sub">Impact ridicat · 1-2 zile · ✅ Implementat</div>
+        </div>
+      </div>
+      <div class="conclusion-item">
+        <div class="conc-stars">⭐⭐</div>
+        <div class="conc-text">
+          <div class="ct-title">Aging Report</div>
+          <div class="ct-sub">Impact mediu · 3-4 zile · ⏳ Sprint 2</div>
+        </div>
+      </div>
+      <div class="conclusion-item">
+        <div class="conc-stars">⭐⭐</div>
+        <div class="conc-text">
+          <div class="ct-title">Export PDF + CSV</div>
+          <div class="ct-sub">Impact mediu · 2-3 zile · ⏳ Sprint 3</div>
+        </div>
+      </div>
+      <div class="conclusion-item">
+        <div class="conc-stars">⭐⭐</div>
+        <div class="conc-text">
+          <div class="ct-title">Notificări Automate Scadente</div>
+          <div class="ct-sub">Impact mediu · 5-7 zile · ⏳ Sprint 4</div>
+        </div>
+      </div>
+      <div class="conclusion-item">
+        <div class="conc-stars">⭐⭐</div>
+        <div class="conc-text">
+          <div class="ct-title">Family Account View</div>
+          <div class="ct-sub">Impact mediu · 3-4 zile · ⏳ Sprint 3</div>
+        </div>
+      </div>
+      <div class="conclusion-item">
+        <div class="conc-stars">⭐</div>
+        <div class="conc-text">
+          <div class="ct-title">Cashflow Forecast 30 zile</div>
+          <div class="ct-sub">Impact scăzut · 2-3 zile · ⏳ Sprint 4</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ SURSE ══════════════ -->
+  <section class="section" id="surse">
+    <div class="section-title" style="font-size:16px;">Surse</div>
+    <div class="sources-list">
+      <a href="https://www.teamsnap.com/for-business/features/payments" target="_blank">TeamSnap Payments Features</a>
+      <a href="https://www.sportsengine.com/hq/features/financials/" target="_blank">SportsEngine Financials</a>
+      <a href="https://www.mindbodyonline.com/business/reporting" target="_blank">Mindbody Analytics 2.0</a>
+      <a href="https://docs.gymdesk.com/help/billing-overview" target="_blank">Gymdesk Billing Overview</a>
+      <a href="https://www.glofox.com/business-types/martial-arts-software/" target="_blank">Glofox Martial Arts Software</a>
+      <a href="https://zenplanner.com/martial-arts-studio-software/" target="_blank">Zen Planner Martial Arts</a>
+      <a href="https://www.martialytics.com/" target="_blank">Martialytics</a>
+      <a href="https://www.ezfacility.com/" target="_blank">EZFacility</a>
+      <a href="https://www.versapay.com/resources/ar-aging-reports-how-to-create" target="_blank">AR Aging Reports — Versapay</a>
+      <a href="https://stripe.com/resources/more/what-is-an-aging-report-what-is-in-one-and-how-to-use-it" target="_blank">Aging Report — Stripe</a>
+      <a href="https://messente.com/blog/payment-reminder-message" target="_blank">Payment Reminder Best Practices — Messente</a>
+      <a href="https://carbondesignsystem.com/patterns/status-indicator-pattern/" target="_blank">Carbon Design System — Status Indicators</a>
+      <a href="https://resasports.com/en/blog/kpis-sports-centre/" target="_blank">Essential KPIs for Sports Centres</a>
+      <a href="https://www.jerseywatch.com/blog/sports-team-accounting-software" target="_blank">Best Sports Team Accounting Software</a>
+      <a href="https://www.bytomic.com/blogs/journal/top-7-martial-arts-payment-tools" target="_blank">Top 7 Martial Arts Payment Tools</a>
+    </div>
+  </section>
+
+</main>
+</div>
+
+<script>
+  // Activare nav item la scroll
+  const sections = document.querySelectorAll('section[id]');
+  const navItems = document.querySelectorAll('.nav-item[href^="#cap"], .nav-item[href="#concluzie"], .nav-item[href="#surse"]');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navItems.forEach(n => n.classList.remove('active'));
+        const active = document.querySelector(`.nav-item[href="#${e.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { threshold: 0.3 });
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

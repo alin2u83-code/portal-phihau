@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Modele Facturi · Club Qwan Ki Do</title>
+<style>
+/* ── Reset & Base ───────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:       #0f172a;
+  --surface:  #1e293b;
+  --border:   #334155;
+  --text:     #f1f5f9;
+  --muted:    #94a3b8;
+  --accent:   #6366f1;
+  --emerald:  #10b981;
+  --rose:     #f43f5e;
+  --amber:    #f59e0b;
+}
+body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+/* ── Layout ─────────────────────────────────────────── */
+.page { max-width: 1280px; margin: 0 auto; padding: 32px 20px 80px; }
+h1 { font-size: 28px; font-weight: 900; margin-bottom: 6px; }
+.subtitle { color: var(--muted); font-size: 14px; margin-bottom: 40px; }
+
+/* ── Tab nav ─────────────────────────────────────────── */
+.tabs { display: flex; gap: 8px; margin-bottom: 32px; flex-wrap: wrap; }
+.tab-btn {
+  padding: 10px 20px; border-radius: 10px; border: 1px solid var(--border);
+  background: var(--surface); color: var(--muted); font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all .2s;
+}
+.tab-btn:hover { color: var(--text); border-color: #475569; }
+.tab-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* ── Sections ───────────────────────────────────────── */
+.section { display: none; }
+.section.active { display: block; }
+
+/* ── Grid layout (preview + meta) ───────────────────── */
+.split { display: grid; grid-template-columns: 1fr 360px; gap: 32px; align-items: start; }
+@media (max-width: 900px) { .split { grid-template-columns: 1fr; } }
+
+/* ── Meta card ───────────────────────────────────────── */
+.meta { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; position: sticky; top: 20px; }
+.meta h2 { font-size: 16px; font-weight: 800; margin-bottom: 4px; }
+.meta .tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 10px; border-radius: 20px; margin-bottom: 16px; }
+.tag-dark    { background: #334155; color: #94a3b8; }
+.tag-classic { background: #1e3a5f; color: #93c5fd; }
+.tag-modern  { background: #1e1b4b; color: #a5b4fc; }
+.tag-minimal { background: #064e3b; color: #6ee7b7; }
+.meta p { color: var(--muted); font-size: 13px; line-height: 1.7; margin-bottom: 16px; }
+.pro-list, .con-list { list-style: none; margin-bottom: 16px; }
+.pro-list li::before { content: '✓ '; color: #10b981; font-weight: 700; }
+.con-list li::before { content: '· '; color: #f59e0b; }
+.pro-list li, .con-list li { font-size: 13px; color: var(--muted); line-height: 1.8; }
+.label { font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px; }
+.diff-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 8px;
+  margin: 2px; background: #1e293b; border: 1px solid #334155; color: #94a3b8;
+}
+
+/* ── Invoice wrapper ─────────────────────────────────── */
+.invoice-wrap { border-radius: 20px; overflow: hidden; border: 1px solid var(--border); }
+
+
+/* ═══════════════════════════════════════════════════════
+   MODEL 1 · DARK SLATE (tema curentă)
+═══════════════════════════════════════════════════════ */
+.inv-dark {
+  background: #0f172a; color: #f1f5f9;
+  font-family: 'Segoe UI', sans-serif;
+}
+.inv-dark .inv-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 24px; border-bottom: 1px solid #1e293b; background: #1e293b;
+}
+.inv-dark .inv-logo {
+  display: flex; align-items: center; gap: 12px;
+}
+.inv-dark .inv-logo-icon {
+  width: 40px; height: 40px; border-radius: 12px; background: #6366f1;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 900; color: #fff;
+}
+.inv-dark .inv-club-name { font-size: 15px; font-weight: 800; color: #fff; }
+.inv-dark .inv-club-sub  { font-size: 11px; color: #64748b; }
+.inv-dark .inv-badge-type {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #312e81; color: #a5b4fc; border: 1px solid #4338ca;
+  font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 20px;
+}
+.inv-dark .inv-body { padding: 24px; }
+.inv-dark .inv-meta-row { display: flex; justify-content: space-between; margin-bottom: 20px; }
+.inv-dark .inv-meta-label { font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 4px; }
+.inv-dark .inv-meta-val { font-size: 14px; font-weight: 600; color: #e2e8f0; font-family: monospace; }
+.inv-dark .inv-divider { border: none; border-top: 1px solid #1e293b; margin: 16px 0; }
+.inv-dark .inv-client { background: #1e293b; border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; }
+.inv-dark .inv-client-label { font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 4px; }
+.inv-dark .inv-client-name { font-size: 15px; font-weight: 700; color: #fff; }
+.inv-dark .inv-client-sub  { font-size: 12px; color: #64748b; margin-top: 2px; }
+.inv-dark table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+.inv-dark thead tr { border-bottom: 1px solid #1e293b; }
+.inv-dark th { text-align: left; padding: 8px 4px; font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: .06em; }
+.inv-dark th:last-child { text-align: right; }
+.inv-dark td { padding: 12px 4px; font-size: 13px; color: #e2e8f0; border-bottom: 1px solid #1e293b30; }
+.inv-dark td:last-child { text-align: right; font-weight: 700; }
+.inv-dark .inv-sum { background: #1e293b; border-radius: 12px; overflow: hidden; }
+.inv-dark .inv-sum-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-bottom: 1px solid #0f172a; }
+.inv-dark .inv-sum-row:last-child { border: none; }
+.inv-dark .inv-sum-row.total { background: #0f172a; }
+.inv-dark .inv-sum-lbl { font-size: 13px; color: #94a3b8; }
+.inv-dark .inv-sum-val { font-size: 13px; font-weight: 700; color: #fff; }
+.inv-dark .inv-sum-val.green { color: #10b981; }
+.inv-dark .inv-sum-val.big   { font-size: 20px; font-weight: 900; }
+.inv-dark .inv-status { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+.inv-dark .inv-status-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 20px; border: 1px solid;
+}
+.inv-dark .badge-achitat { background: #052e16; color: #34d399; border-color: #065f46; }
+.inv-dark .badge-neachitat { background: #450a0a; color: #fca5a5; border-color: #7f1d1d; }
+.inv-dark .inv-footer { padding: 14px 24px; background: #0a0f1e; border-top: 1px solid #1e293b; text-align: center; }
+.inv-dark .inv-footer p { font-size: 11px; color: #334155; }
+
+
+/* ═══════════════════════════════════════════════════════
+   MODEL 2 · CLASSIC A4 (alb, print-friendly)
+═══════════════════════════════════════════════════════ */
+.inv-classic {
+  background: #fff; color: #1e293b;
+  font-family: 'Georgia', serif;
+}
+.inv-classic .inv-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding: 32px 32px 24px; border-bottom: 2px solid #e2e8f0;
+}
+.inv-classic .inv-club-block {}
+.inv-classic .inv-club-name { font-size: 20px; font-weight: 700; color: #0f172a; letter-spacing: -.02em; }
+.inv-classic .inv-club-sub  { font-size: 12px; color: #64748b; margin-top: 4px; font-style: italic; }
+.inv-classic .inv-doc-block { text-align: right; }
+.inv-classic .inv-doc-type { font-size: 24px; font-weight: 900; color: #0f172a; text-transform: uppercase; letter-spacing: .05em; }
+.inv-classic .inv-doc-nr { font-size: 13px; color: #64748b; margin-top: 2px; }
+.inv-classic .inv-body { padding: 24px 32px 32px; }
+.inv-classic .inv-meta-row { display: flex; justify-content: space-between; margin-bottom: 24px; }
+.inv-classic .inv-meta-col {}
+.inv-classic .inv-meta-label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .1em; margin-bottom: 6px; }
+.inv-classic .inv-meta-val { font-size: 13px; color: #334155; }
+.inv-classic .inv-meta-val strong { display: block; font-size: 15px; color: #0f172a; font-weight: 700; }
+.inv-classic table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+.inv-classic thead { border-bottom: 2px solid #0f172a; }
+.inv-classic th { padding: 10px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #0f172a; }
+.inv-classic th:last-child { text-align: right; }
+.inv-classic td { padding: 12px 8px; font-size: 13px; color: #334155; border-bottom: 1px solid #f1f5f9; }
+.inv-classic td:last-child { text-align: right; font-weight: 700; }
+.inv-classic .inv-total-section { border-top: 2px solid #0f172a; padding-top: 16px; }
+.inv-classic .inv-total-row { display: flex; justify-content: flex-end; gap: 48px; margin-bottom: 8px; }
+.inv-classic .inv-total-lbl { font-size: 13px; color: #64748b; }
+.inv-classic .inv-total-val { font-size: 13px; font-weight: 700; color: #0f172a; min-width: 100px; text-align: right; }
+.inv-classic .inv-grand-total { background: #0f172a; color: #fff; padding: 12px 16px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+.inv-classic .inv-grand-total .lbl { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+.inv-classic .inv-grand-total .val { font-size: 20px; font-weight: 900; }
+.inv-classic .inv-footer { display: flex; justify-content: space-between; padding: 24px 32px 24px; border-top: 1px solid #e2e8f0; margin-top: 24px; }
+.inv-classic .inv-sign-block { border-top: 1px solid #94a3b8; padding-top: 8px; min-width: 140px; text-align: center; }
+.inv-classic .inv-sign-label { font-size: 11px; color: #94a3b8; letter-spacing: .05em; }
+.inv-classic .inv-footer-note { font-size: 11px; color: #94a3b8; align-self: flex-end; font-style: italic; }
+.inv-classic .badge-achitat-classic {
+  display: inline-block; border: 2px solid #15803d; color: #15803d;
+  font-size: 11px; font-weight: 700; padding: 3px 12px; border-radius: 3px;
+  text-transform: uppercase; letter-spacing: .1em;
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   MODEL 3 · MODERN SPLIT (header accent + corp alb)
+═══════════════════════════════════════════════════════ */
+.inv-modern {
+  background: #fff; color: #1e293b;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+.inv-modern .inv-header {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  padding: 28px 28px 36px; color: #fff;
+}
+.inv-modern .inv-header-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
+.inv-modern .inv-logo-pill {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: rgba(255,255,255,.15); backdrop-filter: blur(8px);
+  border-radius: 12px; padding: 8px 16px;
+}
+.inv-modern .inv-logo-icon { width: 32px; height: 32px; background: #fff; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 900; color: #6366f1; font-size: 14px; }
+.inv-modern .inv-logo-name { font-size: 14px; font-weight: 700; }
+.inv-modern .inv-doc-type { font-size: 28px; font-weight: 900; letter-spacing: -.02em; opacity: .95; }
+.inv-modern .inv-header-bottom { display: flex; justify-content: space-between; }
+.inv-modern .inv-header-col {}
+.inv-modern .inv-header-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; opacity: .6; margin-bottom: 4px; }
+.inv-modern .inv-header-val { font-size: 14px; font-weight: 700; }
+.inv-modern .inv-header-val.big { font-size: 22px; font-weight: 900; }
+
+.inv-modern .inv-body { padding: 0 28px 28px; position: relative; }
+.inv-modern .inv-client-card {
+  background: #fff; border: 1px solid #e2e8f0; border-radius: 14px;
+  padding: 16px 20px; margin-top: -16px; position: relative; z-index: 1;
+  box-shadow: 0 4px 20px rgba(0,0,0,.08); margin-bottom: 24px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.inv-modern .inv-client-left {}
+.inv-modern .inv-client-label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .1em; margin-bottom: 4px; }
+.inv-modern .inv-client-name { font-size: 16px; font-weight: 800; color: #0f172a; }
+.inv-modern .inv-client-sub  { font-size: 12px; color: #64748b; margin-top: 2px; }
+.inv-modern .inv-status-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 700; padding: 6px 14px; border-radius: 20px;
+}
+.inv-modern .pill-achitat { background: #dcfce7; color: #15803d; }
+.inv-modern .pill-neachitat { background: #fee2e2; color: #dc2626; }
+.inv-modern table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+.inv-modern thead { background: #f8fafc; border-radius: 8px; }
+.inv-modern th { padding: 10px 12px; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .06em; }
+.inv-modern th:last-child { text-align: right; }
+.inv-modern td { padding: 12px 12px; font-size: 13px; color: #334155; border-bottom: 1px solid #f1f5f9; }
+.inv-modern td:last-child { text-align: right; font-weight: 700; color: #0f172a; }
+.inv-modern .inv-sum-block { background: #f8fafc; border-radius: 14px; overflow: hidden; border: 1px solid #e2e8f0; }
+.inv-modern .inv-sum-row { display: flex; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
+.inv-modern .inv-sum-row:last-child { border: none; padding: 14px 16px; background: #6366f1; color: #fff; border-radius: 0 0 14px 14px; }
+.inv-modern .inv-sum-lbl { color: #64748b; }
+.inv-modern .inv-sum-row:last-child .inv-sum-lbl { color: rgba(255,255,255,.8); }
+.inv-modern .inv-sum-val { font-weight: 700; color: #0f172a; }
+.inv-modern .inv-sum-row:last-child .inv-sum-val { color: #fff; font-size: 18px; font-weight: 900; }
+.inv-modern .inv-footer { padding: 16px 28px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+.inv-modern .inv-footer p { font-size: 11px; color: #94a3b8; }
+.inv-modern .inv-method-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 8px; background: #ede9fe; color: #6d28d9; }
+
+
+/* ═══════════════════════════════════════════════════════
+   MODEL 4 · MINIMAL LINE (ultra-clean, fără cutii)
+═══════════════════════════════════════════════════════ */
+.inv-minimal {
+  background: #fff; color: #0f172a;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  padding: 40px 40px 32px;
+}
+.inv-minimal .inv-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; }
+.inv-minimal .inv-club-name { font-size: 18px; font-weight: 900; color: #0f172a; letter-spacing: -.02em; }
+.inv-minimal .inv-club-tagline { font-size: 11px; color: #94a3b8; margin-top: 2px; letter-spacing: .02em; }
+.inv-minimal .inv-doc-block { text-align: right; }
+.inv-minimal .inv-doc-type { font-size: 13px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .15em; margin-bottom: 4px; }
+.inv-minimal .inv-doc-nr { font-size: 28px; font-weight: 900; color: #10b981; }
+.inv-minimal hr.inv-rule { border: none; border-top: 2px solid #0f172a; margin: 0 0 28px; }
+.inv-minimal .inv-info-row { display: flex; justify-content: space-between; margin-bottom: 32px; }
+.inv-minimal .inv-info-col {}
+.inv-minimal .inv-info-label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .12em; margin-bottom: 6px; }
+.inv-minimal .inv-info-val { font-size: 14px; color: #0f172a; }
+.inv-minimal .inv-info-val strong { display: block; font-weight: 800; font-size: 15px; }
+.inv-minimal table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+.inv-minimal thead { border-bottom: 1px solid #0f172a; }
+.inv-minimal th { padding: 8px 0; font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .1em; }
+.inv-minimal th:last-child { text-align: right; }
+.inv-minimal td { padding: 14px 0; font-size: 13px; color: #334155; border-bottom: 1px solid #f1f5f9; }
+.inv-minimal td:last-child { text-align: right; font-weight: 700; color: #0f172a; }
+.inv-minimal .inv-total-block { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; margin-bottom: 32px; }
+.inv-minimal .inv-total-row { display: flex; gap: 32px; }
+.inv-minimal .inv-total-lbl { font-size: 12px; color: #94a3b8; min-width: 80px; text-align: right; }
+.inv-minimal .inv-total-val { font-size: 13px; font-weight: 600; color: #0f172a; min-width: 100px; text-align: right; }
+.inv-minimal .inv-grand-row { display: flex; gap: 32px; padding-top: 12px; border-top: 1px solid #0f172a; }
+.inv-minimal .inv-grand-lbl { font-size: 14px; font-weight: 800; min-width: 80px; text-align: right; }
+.inv-minimal .inv-grand-val { font-size: 22px; font-weight: 900; color: #10b981; min-width: 100px; text-align: right; }
+.inv-minimal hr.inv-rule-sm { border: none; border-top: 1px solid #e2e8f0; margin: 0 0 20px; }
+.inv-minimal .inv-footer-minimal { display: flex; justify-content: space-between; align-items: center; }
+.inv-minimal .inv-footer-minimal p { font-size: 11px; color: #cbd5e1; }
+.inv-minimal .inv-status-minimal { font-size: 12px; font-weight: 800; color: #10b981; text-transform: uppercase; letter-spacing: .1em; }
+
+
+/* ═══════════════════════════════════════════════════════
+   Comparison table
+═══════════════════════════════════════════════════════ */
+.compare { margin-top: 60px; }
+.compare h2 { font-size: 22px; font-weight: 900; margin-bottom: 6px; }
+.compare .sub { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
+.compare-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.compare-table th { text-align: left; padding: 12px 16px; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; border-bottom: 1px solid var(--border); background: var(--surface); }
+.compare-table td { padding: 14px 16px; border-bottom: 1px solid #1e293b; color: var(--muted); vertical-align: top; }
+.compare-table td:first-child { color: var(--text); font-weight: 600; }
+.compare-table tr:hover td { background: #1e293b40; }
+.dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+.dot-dark    { background: #6366f1; }
+.dot-classic { background: #3b82f6; }
+.dot-modern  { background: #8b5cf6; }
+.dot-minimal { background: #10b981; }
+.yes { color: #10b981; font-weight: 700; }
+.no  { color: #64748b; }
+.partial { color: #f59e0b; font-weight: 600; }
+
+/* ── Util ─────────────────────────────────────────────── */
+.note { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 16px 20px; margin-top: 24px; }
+.note p { color: var(--muted); font-size: 13px; line-height: 1.7; }
+.note strong { color: var(--text); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>Modele Vizuale · Factură / Chitanță</h1>
+  <p class="subtitle">4 variante de design · Club Qwan Ki Do · Alege stilul potrivit aplicației</p>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('dark',this)">① Dark Slate <small>(curent)</small></button>
+    <button class="tab-btn" onclick="showTab('classic',this)">② Classic A4</button>
+    <button class="tab-btn" onclick="showTab('modern',this)">③ Modern Split</button>
+    <button class="tab-btn" onclick="showTab('minimal',this)">④ Minimal Line</button>
+    <button class="tab-btn" onclick="showTab('compare',this)">⟂ Comparație</button>
+  </div>
+
+
+  <!-- ═══ MODEL 1 · DARK SLATE ═══ -->
+  <div id="tab-dark" class="section active">
+    <div class="split">
+      <div class="invoice-wrap">
+        <div class="inv-dark">
+          <!-- Header -->
+          <div class="inv-header">
+            <div class="inv-logo">
+              <div class="inv-logo-icon">Q</div>
+              <div>
+                <div class="inv-club-name">Club Qwan Ki Do</div>
+                <div class="inv-club-sub">Artă Marțială · România</div>
+              </div>
+            </div>
+            <div class="inv-badge-type">
+              ✦ Chitanță de Plată
+            </div>
+          </div>
+          <!-- Body -->
+          <div class="inv-body">
+            <div class="inv-meta-row">
+              <div>
+                <div class="inv-meta-label">Nr. chitanță</div>
+                <div class="inv-meta-val">3A7F2C91</div>
+              </div>
+              <div style="text-align:right">
+                <div class="inv-meta-label">Data plății</div>
+                <div class="inv-meta-val" style="font-family:sans-serif">04.04.2026</div>
+              </div>
+            </div>
+            <hr class="inv-divider" />
+            <div class="inv-client">
+              <div class="inv-client-label">Achitat de</div>
+              <div class="inv-client-name">Ionescu Alexandru</div>
+              <div class="inv-client-sub">Familia Ionescu</div>
+            </div>
+            <!-- Service table -->
+            <table>
+              <thead>
+                <tr>
+                  <th>Descriere serviciu</th>
+                  <th style="text-align:right">Sumă</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Abonament lunar · Aprilie 2026</td>
+                  <td>200,00 RON</td>
+                </tr>
+              </tbody>
+            </table>
+            <!-- Summary -->
+            <div class="inv-sum">
+              <div class="inv-sum-row">
+                <span class="inv-sum-lbl">Total de plată</span>
+                <span class="inv-sum-val">200,00 RON</span>
+              </div>
+              <div class="inv-sum-row">
+                <span class="inv-sum-lbl" style="color:#10b981">Achitat</span>
+                <span class="inv-sum-val green">− 200,00 RON</span>
+              </div>
+              <div class="inv-sum-row total">
+                <span class="inv-sum-lbl" style="font-weight:700;color:#fff">Total achitat</span>
+                <span class="inv-sum-val green big">200,00 RON</span>
+              </div>
+            </div>
+            <!-- Status -->
+            <div class="inv-status" style="margin-top:16px">
+              <span class="inv-status-badge badge-achitat">● Achitat</span>
+              <span style="font-size:12px;font-weight:600;padding:4px 10px;border-radius:8px;background:#052e16;color:#34d399">Cash</span>
+            </div>
+          </div>
+          <!-- Footer -->
+          <div class="inv-footer">
+            <p>Club Qwan Ki Do · Document generat electronic · 04.04.2026</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Meta -->
+      <div class="meta">
+        <h2>① Dark Slate</h2>
+        <span class="tag tag-dark">Implementat curent</span>
+        <p>Design care <strong>respectă tema întunecată</strong> a aplicației. Sportivul vede același stil vizual ca restul platformei — fără contrast brupt la deschiderea modalului.</p>
+        <div class="label">Avantaje</div>
+        <ul class="pro-list">
+          <li>Consistență vizuală cu UI-ul aplicației</li>
+          <li>Potrivit pentru ecrane desktop și mobil</li>
+          <li>Deja implementat în FacturaChitantaModal.tsx</li>
+          <li>Ușor de personalizat prin variabile CSS</li>
+        </ul>
+        <div class="label">Limitări</div>
+        <ul class="con-list">
+          <li>La print arată slab (fundal negru consumă cerneală)</li>
+          <li>Stil neconvențional față de facturi tradiționale</li>
+          <li>Nu are look „oficial" de document contabil</li>
+        </ul>
+        <div class="label">Recomandat pentru</div>
+        <div>
+          <span class="diff-tag">📱 Vizualizare în app</span>
+          <span class="diff-tag">🌙 Dark mode users</span>
+          <span class="diff-tag">💻 Desktop</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══ MODEL 2 · CLASSIC A4 ═══ -->
+  <div id="tab-classic" class="section">
+    <div class="split">
+      <div class="invoice-wrap">
+        <div class="inv-classic">
+          <div class="inv-header">
+            <div class="inv-club-block">
+              <div class="inv-club-name">Club Qwan Ki Do</div>
+              <div class="inv-club-sub">Artă Marțială · România<br>CIF: RO12345678 · Cluj-Napoca</div>
+            </div>
+            <div class="inv-doc-block">
+              <div class="inv-doc-type">Chitanță</div>
+              <div class="inv-doc-nr">Nr. 3A7F2C91</div>
+              <div class="inv-doc-nr" style="margin-top:4px;color:#0f172a;font-weight:600">04 Aprilie 2026</div>
+            </div>
+          </div>
+          <div class="inv-body">
+            <!-- Client + date -->
+            <div class="inv-meta-row">
+              <div class="inv-meta-col">
+                <div class="inv-meta-label">Beneficiar</div>
+                <div class="inv-meta-val">
+                  <strong>Ionescu Alexandru</strong>
+                  Familia Ionescu<br>
+                  Cluj-Napoca
+                </div>
+              </div>
+              <div class="inv-meta-col" style="text-align:right">
+                <div class="inv-meta-label">Data emiterii</div>
+                <div class="inv-meta-val"><strong>04.04.2026</strong></div>
+                <div style="margin-top:12px">
+                  <span class="badge-achitat-classic">✓ Achitat</span>
+                </div>
+              </div>
+            </div>
+            <!-- Table -->
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:50%">Descriere serviciu</th>
+                  <th>U.M.</th>
+                  <th>Cant.</th>
+                  <th>Preț unit.</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Abonament lunar · Aprilie 2026</td>
+                  <td>lună</td>
+                  <td>1</td>
+                  <td>200,00 RON</td>
+                  <td>200,00 RON</td>
+                </tr>
+              </tbody>
+            </table>
+            <!-- Totals -->
+            <div class="inv-total-section">
+              <div class="inv-total-row">
+                <span class="inv-total-lbl">Subtotal</span>
+                <span class="inv-total-val">200,00 RON</span>
+              </div>
+              <div class="inv-total-row">
+                <span class="inv-total-lbl">TVA (0%)</span>
+                <span class="inv-total-val">0,00 RON</span>
+              </div>
+              <div class="inv-grand-total">
+                <span class="lbl">Total de plată</span>
+                <span class="val">200,00 RON</span>
+              </div>
+            </div>
+            <!-- Footer -->
+            <div class="inv-footer">
+              <div>
+                <div class="inv-sign-block">
+                  <div class="inv-sign-label">EMITENT</div>
+                </div>
+              </div>
+              <div>
+                <div class="inv-sign-block">
+                  <div class="inv-sign-label">BENEFICIAR</div>
+                </div>
+              </div>
+              <div style="text-align:right;align-self:flex-end">
+                <p class="inv-footer-note">Document generat electronic<br>04.04.2026 · Club Qwan Ki Do</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="meta">
+        <h2>② Classic A4</h2>
+        <span class="tag tag-classic">Stil contabil tradițional</span>
+        <p>Format <strong>inspirat din facturile tipărite</strong> standard. Are câmpuri de semnătură, număr CIF, TVA, unitate de măsură — toate elementele unui document contabil oficial.</p>
+        <div class="label">Avantaje</div>
+        <ul class="pro-list">
+          <li>Arată excelent la imprimat (alb, cerneală minimă)</li>
+          <li>Familiar părinților și contabililor</li>
+          <li>Spații de semnătură pentru confirmare</li>
+          <li>Coloană unitate de măsură + cantitate</li>
+          <li>Câmp CIF / adresă club</li>
+        </ul>
+        <div class="label">Limitări</div>
+        <ul class="con-list">
+          <li>Contrast brupt față de tema dark a aplicației</li>
+          <li>Necesită iframe sau nouă fereastră pentru afișare</li>
+          <li>Prea formal pentru notificări simple</li>
+        </ul>
+        <div class="label">Recomandat pentru</div>
+        <div>
+          <span class="diff-tag">🖨️ Print / PDF</span>
+          <span class="diff-tag">📋 Document oficial</span>
+          <span class="diff-tag">👨‍💼 Contabilitate</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══ MODEL 3 · MODERN SPLIT ═══ -->
+  <div id="tab-modern" class="section">
+    <div class="split">
+      <div class="invoice-wrap">
+        <div class="inv-modern">
+          <!-- Colored header -->
+          <div class="inv-header">
+            <div class="inv-header-top">
+              <div class="inv-logo-pill">
+                <div class="inv-logo-icon">Q</div>
+                <span class="inv-logo-name">Club Qwan Ki Do</span>
+              </div>
+              <div class="inv-doc-type">Chitanță</div>
+            </div>
+            <div class="inv-header-bottom">
+              <div class="inv-header-col">
+                <div class="inv-header-label">Număr document</div>
+                <div class="inv-header-val" style="font-family:monospace">3A7F2C91</div>
+              </div>
+              <div class="inv-header-col" style="text-align:center">
+                <div class="inv-header-label">Data plății</div>
+                <div class="inv-header-val">04.04.2026</div>
+              </div>
+              <div class="inv-header-col" style="text-align:right">
+                <div class="inv-header-label">Sumă totală</div>
+                <div class="inv-header-val big">200 RON</div>
+              </div>
+            </div>
+          </div>
+          <!-- Body -->
+          <div class="inv-body">
+            <!-- Client card (floating) -->
+            <div class="inv-client-card">
+              <div class="inv-client-left">
+                <div class="inv-client-label">Achitat de</div>
+                <div class="inv-client-name">Ionescu Alexandru</div>
+                <div class="inv-client-sub">Familia Ionescu · Cluj-Napoca</div>
+              </div>
+              <span class="inv-status-pill pill-achitat">✓ Achitat</span>
+            </div>
+            <!-- Table -->
+            <table>
+              <thead>
+                <tr>
+                  <th>Descriere</th>
+                  <th style="text-align:right">Sumă</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Abonament lunar · Aprilie 2026</td>
+                  <td>200,00 RON</td>
+                </tr>
+              </tbody>
+            </table>
+            <!-- Summary block -->
+            <div class="inv-sum-block">
+              <div class="inv-sum-row">
+                <span class="inv-sum-lbl">Total de plată</span>
+                <span class="inv-sum-val">200,00 RON</span>
+              </div>
+              <div class="inv-sum-row">
+                <span class="inv-sum-lbl" style="color:#10b981">Achitat</span>
+                <span class="inv-sum-val" style="color:#10b981">− 200,00 RON</span>
+              </div>
+              <div class="inv-sum-row">
+                <span class="inv-sum-lbl">Total achitat</span>
+                <span class="inv-sum-val">200,00 RON</span>
+              </div>
+            </div>
+          </div>
+          <!-- Footer -->
+          <div class="inv-footer">
+            <p>Club Qwan Ki Do · Document electronic · 04.04.2026</p>
+            <span class="inv-method-pill">💳 Cash</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="meta">
+        <h2>③ Modern Split</h2>
+        <span class="tag tag-modern">Header gradient + corp alb</span>
+        <p>Cel mai <strong>vizual atrăgător</strong> design. Header-ul colorat indigo/violet (consistent cu brand-ul aplicației) și corpul alb creează un contrast elegant, modern, întâlnit în SaaS-urile de top.</p>
+        <div class="label">Avantaje</div>
+        <ul class="pro-list">
+          <li>Look premium, memorabil</li>
+          <li>Cardul flotant pentru client — element distinct</li>
+          <li>Culorile brandului (indigo) prezente și la print</li>
+          <li>Ușor lizibil atât pe ecran cât și tipărit</li>
+          <li>Suma totală vizibilă direct în header</li>
+        </ul>
+        <div class="label">Limitări</div>
+        <ul class="con-list">
+          <li>Mai complex de implementat (gradient + shadow)</li>
+          <li>La print: header-ul colorat consumă cerneală</li>
+          <li>Necesită modal mai înalt decât cel curent</li>
+        </ul>
+        <div class="label">Recomandat pentru</div>
+        <div>
+          <span class="diff-tag">⭐ Experiență premium</span>
+          <span class="diff-tag">📧 Email attachment</span>
+          <span class="diff-tag">📱 Mobil</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══ MODEL 4 · MINIMAL LINE ═══ -->
+  <div id="tab-minimal" class="section">
+    <div class="split">
+      <div class="invoice-wrap" style="border-color:#e2e8f0">
+        <div class="inv-minimal">
+          <div class="inv-top">
+            <div>
+              <div class="inv-club-name">Qwan Ki Do</div>
+              <div class="inv-club-tagline">Club artă marțială · Cluj-Napoca</div>
+            </div>
+            <div class="inv-doc-block">
+              <div class="inv-doc-type">Chitanță</div>
+              <div class="inv-doc-nr">#3A7F</div>
+            </div>
+          </div>
+          <hr class="inv-rule" />
+          <div class="inv-info-row">
+            <div class="inv-info-col">
+              <div class="inv-info-label">Achitat de</div>
+              <div class="inv-info-val">
+                <strong>Ionescu Alexandru</strong>
+                Familia Ionescu
+              </div>
+            </div>
+            <div class="inv-info-col" style="text-align:right">
+              <div class="inv-info-label">Data plății</div>
+              <div class="inv-info-val"><strong>04.04.2026</strong></div>
+            </div>
+            <div class="inv-info-col" style="text-align:right">
+              <div class="inv-info-label">Metodă</div>
+              <div class="inv-info-val"><strong>Cash</strong></div>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th style="text-align:left">Descriere</th>
+                <th style="text-align:right">Sumă</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Abonament lunar · Aprilie 2026</td>
+                <td>200,00 RON</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="inv-total-block">
+            <div class="inv-total-row">
+              <span class="inv-total-lbl">Subtotal</span>
+              <span class="inv-total-val">200,00 RON</span>
+            </div>
+            <div class="inv-grand-row">
+              <span class="inv-grand-lbl">Total</span>
+              <span class="inv-grand-val">200,00 RON</span>
+            </div>
+          </div>
+          <hr class="inv-rule-sm" />
+          <div class="inv-footer-minimal">
+            <p>Club Qwan Ki Do · document electronic · 04.04.2026</p>
+            <span class="inv-status-minimal">✓ Achitat</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="meta">
+        <h2>④ Minimal Line</h2>
+        <span class="tag tag-minimal">Ultra-clean, fără cutii</span>
+        <p>Design bazat exclusiv pe <strong>tipografie și linii</strong>, fără fundal colorat sau carduri. Numărul chitanței în verde (#10b981) este singurul accent vizual. Inspirat din facturare B2B modernă (Stripe, Linear).</p>
+        <div class="label">Avantaje</div>
+        <ul class="pro-list">
+          <li>Cel mai curat și mai rapid de scanat vizual</li>
+          <li>Print perfect — practic fără cerneală de fundal</li>
+          <li>Număr chitanță în verde — imposibil de ratat</li>
+          <li>Cel mai ușor de implementat (pure CSS)</li>
+          <li>Funcționează excelent și în email text</li>
+        </ul>
+        <div class="label">Limitări</div>
+        <ul class="con-list">
+          <li>Poate părea „prea simplu" pentru unii utilizatori</li>
+          <li>Nu reflectă tema dark a aplicației</li>
+          <li>Lipsesc elementele vizuale de branding</li>
+        </ul>
+        <div class="label">Recomandat pentru</div>
+        <div>
+          <span class="diff-tag">🖨️ Print A4</span>
+          <span class="diff-tag">📧 Email body</span>
+          <span class="diff-tag">📄 Arhivare</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══ COMPARAȚIE ═══ -->
+  <div id="tab-compare" class="section">
+    <div class="compare">
+      <h2>Comparație completă · 4 modele</h2>
+      <p class="sub">Fiecare model are scopuri diferite. Nu există un câștigător unic — depinde de context.</p>
+
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Criteriu</th>
+            <th><span class="dot dot-dark"></span>① Dark Slate</th>
+            <th><span class="dot dot-classic"></span>② Classic A4</th>
+            <th><span class="dot dot-modern"></span>③ Modern Split</th>
+            <th><span class="dot dot-minimal"></span>④ Minimal Line</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Consistență cu tema app</td>
+            <td class="yes">✓ Perfect</td>
+            <td class="no">✗ Contrast brupt</td>
+            <td class="partial">≈ Parțial (corp alb)</td>
+            <td class="no">✗ Complet diferit</td>
+          </tr>
+          <tr>
+            <td>Calitate la imprimat</td>
+            <td class="no">✗ Slab (fundal negru)</td>
+            <td class="yes">✓ Excelent</td>
+            <td class="partial">≈ Bun (header colorat)</td>
+            <td class="yes">✓ Excelent (fără fundal)</td>
+          </tr>
+          <tr>
+            <td>Consum cerneală print</td>
+            <td class="no">✗ Ridicat</td>
+            <td class="partial">≈ Mediu</td>
+            <td class="partial">≈ Mediu (header)</td>
+            <td class="yes">✓ Minim</td>
+          </tr>
+          <tr>
+            <td>Impact vizual / premium</td>
+            <td class="partial">≈ Bun</td>
+            <td class="partial">≈ Formal</td>
+            <td class="yes">✓ Cel mai puternic</td>
+            <td class="partial">≈ Elegant simplitate</td>
+          </tr>
+          <tr>
+            <td>Complexitate implementare</td>
+            <td class="yes">✓ Simplă (deja gata)</td>
+            <td class="partial">≈ Medie</td>
+            <td class="no">✗ Cea mai complexă</td>
+            <td class="yes">✓ Cea mai simplă</td>
+          </tr>
+          <tr>
+            <td>Câmpuri contabile (CIF, TVA, U.M.)</td>
+            <td class="no">✗ Nu</td>
+            <td class="yes">✓ Da (complet)</td>
+            <td class="no">✗ Nu</td>
+            <td class="no">✗ Nu</td>
+          </tr>
+          <tr>
+            <td>Spații semnătură</td>
+            <td class="no">✗ Nu</td>
+            <td class="yes">✓ Da</td>
+            <td class="no">✗ Nu</td>
+            <td class="no">✗ Nu</td>
+          </tr>
+          <tr>
+            <td>Număr secvențial vizibil</td>
+            <td class="partial">≈ Monospace mic</td>
+            <td class="yes">✓ Proeminent</td>
+            <td class="yes">✓ În header</td>
+            <td class="yes">✓ Verde mare</td>
+          </tr>
+          <tr>
+            <td>Suma totală vizibilă imediat</td>
+            <td class="partial">≈ Jos în modal</td>
+            <td class="partial">≈ La final tabel</td>
+            <td class="yes">✓ Direct în header</td>
+            <td class="partial">≈ Jos aliniat dreapta</td>
+          </tr>
+          <tr>
+            <td>Potrivit pentru email / WhatsApp screenshot</td>
+            <td class="no">✗ Slab (dark pe dark)</td>
+            <td class="yes">✓ Bun</td>
+            <td class="yes">✓ Excelent</td>
+            <td class="yes">✓ Excelent</td>
+          </tr>
+          <tr>
+            <td>Lizibilitate mobil</td>
+            <td class="yes">✓ Optimizat</td>
+            <td class="no">✗ Slab (tabel mic)</td>
+            <td class="yes">✓ Excelent</td>
+            <td class="partial">≈ Bun</td>
+          </tr>
+          <tr>
+            <td>Status implementare</td>
+            <td class="yes">✓ Gata în aplicație</td>
+            <td class="no">De implementat</td>
+            <td class="no">De implementat</td>
+            <td class="no">De implementat</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="note" style="margin-top:32px">
+        <p>
+          <strong>Recomandare practică:</strong><br><br>
+          Strategia optimă este <strong>două modele în paralel</strong>:<br><br>
+          &nbsp;① <strong>Dark Slate</strong> — pentru vizualizare în modal în aplicație (deja implementat)<br>
+          &nbsp;③ <strong>Modern Split</strong> sau ④ <strong>Minimal</strong> — pentru export PDF și trimitere pe email/WhatsApp<br><br>
+          Astfel sportivii văd factura în tema aplicației, iar documentul tipărit/trimis arată profesional și curat.
+          Poți activa modelul PDF dorit în <code>utils/exportFinanciar.ts</code> — funcția <code>exportIncasariPDF()</code>.
+        </p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function showTab(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>

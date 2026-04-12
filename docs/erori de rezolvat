@@ -1,0 +1,106 @@
+dupa ce realizezi erorile scrise aici sa le dai check ca fiind rezolvate
+
+✅ REZOLVAT — nom_locatii RLS 42501
+in acest moment nu am unde adauga locatii, decat din examen si acolo imi apare o eroare
+index-CAwazT4H.js:612 DETALII EROARE: {
+  "code": "42501",
+  "details": null,
+  "hint": null,
+  "message": "new row violates row-level security policy for table \"nom_locatii\""
+}
+
+index-CAwazT4H.js:612 DETALII EROARE: "Nu s-a putut crea locația 'Fălticeni': new row violates row-level security policy for table \"nom_locatii\""
+Fix: supabase/migrations/20260410_fix_nom_locatii_and_plati_rls.sql — ENABLE RLS + politici SELECT/ALL
+
+
+tema - cum fac sa realizeze actvitiati offline si apoi sa sincronizeze cu baza de date cand are acces la internet?
+
+cum sa fac?
+→ PLANIFICAT: arhitectura analizata (Dexie.js + IndexedDB + Service Worker). Implementare amânata.
+
+
+✅ REZOLVAT — Import bulk sportivi examen (0 înscriși, 48 erori)
+index-CAwazT4H.js:612 DETALII EROARE: "0 înscriși, 48 erori."
+
+la import bulk sportivi in examen local
+Fix: components/GestiuneExamene/ImportExcelExamen.tsx — eliminat câmp inexistent `contributie` din payload upsert; adăugat grad_actual_id, club_id; rezultat implicit 'Neprezentat'
+
+✅ REZOLVAT — plati 403 / 42501
+index-CAwazT4H.js:596  POST https://wuhidifzsutwgdfkwhmd.supabase.co/rest/v1/plati?select=* 403 (Forbidden)
+Fix dublu:
+  1. components/ManagementInscrieri.tsx — adăugat club_id: sportiv.club_id la plataData (INSERT bulk și modificare)
+  2. supabase/migrations/20260410_fix_nom_locatii_and_plati_rls.sql — WITH CHECK adăugat la politica Staff - Full Access Plati
+
+✅ REZOLVAT — "15 sportivi nu au putut fi înscriși."
+index-CAwazT4H.js:612 DETALII EROARE: "15 sportivi nu au putut fi înscriși."
+Fix: ManagementInscrieri.tsx — fallback try/catch la RPC get_registration_details; înscrierea continuă fără taxă automată în loc să eșueze total
+
+✅ REZOLVAT — Plăți 409 FK constraint (11 Apr 2026)
+cand dau refresh la pagina in sportiv ma duce la o imagine goala
+Fix: GestiuneFacturi, UserProfile, PlatiScadente — verificare pre-delete FK; ManagementInscrieri — ordine SET NULL → DELETE
+
+✅ REZOLVAT — Grade nerecunoscute la import examen (11 Apr 2026)
+variante: cap rosu/cap R/cap roșu, c.v/centura violet, cv1ca, 1 CA → C.V.1 Cap Alb etc.
+Fix: importExcelExamenService.ts — normGradStr + buildGradAliases + ALIASURI_EXPLICITE, cascadă 7 pași
+
+✅ REZOLVAT (cod) — Dubluri facturi (11 Apr 2026)
+Fix: sesiune_id/luna/an pe plati + UNIQUE partial indexes + upsert în ManagementInscrieri, ImportSportiviExamen, PlatiScadente, TaxeAnuale, ExamenRegistrationPreview
+⚠️ MIGRATION SQL de rulat manual: supabase/migrations/20260411_normalize_plati_unique_constraints.sql
+
+✅ REZOLVAT — grad_actual_id nu se actualiza după promovare examen (11 Apr 2026)
+Sportiv promovat (rezultat = 'Admis') rămânea cu gradul vechi în Management Sportivi.
+Cauza: RapoarteExamen.tsx → handleFinalizeExam insera în istoric_grade și actualiza
+doar state-ul React local, dar nu executa niciodată UPDATE sportivi SET grad_actual_id.
+Fix: components/RapoarteExamen.tsx — adăugat UPDATE sportivi.grad_actual_id în DB
+cu guard ordine (noul grad > grad curent), în bucla for per inscriere Admis.
+SQL corecție date existente (de rulat manual în Supabase):
+  UPDATE sportivi s
+  SET grad_actual_id = ie.grad_id
+  FROM inscrieri_examene ie
+  JOIN sesiuni_examene se ON se.id = ie.sesiune_id
+  WHERE ie.sportiv_id = s.id
+    AND ie.rezultat = 'Admis'
+    AND ie.grad_id IS NOT NULL
+    AND se.data = (
+      SELECT MAX(se2.data) FROM inscrieri_examene ie2
+      JOIN sesiuni_examene se2 ON se2.id = ie2.sesiune_id
+      WHERE ie2.sportiv_id = s.id AND ie2.rezultat = 'Admis'
+    );
+
+✅ REZOLVAT — Refresh pagina sportiv → ecran gol (confirmat de utilizator 11 Apr 2026)
+cand dau refresh la pagina in sportiv ma duce la o imagine goala
+Screenshot: C:\Users\lungu\OneDrive\Pictures\Screenshots\Captură de ecran 2026-04-11 131329.png
+
+✅ REZOLVAT — Vizualizare diferita admin Lungu vs Maxim in profil sportiv (confirmat de utilizator 11 Apr 2026)
+verifica din ce motiv este diferit modul de vizualizare pentru admin lungu alin, fata de maxim marius, in pagina sportiv
+Fix: componenta UserProfile afișează conținut diferit bazat pe rol — ADMIN_CLUB și SUPER_ADMIN_FEDERATIE văd același view
+
+✅ REZOLVAT — Paginare sportivi: alegere numar pe pagina (11 Apr 2026)
+Fix: components/Sportivi.tsx — PAGE_SIZE_OPTIONS=[10,25,50,100], default=25, persistenta localStorage, optiunea "Toti" pentru admin
+
+✅ REZOLVAT — Revenire din profil sportiv la pozitia din lista (11 Apr 2026)
+Fix: components/Sportivi.tsx — handleRowClick salveaza in sessionStorage; AppRouter.tsx blocheaza scroll-to-top la tranzitia profil-sportiv→sportivi
+
+✅ REZOLVAT — permission denied for view vedere_cluburi_program_antrenamente (401/42501) (11 Apr 2026)
+Fix: supabase/migrations/20260411_superadmin_cluburi_access.sql — GRANT SELECT ON vedere_cluburi_program_antrenamente TO authenticated
+(utilizatorul a confirmat că a rulat migrația)
+
+✅ REZOLVAT — duplicate key value violates unique constraint "cluburi_cif_key" (409) (11 Apr 2026)
+Fix: components/CluburiManagement.tsx — verificare pre-INSERT pentru CIF duplicat + curățare CIF gol la null
+
+✅ REZOLVAT — Super Admin: gestiune cluburi din meniu (11 Apr 2026)
+Fix: components/menuConfig.ts — adăugat "Gestiune Cluburi" în meniu SUPER_ADMIN_FEDERATIE
+Fix: components/CluburiManagement.tsx — layout responsive desktop/mobil, buton Utilizatori per club
+
+✅ REZOLVAT — Club adăugat dispare după refresh + CIF/Oraș nu se afișau (11 Apr 2026)
+Cauza: hooks/useDataProvider.ts — query clubs selecta doar 'id, nume, theme_config', fără cif și oras
+Fix: hooks/useDataProvider.ts linia 321 — select extins la 'id, nume, cif, oras, theme_config'
+
+REZOLVAT — Modificare data nasterii sterge toate campurile
+cand vreau sa modific data nasterii si apas pe zi, pe luna sau pe an, se sterg toate campurile, as dori sa pot schimba doar campul in care intru
+
+❌ NEREZOLVAT — Footer AI assistant se suprapune cu continut
+creaza un footer pe care sa fie asistentul ai, deocamdata se suprapune cu alte informatii pe aplicatie
+
+REZOLVAT — Trimitere email+parola la creare cont sportiv
+este facut sa poata transmite informatiile de creare cont al unui sportiv? sa se poata transmite prin mesaj care este adresa de email si parola catre sportivul caruia i-a fost creat contul

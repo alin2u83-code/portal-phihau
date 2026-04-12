@@ -228,7 +228,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                             case 'notificari':
                                 return renderProtected(<Lazy.Notificari onBack={handleBackToDashboard} currentUser={currentUser!} clubs={clubs} grupe={filteredData.grupe} permissions={permissions} />, isAtLeastInstructor);
                             case 'taxe-anuale':
-                                return renderProtected(<Lazy.TaxeAnuale onBack={handleBackToDashboard} currentUser={currentUser!} sportivi={filteredData.sportivi} plati={filteredData.plati} setPlati={setPlati} />, permissions.isSuperAdmin);
+                                return renderProtected(<Lazy.TaxeAnuale onBack={handleBackToDashboard} currentUser={currentUser!} sportivi={filteredData.sportivi} plati={filteredData.plati} setPlati={setPlati} />, permissions.isSuperAdmin || permissions.isAdminClub);
                             case 'istoric-prezenta':
                                 return <Lazy.MartialAttendance onBack={handleBackToDashboard} currentUser={currentUser!} />;
                             case 'istoric-plati':

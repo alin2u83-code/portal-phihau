@@ -1197,10 +1197,23 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             const anyError = results.find(r => r.error);
             if (anyError) throw anyError.error;
 
-            setInscrieri(prev => prev.map(i => {
-                const wasUpdated = neadmisi.find(n => n.id === i.id);
-                return wasUpdated ? { ...i, rezultat: 'Admis' } : i;
-            }));
+            // Re-fetch din view pentru a garanta că câmpurile joined (sportiv_nume, grad_sustinut) rămân intacte
+            const { data: freshInscrieri } = await supabase
+                .from('vedere_detalii_examen')
+                .select('*, id:inscriere_id')
+                .eq('sesiune_id', sesiune.id);
+
+            if (freshInscrieri && freshInscrieri.length > 0) {
+                setInscrieri(prev => {
+                    const freshMap = new Map(freshInscrieri.map((row: any) => [row.id, row]));
+                    return prev.map(i => freshMap.has(i.id) ? { ...i, ...freshMap.get(i.id) } : i);
+                });
+            } else {
+                setInscrieri(prev => prev.map(i => {
+                    const wasUpdated = neadmisi.find(n => n.id === i.id);
+                    return wasUpdated ? { ...i, rezultat: 'Admis' } : i;
+                }));
+            }
             setSportivi(prev => {
                 const map = new Map(sportiviUpdates.map(u => [u.id, u.grad_actual_id]));
                 return prev.map(s => map.has(s.id) ? { ...s, grad_actual_id: map.get(s.id)! } : s);

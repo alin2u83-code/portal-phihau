@@ -85,7 +85,9 @@ function calculeazaEligibilitateGenerala(
   s: Sportiv,
   dataCompetitie: string,
   anComp: number,
-  vizeSportivi: VizaSportiv[]
+  vizeSportivi: VizaSportiv[],
+  categorii?: CategorieCompetitie[],
+  grade?: Grad[]
 ): EligibilitateGenerala {
   // Date incomplete — blocker hard
   if (!s.data_nasterii) {
@@ -93,6 +95,50 @@ function calculeazaEligibilitateGenerala(
   }
   if (!s.grad_actual_id) {
     return { status: 'date_incomplete', motiv: 'Lipsă grad', avertismente: [] };
+  }
+
+  // Verificare eligibilitate față de categoriile competiției (dacă sunt disponibile)
+  if (categorii && categorii.length > 0 && grade) {
+    const nrEligibile = categorii.filter(cat => {
+      const r = verificaEligibilitate(s, cat, grade, dataCompetitie);
+      return r.eligibil;
+    }).length;
+
+    if (nrEligibile === 0) {
+      // Determinăm motivul principal (prima categorie — ce anume nu se încadrează)
+      // Colectăm toate motivele unice din toate categoriile pentru a forma un mesaj concis
+      const toateMotivelePrimaCategorie = verificaEligibilitate(s, categorii[0], grade, dataCompetitie).motive;
+      // Verificăm ce fel de probleme există la nivel global
+      const varsta = calculeazaVarstaLaData(s.data_nasterii, dataCompetitie);
+      const gradSportiv = grade.find(g => g.id === s.grad_actual_id);
+
+      // Construim un mesaj concis cu vârsta și gradul sportivului
+      const partsMesaj: string[] = [];
+      const areProblemaVarsta = categorii.every(cat => {
+        const r = verificaEligibilitate(s, cat, grade, dataCompetitie);
+        return r.motive.some(m => m.includes('Vârst') || m.includes('vârst'));
+      });
+      const areProblemaGrad = categorii.every(cat => {
+        const r = verificaEligibilitate(s, cat, grade, dataCompetitie);
+        return r.motive.some(m => m.includes('Grad') || m.includes('grad'));
+      });
+
+      if (areProblemaVarsta) {
+        partsMesaj.push(`Vârstă: ${varsta} ani`);
+      }
+      if (areProblemaGrad && gradSportiv) {
+        partsMesaj.push(`Grad: ${gradSportiv.nume}`);
+      }
+      if (partsMesaj.length === 0 && toateMotivelePrimaCategorie.length > 0) {
+        partsMesaj.push(toateMotivelePrimaCategorie[0]);
+      }
+
+      return {
+        status: 'neeligibil',
+        motiv: partsMesaj.length > 0 ? partsMesaj.join(', ') : 'Nu se încadrează în nicio categorie',
+        avertismente: [],
+      };
+    }
   }
 
   const avertismente: string[] = [];
@@ -144,10 +190,10 @@ const BadgeEligibilitateGenerala: React.FC<{ info: EligibilitateGenerala }> = ({
   }
   return (
     <span
-      title={info.motiv || ''}
+      title={info.motiv || 'Nu se încadrează în nicio categorie a competiției'}
       className="inline-flex items-center gap-1 text-[10px] font-bold text-red-400 bg-red-900/30 border border-red-700/50 rounded-full px-2 py-0.5 shrink-0"
     >
-      Neeligibil
+      Neeligibil{info.motiv ? `: ${info.motiv}` : ''}
     </span>
   );
 };
@@ -286,6 +332,7 @@ interface Pas1Props {
   competitie: Competitie;
   sportivi: Sportiv[];
   grade: Grad[];
+  categorii: CategorieCompetitie[];
   inscrieri: InscriereCompetitie[];
   vizeSportivi: VizaSportiv[];
   selected: Set<string>;
@@ -295,7 +342,7 @@ interface Pas1Props {
 }
 
 const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
-  competitie, sportivi, grade, inscrieri, vizeSportivi,
+  competitie, sportivi, grade, categorii, inscrieri, vizeSportivi,
   selected, onToggle, onContinua, onBack,
 }) => {
   const [search, setSearch] = useState('');
@@ -322,12 +369,15 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
         ? calculeazaVarstaLaData(s.data_nasterii, competitie.data_inceput)
         : null;
       const grad = grade.find(g => g.id === s.grad_actual_id);
-      const eligibilitate = calculeazaEligibilitateGenerala(s, competitie.data_inceput, anComp, vizeSportivi);
+      const eligibilitate = calculeazaEligibilitateGenerala(
+        s, competitie.data_inceput, anComp, vizeSportivi, categorii, grade
+      );
       const isDejaInscris = dejaInscrisiSet.has(s.id);
-      const isDisabled = eligibilitate.status === 'date_incomplete';
+      // Blocăm selecția pentru date incomplete SAU pentru sportivi complet neeligibili față de categorii
+      const isDisabled = eligibilitate.status === 'date_incomplete' || eligibilitate.status === 'neeligibil';
       return { sportiv: s, varsta, gradNume: grad?.nume ?? null, eligibilitate, isDejaInscris, isDisabled };
     }),
-    [sportiviFiltered, grade, vizeSportivi, dejaInscrisiSet, competitie.data_inceput, anComp]
+    [sportiviFiltered, grade, categorii, vizeSportivi, dejaInscrisiSet, competitie.data_inceput, anComp]
   );
 
   const selectableIds = useMemo(
@@ -2182,6 +2232,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         competitie={competitie}
         sportivi={sportivi}
         grade={grade}
+        categorii={categorii}
         inscrieri={inscrieri}
         vizeSportivi={vizeSportivi}
         selected={selectedSportivi}

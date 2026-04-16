@@ -158,7 +158,17 @@
       "WebFetch(domain:www.justinmind.com)",
       "Bash(git check-ignore:*)",
       "Read(//c/Users/lungu/portal-phihau/**)",
-      "Bash(xargs cat:*)"
+      "Bash(xargs cat:*)",
+      "Bash(claude:*)",
+      "Bash(git mv:*)",
+      "Read(//d/Qwan Ki Do/circulara campionate/2024/**)",
+      "Read(//d/Qwan Ki Do/circulara campionate/2025/**)",
+      "Read(//d/Qwan Ki Do/circulara campionate/2026/**)",
+      "Bash(npx eslint:*)",
+      "Bash(npm --version)",
+      "Bash(n8n *)",
+      "Bash(n8n start *)",
+      "Bash(echo \"PID: $!\")"
     ]
   },
   "enabledPlugins": {

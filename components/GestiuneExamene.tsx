@@ -46,10 +46,68 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
   const locatii = useData().locatii;
   const plati = filteredData.plati;
   const deconturiFederatie = filteredData.deconturiFederatie;
-  const [dateFilter, setDateFilter] = useState('');
+  const [monthFrom, setMonthFrom] = useState('');
+  const [yearFrom, setYearFrom] = useState('');
+  const [monthTo, setMonthTo] = useState('');
+  const [yearTo, setYearTo] = useState('');
   const [locationFilter, setLocationFilter] = useState('');
   const [clubFilter, setClubFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+
+  const LUNI = [
+    'Ianuarie', 'Februarie', 'Martie', 'Aprilie', 'Mai', 'Iunie',
+    'Iulie', 'August', 'Septembrie', 'Octombrie', 'Noiembrie', 'Decembrie'
+  ];
+
+  const currentYear = new Date().getFullYear();
+  const ANI = Array.from({ length: 8 }, (_, i) => currentYear - 5 + i);
+
+  // Derivăm dateFrom / dateTo din selecțiile de lună + an
+  const dateFrom = useMemo(() => {
+    if (!yearFrom) return '';
+    const m = monthFrom ? monthFrom.padStart(2, '0') : '01';
+    return `${yearFrom}-${m}-01`;
+  }, [yearFrom, monthFrom]);
+
+  const dateTo = useMemo(() => {
+    if (!yearTo) return '';
+    const m = monthTo ? monthTo.padStart(2, '0') : '12';
+    // Ultima zi a lunii selectate
+    const lastDay = new Date(Number(yearTo), Number(m), 0).getDate();
+    return `${yearTo}-${m.padStart(2, '0')}-${lastDay}`;
+  }, [yearTo, monthTo]);
+
+  const hasDateFilter = !!(monthFrom || yearFrom || monthTo || yearTo);
+
+  const applyShortcut = (shortcut: 'last6months' | 'thisYear' | 'lastYear') => {
+    const today = new Date();
+    if (shortcut === 'last6months') {
+      const from = new Date(today);
+      from.setMonth(from.getMonth() - 6);
+      setMonthFrom(String(from.getMonth() + 1));
+      setYearFrom(String(from.getFullYear()));
+      setMonthTo(String(today.getMonth() + 1));
+      setYearTo(String(today.getFullYear()));
+    } else if (shortcut === 'thisYear') {
+      setMonthFrom('1');
+      setYearFrom(String(today.getFullYear()));
+      setMonthTo('12');
+      setYearTo(String(today.getFullYear()));
+    } else if (shortcut === 'lastYear') {
+      const y = today.getFullYear() - 1;
+      setMonthFrom('1');
+      setYearFrom(String(y));
+      setMonthTo('12');
+      setYearTo(String(y));
+    }
+  };
+
+  const clearDateFilter = () => {
+    setMonthFrom('');
+    setYearFrom('');
+    setMonthTo('');
+    setYearTo('');
+  };
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isBulkImportModalOpen, setIsBulkImportModalOpen] = useState(false);
   const [showImportTutorial, setShowImportTutorial] = useState(false);
@@ -87,8 +145,11 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
   const filteredSesiuni = useMemo(() => {
     let filtered = [...(sesiuni || [])];
 
-    if (dateFilter) {
-      filtered = filtered.filter(s => (s.data || s.data_examen || '').toString().slice(0, 10) === dateFilter);
+    if (dateFrom) {
+      filtered = filtered.filter(s => (s.data || s.data_examen || '').toString().slice(0, 10) >= dateFrom);
+    }
+    if (dateTo) {
+      filtered = filtered.filter(s => (s.data || s.data_examen || '').toString().slice(0, 10) <= dateTo);
     }
     if (locationFilter) {
       filtered = filtered.filter(s => s.locatie_id === locationFilter);
@@ -103,7 +164,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
     }
 
     return filtered.sort((a, b) => new Date((b.data || b.data_examen || '').toString().slice(0, 10)).getTime() - new Date((a.data || a.data_examen || '').toString().slice(0, 10)).getTime());
-  }, [sesiuni, dateFilter, locationFilter, clubFilter, statusFilter, isFederationAdmin, currentUser.club_id]);
+  }, [sesiuni, dateFrom, dateTo, locationFilter, clubFilter, statusFilter, isFederationAdmin, currentUser.club_id]);
 
   const handleBackToList = () => setSelectedSesiuneId(null);
   
@@ -194,8 +255,124 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
             </div>
         )}
       </div>
-      <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Input label="Filtrează după dată" type="date" value={dateFilter} onChange={e => setDateFilter(e.target.value)} />
+      {/* Bloc filtre perioadă */}
+      <div className="mb-4 bg-slate-800/50 border border-slate-700 rounded-xl p-4 space-y-3">
+        <div className="flex flex-col lg:flex-row lg:items-end gap-4">
+          {/* De la: Lună + An */}
+          <div className="flex flex-col sm:flex-row gap-2 flex-1">
+            <div className="flex-1">
+              <label className="block text-xs font-medium text-slate-400 mb-1">De la — Lună</label>
+              <select
+                value={monthFrom}
+                onChange={e => setMonthFrom(e.target.value)}
+                className="w-full bg-slate-700 border border-slate-600 text-slate-200 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-secondary focus:border-brand-secondary"
+              >
+                <option value="">Orice lună</option>
+                {LUNI.map((luna, idx) => (
+                  <option key={idx + 1} value={String(idx + 1)}>{luna}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex-1">
+              <label className="block text-xs font-medium text-slate-400 mb-1">De la — An</label>
+              <select
+                value={yearFrom}
+                onChange={e => setYearFrom(e.target.value)}
+                className="w-full bg-slate-700 border border-slate-600 text-slate-200 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-secondary focus:border-brand-secondary"
+              >
+                <option value="">Orice an</option>
+                {ANI.map(an => (
+                  <option key={an} value={String(an)}>{an}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Separator vizual */}
+          <div className="hidden lg:flex items-end pb-[10px]">
+            <span className="text-slate-500 text-sm font-medium px-1">—</span>
+          </div>
+
+          {/* Până la: Lună + An */}
+          <div className="flex flex-col sm:flex-row gap-2 flex-1">
+            <div className="flex-1">
+              <label className="block text-xs font-medium text-slate-400 mb-1">Până la — Lună</label>
+              <select
+                value={monthTo}
+                onChange={e => setMonthTo(e.target.value)}
+                className="w-full bg-slate-700 border border-slate-600 text-slate-200 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-secondary focus:border-brand-secondary"
+              >
+                <option value="">Orice lună</option>
+                {LUNI.map((luna, idx) => (
+                  <option key={idx + 1} value={String(idx + 1)}>{luna}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex-1">
+              <label className="block text-xs font-medium text-slate-400 mb-1">Până la — An</label>
+              <select
+                value={yearTo}
+                onChange={e => setYearTo(e.target.value)}
+                className="w-full bg-slate-700 border border-slate-600 text-slate-200 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-secondary focus:border-brand-secondary"
+              >
+                <option value="">Orice an</option>
+                {ANI.map(an => (
+                  <option key={an} value={String(an)}>{an}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Buton Resetează */}
+          {hasDateFilter && (
+            <div className="lg:pb-[2px]">
+              <button
+                type="button"
+                onClick={clearDateFilter}
+                className="w-full lg:w-auto px-4 py-2 text-xs font-medium text-slate-300 bg-slate-700 hover:bg-slate-600 border border-slate-600 rounded-lg transition-colors whitespace-nowrap"
+              >
+                Resetează filtrele de perioadă
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Rezumat interval activ */}
+        {hasDateFilter && (yearFrom || yearTo) && (
+          <div className="text-xs text-brand-secondary/80 font-medium">
+            Interval activ:{' '}
+            {yearFrom
+              ? `${monthFrom ? LUNI[Number(monthFrom) - 1] : 'Ianuarie'} ${yearFrom}`
+              : 'început'}{' '}
+            →{' '}
+            {yearTo
+              ? `${monthTo ? LUNI[Number(monthTo) - 1] : 'Decembrie'} ${yearTo}`
+              : 'prezent'}
+          </div>
+        )}
+
+        {/* Shortcut-uri perioadă */}
+        <div className="flex flex-nowrap overflow-x-auto gap-2 pb-1 scrollbar-none">
+          <span className="shrink-0 text-xs text-slate-400 self-center pr-1">Rapid:</span>
+          {[
+            { label: 'Ultimele 6 luni', value: 'last6months' as const },
+            { label: 'Anul acesta', value: 'thisYear' as const },
+            { label: 'Anul trecut', value: 'lastYear' as const },
+          ].map(sc => (
+            <button
+              key={sc.value}
+              type="button"
+              onClick={() => applyShortcut(sc.value)}
+              className="shrink-0 px-3 py-1 text-xs font-medium rounded-full border border-slate-600 text-slate-300 bg-slate-700/60 hover:bg-brand-secondary/20 hover:border-brand-secondary hover:text-brand-secondary transition-colors"
+            >
+              {sc.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Filtre suplimentare */}
+      <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <Select label="Filtrează după locație" value={locationFilter} onChange={e => setLocationFilter(e.target.value)}>
           <option value="">Toate locațiile</option>
           {filteredLocatii.map(l => <option key={l.id} value={l.id}>{l.nume}</option>)}
@@ -256,7 +433,13 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
                     </Card>
                 )
             })}
-            {(sortedSesiuni || []).length === 0 && <p className="col-span-full p-4 text-center text-slate-400">Nicio sesiune programată.</p>}
+            {(sortedSesiuni || []).length === 0 && (
+              <p className="col-span-full p-6 text-center text-slate-400">
+                {hasDateFilter || locationFilter || statusFilter || (isFederationAdmin && clubFilter)
+                  ? 'Nicio sesiune în intervalul și filtrele selectate.'
+                  : 'Nicio sesiune programată.'}
+              </p>
+            )}
           </div>
       )}
       <SesiuneForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} onSave={handleSaveSesiune} sesiuneToEdit={sesiuneToEdit} locatii={locatii} setLocatii={setLocatii} clubs={clubs} currentUser={currentUser} />

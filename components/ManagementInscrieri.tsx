@@ -843,7 +843,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 if (iError) throw iError;
                 if (!iData) throw new Error("Înscrierea nu a returnat date.");
 
-                const { data: viewData, error: viewError } = await supabase.from('vedere_detalii_examen').select('*').eq('inscriere_id', iData.id).maybeSingle();
+                const { data: viewData, error: viewError } = await supabase.from('vedere_detalii_examen').select('*, id:inscriere_id').eq('inscriere_id', iData.id).maybeSingle();
                 if (viewError) throw viewError;
                 if (!viewData) throw new Error("Nu s-au putut prelua detaliile înscrierii din vedere.");
 

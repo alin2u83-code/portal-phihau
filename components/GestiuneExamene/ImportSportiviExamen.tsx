@@ -481,6 +481,7 @@ export const ImportSportiviExamen: React.FC<ImportSportiviExamenProps> = ({
                                 descriere: `Taxa examen ${grad.nume}`,
                                 tip: 'Taxa Examen',
                                 observatii: 'Generat automat — import sesiune examen',
+                                club_id: sportiv.club_id,
                             })
                             .select('id')
                             .maybeSingle();
@@ -514,7 +515,7 @@ export const ImportSportiviExamen: React.FC<ImportSportiviExamenProps> = ({
                 // Citim din vedere pentru date complete
                 const { data: viewData } = await supabase
                     .from('vedere_detalii_examen')
-                    .select('*')
+                    .select('*, id:inscriere_id')
                     .eq('inscriere_id', iData.id)
                     .maybeSingle();
 

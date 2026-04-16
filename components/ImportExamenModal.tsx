@@ -633,6 +633,38 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
         }
     };
 
+    const handleDescarcaRaport = () => {
+        if (!previewData.length) return;
+        const capete = ['Sportiv', 'Data Nasterii', 'Grad', 'Rezultat', 'Sesiune', 'Status', 'Detalii'];
+        const linii = previewData.map(row => {
+            const grad = grades.find(g => String(g.ordine) === String(row.Grad_Nou_Ordine));
+            const statusLabel =
+                row.status === 'valid' || row.status === 'resolved' ? 'Importat'
+                : row.status === 'create' ? 'Sportiv Nou'
+                : row.status === 'conflict' ? 'Conflict nerezolvat'
+                : 'Eroare';
+            return [
+                `${row.Nume} ${row.Prenume}`,
+                row.birthdate || '',
+                grad ? grad.nume : row.Grad_Nou_Ordine,
+                row.Rezultat || '',
+                row.Sesiune_Denumire || '',
+                statusLabel,
+                row.message,
+            ];
+        });
+        const csv = [capete, ...linii]
+            .map(row => row.map(cell => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(','))
+            .join('\r\n');
+        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `raport_import_examen_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
     const handleResolution = (originalIndex: number, resolution: { action: 'create' } | { action: 'use_existing', sportivId: string }) => {
         setPreviewData(prev => prev.map(row => {
             if (row.originalIndex === originalIndex) {
@@ -942,7 +974,17 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                                 </div>
                             </div>
                         )}
-                        <div className="flex justify-end">
+                        <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
+                            <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={handleDescarcaRaport}
+                                disabled={previewData.length === 0}
+                                title="Descarcă previzualizarea curentă ca raport CSV"
+                            >
+                                <DocumentArrowDownIcon className="w-4 h-4 mr-2" />
+                                Descarcă raport previzualizare
+                            </Button>
                             <Button onClick={confirmImport} variant="primary" size="md" isLoading={isProcessing && !importProgress} disabled={isProcessing || unresolvedConflicts || importableRowsCount === 0}>
                                 Importă {importableRowsCount} Înregistrări
                             </Button>

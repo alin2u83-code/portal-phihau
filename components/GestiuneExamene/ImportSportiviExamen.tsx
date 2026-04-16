@@ -553,6 +553,50 @@ export const ImportSportiviExamen: React.FC<ImportSportiviExamenProps> = ({
         if (errors > 0) showError('Erori import', `${errors} sportivi nu au putut fi adăugați.`);
     };
 
+    // ── Descărcare raport CSV ───────────────────────────────────────────────
+
+    const handleDescarcaRaport = useCallback(() => {
+        // Sumar pas 1 + pas 2 combinat
+        const cap1 = ['Sportiv', 'Data Nasterii', 'Status Import', 'Detalii Import'];
+        const linii1 = rows.map(r => [
+            `${r.numeRaw} ${r.prenumeRaw}`,
+            r.dataRaw,
+            r.status === 'created' ? 'Creat' : r.status === 'exists' ? 'Existent' : 'Eroare',
+            r.message,
+        ]);
+
+        const cap2 = ['Sportiv', 'Grad Sustinut', 'Status Sesiune', 'Motiv'];
+        const linii2 = step2Rows.map(r => [
+            `${r.numeRaw} ${r.prenumeRaw}`,
+            grade.find(g => g.id === r.gradSustinutId)?.nume || r.gradSustinutId,
+            r.step2Status === 'adaugat' ? 'Adaugat' : r.step2Status === 'ignorat' ? 'Ignorat' : r.step2Status === 'eroare' ? 'Eroare' : 'Neprocessat',
+            r.step2Message,
+        ]);
+
+        const csvRows = [
+            ['=== PASUL 1: Import sportivi in sistem ==='],
+            cap1,
+            ...linii1,
+            [],
+            ['=== PASUL 2: Inscriere in sesiunea de examen ==='],
+            cap2,
+            ...linii2,
+        ];
+
+        const csv = csvRows.map(row =>
+            (row as string[]).map(cell => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(',')
+        ).join('\r\n');
+
+        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const dataSes = sesiune.data ? sesiune.data.replace(/-/g, '') : 'necunoscut';
+        a.download = `raport_import_sportivi_${dataSes}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }, [rows, step2Rows, grade, sesiune.data]);
+
     // ── Statistici ──────────────────────────────────────────────────────────
 
     const step1Stats = useMemo(() => ({
@@ -900,7 +944,15 @@ export const ImportSportiviExamen: React.FC<ImportSportiviExamenProps> = ({
                             </>
                         ) : (
                             <>
-                                <div />
+                                <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    onClick={handleDescarcaRaport}
+                                    title="Descarcă raportul complet (Pas 1 + Pas 2) ca fișier CSV"
+                                >
+                                    <DownloadIcon className="w-4 h-4 mr-2" />
+                                    Descarcă raport CSV
+                                </Button>
                                 <Button variant="primary" onClick={handleClose}>
                                     <CheckCircleIcon className="w-4 h-4 mr-2" />
                                     Finalizat — Închide

@@ -1,16 +1,17 @@
 /**
  * ImportExcelExamen.tsx
  *
- * Wizard 3 pași pentru import XLS/XLSX în sesiunea de examen:
+ * Wizard 4 pași pentru import XLS/XLSX în sesiunea de examen:
  *  Step 1 – Upload + preview metadata
  *  Step 2 – Pre-check sportivi (verde/galben/roșu) + rezolvare manuală
  *  Step 3 – Confirmare + import efectiv
+ *  Step 4 – Raport detaliat import (cu descărcare CSV)
  */
 
 import React, { useState, useCallback, useRef } from 'react';
 import { Sportiv, Grad, SesiuneExamen, InscriereExamen, IstoricGrade } from '../../types';
 import { Button, Modal, Input } from '../ui';
-import { CheckCircleIcon, ExclamationTriangleIcon, XCircleIcon, UploadCloudIcon, ChevronRightIcon } from '../icons';
+import { CheckCircleIcon, ExclamationTriangleIcon, XCircleIcon, UploadCloudIcon, ChevronRightIcon, DownloadIcon } from '../icons';
 import { supabase } from '../../supabaseClient';
 import { useError } from '../ErrorProvider';
 import {
@@ -22,6 +23,30 @@ import {
     StatusMatch,
 } from '../../services/importExcelExamenService';
 import { DEBUTANT_GRAD_ID } from '../../constants';
+
+// ─── Tipuri raport ────────────────────────────────────────────────────────────
+
+type RaportStatus = 'success' | 'error' | 'skip';
+
+interface RaportRand {
+    numeRaw: string;
+    gradNume: string;
+    rezultat?: string;
+    status: RaportStatus;
+    motiv: string;
+    sportivNou?: boolean;
+}
+
+interface RaportImport {
+    totalProcesati: number;
+    salvati: number;
+    erori: number;
+    sarite: number;
+    sportiviNoi: number;
+    randuri: RaportRand[];
+    sesiuneId: string;
+    dataImport: string;
+}
 
 // ─── Props ───────────────────────────────────────────────────────────────────
 
@@ -58,7 +83,7 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
     const { showError, showSuccess } = useError();
     const fileRef = useRef<HTMLInputElement>(null);
 
-    const [step, setStep] = useState<1 | 2 | 3>(1);
+    const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
     const [isDragging, setIsDragging] = useState(false);
     const [fileName, setFileName] = useState('');
     const [metadata, setMetadata] = useState<MetadataExcel | null>(null);
@@ -67,6 +92,8 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
     const [isLoading, setIsLoading] = useState(false);
     const [isImporting, setIsImporting] = useState(false);
     const [filtruActiv, setFiltruActiv] = useState<'toti' | 'fuzzy' | 'nou'>('toti');
+    const [raport, setRaport] = useState<RaportImport | null>(null);
+    const [filtruRaport, setFiltruRaport] = useState<'toti' | 'success' | 'error' | 'skip'>('toti');
 
     // Stare pentru rezolvare manuală (fuzzy + nou)
     const [overrides, setOverrides] = useState<Record<number, {
@@ -149,22 +176,42 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
         const newSportivi: Sportiv[] = [];
         const newInscrieri: InscriereExamen[] = [];
         const newIstoricGrade: IstoricGrade[] = [];
-        let importErrors = 0;
-        let primaEroare = '';
+        const raportRanduri: RaportRand[] = [];
 
         for (let i = 0; i < randuri.length; i++) {
             const rand = randuri[i];
             const ov = overrides[i] || {};
-            if (ov.skip) continue;
+
+            // ── Skip explicit ──
+            if (ov.skip) {
+                raportRanduri.push({
+                    numeRaw: rand.numeRaw,
+                    gradNume: rand.gradNume,
+                    rezultat: rand.rezultat,
+                    status: 'skip',
+                    motiv: 'Exclus manual de utilizator',
+                });
+                continue;
+            }
 
             try {
                 let sportivId = ov.sportivId || rand.sportivId;
+                let esteNou = false;
 
                 // ── Creare sportiv nou ──
                 if (!sportivId && rand.status === 'nou') {
                     const numeNou = ov.numeNou || rand.nume;
                     const prenumeNou = ov.prenumeNou || rand.prenume;
-                    if (!numeNou || !prenumeNou) { importErrors++; continue; }
+                    if (!numeNou || !prenumeNou) {
+                        raportRanduri.push({
+                            numeRaw: rand.numeRaw,
+                            gradNume: rand.gradNume,
+                            rezultat: rand.rezultat,
+                            status: 'error',
+                            motiv: 'Lipsă Nume sau Prenume pentru sportiv nou',
+                        });
+                        continue;
+                    }
 
                     const { data: newS, error: errS } = await supabase
                         .from('sportivi')
@@ -186,31 +233,49 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
                         .select()
                         .maybeSingle();
 
-                    if (errS || !newS) { importErrors++; continue; }
+                    if (errS || !newS) {
+                        raportRanduri.push({
+                            numeRaw: rand.numeRaw,
+                            gradNume: rand.gradNume,
+                            rezultat: rand.rezultat,
+                            status: 'error',
+                            motiv: errS ? `[${errS.code}] ${errS.message}` : 'Creare sportiv nou eșuată — fără date returnate',
+                        });
+                        continue;
+                    }
                     sportivId = newS.id;
                     newSportivi.push(newS as Sportiv);
+                    esteNou = true;
                 }
 
                 if (!sportivId) {
-                    if (!primaEroare) primaEroare = `${rand.numeRaw}: sportivId lipsă (status: ${rand.status})`;
-                    importErrors++; continue;
+                    raportRanduri.push({
+                        numeRaw: rand.numeRaw,
+                        gradNume: rand.gradNume,
+                        rezultat: rand.rezultat,
+                        status: 'error',
+                        motiv: `ID sportiv nedeterminat (status match: ${rand.status})`,
+                    });
+                    continue;
                 }
 
                 const gradId = rand.gradId;
                 if (!gradId) {
-                    if (!primaEroare) primaEroare = `${rand.numeRaw}: gradId lipsă (grad: ${rand.gradNume})`;
-                    importErrors++; continue;
+                    raportRanduri.push({
+                        numeRaw: rand.numeRaw,
+                        gradNume: rand.gradNume,
+                        rezultat: rand.rezultat,
+                        status: 'error',
+                        motiv: `Gradul "${rand.gradNume}" nu a fost identificat în baza de date`,
+                    });
+                    continue;
                 }
 
                 // ── Înregistrare la examen ──
-                const varsta = sesiune.data && (sportivi.find(s => s.id === sportivId) || newSportivi.find(s => s.id === sportivId))?.data_nasterii
-                    ? Math.floor((new Date(sesiune.data).getTime() - new Date(
-                        (sportivi.find(s => s.id === sportivId) || newSportivi.find(s => s.id === sportivId))!.data_nasterii
-                      ).getTime()) / (1000 * 60 * 60 * 24 * 365.25))
-                    : 0;
-
-                // Găsim grad_actual_id al sportivului (înainte de examen)
                 const sportivRef = sportivi.find(s => s.id === sportivId) || newSportivi.find(s => s.id === sportivId);
+                const varsta = sesiune.data && sportivRef?.data_nasterii
+                    ? Math.floor((new Date(sesiune.data).getTime() - new Date(sportivRef.data_nasterii).getTime()) / (1000 * 60 * 60 * 24 * 365.25))
+                    : 0;
 
                 const inscrierePayload: Record<string, unknown> = {
                     sportiv_id: sportivId,
@@ -232,19 +297,32 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
 
                 if (errI) {
                     console.error(`[ImportExcel] Eroare înscriere ${rand.numeRaw}:`, errI);
-                    if (!primaEroare) primaEroare = `${rand.numeRaw}: [${errI.code}] ${errI.message}`;
-                    importErrors++;
+                    raportRanduri.push({
+                        numeRaw: rand.numeRaw,
+                        gradNume: rand.gradNume,
+                        rezultat: rand.rezultat,
+                        status: 'error',
+                        motiv: `Eroare înregistrare examen: [${errI.code}] ${errI.message}`,
+                        sportivNou: esteNou,
+                    });
                     continue;
                 }
                 if (!inscr) {
-                    if (!primaEroare) primaEroare = `${rand.numeRaw}: upsert fără date returnate (sportiv_id=${sportivId}, sesiune_id=${sesiune.id}, grad_id=${gradId})`;
-                    importErrors++; continue;
+                    raportRanduri.push({
+                        numeRaw: rand.numeRaw,
+                        gradNume: rand.gradNume,
+                        rezultat: rand.rezultat,
+                        status: 'error',
+                        motiv: `Înregistrare fără date returnate (sportiv_id=${sportivId}, grad_id=${gradId})`,
+                        sportivNou: esteNou,
+                    });
+                    continue;
                 }
                 newInscrieri.push(inscr as InscriereExamen);
 
                 // ── Dacă Admis → înregistrează în istoric_grade ──
                 if (rand.rezultat === 'Admis') {
-                    const { data: ig, error: errIG } = await supabase
+                    const { data: ig } = await supabase
                         .from('istoric_grade')
                         .upsert({
                             sportiv_id: sportivId,
@@ -258,8 +336,23 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
                     if (ig) newIstoricGrade.push(ig as IstoricGrade);
                 }
 
-            } catch (err) {
-                importErrors++;
+                raportRanduri.push({
+                    numeRaw: rand.numeRaw,
+                    gradNume: rand.gradNume,
+                    rezultat: rand.rezultat,
+                    status: 'success',
+                    motiv: esteNou ? 'Sportiv creat și înscris' : 'Înscris cu succes',
+                    sportivNou: esteNou,
+                });
+
+            } catch (err: any) {
+                raportRanduri.push({
+                    numeRaw: rand.numeRaw,
+                    gradNume: rand.gradNume,
+                    rezultat: rand.rezultat,
+                    status: 'error',
+                    motiv: err?.message || 'Eroare necunoscută',
+                });
             }
         }
 
@@ -271,18 +364,50 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
         });
         if (newIstoricGrade.length) setIstoricGrade(prev => [...prev, ...newIstoricGrade]);
 
+        // Construire raport
+        const raportFinal: RaportImport = {
+            totalProcesati: raportRanduri.length,
+            salvati: raportRanduri.filter(r => r.status === 'success').length,
+            erori: raportRanduri.filter(r => r.status === 'error').length,
+            sarite: raportRanduri.filter(r => r.status === 'skip').length,
+            sportiviNoi: newSportivi.length,
+            randuri: raportRanduri,
+            sesiuneId: sesiune.id,
+            dataImport: new Date().toISOString(),
+        };
+        setRaport(raportFinal);
+        setFiltruRaport('toti');
         setIsImporting(false);
+        setStep(4);
+    };
 
-        if (importErrors === 0) {
-            showSuccess('Import reușit', `${newInscrieri.length} sportivi înscriși${newSportivi.length ? `, ${newSportivi.length} creați` : ''}.`);
-            handleClose();
-        } else if (newInscrieri.length === 0) {
-            showError('Import eșuat', `Niciun sportiv nu a putut fi înscris. ${importErrors} erori.${primaEroare ? `\n\nPrima eroare: ${primaEroare}` : ''}`);
-            // Nu închidem modalul — utilizatorul poate vedea ce s-a întâmplat
-        } else {
-            showError('Import parțial', `${newInscrieri.length} înscriși cu succes, ${importErrors} erori.`);
-            handleClose();
-        }
+    // ─── Descărcare raport CSV ──────────────────────────────────────────────
+
+    const handleDescarcaRaport = () => {
+        if (!raport) return;
+        const rows = [
+            ['Sportiv', 'Grad', 'Rezultat Examen', 'Status Import', 'Motiv', 'Sportiv Nou'],
+            ...raport.randuri.map(r => [
+                r.numeRaw,
+                r.gradNume,
+                r.rezultat || 'Neprezentat',
+                r.status === 'success' ? 'Salvat' : r.status === 'error' ? 'Eroare' : 'Ignorat',
+                r.motiv,
+                r.sportivNou ? 'DA' : 'NU',
+            ]),
+        ];
+        const csv = rows.map(row =>
+            row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
+        ).join('\r\n');
+
+        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const dataSesiune = sesiune.data ? sesiune.data.replace(/-/g, '') : 'necunoscut';
+        a.download = `raport_import_examen_${dataSesiune}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
     };
 
     // ─── Reset la închidere ────────────────────────────────────────────────
@@ -294,6 +419,8 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
         setRanduri([]);
         setEroriParsare([]);
         setOverrides({});
+        setRaport(null);
+        setFiltruRaport('toti');
         onClose();
     };
 
@@ -302,19 +429,21 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
     return (
         <Modal isOpen={isOpen} onClose={handleClose} title="Import XLS — Sesiune Examen">
             {/* Progress bar */}
-            <div className="flex items-center gap-2 mb-6">
-                {[1, 2, 3].map(s => (
+            <div className="flex items-center gap-1 mb-6 overflow-x-auto pb-1">
+                {([1, 2, 3, 4] as const).map(s => (
                     <React.Fragment key={s}>
-                        <div className={`flex items-center gap-1.5 text-sm font-medium transition-colors ${step >= s ? 'text-brand-primary' : 'text-slate-500'}`}>
-                            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-colors
+                        <div className={`flex items-center gap-1 text-xs sm:text-sm font-medium transition-colors flex-shrink-0 ${step >= s ? 'text-brand-primary' : 'text-slate-500'}`}>
+                            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-colors flex-shrink-0
                                 ${step > s ? 'bg-brand-primary border-brand-primary text-white'
                                 : step === s ? 'border-brand-primary text-brand-primary'
                                 : 'border-slate-600 text-slate-500'}`}>
                                 {step > s ? '✓' : s}
                             </span>
-                            {s === 1 ? 'Upload' : s === 2 ? 'Verificare' : 'Confirmare'}
+                            <span className="hidden sm:inline">
+                                {s === 1 ? 'Upload' : s === 2 ? 'Verificare' : s === 3 ? 'Confirmare' : 'Raport'}
+                            </span>
                         </div>
-                        {s < 3 && <div className={`flex-1 h-0.5 ${step > s ? 'bg-brand-primary' : 'bg-slate-700'}`} />}
+                        {s < 4 && <div className={`flex-1 h-0.5 min-w-4 ${step > s ? 'bg-brand-primary' : 'bg-slate-700'}`} />}
                     </React.Fragment>
                 ))}
             </div>
@@ -569,6 +698,153 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
                         <Button variant="secondary" onClick={() => setStep(2)}>← Înapoi</Button>
                         <Button variant="success" onClick={handleImport} isLoading={isImporting}>
                             Importă {stats.total - stats.skip} sportivi
+                        </Button>
+                    </div>
+                </div>
+            )}
+            {/* ── STEP 4: Raport Import ── */}
+            {step === 4 && raport && (
+                <div className="space-y-4">
+
+                    {/* Sumar */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div className="bg-emerald-900/20 border border-emerald-700/40 rounded-lg p-3 text-center">
+                            <p className="text-2xl font-bold text-emerald-400">{raport.salvati}</p>
+                            <p className="text-xs text-emerald-300 mt-1">Salvați cu succes</p>
+                        </div>
+                        <div className="bg-rose-900/20 border border-rose-700/40 rounded-lg p-3 text-center">
+                            <p className="text-2xl font-bold text-rose-400">{raport.erori}</p>
+                            <p className="text-xs text-rose-300 mt-1">Erori</p>
+                        </div>
+                        <div className="bg-slate-700/40 border border-slate-600/40 rounded-lg p-3 text-center">
+                            <p className="text-2xl font-bold text-slate-300">{raport.sarite}</p>
+                            <p className="text-xs text-slate-400 mt-1">Ignorate</p>
+                        </div>
+                        <div className="bg-blue-900/20 border border-blue-700/40 rounded-lg p-3 text-center">
+                            <p className="text-2xl font-bold text-blue-400">{raport.sportiviNoi}</p>
+                            <p className="text-xs text-blue-300 mt-1">Sportivi noi creați</p>
+                        </div>
+                    </div>
+
+                    {/* Banner status general */}
+                    {raport.erori === 0 ? (
+                        <div className="flex items-center gap-2 p-3 bg-emerald-900/20 border border-emerald-700/40 rounded-lg text-emerald-300 text-sm">
+                            <CheckCircleIcon className="w-5 h-5 flex-shrink-0" />
+                            Import finalizat fără erori. {raport.salvati} sportivi înscriși în sesiune.
+                        </div>
+                    ) : raport.salvati === 0 ? (
+                        <div className="flex items-center gap-2 p-3 bg-rose-900/20 border border-rose-700/40 rounded-lg text-rose-300 text-sm">
+                            <XCircleIcon className="w-5 h-5 flex-shrink-0" />
+                            Import eșuat complet. Niciun sportiv nu a putut fi salvat. Verificați detaliile de mai jos.
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-2 p-3 bg-amber-900/20 border border-amber-700/40 rounded-lg text-amber-300 text-sm">
+                            <ExclamationTriangleIcon className="w-5 h-5 flex-shrink-0" />
+                            Import parțial: {raport.salvati} salvați, {raport.erori} erori.
+                        </div>
+                    )}
+
+                    {/* Filtre tabel */}
+                    <div className="flex gap-2 flex-wrap">
+                        {([
+                            { key: 'toti',    label: `Toți (${raport.totalProcesati})`,             cls: 'bg-slate-700 text-slate-200' },
+                            { key: 'success', label: `Salvați (${raport.salvati})`,                  cls: 'bg-emerald-900/40 text-emerald-300 border border-emerald-700/50' },
+                            { key: 'error',   label: `Erori (${raport.erori})`,                      cls: 'bg-rose-900/40 text-rose-300 border border-rose-700/50' },
+                            { key: 'skip',    label: `Ignorate (${raport.sarite})`,                  cls: 'bg-slate-700/50 text-slate-400 border border-slate-600/50' },
+                        ] as const).map(({ key, label, cls }) => (
+                            <button
+                                key={key}
+                                onClick={() => setFiltruRaport(key)}
+                                className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${cls} ${filtruRaport === key ? 'ring-2 ring-white/30' : 'opacity-70 hover:opacity-100'}`}
+                            >
+                                {label}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Tabel detalii */}
+                    <div className="max-h-72 overflow-y-auto rounded-lg border border-slate-700">
+                        <table className="text-xs w-full border-collapse">
+                            <thead className="sticky top-0 bg-slate-800 z-10">
+                                <tr className="border-b border-slate-700">
+                                    <th className="text-left py-2 px-3 text-slate-400 min-w-32">Sportiv</th>
+                                    <th className="text-left py-2 px-3 text-slate-400 hidden sm:table-cell">Grad</th>
+                                    <th className="text-left py-2 px-3 text-slate-400 hidden sm:table-cell">Rezultat</th>
+                                    <th className="text-left py-2 px-3 text-slate-400">Status</th>
+                                    <th className="text-left py-2 px-3 text-slate-400">Motiv</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {raport.randuri
+                                    .filter(r => filtruRaport === 'toti' || r.status === filtruRaport)
+                                    .map((r, i) => (
+                                        <tr
+                                            key={i}
+                                            className={`border-b border-slate-800 last:border-0 ${
+                                                r.status === 'success' ? 'bg-emerald-900/10'
+                                                : r.status === 'error' ? 'bg-rose-900/10'
+                                                : 'bg-slate-800/10'
+                                            }`}
+                                        >
+                                            <td className="py-2 px-3 text-white font-medium">
+                                                {r.numeRaw}
+                                                {r.sportivNou && (
+                                                    <span className="ml-1 text-blue-400 text-xs font-bold">NOU</span>
+                                                )}
+                                            </td>
+                                            <td className="py-2 px-3 text-slate-300 hidden sm:table-cell">{r.gradNume || '—'}</td>
+                                            <td className="py-2 px-3 hidden sm:table-cell">
+                                                {r.rezultat ? (
+                                                    <span className={`font-bold ${r.rezultat === 'Admis' ? 'text-emerald-400' : r.rezultat === 'Respins' ? 'text-rose-400' : 'text-slate-400'}`}>
+                                                        {r.rezultat}
+                                                    </span>
+                                                ) : <span className="text-slate-500">—</span>}
+                                            </td>
+                                            <td className="py-2 px-3">
+                                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-xs font-bold ${
+                                                    r.status === 'success' ? 'bg-emerald-900/40 border-emerald-700/60 text-emerald-300'
+                                                    : r.status === 'error' ? 'bg-rose-900/40 border-rose-700/60 text-rose-300'
+                                                    : 'bg-slate-700/60 border-slate-600 text-slate-300'
+                                                }`}>
+                                                    {r.status === 'success' ? (
+                                                        <><CheckCircleIcon className="w-3 h-3" /> Salvat</>
+                                                    ) : r.status === 'error' ? (
+                                                        <><XCircleIcon className="w-3 h-3" /> Eroare</>
+                                                    ) : (
+                                                        <>Ignorat</>
+                                                    )}
+                                                </span>
+                                            </td>
+                                            <td className="py-2 px-3 text-slate-400 text-xs max-w-xs truncate" title={r.motiv}>
+                                                {r.motiv}
+                                            </td>
+                                        </tr>
+                                    ))
+                                }
+                                {raport.randuri.filter(r => filtruRaport === 'toti' || r.status === filtruRaport).length === 0 && (
+                                    <tr>
+                                        <td colSpan={5} className="py-6 text-center text-slate-500">
+                                            Nicio înregistrare pentru filtrul selectat.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {/* Acțiuni */}
+                    <div className="flex flex-col sm:flex-row justify-between items-center gap-3 pt-2">
+                        <Button
+                            variant="secondary"
+                            onClick={handleDescarcaRaport}
+                            size="sm"
+                        >
+                            <DownloadIcon className="w-4 h-4 mr-2" />
+                            Descarcă raport CSV
+                        </Button>
+                        <Button variant="primary" onClick={handleClose}>
+                            <CheckCircleIcon className="w-4 h-4 mr-2" />
+                            Finalizat — Închide
                         </Button>
                     </div>
                 </div>

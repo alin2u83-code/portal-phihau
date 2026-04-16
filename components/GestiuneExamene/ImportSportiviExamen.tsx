@@ -457,35 +457,35 @@ export const ImportSportiviExamen: React.FC<ImportSportiviExamenProps> = ({
 
                 let plataId: string | null = null;
                 if (taxaSuma > 0) {
-                    // upsert cu sesiune_id — la import, duplicate silențioase (ignoreDuplicates: true)
-                    const { data: pData, error: pError } = await supabase
+                    // Verificăm mai întâi dacă există deja o plată pentru sportiv+sesiune
+                    // (import poate fi rulat de mai multe ori — nu dorim duplicate)
+                    const { data: existing } = await supabase
                         .from('plati')
-                        .upsert({
-                            sportiv_id: sportiv.id,
-                            familie_id: sportiv.familie_id,
-                            sesiune_id: sesiune.id,
-                            suma: taxaSuma,
-                            data: sesiune.data,
-                            status: 'Neachitat',
-                            descriere: `Taxa examen ${grad.nume}`,
-                            tip: 'Taxa Examen',
-                            observatii: 'Generat automat — import sesiune examen',
-                        }, { onConflict: 'sportiv_id,sesiune_id', ignoreDuplicates: true })
-                        .select()
+                        .select('id')
+                        .eq('sportiv_id', sportiv.id)
+                        .eq('sesiune_id', sesiune.id)
+                        .eq('tip', 'Taxa Examen')
                         .maybeSingle();
-                    if (pError) throw new Error(`Factură: ${pError.message}`);
-                    // Dacă plata exista deja (ignoreDuplicates), caută ID-ul existent
-                    if (pData?.id) {
-                        plataId = pData.id;
+                    if (existing?.id) {
+                        plataId = existing.id;
                     } else {
-                        const { data: existing } = await supabase
+                        const { data: pData, error: pError } = await supabase
                             .from('plati')
+                            .insert({
+                                sportiv_id: sportiv.id,
+                                familie_id: sportiv.familie_id,
+                                sesiune_id: sesiune.id,
+                                suma: taxaSuma,
+                                data: sesiune.data,
+                                status: 'Neachitat',
+                                descriere: `Taxa examen ${grad.nume}`,
+                                tip: 'Taxa Examen',
+                                observatii: 'Generat automat — import sesiune examen',
+                            })
                             .select('id')
-                            .eq('sportiv_id', sportiv.id)
-                            .eq('sesiune_id', sesiune.id)
-                            .eq('tip', 'Taxa Examen')
                             .maybeSingle();
-                        plataId = existing?.id || null;
+                        if (pError) throw new Error(`Factură: ${pError.message}`);
+                        plataId = pData?.id || null;
                     }
                 }
 

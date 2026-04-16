@@ -818,7 +818,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                     };
                     const { data: pData, error: pError } = await supabase
                         .from('plati')
-                        .upsert(plataData, { onConflict: 'sportiv_id,sesiune_id', ignoreDuplicates: false })
+                        .insert(plataData)
                         .select()
                         .maybeSingle();
                     if (pError) throw new Error(`Factura pt ${sportiv.nume} nu a putut fi generată: ${pError.message}`);
@@ -946,7 +946,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                         };
                         const { data: pData, error: pError } = await supabase
                             .from('plati')
-                            .upsert(plataData, { onConflict: 'sportiv_id,sesiune_id', ignoreDuplicates: false })
+                            .insert(plataData)
                             .select()
                             .maybeSingle();
                         if (pError) throw pError;

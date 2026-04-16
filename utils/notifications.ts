@@ -13,11 +13,18 @@ export const sendNotification = async (payload: NotificationPayload) => {
     if (!supabase) return { success: false, error: 'Supabase not initialized' };
 
     try {
+        let sentBy = payload.sent_by;
+        if (!sentBy) {
+            const { data: { user } } = await supabase.auth.getUser();
+            sentBy = user?.id;
+        }
+        if (!sentBy) return { success: false, error: 'User not authenticated' };
+
         const { error } = await supabase.from('notificari').insert({
             recipient_user_id: payload.recipient_user_id,
             title: payload.title,
             body: payload.body,
-            sent_by: payload.sent_by || null,
+            sent_by: sentBy,
             sender_sportiv_id: payload.sender_sportiv_id || null
         });
 
@@ -38,11 +45,15 @@ export const sendBulkNotifications = async (payloads: NotificationPayload[]) => 
     if (!supabase) return { success: false, error: 'Supabase not initialized' };
 
     try {
+        const { data: { user } } = await supabase.auth.getUser();
+        const currentUserId = user?.id;
+        if (!currentUserId) return { success: false, error: 'User not authenticated' };
+
         const { error } = await supabase.from('notificari').insert(payloads.map(p => ({
             recipient_user_id: p.recipient_user_id,
             title: p.title,
             body: p.body,
-            sent_by: p.sent_by || null,
+            sent_by: p.sent_by || currentUserId,
             sender_sportiv_id: p.sender_sportiv_id || null
         })));
 

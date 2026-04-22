@@ -731,7 +731,11 @@ const RandCategorie: React.FC<RandCategorieProps> = ({
               onChange={e => onUpdatePick({ quyen_ales: e.target.value || undefined })}
               className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-primary"
             >
-              <option value="">Alege inlantuire...</option>
+              <option value="">
+                {cat.proba?.tip_proba === 'thao_lo_individual'
+                  ? 'Alege forma / arma...'
+                  : 'Alege inlantuire...'}
+              </option>
               {programePermise.map(prog => (
                 <option key={prog} value={prog}>{prog}</option>
               ))}
@@ -741,7 +745,11 @@ const RandCategorie: React.FC<RandCategorieProps> = ({
               type="text"
               value={pickData.quyen_ales ?? ''}
               onChange={e => onUpdatePick({ quyen_ales: e.target.value || undefined })}
-              placeholder="Introdu inlantuirea aleasa..."
+              placeholder={
+                cat.proba?.tip_proba === 'thao_lo_individual'
+                  ? 'Introdu forma / arma aleasa...'
+                  : 'Introdu inlantuirea aleasa...'
+              }
               className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-brand-primary"
             />
           )}
@@ -1857,6 +1865,17 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
     setSuccessMsg(null);
 
     try {
+      // Validare quyen_ales obligatoriu pentru categorii thao_quyen/thao_lo individual
+      const lipsaQuyen = randuriIndividuale.filter(rand =>
+        esteThaoQuyenIndividual(rand.categorie) && !rand.quyen_ales
+      );
+      if (lipsaQuyen.length > 0) {
+        const names = lipsaQuyen
+          .map(r => `${r.sportiv.prenume} ${r.sportiv.nume} (${r.categorie.denumire ?? 'Thao Quyen'})`)
+          .join(', ');
+        throw new Error(`Inlantuire/forma necompletata pentru: ${names}`);
+      }
+
       // 1. Insert înscrieri individuale
       for (const rand of randuriIndividuale) {
         const { error } = await supabase.from('inscrieri_competitie').insert({

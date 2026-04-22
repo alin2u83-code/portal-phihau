@@ -4,9 +4,9 @@ import { Card, Select, Button } from './ui';
 import { ArrowLeftIcon, DocumentArrowDownIcon, ExclamationTriangleIcon } from './icons';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useData } from '../contexts/DataContext';
+import { usePermissions } from '../hooks/usePermissions';
 import { supabase } from '../supabaseClient';
 
-// Functie helper pentru export CSV, inclusa local pentru a evita crearea de fisiere noi
 const exportToCsv = (filename: string, rows: object[]) => {
     if (!rows || rows.length === 0) {
         alert("Nu există date de exportat.");
@@ -15,16 +15,14 @@ const exportToCsv = (filename: string, rows: object[]) => {
     const separator = ',';
     const keys = Object.keys(rows[0]);
     const csvContent =
-        '\uFEFF' + // BOM for UTF-8
+        '﻿' +
         keys.join(separator) +
         '\n' +
         rows.map(row => {
             return keys.map(k => {
                 let cell = (row as any)[k] === null || (row as any)[k] === undefined ? '' : String((row as any)[k]);
                 cell = cell.replace(/"/g, '""');
-                if (cell.search(/("|,|\n)/g) >= 0) {
-                    cell = `"${cell}"`;
-                }
+                if (cell.search(/("|,|\n)/g) >= 0) cell = `"${cell}"`;
                 return cell;
             }).join(separator);
         }).join('\n');
@@ -43,7 +41,6 @@ const exportToCsv = (filename: string, rows: object[]) => {
     }
 };
 
-
 interface ReportRow {
     sportivId: string;
     nume: string;
@@ -57,20 +54,30 @@ interface RaportLunarPrezentaProps {
 }
 
 export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack }) => {
-    const { filteredData, grade } = useData();
+    const { filteredData, grade, activeRoleContext } = useData();
+    const permissions = usePermissions(activeRoleContext);
     const sportivi = filteredData.sportivi;
     const grupe = filteredData.grupe;
     const antrenamente = filteredData.antrenamente;
 
-    // Map: sportiv_id -> Set<grupa_id> (grupele secundare ale fiecărui sportiv)
+    const clubId = permissions.isFederationLevel ? null : (activeRoleContext?.club_id ?? null);
+
     const [grupeSecundareMap, setGrupeSecundareMap] = useState<Map<string, Set<string>>>(new Map());
 
     useEffect(() => {
         const fetchGrupeSecundare = async () => {
-            const { data, error } = await supabase
+            let query = supabase
                 .from('sportivi_grupe_secundare')
                 .select('sportiv_id, grupa_id')
                 .eq('este_activ', true);
+
+            // Filtrare pe club: includem doar grupele secundare ale clubului activ
+            const grupeIds = grupe.map(g => g.id);
+            if (!permissions.isFederationLevel && grupeIds.length > 0) {
+                query = query.in('grupa_id', grupeIds);
+            }
+
+            const { data, error } = await query;
             if (error) {
                 console.error('Eroare fetch grupe secundare (raport lunar):', error.message);
                 return;
@@ -83,7 +90,7 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
             setGrupeSecundareMap(map);
         };
         fetchGrupeSecundare();
-    }, []);
+    }, [grupe, permissions.isFederationLevel]);
 
     const today = new Date();
     const [filters, setFilters] = useLocalStorage('phi-hau-raport-lunar-filters', {
@@ -100,7 +107,6 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
     const reportData = useMemo((): ReportRow[] => {
         const { month, year, grupaId } = filters;
 
-        // Dacă e filtru pe grupă: includem și sportivii secundari ai acelei grupe
         let sportiviFiltrati: Sportiv[];
         if (grupaId) {
             const idGrupa = String(grupaId);
@@ -122,12 +128,10 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
         });
 
         return sportiviFiltrati.map(sportiv => {
-            // Toate grupele sportivului (primara + secundare)
             const toateGrupeleSportiv = new Set<string>();
             if (sportiv.grupa_id) toateGrupeleSportiv.add(sportiv.grupa_id);
             grupeSecundareMap.get(sportiv.id)?.forEach(gid => toateGrupeleSportiv.add(gid));
 
-            // Dacă filtram după grupă, contorizăm doar antrenamentele acelei grupe
             const grupeDeContorizat = grupaId
                 ? new Set([String(grupaId)])
                 : toateGrupeleSportiv;
@@ -152,7 +156,7 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
                 attendedTrainings,
             };
         }).filter((row): row is ReportRow => row !== null && (grupaId ? true : row.totalTrainings > 0))
-          .sort((a,b) => a.nume.localeCompare(b.nume));
+          .sort((a, b) => a.nume.localeCompare(b.nume));
 
     }, [filters, sportivi, grupe, antrenamente, grade, grupeSecundareMap]);
 
@@ -168,17 +172,24 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
         exportToCsv(`raport_prezenta_${monthName}_${filters.year}.csv`, dataToExport);
     };
 
-    const months = Array.from({ length: 12 }, (_, i) => ({ value: i, label: new Date(0, i).toLocaleString('ro-RO', { month: 'long' }) }));
+    const months = Array.from({ length: 12 }, (_, i) => ({
+        value: i,
+        label: new Date(0, i).toLocaleString('ro-RO', { month: 'long' })
+    }));
     const years = [2024, 2025, 2026];
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6">
+            {/* Header */}
             <div className="flex items-center gap-3">
-                <Button variant="secondary" onClick={onBack}><ArrowLeftIcon className="w-5 h-5 mr-2" />Înapoi</Button>
-                <h1 className="text-3xl font-bold text-white">Raport Lunar de Prezență</h1>
+                <Button variant="secondary" onClick={onBack} className="shrink-0">
+                    <ArrowLeftIcon className="w-5 h-5 mr-2" />Înapoi
+                </Button>
+                <h1 className="text-xl md:text-3xl font-bold text-white truncate">Raport Lunar Prezență</h1>
             </div>
-            
-            <Card className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+            {/* Filtre */}
+            <Card className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
                 <Select label="An" name="year" value={String(filters.year)} onChange={handleFilterChange}>
                     {years.map(y => <option key={y} value={y}>{y}</option>)}
                 </Select>
@@ -190,47 +201,126 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
                     {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
                 </Select>
             </Card>
-            
+
+            {/* Rezultate */}
             <Card className="p-0 overflow-hidden">
-                <div className="p-4 bg-slate-700/50 flex justify-between items-center">
-                    <h3 className="font-bold text-white">Rezultate Raport</h3>
-                    <Button onClick={handleExport} variant="primary" size="sm">
-                        <DocumentArrowDownIcon className="w-4 h-4 mr-2" /> Export CSV
+                <div className="p-3 md:p-4 bg-slate-700/50 flex justify-between items-center gap-2">
+                    <h3 className="font-bold text-white text-sm md:text-base">
+                        Rezultate
+                        <span className="ml-2 text-slate-400 font-normal text-xs md:text-sm">
+                            ({reportData.length} sportivi)
+                        </span>
+                    </h3>
+                    <Button onClick={handleExport} variant="primary" size="sm" className="shrink-0">
+                        <DocumentArrowDownIcon className="w-4 h-4 md:mr-2" />
+                        <span className="hidden md:inline">Export CSV</span>
                     </Button>
                 </div>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm">
-                        <thead className="bg-slate-800 text-slate-400">
-                            <tr>
-                                <th className="p-3 font-semibold">Nume Sportiv</th>
-                                <th className="p-3 font-semibold">Grad</th>
-                                <th className="p-3 font-semibold text-center">Antrenamente Planificate</th>
-                                <th className="p-3 font-semibold text-center">Prezențe Efective</th>
-                                <th className="p-3 font-semibold text-center">Procentaj</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-700">
+
+                {reportData.length === 0 ? (
+                    <p className="p-12 text-center text-slate-500 italic text-sm">
+                        Niciun sportiv de afișat conform filtrelor.
+                    </p>
+                ) : (
+                    <>
+                        {/* Tabel desktop */}
+                        <div className="hidden md:block overflow-x-auto">
+                            <table className="w-full text-left text-sm">
+                                <thead className="bg-slate-800 text-slate-400">
+                                    <tr>
+                                        <th className="p-3 font-semibold">Nume Sportiv</th>
+                                        <th className="p-3 font-semibold">Grad</th>
+                                        <th className="p-3 font-semibold text-center">Planificate</th>
+                                        <th className="p-3 font-semibold text-center">Prezențe</th>
+                                        <th className="p-3 font-semibold text-center">Procentaj</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-700">
+                                    {reportData.map(row => {
+                                        const percentage = row.totalTrainings > 0
+                                            ? Math.round((row.attendedTrainings / row.totalTrainings) * 100)
+                                            : 0;
+                                        const atRisk = row.attendedTrainings < 5;
+                                        return (
+                                            <tr key={row.sportivId} className={`${percentage < 50 ? 'bg-red-900/10' : ''} hover:bg-slate-700/30`}>
+                                                <td className="p-3 font-medium text-white flex items-center gap-2">
+                                                    {percentage < 50 && (
+                                                        <span title="Prezență sub 50%">
+                                                            <ExclamationTriangleIcon className="w-4 h-4 text-red-500 shrink-0" />
+                                                        </span>
+                                                    )}
+                                                    {row.nume}
+                                                </td>
+                                                <td className="p-3 text-slate-300">{row.grad}</td>
+                                                <td className="p-3 text-center text-slate-300">{row.totalTrainings}</td>
+                                                <td className={`p-3 text-center font-bold ${atRisk ? 'text-red-400' : 'text-white'}`}>
+                                                    {row.attendedTrainings}
+                                                </td>
+                                                <td className={`p-3 text-center font-bold ${percentage < 50 ? 'text-red-400' : 'text-green-400'}`}>
+                                                    {percentage}%
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Carduri mobile */}
+                        <div className="md:hidden divide-y divide-slate-700/50">
                             {reportData.map(row => {
-                                const atRisk = row.attendedTrainings < 5;
-                                const percentage = row.totalTrainings > 0 ? Math.round((row.attendedTrainings / row.totalTrainings) * 100) : 0;
+                                const percentage = row.totalTrainings > 0
+                                    ? Math.round((row.attendedTrainings / row.totalTrainings) * 100)
+                                    : 0;
+                                const atRisk = percentage < 50;
+                                const barWidth = Math.min(percentage, 100);
+
                                 return (
-                                <tr key={row.sportivId} className={`${percentage < 50 ? 'bg-red-900/10' : ''} hover:bg-slate-700/30`}>
-                                    <td className="p-3 font-medium text-white flex items-center gap-2">
-                                        {percentage < 50 && <span title="Prezență sub 50%"><ExclamationTriangleIcon className="w-4 h-4 text-red-500" /></span>}
-                                        {row.nume}
-                                    </td>
-                                    <td className="p-3">{row.grad}</td>
-                                    <td className="p-3 text-center">{row.totalTrainings}</td>
-                                    <td className={`p-3 text-center font-bold ${atRisk ? 'text-red-400' : 'text-white'}`}>{row.attendedTrainings}</td>
-                                    <td className={`p-3 text-center font-bold ${percentage < 50 ? 'text-red-400' : 'text-green-400'}`}>
-                                        {percentage}%
-                                    </td>
-                                </tr>
-                            )})}
-                        </tbody>
-                    </table>
-                     {reportData.length === 0 && <p className="p-12 text-center text-slate-500 italic">Niciun sportiv de afișat conform filtrelor.</p>}
-                </div>
+                                    <div
+                                        key={row.sportivId}
+                                        className={`p-3 ${atRisk ? 'bg-red-900/10' : ''}`}
+                                    >
+                                        <div className="flex items-start justify-between gap-2 mb-2">
+                                            <div className="flex items-center gap-2 min-w-0">
+                                                {atRisk && (
+                                                    <ExclamationTriangleIcon className="w-4 h-4 text-red-500 shrink-0" />
+                                                )}
+                                                <div className="min-w-0">
+                                                    <p className="text-sm font-semibold text-white truncate">{row.nume}</p>
+                                                    <p className="text-xs text-slate-400">{row.grad}</p>
+                                                </div>
+                                            </div>
+                                            <span className={`text-lg font-bold shrink-0 ${atRisk ? 'text-red-400' : 'text-green-400'}`}>
+                                                {percentage}%
+                                            </span>
+                                        </div>
+
+                                        {/* Bară progres */}
+                                        <div className="w-full bg-slate-700 rounded-full h-1.5 mb-2">
+                                            <div
+                                                className={`h-1.5 rounded-full transition-all ${atRisk ? 'bg-red-500' : 'bg-green-500'}`}
+                                                style={{ width: `${barWidth}%` }}
+                                            />
+                                        </div>
+
+                                        <div className="flex gap-4 text-xs text-slate-400">
+                                            <span>
+                                                <span className="text-slate-500">Planificate: </span>
+                                                <span className="text-slate-200 font-medium">{row.totalTrainings}</span>
+                                            </span>
+                                            <span>
+                                                <span className="text-slate-500">Prezențe: </span>
+                                                <span className={`font-medium ${row.attendedTrainings < 5 ? 'text-red-400' : 'text-slate-200'}`}>
+                                                    {row.attendedTrainings}
+                                                </span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </>
+                )}
             </Card>
         </div>
     );

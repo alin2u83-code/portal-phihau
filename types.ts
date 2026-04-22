@@ -620,9 +620,24 @@ export interface EchipaCompetitie {
   denumire_echipa: string | null;
   status: 'inscrisa' | 'confirmata' | 'retrasa' | 'descalificata';
   taxa_achitata: boolean;
+  echipa_incompleta: boolean;
   observatii: string | null;
   created_at: string;
   // joined
   sportivi?: Array<{ sportiv_id: string; rol: 'titular' | 'rezerva'; sportiv?: Sportiv }>;
   categorie?: CategorieCompetitie;
+}
+
+export interface SolicitareEchipaIncompleta {
+  id: string;
+  competitie_id: string;
+  categorie_id: string;
+  club_solicitant_id: string;
+  sportivi_disponibili: string[];
+  status: 'deschisa' | 'acceptata' | 'anulata';
+  club_acceptant_id: string | null;
+  created_at: string;
+  categorie?: CategorieCompetitie;
+  club_solicitant?: { id: string; nume: string };
+  club_acceptant?: { id: string; nume: string } | null;
 }

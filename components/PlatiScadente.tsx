@@ -535,9 +535,10 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                 )}
             </div>
 
-            <Card className="p-0 overflow-hidden">
-                <div className="overflow-x-auto -mx-0">
-                    <table className="w-full text-left text-sm min-w-[700px]">
+            {/* Desktop table */}
+            <Card className="p-0 overflow-hidden hidden md:block">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm">
                         <thead className="bg-slate-700/50">
                             <tr>
                                 <th className="p-3"><input type="checkbox" onChange={handleSelectAll} className="h-4 w-4 rounded border-slate-500 bg-slate-800 text-brand-secondary focus:ring-brand-secondary" /></th>
@@ -580,14 +581,86 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                             ))}
                         </tbody>
                     </table>
-                     {platiCuDetalii.length === 0 && (
+                    {platiCuDetalii.length === 0 && (
                         <div className="p-12 text-center text-slate-500 italic">
                             <p>Nicio factură de afișat conform filtrelor.</p>
                             {(plati || []).length > 0 && <p className="text-xs mt-2">Există {(plati || []).length} plăți în total, dar sunt ascunse de filtre.</p>}
                         </div>
-                     )}
+                    )}
                 </div>
             </Card>
+
+            {/* Mobile cards */}
+            <div className="md:hidden space-y-2">
+                {platiCuDetalii.length === 0 && (
+                    <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 text-center">
+                        <p className="text-slate-500 italic">Nicio factură de afișat conform filtrelor.</p>
+                        {(plati || []).length > 0 && <p className="text-xs mt-2 text-slate-600">Există {(plati || []).length} plăți în total, dar sunt ascunse de filtre.</p>}
+                    </div>
+                )}
+                {platiCuDetalii.map(p => {
+                    const ds = getDisplayStatus(p);
+                    const cfg = STATUS_DISPLAY_CONFIG[ds];
+                    return (
+                        <div key={p.id} className={`bg-slate-900 border rounded-xl px-4 py-3 ${selectedIds.has(p.id) ? 'border-indigo-500/60' : 'border-slate-800'}`}>
+                            <div className="flex items-start gap-3">
+                                <input
+                                    type="checkbox"
+                                    checked={selectedIds.has(p.id)}
+                                    onChange={() => handleSelectRow(p.id)}
+                                    className="mt-1 h-4 w-4 rounded border-slate-500 bg-slate-800 text-brand-secondary focus:ring-brand-secondary shrink-0"
+                                    onClick={e => e.stopPropagation()}
+                                />
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-start justify-between gap-2">
+                                        <div className="min-w-0">
+                                            <p
+                                                className="text-white font-semibold text-sm truncate cursor-pointer hover:text-indigo-300"
+                                                onClick={() => { if(p.sportiv_id) onViewSportiv(sportivi.find(s=>s.id === p.sportiv_id)!); }}
+                                            >
+                                                {getEntityName(p)}
+                                            </p>
+                                            <p className="text-slate-400 text-xs mt-0.5 truncate">{p.descriereDetaliata}</p>
+                                            {p.reducereDetalii && (
+                                                <p className="text-xs text-slate-500 mt-0.5">Reducere: {p.reducereDetalii.nume}</p>
+                                            )}
+                                        </div>
+                                        <div className="shrink-0 text-right">
+                                            <p className="text-white font-bold text-sm whitespace-nowrap">{p.suma.toFixed(2)} RON</p>
+                                            {p.reducereDetalii && p.suma_initiala && (
+                                                <p className="text-xs text-slate-500">
+                                                    <span className="line-through">{p.suma_initiala.toFixed(2)}</span>
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center justify-between mt-2">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs text-slate-500">
+                                                {new Date((p.data || '').toString().slice(0, 10)).toLocaleDateString('ro-RO')}
+                                            </span>
+                                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full border ${cfg.cls}`}>{cfg.label}</span>
+                                        </div>
+                                        <div className="flex gap-1.5">
+                                            {p.status !== 'Achitat' && (
+                                                <Button size="sm" variant="success" onClick={() => { setPlataForPayment(p); setPaymentAmount(p.suma.toString()); }} title="Încasează">
+                                                    <WalletIcon className="w-3.5 h-3.5" />
+                                                </Button>
+                                            )}
+                                            <Button size="sm" variant="secondary" onClick={() => setEditingPlata(p)} title="Editează">
+                                                <EditIcon className="w-3.5 h-3.5" />
+                                            </Button>
+                                            <Button size="sm" variant="danger" onClick={() => setPlataToDelete(p)} title="Șterge">
+                                                <TrashIcon className="w-3.5 h-3.5" />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
             
             {plataForPayment && (
                 <Modal isOpen={!!plataForPayment} onClose={() => setPlataForPayment(null)} title="Procesează Plată Factură">

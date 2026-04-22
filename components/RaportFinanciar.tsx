@@ -277,12 +277,12 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
     return (
         <div className="space-y-4">
             {/* Tab bar */}
-            <div className="flex bg-slate-900 border border-slate-800 rounded-xl p-1 gap-1 w-fit">
+            <div className="flex bg-slate-900 border border-slate-800 rounded-xl p-1 gap-1 overflow-x-auto scrollbar-none">
                 {tabs.map(t => (
                     <button
                         key={t.id}
                         onClick={() => setActiveTab(t.id)}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all shrink-0 ${
                             activeTab === t.id ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-slate-800'
                         }`}
                     >

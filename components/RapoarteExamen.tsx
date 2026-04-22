@@ -388,6 +388,7 @@ interface RaportRow {
     sportiv_id: string;
     sportiv_nume: string;
     sportiv_prenume: string;
+    club_id?: string | null;
     club_nume: string | null;
     grad_sustinut: string | null;
     grad_ordine: number | null;
@@ -413,6 +414,11 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
     const [sortField, setSortField] = useState<SortField>('data');
     const [sortDir, setSortDir] = useState<SortDir>('desc');
     const { showError, showSuccess } = useError();
+
+    // Aplică filtrul de club pentru non-admin-federatie
+    const isFedAdmin = currentUser.roluri.some(r =>
+        ['SUPER_ADMIN_FEDERATIE', 'ADMIN'].includes(r.nume.toUpperCase().replace(/\s+/g, '_'))
+    );
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingRow, setEditingRow] = useState<RaportRow | null>(null);
     const [isAdding, setIsAdding] = useState(false);
@@ -424,9 +430,14 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
     useEffect(() => {
         const fetch = async () => {
             setLoading(true);
-            const { data, error } = await supabase
+            let query = supabase
                 .from('vedere_detalii_examen')
-                .select('inscriere_id, sportiv_id, sportiv_nume, sportiv_prenume, club_nume, grad_sustinut, grad_ordine, rezultat, data_examen, locatie_nume, sesiune_id, status_inscriere');
+                .select('inscriere_id, sportiv_id, sportiv_nume, sportiv_prenume, club_nume, grad_sustinut, grad_ordine, rezultat, data_examen, locatie_nume, sesiune_id, status_inscriere, club_id');
+            // Filtrează după club pentru non-admini-federatie
+            if (!isFedAdmin && currentUser.club_id) {
+                query = (query as any).eq('club_id', currentUser.club_id);
+            }
+            const { data, error } = await query;
             if (error) { showError('Eroare la raport', error.message); setLoading(false); return; }
             const withSesiune = (data || []).map(r => ({
                 ...r,
@@ -436,7 +447,7 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
             setLoading(false);
         };
         fetch();
-    }, [sesiuni, showError]);
+    }, [sesiuni, showError, isFedAdmin, currentUser.club_id]);
 
     useEffect(() => {
         if (initialSportivId) setFilterNume('__sportiv_id__' + initialSportivId);
@@ -496,9 +507,13 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
     };
 
     const refreshRows = async () => {
-        const { data, error } = await supabase
+        let query = supabase
             .from('vedere_detalii_examen')
-            .select('inscriere_id, sportiv_id, sportiv_nume, sportiv_prenume, club_nume, grad_sustinut, grad_ordine, rezultat, data_examen, locatie_nume, sesiune_id, status_inscriere');
+            .select('inscriere_id, sportiv_id, sportiv_nume, sportiv_prenume, club_nume, grad_sustinut, grad_ordine, rezultat, data_examen, locatie_nume, sesiune_id, status_inscriere, club_id');
+        if (!isFedAdmin && currentUser.club_id) {
+            query = (query as any).eq('club_id', currentUser.club_id);
+        }
+        const { data, error } = await query;
         if (!error) setRows((data || []).map(r => ({ ...r, sesiune_nume: sesiuni.find(s => s.id === r.sesiune_id)?.nume || '' })));
     };
 
@@ -593,55 +608,93 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
             {loading ? (
                 <p className="text-center text-slate-400 py-8">Se încarcă...</p>
             ) : (
-                <div className="bg-slate-800 rounded-lg overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left text-sm min-w-[700px]">
-                            <thead className="bg-slate-700 text-slate-300">
-                                <tr>
-                                    <th className="p-3"><SortBtn field="sportiv" label="Sportiv" /></th>
-                                    <th className="p-3"><SortBtn field="club" label="Club" /></th>
-                                    <th className="p-3"><SortBtn field="grad" label="Grad" /></th>
-                                    <th className="p-3"><SortBtn field="rezultat" label="Rezultat" /></th>
-                                    <th className="p-3"><SortBtn field="data" label="Data" /></th>
-                                    <th className="p-3 hidden md:table-cell">Sesiune</th>
-                                    <th className="p-3 hidden lg:table-cell">Locație</th>
-                                    <th className="p-3 text-right">Acțiuni</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-700">
-                                {filtered.map(r => (
-                                    <tr key={r.inscriere_id} className="hover:bg-slate-700/40">
-                                        <td className="p-3 font-medium text-white">{r.sportiv_nume} {r.sportiv_prenume}</td>
-                                        <td className="p-3 text-slate-300">{r.club_nume || '—'}</td>
-                                        <td className="p-3 text-slate-300">{r.grad_sustinut || '—'}</td>
-                                        <td className="p-3">
-                                            {(() => {
-                                                const val = r.rezultat || r.status_inscriere;
-                                                const cls = r.rezultat === 'Admis' ? 'bg-green-500/20 text-green-400'
-                                                    : r.rezultat === 'Respins' ? 'bg-red-500/20 text-red-400'
-                                                    : r.status_inscriere === 'In asteptare' ? 'bg-yellow-500/20 text-yellow-400'
-                                                    : 'bg-slate-600 text-slate-300';
-                                                return <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${cls}`}>{val || '—'}</span>;
-                                            })()}
-                                        </td>
-                                        <td className="p-3 text-slate-300">{r.data_examen ? new Date(r.data_examen + 'T00:00:00').toLocaleDateString('ro-RO') : '—'}</td>
-                                        <td className="p-3 text-slate-300 hidden md:table-cell">{r.sesiune_nume || '—'}</td>
-                                        <td className="p-3 text-slate-400 hidden lg:table-cell">{r.locatie_nume || '—'}</td>
-                                        <td className="p-3 text-right">
-                                            <div className="flex justify-end gap-1">
-                                                <Button variant="secondary" size="sm" onClick={() => { const s = sportivi.find(x => x.id === r.sportiv_id); if (s) onViewSportiv(s); }} title="Profil sportiv"><UserCircleIcon className="w-3.5 h-3.5" /></Button>
-                                                <Button variant="secondary" size="sm" onClick={() => onViewSesiune(r.sesiune_id)} title="Mergi la examen"><ClipboardListIcon className="w-3.5 h-3.5" /></Button>
-                                                <Button variant="primary" size="sm" onClick={() => handleEdit(r)} title="Editează"><EditIcon className="w-3.5 h-3.5" /></Button>
-                                                <Button variant="danger" size="sm" onClick={() => setConfirmDeleteId(r.inscriere_id)} isLoading={deletingId === r.inscriere_id} title="Șterge"><TrashIcon className="w-3.5 h-3.5" /></Button>
-                                            </div>
-                                        </td>
+                <>
+                    {/* Desktop table */}
+                    <div className="hidden md:block bg-slate-800 rounded-lg overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left text-sm">
+                                <thead className="bg-slate-700 text-slate-300">
+                                    <tr>
+                                        <th className="p-3"><SortBtn field="sportiv" label="Sportiv" /></th>
+                                        <th className="p-3"><SortBtn field="club" label="Club" /></th>
+                                        <th className="p-3"><SortBtn field="grad" label="Grad" /></th>
+                                        <th className="p-3"><SortBtn field="rezultat" label="Rezultat" /></th>
+                                        <th className="p-3"><SortBtn field="data" label="Data" /></th>
+                                        <th className="p-3 hidden lg:table-cell">Sesiune</th>
+                                        <th className="p-3 hidden lg:table-cell">Locație</th>
+                                        <th className="p-3 text-right">Acțiuni</th>
                                     </tr>
-                                ))}
-                                {filtered.length === 0 && <tr><td colSpan={8} className="p-6 text-center text-slate-400">Nicio înregistrare găsită.</td></tr>}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody className="divide-y divide-slate-700">
+                                    {filtered.map(r => {
+                                        const val = r.rezultat || r.status_inscriere;
+                                        const cls = r.rezultat === 'Admis' ? 'bg-green-500/20 text-green-400'
+                                            : r.rezultat === 'Respins' ? 'bg-red-500/20 text-red-400'
+                                            : r.status_inscriere === 'In asteptare' ? 'bg-yellow-500/20 text-yellow-400'
+                                            : 'bg-slate-600 text-slate-300';
+                                        return (
+                                            <tr key={r.inscriere_id} className="hover:bg-slate-700/40">
+                                                <td className="p-3 font-medium text-white">{r.sportiv_nume} {r.sportiv_prenume}</td>
+                                                <td className="p-3 text-slate-300">{r.club_nume || '—'}</td>
+                                                <td className="p-3 text-slate-300">{r.grad_sustinut || '—'}</td>
+                                                <td className="p-3"><span className={`text-xs font-bold px-2 py-0.5 rounded-full ${cls}`}>{val || '—'}</span></td>
+                                                <td className="p-3 text-slate-300">{r.data_examen ? new Date(r.data_examen + 'T00:00:00').toLocaleDateString('ro-RO') : '—'}</td>
+                                                <td className="p-3 text-slate-300 hidden lg:table-cell">{r.sesiune_nume || '—'}</td>
+                                                <td className="p-3 text-slate-400 hidden lg:table-cell">{r.locatie_nume || '—'}</td>
+                                                <td className="p-3 text-right">
+                                                    <div className="flex justify-end gap-1">
+                                                        <Button variant="secondary" size="sm" onClick={() => { const s = sportivi.find(x => x.id === r.sportiv_id); if (s) onViewSportiv(s); }} title="Profil sportiv"><UserCircleIcon className="w-3.5 h-3.5" /></Button>
+                                                        <Button variant="secondary" size="sm" onClick={() => onViewSesiune(r.sesiune_id)} title="Mergi la examen"><ClipboardListIcon className="w-3.5 h-3.5" /></Button>
+                                                        <Button variant="primary" size="sm" onClick={() => handleEdit(r)} title="Editează"><EditIcon className="w-3.5 h-3.5" /></Button>
+                                                        <Button variant="danger" size="sm" onClick={() => setConfirmDeleteId(r.inscriere_id)} isLoading={deletingId === r.inscriere_id} title="Șterge"><TrashIcon className="w-3.5 h-3.5" /></Button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                    {filtered.length === 0 && <tr><td colSpan={8} className="p-6 text-center text-slate-400">Nicio înregistrare găsită.</td></tr>}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>
+
+                    {/* Mobile cards */}
+                    <div className="md:hidden space-y-3">
+                        {filtered.length === 0 && (
+                            <p className="text-center text-slate-400 py-6 italic">Nicio înregistrare găsită.</p>
+                        )}
+                        {filtered.map(r => {
+                            const val = r.rezultat || r.status_inscriere;
+                            const cls = r.rezultat === 'Admis' ? 'bg-green-500/20 text-green-400'
+                                : r.rezultat === 'Respins' ? 'bg-red-500/20 text-red-400'
+                                : r.status_inscriere === 'In asteptare' ? 'bg-yellow-500/20 text-yellow-400'
+                                : 'bg-slate-600 text-slate-300';
+                            return (
+                                <div key={r.inscriere_id} className="bg-slate-800 border border-slate-700 rounded-xl px-4 py-3">
+                                    <div className="flex items-start justify-between gap-2">
+                                        <div className="min-w-0">
+                                            <p className="text-white font-semibold text-sm truncate">{r.sportiv_nume} {r.sportiv_prenume}</p>
+                                            <p className="text-slate-400 text-xs mt-0.5 truncate">{r.grad_sustinut || '—'} · {r.locatie_nume || '—'}</p>
+                                        </div>
+                                        <span className={`shrink-0 text-xs font-bold px-2 py-0.5 rounded-full ${cls}`}>{val || '—'}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between mt-2">
+                                        <span className="text-xs text-slate-500">
+                                            {r.data_examen ? new Date(r.data_examen + 'T00:00:00').toLocaleDateString('ro-RO') : '—'}
+                                            {r.sesiune_nume ? ` · ${r.sesiune_nume}` : ''}
+                                        </span>
+                                        <div className="flex gap-1">
+                                            <Button variant="secondary" size="sm" onClick={() => { const s = sportivi.find(x => x.id === r.sportiv_id); if (s) onViewSportiv(s); }} title="Profil sportiv"><UserCircleIcon className="w-3.5 h-3.5" /></Button>
+                                            <Button variant="secondary" size="sm" onClick={() => onViewSesiune(r.sesiune_id)} title="Mergi la examen"><ClipboardListIcon className="w-3.5 h-3.5" /></Button>
+                                            <Button variant="primary" size="sm" onClick={() => handleEdit(r)} title="Editează"><EditIcon className="w-3.5 h-3.5" /></Button>
+                                            <Button variant="danger" size="sm" onClick={() => setConfirmDeleteId(r.inscriere_id)} isLoading={deletingId === r.inscriere_id} title="Șterge"><TrashIcon className="w-3.5 h-3.5" /></Button>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </>
             )}
             <Modal isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} title={isAdding ? 'Adaugă Examen' : 'Editează Examen'}>
                 <div className="space-y-4">
@@ -798,9 +851,19 @@ export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ currentUser, clu
   return (
     <div>
       <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
-      <div className="flex gap-2 mb-6 border-b border-slate-700">
-          <button onClick={() => setActiveTab('sesiuni')} className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'sesiuni' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-white'}`}>Sesiuni</button>
-          <button onClick={() => setActiveTab('raport')} className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'raport' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-white'}`}>Raport Sportivi</button>
+      <div className="flex bg-slate-900 border border-slate-800 rounded-xl p-1 gap-1 w-fit mb-6">
+          <button
+              onClick={() => setActiveTab('sesiuni')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'sesiuni' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}
+          >
+              Sesiuni
+          </button>
+          <button
+              onClick={() => setActiveTab('raport')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'raport' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}
+          >
+              Raport Sportivi
+          </button>
       </div>
       {activeTab === 'sesiuni' && (
         <div>
@@ -808,9 +871,10 @@ export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ currentUser, clu
 
           <HartaExamene />
 
-          <div className="bg-slate-800 rounded-lg shadow-lg overflow-hidden mt-6">
+          {/* Desktop table */}
+          <div className="hidden md:block bg-slate-800 rounded-lg shadow-lg overflow-hidden mt-6">
             <div className="overflow-x-auto">
-              <table className="w-full text-left min-w-[600px]">
+              <table className="w-full text-left">
                   <thead className="bg-slate-700"><tr><th className="p-4 font-semibold">Data</th><th className="p-4 font-semibold">Locația</th><th className="p-4 font-semibold">Înscriși</th><th className="p-4 font-semibold text-right">Acțiuni</th></tr></thead>
                   <tbody className="divide-y divide-slate-700">
                       {sortedSesiuni.map(s => ( <tr key={s.id} className="hover:bg-slate-700/50"><td className="p-4 font-medium cursor-pointer" onClick={() => setSelectedSesiuneId(s.id)}>{new Date((s.data || s.data_examen || '').toString().slice(0, 10)+'T00:00:00').toLocaleDateString('ro-RO')}</td><td className="p-4 cursor-pointer" onClick={() => setSelectedSesiuneId(s.id)}>{s.locatie_nume || locatii.find(l => l.id === s.locatie_id)?.nume || 'N/A'}</td><td className="p-4">{inscrieri.filter(p => p.sesiune_id === s.id).length}</td><td className="p-4 w-32"><div className="flex items-center justify-end space-x-2"><Button onClick={() => { setSesiuneToEdit(s); setIsFormOpen(true); }} variant="primary" size="sm"><EditIcon /></Button><Button onClick={() => setSesiuneToDelete(s)} variant="danger" size="sm"><TrashIcon /></Button></div></td></tr> ))}
@@ -818,6 +882,39 @@ export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ currentUser, clu
                   </tbody>
               </table>
             </div>
+          </div>
+
+          {/* Mobile card list */}
+          <div className="md:hidden mt-6 space-y-3">
+              {sortedSesiuni.length === 0 && (
+                  <p className="text-center text-slate-400 py-6 italic">Nicio sesiune programată.</p>
+              )}
+              {sortedSesiuni.map(s => {
+                  const nrInscrisi = inscrieri.filter(p => p.sesiune_id === s.id).length;
+                  const locatieNume = s.locatie_nume || locatii.find(l => l.id === s.locatie_id)?.nume || 'N/A';
+                  const dataText = new Date((s.data || s.data_examen || '').toString().slice(0, 10)+'T00:00:00').toLocaleDateString('ro-RO');
+                  return (
+                      <div key={s.id} className="bg-slate-800 border border-slate-700 rounded-xl p-4"
+                          onClick={() => setSelectedSesiuneId(s.id)}>
+                          <div className="flex items-start justify-between gap-2">
+                              <div className="min-w-0">
+                                  <p className="text-white font-semibold truncate">{locatieNume}</p>
+                                  <p className="text-slate-400 text-sm mt-0.5">{dataText}</p>
+                              </div>
+                              <span className={`shrink-0 text-xs font-bold px-2 py-0.5 rounded-full ${s.status === 'Finalizat' ? 'bg-green-500/20 text-green-400' : 'bg-sky-500/20 text-sky-400'}`}>
+                                  {s.status || 'Programat'}
+                              </span>
+                          </div>
+                          <div className="flex items-center justify-between mt-3">
+                              <span className="text-sm text-slate-400">{nrInscrisi} participanți</span>
+                              <div className="flex gap-2" onClick={e => e.stopPropagation()}>
+                                  <Button onClick={() => { setSesiuneToEdit(s); setIsFormOpen(true); }} variant="primary" size="sm"><EditIcon /></Button>
+                                  <Button onClick={() => setSesiuneToDelete(s)} variant="danger" size="sm"><TrashIcon /></Button>
+                              </div>
+                          </div>
+                      </div>
+                  );
+              })}
           </div>
           <SesiuneForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} onSave={handleSaveSesiune} sesiuneToEdit={sesiuneToEdit} locatii={locatii} setLocatii={setLocatii} clubs={clubs} currentUser={currentUser} />
           <ConfirmDeleteModal isOpen={!!sesiuneToDelete} onClose={() => setSesiuneToDelete(null)} onConfirm={() => { if(sesiuneToDelete) confirmDeleteSesiune(sesiuneToDelete.id) }} tableName="Sesiuni (și toate înscrierile asociate)" isLoading={isDeleting} />

@@ -249,19 +249,115 @@ export const StagiiCompetitiiManagement: React.FC<StagiiCompetitiiProps> = ({ ty
         finally { setIsDeleting(false); setEvToDelete(null); }
     };
 
-    if (selectedEveniment) { return ( <div><Button onClick={() => setSelectedEvenimentId(null)} className="mb-4" variant="secondary"><ArrowLeftIcon /> Înapoi la listă</Button><EvenimentDetail eveniment={selectedEveniment} /></div> ); }
-    const sortedEvenimente = [...filteredEvenimente].sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+    if (selectedEveniment) {
+        return (
+            <div>
+                <Button onClick={() => setSelectedEvenimentId(null)} className="mb-4" variant="secondary">
+                    <ArrowLeftIcon /> Înapoi la listă
+                </Button>
+                <EvenimentDetail eveniment={selectedEveniment} />
+            </div>
+        );
+    }
 
+    const sortedEvenimente = [...filteredEvenimente].sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
     const sportivi = filteredData.sportivi;
+    const canEdit = (ev: Eveniment) =>
+        permissions.isFederationAdmin || permissions.isSuperAdmin ||
+        ((permissions.isAdminClub || permissions.isInstructor) && ev.club_id === currentUser.club_id);
 
-    return ( <div><Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button><div className="flex justify-between items-center mb-6"><h1 className="text-3xl font-bold text-white">Gestiune {type === 'Stagiu' ? 'Stagii' : 'Competiții'}</h1><Button onClick={() => { setEvToEdit(null); setIsFormOpen(true); }} variant="info"><PlusIcon className="w-5 h-5 mr-2" /> Adaugă {type}</Button></div><div className="bg-slate-800 rounded-lg shadow-lg overflow-hidden"><table className="w-full text-left"><thead className="bg-slate-700"><tr><th className="p-4 font-semibold">Perioadă</th><th className="p-4 font-semibold">Denumire</th><th className="p-4 font-semibold">Înscriși (Clubul tău)</th><th className="p-4 font-semibold text-right">Acțiuni</th></tr></thead><tbody className="divide-y divide-slate-700">{sortedEvenimente.map(ev => ( <tr key={ev.id} className="hover:bg-slate-700/50"><td className="p-4 font-medium cursor-pointer" onClick={() => setSelectedEvenimentId(ev.id)}>{formatDateRange(ev.data)} - {formatDateRange(ev.data_sfarsit)}</td><td className="p-4 cursor-pointer" onClick={() => setSelectedEvenimentId(ev.id)}>{ev.denumire}</td><td className="p-4">{rezultate.filter(r => r.eveniment_id === ev.id && sportivi.some(s => s.id === r.sportiv_id)).length}</td><td className="p-4 w-32"><div className="flex items-center justify-end space-x-2">
-    {(permissions.isFederationAdmin || permissions.isSuperAdmin || ((permissions.isAdminClub || permissions.isInstructor) && ev.club_id === currentUser.club_id)) && (
-        <>
-            <Button onClick={() => { setEvToEdit(ev); setIsFormOpen(true); }} variant="primary" size="sm"><EditIcon /></Button>
-            <Button onClick={() => setEvToDelete(ev)} variant="danger" size="sm"><TrashIcon /></Button>
-        </>
-    )}
-</div></td></tr> ))}{sortedEvenimente.length === 0 && <tr><td colSpan={4}><p className="p-4 text-center text-slate-400">Niciun eveniment de tipul '{type}' programat.</p></td></tr>}</tbody></table>
-</div><EvenimentForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} onSave={handleSave} evToEdit={evToEdit} type={type} currentUser={currentUser} permissions={permissions} locatii={locatii} />
-<ConfirmDeleteModal isOpen={!!evToDelete} onClose={() => setEvToDelete(null)} onConfirm={() => { if(evToDelete) confirmDelete(evToDelete.id) }} tableName={type} isLoading={isDeleting} /></div> );
+    return (
+        <div className="space-y-4">
+            <Button onClick={onBack} variant="secondary" className="w-full sm:w-auto">
+                <ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu
+            </Button>
+
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <h1 className="text-2xl sm:text-3xl font-bold text-white">
+                    Gestiune {type === 'Stagiu' ? 'Stagii' : 'Competiții'}
+                </h1>
+                <Button onClick={() => { setEvToEdit(null); setIsFormOpen(true); }} variant="info" className="w-full sm:w-auto justify-center">
+                    <PlusIcon className="w-5 h-5 mr-2" /> Adaugă {type}
+                </Button>
+            </div>
+
+            {/* Desktop table */}
+            <div className="hidden md:block bg-slate-800 rounded-lg shadow-lg overflow-hidden">
+                <table className="w-full text-left">
+                    <thead className="bg-slate-700">
+                        <tr>
+                            <th className="p-4 font-semibold">Perioadă</th>
+                            <th className="p-4 font-semibold">Denumire</th>
+                            <th className="p-4 font-semibold">Înscriși</th>
+                            <th className="p-4 font-semibold text-right">Acțiuni</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-700">
+                        {sortedEvenimente.map(ev => (
+                            <tr key={ev.id} className="hover:bg-slate-700/50">
+                                <td className="p-4 font-medium cursor-pointer" onClick={() => setSelectedEvenimentId(ev.id)}>
+                                    {formatDateRange(ev.data)} - {formatDateRange(ev.data_sfarsit)}
+                                </td>
+                                <td className="p-4 cursor-pointer" onClick={() => setSelectedEvenimentId(ev.id)}>{ev.denumire}</td>
+                                <td className="p-4">{rezultate.filter(r => r.eveniment_id === ev.id && sportivi.some(s => s.id === r.sportiv_id)).length}</td>
+                                <td className="p-4 w-32">
+                                    <div className="flex items-center justify-end space-x-2">
+                                        {canEdit(ev) && (
+                                            <>
+                                                <Button onClick={() => { setEvToEdit(ev); setIsFormOpen(true); }} variant="primary" size="sm"><EditIcon /></Button>
+                                                <Button onClick={() => setEvToDelete(ev)} variant="danger" size="sm"><TrashIcon /></Button>
+                                            </>
+                                        )}
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                        {sortedEvenimente.length === 0 && (
+                            <tr><td colSpan={4}><p className="p-4 text-center text-slate-400">Niciun eveniment de tipul '{type}' programat.</p></td></tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+
+            {/* Mobile cards */}
+            <div className="md:hidden space-y-3">
+                {sortedEvenimente.length === 0 && (
+                    <p className="text-center text-slate-400 py-6 italic">Niciun eveniment de tipul '{type}' programat.</p>
+                )}
+                {sortedEvenimente.map(ev => {
+                    const nrInscrisi = rezultate.filter(r => r.eveniment_id === ev.id && sportivi.some(s => s.id === r.sportiv_id)).length;
+                    return (
+                        <div key={ev.id} className="bg-slate-800 border border-slate-700 rounded-xl p-4"
+                            onClick={() => setSelectedEvenimentId(ev.id)}>
+                            <div className="flex items-start justify-between gap-2">
+                                <div className="min-w-0">
+                                    <p className="text-white font-semibold truncate">{ev.denumire}</p>
+                                    <p className="text-slate-400 text-sm mt-0.5">
+                                        {formatDateRange(ev.data)} — {formatDateRange(ev.data_sfarsit)}
+                                    </p>
+                                    {ev.locatie && <p className="text-slate-500 text-xs mt-0.5 truncate">{ev.locatie}</p>}
+                                </div>
+                                <span className="shrink-0 text-xs font-bold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300">
+                                    {nrInscrisi} înscriși
+                                </span>
+                            </div>
+                            {canEdit(ev) && (
+                                <div className="flex gap-2 mt-3" onClick={e => e.stopPropagation()}>
+                                    <Button onClick={() => { setEvToEdit(ev); setIsFormOpen(true); }} variant="primary" size="sm" className="flex-1 justify-center">
+                                        <EditIcon className="w-4 h-4 mr-1" /> Editează
+                                    </Button>
+                                    <Button onClick={() => setEvToDelete(ev)} variant="danger" size="sm" className="flex-1 justify-center">
+                                        <TrashIcon className="w-4 h-4 mr-1" /> Șterge
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+
+            <EvenimentForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} onSave={handleSave} evToEdit={evToEdit} type={type} currentUser={currentUser} permissions={permissions} locatii={locatii} />
+            <ConfirmDeleteModal isOpen={!!evToDelete} onClose={() => setEvToDelete(null)} onConfirm={() => { if (evToDelete) confirmDelete(evToDelete.id); }} tableName={type} isLoading={isDeleting} />
+        </div>
+    );
 };

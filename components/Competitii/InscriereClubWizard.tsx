@@ -671,7 +671,7 @@ const RandCategorie: React.FC<RandCategorieProps> = ({
   }, [arataQuyenDropdown, gradOrdine, drepturi, cat.proba?.tip_proba]);
 
   const tooltipBong = isDisabledBong
-    ? 'Bong exclude alte arme (regulament CVD)'
+    ? 'Regulament CVD (grade): Bong și Long Gian/Song Cot/Moc Can nu pot fi combinate'
     : undefined;
 
   return (
@@ -794,13 +794,20 @@ const CardSportivCategorii: React.FC<CardSportivCategoriiProps> = ({
     return s;
   }, [inscrieri, sportiv.id]);
 
-  // Detectăm dacă sportivul a bifat o categorie cu arma Bong
+  // Restricție CVD: Bong exclude Long Gian/Song Cot/Moc Can (și invers), DOAR pentru grade (ordine ≤ 4)
+  const esteGrad = gradOrdine !== null && gradOrdine <= 4;
+  const ARMA_BONG = 'Bong';
+  const ARMA_INCOMPATIBILA_BONG = 'Long Gian / Song Cot / Moc Can';
+
   const areBong = useMemo(() => {
-    for (const cat of categoriiEligibile) {
-      if (picks.has(cat.id) && cat.arma === 'Bong') return true;
-    }
-    return false;
-  }, [picks, categoriiEligibile]);
+    if (!esteGrad) return false;
+    return categoriiEligibile.some(cat => picks.has(cat.id) && cat.arma === ARMA_BONG);
+  }, [picks, categoriiEligibile, esteGrad]);
+
+  const areArmaIncompatibilaBong = useMemo(() => {
+    if (!esteGrad) return false;
+    return categoriiEligibile.some(cat => picks.has(cat.id) && cat.arma === ARMA_INCOMPATIBILA_BONG);
+  }, [picks, categoriiEligibile, esteGrad]);
 
   const grupeProbile = useMemo(
     () => grupeazaDupaProba(categoriiEligibile),
@@ -859,8 +866,9 @@ const CardSportivCategorii: React.FC<CardSportivCategoriiProps> = ({
               {grup.categorii.map(cat => {
                 const isBifat = picks.has(cat.id);
                 const isDejaInscris = dejaInscrisiCatIds.has(cat.id);
-                // CVD Bong: dacă e bifat Bong și această categorie are altă armă → disabled
-                const isDisabledBong = areBong && cat.arma !== null && cat.arma !== 'Bong';
+                // CVD grade: Bong ↔ Long Gian/Song Cot/Moc Can sunt mutual exclusive
+                const isDisabledBong = (areBong && cat.arma === ARMA_INCOMPATIBILA_BONG) ||
+                  (areArmaIncompatibilaBong && cat.arma === ARMA_BONG);
 
                 return (
                   <RandCategorie

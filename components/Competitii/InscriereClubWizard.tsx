@@ -771,6 +771,7 @@ interface CardSportivCategoriiProps {
   inscrieri: InscriereCompetitie[];
   picks: Map<string, PickCategorie>;
   drepturi: DreptGrad[];
+  stagiiNationale?: number; // CVD: stagii naționale participare (warning dacă sub minim)
   onToggleCategorie: (catId: string) => void;
   onUpdatePick: (catId: string, update: Partial<PickCategorie>) => void;
   onToggleAcord: () => void;
@@ -778,7 +779,7 @@ interface CardSportivCategoriiProps {
 
 const CardSportivCategorii: React.FC<CardSportivCategoriiProps> = ({
   sportiv, varsta, gradNume, gradOrdine,
-  categoriiEligibile, inscrieri, picks, drepturi,
+  categoriiEligibile, inscrieri, picks, drepturi, stagiiNationale,
   onToggleCategorie, onUpdatePick, onToggleAcord,
 }) => {
   const esteMajor = varsta >= 18;
@@ -820,6 +821,17 @@ const CardSportivCategorii: React.FC<CardSportivCategoriiProps> = ({
   const nuAreNicio = picks.size === 0 || [...picks.values()].every(p => p === null);
   const areVreoCategorieIndividuala = categoriiEligibile.some(c => !esteEchipaSauPereche(c));
 
+  // CVD stagii warning: minim 1 stagiu național (grade) sau 3 (centuri negre)
+  const areArmaCVDSelectata = useMemo(() =>
+    [...picks.keys()].some(catId => {
+      if (catId === '__acord__') return false;
+      return categoriiEligibile.some(c => c.id === catId && c.arma);
+    }),
+    [picks, categoriiEligibile]
+  );
+  const minStagiiCVD = (gradOrdine !== null && gradOrdine <= 4) ? 1 : 3;
+  const stagiiWarning = stagiiNationale !== undefined && areArmaCVDSelectata && stagiiNationale < minStagiiCVD;
+
   return (
     <div className="rounded-xl border border-slate-700 bg-slate-800/40 overflow-hidden">
       {/* Header card */}
@@ -832,6 +844,14 @@ const CardSportivCategorii: React.FC<CardSportivCategoriiProps> = ({
             {!esteMajor && (
               <span className="text-[10px] font-bold text-amber-400 bg-amber-900/30 border border-amber-700/50 rounded-full px-2 py-0.5">
                 Minor
+              </span>
+            )}
+            {stagiiWarning && (
+              <span
+                className="text-[10px] font-bold text-yellow-300 bg-yellow-900/30 border border-yellow-700/50 rounded-full px-2 py-0.5"
+                title={`Stagii CVD naționale insuficiente: ${stagiiNationale ?? 0} din ${minStagiiCVD} necesare`}
+              >
+                ⚠ Stagii CVD
               </span>
             )}
           </div>
@@ -934,6 +954,39 @@ const Pas2CategoriiPerSportiv: React.FC<Pas2Props> = ({
   const { showError } = useError();
   const [drepturi, setDrepturi] = useState<DreptGrad[]>([]);
   const [loadingDrepturi, setLoadingDrepturi] = useState(true);
+  const [stagiiNationale, setStagiiNationale] = useState<Map<string, number>>(new Map());
+
+  // Fetch stagii naționale CVD + participări sportivi (warning non-blocant)
+  useEffect(() => {
+    if (competitie.tip !== 'cvd') return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: stagii } = await supabase
+          .from('evenimente')
+          .select('id')
+          .eq('tip', 'Stagiu')
+          .eq('tip_eveniment', 'FEDERATIE');
+        if (!stagii?.length || cancelled) return;
+        const stagiiIds = stagii.map((s: { id: string }) => s.id);
+        const sportiviIds = Array.from(selectedSportivi);
+        const { data: rezultate } = await supabase
+          .from('rezultate')
+          .select('sportiv_id')
+          .in('eveniment_id', stagiiIds)
+          .in('sportiv_id', sportiviIds);
+        if (cancelled) return;
+        const counts = new Map<string, number>();
+        for (const r of rezultate ?? []) {
+          counts.set(r.sportiv_id, (counts.get(r.sportiv_id) ?? 0) + 1);
+        }
+        setStagiiNationale(counts);
+      } catch {
+        // warning non-critic — ignorăm eroarea silențios
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [competitie.tip, selectedSportivi]);
 
   // Fetch drepturi_grad_competitie o singură dată la mount
   useEffect(() => {
@@ -1172,6 +1225,7 @@ const Pas2CategoriiPerSportiv: React.FC<Pas2Props> = ({
                 inscrieri={inscrieri}
                 picks={sportivPicks}
                 drepturi={drepturi}
+                stagiiNationale={competitie.tip === 'cvd' ? (stagiiNationale.get(sportiv.id) ?? 0) : undefined}
                 onToggleCategorie={catId => handleToggleCategorie(sportiv.id, catId)}
                 onUpdatePick={(catId, update) => handleUpdatePick(sportiv.id, catId, update)}
                 onToggleAcord={() => handleToggleAcord(sportiv.id)}
@@ -1921,6 +1975,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
             denumire_echipa: rand.echipa.numeEchipa || numeClub,
             status: 'inscrisa',
             taxa_achitata: false,
+            echipa_incompleta: rand.echipa.echipaIncompleta ?? false,
           })
           .select()
           .single();
@@ -1951,6 +2006,17 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
             if (errSportivi) {
               throw new Error(errSportivi.message);
             }
+          }
+
+          // Dacă e echipă incompletă → creează solicitare inter-club
+          if (rand.echipa.echipaIncompleta) {
+            await supabase.from('solicitari_echipe_incomplete').insert({
+              competitie_id: competitie.id,
+              categorie_id: rand.echipa.categorieId,
+              club_solicitant_id: clubId,
+              sportivi_disponibili: rand.echipa.titulari,
+              status: 'deschisa',
+            });
           }
         }
       }

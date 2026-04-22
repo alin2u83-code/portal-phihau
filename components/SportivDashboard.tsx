@@ -228,7 +228,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                         </div>
                     </div>
 
-                    {/* Quick stats — desktop right side */}
+                    {/* Quick stats — vizibile pe desktop (sm+) în dreapta header-ului */}
                     <div className="hidden sm:flex flex-col gap-2 items-end shrink-0">
                         <div className="flex items-center gap-2 text-sm">
                             <span className="text-slate-400">Prezențe</span>
@@ -247,10 +247,16 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                             }
                             {statusPlati === 'RESTANTA' ? `${neachitate.length} restanță` : 'Plăți la zi'}
                         </div>
+                        <div className="flex items-center gap-2 text-sm">
+                            <span className="text-slate-400">Examene</span>
+                            <span className="font-black text-lg text-amber-400">
+                                {(participari || []).filter(p => p.sportiv_id === viewedUser.id && p.rezultat === 'Admis').length}
+                            </span>
+                        </div>
                     </div>
                 </div>
 
-                {/* Quick stats — mobile row */}
+                {/* Quick stats — aceleași date, layout bară orizontală pe mobil (<640px) */}
                 <div className="flex sm:hidden items-center divide-x divide-slate-700/60 border-t border-slate-700/60">
                     <div className="flex-1 flex flex-col items-center py-3">
                         <span className="text-xs text-slate-500">Prezențe</span>
@@ -260,9 +266,13 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                     </div>
                     <div className="flex-1 flex flex-col items-center py-3">
                         <span className="text-xs text-slate-500">Plăți</span>
-                        <span className={`text-sm font-bold ${statusPlati === 'RESTANTA' ? 'text-rose-400' : 'text-emerald-400'}`}>
-                            {statusPlati === 'RESTANTA' ? `${neachitate.length} restanță` : 'La zi'}
-                        </span>
+                        <div className={`flex items-center gap-1 text-xs font-bold ${statusPlati === 'RESTANTA' ? 'text-rose-400' : 'text-emerald-400'}`}>
+                            {statusPlati === 'RESTANTA'
+                                ? <ExclamationTriangleIcon className="w-3 h-3" />
+                                : <CheckCircleIcon className="w-3 h-3" />
+                            }
+                            <span>{statusPlati === 'RESTANTA' ? `${neachitate.length} rest.` : 'La zi'}</span>
+                        </div>
                     </div>
                     <div className="flex-1 flex flex-col items-center py-3">
                         <span className="text-xs text-slate-500">Examene</span>

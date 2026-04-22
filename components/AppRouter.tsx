@@ -132,9 +132,6 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                                 return renderProtected(<Lazy.AdminDashboard onNavigate={setActiveView} />, isFederationAdmin);
                             case 'dashboard':
                             case 'my-portal':
-                                if (permissions.isFederationLevel) {
-                                    return <Lazy.FederationDashboard onNavigate={setActiveView} />;
-                                }
                                 if (permissions.hasAdminAccess && activeRole !== 'SPORTIV') {
                                     if (sportivi.length === 0 && !isEmergencyAdmin && !loading) {
                                         return <Card className="text-center p-8"><p className="text-slate-400 italic">Așteptare autorizare date sau nu există date pentru contextul selectat...</p></Card>

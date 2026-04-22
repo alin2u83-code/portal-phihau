@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { User, View, Club, Permissions, Rol, Grad } from '../types';
 import { useNavigation } from '../contexts/NavigationContext';
 import { adminMenu, adminClubMenu, instructorMenu, sportivMenu, MenuItem } from './menuConfig';
-import { ArrowRightOnRectangleIcon, Bars3Icon, ChevronDownIcon, ShieldCheckIcon, UserCircleIcon } from './icons';
+import { ArrowRightOnRectangleIcon, ChevronDownIcon, ShieldCheckIcon, UserCircleIcon } from './icons';
 import { RoleSwitcher } from './RoleSwitcher';
 import { NavMenu } from './NavMenu';
 import { ROLES } from '../constants';
@@ -229,34 +229,6 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
                 <ChevronDownIcon className={`w-3 h-3 transition-transform ${isExpanded ? 'rotate-90' : '-rotate-90'}`} />
             </button>
 
-            {/* Mobile Bottom Navigation — toate rolurile */}
-            <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.3)] pb-safe">
-                <div className="flex justify-around items-center h-16 px-2">
-                    {menuToDisplay.slice(0, 4).map((item, idx) => {
-                        const isActive = item.view
-                            ? item.view === activeView
-                            : item.submenu?.some(s => s.view === activeView) ?? false;
-                        return (
-                            <button
-                                key={idx}
-                                onClick={() => item.view ? handleNavigate(item.view) : setIsMobileOpen(true)}
-                                className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${isActive ? 'text-amber-400' : 'text-slate-500 hover:text-slate-300'}`}
-                            >
-                                <item.icon className={`w-6 h-6 transition-transform ${isActive ? 'scale-110' : ''}`} />
-                                <span className="text-[10px] font-medium truncate w-full text-center px-1">{item.label}</span>
-                            </button>
-                        );
-                    })}
-
-                    <button
-                        onClick={() => setIsMobileOpen(true)}
-                        className="flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors text-slate-500 hover:text-slate-300"
-                    >
-                        <Bars3Icon className="w-6 h-6" />
-                        <span className="text-[10px] font-medium">Mai mult</span>
-                    </button>
-                </div>
-            </nav>
         </>
     );
 };

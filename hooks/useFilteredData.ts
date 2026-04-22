@@ -46,17 +46,10 @@ export const useFilteredData = ({
     istoricPlatiDetaliat,
     locatii
 }: UseFilteredDataProps) => {
-    const isFederationLevel = activeRole === 'SUPER_ADMIN_FEDERATIE' || activeRole === 'ADMIN';
-    const filteredSesiuniExamene = useMemo(() => {
-        const all = sesiuniExamene || [];
-        if (isFederationLevel || !activeClubId) return all;
-        return all.filter(s => s.club_id === activeClubId);
-    }, [sesiuniExamene, isFederationLevel, activeClubId]);
-
     return useMemo(() => {
         return {
             sportivi: sportivi || [],
-            sesiuniExamene: filteredSesiuniExamene,
+            sesiuniExamene: sesiuniExamene || [],
             inscrieriExamene: inscrieriExamene || [],
             antrenamente: antrenamente || [],
             grupe: grupe || [],
@@ -76,7 +69,7 @@ export const useFilteredData = ({
         };
     }, [
         sportivi,
-        filteredSesiuniExamene,
+        sesiuniExamene,
         inscrieriExamene,
         antrenamente,
         grupe,

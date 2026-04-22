@@ -122,18 +122,13 @@ export const useDataProvider = () => {
         sesiuniExamene: data.sesiuniExamene,
         inscrieriExamene: data.inscrieriExamene,
         antrenamente: attendanceData.antrenamente,
-        grupe: permissions.isFederationLevel
-            ? data.grupe
-            : data.grupe.filter(g => !g.club_id || g.club_id === activeRoleContext?.club_id),
+        grupe: data.grupe,
         plati: data.plati,
         tranzactii: data.tranzactii,
         evenimente: data.evenimente,
         rezultate: data.rezultate,
         tipuriAbonament: data.tipuriAbonament,
-        // Filter familii by active club — RLS not yet configured on familii table
-        familii: permissions.isFederationLevel
-            ? data.familii
-            : data.familii.filter(f => !f.club_id || f.club_id === activeRoleContext?.club_id),
+        familii: data.familii,
         anunturiPrezenta: attendanceData.anunturiPrezenta,
         reduceri: data.reduceri,
         deconturiFederatie: data.deconturiFederatie,
@@ -309,36 +304,41 @@ export const useDataProvider = () => {
 
             const activeRoleName = activeCtx.roluri?.nume || activeCtx.rol_denumire;
             const isSuperAdmin = activeRoleName === 'SUPER_ADMIN_FEDERATIE';
-            const isAdminClub = activeRoleName === 'ADMIN_CLUB';
+            const isAdmin = activeRoleName === 'ADMIN';
             const isSportiv = activeRoleName === 'SPORTIV';
+            const isFederationLevel = isSuperAdmin || isAdmin;
+
+            // Helper: adaugă filtru club_id la query dacă utilizatorul nu e la nivel federație
+            const clubId = (!isFederationLevel && activeCtx.club_id) ? activeCtx.club_id : null;
+            const withClub = (query: any) => clubId ? query.eq('club_id', clubId) : query;
 
             const cacheKeys: Record<string, string> = {
                 clubs: 'cache_clubs',
                 allRoles: 'cache_allRoles',
                 grade: 'cache_grade',
-                tipuriAbonament: 'cache_tipuriAbonament',
                 tipuriPlati: 'cache_tipuriPlati',
             };
 
             const queries: Record<string, any> = {
+                // Date globale — fără filtru club
                 clubs: cleanedSupabase.from('cluburi').select('id, nume, cif, oras, theme_config'),
                 allRoles: cleanedSupabase.from('roluri').select('id, nume'),
                 grade: cleanedSupabase.from('grade').select('*'),
-                tipuriAbonament: cleanedSupabase.from('tipuri_abonament').select('id, denumire, pret, club_id, numar_membri'),
                 tipuriPlati: cleanedSupabase.from('tipuri_plati').select('id, nume'),
-                sesiuniExamene: (isAdminClub && activeCtx.club_id)
-                    ? cleanedSupabase.from('sesiuni_examene').select('*').eq('club_id', activeCtx.club_id)
-                    : cleanedSupabase.from('sesiuni_examene').select('*'),
-                tranzactii: cleanedSupabase.from('tranzactii').select('*'),
-                evenimente: cleanedSupabase.from('evenimente').select('*'),
-                rezultate: cleanedSupabase.from('rezultate').select('*'),
-                familii: cleanedSupabase.from('familii').select('*'),
-                vizualizarePlati: cleanedSupabase.from('view_plata_sportiv').select('*'),
-                istoricPlatiDetaliat: cleanedSupabase.from('view_istoric_plati_detaliat').select('*'),
-                locatii: cleanedSupabase.from('nom_locatii').select('*'),
                 reduceri: cleanedSupabase.from('reduceri').select('*'),
-                deconturiFederatie: cleanedSupabase.from('deconturi_federatie').select('*'),
-                taxeAnualeConfig: cleanedSupabase.from('taxe_anuale_config').select('*'),
+                rezultate: cleanedSupabase.from('rezultate').select('*'),
+                tranzactii: cleanedSupabase.from('tranzactii').select('*'),
+
+                // Date filtrate pe club — RLS + filtru explicit
+                tipuriAbonament: withClub(cleanedSupabase.from('tipuri_abonament').select('id, denumire, pret, club_id, numar_membri')),
+                sesiuniExamene: withClub(cleanedSupabase.from('sesiuni_examene').select('*')),
+                familii: withClub(cleanedSupabase.from('familii').select('*')),
+                vizualizarePlati: withClub(cleanedSupabase.from('view_plata_sportiv').select('*')),
+                istoricPlatiDetaliat: cleanedSupabase.from('view_istoric_plati_detaliat').select('*'),
+                locatii: withClub(cleanedSupabase.from('nom_locatii').select('*')),
+                evenimente: withClub(cleanedSupabase.from('evenimente').select('*')),
+                deconturiFederatie: withClub(cleanedSupabase.from('deconturi_federatie').select('*')),
+                taxeAnualeConfig: withClub(cleanedSupabase.from('taxe_anuale_config').select('*')),
                 vizeSportivi: cleanedSupabase.from('vize_sportivi').select('*'),
                 decontSportivi: cleanedSupabase.from('decont_sportivi').select('*'),
             };
@@ -357,7 +357,9 @@ export const useDataProvider = () => {
                 queries.inscrieriExamene = cleanedSupabase.from('vedere_detalii_examen').select('*, id:inscriere_id').eq('sportiv_id', activeCtx.sportiv_id);
                 queries.istoricGrade = cleanedSupabase.from('vedere_istoric_grade_sportiv').select('*').eq('sportiv_id', activeCtx.sportiv_id);
             } else {
-                queries.inscrieriExamene = cleanedSupabase.from('vedere_detalii_examen').select('*, id:inscriere_id');
+                queries.inscrieriExamene = clubId
+                    ? cleanedSupabase.from('vedere_detalii_examen').select('*, id:inscriere_id').eq('club_id', clubId)
+                    : cleanedSupabase.from('vedere_detalii_examen').select('*, id:inscriere_id');
                 queries.istoricGrade = cleanedSupabase.from('vedere_istoric_grade_sportiv').select('*');
             }
 

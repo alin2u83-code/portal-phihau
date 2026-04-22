@@ -16,6 +16,7 @@ import { Button } from '../ui';
 import { ArrowLeftIcon } from '../icons';
 import { useError } from '../ErrorProvider';
 import { calculeazaVarstaLaData, verificaEligibilitate } from '../../utils/eligibilitateCompetitie';
+import { exportFisaParticipare, exportBorderoClub, RandIndividualPDF, RandEchipaPDF } from '../../utils/exportPDFCompetitie';
 
 // -----------------------------------------------
 // HELPERS INTERNI
@@ -1675,18 +1676,24 @@ interface Pas4Props {
   onSaved: () => void;
 }
 
-/** Calculează taxa pentru o categorie individuală pe baza tipului probei și configurației competiției. */
-function calculeazaTaxaIndividuala(competitie: Competitie): number {
+function calculeazaTaxaIndividuala(competitie: Competitie, cat?: CategorieCompetitie): number {
+  const ct = competitie.config_taxe;
+  if (ct) {
+    return cat?.arma ? (ct.individual_cvd ?? 80) : (ct.individual_tehnica ?? 80);
+  }
   return competitie.taxa_individual ?? 80;
 }
 
-/** Calculează taxa pentru o echipă pe baza categoriei (juniori/seniori) și configurației competiției. */
 function calculeazaTaxaEchipa(cat: CategorieCompetitie, competitie: Competitie): number {
-  // Dacă varsta_max <= 17 → juniori (taxă diferită)
+  const ct = competitie.config_taxe;
+  if (ct) {
+    if (cat.arma) return ct.cvd_echipa ?? 80;
+    const esteJuniori = cat.varsta_max !== null && cat.varsta_max <= 17;
+    return esteJuniori ? (ct.echipa_juniori ?? 150) : (ct.echipa_seniori ?? 120);
+  }
   const esteJuniori = cat.varsta_max !== null && cat.varsta_max <= 17;
   if (esteJuniori) {
-    // Folosim taxa_echipa ca baza; pentru juniori adaugam 30 lei conventional
-    return (competitie.taxa_echipa ?? 150);
+    return competitie.taxa_echipa ?? 150;
   }
   return competitie.taxa_echipa ?? 120;
 }
@@ -1749,7 +1756,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
           quyen_ales: pick.quyen_ales,
           arma_ales: pick.arma_ales,
           acord_parental: acordParental,
-          taxa: calculeazaTaxaIndividuala(competitie),
+          taxa: calculeazaTaxaIndividuala(competitie, cat),
         });
       }
     }
@@ -1769,7 +1776,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
   const randuriEchipe = useMemo<RandEchipa[]>(() => {
     return echipeFormate.map(echipa => {
       const cat = categorii.find(c => c.id === echipa.categorieId);
-      const taxa = cat ? calculeazaTaxaEchipa(cat, competitie) : (competitie.taxa_echipa ?? 120);
+      const taxa = cat ? calculeazaTaxaEchipa(cat, competitie) : (competitie.config_taxe?.echipa_seniori ?? competitie.taxa_echipa ?? 120);
       const getNumeSportiv = (id: string) => {
         const s = sportivi.find(sp => sp.id === id);
         return s ? `${s.prenume} ${s.nume}` : id;
@@ -1807,6 +1814,42 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
     }
     return map;
   }, [randuriIndividuale]);
+
+  // Date pentru export PDF
+  const randuriFisaPDF = useMemo<RandIndividualPDF[]>(() =>
+    randuriIndividuale.map(r => {
+      const gradEntry = grade.find(g => g.id === r.sportiv.grad_actual_id);
+      return {
+        numeComplet: `${r.sportiv.prenume} ${r.sportiv.nume}`,
+        categorie: r.categorie.denumire ?? `Categoria ${r.categorie.numar_categorie}`,
+        proba: r.categorie.proba?.denumire ?? '—',
+        inlantuireArma: r.quyen_ales ?? r.arma_ales ?? '—',
+        grad: gradEntry?.nume ?? '—',
+        taxa: r.taxa,
+      };
+    }),
+    [randuriIndividuale, grade]
+  );
+
+  const randuriEchipePDF = useMemo<RandEchipaPDF[]>(() =>
+    randuriEchipe.map(r => ({
+      numeEchipa: r.echipa.numeEchipa || numeClub,
+      categorie: r.categorie.denumire ?? `Categoria ${r.categorie.numar_categorie}`,
+      titulari: r.titulariNume.join(', '),
+      rezerve: r.rezerveNume.join(', '),
+      taxa: r.taxa,
+      incompleta: r.incompleta,
+    })),
+    [randuriEchipe, numeClub]
+  );
+
+  const handleExportFisa = () => {
+    exportFisaParticipare(competitie, numeClub, randuriFisaPDF, randuriEchipePDF);
+  };
+
+  const handleExportBorderou = () => {
+    exportBorderoClub(competitie, numeClub, randuriFisaPDF, randuriEchipePDF, totalIndividual, totalEchipe, totalGeneral);
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -2150,6 +2193,25 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
 
       {/* Footer sticky */}
       <div className="sticky bottom-0 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 -mx-4 px-4 md:static md:bg-transparent md:border-0 md:pt-2 md:pb-0 md:mx-0 md:px-0">
+        {/* Butoane export PDF */}
+        <div className="flex flex-wrap gap-2 mb-2">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleExportFisa}
+            className="text-xs"
+          >
+            Export fisa participare
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleExportBorderou}
+            className="text-xs"
+          >
+            Export borderou club
+          </Button>
+        </div>
         <div className="flex items-center justify-between gap-3">
           <div className="text-sm font-bold text-green-400 md:hidden">
             Total: {totalGeneral} lei

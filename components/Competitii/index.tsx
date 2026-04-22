@@ -79,7 +79,9 @@ const CompetitieForm: React.FC<CompetitieFormProps> = ({ isOpen, onClose, onSave
     data_inceput: new Date().toISOString().split('T')[0],
     data_sfarsit: new Date().toISOString().split('T')[0],
     locatie: '', organizator: '', deadline_inscrieri: '',
-    taxa_individual: '100', taxa_echipa: '150', observatii: '',
+    individual_tehnica: '80', individual_cvd: '80',
+    echipa_seniori: '120', echipa_juniori: '150', cvd_echipa: '80',
+    observatii: '',
     status: 'draft' as Competitie['status'],
   });
   const [loading, setLoading] = useState(false);
@@ -89,13 +91,17 @@ const CompetitieForm: React.FC<CompetitieFormProps> = ({ isOpen, onClose, onSave
   useEffect(() => {
     if (isOpen) {
       if (comp) {
+        const ct = comp.config_taxe;
         setForm({
           denumire: comp.denumire, tip: comp.tip,
           data_inceput: comp.data_inceput, data_sfarsit: comp.data_sfarsit,
           locatie: comp.locatie || '', organizator: comp.organizator || '',
           deadline_inscrieri: comp.deadline_inscrieri || '',
-          taxa_individual: String(comp.taxa_individual),
-          taxa_echipa: String(comp.taxa_echipa),
+          individual_tehnica: String(ct?.individual_tehnica ?? comp.taxa_individual ?? 80),
+          individual_cvd: String(ct?.individual_cvd ?? 80),
+          echipa_seniori: String(ct?.echipa_seniori ?? comp.taxa_echipa ?? 120),
+          echipa_juniori: String(ct?.echipa_juniori ?? 150),
+          cvd_echipa: String(ct?.cvd_echipa ?? 80),
           observatii: comp.observatii || '',
           status: comp.status,
         });
@@ -105,7 +111,9 @@ const CompetitieForm: React.FC<CompetitieFormProps> = ({ isOpen, onClose, onSave
           data_inceput: new Date().toISOString().split('T')[0],
           data_sfarsit: new Date().toISOString().split('T')[0],
           locatie: '', organizator: '', deadline_inscrieri: '',
-          taxa_individual: '100', taxa_echipa: '150', observatii: '',
+          individual_tehnica: '80', individual_cvd: '80',
+          echipa_seniori: '120', echipa_juniori: '150', cvd_echipa: '80',
+          observatii: '',
           status: 'draft',
         });
         setSeedCategories(true);
@@ -117,13 +125,22 @@ const CompetitieForm: React.FC<CompetitieFormProps> = ({ isOpen, onClose, onSave
     e.preventDefault();
     setLoading(true);
     try {
+      const configTaxe = {
+        individual_tehnica: parseFloat(form.individual_tehnica) || 80,
+        individual_cvd: parseFloat(form.individual_cvd) || 80,
+        echipa_seniori: parseFloat(form.echipa_seniori) || 120,
+        echipa_juniori: parseFloat(form.echipa_juniori) || 150,
+        cvd_echipa: parseFloat(form.cvd_echipa) || 80,
+        currency: 'RON',
+      };
       const payload = {
         denumire: form.denumire.trim(), tip: form.tip,
         data_inceput: form.data_inceput, data_sfarsit: form.data_sfarsit,
         locatie: form.locatie.trim() || null, organizator: form.organizator.trim() || null,
         deadline_inscrieri: form.deadline_inscrieri || null,
-        taxa_individual: parseFloat(form.taxa_individual) || 0,
-        taxa_echipa: parseFloat(form.taxa_echipa) || 0,
+        taxa_individual: configTaxe.individual_tehnica,
+        taxa_echipa: configTaxe.echipa_seniori,
+        config_taxe: configTaxe,
         observatii: form.observatii.trim() || null,
         status: form.status,
       };
@@ -231,9 +248,15 @@ const CompetitieForm: React.FC<CompetitieFormProps> = ({ isOpen, onClose, onSave
           <Input label="Locație" value={form.locatie} onChange={f('locatie')} />
           <Input label="Organizator" value={form.organizator} onChange={f('organizator')} />
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Input label="Taxă Individual (lei)" type="number" value={form.taxa_individual} onChange={f('taxa_individual')} />
-          <Input label="Taxă Echipă (lei)" type="number" value={form.taxa_echipa} onChange={f('taxa_echipa')} />
+        <div>
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Taxe înscriere (RON)</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <Input label="Individual Tehnică" type="number" min="0" value={form.individual_tehnica} onChange={f('individual_tehnica')} />
+            <Input label="Individual CVD" type="number" min="0" value={form.individual_cvd} onChange={f('individual_cvd')} />
+            <Input label="Echipă Seniori" type="number" min="0" value={form.echipa_seniori} onChange={f('echipa_seniori')} />
+            <Input label="Echipă Juniori" type="number" min="0" value={form.echipa_juniori} onChange={f('echipa_juniori')} />
+            <Input label="CVD Echipă" type="number" min="0" value={form.cvd_echipa} onChange={f('cvd_echipa')} />
+          </div>
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-300 mb-1">Observații</label>

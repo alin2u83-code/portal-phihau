@@ -538,6 +538,15 @@ export type StatusCompetitie = 'draft' | 'inscrieri_deschise' | 'inscrieri_inchi
 export type TipProba = 'thao_quyen_individual' | 'sincron' | 'song_luyen' | 'giao_dau' | 'thao_lo_individual';
 export type TipParticipare = 'individual' | 'pereche' | 'echipa';
 
+export interface ConfigTaxe {
+  individual_tehnica: number;
+  individual_cvd: number;
+  echipa_seniori: number;
+  echipa_juniori: number;
+  cvd_echipa: number;
+  currency: string;
+}
+
 export interface Competitie {
   id: string;
   denumire: string;
@@ -551,6 +560,7 @@ export interface Competitie {
   club_id: string | null;
   taxa_individual: number;
   taxa_echipa: number;
+  config_taxe: ConfigTaxe | null;
   observatii: string | null;
   legacy_eveniment_id: string | null;
   created_at: string;

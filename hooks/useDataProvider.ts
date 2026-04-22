@@ -122,7 +122,9 @@ export const useDataProvider = () => {
         sesiuniExamene: data.sesiuniExamene,
         inscrieriExamene: data.inscrieriExamene,
         antrenamente: attendanceData.antrenamente,
-        grupe: data.grupe,
+        grupe: permissions.isFederationLevel
+            ? data.grupe
+            : data.grupe.filter(g => !g.club_id || g.club_id === activeRoleContext?.club_id),
         plati: data.plati,
         tranzactii: data.tranzactii,
         evenimente: data.evenimente,

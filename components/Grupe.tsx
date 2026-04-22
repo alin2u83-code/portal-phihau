@@ -35,7 +35,8 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
     const permissions = usePermissions(activeRoleContext);
     const grupeClubId = permissions.isFederationLevel ? null : (activeRoleContext?.club_id ?? null);
     const { data: grupeData, isLoading: grupeLoading, refetch: refetchGrupe } = useGrupe(activeRoleContext?.id, grupeClubId);
-    const grupe = grupeData || [];
+    // Filtrare client-side ca plasă de siguranță — protejează dacă cache-ul conține date neexpirate fără filtru
+    const grupe = (grupeData || []).filter(g => !grupeClubId || g.club_id === grupeClubId);
 
     const [loading, setLoading] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);

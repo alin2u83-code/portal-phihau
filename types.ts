@@ -386,6 +386,32 @@ export interface Rezultat {
   probe?: string;
 }
 
+export interface StagiuCVDParticipare {
+  id: string;
+  sportiv_id: string;
+  eveniment_id: string | null;
+  data: string;
+  arma: string;
+  nivel: 'club' | 'national';
+  observatii: string | null;
+  created_at: string;
+}
+
+export const ARME_CVD_INDIVIDUALE = [
+  'Bong',
+  'Long Gian',
+  'Song Cot',
+  'Moc Can',
+  'Moc Guom',
+  'Song Diep Dao',
+  'Yen Dao',
+  'Ma Dao',
+  'Dai Dao',
+  '2 Long Gian',
+  'Tam Thiet Gian',
+  'Nhuyen Tien',
+] as const;
+
 // --- Domain: Suport & Utilități ---
 export interface AnuntGeneral {
   id: string;

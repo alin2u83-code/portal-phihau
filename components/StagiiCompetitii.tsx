@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { Eveniment, Rezultat, Sportiv, Plata, PretConfig, InscriereExamen, Examen, Grad, User, Permissions, Locatie } from '../types';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { Eveniment, Rezultat, Sportiv, Plata, PretConfig, InscriereExamen, Examen, Grad, User, Permissions, Locatie, StagiuCVDParticipare, ARME_CVD_INDIVIDUALE } from '../types';
 import { Button, Modal, Input, Select, Card, Switch } from './ui';
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon } from './icons';
 import { getPretValabil } from '../utils/pricing';
@@ -89,10 +89,80 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
     const { showError, showSuccess } = useError();
     const [rezultatToDelete, setRezultatToDelete] = useState<Rezultat | null>(null);
     const [isDeletingRezultat, setIsDeletingRezultat] = useState(false);
-    
+
     const [formState, setFormState] = useState({ sportivId: '', rezultat: 'Participare', probe: [] as string[] });
     const [searchSportiv, setSearchSportiv] = useState('');
     const [isSportivDropdownOpen, setIsSportivDropdownOpen] = useState(false);
+
+    // CVD arm tracking — activ doar pentru stagii naționale
+    const esteStaguNationalCVD = eveniment.tip === 'Stagiu' && eveniment.tip_eveniment === 'FEDERATIE';
+    const [stagiiCVD, setStagiiCVD] = useState<StagiuCVDParticipare[]>([]);
+    const [armePick, setArmePick] = useState<Record<string, string>>({}); // sportivId → arma
+    const [savingArma, setSavingArma] = useState<Record<string, boolean>>({});
+
+    useEffect(() => {
+        if (!esteStaguNationalCVD) return;
+        supabase
+            .from('stagii_cvd_participare')
+            .select('*')
+            .eq('eveniment_id', eveniment.id)
+            .then(({ data }) => {
+                if (data) setStagiiCVD(data as StagiuCVDParticipare[]);
+            });
+    }, [esteStaguNationalCVD, eveniment.id]);
+
+    const armaPerSportiv = useMemo(() => {
+        const m = new Map<string, StagiuCVDParticipare>();
+        for (const s of stagiiCVD) m.set(s.sportiv_id, s);
+        return m;
+    }, [stagiiCVD]);
+
+    const handleSalveazaArma = useCallback(async (sportivIdTarget: string) => {
+        const arma = armePick[sportivIdTarget];
+        if (!arma) return;
+        setSavingArma(p => ({ ...p, [sportivIdTarget]: true }));
+        try {
+            const existing = armaPerSportiv.get(sportivIdTarget);
+            if (existing) {
+                const { data, error } = await supabase
+                    .from('stagii_cvd_participare')
+                    .update({ arma })
+                    .eq('id', existing.id)
+                    .select()
+                    .single();
+                if (error) throw error;
+                setStagiiCVD(prev => prev.map(s => s.id === existing.id ? data as StagiuCVDParticipare : s));
+            } else {
+                const { data, error } = await supabase
+                    .from('stagii_cvd_participare')
+                    .insert({
+                        sportiv_id: sportivIdTarget,
+                        eveniment_id: eveniment.id,
+                        data: eveniment.data,
+                        arma,
+                        nivel: 'national',
+                    })
+                    .select()
+                    .single();
+                if (error) throw error;
+                setStagiiCVD(prev => [...prev, data as StagiuCVDParticipare]);
+            }
+            showSuccess('CVD', 'Arma salvată.');
+        } catch (err) {
+            showError('Salvare armă CVD', err);
+        } finally {
+            setSavingArma(p => ({ ...p, [sportivIdTarget]: false }));
+        }
+    }, [armePick, armaPerSportiv, eveniment.id, eveniment.data, showError, showSuccess]);
+
+    const handleStergeArma = useCallback(async (sportivIdTarget: string) => {
+        const existing = armaPerSportiv.get(sportivIdTarget);
+        if (!existing) return;
+        const { error } = await supabase.from('stagii_cvd_participare').delete().eq('id', existing.id);
+        if (error) { showError('Ștergere armă CVD', error); return; }
+        setStagiiCVD(prev => prev.filter(s => s.id !== existing.id));
+        setArmePick(p => { const next = { ...p }; delete next[sportivIdTarget]; return next; });
+    }, [armaPerSportiv, showError]);
 
     const participantiIds = useMemo(() => new Set((rezultate || []).map(r => r.sportiv_id)), [rezultate]);
     const sportiviDisponibili = useMemo(() => (sportivi || []).filter(s => s.status === 'Activ' && !participantiIds.has(s.id)), [sportivi, participantiIds]);
@@ -192,6 +262,65 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
             <div className="flex justify-end pt-2"><Button type="submit" variant="info">Înscrie</Button></div>
         </form>
     </Card>
+
+    {/* Secțiune CVD — arme per participant, vizibilă doar la stagii naționale */}
+    {esteStaguNationalCVD && rezultate.length > 0 && (
+        <div className="mt-6 border-t border-slate-700 pt-6">
+            <h4 className="text-lg font-semibold mb-1 text-amber-400">Arme CVD practiciate</h4>
+            <p className="text-xs text-slate-500 mb-4">
+                Înregistrează arma practicată de fiecare sportiv la acest stagiu național.
+                Datele sunt folosite la validarea înscrierii în competiții CVD.
+            </p>
+            <div className="space-y-2">
+                {rezultate.map(r => {
+                    const s = sportivi.find(sp => sp.id === r.sportiv_id);
+                    if (!s) return null;
+                    const existenta = armaPerSportiv.get(r.sportiv_id);
+                    const selectat = armePick[r.sportiv_id] ?? existenta?.arma ?? '';
+                    const saving = savingArma[r.sportiv_id] ?? false;
+                    return (
+                        <div key={r.sportiv_id} className="flex items-center gap-3 bg-slate-700/30 rounded-lg px-3 py-2">
+                            <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-white truncate">
+                                    {s.prenume} {s.nume}
+                                </p>
+                                {existenta && (
+                                    <p className="text-xs text-amber-400/80">{existenta.arma}</p>
+                                )}
+                            </div>
+                            <select
+                                value={selectat}
+                                onChange={e => setArmePick(p => ({ ...p, [r.sportiv_id]: e.target.value }))}
+                                className="bg-slate-800 border border-slate-600 text-white text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                            >
+                                <option value="">Selectează armă...</option>
+                                {ARME_CVD_INDIVIDUALE.map(a => (
+                                    <option key={a} value={a}>{a}</option>
+                                ))}
+                            </select>
+                            <Button
+                                variant="warning"
+                                size="sm"
+                                disabled={!selectat || saving}
+                                onClick={() => handleSalveazaArma(r.sportiv_id)}
+                            >
+                                {saving ? '...' : 'Salvează'}
+                            </Button>
+                            {existenta && (
+                                <Button
+                                    variant="danger"
+                                    size="sm"
+                                    onClick={() => handleStergeArma(r.sportiv_id)}
+                                >
+                                    <TrashIcon className="w-3 h-3" />
+                                </Button>
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    )}
 </div><ConfirmDeleteModal isOpen={!!rezultatToDelete} onClose={() => setRezultatToDelete(null)} onConfirm={() => { if(rezultatToDelete) confirmDeleteRezultat(rezultatToDelete.id) }} tableName="înscriere" isLoading={isDeletingRezultat} /> </Card> );
 };
 

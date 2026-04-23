@@ -41,35 +41,171 @@ function buildDejaInscrisiSet(inscrieri: InscriereCompetitie[]): Set<string> {
 }
 
 // -----------------------------------------------
-// PROGRESS BAR
+// STEP INDICATOR (STEPPER)
 // -----------------------------------------------
-const WizardProgress: React.FC<{ step: number; total: number }> = ({ step, total }) => (
-  <div className="flex items-center gap-1 mb-1">
-    {Array.from({ length: total }, (_, i) => i + 1).map(n => (
-      <React.Fragment key={n}>
-        <div className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold shrink-0 transition-colors ${
-          n < step
-            ? 'bg-brand-primary/70 text-white'
-            : n === step
-              ? 'bg-brand-primary text-white ring-2 ring-brand-primary/40'
-              : 'bg-slate-700 text-slate-500'
-        }`}>
-          {n < step ? '✓' : n}
-        </div>
-        {n < total && (
-          <div className={`flex-1 h-0.5 rounded ${n < step ? 'bg-brand-primary/60' : 'bg-slate-700'}`} />
-        )}
-      </React.Fragment>
-    ))}
-  </div>
-);
 
 const STEP_LABELS = [
   'Selectare sportivi',
   'Categorii per sportiv',
-  'Echipe',
+  'Formare echipe',
   'Sumar + taxe',
 ];
+
+const STEP_LABELS_SCURT = [
+  'Sportivi',
+  'Categorii',
+  'Echipe',
+  'Sumar',
+];
+
+/**
+ * StepIndicator — afișează progresul wizardului pas cu pas.
+ *
+ * Desktop (md+): pași orizontali cu etichete text complete.
+ * Mobil (< md): pași orizontali compacti cu etichete scurte, numerele mai mici.
+ *
+ * Stări vizuale:
+ *  - completat (n < step): cerc verde cu bifa ✓
+ *  - activ    (n === step): cerc albastru (brand-primary) cu ring exterior
+ *  - următor  (n > step):  cerc gri slate-700
+ */
+const StepIndicator: React.FC<{ step: number; total: number }> = ({ step, total }) => {
+  return (
+    <nav aria-label="Progres wizard inscriere" className="mb-2">
+      {/* ---- DESKTOP (md+): orizontal cu etichete complete ---- */}
+      <ol className="hidden md:flex items-center w-full">
+        {Array.from({ length: total }, (_, i) => i + 1).map(n => {
+          const isCompleted = n < step;
+          const isActive    = n === step;
+          const isLast      = n === total;
+
+          return (
+            <li
+              key={n}
+              className={`flex items-center ${isLast ? 'flex-none' : 'flex-1'}`}
+            >
+              {/* Cercul + eticheta */}
+              <div className="flex flex-col items-center gap-1.5 shrink-0">
+                {/* Cerc */}
+                <div
+                  aria-current={isActive ? 'step' : undefined}
+                  className={[
+                    'flex items-center justify-center w-9 h-9 rounded-full text-sm font-bold transition-all duration-200',
+                    isCompleted
+                      ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-900/50'
+                      : isActive
+                        ? 'bg-[var(--brand-primary)] text-white ring-4 ring-[var(--brand-primary)]/20 shadow-md'
+                        : 'bg-slate-700 text-slate-500 border border-slate-600',
+                  ].join(' ')}
+                >
+                  {isCompleted ? (
+                    <svg viewBox="0 0 16 16" fill="none" className="w-4 h-4" aria-hidden="true">
+                      <path d="M3 8.5l3.5 3.5 6.5-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  ) : (
+                    n
+                  )}
+                </div>
+
+                {/* Eticheta desktop */}
+                <span
+                  className={[
+                    'text-[11px] font-medium text-center leading-tight whitespace-nowrap',
+                    isCompleted
+                      ? 'text-emerald-400'
+                      : isActive
+                        ? 'text-white'
+                        : 'text-slate-500',
+                  ].join(' ')}
+                >
+                  {STEP_LABELS[n - 1]}
+                </span>
+              </div>
+
+              {/* Linie de conexiune (nu după ultimul pas) */}
+              {!isLast && (
+                <div
+                  className={[
+                    'flex-1 mx-2 mt-[-20px] h-0.5 rounded-full transition-all duration-300',
+                    isCompleted ? 'bg-emerald-600/60' : 'bg-slate-700',
+                  ].join(' ')}
+                  aria-hidden="true"
+                />
+              )}
+            </li>
+          );
+        })}
+      </ol>
+
+      {/* ---- MOBIL (< md): orizontal compact cu etichete scurte ---- */}
+      <ol className="flex md:hidden items-center w-full">
+        {Array.from({ length: total }, (_, i) => i + 1).map(n => {
+          const isCompleted = n < step;
+          const isActive    = n === step;
+          const isLast      = n === total;
+
+          return (
+            <li
+              key={n}
+              className={`flex items-center ${isLast ? 'flex-none' : 'flex-1'}`}
+            >
+              <div className="flex flex-col items-center gap-1 shrink-0">
+                {/* Cerc mic */}
+                <div
+                  aria-current={isActive ? 'step' : undefined}
+                  className={[
+                    'flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold transition-all duration-200',
+                    isCompleted
+                      ? 'bg-emerald-600 text-white'
+                      : isActive
+                        ? 'bg-[var(--brand-primary)] text-white ring-2 ring-[var(--brand-primary)]/25'
+                        : 'bg-slate-700 text-slate-500 border border-slate-600',
+                  ].join(' ')}
+                >
+                  {isCompleted ? (
+                    <svg viewBox="0 0 16 16" fill="none" className="w-3.5 h-3.5" aria-hidden="true">
+                      <path d="M3 8.5l3.5 3.5 6.5-7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  ) : (
+                    n
+                  )}
+                </div>
+
+                {/* Eticheta scurta mobil */}
+                <span
+                  className={[
+                    'text-[10px] font-medium text-center leading-none',
+                    isCompleted
+                      ? 'text-emerald-500'
+                      : isActive
+                        ? 'text-white'
+                        : 'text-slate-600',
+                  ].join(' ')}
+                >
+                  {STEP_LABELS_SCURT[n - 1]}
+                </span>
+              </div>
+
+              {/* Linie de conexiune mobil */}
+              {!isLast && (
+                <div
+                  className={[
+                    'flex-1 mx-1.5 mt-[-14px] h-0.5 rounded-full transition-all duration-300',
+                    isCompleted ? 'bg-emerald-600/50' : 'bg-slate-700',
+                  ].join(' ')}
+                  aria-hidden="true"
+                />
+              )}
+            </li>
+          );
+        })}
+      </ol>
+    </nav>
+  );
+};
+
+/** Alias backward-compat — componentele Pas1–Pas4 continuă să folosească WizardProgress */
+const WizardProgress = StepIndicator;
 
 // -----------------------------------------------
 // BADGE ELIGIBILITATE GENERALĂ
@@ -1800,10 +1936,11 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
   selectedSportivi, indivPicks, echipaPicks, echipeFormate,
   clubId, numeClub, onBack, onSaved,
 }) => {
-  const { showError } = useError();
+  const { showError, showSuccess } = useError();
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   // Sportivii selectați cu date enriched
   const sportiviSelectati = useMemo(() =>
@@ -2048,10 +2185,13 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
         }
       }
 
-      setSuccessMsg('Inscrierea a fost salvata cu succes!');
+      setSuccessMsg('Inscrierea a fost finalizata cu succes!');
+      setConfirmOpen(false);
+      showSuccess('Inscriere finalizata', `Inscrierea la ${competitie.denumire} a fost trimisa.`);
       setTimeout(() => onSaved(), 1200);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
+      setConfirmOpen(false);
       setErrorMsg(msg);
       showError('Salvare inscriere', err);
     } finally {
@@ -2338,21 +2478,97 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
           </div>
           <Button
             variant="success"
-            onClick={handleSave}
-            disabled={saving || !!successMsg}
+            onClick={() => setConfirmOpen(true)}
+            disabled={saving || !!successMsg || (randuriIndividuale.length === 0 && randuriEchipe.length === 0)}
             className="min-w-[180px] ml-auto"
           >
-            {saving ? (
-              <span className="flex items-center gap-2">
-                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin shrink-0" />
-                Se salveaza...
-              </span>
-            ) : (
-              'Confirma inscrierea'
-            )}
+            Finalizeaza inscrierea
           </Button>
         </div>
       </div>
+
+      {/* Dialog confirmare finalizare inscriere */}
+      {confirmOpen && (
+        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4">
+          {/* Overlay */}
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => !saving && setConfirmOpen(false)}
+          />
+          {/* Panel */}
+          <div className="relative w-full md:max-w-md bg-slate-900 border border-slate-700 rounded-t-2xl md:rounded-2xl shadow-2xl p-5 space-y-4">
+            {/* Titlu */}
+            <div className="flex items-start gap-3">
+              <div className="shrink-0 w-10 h-10 rounded-full bg-green-900/50 border border-green-700/60 flex items-center justify-center text-lg">
+                ✓
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-white">Finalizeaza inscrierea</h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Verificati sumarul inainte de trimitere
+                </p>
+              </div>
+            </div>
+
+            {/* Sumar */}
+            <div className="rounded-xl border border-slate-700 bg-slate-800/50 divide-y divide-slate-700/60 text-sm">
+              {randuriIndividuale.length > 0 && (
+                <div className="flex items-center justify-between px-4 py-2.5">
+                  <span className="text-slate-300">
+                    Inscrieri individuale
+                    <span className="ml-1.5 text-xs text-slate-500">({randuriIndividuale.length})</span>
+                  </span>
+                  <span className="font-semibold text-white">{totalIndividual} lei</span>
+                </div>
+              )}
+              {randuriEchipe.length > 0 && (
+                <div className="flex items-center justify-between px-4 py-2.5">
+                  <span className="text-slate-300">
+                    Echipe
+                    <span className="ml-1.5 text-xs text-slate-500">({randuriEchipe.length})</span>
+                  </span>
+                  <span className="font-semibold text-white">{totalEchipe} lei</span>
+                </div>
+              )}
+              <div className="flex items-center justify-between px-4 py-3 bg-slate-800/60">
+                <span className="font-bold text-white">Total de achitat</span>
+                <span className="font-bold text-lg text-green-400">{totalGeneral} lei</span>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-500 italic">
+              Dupa finalizare, inscrierea va fi trimisa organizatorilor. Poti retrage individual sportivii ulterior.
+            </p>
+
+            {/* Actiuni */}
+            <div className="flex gap-3 pt-1">
+              <Button
+                variant="secondary"
+                onClick={() => setConfirmOpen(false)}
+                disabled={saving}
+                className="flex-1"
+              >
+                Anuleaza
+              </Button>
+              <Button
+                variant="success"
+                onClick={handleSave}
+                disabled={saving}
+                className="flex-1"
+              >
+                {saving ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin shrink-0" />
+                    Se trimite...
+                  </span>
+                ) : (
+                  'Confirma si trimite'
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

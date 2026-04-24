@@ -201,8 +201,9 @@ export const useDataProvider = () => {
         if (currentUser?.id) {
             fetchIstoricVedere(currentUser.id);
 
+            const channelId = `${currentUser.id}_${Date.now()}`;
             const subscription = supabase
-                .channel(`prezenta_antrenament_changes_${currentUser.id}`)
+                .channel(`prezenta_antrenament_changes_${channelId}`)
                 .on(
                     'postgres_changes',
                     { event: '*', schema: 'public', table: 'prezenta_antrenament' },
@@ -218,7 +219,7 @@ export const useDataProvider = () => {
             const clubId = currentUser?.club_id;
             const anunturiSubscription = isStaff && clubId
                 ? supabase
-                    .channel(`anunturi_prezenta_changes_${currentUser.id}`)
+                    .channel(`anunturi_prezenta_changes_${channelId}`)
                     .on(
                         'postgres_changes',
                         {

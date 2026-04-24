@@ -26,13 +26,13 @@ export const fetchSportiviData = async (
     pagination?: PaginationOptions,
     sort?: SortOptions
 ): Promise<{ data: Sportiv[], count: number }> => {
-    let selectString = 'id, user_id, nume, prenume, email, username, status, familie_id, club_id, grupa_id, grad_actual_id, data_nasterii, data_inscrierii, cnp, telefon, adresa, gen, cluburi(id, nume), roluri:utilizator_roluri_multicont(id, rol_id, rol_denumire)';
+    let selectString = 'id, user_id, nume, prenume, email, username, status, familie_id, club_id, grupa_id, grad_actual_id, data_nasterii, data_inscrierii, cnp, telefon, adresa, gen, club_nume, grad_nume, grupa_denumire, roluri:utilizator_roluri_multicont(id, rol_id, rol_denumire)';
     if (filters.rolId) {
-        selectString = 'id, user_id, nume, prenume, email, username, status, familie_id, club_id, grupa_id, grad_actual_id, data_nasterii, data_inscrierii, cnp, telefon, adresa, gen, cluburi(id, nume), roluri:utilizator_roluri_multicont!inner(id, rol_id, rol_denumire)';
+        selectString = 'id, user_id, nume, prenume, email, username, status, familie_id, club_id, grupa_id, grad_actual_id, data_nasterii, data_inscrierii, cnp, telefon, adresa, gen, club_nume, grad_nume, grupa_denumire, roluri:utilizator_roluri_multicont!inner(id, rol_id, rol_denumire)';
     }
 
     let query = supabase
-        .from('sportivi')
+        .from('rbv_sportivi_complet')
         .select(selectString, { count: 'exact' });
     
     if (filters.clubId) {
@@ -76,6 +76,7 @@ export const fetchSportiviData = async (
     
     const formattedData = (data as any[]).map(s => ({
         ...s,
+        cluburi: s.club_id ? { id: s.club_id, nume: s.club_nume } : null,
         roluri: s.roluri ? s.roluri.map((r: any) => ({ id: r.rol_id || r.id, nume: r.rol_denumire })) : []
     }));
 

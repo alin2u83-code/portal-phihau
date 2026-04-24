@@ -202,7 +202,7 @@ export const useDataProvider = () => {
             fetchIstoricVedere(currentUser.id);
 
             const subscription = supabase
-                .channel('prezenta_antrenament_changes')
+                .channel(`prezenta_antrenament_changes_${currentUser.id}`)
                 .on(
                     'postgres_changes',
                     { event: '*', schema: 'public', table: 'prezenta_antrenament' },
@@ -218,7 +218,7 @@ export const useDataProvider = () => {
             const clubId = currentUser?.club_id;
             const anunturiSubscription = isStaff && clubId
                 ? supabase
-                    .channel('anunturi_prezenta_changes')
+                    .channel(`anunturi_prezenta_changes_${currentUser.id}`)
                     .on(
                         'postgres_changes',
                         {
@@ -319,26 +319,28 @@ export const useDataProvider = () => {
                 tipuriPlati: 'cache_tipuriPlati',
             };
 
-            const queries: Record<string, any> = {
-                // Date globale — fără filtru club
+            // Critical queries — blochează UI până sunt gata
+            const criticalQueries: Record<string, any> = {
                 clubs: cleanedSupabase.from('cluburi').select('id, nume, cif, oras, theme_config'),
                 allRoles: cleanedSupabase.from('roluri').select('id, nume'),
                 grade: cleanedSupabase.from('grade').select('*'),
                 tipuriPlati: cleanedSupabase.from('tipuri_plati').select('id, nume'),
-                reduceri: cleanedSupabase.from('reduceri').select('*'),
-                rezultate: cleanedSupabase.from('rezultate').select('*'),
-                tranzactii: cleanedSupabase.from('tranzactii').select('*'),
-
-                // Date filtrate pe club — RLS + filtru explicit
                 tipuriAbonament: withClub(cleanedSupabase.from('tipuri_abonament').select('id, denumire, pret, club_id, numar_membri')),
                 sesiuniExamene: withClub(cleanedSupabase.from('sesiuni_examene').select('*')),
                 familii: withClub(cleanedSupabase.from('familii').select('*')),
                 vizualizarePlati: withClub(cleanedSupabase.from('view_plata_sportiv').select('*')),
-                istoricPlatiDetaliat: cleanedSupabase.from('view_istoric_plati_detaliat').select('*'),
                 locatii: withClub(cleanedSupabase.from('nom_locatii').select('*')),
                 evenimente: withClub(cleanedSupabase.from('evenimente').select('*')),
-                deconturiFederatie: withClub(cleanedSupabase.from('deconturi_federatie').select('*')),
                 taxeAnualeConfig: withClub(cleanedSupabase.from('taxe_anuale_config').select('*')),
+            };
+
+            // Deferred queries — se încarcă în background după ce UI-ul e gata
+            const deferredQueries: Record<string, any> = {
+                reduceri: cleanedSupabase.from('reduceri').select('*'),
+                rezultate: cleanedSupabase.from('rezultate').select('*'),
+                tranzactii: cleanedSupabase.from('tranzactii').select('*'),
+                istoricPlatiDetaliat: cleanedSupabase.from('view_istoric_plati_detaliat').select('*'),
+                deconturiFederatie: withClub(cleanedSupabase.from('deconturi_federatie').select('*')),
                 vizeSportivi: cleanedSupabase.from('vize_sportivi').select('*'),
                 decontSportivi: cleanedSupabase.from('decont_sportivi').select('*'),
             };
@@ -349,41 +351,38 @@ export const useDataProvider = () => {
                 const cached = getCachedData(cacheKey);
                 if (cached) {
                     cachedResults[key] = cached;
-                    delete queries[key]; // Don't fetch if cached
+                    delete criticalQueries[key];
                 }
             }
 
             if (isSportiv && activeCtx.sportiv_id) {
-                queries.inscrieriExamene = cleanedSupabase.from('vedere_detalii_examen').select('*, id:inscriere_id').eq('sportiv_id', activeCtx.sportiv_id);
-                queries.istoricGrade = cleanedSupabase.from('vedere_istoric_grade_sportiv').select('*').eq('sportiv_id', activeCtx.sportiv_id);
+                criticalQueries.inscrieriExamene = cleanedSupabase.from('vedere_detalii_examen').select('*, id:inscriere_id').eq('sportiv_id', activeCtx.sportiv_id);
+                criticalQueries.istoricGrade = cleanedSupabase.from('vedere_istoric_grade_sportiv').select('*').eq('sportiv_id', activeCtx.sportiv_id);
             } else {
-                queries.inscrieriExamene = clubId
+                criticalQueries.inscrieriExamene = clubId
                     ? cleanedSupabase.from('vedere_detalii_examen').select('*, id:inscriere_id').eq('club_id', clubId)
                     : cleanedSupabase.from('vedere_detalii_examen').select('*, id:inscriere_id');
-                queries.istoricGrade = cleanedSupabase.from('vedere_istoric_grade_sportiv').select('*');
+                criticalQueries.istoricGrade = cleanedSupabase.from('vedere_istoric_grade_sportiv').select('*');
             }
 
-            const queryKeys = Object.keys(queries);
-            const settledResults = await Promise.allSettled(Object.values(queries)) as SettledQuery[];
-            
-            const { data: processedData, rlsErrors } = processSettledQueries(settledResults, queryKeys);
-            
-            // Merge cached results
-            const finalData = { ...processedData, ...cachedResults };
-            
-            // Update cache for newly fetched data — nu cachea array-uri goale pentru date statice critice
-            settledResults.forEach((result, index) => {
-                const key = queryKeys[index];
+            const criticalKeys = Object.keys(criticalQueries);
+            const criticalSettled = await Promise.allSettled(Object.values(criticalQueries)) as SettledQuery[];
+
+            const { data: criticalData, rlsErrors } = processSettledQueries(criticalSettled, criticalKeys);
+            const finalData = { ...criticalData, ...cachedResults };
+
+            // Update cache for newly fetched static data
+            criticalSettled.forEach((result, index) => {
+                const key = criticalKeys[index];
                 if (result.status === 'fulfilled' && cacheKeys[key]) {
                     const rawData = result.value?.data;
-                    // Nu salva în cache dacă datele sunt goale pentru tabele care trebuie să aibă date
                     if (rawData && rawData.length > 0) {
                         setCachedData(cacheKeys[key], rawData);
                     }
                 }
             });
 
-            const criticalRlsErrors = isSportiv 
+            const criticalRlsErrors = isSportiv
                 ? rlsErrors.filter(err => !['locatii', 'reduceri', 'preturiConfig', 'istoricPlatiDetaliat', 'deconturiFederatie'].includes(err))
                 : rlsErrors;
 
@@ -400,20 +399,29 @@ export const useDataProvider = () => {
                 locatii: finalData.locatii || prev.locatii,
                 tipuriPlati: finalData.tipuriPlati || prev.tipuriPlati,
                 sesiuniExamene: finalData.sesiuniExamene || prev.sesiuniExamene,
-                tranzactii: finalData.tranzactii || prev.tranzactii,
                 evenimente: finalData.evenimente || prev.evenimente,
-                rezultate: finalData.rezultate || prev.rezultate,
                 familii: finalData.familii || prev.familii,
                 vizualizarePlati: finalData.vizualizarePlati || prev.vizualizarePlati,
-                istoricPlatiDetaliat: finalData.istoricPlatiDetaliat || prev.istoricPlatiDetaliat,
-                reduceri: finalData.reduceri || prev.reduceri,
-                deconturiFederatie: finalData.deconturiFederatie || prev.deconturiFederatie,
                 inscrieriExamene: finalData.inscrieriExamene || prev.inscrieriExamene,
                 istoricGrade: finalData.istoricGrade || prev.istoricGrade,
                 taxeAnualeConfig: finalData.taxeAnualeConfig || prev.taxeAnualeConfig,
-                vizeSportivi: finalData.vizeSportivi || prev.vizeSportivi,
-                decontSportivi: finalData.decontSportivi || prev.decontSportivi,
             }));
+
+            // Încarcă date secundare în background — nu blochează UI
+            Promise.allSettled(Object.values(deferredQueries)).then((deferredSettled) => {
+                const deferredKeys = Object.keys(deferredQueries);
+                const { data: deferredData } = processSettledQueries(deferredSettled as SettledQuery[], deferredKeys);
+                setData(prev => ({
+                    ...prev,
+                    reduceri: deferredData.reduceri || prev.reduceri,
+                    rezultate: deferredData.rezultate || prev.rezultate,
+                    tranzactii: deferredData.tranzactii || prev.tranzactii,
+                    istoricPlatiDetaliat: deferredData.istoricPlatiDetaliat || prev.istoricPlatiDetaliat,
+                    deconturiFederatie: deferredData.deconturiFederatie || prev.deconturiFederatie,
+                    vizeSportivi: deferredData.vizeSportivi || prev.vizeSportivi,
+                    decontSportivi: deferredData.decontSportivi || prev.decontSportivi,
+                }));
+            });
 
         } catch (err: any) {
             setError(err.message);

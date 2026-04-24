@@ -73,5 +73,21 @@ export default defineConfig(({ mode }) => {
       react(),
       claudeProxyPlugin(env.CLAUDE_API_KEY || ''),
     ],
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+            'vendor-query': ['@tanstack/react-query'],
+            'vendor-supabase': ['@supabase/supabase-js'],
+            'vendor-charts': ['recharts'],
+            'vendor-motion': ['motion'],
+            'vendor-pdf': ['jspdf', 'jspdf-autotable'],
+            'vendor-xlsx': ['xlsx'],
+            'vendor-ui': ['lucide-react', 'react-hot-toast'],
+          },
+        },
+      },
+    },
   };
 });

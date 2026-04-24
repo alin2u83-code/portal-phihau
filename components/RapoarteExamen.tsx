@@ -411,6 +411,7 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
     const [filterRezultat, setFilterRezultat] = useState('');
     const [filterDataDe, setFilterDataDe] = useState('');
     const [filterDataPana, setFilterDataPana] = useState('');
+    const [filtersExpanded, setFiltersExpanded] = useState(false);
     const [sortField, setSortField] = useState<SortField>('data');
     const [sortDir, setSortDir] = useState<SortDir>('desc');
     const { showError, showSuccess } = useError();
@@ -575,28 +576,75 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
         showSuccess('Succes', 'Examenul a fost șters.');
     };
 
+    const activeFilterCount = [filterNume, filterGrad, filterRezultat, filterDataDe, filterDataPana].filter(Boolean).length;
+
+    const filterContent = (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            {initialSportivId ? (
+                <div className="text-sm text-blue-300 font-medium py-2 col-span-full">
+                    Filtrat pe sportiv selectat
+                </div>
+            ) : (
+                <Input label="Caută sportiv" value={filterNume} onChange={e => setFilterNume(e.target.value)} placeholder="Nume sau prenume..." />
+            )}
+            <Select label="Grad" value={filterGrad} onChange={e => setFilterGrad(e.target.value)}>
+                <option value="">Toate gradele</option>
+                {[...grade].sort((a, b) => a.ordine - b.ordine).map(g => <option key={g.id} value={String(g.ordine)}>{g.nume}</option>)}
+            </Select>
+            <Select label="Rezultat" value={filterRezultat} onChange={e => setFilterRezultat(e.target.value)}>
+                <option value="">Toate rezultatele</option>
+                <option value="Admis">Admis</option>
+                <option value="Respins">Respins</option>
+                <option value="Neprezentat">Neprezentat</option>
+            </Select>
+            <Input label="Data de la" type="date" value={filterDataDe} onChange={e => setFilterDataDe(e.target.value)} />
+            <Input label="Data până la" type="date" value={filterDataPana} onChange={e => setFilterDataPana(e.target.value)} />
+        </div>
+    );
+
     return (
         <div className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                {initialSportivId ? (
-                    <div className="text-sm text-blue-300 font-medium py-2 col-span-full">
-                        Filtrat pe sportiv selectat
+            {/* Filtre collapse pe mobil */}
+            <div className="sm:hidden rounded-lg bg-slate-800/50 overflow-hidden">
+                <button
+                    onClick={() => setFiltersExpanded(prev => !prev)}
+                    className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-white"
+                >
+                    <span className="flex items-center gap-2">
+                        <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
+                        </svg>
+                        Filtre
+                        {activeFilterCount > 0 && (
+                            <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold rounded-full bg-amber-500 text-black">
+                                {activeFilterCount}
+                            </span>
+                        )}
+                    </span>
+                    <svg
+                        className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${filtersExpanded ? 'rotate-180' : ''}`}
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                {filtersExpanded && (
+                    <div className="px-4 pb-4 border-t border-slate-700">
+                        <div className="pt-3 space-y-3">
+                            {filterContent}
+                        </div>
+                        <button
+                            onClick={() => setFiltersExpanded(false)}
+                            className="mt-3 w-full py-2 rounded-lg bg-amber-500 text-black text-sm font-bold"
+                        >
+                            Aplică filtre →
+                        </button>
                     </div>
-                ) : (
-                    <Input label="Caută sportiv" value={filterNume} onChange={e => setFilterNume(e.target.value)} placeholder="Nume sau prenume..." />
                 )}
-                <Select label="Grad" value={filterGrad} onChange={e => setFilterGrad(e.target.value)}>
-                    <option value="">Toate gradele</option>
-                    {[...grade].sort((a, b) => a.ordine - b.ordine).map(g => <option key={g.id} value={String(g.ordine)}>{g.nume}</option>)}
-                </Select>
-                <Select label="Rezultat" value={filterRezultat} onChange={e => setFilterRezultat(e.target.value)}>
-                    <option value="">Toate rezultatele</option>
-                    <option value="Admis">Admis</option>
-                    <option value="Respins">Respins</option>
-                    <option value="Neprezentat">Neprezentat</option>
-                </Select>
-                <Input label="Data de la" type="date" value={filterDataDe} onChange={e => setFilterDataDe(e.target.value)} />
-                <Input label="Data până la" type="date" value={filterDataPana} onChange={e => setFilterDataPana(e.target.value)} />
+            </div>
+            {/* Filtre normale pe sm+ */}
+            <div className="hidden sm:block">
+                {filterContent}
             </div>
             <div className="flex justify-between items-center">
                 <p className="text-sm text-slate-400">{filtered.length} înregistrări</p>

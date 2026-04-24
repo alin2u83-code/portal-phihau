@@ -10,6 +10,7 @@ import { formatTime } from '../../utils/date';
 export const IstoricPrezentaGlobal: React.FC<{ onBack: () => void, onViewSportiv?: (s: Sportiv) => void }> = ({ onBack, onViewSportiv }) => {
     const [istoric, setIstoric] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [filtersExpanded, setFiltersExpanded] = useState(false);
     const { showError } = useError();
     const [sportivi, setSportivi] = useState<Record<string, Sportiv>>({});
 
@@ -192,12 +193,64 @@ export const IstoricPrezentaGlobal: React.FC<{ onBack: () => void, onViewSportiv
                 </div>
 
                 <div className="p-4 md:p-6">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 p-4 bg-slate-800/20 rounded-2xl border border-slate-700/30">
-                        <Input label="Caută Sportiv" placeholder="Nume..." value={filterNume} onChange={e => setFilterNume(e.target.value)} />
-                        <Input label="Caută Grupă" placeholder="Grupă..." value={filterGrupa} onChange={e => setFilterGrupa(e.target.value)} />
-                        <Input label="De la" type="date" value={filterDataStart} onChange={e => setFilterDataStart(e.target.value)} />
-                        <Input label="Până la" type="date" value={filterDataEnd} onChange={e => setFilterDataEnd(e.target.value)} />
-                    </div>
+                    {/* Filtre collapse pe mobil */}
+                    {(() => {
+                        const activeCount = [filterNume, filterGrupa, filterDataStart, filterDataEnd].filter(Boolean).length;
+                        const filterGrid = (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <Input label="Caută Sportiv" placeholder="Nume..." value={filterNume} onChange={e => setFilterNume(e.target.value)} />
+                                <Input label="Caută Grupă" placeholder="Grupă..." value={filterGrupa} onChange={e => setFilterGrupa(e.target.value)} />
+                                <Input label="De la" type="date" value={filterDataStart} onChange={e => setFilterDataStart(e.target.value)} />
+                                <Input label="Până la" type="date" value={filterDataEnd} onChange={e => setFilterDataEnd(e.target.value)} />
+                            </div>
+                        );
+                        return (
+                            <>
+                                {/* Collapse pe < sm */}
+                                <div className="sm:hidden rounded-lg bg-slate-800/50 overflow-hidden mb-6">
+                                    <button
+                                        onClick={() => setFiltersExpanded(prev => !prev)}
+                                        className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-white"
+                                    >
+                                        <span className="flex items-center gap-2">
+                                            <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
+                                            </svg>
+                                            Filtre
+                                            {activeCount > 0 && (
+                                                <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold rounded-full bg-amber-500 text-black">
+                                                    {activeCount}
+                                                </span>
+                                            )}
+                                        </span>
+                                        <svg
+                                            className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${filtersExpanded ? 'rotate-180' : ''}`}
+                                            fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                        >
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+                                    {filtersExpanded && (
+                                        <div className="px-4 pb-4 border-t border-slate-700">
+                                            <div className="pt-3">
+                                                {filterGrid}
+                                            </div>
+                                            <button
+                                                onClick={() => setFiltersExpanded(false)}
+                                                className="mt-3 w-full py-2 rounded-lg bg-amber-500 text-black text-sm font-bold"
+                                            >
+                                                Aplică filtre →
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                                {/* Grid normal pe sm+ */}
+                                <div className="hidden sm:block mb-8 p-4 bg-slate-800/20 rounded-2xl border border-slate-700/30">
+                                    {filterGrid}
+                                </div>
+                            </>
+                        );
+                    })()}
 
                     <ResponsiveTable
                         columns={columns}

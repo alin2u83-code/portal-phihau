@@ -38,6 +38,7 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
     const grupe = filteredData.grupe;
 
     const [filters, setFilters] = useLocalStorage('phi-hau-raport-prezenta-filters', initialFilters);
+    const [filtersExpanded, setFiltersExpanded] = useState(false);
 
     // Map: grupa_id -> Sportiv[] (sportivi secundari activi)
     const [grupeSecundareMap, setGrupeSecundareMap] = useState<Map<string, Sportiv[]>>(new Map());
@@ -257,10 +258,74 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
         </Card>
     );
 
+    const activeFilterCount = [filters.searchTerm, filters.grupaFilter, filters.salaFilter, filters.tipFilter].filter(Boolean).length;
+
+    const filterContent = (
+        <div className="space-y-4">
+            <Input label="Caută Sportiv" name="searchTerm" value={filters.searchTerm} onChange={handleFilterChange} placeholder="Nume..." />
+            <Select label="Grupă" name="grupaFilter" value={filters.grupaFilter} onChange={handleFilterChange}>
+                <option value="">Toate Grupele</option>
+                {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
+            </Select>
+            <Select label="Sală" name="salaFilter" value={filters.salaFilter} onChange={handleFilterChange}>
+                <option value="">Toate sălile</option>
+                {sali.map(s => <option key={s} value={s}>{s}</option>)}
+            </Select>
+            <div className="grid grid-cols-2 gap-2">
+                <Select label="An" name="yearFilter" value={filters.yearFilter} onChange={handleFilterChange}>
+                    <option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option>
+                </Select>
+                <Select label="Tip" name="tipFilter" value={filters.tipFilter} onChange={handleFilterChange}>
+                    <option value="">Toate</option><option value="Normal">Normal</option><option value="Vacanta">Vacanță</option>
+                </Select>
+            </div>
+        </div>
+    );
+
     return (
         <div className="space-y-6">
             <Button onClick={onBack} variant="secondary" className="mb-2"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
             <h1 className="text-3xl font-bold text-white">Analiză Prezențe</h1>
+
+            {/* Filtre collapse pe mobil — vizibile direct pe desktop */}
+            <div className="lg:hidden rounded-lg bg-slate-800/50 overflow-hidden">
+                <button
+                    onClick={() => setFiltersExpanded(prev => !prev)}
+                    className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-white"
+                >
+                    <span className="flex items-center gap-2">
+                        <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
+                        </svg>
+                        Filtre Raport
+                        {activeFilterCount > 0 && (
+                            <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold rounded-full bg-amber-500 text-black">
+                                {activeFilterCount}
+                            </span>
+                        )}
+                    </span>
+                    <svg
+                        className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${filtersExpanded ? 'rotate-180' : ''}`}
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                {filtersExpanded && (
+                    <div className="px-4 pb-4 border-t border-slate-700">
+                        <div className="pt-3">
+                            {filterContent}
+                        </div>
+                        <button
+                            onClick={() => setFiltersExpanded(false)}
+                            className="mt-3 w-full py-2 rounded-lg bg-amber-500 text-black text-sm font-bold"
+                        >
+                            Aplică filtre →
+                        </button>
+                    </div>
+                )}
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <Card className="lg:col-span-2">
                     <h3 className="text-xl font-bold text-white mb-4">Prezențe Lunare pe Grupe ({parseInt(filters.yearFilter, 10)})</h3>
@@ -281,26 +346,8 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
                         ) : <div className="flex items-center justify-center h-full text-slate-500 italic">Nu există date pentru intervalul selectat.</div> }
                     </div>
                 </Card>
-                <Card><h3 className="text-xl font-bold text-white mb-4">Filtre Raport</h3>
-                    <div className="space-y-4">
-                        <Input label="Caută Sportiv" name="searchTerm" value={filters.searchTerm} onChange={handleFilterChange} placeholder="Nume..." />
-                        <Select label="Grupă" name="grupaFilter" value={filters.grupaFilter} onChange={handleFilterChange}>
-                            <option value="">Toate Grupele</option>
-                            {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
-                        </Select>
-                        <Select label="Sală" name="salaFilter" value={filters.salaFilter} onChange={handleFilterChange}>
-                            <option value="">Toate sălile</option>
-                            {sali.map(s => <option key={s} value={s}>{s}</option>)}
-                        </Select>
-                        <div className="grid grid-cols-2 gap-2">
-                            <Select label="An" name="yearFilter" value={filters.yearFilter} onChange={handleFilterChange}>
-                                <option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option>
-                            </Select>
-                            <Select label="Tip" name="tipFilter" value={filters.tipFilter} onChange={handleFilterChange}>
-                                <option value="">Toate</option><option value="Normal">Normal</option><option value="Vacanta">Vacanță</option>
-                            </Select>
-                        </div>
-                    </div>
+                <Card className="hidden lg:block"><h3 className="text-xl font-bold text-white mb-4">Filtre Raport</h3>
+                    {filterContent}
                 </Card>
             </div>
 

@@ -36,15 +36,18 @@ export const LegitimatiiPage: React.FC = () => {
     return (
         <Card className="p-6">
             <h2 className="text-2xl font-bold mb-6">Management Legitimații</h2>
-            <div className="mb-4 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
-                <Input 
-                    label="Căutare"
-                    placeholder="Căutare rapidă (nume/prenume)..." 
-                    value={searchTerm} 
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                />
+            <div className="mb-4">
+                <label className="block text-xs font-bold text-slate-400 mb-1.5 ml-1 uppercase tracking-wide">Căutare</label>
+                <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
+                    <input
+                        type="text"
+                        placeholder="Căutare rapidă (nume/prenume)..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-base sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm touch-manipulation appearance-none"
+                    />
+                </div>
             </div>
 
             {/* Desktop Table */}

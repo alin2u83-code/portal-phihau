@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Permissions, Competitie, ProbaCompetitie, CategorieCompetitie, InscriereCompetitie, EchipaCompetitie, SolicitareEchipaIncompleta, Sportiv, Grad, TipProba } from '../../types';
 import { supabase } from '../../supabaseClient';
 import { useData } from '../../contexts/DataContext';
@@ -2098,6 +2098,7 @@ export const CompetitiiManagement: React.FC<CompetitiiProps> = ({ permissions, o
   const [editComp, setEditComp] = useState<Competitie | null>(null);
   const [search, setSearch] = useState('');
   const [migrareEv, setMigrareEv] = useState<EvenimentLegacy | null>(null);
+  const savedScrollRef = useRef(0);
 
   const isAdmin = permissions.isSuperAdmin || permissions.isFederationAdmin;
 
@@ -2140,7 +2141,17 @@ export const CompetitiiManagement: React.FC<CompetitiiProps> = ({ permissions, o
       <CompetitieDetail
         competitie={selectedComp}
         permissions={permissions}
-        onBack={() => { setView('list'); setSelectedComp(null); }}
+        onBack={() => {
+          setView('list');
+          setSelectedComp(null);
+          requestAnimationFrame(() => {
+            try {
+              window.scrollTo({ top: savedScrollRef.current, left: 0, behavior: 'instant' as ScrollBehavior });
+            } catch {
+              window.scrollTo(0, savedScrollRef.current);
+            }
+          });
+        }}
         onUpdated={(updated) => {
           setSelectedComp(updated);
           setCompetitii(prev => prev.map(c => c.id === updated.id ? updated : c));
@@ -2202,7 +2213,7 @@ export const CompetitiiManagement: React.FC<CompetitiiProps> = ({ permissions, o
             <Card
               key={comp.id}
               className="p-4 cursor-pointer hover:border-brand-primary/50 transition-colors"
-              onClick={() => { setSelectedComp(comp); setView('detail'); }}
+              onClick={() => { savedScrollRef.current = window.scrollY; setSelectedComp(comp); setView('detail'); }}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">

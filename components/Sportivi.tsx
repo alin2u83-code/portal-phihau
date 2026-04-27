@@ -158,21 +158,8 @@ export const Sportivi: React.FC<{
     // Ref pentru a sări peste reset-ul paginării la primul efect (când restaurăm din sessionStorage)
     const isRestoringRef = useRef(!!restoredState);
 
-    // Restaurează scroll-ul după ce lista se randează (o singură dată la montare)
-    useEffect(() => {
-        const scrollTarget = restoredState?.scrollY;
-        if (!scrollTarget) return;
-        // requestAnimationFrame asigură că DOM-ul e pictat înainte de scroll
-        const raf = requestAnimationFrame(() => {
-            try {
-                window.scrollTo({ top: scrollTarget, left: 0, behavior: 'instant' as ScrollBehavior });
-            } catch {
-                window.scrollTo(0, scrollTarget);
-            }
-        });
-        return () => cancelAnimationFrame(raf);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    // Ref pentru scroll restaurat — se setează true după prima restaurare
+    const scrollRestoredRef = useRef(false);
 
     // Reset page si loadAll la schimbarea filtrelor
     // Excepție: nu resetăm dacă tocmai am restaurat starea din sessionStorage
@@ -240,7 +227,25 @@ export const Sportivi: React.FC<{
     );
 
     const loading = sportiviLoading || familyLoading;
-    
+
+    // Restaurează scroll după ce datele s-au încărcat (nu pe mount, când lista e goală)
+    useEffect(() => {
+        if (sportiviLoading) return;
+        if (scrollRestoredRef.current) return;
+        const scrollTarget = restoredState?.scrollY;
+        if (!scrollTarget) return;
+        scrollRestoredRef.current = true;
+        const raf = requestAnimationFrame(() => {
+            try {
+                window.scrollTo({ top: scrollTarget, left: 0, behavior: 'instant' as ScrollBehavior });
+            } catch {
+                window.scrollTo(0, scrollTarget);
+            }
+        });
+        return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [sportiviLoading]);
+
     const handleFilterChange = (name: keyof typeof filters, value: string) => {
         setFilters(prev => ({ ...prev, [name]: value }));
     };

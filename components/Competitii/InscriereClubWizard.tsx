@@ -666,7 +666,8 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
       <div>
         <button
           onClick={() => setShowFilters(v => !v)}
-          className={`text-xs px-3 py-1.5 rounded-lg border transition-colors flex items-center gap-1.5 ${
+          style={{ touchAction: 'manipulation' }}
+          className={`text-xs px-3 py-2 rounded-lg border transition-colors flex items-center gap-1.5 min-h-[40px] ${
             nrFiltreCactive > 0
               ? 'border-brand-primary text-brand-primary bg-brand-primary/10'
               : 'border-slate-600 text-slate-400 hover:text-white hover:border-slate-500'
@@ -691,7 +692,8 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
                   <button
                     key={g}
                     onClick={() => setFilterGen(g)}
-                    className={`px-3 py-1 rounded-lg text-xs font-medium border transition-colors ${
+                    style={{ touchAction: 'manipulation' }}
+                    className={`px-3 py-2 rounded-lg text-xs font-medium border transition-colors min-h-[36px] ${
                       filterGen === g
                         ? 'border-brand-primary bg-brand-primary/20 text-white'
                         : 'border-slate-600 text-slate-400 hover:border-slate-500'
@@ -729,7 +731,8 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
                           });
                         }}
                         title={outsideCascade ? `${g.nume} — în afara intervalului de vârstă selectat` : undefined}
-                        className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors ${
+                        style={{ touchAction: 'manipulation' }}
+                        className={`px-2.5 py-2 rounded-lg text-xs font-medium border transition-colors min-h-[36px] ${
                           outsideCascade
                             ? 'border-slate-700 text-slate-600 opacity-40 cursor-not-allowed'
                             : filterGradeIds.has(g.id)

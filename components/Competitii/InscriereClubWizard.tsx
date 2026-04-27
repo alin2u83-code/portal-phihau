@@ -483,6 +483,13 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
   selected, onToggle, onContinua, onBack,
 }) => {
   const [search, setSearch] = useState('');
+  // Filtre avansate
+  const [filterGen, setFilterGen] = useState<'' | 'Masculin' | 'Feminin'>('');
+  const [filterGradeIds, setFilterGradeIds] = useState<Set<string>>(new Set());
+  const [filterVarstaMin, setFilterVarstaMin] = useState('');
+  const [filterVarstaMax, setFilterVarstaMax] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+
   const anComp = new Date(competitie.data_inceput).getFullYear();
 
   const dejaInscrisiSet = useMemo(() => buildDejaInscrisiSet(inscrieri), [inscrieri]);
@@ -492,13 +499,32 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
     [sportivi]
   );
 
+  // Grade unice existente la sportivii activi (pentru filtrul de grade)
+  const gradeDisponibile = useMemo(() => {
+    const ids = new Set(sportiviActivi.map(s => s.grad_actual_id).filter(Boolean));
+    return grade.filter(g => ids.has(g.id)).sort((a, b) => a.ordine - b.ordine);
+  }, [sportiviActivi, grade]);
+
   const sportiviFiltered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return sportiviActivi;
-    return sportiviActivi.filter(s =>
-      `${s.prenume} ${s.nume}`.toLowerCase().includes(q)
-    );
-  }, [sportiviActivi, search]);
+    const varstaMin = filterVarstaMin ? parseInt(filterVarstaMin) : null;
+    const varstaMax = filterVarstaMax ? parseInt(filterVarstaMax) : null;
+
+    return sportiviActivi.filter(s => {
+      if (q && !`${s.prenume} ${s.nume}`.toLowerCase().includes(q)) return false;
+      if (filterGen && s.gen !== filterGen) return false;
+      if (filterGradeIds.size > 0 && (!s.grad_actual_id || !filterGradeIds.has(s.grad_actual_id))) return false;
+      if ((varstaMin !== null || varstaMax !== null) && s.data_nasterii) {
+        const varsta = calculeazaVarstaLaData(s.data_nasterii, competitie.data_inceput);
+        if (varstaMin !== null && varsta < varstaMin) return false;
+        if (varstaMax !== null && varsta > varstaMax) return false;
+      }
+      return true;
+    });
+  }, [sportiviActivi, search, filterGen, filterGradeIds, filterVarstaMin, filterVarstaMax, competitie.data_inceput]);
+
+  const nrFiltreCactive = (filterGen ? 1 : 0) + (filterGradeIds.size > 0 ? 1 : 0) +
+    (filterVarstaMin || filterVarstaMax ? 1 : 0);
 
   const enriched = useMemo(() =>
     sportiviFiltered.map(s => {
@@ -572,6 +598,119 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
           >
             ✕
           </button>
+        )}
+      </div>
+
+      {/* Filtre avansate */}
+      <div>
+        <button
+          onClick={() => setShowFilters(v => !v)}
+          className={`text-xs px-3 py-1.5 rounded-lg border transition-colors flex items-center gap-1.5 ${
+            nrFiltreCactive > 0
+              ? 'border-brand-primary text-brand-primary bg-brand-primary/10'
+              : 'border-slate-600 text-slate-400 hover:text-white hover:border-slate-500'
+          }`}
+        >
+          Filtre avansate
+          {nrFiltreCactive > 0 && (
+            <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-brand-primary text-white text-[10px] font-bold">
+              {nrFiltreCactive}
+            </span>
+          )}
+          <span className="text-[10px]">{showFilters ? '▲' : '▼'}</span>
+        </button>
+
+        {showFilters && (
+          <div className="mt-2 p-3 rounded-xl border border-slate-700 bg-slate-800/60 space-y-3">
+            {/* Gen */}
+            <div>
+              <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1.5">Gen</p>
+              <div className="flex gap-2">
+                {(['', 'Masculin', 'Feminin'] as const).map(g => (
+                  <button
+                    key={g}
+                    onClick={() => setFilterGen(g)}
+                    className={`px-3 py-1 rounded-lg text-xs font-medium border transition-colors ${
+                      filterGen === g
+                        ? 'border-brand-primary bg-brand-primary/20 text-white'
+                        : 'border-slate-600 text-slate-400 hover:border-slate-500'
+                    }`}
+                  >
+                    {g || 'Toate'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Grade */}
+            {gradeDisponibile.length > 0 && (
+              <div>
+                <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1.5">Grade</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {gradeDisponibile.map(g => (
+                    <button
+                      key={g.id}
+                      onClick={() => {
+                        setFilterGradeIds(prev => {
+                          const next = new Set(prev);
+                          if (next.has(g.id)) next.delete(g.id);
+                          else next.add(g.id);
+                          return next;
+                        });
+                      }}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors ${
+                        filterGradeIds.has(g.id)
+                          ? 'border-emerald-500 bg-emerald-900/30 text-emerald-300'
+                          : 'border-slate-600 text-slate-400 hover:border-slate-500'
+                      }`}
+                    >
+                      {g.nume}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Vârstă */}
+            <div>
+              <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1.5">Vârstă la competiție</p>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  value={filterVarstaMin}
+                  onChange={e => setFilterVarstaMin(e.target.value)}
+                  placeholder="Min"
+                  min={0}
+                  className="w-20 bg-slate-900 border border-slate-600 rounded-lg px-2 py-1.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-brand-primary"
+                />
+                <span className="text-slate-500 text-xs">—</span>
+                <input
+                  type="number"
+                  value={filterVarstaMax}
+                  onChange={e => setFilterVarstaMax(e.target.value)}
+                  placeholder="Max"
+                  min={0}
+                  className="w-20 bg-slate-900 border border-slate-600 rounded-lg px-2 py-1.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-brand-primary"
+                />
+                <span className="text-xs text-slate-500">ani</span>
+              </div>
+            </div>
+
+            {/* Reset */}
+            {nrFiltreCactive > 0 && (
+              <button
+                onClick={() => {
+                  setFilterGen('');
+                  setFilterGradeIds(new Set());
+                  setFilterVarstaMin('');
+                  setFilterVarstaMax('');
+                }}
+                className="text-xs text-red-400 hover:underline"
+              >
+                Resetează filtrele
+              </button>
+            )}
+          </div>
         )}
       </div>
 
@@ -907,7 +1046,9 @@ interface CardSportivCategoriiProps {
   inscrieri: InscriereCompetitie[];
   picks: Map<string, PickCategorie>;
   drepturi: DreptGrad[];
-  stagiiCVD?: StagiuCVDParticipare[]; // CVD: participări naționale cu arma per sportiv
+  stagiiCVD?: StagiuCVDParticipare[];
+  effectiveGen?: 'Masculin' | 'Feminin' | null;
+  onSetGen?: (gen: 'Masculin' | 'Feminin') => void;
   onToggleCategorie: (catId: string) => void;
   onUpdatePick: (catId: string, update: Partial<PickCategorie>) => void;
   onToggleAcord: () => void;
@@ -916,6 +1057,7 @@ interface CardSportivCategoriiProps {
 const CardSportivCategorii: React.FC<CardSportivCategoriiProps> = ({
   sportiv, varsta, gradNume, gradOrdine,
   categoriiEligibile, inscrieri, picks, drepturi, stagiiCVD,
+  effectiveGen, onSetGen,
   onToggleCategorie, onUpdatePick, onToggleAcord,
 }) => {
   const esteMajor = varsta >= 18;
@@ -1033,6 +1175,29 @@ const CardSportivCategorii: React.FC<CardSportivCategoriiProps> = ({
         </div>
       </div>
 
+      {/* Gen picker — afișat dacă sportivul nu are gen setat */}
+      {effectiveGen === null && onSetGen && (
+        <div className="px-4 py-2.5 border-b border-orange-700/40 bg-orange-900/10">
+          <p className="text-xs text-orange-300 mb-2 font-medium">
+            Gen nespecificat — alege genul pentru a filtra categoriile corect:
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => onSetGen('Masculin')}
+              className="flex-1 py-1.5 rounded-lg border border-blue-600/60 bg-blue-900/30 text-xs font-semibold text-blue-300 hover:bg-blue-900/60 transition-colors"
+            >
+              Masculin
+            </button>
+            <button
+              onClick={() => onSetGen('Feminin')}
+              className="flex-1 py-1.5 rounded-lg border border-pink-600/60 bg-pink-900/30 text-xs font-semibold text-pink-300 hover:bg-pink-900/60 transition-colors"
+            >
+              Feminin
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Corp: categorii grupate pe probă */}
       <div className="divide-y divide-slate-700/50">
         {categoriiEligibile.length === 0 ? (
@@ -1098,6 +1263,132 @@ const CardSportivCategorii: React.FC<CardSportivCategoriiProps> = ({
 };
 
 // -----------------------------------------------
+// VEDERE PER CATEGORIE — bulk assignment Pasul 2
+// -----------------------------------------------
+interface VederePerCategorieProps {
+  sportiviSelectati: Array<{ sportiv: Sportiv; varsta: number; gradNume: string | null; gradOrdine: number | null }>;
+  eligibilePerSportiv: Map<string, CategorieCompetitie[]>;
+  inscrieri: InscriereCompetitie[];
+  indivPicks: IndivPicks;
+  categorii: CategorieCompetitie[];
+  onToggleCategorie: (sportivId: string, catId: string) => void;
+}
+
+const VederePerCategorie: React.FC<VederePerCategorieProps> = ({
+  sportiviSelectati, eligibilePerSportiv, inscrieri, indivPicks, categorii, onToggleCategorie,
+}) => {
+  // Construim un map: categorieId → sportivi eligibili pentru ea (din cei selectați)
+  const categoriiCuSportivi = useMemo(() => {
+    const map = new Map<string, { categorie: CategorieCompetitie; sportivi: typeof sportiviSelectati }>();
+    for (const entry of sportiviSelectati) {
+      const eligibile = eligibilePerSportiv.get(entry.sportiv.id) ?? [];
+      for (const cat of eligibile) {
+        if (!map.has(cat.id)) {
+          map.set(cat.id, { categorie: cat, sportivi: [] });
+        }
+        map.get(cat.id)!.sportivi.push(entry);
+      }
+    }
+    // Sortăm după ordine_afisare
+    return Array.from(map.values()).sort((a, b) =>
+      (a.categorie.ordine_afisare ?? 0) - (b.categorie.ordine_afisare ?? 0)
+    );
+  }, [sportiviSelectati, eligibilePerSportiv]);
+
+  if (categoriiCuSportivi.length === 0) {
+    return (
+      <div className="text-center text-slate-500 py-12 italic text-sm">
+        Nicio categorie eligibilă pentru sportivii selectați.
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {categoriiCuSportivi.map(({ categorie, sportivi: sportiviFiltrati }) => {
+        const nrBifati = sportiviFiltrati.filter(e => {
+          const picks = indivPicks.get(e.sportiv.id);
+          return picks?.has(categorie.id);
+        }).length;
+
+        return (
+          <div key={categorie.id} className="rounded-xl border border-slate-700 bg-slate-800/40 overflow-hidden">
+            {/* Header categorie */}
+            <div className="flex items-center justify-between px-4 py-3 bg-slate-800/60 border-b border-slate-700">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-semibold text-sm text-white">
+                    {categorie.denumire ?? `Categoria ${categorie.numar_categorie}`}
+                  </span>
+                  <BadgeTipParticipare tip={categorie.tip_participare} />
+                  {categorie.arma && (
+                    <span className="text-[10px] text-slate-400 bg-slate-700/60 rounded-full px-2 py-0.5 border border-slate-600">
+                      {categorie.arma}
+                    </span>
+                  )}
+                </div>
+                <div className="text-[11px] text-slate-500 mt-0.5">
+                  {categorie.varsta_max !== null
+                    ? `${categorie.varsta_min}–${categorie.varsta_max} ani`
+                    : `Peste ${categorie.varsta_min} ani`
+                  } · {categorie.gen} · {categorie.proba?.denumire ?? '—'}
+                </div>
+              </div>
+              <div className="text-xs text-slate-400 shrink-0">
+                {nrBifati}/{sportiviFiltrati.length} selectați
+              </div>
+            </div>
+
+            {/* Lista sportivi eligibili pentru această categorie */}
+            <div className="divide-y divide-slate-700/40">
+              {sportiviFiltrati.map(({ sportiv, varsta, gradNume }) => {
+                const dejaInscrisActiv = inscrieri.some(
+                  i => i.sportiv_id === sportiv.id && i.categorie_id === categorie.id && i.status !== 'retras'
+                );
+                const isBifat = (indivPicks.get(sportiv.id)?.has(categorie.id)) ?? false;
+
+                return (
+                  <label
+                    key={sportiv.id}
+                    className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer transition-colors ${
+                      dejaInscrisActiv
+                        ? 'opacity-50 cursor-not-allowed'
+                        : isBifat
+                          ? 'bg-brand-primary/10'
+                          : 'hover:bg-slate-700/40'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isBifat || dejaInscrisActiv}
+                      disabled={dejaInscrisActiv}
+                      onChange={() => !dejaInscrisActiv && !esteEchipaSauPereche(categorie) && onToggleCategorie(sportiv.id, categorie.id)}
+                      className="w-4 h-4 rounded accent-brand-primary"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <span className="text-sm text-white">{sportiv.prenume} {sportiv.nume}</span>
+                      <span className="text-xs text-slate-500 ml-2">{varsta} ani{gradNume ? ` · ${gradNume}` : ''}</span>
+                    </div>
+                    {dejaInscrisActiv && (
+                      <span className="text-[10px] font-bold text-blue-400 bg-blue-900/30 border border-blue-700/50 rounded-full px-2 py-0.5 shrink-0">
+                        Deja inscris
+                      </span>
+                    )}
+                    {esteEchipaSauPereche(categorie) && (
+                      <span className="text-[10px] text-slate-500 italic shrink-0">via Pasul 3</span>
+                    )}
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+// -----------------------------------------------
 // PASUL 2 — Categorii per sportiv
 // -----------------------------------------------
 interface Pas2Props {
@@ -1107,6 +1398,8 @@ interface Pas2Props {
   categorii: CategorieCompetitie[];
   inscrieri: InscriereCompetitie[];
   selectedSportivi: Set<string>;
+  genOverrides: Record<string, 'Masculin' | 'Feminin'>;
+  onSetGen: (id: string, gen: 'Masculin' | 'Feminin') => void;
   indivPicks: IndivPicks;
   onUpdateIndivPicks: (next: IndivPicks) => void;
   onContinua: (echipaPicks: string[]) => void;
@@ -1115,7 +1408,7 @@ interface Pas2Props {
 
 const Pas2CategoriiPerSportiv: React.FC<Pas2Props> = ({
   competitie, sportivi, grade, categorii, inscrieri,
-  selectedSportivi, indivPicks, onUpdateIndivPicks, onContinua, onBack,
+  selectedSportivi, genOverrides, onSetGen, indivPicks, onUpdateIndivPicks, onContinua, onBack,
 }) => {
   const { showError } = useError();
   const [drepturi, setDrepturi] = useState<DreptGrad[]>([]);
@@ -1184,20 +1477,22 @@ const Pas2CategoriiPerSportiv: React.FC<Pas2Props> = ({
     [sportivi, selectedSportivi, grade, competitie.data_inceput]
   );
 
-  // Categoriile eligibile per sportiv
+  // Categoriile eligibile per sportiv (cu gen overrides aplicate)
   const eligibilePerSportiv = useMemo(() => {
     const result = new Map<string, CategorieCompetitie[]>();
-    for (const { sportiv, grad } of sportiviSelectati) {
+    for (const { sportiv } of sportiviSelectati) {
+      const effectiveGen = genOverrides[sportiv.id] ?? sportiv.gen;
+      const sportivEff = effectiveGen !== undefined ? { ...sportiv, gen: effectiveGen } : sportiv;
       const eligibile = categorii
         .filter(cat => {
-          const r = verificaEligibilitate(sportiv, cat, grade, competitie.data_inceput);
+          const r = verificaEligibilitate(sportivEff, cat, grade, competitie.data_inceput);
           return r.eligibil;
         })
         .sort((a, b) => a.ordine_afisare - b.ordine_afisare);
       result.set(sportiv.id, eligibile);
     }
     return result;
-  }, [sportiviSelectati, categorii, grade, competitie.data_inceput]);
+  }, [sportiviSelectati, categorii, grade, competitie.data_inceput, genOverrides]);
 
   // Pre-bifare automată: o singură categorie eligibilă per tip de probă → se bifează automat
   // Rulăm o singură dată când eligibilePerSportiv e gata
@@ -1340,6 +1635,9 @@ const Pas2CategoriiPerSportiv: React.FC<Pas2Props> = ({
 
   const poateContinua = eroriValidare.length === 0;
 
+  // Vedere: per_sportiv (default) sau per_categorie (bulk assignment)
+  const [vedere, setVedere] = useState<'per_sportiv' | 'per_categorie'>('per_sportiv');
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -1363,6 +1661,22 @@ const Pas2CategoriiPerSportiv: React.FC<Pas2Props> = ({
       {/* Progress */}
       <WizardProgress step={2} total={4} />
 
+      {/* Toggle vedere */}
+      <div className="flex items-center gap-1 p-1 bg-slate-800/60 rounded-lg border border-slate-700 w-fit">
+        <button
+          onClick={() => setVedere('per_sportiv')}
+          className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${vedere === 'per_sportiv' ? 'bg-brand-primary text-white' : 'text-slate-400 hover:text-white'}`}
+        >
+          Per sportiv
+        </button>
+        <button
+          onClick={() => setVedere('per_categorie')}
+          className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${vedere === 'per_categorie' ? 'bg-brand-primary text-white' : 'text-slate-400 hover:text-white'}`}
+        >
+          Per categorie (bulk)
+        </button>
+      </div>
+
       {/* Loading state drepturi */}
       {loadingDrepturi && (
         <div className="text-center text-xs text-slate-500 py-4 animate-pulse">
@@ -1371,11 +1685,12 @@ const Pas2CategoriiPerSportiv: React.FC<Pas2Props> = ({
       )}
 
       {/* Carduri sportivi — grid responsiv */}
-      {!loadingDrepturi && (
+      {!loadingDrepturi && vedere === 'per_sportiv' && (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           {sportiviSelectati.map(({ sportiv, varsta, gradNume, gradOrdine }) => {
             const eligibile = eligibilePerSportiv.get(sportiv.id) ?? [];
             const sportivPicks = indivPicks.get(sportiv.id) ?? new Map<string, PickCategorie>();
+            const effectiveGen = genOverrides[sportiv.id] ?? sportiv.gen;
 
             return (
               <CardSportivCategorii
@@ -1389,6 +1704,8 @@ const Pas2CategoriiPerSportiv: React.FC<Pas2Props> = ({
                 picks={sportivPicks}
                 drepturi={drepturi}
                 stagiiCVD={competitie.tip === 'cvd' ? (stagiiCVD.get(sportiv.id) ?? []) : undefined}
+                effectiveGen={effectiveGen ?? null}
+                onSetGen={gen => onSetGen(sportiv.id, gen)}
                 onToggleCategorie={catId => handleToggleCategorie(sportiv.id, catId)}
                 onUpdatePick={(catId, update) => handleUpdatePick(sportiv.id, catId, update)}
                 onToggleAcord={() => handleToggleAcord(sportiv.id)}
@@ -1396,6 +1713,18 @@ const Pas2CategoriiPerSportiv: React.FC<Pas2Props> = ({
             );
           })}
         </div>
+      )}
+
+      {/* Vedere per categorie — bulk assignment */}
+      {!loadingDrepturi && vedere === 'per_categorie' && (
+        <VederePerCategorie
+          sportiviSelectati={sportiviSelectati}
+          eligibilePerSportiv={eligibilePerSportiv}
+          inscrieri={inscrieri}
+          indivPicks={indivPicks}
+          categorii={categorii}
+          onToggleCategorie={handleToggleCategorie}
+        />
       )}
 
       {/* Erori validare — afișate compact deasupra footer-ului */}
@@ -2102,29 +2431,49 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
         throw new Error(`Inlantuire/forma necompletata pentru: ${names}`);
       }
 
-      // 1. Insert înscrieri individuale
+      // 1. Insert/reactivare înscrieri individuale
       for (const rand of randuriIndividuale) {
-        const { error } = await supabase.from('inscrieri_competitie').insert({
-          competitie_id: competitie.id,
-          sportiv_id: rand.sportiv.id,
-          categorie_id: rand.categorie.id,
-          club_id: clubId,
+        const catName = rand.categorie.denumire ?? `Categoria ${rand.categorie.numar_categorie}`;
+        const sportivName = `${rand.sportiv.prenume} ${rand.sportiv.nume}`;
+
+        // Verifică dacă există deja o înregistrare (inclusiv retras)
+        const { data: existent } = await supabase
+          .from('inscrieri_competitie')
+          .select('id, status')
+          .eq('competitie_id', competitie.id)
+          .eq('sportiv_id', rand.sportiv.id)
+          .eq('categorie_id', rand.categorie.id)
+          .maybeSingle();
+
+        if (existent && existent.status !== 'retras') {
+          throw new Error(`Sportivul ${sportivName} este deja inscris la categoria "${catName}".`);
+        }
+
+        const payload = {
           quyen_ales: rand.quyen_ales ?? null,
           arma_ales: rand.arma_ales ?? null,
           acord_parental: rand.acord_parental,
-          borderou_club_id: clubId,
           status: 'inscris',
           taxa_achitata: false,
-        });
+        };
 
-        if (error) {
-          // UNIQUE constraint → sportiv deja inscris
-          if (error.code === '23505') {
-            throw new Error(
-              `Sportivul ${rand.sportiv.prenume} ${rand.sportiv.nume} este deja inscris la categoria "${rand.categorie.denumire ?? `Categoria ${rand.categorie.numar_categorie}`}".`
-            );
-          }
-          throw new Error(error.message);
+        if (existent) {
+          // Reînscriere după retragere — actualizăm rândul existent
+          const { error } = await supabase
+            .from('inscrieri_competitie')
+            .update(payload)
+            .eq('id', existent.id);
+          if (error) throw new Error(error.message);
+        } else {
+          const { error } = await supabase.from('inscrieri_competitie').insert({
+            competitie_id: competitie.id,
+            sportiv_id: rand.sportiv.id,
+            categorie_id: rand.categorie.id,
+            club_id: clubId,
+            borderou_club_id: clubId,
+            ...payload,
+          });
+          if (error) throw new Error(error.message);
         }
       }
 
@@ -2598,6 +2947,13 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [selectedSportivi, setSelectedSportivi] = useState<Set<string>>(new Set());
 
+  // Gen overrides: setate când sportiv nu are gen în profil
+  const [genOverrides, setGenOverrides] = useState<Record<string, 'Masculin' | 'Feminin'>>({});
+  const handleSetGen = useCallback((id: string, gen: 'Masculin' | 'Feminin') => {
+    setGenOverrides(prev => ({ ...prev, [id]: gen }));
+    supabase.from('sportivi').update({ gen }).eq('id', id).then();
+  }, []);
+
   // Starea Pasului 2
   const [indivPicks, setIndivPicks] = useState<IndivPicks>(new Map());
   // Categoriile de tip echipă/pereche bifate în Pasul 2 → pasate la Pasul 3
@@ -2616,7 +2972,6 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
 
   const handlePas2Continua = (picks: string[]) => {
     setEchipaPicks(picks);
-    // Dacă nicio categorie de echipă → sărim direct la Pasul 4
     if (picks.length === 0) {
       setStep(4);
     } else {
@@ -2650,6 +3005,8 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         categorii={categorii}
         inscrieri={inscrieri}
         selectedSportivi={selectedSportivi}
+        genOverrides={genOverrides}
+        onSetGen={handleSetGen}
         indivPicks={indivPicks}
         onUpdateIndivPicks={setIndivPicks}
         onContinua={handlePas2Continua}

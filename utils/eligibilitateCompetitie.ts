@@ -79,9 +79,7 @@ export function verificaEligibilitate(
  * Returnează null dacă nu poate detecta
  */
 function detectGender(sportiv: Sportiv): 'Feminin' | 'Masculin' | null {
-  // Putem extinde această logică sau adăuga un câmp gen în profil
-  // Deocamdată returnăm null (nu filtrăm după gen automat)
-  return null;
+  return sportiv.gen ?? null;
 }
 
 /**

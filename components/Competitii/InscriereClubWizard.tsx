@@ -346,12 +346,13 @@ interface CardSportivProps {
   eligibilitate: EligibilitateGenerala;
   varsta: number | null;
   gradNume: string | null;
+  gradAnomalie?: boolean;
   onToggle: () => void;
 }
 
 const CardSportiv: React.FC<CardSportivProps> = ({
   sportiv, isSelected, isDisabled, isDejaInscris,
-  eligibilitate, varsta, gradNume, onToggle,
+  eligibilitate, varsta, gradNume, gradAnomalie, onToggle,
 }) => {
   return (
     <label
@@ -386,6 +387,14 @@ const CardSportiv: React.FC<CardSportivProps> = ({
           {varsta !== null && <span>{varsta} ani</span>}
           {gradNume && <span className="text-slate-500">·</span>}
           {gradNume && <span>{gradNume}</span>}
+          {gradAnomalie && (
+            <span
+              title="Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului"
+              className="text-[10px] font-semibold text-amber-400 bg-amber-900/20 border border-amber-700/40 rounded px-1.5 py-0.5"
+            >
+              ⚠ grad neactualizat
+            </span>
+          )}
           {isDisabled && eligibilitate.status === 'date_incomplete' && eligibilitate.motiv && (
             <span className="text-slate-500 italic">— {eligibilitate.motiv}</span>
           )}
@@ -411,12 +420,13 @@ interface RandTabelSportivProps {
   eligibilitate: EligibilitateGenerala;
   varsta: number | null;
   gradNume: string | null;
+  gradAnomalie?: boolean;
   onToggle: () => void;
 }
 
 const RandTabelSportiv: React.FC<RandTabelSportivProps> = ({
   sportiv, isSelected, isDisabled, isDejaInscris,
-  eligibilitate, varsta, gradNume, onToggle,
+  eligibilitate, varsta, gradNume, gradAnomalie, onToggle,
 }) => {
   return (
     <tr
@@ -453,7 +463,17 @@ const RandTabelSportiv: React.FC<RandTabelSportivProps> = ({
         {varsta !== null ? `${varsta} ani` : <span className="text-slate-600 italic">—</span>}
       </td>
       <td className="p-3 text-sm text-slate-400">
-        {gradNume ?? <span className="text-slate-600 italic">—</span>}
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {gradNume ?? <span className="text-slate-600 italic">—</span>}
+          {gradAnomalie && (
+            <span
+              title="Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului"
+              className="text-[10px] font-semibold text-amber-400 bg-amber-900/20 border border-amber-700/40 rounded px-1.5 py-0.5"
+            >
+              ⚠ neactualizat
+            </span>
+          )}
+        </div>
       </td>
       <td className="p-3">
         <BadgeEligibilitateGenerala info={eligibilitate} />
@@ -505,6 +525,42 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
     return grade.filter(g => ids.has(g.id)).sort((a, b) => a.ordine - b.ordine);
   }, [sportiviActivi, grade]);
 
+  // Vârsta maximă implicită per grad (= varsta_minima al gradului următor - 1)
+  const gradMaxAgeMap = useMemo(() => {
+    const sorted = [...grade].sort((a, b) => a.ordine - b.ordine);
+    const m = new Map<string, number>();
+    sorted.forEach((g, i) => {
+      m.set(g.id, i + 1 < sorted.length ? sorted[i + 1].varsta_minima - 1 : 99);
+    });
+    return m;
+  }, [grade]);
+
+  // Grade valide pentru intervalul de vârstă ales (cascadă)
+  const gradeValideForVarsta = useMemo((): Set<string> | null => {
+    const vMin = filterVarstaMin ? parseInt(filterVarstaMin) : null;
+    const vMax = filterVarstaMax ? parseInt(filterVarstaMax) : null;
+    if (vMin === null && vMax === null) return null;
+    const sorted = [...grade].sort((a, b) => a.ordine - b.ordine);
+    const valid = new Set<string>();
+    sorted.forEach((g, i) => {
+      const gMin = g.varsta_minima;
+      const gMax = i + 1 < sorted.length ? sorted[i + 1].varsta_minima - 1 : 99;
+      const fMin = vMin ?? 0;
+      const fMax = vMax ?? 99;
+      if (gMin <= fMax && gMax >= fMin) valid.add(g.id);
+    });
+    return valid;
+  }, [grade, filterVarstaMin, filterVarstaMax]);
+
+  // Deselectează automat gradele ieșite din cascadă când se schimbă filtrul de vârstă
+  useEffect(() => {
+    if (!gradeValideForVarsta) return;
+    setFilterGradeIds(prev => {
+      const next = new Set([...prev].filter(id => gradeValideForVarsta.has(id)));
+      return next.size !== prev.size ? next : prev;
+    });
+  }, [gradeValideForVarsta]);
+
   const sportiviFiltered = useMemo(() => {
     const q = search.trim().toLowerCase();
     const varstaMin = filterVarstaMin ? parseInt(filterVarstaMin) : null;
@@ -538,9 +594,14 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
       const isDejaInscris = dejaInscrisiSet.has(s.id);
       // Blocăm selecția pentru date incomplete SAU pentru sportivi complet neeligibili față de categorii
       const isDisabled = eligibilitate.status === 'date_incomplete' || eligibilitate.status === 'neeligibil';
-      return { sportiv: s, varsta, gradNume: grad?.nume ?? null, eligibilitate, isDejaInscris, isDisabled };
+      // Anomalie grad: sportivul este mai bătrân decât vârsta maximă implicită a gradului + 2 ani toleranță
+      const gradAnomalie = !!(
+        s.grad_actual_id && varsta !== null &&
+        varsta > (gradMaxAgeMap.get(s.grad_actual_id) ?? 99) + 2
+      );
+      return { sportiv: s, varsta, gradNume: grad?.nume ?? null, eligibilitate, isDejaInscris, isDisabled, gradAnomalie };
     }),
-    [sportiviFiltered, grade, categorii, vizeSportivi, dejaInscrisiSet, competitie.data_inceput, anComp]
+    [sportiviFiltered, grade, categorii, vizeSportivi, dejaInscrisiSet, competitie.data_inceput, anComp, gradMaxAgeMap]
   );
 
   const selectableIds = useMemo(
@@ -645,28 +706,41 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
             {/* Grade */}
             {gradeDisponibile.length > 0 && (
               <div>
-                <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1.5">Grade</p>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Grade</p>
+                  {gradeValideForVarsta && (
+                    <span className="text-[10px] text-sky-400/70 italic">cascadă după vârstă activă</span>
+                  )}
+                </div>
                 <div className="flex flex-wrap gap-1.5">
-                  {gradeDisponibile.map(g => (
-                    <button
-                      key={g.id}
-                      onClick={() => {
-                        setFilterGradeIds(prev => {
-                          const next = new Set(prev);
-                          if (next.has(g.id)) next.delete(g.id);
-                          else next.add(g.id);
-                          return next;
-                        });
-                      }}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors ${
-                        filterGradeIds.has(g.id)
-                          ? 'border-emerald-500 bg-emerald-900/30 text-emerald-300'
-                          : 'border-slate-600 text-slate-400 hover:border-slate-500'
-                      }`}
-                    >
-                      {g.nume}
-                    </button>
-                  ))}
+                  {gradeDisponibile.map(g => {
+                    const outsideCascade = gradeValideForVarsta !== null && !gradeValideForVarsta.has(g.id);
+                    return (
+                      <button
+                        key={g.id}
+                        disabled={outsideCascade}
+                        onClick={() => {
+                          if (outsideCascade) return;
+                          setFilterGradeIds(prev => {
+                            const next = new Set(prev);
+                            if (next.has(g.id)) next.delete(g.id);
+                            else next.add(g.id);
+                            return next;
+                          });
+                        }}
+                        title={outsideCascade ? `${g.nume} — în afara intervalului de vârstă selectat` : undefined}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors ${
+                          outsideCascade
+                            ? 'border-slate-700 text-slate-600 opacity-40 cursor-not-allowed'
+                            : filterGradeIds.has(g.id)
+                              ? 'border-emerald-500 bg-emerald-900/30 text-emerald-300'
+                              : 'border-slate-600 text-slate-400 hover:border-slate-500'
+                        }`}
+                      >
+                        {g.nume}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -740,7 +814,7 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
         <>
           {/* MOBIL: carduri (ascuns pe md+) */}
           <div className="flex flex-col gap-2 md:hidden">
-            {enriched.map(({ sportiv, varsta, gradNume, eligibilitate, isDejaInscris, isDisabled }) => (
+            {enriched.map(({ sportiv, varsta, gradNume, eligibilitate, isDejaInscris, isDisabled, gradAnomalie }) => (
               <CardSportiv
                 key={sportiv.id}
                 sportiv={sportiv}
@@ -750,6 +824,7 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
                 eligibilitate={eligibilitate}
                 varsta={varsta}
                 gradNume={gradNume}
+                gradAnomalie={gradAnomalie}
                 onToggle={() => !isDisabled && onToggle(sportiv.id)}
               />
             ))}
@@ -784,7 +859,7 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
                 </tr>
               </thead>
               <tbody className="bg-slate-800/20">
-                {enriched.map(({ sportiv, varsta, gradNume, eligibilitate, isDejaInscris, isDisabled }) => (
+                {enriched.map(({ sportiv, varsta, gradNume, eligibilitate, isDejaInscris, isDisabled, gradAnomalie }) => (
                   <RandTabelSportiv
                     key={sportiv.id}
                     sportiv={sportiv}
@@ -794,6 +869,7 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
                     eligibilitate={eligibilitate}
                     varsta={varsta}
                     gradNume={gradNume}
+                    gradAnomalie={gradAnomalie}
                     onToggle={() => !isDisabled && onToggle(sportiv.id)}
                   />
                 ))}

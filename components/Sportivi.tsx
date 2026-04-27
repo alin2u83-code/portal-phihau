@@ -132,7 +132,7 @@ export const Sportivi: React.FC<{
 
     // Citim starea salvată o singură dată la montare folosind un ref lazy init
     // useRef cu funcție lazy asigură că citim sessionStorage o singură dată, indiferent de re-render-uri
-    type SavedPaginationState = { page: number; pageSize: number; loadAll: boolean; scrollY: number; fromProfile: true };
+    type SavedPaginationState = { page: number; pageSize: number; loadAll: boolean; scrollY: number; sportivId?: string; fromProfile: true };
     const restoredStateRef = useRef<SavedPaginationState | null>(null);
     if (restoredStateRef.current === null) {
         // Se execută o singură dată (primul render); dacă nu există cheie, rămâne null
@@ -228,18 +228,29 @@ export const Sportivi: React.FC<{
 
     const loading = sportiviLoading || familyLoading;
 
-    // Restaurează scroll după ce datele s-au încărcat (nu pe mount, când lista e goală)
+    // Restaurează poziția după ce datele s-au încărcat
     useEffect(() => {
         if (sportiviLoading) return;
         if (scrollRestoredRef.current) return;
-        const scrollTarget = restoredState?.scrollY;
-        if (!scrollTarget) return;
+        if (!restoredState) return;
         scrollRestoredRef.current = true;
         const raf = requestAnimationFrame(() => {
-            try {
-                window.scrollTo({ top: scrollTarget, left: 0, behavior: 'instant' as ScrollBehavior });
-            } catch {
-                window.scrollTo(0, scrollTarget);
+            const sportivId = restoredState.sportivId;
+            if (sportivId) {
+                const el = document.getElementById(`row-${sportivId}`);
+                if (el) {
+                    el.scrollIntoView({ behavior: 'instant' as ScrollBehavior, block: 'center' });
+                    return;
+                }
+            }
+            // fallback: scroll la poziția salvată
+            const scrollTarget = restoredState.scrollY;
+            if (scrollTarget) {
+                try {
+                    window.scrollTo({ top: scrollTarget, left: 0, behavior: 'instant' as ScrollBehavior });
+                } catch {
+                    window.scrollTo(0, scrollTarget);
+                }
             }
         });
         return () => cancelAnimationFrame(raf);
@@ -331,13 +342,13 @@ export const Sportivi: React.FC<{
     };
 
     const handleRowClick = (sportiv: Sportiv) => {
-        // Salvăm starea paginării și poziția scroll înainte de navigare la profil
         try {
             const state = {
                 page,
                 pageSize,
                 loadAll,
                 scrollY: window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0,
+                sportivId: sportiv.id,
                 fromProfile: true,
             };
             sessionStorage.setItem(PAGINATION_STORAGE_KEY, JSON.stringify(state));

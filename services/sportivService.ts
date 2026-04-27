@@ -82,7 +82,7 @@ export const actualizeazaSportiv = async (id: string, formData: Partial<Sportiv>
         // Update other fields if any
         if (Object.keys(otherData).length > 0) {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { grad_actual_id, grupe, familie, sportivi_count, username, parola, id: _id, email: _email, ...restData } = otherData as any;
+            const { grad_actual_id, grupe, familie, sportivi_count, username, parola, id: _id, email: _email, club_nume, grad_nume, grupa_denumire, ultima_prezenta, ...restData } = otherData as any;
 
             // Strip any remaining object/array values (join fields) that can't be written to DB
             const safeData = Object.fromEntries(

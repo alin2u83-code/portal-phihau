@@ -50,7 +50,7 @@ export const SportiviMobileList: React.FC<SportiviMobileListProps> = (props) => 
           const grad = grade.find(g => g.id === sportiv.grad_actual_id);
 
           return (
-            <Card key={sportiv.id} onClick={() => onRowClick(sportiv)} className={`border-l-4 ${sportiv.status === 'Activ' ? 'border-green-500' : 'border-slate-600'}`}>
+            <Card key={sportiv.id} id={`row-${sportiv.id}`} onClick={() => onRowClick(sportiv)} className={`border-l-4 ${sportiv.status === 'Activ' ? 'border-green-500' : 'border-slate-600'}`}>
               <div className="flex justify-between items-start">
                 <div>
                   <p className="font-bold text-white text-lg mb-1">{sportiv.nume} {sportiv.prenume}</p>

@@ -108,7 +108,7 @@ export function ResponsiveTable<T>({
             {useCardLayout ? (
                 <div className={cardContainerClassName ?? 'divide-y divide-[var(--border-color)]'}>
                     {paginatedData.map((item, index) => (
-                        <div key={String(item[idKey] || index)} onClick={() => onRowClick?.(item)}>
+                        <div key={String(item[idKey] || index)} id={`row-${String(item[idKey] || index)}`} onClick={() => onRowClick?.(item)}>
                             {renderMobileItem!(item)}
                         </div>
                     ))}
@@ -156,8 +156,9 @@ export function ResponsiveTable<T>({
                         </thead>
                         <tbody className="divide-y divide-[var(--border-color)]">
                             {paginatedData.map((item, index) => (
-                                <tr 
-                                    key={String(item[idKey] || index)} 
+                                <tr
+                                    key={String(item[idKey] || index)}
+                                    id={`row-${String(item[idKey] || index)}`}
                                     className={`${onRowClick ? 'cursor-pointer hover:bg-[var(--bg-table-row-hover)]' : ''} ${item[idKey] === selectedRowId ? 'selected-row-highlight' : ''} ${rowClassName ? rowClassName(item) : ''}`}
                                     onClick={() => onRowClick?.(item)}
                                 >

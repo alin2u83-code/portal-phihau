@@ -229,12 +229,14 @@ export const Sportivi: React.FC<{
     const loading = sportiviLoading || familyLoading;
 
     // Restaurează poziția după ce datele s-au încărcat
+    // Dublu RAF: primul frame React a comis DOM-ul, al doilea frame browserul a pictat
     useEffect(() => {
         if (sportiviLoading) return;
         if (scrollRestoredRef.current) return;
         if (!restoredState) return;
         scrollRestoredRef.current = true;
-        const raf = requestAnimationFrame(() => {
+
+        const doScroll = () => {
             const sportivId = restoredState.sportivId;
             if (sportivId) {
                 const el = document.getElementById(`row-${sportivId}`);
@@ -252,8 +254,14 @@ export const Sportivi: React.FC<{
                     window.scrollTo(0, scrollTarget);
                 }
             }
+        };
+
+        // Dublu RAF: asigură că browserul a pictat DOM-ul înainte de scroll
+        let raf2: number;
+        const raf1 = requestAnimationFrame(() => {
+            raf2 = requestAnimationFrame(doScroll);
         });
-        return () => cancelAnimationFrame(raf);
+        return () => { cancelAnimationFrame(raf1); cancelAnimationFrame(raf2); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sportiviLoading]);
 

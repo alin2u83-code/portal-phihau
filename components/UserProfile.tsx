@@ -257,8 +257,16 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
         try {
             if (!sportiv.id) throw new Error("ID-ul sportivului lipsește.");
             
-            const { roluri, cluburi, ...sportivData } = formData;
-            const { data, error } = await supabase.from('sportivi').update(sportivData).eq('id', sportiv.id).select('*, cluburi(*), utilizator_roluri_multicont(rol_denumire)').maybeSingle();
+            // Excludem câmpurile din join/view care nu există în tabela sportivi
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { roluri: _r, cluburi: _c, club_nume: _cn, grad_nume: _gn, grupa_denumire: _gd,
+                    ultima_prezenta: _up, sportivi_count: _sc, grupe: _gr, familie: _fa,
+                    username: _un, parola: _pa, ...sportivData } = formData as any;
+            // Eliminăm orice câmp obiect/array rămas (câmpuri join neașteptate)
+            const safeData = Object.fromEntries(
+                Object.entries(sportivData).filter(([, v]) => v === null || typeof v !== 'object')
+            );
+            const { data, error } = await supabase.from('sportivi').update(safeData).eq('id', sportiv.id).select('*, cluburi(*), utilizator_roluri_multicont(rol_denumire)').maybeSingle();
             if (error) throw error;
             if (!data) throw new Error("Nu s-au putut prelua datele actualizate. Verificați permisiunile.");
 

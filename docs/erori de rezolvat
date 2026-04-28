@@ -104,3 +104,13 @@ creaza un footer pe care sa fie asistentul ai, deocamdata se suprapune cu alte i
 
 REZOLVAT — Trimitere email+parola la creare cont sportiv
 este facut sa poata transmite informatiile de creare cont al unui sportiv? sa se poata transmite prin mesaj care este adresa de email si parola catre sportivul caruia i-a fost creat contul
+
+nerezolvat: Failed to load resource: the server responded with a status of 400 ()Understand this error
+2index-BJYcqMo6.js:18 DETALII EROARE: "Could not find the 'club_nume' column of 'sportivi' in the schema cache"
+
+cand dau salvare sa ma duca inapoi la management sportiv
+
+cand merg la pagina urmatoare, ma mentine jos, vreau sa ma duca in partea de sus a tabelului
+
+
+

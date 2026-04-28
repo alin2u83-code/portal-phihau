@@ -314,6 +314,8 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
   const [catFormOpen, setCatFormOpen] = useState(false);
   const [catToEdit, setCatToEdit] = useState<CategorieCompetitie | null>(null);
   const [probaFormOpen, setProbaFormOpen] = useState(false);
+  // Task 1: vizualizare sportivi înscriși per categorie
+  const [viewInscrieriCatId, setViewInscrieriCatId] = useState<string | null>(null);
 
   const isAdmin = permissions.isSuperAdmin || permissions.isFederationAdmin;
   const isClubAdmin = permissions.isAdminClub;
@@ -469,36 +471,112 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                       const proba = probe.find(p => p.id === cat.proba_id);
                       const count = inscrieriCount(cat.id);
                       const isTeam = cat.tip_participare !== 'individual';
+                      const isExpanded = viewInscrieriCatId === cat.id;
+                      // Sportivi individuali înscriși în această categorie
+                      const inscrieriCat = inscrieri.filter(i => i.categorie_id === cat.id && i.status !== 'retras');
+                      // Echipe înscrise în această categorie
+                      const echipeCat = echipe.filter(e => e.categorie_id === cat.id && e.status !== 'retrasa');
+                      const colCount = (canRegister && isClubAdmin) ? 6 : 5;
                       return (
-                        <tr key={cat.id} className="hover:bg-slate-800/50">
-                          <td className="p-2 text-slate-500">{cat.numar_categorie}</td>
-                          <td className="p-2">
-                            <div className="font-medium text-white">{cat.denumire}</div>
-                            {cat.arma && <div className="text-xs text-orange-400">{cat.arma}</div>}
-                          </td>
-                          <td className="p-2 hidden md:table-cell text-xs text-slate-400">
-                            {proba ? TIP_PROBA_LABELS[proba.tip_proba] : '-'}
-                          </td>
-                          <td className="p-2 hidden md:table-cell text-xs">
-                            {isTeam ? (
-                              <span className="text-purple-300">
-                                {cat.tip_participare === 'pereche' ? 'Pereche' : 'Echipă'} ({cat.sportivi_per_echipa_max} sp.)
-                              </span>
-                            ) : 'Individual'}
-                          </td>
-                          <td className="p-2 text-center">
-                            <span className={`text-xs font-bold ${count >= cat.min_participanti_start ? 'text-green-400' : 'text-slate-500'}`}>
-                              {count}/{cat.min_participanti_start}
-                            </span>
-                          </td>
-                          {canRegister && isClubAdmin && (
-                            <td className="p-2 text-right">
-                              <Button size="sm" variant="info" onClick={() => setInscriereModal(cat)}>
-                                Înscrie
-                              </Button>
+                        <React.Fragment key={cat.id}>
+                          <tr className="hover:bg-slate-800/50">
+                            <td className="p-2 text-slate-500">{cat.numar_categorie}</td>
+                            <td className="p-2">
+                              <div className="font-medium text-white">{cat.denumire}</div>
+                              {cat.arma && <div className="text-xs text-orange-400">{cat.arma}</div>}
                             </td>
+                            <td className="p-2 hidden md:table-cell text-xs text-slate-400">
+                              {proba ? TIP_PROBA_LABELS[proba.tip_proba] : '-'}
+                            </td>
+                            <td className="p-2 hidden md:table-cell text-xs">
+                              {isTeam ? (
+                                <span className="text-purple-300">
+                                  {cat.tip_participare === 'pereche' ? 'Pereche' : 'Echipă'} ({cat.sportivi_per_echipa_max} sp.)
+                                </span>
+                              ) : 'Individual'}
+                            </td>
+                            <td className="p-2 text-center">
+                              <button
+                                onClick={() => count > 0 && setViewInscrieriCatId(isExpanded ? null : cat.id)}
+                                style={{ touchAction: 'manipulation' }}
+                                title={count > 0 ? 'Click pentru a vedea sportivii înscriși' : undefined}
+                                className={`text-xs font-bold transition-colors ${count >= cat.min_participanti_start ? 'text-green-400' : count > 0 ? 'text-yellow-400' : 'text-slate-500'} ${count > 0 ? 'hover:underline cursor-pointer' : 'cursor-default'}`}
+                              >
+                                {count}/{cat.min_participanti_start}
+                                {count > 0 && <span className="ml-1 text-slate-500">{isExpanded ? '▲' : '▼'}</span>}
+                              </button>
+                            </td>
+                            {canRegister && isClubAdmin && (
+                              <td className="p-2 text-right">
+                                <Button size="sm" variant="info" onClick={() => setInscriereModal(cat)}>
+                                  Înscrie
+                                </Button>
+                              </td>
+                            )}
+                          </tr>
+                          {/* Task 1: panou expandat cu sportivii înscriși */}
+                          {isExpanded && (
+                            <tr>
+                              <td colSpan={colCount} className="px-2 pb-2 pt-0 bg-slate-800/40">
+                                <div className="rounded-lg border border-slate-700 overflow-hidden">
+                                  <div className="px-3 py-2 bg-slate-800/60 border-b border-slate-700 text-xs font-semibold text-slate-400 uppercase tracking-wide flex items-center justify-between">
+                                    <span>Înscriși în: {cat.denumire}</span>
+                                    <button
+                                      onClick={() => setViewInscrieriCatId(null)}
+                                      style={{ touchAction: 'manipulation' }}
+                                      className="text-slate-500 hover:text-white transition-colors"
+                                    >✕</button>
+                                  </div>
+                                  {inscrieriCat.length === 0 && echipeCat.length === 0 ? (
+                                    <div className="px-3 py-3 text-xs text-slate-500 italic">Niciun înscris activ.</div>
+                                  ) : (
+                                    <div className="divide-y divide-slate-700/50">
+                                      {inscrieriCat.map((ins, idx) => {
+                                        const sp = ins.sportiv as any;
+                                        return (
+                                          <div key={ins.id} className="flex items-center gap-3 px-3 py-2">
+                                            <span className="text-xs text-slate-500 w-5 shrink-0">{idx + 1}.</span>
+                                            <div className="flex-1 min-w-0">
+                                              <span className="text-sm text-white font-medium">
+                                                {sp ? `${sp.prenume} ${sp.nume}` : ins.sportiv_id}
+                                              </span>
+                                            </div>
+                                            <span className={`text-[10px] px-2 py-0.5 rounded-full ${ins.status === 'confirmat' ? 'bg-green-800 text-green-200' : ins.status === 'retras' ? 'bg-red-800 text-red-200' : 'bg-slate-700 text-slate-300'}`}>
+                                              {ins.status}
+                                            </span>
+                                          </div>
+                                        );
+                                      })}
+                                      {echipeCat.map((ec) => {
+                                        const membri = (ec as any).echipa_sportivi || [];
+                                        return (
+                                          <div key={ec.id} className="px-3 py-2">
+                                            <div className="flex items-center justify-between mb-1">
+                                              <span className="text-sm text-white font-medium">
+                                                {ec.denumire_echipa || 'Echipă fără denumire'}
+                                              </span>
+                                              <span className={`text-[10px] px-2 py-0.5 rounded-full ${ec.status === 'confirmata' ? 'bg-green-800 text-green-200' : 'bg-slate-700 text-slate-300'}`}>
+                                                {ec.status}
+                                              </span>
+                                            </div>
+                                            <div className="flex flex-wrap gap-1">
+                                              {membri.map((ms: any) => (
+                                                <span key={ms.sportiv_id} className="text-xs px-2 py-0.5 rounded bg-slate-700 text-slate-300">
+                                                  {ms.sportiv ? `${ms.sportiv.prenume} ${ms.sportiv.nume}` : ms.sportiv_id}
+                                                  {ms.rol === 'rezerva' && <span className="text-slate-500 ml-1">(R)</span>}
+                                                </span>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
                           )}
-                        </tr>
+                        </React.Fragment>
                       );
                     })}
                   </tbody>
@@ -1710,6 +1788,9 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
   const [loading, setLoading] = useState(false);
   const isTeam = categorie.tip_participare !== 'individual';
 
+  // Task 2: toggle afișare sportivi neeligibili
+  const [showNeeligibili, setShowNeeligibili] = useState(false);
+
   // For individual
   const [selectedSportivId, setSelectedSportivId] = useState('');
   // For echipa/pereche
@@ -1725,19 +1806,60 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
   const eligibili = eligibilitati.filter(e => e.eligibilitate.eligibil);
   const neeligibili = eligibilitati.filter(e => !e.eligibilitate.eligibil);
 
-  // Check already inscribed
-  const inscrisPrev = new Set(inscrieri.filter(i => i.categorie_id === categorie.id).map(i => i.sportiv_id));
+  // Check already inscribed (pentru această categorie)
+  const inscrisPrev = new Set(inscrieri.filter(i => i.categorie_id === categorie.id && i.status !== 'retras').map(i => i.sportiv_id));
   const inscrisInEchipa = new Set(
-    (echipe.filter(e => e.categorie_id === categorie.id) as any[])
+    (echipe.filter(e => e.categorie_id === categorie.id && e.status !== 'retrasa') as any[])
       .flatMap(e => (e.echipa_sportivi || []).map((ms: any) => ms.sportiv_id))
   );
 
-  const alreadyInscris = (id: string) => inscrisPrev.has(id) || inscrisInEchipa.has(id);
+  // Task 2: sortare — eligibili neinscrisi → eligibili deja inscriși
+  const eligibiliSortati = useMemo(() => {
+    const neinscrisi = eligibili.filter(e => !inscrisPrev.has(e.sportiv.id) && !inscrisInEchipa.has(e.sportiv.id));
+    const dejaInscrisiLst = eligibili.filter(e => inscrisPrev.has(e.sportiv.id) || inscrisInEchipa.has(e.sportiv.id));
+    return { neinscrisi, dejaInscrisiLst };
+  }, [eligibili]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Task 3: verificare categorie thao_quyen individual (nelimitat = sportivi_per_echipa_max === 0 sau tip_participare individual + proba thao_quyen)
+  const esteThaoQuyenIndividualModal = !isTeam && (
+    categorie.proba?.tip_proba === 'thao_quyen_individual' ||
+    categorie.proba?.tip_proba === 'thao_lo_individual'
+  );
+
+  // Task 3: selectare în masă
+  const allEligibiliNeinscrisi = eligibiliSortati.neinscrisi.map(e => e.sportiv.id);
+  const allSelected = allEligibiliNeinscrisi.length > 0 &&
+    allEligibiliNeinscrisi.every(id => selectedTitulari.includes(id));
+
+  // Task 4: echipă deja înscrisă din clubul curent
+  const echipaDejaInscrisa = useMemo(() => {
+    if (!isTeam) return null;
+    return (echipe as any[]).find(
+      e => e.categorie_id === categorie.id && e.club_id === clubId && e.status !== 'retrasa'
+    ) ?? null;
+  }, [echipe, categorie.id, clubId, isTeam]);
+
+  // Task 4: precompletare pentru editare echipă existentă
+  const [editMode, setEditMode] = useState(false);
+
+  useEffect(() => {
+    if (echipaDejaInscrisa && !editMode) return;
+    if (editMode && echipaDejaInscrisa) {
+      // Precompletăm cu membrii echipei existente
+      const membri = (echipaDejaInscrisa as any).echipa_sportivi || [];
+      const titulari = membri.filter((m: any) => m.rol === 'titular').map((m: any) => m.sportiv_id);
+      const rezerve = membri.filter((m: any) => m.rol === 'rezerva').map((m: any) => m.sportiv_id);
+      setSelectedTitulari(titulari);
+      setSelectedRezerve(rezerve);
+      setDenEchipa((echipaDejaInscrisa as any).denumire_echipa || '');
+    }
+  }, [editMode, echipaDejaInscrisa]);
 
   const toggleTitular = (id: string) => {
     setSelectedTitulari(prev => {
       if (prev.includes(id)) return prev.filter(x => x !== id);
-      if (prev.length >= categorie.sportivi_per_echipa_max) return prev;
+      // Task 3: thao quyen individual — nelimitat
+      if (!esteThaoQuyenIndividualModal && prev.length >= categorie.sportivi_per_echipa_max) return prev;
       return [...prev, id];
     });
   };
@@ -1748,6 +1870,15 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
       if (prev.length >= categorie.rezerve_max) return prev;
       return [...prev, id];
     });
+  };
+
+  // Task 3: selectare/deselectare toți
+  const handleSelectAll = () => {
+    if (allSelected) {
+      setSelectedTitulari([]);
+    } else {
+      setSelectedTitulari(allEligibiliNeinscrisi);
+    }
   };
 
   const handleSubmit = async () => {
@@ -1762,6 +1893,29 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
           sportiv_id: selectedSportivId,
         });
         if (error) throw error;
+      } else if (editMode && echipaDejaInscrisa) {
+        // Task 4: actualizare componență echipă existentă
+        if (selectedTitulari.length < categorie.sportivi_per_echipa_min) {
+          throw new Error(`Selectează minim ${categorie.sportivi_per_echipa_min} titulari`);
+        }
+        // Ștergem membrii vechi și inserăm cei noi
+        const { error: delErr } = await supabase
+          .from('echipa_sportivi')
+          .delete()
+          .eq('echipa_id', (echipaDejaInscrisa as any).id);
+        if (delErr) throw delErr;
+        const members = [
+          ...selectedTitulari.map(id => ({ echipa_id: (echipaDejaInscrisa as any).id, sportiv_id: id, rol: 'titular' })),
+          ...selectedRezerve.map(id => ({ echipa_id: (echipaDejaInscrisa as any).id, sportiv_id: id, rol: 'rezerva' })),
+        ];
+        if (members.length > 0) {
+          const { error: mErr } = await supabase.from('echipa_sportivi').insert(members);
+          if (mErr) throw mErr;
+        }
+        // Actualizăm și denumirea
+        if (denEchipa.trim()) {
+          await supabase.from('echipe_competitie').update({ denumire_echipa: denEchipa.trim() }).eq('id', (echipaDejaInscrisa as any).id);
+        }
       } else {
         if (selectedTitulari.length < categorie.sportivi_per_echipa_min) {
           throw new Error(`Selectează minim ${categorie.sportivi_per_echipa_min} titulari`);
@@ -1789,6 +1943,83 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
     }
   };
 
+  // Helper randare rând sportiv individual
+  const renderSportivIndividual = (sportiv: Sportiv, deja: boolean) => {
+    const varsta = sportiv.data_nasterii
+      ? calculeazaVarstaLaData(sportiv.data_nasterii, competitie.data_inceput)
+      : null;
+    const grad = grade.find(g => g.id === sportiv.grad_actual_id);
+    const faraViza = !areVizaFRAM(sportiv.id, anCompetitie, vizeSportivi);
+    return (
+      <label
+        key={sportiv.id}
+        style={{ touchAction: 'manipulation' }}
+        className={`flex items-center gap-3 p-2 rounded cursor-pointer border transition-colors ${
+          deja ? 'opacity-60 cursor-not-allowed border-blue-700/40 bg-blue-900/10' :
+          selectedSportivId === sportiv.id ? 'border-brand-primary bg-brand-primary/10' :
+          'border-slate-700 hover:border-slate-500'
+        }`}
+      >
+        <input
+          type="radio"
+          name="sportiv"
+          value={sportiv.id}
+          disabled={deja}
+          checked={selectedSportivId === sportiv.id}
+          onChange={() => !deja && setSelectedSportivId(sportiv.id)}
+          className="w-4 h-4"
+        />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1 flex-wrap">
+            <span className="text-sm text-white font-medium">{sportiv.prenume} {sportiv.nume}</span>
+            {deja && (
+              <span className="text-[10px] font-bold text-blue-400 bg-blue-900/30 border border-blue-700/50 rounded-full px-2 py-0.5">
+                Deja inscris
+              </span>
+            )}
+            <WarningVizaFRAM show={faraViza} inline />
+          </div>
+          <div className="text-xs text-slate-400">
+            {varsta !== null ? `${varsta} ani` : ''}{grad?.nume ? ` · ${grad.nume}` : ''}
+          </div>
+        </div>
+      </label>
+    );
+  };
+
+  // Helper randare rând sportiv echipă
+  const renderSportivEchipa = (sportiv: Sportiv, deja: boolean) => {
+    const varsta = sportiv.data_nasterii
+      ? calculeazaVarstaLaData(sportiv.data_nasterii, competitie.data_inceput) : null;
+    const grad = grade.find(g => g.id === sportiv.grad_actual_id);
+    const isRezerva = selectedRezerve.includes(sportiv.id);
+    const faraViza = !areVizaFRAM(sportiv.id, anCompetitie, vizeSportivi);
+    return (
+      <label key={sportiv.id} style={{ touchAction: 'manipulation' }} className={`flex items-center gap-3 p-2 rounded cursor-pointer border transition-colors ${
+        deja || isRezerva ? 'opacity-40 cursor-not-allowed border-transparent' :
+        selectedTitulari.includes(sportiv.id) ? 'border-brand-primary bg-brand-primary/10' :
+        'border-slate-700 hover:border-slate-500'
+      }`}>
+        <input type="checkbox" checked={selectedTitulari.includes(sportiv.id) || deja}
+          disabled={deja || isRezerva}
+          onChange={() => !deja && !isRezerva && toggleTitular(sportiv.id)}
+          className="w-4 h-4" />
+        <div className="flex-1">
+          <div className="flex items-center gap-1 flex-wrap">
+            <span className="text-sm text-white">{sportiv.prenume} {sportiv.nume}</span>
+            {deja && (
+              <span className="text-[10px] font-bold text-blue-400 bg-blue-900/30 border border-blue-700/50 rounded-full px-1.5 py-0.5">
+                In echipă
+              </span>
+            )}
+            <WarningVizaFRAM show={faraViza} inline />
+          </div>
+          <div className="text-xs text-slate-400">{varsta !== null ? `${varsta} ani` : ''}{grad?.nume ? ` · ${grad.nume}` : ''}</div>
+        </div>
+      </label>
+    );
+  };
+
   return (
     <Modal isOpen={true} onClose={onClose} title={`Înscrie la: ${categorie.denumire}`}>
       <div className="space-y-4">
@@ -1797,7 +2028,7 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
           {categorie.arma && <div className="text-orange-400 text-xs mt-0.5">Armă: {categorie.arma}</div>}
           <div className="text-xs text-slate-500 mt-1">
             Participare: <strong className="text-slate-300">{categorie.tip_participare}</strong>
-            {isTeam && ` · ${categorie.sportivi_per_echipa_max} sportivi/echipă`}
+            {isTeam && categorie.sportivi_per_echipa_max > 0 && ` · ${categorie.sportivi_per_echipa_max} sportivi/echipă`}
             {categorie.rezerve_max > 0 && ` · max ${categorie.rezerve_max} rezerve`}
           </div>
           <div className="text-xs text-slate-500 mt-0.5">
@@ -1805,110 +2036,162 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
           </div>
         </div>
 
-        {!isTeam ? (
-          /* Individual */
-          <div>
-            <div className="text-sm text-slate-300 font-medium mb-2">
-              Sportivi eligibili ({eligibili.length})
+        {/* Task 4: blocare înscriere echipă dublă */}
+        {isTeam && echipaDejaInscrisa && !editMode ? (
+          <div className="space-y-3">
+            <div className="flex items-start gap-3 p-3 bg-amber-900/20 border border-amber-700/50 rounded-lg">
+              <span className="text-amber-400 text-base shrink-0 mt-0.5">⚠</span>
+              <div>
+                <p className="text-sm font-semibold text-amber-300">Clubul tău are deja o echipă înscrisă</p>
+                <p className="text-xs text-amber-400/80 mt-0.5">
+                  {(echipaDejaInscrisa as any).denumire_echipa || 'Echipă fără denumire'} — {
+                    ((echipaDejaInscrisa as any).echipa_sportivi || []).length
+                  } membri
+                </p>
+              </div>
             </div>
-            <div className="max-h-64 overflow-y-auto overscroll-contain space-y-1">
-              {eligibili.map(({ sportiv }) => {
-                const varsta = sportiv.data_nasterii
-                  ? calculeazaVarstaLaData(sportiv.data_nasterii, competitie.data_inceput)
-                  : null;
-                const grad = grade.find(g => g.id === sportiv.grad_actual_id);
-                const deja = alreadyInscris(sportiv.id);
-                const faraViza = !areVizaFRAM(sportiv.id, anCompetitie, vizeSportivi);
-                return (
-                  <label
-                    key={sportiv.id}
-                    style={{ touchAction: 'manipulation' }}
-                    className={`flex items-center gap-3 p-2 rounded cursor-pointer border transition-colors ${
-                      deja ? 'opacity-50 cursor-not-allowed border-transparent' :
-                      selectedSportivId === sportiv.id ? 'border-brand-primary bg-brand-primary/10' :
-                      'border-slate-700 hover:border-slate-500'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="sportiv"
-                      value={sportiv.id}
-                      disabled={deja}
-                      checked={selectedSportivId === sportiv.id}
-                      onChange={() => !deja && setSelectedSportivId(sportiv.id)}
-                      className="w-4 h-4"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1 flex-wrap">
-                        <span className="text-sm text-white font-medium">{sportiv.nume} {sportiv.prenume}</span>
-                        <WarningVizaFRAM show={faraViza} inline />
-                      </div>
-                      <div className="text-xs text-slate-400">
-                        {varsta !== null ? `${varsta} ani` : ''} · {grad?.nume || 'Fără grad'}
-                        {deja && <span className="text-yellow-400 ml-2">· Deja înscris</span>}
+            <Button
+              variant="warning"
+              onClick={() => setEditMode(true)}
+              className="w-full"
+            >
+              Modifică componența echipei
+            </Button>
+          </div>
+        ) : !isTeam ? (
+          /* Individual — Task 2: sortare + Task 2: neeligibili exclud */
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-slate-300 font-medium">
+                Sportivi eligibili ({eligibili.length})
+              </span>
+              {neeligibili.length > 0 && (
+                <button
+                  onClick={() => setShowNeeligibili(v => !v)}
+                  style={{ touchAction: 'manipulation' }}
+                  className="text-xs text-slate-500 hover:text-slate-300 transition-colors"
+                >
+                  {showNeeligibili ? 'Ascunde' : 'Arată'} neeligibili ({neeligibili.length})
+                </button>
+              )}
+            </div>
+            <div className="max-h-72 overflow-y-auto overscroll-contain space-y-1">
+              {/* Task 2: Primii — eligibili neinscrisi */}
+              {eligibiliSortati.neinscrisi.map(({ sportiv }) => renderSportivIndividual(sportiv, false))}
+              {/* Task 2: Dedesubt — eligibili deja inscriși */}
+              {eligibiliSortati.dejaInscrisiLst.length > 0 && (
+                <>
+                  {eligibiliSortati.neinscrisi.length > 0 && (
+                    <div className="py-1 px-2">
+                      <div className="border-t border-slate-700/60 flex items-center gap-2">
+                        <span className="text-[10px] text-slate-500 uppercase tracking-wide whitespace-nowrap bg-slate-900 pr-2">
+                          Deja înscriși în această categorie
+                        </span>
                       </div>
                     </div>
-                  </label>
-                );
-              })}
+                  )}
+                  {eligibiliSortati.dejaInscrisiLst.map(({ sportiv }) => renderSportivIndividual(sportiv, true))}
+                </>
+              )}
               {eligibili.length === 0 && (
                 <div className="text-center text-slate-500 py-4 italic text-sm">
                   Niciun sportiv eligibil din club pentru această categorie.
                 </div>
               )}
-            </div>
-            {neeligibili.length > 0 && (
-              <details className="mt-2">
-                <summary className="text-xs text-slate-500 cursor-pointer hover:text-slate-300">
-                  {neeligibili.length} sportivi neeligibili
-                </summary>
-                <div className="mt-1 space-y-1">
+              {/* Task 2: Neeligibili — toggle separat */}
+              {showNeeligibili && neeligibili.length > 0 && (
+                <>
+                  <div className="py-1 px-2">
+                    <div className="border-t border-red-700/30 flex items-center gap-2">
+                      <span className="text-[10px] text-red-500 uppercase tracking-wide whitespace-nowrap bg-slate-900 pr-2">
+                        Neeligibili (exclus)
+                      </span>
+                    </div>
+                  </div>
                   {neeligibili.map(({ sportiv, eligibilitate }) => (
-                    <div key={sportiv.id} className="text-xs text-slate-600 pl-2">
-                      {sportiv.nume} {sportiv.prenume}: {eligibilitate.motive.join(', ')}
+                    <div key={sportiv.id} className="flex items-center gap-3 p-2 rounded border border-slate-800 opacity-50">
+                      <input type="radio" disabled className="w-4 h-4 opacity-40" />
+                      <div className="flex-1 min-w-0">
+                        <span className="text-sm text-slate-400">{sportiv.prenume} {sportiv.nume}</span>
+                        <div className="text-[10px] text-red-400/80 mt-0.5">{eligibilitate.motive.join(' · ')}</div>
+                      </div>
                     </div>
                   ))}
-                </div>
-              </details>
-            )}
+                </>
+              )}
+            </div>
           </div>
         ) : (
-          /* Echipă / Pereche */
+          /* Echipă / Pereche — Task 2: sortare + Task 3: select all */
           <div className="space-y-3">
+            {editMode && echipaDejaInscrisa && (
+              <div className="flex items-center gap-2 p-2 bg-blue-900/20 border border-blue-700/40 rounded-lg text-xs text-blue-300">
+                <span>Editezi componența echipei existente.</span>
+                <button onClick={() => setEditMode(false)} className="text-blue-400 hover:underline ml-auto">Anulează</button>
+              </div>
+            )}
             <Input label="Denumire Echipă (opțional)" value={denEchipa} onChange={e => setDenEchipa(e.target.value)} />
             <div>
-              <div className="text-sm text-slate-300 font-medium mb-1">
-                Titulari ({selectedTitulari.length}/{categorie.sportivi_per_echipa_max})
+              <div className="flex items-center justify-between mb-1 flex-wrap gap-2">
+                <span className="text-sm text-slate-300 font-medium">
+                  Titulari ({selectedTitulari.length}{categorie.sportivi_per_echipa_max > 0 ? `/${categorie.sportivi_per_echipa_max}` : ''})
+                </span>
+                {/* Task 3: buton selectare în masă — thao quyen sau categorie nelimitată */}
+                {(esteThaoQuyenIndividualModal || categorie.sportivi_per_echipa_max === 0) && allEligibiliNeinscrisi.length > 1 && (
+                  <button
+                    onClick={handleSelectAll}
+                    style={{ touchAction: 'manipulation' }}
+                    className="text-xs font-medium text-brand-primary hover:underline transition-colors min-h-[32px] px-2"
+                  >
+                    {allSelected ? 'Deselectează toți' : `Selectează toți (${allEligibiliNeinscrisi.length})`}
+                  </button>
+                )}
               </div>
-              <div className="max-h-48 overflow-y-auto overscroll-contain space-y-1">
-                {eligibili.map(({ sportiv }) => {
-                  const varsta = sportiv.data_nasterii
-                    ? calculeazaVarstaLaData(sportiv.data_nasterii, competitie.data_inceput) : null;
-                  const grad = grade.find(g => g.id === sportiv.grad_actual_id);
-                  const deja = alreadyInscris(sportiv.id);
-                  const isRezerva = selectedRezerve.includes(sportiv.id);
-                  const faraViza = !areVizaFRAM(sportiv.id, anCompetitie, vizeSportivi);
-                  return (
-                    <label key={sportiv.id} style={{ touchAction: 'manipulation' }} className={`flex items-center gap-3 p-2 rounded cursor-pointer border transition-colors ${
-                      deja || isRezerva ? 'opacity-40 cursor-not-allowed border-transparent' :
-                      selectedTitulari.includes(sportiv.id) ? 'border-brand-primary bg-brand-primary/10' :
-                      'border-slate-700 hover:border-slate-500'
-                    }`}>
-                      <input type="checkbox" checked={selectedTitulari.includes(sportiv.id)}
-                        disabled={deja || isRezerva}
-                        onChange={() => toggleTitular(sportiv.id)}
-                        className="w-4 h-4" />
-                      <div className="flex-1">
-                        <div className="flex items-center gap-1 flex-wrap">
-                          <span className="text-sm text-white">{sportiv.nume} {sportiv.prenume}</span>
-                          <WarningVizaFRAM show={faraViza} inline />
+              <div className="max-h-52 overflow-y-auto overscroll-contain space-y-1">
+                {/* Task 2: eligibili neinscrisi primii */}
+                {eligibiliSortati.neinscrisi.map(({ sportiv }) => renderSportivEchipa(sportiv, false))}
+                {/* Task 2: deja în echipă */}
+                {eligibiliSortati.dejaInscrisiLst.length > 0 && (
+                  <>
+                    {eligibiliSortati.neinscrisi.length > 0 && (
+                      <div className="py-1 px-2">
+                        <div className="border-t border-slate-700/60">
+                          <span className="text-[10px] text-slate-500 uppercase tracking-wide bg-slate-900 pr-2">
+                            Deja în echipă
+                          </span>
                         </div>
-                        <div className="text-xs text-slate-400">{varsta !== null ? `${varsta} ani` : ''} · {grad?.nume || '-'}</div>
                       </div>
-                    </label>
-                  );
-                })}
+                    )}
+                    {eligibiliSortati.dejaInscrisiLst.map(({ sportiv }) => renderSportivEchipa(sportiv, true))}
+                  </>
+                )}
+                {eligibili.length === 0 && (
+                  <div className="text-center text-slate-500 py-3 italic text-sm">
+                    Niciun sportiv eligibil din club pentru această categorie.
+                  </div>
+                )}
+                {/* Task 2: neeligibili toggle */}
+                {showNeeligibili && neeligibili.length > 0 && (
+                  neeligibili.map(({ sportiv, eligibilitate }) => (
+                    <div key={sportiv.id} className="flex items-center gap-3 p-2 rounded border border-slate-800 opacity-40">
+                      <input type="checkbox" disabled className="w-4 h-4" />
+                      <div className="flex-1 min-w-0">
+                        <span className="text-sm text-slate-400">{sportiv.prenume} {sportiv.nume}</span>
+                        <div className="text-[10px] text-red-400/80">{eligibilitate.motive.join(' · ')}</div>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
+              {neeligibili.length > 0 && (
+                <button
+                  onClick={() => setShowNeeligibili(v => !v)}
+                  style={{ touchAction: 'manipulation' }}
+                  className="mt-1 text-xs text-slate-500 hover:text-slate-300 transition-colors"
+                >
+                  {showNeeligibili ? 'Ascunde' : 'Arată'} neeligibili ({neeligibili.length})
+                </button>
+              )}
             </div>
             {categorie.rezerve_max > 0 && (
               <div>
@@ -1928,7 +2211,7 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
                           disabled={isTitular}
                           onChange={() => toggleRezerva(sportiv.id)}
                           className="w-3 h-3" />
-                        <span className="text-slate-300">{sportiv.nume} {sportiv.prenume}</span>
+                        <span className="text-slate-300">{sportiv.prenume} {sportiv.nume}</span>
                       </label>
                     );
                   })}
@@ -1949,12 +2232,20 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
           ) : null;
         })()}
 
-        <div className="flex justify-end gap-2 pt-2 border-t border-slate-700">
-          <Button variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button>
-          <Button variant="success" onClick={handleSubmit} disabled={loading}>
-            {loading ? 'Se înscrie...' : 'Confirmă Înscrierea'}
-          </Button>
-        </div>
+        {/* Footer butoane — responsive */}
+        {!(isTeam && echipaDejaInscrisa && !editMode) && (
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2 border-t border-slate-700">
+            <Button variant="secondary" onClick={onClose} disabled={loading} className="w-full sm:w-auto">Anulează</Button>
+            <Button variant="success" onClick={handleSubmit} disabled={loading} className="w-full sm:w-auto">
+              {loading ? 'Se salvează...' : editMode ? 'Salvează Modificările' : 'Confirmă Înscrierea'}
+            </Button>
+          </div>
+        )}
+        {isTeam && echipaDejaInscrisa && !editMode && (
+          <div className="flex justify-end pt-2 border-t border-slate-700">
+            <Button variant="secondary" onClick={onClose} className="w-full sm:w-auto">Închide</Button>
+          </div>
+        )}
       </div>
     </Modal>
   );

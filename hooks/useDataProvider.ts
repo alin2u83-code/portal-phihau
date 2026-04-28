@@ -330,9 +330,9 @@ export const useDataProvider = () => {
                 sesiuniExamene: withClub(cleanedSupabase.from('sesiuni_examene').select('*')),
                 familii: withClub(cleanedSupabase.from('familii').select('*')),
                 vizualizarePlati: withClub(cleanedSupabase.from('view_plata_sportiv').select('*')),
-                locatii: withClub(cleanedSupabase.from('nom_locatii').select('*')),
+                locatii: cleanedSupabase.from('nom_locatii').select('*'),
                 evenimente: withClub(cleanedSupabase.from('evenimente').select('*')),
-                taxeAnualeConfig: withClub(cleanedSupabase.from('taxe_anuale_config').select('*')),
+                taxeAnualeConfig: cleanedSupabase.from('taxe_anuale_config').select('*'),
             };
 
             // Deferred queries — se încarcă în background după ce UI-ul e gata
@@ -341,7 +341,7 @@ export const useDataProvider = () => {
                 rezultate: cleanedSupabase.from('rezultate').select('*'),
                 tranzactii: cleanedSupabase.from('tranzactii').select('*'),
                 istoricPlatiDetaliat: cleanedSupabase.from('view_istoric_plati_detaliat').select('*'),
-                deconturiFederatie: withClub(cleanedSupabase.from('deconturi_federatie').select('*')),
+                deconturiFederatie: cleanedSupabase.from('deconturi_federatie').select('*'),
                 vizeSportivi: cleanedSupabase.from('vize_sportivi').select('*'),
                 decontSportivi: cleanedSupabase.from('decont_sportivi').select('*'),
             };

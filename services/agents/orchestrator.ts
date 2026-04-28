@@ -8,6 +8,7 @@ import { adminAgent } from './adminAgent';
 import { rapoarteAgent } from './rapoarteAgent';
 import { legitimatiiAgent } from './legitimatiiAgent';
 import { generalAgent } from './generalAgent';
+import { searchKnowledgeBase, formatRAGContext } from '../ragService';
 
 // All domain agents registered in priority order
 export const ALL_AGENTS: DomainAgent[] = [
@@ -106,8 +107,16 @@ export async function orchestrate(
   // Select agent
   const agent = selectAgent(lastUserMessage, context.activeView);
 
-  // Build system prompt for selected agent
-  const systemPrompt = agent.buildSystemPrompt(context);
+  // Build system prompt + fetch RAG context in parallel
+  const [systemPrompt, ragChunks] = await Promise.all([
+    Promise.resolve(agent.buildSystemPrompt(context)),
+    searchKnowledgeBase(lastUserMessage, {
+      category: agent.id === 'general' ? undefined : agent.id,
+      matchCount: 3,
+    }),
+  ]);
+
+  const enrichedSystemPrompt = systemPrompt + formatRAGContext(ragChunks);
 
   // Call Claude via proxy
   const response = await fetch('/api/claude-proxy', {
@@ -115,7 +124,7 @@ export async function orchestrate(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       messages,
-      system: systemPrompt,
+      system: enrichedSystemPrompt,
     }),
   });
 

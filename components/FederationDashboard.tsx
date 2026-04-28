@@ -7,7 +7,7 @@ import { FederationDashboardMobile } from './FederationDashboardMobile';
 import { useData } from '../contexts/DataContext';
 
 const NavCard: React.FC<{ title: string; view: View; icon: React.ElementType; onNavigate: (view: View) => void; }> = ({ title, view, icon: Icon, onNavigate }) => (
-    <div onClick={() => onNavigate(view)} className="bg-slate-900/50 p-6 rounded-xl flex flex-col items-center justify-center text-center gap-4 cursor-pointer hover:bg-slate-800/50 transition-all border border-slate-800 hover:border-slate-700 hover:shadow-lg hover:-translate-y-1 min-h-[200px] group">
+    <div onClick={() => onNavigate(view)} style={{ touchAction: 'manipulation' }} className="bg-slate-900/50 p-6 rounded-xl flex flex-col items-center justify-center text-center gap-4 cursor-pointer hover:bg-slate-800/50 transition-all border border-slate-800 hover:border-slate-700 hover:shadow-lg hover:-translate-y-1 min-h-[200px] group">
         <div className="p-4 rounded-full bg-slate-800 group-hover:bg-slate-700 transition-colors">
             <Icon className="w-8 h-8 text-brand-light group-hover:text-white transition-colors" />
         </div>

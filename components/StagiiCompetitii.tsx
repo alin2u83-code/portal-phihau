@@ -423,11 +423,11 @@ export const StagiiCompetitiiManagement: React.FC<StagiiCompetitiiProps> = ({ ty
                     </thead>
                     <tbody className="divide-y divide-slate-700">
                         {sortedEvenimente.map(ev => (
-                            <tr key={ev.id} className="hover:bg-slate-700/50">
-                                <td className="p-4 font-medium cursor-pointer" onClick={() => setSelectedEvenimentId(ev.id)}>
+                            <tr key={ev.id} className="hover:bg-slate-700/50" style={{ touchAction: 'manipulation' }} onClick={() => setSelectedEvenimentId(ev.id)}>
+                                <td className="p-4 font-medium cursor-pointer">
                                     {formatDateRange(ev.data)} - {formatDateRange(ev.data_sfarsit)}
                                 </td>
-                                <td className="p-4 cursor-pointer" onClick={() => setSelectedEvenimentId(ev.id)}>{ev.denumire}</td>
+                                <td className="p-4 cursor-pointer">{ev.denumire}</td>
                                 <td className="p-4">{rezultate.filter(r => r.eveniment_id === ev.id && sportivi.some(s => s.id === r.sportiv_id)).length}</td>
                                 <td className="p-4 w-32">
                                     <div className="flex items-center justify-end space-x-2">

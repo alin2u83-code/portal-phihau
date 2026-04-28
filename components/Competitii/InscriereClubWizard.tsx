@@ -356,6 +356,7 @@ const CardSportiv: React.FC<CardSportivProps> = ({
 }) => {
   return (
     <label
+      style={{ touchAction: 'manipulation' }}
       className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
         isDisabled
           ? 'opacity-50 cursor-not-allowed border-slate-700 bg-slate-800/30'
@@ -431,6 +432,7 @@ const RandTabelSportiv: React.FC<RandTabelSportivProps> = ({
   return (
     <tr
       onClick={() => !isDisabled && onToggle()}
+      style={{ touchAction: 'manipulation' }}
       className={`border-b border-slate-800 transition-colors ${
         isDisabled
           ? 'opacity-50 cursor-not-allowed'
@@ -1032,6 +1034,7 @@ const RandCategorie: React.FC<RandCategorieProps> = ({
     <div className={`transition-all ${isDisabledBong ? 'opacity-40' : ''}`}>
       <label
         title={tooltipBong}
+        style={{ touchAction: 'manipulation' }}
         className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-colors ${
           isDisabled
             ? 'cursor-not-allowed'

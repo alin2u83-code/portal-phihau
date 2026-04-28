@@ -401,22 +401,22 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
 
       {/* Tabs */}
       <div className="flex gap-2 border-b border-slate-700 pb-0">
-        <button onClick={() => setActiveTab('categorii')}
+        <button onClick={() => setActiveTab('categorii')} style={{ touchAction: 'manipulation' }}
           className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'categorii' ? 'border-brand-primary text-brand-primary' : 'border-transparent text-slate-400 hover:text-white'}`}>
           Categorii ({categorii.length})
         </button>
-        <button onClick={() => setActiveTab('inscrieri')}
+        <button onClick={() => setActiveTab('inscrieri')} style={{ touchAction: 'manipulation' }}
           className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'inscrieri' ? 'border-brand-primary text-brand-primary' : 'border-transparent text-slate-400 hover:text-white'}`}>
           Înscrieri ({inscrieri.length + echipe.length})
         </button>
         {isAdmin && (
-          <button onClick={() => setActiveTab('admin')}
+          <button onClick={() => setActiveTab('admin')} style={{ touchAction: 'manipulation' }}
             className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'admin' ? 'border-yellow-400 text-yellow-400' : 'border-transparent text-slate-400 hover:text-white'}`}>
             ⚙ Admin
           </button>
         )}
         {competitie.legacy_eveniment_id && (
-          <button onClick={() => setActiveTab('rezultate_legacy')}
+          <button onClick={() => setActiveTab('rezultate_legacy')} style={{ touchAction: 'manipulation' }}
             className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'rezultate_legacy' ? 'border-amber-400 text-amber-400' : 'border-transparent text-slate-400 hover:text-white'}`}>
             Rezultate Vechi
           </button>
@@ -1811,7 +1811,7 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
             <div className="text-sm text-slate-300 font-medium mb-2">
               Sportivi eligibili ({eligibili.length})
             </div>
-            <div className="max-h-64 overflow-y-auto space-y-1">
+            <div className="max-h-64 overflow-y-auto overscroll-contain space-y-1">
               {eligibili.map(({ sportiv }) => {
                 const varsta = sportiv.data_nasterii
                   ? calculeazaVarstaLaData(sportiv.data_nasterii, competitie.data_inceput)
@@ -1822,6 +1822,7 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
                 return (
                   <label
                     key={sportiv.id}
+                    style={{ touchAction: 'manipulation' }}
                     className={`flex items-center gap-3 p-2 rounded cursor-pointer border transition-colors ${
                       deja ? 'opacity-50 cursor-not-allowed border-transparent' :
                       selectedSportivId === sportiv.id ? 'border-brand-primary bg-brand-primary/10' :
@@ -1879,7 +1880,7 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
               <div className="text-sm text-slate-300 font-medium mb-1">
                 Titulari ({selectedTitulari.length}/{categorie.sportivi_per_echipa_max})
               </div>
-              <div className="max-h-48 overflow-y-auto space-y-1">
+              <div className="max-h-48 overflow-y-auto overscroll-contain space-y-1">
                 {eligibili.map(({ sportiv }) => {
                   const varsta = sportiv.data_nasterii
                     ? calculeazaVarstaLaData(sportiv.data_nasterii, competitie.data_inceput) : null;
@@ -1888,7 +1889,7 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
                   const isRezerva = selectedRezerve.includes(sportiv.id);
                   const faraViza = !areVizaFRAM(sportiv.id, anCompetitie, vizeSportivi);
                   return (
-                    <label key={sportiv.id} className={`flex items-center gap-3 p-2 rounded cursor-pointer border transition-colors ${
+                    <label key={sportiv.id} style={{ touchAction: 'manipulation' }} className={`flex items-center gap-3 p-2 rounded cursor-pointer border transition-colors ${
                       deja || isRezerva ? 'opacity-40 cursor-not-allowed border-transparent' :
                       selectedTitulari.includes(sportiv.id) ? 'border-brand-primary bg-brand-primary/10' :
                       'border-slate-700 hover:border-slate-500'
@@ -1914,11 +1915,11 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
                 <div className="text-sm text-slate-300 font-medium mb-1">
                   Rezerve ({selectedRezerve.length}/{categorie.rezerve_max})
                 </div>
-                <div className="max-h-32 overflow-y-auto space-y-1">
+                <div className="max-h-32 overflow-y-auto overscroll-contain space-y-1">
                   {eligibili.map(({ sportiv }) => {
                     const isTitular = selectedTitulari.includes(sportiv.id);
                     return (
-                      <label key={sportiv.id} className={`flex items-center gap-2 p-1.5 rounded cursor-pointer border text-xs ${
+                      <label key={sportiv.id} style={{ touchAction: 'manipulation' }} className={`flex items-center gap-2 p-1.5 rounded cursor-pointer border text-xs ${
                         isTitular ? 'opacity-40 cursor-not-allowed border-transparent' :
                         selectedRezerve.includes(sportiv.id) ? 'border-purple-500 bg-purple-900/20' :
                         'border-slate-700 hover:border-slate-500'
@@ -2213,6 +2214,7 @@ export const CompetitiiManagement: React.FC<CompetitiiProps> = ({ permissions, o
             <Card
               key={comp.id}
               className="p-4 cursor-pointer hover:border-brand-primary/50 transition-colors"
+              style={{ touchAction: 'manipulation' }}
               onClick={() => { savedScrollRef.current = window.scrollY; setSelectedComp(comp); setView('detail'); }}
             >
               <div className="flex items-start justify-between gap-3">

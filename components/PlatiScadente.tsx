@@ -551,7 +551,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                                 <tr key={p.id} className={`${selectedIds.has(p.id) ? 'bg-brand-primary/20' : ''}`}>
                                     <td className="p-3"><input type="checkbox" checked={selectedIds.has(p.id)} onChange={() => handleSelectRow(p.id)} className="h-4 w-4 rounded border-slate-500 bg-slate-800 text-brand-secondary focus:ring-brand-secondary" /></td>
                                     <td className="p-3">{new Date((p.data || '').toString().slice(0, 10)).toLocaleDateString('ro-RO')}</td>
-                                    <td className="p-3 font-medium text-white hover:text-brand-primary hover:underline cursor-pointer" onClick={() => { if(p.sportiv_id) onViewSportiv(sportivi.find(s=>s.id === p.sportiv_id)!) }}>{getEntityName(p)}</td>
+                                    <td className="p-3 font-medium text-white hover:text-brand-primary hover:underline cursor-pointer" style={{ touchAction: 'manipulation' }} onClick={() => { if(p.sportiv_id) onViewSportiv(sportivi.find(s=>s.id === p.sportiv_id)!) }}>{getEntityName(p)}</td>
                                     <td className="p-3"><div className="font-medium text-white">{p.descriereDetaliata}</div>{p.reducereDetalii && <div className="text-xs text-slate-400">Aplicat: {p.reducereDetalii.nume}</div>}</td>
                                     <td className="p-3 text-right">
                                         <div className="font-bold text-white">{p.suma.toFixed(2)} RON</div>

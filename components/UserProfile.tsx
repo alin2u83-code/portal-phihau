@@ -294,6 +294,24 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
         else { setSportivi(prev => prev.filter(s => s.id !== sportiv.id)); onBack(); showSuccess("Succes", "Sportivul a fost șters definitiv."); }
     };
     
+    // Dupa orice modificare in istoric_grade, re-fetch grad_actual_id
+    // din DB (triggerul a recalculat deja pe baza data_obtinere DESC)
+    const refetchGradActual = async () => {
+        if (!supabase) return;
+        const { data } = await supabase
+            .from('sportivi')
+            .select('grad_actual_id, metoda_selectie_grad')
+            .eq('id', sportiv.id)
+            .single();
+        if (data) {
+            setSportivi(prev => prev.map(s =>
+                s.id === sportiv.id
+                    ? { ...s, grad_actual_id: data.grad_actual_id, metoda_selectie_grad: data.metoda_selectie_grad }
+                    : s
+            ));
+        }
+    };
+
     const handleAddGrade = async (data: { grad_id: string; data_obtinere: string; observatii: string }) => {
         if(!supabase) return;
         try {
@@ -304,14 +322,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
             if (error) throw error;
             if (newGradeHistory) {
                 setIstoricGrade(prev => [...prev, newGradeHistory]);
-
-                // Actualizeaza grad_actual_id in starea locala daca noul grad e superior
-                const newGradeObj = grade.find(g => g.id === data.grad_id);
-                const currentGradeObj = grade.find(g => g.id === sportiv.grad_actual_id);
-                if (newGradeObj && (!currentGradeObj || newGradeObj.ordine > currentGradeObj.ordine)) {
-                    setSportivi(prev => prev.map(s => s.id === sportiv.id ? { ...s, grad_actual_id: data.grad_id } : s));
-                }
-
+                await refetchGradActual();
                 showSuccess("Succes", "Gradul a fost adăugat în istoric.");
                 setIsAddGradeModalOpen(false);
             }
@@ -332,6 +343,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
                     ? { ...ig, grad_id: data.grad_id, data_obtinere: data.data_obtinere, observatii: data.observatii }
                     : ig
             ));
+            await refetchGradActual();
             setGradeEntryToEdit(null);
             showSuccess("Succes", "Intrarea a fost actualizată.");
         } catch (err: any) {
@@ -346,6 +358,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
             const { error } = await supabase.from('istoric_grade').delete().eq('id', entryId);
             if (error) throw error;
             setIstoricGrade(prev => prev.filter(ig => ig.id !== entryId));
+            await refetchGradActual();
             showSuccess("Succes", "Intrarea a fost ștearsă din istoric.");
         } catch (err: any) {
             showError("Eroare la ștergere", err.message);

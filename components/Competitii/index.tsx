@@ -537,8 +537,8 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                                           <div key={ins.id} className="flex items-center gap-3 px-3 py-2">
                                             <span className="text-xs text-slate-500 w-5 shrink-0">{idx + 1}.</span>
                                             <div className="flex-1 min-w-0">
-                                              <span className="text-sm text-white font-medium">
-                                                {sp ? `${sp.prenume} ${sp.nume}` : ins.sportiv_id}
+                                              <span className="text-sm text-white font-medium uppercase">
+                                                {sp ? `${sp.nume} ${sp.prenume}` : ins.sportiv_id}
                                               </span>
                                             </div>
                                             <span className={`text-[10px] px-2 py-0.5 rounded-full ${ins.status === 'confirmat' ? 'bg-green-800 text-green-200' : ins.status === 'retras' ? 'bg-red-800 text-red-200' : 'bg-slate-700 text-slate-300'}`}>
@@ -562,7 +562,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                                             <div className="flex flex-wrap gap-1">
                                               {membri.map((ms: any) => (
                                                 <span key={ms.sportiv_id} className="text-xs px-2 py-0.5 rounded bg-slate-700 text-slate-300">
-                                                  {ms.sportiv ? `${ms.sportiv.prenume} ${ms.sportiv.nume}` : ms.sportiv_id}
+                                                  <span className="uppercase">{ms.sportiv ? `${ms.sportiv.nume} ${ms.sportiv.prenume}` : ms.sportiv_id}</span>
                                                   {ms.rol === 'rezerva' && <span className="text-slate-500 ml-1">(R)</span>}
                                                 </span>
                                               ))}
@@ -656,7 +656,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                         <tr key={r.id} className="border-b border-slate-800 hover:bg-slate-800/40">
                           <td className="p-2 text-slate-500">{idx + 1}</td>
                           <td className="p-2 font-medium text-white">
-                            {r.sportiv ? `${r.sportiv.prenume} ${r.sportiv.nume}` : '—'}
+                            <span className="uppercase">{r.sportiv ? `${r.sportiv.nume} ${r.sportiv.prenume}` : '—'}</span>
                           </td>
                           <td className="p-2 text-slate-400">{r.probe || '—'}</td>
                           <td className="p-2">
@@ -1619,12 +1619,17 @@ const InscrieriView: React.FC<InscrieriViewProps> = ({
   const { showError } = useError();
   const anCompetitie = new Date(competitie.data_inceput).getFullYear();
 
-  const filteredInscrieri = isAdmin ? inscrieri : inscrieri.filter(i => i.club_id === myClubId);
+  const statusOrdine: Record<string, number> = { inscris: 0, confirmat: 1, retras: 2 };
+  const filteredInscrieri = (isAdmin ? inscrieri : inscrieri.filter(i => i.club_id === myClubId))
+    .slice()
+    .sort((a, b) => (statusOrdine[a.status] ?? 9) - (statusOrdine[b.status] ?? 9));
   const filteredEchipe = isAdmin ? echipe : echipe.filter(e => e.club_id === myClubId);
 
   const handleRetrage = async (id: string, type: 'inscris' | 'echipa') => {
     const table = type === 'inscris' ? 'inscrieri_competitie' : 'echipe_competitie';
-    const { error } = await supabase.from(table).update({ status: 'retras' }).eq('id', id);
+    // inscrieri_competitie acceptă 'retras', echipe_competitie acceptă 'retrasa'
+    const statusRetras = type === 'inscris' ? 'retras' : 'retrasa';
+    const { error } = await supabase.from(table).update({ status: statusRetras }).eq('id', id);
     if (error) { showError("Eroare", error.message); return; }
     onRefresh();
   };
@@ -1657,7 +1662,7 @@ const InscrieriView: React.FC<InscrieriViewProps> = ({
                     <tr key={ins.id} className={farаViza ? 'bg-yellow-900/10' : ''}>
                       <td className="p-2">
                         <div className="flex items-center gap-1 flex-wrap">
-                          <span className="font-medium text-white">
+                          <span className="font-medium text-white uppercase">
                             {sportiv?.nume} {sportiv?.prenume}
                           </span>
                           <WarningVizaFRAM show={farаViza} inline />
@@ -1725,7 +1730,7 @@ const InscrieriView: React.FC<InscrieriViewProps> = ({
                           const faraViza = ms.sportiv && !areVizaFRAM(ms.sportiv.id, anCompetitie, vizeSportivi);
                           return (
                             <span key={ms.sportiv_id} className={`text-xs px-2 py-0.5 rounded flex items-center gap-1 ${faraViza ? 'bg-yellow-900/40 text-yellow-200 border border-yellow-700/50' : 'bg-slate-700 text-slate-300'}`}>
-                              {ms.sportiv?.nume} {ms.sportiv?.prenume}
+                              <span className="uppercase">{ms.sportiv?.nume} {ms.sportiv?.prenume}</span>
                               {ms.rol === 'rezerva' && <span className="text-slate-500 ml-1">(R)</span>}
                               {faraViza && <span title="Fără viză FRAM">⚠</span>}
                             </span>
@@ -1914,7 +1919,7 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
         }
         // Actualizăm și denumirea
         if (denEchipa.trim()) {
-          await supabase.from('echipe_competitie').update({ denumire_echipa: denEchipa.trim() }).eq('id', (echipaDejaInscrisa as any).id);
+          await supabase.from('echipe_competitie').update({ denumire_echipa: denEchipa.trim().toUpperCase() }).eq('id', (echipaDejaInscrisa as any).id);
         }
       } else {
         if (selectedTitulari.length < categorie.sportivi_per_echipa_min) {
@@ -1924,7 +1929,7 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
           competitie_id: competitie.id,
           categorie_id: categorie.id,
           club_id: clubId,
-          denumire_echipa: denEchipa.trim() || null,
+          denumire_echipa: denEchipa.trim().toUpperCase() || null,
         }).select().single();
         if (ecErr) throw ecErr;
 
@@ -1971,7 +1976,7 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
         />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1 flex-wrap">
-            <span className="text-sm text-white font-medium">{sportiv.prenume} {sportiv.nume}</span>
+            <span className="text-sm text-white font-medium uppercase">{sportiv.nume} {sportiv.prenume}</span>
             {deja && (
               <span className="text-[10px] font-bold text-blue-400 bg-blue-900/30 border border-blue-700/50 rounded-full px-2 py-0.5">
                 Deja inscris
@@ -2006,7 +2011,7 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
           className="w-4 h-4" />
         <div className="flex-1">
           <div className="flex items-center gap-1 flex-wrap">
-            <span className="text-sm text-white">{sportiv.prenume} {sportiv.nume}</span>
+            <span className="text-sm text-white uppercase">{sportiv.nume} {sportiv.prenume}</span>
             {deja && (
               <span className="text-[10px] font-bold text-blue-400 bg-blue-900/30 border border-blue-700/50 rounded-full px-1.5 py-0.5">
                 In echipă
@@ -2112,7 +2117,7 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
                     <div key={sportiv.id} className="flex items-center gap-3 p-2 rounded border border-slate-800 opacity-50">
                       <input type="radio" disabled className="w-4 h-4 opacity-40" />
                       <div className="flex-1 min-w-0">
-                        <span className="text-sm text-slate-400">{sportiv.prenume} {sportiv.nume}</span>
+                        <span className="text-sm text-slate-400 uppercase">{sportiv.nume} {sportiv.prenume}</span>
                         <div className="text-[10px] text-red-400/80 mt-0.5">{eligibilitate.motive.join(' · ')}</div>
                       </div>
                     </div>
@@ -2176,7 +2181,7 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
                     <div key={sportiv.id} className="flex items-center gap-3 p-2 rounded border border-slate-800 opacity-40">
                       <input type="checkbox" disabled className="w-4 h-4" />
                       <div className="flex-1 min-w-0">
-                        <span className="text-sm text-slate-400">{sportiv.prenume} {sportiv.nume}</span>
+                        <span className="text-sm text-slate-400 uppercase">{sportiv.nume} {sportiv.prenume}</span>
                         <div className="text-[10px] text-red-400/80">{eligibilitate.motive.join(' · ')}</div>
                       </div>
                     </div>
@@ -2211,7 +2216,7 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
                           disabled={isTitular}
                           onChange={() => toggleRezerva(sportiv.id)}
                           className="w-3 h-3" />
-                        <span className="text-slate-300">{sportiv.prenume} {sportiv.nume}</span>
+                        <span className="text-slate-300 uppercase">{sportiv.nume} {sportiv.prenume}</span>
                       </label>
                     );
                   })}

@@ -13,23 +13,52 @@ const formatDateRange = (start: string) => {
     return new Date(start).toLocaleDateString('ro-RO');
 };
 
+interface TipStagiuOpt { cod: string; denumire: string; }
+
 interface EvenimentFormProps { isOpen: boolean; onClose: () => void; onSave: (ev: Omit<Eveniment, 'id'>) => Promise<void>; evToEdit: Eveniment | null; type: 'Stagiu' | 'Competitie'; currentUser: User; permissions: Permissions; locatii: Locatie[]; }
 const EvenimentForm: React.FC<EvenimentFormProps> = ({ isOpen, onClose, onSave, evToEdit, type, currentUser, permissions, locatii }) => {
     const [formState, setFormState] = useState<Omit<Eveniment, 'id' | 'probe_disponibile'>>({ denumire: '', data: new Date().toISOString().split('T')[0], data_sfarsit: new Date().toISOString().split('T')[0], locatie: '', organizator: '', tip: type });
     const [probeStr, setProbeStr] = useState('');
+    const [tipStagiu, setTipStagiu] = useState('general');
+    const [tipuriStagii, setTipuriStagii] = useState<TipStagiuOpt[]>([]);
     const [loading, setLoading] = useState(false);
     const [isFederationEvent, setIsFederationEvent] = useState(false);
     
+    // Încarcă tipuri stagii o singură dată la mount dacă tipul e Stagiu
+    React.useEffect(() => {
+        if (type !== 'Stagiu') return;
+        supabase
+            .from('tipuri_stagii')
+            .select('cod, denumire')
+            .eq('activ', true)
+            .order('ordine')
+            .then(({ data }) => {
+                if (data && data.length > 0) {
+                    setTipuriStagii(data as TipStagiuOpt[]);
+                } else {
+                    // Fallback hardcodat dacă tabela nu există încă
+                    setTipuriStagii([
+                        { cod: 'qkd', denumire: 'Stagiu Qwan Ki Do' },
+                        { cod: 'cvd', denumire: 'Stagiu Co Vo Dao' },
+                        { cod: 'tam_the', denumire: 'Stagiu Tam The' },
+                        { cod: 'general', denumire: 'Stagiu General' },
+                    ]);
+                }
+            });
+    }, [type]);
+
     React.useEffect(() => {
         if (isOpen) {
             if (evToEdit) {
                 setFormState({ denumire: evToEdit.denumire, data: evToEdit.data, data_sfarsit: evToEdit.data_sfarsit, locatie: evToEdit.locatie, organizator: evToEdit.organizator, tip: evToEdit.tip });
                 setProbeStr(evToEdit.probe_disponibile?.join(', ') || '');
                 setIsFederationEvent(evToEdit.club_id === null);
+                setTipStagiu(evToEdit.tip_stagiu || 'general');
             } else {
                 setFormState({ denumire: '', data: new Date().toISOString().split('T')[0], data_sfarsit: new Date().toISOString().split('T')[0], locatie: '', organizator: '', tip: type });
                 setProbeStr('');
                 setIsFederationEvent(false);
+                setTipStagiu('general');
             }
         }
     }, [evToEdit, isOpen, type]);
@@ -48,7 +77,8 @@ const EvenimentForm: React.FC<EvenimentFormProps> = ({ isOpen, onClose, onSave, 
             club_id: isFed ? null : currentUser.club_id,
             tip_eveniment: isFed ? 'FEDERATIE' : 'CLUB',
             vizibilitate_globala: isFed,
-            ...(type === 'Competitie' && { probe_disponibile: probeStr.split(',').map(p => p.trim()).filter(Boolean) })
+            ...(type === 'Competitie' && { probe_disponibile: probeStr.split(',').map(p => p.trim()).filter(Boolean) }),
+            ...(type === 'Stagiu' && { tip_stagiu: tipStagiu }),
         };
         await onSave(eventData as Omit<Eveniment, 'id'>);
         setLoading(false);
@@ -60,7 +90,23 @@ const EvenimentForm: React.FC<EvenimentFormProps> = ({ isOpen, onClose, onSave, 
         <option value="">Selectează locație...</option>
         {locatii.map(l => <option key={l.id} value={l.nume}>{l.nume}</option>)}
     </Select>
-    <Input label="Organizator" name="organizator" value={formState.organizator} onChange={handleChange} /> {type === 'Competitie' && ( <Input label="Probe Competiție (separate prin virgulă)" name="probe" value={probeStr} onChange={(e) => setProbeStr(e.target.value)} placeholder="Ex: Quyen, Song Dau, Arme" /> )}
+    <Input label="Organizator" name="organizator" value={formState.organizator} onChange={handleChange} />
+    {type === 'Stagiu' && tipuriStagii.length > 0 && (
+        <div className="w-full">
+            <Select
+                label="Tip Stagiu"
+                name="tip_stagiu"
+                value={tipStagiu}
+                onChange={e => setTipStagiu(e.target.value)}
+                className="w-full"
+            >
+                {tipuriStagii.map(t => (
+                    <option key={t.cod} value={t.cod}>{t.denumire}</option>
+                ))}
+            </Select>
+        </div>
+    )}
+    {type === 'Competitie' && ( <Input label="Probe Competiție (separate prin virgulă)" name="probe" value={probeStr} onChange={(e) => setProbeStr(e.target.value)} placeholder="Ex: Quyen, Song Dau, Arme" /> )}
     {(permissions.isFederationAdmin || permissions.isSuperAdmin) && (
         <div className="pt-2">
             <Switch 

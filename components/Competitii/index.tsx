@@ -10,6 +10,7 @@ import {
   buildCategorieDenumire, ordineToLabel, TIP_PROBA_LABELS, TIP_COMPETITIE_LABELS,
   DEFAULT_PROBE_PER_TIP, TemplateCategorieInput
 } from '../../utils/competitiiTemplates';
+import { useTipuriCompetitie } from '../../hooks/useTipuriCompetitie';
 import { filtreazaSportiviEligibili, calculeazaVarstaLaData } from '../../utils/eligibilitateCompetitie';
 import { VizaSportiv } from '../../types';
 import InscriereClubWizard from './InscriereClubWizard';
@@ -80,6 +81,11 @@ const tipBadge: Record<string, string> = {
   cvd: 'bg-orange-800 text-orange-200',
 };
 
+// Context local pentru labels dinamice (citite din DB)
+const TipuriLabelsContext = React.createContext<Map<string, string>>(
+  new Map(Object.entries(TIP_COMPETITIE_LABELS))
+);
+
 // -----------------------------------------------
 // CREATE / EDIT COMPETITION MODAL
 // -----------------------------------------------
@@ -91,6 +97,7 @@ interface CompetitieFormProps {
 }
 
 const CompetitieForm: React.FC<CompetitieFormProps> = ({ isOpen, onClose, onSaved, comp }) => {
+  const tipuriLabelsCtx = React.useContext(TipuriLabelsContext);
   const [form, setForm] = useState({
     denumire: '', tip: 'tehnica' as Competitie['tip'],
     data_inceput: new Date().toISOString().split('T')[0],
@@ -246,7 +253,7 @@ const CompetitieForm: React.FC<CompetitieFormProps> = ({ isOpen, onClose, onSave
         <Input label="Denumire" value={form.denumire} onChange={f('denumire')} required />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Select label="Tip Competiție" value={form.tip} onChange={f('tip')}>
-            {Object.entries(TIP_COMPETITIE_LABELS).map(([k, v]) => (
+            {Array.from(tipuriLabelsCtx.entries()).map(([k, v]) => (
               <option key={k} value={k}>{v}</option>
             ))}
           </Select>
@@ -315,6 +322,7 @@ interface CompetitieDetailProps {
 }
 
 const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permissions, onBack, onUpdated }) => {
+  const tipuriLabelsCtx = React.useContext(TipuriLabelsContext);
   const { filteredData, grade, currentUser, vizeSportivi } = useData();
   const { showError } = useError();
   const [probe, setProbe] = useState<ProbaCompetitie[]>([]);
@@ -400,7 +408,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
           <h2 className="text-xl font-bold text-white">{competitie.denumire}</h2>
           <div className="flex items-center gap-2 mt-1 flex-wrap">
             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${tipBadge[competitie.tip]}`}>
-              {TIP_COMPETITIE_LABELS[competitie.tip]}
+              {tipuriLabelsCtx.get(competitie.tip) ?? TIP_COMPETITIE_LABELS[competitie.tip as keyof typeof TIP_COMPETITIE_LABELS] ?? competitie.tip}
             </span>
             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusLabel[competitie.status]?.color}`}>
               {statusLabel[competitie.status]?.label}
@@ -2446,6 +2454,7 @@ export const CompetitiiManagement: React.FC<CompetitiiProps> = ({ permissions, o
   const savedScrollRef = useRef(0);
   // ID-ul competiției salvat la mount — restaurat după ce lista se încarcă
   const pendingRestoreId = useRef<string | null>(ssGet(SS_KEY_COMP_ID));
+  const { labels: tipuriLabels } = useTipuriCompetitie();
 
   const isAdmin = permissions.isSuperAdmin || permissions.isFederationAdmin;
 
@@ -2520,6 +2529,7 @@ export const CompetitiiManagement: React.FC<CompetitiiProps> = ({ permissions, o
   }
 
   return (
+    <TipuriLabelsContext.Provider value={tipuriLabels}>
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
@@ -2580,7 +2590,7 @@ export const CompetitiiManagement: React.FC<CompetitiiProps> = ({ permissions, o
                   <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="font-bold text-white">{comp.denumire}</h3>
                     <span className={`text-xs px-2 py-0.5 rounded-full ${tipBadge[comp.tip]}`}>
-                      {TIP_COMPETITIE_LABELS[comp.tip]}
+                      {tipuriLabels.get(comp.tip) ?? TIP_COMPETITIE_LABELS[comp.tip as keyof typeof TIP_COMPETITIE_LABELS] ?? comp.tip}
                     </span>
                     <span className={`text-xs px-2 py-0.5 rounded-full ${statusLabel[comp.status]?.color}`}>
                       {statusLabel[comp.status]?.label}
@@ -2679,5 +2689,6 @@ export const CompetitiiManagement: React.FC<CompetitiiProps> = ({ permissions, o
         }}
       />
     </div>
+    </TipuriLabelsContext.Provider>
   );
 };

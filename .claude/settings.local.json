@@ -168,7 +168,54 @@
       "Bash(npm --version)",
       "Bash(n8n *)",
       "Bash(n8n start *)",
-      "Bash(echo \"PID: $!\")"
+      "Bash(echo \"PID: $!\")",
+      "Bash(awk -F: '{print NR\": \"$0}')",
+      "Bash(git -C /c/Users/lungu/portal-phihau status)",
+      "Bash(git -C /c/Users/lungu/portal-phihau diff --stat)",
+      "Bash(git -C /c/Users/lungu/portal-phihau add components/Grupe.tsx hooks/useDataProvider.ts)",
+      "Bash(git -C /c/Users/lungu/portal-phihau commit -m ' *)",
+      "Bash(git *)",
+      "Bash(npx tsx *)",
+      "Bash(bash /c/Users/lungu/portal-phihau/.claude/hooks/stop-save-state.sh)",
+      "Bash(bash /c/Users/lungu/portal-phihau/.claude/hooks/session-start-inject.sh)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(awk '{print NR\". \"$0}')",
+      "mcp__plugin_supabase_supabase__list_projects",
+      "mcp__plugin_supabase_supabase__apply_migration",
+      "mcp__plugin_supabase_supabase__execute_sql",
+      "WebFetch(domain:www.aikiseishin.ro)",
+      "WebFetch(domain:www.csshinobi.ro)",
+      "WebFetch(domain:201academy.netlify.app)",
+      "WebFetch(domain:201academy.com)",
+      "WebFetch(domain:dojomaster.ro)",
+      "WebFetch(domain:www.sportivity.ro)",
+      "WebFetch(domain:www.clubulcopiilor.ro)",
+      "WebFetch(domain:www.facebook.com)",
+      "WebFetch(domain:www.taeback.ro)",
+      "WebFetch(domain:k-sport.ro)"
+    ]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /c/Users/lungu/portal-phihau/.claude/hooks/stop-save-state.sh",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /c/Users/lungu/portal-phihau/.claude/hooks/session-start-inject.sh"
+          }
+        ]
+      }
     ]
   },
   "enabledPlugins": {

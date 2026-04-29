@@ -2,7 +2,7 @@ import React from 'react';
 import { Session } from '@supabase/supabase-js';
 import { User, View, DecontFederatie } from '../types';
 import { Card } from './ui';
-import { UsersIcon, TrophyIcon, BanknotesIcon, WalletIcon, ClipboardCheckIcon, ArchiveBoxIcon, CogIcon } from './icons';
+import { UsersIcon, TrophyIcon, BanknotesIcon, WalletIcon, ClipboardCheckIcon, ArchiveBoxIcon, CogIcon, CalendarDaysIcon } from './icons';
 
 interface UnifiedDashboardProps {
     session: Session | null;
@@ -89,7 +89,9 @@ export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({ session, cur
 
     const navItems = [
         { title: 'Sportivi', description: 'Administrează sportivii, grupele și familiile.', icon: UsersIcon, view: 'sportivi' as View, category: 'Gestiune', roles: ['ADMIN', 'ADMIN_CLUB', 'INSTRUCTOR', 'SUPER_ADMIN_FEDERATIE'], imageSeed: 'martial-arts-group' },
-        { title: 'Evenimente', description: 'Creează și gestionează examene, stagii, competiții.', icon: TrophyIcon, view: 'examene' as View, category: 'Gestiune', roles: ['ADMIN', 'ADMIN_CLUB', 'INSTRUCTOR', 'SUPER_ADMIN_FEDERATIE'], imageSeed: 'tournament' },
+        { title: 'Examene', description: 'Gestionează sesiunile de examinare și promovările de grad.', icon: TrophyIcon, view: 'examene' as View, category: 'Gestiune', roles: ['ADMIN', 'ADMIN_CLUB', 'INSTRUCTOR', 'SUPER_ADMIN_FEDERATIE'], imageSeed: 'exam-paper' },
+        { title: 'Competiții', description: 'Organizează competiții și gestionează înscrierile sportivilor.', icon: TrophyIcon, view: 'competitii' as View, category: 'Gestiune', roles: ['ADMIN', 'ADMIN_CLUB', 'INSTRUCTOR', 'SUPER_ADMIN_FEDERATIE'], imageSeed: 'tournament' },
+        { title: 'Stagii', description: 'Planifică și administrează stagiile de antrenament.', icon: CalendarDaysIcon, view: 'stagii' as View, category: 'Gestiune', roles: ['ADMIN', 'ADMIN_CLUB', 'INSTRUCTOR', 'SUPER_ADMIN_FEDERATIE'], imageSeed: 'training-camp' },
         { title: 'Staff & Roluri', description: 'Gestionează conturile de acces și permisiunile.', icon: CogIcon, view: 'user-management' as View, category: 'Gestiune', roles: ['ADMIN', 'ADMIN_CLUB', 'SUPER_ADMIN_FEDERATIE'], imageSeed: 'team-meeting' },
         { title: 'Dashboard Financiar', description: 'Vizualizează rapoarte și statistici financiare.', icon: BanknotesIcon, view: 'financial-dashboard' as View, category: 'Financiar', roles: ['ADMIN', 'ADMIN_CLUB', 'SUPER_ADMIN_FEDERATIE'], imageSeed: 'financial-chart' },
         { title: 'Facturi & Plăți', description: 'Generează facturi și înregistrează încasări.', icon: WalletIcon, view: 'plati-scadente' as View, category: 'Financiar', roles: ['ADMIN', 'ADMIN_CLUB', 'SUPER_ADMIN_FEDERATIE'], imageSeed: 'invoice' },

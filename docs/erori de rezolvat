@@ -112,5 +112,20 @@ cand dau salvare sa ma duca inapoi la management sportiv
 
 cand merg la pagina urmatoare, ma mentine jos, vreau sa ma duca in partea de sus a tabelului
 
+cum arata zona cu numar inscrisi la competitie. am nevoie sa vizualizez sportivii inscrisi in categoria aleasa la vizualizare
 
+la inscrieri arata-mi sportivii eligibili pentru categoria respectiva primii, pe cei deja inscrisi dedesubt, iar cei neeligibili
+sa nu fie in tabelul principal
 
+la inscrierile in categorie (separat) - sunt categorii de thao quyen unde pot inscrie un numar nelimitat de sportivi, 
+vreau sa pot sa ii selectez pe toti din lista daca am nevoie
+
+odata ce am inscris o echipa, sa nu pot inscrie alta, iar daca este deja inscrisa, sa imi ofere posibilitatea de modificare 
+componenta echipa
+
+in dashboard sa imi apara un buton care sa ma directioneze la meniul competitii,
+
+creaza meniu separat pentru competitii si alt meniu pentru stagii, atat in dashboard cat si pe sidebar
+
+ /agenti-aplicatie modifica toate numele sportivilor din aplicatie sa aiba majuscule. dupa modificarea detaliilor unui  
+  sportiv. nu se vede modificarea in management sportiv, trebuie sa dau eu refresh manual pentru a aparea modificarea.

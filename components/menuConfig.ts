@@ -45,7 +45,7 @@ export const adminMenu: MenuItem[] = [
         ]
     },
     {
-        label: 'Evenimente & Examene', icon: TrophyIcon,
+        label: 'Examene', icon: TrophyIcon,
         submenu: [
             { label: 'Sesiuni Examene', view: 'examene' },
             { label: 'Rapoarte Examen', view: 'rapoarte-examen' },
@@ -107,7 +107,7 @@ export const adminClubMenu: MenuItem[] = [
         ]
     },
     {
-        label: 'Evenimente & Examene', icon: TrophyIcon,
+        label: 'Examene', icon: TrophyIcon,
         submenu: [
             { label: 'Sesiuni Examene', view: 'examene' },
             { label: 'Rapoarte Examen', view: 'rapoarte-examen' },
@@ -153,7 +153,7 @@ export const instructorMenu: MenuItem[] = [
         ]
     },
     {
-        label: 'Evenimente & Examene', icon: TrophyIcon,
+        label: 'Examene', icon: TrophyIcon,
         submenu: [
             { label: 'Examene', view: 'examene' },
         ]

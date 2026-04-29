@@ -26,34 +26,26 @@ export const ErrorProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [notifications, setNotifications] = useState<(NotificationInfo & { id: number })[]>([]);
 
   const showError = useCallback((title: string, errorObj: any) => {
-    // Properly stringify Error objects which have non-enumerable properties
-    const errorToLog = errorObj instanceof Error 
+    const errorToLog = errorObj instanceof Error
       ? { message: errorObj.message, stack: errorObj.stack, ...errorObj }
       : errorObj;
-      
+
     console.error('DETALII EROARE:', JSON.stringify(errorToLog, null, 2));
     let message = errorObj?.message || (typeof errorObj === 'string' ? errorObj : 'O eroare necunoscută a apărut.');
-    
+
     if (errorObj?.status === 403 || message.includes('403')) {
         message = "Nu aveți permisiunea necesară pentru a efectua această acțiune. Vă rugăm contactați un administrator.";
     } else if (message.includes('duplicate key value violates unique constraint')) {
         message = "Datele introduse sunt deja în sistem (duplicat).";
     }
-    
+
     const newNotification = { title, message, type: 'error' as const, id: Date.now() + Math.random() };
     setNotifications(prev => [...prev, newNotification]);
-
-    setTimeout(() => {
-        hideNotification(newNotification.id);
-    }, 8000);
   }, []);
 
   const showSuccess = useCallback((title: string, message: string) => {
     const newNotification = { title, message, type: 'success' as const, id: Date.now() + Math.random() };
     setNotifications(prev => [...prev, newNotification]);
-    setTimeout(() => {
-      hideNotification(newNotification.id);
-    }, 4000);
   }, []);
 
   const hideNotification = useCallback((id: number) => {
@@ -65,17 +57,14 @@ export const ErrorProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   return (
     <ErrorContext.Provider value={value}>
       {children}
-      <div className="fixed inset-x-0 top-5 z-[9999] flex flex-col items-center space-y-2 px-4">
-        {notifications.map(notification => (
-          <ErrorNotification
-            key={notification.id}
-            title={notification.title}
-            message={notification.message}
-            type={notification.type}
-            onClose={() => hideNotification(notification.id)}
-          />
-        ))}
-      </div>
+      {notifications.length > 0 && (
+        <ErrorNotification
+          title={notifications[0].title}
+          message={notifications[0].message}
+          type={notifications[0].type}
+          onClose={() => hideNotification(notifications[0].id)}
+        />
+      )}
     </ErrorContext.Provider>
   );
 };

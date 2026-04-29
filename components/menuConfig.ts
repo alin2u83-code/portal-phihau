@@ -48,12 +48,12 @@ export const adminMenu: MenuItem[] = [
         label: 'Evenimente & Examene', icon: TrophyIcon,
         submenu: [
             { label: 'Sesiuni Examene', view: 'examene' },
-            { label: 'Stagii', view: 'stagii' },
-            { label: 'Competiții', view: 'competitii' },
             { label: 'Rapoarte Examen', view: 'rapoarte-examen' },
             { label: 'Rapoarte', view: 'rapoarte' },
         ]
     },
+    { label: 'Competiții', icon: TrophyIcon, view: 'competitii' },
+    { label: 'Stagii', icon: CalendarDaysIcon, view: 'stagii' },
     {
         label: 'Financiar & Plăți', icon: BanknotesIcon,
         submenu: [
@@ -110,12 +110,12 @@ export const adminClubMenu: MenuItem[] = [
         label: 'Evenimente & Examene', icon: TrophyIcon,
         submenu: [
             { label: 'Sesiuni Examene', view: 'examene' },
-            { label: 'Stagii', view: 'stagii' },
-            { label: 'Competiții', view: 'competitii' },
             { label: 'Rapoarte Examen', view: 'rapoarte-examen' },
             { label: 'Rapoarte', view: 'rapoarte' },
         ]
     },
+    { label: 'Competiții', icon: TrophyIcon, view: 'competitii' },
+    { label: 'Stagii', icon: CalendarDaysIcon, view: 'stagii' },
     {
         label: 'Financiar & Plăți', icon: BanknotesIcon,
         submenu: [
@@ -156,10 +156,10 @@ export const instructorMenu: MenuItem[] = [
         label: 'Evenimente & Examene', icon: TrophyIcon,
         submenu: [
             { label: 'Examene', view: 'examene' },
-            { label: 'Stagii', view: 'stagii' },
-            { label: 'Competiții', view: 'competitii' },
         ]
     },
+    { label: 'Competiții', icon: TrophyIcon, view: 'competitii' },
+    { label: 'Stagii', icon: CalendarDaysIcon, view: 'stagii' },
     { label: 'Rapoarte', icon: ChartBarIcon, view: 'rapoarte' },
     { label: 'Notificări', icon: ClipboardCheckIcon, view: 'notificari' },
     { label: 'Istoric Activitate', icon: ClockIcon, view: 'istoric-activitate' },

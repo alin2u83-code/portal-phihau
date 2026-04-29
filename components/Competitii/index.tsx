@@ -13,6 +13,23 @@ import {
 import { filtreazaSportiviEligibili, calculeazaVarstaLaData } from '../../utils/eligibilitateCompetitie';
 import { VizaSportiv } from '../../types';
 import InscriereClubWizard from './InscriereClubWizard';
+import { TipuriCompetitieAdmin } from '../TipuriCompetitieAdmin';
+
+// -----------------------------------------------
+// HELPERS persistare stare în sessionStorage
+// -----------------------------------------------
+const SS_KEY_COMP_ID = 'competitii_selected_comp_id';
+const SS_KEY_TAB = 'competitii_active_tab';
+
+function ssGet(key: string): string | null {
+  try { return sessionStorage.getItem(key); } catch { return null; }
+}
+function ssSet(key: string, value: string): void {
+  try { sessionStorage.setItem(key, value); } catch { /* ignorat */ }
+}
+function ssDel(key: string): void {
+  try { sessionStorage.removeItem(key); } catch { /* ignorat */ }
+}
 
 // -----------------------------------------------
 // HELPER: verifică dacă sportivul are viza FRAM activă pentru un an dat
@@ -305,7 +322,11 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
   const [inscrieri, setInscrieri] = useState<InscriereCompetitie[]>([]);
   const [echipe, setEchipe] = useState<EchipaCompetitie[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'categorii' | 'inscrieri' | 'admin' | 'rezultate_legacy'>('categorii');
+  const [activeTab, setActiveTab] = useState<'categorii' | 'inscrieri' | 'admin' | 'rezultate_legacy'>(() => {
+    const saved = ssGet(SS_KEY_TAB);
+    if (saved === 'inscrieri' || saved === 'admin' || saved === 'rezultate_legacy') return saved;
+    return 'categorii';
+  });
   const [wizardOpen, setWizardOpen] = useState(false);
   const [rezultateLegacy, setRezultateLegacy] = useState<Array<{ id: string; rezultat: string; probe?: string; sportiv?: { id: string; nume: string; prenume: string } }>>([]);
   const [loadingLegacy, setLoadingLegacy] = useState(false);
@@ -319,6 +340,12 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
 
   const isAdmin = permissions.isSuperAdmin || permissions.isFederationAdmin;
   const isClubAdmin = permissions.isAdminClub;
+
+  // Persistă tab-ul activ în sessionStorage la fiecare schimbare
+  const handleSetActiveTab = useCallback((tab: 'categorii' | 'inscrieri' | 'admin' | 'rezultate_legacy') => {
+    setActiveTab(tab);
+    ssSet(SS_KEY_TAB, tab);
+  }, []);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -365,11 +392,11 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 flex-wrap">
         <Button variant="secondary" size="sm" onClick={onBack} className="!p-2">
           <ArrowLeftIcon className="w-4 h-4" />
         </Button>
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <h2 className="text-xl font-bold text-white">{competitie.denumire}</h2>
           <div className="flex items-center gap-2 mt-1 flex-wrap">
             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${tipBadge[competitie.tip]}`}>
@@ -382,6 +409,19 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
             {competitie.locatie && <span className="text-xs text-slate-400">{competitie.locatie}</span>}
           </div>
         </div>
+        {/* Cerința 2 — buton Refresh */}
+        <button
+          onClick={fetchData}
+          disabled={loading}
+          title="Reîncarcă datele competiției"
+          style={{ touchAction: 'manipulation' }}
+          className="h-10 w-10 flex items-center justify-center rounded-lg border border-slate-600 bg-slate-800 text-slate-400 hover:text-white hover:border-slate-400 transition-colors disabled:opacity-40 shrink-0"
+          aria-label="Refresh"
+        >
+          <svg className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+        </button>
         {isAdmin && (
           <Button
             size="sm" variant="secondary"
@@ -402,24 +442,24 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-slate-700 pb-0">
-        <button onClick={() => setActiveTab('categorii')} style={{ touchAction: 'manipulation' }}
-          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'categorii' ? 'border-brand-primary text-brand-primary' : 'border-transparent text-slate-400 hover:text-white'}`}>
+      <div className="flex gap-2 border-b border-slate-700 pb-0 overflow-x-auto">
+        <button onClick={() => handleSetActiveTab('categorii')} style={{ touchAction: 'manipulation' }}
+          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === 'categorii' ? 'border-brand-primary text-brand-primary' : 'border-transparent text-slate-400 hover:text-white'}`}>
           Categorii ({categorii.length})
         </button>
-        <button onClick={() => setActiveTab('inscrieri')} style={{ touchAction: 'manipulation' }}
-          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'inscrieri' ? 'border-brand-primary text-brand-primary' : 'border-transparent text-slate-400 hover:text-white'}`}>
-          Înscrieri ({inscrieri.length + echipe.length})
+        <button onClick={() => handleSetActiveTab('inscrieri')} style={{ touchAction: 'manipulation' }}
+          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === 'inscrieri' ? 'border-brand-primary text-brand-primary' : 'border-transparent text-slate-400 hover:text-white'}`}>
+          Inscrieri ({inscrieri.length + echipe.length})
         </button>
         {isAdmin && (
-          <button onClick={() => setActiveTab('admin')} style={{ touchAction: 'manipulation' }}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'admin' ? 'border-yellow-400 text-yellow-400' : 'border-transparent text-slate-400 hover:text-white'}`}>
-            ⚙ Admin
+          <button onClick={() => handleSetActiveTab('admin')} style={{ touchAction: 'manipulation' }}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === 'admin' ? 'border-yellow-400 text-yellow-400' : 'border-transparent text-slate-400 hover:text-white'}`}>
+            Admin
           </button>
         )}
         {competitie.legacy_eveniment_id && (
-          <button onClick={() => setActiveTab('rezultate_legacy')} style={{ touchAction: 'manipulation' }}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'rezultate_legacy' ? 'border-amber-400 text-amber-400' : 'border-transparent text-slate-400 hover:text-white'}`}>
+          <button onClick={() => handleSetActiveTab('rezultate_legacy')} style={{ touchAction: 'manipulation' }}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === 'rezultate_legacy' ? 'border-amber-400 text-amber-400' : 'border-transparent text-slate-400 hover:text-white'}`}>
             Rezultate Vechi
           </button>
         )}
@@ -675,23 +715,31 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
 
           {/* ADMIN TAB */}
           {activeTab === 'admin' && isAdmin && (
-            <AdminPanel
-              competitie={competitie}
-              probe={probe}
-              setProbe={setProbe}
-              categorii={categorii}
-              setCategorii={setCategorii}
-              inscrieri={inscrieri}
-              echipe={echipe}
-              vizeSportivi={vizeSportivi}
-              catFormOpen={catFormOpen}
-              setCatFormOpen={setCatFormOpen}
-              catToEdit={catToEdit}
-              setCatToEdit={setCatToEdit}
-              probaFormOpen={probaFormOpen}
-              setProbaFormOpen={setProbaFormOpen}
-              onRefresh={fetchData}
-            />
+            <div className="space-y-6">
+              <AdminPanel
+                competitie={competitie}
+                probe={probe}
+                setProbe={setProbe}
+                categorii={categorii}
+                setCategorii={setCategorii}
+                inscrieri={inscrieri}
+                echipe={echipe}
+                vizeSportivi={vizeSportivi}
+                catFormOpen={catFormOpen}
+                setCatFormOpen={setCatFormOpen}
+                catToEdit={catToEdit}
+                setCatToEdit={setCatToEdit}
+                probaFormOpen={probaFormOpen}
+                setProbaFormOpen={setProbaFormOpen}
+                onRefresh={fetchData}
+              />
+              {/* Cerința 4 — editare denumiri tipuri competiție, doar SUPER_ADMIN */}
+              {permissions.isSuperAdmin && (
+                <div className="pt-4 border-t border-slate-700/60">
+                  <TipuriCompetitieAdmin permissions={permissions} />
+                </div>
+              )}
+            </div>
           )}
         </>
       )}
@@ -2396,6 +2444,8 @@ export const CompetitiiManagement: React.FC<CompetitiiProps> = ({ permissions, o
   const [search, setSearch] = useState('');
   const [migrareEv, setMigrareEv] = useState<EvenimentLegacy | null>(null);
   const savedScrollRef = useRef(0);
+  // ID-ul competiției salvat la mount — restaurat după ce lista se încarcă
+  const pendingRestoreId = useRef<string | null>(ssGet(SS_KEY_COMP_ID));
 
   const isAdmin = permissions.isSuperAdmin || permissions.isFederationAdmin;
 
@@ -2412,6 +2462,16 @@ export const CompetitiiManagement: React.FC<CompetitiiProps> = ({ permissions, o
     const migratedIds = new Set(competitiiData.map(c => c.legacy_eveniment_id).filter(Boolean));
     setLegacyEvents(((legacyData || []) as EvenimentLegacy[]).filter(e => !migratedIds.has(e.id)));
     setLoading(false);
+
+    // Cerința 1 — restaurare stare după refresh
+    if (pendingRestoreId.current) {
+      const found = competitiiData.find(c => c.id === pendingRestoreId.current);
+      if (found) {
+        setSelectedComp(found);
+        setView('detail');
+      }
+      pendingRestoreId.current = null;
+    }
   }, [showError]);
 
   useEffect(() => { fetchCompetitii(); }, [fetchCompetitii]);
@@ -2441,6 +2501,8 @@ export const CompetitiiManagement: React.FC<CompetitiiProps> = ({ permissions, o
         onBack={() => {
           setView('list');
           setSelectedComp(null);
+          ssDel(SS_KEY_COMP_ID);
+          ssDel(SS_KEY_TAB);
           requestAnimationFrame(() => {
             try {
               window.scrollTo({ top: savedScrollRef.current, left: 0, behavior: 'instant' as ScrollBehavior });
@@ -2511,7 +2573,7 @@ export const CompetitiiManagement: React.FC<CompetitiiProps> = ({ permissions, o
               key={comp.id}
               className="p-4 cursor-pointer hover:border-brand-primary/50 transition-colors"
               style={{ touchAction: 'manipulation' }}
-              onClick={() => { savedScrollRef.current = window.scrollY; setSelectedComp(comp); setView('detail'); }}
+              onClick={() => { savedScrollRef.current = window.scrollY; setSelectedComp(comp); ssSet(SS_KEY_COMP_ID, comp.id); setView('detail'); }}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">

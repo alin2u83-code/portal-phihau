@@ -174,26 +174,44 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
             });
 
             if (platiToInsert.length > 0) {
-                // Upsert cu onConflict separat pentru sportiv individual și familie
-                // PostgREST acceptă un singur onConflict per apel — trimitem în două batch-uri
                 const platiSportiv = platiToInsert.filter(p => p.sportiv_id !== null);
                 const platiFamilie = platiToInsert.filter(p => p.familie_id !== null && p.sportiv_id === null);
+
+                // Verificare explicită ce există deja — ignoreDuplicates:true returnează [] la conflict
+                // și face imposibilă distincția între "generate acum" și "existau deja"
+                const { data: existente, error: eEx } = await supabase
+                    .from('plati')
+                    .select('sportiv_id, familie_id')
+                    .eq('tip', 'Abonament')
+                    .eq('luna', lunaCurenta)
+                    .eq('an', anulCurent);
+                if (eEx) throw eEx;
+
+                const existenteSportiv = new Set(
+                    (existente || []).filter(e => e.sportiv_id).map(e => e.sportiv_id)
+                );
+                const existenteFamilie = new Set(
+                    (existente || []).filter(e => e.familie_id).map(e => e.familie_id)
+                );
+
+                const platiSportivNoi = platiSportiv.filter(p => !existenteSportiv.has(p.sportiv_id));
+                const platiFamilieNoi = platiFamilie.filter(p => !existenteFamilie.has(p.familie_id));
 
                 let totalGenerate = 0;
                 const allNew: Plata[] = [];
 
-                if (platiSportiv.length > 0) {
+                if (platiSportivNoi.length > 0) {
                     const { data: ds, error: es } = await supabase
                         .from('plati')
-                        .upsert(platiSportiv, { onConflict: 'sportiv_id,luna,an', ignoreDuplicates: true })
+                        .insert(platiSportivNoi)
                         .select();
                     if (es) throw es;
                     if (ds) { allNew.push(...(ds as Plata[])); totalGenerate += ds.length; }
                 }
-                if (platiFamilie.length > 0) {
+                if (platiFamilieNoi.length > 0) {
                     const { data: df, error: ef } = await supabase
                         .from('plati')
-                        .upsert(platiFamilie, { onConflict: 'familie_id,luna,an', ignoreDuplicates: true })
+                        .insert(platiFamilieNoi)
                         .select();
                     if (ef) throw ef;
                     if (df) { allNew.push(...(df as Plata[])); totalGenerate += df.length; }

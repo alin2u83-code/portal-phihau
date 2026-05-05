@@ -756,7 +756,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
             </div>
 
             {/* Modals */}
-            {isEditModalOpen && <SportivFormModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} onSave={handleSave} sportivToEdit={sportiv} grupe={grupe} setGrupe={()=>{}} grade={grade} familii={familii} setFamilii={()=>{}} tipuriAbonament={tipuriAbonament} clubs={clubs} currentUser={currentUser} allRoles={allRoles} />}
+            {isEditModalOpen && <SportivFormModal isOpen={isEditModalOpen} onClose={(savedSportiv) => { setIsEditModalOpen(false); if (savedSportiv) onBack(); }} onSave={handleSave} sportivToEdit={sportiv} grupe={grupe} setGrupe={()=>{}} grade={grade} familii={familii} setFamilii={()=>{}} tipuriAbonament={tipuriAbonament} clubs={clubs} currentUser={currentUser} allRoles={allRoles} />}
             {isWalletModalOpen && <SportivWallet sportiv={sportiv} familie={familii.find(f => f.id === sportiv.familie_id)} allSportivi={sportivi} vizualizarePlati={vizualizarePlati} allPlati={plati} setPlati={setPlati} setTranzactii={setTranzactii} onClose={() => setIsWalletModalOpen(false)} />}
             {isDeleteModalOpen && <DeleteAuditModal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} sportiv={sportiv} onDeactivate={handleDeactivate} onDelete={handleDelete} />}
             {isReportModalOpen && <SportivFeedbackReport isOpen={isReportModalOpen} onClose={() => setIsReportModalOpen(false)} sportiv={sportiv} antrenamente={antrenamente} grupe={grupe} grade={grade} participari={participari} examene={examene} />}

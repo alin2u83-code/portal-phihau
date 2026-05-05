@@ -739,7 +739,7 @@ export const Sportivi: React.FC<{
                     {totalPages > 1 && (
                         <div className="flex items-center gap-2">
                             <button
-                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                                onClick={() => { setPage(p => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                                 disabled={page <= 1}
                                 className={`px-3 py-1.5 rounded-md border text-sm font-medium transition-colors ${
                                     page <= 1
@@ -753,7 +753,7 @@ export const Sportivi: React.FC<{
                                 Pagina {page} din {totalPages}
                             </span>
                             <button
-                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                                onClick={() => { setPage(p => Math.min(totalPages, p + 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                                 disabled={page >= totalPages}
                                 className={`px-3 py-1.5 rounded-md border text-sm font-medium transition-colors ${
                                     page >= totalPages

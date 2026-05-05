@@ -96,36 +96,95 @@ Fix: components/CluburiManagement.tsx — layout responsive desktop/mobil, buton
 Cauza: hooks/useDataProvider.ts — query clubs selecta doar 'id, nume, theme_config', fără cif și oras
 Fix: hooks/useDataProvider.ts linia 321 — select extins la 'id, nume, cif, oras, theme_config'
 
-REZOLVAT — Modificare data nasterii sterge toate campurile
+✅ REZOLVAT — Modificare data nasterii sterge toate campurile
 cand vreau sa modific data nasterii si apas pe zi, pe luna sau pe an, se sterg toate campurile, as dori sa pot schimba doar campul in care intru
 
-❌ NEREZOLVAT — Footer AI assistant se suprapune cu continut
+✅ PARTIAL REZOLVAT — Footer AI assistant se suprapune cu continut
 creaza un footer pe care sa fie asistentul ai, deocamdata se suprapune cu alte informatii pe aplicatie
+Fix: AppLayout.tsx — padding-bottom crescut (pb-32 mobil, pb-28 desktop) pentru a asigura spatiu sub widget
+Ramas: pozitionare widget pe desktop poate acoperi continut cand panoul chat e deschis
 
-REZOLVAT — Trimitere email+parola la creare cont sportiv
+❌ NEREZOLVAT — Eroare 400 club_nume column
+Failed to load resource: the server responded with a status of 400 ()
+DETALII EROARE: "Could not find the 'club_nume' column of 'sportivi' in the schema cache"
+Cauza: necunoscuta. Verificare necesara — posibil query direct pe sportivi in loc de view
+
+✅ REZOLVAT — Trimitere email+parola la creare cont sportiv
 este facut sa poata transmite informatiile de creare cont al unui sportiv? sa se poata transmite prin mesaj care este adresa de email si parola catre sportivul caruia i-a fost creat contul
 
-nerezolvat: Failed to load resource: the server responded with a status of 400 ()Understand this error
-2index-BJYcqMo6.js:18 DETALII EROARE: "Could not find the 'club_nume' column of 'sportivi' in the schema cache"
-
-cand dau salvare sa ma duca inapoi la management sportiv
-
+✅ REZOLVAT — Scroll la top la schimbare pagina in lista sportivi (May 2026)
 cand merg la pagina urmatoare, ma mentine jos, vreau sa ma duca in partea de sus a tabelului
+Fix: components/Sportivi.tsx — window.scrollTo({ top: 0, behavior: 'smooth' }) la click Anterior/Urmator
 
+✅ REZOLVAT — Save sportiv → redirect la management sportiv (May 2026)
+cand dau salvare sa ma duca inapoi la management sportiv (editare profil din UserProfile + creare nou)
+Fix: components/UserProfile.tsx — onClose SportivFormModal apeleaza onBack() daca sportivul a fost salvat cu succes
+
+✅ REZOLVAT — Vizualizare sportivi inscrisi per categorie la competitie (May 2026)
 cum arata zona cu numar inscrisi la competitie. am nevoie sa vizualizez sportivii inscrisi in categoria aleasa la vizualizare
+Fix: components/Competitii/index.tsx — click pe numarul inscrisilor expandeaza panoul cu lista sportivilor inscrisi
 
+✅ REZOLVAT — Sportivi eligibili primii la inscrieri competitie (May 2026)
 la inscrieri arata-mi sportivii eligibili pentru categoria respectiva primii, pe cei deja inscrisi dedesubt, iar cei neeligibili
 sa nu fie in tabelul principal
+Fix: components/Competitii/index.tsx — eligibiliSortati: neinscrisi→deja inscrisi; neeligibili ascunsi cu toggle "Arata neeligibili"
 
-la inscrierile in categorie (separat) - sunt categorii de thao quyen unde pot inscrie un numar nelimitat de sportivi, 
+✅ REZOLVAT — Selectare toti sportivii la categorii thao quyen nelimitat (May 2026)
+la inscrierile in categorie (separat) - sunt categorii de thao quyen unde pot inscrie un numar nelimitat de sportivi,
 vreau sa pot sa ii selectez pe toti din lista daca am nevoie
+Fix: components/Competitii/index.tsx — buton selectare in masa toti eligibili neinscriși pentru categorii thao_quyen_individual/thao_lo_individual
 
-odata ce am inscris o echipa, sa nu pot inscrie alta, iar daca este deja inscrisa, sa imi ofere posibilitatea de modificare 
+✅ REZOLVAT — Restrictie echipa unica per club + editare componenta (May 2026)
+odata ce am inscris o echipa, sa nu pot inscrie alta, iar daca este deja inscrisa, sa imi ofere posibilitatea de modificare
 componenta echipa
+Fix: components/Competitii/index.tsx — echipaDejaInscrisa check per categorie+club_id; UI: buton editare in loc de inscriere cand echipa exista
 
-in dashboard sa imi apara un buton care sa ma directioneze la meniul competitii,
+✅ REZOLVAT — Dashboard: card/buton direct la competitii (May 2026)
+in dashboard sa imi apara un buton care sa ma directioneze la meniul competitii
+Fix: feat(nav) commit c87fb8f — carduri separate Competitii/Stagii pe dashboard
 
+✅ REZOLVAT — Meniu separat Competitii si Stagii (May 2026)
 creaza meniu separat pentru competitii si alt meniu pentru stagii, atat in dashboard cat si pe sidebar
+Fix: feat(competitii) commit fe8ba12 — meniuri separate in sidebar; commit c87fb8f — carduri separate dashboard
 
- /agenti-aplicatie modifica toate numele sportivilor din aplicatie sa aiba majuscule. dupa modificarea detaliilor unui  
-  sportiv. nu se vede modificarea in management sportiv, trebuie sa dau eu refresh manual pentru a aparea modificarea.
+✅ REZOLVAT — Toate numele sportivilor cu majuscule (May 2026)
+modifica toate numele sportivilor din aplicatie sa aiba majuscule.
+Fix: commit 39e1408 feat(competitii): NUME PRENUME uppercase
+
+✅ REZOLVAT — Modificare detalii sportiv vizibila imediat in management sportiv (May 2026)
+dupa modificarea detaliilor unui sportiv. nu se vede modificarea in management sportiv, trebuie sa dau eu refresh manual pentru a aparea modificarea.
+Fix: UserProfile.tsx — setSportivi updateaza starea parinte + onBack() dupa save intoarce utilizatorul la lista actualizata
+
+❌ NEREZOLVAT — Categorii competitie: selectie din existente + detectie suprapunere + filtre varsta/grad/gen
+cand creez competitia, sa pot alege ce categorii de competitie adaug din cele existente,
+iar daca o cateogorie (de exemplu thau quyen 9 ani 2 cap rosu) exista deja ca si categorie selectata
+sa nu ma lase sa aleg alta categorie care contine ceea ce este deja (de exemplu thao quyen 9-10 ani 1-2 cap rosu)
+si sa ma atentioneze care este categoria care exista deja selectata.
+sa poata fi filtrate pe categorii de varsta (7 ani, 8 ani, 9 ani, 10 ani, etc pana la 17 ani si 18-24 ani sau 18-39 etc...)
+pe categorii de grad (1 cap rosu, 2 cap rosu, etc.... dupa tabel grade)
+si pe categorii de gen (feminin, masculin, mixt)
+→ Feature complex — necesita implementare separata
+
+❌ NEREZOLVAT — Creare categorie noua: selectie grade din lista cu cascada varsta→grade
+cand creez o categorie noua in competitie, sa pot alege din lista gradele si sa fie filtrare in functie de prima selectie
+daca aleg 7,8,9 ani, sau ce alte categorii au grade rosii, sa imi arate doar gradele rosii, daca am ales 1 cap rosu, sa fie 1 cap rosu la grad maxim,
+sa existe restrictii de selectie varsta si grade in functie de specificul gradului sau varstei
+→ Feature complex — necesita implementare separata
+
+✅ REZOLVAT — Buton OK in popup success/error alb pe alb (May 2026)
+culoarea scrisului dupa un update sa fie neagra
+Fix: components/ErrorNotification.tsx — bg-brand-primary (clasa inexistenta) inlocuit cu bg-blue-600 / hover:bg-blue-700
+
+✅ REZOLVAT — Sportivi cu erori nu blocheaza inscrierea celor eligibili (May 2026)
+daca sunt sportivi cu erori, sa ma lase sa ii inscriu pe cei eligibili
+Fix: components/Competitii/index.tsx — sportivii neeligibili/cu date incomplete sunt separati si ascunsi; inscrierea continua pentru eligibili
+
+✅ REZOLVAT — Sportivii eligibili la inceputul listei la inscriere (May 2026)
+sportivii eligibili sa apara la inceputul listei, nu ii arata pe ceilalti in tabel
+Fix: components/Competitii/index.tsx — eligibiliSortati + neeligibili ascunsi cu toggle
+
+✅ REZOLVAT — Multi-select sportivi + filtru gen automat per categorie (May 2026)
+cand selectez inscriere in competitie sa pot selecta mai multi sportivi. sa fie doar
+genul specificat in categoria de concurs (daca e feminin - sa vadd doar fetele)
+Fix: utils/eligibilitateCompetitie.ts — verificaEligibilitate filtreaza automat gen sportiv vs gen categorie;
+components/Competitii/index.tsx — selectie multipla pentru echipe + thao quyen

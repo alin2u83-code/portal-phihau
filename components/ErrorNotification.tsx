@@ -27,7 +27,7 @@ const typeStyles = {
         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
       </svg>
     ),
-    okBtnClass: 'bg-brand-primary hover:bg-brand-primary/90 focus:ring-brand-primary',
+    okBtnClass: 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500',
     label: 'Succes',
   },
 };

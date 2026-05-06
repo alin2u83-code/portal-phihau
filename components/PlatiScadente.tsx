@@ -72,7 +72,8 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
 
     const handleGenerateSubscriptions = async () => {
         if (!supabase) return;
-        
+
+        // Bug 3 Fix: setIsGenerating ÎNAINTE de orice await pentru a bloca apăsări duble
         setIsGenerating(true);
         try {
             if (permissions.isFederationAdmin) {
@@ -83,6 +84,35 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
             if (!clubId) {
                 throw new Error("Nu este asociat niciun club contului tău. Contactează un super admin.");
             }
+
+            // Bug 5 Fix: Refetch date proaspete din DB înainte de calculul soldului,
+            // pentru a evita erori cauzate de tranzacții recente din alte sesiuni care nu sunt în state.
+            const [{ data: tranzactiiProaspete, error: errTranz }, { data: platiProaspete, error: errPlati }] = await Promise.all([
+                supabase.from('tranzactii').select('*').eq('club_id', clubId),
+                supabase.from('plati').select('*').eq('club_id', clubId),
+            ]);
+            if (errTranz) throw errTranz;
+            if (errPlati) throw errPlati;
+
+            // Calculează solduri proaspete folosind datele din DB, nu state-ul React
+            const famBalancesFresh = new Map<string, number>();
+            const indivBalancesFresh = new Map<string, number>();
+            (familii || []).forEach(f => famBalancesFresh.set(f.id, 0));
+            (sportivi || []).forEach(s => indivBalancesFresh.set(s.id, 0));
+            (tranzactiiProaspete || []).forEach(t => {
+                if (t.familie_id) {
+                    famBalancesFresh.set(t.familie_id, (famBalancesFresh.get(t.familie_id) || 0) + t.suma);
+                } else if (t.sportiv_id) {
+                    indivBalancesFresh.set(t.sportiv_id, (indivBalancesFresh.get(t.sportiv_id) || 0) + t.suma);
+                }
+            });
+            (platiProaspete || []).forEach(p => {
+                if (p.familie_id) {
+                    famBalancesFresh.set(p.familie_id, (famBalancesFresh.get(p.familie_id) || 0) - p.suma);
+                } else if (p.sportiv_id) {
+                    indivBalancesFresh.set(p.sportiv_id, (indivBalancesFresh.get(p.sportiv_id) || 0) - p.suma);
+                }
+            });
 
             const sportiviQuery = supabase
                 .from('sportivi')
@@ -115,10 +145,12 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
             
             const platiToInsert: (Omit<Plata, 'id' | 'club_id'> & { club_id?: string | null })[] = [];
             const sportiviProcesati = new Set<string>();
-    
+            // Bug 2 Fix: colectăm sportivii ignorați pentru warning la final
+            const sportiviIgnorati: string[] = [];
+
             const familyIdsInClub = new Set(sportiviActivi.map(s => s.familie_id).filter(Boolean));
             const relevantFamilies = familii.filter(f => familyIdsInClub.has(f.id));
-            
+
             // luna și an numerice pentru coloanele de unicitate
             const lunaCurenta = today.getMonth() + 1; // 1–12
 
@@ -134,7 +166,11 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                 }
 
                 if (abonamentConfig) {
-                    const creditFamilie = balances.famBalances.get(familie.id) || 0;
+                    // Bug 5 Fix: folosim soldurile proaspete din DB, nu cele din useMemo/state
+                    const creditFamilie = famBalancesFresh.get(familie.id) || 0;
+                    // Bug 4 TODO: aplică reduceri din politici_reducere când schema de mapare
+                    // sportiv→reducere (aplicare_reduceri) e definită în DB.
+                    // Momentan tabelul reduceri conține doar politici globale fără mapare per entitate.
                     let sumaDeFacturat = abonamentConfig.pret;
                     let status: Plata['status'] = 'Neachitat';
                     let observatii = `Abonament pt: ${membriActiviInFamilie.map(m => m.prenume).join(', ')}.`;
@@ -157,7 +193,10 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                 const abonamentConfig = (tipuriAbonament || []).find(ab => ab.id === sportiv.tip_abonament_id)
                     || (tipuriAbonament || []).find(ab => ab.numar_membri === 1);
                 if (abonamentConfig) {
-                    const creditSportiv = balances.indivBalances.get(sportiv.id) || 0;
+                    // Bug 5 Fix: folosim soldurile proaspete din DB
+                    const creditSportiv = indivBalancesFresh.get(sportiv.id) || 0;
+                    // Bug 4 TODO: aplică reduceri din politici_reducere când schema de mapare
+                    // sportiv→reducere (aplicare_reduceri) e definită în DB.
                     let sumaDeFacturat = abonamentConfig.pret;
                     let status: Plata['status'] = 'Neachitat';
                     let observatii = 'Generat automat.';
@@ -170,6 +209,9 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                         descriere: `Abonament ${lunaText}`, tip: 'Abonament',
                         observatii, club_id: sportiv.club_id
                     });
+                } else {
+                    // Bug 2 Fix: sportivul nu are abonament configurat — îl colectăm pentru warning
+                    sportiviIgnorati.push(`${sportiv.nume} ${sportiv.prenume}`);
                 }
             });
 
@@ -226,9 +268,22 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
             } else {
                 showSuccess("Info", "Nicio factură nouă de generat pentru luna curentă pentru sportivii din acest club.");
             }
-    
+
+            // Bug 2 Fix: avertizare pentru sportivii ignorați fără abonament configurat
+            if (sportiviIgnorati.length > 0) {
+                showError(
+                    "Sportivi ignorați",
+                    `${sportiviIgnorati.length} sportivi ignorați (fără abonament configurat): ${sportiviIgnorati.join(', ')}`
+                );
+            }
+
         } catch (err: any) {
             console.error('DETALII EROARE:', JSON.stringify(err, null, 2));
+            // Bug 3 Fix: mesaj specific pentru eroarea de duplicate key (insert simultan de doi admini)
+            if ((err as any)?.code === '23505') {
+                showError("Abonamente deja generate", "Abonamentele pentru luna aceasta au fost deja generate (posibil de alt admin).");
+                return;
+            }
             showError("Eroare la generare", err.message);
         } finally {
             setIsGenerating(false);
@@ -270,13 +325,19 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
             const result = data as any;
             if (result && result.success) {
                 showSuccess("Plată Procesată", "Plata a fost înregistrată cu succes.");
-                
-                // Update local plati state
-                setPlati(prev => prev.map(p => p.id === plataForPayment.id ? { ...p, status: result.status_nou } : p));
-                
-                // We don't have setTranzactii here directly, but DataContext will handle it on next refresh
-                // or we could use useData() to get setTranzactii if we really want to update it locally
-                
+
+                // Bug 1 Fix: RPC returnează { success, tranzactie_id }, nu status_nou.
+                // Refetch plata din DB pentru a obține statusul real actualizat.
+                const p_plata_id = plataForPayment.id;
+                const { data: plataUpdated } = await supabase
+                    .from('plati')
+                    .select('*')
+                    .eq('id', p_plata_id)
+                    .single();
+                if (plataUpdated) {
+                    setPlati(prev => prev.map(p => p.id === p_plata_id ? plataUpdated as Plata : p));
+                }
+
                 setPlataForPayment(null);
                 setPaymentAmount('');
             } else {

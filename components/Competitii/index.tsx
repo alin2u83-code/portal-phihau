@@ -1985,6 +1985,16 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
     }
   };
 
+  const validateMixtGender = (ids: string[]) => {
+    if (categorie.gen !== 'Mixt' || !isTeam) return;
+    const selected = sportivi.filter(s => ids.includes(s.id));
+    const hasMale = selected.some(s => s.gen === 'Masculin');
+    const hasFemale = selected.some(s => s.gen === 'Feminin');
+    if (!hasMale || !hasFemale) {
+      throw new Error('Echipa Mixt trebuie să conțină cel puțin un băiat și o fată');
+    }
+  };
+
   const handleSubmit = async () => {
     setLoading(true);
     try {
@@ -2004,6 +2014,7 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
         if (selectedTitulari.length < categorie.sportivi_per_echipa_min) {
           throw new Error(`Selectează minim ${categorie.sportivi_per_echipa_min} titulari`);
         }
+        validateMixtGender(selectedTitulari);
         // Ștergem membrii vechi și inserăm cei noi
         const { error: delErr } = await supabase
           .from('echipa_sportivi')
@@ -2026,6 +2037,7 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
         if (selectedTitulari.length < categorie.sportivi_per_echipa_min) {
           throw new Error(`Selectează minim ${categorie.sportivi_per_echipa_min} titulari`);
         }
+        validateMixtGender(selectedTitulari);
         const { data: ec, error: ecErr } = await supabase.from('echipe_competitie').insert({
           competitie_id: competitie.id,
           categorie_id: categorie.id,
@@ -2259,8 +2271,19 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
             <Input label="Denumire Echipă (opțional)" value={denEchipa} onChange={e => setDenEchipa(e.target.value)} />
             <div>
               <div className="flex items-center justify-between mb-1 flex-wrap gap-2">
-                <span className="text-sm text-slate-300 font-medium">
+                <span className="text-sm text-slate-300 font-medium flex items-center gap-2 flex-wrap">
                   Titulari ({selectedTitulari.length}{categorie.sportivi_per_echipa_max > 0 ? `/${categorie.sportivi_per_echipa_max}` : ''})
+                  {categorie.gen === 'Mixt' && (() => {
+                    const sel = sportivi.filter(s => selectedTitulari.includes(s.id));
+                    const m = sel.filter(s => s.gen === 'Masculin').length;
+                    const f = sel.filter(s => s.gen === 'Feminin').length;
+                    const ok = m >= 1 && f >= 1;
+                    return (
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${ok ? 'bg-green-800 text-green-200' : 'bg-red-900/60 text-red-300'}`}>
+                        {m}M / {f}F {ok ? '✓' : '— minim 1M+1F'}
+                      </span>
+                    );
+                  })()}
                 </span>
                 {/* Task 3: buton selectare în masă — thao quyen sau categorie nelimitată */}
                 {(esteThaoQuyenIndividualModal || categorie.sportivi_per_echipa_max === 0) && allEligibiliNeinscrisi.length > 1 && (

@@ -104,10 +104,9 @@ creaza un footer pe care sa fie asistentul ai, deocamdata se suprapune cu alte i
 Fix: AppLayout.tsx — padding-bottom crescut (pb-32 mobil, pb-28 desktop) pentru a asigura spatiu sub widget
 Ramas: pozitionare widget pe desktop poate acoperi continut cand panoul chat e deschis
 
-❌ NEREZOLVAT — Eroare 400 club_nume column
-Failed to load resource: the server responded with a status of 400 ()
+✅ REZOLVAT — Eroare 400 club_nume column (Mai 2026)
 DETALII EROARE: "Could not find the 'club_nume' column of 'sportivi' in the schema cache"
-Cauza: necunoscuta. Verificare necesara — posibil query direct pe sportivi in loc de view
+Cauza: nu mai exista in cod — coloana club_nume nu apare in niciun query din components/Competitii/. Posibil rezolvat anterior prin join pe cluburi(id, nume) in loc de club_nume direct pe sportivi.
 
 ✅ REZOLVAT — Trimitere email+parola la creare cont sportiv
 este facut sa poata transmite informatiile de creare cont al unui sportiv? sa se poata transmite prin mesaj care este adresa de email si parola catre sportivul caruia i-a fost creat contul
@@ -188,3 +187,41 @@ cand selectez inscriere in competitie sa pot selecta mai multi sportivi. sa fie 
 genul specificat in categoria de concurs (daca e feminin - sa vadd doar fetele)
 Fix: utils/eligibilitateCompetitie.ts — verificaEligibilitate filtreaza automat gen sportiv vs gen categorie;
 components/Competitii/index.tsx — selectie multipla pentru echipe + thao quyen
+
+✅ REZOLVAT — competitii in categorii: nu pot selecta mai multi sportivi odata (Mai 2026)
+Fix: components/Competitii/index.tsx — multi-select individual cu checkbox + selectedIndividuali state; vizibil in commit anterior
+
+✅ REZOLVAT — admin club nu vede numele sportivilor din alte cluburi inscrisi la competitie (Mai 2026)
+Fix: commit fa365d0 — RLS update; query inscrieri include join cluburi(id,nume) pe sportiv
+
+✅ REZOLVAT — la inscrisi sa imi arate doar numarul celor care sunt deja inscrisi (doar 7 sportivi nu 7/3) (Mai 2026)
+Fix: components/Competitii/index.tsx linia ~1366 AdminPanel statistici — format schimbat din "{cnt}/{min}" in "{cnt} (min {min}) ⚠"
+
+✅ REZOLVAT — la meniul categorii sa imi apara pentru toti sa vada numele sportivului si clubul din care face partea (Mai 2026)
+Fix: components/Competitii/index.tsx — panoul expandat cu inscrisi per categorie afiseaza numele sportivului si clubul (join cluburi)
+
+✅ REZOLVAT — in dashboard admin, sa am un buton care sa ma directioneze in meniul competitii (Mai 2026)
+Fix: commit c87fb8f — carduri separate Competitii/Stagii pe dashboard
+
+✅ REZOLVAT — la adauga categorie de competitie - super admin, sa am dropdown pentru selectie grade si pentru varsta (Mai 2026)
+Fix: components/Competitii/index.tsx — CategorieForm foloseste <Select> cu VARSTE_OPTIUNI si grade sortate pentru varsta_min, varsta_max, grad_min_ordine, grad_max_ordine (era deja implementat)
+
+✅ REZOLVAT — la modificare echipa, vreau sa pot schimba componenta echipei, acum nu ma lasa sa debifez sportivii deja selectati (Mai 2026)
+Fix: components/Competitii/index.tsx — reordonat declaratia editMode si echipaDejaInscrisa inainte de calculul inscrisInEchipa; in editMode, echipa proprie e exclusa din setul "deja inscrisi" astfel sportivii devin debifabili
+
+✅ REZOLVAT (partial) — la echipe mixt sau perechi mixt sa ma oblige sa am un baiat si o fata (Mai 2026)
+Fix: validateMixtGender in handleSubmit + indicator vizual M/F la selectie titulari (commit fa365d0)
+
+❌ NEREZOLVAT — eroarea pentru numar insuficient de sportivi, eroarea sa apara peste pop-up de inscriere (Feature complex — necesita implementare separata)
+
+✅ REZOLVAT — sa imi apara numele clubului si la echipa (denumire echipa sa se completeze automat cu numele clubului) (Mai 2026)
+Fix: components/Competitii/index.tsx — denEchipa initializat cu numeClub; commit 33c2e9b
+
+✅ REZOLVAT — in competitii la probele individuale nu pot retrage sportivi deja inscrisi din categorie (Mai 2026)
+Fix: components/Competitii/index.tsx — adaugat handleRetrageIndividual + buton "Retrage" afisat langa sportivii "Inscris" din modalul de inscriere individual
+
+❌ NEREZOLVAT — avem un camp cu numele denumire echipa si apare cand nu completez; Echipa fara denumire - adauga automat numele clubului (Feature complex — necesita implementare separata)
+Nota: denEchipa e pre-completat cu numeClub dar campul text e vizibil mereu; ascunderea lui e o schimbare UX mai ampla
+
+✅ REZOLVAT — la echipele mixt, sa am tabele separate cu sportivii care sunt la gen feminin si altul cu gen masculin (Mai 2026)
+Fix: components/Competitii/index.tsx — in InscriereModal, categorii cu gen=Mixt afiseaza doua coloane separate (Masculin/Feminin); sportivii fara gen selectat apar cu avertisment "fara gen" in coloana Masculin

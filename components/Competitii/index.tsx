@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { Permissions, Competitie, ProbaCompetitie, CategorieCompetitie, InscriereCompetitie, EchipaCompetitie, SolicitareEchipaIncompleta, Sportiv, Grad, TipProba } from '../../types';
 import { supabase } from '../../supabaseClient';
 import { useData } from '../../contexts/DataContext';
-import { Button, Modal, Input, Select, Card } from '../ui';
+import { Button, Modal, Input, Select, Card, SearchableSelect } from '../ui';
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon } from '../icons';
 import { useError } from '../ErrorProvider';
 import {
@@ -1559,6 +1559,8 @@ interface CategorieFormProps {
 
 const VARSTE_OPTIUNI = [7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,30,35,40];
 
+const VARSTE_OPTIONS = VARSTE_OPTIUNI.map(v => ({ value: String(v), label: `${v} ani` }));
+
 const CategorieForm: React.FC<CategorieFormProps> = ({ competitieId, probe, grade, categorie, onClose, onSaved }) => {
   const { showError } = useError();
   const [loading, setLoading] = useState(false);
@@ -1582,6 +1584,14 @@ const CategorieForm: React.FC<CategorieFormProps> = ({ competitieId, probe, grad
 
   const f = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm(p => ({ ...p, [field]: e.target.value }));
+
+  const gradeOptions = useMemo(
+    () => [...grade].sort((a, b) => a.ordine - b.ordine).map(g => ({
+      value: String(g.ordine),
+      label: `${g.ordine}. ${g.nume}`,
+    })),
+    [grade]
+  );
 
   const handleSave = async () => {
     setLoading(true);
@@ -1632,13 +1642,21 @@ const CategorieForm: React.FC<CategorieFormProps> = ({ competitieId, probe, grad
         </div>
         <Input label="Denumire (auto sau personalizată)" value={form.denumire} onChange={f('denumire')} />
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <Select label="Vârstă Min" value={form.varsta_min} onChange={f('varsta_min')}>
-            {VARSTE_OPTIUNI.map(v => <option key={v} value={v}>{v} ani</option>)}
-          </Select>
-          <Select label="Vârstă Max" value={form.varsta_max} onChange={f('varsta_max')}>
-            <option value="">Fără limită</option>
-            {VARSTE_OPTIUNI.map(v => <option key={v} value={v}>{v} ani</option>)}
-          </Select>
+          <SearchableSelect
+            label="Vârstă Min"
+            options={VARSTE_OPTIONS}
+            value={form.varsta_min}
+            onChange={v => setForm(p => ({ ...p, varsta_min: v }))}
+            placeholder="Selectează vârsta..."
+          />
+          <SearchableSelect
+            label="Vârstă Max"
+            options={VARSTE_OPTIONS}
+            value={form.varsta_max}
+            onChange={v => setForm(p => ({ ...p, varsta_max: v }))}
+            placeholder="Fără limită"
+            emptyLabel="Fără limită"
+          />
           <Select label="Gen" value={form.gen} onChange={f('gen')}>
             <option value="Feminin">Feminin</option>
             <option value="Masculin">Masculin</option>
@@ -1646,18 +1664,22 @@ const CategorieForm: React.FC<CategorieFormProps> = ({ competitieId, probe, grad
           </Select>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Select label="Grad Min (gol = orice)" value={form.grad_min_ordine} onChange={f('grad_min_ordine')}>
-            <option value="">Orice grad</option>
-            {[...grade].sort((a, b) => a.ordine - b.ordine).map(g => (
-              <option key={g.id} value={g.ordine}>{g.ordine}. {g.nume}</option>
-            ))}
-          </Select>
-          <Select label="Grad Max (gol = orice)" value={form.grad_max_ordine} onChange={f('grad_max_ordine')}>
-            <option value="">Orice grad</option>
-            {[...grade].sort((a, b) => a.ordine - b.ordine).map(g => (
-              <option key={g.id} value={g.ordine}>{g.ordine}. {g.nume}</option>
-            ))}
-          </Select>
+          <SearchableSelect
+            label="Grad Min (gol = orice)"
+            options={gradeOptions}
+            value={form.grad_min_ordine}
+            onChange={v => setForm(p => ({ ...p, grad_min_ordine: v }))}
+            placeholder="Orice grad"
+            emptyLabel="Orice grad"
+          />
+          <SearchableSelect
+            label="Grad Max (gol = orice)"
+            options={gradeOptions}
+            value={form.grad_max_ordine}
+            onChange={v => setForm(p => ({ ...p, grad_max_ordine: v }))}
+            placeholder="Orice grad"
+            emptyLabel="Orice grad"
+          />
         </div>
         <Input label="Armă (pentru CVD, ex: Bong)" value={form.arma} onChange={f('arma')} />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

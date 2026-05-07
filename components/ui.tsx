@@ -1,4 +1,4 @@
-import React, { ReactNode, useState, useEffect, useRef } from 'react';
+import React, { ReactNode, useState, useEffect, useRef, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import { XIcon, SearchIcon } from './icons';
 import { Rol, Club } from '../types';
@@ -410,6 +410,272 @@ export const ClubSelect: React.FC<{
     {clubs.map(c => <option key={c.id} value={c.id}>{renderOption ? renderOption(c) : c.nume}</option>)}
   </Select>
 );
+
+// -----------------------------------------------
+// SEARCHABLE SELECT
+// Desktop: combobox custom cu highlight, navigare taste, Clear(X)
+// Mobil (< 768px): <select> nativ HTML pentru UX touch
+// -----------------------------------------------
+export interface SearchableSelectOption {
+  value: string;
+  label: string;
+}
+
+interface SearchableSelectProps {
+  options: SearchableSelectOption[];
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  label?: string;
+  className?: string;
+  emptyLabel?: string; // eticheta pentru opțiunea "goală" (ex: "Orice grad")
+}
+
+function highlightMatch(text: string, query: string): React.ReactNode {
+  if (!query) return text;
+  const idx = text.toLowerCase().indexOf(query.toLowerCase());
+  if (idx === -1) return text;
+  return (
+    <>
+      {text.slice(0, idx)}
+      <span className="font-bold text-blue-400">{text.slice(idx, idx + query.length)}</span>
+      {text.slice(idx + query.length)}
+    </>
+  );
+}
+
+export const SearchableSelect: React.FC<SearchableSelectProps> = ({
+  options,
+  value,
+  onChange,
+  placeholder = 'Selectează...',
+  label,
+  className = '',
+  emptyLabel,
+}) => {
+  const [isMobile, setIsMobile] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [highlighted, setHighlighted] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
+
+  // Detectare mobil
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
+  // Închide dropdown la click afară
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+        setQuery('');
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const selectedOption = options.find(o => o.value === value);
+  const displayLabel = selectedOption ? selectedOption.label : '';
+
+  const filtered = query
+    ? options.filter(o => o.label.toLowerCase().includes(query.toLowerCase()))
+    : options;
+
+  // Resetează highlight când se schimbă lista filtrată
+  useEffect(() => {
+    setHighlighted(0);
+  }, [query]);
+
+  // Scroll item highlighted în vizibil
+  useEffect(() => {
+    if (!listRef.current) return;
+    const item = listRef.current.children[highlighted] as HTMLElement | undefined;
+    if (item) item.scrollIntoView({ block: 'nearest' });
+  }, [highlighted, open]);
+
+  const handleOpen = () => {
+    setOpen(true);
+    setQuery('');
+    setTimeout(() => inputRef.current?.focus(), 0);
+  };
+
+  const handleSelect = useCallback((val: string) => {
+    onChange(val);
+    setOpen(false);
+    setQuery('');
+  }, [onChange]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!open) {
+      if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        handleOpen();
+      }
+      return;
+    }
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setHighlighted(h => Math.min(h + 1, filtered.length - 1));
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setHighlighted(h => Math.max(h - 1, 0));
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (filtered[highlighted]) handleSelect(filtered[highlighted].value);
+        break;
+      case 'Escape':
+        setOpen(false);
+        setQuery('');
+        break;
+    }
+  };
+
+  const handleClear = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onChange('');
+  };
+
+  // ---- MOBIL: select nativ ----
+  if (isMobile) {
+    return (
+      <div className={`w-full ${className}`}>
+        {label && (
+          <label className="block text-xs font-bold text-slate-400 mb-1.5 ml-1 uppercase tracking-wide">
+            {label}
+          </label>
+        )}
+        <div className="relative">
+          <select
+            value={value}
+            onChange={e => onChange(e.target.value)}
+            className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-base text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm appearance-none touch-manipulation"
+          >
+            {emptyLabel !== undefined && <option value="">{emptyLabel}</option>}
+            {options.map(o => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+          <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-slate-400">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ---- DESKTOP: combobox custom ----
+  return (
+    <div className={`w-full relative ${className}`} ref={containerRef}>
+      {label && (
+        <label className="block text-xs font-bold text-slate-400 mb-1.5 ml-1 uppercase tracking-wide">
+          {label}
+        </label>
+      )}
+      {/* Trigger button */}
+      <div
+        role="combobox"
+        aria-expanded={open}
+        aria-haspopup="listbox"
+        tabIndex={0}
+        onClick={handleOpen}
+        onKeyDown={handleKeyDown}
+        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm cursor-pointer flex items-center justify-between gap-2 select-none"
+      >
+        <span className={displayLabel ? 'text-white' : 'text-slate-500'}>
+          {displayLabel || placeholder}
+        </span>
+        <div className="flex items-center gap-1 shrink-0">
+          {value && (
+            <button
+              type="button"
+              onClick={handleClear}
+              className="text-slate-400 hover:text-white transition-colors p-0.5 rounded"
+              tabIndex={-1}
+              aria-label="Șterge selecția"
+            >
+              <XIcon className="w-3.5 h-3.5" />
+            </button>
+          )}
+          <svg className={`w-4 h-4 text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+      </div>
+
+      {/* Dropdown */}
+      {open && (
+        <div className="absolute z-50 mt-1 w-full bg-slate-800 border border-slate-600 rounded-xl shadow-xl overflow-hidden">
+          {/* Input search */}
+          <div className="p-2 border-b border-slate-700">
+            <input
+              ref={inputRef}
+              type="text"
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Caută..."
+              className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            />
+          </div>
+          {/* Lista filtrată */}
+          <ul
+            ref={listRef}
+            role="listbox"
+            className="max-h-52 overflow-y-auto py-1"
+          >
+            {emptyLabel !== undefined && !query && (
+              <li
+                role="option"
+                aria-selected={value === ''}
+                onClick={() => handleSelect('')}
+                className={`px-4 py-2 text-sm cursor-pointer transition-colors ${
+                  value === ''
+                    ? 'bg-indigo-700 text-white'
+                    : 'text-slate-400 hover:bg-slate-700 hover:text-white'
+                }`}
+              >
+                {emptyLabel}
+              </li>
+            )}
+            {filtered.length === 0 ? (
+              <li className="px-4 py-2 text-sm text-slate-500 italic">Niciun rezultat</li>
+            ) : (
+              filtered.map((o, idx) => (
+                <li
+                  key={o.value}
+                  role="option"
+                  aria-selected={o.value === value}
+                  onClick={() => handleSelect(o.value)}
+                  className={`px-4 py-2 text-sm cursor-pointer transition-colors ${
+                    idx === highlighted
+                      ? 'bg-indigo-600 text-white'
+                      : o.value === value
+                      ? 'bg-indigo-900/50 text-indigo-300'
+                      : 'text-slate-200 hover:bg-slate-700'
+                  }`}
+                >
+                  {highlightMatch(o.label, query)}
+                </li>
+              ))
+            )}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+};
 
 interface DateInputDMYProps {
   label?: string;

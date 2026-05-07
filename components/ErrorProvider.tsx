@@ -1,4 +1,5 @@
 import React, { createContext, useState, useContext, ReactNode, useCallback } from 'react';
+import ReactDOM from 'react-dom';
 import { ErrorNotification } from './ErrorNotification';
 
 interface NotificationInfo {
@@ -57,13 +58,14 @@ export const ErrorProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   return (
     <ErrorContext.Provider value={value}>
       {children}
-      {notifications.length > 0 && (
+      {notifications.length > 0 && ReactDOM.createPortal(
         <ErrorNotification
           title={notifications[0].title}
           message={notifications[0].message}
           type={notifications[0].type}
           onClose={() => hideNotification(notifications[0].id)}
-        />
+        />,
+        document.body
       )}
     </ErrorContext.Provider>
   );

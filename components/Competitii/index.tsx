@@ -2276,19 +2276,19 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
               <div className="max-h-52 overflow-y-auto overscroll-contain space-y-1">
                 {/* Task 2: eligibili neinscrisi primii */}
                 {eligibiliSortati.neinscrisi.map(({ sportiv }) => renderSportivEchipa(sportiv, false))}
-                {/* Task 2: deja în echipă */}
+                {/* deja în echipă — editabil în editMode */}
                 {eligibiliSortati.dejaInscrisiLst.length > 0 && (
                   <>
                     {eligibiliSortati.neinscrisi.length > 0 && (
                       <div className="py-1 px-2">
                         <div className="border-t border-slate-700/60">
                           <span className="text-[10px] text-slate-500 uppercase tracking-wide bg-slate-900 pr-2">
-                            Deja în echipă
+                            {editMode ? 'Membri actuali (editabili)' : 'Deja în echipă'}
                           </span>
                         </div>
                       </div>
                     )}
-                    {eligibiliSortati.dejaInscrisiLst.map(({ sportiv }) => renderSportivEchipa(sportiv, true))}
+                    {eligibiliSortati.dejaInscrisiLst.map(({ sportiv }) => renderSportivEchipa(sportiv, !editMode))}
                   </>
                 )}
                 {eligibili.length === 0 && (

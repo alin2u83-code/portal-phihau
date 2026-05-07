@@ -360,8 +360,8 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
     const [probeRes, catRes, inRes, echRes] = await Promise.all([
       supabase.from('probe_competitie').select().eq('competitie_id', competitie.id).order('ordine_afisare'),
       supabase.from('categorii_competitie').select().eq('competitie_id', competitie.id).order('ordine_afisare'),
-      supabase.from('inscrieri_competitie').select('*, sportiv:sportivi(id, nume, prenume, grad_actual_id, data_nasterii)').eq('competitie_id', competitie.id),
-      supabase.from('echipe_competitie').select('*, echipa_sportivi(sportiv_id, rol, sportiv:sportivi(id, nume, prenume))').eq('competitie_id', competitie.id),
+      supabase.from('inscrieri_competitie').select('*, sportiv:sportivi(id, nume, prenume, grad_actual_id, data_nasterii, club_id, cluburi(id, nume))').eq('competitie_id', competitie.id),
+      supabase.from('echipe_competitie').select('*, club:cluburi(id, nume), echipa_sportivi(sportiv_id, rol, sportiv:sportivi(id, nume, prenume, club_id, cluburi(id, nume)))').eq('competitie_id', competitie.id),
     ]);
     setProbe((probeRes.data || []) as ProbaCompetitie[]);
     setCategorii((catRes.data || []) as CategorieCompetitie[]);
@@ -550,7 +550,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                                 title={count > 0 ? 'Click pentru a vedea sportivii înscriși' : undefined}
                                 className={`text-xs font-bold transition-colors ${count >= cat.min_participanti_start ? 'text-green-400' : count > 0 ? 'text-yellow-400' : 'text-slate-500'} ${count > 0 ? 'hover:underline cursor-pointer' : 'cursor-default'}`}
                               >
-                                {count}/{cat.min_participanti_start}
+                                {count}
                                 {count > 0 && <span className="ml-1 text-slate-500">{isExpanded ? '▲' : '▼'}</span>}
                               </button>
                             </td>
@@ -581,6 +581,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                                     <div className="divide-y divide-slate-700/50">
                                       {inscrieriCat.map((ins, idx) => {
                                         const sp = ins.sportiv as any;
+                                        const numeClub = sp?.cluburi?.nume || null;
                                         return (
                                           <div key={ins.id} className="flex items-center gap-3 px-3 py-2">
                                             <span className="text-xs text-slate-500 w-5 shrink-0">{idx + 1}.</span>
@@ -588,6 +589,9 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                                               <span className="text-sm text-white font-medium uppercase">
                                                 {sp ? `${sp.nume} ${sp.prenume}` : ins.sportiv_id}
                                               </span>
+                                              {numeClub && (
+                                                <span className="ml-2 text-[10px] text-slate-400 font-normal normal-case">{numeClub}</span>
+                                              )}
                                             </div>
                                             <span className={`text-[10px] px-2 py-0.5 rounded-full ${ins.status === 'confirmat' ? 'bg-green-800 text-green-200' : ins.status === 'retras' ? 'bg-red-800 text-red-200' : 'bg-slate-700 text-slate-300'}`}>
                                               {ins.status}
@@ -608,12 +612,16 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                                               </span>
                                             </div>
                                             <div className="flex flex-wrap gap-1">
-                                              {membri.map((ms: any) => (
+                                              {membri.map((ms: any) => {
+                                                const numeClubMembru = ms.sportiv?.cluburi?.nume || null;
+                                                return (
                                                 <span key={ms.sportiv_id} className="text-xs px-2 py-0.5 rounded bg-slate-700 text-slate-300">
                                                   <span className="uppercase">{ms.sportiv ? `${ms.sportiv.nume} ${ms.sportiv.prenume}` : ms.sportiv_id}</span>
-                                                  {ms.rol === 'rezerva' && <span className="text-slate-500 ml-1">(R)</span>}
+                                                  {numeClubMembru && <span className="text-slate-500 ml-1 normal-case">({numeClubMembru})</span>}
+                                                  {ms.rol === 'rezerva' && <span className="text-slate-500 ml-1">[R]</span>}
                                                 </span>
-                                              ))}
+                                                );
+                                              })}
                                             </div>
                                           </div>
                                         );
@@ -1721,6 +1729,9 @@ const InscrieriView: React.FC<InscrieriViewProps> = ({
                           <span className="font-medium text-white uppercase">
                             {sportiv?.nume} {sportiv?.prenume}
                           </span>
+                          {isAdmin && (sportiv as any)?.cluburi?.nume && (
+                            <span className="text-[10px] text-slate-400 normal-case">{(sportiv as any).cluburi.nume}</span>
+                          )}
                           <WarningVizaFRAM show={farаViza} inline />
                         </div>
                       </td>
@@ -1852,8 +1863,6 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
   // Task 2: toggle afișare sportivi neeligibili
   const [showNeeligibili, setShowNeeligibili] = useState(false);
 
-  // For individual
-  const [selectedSportivId, setSelectedSportivId] = useState('');
   // For echipa/pereche
   const [selectedTitulari, setSelectedTitulari] = useState<string[]>([]);
   const [selectedRezerve, setSelectedRezerve] = useState<string[]>([]);
@@ -1887,10 +1896,22 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
     categorie.proba?.tip_proba === 'thao_lo_individual'
   );
 
+  // Problemă 5: multi-select pentru categorii individuale standard
+  // Toate categoriile individuale suportă selectare multiplă (înregistrăm mai mulți sportivi odată)
+  const [selectedIndividuali, setSelectedIndividuali] = useState<string[]>([]);
+  const toggleIndividual = (id: string) => {
+    setSelectedIndividuali(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  };
+
   // Task 3: selectare în masă
   const allEligibiliNeinscrisi = eligibiliSortati.neinscrisi.map(e => e.sportiv.id);
   const allSelected = allEligibiliNeinscrisi.length > 0 &&
     allEligibiliNeinscrisi.every(id => selectedTitulari.includes(id));
+  // Selectare toți individuali
+  const allIndividualiSelected = allEligibiliNeinscrisi.length > 0 &&
+    allEligibiliNeinscrisi.every(id => selectedIndividuali.includes(id));
 
   // Task 4: echipă deja înscrisă din clubul curent
   const echipaDejaInscrisa = useMemo(() => {
@@ -1946,13 +1967,15 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
     setLoading(true);
     try {
       if (!isTeam) {
-        if (!selectedSportivId) throw new Error('Selectează un sportiv');
-        const { error } = await supabase.from('inscrieri_competitie').insert({
+        // Problemă 5: multi-select individual — inserăm toți sportivii selectați
+        if (selectedIndividuali.length === 0) throw new Error('Selectează cel puțin un sportiv');
+        const inserts = selectedIndividuali.map(sportivId => ({
           competitie_id: competitie.id,
           categorie_id: categorie.id,
           club_id: clubId,
-          sportiv_id: selectedSportivId,
-        });
+          sportiv_id: sportivId,
+        }));
+        const { error } = await supabase.from('inscrieri_competitie').insert(inserts);
         if (error) throw error;
       } else if (editMode && echipaDejaInscrisa) {
         // Task 4: actualizare componență echipă existentă
@@ -2004,30 +2027,30 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
     }
   };
 
-  // Helper randare rând sportiv individual
+  // Helper randare rând sportiv individual — Problemă 5: checkbox multi-select
   const renderSportivIndividual = (sportiv: Sportiv, deja: boolean) => {
     const varsta = sportiv.data_nasterii
       ? calculeazaVarstaLaData(sportiv.data_nasterii, competitie.data_inceput)
       : null;
     const grad = grade.find(g => g.id === sportiv.grad_actual_id);
     const faraViza = !areVizaFRAM(sportiv.id, anCompetitie, vizeSportivi);
+    const isChecked = selectedIndividuali.includes(sportiv.id);
     return (
       <label
         key={sportiv.id}
         style={{ touchAction: 'manipulation' }}
         className={`flex items-center gap-3 p-2 rounded cursor-pointer border transition-colors ${
           deja ? 'opacity-60 cursor-not-allowed border-blue-700/40 bg-blue-900/10' :
-          selectedSportivId === sportiv.id ? 'border-brand-primary bg-brand-primary/10' :
+          isChecked ? 'border-brand-primary bg-brand-primary/10' :
           'border-slate-700 hover:border-slate-500'
         }`}
       >
         <input
-          type="radio"
-          name="sportiv"
+          type="checkbox"
           value={sportiv.id}
           disabled={deja}
-          checked={selectedSportivId === sportiv.id}
-          onChange={() => !deja && setSelectedSportivId(sportiv.id)}
+          checked={isChecked || deja}
+          onChange={() => !deja && toggleIndividual(sportiv.id)}
           className="w-4 h-4"
         />
         <div className="flex-1 min-w-0">
@@ -2120,26 +2143,46 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
             </Button>
           </div>
         ) : !isTeam ? (
-          /* Individual — Task 2: sortare + Task 2: neeligibili exclud */
+          /* Individual — Problemă 5: multi-select checkbox */
           <div>
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
               <span className="text-sm text-slate-300 font-medium">
                 Sportivi eligibili ({eligibili.length})
+                {selectedIndividuali.length > 0 && (
+                  <span className="ml-2 text-brand-primary font-bold">— {selectedIndividuali.length} selectați</span>
+                )}
               </span>
-              {neeligibili.length > 0 && (
-                <button
-                  onClick={() => setShowNeeligibili(v => !v)}
-                  style={{ touchAction: 'manipulation' }}
-                  className="text-xs text-slate-500 hover:text-slate-300 transition-colors"
-                >
-                  {showNeeligibili ? 'Ascunde' : 'Arată'} neeligibili ({neeligibili.length})
-                </button>
-              )}
+              <div className="flex items-center gap-3">
+                {allEligibiliNeinscrisi.length > 1 && (
+                  <button
+                    onClick={() => {
+                      if (allIndividualiSelected) {
+                        setSelectedIndividuali([]);
+                      } else {
+                        setSelectedIndividuali(allEligibiliNeinscrisi);
+                      }
+                    }}
+                    style={{ touchAction: 'manipulation' }}
+                    className="text-xs font-medium text-brand-primary hover:underline transition-colors min-h-[32px] px-2"
+                  >
+                    {allIndividualiSelected ? 'Deselectează toți' : `Selectează toți (${allEligibiliNeinscrisi.length})`}
+                  </button>
+                )}
+                {neeligibili.length > 0 && (
+                  <button
+                    onClick={() => setShowNeeligibili(v => !v)}
+                    style={{ touchAction: 'manipulation' }}
+                    className="text-xs text-slate-500 hover:text-slate-300 transition-colors"
+                  >
+                    {showNeeligibili ? 'Ascunde' : 'Arată'} neeligibili ({neeligibili.length})
+                  </button>
+                )}
+              </div>
             </div>
             <div className="max-h-72 overflow-y-auto overscroll-contain space-y-1">
-              {/* Task 2: Primii — eligibili neinscrisi */}
+              {/* Primii — eligibili neinscrisi */}
               {eligibiliSortati.neinscrisi.map(({ sportiv }) => renderSportivIndividual(sportiv, false))}
-              {/* Task 2: Dedesubt — eligibili deja inscriși */}
+              {/* Dedesubt — eligibili deja inscriși */}
               {eligibiliSortati.dejaInscrisiLst.length > 0 && (
                 <>
                   {eligibiliSortati.neinscrisi.length > 0 && (
@@ -2159,7 +2202,7 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
                   Niciun sportiv eligibil din club pentru această categorie.
                 </div>
               )}
-              {/* Task 2: Neeligibili — toggle separat */}
+              {/* Neeligibili — toggle separat */}
               {showNeeligibili && neeligibili.length > 0 && (
                 <>
                   <div className="py-1 px-2">
@@ -2171,7 +2214,7 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
                   </div>
                   {neeligibili.map(({ sportiv, eligibilitate }) => (
                     <div key={sportiv.id} className="flex items-center gap-3 p-2 rounded border border-slate-800 opacity-50">
-                      <input type="radio" disabled className="w-4 h-4 opacity-40" />
+                      <input type="checkbox" disabled className="w-4 h-4 opacity-40" />
                       <div className="flex-1 min-w-0">
                         <span className="text-sm text-slate-400 uppercase">{sportiv.nume} {sportiv.prenume}</span>
                         <div className="text-[10px] text-red-400/80 mt-0.5">{eligibilitate.motive.join(' · ')}</div>
@@ -2286,7 +2329,7 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
         {(() => {
           const selectedIds = isTeam
             ? [...selectedTitulari, ...selectedRezerve]
-            : selectedSportivId ? [selectedSportivId] : [];
+            : selectedIndividuali;
           const faraVizaCount = selectedIds.filter(id => !areVizaFRAM(id, anCompetitie, vizeSportivi)).length;
           return faraVizaCount > 0 ? (
             <WarningVizaFRAM show={true} />

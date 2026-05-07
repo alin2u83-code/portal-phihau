@@ -136,7 +136,8 @@ export const AdminMasterMap: React.FC<AdminMasterMapProps> = ({ onNavigate, deco
 
                 <Group title="Examene & Competiții">
                     <ItemCard title="Sesiuni Examene" view="examene" icon={TrophyIcon} onNavigate={onNavigate} badge={pendingExamPayments} />
-                    <ItemCard title="Stagii & Competiții" view="stagii" icon={BookMarkedIcon} onNavigate={onNavigate} />
+                    <ItemCard title="Competiții" view="competitii" icon={TrophyIcon} onNavigate={onNavigate} />
+                    <ItemCard title="Stagii Naționale" view="stagii" icon={BookMarkedIcon} onNavigate={onNavigate} />
                     <ItemCard title="Rapoarte Examen" view="rapoarte-examen" icon={FileTextIcon} onNavigate={onNavigate} />
                 </Group>
 

@@ -744,6 +744,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                 setCategorii={setCategorii}
                 inscrieri={inscrieri}
                 echipe={echipe}
+                grade={grade}
                 vizeSportivi={vizeSportivi}
                 catFormOpen={catFormOpen}
                 setCatFormOpen={setCatFormOpen}
@@ -1243,6 +1244,7 @@ interface AdminPanelProps {
   setCategorii: React.Dispatch<React.SetStateAction<CategorieCompetitie[]>>;
   inscrieri: InscriereCompetitie[];
   echipe: EchipaCompetitie[];
+  grade: Grad[];
   vizeSportivi: VizaSportiv[];
   catFormOpen: boolean;
   setCatFormOpen: (v: boolean) => void;
@@ -1255,7 +1257,7 @@ interface AdminPanelProps {
 
 const AdminPanel: React.FC<AdminPanelProps> = ({
   competitie, probe, setProbe, categorii, setCategorii,
-  inscrieri, echipe, vizeSportivi, catFormOpen, setCatFormOpen, catToEdit, setCatToEdit,
+  inscrieri, echipe, grade, vizeSportivi, catFormOpen, setCatFormOpen, catToEdit, setCatToEdit,
   probaFormOpen, setProbaFormOpen, onRefresh,
 }) => {
   const { showError } = useError();

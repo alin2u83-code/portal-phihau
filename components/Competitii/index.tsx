@@ -1452,6 +1452,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
             <CategorieForm
               competitieId={competitie.id}
               probe={probe}
+              grade={grade}
               categorie={catToEdit}
               onClose={() => { setCatFormOpen(false); setCatToEdit(null); }}
               onSaved={(cat) => {
@@ -1544,12 +1545,15 @@ const ProbaForm: React.FC<ProbaFormProps> = ({ competitieId, onClose, onSaved })
 interface CategorieFormProps {
   competitieId: string;
   probe: ProbaCompetitie[];
+  grade: Grad[];
   categorie: CategorieCompetitie | null;
   onClose: () => void;
   onSaved: (c: CategorieCompetitie) => void;
 }
 
-const CategorieForm: React.FC<CategorieFormProps> = ({ competitieId, probe, categorie, onClose, onSaved }) => {
+const VARSTE_OPTIUNI = [7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,30,35,40];
+
+const CategorieForm: React.FC<CategorieFormProps> = ({ competitieId, probe, grade, categorie, onClose, onSaved }) => {
   const { showError } = useError();
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
@@ -1622,8 +1626,13 @@ const CategorieForm: React.FC<CategorieFormProps> = ({ competitieId, probe, cate
         </div>
         <Input label="Denumire (auto sau personalizată)" value={form.denumire} onChange={f('denumire')} />
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <Input label="Vârstă Min" type="number" value={form.varsta_min} onChange={f('varsta_min')} />
-          <Input label="Vârstă Max (gol = fără limită)" type="number" value={form.varsta_max} onChange={f('varsta_max')} />
+          <Select label="Vârstă Min" value={form.varsta_min} onChange={f('varsta_min')}>
+            {VARSTE_OPTIUNI.map(v => <option key={v} value={v}>{v} ani</option>)}
+          </Select>
+          <Select label="Vârstă Max" value={form.varsta_max} onChange={f('varsta_max')}>
+            <option value="">Fără limită</option>
+            {VARSTE_OPTIUNI.map(v => <option key={v} value={v}>{v} ani</option>)}
+          </Select>
           <Select label="Gen" value={form.gen} onChange={f('gen')}>
             <option value="Feminin">Feminin</option>
             <option value="Masculin">Masculin</option>
@@ -1631,8 +1640,18 @@ const CategorieForm: React.FC<CategorieFormProps> = ({ competitieId, probe, cate
           </Select>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Input label="Grad Min (ordine, gol = orice)" type="number" value={form.grad_min_ordine} onChange={f('grad_min_ordine')} />
-          <Input label="Grad Max (ordine, gol = orice)" type="number" value={form.grad_max_ordine} onChange={f('grad_max_ordine')} />
+          <Select label="Grad Min (gol = orice)" value={form.grad_min_ordine} onChange={f('grad_min_ordine')}>
+            <option value="">Orice grad</option>
+            {[...grade].sort((a, b) => a.ordine - b.ordine).map(g => (
+              <option key={g.id} value={g.ordine}>{g.ordine}. {g.nume}</option>
+            ))}
+          </Select>
+          <Select label="Grad Max (gol = orice)" value={form.grad_max_ordine} onChange={f('grad_max_ordine')}>
+            <option value="">Orice grad</option>
+            {[...grade].sort((a, b) => a.ordine - b.ordine).map(g => (
+              <option key={g.id} value={g.ordine}>{g.ordine}. {g.nume}</option>
+            ))}
+          </Select>
         </div>
         <Input label="Armă (pentru CVD, ex: Bong)" value={form.arma} onChange={f('arma')} />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

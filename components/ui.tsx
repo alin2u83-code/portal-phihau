@@ -455,6 +455,9 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
 }) => {
   const [isMobile, setIsMobile] = useState(false);
   const [open, setOpen] = useState(false);
+  // Ce e vizibil în câmpul text
+  const [inputValue, setInputValue] = useState('');
+  // Filtrul activ (ce tastează userul)
   const [query, setQuery] = useState('');
   const [highlighted, setHighlighted] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -473,50 +476,84 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false);
+        // Restaurează label-ul valorii selectate la închidere
+        const selected = options.find(o => o.value === value);
+        setInputValue(selected ? selected.label : '');
         setQuery('');
+        setOpen(false);
       }
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
-  }, []);
+  }, [options, value]);
 
-  const selectedOption = options.find(o => o.value === value);
-  const displayLabel = selectedOption ? selectedOption.label : '';
+  // Când valoarea externă se schimbă și dropdown-ul e închis — sincronizăm inputul
+  useEffect(() => {
+    if (!open) {
+      const selected = options.find(o => o.value === value);
+      setInputValue(selected ? selected.label : '');
+    }
+  }, [value, open, options]);
 
-  const filtered = query
-    ? options.filter(o => o.label.toLowerCase().includes(query.toLowerCase()))
-    : options;
-
-  // Resetează highlight când se schimbă lista filtrată
+  // Resetează highlight când se schimbă query-ul
   useEffect(() => {
     setHighlighted(0);
   }, [query]);
 
   // Scroll item highlighted în vizibil
   useEffect(() => {
-    if (!listRef.current) return;
+    if (!listRef.current || !open) return;
     const item = listRef.current.children[highlighted] as HTMLElement | undefined;
     if (item) item.scrollIntoView({ block: 'nearest' });
   }, [highlighted, open]);
 
-  const handleOpen = () => {
-    setOpen(true);
-    setQuery('');
-    setTimeout(() => inputRef.current?.focus(), 0);
-  };
+  const selectedOption = options.find(o => o.value === value);
+
+  const filtered = query
+    ? options.filter(o => o.label.toLowerCase().includes(query.toLowerCase()))
+    : options;
 
   const handleSelect = useCallback((val: string) => {
     onChange(val);
-    setOpen(false);
+    const opt = options.find(o => o.value === val);
+    const lbl = opt ? opt.label : '';
+    setInputValue(lbl);
     setQuery('');
-  }, [onChange]);
+    setOpen(false);
+    // Selectează textul din câmp după selecție
+    setTimeout(() => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+        inputRef.current.select();
+      }
+    }, 0);
+  }, [onChange, options]);
+
+  const handleInputClick = () => {
+    if (!open) {
+      // Deschide dropdown și selectează textul existent
+      setQuery('');
+      setOpen(true);
+      setTimeout(() => inputRef.current?.select(), 0);
+    } else {
+      inputRef.current?.select();
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const v = e.target.value;
+    setInputValue(v);
+    setQuery(v);
+    if (!open) setOpen(true);
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!open) {
       if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        handleOpen();
+        setQuery('');
+        setOpen(true);
+        setTimeout(() => inputRef.current?.select(), 0);
       }
       return;
     }
@@ -531,11 +568,15 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
         break;
       case 'Enter':
         e.preventDefault();
-        if (filtered[highlighted]) handleSelect(filtered[highlighted].value);
+        if (filtered[highlighted]) {
+          handleSelect(filtered[highlighted].value);
+        }
         break;
       case 'Escape':
-        setOpen(false);
+        // Restaurează label-ul și închide
+        setInputValue(selectedOption ? selectedOption.label : '');
         setQuery('');
+        setOpen(false);
         break;
     }
   };
@@ -543,6 +584,28 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
   const handleClear = (e: React.MouseEvent) => {
     e.stopPropagation();
     onChange('');
+    setInputValue('');
+    setQuery('');
+    setOpen(false);
+    setTimeout(() => inputRef.current?.focus(), 0);
+  };
+
+  const handleDropdownToggle = (e: React.MouseEvent) => {
+    // Click pe chevron sau pe zona din dreapta — toggle dropdown
+    e.stopPropagation();
+    if (open) {
+      const selected = options.find(o => o.value === value);
+      setInputValue(selected ? selected.label : '');
+      setQuery('');
+      setOpen(false);
+    } else {
+      setQuery('');
+      setOpen(true);
+      setTimeout(() => {
+        inputRef.current?.focus();
+        inputRef.current?.select();
+      }, 0);
+    }
   };
 
   // ---- MOBIL: select nativ ----
@@ -583,19 +646,27 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
           {label}
         </label>
       )}
-      {/* Trigger button */}
+
+      {/* Câmpul principal — un singur <input> care e și search bar */}
       <div
         role="combobox"
         aria-expanded={open}
         aria-haspopup="listbox"
-        tabIndex={0}
-        onClick={handleOpen}
-        onKeyDown={handleKeyDown}
-        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm cursor-pointer flex items-center justify-between gap-2 select-none"
+        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-indigo-500 transition-all shadow-sm flex items-center gap-2"
       >
-        <span className={displayLabel ? 'text-white' : 'text-slate-500'}>
-          {displayLabel || placeholder}
-        </span>
+        <input
+          ref={inputRef}
+          type="text"
+          value={inputValue}
+          placeholder={placeholder}
+          onClick={handleInputClick}
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+          className="flex-1 min-w-0 bg-transparent outline-none text-sm text-white placeholder-slate-500 cursor-text"
+          autoComplete="off"
+          aria-autocomplete="list"
+          aria-controls="searchable-select-listbox"
+        />
         <div className="flex items-center gap-1 shrink-0">
           {value && (
             <button
@@ -603,75 +674,69 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
               onClick={handleClear}
               className="text-slate-400 hover:text-white transition-colors p-0.5 rounded"
               tabIndex={-1}
-              aria-label="Șterge selecția"
+              aria-label="Sterge selectia"
             >
               <XIcon className="w-3.5 h-3.5" />
             </button>
           )}
-          <svg className={`w-4 h-4 text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-          </svg>
+          <button
+            type="button"
+            onClick={handleDropdownToggle}
+            tabIndex={-1}
+            className="text-slate-400 hover:text-white transition-colors p-0.5 rounded"
+            aria-label={open ? 'Inchide lista' : 'Deschide lista'}
+          >
+            <svg className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
         </div>
       </div>
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute z-50 mt-1 w-full bg-slate-800 border border-slate-600 rounded-xl shadow-xl overflow-hidden">
-          {/* Input search */}
-          <div className="p-2 border-b border-slate-700">
-            <input
-              ref={inputRef}
-              type="text"
-              value={query}
-              onChange={e => setQuery(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Caută..."
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-            />
-          </div>
-          {/* Lista filtrată */}
-          <ul
-            ref={listRef}
-            role="listbox"
-            className="max-h-52 overflow-y-auto py-1"
-          >
-            {emptyLabel !== undefined && !query && (
+        <ul
+          id="searchable-select-listbox"
+          ref={listRef}
+          role="listbox"
+          className="absolute z-50 mt-1 w-full bg-slate-800 border border-slate-600 rounded-xl shadow-xl overflow-hidden max-h-52 overflow-y-auto py-1"
+        >
+          {emptyLabel !== undefined && !query && (
+            <li
+              role="option"
+              aria-selected={value === ''}
+              onMouseDown={e => { e.preventDefault(); handleSelect(''); }}
+              className={`px-4 py-2 text-sm cursor-pointer transition-colors ${
+                value === ''
+                  ? 'bg-indigo-700 text-white'
+                  : 'text-slate-400 hover:bg-slate-700 hover:text-white'
+              }`}
+            >
+              {emptyLabel}
+            </li>
+          )}
+          {filtered.length === 0 ? (
+            <li className="px-4 py-2 text-sm text-slate-500 italic">Niciun rezultat</li>
+          ) : (
+            filtered.map((o, idx) => (
               <li
+                key={o.value}
                 role="option"
-                aria-selected={value === ''}
-                onClick={() => handleSelect('')}
+                aria-selected={o.value === value}
+                onMouseDown={e => { e.preventDefault(); handleSelect(o.value); }}
                 className={`px-4 py-2 text-sm cursor-pointer transition-colors ${
-                  value === ''
-                    ? 'bg-indigo-700 text-white'
-                    : 'text-slate-400 hover:bg-slate-700 hover:text-white'
+                  idx === highlighted
+                    ? 'bg-indigo-600 text-white'
+                    : o.value === value
+                    ? 'bg-indigo-900/50 text-indigo-300'
+                    : 'text-slate-200 hover:bg-slate-700'
                 }`}
               >
-                {emptyLabel}
+                {highlightMatch(o.label, query)}
               </li>
-            )}
-            {filtered.length === 0 ? (
-              <li className="px-4 py-2 text-sm text-slate-500 italic">Niciun rezultat</li>
-            ) : (
-              filtered.map((o, idx) => (
-                <li
-                  key={o.value}
-                  role="option"
-                  aria-selected={o.value === value}
-                  onClick={() => handleSelect(o.value)}
-                  className={`px-4 py-2 text-sm cursor-pointer transition-colors ${
-                    idx === highlighted
-                      ? 'bg-indigo-600 text-white'
-                      : o.value === value
-                      ? 'bg-indigo-900/50 text-indigo-300'
-                      : 'text-slate-200 hover:bg-slate-700'
-                  }`}
-                >
-                  {highlightMatch(o.label, query)}
-                </li>
-              ))
-            )}
-          </ul>
-        </div>
+            ))
+          )}
+        </ul>
       )}
     </div>
   );

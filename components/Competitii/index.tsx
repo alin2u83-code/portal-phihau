@@ -391,8 +391,8 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
     : categorii;
 
   const inscrieriCount = (catId: string) =>
-    inscrieri.filter(i => i.categorie_id === catId).length +
-    echipe.filter(e => e.categorie_id === catId).length;
+    inscrieri.filter(i => i.categorie_id === catId && i.status !== 'retras').length +
+    echipe.filter(e => e.categorie_id === catId && e.status !== 'retrasa').length;
 
   const canRegister = competitie.status === 'inscrieri_deschise';
   const myClubId = currentUser?.club_id;
@@ -1275,10 +1275,11 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
   const anCompetitie = new Date(competitie.data_inceput).getFullYear();
 
   const inscrieriCount = (catId: string) =>
-    inscrieri.filter(i => i.categorie_id === catId).length +
-    echipe.filter(e => e.categorie_id === catId).length;
+    inscrieri.filter(i => i.categorie_id === catId && i.status !== 'retras').length +
+    echipe.filter(e => e.categorie_id === catId && e.status !== 'retrasa').length;
 
-  const totalInscrisi = inscrieri.length + echipe.length;
+  const totalInscrisi = inscrieri.filter(i => i.status !== 'retras').length +
+    echipe.filter(e => e.status !== 'retrasa').length;
   const categoriiActive = categorii.filter(c => inscrieriCount(c.id) >= c.min_participanti_start).length;
   const categoriiInsuficiente = categorii.filter(c => {
     const cnt = inscrieriCount(c.id);
@@ -1743,11 +1744,13 @@ const InscrieriView: React.FC<InscrieriViewProps> = ({
   const anCompetitie = new Date(competitie.data_inceput).getFullYear();
 
   const canSeeAll = isAdmin || isClubAdmin;
-  const statusOrdine: Record<string, number> = { inscris: 0, confirmat: 1, retras: 2 };
+  const statusOrdine: Record<string, number> = { inscris: 0, confirmat: 1 };
   const filteredInscrieri = (canSeeAll ? inscrieri : inscrieri.filter(i => i.club_id === myClubId))
+    .filter(i => i.status !== 'retras')
     .slice()
     .sort((a, b) => (statusOrdine[a.status] ?? 9) - (statusOrdine[b.status] ?? 9));
-  const filteredEchipe = canSeeAll ? echipe : echipe.filter(e => e.club_id === myClubId);
+  const filteredEchipe = (canSeeAll ? echipe : echipe.filter(e => e.club_id === myClubId))
+    .filter(e => e.status !== 'retrasa');
 
   const handleRetrage = async (id: string, type: 'inscris' | 'echipa') => {
     const table = type === 'inscris' ? 'inscrieri_competitie' : 'echipe_competitie';
@@ -2339,12 +2342,11 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
                     );
                   })()}
                 </span>
-                {/* Buton selectare în masă — thao quyen sau categorie nelimitată */}
-                {(esteThaoQuyenIndividualModal || categorie.sportivi_per_echipa_max === 0) && allEligibiliNeinscrisi.length > 1 && (
+                {allEligibiliNeinscrisi.length > 1 && (
                   <button
                     onClick={handleSelectAll}
                     style={{ touchAction: 'manipulation' }}
-                    className="text-xs font-medium text-brand-primary hover:underline transition-colors min-h-[32px] px-2"
+                    className="text-xs font-medium text-brand-primary hover:underline transition-colors min-h-[32px] px-2 w-full sm:w-auto"
                   >
                     {allSelected ? 'Deselectează toți' : `Selectează toți (${allEligibiliNeinscrisi.length})`}
                   </button>
@@ -2420,29 +2422,40 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
                   </div>
                 </div>
               ) : (
-                /* Categorii non-MIXT: lista unificata */
-                <div className="max-h-52 overflow-y-auto overscroll-contain space-y-1">
-                  {eligibiliSortati.neinscrisi.map(({ sportiv }) => renderSportivEchipa(sportiv, false))}
-                  {eligibiliSortati.dejaInscrisiLst.length > 0 && (
-                    <>
-                      {eligibiliSortati.neinscrisi.length > 0 && (
-                        <div className="py-1 px-2">
-                          <div className="border-t border-slate-700/60">
-                            <span className="text-[10px] text-slate-500 uppercase tracking-wide bg-slate-900 pr-2">
-                              {editMode ? 'Membri actuali (editabili)' : 'Deja in echipa'}
-                            </span>
-                          </div>
+                /* Categorii non-MIXT: lista unificata, filtrata dupa gen daca categoria nu e Mixt */
+                (() => {
+                  const genFiltru = categorie.gen === 'Masculin' ? 'Masculin' : categorie.gen === 'Feminin' ? 'Feminin' : null;
+                  const neinscrisiFiltered = genFiltru
+                    ? eligibiliSortati.neinscrisi.filter(e => e.sportiv.gen === genFiltru)
+                    : eligibiliSortati.neinscrisi;
+                  const dejaFiltered = genFiltru
+                    ? eligibiliSortati.dejaInscrisiLst.filter(e => e.sportiv.gen === genFiltru)
+                    : eligibiliSortati.dejaInscrisiLst;
+                  return (
+                    <div className="max-h-52 overflow-y-auto overscroll-contain space-y-1">
+                      {neinscrisiFiltered.map(({ sportiv }) => renderSportivEchipa(sportiv, false))}
+                      {dejaFiltered.length > 0 && (
+                        <>
+                          {neinscrisiFiltered.length > 0 && (
+                            <div className="py-1 px-2">
+                              <div className="border-t border-slate-700/60">
+                                <span className="text-[10px] text-slate-500 uppercase tracking-wide bg-slate-900 pr-2">
+                                  {editMode ? 'Membri actuali (editabili)' : 'Deja in echipa'}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                          {dejaFiltered.map(({ sportiv }) => renderSportivEchipa(sportiv, !editMode))}
+                        </>
+                      )}
+                      {neinscrisiFiltered.length === 0 && dejaFiltered.length === 0 && (
+                        <div className="text-center text-slate-500 py-3 italic text-sm">
+                          Niciun sportiv eligibil din club pentru aceasta categorie.
                         </div>
                       )}
-                      {eligibiliSortati.dejaInscrisiLst.map(({ sportiv }) => renderSportivEchipa(sportiv, !editMode))}
-                    </>
-                  )}
-                  {eligibili.length === 0 && (
-                    <div className="text-center text-slate-500 py-3 italic text-sm">
-                      Niciun sportiv eligibil din club pentru aceasta categorie.
                     </div>
-                  )}
-                </div>
+                  );
+                })()
               )}
 
             </div>

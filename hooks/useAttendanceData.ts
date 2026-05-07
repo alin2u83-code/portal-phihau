@@ -36,13 +36,17 @@ export const useAttendanceData = (clubId?: string | null, skipFetch = false, fil
         setLoading(true);
         setError(null);
         try {
-            // Citim din VIEW-ul vedere_cluburi_program_antrenamente care:
-            // 1. Include deja `nume_grupa` și `sala` prin JOIN cu grupe
-            // 2. Filtrează automat după clubul activ prin get_active_club_id() (RLS VIEW)
-            // 3. Calculează durata_minute și ziua_saptamanii
+            // FIX TIMEOUT: Separăm fetch-ul antrenamentelor de fetch-ul prezenței.
+            // Anterior, join-ul embedded Supabase (prezenta:prezenta_antrenament)
+            // genera un query complex pe VIEW care depășea statement_timeout.
+            // Acum: 3 query-uri simple paralele + join în memorie React.
+
+            // Query 1: antrenamentele din VIEW (fără join embedded)
             let antrenamenteQuery = supabase
                 .from('vedere_cluburi_program_antrenamente')
-                .select('*, prezenta:prezenta_antrenament(sportiv_id, status_id)');
+                .select('*');
+
+            // Query 2: anunturi prezenta
             const anunturiQuery = supabase.from('anunturi_prezenta').select('*');
 
             if (filters?.date) {
@@ -61,11 +65,31 @@ export const useAttendanceData = (clubId?: string | null, skipFetch = false, fil
             if (antrenamenteRes.error) throw antrenamenteRes.error;
             if (anunturiRes.error) throw anunturiRes.error;
 
-            const allTrainings = (antrenamenteRes.data || []).map(t => ({
+            const antrenamenteData = antrenamenteRes.data || [];
+
+            // Query 3: prezenta doar pentru antrenamentele returnate (nu pentru tot istoricul)
+            // Folosim index idx_prezenta_antrenament_id pentru lookup rapid
+            let prezentaData: any[] = [];
+            if (antrenamenteData.length > 0) {
+                const antrenamentIds = antrenamenteData.map((a: any) => a.id);
+                const { data: prez, error: prezError } = await supabase
+                    .from('prezenta_antrenament')
+                    .select('antrenament_id, sportiv_id, status_id')
+                    .in('antrenament_id', antrenamentIds);
+                if (prezError) throw prezError;
+                prezentaData = prez || [];
+            }
+
+            // Join în memorie: grupăm prezenta per antrenament_id
+            const prezentaByAntrenament = prezentaData.reduce((acc: Record<string, any[]>, p: any) => {
+                if (!acc[p.antrenament_id]) acc[p.antrenament_id] = [];
+                acc[p.antrenament_id].push(p);
+                return acc;
+            }, {} as Record<string, any[]>);
+
+            const allTrainings = antrenamenteData.map((t: any) => ({
                 ...t,
-                // VIEW-ul furnizează direct nume_grupa și sala prin JOIN cu grupe
-                // Nu mai e nevoie de fallback pe join-uri nested care pot returna null
-                prezenta: enrichPrezenta(t.prezenta || [], statusById),
+                prezenta: enrichPrezenta(prezentaByAntrenament[t.id] || [], statusById),
             }));
 
             setAntrenamente(allTrainings);
@@ -92,10 +116,16 @@ export const useAttendanceData = (clubId?: string | null, skipFetch = false, fil
             return false;
         }
         try {
+            // Extragem club_id din antrenamentul din state pentru a-l persista în prezenta_antrenament.
+            // Fără club_id, politica RLS SELECT nu vede rândul după upsert.
+            const antrenament = antrenamente.find((a: any) => a.id === antrenamentId);
+            const clubIdForRecord = antrenament?.club_id ?? clubId ?? null;
+
             const recordsToUpsert = records.map(r => ({
                 antrenament_id: antrenamentId,
                 sportiv_id: r.sportiv_id,
                 status_id: r.status_id,
+                ...(clubIdForRecord ? { club_id: clubIdForRecord } : {}),
             }));
             const { error } = await supabase.from('prezenta_antrenament').upsert(recordsToUpsert, { onConflict: 'antrenament_id, sportiv_id' });
             if (error) throw error;

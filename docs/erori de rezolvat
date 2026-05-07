@@ -225,3 +225,21 @@ Nota: denEchipa e pre-completat cu numeClub dar campul text e vizibil mereu; asc
 
 ✅ REZOLVAT — la echipele mixt, sa am tabele separate cu sportivii care sunt la gen feminin si altul cu gen masculin (Mai 2026)
 Fix: components/Competitii/index.tsx — in InscriereModal, categorii cu gen=Mixt afiseaza doua coloane separate (Masculin/Feminin); sportivii fara gen selectat apar cu avertisment "fara gen" in coloana Masculin
+
+
+✅ REZOLVAT — competitie - inscrieri, daca retrag un sportiv nu ma lasa sa il adaug din nou (Mai 2026)
+Fix: components/Competitii/index.tsx — handleRetrageIndividual nu mai inchide modalul; introduce retrasiLocal (Set<string>) care exclude sportivii retrasi din inscrisPrev, permitand re-adaugarea imediat; la inchiderea modalului cu retrageri locale se face onSaved() pentru refresh parent
+
+✅ REZOLVAT — butoanele de salvare/anulare sa fie pe footer (Mai 2026)
+Fix: components/Competitii/index.tsx — butoanele "Anuleaza"/"Confirma Inscrierea" mutate intr-un div sticky bottom-0 bg-slate-900 border-t cu h-11, full-width pe mobil, aliniate dreapta pe desktop
+
+✅ REZOLVAT — scoate sportivii neeligibili din lista de selectie sportivi in categorie (Mai 2026)
+Fix: components/Competitii/index.tsx — eliminat toggle "Arata neeligibili", eliminat blocul de afisare neeligibili din sectiunile individual si echipa; variabila neeligibili stearsa; lista afiseaza DOAR sportivii eligibili
+
+✅ REZOLVAT — submeniurile Categorii si Inscrieri, butoane mari vizibile (Mai 2026)
+Fix: components/Competitii/index.tsx — tab-urile transformate in butoane h-12, text-base font-semibold, cu iconite SVG, flex-1 full-width pe mobil, bg colorat activ (brand-primary pentru Inscrieri, slate-600 pentru Categorii, yellow-600 pentru Admin)
+
+✅ REZOLVAT — pune Inscrieri ca meniu principal la intrarea in competitie (Mai 2026)
+Fix: components/Competitii/index.tsx linia ~333 — activeTab initializat cu 'inscrieri' ca default; salvat in sessionStorage; Inscrieri apare primul in ordinea tab-urilor
+
+

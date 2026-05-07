@@ -332,8 +332,8 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'categorii' | 'inscrieri' | 'admin' | 'rezultate_legacy'>(() => {
     const saved = ssGet(SS_KEY_TAB);
-    if (saved === 'inscrieri' || saved === 'admin' || saved === 'rezultate_legacy') return saved;
-    return 'categorii';
+    if (saved === 'categorii' || saved === 'inscrieri' || saved === 'admin' || saved === 'rezultate_legacy') return saved;
+    return 'inscrieri';
   });
   const [wizardOpen, setWizardOpen] = useState(false);
   const [rezultateLegacy, setRezultateLegacy] = useState<Array<{ id: string; rezultat: string; probe?: string; sportiv?: { id: string; nume: string; prenume: string } }>>([]);
@@ -450,24 +450,34 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-slate-700 pb-0 overflow-x-auto">
-        <button onClick={() => handleSetActiveTab('categorii')} style={{ touchAction: 'manipulation' }}
-          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === 'categorii' ? 'border-brand-primary text-brand-primary' : 'border-transparent text-slate-400 hover:text-white'}`}>
-          Categorii ({categorii.length})
-        </button>
+      <div className="flex gap-2 overflow-x-auto pb-1">
         <button onClick={() => handleSetActiveTab('inscrieri')} style={{ touchAction: 'manipulation' }}
-          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === 'inscrieri' ? 'border-brand-primary text-brand-primary' : 'border-transparent text-slate-400 hover:text-white'}`}>
-          Inscrieri ({inscrieri.length + echipe.length})
+          className={`flex-1 min-w-[120px] h-12 flex items-center justify-center gap-2 px-4 rounded-lg text-base font-semibold transition-colors whitespace-nowrap ${activeTab === 'inscrieri' ? 'bg-brand-primary text-white shadow-lg' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700'}`}>
+          <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+          </svg>
+          <span>Înscrieri <span className="text-sm font-normal opacity-75">({inscrieri.length + echipe.length})</span></span>
+        </button>
+        <button onClick={() => handleSetActiveTab('categorii')} style={{ touchAction: 'manipulation' }}
+          className={`flex-1 min-w-[120px] h-12 flex items-center justify-center gap-2 px-4 rounded-lg text-base font-semibold transition-colors whitespace-nowrap ${activeTab === 'categorii' ? 'bg-slate-600 text-white shadow-lg' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700'}`}>
+          <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+          </svg>
+          <span>Categorii <span className="text-sm font-normal opacity-75">({categorii.length})</span></span>
         </button>
         {isAdmin && (
           <button onClick={() => handleSetActiveTab('admin')} style={{ touchAction: 'manipulation' }}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === 'admin' ? 'border-yellow-400 text-yellow-400' : 'border-transparent text-slate-400 hover:text-white'}`}>
+            className={`h-12 flex items-center justify-center gap-2 px-4 rounded-lg text-base font-semibold transition-colors whitespace-nowrap ${activeTab === 'admin' ? 'bg-yellow-600 text-white shadow-lg' : 'bg-slate-800 text-yellow-400 hover:bg-slate-700 border border-slate-700'}`}>
+            <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
             Admin
           </button>
         )}
         {competitie.legacy_eveniment_id && (
           <button onClick={() => handleSetActiveTab('rezultate_legacy')} style={{ touchAction: 'manipulation' }}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === 'rezultate_legacy' ? 'border-amber-400 text-amber-400' : 'border-transparent text-slate-400 hover:text-white'}`}>
+            className={`h-12 flex items-center justify-center gap-2 px-4 rounded-lg text-base font-semibold transition-colors whitespace-nowrap ${activeTab === 'rezultate_legacy' ? 'bg-amber-700 text-white shadow-lg' : 'bg-slate-800 text-amber-400 hover:bg-slate-700 border border-slate-700'}`}>
             Rezultate Vechi
           </button>
         )}
@@ -1912,19 +1922,23 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
   const [retragereLoading, setRetragereLoading] = useState<string | null>(null);
   const isTeam = categorie.tip_participare !== 'individual';
 
-  // Retragere sportiv individual deja înscris (din modal)
+  // IDs sportivi retrași local în această sesiune a modalului (pentru a actualiza lista fără a închide modalul)
+  const [retrasiLocal, setRetrasiLocal] = useState<Set<string>>(new Set());
+
+  // Retragere sportiv individual deja înscris (din modal) — rămâne deschis, actualizează local
   const handleRetrageIndividual = async (sportivId: string) => {
     const ins = inscrieri.find(i => i.categorie_id === categorie.id && i.sportiv_id === sportivId && i.status !== 'retras');
     if (!ins) return;
     setRetragereLoading(sportivId);
     const { error } = await supabase.from('inscrieri_competitie').update({ status: 'retras' }).eq('id', ins.id);
-    if (error) { showError('Eroare retragere', error.message); }
-    else { onSaved(); }
+    if (error) {
+      showError('Eroare retragere', error.message);
+    } else {
+      setRetrasiLocal(prev => new Set(prev).add(sportivId));
+    }
     setRetragereLoading(null);
   };
 
-  // Task 2: toggle afișare sportivi neeligibili
-  const [showNeeligibili, setShowNeeligibili] = useState(false);
 
   // For echipa/pereche
   const [selectedTitulari, setSelectedTitulari] = useState<string[]>([]);
@@ -1937,7 +1951,6 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
   );
 
   const eligibili = eligibilitati.filter(e => e.eligibilitate.eligibil);
-  const neeligibili = eligibilitati.filter(e => !e.eligibilitate.eligibil);
 
   // Task 4: editMode și echipaDejaInscrisa — declarate ÎNAINTE de inscrisInEchipa
   // (inscrisInEchipa depinde de editMode și echipaDejaInscrisa)
@@ -1951,8 +1964,12 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
     ) ?? null;
   }, [echipe, categorie.id, clubId, isTeam]);
 
-  // Check already inscribed (pentru această categorie)
-  const inscrisPrev = new Set(inscrieri.filter(i => i.categorie_id === categorie.id && i.status !== 'retras').map(i => i.sportiv_id));
+  // Check already inscribed (pentru această categorie) — exclude sportivii retrași local în această sesiune
+  const inscrisPrev = new Set(
+    inscrieri
+      .filter(i => i.categorie_id === categorie.id && i.status !== 'retras' && !retrasiLocal.has(i.sportiv_id))
+      .map(i => i.sportiv_id)
+  );
   // inscrisInEchipa: sportivi din echipe ALTELE DECÂT echipa proprie (în editMode), sau toate
   const inscrisInEchipa = new Set(
     (echipe.filter(e =>
@@ -2197,8 +2214,16 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
     );
   };
 
+  const handleClose = () => {
+    if (retrasiLocal.size > 0) {
+      onSaved();
+    } else {
+      onClose();
+    }
+  };
+
   return (
-    <Modal isOpen={true} onClose={onClose} title={`Înscrie la: ${categorie.denumire}`}>
+    <Modal isOpen={true} onClose={handleClose} title={`Înscrie la: ${categorie.denumire}`}>
       <div className="space-y-4">
         <div className="bg-slate-800 rounded-lg p-3 text-sm">
           <div className="text-slate-300">{categorie.denumire}</div>
@@ -2261,15 +2286,6 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
                     {allIndividualiSelected ? 'Deselectează toți' : `Selectează toți (${allEligibiliNeinscrisi.length})`}
                   </button>
                 )}
-                {neeligibili.length > 0 && (
-                  <button
-                    onClick={() => setShowNeeligibili(v => !v)}
-                    style={{ touchAction: 'manipulation' }}
-                    className="text-xs text-slate-500 hover:text-slate-300 transition-colors"
-                  >
-                    {showNeeligibili ? 'Ascunde' : 'Arată'} neeligibili ({neeligibili.length})
-                  </button>
-                )}
               </div>
             </div>
             <div className="max-h-72 overflow-y-auto overscroll-contain space-y-1">
@@ -2294,27 +2310,6 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
                 <div className="text-center text-slate-500 py-4 italic text-sm">
                   Niciun sportiv eligibil din club pentru această categorie.
                 </div>
-              )}
-              {/* Neeligibili — toggle separat */}
-              {showNeeligibili && neeligibili.length > 0 && (
-                <>
-                  <div className="py-1 px-2">
-                    <div className="border-t border-red-700/30 flex items-center gap-2">
-                      <span className="text-[10px] text-red-500 uppercase tracking-wide whitespace-nowrap bg-slate-900 pr-2">
-                        Neeligibili (exclus)
-                      </span>
-                    </div>
-                  </div>
-                  {neeligibili.map(({ sportiv, eligibilitate }) => (
-                    <div key={sportiv.id} className="flex items-center gap-3 p-2 rounded border border-slate-800 opacity-50">
-                      <input type="checkbox" disabled className="w-4 h-4 opacity-40" />
-                      <div className="flex-1 min-w-0">
-                        <span className="text-sm text-slate-400 uppercase">{sportiv.nume} {sportiv.prenume}</span>
-                        <div className="text-[10px] text-red-400/80 mt-0.5">{eligibilitate.motive.join(' · ')}</div>
-                      </div>
-                    </div>
-                  ))}
-                </>
               )}
             </div>
           </div>
@@ -2450,29 +2445,6 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
                 </div>
               )}
 
-              {/* Neeligibili toggle (pentru toate tipurile) */}
-              {showNeeligibili && neeligibili.length > 0 && (
-                <div className="mt-1 space-y-1">
-                  {neeligibili.map(({ sportiv, eligibilitate }) => (
-                    <div key={sportiv.id} className="flex items-center gap-3 p-2 rounded border border-slate-800 opacity-40">
-                      <input type="checkbox" disabled className="w-4 h-4" />
-                      <div className="flex-1 min-w-0">
-                        <span className="text-sm text-slate-400 uppercase">{sportiv.nume} {sportiv.prenume}</span>
-                        <div className="text-[10px] text-red-400/80">{eligibilitate.motive.join(' · ')}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {neeligibili.length > 0 && (
-                <button
-                  onClick={() => setShowNeeligibili(v => !v)}
-                  style={{ touchAction: 'manipulation' }}
-                  className="mt-1 text-xs text-slate-500 hover:text-slate-300 transition-colors"
-                >
-                  {showNeeligibili ? 'Ascunde' : 'Arată'} neeligibili ({neeligibili.length})
-                </button>
-              )}
             </div>
             {categorie.rezerve_max > 0 && (
               <div>
@@ -2512,19 +2484,20 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
             <WarningVizaFRAM show={true} />
           ) : null;
         })()}
+      </div>
 
-        {/* Footer butoane — responsive */}
-        {!(isTeam && echipaDejaInscrisa && !editMode) && (
-          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2 border-t border-slate-700">
-            <Button variant="secondary" onClick={onClose} disabled={loading} className="w-full sm:w-auto">Anulează</Button>
-            <Button variant="success" onClick={handleSubmit} disabled={loading} className="w-full sm:w-auto">
+      {/* Footer sticky butoane */}
+      <div className="sticky bottom-0 bg-slate-900 border-t border-slate-700 px-4 py-3 -mx-4 -mb-4 mt-2 rounded-b-lg">
+        {!(isTeam && echipaDejaInscrisa && !editMode) ? (
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2">
+            <Button variant="secondary" onClick={handleClose} disabled={loading} className="w-full sm:w-auto h-11">Anulează</Button>
+            <Button variant="success" onClick={handleSubmit} disabled={loading} className="w-full sm:w-auto h-11">
               {loading ? 'Se salvează...' : editMode ? 'Salvează Modificările' : 'Confirmă Înscrierea'}
             </Button>
           </div>
-        )}
-        {isTeam && echipaDejaInscrisa && !editMode && (
-          <div className="flex justify-end pt-2 border-t border-slate-700">
-            <Button variant="secondary" onClick={onClose} className="w-full sm:w-auto">Închide</Button>
+        ) : (
+          <div className="flex justify-end">
+            <Button variant="secondary" onClick={handleClose} className="w-full sm:w-auto h-11">Închide</Button>
           </div>
         )}
       </div>

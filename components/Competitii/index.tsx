@@ -1742,6 +1742,7 @@ const InscrieriView: React.FC<InscrieriViewProps> = ({
 }) => {
   const { showError } = useError();
   const anCompetitie = new Date(competitie.data_inceput).getFullYear();
+  const [echipeRetraseLocal, setEchipeRetraseLocal] = useState<Set<string>>(new Set());
 
   const canSeeAll = isAdmin || isClubAdmin;
   const statusOrdine: Record<string, number> = { inscris: 0, confirmat: 1 };
@@ -1750,14 +1751,15 @@ const InscrieriView: React.FC<InscrieriViewProps> = ({
     .slice()
     .sort((a, b) => (statusOrdine[a.status] ?? 9) - (statusOrdine[b.status] ?? 9));
   const filteredEchipe = (canSeeAll ? echipe : echipe.filter(e => e.club_id === myClubId))
-    .filter(e => e.status?.toLowerCase() !== 'retrasa');
+    .filter(e => e.status?.toLowerCase() !== 'retrasa')
+    .filter(e => !echipeRetraseLocal.has((e as any).id));
 
   const handleRetrage = async (id: string, type: 'inscris' | 'echipa') => {
     const table = type === 'inscris' ? 'inscrieri_competitie' : 'echipe_competitie';
-    // inscrieri_competitie acceptă 'retras', echipe_competitie acceptă 'retrasa'
     const statusRetras = type === 'inscris' ? 'retras' : 'retrasa';
     const { error } = await supabase.from(table).update({ status: statusRetras }).eq('id', id);
     if (error) { showError("Eroare", error.message); return; }
+    if (type === 'echipa') setEchipeRetraseLocal(prev => new Set(prev).add(id));
     onRefresh();
   };
 

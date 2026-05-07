@@ -678,6 +678,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                   echipe={echipe}
                   grade={grade}
                   isAdmin={isAdmin}
+                  isClubAdmin={isClubAdmin}
                   myClubId={myClubId || null}
                   vizeSportivi={vizeSportivi}
                   onRefresh={fetchData}
@@ -1672,22 +1673,24 @@ interface InscrieriViewProps {
   echipe: EchipaCompetitie[];
   grade: Grad[];
   isAdmin: boolean;
+  isClubAdmin: boolean;
   myClubId: string | null;
   vizeSportivi: VizaSportiv[];
   onRefresh: () => void;
 }
 
 const InscrieriView: React.FC<InscrieriViewProps> = ({
-  competitie, categorii, probe, inscrieri, echipe, grade, isAdmin, myClubId, vizeSportivi, onRefresh
+  competitie, categorii, probe, inscrieri, echipe, grade, isAdmin, isClubAdmin, myClubId, vizeSportivi, onRefresh
 }) => {
   const { showError } = useError();
   const anCompetitie = new Date(competitie.data_inceput).getFullYear();
 
+  const canSeeAll = isAdmin || isClubAdmin;
   const statusOrdine: Record<string, number> = { inscris: 0, confirmat: 1, retras: 2 };
-  const filteredInscrieri = (isAdmin ? inscrieri : inscrieri.filter(i => i.club_id === myClubId))
+  const filteredInscrieri = (canSeeAll ? inscrieri : inscrieri.filter(i => i.club_id === myClubId))
     .slice()
     .sort((a, b) => (statusOrdine[a.status] ?? 9) - (statusOrdine[b.status] ?? 9));
-  const filteredEchipe = isAdmin ? echipe : echipe.filter(e => e.club_id === myClubId);
+  const filteredEchipe = canSeeAll ? echipe : echipe.filter(e => e.club_id === myClubId);
 
   const handleRetrage = async (id: string, type: 'inscris' | 'echipa') => {
     const table = type === 'inscris' ? 'inscrieri_competitie' : 'echipe_competitie';
@@ -1729,7 +1732,7 @@ const InscrieriView: React.FC<InscrieriViewProps> = ({
                           <span className="font-medium text-white uppercase">
                             {sportiv?.nume} {sportiv?.prenume}
                           </span>
-                          {isAdmin && (sportiv as any)?.cluburi?.nume && (
+                          {canSeeAll && (sportiv as any)?.cluburi?.nume && (
                             <span className="text-[10px] text-slate-400 normal-case">{(sportiv as any).cluburi.nume}</span>
                           )}
                           <WarningVizaFRAM show={farаViza} inline />
@@ -1751,7 +1754,7 @@ const InscrieriView: React.FC<InscrieriViewProps> = ({
                           : <span className="text-red-400 text-xs">Neachitată</span>}
                       </td>
                       <td className="p-2 text-right">
-                        {ins.status === 'inscris' && (
+                        {ins.status === 'inscris' && (isAdmin || ins.club_id === myClubId) && (
                           <Button size="sm" variant="danger" onClick={() => handleRetrage(ins.id, 'inscris')}
                             className="text-xs !py-1">Retrage</Button>
                         )}
@@ -1811,7 +1814,7 @@ const InscrieriView: React.FC<InscrieriViewProps> = ({
                         ec.status === 'retrasa' ? 'bg-red-800 text-red-200' :
                         'bg-slate-700 text-slate-300'
                       }`}>{ec.status}</span>
-                      {ec.status === 'inscrisa' && (
+                      {ec.status === 'inscrisa' && (isAdmin || ec.club_id === myClubId) && (
                         <Button size="sm" variant="danger" className="text-xs !py-1"
                           onClick={() => handleRetrage(ec.id, 'echipa')}>Retrage</Button>
                       )}
@@ -1826,7 +1829,7 @@ const InscrieriView: React.FC<InscrieriViewProps> = ({
 
       {filteredInscrieri.length === 0 && filteredEchipe.length === 0 && (
         <div className="text-center text-slate-500 py-12 italic">
-          {isAdmin ? 'Nicio înscriere înregistrată.' : 'Clubul tău nu are sportivi înscriși la această competiție.'}
+          {canSeeAll ? 'Nicio înscriere înregistrată.' : 'Clubul tău nu are sportivi înscriși la această competiție.'}
         </div>
       )}
     </div>

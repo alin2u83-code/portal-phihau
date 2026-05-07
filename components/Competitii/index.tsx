@@ -604,8 +604,11 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                                         return (
                                           <div key={ec.id} className="px-3 py-2">
                                             <div className="flex items-center justify-between mb-1">
-                                              <span className="text-sm text-white font-medium">
+                                              <span className="text-sm text-white font-medium flex items-center gap-2 flex-wrap">
                                                 {ec.denumire_echipa || 'Echipă fără denumire'}
+                                                {(ec as any).club?.nume && (
+                                                  <span className="text-[10px] text-slate-400 font-normal normal-case">{(ec as any).club.nume}</span>
+                                                )}
                                               </span>
                                               <span className={`text-[10px] px-2 py-0.5 rounded-full ${ec.status === 'confirmata' ? 'bg-green-800 text-green-200' : 'bg-slate-700 text-slate-300'}`}>
                                                 {ec.status}
@@ -771,6 +774,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
           inscrieri={inscrieri}
           echipe={echipe}
           clubId={myClubId || ''}
+          numeClub={currentUser?.cluburi?.nume ?? ''}
           vizeSportivi={vizeSportivi}
           onClose={() => setInscriereModal(null)}
           onSaved={() => { setInscriereModal(null); fetchData(); }}
@@ -1869,13 +1873,14 @@ interface InscriereModalProps {
   inscrieri: InscriereCompetitie[];
   echipe: EchipaCompetitie[];
   clubId: string;
+  numeClub: string;
   vizeSportivi: VizaSportiv[];
   onClose: () => void;
   onSaved: () => void;
 }
 
 const InscriereModal: React.FC<InscriereModalProps> = ({
-  competitie, categorie, sportivi, grade, inscrieri, echipe, clubId, vizeSportivi, onClose, onSaved
+  competitie, categorie, sportivi, grade, inscrieri, echipe, clubId, numeClub, vizeSportivi, onClose, onSaved
 }) => {
   const anCompetitie = new Date(competitie.data_inceput).getFullYear();
   const { showError } = useError();
@@ -1888,7 +1893,7 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
   // For echipa/pereche
   const [selectedTitulari, setSelectedTitulari] = useState<string[]>([]);
   const [selectedRezerve, setSelectedRezerve] = useState<string[]>([]);
-  const [denEchipa, setDenEchipa] = useState('');
+  const [denEchipa, setDenEchipa] = useState(numeClub);
 
   // Eligibility check
   const eligibilitati = filtreazaSportiviEligibili(

@@ -391,8 +391,8 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
     : categorii;
 
   const inscrieriCount = (catId: string) =>
-    inscrieri.filter(i => i.categorie_id === catId && i.status !== 'retras').length +
-    echipe.filter(e => e.categorie_id === catId && e.status !== 'retrasa').length;
+    inscrieri.filter(i => i.categorie_id === catId && i.status?.toLowerCase() !== 'retras').length +
+    echipe.filter(e => e.categorie_id === catId && e.status?.toLowerCase() !== 'retrasa').length;
 
   const canRegister = competitie.status === 'inscrieri_deschise';
   const myClubId = currentUser?.club_id;
@@ -531,9 +531,9 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                       const isTeam = cat.tip_participare !== 'individual';
                       const isExpanded = viewInscrieriCatId === cat.id;
                       // Sportivi individuali înscriși în această categorie
-                      const inscrieriCat = inscrieri.filter(i => i.categorie_id === cat.id && i.status !== 'retras');
+                      const inscrieriCat = inscrieri.filter(i => i.categorie_id === cat.id && i.status?.toLowerCase() !== 'retras');
                       // Echipe înscrise în această categorie
-                      const echipeCat = echipe.filter(e => e.categorie_id === cat.id && e.status !== 'retrasa');
+                      const echipeCat = echipe.filter(e => e.categorie_id === cat.id && e.status?.toLowerCase() !== 'retrasa');
                       const colCount = (canRegister && isClubAdmin) ? 6 : 5;
                       return (
                         <React.Fragment key={cat.id}>
@@ -1275,11 +1275,11 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
   const anCompetitie = new Date(competitie.data_inceput).getFullYear();
 
   const inscrieriCount = (catId: string) =>
-    inscrieri.filter(i => i.categorie_id === catId && i.status !== 'retras').length +
-    echipe.filter(e => e.categorie_id === catId && e.status !== 'retrasa').length;
+    inscrieri.filter(i => i.categorie_id === catId && i.status?.toLowerCase() !== 'retras').length +
+    echipe.filter(e => e.categorie_id === catId && e.status?.toLowerCase() !== 'retrasa').length;
 
-  const totalInscrisi = inscrieri.filter(i => i.status !== 'retras').length +
-    echipe.filter(e => e.status !== 'retrasa').length;
+  const totalInscrisi = inscrieri.filter(i => i.status?.toLowerCase() !== 'retras').length +
+    echipe.filter(e => e.status?.toLowerCase() !== 'retrasa').length;
   const categoriiActive = categorii.filter(c => inscrieriCount(c.id) >= c.min_participanti_start).length;
   const categoriiInsuficiente = categorii.filter(c => {
     const cnt = inscrieriCount(c.id);
@@ -1746,11 +1746,11 @@ const InscrieriView: React.FC<InscrieriViewProps> = ({
   const canSeeAll = isAdmin || isClubAdmin;
   const statusOrdine: Record<string, number> = { inscris: 0, confirmat: 1 };
   const filteredInscrieri = (canSeeAll ? inscrieri : inscrieri.filter(i => i.club_id === myClubId))
-    .filter(i => i.status !== 'retras')
+    .filter(i => i.status?.toLowerCase() !== 'retras')
     .slice()
     .sort((a, b) => (statusOrdine[a.status] ?? 9) - (statusOrdine[b.status] ?? 9));
   const filteredEchipe = (canSeeAll ? echipe : echipe.filter(e => e.club_id === myClubId))
-    .filter(e => e.status !== 'retrasa');
+    .filter(e => e.status?.toLowerCase() !== 'retrasa');
 
   const handleRetrage = async (id: string, type: 'inscris' | 'echipa') => {
     const table = type === 'inscris' ? 'inscrieri_competitie' : 'echipe_competitie';
@@ -1930,7 +1930,7 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
 
   // Retragere sportiv individual deja înscris (din modal) — rămâne deschis, actualizează local
   const handleRetrageIndividual = async (sportivId: string) => {
-    const ins = inscrieri.find(i => i.categorie_id === categorie.id && i.sportiv_id === sportivId && i.status !== 'retras');
+    const ins = inscrieri.find(i => i.categorie_id === categorie.id && i.sportiv_id === sportivId && i.status?.toLowerCase() !== 'retras');
     if (!ins) return;
     setRetragereLoading(sportivId);
     const { error } = await supabase.from('inscrieri_competitie').update({ status: 'retras' }).eq('id', ins.id);
@@ -1963,21 +1963,21 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
   const echipaDejaInscrisa = useMemo(() => {
     if (!isTeam) return null;
     return (echipe as any[]).find(
-      e => e.categorie_id === categorie.id && e.club_id === clubId && e.status !== 'retrasa'
+      e => e.categorie_id === categorie.id && e.club_id === clubId && e.status?.toLowerCase() !== 'retrasa'
     ) ?? null;
   }, [echipe, categorie.id, clubId, isTeam]);
 
   // Check already inscribed (pentru această categorie) — exclude sportivii retrași local în această sesiune
   const inscrisPrev = new Set(
     inscrieri
-      .filter(i => i.categorie_id === categorie.id && i.status !== 'retras' && !retrasiLocal.has(i.sportiv_id))
+      .filter(i => i.categorie_id === categorie.id && i.status?.toLowerCase() !== 'retras' && !retrasiLocal.has(i.sportiv_id))
       .map(i => i.sportiv_id)
   );
   // inscrisInEchipa: sportivi din echipe ALTELE DECÂT echipa proprie (în editMode), sau toate
   const inscrisInEchipa = new Set(
     (echipe.filter(e =>
       e.categorie_id === categorie.id &&
-      e.status !== 'retrasa' &&
+      e.status?.toLowerCase() !== 'retrasa' &&
       // la editMode, excludem echipa proprie din "deja înscriși" ca să devină editabili
       !(editMode && echipaDejaInscrisa && (e as any).id === (echipaDejaInscrisa as any).id)
     ) as any[])
@@ -2227,7 +2227,8 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
 
   return (
     <Modal isOpen={true} onClose={handleClose} title={`Înscrie la: ${categorie.denumire}`}>
-      <div className="space-y-4">
+      <div className="flex flex-col -m-4 sm:-m-6 min-h-0 flex-1">
+      <div className="flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-4">
         <div className="bg-slate-800 rounded-lg p-3 text-sm">
           <div className="text-slate-300">{categorie.denumire}</div>
           {categorie.arma && <div className="text-orange-400 text-xs mt-0.5">Armă: {categorie.arma}</div>}
@@ -2499,8 +2500,8 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
         })()}
       </div>
 
-      {/* Footer sticky butoane */}
-      <div className="sticky bottom-0 bg-slate-900 border-t border-slate-700 px-4 py-3 -mx-4 -mb-4 mt-2 rounded-b-lg">
+      {/* Footer fix */}
+      <div className="flex-shrink-0 border-t border-slate-700 bg-slate-900 px-4 py-3 rounded-b-2xl">
         {!(isTeam && echipaDejaInscrisa && !editMode) ? (
           <div className="flex flex-col-reverse sm:flex-row justify-end gap-2">
             <Button variant="secondary" onClick={handleClose} disabled={loading} className="w-full sm:w-auto h-11">Anulează</Button>
@@ -2513,6 +2514,7 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
             <Button variant="secondary" onClick={handleClose} className="w-full sm:w-auto h-11">Închide</Button>
           </div>
         )}
+      </div>
       </div>
     </Modal>
   );

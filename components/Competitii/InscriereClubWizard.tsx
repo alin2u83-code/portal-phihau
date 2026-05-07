@@ -35,7 +35,7 @@ function areVizaFRAM(sportivId: string, an: number, vizeSportivi: VizaSportiv[])
 function buildDejaInscrisiSet(inscrieri: InscriereCompetitie[]): Set<string> {
   const s = new Set<string>();
   for (const i of inscrieri) {
-    if (i.status !== 'retras') s.add(i.sportiv_id);
+    if (i.status?.toLowerCase() !== 'retras') s.add(i.sportiv_id);
   }
   return s;
 }
@@ -606,9 +606,14 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
     [sportiviFiltered, grade, categorii, vizeSportivi, dejaInscrisiSet, competitie.data_inceput, anComp, gradMaxAgeMap]
   );
 
-  const selectableIds = useMemo(
-    () => enriched.filter(e => !e.isDisabled).map(e => e.sportiv.id),
+  const enrichedFiltrat = useMemo(
+    () => enriched.filter(e => e.eligibilitate.status !== 'neeligibil'),
     [enriched]
+  );
+
+  const selectableIds = useMemo(
+    () => enrichedFiltrat.filter(e => !e.isDisabled).map(e => e.sportiv.id),
+    [enrichedFiltrat]
   );
 
   const allSelectableSelected =
@@ -802,16 +807,16 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
           >
             {allSelectableSelected ? 'Deselecteaza tot' : `Selecteaza toti (${selectableIds.length})`}
           </button>
-          {enriched.filter(e => e.isDisabled).length > 0 && (
+          {enrichedFiltrat.filter(e => e.isDisabled).length > 0 && (
             <span className="text-xs text-slate-500">
-              · {enriched.filter(e => e.isDisabled).length} cu date incomplete (exclusi)
+              · {enrichedFiltrat.filter(e => e.isDisabled).length} cu date incomplete (exclusi)
             </span>
           )}
         </div>
       )}
 
       {/* Lista sportivi */}
-      {enriched.length === 0 ? (
+      {enrichedFiltrat.length === 0 ? (
         <div className="text-center text-slate-500 py-12 italic text-sm">
           {search ? 'Niciun sportiv gasit pentru cautarea ta.' : 'Nu exista sportivi activi in club.'}
         </div>
@@ -819,7 +824,7 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
         <>
           {/* MOBIL: carduri (ascuns pe md+) */}
           <div className="flex flex-col gap-2 md:hidden">
-            {enriched.map(({ sportiv, varsta, gradNume, eligibilitate, isDejaInscris, isDisabled, gradAnomalie }) => (
+            {enrichedFiltrat.map(({ sportiv, varsta, gradNume, eligibilitate, isDejaInscris, isDisabled, gradAnomalie }) => (
               <CardSportiv
                 key={sportiv.id}
                 sportiv={sportiv}
@@ -864,7 +869,7 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
                 </tr>
               </thead>
               <tbody className="bg-slate-800/20">
-                {enriched.map(({ sportiv, varsta, gradNume, eligibilitate, isDejaInscris, isDisabled, gradAnomalie }) => (
+                {enrichedFiltrat.map(({ sportiv, varsta, gradNume, eligibilitate, isDejaInscris, isDisabled, gradAnomalie }) => (
                   <RandTabelSportiv
                     key={sportiv.id}
                     sportiv={sportiv}
@@ -1148,7 +1153,7 @@ const CardSportivCategorii: React.FC<CardSportivCategoriiProps> = ({
   const dejaInscrisiCatIds = useMemo(() => {
     const s = new Set<string>();
     for (const ins of inscrieri) {
-      if (ins.sportiv_id === sportiv.id && ins.status !== 'retras') {
+      if (ins.sportiv_id === sportiv.id && ins.status?.toLowerCase() !== 'retras') {
         s.add(ins.categorie_id);
       }
     }
@@ -1425,7 +1430,7 @@ const VederePerCategorie: React.FC<VederePerCategorieProps> = ({
             <div className="divide-y divide-slate-700/40">
               {sportiviFiltrati.map(({ sportiv, varsta, gradNume }) => {
                 const dejaInscrisActiv = inscrieri.some(
-                  i => i.sportiv_id === sportiv.id && i.categorie_id === categorie.id && i.status !== 'retras'
+                  i => i.sportiv_id === sportiv.id && i.categorie_id === categorie.id && i.status?.toLowerCase() !== 'retras'
                 );
                 const isBifat = (indivPicks.get(sportiv.id)?.has(categorie.id)) ?? false;
 
@@ -2527,7 +2532,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
           .eq('categorie_id', rand.categorie.id)
           .maybeSingle();
 
-        if (existent && existent.status !== 'retras') {
+        if (existent && existent.status?.toLowerCase() !== 'retras') {
           throw new Error(`Sportivul ${sportivName} este deja inscris la categoria "${catName}".`);
         }
 

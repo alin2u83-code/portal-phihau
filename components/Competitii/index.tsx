@@ -902,8 +902,8 @@ const FuzionariPanel: React.FC<{
   const [loading, setLoading] = useState<string | null>(null);
 
   const count = (catId: string) =>
-    inscrieri.filter(i => i.categorie_id === catId).length +
-    echipe.filter(e => e.categorie_id === catId).length;
+    inscrieri.filter(i => i.categorie_id === catId && i.status?.toLowerCase() !== 'retras').length +
+    echipe.filter(e => e.categorie_id === catId && e.status?.toLowerCase() !== 'retrasa').length;
 
   // Generează sugestii de fuzionare pentru categorii sub minim
   const sugestii = useMemo((): MergeSugestie[] => {

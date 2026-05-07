@@ -890,7 +890,7 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
       )}
 
       {/* Footer fix pe mobil / inline pe desktop */}
-      <div className="sticky bottom-0 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 -mx-4 px-4 md:static md:bg-transparent md:border-0 md:pt-2 md:pb-0 md:mx-0 md:px-0">
+      <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 -mx-4 px-4">
         <div className="flex items-center justify-between gap-3">
           <span className="text-sm text-slate-400">
             {selected.size > 0
@@ -1826,7 +1826,7 @@ const Pas2CategoriiPerSportiv: React.FC<Pas2Props> = ({
       )}
 
       {/* Footer sticky */}
-      <div className="sticky bottom-0 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 -mx-4 px-4 md:static md:bg-transparent md:border-0 md:pt-2 md:pb-0 md:mx-0 md:px-0">
+      <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 -mx-4 px-4">
         <div className="flex items-center justify-between gap-3">
           <div className="text-xs text-slate-400">
             {echipaPicks.length > 0 && (
@@ -2285,7 +2285,7 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
       )}
 
       {/* Footer sticky */}
-      <div className="sticky bottom-0 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 -mx-4 px-4 md:static md:bg-transparent md:border-0 md:pt-2 md:pb-0 md:mx-0 md:px-0">
+      <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 -mx-4 px-4">
         <div className="flex items-center justify-between gap-3">
           <span className="text-xs text-slate-400">
             {poateContinua
@@ -2888,7 +2888,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
       )}
 
       {/* Footer sticky */}
-      <div className="sticky bottom-0 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 -mx-4 px-4 md:static md:bg-transparent md:border-0 md:pt-2 md:pb-0 md:mx-0 md:px-0">
+      <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 -mx-4 px-4">
         {/* Butoane export PDF */}
         <div className="flex flex-wrap gap-2 mb-2">
           <Button

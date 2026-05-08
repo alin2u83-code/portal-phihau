@@ -57,3 +57,4 @@ export const IstoricActivitate = lazy(() => import('./IstoricActivitate').then(m
 export const DeduplicareSportivi = lazy(() => import('./DeduplicareSportivi').then(m => ({ default: m.DeduplicareSportivi })));
 export const CereriInscriere = lazy(() => import('./CereriInscriere').then(m => ({ default: m.CereriInscriere })));
 export const ActivitatiNationale = lazy(() => import('./ActivitatiNationale').then(m => ({ default: m.ActivitatiNationale })));
+export const InlantuciriAdmin = lazy(() => import('./InlantuciriAdmin').then(m => ({ default: m.InlantuciriAdmin })));

@@ -4,7 +4,7 @@ import {
     HomeIcon, UsersIcon, TrophyIcon, BanknotesIcon, CalendarDaysIcon,
     ClipboardCheckIcon, CogIcon, SitemapIcon, ArchiveBoxIcon, FileTextIcon,
     ChartBarIcon, UserPlusIcon, BookOpenIcon, BookMarkedIcon, WalletIcon,
-    ClockIcon,
+    ClockIcon, ClipboardListIcon,
 } from './icons';
 
 export interface MenuItem {
@@ -79,6 +79,7 @@ export const adminMenu: MenuItem[] = [
             { label: 'Setări Club', view: 'setari-club' },
             { label: 'Mentenanță Date', view: 'data-maintenance' },
             { label: 'Setări Cont', view: 'account-settings' },
+            { label: 'Înlănțuiri', view: 'inlantuiri-admin' },
         ]
     },
     { label: 'Notificări', icon: ClipboardCheckIcon, view: 'notificari' },

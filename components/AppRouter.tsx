@@ -168,6 +168,8 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                                 return renderProtected(<Lazy.CompetitiiManagement onBack={handleBackToDashboard} permissions={permissions}/>, permissions.isAdminClub || permissions.isInstructor || permissions.isFederationAdmin || permissions.isSuperAdmin);
                             case 'activitati-nationale':
                                 return renderProtected(<Lazy.ActivitatiNationale onNavigate={setActiveView} onBack={handleBackToDashboard} />, permissions.isAdminClub || permissions.isInstructor || permissions.isFederationAdmin || permissions.isSuperAdmin);
+                            case 'inlantuiri-admin':
+                                return renderProtected(<Lazy.InlantuciriAdmin onBack={handleBackToDashboard} permissions={permissions} />, isFederationAdmin);
                             case 'prezenta':
                                 return renderProtected(<Lazy.PrezentaManagement onBack={handleBackToDashboard} onViewSportiv={onViewSportiv} />, isAtLeastInstructor);
                             case 'prezenta-instructor':

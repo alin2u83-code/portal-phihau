@@ -7,21 +7,6 @@ import { useError } from './ErrorProvider';
 // Constante
 // ---------------------------------------------------------------------------
 
-const CATEGORII_VARSTA = [
-  { value: 'toate',   label: 'Toate gradele' },
-  { value: 'copii',   label: 'Copii (Cap Roșu)' },
-  { value: 'juniori', label: 'Juniori (1-4 CAP)' },
-  { value: 'seniori', label: 'Seniori (C.N.+)' },
-];
-
-const CATEGORII_ARMA = [
-  { value: 'toate',          label: 'Toate armele' },
-  { value: 'thao_lo_bong',   label: 'Bong' },
-  { value: 'thao_lo_dao',    label: 'Dao' },
-  { value: 'thao_lo_guom',   label: 'Guom' },
-];
-
-// Mapare tip tab → categorii inlantuiri + tip_proba
 export type TabMatrice = 'thao_quyen' | 'song_luyen' | 'sincron' | 'thao_lo' | 'arme_cvd';
 
 interface TabConfig {
@@ -30,34 +15,60 @@ interface TabConfig {
 }
 
 const TAB_CONFIG: Record<TabMatrice, TabConfig> = {
-  thao_quyen:  { tipProba: 'thao_quyen_individual', categoriiInlantuiri: ['quyen'] },
-  sincron:     { tipProba: 'sincron',               categoriiInlantuiri: ['quyen'] },
-  song_luyen:  { tipProba: 'song_luyen',            categoriiInlantuiri: ['song_luyen'] },
-  thao_lo:     { tipProba: 'thao_lo_individual',    categoriiInlantuiri: ['thao_lo_bong', 'thao_lo_dao', 'thao_lo_guom'] },
-  arme_cvd:    { tipProba: 'thao_lo_individual',    categoriiInlantuiri: ['arma_cvd'] },
+  thao_quyen: { tipProba: 'thao_quyen_individual', categoriiInlantuiri: ['quyen'] },
+  sincron:    { tipProba: 'sincron',               categoriiInlantuiri: ['quyen'] },
+  song_luyen: { tipProba: 'song_luyen',            categoriiInlantuiri: ['song_luyen'] },
+  thao_lo:    { tipProba: 'thao_lo_individual',    categoriiInlantuiri: ['thao_lo_bong', 'thao_lo_dao', 'thao_lo_guom'] },
+  arme_cvd:   { tipProba: 'thao_lo_individual',    categoriiInlantuiri: ['arma_cvd'] },
 };
 
-// ---------------------------------------------------------------------------
-// Helpers filtrare grade după categorie vârstă
-// ---------------------------------------------------------------------------
-
-function filtreazaGradeDupaCategorieVarsta(grade: Grad[], categorie: string): Grad[] {
-  if (categorie === 'toate') return grade;
-
-  return grade.filter(g => {
-    const n = g.nume.toLowerCase();
-    if (categorie === 'copii') {
-      return n.includes('cap ro') || n.includes('centură violet') || n.includes('centura violet');
-    }
-    if (categorie === 'juniori') {
-      return /^\d\s*cap/i.test(n) || /^[1-4]\s*c\.?a\.?p/i.test(n);
-    }
-    if (categorie === 'seniori') {
-      return n.includes('c.n') || n.includes('cn') || n.includes('dang') || n.includes('đẳng');
-    }
-    return true;
-  });
+interface GrupGrade {
+  label: string;
+  ordineMin: number;
+  ordineMax: number;
+  colorChip: string;
+  colorHeader: string;
 }
+
+const GRADE_GRUPURI: GrupGrade[] = [
+  {
+    label: 'Grade Galbene',
+    ordineMin: 2,  ordineMax: 5,
+    colorChip:   'bg-yellow-600 border-yellow-500 text-white hover:bg-yellow-700',
+    colorHeader: 'bg-yellow-900/40 text-yellow-300 border-yellow-700/50',
+  },
+  {
+    label: 'Grade Roșii',
+    ordineMin: 6,  ordineMax: 9,
+    colorChip:   'bg-red-700 border-red-600 text-white hover:bg-red-800',
+    colorHeader: 'bg-red-900/40 text-red-300 border-red-700/50',
+  },
+  {
+    label: 'Centuri Violet',
+    ordineMin: 10, ordineMax: 14,
+    colorChip:   'bg-violet-700 border-violet-600 text-white hover:bg-violet-800',
+    colorHeader: 'bg-violet-900/40 text-violet-300 border-violet-700/50',
+  },
+  {
+    label: 'Grade Albastre',
+    ordineMin: 15, ordineMax: 18,
+    colorChip:   'bg-blue-700 border-blue-600 text-white hover:bg-blue-800',
+    colorHeader: 'bg-blue-900/40 text-blue-300 border-blue-700/50',
+  },
+  {
+    label: 'Centuri Negre',
+    ordineMin: 19, ordineMax: Infinity,
+    colorChip:   'bg-slate-600 border-slate-500 text-white hover:bg-slate-500',
+    colorHeader: 'bg-slate-700/60 text-slate-200 border-slate-600/50',
+  },
+];
+
+const CATEGORII_ARMA = [
+  { value: 'toate',        label: 'Toate armele' },
+  { value: 'thao_lo_bong', label: 'Bong' },
+  { value: 'thao_lo_dao',  label: 'Dao' },
+  { value: 'thao_lo_guom', label: 'Guom' },
+];
 
 // ---------------------------------------------------------------------------
 // Props
@@ -69,7 +80,116 @@ interface Props {
 }
 
 // ---------------------------------------------------------------------------
-// Componenta
+// Sub-tabel per grup
+// ---------------------------------------------------------------------------
+
+interface SubTabelProps {
+  grup: GrupGrade;
+  gradeVizibile: Grad[];
+  coloane: Inlantuire[];
+  isActive: (grade_id: string, inlantuire_id: string) => boolean;
+  onToggle: (grade_id: string, inlantuire_id: string) => Promise<void>;
+  busy: string | null;
+  canEdit: boolean;
+}
+
+const SubTabelGrup: React.FC<SubTabelProps> = ({
+  grup, gradeVizibile, coloane, isActive, onToggle, busy, canEdit,
+}) => {
+  if (gradeVizibile.length === 0 || coloane.length === 0) return null;
+
+  return (
+    <div className="space-y-1">
+      {/* Header grup */}
+      <div className={`px-3 py-1.5 rounded-t-lg border text-xs font-semibold uppercase tracking-wide ${grup.colorHeader}`}>
+        {grup.label}
+      </div>
+
+      <div className="overflow-x-auto rounded-b-lg border border-slate-700">
+        <table className="text-xs border-collapse min-w-max w-full">
+          <thead>
+            <tr className="bg-slate-800 border-b border-slate-700">
+              <th className="sticky left-0 z-10 bg-slate-800 py-2 px-3 text-left text-slate-400 font-medium whitespace-nowrap border-r border-slate-700 min-w-[130px]">
+                Grad
+              </th>
+              {coloane.map(col => (
+                <th
+                  key={col.id}
+                  title={col.denumire}
+                  className="py-2 px-1.5 text-center text-slate-400 font-medium whitespace-nowrap"
+                >
+                  <span className="block truncate max-w-[80px] mx-auto" title={col.denumire}>
+                    {col.denumire}
+                  </span>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {gradeVizibile.map((grad, ri) => (
+              <tr
+                key={grad.id}
+                className={`border-t border-slate-700/50 hover:bg-slate-700/20 ${ri % 2 === 0 ? '' : 'bg-slate-800/30'}`}
+              >
+                <td className="sticky left-0 z-10 bg-slate-800 py-1.5 px-3 text-slate-200 whitespace-nowrap border-r border-slate-700 font-medium">
+                  {grad.nume}
+                </td>
+                {coloane.map(col => {
+                  const key = `${grad.id}:${col.id}`;
+                  const active = isActive(grad.id, col.id);
+                  const isBusy = busy === key;
+                  return (
+                    <td key={col.id} className="py-1.5 px-1.5 text-center">
+                      {canEdit ? (
+                        <button
+                          onClick={() => onToggle(grad.id, col.id)}
+                          disabled={isBusy}
+                          title={active
+                            ? `Dezactivează ${col.denumire} pentru ${grad.nume}`
+                            : `Activează ${col.denumire} pentru ${grad.nume}`}
+                          className={`w-6 h-6 rounded border transition-colors flex items-center justify-center mx-auto ${
+                            isBusy
+                              ? 'opacity-40 cursor-wait border-slate-500 bg-slate-700'
+                              : active
+                              ? 'bg-emerald-600 border-emerald-500 hover:bg-emerald-700'
+                              : 'bg-slate-700 border-slate-600 hover:bg-slate-600 cursor-pointer'
+                          }`}
+                        >
+                          {active && !isBusy ? (
+                            <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                            </svg>
+                          ) : !active && !isBusy ? (
+                            <span className="text-slate-500 text-xs leading-none select-none">—</span>
+                          ) : null}
+                        </button>
+                      ) : (
+                        <div className={`w-6 h-6 rounded border flex items-center justify-center mx-auto ${
+                          active ? 'bg-emerald-600 border-emerald-500' : 'bg-slate-700 border-slate-600'
+                        }`}>
+                          {active ? (
+                            <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                            </svg>
+                          ) : (
+                            <span className="text-slate-500 text-xs leading-none select-none">—</span>
+                          )}
+                        </div>
+                      )}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+// ---------------------------------------------------------------------------
+// Componenta principală
 // ---------------------------------------------------------------------------
 
 export const MatriceGradePanel: React.FC<Props> = ({ tab, canEdit }) => {
@@ -81,25 +201,54 @@ export const MatriceGradePanel: React.FC<Props> = ({ tab, canEdit }) => {
     categoriiInlantuiri
   );
 
-  const [filtruGrad, setFiltruGrad] = useState<string>('toate');
-  const [filtruVarsta, setFiltruVarsta] = useState<string>('toate');
+  const [selectedGradeIds, setSelectedGradeIds] = useState<Set<string>>(new Set());
   const [filtruArma, setFiltruArma] = useState<string>('toate');
   const [busy, setBusy] = useState<string | null>(null);
 
-  // Filtrare coloane: pentru Thao Lo, aplică filtrul armă
-  const coloane: Inlantuire[] = useMemo(() => {
+  const toggleGrad = (id: string) => {
+    setSelectedGradeIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const clearFiltre = () => setSelectedGradeIds(new Set());
+
+  // Coloane filtrate după armă (doar pentru Thao Lo)
+  const coloaneBaza: Inlantuire[] = useMemo(() => {
     if (tab !== 'thao_lo' || filtruArma === 'toate') return inlantuiri;
     return inlantuiri.filter(i => i.categorie === filtruArma);
   }, [inlantuiri, tab, filtruArma]);
 
-  // Filtrare rânduri: categorie vârstă + grad individual
-  const randuri: Grad[] = useMemo(() => {
-    let result = filtreazaGradeDupaCategorieVarsta(grade, filtruVarsta);
-    if (filtruGrad !== 'toate') {
-      result = result.filter(g => g.id === filtruGrad);
-    }
-    return result;
-  }, [grade, filtruVarsta, filtruGrad]);
+  // Construiește datele per grup
+  const grupuriDate = useMemo(() => {
+    return GRADE_GRUPURI.map(grup => {
+      // Toate gradele din acest grup
+      const gradeInGrup = grade.filter(
+        g => g.ordine >= grup.ordineMin && g.ordine <= grup.ordineMax
+      );
+
+      // Dacă există selecție, filtrează rândurile
+      const gradeVizibile = selectedGradeIds.size === 0
+        ? gradeInGrup
+        : gradeInGrup.filter(g => selectedGradeIds.has(g.id));
+
+      // Coloane: înlănțuirile care au cel puțin o asociere activă pentru gradele vizibile
+      // (dacă nu e filtrare, bazat pe toate gradele din grup)
+      const bazaColoane = selectedGradeIds.size === 0 ? gradeInGrup : gradeVizibile;
+      const coloane = coloaneBaza.filter(inl =>
+        bazaColoane.some(g => isActive(g.id, inl.id))
+      );
+
+      return { grup, gradeVizibile, coloane };
+    }).filter(({ gradeVizibile }) => {
+      // Când e filtrare activă: ascunde grupurile fără grade selectate
+      if (selectedGradeIds.size > 0) return gradeVizibile.length > 0;
+      return true;
+    });
+  }, [grade, coloaneBaza, selectedGradeIds, isActive]);
 
   const handleToggle = async (grade_id: string, inlantuire_id: string) => {
     if (!canEdit) return;
@@ -119,44 +268,10 @@ export const MatriceGradePanel: React.FC<Props> = ({ tab, canEdit }) => {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {/* Filtre */}
-      <div className="flex flex-col gap-2 md:flex-row md:items-center md:flex-wrap">
-        {/* Filtru categorie vârstă */}
-        <div className="flex items-center gap-2">
-          <label className="text-xs text-slate-400 whitespace-nowrap">Categorie:</label>
-          <select
-            value={filtruVarsta}
-            onChange={e => { setFiltruVarsta(e.target.value); setFiltruGrad('toate'); }}
-            className="bg-slate-700 border border-slate-600 text-slate-200 text-xs rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-slate-500"
-          >
-            {CATEGORII_VARSTA.map(c => (
-              <option key={c.value} value={c.value}>{c.label}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* Filtru grad individual */}
-        <div className="flex items-center gap-2">
-          <label className="text-xs text-slate-400 whitespace-nowrap">Grad:</label>
-          <select
-            value={filtruGrad}
-            onChange={e => setFiltruGrad(e.target.value)}
-            className="bg-slate-700 border border-slate-600 text-slate-200 text-xs rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-slate-500"
-          >
-            <option value="toate">Toate gradele</option>
-            {grade
-              .filter(g => {
-                if (filtruVarsta === 'toate') return true;
-                return filtreazaGradeDupaCategorieVarsta([g], filtruVarsta).length > 0;
-              })
-              .map(g => (
-                <option key={g.id} value={g.id}>{g.nume}</option>
-              ))}
-          </select>
-        </div>
-
-        {/* Filtru armă — doar pentru Thao Lo */}
+      <div className="space-y-2">
+        {/* Filtru armă (doar Thao Lo) */}
         {tab === 'thao_lo' && (
           <div className="flex items-center gap-2">
             <label className="text-xs text-slate-400 whitespace-nowrap">Armă:</label>
@@ -172,109 +287,64 @@ export const MatriceGradePanel: React.FC<Props> = ({ tab, canEdit }) => {
           </div>
         )}
 
-        {/* Sumar */}
-        <span className="text-xs text-slate-500 md:ml-auto">
-          {randuri.length} grad{randuri.length !== 1 ? 'e' : ''} · {coloane.length} înlănțuiri
-        </span>
+        {/* Chips grade */}
+        <div className="flex flex-wrap gap-1.5 items-center">
+          {selectedGradeIds.size > 0 && (
+            <button
+              onClick={clearFiltre}
+              className="text-xs px-2 py-1 rounded border border-slate-600 bg-slate-800 text-slate-400 hover:text-white hover:border-slate-500 transition-colors"
+            >
+              ✕ Toate
+            </button>
+          )}
+          {grade.map(g => {
+            const grup = GRADE_GRUPURI.find(
+              gr => g.ordine >= gr.ordineMin && g.ordine <= gr.ordineMax
+            );
+            const selected = selectedGradeIds.has(g.id);
+            return (
+              <button
+                key={g.id}
+                onClick={() => toggleGrad(g.id)}
+                className={`text-xs px-2.5 py-1 rounded-full border transition-colors font-medium ${
+                  selected
+                    ? (grup?.colorChip ?? 'bg-emerald-600 border-emerald-500 text-white')
+                    : 'bg-slate-800 border-slate-600 text-slate-300 hover:border-slate-400 hover:text-white'
+                }`}
+              >
+                {g.nume}
+              </button>
+            );
+          })}
+        </div>
+
+        {selectedGradeIds.size > 0 && (
+          <p className="text-xs text-slate-500">
+            {selectedGradeIds.size} grad{selectedGradeIds.size !== 1 ? 'e' : ''} selectat{selectedGradeIds.size !== 1 ? 'e' : ''}
+          </p>
+        )}
       </div>
 
-      {/* Tabel matrice */}
-      {coloane.length === 0 ? (
-        <div className="text-slate-400 text-sm py-8 text-center italic">
-          Nicio înlănțuire pentru această selecție.
-        </div>
-      ) : randuri.length === 0 ? (
-        <div className="text-slate-400 text-sm py-8 text-center italic">
-          Niciun grad pentru această selecție.
-        </div>
-      ) : (
-        <div className="overflow-x-auto rounded-lg border border-slate-700">
-          <table className="text-xs border-collapse min-w-max w-full">
-            <thead>
-              <tr className="bg-slate-800 border-b border-slate-700">
-                {/* Celula header stânga */}
-                <th className="sticky left-0 z-10 bg-slate-800 py-2 px-3 text-left text-slate-400 font-medium whitespace-nowrap border-r border-slate-700 min-w-[130px]">
-                  Grad
-                </th>
-                {coloane.map(col => (
-                  <th
-                    key={col.id}
-                    title={col.denumire}
-                    className="py-2 px-1.5 text-center text-slate-400 font-medium whitespace-nowrap max-w-[80px] overflow-hidden"
-                  >
-                    <span className="block truncate max-w-[72px] mx-auto" title={col.denumire}>
-                      {col.denumire}
-                    </span>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {randuri.map((grad, ri) => (
-                <tr
-                  key={grad.id}
-                  className={`border-t border-slate-700/50 hover:bg-slate-700/20 ${
-                    ri % 2 === 0 ? '' : 'bg-slate-800/30'
-                  }`}
-                >
-                  {/* Rând fix stânga */}
-                  <td className="sticky left-0 z-10 bg-slate-800 py-1.5 px-3 text-slate-200 whitespace-nowrap border-r border-slate-700 font-medium">
-                    {grad.nume}
-                  </td>
-                  {coloane.map(col => {
-                    const key = `${grad.id}:${col.id}`;
-                    const active = isActive(grad.id, col.id);
-                    const isBusy = busy === key;
-                    return (
-                      <td key={col.id} className="py-1.5 px-1.5 text-center">
-                        {canEdit ? (
-                          <button
-                            onClick={() => handleToggle(grad.id, col.id)}
-                            disabled={isBusy}
-                            title={active ? `Dezactivează ${col.denumire} pentru ${grad.nume}` : `Activează ${col.denumire} pentru ${grad.nume}`}
-                            className={`w-6 h-6 rounded border transition-colors flex items-center justify-center mx-auto ${
-                              isBusy
-                                ? 'opacity-40 cursor-wait border-slate-500 bg-slate-700'
-                                : active
-                                ? 'bg-emerald-600 border-emerald-500 hover:bg-emerald-700'
-                                : 'bg-slate-700 border-slate-600 hover:bg-slate-600 cursor-pointer'
-                            }`}
-                          >
-                            {active && !isBusy ? (
-                              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                              </svg>
-                            ) : !active && !isBusy ? (
-                              <span className="text-slate-500 text-xs leading-none select-none">—</span>
-                            ) : null}
-                          </button>
-                        ) : (
-                          /* Read-only: afișaj simplu fără interacțiune */
-                          <div
-                            className={`w-6 h-6 rounded border flex items-center justify-center mx-auto ${
-                              active
-                                ? 'bg-emerald-600 border-emerald-500'
-                                : 'bg-slate-700 border-slate-600'
-                            }`}
-                          >
-                            {active ? (
-                              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                              </svg>
-                            ) : (
-                              <span className="text-slate-500 text-xs leading-none select-none">—</span>
-                            )}
-                          </div>
-                        )}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      {/* Sub-tabele per grup */}
+      <div className="space-y-6">
+        {grupuriDate.map(({ grup, gradeVizibile, coloane }) => (
+          <SubTabelGrup
+            key={grup.label}
+            grup={grup}
+            gradeVizibile={gradeVizibile}
+            coloane={coloane}
+            isActive={isActive}
+            onToggle={handleToggle}
+            busy={busy}
+            canEdit={canEdit}
+          />
+        ))}
+        {grupuriDate.length === 0 && (
+          <div className="text-slate-400 text-sm py-8 text-center italic">
+            Niciun grad pentru selecția curentă.
+          </div>
+        )}
+      </div>
     </div>
   );
 };

@@ -620,6 +620,7 @@ export interface CategorieCompetitie {
   max_echipe_per_club: number;
   min_participanti_start: number;
   ordine_afisare: number;
+  doua_quyenuri: boolean;
   // joined
   proba?: ProbaCompetitie;
 }
@@ -632,6 +633,8 @@ export interface InscriereCompetitie {
   sportiv_id: string;
   status: 'inscris' | 'confirmat' | 'retras' | 'descalificat';
   taxa_achitata: boolean;
+  quyen_ales: string | null;
+  quyen_ales_2: string | null;
   observatii: string | null;
   created_at: string;
   // joined

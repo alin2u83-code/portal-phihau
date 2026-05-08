@@ -625,6 +625,23 @@ export interface CategorieCompetitie {
   proba?: ProbaCompetitie;
 }
 
+export interface Inlantuire {
+  id: string;
+  denumire: string;
+  ordine: number;
+  activ: boolean;
+  created_at?: string;
+}
+
+export interface InlantuireGrad {
+  id: string;
+  inlantuire_id: string;
+  grade_id: string;
+  tip_proba: TipProba;
+  inlantuiri?: Inlantuire;
+  grade?: Grad;
+}
+
 export interface InscriereCompetitie {
   id: string;
   competitie_id: string;
@@ -633,13 +650,15 @@ export interface InscriereCompetitie {
   sportiv_id: string;
   status: 'inscris' | 'confirmat' | 'retras' | 'descalificat';
   taxa_achitata: boolean;
-  quyen_ales: string | null;
-  quyen_ales_2: string | null;
+  inlantuire_id: string | null;
+  inlantuire_id_2: string | null;
   observatii: string | null;
   created_at: string;
   // joined
   sportiv?: Sportiv;
   categorie?: CategorieCompetitie;
+  inlantuire?: Inlantuire;
+  inlantuire_2?: Inlantuire;
 }
 
 export interface EchipaCompetitie {

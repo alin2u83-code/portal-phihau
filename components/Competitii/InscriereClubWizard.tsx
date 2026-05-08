@@ -2,7 +2,7 @@
  * InscriereClubWizard — Wizard 4 pași pentru înscrierea sportivilor din club la competiție.
  *
  * Pasul 1 (implementat): Selectare sportivi cu eligibilitate generală
- * Pasul 2 (implementat): Categorii per sportiv — eligibilitate per categorie, quyen_ales, acord_parental, CVD Bong
+ * Pasul 2 (implementat): Categorii per sportiv — eligibilitate per categorie, inlantuire_id, acord_parental, CVD Bong
  * Pasul 3 (placeholder): Echipe
  * Pasul 4 (placeholder): Sumar + taxe
  */
@@ -10,6 +10,7 @@ import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   Competitie, ProbaCompetitie, CategorieCompetitie, InscriereCompetitie,
   EchipaCompetitie, Sportiv, Grad, VizaSportiv, TipParticipare, StagiuCVDParticipare,
+  Inlantuire,
 } from '../../types';
 import { supabase } from '../../supabaseClient';
 import { Button } from '../ui';
@@ -917,8 +918,7 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
 
 /** Datele suplimentare per (sportiv, categorie) alese în Pasul 2 */
 export interface PickCategorie {
-  quyen_ales?: string;
-  arma_ales?: string;
+  inlantuire_id?: string;
   acord_parental?: boolean;
 }
 
@@ -933,12 +933,12 @@ export interface QuyenPick { q1: string; q2: string; }
 export type QuyenAlesMap = Map<string, QuyenPick>;
 
 // -----------------------------------------------
-// TIP: drepturi_grad_competitie row (fetch Supabase)
+// TIP: inlantuiri_grade row agregat
 // -----------------------------------------------
 interface DreptGrad {
-  grad_ordine: number;
+  grade_id: string;
   tip_proba: string;
-  programe_permise: string[];
+  inlantuiri: Inlantuire[];
 }
 
 // -----------------------------------------------
@@ -1008,7 +1008,7 @@ function grupeazaDupaProba(
 interface RandCategorieProps {
   cat: CategorieCompetitie;
   sportivId: string;
-  gradOrdine: number | null;
+  gradeId: string | null;
   isBifat: boolean;
   isDejaInscris: boolean;
   isDisabledBong: boolean;
@@ -1019,20 +1019,20 @@ interface RandCategorieProps {
 }
 
 const RandCategorie: React.FC<RandCategorieProps> = ({
-  cat, gradOrdine, isBifat, isDejaInscris, isDisabledBong,
+  cat, gradeId, isBifat, isDejaInscris, isDisabledBong,
   pickData, drepturi, onToggle, onUpdatePick,
 }) => {
   const isDisabled = isDejaInscris || isDisabledBong;
   const arataQuyenDropdown = isBifat && !isDejaInscris && esteThaoQuyenIndividual(cat);
 
   // Programele permise pentru gradul curent
-  const programePermise = useMemo<string[]>(() => {
-    if (!arataQuyenDropdown || gradOrdine === null) return [];
+  const programePermise = useMemo<Inlantuire[]>(() => {
+    if (!arataQuyenDropdown || gradeId === null) return [];
     const drept = drepturi.find(
-      d => d.grad_ordine === gradOrdine && d.tip_proba === cat.proba?.tip_proba
+      d => d.grade_id === gradeId && d.tip_proba === cat.proba?.tip_proba
     );
-    return drept?.programe_permise ?? [];
-  }, [arataQuyenDropdown, gradOrdine, drepturi, cat.proba?.tip_proba]);
+    return drept?.inlantuiri ?? [];
+  }, [arataQuyenDropdown, gradeId, drepturi, cat.proba?.tip_proba]);
 
   const tooltipBong = isDisabledBong
     ? 'Regulament CVD (grade): Bong și Long Gian/Song Cot/Moc Can nu pot fi combinate'
@@ -1087,13 +1087,13 @@ const RandCategorie: React.FC<RandCategorieProps> = ({
         </div>
       </label>
 
-      {/* Dropdown quyen_ales sau input text liber */}
+      {/* Dropdown inlantuire_id */}
       {arataQuyenDropdown && (
         <div className="ml-10 mb-2 mr-3">
           {programePermise.length > 0 ? (
             <select
-              value={pickData.quyen_ales ?? ''}
-              onChange={e => onUpdatePick({ quyen_ales: e.target.value || undefined })}
+              value={pickData.inlantuire_id ?? ''}
+              onChange={e => onUpdatePick({ inlantuire_id: e.target.value || undefined })}
               className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-primary"
             >
               <option value="">
@@ -1101,15 +1101,15 @@ const RandCategorie: React.FC<RandCategorieProps> = ({
                   ? 'Alege forma / arma...'
                   : 'Alege inlantuire...'}
               </option>
-              {programePermise.map(prog => (
-                <option key={prog} value={prog}>{prog}</option>
+              {programePermise.map(il => (
+                <option key={il.id} value={il.id}>{il.denumire}</option>
               ))}
             </select>
           ) : (
             <input
               type="text"
-              value={pickData.quyen_ales ?? ''}
-              onChange={e => onUpdatePick({ quyen_ales: e.target.value || undefined })}
+              value={pickData.inlantuire_id ?? ''}
+              onChange={e => onUpdatePick({ inlantuire_id: e.target.value || undefined })}
               placeholder={
                 cat.proba?.tip_proba === 'thao_lo_individual'
                   ? 'Introdu forma / arma aleasa...'
@@ -1132,6 +1132,7 @@ interface CardSportivCategoriiProps {
   varsta: number;
   gradNume: string | null;
   gradOrdine: number | null;
+  gradeId: string | null;
   categoriiEligibile: CategorieCompetitie[];
   inscrieri: InscriereCompetitie[];
   picks: Map<string, PickCategorie>;
@@ -1145,7 +1146,7 @@ interface CardSportivCategoriiProps {
 }
 
 const CardSportivCategorii: React.FC<CardSportivCategoriiProps> = ({
-  sportiv, varsta, gradNume, gradOrdine,
+  sportiv, varsta, gradNume, gradOrdine, gradeId,
   categoriiEligibile, inscrieri, picks, drepturi, stagiiCVD,
   effectiveGen, onSetGen,
   onToggleCategorie, onUpdatePick, onToggleAcord,
@@ -1316,7 +1317,7 @@ const CardSportivCategorii: React.FC<CardSportivCategoriiProps> = ({
                     key={cat.id}
                     cat={cat}
                     sportivId={sportiv.id}
-                    gradOrdine={gradOrdine}
+                    gradeId={gradeId}
                     isBifat={isBifat}
                     isDejaInscris={isDejaInscris}
                     isDisabledBong={isDisabledBong}
@@ -1509,7 +1510,7 @@ const Pas2SelectieQuyen: React.FC<Pas2QuyenProps> = ({
   autoCategorie, quyenAles, onUpdateQuyenAles, onContinua, onBack,
 }) => {
   const { showError } = useError();
-  const [dreptMap, setDreptMap] = useState<Map<string, Map<number, string[]>>>(new Map());
+  const [dreptMap, setDreptMap] = useState<Map<string, Map<string, Inlantuire[]>>>(new Map());
   const [loadingDrepturi, setLoadingDrepturi] = useState(true);
   const [gradFilter, setGradFilter] = useState<number | null>(null);
 
@@ -1518,14 +1519,17 @@ const Pas2SelectieQuyen: React.FC<Pas2QuyenProps> = ({
     (async () => {
       try {
         const { data, error } = await supabase
-          .from('drepturi_grad_competitie')
-          .select('grad_ordine, tip_proba, programe_permise');
+          .from('inlantuiri_grade')
+          .select('grade_id, tip_proba, inlantuiri!inlantuire_id(id, denumire, ordine, activ)');
         if (error) throw error;
         if (!cancelled) {
-          const m = new Map<string, Map<number, string[]>>();
-          for (const row of (data as DreptGrad[]) ?? []) {
+          const m = new Map<string, Map<string, Inlantuire[]>>();
+          for (const row of (data ?? []) as unknown as { grade_id: string; tip_proba: string; inlantuiri: Inlantuire | null }[]) {
+            if (!row.inlantuiri) continue;
             if (!m.has(row.tip_proba)) m.set(row.tip_proba, new Map());
-            m.get(row.tip_proba)!.set(row.grad_ordine, row.programe_permise);
+            const gm = m.get(row.tip_proba)!;
+            if (!gm.has(row.grade_id)) gm.set(row.grade_id, []);
+            gm.get(row.grade_id)!.push(row.inlantuiri);
           }
           setDreptMap(m);
         }
@@ -1545,7 +1549,7 @@ const Pas2SelectieQuyen: React.FC<Pas2QuyenProps> = ({
         const grad = grade.find(g => g.id === s.grad_actual_id) ?? null;
         const autoCat = autoCategorie.get(s.id)!;
         const tipProba = autoCat.proba?.tip_proba ?? 'thao_quyen_individual';
-        const opts = grad ? (dreptMap.get(tipProba)?.get(grad.ordine) ?? []) : [];
+        const opts = grad ? (dreptMap.get(tipProba)?.get(grad.id) ?? []) : [];
         return { sportiv: s, grad, autoCat, opts };
       }),
     [sportivi, selectedSportivi, autoCategorie, grade, dreptMap]
@@ -1600,7 +1604,7 @@ const Pas2SelectieQuyen: React.FC<Pas2QuyenProps> = ({
     for (const d of sportiviVizibili) {
       if (d.opts.length > 0) {
         const cur = next.get(d.sportiv.id) ?? { q1: '', q2: '' };
-        next.set(d.sportiv.id, { ...cur, q1: d.opts[0] });
+        next.set(d.sportiv.id, { ...cur, q1: d.opts[0].id });
       }
     }
     onUpdateQuyenAles(next);
@@ -1706,7 +1710,7 @@ const Pas2SelectieQuyen: React.FC<Pas2QuyenProps> = ({
                   const q = quyenAles.get(sportiv.id) ?? { q1: '', q2: '' };
                   const is2Q = autoCat.doua_quyenuri;
 
-                  const cellCls = (opt: string | undefined, isSelected: boolean, isDisabled = false) =>
+                  const cellCls = (opt: Inlantuire | undefined, isSelected: boolean, isDisabled = false) =>
                     `p-3 cursor-pointer transition-colors text-xs ${
                       !opt ? 'text-slate-700 cursor-default' :
                       isDisabled ? 'opacity-30 cursor-not-allowed text-slate-500' :
@@ -1727,10 +1731,10 @@ const Pas2SelectieQuyen: React.FC<Pas2QuyenProps> = ({
                           return (
                             <td
                               key={i}
-                              onClick={() => opt && handlePickQ1(sportiv.id, opt)}
-                              className={cellCls(opt, q.q1 === opt)}
+                              onClick={() => opt && handlePickQ1(sportiv.id, opt.id)}
+                              className={cellCls(opt, q.q1 === opt?.id)}
                             >
-                              {opt ?? '—'}
+                              {opt?.denumire ?? '—'}
                             </td>
                           );
                         })}
@@ -1758,8 +1762,8 @@ const Pas2SelectieQuyen: React.FC<Pas2QuyenProps> = ({
                         {Array.from({ length: maxOpts }, (_, i) => {
                           const opt = opts[i];
                           return (
-                            <td key={i} onClick={() => opt && handlePickQ1(sportiv.id, opt)} className={cellCls(opt, q.q1 === opt)}>
-                              {opt ?? '—'}
+                            <td key={i} onClick={() => opt && handlePickQ1(sportiv.id, opt.id)} className={cellCls(opt, q.q1 === opt?.id)}>
+                              {opt?.denumire ?? '—'}
                             </td>
                           );
                         })}
@@ -1770,16 +1774,16 @@ const Pas2SelectieQuyen: React.FC<Pas2QuyenProps> = ({
                         </td>
                         {Array.from({ length: maxOpts }, (_, i) => {
                           const opt = opts[i];
-                          const isDisabledByQ1 = !!opt && opt === q.q1;
+                          const isDisabledByQ1 = !!opt && opt.id === q.q1;
                           const isQ1Missing = !q.q1;
                           return (
                             <td
                               key={i}
-                              onClick={() => opt && !isDisabledByQ1 && !isQ1Missing && handlePickQ2(sportiv.id, opt)}
+                              onClick={() => opt && !isDisabledByQ1 && !isQ1Missing && handlePickQ2(sportiv.id, opt.id)}
                               title={isQ1Missing ? 'Selectează Q1 mai întâi' : isDisabledByQ1 ? 'Nu poți alege același quyen' : undefined}
-                              className={isQ1Missing ? 'p-3 text-xs text-slate-600 italic' : cellCls(opt, q.q2 === opt, isDisabledByQ1)}
+                              className={isQ1Missing ? 'p-3 text-xs text-slate-600 italic' : cellCls(opt, q.q2 === opt?.id, isDisabledByQ1)}
                             >
-                              {isQ1Missing ? (i === 0 ? 'Selectează Q1 mai întâi' : '') : (opt ?? '—')}
+                              {isQ1Missing ? (i === 0 ? 'Selectează Q1 mai întâi' : '') : (opt?.denumire ?? '—')}
                             </td>
                           );
                         })}
@@ -1885,18 +1889,27 @@ const Pas2CategoriiPerSportiv: React.FC<Pas2Props> = ({
     return () => { cancelled = true; };
   }, [competitie.tip, selectedSportivi]);
 
-  // Fetch drepturi_grad_competitie o singură dată la mount
+  // Fetch inlantuiri_grade o singură dată la mount
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
         const { data, error } = await supabase
-          .from('drepturi_grad_competitie')
-          .select('grad_ordine, tip_proba, programe_permise');
+          .from('inlantuiri_grade')
+          .select('grade_id, tip_proba, inlantuiri!inlantuire_id(id, denumire, ordine, activ)');
         if (error) throw error;
-        if (!cancelled) setDrepturi((data as DreptGrad[]) ?? []);
+        if (!cancelled) {
+          const dreptMap = new Map<string, DreptGrad>();
+          for (const row of (data ?? []) as unknown as { grade_id: string; tip_proba: string; inlantuiri: Inlantuire | null }[]) {
+            if (!row.inlantuiri) continue;
+            const key = `${row.grade_id}::${row.tip_proba}`;
+            if (!dreptMap.has(key)) dreptMap.set(key, { grade_id: row.grade_id, tip_proba: row.tip_proba, inlantuiri: [] });
+            dreptMap.get(key)!.inlantuiri.push(row.inlantuiri);
+          }
+          setDrepturi(Array.from(dreptMap.values()));
+        }
       } catch (err) {
-        showError('Incarcare drepturi grad competitie', err);
+        showError('Incarcare inlantuiri grad competitie', err);
       } finally {
         if (!cancelled) setLoadingDrepturi(false);
       }
@@ -1913,7 +1926,7 @@ const Pas2CategoriiPerSportiv: React.FC<Pas2Props> = ({
           ? calculeazaVarstaLaData(s.data_nasterii, competitie.data_inceput)
           : 0;
         const grad = grade.find(g => g.id === s.grad_actual_id) ?? null;
-        return { sportiv: s, varsta, grad, gradNume: grad?.nume ?? null, gradOrdine: grad?.ordine ?? null };
+        return { sportiv: s, varsta, grad, gradNume: grad?.nume ?? null, gradOrdine: grad?.ordine ?? null, gradeId: grad?.id ?? null };
       }),
     [sportivi, selectedSportivi, grade, competitie.data_inceput]
   );
@@ -1996,7 +2009,7 @@ const Pas2CategoriiPerSportiv: React.FC<Pas2Props> = ({
     onUpdateIndivPicks(nextPicks);
   }, [indivPicks, onUpdateIndivPicks]);
 
-  // Update date suplimentare (quyen_ales, arma_ales)
+  // Update date suplimentare (inlantuire_id, acord_parental)
   const handleUpdatePick = useCallback((sportivId: string, catId: string, update: Partial<PickCategorie>) => {
     const nextPicks: IndivPicks = new Map(indivPicks);
     const sportivPicks = new Map(nextPicks.get(sportivId) ?? new Map<string, PickCategorie>());
@@ -2035,16 +2048,16 @@ const Pas2CategoriiPerSportiv: React.FC<Pas2Props> = ({
         erori.push(`${sportiv.prenume} ${sportiv.nume}: nicio categorie individuala selectata`);
       }
 
-      // quyen_ales obligatoriu dacă există drepturi pentru gradul sportivului
+      // inlantuire_id obligatoriu dacă există drepturi pentru gradul sportivului
       for (const catId of catIndivBifate) {
         const cat = categorii.find(c => c.id === catId);
         if (!cat || !esteThaoQuyenIndividual(cat)) continue;
-        const grad = grade.find(g => g.id === sportiv.grad_actual_id);
-        if (!grad) continue;
-        const drept = drepturi.find(d => d.grad_ordine === grad.ordine && d.tip_proba === cat.proba?.tip_proba);
-        if (drept && drept.programe_permise.length > 0) {
+        const tipProba = cat.proba?.tip_proba;
+        if (!tipProba) continue;
+        const drept = drepturi.find(d => d.grade_id === sportiv.grad_actual_id && d.tip_proba === tipProba);
+        if (drept && drept.inlantuiri.length > 0) {
           const pick = sportivPicks.get(catId);
-          if (!pick?.quyen_ales) {
+          if (!pick?.inlantuire_id) {
             erori.push(`${sportiv.prenume} ${sportiv.nume}: alege inlantuirea pentru ${cat.denumire ?? 'Thao Quyen'}`);
           }
         }
@@ -2128,7 +2141,7 @@ const Pas2CategoriiPerSportiv: React.FC<Pas2Props> = ({
       {/* Carduri sportivi — grid responsiv */}
       {!loadingDrepturi && vedere === 'per_sportiv' && (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-          {sportiviSelectati.map(({ sportiv, varsta, gradNume, gradOrdine }) => {
+          {sportiviSelectati.map(({ sportiv, varsta, gradNume, gradOrdine, gradeId }) => {
             const eligibile = eligibilePerSportiv.get(sportiv.id) ?? [];
             const sportivPicks = indivPicks.get(sportiv.id) ?? new Map<string, PickCategorie>();
             const effectiveGen = genOverrides[sportiv.id] ?? sportiv.gen;
@@ -2140,6 +2153,7 @@ const Pas2CategoriiPerSportiv: React.FC<Pas2Props> = ({
                 varsta={varsta}
                 gradNume={gradNume}
                 gradOrdine={gradOrdine}
+                gradeId={gradeId}
                 categoriiEligibile={eligibile}
                 inscrieri={inscrieri}
                 picks={sportivPicks}
@@ -2279,7 +2293,7 @@ interface SectiuneEchipaCategorieProps {
   cat: CategorieCompetitie;
   sportiviDisponibili: Sportiv[];
   grade: Grad[];
-  dreptUri: Map<number, string[]>;
+  dreptUri: Map<string, Inlantuire[]>;
   numeClub: string;
   echipa: EchipaFormata;
   onUpdateEchipa: (update: Partial<EchipaFormata>) => void;
@@ -2339,22 +2353,27 @@ const SectiuneEchipaCategorie: React.FC<SectiuneEchipaCategorieProps> = ({
 
   // Program SL / Sincron — apare doar după ce titularii sunt completați
   const echipaCompleta = echipa.titulari.length >= titulariMin && echipa.titulari.length <= titulariMax;
-  const gradMin = echipaCompleta && echipa.titulari.length > 0
-    ? Math.min(...echipa.titulari.map(id => {
-        const s = sportiviDisponibili.find(sp => sp.id === id);
-        const g = grade.find(gr => gr.id === s?.grad_actual_id);
-        return g?.ordine ?? 99;
-      }))
+  const gradMinGrade: Grad | null = echipaCompleta && echipa.titulari.length > 0
+    ? (() => {
+        const gs = echipa.titulari
+          .map(id => {
+            const s = sportiviDisponibili.find(sp => sp.id === id);
+            return grade.find(gr => gr.id === s?.grad_actual_id) ?? null;
+          })
+          .filter((g): g is Grad => g !== null);
+        if (!gs.length) return null;
+        return gs.reduce((min, g) => g.ordine < min.ordine ? g : min);
+      })()
     : null;
   const isSincron = !isPereche && titulariMax === 3;
-  const programOptions: string[] = gradMin !== null
-    ? isPereche
-      ? [getSLProg(gradMin)]
-      : isSincron
-        ? (dreptUri.get(gradMin) ?? [])
-        : []
+  const programOptions: Inlantuire[] = gradMinGrade !== null
+    ? isSincron
+      ? (dreptUri.get(gradMinGrade.id) ?? [])
+      : []
     : [];
-  const areSelectieProgram = programOptions.length > 0;
+  // Song Luyen pereche: program auto-selectat după grad minim
+  const slProgAuto: string | null = isPereche && gradMinGrade !== null ? getSLProg(gradMinGrade.ordine) : null;
+  const areSelectieProgram = programOptions.length > 0 || slProgAuto !== null;
 
   return (
     <div className="rounded-xl border border-slate-700 bg-slate-800/40 overflow-hidden">
@@ -2490,22 +2509,26 @@ const SectiuneEchipaCategorie: React.FC<SectiuneEchipaCategorieProps> = ({
           <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-2">
             {isPereche ? 'Program Song Luyen' : 'Program Sincron'}
           </p>
-          <div className="flex flex-col gap-1.5">
-            {programOptions.map(prog => (
-              <label key={prog} className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name={`program-${cat.id}`}
-                  value={prog}
-                  checked={echipa.program === prog}
-                  onChange={() => onUpdateEchipa({ program: prog })}
-                  className="accent-brand-primary"
-                />
-                <span className="text-sm text-slate-300">{prog}</span>
-              </label>
-            ))}
-          </div>
-          {!echipa.program && (
+          {isPereche && slProgAuto ? (
+            <p className="text-sm text-slate-300">{slProgAuto}</p>
+          ) : (
+            <div className="flex flex-col gap-1.5">
+              {programOptions.map(il => (
+                <label key={il.id} className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name={`program-${cat.id}`}
+                    value={il.id}
+                    checked={echipa.program === il.id}
+                    onChange={() => onUpdateEchipa({ program: il.id })}
+                    className="accent-brand-primary"
+                  />
+                  <span className="text-sm text-slate-300">{il.denumire}</span>
+                </label>
+              ))}
+            </div>
+          )}
+          {!echipa.program && !slProgAuto && (
             <p className="text-xs text-yellow-400 mt-1.5">⚠ Program neselecționat</p>
           )}
         </div>
@@ -2559,27 +2582,28 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
   onContinua, onBack,
 }) => {
   const { showError } = useError();
-  const [dreptUri, setDreptUri] = useState<Map<number, string[]>>(new Map());
+  const [dreptUri, setDreptUri] = useState<Map<string, Inlantuire[]>>(new Map());
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
         const { data, error } = await supabase
-          .from('drepturi_grad_competitie')
-          .select('grad_ordine, tip_proba, programe_permise');
+          .from('inlantuiri_grade')
+          .select('grade_id, tip_proba, inlantuiri!inlantuire_id(id, denumire, ordine, activ)')
+          .eq('tip_proba', 'sincron');
         if (error) throw error;
         if (!cancelled) {
-          const m = new Map<number, string[]>();
-          for (const row of (data as DreptGrad[]) ?? []) {
-            if (row.tip_proba === 'thao_quyen_individual' && !m.has(row.grad_ordine)) {
-              m.set(row.grad_ordine, row.programe_permise);
-            }
+          const m = new Map<string, Inlantuire[]>();
+          for (const row of (data ?? []) as unknown as { grade_id: string; tip_proba: string; inlantuiri: Inlantuire | null }[]) {
+            if (!row.inlantuiri) continue;
+            if (!m.has(row.grade_id)) m.set(row.grade_id, []);
+            m.get(row.grade_id)!.push(row.inlantuiri);
           }
           setDreptUri(m);
         }
       } catch (err) {
-        showError('Incarcare drepturi grad (echipe)', err);
+        showError('Incarcare inlantuiri grad (echipe)', err);
       }
     })();
     return () => { cancelled = true; };
@@ -2807,6 +2831,16 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [inlantuiriById, setInlantuiriById] = useState<Map<string, Inlantuire>>(new Map());
+
+  useEffect(() => {
+    supabase.from('inlantuiri').select('id, denumire, ordine, activ').then(({ data }) => {
+      if (!data) return;
+      const m = new Map<string, Inlantuire>();
+      for (const il of data as Inlantuire[]) m.set(il.id, il);
+      setInlantuiriById(m);
+    });
+  }, []);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   // Rânduri înscrieri individuale pentru sumar (din autoCategorie + quyenAles)
@@ -2814,8 +2848,8 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
     sportiv: Sportiv;
     varsta: number;
     categorie: CategorieCompetitie;
-    quyen_ales?: string;
-    quyen_ales_2?: string;
+    inlantuire_id?: string;
+    inlantuire_id_2?: string;
     taxa: number;
   }
 
@@ -2834,8 +2868,8 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
         sportiv,
         varsta,
         categorie: cat,
-        quyen_ales: pick?.q1 || undefined,
-        quyen_ales_2: pick?.q2 || undefined,
+        inlantuire_id: pick?.q1 || undefined,
+        inlantuire_id_2: pick?.q2 || undefined,
         taxa: calculeazaTaxaIndividuala(competitie, cat),
       });
     }
@@ -2902,7 +2936,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
         numeComplet: `${r.sportiv.prenume} ${r.sportiv.nume}`,
         categorie: r.categorie.denumire ?? `Categoria ${r.categorie.numar_categorie}`,
         proba: r.categorie.proba?.denumire ?? '—',
-        inlantuireArma: r.quyen_ales ?? '—',
+        inlantuireArma: (r.inlantuire_id ? inlantuiriById.get(r.inlantuire_id)?.denumire : null) ?? '—',
         grad: gradEntry?.nume ?? '—',
         taxa: r.taxa,
       };
@@ -2954,8 +2988,8 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
         }
 
         const payload = {
-          quyen_ales: rand.quyen_ales ?? null,
-          quyen_ales_2: rand.quyen_ales_2 ?? null,
+          inlantuire_id: rand.inlantuire_id ?? null,
+          inlantuire_id_2: rand.inlantuire_id_2 ?? null,
           status: 'inscris',
           taxa_achitata: false,
         };
@@ -2991,7 +3025,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
             status: 'inscrisa',
             taxa_achitata: false,
             echipa_incompleta: rand.echipa.echipaIncompleta ?? false,
-            quyen_ales: rand.echipa.program ?? null,
+            inlantuire_id: rand.echipa.program ?? null,
           })
           .select()
           .single();
@@ -3105,12 +3139,12 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
                       {rand.categorie.denumire ?? `Categoria ${rand.categorie.numar_categorie}`}
                     </td>
                     <td className="px-4 py-2.5 text-sm text-slate-400">
-                      {rand.quyen_ales ?? <span className="text-slate-600 italic">—</span>}
+                      {(rand.inlantuire_id ? inlantuiriById.get(rand.inlantuire_id)?.denumire : null) ?? <span className="text-slate-600 italic">—</span>}
                     </td>
                     <td className="px-4 py-2.5 text-sm text-slate-400">
                       {rand.categorie.doua_quyenuri
-                        ? (rand.quyen_ales_2
-                            ? rand.quyen_ales_2
+                        ? (rand.inlantuire_id_2
+                            ? (inlantuiriById.get(rand.inlantuire_id_2)?.denumire ?? rand.inlantuire_id_2)
                             : <span className="text-yellow-500 italic text-xs">⚠ lipsă Q2</span>)
                         : <span className="text-slate-700">—</span>
                       }
@@ -3138,10 +3172,10 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
                   <div className="text-xs font-medium text-slate-300">
                     {rand.categorie.denumire ?? `Categoria ${rand.categorie.numar_categorie}`}
                   </div>
-                  {rand.quyen_ales && <div className="text-[11px] text-slate-400">Q1: {rand.quyen_ales}</div>}
+                  {rand.inlantuire_id && <div className="text-[11px] text-slate-400">Q1: {inlantuiriById.get(rand.inlantuire_id)?.denumire ?? rand.inlantuire_id}</div>}
                   {rand.categorie.doua_quyenuri && (
-                    rand.quyen_ales_2
-                      ? <div className="text-[11px] text-slate-400">Q2: {rand.quyen_ales_2}</div>
+                    rand.inlantuire_id_2
+                      ? <div className="text-[11px] text-slate-400">Q2: {inlantuiriById.get(rand.inlantuire_id_2)?.denumire ?? rand.inlantuire_id_2}</div>
                       : <div className="text-[11px] text-yellow-500">Q2: ⚠ lipsă</div>
                   )}
                   {rand.categorie.proba && (

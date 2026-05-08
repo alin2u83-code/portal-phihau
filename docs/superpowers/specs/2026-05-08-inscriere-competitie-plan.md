@@ -17,9 +17,9 @@
 | F4 — Pas2 | ✅ DONE | Tabel coloane, `inlantuire_id` UUID, 2Q, fetch `inlantuiri_grade` |
 | F5 — Pas3 | ✅ DONE | Gender locking, program echipă, `inlantuire_id` pe echipe |
 | F6 — Pas4 | ✅ DONE | Sumar, `inlantuiriById` map pentru display, insert UUID |
-| Migrație aplicată în Supabase | ❌ TODO | — |
-| Admin UI înlănțuiri | ❌ TODO | — |
-| Meniu + rută admin | ❌ TODO | — |
+| Migrație aplicată în Supabase | ✅ DONE | phi-hau-db: 47 înlănțuiri, 64 asocieri, views recreate |
+| Admin UI înlănțuiri | ✅ DONE | InlantuciriAdmin + InlantuireFormModal + InlantuireGradePanel |
+| Meniu + rută admin | ✅ DONE | menuConfig adminMenu + AppRouter isFederationAdmin |
 
 ---
 
@@ -217,10 +217,10 @@ Adaugă item în secțiunea SUPER_ADMIN_FEDERATIE:
 | `supabase/migrations/20260508_inlantuiri_normalizate.sql` | ✅ creat | Schema completă, neaplicat în Supabase |
 | `types.ts` | ✅ done | `Inlantuire`, `InlantuireGrad`; `InscriereCompetitie` cu `inlantuire_id/2` |
 | `components/Competitii/InscriereClubWizard.tsx` | ✅ done | `PickCategorie`, `DreptGrad`, 3 fetch-uri, dropdown, submit, Pas4 display |
-| `components/InlantuciriAdmin.tsx` | ❌ TODO | nou |
-| `components/InlantuireFormModal.tsx` | ❌ TODO | nou |
-| `components/InlantuireGradePanel.tsx` | ❌ TODO | nou |
-| `hooks/useInlantuiri.ts` | ❌ TODO | nou |
-| `hooks/useInlantuiriGrade.ts` | ❌ TODO | nou |
-| `components/menuConfig.ts` | ❌ TODO | adaugă item admin |
-| `components/AppRouter.tsx` | ❌ TODO | adaugă rută |
+| `components/InlantuciriAdmin.tsx` | ✅ DONE | tabel + expand + CRUD |
+| `components/InlantuireFormModal.tsx` | ✅ DONE | add/edit denumire/ordine/activ |
+| `components/InlantuireGradePanel.tsx` | ✅ DONE | matrice grade × tip_proba checkboxuri |
+| `hooks/useInlantuiri.ts` | ✅ DONE | CRUD hook |
+| `hooks/useInlantuiriGrade.ts` | ✅ DONE | toggle asocieri per inlantuire |
+| `components/menuConfig.ts` | ✅ DONE | item Înlănțuiri în Setări & Admin |
+| `components/AppRouter.tsx` | ✅ DONE | rută inlantuiri-admin, guard isFederationAdmin |

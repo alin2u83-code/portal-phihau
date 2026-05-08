@@ -630,6 +630,7 @@ export interface Inlantuire {
   denumire: string;
   ordine: number;
   activ: boolean;
+  categorie?: string | null;
   created_at?: string;
 }
 

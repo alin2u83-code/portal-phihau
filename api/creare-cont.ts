@@ -85,7 +85,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(500).json({ error: "Contul a fost procesat dar userId-ul nu a putut fi determinat." });
     }
 
-    res.json({ success: true, userId });
+    const { data: sportivData, error: sportivFetchError } = await supabaseAdmin
+      .from('sportivi')
+      .select('*, cluburi(*)')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (sportivFetchError) throw sportivFetchError;
+
+    res.json({ success: true, userId, sportiv: sportivData });
   } catch (error: any) {
     console.error("Error creating account:", error);
     res.status(500).json({ error: error.message });

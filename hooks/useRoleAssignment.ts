@@ -64,23 +64,16 @@ export const useRoleAssignment = (currentUser: User, allRoles: Rol[]) => {
                 throw new Error(result.error || "Eroare la crearea contului.");
             }
 
-            // 2. Recuperăm datele complete ale sportivului creat
+            // 2. Folosim profilul returnat direct de API (service role, fără RLS)
             if (!result.userId) {
                 throw new Error("Contul a fost creat dar server-ul nu a returnat un userId valid. Reîncărcați pagina.");
             }
 
-            const { data: finalSportiv, error: fetchError } = await supabase
-                .from('sportivi')
-                .select('*, cluburi(*)')
-                .eq('user_id', result.userId)
-                .maybeSingle();
-
-            if (fetchError) throw fetchError;
-            if (!finalSportiv) {
-                throw new Error("Contul a fost creat dar profilul sportivului nu a putut fi găsit. Reîncărcați pagina.");
+            if (!result.sportiv) {
+                throw new Error("Contul a fost creat dar profilul sportivului nu a putut fi recuperat de server. Reîncărcați pagina.");
             }
 
-            return { success: true, sportiv: { ...finalSportiv, roluri: rolesToAssign }, generatedPassword: parola };
+            return { success: true, sportiv: { ...result.sportiv, roluri: rolesToAssign }, generatedPassword: parola };
         } catch (err: any) {
             console.error('Account Creation Error:', err);
             return { success: false, error: err.message || "A apărut o eroare neașteptată." };

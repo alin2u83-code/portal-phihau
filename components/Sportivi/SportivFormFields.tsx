@@ -273,7 +273,7 @@ export const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
                     {!initialData.id ? (
                         <FormSection title="Cont de Acces">
                             <p className="text-xs text-slate-400 col-span-full -mt-1">
-                                La salvare se creează automat un cont cu email și parolă generate din nume și prenume.
+                                Emailul și parola sunt pre-generate din nume și prenume. Dacă sportivul are o adresă personală reală, înlocuiți emailul generat cu aceea — va fi folosit la autentificare.
                             </p>
                             <Input
                                 label="Email (Login) *"

@@ -531,13 +531,17 @@ export const Sportivi: React.FC<{
         setSportivForAccountCreation(user);
         const sanitize = (str: string) => str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '');
         const emailPrefix = `${sanitize(user.nume)}.${sanitize(user.prenume)}`;
+        // Folosim emailul real al sportivului dac\u0103 exist\u0103 \u0219i nu e un placeholder intern.
+        // Altfel l\u0103s\u0103m c\u00e2mpul gol pentru ca admin-ul s\u0103 fie for\u021bat s\u0103 introduc\u0103 un email real.
+        const isPlaceholderEmail = !user.email || user.email.endsWith('@phihau.ro') || user.email.includes('placeholder');
+        const initialEmail = isPlaceholderEmail ? '' : user.email;
         setCreateAccountForm({
-            email: user.email || `${emailPrefix}@phihau.ro`,
+            email: initialEmail,
             username: user.username || emailPrefix,
             parola: 'Parola123!'
         });
         setCreateAccountError('');
-        setIsFormModalOpen(true); // Re-use the form modal for this purpose. Let's make a dedicated one.
+        setIsFormModalOpen(true);
     };
 
     const handleCreateAccountFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -547,6 +551,12 @@ export const Sportivi: React.FC<{
     const handleCreateAccount = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!supabase || !sportivForAccountCreation) return;
+
+        if (!createAccountForm.email || !createAccountForm.email.includes('@')) {
+            setCreateAccountError('Introduceți o adresă de email validă pentru contul de login.');
+            return;
+        }
+
         setCreateAccountLoading(true);
         setCreateAccountError('');
         
@@ -822,7 +832,9 @@ export const Sportivi: React.FC<{
                     setSportivForAccountCreation(user);
                     const sanitize = (str: string) => str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '');
                     const emailPrefix = `${sanitize(user.nume)}.${sanitize(user.prenume)}`;
-                    setCreateAccountForm({ email: user.email || `${emailPrefix}@phihau.ro`, username: user.username || emailPrefix, parola: 'Parola123!' });
+                    const isPlaceholderEmail = !user.email || user.email.endsWith('@phihau.ro') || user.email.includes('placeholder');
+                    const initialEmail = isPlaceholderEmail ? '' : user.email;
+                    setCreateAccountForm({ email: initialEmail, username: user.username || emailPrefix, parola: 'Parola123!' });
                     setCreateAccountError('');
                 }}
                 sportivForAccountCreation={sportivForAccountCreation}

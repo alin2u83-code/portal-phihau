@@ -7,6 +7,7 @@ import { useError } from './ErrorProvider';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
 import { useNavigation } from '../contexts/NavigationContext';
+import { clearCache } from '../utils/cache';
 
 interface ClubFormModalProps {
     isOpen: boolean;
@@ -102,7 +103,11 @@ export const CluburiManagement: React.FC<CluburiManagementProps> = ({ clubs, set
                 }
                 const { data, error } = await supabase.from('cluburi').update(updates).eq('id', id!).select().single();
                 if (error) throw error;
-                if (data) { setClubs(prev => prev.map(c => c.id === id ? data : c)); showSuccess("Succes", "Club actualizat."); }
+                if (data) {
+                    clearCache('cache_clubs'); // Invalidează cache-ul local — modificarea trebuie să persiste la re-fetch
+                    setClubs(prev => prev.map(c => c.id === id ? data : c));
+                    showSuccess("Succes", "Club actualizat.");
+                }
             } else {
                 const { id, ...insertData } = clubData;
                 // Curăță CIF gol — evită conflict pe unique constraint cu string gol
@@ -121,7 +126,11 @@ export const CluburiManagement: React.FC<CluburiManagementProps> = ({ clubs, set
                 }
                 const { data, error } = await supabase.from('cluburi').insert([insertData]).select().single();
                 if (error) throw error;
-                if (data) { setClubs(prev => [...prev, data]); showSuccess("Succes", "Club adăugat."); }
+                if (data) {
+                    clearCache('cache_clubs'); // Invalidează cache-ul local — clubul nou trebuie să apară la re-fetch
+                    setClubs(prev => [...prev, data]);
+                    showSuccess("Succes", "Club adăugat.");
+                }
             }
         } catch (err: any) {
             if (err.message.includes('violates row-level security policy') || err.code === '42501') {
@@ -149,6 +158,7 @@ export const CluburiManagement: React.FC<CluburiManagementProps> = ({ clubs, set
 
             const { error } = await supabase.from('cluburi').delete().eq('id', id);
             if (error) throw error;
+            clearCache('cache_clubs'); // Invalidează cache-ul local — ștergerea trebuie să persiste la re-fetch
             setClubs(prev => prev.filter(c => c.id !== id));
             showSuccess("Succes", "Clubul a fost șters.");
         } catch (err: any) {

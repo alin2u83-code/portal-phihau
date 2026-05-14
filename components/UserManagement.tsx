@@ -438,12 +438,17 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
 
     const handleOpenCreateAccountModal = (user: Sportiv) => {
         setSelectedUserForAccount(user);
-        
+
         const sanitize = (str: string) => str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '');
         const emailPrefix = `${sanitize(user.nume)}.${sanitize(user.prenume)}`;
 
+        // Folosim emailul real al sportivului dac\u0103 exist\u0103 \u0219i nu e un placeholder intern.
+        // Altfel l\u0103s\u0103m c\u00e2mpul gol pentru ca admin-ul s\u0103 fie for\u021bat s\u0103 introduc\u0103 un email real.
+        const isPlaceholderEmail = !user.email || user.email.endsWith('@phihau.ro') || user.email.includes('placeholder');
+        const initialEmail = isPlaceholderEmail ? '' : user.email;
+
         setCreateAccountForm({
-            email: `${emailPrefix}@phihau.ro`,
+            email: initialEmail,
             username: user.username || emailPrefix,
             parola: 'Parola123!'
         });
@@ -460,9 +465,15 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
     const handleCreateAccount = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!supabase || !selectedUserForAccount) return;
+
+        if (!createAccountForm.email || !createAccountForm.email.includes('@')) {
+            setCreateAccountError('Introduceți o adresă de email validă pentru contul de login.');
+            return;
+        }
+
         setCreateAccountLoading(true);
         setCreateAccountError('');
-        
+
         try {
             const sportivRole = allRoles.find(r => r.nume === 'SPORTIV');
             if (!sportivRole) throw new Error("Rolul 'SPORTIV' nu a fost găsit.");

@@ -121,7 +121,14 @@ export const AccountSettings: React.FC<AccountSettingsProps> = ({ currentUser, o
                         <Input label="Nume" name="nume" value={formData.nume} onChange={handleFormChange} required className="bg-black border-zinc-700"/>
                         <Input label="Prenume" name="prenume" value={formData.prenume} onChange={handleFormChange} required className="bg-black border-zinc-700"/>
                     </div>
-                    <Input label="Email de Autentificare" name="email" type="email" value={formData.email} onChange={handleFormChange} required className="bg-black border-zinc-700" readOnly disabled/>
+                    <div>
+                        <Input label="Email de Autentificare" name="email" type="email" value={formData.email} onChange={handleFormChange} required className="bg-black border-zinc-700"/>
+                        {formData.email !== (currentUser.email || '') && (
+                            <p className="mt-1 text-xs text-amber-400">
+                                Modificarea emailului va trimite un link de confirmare la noua adresă. Contul rămâne activ cu emailul vechi până la confirmare.
+                            </p>
+                        )}
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <Input label="Parolă Nouă (lasă gol pentru a o păstra)" name="parola" type="password" value={formData.parola} onChange={handleFormChange} className="bg-black border-zinc-700"/>
                         <Input label="Confirmare Parolă Nouă" name="confirmParola" type="password" value={formData.confirmParola} onChange={handleFormChange} className="bg-black border-zinc-700"/>

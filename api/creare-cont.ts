@@ -81,6 +81,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (rpcError) throw rpcError;
 
+    if (!userId) {
+      return res.status(500).json({ error: "Contul a fost procesat dar userId-ul nu a putut fi determinat." });
+    }
+
     res.json({ success: true, userId });
   } catch (error: any) {
     console.error("Error creating account:", error);

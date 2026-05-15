@@ -118,7 +118,7 @@ export async function orchestrate(
 
   const enrichedSystemPrompt = systemPrompt + formatRAGContext(ragChunks);
 
-  const response = await fetch('/api/gemini-proxy', {
+  const response = await fetch('/api/groq-proxy', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

@@ -80,7 +80,7 @@ export async function askClaude(
 ): Promise<string> {
   const systemPrompt = buildSystemPrompt(context);
 
-  const response = await fetch('/api/gemini-proxy', {
+  const response = await fetch('/api/groq-proxy', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ messages, system: systemPrompt }),

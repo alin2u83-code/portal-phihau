@@ -5,6 +5,7 @@ import { PlusIcon, TrashIcon, ArrowLeftIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 interface TipuriAbonamentManagementProps {
     tipuriAbonament: TipAbonament[];
@@ -26,6 +27,7 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
     const [isDeleting, setIsDeleting] = useState(false);
     const { showError, showSuccess } = useError();
 
+    const isMobile = useIsMobile();
     const isFederationAdmin = permissions?.isFederationAdmin ?? currentUser?.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN');
     // Club ID for club admins: from activeRoleContext or currentUser
     const effectiveClubId = activeRoleContext?.club_id || activeRoleContext?.club?.id || currentUser?.club_id;
@@ -135,48 +137,93 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
                 <div className="bg-slate-700/50 p-4 border-b border-slate-700">
                     <h3 className="font-bold text-white">Nomenclator Abonamente Active</h3>
                 </div>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left min-w-[700px]">
-                        <thead className="bg-slate-700/30 text-slate-400 text-xs uppercase tracking-wider">
-                            <tr>
-                                <th className="p-4 font-semibold">Denumire</th>
-                                {isFederationAdmin && <th className="p-4 font-semibold">Club</th>}
-                                <th className="p-4 font-semibold text-center">Membri Alocați</th>
-                                <th className="p-4 font-semibold">Tarif Lunar</th>
-                                <th className="p-4 font-semibold text-right">Acțiuni</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-700">
-                            {sortedAbonamente.map(ab => (
-                                <tr key={ab.id} className="hover:bg-slate-700/20 transition-colors">
-                                    <td className="p-3">
-                                        <Input label="" value={ab.denumire} onBlur={e => handleEdit(ab.id, 'denumire', e.target.value)} onChange={e => setTipuriAbonament(prev => prev.map(a => a.id === ab.id ? {...a, denumire: e.target.value} : a))} className="bg-transparent border-slate-700 focus:bg-slate-700"/>
-                                    </td>
-                                    {isFederationAdmin && (
-                                        <td className="p-3 text-xs">
-                                            {clubs.find(c => c.id === ab.club_id)?.nume || 'Federație'}
-                                        </td>
-                                    )}
-                                     <td className="p-3">
-                                        <Input label="" type="number" min="1" value={ab.numar_membri} onBlur={e => handleEdit(ab.id, 'numar_membri', e.target.value)} onChange={e => setTipuriAbonament(prev => prev.map(a => a.id === ab.id ? {...a, numar_membri: parseInt(e.target.value) || 1} : a))} className="w-24 mx-auto text-center bg-transparent border-slate-700"/>
-                                    </td>
-                                    <td className="p-3">
-                                        <div className="flex items-center gap-2">
-                                            <Input label="" type="number" step="0.01" value={ab.pret} onBlur={e => handleEdit(ab.id, 'pret', e.target.value)} onChange={e => setTipuriAbonament(prev => prev.map(a => a.id === ab.id ? {...a, pret: parseFloat(e.target.value) || 0} : a))} className="w-32 bg-transparent border-slate-700 text-brand-secondary font-bold"/>
-                                            <span className="text-slate-500 text-xs">RON</span>
-                                        </div>
-                                    </td>
-                                    <td className="p-3 text-right w-32">
-                                        <Button onClick={() => setToDelete(ab)} variant="danger" size="sm" className="opacity-60 hover:opacity-100 transition-opacity" title="Șterge acest tip">
-                                            <TrashIcon className="w-4 h-4" />
-                                        </Button>
-                                    </td>
+
+                {/* Mobile/Tablet: Cards */}
+                {isMobile ? (
+                    <div className="p-3 space-y-3">
+                        {sortedAbonamente.map(ab => (
+                            <div key={ab.id} className="bg-slate-800/60 rounded-xl border border-slate-700 p-4 space-y-3">
+                                <div className="flex items-start justify-between gap-2">
+                                    <div className="flex-1 min-w-0">
+                                        <Input label="Denumire" value={ab.denumire}
+                                            onBlur={e => handleEdit(ab.id, 'denumire', e.target.value)}
+                                            onChange={e => setTipuriAbonament(prev => prev.map(a => a.id === ab.id ? {...a, denumire: e.target.value} : a))}
+                                            className="bg-transparent border-slate-700 focus:bg-slate-700 font-semibold"/>
+                                    </div>
+                                    <Button onClick={() => setToDelete(ab)} variant="danger" size="sm" className="mt-5 flex-shrink-0">
+                                        <TrashIcon className="w-4 h-4" />
+                                    </Button>
+                                </div>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <Input label="Preț (RON)" type="number" step="0.01" value={ab.pret}
+                                            onBlur={e => handleEdit(ab.id, 'pret', e.target.value)}
+                                            onChange={e => setTipuriAbonament(prev => prev.map(a => a.id === ab.id ? {...a, pret: parseFloat(e.target.value) || 0} : a))}
+                                            className="bg-transparent border-slate-700 text-brand-secondary font-bold"/>
+                                    </div>
+                                    <div>
+                                        <Input label="Nr. Membri" type="number" min="1" value={ab.numar_membri}
+                                            onBlur={e => handleEdit(ab.id, 'numar_membri', e.target.value)}
+                                            onChange={e => setTipuriAbonament(prev => prev.map(a => a.id === ab.id ? {...a, numar_membri: parseInt(e.target.value) || 1} : a))}
+                                            className="bg-transparent border-slate-700 text-center"/>
+                                    </div>
+                                </div>
+                                {isFederationAdmin && (
+                                    <p className="text-xs text-slate-400">
+                                        Club: <span className="text-white font-medium">{clubs.find(c => c.id === ab.club_id)?.nume || 'Federație'}</span>
+                                    </p>
+                                )}
+                            </div>
+                        ))}
+                        {tipuriAbonament.length === 0 && (
+                            <div className="p-8 text-center text-slate-500 italic">Nu există tipuri de abonament definite.</div>
+                        )}
+                    </div>
+                ) : (
+                    /* Desktop: Table */
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left min-w-[700px]">
+                            <thead className="bg-slate-700/30 text-slate-400 text-xs uppercase tracking-wider">
+                                <tr>
+                                    <th className="p-4 font-semibold">Denumire</th>
+                                    {isFederationAdmin && <th className="p-4 font-semibold">Club</th>}
+                                    <th className="p-4 font-semibold text-center">Membri Alocați</th>
+                                    <th className="p-4 font-semibold">Tarif Lunar</th>
+                                    <th className="p-4 font-semibold text-right">Acțiuni</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                    {tipuriAbonament.length === 0 && <div className="p-12 text-center text-slate-500 italic bg-slate-800/20"> Nu există tipuri de abonament definite. Folosiți formularul de mai sus pentru a începe. </div>}
-                </div>
+                            </thead>
+                            <tbody className="divide-y divide-slate-700">
+                                {sortedAbonamente.map(ab => (
+                                    <tr key={ab.id} className="hover:bg-slate-700/20 transition-colors">
+                                        <td className="p-3">
+                                            <Input label="" value={ab.denumire} onBlur={e => handleEdit(ab.id, 'denumire', e.target.value)} onChange={e => setTipuriAbonament(prev => prev.map(a => a.id === ab.id ? {...a, denumire: e.target.value} : a))} className="bg-transparent border-slate-700 focus:bg-slate-700"/>
+                                        </td>
+                                        {isFederationAdmin && (
+                                            <td className="p-3 text-xs">
+                                                {clubs.find(c => c.id === ab.club_id)?.nume || 'Federație'}
+                                            </td>
+                                        )}
+                                        <td className="p-3">
+                                            <Input label="" type="number" min="1" value={ab.numar_membri} onBlur={e => handleEdit(ab.id, 'numar_membri', e.target.value)} onChange={e => setTipuriAbonament(prev => prev.map(a => a.id === ab.id ? {...a, numar_membri: parseInt(e.target.value) || 1} : a))} className="w-24 mx-auto text-center bg-transparent border-slate-700"/>
+                                        </td>
+                                        <td className="p-3">
+                                            <div className="flex items-center gap-2">
+                                                <Input label="" type="number" step="0.01" value={ab.pret} onBlur={e => handleEdit(ab.id, 'pret', e.target.value)} onChange={e => setTipuriAbonament(prev => prev.map(a => a.id === ab.id ? {...a, pret: parseFloat(e.target.value) || 0} : a))} className="w-32 bg-transparent border-slate-700 text-brand-secondary font-bold"/>
+                                                <span className="text-slate-500 text-xs">RON</span>
+                                            </div>
+                                        </td>
+                                        <td className="p-3 text-right w-32">
+                                            <Button onClick={() => setToDelete(ab)} variant="danger" size="sm" className="opacity-60 hover:opacity-100 transition-opacity" title="Șterge acest tip">
+                                                <TrashIcon className="w-4 h-4" />
+                                            </Button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                        {tipuriAbonament.length === 0 && <div className="p-12 text-center text-slate-500 italic bg-slate-800/20">Nu există tipuri de abonament definite. Folosiți formularul de mai sus pentru a începe.</div>}
+                    </div>
+                )}
             </Card>
 
             <div className="mt-8 bg-slate-800/40 p-4 rounded-lg border border-slate-700">

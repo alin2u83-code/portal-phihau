@@ -532,7 +532,7 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
     const { showError, showSuccess } = useError();
 
     const canManage = useMemo(() =>
-        currentUser.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE'),
+        currentUser.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN'),
         [currentUser.roluri]
     );
 
@@ -633,6 +633,25 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
             if (generated.length > 0) {
                 setPlati(prev => [...prev, ...generated]);
                 showSuccess("Operațiune finalizată", `${generated.length} facturi noi au fost generate.`);
+
+                // Notifică fiecare sportiv cu cont de utilizator
+                const sportiviCuUser = sportiviActiviList.filter(s => s.user_id);
+                if (sportiviCuUser.length > 0) {
+                    const mesaj = `Taxă anuală generată: ${getTitluTaxa(taxaToGenerate)} — ${taxaToGenerate.suma.toFixed(2)} RON. Verificați secțiunea Financiar.`;
+                    const notificari = sportiviCuUser.map(s => ({
+                        recipient_user_id: s.user_id,
+                        club_id: s.club_id,
+                        title: 'Taxă anuală generată',
+                        titlu: 'Taxă anuală generată',
+                        body: mesaj,
+                        sent_by: currentUser.id,
+                        tip: 'info',
+                        tip_destinatar: 'INDIVIDUAL',
+                        status_citire: false,
+                        is_read: false,
+                    }));
+                    await supabase.from('notificari').insert(notificari);
+                }
             } else {
                 showSuccess("Info", "Toți sportivii activi au deja o taxă anuală generată pentru acest an.");
             }

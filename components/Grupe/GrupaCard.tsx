@@ -1,13 +1,43 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Grupa as GrupaType, ProgramItem } from '../../types';
 import { Button, Card } from '../ui';
-import { TrashIcon, UsersIcon, UserPlusIcon, CogIcon } from '../icons';
+import { TrashIcon, UsersIcon, UserPlusIcon, CogIcon, CalendarIcon, ExclamationTriangleIcon } from '../icons';
 import { sortProgram } from './ProgramEditor';
 import { formatTime } from '../../utils/date';
+import { supabase } from '../../supabaseClient';
 
 interface GrupaWithDetails extends GrupaType {
     sportivi: { count: number }[];
     program: ProgramItem[];
+}
+
+interface ExceptieActiva {
+    id: string;
+    tip: string;
+    este_anulat: boolean;
+    data_inceput: string;
+    data_sfarsit: string | null;
+}
+
+// Returnează excepțiile active pentru ziua de azi
+function calculeazaBadge(exceptii: ExceptieActiva[]): { programModificat: boolean; anulatAzi: boolean } {
+    const azi = new Date().toISOString().split('T')[0];
+    let programModificat = false;
+    let anulatAzi = false;
+
+    for (const e of exceptii) {
+        const inInterval = e.data_inceput <= azi && (e.data_sfarsit == null || e.data_sfarsit >= azi);
+        const schimbareViitoare = e.tip === 'schimbare_permanenta' && e.data_inceput >= azi;
+
+        if (inInterval || schimbareViitoare) {
+            if (e.este_anulat && e.data_inceput <= azi && (e.data_sfarsit == null || e.data_sfarsit >= azi)) {
+                anulatAzi = true;
+            } else {
+                programModificat = true;
+            }
+        }
+    }
+    return { programModificat, anulatAzi };
 }
 
 export const GrupaCard: React.FC<{
@@ -16,15 +46,59 @@ export const GrupaCard: React.FC<{
     onDelete: (g: GrupaWithDetails) => void;
     onAdaugaSportivi: (g: GrupaWithDetails) => void;
     onConfigurareOrar: (g: GrupaWithDetails) => void;
+    onModificareOrar?: (g: GrupaWithDetails) => void;
     onGestionareSecundari?: (g: GrupaWithDetails) => void;
     nrSecundari?: number;
-}> = ({ grupa, onEdit, onDelete, onAdaugaSportivi, onConfigurareOrar, onGestionareSecundari, nrSecundari }) => {
+}> = ({
+    grupa,
+    onEdit,
+    onDelete,
+    onAdaugaSportivi,
+    onConfigurareOrar,
+    onModificareOrar,
+    onGestionareSecundari,
+    nrSecundari,
+}) => {
     const sportiviCount = grupa.sportivi?.[0]?.count ?? 0;
+    const [exceptii, setExceptii] = useState<ExceptieActiva[]>([]);
+
+    useEffect(() => {
+        const azi = new Date().toISOString().split('T')[0];
+        supabase
+            .from('orar_exceptii')
+            .select('id, tip, este_anulat, data_inceput, data_sfarsit')
+            .eq('grupa_id', grupa.id)
+            .or(
+                // excepții active azi sau în viitor (schimbare permanentă)
+                `and(data_inceput.lte.${azi},or(data_sfarsit.is.null,data_sfarsit.gte.${azi})),and(tip.eq.schimbare_permanenta,data_inceput.gte.${azi})`
+            )
+            .then(({ data }) => {
+                if (data) setExceptii(data as ExceptieActiva[]);
+            });
+    }, [grupa.id]);
+
+    const { programModificat, anulatAzi } = calculeazaBadge(exceptii);
 
     return (
         <Card className="flex flex-col h-full group">
             <div className="flex-grow">
-                <h3 className="text-xl font-bold text-white">{grupa.denumire}</h3>
+                <div className="flex items-start justify-between gap-2 mb-1">
+                    <h3 className="text-xl font-bold text-white">{grupa.denumire}</h3>
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                        {anulatAzi && (
+                            <span className="inline-flex items-center gap-1 bg-rose-500/20 text-rose-400 border border-rose-500/40 text-xs px-2 py-0.5 rounded-full font-medium">
+                                <ExclamationTriangleIcon className="w-3 h-3" />
+                                Anulat azi
+                            </span>
+                        )}
+                        {programModificat && !anulatAzi && (
+                            <span className="inline-flex items-center gap-1 bg-amber-500/20 text-amber-400 border border-amber-500/40 text-xs px-2 py-0.5 rounded-full font-medium">
+                                <CalendarIcon className="w-3 h-3" />
+                                Program modificat
+                            </span>
+                        )}
+                    </div>
+                </div>
                 <p className="text-sm text-slate-400 mb-4">{grupa.sala || 'Sală nespecificată'}</p>
                 <div className="flex flex-wrap items-center gap-3 text-sm mb-4">
                     <div className="flex items-center gap-2 text-green-400">
@@ -76,6 +150,17 @@ export const GrupaCard: React.FC<{
                     <CogIcon className="w-4 h-4 mr-1.5" />
                     Orar
                 </Button>
+                {onModificareOrar && (
+                    <Button
+                        size="sm"
+                        variant="warning"
+                        onClick={() => onModificareOrar(grupa)}
+                        title="Înregistrează o excepție sau schimbare permanentă de orar"
+                    >
+                        <CalendarIcon className="w-4 h-4 mr-1.5" />
+                        Modifică Program
+                    </Button>
+                )}
                 <Button size="sm" variant="primary" onClick={() => onEdit(grupa)}>Gestionează</Button>
             </div>
         </Card>

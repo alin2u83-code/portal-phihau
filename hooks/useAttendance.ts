@@ -8,7 +8,7 @@ export const useAttendance = () => {
 
     const saveAttendance = useCallback(async (
         antrenamentId: string,
-        records: { sportiv_id: string; status_id: string }[],
+        records: { sportiv_id: string; status_id: string; is_invitat?: boolean; grupa_origine_id?: string }[],
         allSportivIds?: string[]
     ) => {
         if (!antrenamentId) {
@@ -37,6 +37,8 @@ export const useAttendance = () => {
                     antrenament_id: antrenamentId,
                     sportiv_id: r.sportiv_id,
                     status_id: r.status_id,
+                    is_invitat: r.is_invitat ?? false,
+                    ...(r.grupa_origine_id ? { grupa_origine_id: r.grupa_origine_id } : {}),
                 }));
                 const { error } = await supabase
                     .from('prezenta_antrenament')

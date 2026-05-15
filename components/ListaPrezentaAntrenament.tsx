@@ -112,15 +112,19 @@ export const FormularPrezenta: React.FC<{
     antrenament: Antrenament & { grupe: Grupa & { sportivi: Sportiv[] }};
     onBack: () => void;
     onViewSportiv?: (s: Sportiv) => void;
-    saveAttendance: (id: string, records: { sportiv_id: string; status_id: string }[], allSportivIds?: string[]) => Promise<boolean>;
+    saveAttendance: (id: string, records: { sportiv_id: string; status_id: string; is_invitat?: boolean; grupa_origine_id?: string }[], allSportivIds?: string[]) => Promise<boolean>;
 }> = ({ antrenament, onBack, onViewSportiv, saveAttendance }) => {
     const { prezentId, absentId } = useStatusePrezenta();
+    const { sportivi: totiSportivii } = useData();
     const [presentIds, setPresentIds] = useState<Set<string>>(new Set());
     const [loading, setLoading] = useState(false);
     const [saved, setSaved] = useState(false);
     const [selectedSportiv, setSelectedSportiv] = useState<Sportiv | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [sportiviSecundari, setSportiviSecundari] = useState<SportivCuTip[]>([]);
+    const [invitati, setInvitati] = useState<SportivCuTip[]>([]);
+    const [showInvitatModal, setShowInvitatModal] = useState(false);
+    const [searchInvitat, setSearchInvitat] = useState('');
 
     // 1. Initial Data Population
     useEffect(() => {
@@ -207,6 +211,33 @@ export const FormularPrezenta: React.FC<{
         });
     }, [sportiviInGrupa, presentIds, filterStatus]);
 
+    // Candidați pentru invitat: sportivi din același club, excluzi cei deja în grupă
+    const candidatiInvitat = useMemo(() => {
+        const idInGrupa = new Set(sportiviInGrupa.map(s => s.id));
+        const idInvitati = new Set(invitati.map(s => s.id));
+        const clubId = antrenament.grupe?.club_id ?? (antrenament as any).club_id;
+        return totiSportivii
+            .filter(s => s.status === 'Activ' && !idInGrupa.has(s.id) && !idInvitati.has(s.id) && (!clubId || s.club_id === clubId))
+            .filter(s => {
+                if (!searchInvitat.trim()) return true;
+                const q = searchInvitat.toLowerCase();
+                return s.nume.toLowerCase().includes(q) || s.prenume.toLowerCase().includes(q);
+            })
+            .sort((a, b) => a.nume.localeCompare(b.nume));
+    }, [sportiviInGrupa, invitati, totiSportivii, searchInvitat, antrenament]);
+
+    const addInvitat = (s: Sportiv) => {
+        setInvitati(prev => [...prev, { ...s, tip: 'secundar' as TipMembru }]);
+        setPresentIds(prev => new Set([...prev, s.id]));
+        setShowInvitatModal(false);
+        setSearchInvitat('');
+    };
+
+    const removeInvitat = (id: string) => {
+        setInvitati(prev => prev.filter(s => s.id !== id));
+        setPresentIds(prev => { const n = new Set(prev); n.delete(id); return n; });
+    };
+
     // 3. Save Logic
     const handleSaveAttendance = async () => {
         if (!prezentId) return;
@@ -214,12 +245,15 @@ export const FormularPrezenta: React.FC<{
         setSaved(false);
 
         const allSportivIds = sportiviInGrupa.map(s => s.id);
-        const records = sportiviInGrupa
+        const recordsGrupa = sportiviInGrupa
             .filter(s => presentIds.has(s.id))
-            .map(s => ({ sportiv_id: s.id, status_id: prezentId }));
+            .map(s => ({ sportiv_id: s.id, status_id: prezentId, is_invitat: false }));
+        const recordsInvitati = invitati
+            .filter(s => presentIds.has(s.id))
+            .map(s => ({ sportiv_id: s.id, status_id: prezentId, is_invitat: true, grupa_origine_id: s.grupa_id ?? undefined }));
 
-        const success = await saveAttendance(antrenament.id, records, allSportivIds);
-        
+        const success = await saveAttendance(antrenament.id, [...recordsGrupa, ...recordsInvitati], allSportivIds);
+
         setLoading(false);
         if (success) {
             setSaved(true);
@@ -257,6 +291,11 @@ export const FormularPrezenta: React.FC<{
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 p-4 bg-slate-800/20 rounded-2xl border border-slate-700/30">
                 <Button size="sm" variant="secondary" onClick={() => setAllAttendance(true)} className="w-full bg-slate-800 hover:bg-slate-700">Toți Prezenți</Button>
                 <Button size="sm" variant="secondary" onClick={() => setAllAttendance(false)} className="w-full bg-slate-800 hover:bg-slate-700">Toți Absenți</Button>
+                <div className="sm:col-span-2 flex justify-center">
+                    <Button size="sm" variant="info" onClick={() => setShowInvitatModal(true)} className="gap-2">
+                        <PlusIcon className="w-4 h-4" /> Adaugă invitat
+                    </Button>
+                </div>
                 <div className="sm:col-span-2 flex flex-col items-center pt-2 gap-2">
                     <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">
                         Status: <span className="text-indigo-400">{presentIds.size}</span> / {sportiviInGrupa.length} prezenți
@@ -287,68 +326,133 @@ export const FormularPrezenta: React.FC<{
             </div>
 
             <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar mb-6">
-                {filteredSportivi.length === 0 ? (
+                {filteredSportivi.length === 0 && invitati.length === 0 ? (
                     <div className="text-center py-8 text-slate-500 italic">
                         Nu există sportivi pentru filtrul selectat.
                     </div>
                 ) : (
-                    filteredSportivi.map(s => {
-                        const isPresent = presentIds.has(s.id);
-                        return (
-                            <div 
-                                key={s.id} 
-                                className={`group flex items-center gap-4 p-4 rounded-2xl transition-all cursor-pointer border ${isPresent ? 'bg-emerald-500/10 border-emerald-500/30 shadow-sm' : 'bg-slate-800/30 border-slate-700/50 hover:bg-slate-800/50'}`}
-                                onClick={() => toggleSportiv(s.id)}
-                            >
-                                <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${isPresent ? 'bg-emerald-500 border-emerald-500 scale-110' : 'border-slate-600 group-hover:border-slate-500'}`}>
-                                    <motion.div
-                                        initial={false}
-                                        animate={{ scale: isPresent ? 1 : 0 }}
-                                        transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                                    >
-                                        <CheckCircleIcon className="w-4 h-4 text-white" />
-                                    </motion.div>
-                                </div>
-                                <div className="flex-grow min-w-0 select-none">
-                                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                                        <span className={`font-bold transition-colors ${isPresent ? 'text-emerald-400' : 'text-slate-300'}`}>
-                                            {s.nume} {s.prenume}
-                                        </span>
-                                        {(s as SportivCuTip).tip === 'secundar' && (
-                                            <span
-                                                title="Grupă secundară"
-                                                className="inline-flex items-center bg-purple-500/20 text-purple-300 text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded border border-purple-500/30 leading-none shrink-0"
-                                            >
-                                                SECUNDAR
-                                            </span>
-                                        )}
+                    <>
+                        {filteredSportivi.map(s => {
+                            const isPresent = presentIds.has(s.id);
+                            return (
+                                <div
+                                    key={s.id}
+                                    className={`group flex items-center gap-4 p-4 rounded-2xl transition-all cursor-pointer border ${isPresent ? 'bg-emerald-500/10 border-emerald-500/30 shadow-sm' : 'bg-slate-800/30 border-slate-700/50 hover:bg-slate-800/50'}`}
+                                    onClick={() => toggleSportiv(s.id)}
+                                >
+                                    <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${isPresent ? 'bg-emerald-500 border-emerald-500 scale-110' : 'border-slate-600 group-hover:border-slate-500'}`}>
+                                        <motion.div
+                                            initial={false}
+                                            animate={{ scale: isPresent ? 1 : 0 }}
+                                            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                                        >
+                                            <CheckCircleIcon className="w-4 h-4 text-white" />
+                                        </motion.div>
                                     </div>
+                                    <div className="flex-grow min-w-0 select-none">
+                                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                            <span className={`font-bold transition-colors ${isPresent ? 'text-emerald-400' : 'text-slate-300'}`}>
+                                                {s.nume} {s.prenume}
+                                            </span>
+                                            {(s as SportivCuTip).tip === 'secundar' && (
+                                                <span className="inline-flex items-center bg-purple-500/20 text-purple-300 text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded border border-purple-500/30 leading-none shrink-0">
+                                                    SECUNDAR
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    {onViewSportiv && (
+                                        <Button
+                                            size="sm"
+                                            variant="secondary"
+                                            className="opacity-0 group-hover:opacity-100 h-8 px-2 text-[10px]"
+                                            onClick={(e) => { e.stopPropagation(); setSelectedSportiv(s); setIsModalOpen(true); if (onViewSportiv) onViewSportiv(s); }}
+                                        >
+                                            Profil
+                                        </Button>
+                                    )}
                                 </div>
-                                {onViewSportiv && (
-                                    <Button 
-                                        size="sm" 
-                                        variant="secondary" 
+                            );
+                        })}
+
+                        {/* Invitați */}
+                        {invitati.map(s => {
+                            const isPresent = presentIds.has(s.id);
+                            return (
+                                <div
+                                    key={`inv-${s.id}`}
+                                    className={`group flex items-center gap-4 p-4 rounded-2xl transition-all cursor-pointer border ${isPresent ? 'bg-amber-500/10 border-amber-500/30 shadow-sm' : 'bg-slate-800/30 border-amber-700/30 hover:bg-slate-800/50'}`}
+                                    onClick={() => toggleSportiv(s.id)}
+                                >
+                                    <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${isPresent ? 'bg-amber-500 border-amber-500 scale-110' : 'border-amber-600 group-hover:border-amber-500'}`}>
+                                        <motion.div
+                                            initial={false}
+                                            animate={{ scale: isPresent ? 1 : 0 }}
+                                            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                                        >
+                                            <CheckCircleIcon className="w-4 h-4 text-white" />
+                                        </motion.div>
+                                    </div>
+                                    <div className="flex-grow min-w-0 select-none">
+                                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                            <span className={`font-bold transition-colors ${isPresent ? 'text-amber-400' : 'text-slate-300'}`}>
+                                                {s.nume} {s.prenume}
+                                            </span>
+                                            <span className="inline-flex items-center bg-amber-500/20 text-amber-300 text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded border border-amber-500/30 leading-none shrink-0">
+                                                INVITAT
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <Button
+                                        size="sm"
+                                        variant="danger"
                                         className="opacity-0 group-hover:opacity-100 h-8 px-2 text-[10px]"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setSelectedSportiv(s);
-                                            setIsModalOpen(true);
-                                            if (onViewSportiv) onViewSportiv(s);
-                                        }}
+                                        onClick={(e) => { e.stopPropagation(); removeInvitat(s.id); }}
                                     >
-                                        Profil
+                                        Elimină
                                     </Button>
-                                )}
-                            </div>
-                        );
-                    })
+                                </div>
+                            );
+                        })}
+                    </>
                 )}
             </div>
 
-            <SportivInfoModal 
-                sportiv={selectedSportiv} 
-                isOpen={isModalOpen} 
-                onClose={() => setIsModalOpen(false)} 
+            {/* Modal căutare invitat */}
+            <Modal isOpen={showInvitatModal} onClose={() => { setShowInvitatModal(false); setSearchInvitat(''); }} title="Adaugă sportiv invitat">
+                <div className="space-y-4">
+                    <Input
+                        label="Caută după nume"
+                        value={searchInvitat}
+                        onChange={e => setSearchInvitat(e.target.value)}
+                        placeholder="Nume sau prenume..."
+                        autoFocus
+                    />
+                    <div className="max-h-72 overflow-y-auto space-y-1 pr-1">
+                        {candidatiInvitat.length === 0 ? (
+                            <p className="text-center text-slate-500 italic py-6 text-sm">
+                                {searchInvitat ? 'Niciun sportiv găsit.' : 'Toți sportivii sunt deja în grupă.'}
+                            </p>
+                        ) : (
+                            candidatiInvitat.map(s => (
+                                <button
+                                    key={s.id}
+                                    onClick={() => addInvitat(s)}
+                                    className="w-full text-left px-4 py-3 rounded-xl bg-slate-800/50 hover:bg-amber-500/10 border border-slate-700/50 hover:border-amber-500/30 transition-all flex items-center justify-between group"
+                                >
+                                    <span className="font-semibold text-slate-200 group-hover:text-amber-300">{s.nume} {s.prenume}</span>
+                                    <span className="text-xs text-slate-500 group-hover:text-amber-400">Adaugă</span>
+                                </button>
+                            ))
+                        )}
+                    </div>
+                </div>
+            </Modal>
+
+            <SportivInfoModal
+                sportiv={selectedSportiv}
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
             />
 
             <div className="pt-4 border-t border-slate-800">

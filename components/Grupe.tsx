@@ -15,6 +15,7 @@ import { GrupaFormModal } from './Grupe/GrupaFormModal';
 import { GrupaCard } from './Grupe/GrupaCard';
 import { AdaugaSportiviModal } from './Grupe/AdaugaSportiviModal';
 import { OrarEditorModal } from './Grupe/OrarEditorModal';
+import { OrarModificareModal } from './Grupe/OrarModificareModal';
 import { GrupeSecundareModal } from './Grupe/GrupeSecundareModal';
 import { TourOverlay, TourButton, TOURS } from './GhidUtilizator';
 
@@ -45,6 +46,7 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
     const [isDeleting, setIsDeleting] = useState(false);
     const [grupaForAdaugaSportivi, setGrupaForAdaugaSportivi] = useState<GrupaWithDetails | null>(null);
     const [grupaForOrar, setGrupaForOrar] = useState<GrupaWithDetails | null>(null);
+    const [grupaForModificareOrar, setGrupaForModificareOrar] = useState<GrupaWithDetails | null>(null);
     const [grupaForSecundari, setGrupaForSecundari] = useState<GrupaWithDetails | null>(null);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const { showError, showSuccess } = useError();
@@ -234,7 +236,7 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
             {grupe.length > 0 ? (
                 <div data-tour="grupe-lista" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {(grupe as GrupaWithDetails[]).map(grupa => (
-                        <GrupaCard key={grupa.id} grupa={grupa} onEdit={handleOpenEdit} onDelete={setGrupaToDelete} onAdaugaSportivi={setGrupaForAdaugaSportivi} onConfigurareOrar={setGrupaForOrar} onGestionareSecundari={setGrupaForSecundari} />
+                        <GrupaCard key={grupa.id} grupa={grupa} onEdit={handleOpenEdit} onDelete={setGrupaToDelete} onAdaugaSportivi={setGrupaForAdaugaSportivi} onConfigurareOrar={setGrupaForOrar} onModificareOrar={setGrupaForModificareOrar} onGestionareSecundari={setGrupaForSecundari} />
                     ))}
                 </div>
             ) : (
@@ -253,6 +255,15 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
                     onClose={() => setGrupaForOrar(null)}
                     grupa={grupaForOrar}
                     setGrupe={setGrupe}
+                />
+            )}
+            {grupaForModificareOrar && (
+                <OrarModificareModal
+                    isOpen={!!grupaForModificareOrar}
+                    onClose={() => setGrupaForModificareOrar(null)}
+                    grupa={grupaForModificareOrar}
+                    currentUserId={currentUser?.id ?? ''}
+                    onSaved={handleRefresh}
                 />
             )}
             {grupaForAdaugaSportivi && (

@@ -80,7 +80,7 @@ export async function askClaude(
 ): Promise<string> {
   const systemPrompt = buildSystemPrompt(context);
 
-  const response = await fetch('/api/claude-proxy', {
+  const response = await fetch('/api/gemini-proxy', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ messages, system: systemPrompt }),
@@ -92,7 +92,7 @@ export async function askClaude(
   }
 
   const data = await response.json();
-  const text = data.content?.[0]?.text;
+  const text = data.text;
   if (!text) throw new Error('Răspuns invalid de la server');
   return text;
 }

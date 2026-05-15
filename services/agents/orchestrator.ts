@@ -118,8 +118,7 @@ export async function orchestrate(
 
   const enrichedSystemPrompt = systemPrompt + formatRAGContext(ragChunks);
 
-  // Call Claude via proxy
-  const response = await fetch('/api/claude-proxy', {
+  const response = await fetch('/api/gemini-proxy', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -134,7 +133,7 @@ export async function orchestrate(
   }
 
   const data = await response.json();
-  const text = data.content?.[0]?.text;
+  const text = data.text;
   if (!text) throw new Error('Răspuns invalid de la server');
 
   return {
